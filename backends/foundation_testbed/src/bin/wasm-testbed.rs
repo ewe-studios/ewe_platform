@@ -172,7 +172,7 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                     run_bindgen_web(&build, &integration_dir, &args.browser, args.headless)?;
                 }
                 Mode::BindgenDeno => {
-                    run_bindgen_deno(&build, &integration_dir)?;
+                    run_bindgen_deno(&build, &integration_dir, args.filter.as_deref())?;
                 }
                 Mode::BindgenWrangler => {
                     run_bindgen_wrangler(&build, &integration_dir)?;
@@ -241,6 +241,7 @@ fn run_bindgen_web(
 fn run_bindgen_deno(
     build: &build::BuildOutput,
     integration_dir: &std::path::Path,
+    filter: Option<&str>,
 ) -> Result<(), ErrorTrace<WasmTestbedError>> {
     use error::{ToTrace, WasmTestbedError};
     use wasm::BindgenTarget;
@@ -258,13 +259,21 @@ fn run_bindgen_deno(
     // we need it exported so run.js can access __wbgt_ test functions.
     let js_file = integration_dir.join(format!("{}.js", build.package_name));
     if let Ok(content) = std::fs::read_to_string(&js_file) {
+        // A test binary's start function is libtest's `main`, which runs every
+        // plain `#[test]` (threads, filesystem: they abort on wasm) before any
+        // `#[wasm_bindgen_test]` case. wasm-bindgen's own test runner skips it
+        // (`emit_start(false)`); the CLI has no flag for that, so drop the call.
+        let content = content.replace("wasm.__wbindgen_start();", "");
         // Add `export { wasm };` at the end of the file
         let patched = format!("{content}\nexport {{ wasm }};\n");
         std::fs::write(&js_file, patched).map_err(|e| WasmTestbedError::Io(e).trace())?;
     }
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
-    let tests = wasm_test::discover_tests(&bg_wasm)?;
+    let mut tests = wasm_test::discover_tests(&bg_wasm)?;
+    if let Some(filter) = filter {
+        tests.retain(|name| name.contains(filter));
+    }
     tracing::info!("Discovered {} tests", tests.len());
 
     init::write_bindgen_runjs_to(

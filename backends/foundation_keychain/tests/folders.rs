@@ -11,8 +11,8 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test};
-use foundation_db::core::storage_provider::AsyncQueryStore;
+use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::folders;
 use foundation_keychain::core::models::folder::{FolderCreateRequest, FolderUpdateRequest};
@@ -39,11 +39,12 @@ where
 fn fresh_ctx() -> (KeychainContext, TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("keychain_test.db");
-    let provider = StorageProvider::new(StorageBackend::Turso {
-        url: db_path.to_str().unwrap().to_string(),
+    let provider = BlockingFutureExt::block({
+        let url = db_path.to_str().unwrap().to_string();
+        async move { StorageProvider::new(StorageBackend::Turso { url }).await }
     })
     .expect("init turso");
-    let db: Arc<dyn AsyncQueryStore> = Arc::new(provider);
+    let db: Arc<dyn QueryStore> = Arc::new(provider);
 
     let db_for_schema = Arc::clone(&db);
     drive(async move { apply_schema(db_for_schema.as_ref()).await }).expect("apply schema");

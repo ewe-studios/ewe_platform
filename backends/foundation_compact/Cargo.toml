@@ -1,6 +1,6 @@
 [package]
 name = "foundation_compact"
-version = "0.2.1"
+version = "0.2.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -14,6 +14,7 @@ cfg-if = "1"
 fstr = { version = "0.2.20", default-features = false }
 rand_core = { version = "0.10", default-features = false }
 rand_chacha = { version = "0.10", default-features = false }
+foldhash = { version = "0.2", default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 forkguard = { version = "0.1", optional = true }
 chacha20poly1305 = { version = "0.10", default-features = false, features = ["alloc"], optional = true }
@@ -27,14 +28,31 @@ libc = { version = "0.2", default-features = false }
 [target.'cfg(not(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"))))'.dependencies]
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 
-# wasm32-unknown-unknown only: JS bindings for time polyfill + Web Crypto entropy
+# wasm32-unknown-unknown only: wasm-bindgen bindings for the time polyfill and
+# Web Crypto entropy. Optional: the `host-abi` backend needs neither.
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
-wasm-bindgen = { version = "0.2.70" }
-js-sys = { version = "0.3.20" }
+wasm-bindgen = { version = "0.2.70", optional = true }
+js-sys = { version = "0.3.20", optional = true }
 
 [features]
-default = ["std"]
+default = ["std", "wasm-bindgen"]
 std = ["fstr/std"]
+# wasm32-unknown-unknown backends for time (`Instant`, `SystemTime`) and entropy.
+# No effect on other targets.
+#
+# - `wasm-bindgen`: calls `performance.now()`, `Date.now()` and
+#   `crypto.getRandomValues()` through wasm-bindgen glue, for modules loaded by
+#   wasm-bindgen's JS (Cloudflare Workers, `wasm-bindgen-test`).
+# - `host-abi`: imports the same three from the `abi` host module that
+#   `foundation_wasm`'s `foundation-wasm.js` supplies, with no wasm-bindgen in
+#   the module (the owned `js-foundation-wasm` path).
+#
+# `host-abi` wins when both are on, so a crate elsewhere in the graph that
+# keeps compact's default features cannot put wasm-bindgen imports back into an
+# owned module. With neither on, the host-ABI backend is used: it is the only
+# one that needs no extra dependency.
+wasm-bindgen = ["dep:wasm-bindgen", "dep:js-sys"]
+host-abi = []
 serde = ["dep:serde"]
 global_gen = ["std", "dep:forkguard"]
 native = ["std", "global_gen"]
@@ -44,9 +62,6 @@ crypto-chacha = ["dep:chacha20poly1305"]
 [target.'cfg(not(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"))))'.dev-dependencies]
 tracing = "0.1"
 serde_test = "1"
-
-[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
-wasm-bindgen-test = "0.3"
 
 [lints.rust]
 missing_docs = "allow"

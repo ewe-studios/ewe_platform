@@ -22,7 +22,7 @@ use foundation_compact::Instant;
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},
     wasm::{JSThreadYielder, WaitStatus},
-    FnReady, ProcessController, TaskIterator, TaskStatus,
+    Ctx, FnReady, ProcessController, TaskIterator, TaskStatus,
 };
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::wasm_bindgen_test;
@@ -39,6 +39,9 @@ use wasm_bindgen_test::wasm_bindgen_test;
 #[wasm_bindgen_test]
 fn js_yield_returns_immediately() {
     let yielder = JSThreadYielder::new();
+    // Warm up: the first call on a fresh instance pays one-off costs (JIT,
+    // first host-time read) that can exceed the bound on a busy runner.
+    let _ = yielder.yield_for(Duration::from_millis(100));
     let start = Instant::now();
 
     // Ask to "wait" for 100ms
@@ -118,7 +121,8 @@ fn js_yield_callback_reschedules_executor() {
                 done_clone.store(true, Ordering::Relaxed);
             }
         })))
-        .schedule()
+        .as_scheduled()
+        .spawn()
         .expect("should schedule");
 
     // Set a safety timeout — if the executor doesn't re-enter after JS yield,
@@ -179,7 +183,8 @@ fn concurrent_d1_queries_make_progress() {
                     dc.fetch_add(1, Ordering::Relaxed);
                 }
             })))
-            .schedule()
+            .as_scheduled()
+        .spawn()
             .expect("should schedule task");
         let _ = i; // suppress unused variable warning
     }
@@ -226,7 +231,8 @@ fn no_deadlock_with_js_yield() {
                 // counter already incremented in the task
             }
         })))
-        .schedule()
+        .as_scheduled()
+        .spawn()
         .expect("should schedule");
 
     // Safety timeout
@@ -267,3 +273,116 @@ fn no_deadlock_with_js_yield() {
         "All 5 iterations should complete without deadlock"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Spec 68 / spec 65 feature 06 T5: event-driven park → wake → resume on the
+// wasm-bindgen backend (the one `cf-cloud-provider` runs on).
+
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use foundation_core::valtron::{WakeCallback, WakeSignal};
+
+/// Resolve after `ms` on the JS event loop (`setTimeout` looked up on the global
+/// object, so it works in Deno, browsers and Workers alike).
+async fn sleep_ms(ms: i32) {
+    let promise = js_sys::Promise::new(&mut |resolve, _reject| {
+        let global = js_sys::global();
+        let set_timeout: js_sys::Function =
+            js_sys::Reflect::get(&global, &wasm_bindgen::JsValue::from_str("setTimeout"))
+                .expect("global setTimeout")
+                .unchecked_into();
+        set_timeout
+            .call2(&global, &resolve, &wasm_bindgen::JsValue::from(ms))
+            .expect("setTimeout call");
+    });
+    wasm_bindgen_futures::JsFuture::from(promise)
+        .await
+        .expect("timer promise");
+}
+
+/// Parks on a [`WakeSignal`] on its first poll, then emits one value.
+struct ParkOnceTask {
+    polls: Rc<AtomicUsize>,
+    callback_slot: Rc<RefCell<Option<WakeCallback>>>,
+    step: u8,
+}
+
+impl TaskIterator for ParkOnceTask {
+    type Ready = usize;
+    type Pending = ();
+
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        self.polls.fetch_add(1, Ordering::Relaxed);
+        let step = self.step;
+        self.step = self.step.saturating_add(1);
+        match step {
+            0 => {
+                let signal = WakeSignal::new();
+                *self.callback_slot.borrow_mut() = Some(signal.callback());
+                Some(TaskStatus::Depends(Arc::new(signal)))
+            }
+            1 => Some(TaskStatus::Ready(7)),
+            _ => None,
+        }
+    }
+}
+
+/// A task parked on `Depends(WakeSignal)`:
+/// - `run_until_complete` returns to JS once it is parked (no spin);
+/// - it is not re-polled while the event loop turns (no timer polling);
+/// - firing the wake from JS-side async work (`spawn_local` after a timer, as a
+///   fetch completing would) resumes the executor via the microtask resume and
+///   the task completes.
+#[wasm_bindgen_test]
+async fn depends_task_parks_until_wake_signal_fires() {
+    initialize_pool(42);
+
+    let polls = Rc::new(AtomicUsize::new(0));
+    let callback_slot: Rc<RefCell<Option<WakeCallback>>> = Rc::new(RefCell::new(None));
+    let value = Arc::new(AtomicUsize::new(0));
+
+    let value_clone = Arc::clone(&value);
+    spawn()
+        .with_task(ParkOnceTask {
+            polls: Rc::clone(&polls),
+            callback_slot: Rc::clone(&callback_slot),
+            step: 0,
+        })
+        .with_resolver(Box::new(FnReady::new(move |item, _| {
+            if let TaskStatus::Ready(v) = item {
+                value_clone.store(v, Ordering::Relaxed);
+            }
+        })))
+        .as_scheduled()
+        .spawn()
+        .expect("should schedule");
+
+    run_until_complete();
+    assert_eq!(polls.load(Ordering::Relaxed), 1, "polled once, then parked");
+
+    // Let the event loop turn: a parked task must not be re-polled.
+    sleep_ms(20).await;
+    assert_eq!(
+        polls.load(Ordering::Relaxed),
+        1,
+        "a parked task must not be re-polled before its signal fires"
+    );
+
+    // Fire the wake from JS-side async work, like a fetch resolving.
+    let slot = Rc::clone(&callback_slot);
+    wasm_bindgen_futures::spawn_local(async move {
+        sleep_ms(5).await;
+        let wake = slot.borrow_mut().take().expect("the task registered its wake");
+        wake();
+    });
+
+    for _ in 0..200 {
+        if value.load(Ordering::Relaxed) == 7 {
+            break;
+        }
+        sleep_ms(1).await;
+    }
+    assert_eq!(value.load(Ordering::Relaxed), 7, "resumed and completed after the wake");
+}
+

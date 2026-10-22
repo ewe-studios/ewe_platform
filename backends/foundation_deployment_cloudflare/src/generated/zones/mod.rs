@@ -14314,12 +14314,12 @@ pub type Web3HostnameDeleteIpfsUniversalPathGatewayContentListEntryArgs =
 
 /// PUT /accounts/{account_id}/addressing/address_maps/{address_map_id}/zones/{zone_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14331,7 +14331,7 @@ pub type Web3HostnameDeleteIpfsUniversalPathGatewayContentListEntryArgs =
 /// })).await?;
 /// ```
 pub async fn ip_address_management_address_maps_add_a_zone_membership_to_an_address_map_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &IpAddressManagementAddressMapsAddAZoneMembershipToAnAddressMapArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14352,7 +14352,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14361,12 +14361,12 @@ where
 
 /// DELETE /accounts/{account_id}/addressing/address_maps/{address_map_id}/zones/{zone_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14380,7 +14380,7 @@ where
 pub async fn ip_address_management_address_maps_remove_a_zone_membership_from_an_address_map_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &IpAddressManagementAddressMapsRemoveAZoneMembershipFromAnAddressMapArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14401,7 +14401,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14410,12 +14410,12 @@ where
 
 /// GET /zones.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14427,7 +14427,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZonesGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14455,7 +14455,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14464,12 +14464,12 @@ where
 
 /// POST /zones.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14481,7 +14481,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_post_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZonesPostArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14503,7 +14503,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14512,12 +14512,12 @@ where
 
 /// GET /zones/{zone_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14529,7 +14529,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_0_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Zones0GetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14547,7 +14547,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14556,12 +14556,12 @@ where
 
 /// PATCH /zones/{zone_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14573,7 +14573,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_0_patch_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Zones0PatchArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14595,7 +14595,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14604,12 +14604,12 @@ where
 
 /// DELETE /zones/{zone_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14621,7 +14621,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_0_delete_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Zones0DeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14639,7 +14639,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14648,12 +14648,12 @@ where
 
 /// GET /zones/{zone_id}/access/apps.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14665,7 +14665,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_applications_list_access_applications_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessApplicationsListAccessApplicationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14683,7 +14683,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14692,12 +14692,12 @@ where
 
 /// POST /zones/{zone_id}/access/apps.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14709,7 +14709,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_applications_add_a_bookmark_application_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessApplicationsAddABookmarkApplicationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14734,7 +14734,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14743,12 +14743,12 @@ where
 
 /// GET /zones/{zone_id}/access/apps/ca.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14762,7 +14762,7 @@ where
 pub async fn zone_level_access_short_lived_certificate_c_as_list_short_lived_certificate_c_as_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessShortLivedCertificateCAsListShortLivedCertificateCAsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14780,7 +14780,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14789,12 +14789,12 @@ where
 
 /// GET /zones/{zone_id}/access/apps/{app_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14806,7 +14806,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_applications_get_an_access_application_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessApplicationsGetAnAccessApplicationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14824,7 +14824,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14833,12 +14833,12 @@ where
 
 /// PUT /zones/{zone_id}/access/apps/{app_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14850,7 +14850,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_applications_update_a_bookmark_application_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessApplicationsUpdateABookmarkApplicationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14875,7 +14875,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14884,12 +14884,12 @@ where
 
 /// DELETE /zones/{zone_id}/access/apps/{app_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14901,7 +14901,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_applications_delete_an_access_application_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessApplicationsDeleteAnAccessApplicationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14919,7 +14919,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14928,12 +14928,12 @@ where
 
 /// GET /zones/{zone_id}/access/apps/{app_id}/ca.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14947,7 +14947,7 @@ where
 pub async fn zone_level_access_short_lived_certificate_c_as_get_a_short_lived_certificate_ca_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessShortLivedCertificateCAsGetAShortLivedCertificateCaArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -14965,7 +14965,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -14974,12 +14974,12 @@ where
 
 /// POST /zones/{zone_id}/access/apps/{app_id}/ca.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -14993,7 +14993,7 @@ where
 pub async fn zone_level_access_short_lived_certificate_c_as_create_a_short_lived_certificate_ca_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessShortLivedCertificateCAsCreateAShortLivedCertificateCaArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15011,7 +15011,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15020,12 +15020,12 @@ where
 
 /// DELETE /zones/{zone_id}/access/apps/{app_id}/ca.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15039,7 +15039,7 @@ where
 pub async fn zone_level_access_short_lived_certificate_c_as_delete_a_short_lived_certificate_ca_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessShortLivedCertificateCAsDeleteAShortLivedCertificateCaArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15057,7 +15057,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15066,12 +15066,12 @@ where
 
 /// GET /zones/{zone_id}/access/apps/{app_id}/policies.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15083,7 +15083,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_policies_list_access_policies_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessPoliciesListAccessPoliciesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15104,7 +15104,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15113,12 +15113,12 @@ where
 
 /// POST /zones/{zone_id}/access/apps/{app_id}/policies.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15130,7 +15130,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_policies_create_an_access_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessPoliciesCreateAnAccessPolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15155,7 +15155,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15164,12 +15164,12 @@ where
 
 /// GET /zones/{zone_id}/access/apps/{app_id}/policies/{policy_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15181,7 +15181,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_policies_get_an_access_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessPoliciesGetAnAccessPolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15202,7 +15202,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15211,12 +15211,12 @@ where
 
 /// PUT /zones/{zone_id}/access/apps/{app_id}/policies/{policy_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15228,7 +15228,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_policies_update_an_access_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessPoliciesUpdateAnAccessPolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15253,7 +15253,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15262,12 +15262,12 @@ where
 
 /// DELETE /zones/{zone_id}/access/apps/{app_id}/policies/{policy_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15279,7 +15279,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_policies_delete_an_access_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessPoliciesDeleteAnAccessPolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15300,7 +15300,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15309,12 +15309,12 @@ where
 
 /// POST /zones/{zone_id}/access/apps/{app_id}/revoke_tokens.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15326,7 +15326,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_applications_revoke_service_tokens_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessApplicationsRevokeServiceTokensArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15347,7 +15347,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15356,12 +15356,12 @@ where
 
 /// PUT /zones/{zone_id}/access/apps/{app_id}/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15373,7 +15373,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_applications_put_update_access_application_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessApplicationsPutUpdateAccessApplicationSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15401,7 +15401,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15410,12 +15410,12 @@ where
 
 /// PATCH /zones/{zone_id}/access/apps/{app_id}/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15427,7 +15427,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_applications_patch_update_access_application_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessApplicationsPatchUpdateAccessApplicationSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15455,7 +15455,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15464,12 +15464,12 @@ where
 
 /// GET /zones/{zone_id}/access/apps/{app_id}/user_policy_checks.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15481,7 +15481,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_applications_test_access_policies_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessApplicationsTestAccessPoliciesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15502,7 +15502,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15511,12 +15511,12 @@ where
 
 /// GET /zones/{zone_id}/access/certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15528,7 +15528,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_mtls_authentication_list_mtls_certificates_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessMtlsAuthenticationListMtlsCertificatesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15549,7 +15549,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15558,12 +15558,12 @@ where
 
 /// POST /zones/{zone_id}/access/certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15575,7 +15575,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_mtls_authentication_add_an_mtls_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessMtlsAuthenticationAddAnMtlsCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15597,7 +15597,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15606,12 +15606,12 @@ where
 
 /// GET /zones/{zone_id}/access/certificates/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15625,7 +15625,7 @@ where
 pub async fn zone_level_access_mtls_authentication_list_mtls_certificates_hostname_settings_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessMtlsAuthenticationListMtlsCertificatesHostnameSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15643,7 +15643,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15652,12 +15652,12 @@ where
 
 /// PUT /zones/{zone_id}/access/certificates/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15669,7 +15669,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_mtls_authentication_update_an_mtls_certificate_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessMtlsAuthenticationUpdateAnMtlsCertificateSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15691,7 +15691,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15700,12 +15700,12 @@ where
 
 /// GET /zones/{zone_id}/access/certificates/{certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15717,7 +15717,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_mtls_authentication_get_an_mtls_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessMtlsAuthenticationGetAnMtlsCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15738,7 +15738,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15747,12 +15747,12 @@ where
 
 /// PUT /zones/{zone_id}/access/certificates/{certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15764,7 +15764,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_mtls_authentication_update_an_mtls_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessMtlsAuthenticationUpdateAnMtlsCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15789,7 +15789,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15798,12 +15798,12 @@ where
 
 /// DELETE /zones/{zone_id}/access/certificates/{certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15815,7 +15815,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_mtls_authentication_delete_an_mtls_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessMtlsAuthenticationDeleteAnMtlsCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15836,7 +15836,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15845,12 +15845,12 @@ where
 
 /// GET /zones/{zone_id}/access/groups.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15862,7 +15862,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_groups_list_access_groups_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessGroupsListAccessGroupsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15880,7 +15880,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15889,12 +15889,12 @@ where
 
 /// POST /zones/{zone_id}/access/groups.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15906,7 +15906,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_groups_create_an_access_group_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessGroupsCreateAnAccessGroupArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15928,7 +15928,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15937,12 +15937,12 @@ where
 
 /// GET /zones/{zone_id}/access/groups/{group_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15954,7 +15954,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_groups_get_an_access_group_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessGroupsGetAnAccessGroupArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -15972,7 +15972,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -15981,12 +15981,12 @@ where
 
 /// PUT /zones/{zone_id}/access/groups/{group_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -15998,7 +15998,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_groups_update_an_access_group_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessGroupsUpdateAnAccessGroupArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16020,7 +16020,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16029,12 +16029,12 @@ where
 
 /// DELETE /zones/{zone_id}/access/groups/{group_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16046,7 +16046,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_groups_delete_an_access_group_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessGroupsDeleteAnAccessGroupArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16064,7 +16064,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16073,12 +16073,12 @@ where
 
 /// GET /zones/{zone_id}/access/identity_providers.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16090,7 +16090,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_identity_providers_list_access_identity_providers_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessIdentityProvidersListAccessIdentityProvidersArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16111,7 +16111,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16120,12 +16120,12 @@ where
 
 /// POST /zones/{zone_id}/access/identity_providers.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16137,7 +16137,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_identity_providers_add_an_access_identity_provider_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessIdentityProvidersAddAnAccessIdentityProviderArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16162,7 +16162,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16171,12 +16171,12 @@ where
 
 /// GET /zones/{zone_id}/access/identity_providers/{identity_provider_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16188,7 +16188,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_identity_providers_get_an_access_identity_provider_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessIdentityProvidersGetAnAccessIdentityProviderArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16212,7 +16212,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16221,12 +16221,12 @@ where
 
 /// PUT /zones/{zone_id}/access/identity_providers/{identity_provider_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16238,7 +16238,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_identity_providers_update_an_access_identity_provider_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessIdentityProvidersUpdateAnAccessIdentityProviderArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16266,7 +16266,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16275,12 +16275,12 @@ where
 
 /// DELETE /zones/{zone_id}/access/identity_providers/{identity_provider_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16292,7 +16292,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_identity_providers_delete_an_access_identity_provider_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessIdentityProvidersDeleteAnAccessIdentityProviderArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16313,7 +16313,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16322,12 +16322,12 @@ where
 
 /// GET /zones/{zone_id}/access/organizations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16339,7 +16339,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_zero_trust_organization_get_your_zero_trust_organization_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelZeroTrustOrganizationGetYourZeroTrustOrganizationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16357,7 +16357,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16366,12 +16366,12 @@ where
 
 /// POST /zones/{zone_id}/access/organizations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16383,7 +16383,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_zero_trust_organization_create_your_zero_trust_organization_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelZeroTrustOrganizationCreateYourZeroTrustOrganizationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16405,7 +16405,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16414,12 +16414,12 @@ where
 
 /// PUT /zones/{zone_id}/access/organizations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16431,7 +16431,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_zero_trust_organization_update_your_zero_trust_organization_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelZeroTrustOrganizationUpdateYourZeroTrustOrganizationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16453,7 +16453,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16462,12 +16462,12 @@ where
 
 /// POST /zones/{zone_id}/access/organizations/revoke_user.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16479,7 +16479,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_zero_trust_organization_revoke_all_access_tokens_for_a_user_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelZeroTrustOrganizationRevokeAllAccessTokensForAUserArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16501,7 +16501,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16510,12 +16510,12 @@ where
 
 /// GET /zones/{zone_id}/access/service_tokens.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16527,7 +16527,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_service_tokens_list_service_tokens_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessServiceTokensListServiceTokensArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16548,7 +16548,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16557,12 +16557,12 @@ where
 
 /// POST /zones/{zone_id}/access/service_tokens.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16574,7 +16574,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_service_tokens_create_a_service_token_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessServiceTokensCreateAServiceTokenArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16596,7 +16596,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16605,12 +16605,12 @@ where
 
 /// GET /zones/{zone_id}/access/service_tokens/{service_token_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16622,7 +16622,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_service_tokens_get_a_service_token_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessServiceTokensGetAServiceTokenArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16643,7 +16643,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16652,12 +16652,12 @@ where
 
 /// PUT /zones/{zone_id}/access/service_tokens/{service_token_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16669,7 +16669,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_service_tokens_update_a_service_token_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessServiceTokensUpdateAServiceTokenArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16694,7 +16694,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16703,12 +16703,12 @@ where
 
 /// DELETE /zones/{zone_id}/access/service_tokens/{service_token_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16720,7 +16720,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_access_service_tokens_delete_a_service_token_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAccessServiceTokensDeleteAServiceTokenArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16741,7 +16741,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16750,12 +16750,12 @@ where
 
 /// GET /zones/{zone_id}/acm/custom_trust_store.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16767,7 +16767,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_origin_trust_store_list_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomOriginTrustStoreListDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16793,7 +16793,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16802,12 +16802,12 @@ where
 
 /// POST /zones/{zone_id}/acm/custom_trust_store.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16819,7 +16819,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_origin_trust_store_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomOriginTrustStoreCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16844,7 +16844,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16853,12 +16853,12 @@ where
 
 /// GET /zones/{zone_id}/acm/custom_trust_store/{custom_origin_trust_store_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16870,7 +16870,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_origin_trust_store_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomOriginTrustStoreDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16894,7 +16894,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16903,12 +16903,12 @@ where
 
 /// DELETE /zones/{zone_id}/acm/custom_trust_store/{custom_origin_trust_store_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16920,7 +16920,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_origin_trust_store_delete_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomOriginTrustStoreDeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16944,7 +16944,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16953,12 +16953,12 @@ where
 
 /// GET /zones/{zone_id}/acm/total_tls.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -16970,7 +16970,7 @@ where
 /// })).await?;
 /// ```
 pub async fn total_tls_total_tls_settings_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TotalTlsTotalTlsSettingsDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -16988,7 +16988,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -16997,12 +16997,12 @@ where
 
 /// POST /zones/{zone_id}/acm/total_tls.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17014,7 +17014,7 @@ where
 /// })).await?;
 /// ```
 pub async fn total_tls_enable_or_disable_total_tls_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TotalTlsEnableOrDisableTotalTlsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17036,7 +17036,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17045,12 +17045,12 @@ where
 
 /// PUT /zones/{zone_id}/activation_check.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17062,7 +17062,7 @@ where
 /// })).await?;
 /// ```
 pub async fn put_zones_zone_id_activation_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PutZonesZoneIdActivationCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17080,7 +17080,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17089,12 +17089,12 @@ where
 
 /// GET /zones/{zone_id}/addressing/regional_hostnames.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17106,7 +17106,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dls_account_regional_hostnames_account_list_hostnames_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlsAccountRegionalHostnamesAccountListHostnamesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17127,7 +17127,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17136,12 +17136,12 @@ where
 
 /// POST /zones/{zone_id}/addressing/regional_hostnames.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17153,7 +17153,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dls_account_regional_hostnames_account_create_hostname_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlsAccountRegionalHostnamesAccountCreateHostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17178,7 +17178,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17187,12 +17187,12 @@ where
 
 /// GET /zones/{zone_id}/addressing/regional_hostnames/{hostname}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17204,7 +17204,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dls_account_regional_hostnames_account_fetch_hostname_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlsAccountRegionalHostnamesAccountFetchHostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17228,7 +17228,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17237,12 +17237,12 @@ where
 
 /// PATCH /zones/{zone_id}/addressing/regional_hostnames/{hostname}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17254,7 +17254,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dls_account_regional_hostnames_account_patch_hostname_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlsAccountRegionalHostnamesAccountPatchHostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17282,7 +17282,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17291,12 +17291,12 @@ where
 
 /// DELETE /zones/{zone_id}/addressing/regional_hostnames/{hostname}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17308,7 +17308,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dls_account_regional_hostnames_account_delete_hostname_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DlsAccountRegionalHostnamesAccountDeleteHostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17332,7 +17332,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17341,12 +17341,12 @@ where
 
 /// GET /zones/{zone_id}/analytics/latency.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17358,7 +17358,7 @@ where
 /// })).await?;
 /// ```
 pub async fn argo_analytics_for_zone_argo_analytics_for_a_zone_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ArgoAnalyticsForZoneArgoAnalyticsForAZoneArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17378,7 +17378,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17387,12 +17387,12 @@ where
 
 /// GET /zones/{zone_id}/analytics/latency/colos.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17406,7 +17406,7 @@ where
 pub async fn argo_analytics_for_geolocation_argo_analytics_for_a_zone_at_different_po_ps_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ArgoAnalyticsForGeolocationArgoAnalyticsForAZoneAtDifferentPoPsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17424,7 +17424,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17433,12 +17433,12 @@ where
 
 /// GET /zones/{zone_id}/api_gateway/configuration.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17452,7 +17452,7 @@ where
 pub async fn api_shield_settings_retrieve_information_about_specific_configuration_properties_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldSettingsRetrieveInformationAboutSpecificConfigurationPropertiesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17470,7 +17470,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17479,12 +17479,12 @@ where
 
 /// PUT /zones/{zone_id}/api_gateway/configuration.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17496,7 +17496,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_settings_set_configuration_properties_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldSettingsSetConfigurationPropertiesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17514,7 +17514,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17523,12 +17523,12 @@ where
 
 /// GET /zones/{zone_id}/api_gateway/discovery.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17542,7 +17542,7 @@ where
 pub async fn api_shield_api_discovery_retrieve_discovered_operations_on_a_zone_as_openapi_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldApiDiscoveryRetrieveDiscoveredOperationsOnAZoneAsOpenapiArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17560,7 +17560,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17569,12 +17569,12 @@ where
 
 /// GET /zones/{zone_id}/api_gateway/discovery/operations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17586,7 +17586,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_api_discovery_retrieve_discovered_operations_on_a_zone_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldApiDiscoveryRetrieveDiscoveredOperationsOnAZoneArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17622,7 +17622,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17631,12 +17631,12 @@ where
 
 /// PATCH /zones/{zone_id}/api_gateway/discovery/operations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17648,7 +17648,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_api_patch_discovered_operations_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldApiPatchDiscoveredOperationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17670,7 +17670,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17679,12 +17679,12 @@ where
 
 /// PATCH /zones/{zone_id}/api_gateway/discovery/operations/{operation_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17696,7 +17696,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_api_patch_discovered_operation_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldApiPatchDiscoveredOperationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17721,7 +17721,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17730,12 +17730,12 @@ where
 
 /// POST /zones/{zone_id}/api_gateway/expression-template/fallthrough.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17747,7 +17747,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_expression_templates_fallthrough_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldExpressionTemplatesFallthroughArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17772,7 +17772,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17781,12 +17781,12 @@ where
 
 /// GET /zones/{zone_id}/api_gateway/labels.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17798,7 +17798,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_labels_get_labels_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldLabelsGetLabelsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17827,7 +17827,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17836,12 +17836,12 @@ where
 
 /// GET /zones/{zone_id}/api_gateway/labels/managed/{name}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17853,7 +17853,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_labels_get_managed_label_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldLabelsGetManagedLabelArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17879,7 +17879,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17888,12 +17888,12 @@ where
 
 /// PUT /zones/{zone_id}/api_gateway/labels/managed/{name}/resources/operation.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17905,7 +17905,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_labels_replace_operations_attached_to_managed_label_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldLabelsReplaceOperationsAttachedToManagedLabelArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17933,7 +17933,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17942,12 +17942,12 @@ where
 
 /// POST /zones/{zone_id}/api_gateway/labels/user.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -17959,7 +17959,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_labels_create_user_labels_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldLabelsCreateUserLabelsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -17981,7 +17981,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -17990,12 +17990,12 @@ where
 
 /// DELETE /zones/{zone_id}/api_gateway/labels/user.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18007,7 +18007,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_labels_delete_user_labels_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldLabelsDeleteUserLabelsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18025,7 +18025,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18034,12 +18034,12 @@ where
 
 /// GET /zones/{zone_id}/api_gateway/labels/user/{name}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18051,7 +18051,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_labels_get_user_label_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldLabelsGetUserLabelArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18077,7 +18077,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18086,12 +18086,12 @@ where
 
 /// PUT /zones/{zone_id}/api_gateway/labels/user/{name}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18103,7 +18103,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_put_user_label_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldPutUserLabelArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18128,7 +18128,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18137,12 +18137,12 @@ where
 
 /// PATCH /zones/{zone_id}/api_gateway/labels/user/{name}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18154,7 +18154,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_patch_user_label_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldPatchUserLabelArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18179,7 +18179,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18188,12 +18188,12 @@ where
 
 /// DELETE /zones/{zone_id}/api_gateway/labels/user/{name}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18205,7 +18205,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_delete_user_label_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldDeleteUserLabelArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18226,7 +18226,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18235,12 +18235,12 @@ where
 
 /// PUT /zones/{zone_id}/api_gateway/labels/user/{name}/resources/operation.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18252,7 +18252,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_labels_replace_operations_attached_to_user_label_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldLabelsReplaceOperationsAttachedToUserLabelArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18280,7 +18280,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18289,12 +18289,12 @@ where
 
 /// GET /zones/{zone_id}/api_gateway/operations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18308,7 +18308,7 @@ where
 pub async fn api_shield_endpoint_management_retrieve_information_about_all_operations_on_a_zone_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldEndpointManagementRetrieveInformationAboutAllOperationsOnAZoneArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18341,7 +18341,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18350,12 +18350,12 @@ where
 
 /// POST /zones/{zone_id}/api_gateway/operations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18367,7 +18367,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_endpoint_management_add_operations_to_a_zone_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldEndpointManagementAddOperationsToAZoneArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18389,7 +18389,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18398,12 +18398,12 @@ where
 
 /// DELETE /zones/{zone_id}/api_gateway/operations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18415,7 +18415,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_endpoint_management_delete_multiple_operations_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldEndpointManagementDeleteMultipleOperationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18437,7 +18437,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18446,12 +18446,12 @@ where
 
 /// POST /zones/{zone_id}/api_gateway/operations/item.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18463,7 +18463,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_endpoint_management_add_operation_to_a_zone_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldEndpointManagementAddOperationToAZoneArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18485,7 +18485,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18494,12 +18494,12 @@ where
 
 /// POST /zones/{zone_id}/api_gateway/operations/labels.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18511,7 +18511,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_operations_bulk_post_labels_to_operations_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldOperationsBulkPostLabelsToOperationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18536,7 +18536,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18545,12 +18545,12 @@ where
 
 /// PUT /zones/{zone_id}/api_gateway/operations/labels.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18562,7 +18562,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_operations_bulk_put_labels_to_operations_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldOperationsBulkPutLabelsToOperationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18587,7 +18587,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18596,12 +18596,12 @@ where
 
 /// DELETE /zones/{zone_id}/api_gateway/operations/labels.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18613,7 +18613,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_operations_bulk_delete_labels_to_operations_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldOperationsBulkDeleteLabelsToOperationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18638,7 +18638,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18647,12 +18647,12 @@ where
 
 /// GET /zones/{zone_id}/api_gateway/operations/{operation_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18664,7 +18664,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_endpoint_management_retrieve_information_about_an_operation_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldEndpointManagementRetrieveInformationAboutAnOperationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18689,7 +18689,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18698,12 +18698,12 @@ where
 
 /// DELETE /zones/{zone_id}/api_gateway/operations/{operation_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18715,7 +18715,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_endpoint_management_delete_an_operation_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldEndpointManagementDeleteAnOperationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18736,7 +18736,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18745,12 +18745,12 @@ where
 
 /// POST /zones/{zone_id}/api_gateway/operations/{operation_id}/labels.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18762,7 +18762,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_operations_post_labels_to_operation_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldOperationsPostLabelsToOperationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18787,7 +18787,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18796,12 +18796,12 @@ where
 
 /// PUT /zones/{zone_id}/api_gateway/operations/{operation_id}/labels.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18813,7 +18813,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_operations_put_labels_to_operation_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldOperationsPutLabelsToOperationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18838,7 +18838,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18847,12 +18847,12 @@ where
 
 /// DELETE /zones/{zone_id}/api_gateway/operations/{operation_id}/labels.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18864,7 +18864,7 @@ where
 /// })).await?;
 /// ```
 pub async fn api_shield_operations_delete_labels_from_operation_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldOperationsDeleteLabelsFromOperationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18892,7 +18892,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18901,12 +18901,12 @@ where
 
 /// GET /zones/{zone_id}/api_gateway/schemas.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18920,7 +18920,7 @@ where
 pub async fn api_shield_endpoint_management_retrieve_operations_and_features_as_open_api_schemas_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ApiShieldEndpointManagementRetrieveOperationsAndFeaturesAsOpenApiSchemasArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18945,7 +18945,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18954,12 +18954,12 @@ where
 
 /// GET /zones/{zone_id}/argo/smart_routing.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -18971,7 +18971,7 @@ where
 /// })).await?;
 /// ```
 pub async fn argo_smart_routing_get_argo_smart_routing_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ArgoSmartRoutingGetArgoSmartRoutingSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -18989,7 +18989,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -18998,12 +18998,12 @@ where
 
 /// PATCH /zones/{zone_id}/argo/smart_routing.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19015,7 +19015,7 @@ where
 /// })).await?;
 /// ```
 pub async fn argo_smart_routing_patch_argo_smart_routing_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ArgoSmartRoutingPatchArgoSmartRoutingSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19037,7 +19037,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19046,12 +19046,12 @@ where
 
 /// GET /zones/{zone_id}/argo/tiered_caching.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19063,7 +19063,7 @@ where
 /// })).await?;
 /// ```
 pub async fn tiered_caching_get_tiered_caching_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TieredCachingGetTieredCachingSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19081,7 +19081,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19090,12 +19090,12 @@ where
 
 /// PATCH /zones/{zone_id}/argo/tiered_caching.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19107,7 +19107,7 @@ where
 /// })).await?;
 /// ```
 pub async fn tiered_caching_patch_tiered_caching_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TieredCachingPatchTieredCachingSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19129,7 +19129,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19138,12 +19138,12 @@ where
 
 /// GET /zones/{zone_id}/available_plans.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19155,7 +19155,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_rate_plan_list_available_plans_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneRatePlanListAvailablePlansArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19173,7 +19173,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19182,12 +19182,12 @@ where
 
 /// GET /zones/{zone_id}/available_plans/{plan_identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19199,7 +19199,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_rate_plan_available_plan_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneRatePlanAvailablePlanDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19220,7 +19220,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19229,12 +19229,12 @@ where
 
 /// GET /zones/{zone_id}/available_rate_plans.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19246,7 +19246,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_rate_plan_list_available_rate_plans_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneRatePlanListAvailableRatePlansArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19264,7 +19264,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19273,12 +19273,12 @@ where
 
 /// GET /zones/{zone_id}/bot_management.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19290,7 +19290,7 @@ where
 /// })).await?;
 /// ```
 pub async fn bot_management_for_a_zone_get_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &BotManagementForAZoneGetConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19308,7 +19308,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19317,12 +19317,12 @@ where
 
 /// PUT /zones/{zone_id}/bot_management.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19334,7 +19334,7 @@ where
 /// })).await?;
 /// ```
 pub async fn bot_management_for_a_zone_update_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &BotManagementForAZoneUpdateConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19356,7 +19356,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19365,12 +19365,12 @@ where
 
 /// GET /zones/{zone_id}/bot_management/feedback.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19382,7 +19382,7 @@ where
 /// })).await?;
 /// ```
 pub async fn bot_management_zone_feedback_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &BotManagementZoneFeedbackListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19400,7 +19400,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19409,12 +19409,12 @@ where
 
 /// POST /zones/{zone_id}/bot_management/feedback.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19426,7 +19426,7 @@ where
 /// })).await?;
 /// ```
 pub async fn bot_management_zone_feedback_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &BotManagementZoneFeedbackCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19448,7 +19448,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19457,12 +19457,12 @@ where
 
 /// GET /zones/{zone_id}/cache/cache_reserve.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19474,7 +19474,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_get_cache_reserve_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsGetCacheReserveSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19492,7 +19492,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19501,12 +19501,12 @@ where
 
 /// PATCH /zones/{zone_id}/cache/cache_reserve.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19518,7 +19518,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_change_cache_reserve_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsChangeCacheReserveSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19540,7 +19540,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19549,12 +19549,12 @@ where
 
 /// GET /zones/{zone_id}/cache/cache_reserve_clear.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19566,7 +19566,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_get_cache_reserve_clear_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsGetCacheReserveClearArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19584,7 +19584,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19593,12 +19593,12 @@ where
 
 /// POST /zones/{zone_id}/cache/cache_reserve_clear.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19610,7 +19610,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_start_cache_reserve_clear_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsStartCacheReserveClearArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19628,7 +19628,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19637,12 +19637,12 @@ where
 
 /// GET /zones/{zone_id}/cache/origin_post_quantum_encryption.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19654,7 +19654,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_get_origin_post_quantum_encryption_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsGetOriginPostQuantumEncryptionSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19678,7 +19678,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19687,12 +19687,12 @@ where
 
 /// PUT /zones/{zone_id}/cache/origin_post_quantum_encryption.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19704,7 +19704,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_change_origin_post_quantum_encryption_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsChangeOriginPostQuantumEncryptionSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19732,7 +19732,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19741,12 +19741,12 @@ where
 
 /// GET /zones/{zone_id}/cache/regional_tiered_cache.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19758,7 +19758,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_get_regional_tiered_cache_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsGetRegionalTieredCacheSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19779,7 +19779,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19788,12 +19788,12 @@ where
 
 /// PATCH /zones/{zone_id}/cache/regional_tiered_cache.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19805,7 +19805,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_change_regional_tiered_cache_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsChangeRegionalTieredCacheSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19830,7 +19830,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19839,12 +19839,12 @@ where
 
 /// GET /zones/{zone_id}/cache/tiered_cache_smart_topology_enable.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19856,7 +19856,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_tiered_cache_get_smart_tiered_cache_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartTieredCacheGetSmartTieredCacheSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19877,7 +19877,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19886,12 +19886,12 @@ where
 
 /// PATCH /zones/{zone_id}/cache/tiered_cache_smart_topology_enable.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19903,7 +19903,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_tiered_cache_patch_smart_tiered_cache_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartTieredCachePatchSmartTieredCacheSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19931,7 +19931,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19940,12 +19940,12 @@ where
 
 /// DELETE /zones/{zone_id}/cache/tiered_cache_smart_topology_enable.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -19957,7 +19957,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_tiered_cache_delete_smart_tiered_cache_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartTieredCacheDeleteSmartTieredCacheSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -19981,7 +19981,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -19990,12 +19990,12 @@ where
 
 /// GET /zones/{zone_id}/cache/variants.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20007,7 +20007,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_get_variants_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsGetVariantsSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20025,7 +20025,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20034,12 +20034,12 @@ where
 
 /// PATCH /zones/{zone_id}/cache/variants.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20051,7 +20051,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_change_variants_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsChangeVariantsSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20073,7 +20073,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20082,12 +20082,12 @@ where
 
 /// DELETE /zones/{zone_id}/cache/variants.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20099,7 +20099,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_delete_variants_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsDeleteVariantsSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20117,7 +20117,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20126,12 +20126,12 @@ where
 
 /// GET /zones/{zone_id}/certificate_authorities/hostname_associations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20143,7 +20143,7 @@ where
 /// })).await?;
 /// ```
 pub async fn client_certificate_for_a_zone_list_hostname_associations_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ClientCertificateForAZoneListHostnameAssociationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20169,7 +20169,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20178,12 +20178,12 @@ where
 
 /// PUT /zones/{zone_id}/certificate_authorities/hostname_associations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20195,7 +20195,7 @@ where
 /// })).await?;
 /// ```
 pub async fn client_certificate_for_a_zone_put_hostname_associations_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ClientCertificateForAZonePutHostnameAssociationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20223,7 +20223,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20232,12 +20232,12 @@ where
 
 /// GET /zones/{zone_id}/client_certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20249,7 +20249,7 @@ where
 /// })).await?;
 /// ```
 pub async fn client_certificate_for_a_zone_list_client_certificates_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ClientCertificateForAZoneListClientCertificatesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20276,7 +20276,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20285,12 +20285,12 @@ where
 
 /// POST /zones/{zone_id}/client_certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20302,7 +20302,7 @@ where
 /// })).await?;
 /// ```
 pub async fn client_certificate_for_a_zone_create_client_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ClientCertificateForAZoneCreateClientCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20327,7 +20327,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20336,12 +20336,12 @@ where
 
 /// GET /zones/{zone_id}/client_certificates/{client_certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20353,7 +20353,7 @@ where
 /// })).await?;
 /// ```
 pub async fn client_certificate_for_a_zone_client_certificate_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ClientCertificateForAZoneClientCertificateDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20377,7 +20377,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20386,12 +20386,12 @@ where
 
 /// PATCH /zones/{zone_id}/client_certificates/{client_certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20403,7 +20403,7 @@ where
 /// })).await?;
 /// ```
 pub async fn client_certificate_for_a_zone_edit_client_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ClientCertificateForAZoneEditClientCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20431,7 +20431,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20440,12 +20440,12 @@ where
 
 /// DELETE /zones/{zone_id}/client_certificates/{client_certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20457,7 +20457,7 @@ where
 /// })).await?;
 /// ```
 pub async fn client_certificate_for_a_zone_delete_client_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ClientCertificateForAZoneDeleteClientCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20481,7 +20481,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20490,12 +20490,12 @@ where
 
 /// GET /zones/{zone_id}/cloud_connector/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20507,7 +20507,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cloud_connector_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCloudConnectorRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20525,7 +20525,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20534,12 +20534,12 @@ where
 
 /// PUT /zones/{zone_id}/cloud_connector/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20551,7 +20551,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cloud_conenctor_rules_put_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCloudConenctorRulesPutArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20573,7 +20573,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20582,12 +20582,12 @@ where
 
 /// POST /zones/{zone_id}/content-upload-scan/disable.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20599,7 +20599,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_content_scanning_disable_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafContentScanningDisableArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20617,7 +20617,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20626,12 +20626,12 @@ where
 
 /// POST /zones/{zone_id}/content-upload-scan/enable.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20643,7 +20643,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_content_scanning_enable_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafContentScanningEnableArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20661,7 +20661,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20670,12 +20670,12 @@ where
 
 /// GET /zones/{zone_id}/content-upload-scan/payloads.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20687,7 +20687,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_content_scanning_list_custom_scan_expressions_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafContentScanningListCustomScanExpressionsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20705,7 +20705,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20714,12 +20714,12 @@ where
 
 /// POST /zones/{zone_id}/content-upload-scan/payloads.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20731,7 +20731,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_content_scanning_add_custom_scan_expressions_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafContentScanningAddCustomScanExpressionsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20753,7 +20753,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20762,12 +20762,12 @@ where
 
 /// DELETE /zones/{zone_id}/content-upload-scan/payloads/{expression_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20779,7 +20779,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_content_scanning_delete_custom_scan_expressions_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafContentScanningDeleteCustomScanExpressionsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20800,7 +20800,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20809,12 +20809,12 @@ where
 
 /// GET /zones/{zone_id}/content-upload-scan/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20826,7 +20826,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_content_scanning_get_status_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafContentScanningGetStatusArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20844,7 +20844,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20853,12 +20853,12 @@ where
 
 /// PUT /zones/{zone_id}/content-upload-scan/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20870,7 +20870,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_content_scanning_update_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafContentScanningUpdateSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20892,7 +20892,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20901,12 +20901,12 @@ where
 
 /// GET /zones/{zone_id}/custom_certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20918,7 +20918,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_ssl_for_a_zone_list_ssl_configurations_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomSslForAZoneListSslConfigurationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20944,7 +20944,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -20953,12 +20953,12 @@ where
 
 /// POST /zones/{zone_id}/custom_certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -20970,7 +20970,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_ssl_for_a_zone_create_ssl_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomSslForAZoneCreateSslConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -20995,7 +20995,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21004,12 +21004,12 @@ where
 
 /// PUT /zones/{zone_id}/custom_certificates/prioritize.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21021,7 +21021,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_ssl_for_a_zone_re_prioritize_ssl_certificates_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomSslForAZoneRePrioritizeSslCertificatesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21046,7 +21046,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21055,12 +21055,12 @@ where
 
 /// GET /zones/{zone_id}/custom_certificates/{custom_certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21072,7 +21072,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_ssl_for_a_zone_ssl_configuration_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomSslForAZoneSslConfigurationDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21096,7 +21096,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21105,12 +21105,12 @@ where
 
 /// PATCH /zones/{zone_id}/custom_certificates/{custom_certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21122,7 +21122,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_ssl_for_a_zone_edit_ssl_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomSslForAZoneEditSslConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21150,7 +21150,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21159,12 +21159,12 @@ where
 
 /// DELETE /zones/{zone_id}/custom_certificates/{custom_certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21176,7 +21176,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_ssl_for_a_zone_delete_ssl_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomSslForAZoneDeleteSslConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21200,7 +21200,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21209,12 +21209,12 @@ where
 
 /// GET /zones/{zone_id}/custom_hostnames.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21226,7 +21226,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_hostname_for_a_zone_list_custom_hostnames_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomHostnameForAZoneListCustomHostnamesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21264,7 +21264,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21273,12 +21273,12 @@ where
 
 /// POST /zones/{zone_id}/custom_hostnames.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21290,7 +21290,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_hostname_for_a_zone_create_custom_hostname_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomHostnameForAZoneCreateCustomHostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21315,7 +21315,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21324,12 +21324,12 @@ where
 
 /// GET /zones/{zone_id}/custom_hostnames/fallback_origin.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21343,7 +21343,7 @@ where
 pub async fn custom_hostname_fallback_origin_for_a_zone_get_fallback_origin_for_custom_hostnames_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomHostnameFallbackOriginForAZoneGetFallbackOriginForCustomHostnamesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21361,7 +21361,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21370,12 +21370,12 @@ where
 
 /// PUT /zones/{zone_id}/custom_hostnames/fallback_origin.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21389,7 +21389,7 @@ where
 pub async fn custom_hostname_fallback_origin_for_a_zone_update_fallback_origin_for_custom_hostnames_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomHostnameFallbackOriginForAZoneUpdateFallbackOriginForCustomHostnamesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21411,7 +21411,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21420,12 +21420,12 @@ where
 
 /// DELETE /zones/{zone_id}/custom_hostnames/fallback_origin.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21439,7 +21439,7 @@ where
 pub async fn custom_hostname_fallback_origin_for_a_zone_delete_fallback_origin_for_custom_hostnames_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomHostnameFallbackOriginForAZoneDeleteFallbackOriginForCustomHostnamesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21457,7 +21457,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21466,12 +21466,12 @@ where
 
 /// GET /zones/{zone_id}/custom_hostnames/{custom_hostname_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21483,7 +21483,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_hostname_for_a_zone_custom_hostname_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomHostnameForAZoneCustomHostnameDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21507,7 +21507,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21516,12 +21516,12 @@ where
 
 /// PATCH /zones/{zone_id}/custom_hostnames/{custom_hostname_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21533,7 +21533,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_hostname_for_a_zone_edit_custom_hostname_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomHostnameForAZoneEditCustomHostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21561,7 +21561,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21570,12 +21570,12 @@ where
 
 /// DELETE /zones/{zone_id}/custom_hostnames/{custom_hostname_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21589,7 +21589,7 @@ where
 pub async fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomHostnameForAZoneDeleteCustomHostnameAndAnyIssuedSslCertificatesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21613,7 +21613,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21622,12 +21622,12 @@ where
 
 /// PUT /zones/{zone_id}/custom_hostnames/{custom_hostname_id}/certificate_pack/{certificate_pack_id}/certificates/{certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21639,7 +21639,7 @@ where
 /// })).await?;
 /// ```
 pub async fn custom_hostname_for_a_zone_edit_custom_certificate_custom_hostname_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomHostnameForAZoneEditCustomCertificateCustomHostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21667,7 +21667,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21676,12 +21676,12 @@ where
 
 /// DELETE /zones/{zone_id}/custom_hostnames/{custom_hostname_id}/certificate_pack/{certificate_pack_id}/certificates/{certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21695,7 +21695,7 @@ where
 pub async fn custom_hostname_for_a_zone_delete_single_certificate_and_key_in_a_custom_hostname_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CustomHostnameForAZoneDeleteSingleCertificateAndKeyInACustomHostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21719,7 +21719,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21728,12 +21728,12 @@ where
 
 /// GET /zones/{zone_id}/dcv_delegation/uuid.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21745,7 +21745,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dcv_delegation_uuid_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DcvDelegationUuidGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21763,7 +21763,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21772,12 +21772,12 @@ where
 
 /// GET /zones/{zone_id}/devices/policy/certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21789,7 +21789,7 @@ where
 /// })).await?;
 /// ```
 pub async fn devices_get_policy_certificates_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DevicesGetPolicyCertificatesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21807,7 +21807,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21816,12 +21816,12 @@ where
 
 /// PATCH /zones/{zone_id}/devices/policy/certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21833,7 +21833,7 @@ where
 /// })).await?;
 /// ```
 pub async fn devices_update_policy_certificates_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DevicesUpdatePolicyCertificatesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21855,7 +21855,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21864,12 +21864,12 @@ where
 
 /// GET /zones/{zone_id}/dns_analytics/report.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21881,7 +21881,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_analytics_table_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsAnalyticsTableArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21907,7 +21907,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21916,12 +21916,12 @@ where
 
 /// GET /zones/{zone_id}/dns_analytics/report/bytime.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21933,7 +21933,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_analytics_by_time_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsAnalyticsByTimeArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -21960,7 +21960,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -21969,12 +21969,12 @@ where
 
 /// GET /zones/{zone_id}/dns_records.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -21986,7 +21986,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_list_dns_records_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneListDnsRecordsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22038,7 +22038,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22047,12 +22047,12 @@ where
 
 /// POST /zones/{zone_id}/dns_records.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22064,7 +22064,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_create_dns_record_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneCreateDnsRecordArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22086,7 +22086,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22095,12 +22095,12 @@ where
 
 /// POST /zones/{zone_id}/dns_records/batch.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22112,7 +22112,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_batch_dns_records_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneBatchDnsRecordsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22134,7 +22134,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22143,12 +22143,12 @@ where
 
 /// GET /zones/{zone_id}/dns_records/export.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22165,7 +22165,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_export_dns_records_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneExportDnsRecordsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22183,12 +22183,7 @@ where
         f(&mut builder);
     }
 
-    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
-    Ok(ApiResponse {
-        status,
-        headers,
-        body: super::shared::ByteStream::new(body),
-    })
+    super::shared::send_bytes(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22197,12 +22192,12 @@ where
 
 /// POST /zones/{zone_id}/dns_records/import.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22214,7 +22209,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_import_dns_records_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneImportDnsRecordsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22232,7 +22227,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22241,12 +22236,12 @@ where
 
 /// GET /zones/{zone_id}/dns_records/scan/review.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22258,7 +22253,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_review_dns_scan_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneReviewDnsScanArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22276,7 +22271,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22285,12 +22280,12 @@ where
 
 /// POST /zones/{zone_id}/dns_records/scan/review.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22302,7 +22297,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_apply_dns_scan_results_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneApplyDnsScanResultsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22324,7 +22319,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22333,12 +22328,12 @@ where
 
 /// POST /zones/{zone_id}/dns_records/scan/trigger.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22350,7 +22345,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_trigger_dns_scan_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneTriggerDnsScanArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22368,7 +22363,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22377,12 +22372,12 @@ where
 
 /// GET /zones/{zone_id}/dns_records/usage.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22394,7 +22389,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_get_usage_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneGetUsageArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22412,7 +22407,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22421,12 +22416,12 @@ where
 
 /// GET /zones/{zone_id}/dns_records/{dns_record_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22438,7 +22433,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_dns_record_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneDnsRecordDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22456,7 +22451,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22465,12 +22460,12 @@ where
 
 /// PUT /zones/{zone_id}/dns_records/{dns_record_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22482,7 +22477,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_update_dns_record_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneUpdateDnsRecordArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22504,7 +22499,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22513,12 +22508,12 @@ where
 
 /// PATCH /zones/{zone_id}/dns_records/{dns_record_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22530,7 +22525,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_patch_dns_record_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZonePatchDnsRecordArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22552,7 +22547,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22561,12 +22556,12 @@ where
 
 /// DELETE /zones/{zone_id}/dns_records/{dns_record_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22578,7 +22573,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_records_for_a_zone_delete_dns_record_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsRecordsForAZoneDeleteDnsRecordArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22596,7 +22591,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22605,12 +22600,12 @@ where
 
 /// GET /zones/{zone_id}/dns_settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22622,7 +22617,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_settings_for_a_zone_list_dns_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsSettingsForAZoneListDnsSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22640,7 +22635,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22649,12 +22644,12 @@ where
 
 /// PATCH /zones/{zone_id}/dns_settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22666,7 +22661,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dns_settings_for_a_zone_update_dns_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnsSettingsForAZoneUpdateDnsSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22688,7 +22683,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22697,12 +22692,12 @@ where
 
 /// GET /zones/{zone_id}/dnssec.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22714,7 +22709,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dnssec_dnssec_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnssecDnssecDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22732,7 +22727,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22741,12 +22736,12 @@ where
 
 /// PATCH /zones/{zone_id}/dnssec.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22758,7 +22753,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dnssec_edit_dnssec_status_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnssecEditDnssecStatusArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22780,7 +22775,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22789,12 +22784,12 @@ where
 
 /// DELETE /zones/{zone_id}/dnssec.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22806,7 +22801,7 @@ where
 /// })).await?;
 /// ```
 pub async fn dnssec_delete_dnssec_records_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DnssecDeleteDnssecRecordsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22824,7 +22819,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22833,12 +22828,12 @@ where
 
 /// GET /zones/{zone_id}/email/routing.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22850,7 +22845,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_settings_get_email_routing_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingSettingsGetEmailRoutingSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22868,7 +22863,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22877,12 +22872,12 @@ where
 
 /// GET /zones/{zone_id}/email/routing/dns.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22894,7 +22889,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_settings_email_routing_dns_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingSettingsEmailRoutingDnsSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22914,7 +22909,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22923,12 +22918,12 @@ where
 
 /// POST /zones/{zone_id}/email/routing/dns.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22940,7 +22935,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_settings_enable_email_routing_dns_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingSettingsEnableEmailRoutingDnsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -22962,7 +22957,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -22971,12 +22966,12 @@ where
 
 /// PATCH /zones/{zone_id}/email/routing/dns.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -22988,7 +22983,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_settings_unlock_email_routing_dns_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingSettingsUnlockEmailRoutingDnsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23010,7 +23005,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23019,12 +23014,12 @@ where
 
 /// DELETE /zones/{zone_id}/email/routing/dns.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23036,7 +23031,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_settings_disable_email_routing_dns_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingSettingsDisableEmailRoutingDnsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23058,7 +23053,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23067,12 +23062,12 @@ where
 
 /// GET /zones/{zone_id}/email/routing/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23084,7 +23079,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_routing_rules_list_routing_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingRoutingRulesListRoutingRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23106,7 +23101,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23115,12 +23110,12 @@ where
 
 /// POST /zones/{zone_id}/email/routing/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23132,7 +23127,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_routing_rules_create_routing_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingRoutingRulesCreateRoutingRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23154,7 +23149,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23163,12 +23158,12 @@ where
 
 /// GET /zones/{zone_id}/email/routing/rules/catch_all.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23180,7 +23175,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_routing_rules_get_catch_all_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingRoutingRulesGetCatchAllRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23198,7 +23193,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23207,12 +23202,12 @@ where
 
 /// PUT /zones/{zone_id}/email/routing/rules/catch_all.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23224,7 +23219,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_routing_rules_update_catch_all_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingRoutingRulesUpdateCatchAllRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23246,7 +23241,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23255,12 +23250,12 @@ where
 
 /// GET /zones/{zone_id}/email/routing/rules/{rule_identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23272,7 +23267,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_routing_rules_get_routing_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingRoutingRulesGetRoutingRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23293,7 +23288,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23302,12 +23297,12 @@ where
 
 /// PUT /zones/{zone_id}/email/routing/rules/{rule_identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23319,7 +23314,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_routing_rules_update_routing_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingRoutingRulesUpdateRoutingRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23344,7 +23339,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23353,12 +23348,12 @@ where
 
 /// DELETE /zones/{zone_id}/email/routing/rules/{rule_identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23370,7 +23365,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_routing_routing_rules_delete_routing_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailRoutingRoutingRulesDeleteRoutingRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23391,7 +23386,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23400,12 +23395,12 @@ where
 
 /// GET /zones/{zone_id}/email/sending/subdomains.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23417,7 +23412,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_sending_subdomains_list_sending_subdomains_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSendingSubdomainsListSendingSubdomainsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23435,7 +23430,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23444,12 +23439,12 @@ where
 
 /// POST /zones/{zone_id}/email/sending/subdomains.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23461,7 +23456,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_sending_subdomains_create_sending_subdomain_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSendingSubdomainsCreateSendingSubdomainArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23483,7 +23478,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23492,12 +23487,12 @@ where
 
 /// POST /zones/{zone_id}/email/sending/subdomains/preview.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23509,7 +23504,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_sending_subdomains_preview_sending_subdomain_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSendingSubdomainsPreviewSendingSubdomainArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23531,7 +23526,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23540,12 +23535,12 @@ where
 
 /// GET /zones/{zone_id}/email/sending/subdomains/{subdomain_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23557,7 +23552,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_sending_subdomains_get_sending_subdomain_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSendingSubdomainsGetSendingSubdomainArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23578,7 +23573,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23587,12 +23582,12 @@ where
 
 /// DELETE /zones/{zone_id}/email/sending/subdomains/{subdomain_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23604,7 +23599,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_sending_subdomains_delete_sending_subdomain_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSendingSubdomainsDeleteSendingSubdomainArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23625,7 +23620,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23634,12 +23629,12 @@ where
 
 /// GET /zones/{zone_id}/email/sending/subdomains/{subdomain_id}/dns.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23651,7 +23646,7 @@ where
 /// })).await?;
 /// ```
 pub async fn email_sending_subdomains_get_sending_subdomain_dns_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &EmailSendingSubdomainsGetSendingSubdomainDnsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23672,7 +23667,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23681,12 +23676,12 @@ where
 
 /// GET /zones/{zone_id}/environments.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23698,7 +23693,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_environments_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZonesEnvironmentsListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23716,7 +23711,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23725,12 +23720,12 @@ where
 
 /// POST /zones/{zone_id}/environments.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23742,7 +23737,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_environments_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZonesEnvironmentsCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23764,7 +23759,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23773,12 +23768,12 @@ where
 
 /// PUT /zones/{zone_id}/environments.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23790,7 +23785,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_environments_update_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZonesEnvironmentsUpdateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23812,7 +23807,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23821,12 +23816,12 @@ where
 
 /// PATCH /zones/{zone_id}/environments.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23838,7 +23833,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_environments_edit_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZonesEnvironmentsEditArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23860,7 +23855,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23869,12 +23864,12 @@ where
 
 /// DELETE /zones/{zone_id}/environments/{environment_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23886,7 +23881,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_environments_delete_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZonesEnvironmentsDeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23907,7 +23902,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23916,12 +23911,12 @@ where
 
 /// POST /zones/{zone_id}/environments/{environment_id}/rollback.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23933,7 +23928,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_environments_rollback_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZonesEnvironmentsRollbackArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23954,7 +23949,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -23963,12 +23958,12 @@ where
 
 /// GET /zones/{zone_id}/firewall-for-ai/custom-topics.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -23980,7 +23975,7 @@ where
 /// })).await?;
 /// ```
 pub async fn firewall_for_ai_custom_topics_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &FirewallForAiCustomTopicsGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -23998,7 +23993,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24007,12 +24002,12 @@ where
 
 /// PUT /zones/{zone_id}/firewall-for-ai/custom-topics.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24024,7 +24019,7 @@ where
 /// })).await?;
 /// ```
 pub async fn firewall_for_ai_custom_topics_put_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &FirewallForAiCustomTopicsPutArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24046,7 +24041,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24055,12 +24050,12 @@ where
 
 /// GET /zones/{zone_id}/firewall-for-ai/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24072,7 +24067,7 @@ where
 /// })).await?;
 /// ```
 pub async fn firewall_for_ai_settings_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &FirewallForAiSettingsGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24090,7 +24085,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24099,12 +24094,12 @@ where
 
 /// PUT /zones/{zone_id}/firewall-for-ai/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24116,7 +24111,7 @@ where
 /// })).await?;
 /// ```
 pub async fn firewall_for_ai_settings_put_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &FirewallForAiSettingsPutArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24138,7 +24133,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24147,12 +24142,12 @@ where
 
 /// GET /zones/{zone_id}/firewall/access_rules/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24164,7 +24159,7 @@ where
 /// })).await?;
 /// ```
 pub async fn ip_access_rules_for_a_zone_list_ip_access_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &IpAccessRulesForAZoneListIpAccessRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24192,7 +24187,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24201,12 +24196,12 @@ where
 
 /// POST /zones/{zone_id}/firewall/access_rules/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24218,7 +24213,7 @@ where
 /// })).await?;
 /// ```
 pub async fn ip_access_rules_for_a_zone_create_an_ip_access_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &IpAccessRulesForAZoneCreateAnIpAccessRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24240,7 +24235,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24249,12 +24244,12 @@ where
 
 /// PATCH /zones/{zone_id}/firewall/access_rules/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24266,7 +24261,7 @@ where
 /// })).await?;
 /// ```
 pub async fn ip_access_rules_for_a_zone_update_an_ip_access_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &IpAccessRulesForAZoneUpdateAnIpAccessRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24291,7 +24286,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24300,12 +24295,12 @@ where
 
 /// DELETE /zones/{zone_id}/firewall/access_rules/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24317,7 +24312,7 @@ where
 /// })).await?;
 /// ```
 pub async fn ip_access_rules_for_a_zone_delete_an_ip_access_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &IpAccessRulesForAZoneDeleteAnIpAccessRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24342,7 +24337,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24351,12 +24346,12 @@ where
 
 /// GET /zones/{zone_id}/firewall/lockdowns.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24368,7 +24363,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_lockdown_list_zone_lockdown_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLockdownListZoneLockdownRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24398,7 +24393,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24407,12 +24402,12 @@ where
 
 /// POST /zones/{zone_id}/firewall/lockdowns.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24424,7 +24419,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_lockdown_create_a_zone_lockdown_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLockdownCreateAZoneLockdownRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24446,7 +24441,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24455,12 +24450,12 @@ where
 
 /// GET /zones/{zone_id}/firewall/lockdowns/{lock_downs_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24472,7 +24467,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_lockdown_get_a_zone_lockdown_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLockdownGetAZoneLockdownRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24493,7 +24488,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24502,12 +24497,12 @@ where
 
 /// PUT /zones/{zone_id}/firewall/lockdowns/{lock_downs_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24519,7 +24514,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_lockdown_update_a_zone_lockdown_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLockdownUpdateAZoneLockdownRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24544,7 +24539,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24553,12 +24548,12 @@ where
 
 /// DELETE /zones/{zone_id}/firewall/lockdowns/{lock_downs_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24570,7 +24565,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_lockdown_delete_a_zone_lockdown_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLockdownDeleteAZoneLockdownRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24591,7 +24586,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24600,12 +24595,12 @@ where
 
 /// GET /zones/{zone_id}/firewall/ua_rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24617,7 +24612,7 @@ where
 /// })).await?;
 /// ```
 pub async fn user_agent_blocking_rules_list_user_agent_blocking_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UserAgentBlockingRulesListUserAgentBlockingRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24641,7 +24636,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24650,12 +24645,12 @@ where
 
 /// POST /zones/{zone_id}/firewall/ua_rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24667,7 +24662,7 @@ where
 /// })).await?;
 /// ```
 pub async fn user_agent_blocking_rules_create_a_user_agent_blocking_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UserAgentBlockingRulesCreateAUserAgentBlockingRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24689,7 +24684,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24698,12 +24693,12 @@ where
 
 /// GET /zones/{zone_id}/firewall/ua_rules/{ua_rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24715,7 +24710,7 @@ where
 /// })).await?;
 /// ```
 pub async fn user_agent_blocking_rules_get_a_user_agent_blocking_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UserAgentBlockingRulesGetAUserAgentBlockingRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24736,7 +24731,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24745,12 +24740,12 @@ where
 
 /// PUT /zones/{zone_id}/firewall/ua_rules/{ua_rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24762,7 +24757,7 @@ where
 /// })).await?;
 /// ```
 pub async fn user_agent_blocking_rules_update_a_user_agent_blocking_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UserAgentBlockingRulesUpdateAUserAgentBlockingRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24787,7 +24782,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24796,12 +24791,12 @@ where
 
 /// DELETE /zones/{zone_id}/firewall/ua_rules/{ua_rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24813,7 +24808,7 @@ where
 /// })).await?;
 /// ```
 pub async fn user_agent_blocking_rules_delete_a_user_agent_blocking_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UserAgentBlockingRulesDeleteAUserAgentBlockingRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24837,7 +24832,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24846,12 +24841,12 @@ where
 
 /// GET /zones/{zone_id}/fraud_detection/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24863,7 +24858,7 @@ where
 /// })).await?;
 /// ```
 pub async fn fraud_detection_zone_get_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &FraudDetectionZoneGetSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24881,7 +24876,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24890,12 +24885,12 @@ where
 
 /// PUT /zones/{zone_id}/fraud_detection/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24907,7 +24902,7 @@ where
 /// })).await?;
 /// ```
 pub async fn fraud_detection_zone_update_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &FraudDetectionZoneUpdateSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24929,7 +24924,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24938,12 +24933,12 @@ where
 
 /// GET /zones/{zone_id}/healthchecks.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -24955,7 +24950,7 @@ where
 /// })).await?;
 /// ```
 pub async fn health_checks_list_health_checks_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &HealthChecksListHealthChecksArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -24976,7 +24971,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -24985,12 +24980,12 @@ where
 
 /// POST /zones/{zone_id}/healthchecks.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25002,7 +24997,7 @@ where
 /// })).await?;
 /// ```
 pub async fn health_checks_create_health_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &HealthChecksCreateHealthCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25024,7 +25019,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25033,12 +25028,12 @@ where
 
 /// POST /zones/{zone_id}/healthchecks/preview.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25050,7 +25045,7 @@ where
 /// })).await?;
 /// ```
 pub async fn health_checks_create_preview_health_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &HealthChecksCreatePreviewHealthCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25072,7 +25067,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25081,12 +25076,12 @@ where
 
 /// GET /zones/{zone_id}/healthchecks/preview/{healthcheck_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25098,7 +25093,7 @@ where
 /// })).await?;
 /// ```
 pub async fn health_checks_health_check_preview_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &HealthChecksHealthCheckPreviewDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25119,7 +25114,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25128,12 +25123,12 @@ where
 
 /// DELETE /zones/{zone_id}/healthchecks/preview/{healthcheck_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25145,7 +25140,7 @@ where
 /// })).await?;
 /// ```
 pub async fn health_checks_delete_preview_health_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &HealthChecksDeletePreviewHealthCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25166,7 +25161,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25175,12 +25170,12 @@ where
 
 /// GET /zones/{zone_id}/healthchecks/{healthcheck_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25192,7 +25187,7 @@ where
 /// })).await?;
 /// ```
 pub async fn health_checks_health_check_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &HealthChecksHealthCheckDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25213,7 +25208,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25222,12 +25217,12 @@ where
 
 /// PUT /zones/{zone_id}/healthchecks/{healthcheck_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25239,7 +25234,7 @@ where
 /// })).await?;
 /// ```
 pub async fn health_checks_update_health_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &HealthChecksUpdateHealthCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25264,7 +25259,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25273,12 +25268,12 @@ where
 
 /// PATCH /zones/{zone_id}/healthchecks/{healthcheck_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25290,7 +25285,7 @@ where
 /// })).await?;
 /// ```
 pub async fn health_checks_patch_health_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &HealthChecksPatchHealthCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25315,7 +25310,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25324,12 +25319,12 @@ where
 
 /// DELETE /zones/{zone_id}/healthchecks/{healthcheck_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25341,7 +25336,7 @@ where
 /// })).await?;
 /// ```
 pub async fn health_checks_delete_health_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &HealthChecksDeleteHealthCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25362,7 +25357,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25371,12 +25366,12 @@ where
 
 /// GET /zones/{zone_id}/hold.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25388,7 +25383,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_0_hold_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Zones0HoldGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25406,7 +25401,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25415,12 +25410,12 @@ where
 
 /// POST /zones/{zone_id}/hold.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25432,7 +25427,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_0_hold_post_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Zones0HoldPostArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25452,7 +25447,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25461,12 +25456,12 @@ where
 
 /// PATCH /zones/{zone_id}/hold.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25478,7 +25473,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_0_hold_patch_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Zones0HoldPatchArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25500,7 +25495,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25509,12 +25504,12 @@ where
 
 /// DELETE /zones/{zone_id}/hold.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25526,7 +25521,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zones_0_hold_delete_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Zones0HoldDeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25546,7 +25541,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25555,12 +25550,12 @@ where
 
 /// GET /zones/{zone_id}/hostnames/settings/{setting_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25572,7 +25567,7 @@ where
 /// })).await?;
 /// ```
 pub async fn per_hostname_tls_settings_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameTlsSettingsListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25596,7 +25591,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25605,12 +25600,12 @@ where
 
 /// GET /zones/{zone_id}/hostnames/settings/{setting_id}/{hostname}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25622,7 +25617,7 @@ where
 /// })).await?;
 /// ```
 pub async fn per_hostname_tls_settings_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameTlsSettingsGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25646,7 +25641,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25655,12 +25650,12 @@ where
 
 /// PUT /zones/{zone_id}/hostnames/settings/{setting_id}/{hostname}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25672,7 +25667,7 @@ where
 /// })).await?;
 /// ```
 pub async fn per_hostname_tls_settings_put_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameTlsSettingsPutArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25700,7 +25695,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25709,12 +25704,12 @@ where
 
 /// DELETE /zones/{zone_id}/hostnames/settings/{setting_id}/{hostname}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25726,7 +25721,7 @@ where
 /// })).await?;
 /// ```
 pub async fn per_hostname_tls_settings_delete_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameTlsSettingsDeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25750,7 +25745,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25759,12 +25754,12 @@ where
 
 /// GET /zones/{zone_id}/keyless_certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25776,7 +25771,7 @@ where
 /// })).await?;
 /// ```
 pub async fn keyless_ssl_for_a_zone_list_keyless_ssl_configurations_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &KeylessSslForAZoneListKeylessSslConfigurationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25797,7 +25792,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25806,12 +25801,12 @@ where
 
 /// POST /zones/{zone_id}/keyless_certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25823,7 +25818,7 @@ where
 /// })).await?;
 /// ```
 pub async fn keyless_ssl_for_a_zone_create_keyless_ssl_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &KeylessSslForAZoneCreateKeylessSslConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25845,7 +25840,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25854,12 +25849,12 @@ where
 
 /// GET /zones/{zone_id}/keyless_certificates/{keyless_certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25871,7 +25866,7 @@ where
 /// })).await?;
 /// ```
 pub async fn keyless_ssl_for_a_zone_get_keyless_ssl_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &KeylessSslForAZoneGetKeylessSslConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25892,7 +25887,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25901,12 +25896,12 @@ where
 
 /// PATCH /zones/{zone_id}/keyless_certificates/{keyless_certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25918,7 +25913,7 @@ where
 /// })).await?;
 /// ```
 pub async fn keyless_ssl_for_a_zone_edit_keyless_ssl_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &KeylessSslForAZoneEditKeylessSslConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25943,7 +25938,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25952,12 +25947,12 @@ where
 
 /// DELETE /zones/{zone_id}/keyless_certificates/{keyless_certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -25969,7 +25964,7 @@ where
 /// })).await?;
 /// ```
 pub async fn keyless_ssl_for_a_zone_delete_keyless_ssl_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &KeylessSslForAZoneDeleteKeylessSslConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -25990,7 +25985,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -25999,12 +25994,12 @@ where
 
 /// GET /zones/{zone_id}/leaked-credential-checks.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26016,7 +26011,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_product_api_leaked_credentials_get_status_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafProductApiLeakedCredentialsGetStatusArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26034,7 +26029,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26043,12 +26038,12 @@ where
 
 /// POST /zones/{zone_id}/leaked-credential-checks.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26060,7 +26055,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_product_api_leaked_credentials_set_status_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafProductApiLeakedCredentialsSetStatusArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26082,7 +26077,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26091,12 +26086,12 @@ where
 
 /// GET /zones/{zone_id}/leaked-credential-checks/detections.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26108,7 +26103,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_product_api_leaked_credentials_list_detections_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafProductApiLeakedCredentialsListDetectionsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26132,7 +26127,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26141,12 +26136,12 @@ where
 
 /// POST /zones/{zone_id}/leaked-credential-checks/detections.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26158,7 +26153,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_product_api_leaked_credentials_create_detection_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafProductApiLeakedCredentialsCreateDetectionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26183,7 +26178,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26192,12 +26187,12 @@ where
 
 /// GET /zones/{zone_id}/leaked-credential-checks/detections/{detection_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26209,7 +26204,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_product_api_leaked_credentials_get_detection_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafProductApiLeakedCredentialsGetDetectionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26230,7 +26225,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26239,12 +26234,12 @@ where
 
 /// PUT /zones/{zone_id}/leaked-credential-checks/detections/{detection_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26256,7 +26251,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_product_api_leaked_credentials_update_detection_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafProductApiLeakedCredentialsUpdateDetectionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26281,7 +26276,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26290,12 +26285,12 @@ where
 
 /// DELETE /zones/{zone_id}/leaked-credential-checks/detections/{detection_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26307,7 +26302,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waf_product_api_leaked_credentials_delete_detection_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WafProductApiLeakedCredentialsDeleteDetectionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26328,7 +26323,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26337,12 +26332,12 @@ where
 
 /// GET /zones/{zone_id}/load_balancers.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26354,7 +26349,7 @@ where
 /// })).await?;
 /// ```
 pub async fn load_balancers_list_load_balancers_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &LoadBalancersListLoadBalancersArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26375,7 +26370,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26384,12 +26379,12 @@ where
 
 /// POST /zones/{zone_id}/load_balancers.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26401,7 +26396,7 @@ where
 /// })).await?;
 /// ```
 pub async fn load_balancers_create_load_balancer_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &LoadBalancersCreateLoadBalancerArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26426,7 +26421,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26435,12 +26430,12 @@ where
 
 /// GET /zones/{zone_id}/load_balancers/{load_balancer_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26452,7 +26447,7 @@ where
 /// })).await?;
 /// ```
 pub async fn load_balancers_load_balancer_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &LoadBalancersLoadBalancerDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26476,7 +26471,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26485,12 +26480,12 @@ where
 
 /// PUT /zones/{zone_id}/load_balancers/{load_balancer_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26502,7 +26497,7 @@ where
 /// })).await?;
 /// ```
 pub async fn load_balancers_update_load_balancer_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &LoadBalancersUpdateLoadBalancerArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26530,7 +26525,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26539,12 +26534,12 @@ where
 
 /// PATCH /zones/{zone_id}/load_balancers/{load_balancer_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26556,7 +26551,7 @@ where
 /// })).await?;
 /// ```
 pub async fn load_balancers_patch_load_balancer_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &LoadBalancersPatchLoadBalancerArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26584,7 +26579,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26593,12 +26588,12 @@ where
 
 /// DELETE /zones/{zone_id}/load_balancers/{load_balancer_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26610,7 +26605,7 @@ where
 /// })).await?;
 /// ```
 pub async fn load_balancers_delete_load_balancer_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &LoadBalancersDeleteLoadBalancerArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26631,7 +26626,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26640,12 +26635,12 @@ where
 
 /// GET /zones/{zone_id}/logpush/datasets/{dataset_id}/fields.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26657,7 +26652,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_id_logpush_datasets_dataset_id_fields_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdLogpushDatasetsDatasetIdFieldsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26678,7 +26673,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26687,12 +26682,12 @@ where
 
 /// GET /zones/{zone_id}/logpush/datasets/{dataset_id}/jobs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26704,7 +26699,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_id_logpush_datasets_dataset_id_jobs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdLogpushDatasetsDatasetIdJobsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26725,7 +26720,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26734,12 +26729,12 @@ where
 
 /// GET /zones/{zone_id}/logpush/edge/jobs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26751,7 +26746,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_id_logpush_edge_jobs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdLogpushEdgeJobsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26769,7 +26764,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26778,12 +26773,12 @@ where
 
 /// POST /zones/{zone_id}/logpush/edge/jobs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26795,7 +26790,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_zones_zone_id_logpush_edge_jobs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostZonesZoneIdLogpushEdgeJobsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26817,7 +26812,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26826,12 +26821,12 @@ where
 
 /// GET /zones/{zone_id}/logpush/jobs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26843,7 +26838,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_id_logpush_jobs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdLogpushJobsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26861,7 +26856,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26870,12 +26865,12 @@ where
 
 /// POST /zones/{zone_id}/logpush/jobs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26887,7 +26882,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_zones_zone_id_logpush_jobs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostZonesZoneIdLogpushJobsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26909,7 +26904,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26918,12 +26913,12 @@ where
 
 /// GET /zones/{zone_id}/logpush/jobs/{job_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26935,7 +26930,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_id_logpush_jobs_job_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdLogpushJobsJobIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -26953,7 +26948,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -26962,12 +26957,12 @@ where
 
 /// PUT /zones/{zone_id}/logpush/jobs/{job_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -26979,7 +26974,7 @@ where
 /// })).await?;
 /// ```
 pub async fn put_zones_zone_id_logpush_jobs_job_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PutZonesZoneIdLogpushJobsJobIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27001,7 +26996,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27010,12 +27005,12 @@ where
 
 /// DELETE /zones/{zone_id}/logpush/jobs/{job_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27027,7 +27022,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_zones_zone_id_logpush_jobs_job_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteZonesZoneIdLogpushJobsJobIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27045,7 +27040,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27054,12 +27049,12 @@ where
 
 /// POST /zones/{zone_id}/logpush/ownership.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27071,7 +27066,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_zones_zone_id_logpush_ownership_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostZonesZoneIdLogpushOwnershipArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27093,7 +27088,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27102,12 +27097,12 @@ where
 
 /// POST /zones/{zone_id}/logpush/ownership/validate.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27119,7 +27114,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_zones_zone_id_logpush_ownership_validate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostZonesZoneIdLogpushOwnershipValidateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27141,7 +27136,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27150,12 +27145,12 @@ where
 
 /// POST /zones/{zone_id}/logpush/validate/destination.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27167,7 +27162,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_zones_zone_id_logpush_validate_destination_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostZonesZoneIdLogpushValidateDestinationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27189,7 +27184,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27198,12 +27193,12 @@ where
 
 /// POST /zones/{zone_id}/logpush/validate/destination/exists.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27215,7 +27210,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_zones_zone_id_logpush_validate_destination_exists_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostZonesZoneIdLogpushValidateDestinationExistsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27240,7 +27235,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27249,12 +27244,12 @@ where
 
 /// POST /zones/{zone_id}/logpush/validate/origin.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27266,7 +27261,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_zones_zone_id_logpush_validate_origin_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostZonesZoneIdLogpushValidateOriginArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27288,7 +27283,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27297,12 +27292,12 @@ where
 
 /// GET /zones/{zone_id}/logs/control/retention/flag.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27314,7 +27309,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_id_logs_control_retention_flag_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdLogsControlRetentionFlagArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27332,7 +27327,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27341,12 +27336,12 @@ where
 
 /// POST /zones/{zone_id}/logs/control/retention/flag.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27358,7 +27353,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_zones_zone_id_logs_control_retention_flag_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostZonesZoneIdLogsControlRetentionFlagArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27380,7 +27375,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27389,12 +27384,12 @@ where
 
 /// GET /zones/{zone_id}/logs/rayids/{ray_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27406,7 +27401,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_id_logs_rayids_ray_id_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdLogsRayidsRayIdArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27427,7 +27422,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27436,12 +27431,12 @@ where
 
 /// GET /zones/{zone_id}/logs/received.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27453,7 +27448,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_id_logs_received_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdLogsReceivedArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27478,7 +27473,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27487,12 +27482,12 @@ where
 
 /// GET /zones/{zone_id}/logs/received/fields.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27504,7 +27499,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_id_logs_received_fields_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdLogsReceivedFieldsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27522,7 +27517,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27531,12 +27526,12 @@ where
 
 /// GET /zones/{zone_id}/managed_headers.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27548,7 +27543,7 @@ where
 /// })).await?;
 /// ```
 pub async fn list_managed_transforms_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ListManagedTransformsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27566,7 +27561,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27575,12 +27570,12 @@ where
 
 /// PATCH /zones/{zone_id}/managed_headers.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27592,7 +27587,7 @@ where
 /// })).await?;
 /// ```
 pub async fn update_managed_transforms_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UpdateManagedTransformsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27610,7 +27605,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27619,12 +27614,12 @@ where
 
 /// DELETE /zones/{zone_id}/managed_headers.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27636,7 +27631,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_managed_transforms_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteManagedTransformsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27654,7 +27649,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27663,12 +27658,12 @@ where
 
 /// GET /zones/{zone_id}/origin_tls_client_auth.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27680,7 +27675,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_authenticated_origin_pulls_list_certificates_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAuthenticatedOriginPullsListCertificatesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27701,7 +27696,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27710,12 +27705,12 @@ where
 
 /// POST /zones/{zone_id}/origin_tls_client_auth.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27727,7 +27722,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_authenticated_origin_pulls_upload_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAuthenticatedOriginPullsUploadCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27752,7 +27747,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27761,12 +27756,12 @@ where
 
 /// GET /zones/{zone_id}/origin_tls_client_auth/hostnames.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27778,7 +27773,7 @@ where
 /// })).await?;
 /// ```
 pub async fn per_hostname_authenticated_origin_pull_list_hostname_associations_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameAuthenticatedOriginPullListHostnameAssociationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27803,7 +27798,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27812,12 +27807,12 @@ where
 
 /// PUT /zones/{zone_id}/origin_tls_client_auth/hostnames.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27831,7 +27826,7 @@ where
 pub async fn per_hostname_authenticated_origin_pull_enable_or_disable_a_hostname_for_client_authentication_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameAuthenticatedOriginPullEnableOrDisableAHostnameForClientAuthenticationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27856,7 +27851,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27865,12 +27860,12 @@ where
 
 /// GET /zones/{zone_id}/origin_tls_client_auth/hostnames/certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27882,7 +27877,7 @@ where
 /// })).await?;
 /// ```
 pub async fn per_hostname_authenticated_origin_pull_list_certificates_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameAuthenticatedOriginPullListCertificatesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27903,7 +27898,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27912,12 +27907,12 @@ where
 
 /// POST /zones/{zone_id}/origin_tls_client_auth/hostnames/certificates.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27929,7 +27924,7 @@ where
 /// })).await?;
 /// ```
 pub async fn per_hostname_authenticated_origin_pull_upload_a_hostname_client_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameAuthenticatedOriginPullUploadAHostnameClientCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -27954,7 +27949,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -27963,12 +27958,12 @@ where
 
 /// GET /zones/{zone_id}/origin_tls_client_auth/hostnames/certificates/{certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -27980,7 +27975,7 @@ where
 /// })).await?;
 /// ```
 pub async fn per_hostname_authenticated_origin_pull_get_the_hostname_client_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameAuthenticatedOriginPullGetTheHostnameClientCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28001,7 +27996,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28010,12 +28005,12 @@ where
 
 /// DELETE /zones/{zone_id}/origin_tls_client_auth/hostnames/certificates/{certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28027,7 +28022,7 @@ where
 /// })).await?;
 /// ```
 pub async fn per_hostname_authenticated_origin_pull_delete_hostname_client_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameAuthenticatedOriginPullDeleteHostnameClientCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28048,7 +28043,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28057,12 +28052,12 @@ where
 
 /// GET /zones/{zone_id}/origin_tls_client_auth/hostnames/{hostname}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28076,7 +28071,7 @@ where
 pub async fn per_hostname_authenticated_origin_pull_get_the_hostname_status_for_client_authentication_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PerHostnameAuthenticatedOriginPullGetTheHostnameStatusForClientAuthenticationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28100,7 +28095,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28109,12 +28104,12 @@ where
 
 /// GET /zones/{zone_id}/origin_tls_client_auth/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28126,7 +28121,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_authenticated_origin_pulls_get_enablement_setting_for_zone_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAuthenticatedOriginPullsGetEnablementSettingForZoneArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28144,7 +28139,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28153,12 +28148,12 @@ where
 
 /// PUT /zones/{zone_id}/origin_tls_client_auth/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28170,7 +28165,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_authenticated_origin_pulls_set_enablement_for_zone_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAuthenticatedOriginPullsSetEnablementForZoneArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28192,7 +28187,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28201,12 +28196,12 @@ where
 
 /// GET /zones/{zone_id}/origin_tls_client_auth/{certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28218,7 +28213,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_authenticated_origin_pulls_get_certificate_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAuthenticatedOriginPullsGetCertificateDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28242,7 +28237,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28251,12 +28246,12 @@ where
 
 /// DELETE /zones/{zone_id}/origin_tls_client_auth/{certificate_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28268,7 +28263,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_level_authenticated_origin_pulls_delete_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneLevelAuthenticatedOriginPullsDeleteCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28292,7 +28287,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28301,12 +28296,12 @@ where
 
 /// GET /zones/{zone_id}/page_shield.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28318,7 +28313,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_get_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldGetSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28336,7 +28331,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28345,12 +28340,12 @@ where
 
 /// PUT /zones/{zone_id}/page_shield.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28362,7 +28357,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_update_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldUpdateSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28384,7 +28379,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28393,12 +28388,12 @@ where
 
 /// GET /zones/{zone_id}/page_shield/connections.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28410,7 +28405,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_list_connections_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldListConnectionsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28441,7 +28436,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28450,12 +28445,12 @@ where
 
 /// GET /zones/{zone_id}/page_shield/connections/{connection_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28467,7 +28462,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_get_connection_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldGetConnectionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28488,7 +28483,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28497,12 +28492,12 @@ where
 
 /// GET /zones/{zone_id}/page_shield/cookies.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28514,7 +28509,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_list_cookies_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldListCookiesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28547,7 +28542,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28556,12 +28551,12 @@ where
 
 /// GET /zones/{zone_id}/page_shield/cookies/{cookie_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28573,7 +28568,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_get_cookie_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldGetCookieArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28594,7 +28589,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28603,12 +28598,12 @@ where
 
 /// GET /zones/{zone_id}/page_shield/policies.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28620,7 +28615,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_list_policies_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldListPoliciesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28638,7 +28633,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28647,12 +28642,12 @@ where
 
 /// POST /zones/{zone_id}/page_shield/policies.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28664,7 +28659,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_create_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldCreatePolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28682,7 +28677,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28691,12 +28686,12 @@ where
 
 /// GET /zones/{zone_id}/page_shield/policies/{policy_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28708,7 +28703,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_get_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldGetPolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28729,7 +28724,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28738,12 +28733,12 @@ where
 
 /// PUT /zones/{zone_id}/page_shield/policies/{policy_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28755,7 +28750,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_update_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldUpdatePolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28780,7 +28775,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28789,12 +28784,12 @@ where
 
 /// DELETE /zones/{zone_id}/page_shield/policies/{policy_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28806,7 +28801,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_delete_policy_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldDeletePolicyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28827,7 +28822,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28836,12 +28831,12 @@ where
 
 /// GET /zones/{zone_id}/page_shield/scripts.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28853,7 +28848,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_list_scripts_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldListScriptsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28885,7 +28880,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28894,12 +28889,12 @@ where
 
 /// GET /zones/{zone_id}/page_shield/scripts/{script_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28911,7 +28906,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_shield_get_script_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageShieldGetScriptArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28932,7 +28927,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28941,12 +28936,12 @@ where
 
 /// GET /zones/{zone_id}/pagerules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -28958,7 +28953,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_rules_list_page_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageRulesListPageRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -28981,7 +28976,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -28990,12 +28985,12 @@ where
 
 /// POST /zones/{zone_id}/pagerules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29007,7 +29002,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_rules_create_a_page_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageRulesCreateAPageRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29029,7 +29024,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29038,12 +29033,12 @@ where
 
 /// GET /zones/{zone_id}/pagerules/{pagerule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29055,7 +29050,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_rules_get_a_page_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageRulesGetAPageRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29073,7 +29068,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29082,12 +29077,12 @@ where
 
 /// PUT /zones/{zone_id}/pagerules/{pagerule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29099,7 +29094,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_rules_update_a_page_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageRulesUpdateAPageRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29121,7 +29116,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29130,12 +29125,12 @@ where
 
 /// PATCH /zones/{zone_id}/pagerules/{pagerule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29147,7 +29142,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_rules_edit_a_page_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageRulesEditAPageRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29169,7 +29164,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29178,12 +29173,12 @@ where
 
 /// DELETE /zones/{zone_id}/pagerules/{pagerule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29195,7 +29190,7 @@ where
 /// })).await?;
 /// ```
 pub async fn page_rules_delete_a_page_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PageRulesDeleteAPageRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29213,7 +29208,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29222,12 +29217,12 @@ where
 
 /// GET /zones/{zone_id}/pay-per-crawl/configuration.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29239,7 +29234,7 @@ where
 /// })).await?;
 /// ```
 pub async fn pay_per_crawl_get_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PayPerCrawlGetConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29257,7 +29252,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29266,12 +29261,12 @@ where
 
 /// POST /zones/{zone_id}/pay-per-crawl/configuration.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29283,7 +29278,7 @@ where
 /// })).await?;
 /// ```
 pub async fn pay_per_crawl_create_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PayPerCrawlCreateConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29301,7 +29296,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29310,12 +29305,12 @@ where
 
 /// PATCH /zones/{zone_id}/pay-per-crawl/configuration.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29327,7 +29322,7 @@ where
 /// })).await?;
 /// ```
 pub async fn pay_per_crawl_patch_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PayPerCrawlPatchConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29345,7 +29340,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29354,12 +29349,12 @@ where
 
 /// POST /zones/{zone_id}/purge_cache.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29371,7 +29366,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_purge_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZonePurgeArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29393,7 +29388,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29402,12 +29397,12 @@ where
 
 /// GET /zones/{zone_id}/rulesets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29419,7 +29414,7 @@ where
 /// })).await?;
 /// ```
 pub async fn list_zone_rulesets_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ListZoneRulesetsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29440,7 +29435,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29449,12 +29444,12 @@ where
 
 /// POST /zones/{zone_id}/rulesets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29466,7 +29461,7 @@ where
 /// })).await?;
 /// ```
 pub async fn create_zone_ruleset_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CreateZoneRulesetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29484,7 +29479,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29493,12 +29488,12 @@ where
 
 /// GET /zones/{zone_id}/rulesets/phases/{ruleset_phase}/entrypoint.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29510,7 +29505,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zone_entrypoint_ruleset_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZoneEntrypointRulesetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29531,7 +29526,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29540,12 +29535,12 @@ where
 
 /// PUT /zones/{zone_id}/rulesets/phases/{ruleset_phase}/entrypoint.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29557,7 +29552,7 @@ where
 /// })).await?;
 /// ```
 pub async fn update_zone_entrypoint_ruleset_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UpdateZoneEntrypointRulesetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29578,7 +29573,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29587,12 +29582,12 @@ where
 
 /// GET /zones/{zone_id}/rulesets/phases/{ruleset_phase}/entrypoint/versions.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29604,7 +29599,7 @@ where
 /// })).await?;
 /// ```
 pub async fn list_zone_entrypoint_ruleset_versions_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ListZoneEntrypointRulesetVersionsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29625,7 +29620,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29634,12 +29629,12 @@ where
 
 /// GET /zones/{zone_id}/rulesets/phases/{ruleset_phase}/entrypoint/versions/{ruleset_version}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29651,7 +29646,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zone_entrypoint_ruleset_version_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZoneEntrypointRulesetVersionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29672,7 +29667,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29681,12 +29676,12 @@ where
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29698,7 +29693,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zone_ruleset_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZoneRulesetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29716,7 +29711,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29725,12 +29720,12 @@ where
 
 /// PUT /zones/{zone_id}/rulesets/{ruleset_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29742,7 +29737,7 @@ where
 /// })).await?;
 /// ```
 pub async fn update_zone_ruleset_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UpdateZoneRulesetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29760,7 +29755,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29769,12 +29764,12 @@ where
 
 /// DELETE /zones/{zone_id}/rulesets/{ruleset_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29786,7 +29781,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_zone_ruleset_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteZoneRulesetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29804,7 +29799,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29813,12 +29808,12 @@ where
 
 /// POST /zones/{zone_id}/rulesets/{ruleset_id}/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29830,7 +29825,7 @@ where
 /// })).await?;
 /// ```
 pub async fn create_zone_ruleset_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CreateZoneRulesetRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29848,7 +29843,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29857,12 +29852,12 @@ where
 
 /// PATCH /zones/{zone_id}/rulesets/{ruleset_id}/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29874,7 +29869,7 @@ where
 /// })).await?;
 /// ```
 pub async fn update_zone_ruleset_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UpdateZoneRulesetRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29895,7 +29890,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29904,12 +29899,12 @@ where
 
 /// DELETE /zones/{zone_id}/rulesets/{ruleset_id}/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29921,7 +29916,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_zone_ruleset_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteZoneRulesetRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29942,7 +29937,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29951,12 +29946,12 @@ where
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -29968,7 +29963,7 @@ where
 /// })).await?;
 /// ```
 pub async fn list_zone_ruleset_versions_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ListZoneRulesetVersionsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -29989,7 +29984,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -29998,12 +29993,12 @@ where
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions/{ruleset_version}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30015,7 +30010,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zone_ruleset_version_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZoneRulesetVersionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30036,7 +30031,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30045,12 +30040,12 @@ where
 
 /// DELETE /zones/{zone_id}/rulesets/{ruleset_id}/versions/{ruleset_version}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30062,7 +30057,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_zone_ruleset_version_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteZoneRulesetVersionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30083,7 +30078,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30092,12 +30087,12 @@ where
 
 /// GET /zones/{zone_id}/rulesets/{ruleset_id}/versions/{ruleset_version}/by_tag/{rule_tag}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30109,7 +30104,7 @@ where
 /// })).await?;
 /// ```
 pub async fn list_zone_ruleset_version_rules_by_tag_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ListZoneRulesetVersionRulesByTagArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30130,7 +30125,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30139,12 +30134,12 @@ where
 
 /// GET /zones/{zone_id}/schema_validation/schemas.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30156,7 +30151,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_list_schemas_paginated_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationListSchemasPaginatedArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30179,7 +30174,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30188,12 +30183,12 @@ where
 
 /// POST /zones/{zone_id}/schema_validation/schemas.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30205,7 +30200,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_create_schema_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationCreateSchemaArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30223,7 +30218,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30232,12 +30227,12 @@ where
 
 /// GET /zones/{zone_id}/schema_validation/schemas/hosts.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30249,7 +30244,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_list_schema_hosts_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationListSchemaHostsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30270,7 +30265,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30279,12 +30274,12 @@ where
 
 /// GET /zones/{zone_id}/schema_validation/schemas/{schema_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30296,7 +30291,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_get_schema_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationGetSchemaArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30319,7 +30314,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30328,12 +30323,12 @@ where
 
 /// PATCH /zones/{zone_id}/schema_validation/schemas/{schema_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30345,7 +30340,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_edit_schema_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationEditSchemaArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30366,7 +30361,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30375,12 +30370,12 @@ where
 
 /// DELETE /zones/{zone_id}/schema_validation/schemas/{schema_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30392,7 +30387,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_delete_schema_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationDeleteSchemaArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30413,7 +30408,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30422,12 +30417,12 @@ where
 
 /// GET /zones/{zone_id}/schema_validation/schemas/{schema_id}/operations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30439,7 +30434,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_extract_operations_from_schema_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationExtractOperationsFromSchemaArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30474,7 +30469,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30483,12 +30478,12 @@ where
 
 /// GET /zones/{zone_id}/schema_validation/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30500,7 +30495,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_get_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationGetSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30518,7 +30513,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30527,12 +30522,12 @@ where
 
 /// PUT /zones/{zone_id}/schema_validation/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30544,7 +30539,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_update_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationUpdateSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30562,7 +30557,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30571,12 +30566,12 @@ where
 
 /// PATCH /zones/{zone_id}/schema_validation/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30588,7 +30583,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_edit_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationEditSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30606,7 +30601,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30615,12 +30610,12 @@ where
 
 /// GET /zones/{zone_id}/schema_validation/settings/operations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30632,7 +30627,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_list_per_operation_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationListPerOperationSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30656,7 +30651,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30665,12 +30660,12 @@ where
 
 /// PATCH /zones/{zone_id}/schema_validation/settings/operations.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30682,7 +30677,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_bulk_edit_per_operation_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationBulkEditPerOperationSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30706,7 +30701,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30715,12 +30710,12 @@ where
 
 /// GET /zones/{zone_id}/schema_validation/settings/operations/{operation_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30732,7 +30727,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_get_per_operation_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationGetPerOperationSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30753,7 +30748,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30762,12 +30757,12 @@ where
 
 /// PUT /zones/{zone_id}/schema_validation/settings/operations/{operation_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30779,7 +30774,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_update_per_operation_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationUpdatePerOperationSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30800,7 +30795,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30809,12 +30804,12 @@ where
 
 /// DELETE /zones/{zone_id}/schema_validation/settings/operations/{operation_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30826,7 +30821,7 @@ where
 /// })).await?;
 /// ```
 pub async fn schema_validation_delete_per_operation_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SchemaValidationDeletePerOperationSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30847,7 +30842,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30856,12 +30851,12 @@ where
 
 /// POST /zones/{zone_id}/secondary_dns/force_axfr.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30873,7 +30868,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_secondary_zone_force_axfr_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsSecondaryZoneForceAxfrArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30891,7 +30886,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30900,12 +30895,12 @@ where
 
 /// GET /zones/{zone_id}/secondary_dns/incoming.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30917,7 +30912,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_secondary_zone_secondary_zone_configuration_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsSecondaryZoneSecondaryZoneConfigurationDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30935,7 +30930,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30944,12 +30939,12 @@ where
 
 /// POST /zones/{zone_id}/secondary_dns/incoming.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -30961,7 +30956,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_secondary_zone_create_secondary_zone_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsSecondaryZoneCreateSecondaryZoneConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -30983,7 +30978,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -30992,12 +30987,12 @@ where
 
 /// PUT /zones/{zone_id}/secondary_dns/incoming.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31009,7 +31004,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_secondary_zone_update_secondary_zone_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsSecondaryZoneUpdateSecondaryZoneConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31031,7 +31026,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31040,12 +31035,12 @@ where
 
 /// DELETE /zones/{zone_id}/secondary_dns/incoming.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31057,7 +31052,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_secondary_zone_delete_secondary_zone_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsSecondaryZoneDeleteSecondaryZoneConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31075,7 +31070,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31084,12 +31079,12 @@ where
 
 /// GET /zones/{zone_id}/secondary_dns/outgoing.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31101,7 +31096,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_primary_zone_primary_zone_configuration_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsPrimaryZonePrimaryZoneConfigurationDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31119,7 +31114,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31128,12 +31123,12 @@ where
 
 /// POST /zones/{zone_id}/secondary_dns/outgoing.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31145,7 +31140,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_primary_zone_create_primary_zone_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsPrimaryZoneCreatePrimaryZoneConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31167,7 +31162,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31176,12 +31171,12 @@ where
 
 /// PUT /zones/{zone_id}/secondary_dns/outgoing.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31193,7 +31188,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_primary_zone_update_primary_zone_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsPrimaryZoneUpdatePrimaryZoneConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31215,7 +31210,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31224,12 +31219,12 @@ where
 
 /// DELETE /zones/{zone_id}/secondary_dns/outgoing.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31241,7 +31236,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_primary_zone_delete_primary_zone_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsPrimaryZoneDeletePrimaryZoneConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31259,7 +31254,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31268,12 +31263,12 @@ where
 
 /// POST /zones/{zone_id}/secondary_dns/outgoing/disable.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31285,7 +31280,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_primary_zone_disable_outgoing_zone_transfers_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsPrimaryZoneDisableOutgoingZoneTransfersArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31303,7 +31298,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31312,12 +31307,12 @@ where
 
 /// POST /zones/{zone_id}/secondary_dns/outgoing/enable.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31329,7 +31324,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_primary_zone_enable_outgoing_zone_transfers_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsPrimaryZoneEnableOutgoingZoneTransfersArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31347,7 +31342,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31356,12 +31351,12 @@ where
 
 /// POST /zones/{zone_id}/secondary_dns/outgoing/force_notify.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31373,7 +31368,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_primary_zone_force_dns_notify_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsPrimaryZoneForceDnsNotifyArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31394,7 +31389,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31403,12 +31398,12 @@ where
 
 /// GET /zones/{zone_id}/secondary_dns/outgoing/status.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31420,7 +31415,7 @@ where
 /// })).await?;
 /// ```
 pub async fn secondary_dns_primary_zone_get_outgoing_zone_transfer_status_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SecondaryDnsPrimaryZoneGetOutgoingZoneTransferStatusArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31438,7 +31433,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31447,12 +31442,12 @@ where
 
 /// GET /zones/{zone_id}/security-center/insights.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31464,7 +31459,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zone_security_center_insights_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZoneSecurityCenterInsightsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31496,7 +31491,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31505,12 +31500,12 @@ where
 
 /// GET /zones/{zone_id}/security-center/insights/class.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31522,7 +31517,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zone_security_center_insight_counts_by_class_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZoneSecurityCenterInsightCountsByClassArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31552,7 +31547,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31561,12 +31556,12 @@ where
 
 /// GET /zones/{zone_id}/security-center/insights/severity.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31578,7 +31573,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zone_security_center_insight_counts_by_severity_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZoneSecurityCenterInsightCountsBySeverityArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31608,7 +31603,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31617,12 +31612,12 @@ where
 
 /// GET /zones/{zone_id}/security-center/insights/type.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31634,7 +31629,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zone_security_center_insight_counts_by_type_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZoneSecurityCenterInsightCountsByTypeArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31664,7 +31659,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31673,12 +31668,12 @@ where
 
 /// PUT /zones/{zone_id}/security-center/insights/{issue_id}/dismiss.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31690,7 +31685,7 @@ where
 /// })).await?;
 /// ```
 pub async fn archive_zone_security_center_insight_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ArchiveZoneSecurityCenterInsightArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31715,7 +31710,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31724,12 +31719,12 @@ where
 
 /// GET /zones/{zone_id}/security-center/securitytxt.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31741,7 +31736,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_security_txt_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetSecurityTxtArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31759,7 +31754,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31768,12 +31763,12 @@ where
 
 /// PUT /zones/{zone_id}/security-center/securitytxt.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31785,7 +31780,7 @@ where
 /// })).await?;
 /// ```
 pub async fn update_security_txt_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UpdateSecurityTxtArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31807,7 +31802,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31816,12 +31811,12 @@ where
 
 /// DELETE /zones/{zone_id}/security-center/securitytxt.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31833,7 +31828,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_security_txt_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteSecurityTxtArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31851,7 +31846,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31860,12 +31855,12 @@ where
 
 /// GET /zones/{zone_id}/settings/aegis.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31877,7 +31872,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_get_aegis_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsGetAegisSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31895,7 +31890,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31904,12 +31899,12 @@ where
 
 /// PATCH /zones/{zone_id}/settings/aegis.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31921,7 +31916,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_change_aegis_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsChangeAegisSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31943,7 +31938,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31952,12 +31947,12 @@ where
 
 /// GET /zones/{zone_id}/settings/fonts.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -31969,7 +31964,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_settings_get_fonts_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSettingsGetFontsSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -31987,7 +31982,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -31996,12 +31991,12 @@ where
 
 /// PATCH /zones/{zone_id}/settings/fonts.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32013,7 +32008,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_settings_change_fonts_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSettingsChangeFontsSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32035,7 +32030,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32044,12 +32039,12 @@ where
 
 /// GET /zones/{zone_id}/settings/google-tag-gateway/config.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32061,7 +32056,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_settings_get_google_tag_gateway_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSettingsGetGoogleTagGatewayConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32079,7 +32074,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32088,12 +32083,12 @@ where
 
 /// PUT /zones/{zone_id}/settings/google-tag-gateway/config.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32105,7 +32100,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_settings_change_google_tag_gateway_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSettingsChangeGoogleTagGatewayConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32127,7 +32122,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32136,12 +32131,12 @@ where
 
 /// GET /zones/{zone_id}/settings/origin_h2_max_streams.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32153,7 +32148,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_get_origin_h2_max_streams_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsGetOriginH2MaxStreamsSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32171,7 +32166,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32180,12 +32175,12 @@ where
 
 /// PATCH /zones/{zone_id}/settings/origin_h2_max_streams.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32197,7 +32192,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_change_origin_h2_max_streams_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsChangeOriginH2MaxStreamsSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32219,7 +32214,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32228,12 +32223,12 @@ where
 
 /// GET /zones/{zone_id}/settings/origin_max_http_version.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32245,7 +32240,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_get_origin_max_http_version_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsGetOriginMaxHttpVersionSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32266,7 +32261,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32275,12 +32270,12 @@ where
 
 /// PATCH /zones/{zone_id}/settings/origin_max_http_version.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32292,7 +32287,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_cache_settings_change_origin_max_http_version_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneCacheSettingsChangeOriginMaxHttpVersionSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32317,7 +32312,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32326,12 +32321,12 @@ where
 
 /// GET /zones/{zone_id}/settings/rum.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32343,7 +32338,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web_analytics_get_rum_status_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WebAnalyticsGetRumStatusArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32361,7 +32356,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32370,12 +32365,12 @@ where
 
 /// PATCH /zones/{zone_id}/settings/rum.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32387,7 +32382,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web_analytics_toggle_rum_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WebAnalyticsToggleRumArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32409,7 +32404,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32418,12 +32413,12 @@ where
 
 /// GET /zones/{zone_id}/settings/speed_brain.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32435,7 +32430,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_settings_get_speed_brain_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSettingsGetSpeedBrainSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32453,7 +32448,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32462,12 +32457,12 @@ where
 
 /// PATCH /zones/{zone_id}/settings/speed_brain.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32479,7 +32474,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_settings_change_speed_brain_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSettingsChangeSpeedBrainSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32501,7 +32496,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32510,12 +32505,12 @@ where
 
 /// GET /zones/{zone_id}/settings/ssl_automatic_mode.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32527,7 +32522,7 @@ where
 /// })).await?;
 /// ```
 pub async fn ssl_detector_automatic_mode_get_enrollment_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SslDetectorAutomaticModeGetEnrollmentArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32545,7 +32540,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32554,12 +32549,12 @@ where
 
 /// PATCH /zones/{zone_id}/settings/ssl_automatic_mode.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32571,7 +32566,7 @@ where
 /// })).await?;
 /// ```
 pub async fn ssl_detector_automatic_mode_patch_enrollment_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SslDetectorAutomaticModePatchEnrollmentArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32593,7 +32588,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32602,12 +32597,12 @@ where
 
 /// GET /zones/{zone_id}/settings/zaraz/config.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32619,7 +32614,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_identifier_zaraz_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdentifierZarazConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32637,7 +32632,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32646,12 +32641,12 @@ where
 
 /// PUT /zones/{zone_id}/settings/zaraz/config.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32663,7 +32658,7 @@ where
 /// })).await?;
 /// ```
 pub async fn put_zones_zone_identifier_zaraz_config_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PutZonesZoneIdentifierZarazConfigArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32685,7 +32680,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32694,12 +32689,12 @@ where
 
 /// GET /zones/{zone_id}/settings/zaraz/default.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32711,7 +32706,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_identifier_zaraz_default_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdentifierZarazDefaultArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32729,7 +32724,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32738,12 +32733,12 @@ where
 
 /// GET /zones/{zone_id}/settings/zaraz/export.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32755,7 +32750,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_identifier_zaraz_export_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdentifierZarazExportArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32773,7 +32768,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32782,12 +32777,12 @@ where
 
 /// GET /zones/{zone_id}/settings/zaraz/history.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32799,7 +32794,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_identifier_zaraz_history_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdentifierZarazHistoryArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32822,7 +32817,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32831,12 +32826,12 @@ where
 
 /// PUT /zones/{zone_id}/settings/zaraz/history.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32848,7 +32843,7 @@ where
 /// })).await?;
 /// ```
 pub async fn put_zones_zone_identifier_zaraz_history_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PutZonesZoneIdentifierZarazHistoryArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32866,7 +32861,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32875,12 +32870,12 @@ where
 
 /// GET /zones/{zone_id}/settings/zaraz/history/configs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32892,7 +32887,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_identifier_zaraz_config_history_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdentifierZarazConfigHistoryArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32914,7 +32909,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32923,12 +32918,12 @@ where
 
 /// POST /zones/{zone_id}/settings/zaraz/publish.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32940,7 +32935,7 @@ where
 /// })).await?;
 /// ```
 pub async fn post_zones_zone_identifier_zaraz_publish_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PostZonesZoneIdentifierZarazPublishArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -32958,7 +32953,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -32967,12 +32962,12 @@ where
 
 /// GET /zones/{zone_id}/settings/zaraz/workflow.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -32984,7 +32979,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zones_zone_identifier_zaraz_workflow_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZonesZoneIdentifierZarazWorkflowArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33002,7 +32997,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33011,12 +33006,12 @@ where
 
 /// PUT /zones/{zone_id}/settings/zaraz/workflow.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33028,7 +33023,7 @@ where
 /// })).await?;
 /// ```
 pub async fn put_zones_zone_identifier_zaraz_workflow_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &PutZonesZoneIdentifierZarazWorkflowArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33046,7 +33041,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33055,12 +33050,12 @@ where
 
 /// GET /zones/{zone_id}/settings/{setting_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33072,7 +33067,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_settings_get_single_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSettingsGetSingleSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33090,7 +33085,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33099,12 +33094,12 @@ where
 
 /// PATCH /zones/{zone_id}/settings/{setting_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33116,7 +33111,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_settings_edit_single_setting_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSettingsEditSingleSettingArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33138,7 +33133,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33147,12 +33142,12 @@ where
 
 /// GET /zones/{zone_id}/smart_shield.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33164,7 +33159,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_shield_get_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartShieldGetSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33182,7 +33177,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33191,12 +33186,12 @@ where
 
 /// PATCH /zones/{zone_id}/smart_shield.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33208,7 +33203,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_shield_patch_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartShieldPatchSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33230,7 +33225,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33239,12 +33234,12 @@ where
 
 /// GET /zones/{zone_id}/smart_shield/cache_reserve_clear.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33256,7 +33251,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_shield_settings_get_cache_reserve_clear_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartShieldSettingsGetCacheReserveClearArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33274,7 +33269,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33283,12 +33278,12 @@ where
 
 /// POST /zones/{zone_id}/smart_shield/cache_reserve_clear.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33300,7 +33295,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_shield_settings_start_cache_reserve_clear_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartShieldSettingsStartCacheReserveClearArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33318,7 +33313,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33327,12 +33322,12 @@ where
 
 /// GET /zones/{zone_id}/smart_shield/healthchecks.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33344,7 +33339,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_shield_list_health_checks_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartShieldListHealthChecksArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33365,7 +33360,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33374,12 +33369,12 @@ where
 
 /// POST /zones/{zone_id}/smart_shield/healthchecks.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33391,7 +33386,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_shield_create_health_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartShieldCreateHealthCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33413,7 +33408,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33422,12 +33417,12 @@ where
 
 /// GET /zones/{zone_id}/smart_shield/healthchecks/{healthcheck_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33439,7 +33434,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_shield_health_check_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartShieldHealthCheckDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33460,7 +33455,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33469,12 +33464,12 @@ where
 
 /// PUT /zones/{zone_id}/smart_shield/healthchecks/{healthcheck_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33486,7 +33481,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_shield_update_health_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartShieldUpdateHealthCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33511,7 +33506,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33520,12 +33515,12 @@ where
 
 /// PATCH /zones/{zone_id}/smart_shield/healthchecks/{healthcheck_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33537,7 +33532,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_shield_patch_health_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartShieldPatchHealthCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33562,7 +33557,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33571,12 +33566,12 @@ where
 
 /// DELETE /zones/{zone_id}/smart_shield/healthchecks/{healthcheck_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33588,7 +33583,7 @@ where
 /// })).await?;
 /// ```
 pub async fn smart_shield_delete_health_check_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SmartShieldDeleteHealthCheckArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33609,7 +33604,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33618,12 +33613,12 @@ where
 
 /// GET /zones/{zone_id}/snippets.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33635,7 +33630,7 @@ where
 /// })).await?;
 /// ```
 pub async fn list_zone_snippets_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ListZoneSnippetsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33656,7 +33651,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33665,12 +33660,12 @@ where
 
 /// GET /zones/{zone_id}/snippets/snippet_rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33682,7 +33677,7 @@ where
 /// })).await?;
 /// ```
 pub async fn list_zone_snippet_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ListZoneSnippetRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33700,7 +33695,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33709,12 +33704,12 @@ where
 
 /// PUT /zones/{zone_id}/snippets/snippet_rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33726,7 +33721,7 @@ where
 /// })).await?;
 /// ```
 pub async fn update_zone_snippet_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UpdateZoneSnippetRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33744,7 +33739,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33753,12 +33748,12 @@ where
 
 /// DELETE /zones/{zone_id}/snippets/snippet_rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33770,7 +33765,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_zone_snippet_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteZoneSnippetRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33788,7 +33783,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33797,12 +33792,12 @@ where
 
 /// GET /zones/{zone_id}/snippets/{snippet_name}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33814,7 +33809,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zone_snippet_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZoneSnippetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33832,7 +33827,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33841,12 +33836,12 @@ where
 
 /// PUT /zones/{zone_id}/snippets/{snippet_name}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33858,7 +33853,7 @@ where
 /// })).await?;
 /// ```
 pub async fn update_zone_snippet_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UpdateZoneSnippetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33876,7 +33871,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33885,12 +33880,12 @@ where
 
 /// DELETE /zones/{zone_id}/snippets/{snippet_name}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33902,7 +33897,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_zone_snippet_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteZoneSnippetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33920,7 +33915,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33929,12 +33924,12 @@ where
 
 /// GET /zones/{zone_id}/snippets/{snippet_name}/content.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -33951,7 +33946,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_zone_snippet_content_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetZoneSnippetContentArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -33972,12 +33967,7 @@ where
         f(&mut builder);
     }
 
-    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
-    Ok(ApiResponse {
-        status,
-        headers,
-        body: super::shared::ByteStream::new(body),
-    })
+    super::shared::send_bytes(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -33986,12 +33976,12 @@ where
 
 /// GET /zones/{zone_id}/spectrum/analytics/events/bytime.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34003,7 +33993,7 @@ where
 /// })).await?;
 /// ```
 pub async fn spectrum_analytics_by_time_get_analytics_by_time_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpectrumAnalyticsByTimeGetAnalyticsByTimeArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34029,7 +34019,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34038,12 +34028,12 @@ where
 
 /// GET /zones/{zone_id}/spectrum/analytics/events/summary.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34055,7 +34045,7 @@ where
 /// })).await?;
 /// ```
 pub async fn spectrum_analytics_summary_get_analytics_summary_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpectrumAnalyticsSummaryGetAnalyticsSummaryArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34080,7 +34070,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34089,12 +34079,12 @@ where
 
 /// GET /zones/{zone_id}/spectrum/apps.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34106,7 +34096,7 @@ where
 /// })).await?;
 /// ```
 pub async fn spectrum_applications_list_spectrum_applications_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpectrumApplicationsListSpectrumApplicationsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34129,7 +34119,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34138,12 +34128,12 @@ where
 
 /// POST /zones/{zone_id}/spectrum/apps.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34157,7 +34147,7 @@ where
 pub async fn spectrum_applications_create_spectrum_application_using_a_name_for_the_origin_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpectrumApplicationsCreateSpectrumApplicationUsingANameForTheOriginArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34179,7 +34169,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34188,12 +34178,12 @@ where
 
 /// GET /zones/{zone_id}/spectrum/apps/{app_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34205,7 +34195,7 @@ where
 /// })).await?;
 /// ```
 pub async fn spectrum_applications_get_spectrum_application_configuration_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpectrumApplicationsGetSpectrumApplicationConfigurationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34223,7 +34213,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34232,12 +34222,12 @@ where
 
 /// PUT /zones/{zone_id}/spectrum/apps/{app_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34251,7 +34241,7 @@ where
 pub async fn spectrum_applications_update_spectrum_application_configuration_using_a_name_for_the_origin_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpectrumApplicationsUpdateSpectrumApplicationConfigurationUsingANameForTheOriginArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34273,7 +34263,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34282,12 +34272,12 @@ where
 
 /// DELETE /zones/{zone_id}/spectrum/apps/{app_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34299,7 +34289,7 @@ where
 /// })).await?;
 /// ```
 pub async fn spectrum_applications_delete_spectrum_application_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpectrumApplicationsDeleteSpectrumApplicationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34317,7 +34307,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34326,12 +34316,12 @@ where
 
 /// GET /zones/{zone_id}/speed_api/availabilities.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34343,7 +34333,7 @@ where
 /// })).await?;
 /// ```
 pub async fn speed_get_availabilities_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpeedGetAvailabilitiesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34361,7 +34351,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34370,12 +34360,12 @@ where
 
 /// GET /zones/{zone_id}/speed_api/schedule/{url}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34387,7 +34377,7 @@ where
 /// })).await?;
 /// ```
 pub async fn speed_get_scheduled_test_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpeedGetScheduledTestArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34407,7 +34397,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34416,12 +34406,12 @@ where
 
 /// POST /zones/{zone_id}/speed_api/schedule/{url}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34433,7 +34423,7 @@ where
 /// })).await?;
 /// ```
 pub async fn speed_create_scheduled_test_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpeedCreateScheduledTestArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34454,7 +34444,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34463,12 +34453,12 @@ where
 
 /// DELETE /zones/{zone_id}/speed_api/schedule/{url}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34480,7 +34470,7 @@ where
 /// })).await?;
 /// ```
 pub async fn speed_delete_test_schedule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SpeedDeleteTestScheduleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34500,7 +34490,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34509,12 +34499,12 @@ where
 
 /// POST /zones/{zone_id}/ssl/analyze.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34526,7 +34516,7 @@ where
 /// })).await?;
 /// ```
 pub async fn analyze_certificate_analyze_certificate_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &AnalyzeCertificateAnalyzeCertificateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34551,7 +34541,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34560,12 +34550,12 @@ where
 
 /// GET /zones/{zone_id}/ssl/certificate_packs.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34577,7 +34567,7 @@ where
 /// })).await?;
 /// ```
 pub async fn certificate_packs_list_certificate_packs_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CertificatePacksListCertificatePacksArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34603,7 +34593,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34612,12 +34602,12 @@ where
 
 /// POST /zones/{zone_id}/ssl/certificate_packs/order.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34629,7 +34619,7 @@ where
 /// })).await?;
 /// ```
 pub async fn certificate_packs_order_advanced_certificate_manager_certificate_pack_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CertificatePacksOrderAdvancedCertificateManagerCertificatePackArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34654,7 +34644,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34663,12 +34653,12 @@ where
 
 /// GET /zones/{zone_id}/ssl/certificate_packs/quota.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34680,7 +34670,7 @@ where
 /// })).await?;
 /// ```
 pub async fn certificate_packs_get_certificate_pack_quotas_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CertificatePacksGetCertificatePackQuotasArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34701,7 +34691,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34710,12 +34700,12 @@ where
 
 /// GET /zones/{zone_id}/ssl/certificate_packs/{certificate_pack_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34727,7 +34717,7 @@ where
 /// })).await?;
 /// ```
 pub async fn certificate_packs_get_certificate_pack_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CertificatePacksGetCertificatePackArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34751,7 +34741,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34760,12 +34750,12 @@ where
 
 /// PATCH /zones/{zone_id}/ssl/certificate_packs/{certificate_pack_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34779,7 +34769,7 @@ where
 pub async fn certificate_packs_restart_validation_for_advanced_certificate_manager_certificate_pack_request<
     F,
 >(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CertificatePacksRestartValidationForAdvancedCertificateManagerCertificatePackArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34807,7 +34797,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34816,12 +34806,12 @@ where
 
 /// DELETE /zones/{zone_id}/ssl/certificate_packs/{certificate_pack_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34833,7 +34823,7 @@ where
 /// })).await?;
 /// ```
 pub async fn certificate_packs_delete_advanced_certificate_manager_certificate_pack_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &CertificatePacksDeleteAdvancedCertificateManagerCertificatePackArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34857,7 +34847,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34866,12 +34856,12 @@ where
 
 /// GET /zones/{zone_id}/ssl/universal/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34883,7 +34873,7 @@ where
 /// })).await?;
 /// ```
 pub async fn universal_ssl_settings_for_a_zone_universal_ssl_settings_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UniversalSslSettingsForAZoneUniversalSslSettingsDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34904,7 +34894,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34913,12 +34903,12 @@ where
 
 /// PATCH /zones/{zone_id}/ssl/universal/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34930,7 +34920,7 @@ where
 /// })).await?;
 /// ```
 pub async fn universal_ssl_settings_for_a_zone_edit_universal_ssl_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UniversalSslSettingsForAZoneEditUniversalSslSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -34955,7 +34945,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -34964,12 +34954,12 @@ where
 
 /// GET /zones/{zone_id}/ssl/verification.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -34981,7 +34971,7 @@ where
 /// })).await?;
 /// ```
 pub async fn ssl_verification_ssl_verification_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SslVerificationSslVerificationDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35004,7 +34994,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35013,12 +35003,12 @@ where
 
 /// PATCH /zones/{zone_id}/ssl/verification/{certificate_pack_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35030,7 +35020,7 @@ where
 /// })).await?;
 /// ```
 pub async fn ssl_verification_edit_ssl_certificate_pack_validation_method_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &SslVerificationEditSslCertificatePackValidationMethodArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35058,7 +35048,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35067,12 +35057,12 @@ where
 
 /// GET /zones/{zone_id}/subscription.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35084,7 +35074,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_subscription_zone_subscription_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSubscriptionZoneSubscriptionDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35102,7 +35092,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35111,12 +35101,12 @@ where
 
 /// POST /zones/{zone_id}/subscription.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35128,7 +35118,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_subscription_create_zone_subscription_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSubscriptionCreateZoneSubscriptionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35150,7 +35140,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35159,12 +35149,12 @@ where
 
 /// PUT /zones/{zone_id}/subscription.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35176,7 +35166,7 @@ where
 /// })).await?;
 /// ```
 pub async fn zone_subscription_update_zone_subscription_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ZoneSubscriptionUpdateZoneSubscriptionArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35198,7 +35188,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35207,12 +35197,12 @@ where
 
 /// GET /zones/{zone_id}/tags.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35224,7 +35214,7 @@ where
 /// })).await?;
 /// ```
 pub async fn tags_zone_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TagsZoneGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35249,7 +35239,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35258,12 +35248,12 @@ where
 
 /// PUT /zones/{zone_id}/tags.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35275,7 +35265,7 @@ where
 /// })).await?;
 /// ```
 pub async fn tags_zone_set_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TagsZoneSetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35297,7 +35287,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35306,12 +35296,12 @@ where
 
 /// DELETE /zones/{zone_id}/tags.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35323,7 +35313,7 @@ where
 /// })).await?;
 /// ```
 pub async fn tags_zone_delete_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TagsZoneDeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35345,7 +35335,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35354,12 +35344,12 @@ where
 
 /// GET /zones/{zone_id}/token_validation/config.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35371,7 +35361,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_config_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationConfigListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35392,7 +35382,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35401,12 +35391,12 @@ where
 
 /// POST /zones/{zone_id}/token_validation/config.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35418,7 +35408,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_config_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationConfigCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35436,7 +35426,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35445,12 +35435,12 @@ where
 
 /// GET /zones/{zone_id}/token_validation/config/{config_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35462,7 +35452,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_config_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationConfigGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35483,7 +35473,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35492,12 +35482,12 @@ where
 
 /// PATCH /zones/{zone_id}/token_validation/config/{config_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35509,7 +35499,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_config_edit_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationConfigEditArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35530,7 +35520,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35539,12 +35529,12 @@ where
 
 /// DELETE /zones/{zone_id}/token_validation/config/{config_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35556,7 +35546,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_config_delete_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationConfigDeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35577,7 +35567,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35586,12 +35576,12 @@ where
 
 /// PUT /zones/{zone_id}/token_validation/config/{config_id}/credentials.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35603,7 +35593,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_config_credentials_update_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationConfigCredentialsUpdateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35624,7 +35614,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35633,12 +35623,12 @@ where
 
 /// GET /zones/{zone_id}/token_validation/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35650,7 +35640,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_rules_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationRulesListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35680,7 +35670,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35689,12 +35679,12 @@ where
 
 /// POST /zones/{zone_id}/token_validation/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35706,7 +35696,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_rules_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationRulesCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35724,7 +35714,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35733,12 +35723,12 @@ where
 
 /// POST /zones/{zone_id}/token_validation/rules/bulk.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35750,7 +35740,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_rules_bulk_create_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationRulesBulkCreateArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35768,7 +35758,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35777,12 +35767,12 @@ where
 
 /// PATCH /zones/{zone_id}/token_validation/rules/bulk.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35794,7 +35784,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_rules_bulk_edit_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationRulesBulkEditArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35812,7 +35802,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35821,12 +35811,12 @@ where
 
 /// POST /zones/{zone_id}/token_validation/rules/preview.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35838,7 +35828,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_rules_preview_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationRulesPreviewArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35874,7 +35864,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35883,12 +35873,12 @@ where
 
 /// GET /zones/{zone_id}/token_validation/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35900,7 +35890,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_rules_get_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationRulesGetArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35921,7 +35911,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35930,12 +35920,12 @@ where
 
 /// PATCH /zones/{zone_id}/token_validation/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35947,7 +35937,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_rules_edit_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationRulesEditArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -35968,7 +35958,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -35977,12 +35967,12 @@ where
 
 /// DELETE /zones/{zone_id}/token_validation/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -35994,7 +35984,7 @@ where
 /// })).await?;
 /// ```
 pub async fn token_validation_rules_delete_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &TokenValidationRulesDeleteArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36015,7 +36005,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36024,12 +36014,12 @@ where
 
 /// GET /zones/{zone_id}/url_normalization.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36041,7 +36031,7 @@ where
 /// })).await?;
 /// ```
 pub async fn get_url_normalization_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &GetUrlNormalizationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36059,7 +36049,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36068,12 +36058,12 @@ where
 
 /// PUT /zones/{zone_id}/url_normalization.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36085,7 +36075,7 @@ where
 /// })).await?;
 /// ```
 pub async fn update_url_normalization_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &UpdateUrlNormalizationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36103,7 +36093,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36112,12 +36102,12 @@ where
 
 /// DELETE /zones/{zone_id}/url_normalization.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36129,7 +36119,7 @@ where
 /// })).await?;
 /// ```
 pub async fn delete_url_normalization_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &DeleteUrlNormalizationArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36147,7 +36137,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_without_body(client, builder.build()).await
+    super::shared::send_without_body(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36156,12 +36146,12 @@ where
 
 /// GET /zones/{zone_id}/waiting_rooms.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36173,7 +36163,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_list_waiting_rooms_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomListWaitingRoomsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36194,7 +36184,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36203,12 +36193,12 @@ where
 
 /// POST /zones/{zone_id}/waiting_rooms.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36220,7 +36210,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_create_waiting_room_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomCreateWaitingRoomArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36242,7 +36232,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36251,12 +36241,12 @@ where
 
 /// POST /zones/{zone_id}/waiting_rooms/preview.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36268,7 +36258,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_create_a_custom_waiting_room_page_preview_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomCreateACustomWaitingRoomPagePreviewArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36290,7 +36280,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36299,12 +36289,12 @@ where
 
 /// GET /zones/{zone_id}/waiting_rooms/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36316,7 +36306,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_get_zone_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomGetZoneSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36334,7 +36324,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36343,12 +36333,12 @@ where
 
 /// PUT /zones/{zone_id}/waiting_rooms/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36360,7 +36350,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_update_zone_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomUpdateZoneSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36382,7 +36372,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36391,12 +36381,12 @@ where
 
 /// PATCH /zones/{zone_id}/waiting_rooms/settings.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36408,7 +36398,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_patch_zone_settings_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomPatchZoneSettingsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36430,7 +36420,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36439,12 +36429,12 @@ where
 
 /// GET /zones/{zone_id}/waiting_rooms/{waiting_room_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36456,7 +36446,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_waiting_room_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomWaitingRoomDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36477,7 +36467,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36486,12 +36476,12 @@ where
 
 /// PUT /zones/{zone_id}/waiting_rooms/{waiting_room_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36503,7 +36493,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_update_waiting_room_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomUpdateWaitingRoomArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36528,7 +36518,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36537,12 +36527,12 @@ where
 
 /// PATCH /zones/{zone_id}/waiting_rooms/{waiting_room_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36554,7 +36544,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_patch_waiting_room_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomPatchWaitingRoomArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36579,7 +36569,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36588,12 +36578,12 @@ where
 
 /// DELETE /zones/{zone_id}/waiting_rooms/{waiting_room_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36605,7 +36595,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_delete_waiting_room_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomDeleteWaitingRoomArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36626,7 +36616,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36635,12 +36625,12 @@ where
 
 /// GET /zones/{zone_id}/waiting_rooms/{waiting_room_id}/events.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36652,7 +36642,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_list_events_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomListEventsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36676,7 +36666,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36685,12 +36675,12 @@ where
 
 /// POST /zones/{zone_id}/waiting_rooms/{waiting_room_id}/events.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36702,7 +36692,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_create_event_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomCreateEventArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36727,7 +36717,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36736,12 +36726,12 @@ where
 
 /// GET /zones/{zone_id}/waiting_rooms/{waiting_room_id}/events/{event_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36753,7 +36743,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_event_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomEventDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36774,7 +36764,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36783,12 +36773,12 @@ where
 
 /// PUT /zones/{zone_id}/waiting_rooms/{waiting_room_id}/events/{event_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36800,7 +36790,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_update_event_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomUpdateEventArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36825,7 +36815,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36834,12 +36824,12 @@ where
 
 /// PATCH /zones/{zone_id}/waiting_rooms/{waiting_room_id}/events/{event_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36851,7 +36841,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_patch_event_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomPatchEventArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36876,7 +36866,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36885,12 +36875,12 @@ where
 
 /// DELETE /zones/{zone_id}/waiting_rooms/{waiting_room_id}/events/{event_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36902,7 +36892,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_delete_event_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomDeleteEventArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36923,7 +36913,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36932,12 +36922,12 @@ where
 
 /// GET /zones/{zone_id}/waiting_rooms/{waiting_room_id}/events/{event_id}/details.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36949,7 +36939,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_preview_active_event_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomPreviewActiveEventDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -36970,7 +36960,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -36979,12 +36969,12 @@ where
 
 /// GET /zones/{zone_id}/waiting_rooms/{waiting_room_id}/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -36996,7 +36986,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_list_waiting_room_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomListWaitingRoomRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37017,7 +37007,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37026,12 +37016,12 @@ where
 
 /// POST /zones/{zone_id}/waiting_rooms/{waiting_room_id}/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37043,7 +37033,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_create_waiting_room_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomCreateWaitingRoomRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37068,7 +37058,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37077,12 +37067,12 @@ where
 
 /// PUT /zones/{zone_id}/waiting_rooms/{waiting_room_id}/rules.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37094,7 +37084,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_replace_waiting_room_rules_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomReplaceWaitingRoomRulesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37119,7 +37109,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37128,12 +37118,12 @@ where
 
 /// PATCH /zones/{zone_id}/waiting_rooms/{waiting_room_id}/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37145,7 +37135,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_patch_waiting_room_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomPatchWaitingRoomRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37170,7 +37160,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37179,12 +37169,12 @@ where
 
 /// DELETE /zones/{zone_id}/waiting_rooms/{waiting_room_id}/rules/{rule_id}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37196,7 +37186,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_delete_waiting_room_rule_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomDeleteWaitingRoomRuleArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37217,7 +37207,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37226,12 +37216,12 @@ where
 
 /// GET /zones/{zone_id}/waiting_rooms/{waiting_room_id}/status.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37243,7 +37233,7 @@ where
 /// })).await?;
 /// ```
 pub async fn waiting_room_get_waiting_room_status_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &WaitingRoomGetWaitingRoomStatusArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37264,7 +37254,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37273,12 +37263,12 @@ where
 
 /// GET /zones/{zone_id}/web3/hostnames.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37290,7 +37280,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_list_web3_hostnames_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameListWeb3HostnamesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37308,7 +37298,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37317,12 +37307,12 @@ where
 
 /// POST /zones/{zone_id}/web3/hostnames.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37334,7 +37324,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_create_web3_hostname_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameCreateWeb3HostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37356,7 +37346,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37365,12 +37355,12 @@ where
 
 /// GET /zones/{zone_id}/web3/hostnames/{identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37382,7 +37372,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_web3_hostname_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameWeb3HostnameDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37400,7 +37390,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37409,12 +37399,12 @@ where
 
 /// PATCH /zones/{zone_id}/web3/hostnames/{identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37426,7 +37416,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_edit_web3_hostname_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameEditWeb3HostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37448,7 +37438,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37457,12 +37447,12 @@ where
 
 /// DELETE /zones/{zone_id}/web3/hostnames/{identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37474,7 +37464,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_delete_web3_hostname_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameDeleteWeb3HostnameArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37492,7 +37482,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37501,12 +37491,12 @@ where
 
 /// GET /zones/{zone_id}/web3/hostnames/{identifier}/ipfs_universal_path/content_list.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37518,7 +37508,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_ipfs_universal_path_gateway_content_list_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameIpfsUniversalPathGatewayContentListDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37539,7 +37529,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37548,12 +37538,12 @@ where
 
 /// PUT /zones/{zone_id}/web3/hostnames/{identifier}/ipfs_universal_path/content_list.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37565,7 +37555,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_update_ipfs_universal_path_gateway_content_list_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameUpdateIpfsUniversalPathGatewayContentListArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37590,7 +37580,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37599,12 +37589,12 @@ where
 
 /// GET /zones/{zone_id}/web3/hostnames/{identifier}/ipfs_universal_path/content_list/entries.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37616,7 +37606,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_list_ipfs_universal_path_gateway_content_list_entries_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameListIpfsUniversalPathGatewayContentListEntriesArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37637,7 +37627,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37646,12 +37636,12 @@ where
 
 /// POST /zones/{zone_id}/web3/hostnames/{identifier}/ipfs_universal_path/content_list/entries.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37663,7 +37653,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_create_ipfs_universal_path_gateway_content_list_entry_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameCreateIpfsUniversalPathGatewayContentListEntryArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37688,7 +37678,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37697,12 +37687,12 @@ where
 
 /// GET /zones/{zone_id}/web3/hostnames/{identifier}/ipfs_universal_path/content_list/entries/{content_list_entry_identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37714,7 +37704,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_ipfs_universal_path_gateway_content_list_entry_details_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameIpfsUniversalPathGatewayContentListEntryDetailsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37735,7 +37725,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37744,12 +37734,12 @@ where
 
 /// PUT /zones/{zone_id}/web3/hostnames/{identifier}/ipfs_universal_path/content_list/entries/{content_list_entry_identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37761,7 +37751,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_edit_ipfs_universal_path_gateway_content_list_entry_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameEditIpfsUniversalPathGatewayContentListEntryArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37786,7 +37776,7 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }
 
 // -----------------------------------------------------------------------------
@@ -37795,12 +37785,12 @@ where
 
 /// DELETE /zones/{zone_id}/web3/hostnames/{identifier}/ipfs_universal_path/content_list/entries/{content_list_entry_identifier}.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -37812,7 +37802,7 @@ where
 /// })).await?;
 /// ```
 pub async fn web3_hostname_delete_ipfs_universal_path_gateway_content_list_entry_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &Web3HostnameDeleteIpfsUniversalPathGatewayContentListEntryArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -37833,5 +37823,5 @@ where
         f(&mut builder);
     }
 
-    super::shared::send_json(client, builder.build()).await
+    super::shared::send_json(client.into(), builder.build()).await
 }

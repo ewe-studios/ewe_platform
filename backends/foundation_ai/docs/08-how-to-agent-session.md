@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let agent = AgentSession::builder(provider)
         .with_model("claude-sonnet-4-6")
         .with_system_prompt("Answer concisely.")
-        .build()?;
+        .build().await?;
 
     // 3. A turn.
     let turn = agent.run_turn("Explain Rust lifetimes in two sentences.")?;
@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // 4. Teardown.
-    agent.end()?;
+    agent.end().await?;
     Ok(())
 }
 ```
@@ -66,10 +66,14 @@ primary, fallback and memory models into a `ModelSelection`
 
 `AgentSession::builder(router)` starts a builder over the in-memory stores
 (`MemoryDocumentStore` + `KvMemoryStore<MemoryStorage>`) and a fresh
-`SessionId`; chain `with_*` → `build()`. The stores are part of the builder's
-type: `with_doc_store` / `with_memory_store` swap one and change the type, so
-any store works — including ones with no `Default` (Cloudflare D1 / R2) —
-and in-memory sessions need no type parameters at all:
+`SessionId`; chain `with_*` → `build().await`. `build()` is async because
+`resume(id)` reads the document store. The session uses its stores through the
+async `foundation_db` traits (`DocumentStore`, and `KeyValueStore`
+under `KvMemoryStore`), so the same session runs over in-memory, SQL or
+Cloudflare stores, natively and on Workers. The stores are part of the
+builder's type: `with_doc_store` / `with_memory_store` swap one and change the
+type, so any store works — including ones with no `Default` (Cloudflare D1 /
+R2) — and in-memory sessions need no type parameters at all:
 
 ```rust
 fn handle(agent: &AgentSession) { /* … */ }   // AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>
@@ -78,7 +82,7 @@ let agent = AgentSession::builder(router)
     .with_model("my-model")
     .with_doc_store(SqlDocumentStore::new(turso.clone()))   // → AgentSessionBuilder<SqlDocumentStore<_>, _>
     .with_memory_store(KvMemoryStore::new(turso))
-    .build()?;                                              // no Default bound
+    .build().await?;                                              // no Default bound
 ```
 
 | Method | Default | Notes |
@@ -95,6 +99,7 @@ let agent = AgentSession::builder(router)
 | `with_config(AgentConfig)` | `AgentConfig::default()` | Iteration caps, thresholds, `ModelParams`; no models |
 | `with_context_config(ContextConfig)` | 20 recent messages | |
 | `with_memory_config(MemoryConfig)` | 30k / 40k token triggers | |
+| `with_message_config(MessageApiConfig)` | flush at 50 buffered records, 256-event subscriber channels | Message-log limits (Doc 06 §2) |
 | `with_error_policy(ErrorPolicy)` | `ErrorPolicy::new()` | Doc 01 §6 |
 | `with_embedder(Arc<dyn EmbeddingProvider>, model)` | none | Semantic recall (Doc 07) and embedding search for `shed` |
 | `with_access(Arc<dyn SessionAccessProvider>)` | `AllowAllAccess` | §6 |
@@ -107,8 +112,10 @@ message log, context assembly and the memory hierarchy see the same data.
 access provider must allow the session and the primary model. The user's
 `token_budget` becomes the ledger's budget.
 
-The old two-argument `AgentSession::<D, M>::builder_for(session_id, router)`
-(default-constructed stores) and `builder_with_stores(..)` remain, deprecated.
+`builder_with_stores(..)` remains, deprecated. (The old two-argument
+`AgentSession::<D, M>::builder_for(session_id, router)` is gone: it relied on
+`Default` for SQL stores, which had to block; open them with their async
+constructors, e.g. `TursoStorage::in_memory().await?`, and pass them in.)
 
 ## 3. Tools
 
@@ -127,7 +134,7 @@ let agent = AgentSession::builder(router)
             .tools(ToolPreset::files(Arc::clone(&fs)) + ToolPreset::shell())
             .tools(ToolPreset::session_memory()),   // built from the session's memory
     )
-    .build()?;
+    .build().await?;
 ```
 
 The model is offered only the built-in `shed` meta-tool at first; the tools
@@ -223,7 +230,7 @@ to the `MessageApi`, and the next turn's context includes the last
 agent.steer(Messages::agent("Stop and summarise."));   // interrupt: discards an in-flight generation / cancels tools
 agent.follow_up("Also check the config file.");        // run after the current work
 agent.abort();          // end the running turn at the next boundary
-agent.end()?;           // flush the log, persist queued messages, reset the cancel signal
+agent.end().await?;           // flush the log, persist queued messages, reset the cancel signal
 ```
 
 `end()` persists the queued messages and flushes the log. When the document
@@ -253,14 +260,14 @@ let agent = AgentSession::builder(router)
     .with_model(model_id)
     .with_system_prompt("…")
     .with_toolshed(ToolShed::new().tool(MyTool))
-    .build()?;                       // preflight runs as for a new session
+    .build().await?;                       // preflight runs as for a new session
 
 // Implicit: "this id" — continue if it exists, otherwise start it.
 let agent = AgentSession::builder(router)
     .with_model("my-model")
     .with_session_id(session_id)
     /* …same stores and settings… */
-    .build()?;
+    .build().await?;
 ```
 
 The old `AgentSession::resume(id, router, config, policy)` and

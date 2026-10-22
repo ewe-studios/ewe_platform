@@ -15,14 +15,12 @@ use foundation_netio::shared::http::body_readers::collect_strings_from_send_safe
 use foundation_netio::shared::http::SendSafeBody;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use serial_test::serial;
-use tracing_test::traced_test;
 
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 /// WHY: Verify send() method returns complete response with body
 /// WHAT: Tests one-shot send() convenience method
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn test_send_returns_complete_response_with_body() {
     // Initialize valtron pool - keep guard alive for test duration

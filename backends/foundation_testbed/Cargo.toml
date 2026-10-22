@@ -1,6 +1,6 @@
 [package]
 name = "foundation_testbed"
-version = "0.0.1"
+version = "0.0.3"
 edition = "2024"
 description = "Holistic test harness: QEMU/KVM VM testbed (vms) + wasm32 browser/Deno/Workers harness (wasm), feature-gated"
 license = "MIT"
@@ -56,6 +56,7 @@ wasm-bindgen-test = [
 wasm-embedded-js = [
   "wasm",
   "dep:deno_core",
+  "dep:deno_v8",       # only to select its V8 backend (see the dependency below)
   "dep:deno_web",      # TextEncoder/TextDecoder, timers, console, URL, performance
   "dep:deno_webidl",   # WebIDL bindings deno_web depends on
   "dep:deno_fetch",    # fetch / Request / Response / Headers
@@ -66,12 +67,14 @@ wasm-embedded-js = [
   "dep:rustls",        # install the aws-lc-rs CryptoProvider deno_tls expects
   "dep:deno_error",    # JsErrorBox for the harness ops
   "dep:tokio",         # current-thread executor for deno_core's event loop
+  "dep:foundation_compact", # OS entropy behind the crypto.getRandomValues shim (no deno_crypto)
 ]
 
 [dependencies]
 # Shared across features.
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
-foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["multi"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.2", optional = true }
 which = { version = "7", optional = true }
 base64 = "0.22"
 tracing = "0.1"
@@ -81,12 +84,12 @@ derive_more = { version = "2", features = ["display", "error", "from"] }
 
 # wasm feature — the wasm32 test harness (optional, enabled by `wasm`).
 walrus = { workspace = true, optional = true }
-foundation_codegen = { path = "../foundation_codegen", version = "0.1.1", optional = true }
-foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.0", optional = true, features = ["embedded-js"] }
-foundation_http = { path = "../foundation_http", version = "0.0.1", optional = true }
-foundation_browser = { path = "../foundation_browser", version = "0.0.1", optional = true }
-foundation_macros = { path = "../foundation_macros", version = "0.0.5", optional = true }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.5", optional = true }
+foundation_codegen = { path = "../foundation_codegen", version = "0.1.2", optional = true }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.1", optional = true, features = ["embedded-js"] }
+foundation_http = { path = "../foundation_http", version = "0.0.3", optional = true }
+foundation_browser = { path = "../foundation_browser", version = "0.0.3", optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.6", optional = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.6", optional = true }
 portpicker = { workspace = true, optional = true }
 tempfile = { version = "3", optional = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"], optional = true }
@@ -109,11 +112,15 @@ web-sys = { version = "=0.3.103", optional = true, features = [
 # deno_core + the minimal extension set (versions coordinated with deno_core 0.404).
 # Deliberately NO deno_crypto (aes =0.8.3 vs turso aes 0.8.4 — see spec-44 §4.4).
 deno_core = { version = "0.404", optional = true }
+# deno_core / serde_v8 depend on deno_v8 with `default-features = false` and
+# never pick a JS engine, so deno_v8 hits its own `compile_error!("either feature
+# `v8` or `quickjs` must be enabled")`. Depend on it directly only to enable V8.
+deno_v8 = { version = "0.4", default-features = false, features = ["v8"], optional = true }
 deno_web = { version = "0.282", optional = true }  # console/url/encoding folded in (those crates are now deprecated stubs)
 deno_webidl = { version = "0.251", optional = true }
 deno_fetch = { version = "0.275", optional = true }  # fetch / Request / Response / Headers
 deno_websocket = { version = "0.256", optional = true }  # WebSocket global (pairs with deno_core 0.404)
-deno_net = { version = "0.251", optional = true }    # net/TLS JS deno_fetch lazy-loads
+deno_net = { version = "0.243", optional = true }    # net/TLS JS deno_fetch lazy-loads; 0.243 is the release on deno_core 0.404 (0.251 needs 0.412)
 deno_permissions = { version = "0.110", optional = true }  # op_fetch's PermissionsContainer (allow-all for tests)
 sys_traits = { version = "0.1", features = ["real", "libc"], optional = true }  # RealSys for the permission descriptor parser
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"], optional = true }  # CryptoProvider for deno_tls
@@ -126,7 +133,7 @@ clap = { version = "4", features = ["derive"], optional = true }
 # vms has moved to foundation_deployment_platform (spec-53, Feature 11). This is
 # a NATIVE dependency (VM/container orchestration), enabled by the `vms` feature
 # — it must not live under the wasm32-only target table.
-foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0", optional = true }
+foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.2", optional = true }
 
 [dev-dependencies]
 # The VM e2e tests (`vms`) build `TestbedError::SshFailed`, whose `source` is

@@ -18,4 +18,3 @@ crate-type = ["cdylib"]
 
 [profile.uat]
 inherits = "release"
-codegen-backend = "llvm"

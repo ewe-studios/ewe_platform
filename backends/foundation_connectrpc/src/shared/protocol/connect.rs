@@ -33,13 +33,15 @@ use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::shared::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireError};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::transport::{
-    BodyStream, ByteSink, ByteSource, Frame, PipeClientConn, PipeHandlerConn,
-    SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
+    fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, HeadStream, PipeClientConn,
+    PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
-    BoxedTask, ClientExchange, HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
+    open_response_stream, BoxedTask, ClientExchange, ClientExchangeConfig, ExchangeConfig,
+    HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
 };
+use std::sync::Mutex;
 
 /// Connect protocol constants (Decision 05).
 pub mod constants {
@@ -186,9 +188,24 @@ fn percent_encode(bytes: &[u8]) -> String {
 
 /// Server/reader: de-envelope + decompress request bytes into request frames.
 /// Connect request streams end when the body closes (no request end-stream frame).
+/// A failure ends the request stream with the error (see [`fail_stream`]).
 async fn read_request_frames(
     body: ByteSource,
     req_tx: PipeSender<Frame>,
+    decompressor: Option<Arc<dyn Compressor>>,
+    read_max: usize,
+    cancel: CancelSignal,
+) -> ConnectResult<()> {
+    let result = read_request_envelopes(body, &req_tx, decompressor, read_max).await;
+    if let Err(e) = &result {
+        fail_stream(&req_tx, e, &cancel).await;
+    }
+    result
+}
+
+async fn read_request_envelopes(
+    body: ByteSource,
+    req_tx: &PipeSender<Frame>,
     decompressor: Option<Arc<dyn Compressor>>,
     read_max: usize,
 ) -> ConnectResult<()> {
@@ -253,14 +270,62 @@ async fn write_response_frames(
     }
 }
 
-/// Client/reader: de-envelope response bytes; a `0x02` end-stream frame parses to
-/// [`Frame::EndStream`] (Decision 11 normalization), everything else is a message.
-async fn read_response_frames(
+/// Client/reader: the response head, then the envelopes, then the
+/// `EndStreamResponse` that carries the outcome and trailers. A stream that
+/// fails, or ends without its `EndStreamResponse`, ends with an error rather
+/// than reading like a clean end.
+async fn read_connect_response(
+    mut head: HeadStream,
     mut body: BodyStream,
     resp_tx: PipeSender<Frame>,
-    decompressor: Option<Arc<dyn Compressor>>,
+    response_headers: Arc<Mutex<Option<SimpleHeaders>>>,
+    cancel: CancelSignal,
     read_max: usize,
 ) -> ConnectResult<()> {
+    if open_response_stream(
+        &mut head,
+        &mut body,
+        &resp_tx,
+        &response_headers,
+        &cancel,
+        read_max,
+    )
+    .await
+    .is_none()
+    {
+        return Ok(());
+    }
+    match read_response_frames(&mut body, &resp_tx, None, read_max).await {
+        Ok(Some(end)) => {
+            // Delivered, the consumer gone, or the call cancelled.
+            let _ = race(resp_tx.send(end), cancel.cancelled()).await;
+            resp_tx.close();
+            Ok(())
+        }
+        Ok(None) => {
+            let e = ConnectError::internal(
+                "the response stream ended without an EndStreamResponse",
+            )
+            .into();
+            fail_stream(&resp_tx, &e, &cancel).await;
+            Err(e)
+        }
+        Err(e) => {
+            fail_stream(&resp_tx, &e, &cancel).await;
+            Err(e)
+        }
+    }
+}
+
+/// De-envelope response bytes into `resp_tx` until the `0x02` end-stream
+/// frame, which is returned (parsed to [`Frame::EndStream`], Decision 11
+/// normalization); `None` when the body ends first or the consumer is gone.
+async fn read_response_frames(
+    body: &mut BodyStream,
+    resp_tx: &PipeSender<Frame>,
+    decompressor: Option<Arc<dyn Compressor>>,
+    read_max: usize,
+) -> ConnectResult<Option<Frame>> {
     let mut buf = BytesMut::new();
     loop {
         while buf.len() >= ENVELOPE_HEADER_LEN {
@@ -278,30 +343,19 @@ async fn read_response_frames(
             let frame = buf.split_to(ENVELOPE_HEADER_LEN + len).freeze();
             let payload = frame.slice(ENVELOPE_HEADER_LEN..);
             let data = decompress_if(flags, payload, &decompressor, read_max)?;
-            let out = if flags & Envelope::FLAG_END_STREAM != 0 {
-                decode_end_stream(&data)
-            } else {
-                Frame::Message(data)
-            };
-            let is_end = matches!(out, Frame::EndStream { .. });
-            let _ = resp_tx.send(out).await;
-            if is_end {
-                resp_tx.close();
-                return Ok(());
+            if flags & Envelope::FLAG_END_STREAM != 0 {
+                return Ok(Some(decode_end_stream(&data)));
+            }
+            if resp_tx.send(Frame::Message(data)).await.is_err() {
+                return Ok(None); // consumer gone
             }
         }
         match body.next().await {
             Some(Ok(chunk)) => buf.extend_from_slice(&chunk),
-            // A mid-body transport failure now rides the payload as `Err` (F45
-            // Part D) — surface it instead of silently closing the stream.
-            Some(Err(err)) => {
-                resp_tx.close();
-                return Err(err.into());
-            }
-            None => {
-                resp_tx.close();
-                return Ok(());
-            }
+            // A mid-body transport failure rides the payload as `Err` (F45
+            // Part D); the caller ends the stream with it.
+            Some(Err(err)) => return Err(err.into()),
+            None => return Ok(None),
         }
     }
 }
@@ -442,11 +496,11 @@ impl ProtocolHandler for ConnectHandler {
         spec: Spec,
         body: ByteSource,
         responder: ByteSink,
-        compression: &CompressionRegistry,
+        config: ExchangeConfig<'_>,
     ) -> ConnectResult<HandlerExchange> {
         let (content_encoding, accept_encoding) = streaming_encodings(&request.headers);
         let negotiated = negotiate_compression(
-            compression,
+            config.compression,
             content_encoding.as_deref(),
             accept_encoding.as_deref(),
         )?;
@@ -457,7 +511,7 @@ impl ProtocolHandler for ConnectHandler {
             spec,
             peer,
             request.headers.clone(),
-            CancelSignal::new(),
+            config.cancel.clone(),
             DEFAULT_PIPE_DEPTH,
         );
 
@@ -465,7 +519,8 @@ impl ProtocolHandler for ConnectHandler {
             body,
             ends.request_tx,
             negotiated.request_decompressor,
-            0,
+            config.read_max_bytes,
+            config.cancel,
         ));
         let writer_impl = EnvelopeWriter::new(negotiated.response_compressor, 0, 0);
         let writer: BoxedTask =
@@ -484,6 +539,18 @@ impl ProtocolHandler for ConnectHandler {
         codec_name: &str,
     ) -> String {
         streaming_content_type(codec_name)
+    }
+
+    fn encode_stream_error(
+        &self,
+        _request: &SimpleIncomingRequest,
+        error: &ErrorTrace<ConnectError>,
+    ) -> ConnectResult<Option<Bytes>> {
+        // An uncompressed `EndStreamResponse`: valid whatever the stream
+        // negotiated, as each envelope carries its own compressed flag.
+        let frame = EnvelopeWriter::new(None, 0, 0)
+            .write_end_stream(Some(error), &SimpleHeaders::new())?;
+        Ok(Some(Bytes::from(frame)))
     }
 
     fn streaming_response_encoding(
@@ -511,10 +578,11 @@ impl ProtocolHandler for ConnectHandler {
         request: &SimpleIncomingRequest,
         body: Bytes,
         compression: &CompressionRegistry,
+        read_max_bytes: usize,
     ) -> ConnectResult<Bytes> {
         // Connect unary GET carries the message in the query (Decision 05 §Unary GET).
         if request.method == SimpleMethod::GET {
-            return decode_get_message(request, compression);
+            return decode_get_message(request, compression, read_max_bytes);
         }
         // Connect unary POST is a bare body, optionally compressed via Content-Encoding.
         match header(&request.headers, "content-encoding") {
@@ -522,7 +590,7 @@ impl ProtocolHandler for ConnectHandler {
                 let c = compression.get(&name).ok_or_else(|| {
                     ConnectError::unimplemented(format!("unsupported content-encoding {name:?}"))
                 })?;
-                Ok(Bytes::from(c.decompress(&body, 0)?))
+                Ok(Bytes::from(c.decompress(&body, read_max_bytes)?))
             }
             _ => Ok(body),
         }
@@ -581,6 +649,7 @@ fn header(headers: &SimpleHeaders, name: &str) -> Option<String> {
 fn decode_get_message(
     request: &SimpleIncomingRequest,
     compression: &CompressionRegistry,
+    read_max_bytes: usize,
 ) -> ConnectResult<Bytes> {
     let query = |key: &str| {
         request
@@ -604,7 +673,7 @@ fn decode_get_message(
             let c = compression.get(&name).ok_or_else(|| {
                 ConnectError::unimplemented(format!("unsupported compression {name:?}"))
             })?;
-            Ok(Bytes::from(c.decompress(&bytes, 0)?))
+            Ok(Bytes::from(c.decompress(&bytes, read_max_bytes)?))
         }
         _ => Ok(Bytes::from(bytes)),
     }
@@ -684,18 +753,28 @@ impl ProtocolClient for ConnectClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        cancel: CancelSignal,
+        config: ClientExchangeConfig,
     ) -> ConnectResult<ClientExchange> {
-        let (conn, ends) =
-            PipeClientConn::new(spec.clone(), headers, cancel, DEFAULT_PIPE_DEPTH);
+        let (conn, ends) = PipeClientConn::new(
+            spec.clone(),
+            headers,
+            config.cancel.clone(),
+            DEFAULT_PIPE_DEPTH,
+        );
 
         // No compression on the client tasks here (negotiation resolves from the
         // response head in the client core, F24); identity by default.
         let writer_impl = EnvelopeWriter::new(None, 0, 0);
         let writer: BoxedTask =
             Box::pin(write_request_frames(ends.request_rx, Arc::clone(&stream.send_body), writer_impl));
-        let reader: BoxedTask =
-            Box::pin(read_response_frames(stream.recv_body, ends.response_tx, None, 0));
+        let reader: BoxedTask = Box::pin(read_connect_response(
+            stream.head,
+            stream.recv_body,
+            ends.response_tx,
+            ends.response_headers,
+            config.cancel,
+            config.read_max_bytes,
+        ));
 
         Ok(ClientExchange {
             conn: Box::new(conn),

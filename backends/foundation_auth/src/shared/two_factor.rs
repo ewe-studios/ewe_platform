@@ -6,7 +6,7 @@
 //! HOW: HMAC-SHA1 with time steps. Synchronous — CPU-bound crypto ops.
 
 use hmac::{Hmac, Mac};
-use rand::RngCore;
+use foundation_compact::rng::Rng;
 use sha2::Sha256;
 use zeroize::Zeroizing;
 
@@ -26,7 +26,7 @@ impl TOTPSecret {
     #[must_use]
     pub fn generate() -> Self {
         let mut secret = vec![0u8; 32];
-        rand::thread_rng().fill_bytes(&mut secret);
+        foundation_compact::rng::rng().fill_bytes(&mut secret);
         Self {
             secret: Zeroizing::new(secret),
             period: 30,
@@ -220,7 +220,7 @@ impl BackupCodeSet {
         let codes: Vec<String> = (0..count)
             .map(|_| {
                 let mut bytes = vec![0u8; length];
-                rand::thread_rng().fill_bytes(&mut bytes);
+                foundation_compact::rng::rng().fill_bytes(&mut bytes);
                 // Use hex for easy transcription
                 bytes
                     .iter()

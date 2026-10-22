@@ -163,6 +163,12 @@ pub struct TestArgs {
     /// Run browser in headless mode (web/bindgen-web modes only)
     #[arg(long)]
     pub headless: bool,
+
+    /// Only run tests whose name contains this substring (bindgen-deno mode).
+    /// A crate's whole `tests/` tree is built for wasm, and tests that need
+    /// threads or the filesystem abort the module, so scope the run.
+    #[arg(long)]
+    pub filter: Option<String>,
 }
 
 /// Test mode for the `test` subcommand.

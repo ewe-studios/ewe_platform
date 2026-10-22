@@ -1,6 +1,6 @@
 [package]
 name = "foundation_connectrpc"
-version = "0.0.1"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,14 +10,12 @@ description = "ConnectRPC for the EWE platform — Connect/gRPC/gRPC-Web on foun
 keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2", features = ["to_structured"] }
-foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
-foundation_http = { path = "../foundation_http", version = "0.0.1" }
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", features = ["to_structured"] }
+foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
 tracing = "0.1"
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.2", optional = true }
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", optional = true }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.3", optional = true }
+foundation_auth = { path = "../foundation_auth", version = "0.0.4", optional = true, default-features = false }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
 futures = "0.3"
@@ -29,18 +27,34 @@ flate2 = "1.0"
 zstd = { version = "0.13", optional = true }
 brotli = { version = "8", optional = true }
 
+# foundation_netio / foundation_http are target-gated: native needs the
+# multi-threaded executor (`multi`) + TLS/compression/wire modules (their
+# defaults, used by H2/H3 + native serving); wasm needs only `wasm-fetch`
+# (browser/Workers fetch) and `wasm` — mirroring foundation_auth/foundation_ai.
+# `multi` on wasm leaks `+ Send` valtron into netio's single-threaded `!Send`
+# wasm code (its `ExchangeContinuation` drops the `+ Send` bound there), which
+# no longer type-checks.
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_netio = { path = "../foundation_netio", version = "0.0.4" }
+foundation_http = { path = "../foundation_http", version = "0.0.3" }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false, features = ["wasm-fetch"] }
+foundation_http = { path = "../foundation_http", version = "0.0.3", default-features = false, features = ["wasm"] }
+foundation_auth = { path = "../foundation_auth", version = "0.0.4", optional = true, default-features = false, features = ["wasm"] }
+
 [target.'cfg(unix)'.dependencies]
 # `poll(2)` for the HTTP/1.1 server's connection driver (`native::conn_io`).
 libc = "0.2"
 
 [dev-dependencies]
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2", features = ["to_structured"] }
+foundation_wireguard = { path = "../foundation_wireguard" }
+foundation_errstacks = { path = "../foundation_errstacks", features = ["to_structured"] }
 serde_json = { workspace = true }
 serde = { workspace = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.2" }
+foundation_arrow = { path = "../foundation_arrow" }
 futures-lite = "2"
 
 [features]
@@ -107,6 +121,10 @@ required-features = ["rpc_multi"]
 
 [[test]]
 name = "grpc_tests"
+required-features = ["rpc_multi"]
+
+[[test]]
+name = "cancellation_tests"
 required-features = ["rpc_multi"]
 
 [lints]

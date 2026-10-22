@@ -1,6 +1,6 @@
 [package]
 name = "foundation_signals"
-version = "0.0.1"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -9,14 +9,14 @@ repository.workspace = true
 description = "Standalone reactive signal system: R3-style height-ordered graph, bucket-queue stabilize, version-based stale detection. No DOM, no WASM coupling."
 
 [dependencies]
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.2" }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.3" }
 # The reactive graph is `no_std + alloc`. These all turn `std` on by default,
 # so defaults are off here and `std` is forwarded from this crate's `std`.
 serde = { version = "1", default-features = false, features = ["alloc", "derive"] }
 serde_json = { version = "1.0.114", default-features = false, features = ["alloc"] }
 tracing = { version = "0.1", default-features = false }
 
-foundation_core = { path = "../foundation_core", version = "0.0.4", optional = true }
+foundation_core = { path = "../foundation_core", version = "0.0.6", optional = true }
 
 [features]
 default = ["std", "single_threaded"]

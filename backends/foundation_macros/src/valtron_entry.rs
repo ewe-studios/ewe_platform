@@ -111,6 +111,10 @@ struct Args {
     seed: Option<syn::Expr>,
     threads: Option<syn::Expr>,
     timeout: Option<syn::Expr>,
+    /// `shutdown_grace = ms` — after a `timeout`, how long the pool gets to stop
+    /// before stuck workers are detached. Default
+    /// `foundation_core::valtron::DEFAULT_TEST_SHUTDOWN_GRACE`.
+    shutdown_grace: Option<syn::Expr>,
     /// `tracing = "debug"` — override the default `RUST_LOG` fallback (`"info"`).
     tracing: Option<syn::Expr>,
     /// `tracing_targets = true` — show module path per event.
@@ -128,7 +132,7 @@ struct Args {
 }
 
 const KNOWN_ARGS: &[&str] = &[
-    "seed", "threads", "timeout",
+    "seed", "threads", "timeout", "shutdown_grace",
     "tracing", "tracing_targets", "tracing_ids",
     "tracing_names", "tracing_files", "tracing_lines", "tracing_ansi",
 ];
@@ -151,7 +155,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
     let ArgList(pairs) = syn::parse2::<ArgList>(attr).map_err(|err| {
         syn::Error::new(
             err.span(),
-            "expected `key = value` pairs (seed, threads, timeout, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi)",
+            "expected `key = value` pairs (seed, threads, timeout, shutdown_grace, tracing, tracing_targets, tracing_ids, tracing_names, tracing_files, tracing_lines, tracing_ansi)",
         )
     })?;
     for pair in pairs {
@@ -164,6 +168,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
             "seed" => args.seed = Some(pair.value),
             "threads" => args.threads = Some(pair.value),
             "timeout" => args.timeout = Some(pair.value),
+            "shutdown_grace" => args.shutdown_grace = Some(pair.value),
             "tracing" => args.tracing = Some(pair.value),
             "tracing_targets" => args.tracing_targets = Some(pair.value),
             "tracing_ids" => args.tracing_ids = Some(pair.value),
@@ -293,7 +298,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
     let (inner_def, run_call) = if is_async {
         (
             quote! {},
-            quote! { #fc::valtron::block_on_future(async move #block) },
+            quote! { #fc::valtron::__private::block_on_future(async move #block) },
         )
     } else {
         (
@@ -337,6 +342,14 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         quote! {}
     };
 
+    // After a timeout the pool is torn down with a deadline (see the
+    // `Timeout` arm below): an explicit `shutdown_grace = ms`, or the documented
+    // default in foundation_core.
+    let shutdown_grace = args.shutdown_grace.as_ref().map_or_else(
+        || quote! { #fc::valtron::DEFAULT_TEST_SHUTDOWN_GRACE },
+        |expr| quote! { std::time::Duration::from_millis(#expr) },
+    );
+
     // Timeout: only when explicitly set — spawn the inner fn in a thread and
     // wait with recv_timeout. Without timeout, direct call (no thread overhead).
     let body_with_timeout = if let Some(timeout_ms) = &args.timeout {
@@ -348,17 +361,22 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // Before `initialize_pool` — workers pin the ambient dispatcher at
             // spawn time, so a later init leaves every worker thread silent.
             #tracing_init;
-            let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
+            let __valtron_seed: u64 = #seed;
+            let __valtron_guard = #fc::valtron::initialize_pool(__valtron_seed, #threads);
+            let __timeout_ms: u64 = #timeout_ms;
             let __timeout_start = std::time::Instant::now();
             type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
             let (__sender, __receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
             std::thread::spawn(move || {
+                // The body runs on this thread. Without `multi` the engine is
+                // thread-local, so bring it up here too (a no-op under `multi`).
+                #fc::valtron::initialize_current_thread(__valtron_seed);
                 let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     #run_call
                 }));
                 let _ = __sender.send(panic_result);
             });
-            match __receiver.recv_timeout(std::time::Duration::from_millis(#timeout_ms)) {
+            match __receiver.recv_timeout(std::time::Duration::from_millis(__timeout_ms)) {
                 std::result::Result::Ok(std::result::Result::Ok(t)) => {
                     ::core::mem::drop(__valtron_guard);
                     t
@@ -368,7 +386,20 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
                     std::panic::resume_unwind(payload);
                 },
                 Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
-                    panic!("timeout: the test took {} ms. Max {} ms", __timeout_start.elapsed().as_millis(), #timeout_ms);
+                    // The body is hung, often because pool workers are blocked
+                    // (a deadlock, a blocking syscall). Dropping the guard would
+                    // wait for those workers forever and keep the process-wide
+                    // pool gate shut, hanging every later test too. Tear the pool
+                    // down with a deadline instead: stuck workers (and the body
+                    // thread) are detached, and the gate is released on drop.
+                    let __stopped = __valtron_guard.shutdown_within(#shutdown_grace);
+                    ::core::mem::drop(__valtron_guard);
+                    panic!(
+                        "timeout: the test took {} ms. Max {} ms.{}",
+                        __timeout_start.elapsed().as_millis(),
+                        __timeout_ms,
+                        if __stopped { "" } else { " Pool workers were still blocked and were detached." },
+                    );
                 },
                 Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
                     panic!("timeout: test thread disconnected unexpectedly");

@@ -13,11 +13,11 @@
 //! HOW: Trait is `#[async_trait]` and object-safe (`Arc<dyn HttpClient>`).
 //! Native sync methods call `SimpleHttpClient` directly.
 //! Native async methods use `ClientRequest::send_async()` and `into_future_stream()`.
-//! Wasm async methods use `fetch()`. Wasm sync wraps async via `run_future()`.
+//! Wasm async methods use `fetch()`. Wasm sync wraps async via `block_on_collect()`.
 
 use std::pin::Pin;
 
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{Stream, WakeableStream};
 
 use super::request::PreparedRequest;
 use super::request_task::HttpExchangeClientTask;
@@ -25,15 +25,30 @@ use crate::event_source::ParseResult;
 use crate::shared::http::{HttpClientError, SendSafeBody, SimpleResponse};
 
 /// Progress indicator for SSE streams.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SseProgress {
     Connecting,
     Reading,
     Reconnecting,
+    /// A deferred transport failure surfaced in-band: wasm `send_sse` is lazy and
+    /// can no longer carry the error on its `Result`, so a fetch failure is emitted
+    /// as `Stream::Pending(Failed(msg))` before the iterator ends. Carries the error
+    /// message; the model layer maps it to `ModelState::Error`. Dropping the `Copy`
+    /// derive is inherent — `String` is not `Copy`.
+    Failed(String),
 }
 
 /// Boxed sync iterator yielding SSE events — for sync callers.
-pub type BoxedSseIterator = Box<dyn Iterator<Item = Stream<ParseResult, SseProgress>> + Send>;
+///
+/// It is a [`WakeableStream`] so a consumer that sees `Stream::Wait` (no event
+/// yet, e.g. the wasm fetch still in flight) can register a readiness callback
+/// and park — a valtron task returns `TaskStatus::Depends` on it — instead of
+/// re-polling. Streams that cannot signal readiness keep the default `wake`
+/// (`WakeResult::NotSupported`) and the consumer falls back to re-polling.
+pub type BoxedSseIterator = Box<
+    dyn WakeableStream<D = ParseResult, P = SseProgress, Item = Stream<ParseResult, SseProgress>>
+        + Send,
+>;
 
 /// Boxed async stream yielding SSE events — for async callers.
 pub type BoxedSseFutureStream =

@@ -61,6 +61,9 @@ async function runCase(moduleCompiled, testCase) {
     pendingAsync || trapped || rt.testReports.pending > 0
       ? await rt.testReports.next()
       : { status: TestReports.FAIL, message: `${testCase.name}: produced no report` };
+  // The case has its verdict: cancel whatever it left scheduled (a yield's
+  // resume timer, an interval) so none of its code runs while later cases do.
+  rt.dispose();
 
   if (report.status === TestReports.IGNORED) return { verdict: "ignored", report };
   const failed = report.status === TestReports.FAIL;

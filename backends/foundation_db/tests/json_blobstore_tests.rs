@@ -1,66 +1,51 @@
 //! JSON file storage `BlobStore` tests.
 
+use foundation_core::valtron::valtron_test;
 use foundation_db::{BlobStore, JsonFileStorage};
 use tempfile::TempDir;
 
-/// Initialize the Valtron executor for tests.
-fn init_valtron() {
-    foundation_core::valtron::single::initialize_pool(42);
-}
-
-#[test]
-fn test_json_file_blobstore_put_get() {
-    init_valtron();
+#[valtron_test]
+async fn test_json_file_blobstore_put_get() {
     let temp_dir = TempDir::new().unwrap();
     let file_path = temp_dir.path().join("blobs.json");
 
     let storage = JsonFileStorage::new(&file_path).unwrap();
-
     let test_data = b"Hello from JSON file!";
-    storage.put_blob("test_key", test_data).unwrap();
+    storage.put_blob_async("test_key", test_data).await.unwrap();
 
     // Reopen to verify persistence
     let storage2 = JsonFileStorage::new(&file_path).unwrap();
-    let retrieved: Option<Vec<u8>> = storage2.get_blob("test_key").unwrap();
+    let retrieved = storage2.get_blob_async("test_key").await.unwrap();
     assert_eq!(retrieved, Some(test_data.to_vec()));
 }
 
-#[test]
-fn test_json_file_blobstore_delete() {
-    init_valtron();
+#[valtron_test]
+async fn test_json_file_blobstore_delete() {
     let temp_dir = TempDir::new().unwrap();
     let file_path = temp_dir.path().join("blobs.json");
 
     let storage = JsonFileStorage::new(&file_path).unwrap();
+    storage.put_blob_async("del_key", b"To be deleted").await.unwrap();
+    assert!(storage.blob_exists_async("del_key").await.unwrap());
 
-    let test_data = b"To be deleted";
-    storage.put_blob("del_key", test_data).unwrap();
-
-    let exists: bool = storage.blob_exists("del_key").unwrap();
-    assert!(exists);
-
-    storage.delete_blob("del_key").unwrap();
-
-    let retrieved: Option<Vec<u8>> = storage.get_blob("del_key").unwrap();
-    assert_eq!(retrieved, None);
+    storage.delete_blob_async("del_key").await.unwrap();
+    assert_eq!(storage.get_blob_async("del_key").await.unwrap(), None);
 }
 
-#[test]
-fn test_json_file_blobstore_persistence() {
-    init_valtron();
+#[valtron_test]
+async fn test_json_file_blobstore_persistence() {
     let temp_dir = TempDir::new().unwrap();
     let file_path = temp_dir.path().join("blobs.json");
 
     {
         let storage = JsonFileStorage::new(&file_path).unwrap();
-        let test_data = b"Persist me!";
-        storage.put_blob("persist_key", test_data).unwrap();
+        storage.put_blob_async("persist_key", b"Persist me!").await.unwrap();
     }
 
     // File should exist and contain data
     assert!(file_path.exists());
 
     let storage2 = JsonFileStorage::new(&file_path).unwrap();
-    let retrieved: Option<Vec<u8>> = storage2.get_blob("persist_key").unwrap();
+    let retrieved = storage2.get_blob_async("persist_key").await.unwrap();
     assert_eq!(retrieved, Some(b"Persist me!".to_vec()));
 }

@@ -286,7 +286,7 @@ impl<R: fmt::Debug, T: fmt::Debug> fmt::Debug for Generator<R, T> {
 /// The default [`TimeSource`] that uses [`crate::SystemTime`].
 ///
 /// Works on all targets: on native, uses `std::time::SystemTime`; on wasm, uses the
-/// `js_sys::Date::now()` polyfill from the time module.
+/// `Date.now()` polyfill from the time module.
 #[derive(Clone, Debug, Default)]
 pub struct StdSystemTime;
 

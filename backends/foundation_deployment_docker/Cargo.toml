@@ -34,7 +34,7 @@ optional = true
 # build.rs pattern uses (README Mode 1), driven per-service here.
 [build-dependencies.foundation_connectrpc_codegen]
 path = "../foundation_connectrpc_codegen"
-version = "0.0.1"
+version = "0.0.2"
 optional = true
 
 [build-dependencies.prost]
@@ -54,34 +54,30 @@ workspace = true
 [dependencies.foundation_connectrpc]
 optional = true
 path = "../foundation_connectrpc"
-version = "0.0.1"
+version = "0.0.3"
 
 [dependencies.foundation_core]
 path = "../foundation_core"
-version = "0.0.4"
+version = "0.0.6"
 
 [dependencies.foundation_deployment]
 path = "../foundation_deployment"
-version = "0.0.1"
+version = "0.0.3"
 
 [dependencies.foundation_db]
 path = "../foundation_db"
-version = "0.0.2"
-
-[dependencies.foundation_errstacks]
-path = "../foundation_errstacks"
-version = "0.0.2"
+version = "0.0.4"
 
 # HTTP/2 server for the BuildKit session sidecar (serves FileSync back to
 # buildkitd). Optional; only the `buildkit` feature needs it.
 [dependencies.foundation_http]
 path = "../foundation_http"
-version = "0.0.1"
+version = "0.0.3"
 optional = true
 
 [dependencies.foundation_macros]
 path = "../foundation_macros"
-version = "0.0.5"
+version = "0.0.6"
 
 [dependencies.foundation_netio]
 features = [
@@ -89,11 +85,11 @@ features = [
     "multi",
 ]
 path = "../foundation_netio"
-version = "0.0.2"
+version = "0.0.4"
 
 [dependencies.foundation_sshkit]
 path = "../foundation_sshkit"
-version = "0.1.0"
+version = "0.1.2"
 optional = true
 
 [dependencies.serde]
@@ -320,7 +316,7 @@ docker_ws = []
 [package]
 description = "Docker Engine API v1.53 client over DynNetClient + valtron (bollard-free)"
 name = "foundation_deployment_docker"
-version = "0.1.0"
+version = "0.1.3"
 
 [package.authors]
 workspace = true

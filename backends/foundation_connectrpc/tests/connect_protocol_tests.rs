@@ -190,18 +190,28 @@ fn streaming_roundtrip_normalizes_endstream() {
             },
             req_rx,
             resp_tx,
-            &registry,
+            foundation_connectrpc::ExchangeConfig {
+                compression: &registry,
+                cancel: CancelSignal::new(),
+                read_max_bytes: 0,
+            },
         )
         .expect("server exchange");
-    // new_conn ignores the response head here; provide an open (empty) head
-    // receiver whose sender stays parked for the test's lifetime.
-    let (_client_head_tx, client_head_rx): (
+    // Head pipe for the mock client transport (the 200 head is pushed below).
+    let (client_head_tx, client_head_rx): (
         foundation_core::valtron::PipeSender<(
             foundation_netio::shared::http::Status,
             foundation_netio::shared::http::SimpleHeaders,
         )>,
         foundation_connectrpc::shared::transport::HeadSource,
     ) = foundation_core::valtron::Pipe::with_depth(1);
+    // The client reader starts from the response head: a plain 200.
+    client_head_tx
+        .try_send((
+            foundation_netio::shared::http::Status::OK,
+            foundation_netio::shared::http::SimpleHeaders::new(),
+        ))
+        .expect("head");
     let client = ConnectClient
         .new_conn(
             &Spec {
@@ -223,7 +233,10 @@ fn streaming_roundtrip_normalizes_endstream() {
                     rx
                 },
             },
-            CancelSignal::new(),
+            foundation_connectrpc::ClientExchangeConfig {
+                cancel: CancelSignal::new(),
+                read_max_bytes: 0,
+            },
         )
         .expect("client exchange");
 

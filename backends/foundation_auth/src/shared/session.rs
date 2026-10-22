@@ -7,17 +7,18 @@
 //! HOW: Sessions stored via `CredentialStore`. Token signing via HMAC-SHA256.
 
 use std::sync::{Arc, Mutex};
+use std::time::Duration as StdDuration;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Duration, Utc};
 use foundation_netio::shared::client::{Cookie, SameSite};
 use hmac::{Hmac, Mac};
-use rand::RngCore;
+use foundation_compact::rng::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use zeroize::Zeroizing;
 
-use crate::shared::credential_store::{AsyncCredentialStore, CredentialStore};
+use crate::shared::credential_store::CredentialStore;
 use super::types::ConfidentialText;
 use crate::shared::credential_store::CredentialStoreError;
 
@@ -98,7 +99,7 @@ pub struct SessionManager<S> {
     signer: Arc<Mutex<TokenSigner>>,
 }
 
-impl<S: CredentialStore> SessionManager<S> {
+impl<S> SessionManager<S> {
     /// Borrow the underlying credential store.
     #[must_use]
     pub fn store(&self) -> &S {
@@ -124,187 +125,6 @@ impl<S: CredentialStore> SessionManager<S> {
         })
     }
 
-    /// Create a new session for a user.
-    ///
-    /// # Errors
-    ///
-    /// Returns `SessionError` if the storage operation fails.
-    /// # Panics
-    /// Panics if the signer mutex is poisoned.
-    #[allow(clippy::missing_panics_doc)]
-    pub fn create_session(
-        &self,
-        user_id: &str,
-        ip_address: Option<&str>,
-        user_agent: Option<&str>,
-    ) -> Result<(Session, Vec<Cookie>), SessionError> {
-        let token = generate_token();
-        let now = Utc::now();
-        let expires_at = now + self.config.max_session_age;
-        let token_prefix = token[..8].to_string();
-        let session_id = format!("session:{user_id}:{token_prefix}");
-
-        let signed_token = self.signer.lock().expect("signer lock").sign(&token);
-
-        let session = Session {
-            id: session_id.clone(),
-            user_id: user_id.to_string(),
-            token: ConfidentialText::new(signed_token),
-            created_at: now,
-            expires_at,
-            ip_address: ip_address.map(String::from),
-            user_agent: user_agent.map(String::from),
-            last_active_at: now,
-            revoked: false,
-        };
-
-        self.store
-            .set(&session_id, session.clone())
-            .map_err(SessionError::Storage)?;
-
-        let cookies = self.make_cookies(&token, user_id)?;
-
-        Ok((session, cookies))
-    }
-
-    /// Get and validate a session by token.
-    ///
-    /// # Errors
-    ///
-    /// Returns `SessionError` if the storage operation fails.
-    /// # Panics
-    /// Panics if the signer mutex is poisoned.
-    #[allow(clippy::missing_panics_doc)]
-    pub fn get_session(&self, token: &str) -> Result<Option<Session>, SessionError> {
-        let cache = Self::get_cached_session(token);
-        if let Some(ref cache_data) = cache {
-            if !cache_data.user_id.is_empty() {
-                let token_prefix = token[..token.len().min(8)].to_string();
-                let key = format!("session:{}:{}", cache_data.user_id, token_prefix);
-                if let Some(session) = self
-                    .store
-                    .get::<Session>(&key)
-                    .map_err(SessionError::Storage)?
-                {
-                    if session.is_valid() {
-                        if self.config.sliding_expiration {
-                            self.extend_session(&session)?;
-                        }
-                        return Ok(Some(session));
-                    }
-                    return Ok(None);
-                }
-            }
-        }
-
-        let keys = self
-            .store
-            .list_keys(Some("session:"))
-            .map_err(SessionError::Storage)?;
-        for key in &keys {
-            if let Some(session) = self
-                .store
-                .get::<Session>(key)
-                .map_err(SessionError::Storage)?
-            {
-                if !session.revoked
-                    && self
-                        .signer
-                        .lock()
-                        .expect("signer lock")
-                        .verify(&session.token.get(), token)?
-                {
-                    if session.is_valid() {
-                        if self.config.sliding_expiration {
-                            self.extend_session(&session)?;
-                        }
-                        return Ok(Some(session));
-                    }
-                    return Ok(None);
-                }
-            }
-        }
-
-        Ok(None)
-    }
-
-    /// Revoke a single session (sign out).
-    ///
-    /// # Errors
-    ///
-    /// Returns `SessionError` if the storage operation fails.
-    pub fn revoke_session(&self, session_id: &str) -> Result<(), SessionError> {
-        if let Some(session) = self
-            .store
-            .get::<Session>(session_id)
-            .map_err(SessionError::Storage)?
-        {
-            if session.revoked {
-                return Ok(());
-            }
-            let mut updated = session;
-            updated.revoked = true;
-            let sid = updated.id.clone();
-            self.store
-                .set(&sid, updated)
-                .map_err(SessionError::Storage)?;
-        }
-        Ok(())
-    }
-
-    /// Revoke all sessions for a user (sign out everywhere).
-    ///
-    /// # Errors
-    ///
-    /// Returns `SessionError` if the storage operation fails.
-    pub fn revoke_all_sessions(&self, user_id: &str) -> Result<usize, SessionError> {
-        let prefix = format!("session:{user_id}:");
-        let keys = self
-            .store
-            .list_keys(Some(&prefix))
-            .map_err(SessionError::Storage)?;
-
-        let mut count = 0;
-        for key in &keys {
-            if let Some(session) = self
-                .store
-                .get::<Session>(key)
-                .map_err(SessionError::Storage)?
-            {
-                if !session.revoked {
-                    let mut updated = session;
-                    updated.revoked = true;
-                    let sid = updated.id.clone();
-                    self.store
-                        .set(&sid, updated)
-                        .map_err(SessionError::Storage)?;
-                    count += 1;
-                }
-            }
-        }
-        Ok(count)
-    }
-
-    /// Extend session expiration (sliding expiration).
-    ///
-    /// # Errors
-    ///
-    /// Returns `SessionError` if the storage operation fails.
-    fn extend_session(&self, session: &Session) -> Result<(), SessionError> {
-        let now = Utc::now();
-        let time_left = session.expires_at - now;
-        if time_left < self.config.sliding_window {
-            let mut updated = session.clone();
-            updated.last_active_at = now;
-            updated.expires_at = now + self.config.max_session_age;
-            let sid = session.id.clone();
-            self.store
-                .set(&sid, updated)
-                .map_err(SessionError::Storage)?;
-        }
-        Ok(())
-    }
-
     fn get_cached_session(_token: &str) -> Option<SessionDataCache> {
         None
     }
@@ -315,7 +135,7 @@ impl<S: CredentialStore> SessionManager<S> {
 
         let token_cookie = Cookie::new(&self.config.token_cookie_name, token)
             .path("/")
-            .max_age(std::time::Duration::from_secs(
+            .max_age(StdDuration::from_secs(
                 self.config.max_session_age.num_seconds() as u64,
             ))
             .http_only(true)
@@ -330,7 +150,7 @@ impl<S: CredentialStore> SessionManager<S> {
             .map_err(|e| SessionError::Serialization(e.to_string()))?;
         let data_cookie = Cookie::new(&self.config.data_cookie_name, &cache_json)
             .path("/")
-            .max_age(std::time::Duration::from_secs(300));
+            .max_age(StdDuration::from_secs(300));
         cookies.push(data_cookie);
 
         if !self.config.sliding_expiration {
@@ -343,13 +163,12 @@ impl<S: CredentialStore> SessionManager<S> {
 }
 
 // ============================================================================
-// Async methods — require `S: AsyncCredentialStore` in addition to `CredentialStore`.
-// These call `*_async` store methods instead of draining sync iterators.
+// Session methods — over `CredentialStore`.
 // ============================================================================
 
-impl<S: CredentialStore + AsyncCredentialStore> SessionManager<S> {
+impl<S: CredentialStore> SessionManager<S> {
     /// Create a new session for a user (async).
-    pub async fn create_session_async(
+    pub async fn create_session(
         &self,
         user_id: &str,
         ip_address: Option<&str>,
@@ -386,7 +205,7 @@ impl<S: CredentialStore + AsyncCredentialStore> SessionManager<S> {
     }
 
     /// Get and validate a session by token (async).
-    pub async fn get_session_async(
+    pub async fn get_session(
         &self,
         token: &str,
     ) -> Result<Option<Session>, SessionError> {
@@ -403,7 +222,7 @@ impl<S: CredentialStore + AsyncCredentialStore> SessionManager<S> {
                 {
                     if session.is_valid() {
                         if self.config.sliding_expiration {
-                            self.extend_session_async(&session).await?;
+                            self.extend_session(&session).await?;
                         }
                         return Ok(Some(session));
                     }
@@ -433,7 +252,7 @@ impl<S: CredentialStore + AsyncCredentialStore> SessionManager<S> {
                 {
                     if session.is_valid() {
                         if self.config.sliding_expiration {
-                            self.extend_session_async(&session).await?;
+                            self.extend_session(&session).await?;
                         }
                         return Ok(Some(session));
                     }
@@ -446,7 +265,7 @@ impl<S: CredentialStore + AsyncCredentialStore> SessionManager<S> {
     }
 
     /// Revoke a single session (async).
-    pub async fn revoke_session_async(
+    pub async fn revoke_session(
         &self,
         session_id: &str,
     ) -> Result<(), SessionError> {
@@ -471,7 +290,7 @@ impl<S: CredentialStore + AsyncCredentialStore> SessionManager<S> {
     }
 
     /// Revoke all sessions for a user (async).
-    pub async fn revoke_all_sessions_async(
+    pub async fn revoke_all_sessions(
         &self,
         user_id: &str,
     ) -> Result<usize, SessionError> {
@@ -506,7 +325,7 @@ impl<S: CredentialStore + AsyncCredentialStore> SessionManager<S> {
     }
 
     /// Extend session expiration (async, sliding expiration).
-    async fn extend_session_async(
+    async fn extend_session(
         &self,
         session: &Session,
     ) -> Result<(), SessionError> {
@@ -569,7 +388,7 @@ impl TokenSigner {
 /// Generate a cryptographically random session token.
 fn generate_token() -> String {
     let mut bytes = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    foundation_compact::rng::rng().fill_bytes(&mut bytes);
     URL_SAFE_NO_PAD.encode(bytes)
 }
 

@@ -9,6 +9,8 @@ mod openai_provider;
 mod provider_catalog_tests;
 mod provider_credentials_tests;
 mod provider_fault_injection_tests;
+mod sse_error_mapping_tests;
+mod workers_ai_provider;
 
 #[cfg(feature = "llamacpp")]
 mod llamacpp_provider;

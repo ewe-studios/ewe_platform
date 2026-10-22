@@ -271,7 +271,7 @@ pub struct CachedEmbeddingProvider {
 
 fn hash_text(text: &str) -> u64 {
     use std::hash::{Hash, Hasher};
-    let mut hasher = ahash::AHasher::default();
+    let mut hasher = foundation_compact::hash::Hasher::default();
     text.hash(&mut hasher);
     hasher.finish()
 }

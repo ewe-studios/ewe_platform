@@ -50,7 +50,7 @@ pub fn pbkdf2_verify(password: &[u8], salt: &[u8], expected: &[u8], iterations: 
     constant_time_eq(&computed.0, expected)
 }
 
-#[cfg(target_family = "wasm")]
+#[cfg(all(target_family = "wasm", feature = "wasm-pbkdf2"))]
 pub async fn pbkdf2_derive(password: &[u8], salt: &[u8], iterations: u32, key_len: u32) -> Result<Pbkdf2Key, CryptoError> {
     use js_sys::{Object, Uint8Array};
     use wasm_bindgen::JsValue;
@@ -98,7 +98,7 @@ pub async fn pbkdf2_derive(password: &[u8], salt: &[u8], iterations: u32, key_le
     Ok(Pbkdf2Key(Zeroizing::new(buf.to_vec())))
 }
 
-#[cfg(target_family = "wasm")]
+#[cfg(all(target_family = "wasm", feature = "wasm-pbkdf2"))]
 pub async fn pbkdf2_verify(password: &[u8], salt: &[u8], expected: &[u8], iterations: u32, key_len: u32) -> Result<bool, CryptoError> {
     let computed = pbkdf2_derive(password, salt, iterations, key_len).await?;
     Ok(constant_time_eq(&computed.0, expected))
@@ -188,14 +188,14 @@ fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 }
 
 /// Crypto errors (WASM only — native operations are infallible).
-#[cfg(target_family = "wasm")]
+#[cfg(all(target_family = "wasm", feature = "wasm-pbkdf2"))]
 #[derive(Debug)]
 pub enum CryptoError {
     JsError(String),
     CryptoUnavailable,
 }
 
-#[cfg(target_family = "wasm")]
+#[cfg(all(target_family = "wasm", feature = "wasm-pbkdf2"))]
 impl core::fmt::Display for CryptoError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
@@ -205,7 +205,7 @@ impl core::fmt::Display for CryptoError {
     }
 }
 
-#[cfg(target_family = "wasm")]
+#[cfg(all(target_family = "wasm", feature = "wasm-pbkdf2"))]
 impl core::error::Error for CryptoError {}
 
 /// Verify a password against a stored hash, dispatching by KDF type.
@@ -243,7 +243,7 @@ pub fn verify_password(
     }
 }
 
-#[cfg(target_family = "wasm")]
+#[cfg(all(target_family = "wasm", feature = "wasm-pbkdf2"))]
 pub async fn verify_password(
     kdf_type: i32,
     password_hash: &[u8],

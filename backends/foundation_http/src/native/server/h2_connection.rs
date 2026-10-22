@@ -80,6 +80,36 @@ struct ActiveStream {
     uncredited: u32,
 }
 
+impl ActiveStream {
+    /// The stream is over for its handler before the handler finished: the
+    /// peer reset it, we reset it, or the connection is going away.
+    ///
+    /// The response pipe closes first, so a handler that sees its request body
+    /// end can tell a cancelled stream (its response pipe is already closed)
+    /// from a peer that set `END_STREAM`. Then `Reset(code)` is offered on the
+    /// body pipe: it reaches the handler when the pipe has room and was not
+    /// already ended by `END_STREAM`, and the closed response pipe covers every
+    /// other case (see `PipeSender::closed`).
+    fn cancel(&self, code: ErrorCode) {
+        self.resp_rx.close();
+        if !self.body_tx.is_closed() {
+            let _ = self.body_tx.try_send(H2IncomingFrame::Reset(code));
+        }
+        self.body_tx.close();
+    }
+}
+
+impl Drop for ActiveStream {
+    /// Dropping a stream the handler has not finished (the connection task
+    /// ending, or a reset) cancels it instead of leaving a closed body pipe
+    /// that reads like a clean `END_STREAM`.
+    fn drop(&mut self) {
+        if !self.resp_rx.is_closed() {
+            self.cancel(ErrorCode::Cancel);
+        }
+    }
+}
+
 /// HTTP/2 multiplexed connection handler — one valtron task per connection.
 pub struct H2ConnectionHandler {
     conn: H2Conn,
@@ -372,8 +402,7 @@ impl H2ConnectionHandler {
         let code = ResetFrame::parse(&head, payload).map_or(ErrorCode::Cancel, |rf| rf.error_code);
 
         if let Some(stream) = self.streams.remove(&sid) {
-            let _ = stream.body_tx.try_send(H2IncomingFrame::Reset(code));
-            stream.body_tx.close();
+            stream.cancel(code);
         }
     }
 
@@ -382,7 +411,7 @@ impl H2ConnectionHandler {
         self.conn
             .encode_frame(sid, &H2Frame::Reset { error_code: code });
         if let Some(stream) = self.streams.remove(&sid) {
-            stream.body_tx.close();
+            stream.cancel(code);
         }
     }
 

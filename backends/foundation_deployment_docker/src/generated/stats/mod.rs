@@ -195,12 +195,12 @@ pub struct ContainerStatsArgs {
 
 /// GET /containers/{id}/stats.
 ///
-/// Takes a `DynNetClient` and args, builds the request, optionally applies
+/// Takes a client and args, builds the request, optionally applies
 /// modifications, then sends it via `send_async().await`.
 ///
 /// # Arguments
 ///
-/// * `client` - HTTP client for making the request
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
 /// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
@@ -217,7 +217,7 @@ pub struct ContainerStatsArgs {
 /// })).await?;
 /// ```
 pub async fn container_stats_request<F>(
-    client: DynNetClient,
+    client: impl Into<super::shared::ApiClient>,
     args: &ContainerStatsArgs,
     base_url: &str,
     builder_mod: Option<F>,
@@ -241,10 +241,5 @@ where
         f(&mut builder);
     }
 
-    let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;
-    Ok(ApiResponse {
-        status,
-        headers,
-        body: super::shared::JsonLinesStream::new(body),
-    })
+    super::shared::send_json_lines(client.into(), builder.build()).await
 }

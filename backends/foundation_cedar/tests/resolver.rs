@@ -1,4 +1,5 @@
 use foundation_cedar::{load_from_store, InMemoryPolicyStore};
+use foundation_core::valtron::valtron_test;
 
 const SCHEMA: &str = r#"
 entity User;
@@ -17,15 +18,15 @@ permit(
 );
 "#;
 
-#[test]
-fn test_load_from_store() {
+#[valtron_test]
+async fn test_load_from_store() {
     let store = InMemoryPolicyStore::new(SCHEMA.into(), POLICIES.into());
-    let engine = load_from_store(&store);
+    let engine = load_from_store(&store).await;
     assert!(engine.is_ok());
 }
 
-#[test]
-fn test_load_from_store_with_entities() {
+#[valtron_test]
+async fn test_load_from_store_with_entities() {
     let entities_json = r#"[
             {
                 "uid": {"type":"User","id":"alice"},
@@ -35,6 +36,6 @@ fn test_load_from_store_with_entities() {
         ]"#;
     let store = InMemoryPolicyStore::new(SCHEMA.into(), POLICIES.into())
         .with_entities(entities_json.into());
-    let engine = load_from_store(&store);
+    let engine = load_from_store(&store).await;
     assert!(engine.is_ok());
 }

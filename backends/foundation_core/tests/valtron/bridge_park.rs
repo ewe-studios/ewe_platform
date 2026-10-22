@@ -7,9 +7,10 @@
 //! *observable*: the waker count proves whether the bridge parked (registered a
 //! callback and returned `Poll::Pending` without self-waking) or spun.
 //!
-//! `StreamAsFutureStream` is intentionally absent: it is a raw lens whose
-//! `poll_next` always returns `Poll::Ready(iter.next())`, so it never parks and
-//! carries no `WakeableStream` bound.
+//! `StreamAsFutureStream` (the raw lens) is intentionally absent: its `poll_next`
+//! always returns `Poll::Ready(iter.next())`, so it never parks and carries no
+//! `WakeableStream` bound. Its parking sibling `StreamParkingFutureStream` (the
+//! full-enum lens returned by `into_future_stream()`) *is* covered below.
 //!
 //! `NotifyQueue::set_max_spins(1)` makes an empty `next()` return `Stream::Wait`
 //! after a single short CondVar wait, keeping the tests single-threaded,
@@ -28,7 +29,8 @@ use futures_core::Stream as FuturesStream;
 
 use foundation_core::valtron::{
     NotifyQueue, NotifyQueueStreamIterator, Stream, StreamCollectFuture, StreamIteratorExt,
-    StreamNextStream, StreamPendingFuture, StreamReadyFuture,
+    StreamNextStream, StreamParkingFutureStream, StreamPendingFuture, StreamReadyFuture,
+    StreamSpread,
 };
 
 // ============================================================================
@@ -386,5 +388,137 @@ fn next_stream_parked_then_closed_ends() {
     assert_eq!(count.load(Ordering::SeqCst), 0, "parked on an empty queue");
     assert!(queue.close());
     assert_eq!(count.load(Ordering::SeqCst), 1, "close fired the wake");
+    assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(None));
+}
+
+// ============================================================================
+// (f) The full-enum parking lens: `StreamParkingFutureStream`
+// ============================================================================
+
+/// WHY: `into_future_stream()` must now park over the in-band control states
+///      (unlike the raw `StreamAsFutureStream` lens) so an `await` consumer of the
+///      full `Stream<D, P>` item type does not busy-poll.
+/// WHAT: Park on an empty queue, `push` a `Next`, and the re-poll resolves to
+///       `Ready(Some(Stream::Next(v)))`.
+#[test]
+fn future_stream_parks_then_wakes_on_push() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let mut stream = StreamParkingFutureStream::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    queue.push(Stream::Next(5)).unwrap();
+    assert_eq!(count.load(Ordering::SeqCst), 1, "push fired the wake");
+
+    match poll_next(&mut stream, &waker) {
+        Poll::Ready(Some(Stream::Next(5))) => {}
+        other => panic!("expected Ready(Some(Stream::Next(5))), got {other:?}"),
+    }
+}
+
+/// Same parking contract for the extension entry point: `into_future_stream()`
+/// returns the parking lens (with its `WakeableStream` bound) and drives a waking
+/// iterator end-to-end.
+#[test]
+fn into_future_stream_ext_parks_then_wakes() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let mut stream = iterator.into_future_stream();
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    queue.push(Stream::Next(9)).unwrap();
+    assert_eq!(count.load(Ordering::SeqCst), 1, "push fired the wake");
+
+    match poll_next(&mut stream, &waker) {
+        Poll::Ready(Some(Stream::Next(9))) => {}
+        other => panic!("expected Ready(Some(Stream::Next(9))), got {other:?}"),
+    }
+}
+
+/// WHY: A producer closing the queue is a readiness edge; the parked full-enum
+///      lens must be woken to observe exhaustion and return `Ready(None)`.
+/// WHAT: Park on empty, `close`, then the next poll resolves to `Ready(None)`.
+#[test]
+fn future_stream_close_wakes_to_none() {
+    let (iterator, queue) = waking_iter::<i32, &'static str>();
+    let mut stream = StreamParkingFutureStream::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 0, "parked: no self-wake");
+
+    assert!(queue.close());
+    assert_eq!(count.load(Ordering::SeqCst), 1, "close fired the wake");
+
+    assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(None));
+}
+
+/// WHY: `into_stream_iter()` wraps a plain iterator in `StreamIter`, which reports
+///      `WakeResult::NotSupported`; the full-enum lens must fall back to the legacy
+///      `cx.waker().wake_by_ref()` self-wake so an in-memory `Vec<Stream>` still
+///      resolves instead of parking forever.
+/// WHAT: Poll past `Init` self-wakes (wake count 1), then the next poll reaches
+///       `Next(7)` and yields it.
+#[test]
+fn future_stream_not_supported_self_wakes() {
+    let iter = vec![Stream::<i32, &'static str>::Init, Stream::Next(7)]
+        .into_iter()
+        .into_stream_iter();
+    let mut stream = StreamParkingFutureStream::new(iter);
+    let (waker, count) = counting_waker();
+
+    // `Init` is non-target → NotSupported → self-wake.
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
+    assert_eq!(count.load(Ordering::SeqCst), 1, "NotSupported self-wakes");
+
+    match poll_next(&mut stream, &waker) {
+        Poll::Ready(Some(Stream::Next(7))) => {}
+        other => panic!("expected Ready(Some(Stream::Next(7))), got {other:?}"),
+    }
+}
+
+/// The full-enum lens drives past `Delayed`/`Wait` on a finished producer, then
+/// yields the `Next` and ends.
+#[test]
+fn future_stream_on_a_finished_producer_is_woken_through_delayed() {
+    let iterator = finished_iter(vec![
+        Stream::<i32, &'static str>::Delayed(Duration::from_millis(1)),
+        Stream::Wait,
+        Stream::Next(5),
+    ]);
+    let mut stream = StreamParkingFutureStream::new(iterator);
+    let (waker, count) = counting_waker();
+
+    assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
+    assert!(count.load(Ordering::SeqCst) >= 1, "the wake was delivered");
+    assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(Some(Stream::Next(5))));
+    assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(None));
+}
+
+/// `StreamParkingFutureStream` yields a `Spread` item as-is (unlike
+/// `StreamNextStream`, which fans it out into individual `Done` payloads), so the
+/// full-enum item type is preserved.
+#[test]
+fn future_stream_yields_spread_as_is() {
+    let iterator = finished_iter(vec![
+        Stream::Spread(vec![StreamSpread::Done(2), StreamSpread::Pending("p")]),
+    ]);
+    let mut stream = StreamParkingFutureStream::new(iterator);
+    let (waker, count) = counting_waker();
+
+    match poll_next(&mut stream, &waker) {
+        Poll::Ready(Some(Stream::Spread(items))) => {
+            assert_eq!(items.len(), 2);
+            assert!(matches!(items[0], StreamSpread::Done(2)));
+            assert!(matches!(items[1], StreamSpread::Pending("p")));
+        }
+        other => panic!("expected Ready(Some(Stream::Spread(..))), got {other:?}"),
+    }
+    // A `Spread` is a target item: it is yielded at once with no wake.
+    assert_eq!(count.load(Ordering::SeqCst), 0, "Spread yields without waking");
     assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(None));
 }

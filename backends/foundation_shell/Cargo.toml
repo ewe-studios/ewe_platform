@@ -1,6 +1,6 @@
 [package]
 name = "foundation_shell"
-version = "0.0.1"
+version = "0.0.3"
 description = "A nushell integrated library for integrating nushell as a library in any project"
 edition.workspace = true
 rust-version.workspace = true
@@ -10,8 +10,8 @@ repository.workspace = true
 keywords = ["foundation_shell", "foundation_nushell"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -24,7 +24,7 @@ tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
 
 [dev-dependencies]
-foundation_testing = { path = "../foundation_testing", version = "0.0.1" }
+foundation_testing = { path = "../foundation_testing" }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 serial_test = { version = "3" }
 

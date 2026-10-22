@@ -99,17 +99,70 @@ pub fn strip_hop_by_hop(headers: &SimpleHeaders) -> SimpleHeaders {
         .collect()
 }
 
+/// Return a copy of `headers` with all hop-by-hop headers removed, **except** the
+/// trailer handshake — `te: trailers`, `trailer`, and `trailers` — which a proxy
+/// MUST forward for gRPC/RPC requests (RFC 9113 §8.2.2; the gRPC-over-HTTP/2 spec).
+///
+/// Used for the **request** direction only. Responses keep [`strip_hop_by_hop`]:
+/// a response never carries a request `te`, and an upstream `Trailer` announcement
+/// is stale once the body has been re-framed on the way back to the client.
+#[must_use]
+pub fn strip_hop_by_hop_request(headers: &SimpleHeaders) -> SimpleHeaders {
+    let drop = drop_set(headers);
+    headers
+        .iter()
+        .filter(|(name, values)| {
+            let lower = name.to_string().to_ascii_lowercase();
+            if !drop.contains(&lower) {
+                return true;
+            }
+            // `te: trailers` is the one hop-by-hop header a proxy must forward
+            // (gRPC depends on it). Preserve it when — and only when — it carries
+            // the `trailers` token; any other `te` value stays stripped.
+            if lower == "te" {
+                return values
+                    .iter()
+                    .any(|v| v.split(',').any(|t| t.trim().eq_ignore_ascii_case("trailers")));
+            }
+            // The `trailer`/`trailers` announcement names are also preserved.
+            lower == "trailer" || lower == "trailers"
+        })
+        .map(|(name, values)| (name.clone(), values.clone()))
+        .collect()
+}
+
+/// Whether a request's `Content-Type` marks an RPC streaming exchange — gRPC,
+/// Connect streaming, or gRPC-Web — whose response is always length- or
+/// chunk-delimited (never EOF-delimited).
+///
+/// Such responses never need the upstream `Connection: close` that
+/// [`forward_request_headers`] adds for plain requests; that header is hostile to
+/// them, since it forces the backend to drop the connection after each stream and
+/// defeats reuse for long-lived server-streaming.
+#[must_use]
+pub fn is_streaming_request(headers: &SimpleHeaders) -> bool {
+    headers
+        .get(&SimpleHeader::CONTENT_TYPE)
+        .and_then(|values| values.first())
+        .is_some_and(|ct| {
+            ct == "application/grpc"
+                || ct.starts_with("application/grpc+")
+                || ct.starts_with("application/connect+")
+                || ct.starts_with("application/grpc-web")
+        })
+}
+
 /// Build the request headers to send upstream: hop-by-hop stripped, then
 /// `X-Forwarded-For` appended and `X-Forwarded-Proto`/`-Host` set.
 ///
 /// Shared with the HTTP/2 forward path ([`crate::h2_proxy`]) so both front-end
 /// protocols apply an identical hop-by-hop and forwarding-header policy.
-pub(crate) fn forward_request_headers(
+pub fn forward_request_headers(
     original: &SimpleHeaders,
     client_ip: &str,
     scheme: &str,
 ) -> SimpleHeaders {
-    let mut headers = strip_hop_by_hop(original);
+    let mut headers = strip_hop_by_hop_request(original);
 
     // X-Forwarded-For: append this hop's client IP to any existing chain.
     let xff = SimpleHeader::custom("x-forwarded-for");
@@ -134,11 +187,16 @@ pub(crate) fn forward_request_headers(
         );
     }
 
-    // Ask the upstream to close after responding. Each proxied request is a
-    // single upstream exchange; without this, origins that default to
-    // `Connection: keep-alive` (e.g. gunicorn) hold the socket open and the
-    // client's body reader waits for an end-of-stream that never comes.
-    headers.insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
+    // Ask the upstream to close after responding — but only for non-streaming
+    // requests. Each proxied request is a single upstream exchange; without
+    // `Connection: close`, origins that default to keep-alive (e.g. gunicorn)
+    // hold the socket open and the client's body reader waits for an end-of-stream
+    // that never comes. RPC streaming responses (gRPC / Connect streaming /
+    // gRPC-Web) are always length- or chunk-delimited, so the header is
+    // unnecessary there — and hostile to long-lived streams.
+    if !is_streaming_request(original) {
+        headers.insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
+    }
 
     headers
 }
@@ -184,6 +242,12 @@ pub fn forward_http_with_headers(
     client: &SharedHttpClient,
     extra_headers: Option<&SimpleHeaders>,
 ) -> Result<(), String> {
+    // `forward_request_headers` asks the upstream to `Connection: close` for
+    // non-streaming requests (their single-shot exchange is EOF-delimited on the
+    // way back). Such a connection must not be returned to the pool: the upstream
+    // will drop it after responding, so a subsequent pooled send would time out.
+    let reuse = is_streaming_request(&req.headers);
+
     let url = upstream_url(backend.url(), &req.request_url.url);
     let headers = forward_request_headers(&req.headers, client_ip, scheme);
     let body = req.body.unwrap_or(SendSafeBody::None);
@@ -204,18 +268,25 @@ pub fn forward_http_with_headers(
     let (status, headers, body, pool, upstream_conn) = response.into_parts();
     write_response(conn, status, &headers, body, extra_headers)?;
 
-    // Return the upstream socket to the pool for reuse (drain any residue first),
-    // mirroring FinalizedResponse's own drop-time pooling.
-    if let (Some(pool), Some(mut stream)) = (pool, upstream_conn) {
-        stream.drain_stream();
-        pool.return_to_pool(stream);
+    // Return the upstream socket to the pool for reuse only when the connection
+    // is still alive (streaming requests). For non-streaming requests the
+    // upstream was told to close, so dropping `upstream_conn` closes the socket.
+    if reuse {
+        if let (Some(pool), Some(mut stream)) = (pool, upstream_conn) {
+            stream.drain_stream();
+            pool.return_to_pool(stream);
+        }
     }
     Ok(())
 }
 
 /// Render a proxied response onto the client connection. Injects any
 /// `extra_headers` (e.g. sticky cookie) after stripping hop-by-hop.
-fn write_response(
+///
+/// Shared with the D-leg RPC relay ([`crate::rpc_relay`]) so a translated
+/// response is written back to the H1 client connection exactly like a
+/// transparently-forwarded one.
+pub(crate) fn write_response(
     conn: &mut SharedByteBufferStream<RawStream>,
     status: Status,
     headers: &SimpleHeaders,

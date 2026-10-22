@@ -42,7 +42,7 @@ impl DockerClient {
         let args = NetworkListArgs {
             filters: filters.map(str::to_string),
         };
-        let response = network_list_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response = network_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -116,7 +116,7 @@ impl DockerClient {
         let args = NetworkDeleteArgs {
             id: id.to_string(),
         };
-        network_delete_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        network_delete_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 
@@ -140,7 +140,7 @@ impl DockerClient {
     ) -> Result<NetworkCreateResponse, DockerError> {
         let args = NetworkCreateArgs::default();
         let response = network_create_request(
-            self.http(),
+            self.api(),
             &args,
             &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
@@ -182,7 +182,7 @@ impl DockerClient {
             body["EndpointConfig"] = serde_json::json!({ "Aliases": aliases });
         }
         network_connect_request(
-            self.http(),
+            self.api(),
             &args,
             &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
@@ -219,7 +219,7 @@ impl DockerClient {
         };
         let body = serde_json::json!({"Container": container_id, "Force": force});
         network_disconnect_request(
-            self.http(),
+            self.api(),
             &args,
             &self.api_url().await?,
             Some(move |b: &mut PreparedRequestBuilder| {
@@ -246,7 +246,7 @@ impl DockerClient {
         let args = NetworkPruneArgs {
             filters: filters.map(str::to_string),
         };
-        network_prune_request(self.http(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        network_prune_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
 }

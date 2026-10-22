@@ -76,7 +76,7 @@ How `embed` works:
 ## 4. Where the agent uses embeddings
 
 **Semantic recall.** Give the session an embedder and
-`ContextProvider::search_from_memory` — what the `search_context` tool calls —
+`ContextProvider::search` — what the `search_context` tool calls —
 ranks prior messages by cosine similarity instead of keyword matching. (Normal
 per-turn context assembly does not use the embedder; it takes the most recent
 messages.)
@@ -88,7 +88,7 @@ let agent = AgentSession::builder(router.clone())
     // search_context, built inside build() from the session's own context
     // provider — so it uses the session's stores and embedder:
     .with_toolshed(ToolShed::new().tools(ToolPreset::search_context()))
-    .build()?;
+    .build().await?;
 ```
 
 Without an embedder, `search_context` falls back to keyword matching.
@@ -100,12 +100,13 @@ tool in the session's `ToolShed` with `ToolDiscovery::in_memory(embedder,
 model)`, and the built-in `shed` meta-tool searches by embedding (filling up
 with name/description matches). `ToolDiscovery::new(vector_store, embedder,
 model)` uses a vector store you provide; `ToolCallManager::enable_discovery`
-attaches one to a manager.
+(async) attaches one to a manager and indexes its tools. Tools registered
+later are indexed by the next `shed` search (see doc 04).
 
 ## 5. Storing vectors yourself
 
 `VectorStore`, `VectorEntry` and `VectorMatch` live in `foundation_vectors`.
-To index your own documents, embed with the provider and insert the
+The trait is async (`insert_async`, `search_async`, …). To index your own documents, embed with the provider and insert the
 `EmbeddingVector::data` into your store; see that crate's docs for the exact
 API and distance metrics.
 

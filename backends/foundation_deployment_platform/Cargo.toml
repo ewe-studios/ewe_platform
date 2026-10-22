@@ -1,6 +1,6 @@
 [package]
 name = "foundation_deployment_platform"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2024"
 rust-version.workspace = true
 license.workspace = true
@@ -11,18 +11,18 @@ keywords = ["ewe-platform", "deployment", "platform", "docker", "testcontainers"
 
 [dependencies]
 # Foundation crates
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["ssl", "multi"] }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["ssl", "multi"] }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
 # WireGuard mesh (for docker/wireguard.rs, optional). `default-features = false`
 # drops the native mesh (`native-mesh`) so BoringSSL is not linked — this crate
 # only needs the pure-Rust key/seed types (WgSeed/NetworkId/SeedBits) for env
 # injection. Linking BoringSSL here clashes with libssh2/OpenSSL (foundation_sshkit).
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1", optional = true, default-features = false }
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.3", optional = true, default-features = false }
 
 # Docker API — our own bollard-free client (spec-54)
-foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.0", features = ["docker"] }
+foundation_deployment_docker = { path = "../foundation_deployment_docker", version = "0.1.3", features = ["docker"] }
 
 # Async utilities
 futures-lite = "2"
@@ -58,7 +58,7 @@ which = { version = "7", optional = true }
 base64 = "0.22"
 portpicker = { version = "0.1", optional = true }
 clap = { version = "4", features = ["derive"], optional = true }
-foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.0", optional = true }
+foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.2", optional = true }
 
 [features]
 default = ["docker", "wireguard"]
@@ -97,7 +97,6 @@ buildkit = ["foundation_deployment_docker/buildkit"]
 all-providers = ["vms", "docker"]
 
 [dev-dependencies]
-tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
 tracing-subscriber = "0.3"
 
 [[bin]]

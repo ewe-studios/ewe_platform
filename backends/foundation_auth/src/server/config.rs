@@ -40,7 +40,16 @@ pub struct IdpConfig {
     pub device_code_interval: u32,
     pub require_pkce: bool,
     pub password_policy: PasswordPolicy,
+    /// Largest request body the IdP endpoints read, in bytes. IdP requests
+    /// are small forms and JSON documents that must be parsed whole; anything
+    /// larger is rejected with 413 before more of it is read. Default 1 MiB,
+    /// nginx's `client_max_body_size` default.
+    pub max_request_body_bytes: usize,
 }
+
+/// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
+/// `client_max_body_size` default).
+pub const DEFAULT_MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
 
 impl IdpConfig {
     #[must_use]
@@ -56,6 +65,7 @@ impl IdpConfig {
             device_code_interval: 5,
             require_pkce: true,
             password_policy: PasswordPolicy::default(),
+            max_request_body_bytes: DEFAULT_MAX_REQUEST_BODY_BYTES,
         }
     }
 
@@ -94,6 +104,14 @@ impl IdpConfig {
         self.password_policy = policy;
         self
     }
+
+    /// Set the largest request body the IdP endpoints read (see
+    /// [`max_request_body_bytes`](Self::max_request_body_bytes)).
+    #[must_use]
+    pub fn with_max_request_body_bytes(mut self, bytes: usize) -> Self {
+        self.max_request_body_bytes = bytes;
+        self
+    }
 }
 
 impl core::fmt::Debug for IdpConfig {
@@ -104,6 +122,7 @@ impl core::fmt::Debug for IdpConfig {
             .field("refresh_token_ttl", &self.refresh_token_ttl)
             .field("session_ttl", &self.session_ttl)
             .field("require_pkce", &self.require_pkce)
+            .field("max_request_body_bytes", &self.max_request_body_bytes)
             .finish_non_exhaustive()
     }
 }

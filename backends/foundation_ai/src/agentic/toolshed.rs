@@ -46,7 +46,16 @@ pub trait ContextSearch: Send + Sync {
     /// The session searched.
     fn session_id(&self) -> &SessionId;
     /// Up to `k` hits for `query`, ranked by relevance.
-    async fn search(&self, query: &str, mode: SearchMode, k: usize) -> Vec<KnowledgeHit>;
+    ///
+    /// # Errors
+    /// Returns the store error when the session's history or memory cannot
+    /// be read.
+    async fn search(
+        &self,
+        query: &str,
+        mode: SearchMode,
+        k: usize,
+    ) -> StorageResult<Vec<KnowledgeHit>>;
 }
 
 #[async_trait]
@@ -55,7 +64,12 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ContextSearch for Con
         ContextProvider::session_id(self)
     }
 
-    async fn search(&self, query: &str, mode: SearchMode, k: usize) -> Vec<KnowledgeHit> {
+    async fn search(
+        &self,
+        query: &str,
+        mode: SearchMode,
+        k: usize,
+    ) -> StorageResult<Vec<KnowledgeHit>> {
         ContextProvider::search(self, query, mode, k).await
     }
 }
@@ -381,7 +395,7 @@ impl ToolShed {
     /// [`ToolShedError::ReservedName`] for a tool named `shed`,
     /// [`ToolShedError::NameMismatch`] if a constructor built a tool under a
     /// different name, [`ToolShedError::Discovery`] if indexing fails.
-    pub fn build(self, session: &SessionParts) -> Result<ToolCallManager, ToolShedError> {
+    pub async fn build(self, session: &SessionParts) -> Result<ToolCallManager, ToolShedError> {
         if let Some(problem) = self.problems.into_iter().next() {
             return Err(problem);
         }
@@ -406,6 +420,7 @@ impl ToolShed {
             let discovery = ToolDiscovery::in_memory(Arc::clone(embedder), model.clone());
             manager
                 .enable_discovery(Arc::new(discovery))
+                .await
                 .map_err(|e| ToolShedError::Discovery(e.to_string()))?;
         }
 

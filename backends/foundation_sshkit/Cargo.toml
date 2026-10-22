@@ -1,6 +1,6 @@
 [package]
 name = "foundation_sshkit"
-version = "0.1.0"
+version = "0.1.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -9,8 +9,8 @@ repository.workspace = true
 description = "SSH orchestration — connection pooling, host abstraction, command execution, runners"
 
 [dependencies]
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
 
 ssh2 = "0.9"
 

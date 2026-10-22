@@ -17,6 +17,7 @@ use crate::valtron::{
 };
 use core::future::Future;
 use std::sync::Arc;
+use crate::valtron::{FnMutReady, FnReady, OnNext, TaskReadyResolver, TaskSpawnConfig};
 use core::sync::atomic::AtomicBool;
 
 use crate::valtron::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION, DEFAULT_WAIT_CYCLE};
@@ -142,6 +143,15 @@ pub fn initialize_pool(
     tracing::debug!("Starting under feature=multi");
     multi::initialize_pool(seed_for_rng, user_thread_num)
 }
+
+/// Make the calling thread able to drive valtron work set up by
+/// [`initialize_pool`] on another thread.
+///
+/// Under `multi` the pool is process-wide, so every thread can already reach
+/// it and this is a no-op. Without `multi` the engine is thread-local and the
+/// same function initializes it for the calling thread; callers use it so
+/// their code is correct in both configurations.
+pub fn initialize_current_thread(_seed_for_rng: u64) {}
 
 /// Submit a blocking closure for execution on the appropriate background executor.
 ///
@@ -327,6 +337,9 @@ where
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
 {
+    if !multi::is_pool_initialized() {
+        return Err("valtron pool not initialized (call initialize_pool or use #[valtron])".into());
+    }
     tracing::debug!("Executing as a multi-threaded stream in no-wasm");
 
     // Schedule task and get iterator with defaults
@@ -409,6 +422,9 @@ where
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
 {
+    if !multi::is_pool_initialized() {
+        return Err("valtron pool not initialized (call initialize_pool or use #[valtron])".into());
+    }
     tracing::debug!("Executing as a multi-threaded stream in no-wasm");
 
     // Schedule task and get iterator
@@ -453,16 +469,27 @@ where
 }
 
 // ============================================================================
-// run_future - Execute Future through unified executor
+// block_on_collect - Execute Future through unified executor
 // ============================================================================
 
-/// Execute a future using the unified executor (native - requires Send).
+/// Block the calling thread until `future` completes, collecting every `Ready`
+/// output it produced into a `Vec` (native — requires `Send`).
 ///
-/// WHY: Simplest way to run async code through valtron
-/// WHAT: Wraps future in `FutureTask` and executes via unified executor
+/// # WASM-unsafe: native-only
 ///
-/// Note: This requires the unified executor to be available and properly configured.
-pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
+/// This is a *blocking* helper — the `collect()` is inherent, because a future
+/// has no stream to return — so it never yields to the JS event loop and
+/// deadlocks the single-threaded wasm isolate. Prefer [`run_future_iter`] (a
+/// lazy iterator that yields [`ThreadedValue::Waiting`] while pending) or the
+/// parking stream bridges (`into_future_stream` / `into_next_stream`). Keep this
+/// helper for native callers that genuinely need a run-to-completion block.
+///
+/// WHY: The unified executor's `DrivenRecvIterator` may yield several `Ready`
+/// values (a future can spawn sub-tasks), so "run to completion" here means
+/// "gather them all", not "return the first".
+///
+/// WHAT: Wraps future in `FutureTask` and executes via unified executor.
+pub fn block_on_collect<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
     F: Future + Send + 'static,
     F::Output: Send + 'static,
@@ -729,6 +756,36 @@ where
     collect_one(stream).ok_or_else(|| "sync_collect_one: stream produced no result".into())
 }
 
+/// Iterate an async stream from synchronous code: the sync boundary for an
+/// async-first API (`for event in run_stream_iter(turn.events())? { .. }`).
+///
+/// WHY: APIs are written once, async (they wait by parking, so they work on
+/// every target). Sync callers should not need a second API — they wrap the
+/// async one here, the stream counterpart of [`run_future_iter`] and [`block_on_future`].
+///
+/// WHAT: Schedules `stream` as a valtron task ([`from_stream`]) and returns a
+/// plain `Iterator` over its items ([`next_values`](crate::valtron::next_values)).
+/// Each `next()` waits for the next item the way [`block_on_future`] waits
+/// for its result; the iterator ends when the stream does.
+///
+/// Not for single-threaded wasm request handlers: there, consume the stream
+/// with `.await` so the event loop can deliver its I/O.
+///
+/// # Errors
+///
+/// When the task cannot be scheduled (e.g. the pool is not initialized).
+pub fn run_stream_iter<S>(
+    stream: S,
+) -> GenericResult<crate::valtron::StreamValues<S::Item, DrivenStreamIterator<StreamTask<S>>>>
+where
+    S: futures_core::Stream + Send + 'static,
+    S::Item: Send + 'static,
+{
+    Ok(crate::valtron::StreamValues::new(crate::valtron::next_values(
+        execute(from_stream(stream), None)?,
+    )))
+}
+
 /// Block the calling thread until `future` completes, returning its output
 /// (multi-threaded executor variant — Decision 00 Level 3 / feature 00-F3).
 ///
@@ -746,6 +803,16 @@ where
 /// # Panics
 /// Panics if the future never yields a result — only possible if the pool was not
 /// initialized or was torn down before completion (a setup bug).
+/// [`block_on_future`], for valtron's own macros (via `valtron::__private`).
+#[doc(hidden)]
+pub fn block_on_future_unchecked<F>(future: F) -> F::Output
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    block_on_future(future)
+}
+
 pub fn block_on_future<F>(future: F) -> F::Output
 where
     F: Future + Send + 'static,
@@ -2032,4 +2099,109 @@ pub fn sleep(
 pub async fn sleep_async(duration: std::time::Duration) {
     use crate::valtron::StreamIteratorExt;
     let _ = sleep(duration).expect("sleep").into_ready_future().await;
+}
+
+// --- Task builders and `OnNext` constructors (`multi`: the task and resolver may move to another thread, so both must be `Send`.)
+
+/// `typed_task` allows you to create a task builder but requiring specific
+/// definitions for your `Task` and `Resolver` types.
+#[must_use]
+pub fn typed_task<Task, Resolver>(
+    engine: BoxedExecutionEngine,
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
+where
+    Task::Ready: Send,
+    Task::Pending: Send,
+    Task: TaskIterator + Send + 'static,
+    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + 'static,
+{
+    TaskSpawnConfig::new(engine)
+}
+
+/// `any_task` allows you to create a task builder with less restrictive type
+/// requirements for the builder, specifically resolvers are Boxed.
+#[must_use]
+pub fn any_task<Task>(
+    engine: BoxedExecutionEngine,
+) -> TaskSpawnConfig<
+    Task::Ready,
+    Task::Pending,
+    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
+    Task,
+>
+where
+    Task::Ready: Send,
+    Task::Pending: Send,
+    Task: TaskIterator + Send + 'static,
+{
+    TaskSpawnConfig::new(engine)
+}
+
+#[allow(clippy::self_named_constructors)]
+impl<F, Task, Done, Pending> OnNext<FnReady<F>, Task, Done, Pending>
+where
+    Done: Send,
+    Pending: Send,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_next(t: Task, f: F) -> Self {
+        OnNext::new(t, FnReady::new(f))
+    }
+}
+
+impl<F, Task, Done, Pending> OnNext<FnMutReady<F>, Task, Done, Pending>
+where
+    Done: Send,
+    Pending: Send,
+    Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
+    F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + Send + 'static,
+{
+    pub fn on_next_mut(t: Task, f: F) -> Self {
+        OnNext::new(t, FnMutReady::new(f))
+    }
+}
+
+/// `.block()` on any future: [`block_on_future`] as a method — the sync
+/// boundary for an async-first API (`let answer = session.ask(q).block()?;`).
+pub trait BlockingFutureExt: Future + Send + Sized + 'static
+where
+    Self::Output: Send + 'static,
+{
+    /// Wait for the future on the calling thread and return its output.
+    fn block(self) -> Self::Output {
+        block_on_future(self)
+    }
+}
+
+impl<F> BlockingFutureExt for F
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+}
+
+/// `.blocking()?` on any async stream: [`run_stream_iter`] as a method — a
+/// plain `Iterator` to `for`-loop or `collect()` at a sync boundary.
+pub trait BlockingStreamExt: futures_core::Stream + Send + Sized + 'static
+where
+    Self::Item: Send + 'static,
+{
+    /// Iterate the stream on the calling thread.
+    ///
+    /// # Errors
+    /// When the stream cannot be scheduled (e.g. the pool is not initialized).
+    fn blocking(
+        self,
+    ) -> GenericResult<crate::valtron::StreamValues<Self::Item, DrivenStreamIterator<StreamTask<Self>>>>
+    {
+        run_stream_iter(self)
+    }
+}
+
+impl<S> BlockingStreamExt for S
+where
+    S: futures_core::Stream + Send + 'static,
+    S::Item: Send + 'static,
+{
 }

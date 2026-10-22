@@ -127,7 +127,7 @@ pub async fn system_events(
         filters: filters.map(str::to_string),
     };
     let response =
-        system_events_request(client.http(), &args, &client.api_url().await?, None::<NoMod>).await?;
+        system_events_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
     Ok(EventStream::new(response.body))
 }
 
@@ -200,6 +200,6 @@ pub async fn system_auth(
             serveraddress: None,
         },
     };
-    let response = system_auth_request(client.http(), &args, &client.api_url().await?, None::<NoMod>).await?;
+    let response = system_auth_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
     Ok(response.body)
 }

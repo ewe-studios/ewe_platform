@@ -6,23 +6,24 @@
 //! WHAT: Each resource is a separate JSON file under
 //! `.deployment/{project}/{stage}/{resource_id}.json`.
 //!
-//! HOW: Purely synchronous `std::fs` operations. Returns `StateStoreStream`
-//! built from `Vec::into_iter().map(...)` for trait consistency. No Valtron.
+//! HOW: `std::fs` operations inside the async `StateStore` methods. The files
+//! are small and local, so every future is ready on its first poll; listings
+//! read the directory (names only) and stream the results.
 
 use std::path::{Path, PathBuf};
 
-use foundation_core::valtron::ThreadedValue;
+use futures_lite::StreamExt;
 
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;
-use crate::core::errors::StorageError;
+use crate::core::errors::{StorageError, StorageResult};
 
 /// JSON file-based state store.
 ///
 /// Stores each resource as a separate JSON file:
 ///   `.deployment/{project}/{stage}/{resource_id}.json`
 ///
-/// Purely synchronous — no Valtron needed.
+/// Its futures complete on their first poll (local `std::fs`).
 pub struct FileStateStore {
     root_dir: PathBuf,
 }
@@ -49,117 +50,93 @@ impl FileStateStore {
         self.root_dir.join(format!("{safe_id}.json"))
     }
 
-    /// Wrap a single value into a `StateStoreStream`.
-    fn wrap_value<T: Send + 'static>(val: T) -> StateStoreStream<T> {
-        Box::new(std::iter::once(ThreadedValue::Value(Ok(val))))
+    /// The `*.json` files under the root, sorted by path (empty if the root
+    /// doesn't exist yet).
+    fn json_files(&self) -> StorageResult<Vec<PathBuf>> {
+        let mut files = Vec::new();
+        if self.root_dir.exists() {
+            for entry in std::fs::read_dir(&self.root_dir)? {
+                let path = entry?.path();
+                if path.extension().is_some_and(|ext| ext == "json") {
+                    files.push(path);
+                }
+            }
+        }
+        files.sort();
+        Ok(files)
     }
 
-    /// Wrap a `Vec` into a `StateStoreStream`.
-    fn wrap_vec<T: Send + 'static>(vals: Vec<T>) -> StateStoreStream<T> {
-        Box::new(vals.into_iter().map(|v| ThreadedValue::Value(Ok(v))))
+    fn read_state(path: &Path) -> StorageResult<ResourceState> {
+        let content = std::fs::read_to_string(path)?;
+        serde_json::from_str(&content).map_err(|e| StorageError::Serialization(e.to_string()))
+    }
+
+    fn id_of(path: &Path) -> Option<String> {
+        path.file_stem().map(|name| name.to_string_lossy().replace(':', "/"))
     }
 }
 
+/// A stream over already-computed results.
+fn stream_of<T: Send + 'static>(items: Vec<StorageResult<T>>) -> StateStoreStream<T> {
+    Box::pin(futures_lite::stream::iter(items))
+}
+
+#[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
 impl StateStore for FileStateStore {
-    fn init(&self) -> Result<(), StorageError> {
+    async fn init(&self) -> StorageResult<()> {
         std::fs::create_dir_all(&self.root_dir)?;
         Ok(())
     }
 
-    fn list(&self) -> Result<StateStoreStream<String>, StorageError> {
-        let mut ids = Vec::new();
-        if self.root_dir.exists() {
-            for entry in std::fs::read_dir(&self.root_dir)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.extension().is_some_and(|ext| ext == "json") {
-                    if let Some(name) = path.file_stem() {
-                        ids.push(name.to_string_lossy().replace(':', "/"));
-                    }
-                }
-            }
-        }
-        ids.sort();
-        Ok(Self::wrap_vec(ids))
+    async fn list(&self) -> StorageResult<StateStoreStream<String>> {
+        let ids = self.json_files()?.iter().filter_map(|p| Self::id_of(p)).map(Ok).collect();
+        Ok(stream_of(ids))
     }
 
-    fn count(&self) -> Result<StateStoreStream<usize>, StorageError> {
-        let mut count = 0;
-        if self.root_dir.exists() {
-            for entry in std::fs::read_dir(&self.root_dir)? {
-                let entry = entry?;
-                if entry.path().extension().is_some_and(|ext| ext == "json") {
-                    count += 1;
-                }
-            }
-        }
-        Ok(Self::wrap_value(count))
+    async fn count(&self) -> StorageResult<usize> {
+        Ok(self.json_files()?.len())
     }
 
-    fn get(
-        &self,
-        resource_id: &str,
-    ) -> Result<StateStoreStream<Option<ResourceState>>, StorageError> {
+    async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>> {
         let path = self.resource_path(resource_id);
         if !path.exists() {
-            return Ok(Self::wrap_value(None));
+            return Ok(None);
         }
-        let content = std::fs::read_to_string(&path)?;
-        let state: ResourceState = serde_json::from_str(&content)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        Ok(Self::wrap_value(Some(state)))
+        Self::read_state(&path).map(Some)
     }
 
-    fn get_batch(&self, ids: &[&str]) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let mut results = Vec::new();
-        for id in ids {
-            let path = self.resource_path(id);
-            if path.exists() {
-                let content = std::fs::read_to_string(&path)?;
-                let state: ResourceState = serde_json::from_str(&content)
-                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                results.push(state);
-            }
-        }
-        Ok(Self::wrap_vec(results))
+    async fn get_batch(&self, ids: &[&str]) -> StorageResult<StateStoreStream<ResourceState>> {
+        let states = ids
+            .iter()
+            .map(|id| self.resource_path(id))
+            .filter(|path| path.exists())
+            .map(|path| Self::read_state(&path))
+            .collect();
+        Ok(stream_of(states))
     }
 
-    fn all(&self) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let mut results = Vec::new();
-        if self.root_dir.exists() {
-            for entry in std::fs::read_dir(&self.root_dir)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.extension().is_some_and(|ext| ext == "json") {
-                    let content = std::fs::read_to_string(&path)?;
-                    let state: ResourceState = serde_json::from_str(&content)
-                        .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                    results.push(state);
-                }
-            }
-        }
-        results.sort_by(|a, b| a.id.cmp(&b.id));
-        Ok(Self::wrap_vec(results))
+    async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>> {
+        // Each file is read as the stream is pulled, not up front.
+        let files = self.json_files()?;
+        Ok(Box::pin(futures_lite::stream::iter(files).map(|path| Self::read_state(&path))))
     }
 
-    fn set(
-        &self,
-        _resource_id: &str,
-        state: &ResourceState,
-    ) -> Result<StateStoreStream<()>, StorageError> {
-        self.init()?;
+    async fn set(&self, _resource_id: &str, state: &ResourceState) -> StorageResult<()> {
+        std::fs::create_dir_all(&self.root_dir)?;
         let path = self.resource_path(&state.id);
         let content = serde_json::to_string_pretty(state)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         std::fs::write(&path, content)?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
-    fn delete(&self, resource_id: &str) -> Result<StateStoreStream<()>, StorageError> {
+    async fn delete(&self, resource_id: &str) -> StorageResult<()> {
         let path = self.resource_path(resource_id);
         if path.exists() {
             std::fs::remove_file(&path)?;
         }
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 }
+

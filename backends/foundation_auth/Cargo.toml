@@ -1,6 +1,6 @@
 [package]
 name = "foundation_auth"
-version = "0.0.1"
+version = "0.0.4"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,11 +10,12 @@ description = "Authentication and authorization — OAuth2/OIDC flows, JWT handl
 keywords.workspace = true
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false }
-foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false }
-foundation_http = { path = "../foundation_http", version = "0.0.1", optional = true }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
+foundation_http = { path = "../foundation_http", version = "0.0.3", optional = true }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.2" }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
@@ -26,7 +27,6 @@ pbkdf2 = "0.12"           # PBKDF2-HMAC-SHA256 (native)
 chacha20poly1305 = "0.10" # Encrypted session data
 sha2 = "0.10"             # SHA256 for PKCE, PBKDF2 HMAC
 hmac = "0.12"             # TOTP, HMAC, PBKDF2
-rand = "0.9"              # Secure random generation
 getrandom = { version = "0.2", optional = true }
 
 # Token formats
@@ -82,14 +82,14 @@ web-sys = { version = "0.3", features = [
 ], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["multi"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["multi"] }
 
 # NOTE: `default-features = false` is required here. Cargo unions default-features
 # across a crate's dependency declarations, so without it this target line would
 # re-enable foundation_netio's `default` feature (→ `ssl` + `multi` + `wire-native`,
 # all native-only) on wasm and break the build. Only `wasm-fetch` belongs on wasm.
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", default-features = false, features = ["wasm-fetch"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false, features = ["wasm-fetch"] }
 
 [dev-dependencies]
 tempfile = "3"

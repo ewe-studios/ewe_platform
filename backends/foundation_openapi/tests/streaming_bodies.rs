@@ -143,14 +143,10 @@ fn generated_functions_stream_their_bodies() {
         compact.contains("Result<ApiResponse<super::shared::JsonLinesStream<CreateImageInfo>>, super::shared::ApiError>"),
         "{all}"
     );
-    // The status is checked by the shared `send_checked`, which hands the
-    // body back unread.
+    // The status is checked by the shared `send_json_lines`, which hands the
+    // body back unread, its lines capped at the client's `BodyLimits`.
     assert!(
-        compact.contains("let (status, headers, body) = super::shared::send_checked(client, builder.build()).await?;"),
-        "{all}"
-    );
-    assert!(
-        compact.contains("body: super::shared::JsonLinesStream::new(body)"),
+        compact.contains("super::shared::send_json_lines(client.into(), builder.build()).await"),
         "{all}"
     );
 
@@ -160,7 +156,7 @@ fn generated_functions_stream_their_bodies() {
         "{all}"
     );
     assert!(
-        compact.contains("body: super::shared::ByteStream::new(body)"),
+        compact.contains("super::shared::send_bytes(client.into(), builder.build()).await"),
         "{all}"
     );
 
@@ -215,11 +211,30 @@ fn generated_functions_stream_their_bodies() {
         "{all}"
     );
     assert!(
-        compact.contains("super::shared::send_json(client, builder.build()).await"),
+        compact.contains("super::shared::send_json(client.into(), builder.build()).await"),
         "{all}"
     );
 
-    for helper in ["send_checked", "send_json", "send_without_body", "with_raw_body", "ByteStream", "JsonLinesStream"] {
+    // Every function takes its client as `impl Into<ApiClient>`: a bare
+    // `DynNetClient` still works, and an `ApiClient` carries its body limits.
+    assert!(
+        compact.contains("client: impl Into<super::shared::ApiClient>,"),
+        "{all}"
+    );
+    assert!(!compact.contains("client: DynNetClient,"), "{all}");
+
+    for helper in [
+        "send_checked",
+        "send_json",
+        "send_json_lines",
+        "send_bytes",
+        "send_without_body",
+        "with_raw_body",
+        "ApiClient",
+        "BodyLimits",
+        "ByteStream",
+        "JsonLinesStream",
+    ] {
         assert!(shared.contains(helper), "{helper} not re-exported: {shared}");
     }
 }

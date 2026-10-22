@@ -12,57 +12,8 @@
 //! function that converts each raw row into the desired type. Each use site provides
 //! its own transformation closure specific to the type being extracted.
 
-#[cfg(any(feature = "turso", feature = "libsql"))]
+#[cfg(feature = "libsql")]
 use futures_lite::future::block_on;
-
-// ============================================================================
-// RowsIterator - Stream transformed rows from turso
-// ============================================================================
-
-/// Iterator that yields transformed values from a turso database query.
-///
-/// Generic over output type `T` which must be `Send + 'static`.
-/// Accepts a transformation function `F: FnMut(&turso::Row) -> Result<T, StorageError>`.
-/// Owns `turso::Rows` directly on the worker thread.
-#[cfg(feature = "turso")]
-pub struct RowsIterator<T, F> {
-    rows: turso::Rows,
-    transform: F,
-    _marker: core::marker::PhantomData<T>,
-}
-
-#[cfg(feature = "turso")]
-impl<T, F> RowsIterator<T, F>
-where
-    T: Send + 'static,
-    F: FnMut(&turso::Row) -> Result<T, crate::core::errors::StorageError>,
-{
-    #[must_use]
-    pub fn new(rows: turso::Rows, transform: F) -> Self {
-        Self {
-            rows,
-            transform,
-            _marker: core::marker::PhantomData,
-        }
-    }
-}
-
-#[cfg(feature = "turso")]
-impl<T, F> Iterator for RowsIterator<T, F>
-where
-    T: Send + 'static,
-    F: FnMut(&turso::Row) -> Result<T, crate::core::errors::StorageError>,
-{
-    type Item = Result<T, crate::core::errors::StorageError>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match block_on(self.rows.next()) {
-            Ok(Some(row)) => Some((self.transform)(&row)),
-            Ok(None) => None,
-            Err(e) => Some(Err(crate::core::errors::StorageError::Backend(e.to_string()))),
-        }
-    }
-}
 
 // ============================================================================
 // LibsqlRowsIterator - Stream transformed rows from libsql

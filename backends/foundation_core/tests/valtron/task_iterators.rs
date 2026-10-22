@@ -353,6 +353,9 @@ fn test_map_iter_passes_through_pending() {
     assert_eq!(flattened.next_status(ctx.clone()), None);
 }
 
+// Multi-only: the continuation is moved to a producer thread, and it holds a
+// `TaskStatus`, which is only `Send` under `multi`.
+#[cfg(feature = "multi")]
 /// Regression: an observer must not lose the final item that the producer
 /// pushes just before closing the queue.
 ///

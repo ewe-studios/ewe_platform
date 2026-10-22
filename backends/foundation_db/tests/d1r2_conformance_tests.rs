@@ -7,8 +7,8 @@
 //! miniflare worker. This suite proves the *store logic itself* — 4 KB offload
 //! threshold, `r2_key` bookkeeping, transparent read-through, scru128 ordering,
 //! inclusive `scan_from`, and delete cleanup — using `TursoStorage` (real
-//! in-memory SQLite, an `AsyncQueryStore`) as the index and `MemoryStorage` (an
-//! `AsyncBlobStore`) as the blob backend. It runs everywhere, including CI.
+//! in-memory SQLite, an `QueryStore`) as the index and `MemoryStorage` (an
+//! `BlobStore`) as the blob backend. It runs everywhere, including CI.
 //!
 //! HOW: `TursoStorage::init_schema` applies the F06 `documents` migrations incl.
 //! the F23 `r2_key` column (022); async methods are driven with
@@ -16,8 +16,8 @@
 
 use std::sync::Mutex;
 
-use foundation_db::traits::{AsyncBlobStore, AsyncDocumentStore};
-use foundation_db::{D1R2DocumentStore, MemoryStorage, TursoStorage};
+use foundation_db::traits::{BlobStore, DocumentStore};
+use foundation_db::{D1R2DocumentStore, MemoryStorage, StorageError, TursoStorage};
 use futures_lite::StreamExt;
 
 static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
@@ -33,8 +33,12 @@ fn init_valtron() {
 /// plus a handle to the blob store so tests can assert on offload directly.
 fn make_store() -> (D1R2DocumentStore<TursoStorage, MemoryStorage>, MemoryStorage) {
     init_valtron();
-    let turso = TursoStorage::new(":memory:").unwrap();
-    turso.init_schema().unwrap();
+    let turso = futures_lite::future::block_on(async {
+        let turso = TursoStorage::new(":memory:").await?;
+        turso.init_schema().await?;
+        Ok::<_, StorageError>(turso)
+    })
+    .unwrap();
     let blobs = MemoryStorage::new();
     let store = D1R2DocumentStore::new(turso, blobs.clone());
     (store, blobs)

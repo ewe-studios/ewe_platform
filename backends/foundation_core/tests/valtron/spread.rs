@@ -788,7 +788,7 @@ async fn test_tokio_future_stream_with_spread() {
         Stream::Spread(vec![StreamSpread::Pending("a")]),
     ]
     .into_iter()
-    .into_future_stream();
+    .into_pure_future_stream();
     let mut items = Vec::new();
     while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
         items.push(item);
@@ -847,7 +847,7 @@ fn test_smol_future_stream_with_spread() {
         Stream::Spread(vec![StreamSpread::Pending("p")]),
     ]
     .into_iter()
-    .into_future_stream();
+    .into_pure_future_stream();
     let mut items = Vec::new();
     while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
         items.push(item);

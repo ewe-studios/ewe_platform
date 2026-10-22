@@ -123,7 +123,14 @@ pub trait Reranker: Send + Sync {
     ) -> Vec<VectorMatch>;
 }
 
-pub fn hybrid_search(
+/// Search `vector_store` and `bm25` for `2 * k` candidates each, fuse them
+/// with `strategy`, then rerank the fused list when a reranker is given.
+///
+/// # Errors
+/// The vector store's search error. A failed vector search is not read as
+/// "no vector matches".
+#[allow(clippy::too_many_arguments)]
+pub async fn hybrid_search(
     query_text: &str,
     query_vector: &[f32],
     namespace: &str,
@@ -132,12 +139,12 @@ pub fn hybrid_search(
     k: usize,
     strategy: FusionStrategy,
     reranker: Option<&dyn Reranker>,
-) -> Vec<VectorMatch> {
-    let fetch_n = k * 2;
+) -> Result<Vec<VectorMatch>, crate::store::VectorStoreError> {
+    let fetch_n = k.saturating_mul(2);
 
     let vector_results = vector_store
-        .search(namespace, query_vector, fetch_n)
-        .unwrap_or_default();
+        .search_async(namespace, query_vector, fetch_n)
+        .await?;
     let keyword_results = bm25.search(query_text, fetch_n);
 
     let mut fused = fuse(&vector_results, &keyword_results, k, strategy);
@@ -148,5 +155,5 @@ pub fn hybrid_search(
         fused.truncate(k);
     }
 
-    fused
+    Ok(fused)
 }

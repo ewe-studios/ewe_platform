@@ -5,11 +5,9 @@
 use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
-use tracing_test::traced_test;
 
 // Test 1: connect creates task with valid URL
 #[test]
-#[traced_test]
 fn test_connect_creates_task() {
     let resolver = SystemDnsResolver;
     let result = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat");
@@ -21,7 +19,6 @@ fn test_connect_creates_task() {
 
 // Test 2: connect rejects invalid URL
 #[test]
-#[traced_test]
 fn test_connect_invalid_url() {
     let resolver = SystemDnsResolver;
     let result = ReconnectingWebSocketTask::connect(resolver, "not-a-url");
@@ -34,7 +31,6 @@ fn test_connect_invalid_url() {
 
 // Test 3: connect rejects non-ws/wss scheme
 #[test]
-#[traced_test]
 fn test_connect_wrong_scheme() {
     let resolver = SystemDnsResolver;
     let result = ReconnectingWebSocketTask::connect(resolver, "http://localhost:8080/chat");
@@ -47,7 +43,6 @@ fn test_connect_wrong_scheme() {
 
 // Test 4: ReconnectingWebSocketProgress variants
 #[test]
-#[traced_test]
 fn test_reconnecting_websocket_progress_variants() {
     // Just verifying the enum exists and variants are accessible
     // Debug implementation
@@ -59,7 +54,6 @@ fn test_reconnecting_websocket_progress_variants() {
 
 // Test 5: ReconnectingWebSocketProgress PartialEq
 #[test]
-#[traced_test]
 fn test_reconnecting_websocket_progress_eq() {
     assert_eq!(
         ReconnectingWebSocketProgress::Connecting,
@@ -98,7 +92,6 @@ fn test_reconnecting_websocket_progress_eq() {
 
 // Test 6: with_max_retries configures retries
 #[test]
-#[traced_test]
 fn test_with_max_retries() {
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -111,7 +104,6 @@ fn test_with_max_retries() {
 
 // Test 7: with_max_reconnect_duration configures duration
 #[test]
-#[traced_test]
 fn test_with_max_reconnect_duration() {
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -123,7 +115,6 @@ fn test_with_max_reconnect_duration() {
 
 // Test 8: with_subprotocol configures subprotocol
 #[test]
-#[traced_test]
 fn test_with_subprotocol() {
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -135,7 +126,6 @@ fn test_with_subprotocol() {
 
 // Test 9: with_subprotocols configures multiple subprotocols
 #[test]
-#[traced_test]
 fn test_with_subprotocols() {
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -147,7 +137,6 @@ fn test_with_subprotocols() {
 
 // Test 10: with_header adds custom header
 #[test]
-#[traced_test]
 fn test_with_header() {
     use foundation_netio::shared::http::SimpleHeader;
 
@@ -161,7 +150,6 @@ fn test_with_header() {
 
 // Test 11: with_read_timeout configures timeout
 #[test]
-#[traced_test]
 fn test_with_read_timeout() {
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -173,7 +161,6 @@ fn test_with_read_timeout() {
 
 // Test 12: Task is Send where required
 #[test]
-#[traced_test]
 fn test_task_is_send() {
     // This compiles only if ReconnectingWebSocketTask is Send
     fn assert_send<T: Send>() {}
@@ -184,7 +171,6 @@ fn test_task_is_send() {
 
 // Test 13: Fresh task starts in Connecting state
 #[test]
-#[traced_test]
 fn test_fresh_task_pending_connecting() {
     let _ = foundation_core::valtron::initialize_pool(42, None);
 
@@ -203,7 +189,6 @@ fn test_fresh_task_pending_connecting() {
 
 // Test 14: Multiple next() calls on failing connection eventual exhaust
 #[test]
-#[traced_test]
 fn test_failing_connection_eventual_exhaust() {
     let _ = foundation_core::valtron::initialize_pool(42, None);
 
@@ -234,7 +219,6 @@ fn test_failing_connection_eventual_exhaust() {
 
 // Test 15: Builder pattern preserves configuration across calls
 #[test]
-#[traced_test]
 fn test_builder_chain() {
     use foundation_netio::shared::http::SimpleHeader;
 

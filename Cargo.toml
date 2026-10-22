@@ -16,7 +16,6 @@ members = [
 
 exclude = [
   "artefacts/*",
-  "templates/*",
   # infrastructure/docker is its own nested workspace root (like platform_android)
   "infrastructure/docker",
   # examples are self-contained crates — build individually as needed
@@ -94,16 +93,22 @@ missing_debug_implementations = { level = "allow" }
 [workspace.lints.clippy]
 pedantic = { level = "warn" }
 
+# No `codegen-backend` here: it is a nightly-only key, and stable cargo refuses
+# to load a workspace that sets it (releases build on stable — see
+# docs/releasing.md). Cranelift for `dev` is a developer-environment choice set
+# in mise.toml's [env] (CARGO_PROFILE_DEV_CODEGEN_BACKEND and friends); plain
+# cargo without mise builds `dev` with LLVM.
 [profile.dev]
 opt-level = 0
 debug = true
 debug-assertions = true
 incremental = true
-codegen-backend = "cranelift"
 
+# `dev` on LLVM — what the test docs and CI use (Cranelift can't do
+# catch_unwind or coverage). mise pins it to LLVM explicitly, since its env puts
+# `dev` on Cranelift.
 [profile.uat]
 inherits = "dev"
-codegen-backend = "llvm"
 
 [profile.dev.package."*"]
 opt-level = 0

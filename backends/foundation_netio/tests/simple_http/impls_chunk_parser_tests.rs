@@ -1,5 +1,4 @@
 use foundation_netio::shared::http::*;
-use tracing_test::traced_test;
 
 struct ChunkSample {
     content: &'static [&'static str],
@@ -17,7 +16,6 @@ struct LineFeedSample {
 }
 
 #[test]
-#[traced_test]
 fn test_chunk_state_parse_http_trailers() {
     let test_cases: Vec<LineFeedSample> = vec![LineFeedSample {
         expected: vec![
@@ -89,7 +87,6 @@ fn test_chunk_state_parse_http_trailers_less() {
 }
 
 #[test]
-#[traced_test]
 fn test_chunk_state_parse_http_chunk_code() {
     let test_cases: Vec<ChunkSample> = vec![
         ChunkSample {

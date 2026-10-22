@@ -95,7 +95,7 @@ let tools = ToolShed::new()
 let agent = AgentSession::builder(router)
     .with_model("my-model")
     .with_toolshed(tools)
-    .build()?;
+    .build().await?;
 ```
 
 - `ToolShed::tool(..)` takes anything `Into<Box<dyn ToolConstructor>>`: a
@@ -127,6 +127,12 @@ else it can call:
   an embedder on the session (`with_embedder`), it searches by embedding
   through `ToolDiscovery`; otherwise — and to fill the rest of `limit` — it
   matches the query's words against tool names, descriptions and categories.
+- The vector store is async, and `register` / `deregister` are sync. So they
+  queue the embedding-index change, and the next `shed` search (the async
+  `ToolCallManager::search_tools`) applies the queue first. A change that fails
+  stays queued for the next search. `ShedResult::index_failures` lists it, so
+  the model and the caller see it. The tool is still found by name and
+  description.
 - Every tool `shed` returns becomes **active**, and active tools are declared
   on every later request. Native tool calling (Anthropic, OpenAI) only lets a
   model call tools declared in the request, so a tool must be declared before
@@ -183,7 +189,8 @@ and the tool does not run. (The "is it active?" check is the loop's, via
 
 Other methods: `deregister`, `get`, `get_def`, `names`, `offered_tools`,
 `active_definitions`, `activate`, `is_active`, `check_offered`,
-`search_tools`, `enable_discovery`, `all_declarations`, `build_workflow`,
+`search_tools` (async; returns `ShedResult`), `enable_discovery` (async),
+`all_declarations`, `build_workflow`,
 `execute_with_retry`, `set_retry_config` / `retry_config`.
 
 ### Using ToolPreset (harness)
@@ -331,7 +338,7 @@ let greet = FnTool::new(
 let agent = AgentSession::builder(router)
     .with_model("my-model")
     .with_toolshed(ToolShed::new().tool(GreetTool))
-    .build()?;
+    .build().await?;
 ```
 
 `ToolArgs` reads arguments whichever way the backend spelled them (`str`,

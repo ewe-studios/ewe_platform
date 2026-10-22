@@ -6,7 +6,7 @@ use foundation_netio::shared::http::SendSafeBody;
 use serde::{Deserialize, Serialize};
 
 use super::super::config::IdpConfig;
-use super::super::models::{AuthorizationCode, DeviceCode, RefreshToken};
+use super::super::models::DeviceCode;
 use super::super::services::{TokenService, TokenServiceError};
 use super::super::services::user_service;
 use super::super::services::{PowService, PowSolution};
@@ -16,9 +16,11 @@ use super::super::services::{
     PasskeyLoginStartRequest, PasskeyLoginFinishRequest,
 };
 use super::super::storage::{
-    self, HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email, update_user_lockout,
+    self, HandlerStorage, StorageOpError, find_client_by_id, update_user_lockout,
 };
-use foundation_db::{KeyValueStore, MemoryStorage, core::storage_provider::QueryStore};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::{KeyValueStore, MemoryStorage};
+use futures_lite::StreamExt;
 
 use crate::shared::auth_session::{UpstreamAuthSession, UpstreamAuthSessionStore};
 use crate::shared::provider::{ProviderMapping, ProviderType, UpstreamProvider};
@@ -190,6 +192,8 @@ pub enum IdpError {
     Conflict(String),
     Locked(i64),
     TooManyRequests(i64),
+    /// The request body is larger than `IdpConfig::max_request_body_bytes`.
+    PayloadTooLarge(usize),
 }
 
 impl core::fmt::Display for IdpError {
@@ -203,6 +207,7 @@ impl core::fmt::Display for IdpError {
             Self::Conflict(s) => write!(f, "Conflict: {s}"),
             Self::Locked(ts) => write!(f, "Account locked until {ts}"),
             Self::TooManyRequests(ts) => write!(f, "Too many requests, retry after {ts}"),
+            Self::PayloadTooLarge(limit) => write!(f, "Request body larger than {limit} bytes"),
         }
     }
 }
@@ -227,7 +232,7 @@ impl From<TokenServiceError> for IdpError {
     }
 }
 
-pub struct IdpHandlerCore<KV: KeyValueStore = foundation_db::MemoryStorage> {
+pub struct IdpHandlerCore<KV: KeyValueStore + Clone = MemoryStorage> {
     config: Arc<IdpConfig>,
     storage: Arc<HandlerStorage<KV>>,
     token_service: Arc<TokenService>,
@@ -257,6 +262,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     ) -> Self {
         self.session_store = Some(store);
         self
+    }
+
+    /// The server configuration.
+    #[must_use]
+    pub fn config(&self) -> &IdpConfig {
+        &self.config
     }
 
     fn social_enabled(&self) -> bool {
@@ -301,7 +312,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             return Err(IdpError::BadRequest("response_type must be 'code'".into()));
         }
 
-        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)?
+        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id).await?
             .ok_or_else(|| IdpError::BadRequest("Unknown client_id".into()))?;
         if !client.allows_redirect(redirect_uri) {
             return Err(IdpError::BadRequest("redirect_uri not allowed".into()));
@@ -348,13 +359,13 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let client_secret = pairs.get("client_secret").ok_or_else(|| IdpError::BadRequest("Missing client_secret".into()))?;
         let code_verifier = pairs.get("code_verifier");
 
-        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)?
+        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id).await?
             .ok_or_else(|| IdpError::Unauthorized("Invalid client".into()))?;
         if !client.verify_secret(client_secret) {
             return Err(IdpError::Unauthorized("Invalid client_secret".into()));
         }
 
-        let auth_code = storage::find_auth_code(self.storage.query_store.as_ref(), code)?
+        let auth_code = storage::find_auth_code(self.storage.query_store.as_ref(), code).await?
             .ok_or_else(|| IdpError::BadRequest("Invalid or expired authorization code".into()))?;
         if auth_code.is_expired() {
             return Err(IdpError::BadRequest("Authorization code has expired".into()));
@@ -368,9 +379,9 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             }
         }
 
-        storage::delete_auth_code(self.storage.query_store.as_ref(), &auth_code.code)?;
+        storage::delete_auth_code(self.storage.query_store.as_ref(), &auth_code.code).await?;
 
-        let user = storage::find_user_by_email(self.storage.query_store.as_ref(), &auth_code.user_id)?
+        let user = storage::find_user_by_email(self.storage.query_store.as_ref(), &auth_code.user_id).await?
             .ok_or_else(|| IdpError::Internal("User not found for auth code".into()))?;
 
         let token_pair = self.token_service.generate_tokens(
@@ -397,14 +408,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let client_secret = pairs.get("client_secret")
             .ok_or_else(|| IdpError::BadRequest("Missing client_secret".into()))?;
 
-        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)?
+        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id).await?
             .ok_or_else(|| IdpError::Unauthorized("Invalid client".into()))?;
         if !client.verify_secret(client_secret) {
             return Err(IdpError::Unauthorized("Invalid client_secret".into()));
         }
 
         let token_hash = TokenService::hash_refresh_token(refresh_token);
-        let rt = storage::find_refresh_token_by_hash(self.storage.query_store.as_ref(), &token_hash)?
+        let rt = storage::find_refresh_token_by_hash(self.storage.query_store.as_ref(), &token_hash).await?
             .ok_or_else(|| IdpError::Unauthorized("Invalid refresh token".into()))?;
         if rt.is_expired() {
             return Err(IdpError::Unauthorized("Refresh token expired".into()));
@@ -413,9 +424,9 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             return Err(IdpError::Unauthorized("Refresh token already used".into()));
         }
 
-        storage::mark_refresh_token_rotated(self.storage.query_store.as_ref(), &token_hash)?;
+        storage::mark_refresh_token_rotated(self.storage.query_store.as_ref(), &token_hash).await?;
 
-        let user = storage::find_user_by_email(self.storage.query_store.as_ref(), &rt.user_id)?
+        let user = storage::find_user_by_email(self.storage.query_store.as_ref(), &rt.user_id).await?
             .ok_or_else(|| IdpError::Internal("User not found".into()))?;
 
         // We don't have scope on RefreshToken — use "openid" as default
@@ -440,7 +451,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .ok_or_else(|| IdpError::BadRequest("Missing client_secret".into()))?;
         let scope = pairs.get("scope").map(|s| s.as_str()).unwrap_or("");
 
-        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)?
+        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id).await?
             .ok_or_else(|| IdpError::Unauthorized("Invalid client".into()))?;
         if !client.verify_secret(client_secret) {
             return Err(IdpError::Unauthorized("Invalid client_secret".into()));
@@ -516,14 +527,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .ok_or_else(|| IdpError::BadRequest("Missing client_id".into()))?;
         let scope = pairs.get("scope").map(|s| s.as_str()).unwrap_or("openid");
 
-        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)?
+        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id).await?
             .ok_or_else(|| IdpError::BadRequest("Unknown client_id".into()))?;
 
         let device_code = DeviceCode::new(
             client.id.clone(), scope.to_string(),
             self.config.device_code_ttl, self.config.device_code_interval,
         );
-        storage::store_device_code(self.storage.query_store.as_ref(), &device_code)?;
+        storage::store_device_code(self.storage.query_store.as_ref(), &device_code).await?;
 
         let base = self.config.issuer_url.trim_end_matches('/');
         Ok(HandlerResponse::ok(serde_json::json!({
@@ -549,7 +560,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
         let email = login_req.email.ok_or_else(|| IdpError::BadRequest("Missing email".into()))?;
-        let user = storage::find_user_by_email(self.storage.query_store.as_ref(), &email)?
+        let user = storage::find_user_by_email(self.storage.query_store.as_ref(), &email).await?
             .ok_or_else(|| IdpError::Unauthorized("Invalid credentials".into()))?;
 
         if user.is_locked() {
@@ -581,18 +592,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             let lockout_dur = self.config.password_policy.lockout_duration;
             let mut u = user.clone();
             u.record_failed_attempt(max, lockout_dur);
-            let _ = update_user_lockout(
+            update_user_lockout(
                 self.storage.query_store.as_ref(), &u.id,
                 u.failed_login_attempts, u.locked_until,
-            );
+            ).await?;
             let remaining = max.saturating_sub(u.failed_login_attempts);
-            let lockout_dur = self.config.password_policy.lockout_duration;
-            // Note: in a full implementation, we'd persist via update_user_lockout here.
-            // For now, return the attempts remaining count.
-            let remaining = max.saturating_sub(user.failed_login_attempts);
             return Ok(HandlerResponse::ok(serde_json::json!({
                 "status": "invalid_credentials",
-                "attempts_remaining": remaining.saturating_sub(1),
+                "attempts_remaining": remaining,
             })));
         }
 
@@ -655,7 +662,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             ))?;
 
         // Check if user already exists
-        if storage::find_user_by_email(self.storage.query_store.as_ref(), &email)?.is_some() {
+        if storage::find_user_by_email(self.storage.query_store.as_ref(), &email).await?.is_some() {
             return Ok(HandlerResponse::ok(serde_json::json!({
                 "error": "user_exists",
             })));
@@ -683,7 +690,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             deleted_at: None,
         };
 
-        storage::create_user(self.storage.query_store.as_ref(), &user)?;
+        storage::create_user(self.storage.query_store.as_ref(), &user).await?;
 
         Ok(HandlerResponse::ok(serde_json::json!({
             "id": id,
@@ -716,9 +723,10 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let email = reset_req.email
             .ok_or_else(|| IdpError::BadRequest("Missing email".into()))?;
 
-        // Always return 200 even if user doesn't exist (prevents email enumeration).
-        // In production, generate a reset code and send it via email.
-        let _user = storage::find_user_by_email(self.storage.query_store.as_ref(), &email);
+        // Always return 202 whether or not the user exists (prevents email
+        // enumeration); a storage failure is still an error. Email delivery of
+        // the reset code is a follow-up.
+        let _user = storage::find_user_by_email(self.storage.query_store.as_ref(), &email).await?;
         let reset_code = uuid::Uuid::new_v4().to_string();
 
         Ok(HandlerResponse::accepted(serde_json::json!({
@@ -764,7 +772,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     pub async fn pow_challenge(
         &self, _bag: &ContextBag, _req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let challenge = self.pow_service.generate_challenge()
+        let challenge = self.pow_service.generate_challenge().await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         let body = serde_json::to_value(&challenge)
             .map_err(|e| IdpError::Internal(e.to_string()))?;
@@ -779,7 +787,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let solution: PowSolution = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
-        if self.pow_service.verify_solution(&solution) {
+        if self.pow_service.verify_solution(&solution).await {
             Ok(HandlerResponse::ok(serde_json::json!({
                 "valid": true,
             })))
@@ -830,7 +838,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
             .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
 
-        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &user_id)
+        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &user_id).await
             .map_err(|e| IdpError::Internal(e.to_string()))?
             .ok_or_else(|| IdpError::NotFound("User not found".into()))?;
 
@@ -856,7 +864,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
         let username = update.get("username").and_then(|v| v.as_str());
-        storage::update_user_profile(self.storage.query_store.as_ref(), &user_id, username)
+        storage::update_user_profile(self.storage.query_store.as_ref(), &user_id, username).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
 
         Ok(HandlerResponse::ok(serde_json::json!({
@@ -882,7 +890,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .ok_or_else(|| IdpError::BadRequest("Missing new_password".into()))?;
 
         // Fetch user to verify current password
-        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &user_id)
+        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &user_id).await
             .map_err(|e| IdpError::Internal(e.to_string()))?
             .ok_or_else(|| IdpError::NotFound("User not found".into()))?;
 
@@ -906,7 +914,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let new_hash = user_service::hash_password(&new_pw)
             .map_err(|e| IdpError::Internal(e.to_string()))?;
 
-        storage::update_user_password(self.storage.query_store.as_ref(), &user_id, &new_hash)
+        storage::update_user_password(self.storage.query_store.as_ref(), &user_id, &new_hash).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
 
         Ok(HandlerResponse::ok(serde_json::json!({
@@ -935,7 +943,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
             .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
 
-        storage::soft_delete_user(self.storage.query_store.as_ref(), &user_id)
+        storage::soft_delete_user(self.storage.query_store.as_ref(), &user_id).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
 
         Ok(HandlerResponse::ok(serde_json::json!({
@@ -957,7 +965,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let email = start_req.get("email").and_then(|v| v.as_str())
             .ok_or_else(|| IdpError::BadRequest("Missing email".into()))?;
 
-        let options = self.webauthn_service.register_start(user_id, email)
+        let options = self.webauthn_service.register_start(user_id, email).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         let body = serde_json::to_value(&options)
             .map_err(|e| IdpError::Internal(e.to_string()))?;
@@ -972,7 +980,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let finish_req: WebAuthnRegisterFinishRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
-        let passkey = self.webauthn_service.register_finish(&finish_req)
+        let passkey = self.webauthn_service.register_finish(&finish_req).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         Ok(HandlerResponse::ok(serde_json::json!({
             "id": passkey.id,
@@ -990,7 +998,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let user_id = start_req.get("user_id").and_then(|v| v.as_str())
             .ok_or_else(|| IdpError::BadRequest("Missing user_id".into()))?;
 
-        let options = self.webauthn_service.auth_start(user_id)
+        let options = self.webauthn_service.auth_start(user_id).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         let body = serde_json::to_value(&options)
             .map_err(|e| IdpError::Internal(e.to_string()))?;
@@ -1005,7 +1013,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let finish_req: WebAuthnAuthFinishRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
-        let user_id = self.webauthn_service.auth_finish(&finish_req)
+        let user_id = self.webauthn_service.auth_finish(&finish_req).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         Ok(HandlerResponse::accepted(serde_json::json!({
             "status": "authenticated",
@@ -1023,7 +1031,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let email = start_req.email
             .ok_or_else(|| IdpError::BadRequest("Missing email".into()))?;
 
-        let options = self.webauthn_service.passkey_login_start(&email)
+        let options = self.webauthn_service.passkey_login_start(&email).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         let body = serde_json::to_value(&options)
             .map_err(|e| IdpError::Internal(e.to_string()))?;
@@ -1038,7 +1046,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let finish_req: PasskeyLoginFinishRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
-        let user_id = self.webauthn_service.passkey_login_finish(&finish_req)
+        let user_id = self.webauthn_service.passkey_login_finish(&finish_req).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         Ok(HandlerResponse::accepted(serde_json::json!({
             "status": "authenticated",
@@ -1053,7 +1061,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let passkey_id = extract_path_param(&req.request_url.url, "/auth/v1/webauthn/")
             .ok_or_else(|| IdpError::BadRequest("Missing passkey ID".into()))?;
 
-        self.webauthn_service.delete_passkey(&passkey_id)
+        self.webauthn_service.delete_passkey(&passkey_id).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         Ok(HandlerResponse::ok(serde_json::json!({ "status": "deleted" })))
     }
@@ -1071,7 +1079,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let name = rename_req.get("name").and_then(|v| v.as_str())
             .ok_or_else(|| IdpError::BadRequest("Missing name".into()))?;
 
-        self.webauthn_service.rename_passkey(&passkey_id, name)
+        self.webauthn_service.rename_passkey(&passkey_id, name).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         Ok(HandlerResponse::ok(serde_json::json!({ "status": "renamed" })))
     }
@@ -1106,7 +1114,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let user_id = accept_req.get("user_id").and_then(|v| v.as_str())
             .ok_or_else(|| IdpError::BadRequest("Missing user_id".into()))?;
 
-        self.tos_service.accept(user_id, None)
+        self.tos_service.accept(user_id, None).await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         Ok(HandlerResponse::ok(serde_json::json!({
             "status": "accepted",
@@ -1130,7 +1138,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let app_redirect_uri = query_param(&query, "redirect_uri")
             .ok_or_else(|| IdpError::BadRequest("Missing 'redirect_uri' query param".into()))?;
 
-        let provider = lookup_upstream_provider(self.storage.query_store.as_ref(), provider_id)
+        let provider = lookup_upstream_provider(self.storage.query_store.as_ref(), provider_id).await
             .map_err(|e| IdpError::Internal(format!("provider lookup: {e}")))?
             .ok_or_else(|| IdpError::NotFound(format!("unknown provider: {provider_id}")))?;
 
@@ -1186,7 +1194,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let session = self.session_store.as_ref().unwrap().take(state)
             .map_err(|e| IdpError::BadRequest(format!("session: {e}")))?;
 
-        let provider = lookup_upstream_provider(self.storage.query_store.as_ref(), &session.provider_id)
+        let provider = lookup_upstream_provider(self.storage.query_store.as_ref(), &session.provider_id).await
             .map_err(|e| IdpError::Internal(format!("provider lookup: {e}")))?
             .ok_or_else(|| IdpError::NotFound(format!("unknown provider: {}", session.provider_id)))?;
 
@@ -1209,7 +1217,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
         let user_id = provision_from_upstream_profile(
             self.storage.query_store.as_ref(), &profile,
-        ).map_err(|e| IdpError::Internal(format!("provisioning: {e}")))?;
+        ).await.map_err(|e| IdpError::Internal(format!("provisioning: {e}")))?;
 
         let auth_code = crate::server::models::AuthorizationCode::new(
             user_id,
@@ -1220,7 +1228,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             session.nonce.clone(),
             std::time::Duration::from_secs(600),
         );
-        storage::store_auth_code(self.storage.query_store.as_ref(), &auth_code)
+        storage::store_auth_code(self.storage.query_store.as_ref(), &auth_code).await
             .map_err(|e| IdpError::Internal(format!("store auth code: {e}")))?;
 
         let app_state = session.app_state.as_deref().unwrap_or("");
@@ -1334,30 +1342,26 @@ fn has_query_param(name: &str, req: &SimpleIncomingRequest) -> bool {
 }
 
 /// Look up an upstream provider by slug from the IdP database.
-fn lookup_upstream_provider(
+async fn lookup_upstream_provider(
     qs: &dyn QueryStore, id: &str,
 ) -> Result<Option<UpstreamProvider>, String> {
-    use foundation_db::core::storage_provider::DataValue;
-    let mut stream = qs.query(
+    let mut stream = qs.query_async(
         "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
          encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
          scopes, is_active, mapping_config, created_at, updated_at \
          FROM upstream_providers WHERE id = ?",
         &[DataValue::Text(id.to_string())],
-    ).map_err(|e| e.to_string())?;
+    ).await.map_err(|e| e.to_string())?;
 
-    for item in stream.by_ref() {
-        match item {
-            foundation_core::valtron::Stream::Next(Ok(row)) => return parse_provider_row(&row),
-            foundation_core::valtron::Stream::Next(Err(e)) => return Err(format!("db: {e}")),
-            _ => continue,
-        }
+    match stream.next().await {
+        Some(Ok(row)) => parse_provider_row(&row),
+        Some(Err(e)) => Err(format!("db: {e}")),
+        None => Ok(None),
     }
-    Ok(None)
 }
 
 /// Decode an `UpstreamProvider` from a SELECT result row.
-fn parse_provider_row(row: &foundation_db::core::storage_provider::SqlRow) -> Result<Option<UpstreamProvider>, String> {
+fn parse_provider_row(row: &SqlRow) -> Result<Option<UpstreamProvider>, String> {
     let get = |name: &str| -> Result<String, String> {
         row.get_by_name::<String>(name).map_err(|e| format!("col {name}: {e}"))
     };
@@ -1394,12 +1398,11 @@ fn parse_provider_row(row: &foundation_db::core::storage_provider::SqlRow) -> Re
 }
 
 /// Minimal provisioning: find user by email, or create a new row.
-fn provision_from_upstream_profile(
+async fn provision_from_upstream_profile(
     qs: &dyn QueryStore, profile: &crate::shared::upstream_client::UpstreamProfile,
 ) -> Result<String, String> {
-    use foundation_db::core::storage_provider::DataValue;
     if let (Some(email), true) = (&profile.email, profile.email_verified) {
-        if let Some(user_id) = find_user_by_email_lax(qs, email).ok().flatten() {
+        if let Some(user_id) = find_user_by_email_lax(qs, email).await? {
             return Ok(user_id);
         }
     }
@@ -1407,8 +1410,8 @@ fn provision_from_upstream_profile(
     let name = profile.name.as_deref().unwrap_or(&profile.sub);
     let email = profile.email.as_deref().unwrap_or("");
     let now = chrono::Utc::now().timestamp_millis();
-    qs.execute(
-        "INSERT INTO users (id, email, preferred_username, password_hash, \
+    qs.execute_async(
+        "INSERT INTO users (id, email, username, password_hash, \
          created_at, updated_at) VALUES (?, ?, ?, '', ?, ?)",
         &[
             DataValue::Text(user_id.clone()),
@@ -1417,26 +1420,20 @@ fn provision_from_upstream_profile(
             DataValue::Integer(now),
             DataValue::Integer(now),
         ],
-    ).map_err(|e| e.to_string())?;
+    ).await.map_err(|e| e.to_string())?;
     Ok(user_id)
 }
 
-fn find_user_by_email_lax(qs: &dyn QueryStore, email: &str) -> Result<Option<String>, String> {
-    use foundation_db::core::storage_provider::DataValue;
-    let mut stream = qs.query(
+async fn find_user_by_email_lax(qs: &dyn QueryStore, email: &str) -> Result<Option<String>, String> {
+    let mut stream = qs.query_async(
         "SELECT id FROM users WHERE email = ?",
         &[DataValue::Text(email.to_lowercase())],
-    ).map_err(|e| e.to_string())?;
-    for item in stream.by_ref() {
-        match item {
-            foundation_core::valtron::Stream::Next(Ok(row)) => {
-                return row.get_by_name::<String>("id").map(Some).map_err(|e| format!("{e}"))
-            }
-            foundation_core::valtron::Stream::Next(Err(e)) => return Err(format!("db: {e}")),
-            _ => continue,
-        }
+    ).await.map_err(|e| e.to_string())?;
+    match stream.next().await {
+        Some(Ok(row)) => row.get_by_name::<String>("id").map(Some).map_err(|e| format!("{e}")),
+        Some(Err(e)) => Err(format!("db: {e}")),
+        None => Ok(None),
     }
-    Ok(None)
 }
 
 fn extract_body_text(body: &Option<SendSafeBody>) -> String {

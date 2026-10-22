@@ -5,16 +5,17 @@
 //! suitable for non-sensitive data and easier to inspect/debug.
 
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use serde::{de::DeserializeOwned, Serialize};
 
+use super::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::rate_limit::RateLimitEntry;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncRateLimiterStore,
-    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
+    RateLimiterStore, DataValue,
 };
-use foundation_core::valtron::Stream;
 
 /// In-memory JSON key-value store.
 ///
@@ -32,14 +33,10 @@ impl MemoryJsonStore {
         }
     }
 
-    fn lock(&self) -> Result<std::sync::MutexGuard<'_, HashMap<String, String>>, StorageError> {
+    fn lock(&self) -> Result<MutexGuard<'_, HashMap<String, String>>, StorageError> {
         self.data
             .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))
-    }
-
-    fn stream_many<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
-        Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
     }
 }
 
@@ -49,185 +46,12 @@ impl Default for MemoryJsonStore {
     }
 }
 
-impl KeyValueStore for MemoryJsonStore {
-    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
-        let data = self.lock()?;
-        match data.get(key) {
-            Some(json) => {
-                let value: V =
-                    serde_json::from_str(json).map_err(|e| StorageError::Serialization(e.to_string()))?;
-                Ok(Some(value))
-            }
-            None => Ok(None),
-        }
-    }
-
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
-        let json = serde_json::to_string(&value)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        let mut data = self.lock()?;
-        data.insert(key.to_string(), json);
-        Ok(())
-    }
-
-    fn delete(&self, key: &str) -> StorageResult<()> {
-        let mut data = self.lock()?;
-        data.remove(key);
-        Ok(())
-    }
-
-    fn exists(&self, key: &str) -> StorageResult<bool> {
-        let data = self.lock()?;
-        Ok(data.contains_key(key))
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let data = self.lock()?;
-        let keys: Vec<String> = data
-            .keys()
-            .filter(|k| prefix.is_none_or(|p| k.starts_with(p)))
-            .cloned()
-            .collect();
-        Ok(Self::stream_many(keys))
-    }
-}
-
-impl QueryStore for MemoryJsonStore {
-    fn query(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        Err(StorageError::Generic(
-            "QueryStore not supported for MemoryJsonStore".to_string(),
-        ))
-    }
-
-    fn execute(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<u64> {
-        Err(StorageError::Generic(
-            "QueryStore not supported for MemoryJsonStore".to_string(),
-        ))
-    }
-
-    fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
-        Err(StorageError::Generic(
-            "QueryStore not supported for MemoryJsonStore".to_string(),
-        ))
-    }
-}
-
-impl RateLimiterStore for MemoryJsonStore {
-    fn check_rate_limit(
-        &self,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> StorageResult<bool> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        let rate_key = format!("_rate_limit:{key}");
-        let data = self.lock()?;
-        let allowed = match data.get(&rate_key) {
-            Some(json) => {
-                #[derive(serde::Deserialize)]
-                struct Entry {
-                    count: u32,
-                    window_start: u64,
-                }
-                let entry: Entry = serde_json::from_str(json)
-                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                if entry.window_start < now - window_seconds {
-                    true
-                } else {
-                    entry.count < max_count
-                }
-            }
-            None => true,
-        };
-        Ok(allowed)
-    }
-
-    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        let rate_key = format!("_rate_limit:{key}");
-        let mut data = self.lock()?;
-        let new_count = if let Some(json) = data.get(&rate_key) {
-            #[derive(serde::Serialize, serde::Deserialize)]
-            struct Entry {
-                count: u32,
-                window_start: u64,
-            }
-            let mut entry: Entry = serde_json::from_str(json)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            entry.count += 1;
-            entry.window_start = now;
-            let new_json = serde_json::to_string(&entry)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            data.insert(rate_key, new_json);
-            entry.count
-        } else {
-            let entry = serde_json::json!({ "count": 1, "window_start": now }).to_string();
-            data.insert(rate_key, entry);
-            1
-        };
-        Ok(new_count)
-    }
-
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
-        let rate_key = format!("_rate_limit:{key}");
-        let mut data = self.lock()?;
-        data.remove(&rate_key);
-        Ok(())
-    }
-}
-
-impl BlobStore for MemoryJsonStore {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        // Store binary data as base64 JSON string
-        let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, data);
-        let json = serde_json::json!({ "type": "blob", "data": encoded }).to_string();
-        let mut store = self.lock()?;
-        store.insert(key.to_string(), json);
-        Ok(())
-    }
-
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let data = self.lock()?;
-        let result = data.get(key).and_then(|json| {
-            let wrapper: serde_json::Value = serde_json::from_str(json).ok()?;
-            let encoded = wrapper.get("data").and_then(|v| v.as_str())?;
-            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded).ok()
-        });
-        Ok(result)
-    }
-
-    fn delete_blob(&self, key: &str) -> StorageResult<()> {
-        let mut data = self.lock()?;
-        data.remove(key);
-        Ok(())
-    }
-
-    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
-        let data = self.lock()?;
-        Ok(data.contains_key(key))
-    }
-}
-
 // ===========================================================================
 // Async trait implementations — in-memory ops resolve immediately.
 // ===========================================================================
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for MemoryJsonStore {
+impl KeyValueStore for MemoryJsonStore {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self.lock()?;
         match data.get(key) {
@@ -272,7 +96,7 @@ impl AsyncKeyValueStore for MemoryJsonStore {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for MemoryJsonStore {
+impl BlobStore for MemoryJsonStore {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, data);
         let json = serde_json::json!({ "type": "blob", "data": encoded }).to_string();
@@ -283,12 +107,22 @@ impl AsyncBlobStore for MemoryJsonStore {
 
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let data = self.lock()?;
-        let result = data.get(key).and_then(|json| {
-            let wrapper: serde_json::Value = serde_json::from_str(json).ok()?;
-            let encoded = wrapper.get("data").and_then(|v| v.as_str())?;
-            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded).ok()
-        });
-        Ok(result)
+        let Some(json) = data.get(key) else {
+            return Ok(None);
+        };
+        // A value that is not a blob written by `put_blob_async` is an error,
+        // not a missing blob.
+        let wrapper: serde_json::Value = serde_json::from_str(json)
+            .map_err(|e| StorageError::Deserialization(format!("blob {key}: {e}")))?;
+        let encoded = wrapper
+            .get("data")
+            .and_then(serde_json::Value::as_str)
+            .ok_or_else(|| {
+                StorageError::Deserialization(format!("blob {key}: no base64 `data` field"))
+            })?;
+        base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded)
+            .map(Some)
+            .map_err(|e| StorageError::Deserialization(format!("blob {key}: {e}")))
     }
 
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
@@ -304,60 +138,38 @@ impl AsyncBlobStore for MemoryJsonStore {
 }
 
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for MemoryJsonStore {
+impl RateLimiterStore for MemoryJsonStore {
     async fn check_rate_limit_async(
         &self,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        let rate_key = format!("_rate_limit:{key}");
+        let now = unix_now_secs()?;
         let data = self.lock()?;
-        let allowed = match data.get(&rate_key) {
+        match data.get(&format!("_rate_limit:{key}")) {
             Some(json) => {
-                #[derive(serde::Deserialize)]
-                struct Entry { count: u32, window_start: u64 }
-                let entry: Entry = serde_json::from_str(json)
+                let entry: RateLimitEntry = serde_json::from_str(json)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                if entry.window_start < now - window_seconds {
-                    true
-                } else {
-                    entry.count < max_count
-                }
+                Ok(entry.allows(max_count, now, window_seconds))
             }
-            None => true,
-        };
-        Ok(allowed)
+            None => Ok(true),
+        }
     }
 
-    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+        let now = unix_now_secs()?;
         let rate_key = format!("_rate_limit:{key}");
         let mut data = self.lock()?;
-        let new_count = if let Some(json) = data.get(&rate_key) {
-            #[derive(serde::Serialize, serde::Deserialize)]
-            struct Entry { count: u32, window_start: u64 }
-            let mut entry: Entry = serde_json::from_str(json)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            entry.count += 1;
-            entry.window_start = now;
-            let new_json = serde_json::to_string(&entry)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?;
-            data.insert(rate_key, new_json);
-            entry.count
-        } else {
-            let entry = serde_json::json!({ "count": 1, "window_start": now }).to_string();
-            data.insert(rate_key, entry);
-            1
-        };
-        Ok(new_count)
+        let previous = data
+            .get(&rate_key)
+            .map(|json| serde_json::from_str::<RateLimitEntry>(json))
+            .transpose()
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let entry = RateLimitEntry::record(previous, now, window_seconds);
+        let json = serde_json::to_string(&entry).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        data.insert(rate_key, json);
+        Ok(entry.count)
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
@@ -365,5 +177,32 @@ impl AsyncRateLimiterStore for MemoryJsonStore {
         let mut data = self.lock()?;
         data.remove(&rate_key);
         Ok(())
+    }
+}
+
+/// `MemoryJsonStore` has no SQL engine, so every query method fails with
+/// `StorageError::Generic`.
+#[async_trait::async_trait]
+impl QueryStore for MemoryJsonStore {
+    async fn query_async(
+        &self,
+        _sql: &str,
+        _params: &[DataValue],
+    ) -> StorageResult<AsyncQueryStream> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for MemoryJsonStore".to_string(),
+        ))
+    }
+
+    async fn execute_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for MemoryJsonStore".to_string(),
+        ))
+    }
+
+    async fn execute_batch_async(&self, _sql: &str) -> StorageResult<()> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for MemoryJsonStore".to_string(),
+        ))
     }
 }

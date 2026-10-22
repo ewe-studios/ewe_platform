@@ -8,10 +8,13 @@ use crate::valtron::StreamConfig;
 use crate::valtron::{BoxedExecutionEngine, ConsumingIter, ExecutorError, SpawnInfo};
 use super::inline_action::InlineActionBehaviour;
 use std::sync::Arc;
+use crate::valtron::{FnMutReady, FnReady, OnNext, TaskReadyResolver, TaskSpawnConfig};
 
 use crate::valtron::DEFAULT_WAIT_CYCLE;
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+use crate::valtron::collect_result;
 use crate::valtron::{
-    collect_one, collect_result, Ctx, ExecutionAction, GenericResult, NotificationItem,
+    collect_one, Ctx, ExecutionAction, GenericResult, NotificationItem,
     NotifyQueueStreamIterator, NotifyRecvIterator, ProgressIndicator, State, Stream,
     StreamIterator, StreamIteratorExt, StreamSpread, TaskIterator, TaskStatus, WakeCallback,
     WakeResult, WakeableStream,
@@ -106,7 +109,7 @@ where
                     tracing::debug!("Lift action for InlineAction");
                     let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
-                        .lift(consuming_iter.into(), None)
+                        .lift(consuming_iter.into(), key)
                         .map_err(Into::into)
                 }
                 InlineActionBehaviour::Schedule => {
@@ -134,10 +137,13 @@ use crate::valtron::FutureTask;
 #[cfg(any(feature = "std", feature = "alloc"))]
 use crate::valtron::StreamTask;
 #[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 use crate::valtron::ReadyValues;
 #[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 use crate::valtron::ThreadedIterFuture;
 #[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 use crate::valtron::ThreadedValue;
 
 /// [`initialize_pool`] provides a unified method to initialize the underlying
@@ -153,6 +159,22 @@ pub fn initialize_pool(
     tracing::debug!("Starting under not(feature=multi), so single threaded");
     single::initialize_pool(seed_for_rng);
     single::PoolGuard
+}
+
+/// Make the calling thread able to drive valtron work set up by
+/// [`initialize_pool`] on another thread.
+///
+/// WHY: without `multi` the engine is thread-local, so a pool initialized on
+/// one thread does not exist on a thread spawned afterwards. Code that moves
+/// work onto a fresh thread (e.g. `#[valtron_test(timeout = ...)]`, which runs
+/// the body on a watchdog-supervised thread) must bring that thread's engine
+/// up before driving anything on it.
+///
+/// WHAT: initializes this thread's single-threaded engine with `seed_for_rng`.
+/// Idempotent: a thread that already has an engine keeps it. Under `multi` the
+/// same function is a no-op, because that pool is process-wide.
+pub fn initialize_current_thread(seed_for_rng: u64) {
+    single::initialize_pool(seed_for_rng);
 }
 
 /// Submit a blocking closure for execution on the appropriate background executor.
@@ -286,6 +308,40 @@ where
     drive_iterator(crate::valtron::from_future(future), ctx)
 }
 
+/// Iterate an async stream from synchronous code: the sync boundary for an
+/// async-first API (`for event in run_stream_iter(turn.events())? { .. }`).
+///
+/// WHY: APIs are written once, async (they wait by parking, so they work on
+/// every target). Sync callers should not need a second API — they wrap the
+/// async one here, the stream counterpart of [`run_future_iter`] and [`block_on_future`].
+///
+/// WHAT: Schedules `stream` as a valtron task ([`from_stream`]) and returns a
+/// plain `Iterator` over its items ([`next_values`](crate::valtron::next_values)).
+/// Each `next()` waits for the next item the way [`block_on_future`] waits
+/// for its result; the iterator ends when the stream does.
+///
+/// Not for single-threaded wasm request handlers: there, consume the stream
+/// with `.await` so the event loop can deliver its I/O.
+///
+/// # Errors
+///
+/// When the task cannot be scheduled (e.g. the pool is not initialized).
+/// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
+/// it would block the isolate's only thread, so the I/O it waits on could never
+/// complete. There, `.await` the future/stream instead.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+pub fn run_stream_iter<S>(
+    stream: S,
+) -> GenericResult<crate::valtron::StreamValues<S::Item, DrivenStreamIterator<StreamTask<S>>>>
+where
+    S: futures_core::Stream + 'static,
+    S::Item: 'static,
+{
+    Ok(crate::valtron::StreamValues::new(crate::valtron::next_values(
+        execute(from_stream(stream), None)?,
+    )))
+}
+
 /// Block the calling thread until `future` completes, returning its output
 /// (single-threaded / wasm executor variant — Decision 00 Level 3 / feature 00-F3).
 ///
@@ -304,7 +360,22 @@ where
 /// # Panics
 /// Panics if the future never yields a result (a genuinely non-waking future with
 /// no in-process producer — a task bug, per Decision 00).
+/// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
+/// it would block the isolate's only thread, so the I/O it waits on could never
+/// complete. There, `.await` the future/stream instead.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 pub fn block_on_future<F>(future: F) -> F::Output
+where
+    F: Future + 'static,
+    F::Output: 'static,
+{
+    block_on_future_unchecked(future)
+}
+
+/// [`block_on_future`] without the JS-wasm gate — for valtron's own macros
+/// only (`#[valtron]`, `#[valtron_test]`), via `valtron::__private`.
+#[doc(hidden)]
+pub fn block_on_future_unchecked<F>(future: F) -> F::Output
 where
     F: Future + 'static,
     F::Output: 'static,
@@ -385,10 +456,32 @@ where
     StreamTask::new(stream)
 }
 
-/// Execute a future using the unified executor (WASM — Send required for trait bounds,
-/// but no actual cross-thread movement occurs since wasm32 is single-threaded).
+/// Block the calling thread until `future` completes, collecting every `Ready`
+/// output it produced into a `Vec` (single-threaded / wasm executor variant).
+///
+/// # WASM-unsafe: native-only
+///
+/// This is a *blocking* helper — the `collect()` is inherent, because a future
+/// has no stream to return — so it never yields to the JS event loop. On wasm32
+/// (a single-threaded, cooperative runtime) it deadlocks the isolate: any future
+/// awaiting a `JsFuture`/promise can never resolve while the collector parks.
+/// Prefer [`run_future_iter`] (a lazy iterator that yields
+/// [`ThreadedValue::Waiting`] while pending) or the parking stream bridges
+/// (`into_future_stream` / `into_next_stream`). Keep this helper for native
+/// callers that genuinely need a run-to-completion block.
+///
+/// WHY: The unified executor's `DrivenRecvIterator` may yield several `Ready`
+/// values (a future can spawn sub-tasks), so "run to completion" here means
+/// "gather them all", not "return the first".
+///
+/// WHAT: Wraps `future` as a [`FutureTask`], executes it via [`execute_as_task`],
+/// and gathers every `Ready` output into a `Vec`.
 #[cfg(any(feature = "std", feature = "alloc"))]
-pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
+/// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
+/// it would block the isolate's only thread, so the I/O it waits on could never
+/// complete. There, `.await` the future/stream instead.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+pub fn block_on_collect<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
     F: Future + 'static,
     F::Output: 'static,
@@ -413,6 +506,10 @@ where
 /// In multi-threaded mode: Spawns background job, returns Result<Iterator, Error>
 /// In single-threaded/no-std mode: Polls inline, returns Ok(Iterator)
 #[cfg(any(feature = "std", feature = "alloc"))]
+/// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
+/// it would block the isolate's only thread, so the I/O it waits on could never
+/// complete. There, `.await` the future/stream instead.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 pub fn run_future_iter<F, Fut, I, T, E>(
     future_fn: F,
     queue_size: Option<usize>,
@@ -710,6 +807,10 @@ where
 /// ```ignore
 /// let value: MyValue = sync_collect_one(my_task)?;
 /// ```
+/// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
+/// it would block the isolate's only thread, so the I/O it waits on could never
+/// complete. There, `.await` the future/stream instead.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 pub fn sync_collect_one<T>(task: T) -> GenericResult<T::Ready>
 where
     T: TaskIterator + 'static,
@@ -743,6 +844,10 @@ where
 /// ```ignore
 /// let results: Vec<MyValue> = sync_one(my_task)?;
 /// ```
+/// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
+/// it would block the isolate's only thread, so the I/O it waits on could never
+/// complete. There, `.await` the future/stream instead.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 pub fn sync_one<T>(task: T) -> GenericResult<Vec<T::Ready>>
 where
     T: TaskIterator + 'static,
@@ -777,6 +882,10 @@ where
 /// let tasks = vec![task_a, task_b, task_c];
 /// let all_results: Vec<MyValue> = sync_all(tasks)?;
 /// ```
+/// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
+/// it would block the isolate's only thread, so the I/O it waits on could never
+/// complete. There, `.await` the future/stream instead.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 pub fn sync_all<T>(tasks: Vec<T>) -> GenericResult<Vec<T::Ready>>
 where
     T: TaskIterator + 'static,
@@ -881,6 +990,24 @@ pub fn run_until_next_state() {
     });
 }
 
+/// Whether a driver loop should hand control back to its caller: the engine
+/// reported no progress and nothing in it can run, i.e. every remaining task is
+/// parked on a readiness signal (or there are none).
+///
+/// WHY: the `run_until_next_*` helpers are called by code that drives the
+/// engine between its own steps (`DrivenStreamIterator`, `DrivenTaskIterator`,
+/// `block_on_future`). A parked task is often waiting on exactly that caller,
+/// e.g. a producer parked on a full queue only the caller drains, or a task
+/// whose cancel flag the caller sets after seeing an item. Spinning here would
+/// keep it parked forever, so return and let the caller act. Timer sleepers
+/// (`SpinWait`) are still waited out, since they become runnable on their own.
+fn nothing_runnable(indicator: &ProgressIndicator) -> bool {
+    matches!(
+        indicator,
+        ProgressIndicator::NoWork | ProgressIndicator::Wait | ProgressIndicator::CanProgress(None)
+    ) && !single::has_runnable_work()
+}
+
 /// [`run_until_next_acceptable_state`] this is a no-op in multi-threaded situations (i.e multi feature flag is on), but
 /// under multi=off or wasm execution, this will  executing the execution engine until the next valid
 /// state within the provided `checker` function is seen to indicate task has reported progress as [`State`].
@@ -892,6 +1019,18 @@ where
 {
     #[cfg_attr(not(feature = "multi"), allow(unused_variables))]
     run_until(|indicator: ProgressIndicator| {
+        if nothing_runnable(&indicator) {
+            return true;
+        }
+        // Native: a task yielded (`TaskStatus::Wait`) and pushed `Stream::Wait`
+        // for the caller. Hand control back so the caller sees it (a parking
+        // bridge then returns `Poll::Pending`) instead of re-polling a task that
+        // may wait forever. On JS the executor's own `Wait` arm yields to the
+        // event loop on a short timer and returns, so this is native-only.
+        #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+        if matches!(indicator, ProgressIndicator::Wait) {
+            return true;
+        }
         if let ProgressIndicator::CanProgress(Some(state)) = indicator {
             if checker(&state) {
                 tracing::debug!("Valtron: checker returned true for state={state:?}");
@@ -912,6 +1051,9 @@ where
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
 pub fn run_until_next_state_within(target_states: &[State]) {
     run_until(|indicator: ProgressIndicator| {
+        if nothing_runnable(&indicator) {
+            return true;
+        }
         if let ProgressIndicator::CanProgress(Some(state)) = indicator {
             if target_states.contains(&state) {
                 tracing::debug!("Valtron: Seen new state value from state={state:?}");
@@ -933,6 +1075,9 @@ pub fn run_until_next_state_within(target_states: &[State]) {
 #[tracing::instrument()]
 pub fn run_until_ready_state() {
     run_until(|indicator: ProgressIndicator| {
+        if nothing_runnable(&indicator) {
+            return true;
+        }
         if let ProgressIndicator::CanProgress(Some(State::ReadyValue(task_id))) = indicator {
             tracing::debug!("Valtron: Seen ready value from task id={task_id:?}");
             true
@@ -1079,7 +1224,17 @@ where
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
-            let next_value = task_iterator.next();
+            // On this one thread only driving the engine produces items, so
+            // waiting on the queue while work is still runnable only sleeps
+            // out its timeout (the engine may have run another task this
+            // time): report `Wait` and let the caller drive again. Block only
+            // when nothing here can run — then the item can only come from
+            // another thread.
+            let next_value = match task_iterator.try_next() {
+                Some(item) => item,
+                None if single::has_runnable_work() => Some(Stream::Wait),
+                None => task_iterator.next(),
+            };
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -2033,4 +2188,111 @@ pub fn sleep(
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub async fn sleep_async(duration: std::time::Duration) {
     let _ = sleep(duration).expect("sleep").into_ready_future().await;
+}
+
+// --- Task builders and `OnNext` constructors (single-threaded: nothing moves to another thread, so no `Send` bound.)
+
+/// `typed_task` allows you to create a task builder but requiring specific
+/// definitions for your `Task` and `Resolver` types.
+#[must_use]
+pub fn typed_task<Task, Resolver>(
+    engine: BoxedExecutionEngine,
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
+where
+    Task: TaskIterator + 'static,
+    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + 'static,
+{
+    TaskSpawnConfig::new(engine)
+}
+
+/// `any_task` allows you to create a task builder with less restrictive type
+/// requirements for the builder, specifically resolvers are Boxed.
+#[must_use]
+pub fn any_task<Task>(
+    engine: BoxedExecutionEngine,
+) -> TaskSpawnConfig<
+    Task::Ready,
+    Task::Pending,
+    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
+    Task,
+>
+where
+    Task: TaskIterator + 'static,
+{
+    TaskSpawnConfig::new(engine)
+}
+
+#[allow(clippy::self_named_constructors)]
+impl<F, Task, Done, Pending> OnNext<FnReady<F>, Task, Done, Pending>
+where
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
+    F: Fn(TaskStatus<Done, Pending>, BoxedExecutionEngine) + 'static,
+{
+    pub fn on_next(t: Task, f: F) -> Self {
+        OnNext::new(t, FnReady::new(f))
+    }
+}
+
+impl<F, Task, Done, Pending> OnNext<FnMutReady<F>, Task, Done, Pending>
+where
+    Task: TaskIterator<Pending = Pending, Ready = Done> + 'static,
+    F: FnMut(TaskStatus<Done, Pending>, BoxedExecutionEngine) + 'static,
+{
+    pub fn on_next_mut(t: Task, f: F) -> Self {
+        OnNext::new(t, FnMutReady::new(f))
+    }
+}
+
+/// `.block()` on any future: [`block_on_future`] as a method — the sync
+/// boundary for an async-first API (`let answer = session.ask(q).block()?;`).
+/// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
+/// it would block the isolate's only thread, so the I/O it waits on could never
+/// complete. There, `.await` the future/stream instead.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+pub trait BlockingFutureExt: Future + Sized + 'static
+where
+    Self::Output: 'static,
+{
+    /// Wait for the future on the calling thread and return its output.
+    fn block(self) -> Self::Output {
+        block_on_future(self)
+    }
+}
+
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+impl<F> BlockingFutureExt for F
+where
+    F: Future + 'static,
+    F::Output: 'static,
+{
+}
+
+/// `.blocking()?` on any async stream: [`run_stream_iter`] as a method — a
+/// plain `Iterator` to `for`-loop or `collect()` at a sync boundary.
+/// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
+/// it would block the isolate's only thread, so the I/O it waits on could never
+/// complete. There, `.await` the future/stream instead.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+pub trait BlockingStreamExt: futures_core::Stream + Sized + 'static
+where
+    Self::Item: 'static,
+{
+    /// Iterate the stream on the calling thread.
+    ///
+    /// # Errors
+    /// When the stream cannot be scheduled (e.g. the pool is not initialized).
+    fn blocking(
+        self,
+    ) -> GenericResult<crate::valtron::StreamValues<Self::Item, DrivenStreamIterator<StreamTask<Self>>>>
+    {
+        run_stream_iter(self)
+    }
+}
+
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+impl<S> BlockingStreamExt for S
+where
+    S: futures_core::Stream + 'static,
+    S::Item: 'static,
+{
 }

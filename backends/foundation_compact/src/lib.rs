@@ -4,10 +4,17 @@
 //! replacements backed by JavaScript's `Performance.now()` and `Date.now()`.
 //! On all other targets (native, emscripten, WASI), re-exports `std::time`.
 //!
+//! On `wasm32-unknown-unknown` the JavaScript calls (time and entropy) go through
+//! one of two backends: `wasm-bindgen` glue (the default feature) or, with the
+//! `host-abi` feature, plain `abi` host imports that `foundation_wasm`'s
+//! `foundation-wasm.js` runtime implements, so the module carries no wasm-bindgen
+//! imports. `host-abi` wins when both are enabled.
+//!
 //! Also provides:
 //! - **`entropy`** — vendored OS entropy (getrandom backends for all targets)
 //! - **`rng`** — ChaCha-based CSPRNG seeded from entropy (no external rand/getrandom)
 //! - **`ids`** — scru128 monotonic IDs (folded from `foundation_rng`)
+//! - **`hash`** — deterministic, wasm-safe content hashing (foldhash, no getrandom)
 //!
 //! # Usage
 //!
@@ -30,6 +37,8 @@ mod std;
 #[cfg(not(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"))))]
 pub use std::*;
 
+pub mod timestamp;
+
 // ─── Entropy ────────────────────────────────────────────────────────────────────
 
 pub mod entropy;
@@ -45,6 +54,10 @@ pub mod ids;
 // ─── Crypto ────────────────────────────────────────────────────────────────────
 
 pub mod crypto;
+
+// ─── Hash ──────────────────────────────────────────────────────────────────────
+
+pub mod hash;
 
 // ─── Tracing ─────────────────────────────────────────────────────────────────
 

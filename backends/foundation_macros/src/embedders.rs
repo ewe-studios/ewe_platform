@@ -208,6 +208,18 @@ pub fn get_target_source_path(
     String::from(target_source)
 }
 
+/// `path` relative to `base` when it lies under it, otherwise `path` itself.
+///
+/// WHY: rustc runs in the workspace root for workspace builds, but in the package
+/// directory for registry builds and for `cargo package`/`cargo publish`
+/// verification, while `$OUT_DIR` lives under the target directory (which may also be
+/// anywhere via `CARGO_TARGET_DIR`). Embedded sources are therefore not always under
+/// the working directory; their recorded path then stays absolute instead of the
+/// derive panicking.
+fn relative_to_or_absolute<'a>(path: &'a Path, base: &Path) -> &'a Path {
+    path.strip_prefix(base).unwrap_or(path)
+}
+
 #[allow(clippy::too_many_lines)]
 fn impl_embeddable_file(
     struct_name: &syn::Ident,
@@ -228,9 +240,7 @@ fn impl_embeddable_file(
         panic!("cannot get str path for {:#}", root_workspace.display());
     });
 
-    let project_dir = manifest_dir
-        .strip_prefix(&working_dir)
-        .expect("should be from home directory");
+    let project_dir = relative_to_or_absolute(manifest_dir, &working_dir);
 
     let target_file =
         get_target_source_path(&cargo_manifest_dir_env, root_workspace_str, target_source);
@@ -251,9 +261,7 @@ fn impl_embeddable_file(
         }
     };
 
-    let embedded_file_relative_path = embed_file_path
-        .strip_prefix(&working_dir)
-        .expect("should be from home directory");
+    let embedded_file_relative_path = relative_to_or_absolute(&embed_file_path, &working_dir);
 
     let embeddable_file =
         get_file(&embed_file_path, with_utf16).expect("Failed to generate file embeddings");
@@ -637,9 +645,7 @@ fn impl_embeddable_directory(
         panic!("cannot get str path for {:}", root_workspace.display());
     });
 
-    let project_dir = manifest_dir
-        .strip_prefix(&working_dir)
-        .expect("should be from home directory");
+    let project_dir = relative_to_or_absolute(manifest_dir, &working_dir);
     let project_dir_tokens =
         Literal::string(project_dir.to_str().expect("get path string for file"));
 
@@ -692,9 +698,8 @@ fn impl_embeddable_directory(
     let embedded_directory_path_literal =
         Literal::string(embed_directory_path.to_str().expect("unwrap as str"));
 
-    let embedded_directory_relative_path = embed_directory_path
-        .strip_prefix(&working_dir)
-        .expect("should be from home directory");
+    let embedded_directory_relative_path =
+        relative_to_or_absolute(&embed_directory_path, &working_dir);
 
     let embedded_directory_relative_path_literal = Literal::string(
         embedded_directory_relative_path

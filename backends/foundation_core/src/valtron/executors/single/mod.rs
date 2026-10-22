@@ -21,17 +21,23 @@ use crate::{
     synca::{IdleMan, SleepyMan},
 };
 use concurrent_queue::ConcurrentQueue;
+#[cfg(target_family = "wasm")]
 use foundation_nostd::primitives::SpinWaiter;
 
-/// NoThreadController provides a single-threaded ProcessController
-/// that uses iteration-based spinning for environments without OS sleep support (WASM).
+/// `NoThreadController` is the single-threaded executor's `ProcessController`:
+/// what the engine does while it waits for its next timer or wake.
 ///
-/// Uses SpinWaiter from foundation_nostd which provides:
-/// - Iteration-based timing (not Duration::ZERO which would spin forever)
-/// - Interruptible via AtomicBool flag
-/// - Bounded spinning (never spins forever)
+/// - **wasm**: no OS sleep is available, so it waits with an iteration-counted
+///   `SpinWaiter` (bounded and interruptible).
+/// - **native**: it parks the thread with `std::thread::park_timeout` for the
+///   requested duration. That honours the engine's timer deadlines exactly,
+///   gives the CPU back while idle, and returns early if the thread is
+///   unparked. (It used to spin through `SpinWaiter::embedded()`, whose fixed
+///   1,000,000-iterations-per-ms estimate made a 100 ms wait spin for seconds
+///   on a desktop CPU and rounded sub-millisecond waits down to nothing.)
 #[derive(Clone)]
 pub struct NoThreadController {
+    #[cfg(target_family = "wasm")]
     waiter: SpinWaiter,
 }
 
@@ -42,8 +48,6 @@ impl NoThreadController {
         Self {
             #[cfg(target_family = "wasm")]
             waiter: SpinWaiter::wasm(),
-            #[cfg(not(target_family = "wasm"))]
-            waiter: SpinWaiter::embedded(),
         }
     }
 }
@@ -58,10 +62,17 @@ impl ProcessController for NoThreadController {
     type YieldSignal = ();
 
     fn yield_for(&self, dur: std::time::Duration) {
-        // Use SpinWaiter instead of doing nothing
-        // This provides actual delay via iteration counting
-        // Works in WASM, no_std, and single-threaded environments
+        #[cfg(target_family = "wasm")]
         self.waiter.wait(dur);
+
+        #[cfg(not(target_family = "wasm"))]
+        {
+            let thread = std::thread::current();
+            crate::valtron::executors::idle_wake::park_idle(
+                std::sync::Arc::new(move || thread.unpark()),
+                || std::thread::park_timeout(dur),
+            );
+        }
     }
 }
 
@@ -168,6 +179,30 @@ pub fn initialize_pool(seed_for_rng: u64) {
             )
         });
     });
+}
+
+/// Whether this thread's engine has work it can run right now: an active or
+/// in-flight task, or a queued one waiting to be picked up. `false` means every
+/// remaining task (if any) is parked, waiting on a timer or a readiness signal.
+///
+/// Returns `false` when the engine has not been initialized.
+#[must_use]
+pub fn has_runnable_work() -> bool {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
+        pool.get()
+            .is_some_and(LocalThreadExecutor::has_runnable_work)
+    })
+}
+
+/// Whether this thread's engine has been initialized ([`initialize_pool`]).
+///
+/// Host callbacks that resume the executor (a JS timer or microtask queued by a
+/// yield) check this first: such a callback can fire on a thread that never
+/// created a pool, and with nothing to resume it must be a no-op rather than
+/// [`run_until`]'s panic.
+#[must_use]
+pub fn is_initialized() -> bool {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| pool.get().is_some())
 }
 
 /// `run_until` calls the `LocalExecution` queue and processes

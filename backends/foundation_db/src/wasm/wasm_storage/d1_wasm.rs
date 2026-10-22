@@ -1,17 +1,18 @@
 //! D1 storage via wasm-bindgen — calls Cloudflare D1 JS API directly.
 //!
-//! Wraps `D1Database` and implements all storage traits using D1's SQL engine.
-//! Async `*_async` methods are the source of truth (JS Promises);
-//! sync trait methods delegate via `from_future` → `execute`.
+//! Wraps `D1Database` and implements the `Async*` storage traits using D1's SQL
+//! engine. There are no sync impls: on Workers a sync call would have to block
+//! the isolate's only thread waiting on a JS Promise that can then never
+//! resolve. Callers `.await` the async methods.
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, Stream, StreamIteratorExt, StreamReadyFuture};
+use foundation_core::valtron::{execute, from_future, Stream, StreamIteratorExt, StreamReadyFuture};
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::rate_limit;
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
-    AsyncRateLimiterStore, BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore,
-    SqlRow, StorageItemStream,
+    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
+    RateLimiterStore, DataValue, SqlRow,
 };
 use crate::wasm::bindgen::D1Database;
 use base64::{engine::general_purpose::STANDARD, Engine};
@@ -24,9 +25,13 @@ use foundation_compact::SendWrapper;
 // Inline valtron helpers (no async_utils — use valtron directly)
 // ===========================================================================
 
+/// The valtron stream `schedule_future` returns: one `Stream::Next` with the
+/// future's result.
+type ValtronResultStream<T> = Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>>>;
+
 fn schedule_future<T: 'static, E: Into<StorageError> + 'static, F>(
     future: F,
-) -> StorageResult<StorageItemStream<'static, T>>
+) -> StorageResult<ValtronResultStream<T>>
 where
     F: std::future::Future<Output = Result<T, E>> + 'static,
 {
@@ -38,21 +43,6 @@ where
             .map_done(|r: Result<T, E>| r.map_err(Into::into))
             .map_pending(|_| ()),
     ))
-}
-
-fn exec_future<T: 'static, E: Into<StorageError> + 'static, F>(
-    future: F,
-) -> StorageResult<T>
-where
-    F: std::future::Future<Output = Result<T, E>> + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
-    let result: Result<Option<T>, StorageError> = collect_one(stream)
-        .map(|r| r.map_err(Into::into))
-        .transpose();
-    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
 }
 
 // ===========================================================================
@@ -89,16 +79,6 @@ impl D1WasmStorage {
 
     fn table_name(&self) -> String {
         format!("{}_kv", self.table_prefix)
-    }
-
-    #[allow(dead_code)]
-    fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
-    }
-
-    #[allow(dead_code)]
-    fn stream_many<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
-        Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
     }
 
     /// Initialize the KV table schema.
@@ -246,66 +226,11 @@ impl D1WasmStorage {
             .ok()
             .and_then(|v| v.as_string())
     }
-
-    /// Extract a number field from a JS object.
-    fn get_num_field(obj: &js_sys::Object, field: &str) -> Option<f64> {
-        js_sys::Reflect::get(obj, &field.into())
-            .ok()
-            .and_then(|v| v.as_f64())
-    }
 }
 
 // ===========================================================================
 // KeyValueStore
 // ===========================================================================
-
-impl KeyValueStore for D1WasmStorage {
-    fn get<'a, V: serde::de::DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> StorageResult<Option<V>> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move { Self::do_get_async(&this.db, &this.table_prefix, &key).await })
-    }
-
-    fn set<V: serde::Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        value: V,
-    ) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            Self::do_set_async(&this.db, &this.table_prefix, &key, value).await
-        })
-    }
-
-    fn delete(&self, key: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(
-            async move { Self::do_delete_async(&this.db, &this.table_prefix, &key).await },
-        )
-    }
-
-    fn exists(&self, key: &str) -> StorageResult<bool> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(
-            async move { Self::do_exists_async(&this.db, &this.table_prefix, &key).await },
-        )
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let this = self.clone();
-        let prefix = prefix.map(String::from);
-        let keys = exec_future(async move {
-            Self::do_list_keys_async(&this.db, &this.table_prefix, prefix.as_deref()).await
-        })?;
-        Ok(Self::stream_many(keys))
-    }
-}
 
 impl D1WasmStorage {
     /// Get a value by key from D1.
@@ -437,7 +362,7 @@ impl D1WasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for D1WasmStorage {
+impl KeyValueStore for D1WasmStorage {
     async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
@@ -521,39 +446,6 @@ impl D1WasmStorage {
 // QueryStore
 // ===========================================================================
 
-impl QueryStore for D1WasmStorage {
-    fn query(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        let this = self.clone();
-        let sql = sql.to_string();
-        let params = params.to_vec();
-        let rows = exec_future(async move {
-            Self::do_query_rows_async(&this.db, &sql, &params).await
-        })?;
-        Ok(Self::stream_many(rows))
-    }
-
-    fn execute(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> StorageResult<u64> {
-        let this = self.clone();
-        let sql = sql.to_string();
-        let params = params.to_vec();
-        exec_future(async move { Self::do_execute_async(&this.db, &sql, &params).await })
-    }
-
-    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let sql = sql.to_string();
-        exec_future(async move { Self::do_execute_batch_async(&this.db, &sql).await })
-    }
-}
-
 impl D1WasmStorage {
     /// Execute a SQL query and return rows as `Vec<SqlRow>`.
     pub async fn query_async(
@@ -614,7 +506,7 @@ impl D1WasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncQueryStore for D1WasmStorage {
+impl QueryStore for D1WasmStorage {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let rows = foundation_compact::SendWrapper::new(async move {
             self.query_async(sql, params).await
@@ -637,198 +529,29 @@ impl AsyncQueryStore for D1WasmStorage {
 // RateLimiterStore
 // ===========================================================================
 
-impl RateLimiterStore for D1WasmStorage {
-    fn check_rate_limit(
-        &self,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> StorageResult<bool> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            Self::do_check_rate_limit_async(&this.db, &key, max_count, window_seconds).await
-        })
-    }
-
-    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move { Self::do_record_rate_limit_async(&this.db, &key).await })
-    }
-
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move { Self::do_reset_rate_limit_async(&this.db, &key).await })
-    }
-}
-
-impl D1WasmStorage {
-    /// Check if a rate limit key is allowed.
-    pub async fn check_rate_limit_async(
-        &self,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> Result<bool, StorageError> {
-        Self::do_check_rate_limit_async(&self.db, key, max_count, window_seconds).await
-    }
-
-    async fn do_check_rate_limit_async(
-        db: &Arc<D1Database>,
-        key: &str,
-        max_count: u32,
-        window_seconds: u64,
-    ) -> Result<bool, StorageError> {
-        // Ensure table exists
-        let create_table = r"
-            CREATE TABLE IF NOT EXISTS rate_limits (
-                key TEXT PRIMARY KEY,
-                count INTEGER NOT NULL,
-                window_start INTEGER NOT NULL
-            )
-        ";
-        do_execute_sql(db, create_table, &[]).await?;
-
-        // Use D1's strftime for consistent time
-        let sql = "SELECT count, window_start FROM rate_limits WHERE key = ?";
-        let row = do_query_first(db, sql, &[DataValue::Text(key.to_string())]).await?;
-
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        let window_start = now.saturating_sub(window_seconds);
-
-        let allowed = match row {
-            Some(obj) => {
-                let count = Self::get_num_field(&obj, "count").unwrap_or(0.0) as u32;
-                let stored_window = Self::get_num_field(&obj, "window_start").unwrap_or(0.0) as u64;
-                if stored_window < window_start {
-                    true
-                } else {
-                    count < max_count
-                }
-            }
-            None => true,
-        };
-
-        Ok(allowed)
-    }
-
-    /// Record a rate-limited action.
-    pub async fn record_rate_limit_async(&self, key: &str) -> Result<u32, StorageError> {
-        Self::do_record_rate_limit_async(&self.db, key).await
-    }
-
-    async fn do_record_rate_limit_async(
-        db: &Arc<D1Database>,
-        key: &str,
-    ) -> Result<u32, StorageError> {
-        let sql = r"
-            INSERT INTO rate_limits (key, count, window_start)
-            VALUES (?, 1, strftime('%s', 'now'))
-            ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start
-        ";
-
-        do_execute_sql(db, sql, &[DataValue::Text(key.to_string())]).await?;
-
-        // Read back the count
-        let row = do_query_first(
-            db,
-            "SELECT count FROM rate_limits WHERE key = ?",
-            &[DataValue::Text(key.to_string())],
-        )
-        .await?;
-
-        let count = row
-            .as_ref()
-            .and_then(|obj| Self::get_num_field(obj, "count"))
-            .map(|f| f as u32)
-            .unwrap_or(1);
-
-        Ok(count)
-    }
-
-    /// Reset a rate limit key.
-    pub async fn reset_rate_limit_async(&self, key: &str) -> Result<(), StorageError> {
-        Self::do_reset_rate_limit_async(&self.db, key).await
-    }
-
-    async fn do_reset_rate_limit_async(
-        db: &Arc<D1Database>,
-        key: &str,
-    ) -> Result<(), StorageError> {
-        do_execute_sql(
-            db,
-            "DELETE FROM rate_limits WHERE key = ?",
-            &[DataValue::Text(key.to_string())],
-        )
-        .await
-    }
-}
-
 #[async_trait::async_trait]
-impl AsyncRateLimiterStore for D1WasmStorage {
+impl RateLimiterStore for D1WasmStorage {
     async fn check_rate_limit_async(
         &self,
         key: &str,
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        foundation_compact::SendWrapper::new(async move {
-            self.check_rate_limit_async(key, max_count, window_seconds).await
-        }).await
+        foundation_compact::SendWrapper::new(rate_limit::sql_check(self, key, max_count, window_seconds)).await
     }
 
-    async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        foundation_compact::SendWrapper::new(async move { self.record_rate_limit_async(key).await }).await
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+        foundation_compact::SendWrapper::new(rate_limit::sql_record(self, key, window_seconds)).await
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
-        foundation_compact::SendWrapper::new(async move { self.reset_rate_limit_async(key).await }).await
+        foundation_compact::SendWrapper::new(rate_limit::sql_reset(self, key)).await
     }
 }
 
 // ===========================================================================
 // BlobStore
 // ===========================================================================
-
-impl BlobStore for D1WasmStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        let data = data.to_vec();
-        exec_future(async move {
-            Self::do_put_blob_async(&this.db, &this.table_prefix, &key, &data).await
-        })
-    }
-
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(
-            async move { Self::do_get_blob_async(&this.db, &this.table_prefix, &key).await },
-        )
-    }
-
-    fn delete_blob(&self, key: &str) -> StorageResult<()> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            Self::do_delete_blob_async(&this.db, &this.table_prefix, &key).await
-        })
-    }
-
-    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
-        let this = self.clone();
-        let key = key.to_string();
-        exec_future(async move {
-            Self::do_blob_exists_async(&this.db, &this.table_prefix, &key).await
-        })
-    }
-}
 
 impl D1WasmStorage {
     /// Put a blob into D1 (base64-encoded in the KV table).
@@ -945,7 +668,7 @@ impl D1WasmStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for D1WasmStorage {
+impl BlobStore for D1WasmStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
     }

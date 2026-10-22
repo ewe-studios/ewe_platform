@@ -3,7 +3,7 @@ name: Release binaries
 # Builds release binaries inside the CI image, so a release is built with
 # exactly the toolchain, libraries and submodules CI tested with.
 #
-#   - push a tag `v*`: build, upload as workflow artifacts and attach to the
+#   - push a tag `v*` (or release-plz tags `ewe_platform-v*`): build, upload as workflow artifacts and attach to the
 #     GitHub release for that tag (created as a draft if it doesn't exist)
 #   - run it manually: build and upload as workflow artifacts only
 #
@@ -15,6 +15,9 @@ on:
   push:
     tags:
       - "v*"
+      # Tagged by release-plz when it publishes the ewe_platform crate
+      # (.github/workflows/release-plz.yaml).
+      - "ewe_platform-v*"
   workflow_dispatch:
     inputs:
       packages:
@@ -167,7 +170,7 @@ jobs:
   publish:
     name: Attach to the GitHub release
     needs: linux
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/ewe_platform-v')
     runs-on: ubuntu-latest
     permissions:
       contents: write

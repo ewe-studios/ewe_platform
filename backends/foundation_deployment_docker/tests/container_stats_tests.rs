@@ -33,7 +33,7 @@ use std::sync::{mpsc, Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::valtron_test;
-use foundation_deployment::providers::common::MAX_ERROR_BODY;
+use foundation_deployment_docker::DockerLimits;
 use foundation_deployment_docker::generated::stats::ContainerStatsResponse;
 use foundation_deployment_docker::{DockerClient, DockerError};
 
@@ -514,9 +514,10 @@ async fn a_huge_error_body_is_not_read_whole() {
         Err(DockerError::Api { status, message }) => {
             assert_eq!(status, 500);
             assert!(
-                message.len() <= MAX_ERROR_BODY,
-                "read {} bytes of the error body; at most {MAX_ERROR_BODY} should be",
-                message.len()
+                message.len() <= DockerLimits::default().max_error_body,
+                "read {} bytes of the error body; at most {} should be",
+                message.len(),
+                DockerLimits::default().max_error_body
             );
         }
         other => panic!("expected Api, got {other:?}"),
@@ -525,6 +526,31 @@ async fn a_huge_error_body_is_not_read_whole() {
         started.elapsed() < Duration::from_secs(30),
         "the {HUGE_ERROR_BODY}-byte error body was read rather than abandoned"
     );
+
+    daemon.shutdown();
+}
+
+/// A client configured with a smaller line cap refuses a sample longer than
+/// it, as a parse error that ends the stream.
+#[valtron_test]
+async fn a_configured_line_cap_is_the_one_enforced() {
+    let (daemon, _gone) = Daemon::start("line_cap");
+    let client = daemon
+        .client()
+        .with_limits(DockerLimits::default().with_max_json_line(16));
+
+    match client.container_stats("one", false).await {
+        Err(DockerError::JsonParse(m)) => {
+            assert!(m.contains("longer than 16 bytes"), "{m}");
+        }
+        other => panic!("expected JsonParse, got {other:?}"),
+    }
+    // The default cap reads the same sample.
+    daemon
+        .client()
+        .container_stats("one", false)
+        .await
+        .expect("a sample under the default cap");
 
     daemon.shutdown();
 }

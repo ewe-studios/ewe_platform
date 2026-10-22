@@ -119,6 +119,40 @@ impl ScheduleRegistry {
     pub fn delete(&mut self, id: InternalPointer) -> Option<()> {
         self.tree.remove(&id).map(|_| ())
     }
+
+    /// Remove a one-shot callback and hand it back so the caller can run it
+    /// AFTER releasing the registry lock.
+    ///
+    /// WHY: a scheduled callback commonly schedules again (valtron's JS yield
+    /// loop, `testing::run_async`'s re-poll). Running it while the registry
+    /// mutex is held re-locks the same mutex, which panics or deadlocks; and a
+    /// timeout/microtask fires once, so its entry must not outlive the call.
+    pub fn take(&mut self, id: InternalPointer) -> Option<ScheduledItem> {
+        self.tree.remove(&id)
+    }
+}
+
+/// A callback removed from the [`ScheduleRegistry`] by [`ScheduleRegistry::take`].
+#[cfg(target_family = "wasm")]
+pub type ScheduledItem = WrappedItem<Box<dyn DoTask + 'static>>;
+
+/// A callback removed from the [`ScheduleRegistry`] by [`ScheduleRegistry::take`].
+#[cfg(not(target_family = "wasm"))]
+pub type ScheduledItem = WrappedItem<Box<dyn DoTask + Sync + Send + 'static>>;
+
+/// Run a callback previously removed with [`ScheduleRegistry::take`].
+pub fn perform_scheduled(item: &ScheduledItem) {
+    #[cfg(target_family = "wasm")]
+    {
+        item.0.perform();
+    }
+    #[cfg(not(target_family = "wasm"))]
+    {
+        item.0
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .perform();
+    }
 }
 
 #[cfg(target_family = "wasm")]

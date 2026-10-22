@@ -1,4 +1,4 @@
-name: Checks
+name: "Audit: Checks & Tests"
 
 # Per-package CI. A `plan` job works out which workspace packages a change
 # affects (the packages whose files changed, plus everything that depends on
@@ -46,8 +46,9 @@ env:
   # Smaller target dirs and caches: no incremental state, no debuginfo.
   CARGO_INCREMENTAL: "0"
   CARGO_PROFILE_UAT_DEBUG: "0"
-  # The `dev` profile uses the Cranelift backend (not installed in CI, and it
-  # can't do catch_unwind); `uat` is dev with LLVM — what the test docs use.
+  # `uat` is `dev` on LLVM — what the test docs use. (Locally, mise's env puts
+  # `dev` on Cranelift, which CI does not install and which can't do
+  # catch_unwind.)
   CI_PROFILE: uat
 
 jobs:
@@ -147,6 +148,9 @@ jobs:
       - name: test
         run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
 
+      - name: wasm
+        run: python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
+
   package-artifact:
     name: ${{ matrix.package }}
     needs: [plan, image]
@@ -207,6 +211,9 @@ jobs:
       - name: test
         run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step test
 
+      - name: wasm
+        run: docker exec ci python3 scripts/ci/ci.py run ${{ matrix.package }} --step wasm
+
   # One stable check to mark as required in branch protection: it passes when
   # every selected package passed, or when no package needed testing.
   checks-passed:
@@ -259,9 +266,12 @@ jobs:
         with:
           mode: submodule
 
-      - name: Use the pinned toolchain
+      - name: Use the stable release toolchain
+        # The dry-run packages and builds what a release publishes, so it uses
+        # the release toolchain (stable, ci/release-rust-toolchain). This also
+        # keeps the workspace loadable and buildable on stable.
         run: |
-          toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
+          toolchain=$(tr -d '[:space:]' < ci/release-rust-toolchain)
           rustup toolchain install "$toolchain" --profile minimal --no-self-update
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
@@ -285,9 +295,12 @@ jobs:
         run: git submodule update --init --depth 1 tools/llama.cpp
 
       - name: Install the pinned toolchain
+        # `--profile minimal` leaves out rustfmt, but the generated provider
+        # crates' build scripts (hetzner, cloudflare, ...) run it to check
+        # their committed `src/generated/` against the spec.
         run: |
           toolchain=$(python3 -c "import tomllib; print(tomllib.load(open('rust-toolchain.toml', 'rb'))['toolchain']['channel'])")
-          rustup toolchain install "$toolchain" --profile minimal --no-self-update
+          rustup toolchain install "$toolchain" --profile minimal --component rustfmt --no-self-update
           echo "RUSTUP_TOOLCHAIN=$toolchain" >> "$GITHUB_ENV"
 
       - name: Cache

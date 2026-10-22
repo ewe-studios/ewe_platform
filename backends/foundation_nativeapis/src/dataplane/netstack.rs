@@ -47,6 +47,14 @@ const UDP_PACKETS: usize = 32;
 /// First ephemeral port handed out to outbound overlay connections.
 const EPHEMERAL_PORT_START: u16 = 49152;
 
+/// Default per-listener accept backlog: how many connections the stack completes on a
+/// listener's behalf before the application calls [`OverlayListener::accept`].
+///
+/// 511 is nginx's default `listen ... backlog=` on Linux. Like a kernel backlog it costs
+/// nothing until connections actually queue: only one listening socket is armed at a
+/// time, and each queued connection is a socket that would exist anyway once accepted.
+pub const DEFAULT_LISTEN_BACKLOG: usize = 511;
+
 // ---------------------------------------------------------------------------
 // phy::Device bridging the netstack to the Tunn plaintext side
 // ---------------------------------------------------------------------------
@@ -147,6 +155,34 @@ struct Inner {
     read_wakers: BTreeMap<SocketHandle, WakeFn>,
     /// One-shot wakers fired when a socket becomes writable.
     write_wakers: BTreeMap<SocketHandle, WakeFn>,
+    /// Accept queues of every live [`OverlayListener`], keyed by listener id.
+    listeners: BTreeMap<u64, ListenQueue>,
+    /// Next id handed to a new [`OverlayListener`].
+    next_listener_id: u64,
+    /// Maximum queued (stack-completed, not yet accepted) connections per listener.
+    listen_backlog: usize,
+}
+
+/// One listener's accept queue.
+///
+/// WHY: a smoltcp TCP socket in `Listen` state takes exactly one connection; once it
+/// leaves `Listen` there is no socket on the port, so the next SYN is answered with a
+/// RST. A kernel listener instead keeps accepting into a backlog until the application
+/// calls `accept`. Without that, a client opening two connections back to back (or two
+/// clients connecting at once) gets the second one refused whenever the server's accept
+/// loop has not run in between.
+///
+/// WHAT: the currently armed listening socket plus the connections the stack has taken
+/// on the listener's behalf, in arrival order.
+///
+/// HOW: [`Inner::rearm_listeners`] runs after every inbound packet the interface
+/// processes: an armed socket that left `Listen` moves to `pending`, and a fresh socket
+/// is armed while `pending` is below the backlog.
+struct ListenQueue {
+    local: SocketAddr,
+    armed: Option<SocketHandle>,
+    pending: VecDeque<SocketHandle>,
+    accept_waker: Option<WakeFn>,
 }
 
 impl Inner {
@@ -158,6 +194,73 @@ impl Inner {
     fn from_smol(&self, instant: SmolInstant) -> Instant {
         let micros = instant.total_micros().max(0) as u64;
         self.base + Duration::from_micros(micros)
+    }
+
+    /// Create and arm a fresh listening TCP socket on `addr`, returning its handle.
+    fn arm_listening_socket(&mut self, addr: SocketAddr) -> io::Result<SocketHandle> {
+        let socket = tcp::Socket::new(
+            tcp::SocketBuffer::new(vec![0u8; TCP_BUFFER_BYTES]),
+            tcp::SocketBuffer::new(vec![0u8; TCP_BUFFER_BYTES]),
+        );
+        let handle = self.sockets.add(socket);
+        if let Err(e) = self
+            .sockets
+            .get_mut::<tcp::Socket>(handle)
+            .listen(to_listen_endpoint(addr))
+        {
+            self.sockets.remove(handle);
+            return Err(io::Error::new(
+                io::ErrorKind::AddrInUse,
+                format!("tcp listen: {e}"),
+            ));
+        }
+        Ok(handle)
+    }
+
+    /// Move every armed listening socket that has taken a connection into its
+    /// listener's accept queue, and arm a replacement while the queue has room.
+    fn rearm_listeners(&mut self) {
+        let backlog = self.listen_backlog;
+        let ids: Vec<u64> = self.listeners.keys().copied().collect();
+        for id in ids {
+            let Some(queue) = self.listeners.get(&id) else {
+                continue;
+            };
+            let local = queue.local;
+            let mut armed = queue.armed;
+
+            if let Some(handle) = armed {
+                match self.sockets.get::<tcp::Socket>(handle).state() {
+                    tcp::State::Listen => continue,
+                    // Reset before it was ever queued: discard it and re-arm below.
+                    tcp::State::Closed => {
+                        self.sockets.remove(handle);
+                    }
+                    _ => {
+                        if let Some(queue) = self.listeners.get_mut(&id) {
+                            queue.pending.push_back(handle);
+                        }
+                    }
+                }
+                armed = None;
+            }
+
+            let pending_len = self
+                .listeners
+                .get(&id)
+                .map_or(0, |queue| queue.pending.len());
+            if armed.is_none() && pending_len < backlog {
+                match self.arm_listening_socket(local) {
+                    Ok(handle) => armed = Some(handle),
+                    Err(e) => {
+                        tracing::warn!(%local, error = %e, "failed to re-arm overlay listener");
+                    }
+                }
+            }
+            if let Some(queue) = self.listeners.get_mut(&id) {
+                queue.armed = armed;
+            }
+        }
     }
 
     fn alloc_port(&mut self) -> u16 {
@@ -175,7 +278,8 @@ impl Inner {
 // NetStack
 // ---------------------------------------------------------------------------
 
-/// Configuration for a [`NetStack`]: the overlay tunnel address and link MTU.
+/// Configuration for a [`NetStack`]: the overlay tunnel address, link MTU and
+/// listener backlog.
 #[derive(Debug, Clone)]
 pub struct NetStackConfig {
     /// This node's overlay (tunnel) IP address.
@@ -184,6 +288,10 @@ pub struct NetStackConfig {
     pub prefix_len: u8,
     /// Inner L3 MTU advertised to overlay sockets.
     pub mtu: usize,
+    /// Maximum connections queued per [`OverlayListener`] before the application
+    /// accepts them; further SYNs are refused until `accept` frees a slot. Defaults to
+    /// [`DEFAULT_LISTEN_BACKLOG`]; `0` is treated as `1`.
+    pub listen_backlog: usize,
 }
 
 impl NetStackConfig {
@@ -202,7 +310,23 @@ impl NetStackConfig {
             address,
             prefix_len,
             mtu: DEFAULT_MTU,
+            listen_backlog: DEFAULT_LISTEN_BACKLOG,
         }
+    }
+
+    /// Override the inner L3 MTU (default 1420, `WireGuard`'s default interface MTU).
+    #[must_use]
+    pub fn with_mtu(mut self, mtu: usize) -> Self {
+        self.mtu = mtu;
+        self
+    }
+
+    /// Override the per-listener accept backlog (default [`DEFAULT_LISTEN_BACKLOG`]).
+    /// `0` is treated as `1`: a listener always takes at least one connection.
+    #[must_use]
+    pub fn with_listen_backlog(mut self, backlog: usize) -> Self {
+        self.listen_backlog = backlog;
+        self
     }
 }
 
@@ -254,6 +378,9 @@ impl NetStack {
             next_port: EPHEMERAL_PORT_START,
             read_wakers: BTreeMap::new(),
             write_wakers: BTreeMap::new(),
+            listeners: BTreeMap::new(),
+            next_listener_id: 0,
+            listen_backlog: config.listen_backlog.max(1),
         };
 
         Self {
@@ -287,13 +414,38 @@ impl DataPlane for NetStack {
         let inner = &mut *guard;
         let timestamp = inner.smol_now(now);
 
-        // Run the interface until it makes no further progress this tick.
-        while matches!(
-            inner
-                .iface
-                .poll(timestamp, &mut inner.device, &mut inner.sockets),
-            smoltcp::iface::PollResult::SocketStateChanged
-        ) {}
+        // Run the interface until it makes no further progress this tick. Ingress is
+        // processed one packet at a time so a listener re-arms between two SYNs that
+        // arrive in the same batch (see `ListenQueue`).
+        loop {
+            let mut changed = false;
+            loop {
+                match inner.iface.poll_ingress_single(
+                    timestamp,
+                    &mut inner.device,
+                    &mut inner.sockets,
+                ) {
+                    smoltcp::iface::PollIngressSingleResult::None => break,
+                    smoltcp::iface::PollIngressSingleResult::PacketProcessed => {}
+                    smoltcp::iface::PollIngressSingleResult::SocketStateChanged => {
+                        changed = true;
+                    }
+                }
+                inner.rearm_listeners();
+            }
+            if matches!(
+                inner
+                    .iface
+                    .poll_egress(timestamp, &mut inner.device, &mut inner.sockets),
+                smoltcp::iface::PollResult::SocketStateChanged
+            ) {
+                changed = true;
+            }
+            inner.rearm_listeners();
+            if !changed {
+                break;
+            }
+        }
 
         // Fire one-shot wakers for sockets that became ready.
         fire_ready_wakers(inner);
@@ -310,10 +462,22 @@ impl DataPlane for NetStack {
     }
 
     fn tcp_listen(&mut self, addr: SocketAddr) -> io::Result<OverlayListener> {
-        let handle = self.spawn_listening_socket(addr)?;
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
+        let armed = inner.arm_listening_socket(addr)?;
+        let id = inner.next_listener_id;
+        inner.next_listener_id += 1;
+        inner.listeners.insert(
+            id,
+            ListenQueue {
+                local: addr,
+                armed: Some(armed),
+                pending: VecDeque::new(),
+                accept_waker: None,
+            },
+        );
         Ok(OverlayListener {
             inner: Arc::clone(&self.inner),
-            handle,
+            id,
             local: addr,
         })
     }
@@ -373,25 +537,6 @@ impl DataPlane for NetStack {
     }
 }
 
-impl NetStack {
-    /// Create and arm a fresh listening TCP socket, returning its handle.
-    fn spawn_listening_socket(&self, addr: SocketAddr) -> io::Result<SocketHandle> {
-        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
-        let socket = tcp::Socket::new(
-            tcp::SocketBuffer::new(vec![0u8; TCP_BUFFER_BYTES]),
-            tcp::SocketBuffer::new(vec![0u8; TCP_BUFFER_BYTES]),
-        );
-        let handle = inner.sockets.add(socket);
-        let endpoint = to_listen_endpoint(addr);
-        inner
-            .sockets
-            .get_mut::<tcp::Socket>(handle)
-            .listen(endpoint)
-            .map_err(|e| io::Error::new(io::ErrorKind::AddrInUse, format!("tcp listen: {e}")))?;
-        Ok(handle)
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Waker plumbing
 // ---------------------------------------------------------------------------
@@ -426,6 +571,13 @@ fn fire_ready_wakers(inner: &mut Inner) {
             waker();
         }
     }
+    for queue in inner.listeners.values_mut() {
+        if !queue.pending.is_empty() {
+            if let Some(waker) = queue.accept_waker.take() {
+                waker();
+            }
+        }
+    }
     for handle in to_wake_write {
         if let Some(waker) = inner.write_wakers.remove(&handle) {
             waker();
@@ -437,17 +589,18 @@ fn fire_ready_wakers(inner: &mut Inner) {
 // Overlay socket handles
 // ---------------------------------------------------------------------------
 
-/// An overlay TCP listener. `accept` yields one [`OverlayStream`] per inbound
-/// connection and re-arms a fresh listening socket so the listener keeps accepting.
+/// An overlay TCP listener. The stack queues inbound connections on its behalf (up to
+/// [`NetStackConfig::listen_backlog`]) and `accept` hands them out in arrival order.
 pub struct OverlayListener {
     inner: Arc<Mutex<Inner>>,
-    handle: SocketHandle,
+    id: u64,
     local: SocketAddr,
 }
 
 impl std::fmt::Debug for OverlayListener {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("OverlayListener")
+            .field("id", &self.id)
             .field("local", &self.local)
             .finish()
     }
@@ -459,53 +612,64 @@ impl OverlayListener {
     /// WHAT: Return the next established connection, or [`io::ErrorKind::WouldBlock`] if
     /// none is ready yet.
     ///
-    /// HOW: When the current listening socket becomes established it is handed back as an
-    /// [`OverlayStream`] and a new listening socket is armed on the same endpoint.
+    /// HOW: Pops the oldest connection from this listener's accept queue (connections
+    /// reset before being accepted are discarded) and re-arms the listening socket if
+    /// the queue had been full.
     ///
     /// # Errors
     /// [`io::ErrorKind::WouldBlock`] when no connection is pending.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     pub fn accept(&mut self) -> io::Result<OverlayStream> {
-        let established = {
-            let inner = self.inner.lock().expect("netstack mutex poisoned");
-            let socket = inner.sockets.get::<tcp::Socket>(self.handle);
-            socket.state() != tcp::State::Listen
-                && socket.state() != tcp::State::Closed
-                && socket.remote_endpoint().is_some()
-        };
-        if !established {
-            return Err(io::Error::new(io::ErrorKind::WouldBlock, "no pending connection"));
+        let mut guard = self.inner.lock().expect("netstack mutex poisoned");
+        let inner = &mut *guard;
+        // Pick up a connection the armed socket took since the last poll.
+        inner.rearm_listeners();
+
+        loop {
+            let Some(handle) = inner
+                .listeners
+                .get_mut(&self.id)
+                .and_then(|queue| queue.pending.pop_front())
+            else {
+                return Err(io::Error::new(
+                    io::ErrorKind::WouldBlock,
+                    "no pending connection",
+                ));
+            };
+            let socket = inner.sockets.get::<tcp::Socket>(handle);
+            let peer = match (socket.state(), socket.remote_endpoint()) {
+                (tcp::State::Closed, _) | (_, None) => None,
+                (_, Some(remote)) => Some(from_smol_endpoint(remote)),
+            };
+            let Some(peer) = peer else {
+                // Reset or aborted while queued: drop it and try the next one.
+                inner.read_wakers.remove(&handle);
+                inner.write_wakers.remove(&handle);
+                inner.sockets.remove(handle);
+                continue;
+            };
+            // A slot freed up: re-arm if the queue had been full.
+            inner.rearm_listeners();
+            return Ok(OverlayStream {
+                inner: Arc::clone(&self.inner),
+                handle,
+                local: self.local,
+                peer,
+            });
         }
-
-        let (peer, accepted) = {
-            let inner = self.inner.lock().expect("netstack mutex poisoned");
-            let socket = inner.sockets.get::<tcp::Socket>(self.handle);
-            let peer = socket
-                .remote_endpoint()
-                .map(from_smol_endpoint)
-                .unwrap_or(self.local);
-            (peer, self.handle)
-        };
-
-        // Re-arm a fresh listening socket so we keep accepting.
-        let net = NetStack {
-            inner: Arc::clone(&self.inner),
-        };
-        self.handle = net.spawn_listening_socket(self.local)?;
-
-        Ok(OverlayStream {
-            inner: Arc::clone(&self.inner),
-            handle: accepted,
-            local: self.local,
-            peer,
-        })
     }
 
     /// Register a one-shot waker fired when a connection becomes acceptable.
+    ///
+    /// # Panics
+    /// Panics if the netstack mutex is poisoned.
     pub fn set_accept_waker(&self, waker: WakeFn) {
-        self.inner
-            .lock().expect("netstack mutex poisoned")
-            .read_wakers
-            .insert(self.handle, waker);
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
+        if let Some(queue) = inner.listeners.get_mut(&self.id) {
+            queue.accept_waker = Some(waker);
+        }
     }
 
     /// The local endpoint this listener is bound to.
@@ -518,9 +682,16 @@ impl OverlayListener {
 impl Drop for OverlayListener {
     fn drop(&mut self) {
         let mut inner = self.inner.lock().expect("netstack mutex poisoned");
-        inner.read_wakers.remove(&self.handle);
-        inner.write_wakers.remove(&self.handle);
-        inner.sockets.remove(self.handle);
+        let Some(queue) = inner.listeners.remove(&self.id) else {
+            return;
+        };
+        // Connections queued but never accepted go with the listener, as when a kernel
+        // listener is closed.
+        for handle in queue.armed.into_iter().chain(queue.pending) {
+            inner.read_wakers.remove(&handle);
+            inner.write_wakers.remove(&handle);
+            inner.sockets.remove(handle);
+        }
     }
 }
 

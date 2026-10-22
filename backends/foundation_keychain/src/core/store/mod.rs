@@ -5,7 +5,7 @@
 //! (Turso native, D1 wasm).
 //!
 //! WHAT: One submodule per vault entity, each exposing `async` functions over
-//! `&dyn AsyncQueryStore` plus a row struct. No custom storage traits — plain
+//! `&dyn QueryStore` plus a row struct. No custom storage traits — plain
 //! `execute_async`/`query_async` with `DataValue` params and `SqlRow` parsing,
 //! mirroring `foundation_auth::server::services`.
 //!
@@ -14,7 +14,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::AsyncQueryStore;
+use foundation_db::core::storage_provider::QueryStore;
 
 use crate::core::error::{AppError, AppResult};
 
@@ -37,7 +37,7 @@ pub const SCHEMA: &str = include_str!("../../../migrations/0001_initial.sql");
 /// each non-empty statement via `execute_async` (which every backend supports).
 /// DDL is idempotent (`CREATE TABLE IF NOT EXISTS`), so this doubles as the
 /// migration runner for the server backends.
-pub async fn apply_schema(db: &dyn AsyncQueryStore) -> AppResult<()> {
+pub async fn apply_schema(db: &dyn QueryStore) -> AppResult<()> {
     // Strip `--` comments (full-line and inline) before splitting; the DDL has no
     // string literals containing `--`, so a plain cut at the first `--` is safe.
     let sql: String = SCHEMA

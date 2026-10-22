@@ -1,16 +1,16 @@
-//! Docker streaming decoders.
+//! Docker's multiplexed stdout/stderr frame decoder.
 //!
-//! WHY: Docker streaming endpoints return binary frame formats (container logs,
-//! attach I/O) and JSON-line streams (events, stats, build progress) that need
-//! incremental decoding — you can't just `serde_json::from_slice(&body)` the
-//! whole response.
+//! WHY: Container logs, attach and exec output (without a TTY) arrive as one
+//! binary stream of 8-byte-header frames that must be decoded incrementally —
+//! a frame can be split across any number of body chunks.
 //!
-//! WHAT: [`LogFrameDecoder`] for the 8-byte multiplexed log format,
-//! [`LogOutput`] for typed stream frames, and [`JsonLineDecoder`] for newline-
-//! delimited JSON streams (events, stats, pull/push/build progress).
+//! WHAT: [`LogFrameDecoder`] for the 8-byte multiplexed format and
+//! [`LogOutput`] for the typed frames it yields.
 //!
 //! HOW: Feed incoming `Bytes` chunks into the decoder; drain completed frames
-//! without buffering the entire stream.
+//! without buffering the entire stream. The decoder itself does not bound a
+//! frame — [`LogStream`](crate::client::body::LogStream) checks each frame's
+//! announced length against its configured cap before buffering it.
 
 use bytes::Bytes;
 
@@ -147,86 +147,20 @@ impl LogFrameDecoder {
     pub fn buffered_len(&self) -> usize {
         self.buffer.len() - self.cursor
     }
+
+    /// The payload length the next frame's header announces, once its
+    /// 8-byte header has been buffered; `None` before that.
+    ///
+    /// WHY: lets a reader refuse a frame larger than it is willing to hold
+    /// from its header alone, before buffering any of its payload.
+    #[must_use]
+    pub fn next_frame_len(&self) -> Option<usize> {
+        let header = self.buffer.get(self.cursor..self.cursor + 8)?;
+        Some(u32::from_be_bytes([header[4], header[5], header[6], header[7]]) as usize)
+    }
 }
 
 impl Default for LogFrameDecoder {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-// =============================================================================
-// JSON-line stream decoder (events, stats, build/pull/push progress)
-// =============================================================================
-
-/// Incremental decoder for JSON-line (newline-delimited JSON) streams.
-///
-/// WHY: Docker's events, stats, and progress endpoints emit one JSON object per
-/// line. [`serde_json::from_slice`] fails mid-stream because the buffer contains
-/// trailing partial data.
-///
-/// WHAT: Buffers raw bytes; drains complete lines (terminated by `\n`).
-/// Caller parses each line as JSON.
-///
-/// HOW: Feed bytes with `feed()`, drain lines with `decode()`.
-pub struct JsonLineDecoder {
-    buffer: Vec<u8>,
-    cursor: usize,
-}
-
-impl JsonLineDecoder {
-    /// Create a new decoder with an empty buffer.
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            buffer: Vec::new(),
-            cursor: 0,
-        }
-    }
-
-    /// Feed a raw chunk from the stream into the decoder.
-    pub fn feed(&mut self, chunk: &[u8]) {
-        self.buffer.extend_from_slice(chunk);
-    }
-
-    /// Try to decode the next complete JSON line.
-    ///
-    /// Returns `None` when no complete line (terminated by `\n`) is available.
-    /// The returned `Bytes` does **not** include the trailing `\n`.
-    #[must_use]
-    pub fn decode(&mut self) -> Option<Bytes> {
-        let remaining = &self.buffer[self.cursor..];
-        let nl_pos = remaining.iter().position(|&b| b == b'\n')?;
-
-        let line_start = self.cursor;
-        let line_end = self.cursor + nl_pos;
-        let line = Bytes::copy_from_slice(&self.buffer[line_start..line_end]);
-        self.cursor = line_end + 1; // skip past the \n
-
-        // Skip empty lines (trailing \n after a complete frame)
-        if line.is_empty() {
-            return self.decode();
-        }
-
-        Some(line)
-    }
-
-    /// Compact the buffer by discarding already-decoded bytes.
-    pub fn compact(&mut self) {
-        if self.cursor > 0 {
-            self.buffer.drain(..self.cursor);
-            self.cursor = 0;
-        }
-    }
-
-    /// Number of bytes currently buffered (not yet decoded).
-    #[must_use]
-    pub fn buffered_len(&self) -> usize {
-        self.buffer.len() - self.cursor
-    }
-}
-
-impl Default for JsonLineDecoder {
     fn default() -> Self {
         Self::new()
     }

@@ -12,7 +12,6 @@
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::shared::http::{ChunkedData, SimpleHeaders, SimpleHttpChunkIterator};
 use std::io::Cursor;
-use tracing_test::traced_test;
 
 /// The JSON payload the GCP-style fixture below carries, CRs and all.
 ///
@@ -241,7 +240,6 @@ fn test_gcp_chunked_fixture_from_file() {
 /// The captured response contains ~384 CR bytes embedded in JSON content
 /// (not just framing) that must be stripped for valid JSON parsing.
 #[test]
-#[traced_test]
 fn test_real_gcp_captured_response() {
     // Load the real captured GCP response (body only, with chunked encoding)
     let fixture_bytes = include_bytes!("gcp_real_chunked_response.bin");

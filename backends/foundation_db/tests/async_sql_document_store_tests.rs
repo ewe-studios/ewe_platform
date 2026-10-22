@@ -1,16 +1,17 @@
-//! Async SQL `AsyncDocumentStore` conformance (F22b), against the real Turso
-//! (`SQLite`) backend — proves `AsyncSqlDocumentStore<TursoStorage>` matches the
+//! Async SQL `DocumentStore` conformance (F22b), against the real Turso
+//! (`SQLite`) backend — proves `SqlDocumentStore<TursoStorage>` matches the
 //! in-memory + sync-SQL semantics (scru128 ordering, inclusive `scan_from`,
 //! promoted columns) and that scans are pulled lazily via `.next().await`.
 
-use foundation_db::traits::AsyncDocumentStore;
-use foundation_db::{AsyncSqlDocumentStore, TursoStorage};
+use foundation_db::traits::DocumentStore;
+use foundation_core::valtron::BlockingFutureExt;
+use foundation_db::{SqlDocumentStore, StorageError, TursoStorage};
 use futures_lite::StreamExt;
 use std::sync::Mutex;
 use tempfile::TempDir;
 
-/// Shared Valtron pool guard — `TursoStorage::new`/`init_schema` drive async work
-/// through valtron, so the pool must exist before they're called.
+/// Shared Valtron pool guard — `make_store` waits for the async
+/// `TursoStorage::new`/`init_schema` on the valtron pool.
 static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
 
 fn init_valtron() {
@@ -22,13 +23,18 @@ fn init_valtron() {
 
 /// Migrated async store over a fresh temp `SQLite` db (migrations 020/021 applied
 /// via the real `init_schema`).
-fn make_store() -> (TempDir, AsyncSqlDocumentStore<TursoStorage>) {
+fn make_store() -> (TempDir, SqlDocumentStore<TursoStorage>) {
     init_valtron();
     let dir = TempDir::new().unwrap();
-    let url = dir.path().join("docs.db");
-    let storage = TursoStorage::new(url.to_str().unwrap()).unwrap();
-    storage.init_schema().unwrap();
-    (dir, AsyncSqlDocumentStore::new(storage))
+    let url = dir.path().join("docs.db").to_str().unwrap().to_owned();
+    let storage = async move {
+        let storage = TursoStorage::new(&url).await?;
+        storage.init_schema().await?;
+        Ok::<_, StorageError>(storage)
+    }
+    .block()
+    .unwrap();
+    (dir, SqlDocumentStore::new(storage))
 }
 
 #[derive(serde::Serialize)]

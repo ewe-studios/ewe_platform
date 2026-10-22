@@ -63,6 +63,35 @@ pub use wasm::js_stream;
 #[cfg(feature = "multi")]
 pub mod multi;
 
+#[cfg(not(target_family = "wasm"))]
+pub(crate) mod idle_wake;
+
+/// Ask the executor's host to run it again because a readiness signal fired.
+///
+/// WHY: a task parked on `TaskStatus::Depends` becomes runnable only when the
+/// signal flips. On a JS wasm build nothing re-checks the signal on its own (the
+/// executor hands control back to the JS event loop rather than spin or poll on a
+/// timer), so whoever flips the signal must ask for a run. [`WakeSignal`]'s
+/// callback does this for you.
+///
+/// On JS wasm builds this queues one coalesced executor run on the event loop
+/// (see the active backend's `request_resume`). On native it wakes executor
+/// threads sleeping for lack of work (see `idle_wake`), so they re-check
+/// parked tasks at once instead of sleeping out their back-off.
+///
+/// [`WakeSignal`]: crate::valtron::WakeSignal
+#[inline]
+pub fn request_executor_resume() {
+    #[cfg(all(
+        target_family = "wasm",
+        any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+    ))]
+    wasm::request_resume();
+
+    #[cfg(not(target_family = "wasm"))]
+    idle_wake::resume_idle();
+}
+
 // Re-export PoolGuard at executor level so tests can use valtron::PoolGuard
 #[cfg(not(feature = "multi"))]
 pub use single::PoolGuard;
@@ -72,10 +101,7 @@ pub use multi::PoolGuard;
 
 // SingleExecutorSingleton: optional convenience API for wasm targets.
 // Only available when multi feature is off AND compiling for wasm32/wasm64.
-#[cfg(all(
-    not(feature = "multi"),
-    target_family = "wasm"
-))]
+#[cfg(all(not(feature = "multi"), target_family = "wasm"))]
 pub use single::SingleExecutorSingleton;
 
 // re-exported external libraries

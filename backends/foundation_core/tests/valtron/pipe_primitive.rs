@@ -16,7 +16,7 @@ use core::task::{Context, Poll};
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
     queue_waker, AnyReadiness, BoolSignal, EventReadiness, EventReadinessPtr, Pipe, TryRecvError,
-    WakeToken,
+    TrySendError, WakeToken,
 };
 
 /// Build a `Context` whose waker pushes an observable `WakeToken` onto `obs`.
@@ -137,6 +137,80 @@ fn sender_drop_signals_end_of_stream() {
     assert_eq!(rx.try_recv(), Ok(1));
     assert_eq!(rx.try_recv(), Ok(2));
     assert_eq!(rx.try_recv(), Err(TryRecvError::Closed));
+}
+
+/// WHY: A producer that is not sending (e.g. a stream handler waiting on its
+///      own input) must still learn that the receiver went away — an h2 stream
+///      the peer reset closes the response pipe under its handler.
+/// WHAT: `closed()` parks while the pipe is open, wakes when the receiver is
+///      dropped, and does not steal the wake of a send parked on a full pipe.
+#[test]
+fn sender_closed_wakes_when_receiver_goes_away() {
+    let (tx, rx) = Pipe::<u32>::with_depth(1);
+    let obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let waker = observing_cx(&obs);
+    let mut cx = Context::from_waker(&waker);
+
+    let mut closed = Box::pin(tx.closed());
+    assert!(matches!(closed.as_mut().poll(&mut cx), Poll::Pending));
+    // Polling again with the same waker does not pile up registrations.
+    assert!(matches!(closed.as_mut().poll(&mut cx), Poll::Pending));
+
+    // A send parked on the full pipe at the same time.
+    tx.try_send(1).expect("fill the pipe");
+    let send_obs = Arc::new(ConcurrentQueue::<WakeToken>::unbounded());
+    let send_waker = observing_cx(&send_obs);
+    let mut send_cx = Context::from_waker(&send_waker);
+    let mut send = Box::pin(tx.send(2));
+    assert!(matches!(send.as_mut().poll(&mut send_cx), Poll::Pending));
+
+    assert!(obs.is_empty(), "nothing closed yet");
+    drop(rx);
+    assert!(!obs.is_empty(), "receiver drop woke the closed() waiter");
+    assert!(!send_obs.is_empty(), "receiver drop woke the parked send too");
+    assert!(matches!(closed.as_mut().poll(&mut cx), Poll::Ready(())));
+    assert!(matches!(send.as_mut().poll(&mut send_cx), Poll::Ready(Err(_))));
+
+    // Already closed: resolves at once.
+    let (tx2, rx2) = Pipe::<u32>::with_depth(1);
+    rx2.close();
+    let mut closed2 = Box::pin(tx2.closed());
+    assert!(matches!(closed2.as_mut().poll(&mut cx), Poll::Ready(())));
+}
+
+/// WHY: `PipeReceiver` is `Clone` (to move a cheap `Arc` handle into a `'static`
+///      future, e.g. a per-chunk blocking body reader), so dropping a clone must
+///      not EOF the pipe under its owner — only the last receiver's drop closes,
+///      mirroring `PipeSender`'s refcounted drop.
+/// WHAT: After a clone is dropped, the sender can still push and the original
+///      receiver still drains; the pipe closes only when the last receiver drops.
+#[test]
+fn receiver_clone_drop_does_not_close_pipe() {
+    let (tx, rx) = Pipe::<u32>::with_depth(4);
+
+    // A clone moved into a `'static` future drops while its owner still holds `rx`.
+    let clone = rx.clone();
+    drop(clone);
+
+    // The pipe must still be open: the sender can push…
+    tx.try_send(1).expect("pipe still open after clone drop");
+    // …and the original receiver can drain it.
+    assert_eq!(rx.try_recv(), Ok(1));
+
+    // A second clone dropped mid-stream must likewise not close the pipe, and
+    // backlog already buffered must survive the clone's drop.
+    let clone2 = rx.clone();
+    tx.try_send(2).expect("send before clone2 drop");
+    drop(clone2);
+    assert_eq!(rx.try_recv(), Ok(2), "backlog survives a dropped clone");
+
+    // The last receiver's drop closes the pipe (read side) and wakes the sender.
+    drop(rx);
+    assert!(tx.is_closed(), "last receiver drop closes the pipe");
+    assert!(
+        matches!(tx.try_send(3), Err(TrySendError::Closed(3))),
+        "a closed pipe refuses further sends with the item returned"
+    );
 }
 
 // ============================================================================

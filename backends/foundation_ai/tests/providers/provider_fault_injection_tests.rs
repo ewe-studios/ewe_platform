@@ -42,6 +42,13 @@ use foundation_testing::http::{HttpResponse, TestHttpServer};
 // Helpers
 // ---------------------------------------------------------------------------
 
+
+/// True for a generation request; false for the background `models/{name}`
+/// metadata lookup `get_model` starts, which these tests do not count.
+fn is_generation(req: &foundation_testing::http::HttpRequest) -> bool {
+    !req.path.url.contains("/models/")
+}
+
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
         .base_url()
@@ -224,8 +231,10 @@ fn a_retryable_status_is_actually_retried() {
     let hits = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&hits);
 
-    let server = TestHttpServer::with_response(move |_req| {
-        counter.fetch_add(1, Ordering::SeqCst);
+    let server = TestHttpServer::with_response(move |req| {
+        if is_generation(req) {
+            counter.fetch_add(1, Ordering::SeqCst);
+        }
         json_error(
             503,
             "Service Unavailable",
@@ -254,8 +263,10 @@ fn a_non_retryable_status_is_not_retried() {
     let hits = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&hits);
 
-    let server = TestHttpServer::with_response(move |_req| {
-        counter.fetch_add(1, Ordering::SeqCst);
+    let server = TestHttpServer::with_response(move |req| {
+        if is_generation(req) {
+            counter.fetch_add(1, Ordering::SeqCst);
+        }
         json_error(
             400,
             "Bad Request",
@@ -298,9 +309,10 @@ fn a_retry_eventually_succeeds() {
         "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}
     }"#;
 
-    let server = TestHttpServer::with_response(move |_req| {
-        let n = counter.fetch_add(1, Ordering::SeqCst);
-        if n == 0 {
+    let server = TestHttpServer::with_response(move |req| {
+        let first_generation =
+            is_generation(req) && counter.fetch_add(1, Ordering::SeqCst) == 0;
+        if first_generation {
             json_error(
                 503,
                 "Service Unavailable",
@@ -405,8 +417,10 @@ fn anthropic_non_retryable_status_is_not_retried() {
     let hits = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&hits);
 
-    let server = TestHttpServer::with_response(move |_req| {
-        counter.fetch_add(1, Ordering::SeqCst);
+    let server = TestHttpServer::with_response(move |req| {
+        if is_generation(req) {
+            counter.fetch_add(1, Ordering::SeqCst);
+        }
         json_error(
             400,
             "Bad Request",
@@ -489,8 +503,10 @@ fn responses_retryable_status_is_retried_the_configured_number_of_times() {
     // apply to it.
     let hits = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&hits);
-    let server = TestHttpServer::with_response(move |_req| {
-        counter.fetch_add(1, Ordering::SeqCst);
+    let server = TestHttpServer::with_response(move |req| {
+        if is_generation(req) {
+            counter.fetch_add(1, Ordering::SeqCst);
+        }
         json_error(
             503,
             "Service Unavailable",
@@ -514,8 +530,10 @@ fn responses_retryable_status_is_retried_the_configured_number_of_times() {
 fn responses_non_retryable_status_is_not_retried() {
     let hits = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&hits);
-    let server = TestHttpServer::with_response(move |_req| {
-        counter.fetch_add(1, Ordering::SeqCst);
+    let server = TestHttpServer::with_response(move |req| {
+        if is_generation(req) {
+            counter.fetch_add(1, Ordering::SeqCst);
+        }
         json_error(
             400,
             "Bad Request",
@@ -607,11 +625,15 @@ fn an_embedding_marker_routes_to_the_embeddings_endpoint() {
     // Capture the path so we can prove it went to /embeddings, not
     // /chat/completions — sending an embedding request to chat would return
     // prose where the caller expects a vector.
-    let seen = Arc::new(std::sync::Mutex::new(String::new()));
+    //
+    // Every path is kept: the provider may also fetch model info
+    // (`/v1/models/..`) in the background, and that request can land after
+    // the embedding one, so checking only the last path was flaky.
+    let seen = Arc::new(std::sync::Mutex::new(Vec::<String>::new()));
     let recorder = Arc::clone(&seen);
 
     let server = TestHttpServer::with_response(move |req| {
-        *recorder.lock().unwrap() = format!("{:?}", req.path.url);
+        recorder.lock().unwrap().push(format!("{:?}", req.path.url));
         response(200, "OK", "application/json", EMBEDDING_BODY)
     });
 
@@ -620,10 +642,14 @@ fn an_embedding_marker_routes_to_the_embeddings_endpoint() {
         .generate(embedding_interaction(&["embed me"]), None)
         .expect("an embedding request must succeed");
 
-    let path = seen.lock().unwrap().clone();
+    let paths = seen.lock().unwrap().clone();
     assert!(
-        path.contains("embeddings"),
-        "the request must go to the embeddings endpoint, got: {path}"
+        paths.iter().any(|path| path.contains("embeddings")),
+        "the request must go to the embeddings endpoint, got: {paths:?}"
+    );
+    assert!(
+        !paths.iter().any(|path| path.contains("chat/completions")),
+        "an embedding request must not go to chat: {paths:?}"
     );
     assert!(!out.is_empty(), "an embedding response must yield a message");
 }

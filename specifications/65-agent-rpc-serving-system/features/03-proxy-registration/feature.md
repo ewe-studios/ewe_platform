@@ -26,7 +26,7 @@ F3) calls the proxy's authenticated control plane — `RegisterBackend`,
 `DeregisterBackend`, `Heartbeat` — and the proxy maintains a live **routing
 table** of `backend name → host/port/protocol/health`. Incoming requests then
 route to registered backends through the per-endpoint protocol selection already
-specified in `specifications/63-connectrpc-proxy`.
+specified in `specifications/completed/63-connectrpc-proxy`.
 
 The proxy remains protocol-opaque about the *payloads* it forwards; it does not
 interpret agent-rpc's RPCs and does not see agent-rpc's client auth. It only
@@ -45,7 +45,7 @@ knows "this backend is here and healthy, forward to it."
 - [ ] Read `.agents/skills/rust-clean-code/skill.md`.
 - [ ] Read `.agents/skills/rust-valtron-usage/skill.md` (proxy is async; health
       probes run as tasks/streams).
-- [ ] Read `specifications/63-connectrpc-proxy/features/00-connectrpc-proxy/feature.md`
+- [ ] Read `specifications/completed/63-connectrpc-proxy/features/00-connectrpc-proxy/feature.md`
       — this feature extends that one (per-endpoint `BackendProtocol` selection).
 - [ ] Confirm `.agents/AGENTS.md` streaming + generated-types rules.
 

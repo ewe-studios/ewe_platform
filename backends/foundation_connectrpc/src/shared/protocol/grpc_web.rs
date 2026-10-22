@@ -30,16 +30,17 @@ use foundation_netio::shared::http::{
 };
 
 use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
-use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
+use crate::shared::context::{Peer, Spec, StreamType};
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::shared::transport::{
-    body_stream_from_pipe, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn,
+    body_stream_from_pipe, fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn,
     PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
-    BoxedTask, ClientExchange, HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
+    open_response_stream, BoxedTask, ClientExchange, ClientExchangeConfig, ExchangeConfig,
+    HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
 };
 
 /// gRPC (and gRPC-Web) constants (Decision 05).
@@ -382,14 +383,20 @@ pub fn parse_content_type(content_type: &str) -> Option<(String, bool)> {
 
 // ── reader/writer tasks ───────────────────────────────────────────────────────
 
+/// Read enveloped frames into `tx`; returns whether the trailer frame ended
+/// the stream. The trailer frame closes `tx`, and so does body EOF on the
+/// server; a client's body EOF leaves `tx` open for the caller to end with the
+/// HTTP trailers. A failure returns the error with `tx` still open, so the
+/// caller can end the stream with it ([`fail_stream`]) rather than leave a
+/// closed pipe that reads like a clean end.
 async fn read_frames(
     mut body: BodyStream,
-    tx: PipeSender<Frame>,
+    tx: &PipeSender<Frame>,
     decompressor: Option<Arc<dyn Compressor>>,
     read_max: usize,
     text: bool,
     client: bool,
-) -> ConnectResult<()> {
+) -> ConnectResult<bool> {
     let mut buf = BytesMut::new();
     let mut b64 = Base64StreamDecoder::default();
     loop {
@@ -417,11 +424,11 @@ async fn read_frames(
                 };
                 let _ = tx.send(Frame::EndStream { error, trailers }).await;
                 tx.close();
-                return Ok(());
+                return Ok(true);
             }
             let data = decompress_if(flags, payload, &decompressor, read_max)?;
             if tx.send(Frame::Message(data)).await.is_err() {
-                return Ok(());
+                return Ok(false);
             }
         }
         match body.next().await {
@@ -433,13 +440,12 @@ async fn read_frames(
                 }
             }
             // A mid-body transport failure rides the payload as `Err` (F45 Part D).
-            Some(Err(err)) => {
-                tx.close();
-                return Err(err.into());
-            }
+            Some(Err(err)) => return Err(err.into()),
             None => {
-                tx.close();
-                return Ok(());
+                if !client {
+                    tx.close();
+                }
+                return Ok(false);
             }
         }
     }
@@ -497,6 +503,83 @@ async fn write_frames(
                 sink.close();
                 return Ok(());
             }
+        }
+    }
+}
+
+/// Client/reader: the response head, then the envelopes, then the status —
+/// from the trailer frame, or from HTTP trailers when the body ends without
+/// one. A Trailers-Only response (`grpc-status` in the head) ends at once. A
+/// stream that fails, or ends with no status at all, ends with an error rather
+/// than reading like a clean end.
+async fn read_grpc_web_response(
+    mut stream: TransportStream,
+    tx: PipeSender<Frame>,
+    response_headers: Arc<std::sync::Mutex<Option<SimpleHeaders>>>,
+    config: ClientExchangeConfig,
+    text: bool,
+) -> ConnectResult<()> {
+    let cancel = config.cancel;
+    let Some(headers) = open_response_stream(
+        &mut stream.head,
+        &mut stream.recv_body,
+        &tx,
+        &response_headers,
+        &cancel,
+        config.read_max_bytes,
+    )
+    .await
+    else {
+        return Ok(());
+    };
+    if headers
+        .get(&SimpleHeader::from(constants::TRAILER_STATUS.to_string()))
+        .is_some()
+    {
+        let error = parse_status_trailers(&headers);
+        let _ = race(
+            tx.send(Frame::EndStream {
+                error,
+                trailers: headers,
+            }),
+            cancel.cancelled(),
+        )
+        .await;
+        tx.close();
+        return Ok(());
+    }
+    match read_frames(
+        stream.recv_body,
+        &tx,
+        None,
+        config.read_max_bytes,
+        text,
+        true,
+    )
+    .await
+    {
+        Ok(true) => Ok(()),
+        Ok(false) if tx.is_closed() => Ok(()), // consumer gone
+        Ok(false) => match stream.trailers.receive().await {
+            Some(trailers) => {
+                let error = parse_status_trailers(&trailers);
+                let _ = race(tx.send(Frame::EndStream { error, trailers }), cancel.cancelled())
+                    .await;
+                tx.close();
+                Ok(())
+            }
+            None => {
+                let e = ConnectError::internal(
+                    "the gRPC-Web response ended without a status trailer",
+                )
+                .into();
+                fail_stream(&tx, &e, &cancel).await;
+                Err(e)
+            }
+        },
+        Err(e) => {
+            fail_stream(&tx, &e, &cancel).await;
+            Err(e)
         }
     }
 }
@@ -572,12 +655,12 @@ impl ProtocolHandler for GrpcWebHandler {
         spec: Spec,
         body: ByteSource,
         responder: ByteSink,
-        compression: &CompressionRegistry,
+        config: ExchangeConfig<'_>,
     ) -> ConnectResult<HandlerExchange> {
         let text = is_text(request);
 
         let negotiated = negotiate_compression(
-            compression,
+            config.compression,
             header(&request.headers, constants::HEADER_ENCODING).as_deref(),
             header(&request.headers, constants::HEADER_ACCEPT_ENCODING).as_deref(),
         )?;
@@ -596,20 +679,31 @@ impl ProtocolHandler for GrpcWebHandler {
             spec,
             peer,
             request.headers.clone(),
-            CancelSignal::new(),
+            config.cancel.clone(),
             DEFAULT_PIPE_DEPTH,
         );
 
-        let reader: BoxedTask = Box::pin(read_frames(
-            // Server request body is pipe-fed; bridge it to the unified BodyStream
-            // (all-`Ok`, no transport error lane) — F45 Part D.
-            body_stream_from_pipe(body),
-            ends.request_tx,
-            negotiated.request_decompressor,
-            0,
-            text,
-            false,
-        ));
+        let request_tx = ends.request_tx;
+        let decompressor = negotiated.request_decompressor;
+        let cancel = config.cancel;
+        let read_max_bytes = config.read_max_bytes;
+        let reader: BoxedTask = Box::pin(async move {
+            let result = read_frames(
+                // Server request body is pipe-fed; bridge it to the unified
+                // BodyStream (all-`Ok`, no transport error lane) — F45 Part D.
+                body_stream_from_pipe(body),
+                &request_tx,
+                decompressor,
+                read_max_bytes,
+                text,
+                false,
+            )
+            .await;
+            if let Err(e) = &result {
+                fail_stream(&request_tx, e, &cancel).await;
+            }
+            result.map(|_| ())
+        });
         // Dispatch advertises this negotiation via `streaming_response_encoding`
         // (`grpc-encoding` response header) — a compressed envelope flag
         // without it is a protocol error to strict clients.
@@ -636,6 +730,30 @@ impl ProtocolHandler for GrpcWebHandler {
         content_type(codec_name, is_text(request))
     }
 
+    fn encode_stream_error(
+        &self,
+        request: &SimpleIncomingRequest,
+        error: &ErrorTrace<ConnectError>,
+    ) -> ConnectResult<Option<Bytes>> {
+        let status_trailers = build_status_trailers(Some(error), &SimpleHeaders::new());
+        let body = render_trailer_frame_body(&status_trailers);
+        let len = u32::try_from(body.len()).map_err(|_| {
+            ConnectError::internal("gRPC-Web trailer frame exceeds the 4 GiB envelope limit")
+        })?;
+        let mut frame = Vec::with_capacity(ENVELOPE_HEADER_LEN + body.len());
+        frame.push(constants::TRAILER_FLAG);
+        frame.extend_from_slice(&len.to_be_bytes());
+        frame.extend_from_slice(&body);
+        // grpc-web-text: a standalone padded base64 chunk, which clients decode
+        // chunk by chunk.
+        let frame = if is_text(request) {
+            STANDARD.encode(&frame).into_bytes()
+        } else {
+            frame
+        };
+        Ok(Some(Bytes::from(frame)))
+    }
+
     fn streaming_response_encoding(
         &self,
         request: &SimpleIncomingRequest,
@@ -657,6 +775,7 @@ impl ProtocolHandler for GrpcWebHandler {
         request: &SimpleIncomingRequest,
         body: Bytes,
         compression: &CompressionRegistry,
+        read_max_bytes: usize,
     ) -> ConnectResult<Bytes> {
         // Text mode base64-encodes the whole body; decode it back to binary first.
         let raw = if is_text(request) {
@@ -669,19 +788,14 @@ impl ProtocolHandler for GrpcWebHandler {
         if raw.is_empty() {
             return Ok(Bytes::new());
         }
-        if raw.len() < ENVELOPE_HEADER_LEN {
-            return Err(ConnectError::invalid_argument("truncated gRPC-Web frame").into());
-        }
-        let flags = raw[0];
-        let len = u32::from_be_bytes([raw[1], raw[2], raw[3], raw[4]]) as usize;
-        let end = (ENVELOPE_HEADER_LEN + len).min(raw.len());
-        let payload = raw.slice(ENVELOPE_HEADER_LEN..end);
+        let (flags, payload) =
+            super::grpc::unary_envelope_payload(&raw, read_max_bytes, "gRPC-Web")?;
         if flags & Envelope::FLAG_COMPRESSED != 0 {
             let name = header(&request.headers, constants::HEADER_ENCODING).unwrap_or_default();
             let c = compression.get(&name).ok_or_else(|| {
                 ConnectError::unimplemented(format!("unsupported grpc-encoding {name:?}"))
             })?;
-            Ok(Bytes::from(c.decompress(&payload, 0)?))
+            Ok(Bytes::from(c.decompress(&payload, read_max_bytes)?))
         } else {
             Ok(payload)
         }
@@ -843,10 +957,14 @@ impl ProtocolClient for GrpcWebClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-        cancel: CancelSignal,
+        config: ClientExchangeConfig,
     ) -> ConnectResult<ClientExchange> {
-        let (conn, ends) =
-            PipeClientConn::new(spec.clone(), headers, cancel, DEFAULT_PIPE_DEPTH);
+        let (conn, ends) = PipeClientConn::new(
+            spec.clone(),
+            headers,
+            config.cancel.clone(),
+            DEFAULT_PIPE_DEPTH,
+        );
 
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,
@@ -855,13 +973,12 @@ impl ProtocolClient for GrpcWebClient {
             self.text,
             false,
         ));
-        let reader: BoxedTask = Box::pin(read_frames(
-            stream.recv_body,
+        let reader: BoxedTask = Box::pin(read_grpc_web_response(
+            stream,
             ends.response_tx,
-            None,
-            0,
+            ends.response_headers,
+            config,
             self.text,
-            true,
         ));
 
         Ok(ClientExchange {

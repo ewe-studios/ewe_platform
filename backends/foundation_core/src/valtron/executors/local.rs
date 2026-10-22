@@ -542,6 +542,9 @@ pub struct NotifyQueueStreamIterator<D, P> {
     chan: Arc<NotifyQueue<Stream<D, P>>>,
     max_turns: usize,
     park_duration: time::Duration,
+    /// Set once a consumer registers a wake callback: it parks on the wake
+    /// instead of blocking, so `next` must not wait on an empty queue.
+    woken_consumer: bool,
 }
 
 impl<D, P> NotifyQueueStreamIterator<D, P> {
@@ -566,6 +569,7 @@ impl<D, P> NotifyQueueStreamIterator<D, P> {
             chan,
             max_turns,
             park_duration,
+            woken_consumer: false,
         }
     }
 
@@ -591,6 +595,16 @@ impl<D, P> NotifyQueueStreamIterator<D, P> {
     #[must_use]
     pub fn is_closed(&self) -> bool {
         self.chan.is_closed()
+    }
+
+    /// The next item without waiting: `Some(Some(item))`, `Some(None)` once
+    /// the queue is closed and drained, `None` when it is empty for now.
+    pub fn try_next(&mut self) -> Option<Option<Stream<D, P>>> {
+        match self.chan.pop() {
+            Ok(value) => Some(Some(value)),
+            Err(PopError::Closed) => Some(None),
+            Err(PopError::Empty) => None,
+        }
     }
 
     /// Returns the current number of items in the queue.
@@ -621,6 +635,13 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
             Err(PopError::Empty) => {}
         }
 
+        // An async consumer (one that registered a wake) parks on that wake:
+        // blocking here would stall its executor thread for up to
+        // `max_spins` timed waits per park.
+        if self.woken_consumer {
+            return Some(Stream::Wait);
+        }
+
         // Queue is empty - block efficiently until item is available
         match self.chan.wait_for_item(self.park_duration) {
             Some(NotificationItem::Ready(value)) => Some(value),
@@ -643,6 +664,7 @@ where
     P: Send + 'static,
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.woken_consumer = true;
         self.chan.register_wake(cb);
         WakeResult::Successful
     }
@@ -655,6 +677,7 @@ where
     P: 'static,
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        self.woken_consumer = true;
         self.chan.register_wake(cb);
         WakeResult::Successful
     }
@@ -2546,6 +2569,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.number_of_sleepers()
     }
 
+    /// See [`ExecutorState::has_runnable_work`].
+    #[inline]
+    #[must_use]
+    pub fn has_runnable_work(&self) -> bool {
+        self.state.has_runnable_work()
+    }
+
     /// See [`ExecutorState::number_of_depends_true_violations`].
     #[inline]
     #[must_use]
@@ -2593,6 +2623,22 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
+    /// Every remaining task is parked on a readiness signal and none on a timer:
+    /// nothing can run until the signal's owner flips it.
+    ///
+    /// On JS wasm the drivers return to the event loop in this state instead of
+    /// spinning (which would starve the async work being waited on) or polling on
+    /// a timer; the owner calls `request_executor_resume` when the signal flips.
+    #[cfg(all(
+        target_family = "wasm",
+        any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+    ))]
+    fn parked_on_readiness_only(&self) -> bool {
+        !self.state.has_runnable_work()
+            && self.state.number_of_sleepers() > 0
+            && self.state.time_until_next_wakeup().is_none()
+    }
+
     /// `run_until` provides a fine-grained of the executor which allows
     /// you to loop the executor until it reaches a giving [`ProgressIndicator`]
     /// state upon which you wish it to stop.
@@ -2605,6 +2651,8 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         S: Fn(ProgressIndicator) -> bool,
     {
         loop {
+            #[cfg(not(target_family = "wasm"))]
+            crate::valtron::executors::idle_wake::checking();
             // Check kill_signal if provided, otherwise continue
             if let Some(ref kill_signal) = self.kill_signal {
                 if kill_signal.probe() {
@@ -2615,7 +2663,35 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             let local_executor = self.state.local_engine();
 
             let response = self.state.schedule_and_do_work(Box::new(local_executor));
+
+            // JS: every remaining task is parked on a readiness signal and none on
+            // a timer. Nothing can make progress until JS-side async work (a fetch,
+            // a stream read) completes, so hand the thread back to the event loop.
+            // Neither spin here (that starves the very work we wait on and freezes
+            // the isolate) nor poll on a timer: whoever flips the signal asks for a
+            // run via `request_executor_resume` (`WakeSignal` does it for you).
+            #[cfg(all(
+                target_family = "wasm",
+                any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+            ))]
+            if self.parked_on_readiness_only() {
+                break;
+            }
+
             if checker(response.clone()) {
+                break;
+            }
+
+            // Nothing left to run: with zero tasks, an idle back-off
+            // (`SpinWait` from the idler) or `NoWork` only means the caller
+            // has not scheduled anything else yet. Waiting out the back-off
+            // (up to a second) would stall a caller that drives the engine
+            // between its own steps, so hand control back instead.
+            if matches!(
+                response,
+                ProgressIndicator::NoWork | ProgressIndicator::SpinWait(_)
+            ) && self.state.total_tasks() == 0
+            {
                 break;
             }
 
@@ -2659,12 +2735,26 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 }
             }
 
-            // break as well if no work remains and there are zero tasks.
-            if let ProgressIndicator::NoWork = response {
-                if self.state.total_tasks() == 0 {
-                    break;
-                }
+            // The step made progress and there is still work to run: go
+            // straight to the next step. Yielding here (as this loop used to
+            // after every step) stalled each step by up to
+            // MAX_YIELD_DURATION. `CanProgress(None)` is also what the engine
+            // reports when only parked tasks remain, hence the runnable check.
+            if matches!(response, ProgressIndicator::CanProgress(_))
+                && self.state.has_runnable_work()
+            {
+                continue;
             }
+
+            // Native: a task's `Wait` is a yield ("re-poll me"), and the caller's
+            // checker has already had the chance to stop on it. Keep driving rather
+            // than sleeping out the idle back-off: the task is still runnable, and
+            // native async work progresses on other threads.
+            #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+            if matches!(response, ProgressIndicator::Wait) && self.state.has_runnable_work() {
+                continue;
+            }
+
             // Use sleeper-aware yielding: sleep until the next sleeper wakes up
             // or fall back to the default yield duration if no sleepers exist.
             // Cap at MAX_YIELD_DURATION to ensure threads periodically check for new work.
@@ -2692,8 +2782,24 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     #[inline]
     pub fn block_until_finished(&self) {
         'main_loop: loop {
+            #[cfg(not(target_family = "wasm"))]
+            crate::valtron::executors::idle_wake::checking();
             for _ in 0..200 {
-                match self.run_once() {
+                let progress = self.run_once();
+
+                // JS: every remaining task is parked on a readiness signal (none
+                // on a timer). Return to the event loop; the signal's owner
+                // requests a resume (`request_executor_resume`) when it flips.
+                // Looping here would spin without ever letting JS run.
+                #[cfg(all(
+                    target_family = "wasm",
+                    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+                ))]
+                if self.parked_on_readiness_only() {
+                    break 'main_loop;
+                }
+
+                match progress {
                     ProgressIndicator::NoWork => {
                         #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
                         {
@@ -2764,6 +2870,8 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             .expect("Calling LocalThreadExecutor::block_on requires kill_signal to be provided for termination");
 
         loop {
+            #[cfg(not(target_family = "wasm"))]
+            crate::valtron::executors::idle_wake::checking();
             if kill_signal.probe() {
                 return;
             }
@@ -2824,40 +2932,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 }
 
 // --- Access Methods run once
-
-/// `typed_task` allows you to create a task builder but requiring specific
-/// definitions for your `Task` and `Resolver` types.
-#[must_use]
-pub fn typed_task<Task, Resolver>(
-    engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
-where
-    Task::Ready: Send,
-    Task::Pending: Send,
-    Task: TaskIterator + Send + 'static,
-    Resolver: TaskReadyResolver<Task::Ready, Task::Pending> + 'static,
-{
-    TaskSpawnConfig::new(engine)
-}
-
-/// `any_task` allows you to create a task builder with less restrictive type
-/// requirements for the builder, specifically resolvers are Boxed.
-#[must_use]
-pub fn any_task<Task>(
-    engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Box<dyn TaskReadyResolver<Task::Ready, Task::Pending> + 'static>,
-    Task,
->
-where
-    Task::Ready: Send,
-    Task::Pending: Send,
-    Task: TaskIterator + Send + 'static,
-{
-    TaskSpawnConfig::new(engine)
-}
 
 /// `send_any_task` will unlike [`any_task`] deliver the provided
 /// task to the global queue instead of the local queue via the provided

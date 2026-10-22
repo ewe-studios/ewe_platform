@@ -1,6 +1,6 @@
 //! Unit tests for Docker streaming decoders.
 //!
-//! WHY: Prove `LogFrameDecoder` and `JsonLineDecoder` correctly handle complete
+//! WHY: Prove `LogFrameDecoder` correctly handles complete
 //! frames, partial frames (buffered across `feed()` calls), multiple frames in
 //! one chunk, and edge cases — without a running Docker daemon.
 //!
@@ -8,7 +8,7 @@
 
 #![cfg(feature = "docker")]
 
-use foundation_deployment_docker::streaming::decoder::{JsonLineDecoder, LogFrameDecoder, LogOutput};
+use foundation_deployment_docker::streaming::decoder::{LogFrameDecoder, LogOutput};
 
 // =============================================================================
 // LogFrameDecoder
@@ -139,71 +139,4 @@ fn log_decoder_large_payload() {
 
     let out = dec.decode().expect("large frame");
     assert_eq!(out, LogOutput::StdOut { message: bytes::Bytes::from(payload) });
-}
-
-// =============================================================================
-// JsonLineDecoder
-// =============================================================================
-
-#[test]
-fn json_line_decoder_single_line() {
-    let mut dec = JsonLineDecoder::new();
-    dec.feed(b"{\"status\":\"ok\"}\n");
-    let line = dec.decode().expect("should decode complete line");
-    assert_eq!(line, bytes::Bytes::from("{\"status\":\"ok\"}"));
-    assert!(dec.decode().is_none());
-}
-
-#[test]
-fn json_line_decoder_multiple_lines_single_chunk() {
-    let mut dec = JsonLineDecoder::new();
-    dec.feed(b"{\"a\":1}\n{\"b\":2}\n");
-
-    let l1 = dec.decode().expect("line 1");
-    assert_eq!(l1, bytes::Bytes::from("{\"a\":1}"));
-    let l2 = dec.decode().expect("line 2");
-    assert_eq!(l2, bytes::Bytes::from("{\"b\":2}"));
-    assert!(dec.decode().is_none());
-}
-
-#[test]
-fn json_line_decoder_partial_line_returns_none() {
-    let mut dec = JsonLineDecoder::new();
-    dec.feed(b"{\"partial\":");
-    assert!(dec.decode().is_none(), "no newline yet");
-    assert_eq!(dec.buffered_len(), 11);
-}
-
-#[test]
-fn json_line_decoder_incremental_feeds() {
-    let mut dec = JsonLineDecoder::new();
-    dec.feed(b"{\"status\":"); // partial
-    assert!(dec.decode().is_none());
-    dec.feed(b"\"running\"}\n"); // complete
-    let line = dec.decode().expect("complete after feed");
-    assert_eq!(line, bytes::Bytes::from("{\"status\":\"running\"}"));
-}
-
-#[test]
-fn json_line_decoder_empty_lines_skipped() {
-    let mut dec = JsonLineDecoder::new();
-    dec.feed(b"\n\n{\"key\":\"val\"}\n\n");
-    let line = dec.decode().expect("line after empty");
-    assert_eq!(line, bytes::Bytes::from("{\"key\":\"val\"}"));
-    assert!(dec.decode().is_none());
-}
-
-#[test]
-fn json_line_decoder_compact_frees_memory() {
-    let mut dec = JsonLineDecoder::new();
-    dec.feed(b"line1\nline2\n");
-    // Decode both lines first — compact only works on already-decoded data
-    let _l1 = dec.decode().expect("line1");
-    let _l2 = dec.decode().expect("line2");
-    dec.compact();
-    assert_eq!(dec.buffered_len(), 0);
-
-    dec.feed(b"line3\n");
-    let l3 = dec.decode().expect("line3 after compact");
-    assert_eq!(l3, bytes::Bytes::from("line3"));
 }

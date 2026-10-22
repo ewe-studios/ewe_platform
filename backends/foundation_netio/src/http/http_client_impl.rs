@@ -564,7 +564,7 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
             .map_err(|e| HttpClientError::Reason(format!("SSE executor error: {e}")))?;
 
         let mapped = driven.map_pending(map_progress);
-        let future_stream = mapped.into_future_stream();
+        let future_stream = mapped.into_pure_future_stream();
         Ok(Box::pin(future_stream))
     }
 

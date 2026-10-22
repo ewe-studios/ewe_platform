@@ -31,7 +31,7 @@ use crate::agentic::errors::{AgenticError, UserId};
 use crate::agentic::memory::{MemoryConfig, MemoryHierarchy};
 use crate::agentic::memory_coordinator::MemoryCoordinator;
 use crate::agentic::memory_store::{KvMemoryStore, MemoryStore};
-use crate::agentic::message_api::MessageApi;
+use crate::agentic::message_api::{MessageApi, MessageApiConfig};
 use crate::agentic::steering::SteeringQueues;
 use crate::agentic::token_ledger::TokenLedger;
 use crate::agentic::tool_impl::ToolCallManager;
@@ -54,7 +54,7 @@ use crate::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord};
 ///
 /// WHAT: Arc-wrapped `SessionInner` — cheaply clonable, shareable across
 /// threads. Exposes `run_turn_stream` (primary), `run_turn` (convenience),
-/// `steer` / `follow_up` (inject steering messages), and `end` (synchronous
+/// `steer` / `follow_up` (inject steering messages), and `end` (async
 /// teardown).
 ///
 /// HOW: Built via `AgentSession::builder(router)`. `build()` wires
@@ -131,6 +131,7 @@ pub struct AgentSessionBuilder<D = MemoryDocumentStore, M = KvMemoryStore<Memory
     config: AgentConfig,
     context_config: ContextConfig,
     memory_config: MemoryConfig,
+    message_config: MessageApiConfig,
     /// Optional embedding capability for real semantic recall (F16).
     embedder: Option<(Arc<dyn crate::agentic::embedding::EmbeddingProvider>, String)>,
 }
@@ -171,20 +172,6 @@ impl AgentSession {
 }
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
-    /// The old two-argument builder: a session id plus default-constructed
-    /// stores of the turbofished types.
-    #[deprecated(
-        note = "use AgentSession::builder(router).with_session_id(id), plus with_doc_store / with_memory_store for other stores"
-    )]
-    #[must_use]
-    pub fn builder_for(session_id: SessionId, router: ProviderRouter) -> AgentSessionBuilder<D, M>
-    where
-        D: Default,
-        M: Default,
-    {
-        AgentSessionBuilder::new(router, D::default(), M::default()).with_session_id(session_id)
-    }
-
     /// Start a builder over explicit stores.
     #[deprecated(
         note = "use AgentSession::builder(router).with_session_id(id).with_doc_store(doc_store).with_memory_store(memory_store)"
@@ -219,6 +206,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             config: AgentConfig::default(),
             context_config: ContextConfig::default(),
             memory_config: MemoryConfig::default(),
+            message_config: MessageApiConfig::default(),
             embedder: None,
         }
     }
@@ -243,6 +231,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
             config: self.config,
             context_config: self.context_config,
             memory_config: self.memory_config,
+            message_config: self.message_config,
             embedder: self.embedder,
         }
     }
@@ -380,6 +369,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         self
     }
 
+    /// Limits of the session's message log: the write buffer's flush
+    /// threshold and the subscriber channel capacity
+    /// (default [`MessageApiConfig::default`]).
+    #[must_use]
+    pub fn with_message_config(mut self, config: MessageApiConfig) -> Self {
+        self.message_config = config;
+        self
+    }
+
     /// Wire components, run preflight, return the session.
     ///
     /// Every component shares one document store and one memory store: the
@@ -393,12 +391,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
     /// Preflight checks (OD-20-2): (1) access provider permits session + model,
     /// (2) budget is retrieved and applied to the ledger. If any check fails,
     /// no valtron task is scheduled.
+    ///
+    /// Async because [`resume`](Self::resume) reads the document store to
+    /// check that the session exists.
     /// # Errors
     /// Returns [`AgenticError::Session`] (`"no model set"`) if neither the
     /// preset passed to [`AgentSession::builder`] nor
     /// [`with_model`](Self::with_model) set a primary model, and
     /// [`ErrorTrace<AgenticError>`] if preflight checks fail.
-    pub fn build(self) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
+    pub async fn build(self) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
         // A session runs on a model the caller chose; there is no silent
         // empty-name default.
         let Some(primary) = self.model else {
@@ -424,11 +425,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         let memory_store = Arc::new(self.memory_store);
 
         let ledger = TokenLedger::new();
-        let message_api = MessageApi::from_shared(session_id.clone(), Arc::clone(&doc_store));
+        let message_api = MessageApi::shared_with_config(
+            session_id.clone(),
+            Arc::clone(&doc_store),
+            self.message_config,
+        );
 
         // `resume(id)`: the session must already exist in the stores.
         if self.require_existing {
-            let existing = message_api.recent(1).map_err(|e| {
+            let existing = message_api.recent(1).await.map_err(|e| {
                 ErrorTrace::new(AgenticError::MessageStore(format!(
                     "reading session {session_id} to resume it: {e}"
                 )))
@@ -475,6 +480,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         let tool_manager = self
             .toolshed
             .build(&parts)
+            .await
             .map_err(|e| ErrorTrace::new(AgenticError::from(e)))?;
 
         let inner = SessionInner {
@@ -601,9 +607,10 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     ///
     /// Pushes the prompt into the follow-up queue, builds a fresh `AgentLoop`,
     /// schedules it via `execute()` (cfg-selects sendables vs `non_sendables`
-    /// based on the `multi` feature), and returns a [`TurnStream`]: iterate it
-    /// for the raw `Stream<SessionRecord, AgentProgress>` items, or call
-    /// [`TurnStream::events`] for [`TurnEvent`](crate::agentic::TurnEvent)s.
+    /// based on the `multi` feature), and returns a [`TurnStream`]: the raw
+    /// valtron stream (for composing inside valtron tasks), with
+    /// [`TurnStream::events`] / [`TurnStream::into_text_stream`] as the async
+    /// views to consume it with.
     /// # Errors
     /// Returns [`ErrorTrace<AgenticError>`] if the loop cannot be scheduled.
     pub fn run_turn_stream(
@@ -651,8 +658,17 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     /// `Vec<SessionRecord>`.
     /// # Errors
     /// Returns [`ErrorTrace<AgenticError>`] only if the turn could not start.
-    pub fn run_turn(&self, prompt: impl Into<Messages>) -> Result<Turn, ErrorTrace<AgenticError>> {
-        Ok(Turn::collect(self.run_turn_stream(prompt)?))
+    ///
+    /// Async: the turn starts now and the returned future waits for it by
+    /// parking, so it works on every target. The future owns everything it
+    /// needs (`'static`), so it can be spawned, or driven from synchronous
+    /// code with `foundation_core::valtron::block_on_future`.
+    pub fn run_turn(
+        &self,
+        prompt: impl Into<Messages>,
+    ) -> impl std::future::Future<Output = Result<Turn, ErrorTrace<AgenticError>>> + 'static {
+        let started = self.run_turn_stream(prompt);
+        async move { Ok(Turn::collect(started?).await) }
     }
 
     /// Run a turn and return just its assistant text.
@@ -664,8 +680,14 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     /// # Errors
     /// Returns [`ErrorTrace<AgenticError>`] only if the turn could not start
     /// (preflight, access, the stream failing to start).
-    pub fn ask(&self, prompt: impl Into<Messages>) -> Result<Answer, ErrorTrace<AgenticError>> {
-        Ok(Answer::collect(self.run_turn_stream(prompt)?))
+    ///
+    /// Async and `'static`, like [`run_turn`](Self::run_turn).
+    pub fn ask(
+        &self,
+        prompt: impl Into<Messages>,
+    ) -> impl std::future::Future<Output = Result<Answer, ErrorTrace<AgenticError>>> + 'static {
+        let started = self.run_turn_stream(prompt);
+        async move { Ok(Answer::collect(started?).await) }
     }
 
     /// Inject a high-priority steering message — interrupts current work.
@@ -688,34 +710,42 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         self.inner.queues.abort();
     }
 
-    /// Synchronous teardown (Decision 01): drain the steering queues into the
-    /// message log, flush the log to the document store, reset the cancel
-    /// signal.
+    /// Teardown (Decision 01): drain the steering queues into the message
+    /// log, flush the log to the document store, reset the cancel signal.
     ///
     /// Every step runs even when an earlier one fails, so a failed flush still
     /// resets the cancel signal; the first error is returned. A record the
     /// store refused stays buffered, so calling `end()` again retries it.
     /// # Errors
     /// [`AgenticError::MessageStore`] when the document store fails a write.
-    pub fn end(&self) -> Result<(), ErrorTrace<AgenticError>> {
-        let priority_msgs = self.inner.queues.drain_priority();
-        let follow_up_msgs = self.inner.queues.drain_follow_up();
-        for msg in priority_msgs.into_iter().chain(follow_up_msgs) {
-            // Buffers only; the id is not needed here.
-            let _id = self
-                .inner
-                .message_api
-                .append(SessionRecord::Conversation { message: msg });
+    ///
+    /// Async and `'static`, like [`run_turn`](Self::run_turn): the future
+    /// holds its own handle to the session, so a sync caller can drive it
+    /// with `foundation_core::valtron::block_on_future`.
+    pub fn end(
+        &self,
+    ) -> impl std::future::Future<Output = Result<(), ErrorTrace<AgenticError>>> + 'static {
+        let session = self.clone();
+        async move {
+            let inner = &session.inner;
+            let priority_msgs = inner.queues.drain_priority();
+            let follow_up_msgs = inner.queues.drain_follow_up();
+            for msg in priority_msgs.into_iter().chain(follow_up_msgs) {
+                // Buffers only; the id is not needed here.
+                let _id = inner
+                    .message_api
+                    .append(SessionRecord::Conversation { message: msg });
+            }
+
+            let flushed = inner.message_api.flush().await.map_err(|e| {
+                ErrorTrace::new(AgenticError::MessageStore(format!(
+                    "ending session {}: flushing the message log: {e}",
+                    inner.session_id
+                )))
+            });
+
+            inner.queues.reset_cancel();
+            flushed.map(|_| ())
         }
-
-        let flushed = self.inner.message_api.flush().map_err(|e| {
-            ErrorTrace::new(AgenticError::MessageStore(format!(
-                "ending session {}: flushing the message log: {e}",
-                self.inner.session_id
-            )))
-        });
-
-        self.inner.queues.reset_cancel();
-        flushed.map(|_| ())
     }
 }

@@ -2,7 +2,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -38,7 +38,7 @@ fn map_app(row: &SqlRow) -> AppResult<AppRow> {
     })
 }
 
-pub async fn insert_app(db: &dyn AsyncQueryStore, row: &AppRow) -> AppResult<()> {
+pub async fn insert_app(db: &dyn QueryStore, row: &AppRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO vault_apps (uuid, name, description, secret_hash, secret_salt, created_at) \
          VALUES (?, ?, ?, ?, ?, ?)",
@@ -56,7 +56,7 @@ pub async fn insert_app(db: &dyn AsyncQueryStore, row: &AppRow) -> AppResult<()>
     Ok(())
 }
 
-pub async fn find_app(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<AppRow>> {
+pub async fn find_app(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<AppRow>> {
     let rows = db
         .query_async(
             "SELECT uuid, name, description, secret_hash, secret_salt, created_at \
@@ -71,7 +71,7 @@ pub async fn find_app(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<
     rows.first().map(map_app).transpose()
 }
 
-pub async fn delete_app(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<()> {
+pub async fn delete_app(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     for sql in [
         "DELETE FROM vault_ssh_keys WHERE app_uuid = ?",
         "DELETE FROM vault_apps WHERE uuid = ?",
@@ -117,7 +117,7 @@ fn map_key(row: &SqlRow) -> AppResult<SshKeyRow> {
     })
 }
 
-pub async fn insert_key(db: &dyn AsyncQueryStore, row: &SshKeyRow) -> AppResult<()> {
+pub async fn insert_key(db: &dyn QueryStore, row: &SshKeyRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO vault_ssh_keys \
          (uuid, app_uuid, name, key_type, public_key, private_key_encrypted, comment, expires_at, created_at) \
@@ -142,7 +142,7 @@ pub async fn insert_key(db: &dyn AsyncQueryStore, row: &SshKeyRow) -> AppResult<
     Ok(())
 }
 
-pub async fn find_keys_by_app(db: &dyn AsyncQueryStore, app_uuid: &str) -> AppResult<Vec<SshKeyRow>> {
+pub async fn find_keys_by_app(db: &dyn QueryStore, app_uuid: &str) -> AppResult<Vec<SshKeyRow>> {
     let rows = db
         .query_async(
             &format!("SELECT {KEY_COLS} FROM vault_ssh_keys WHERE app_uuid = ? ORDER BY created_at"),
@@ -156,7 +156,7 @@ pub async fn find_keys_by_app(db: &dyn AsyncQueryStore, app_uuid: &str) -> AppRe
     rows.iter().map(map_key).collect()
 }
 
-pub async fn find_key(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<SshKeyRow>> {
+pub async fn find_key(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<SshKeyRow>> {
     let rows = db
         .query_async(
             &format!("SELECT {KEY_COLS} FROM vault_ssh_keys WHERE uuid = ?"),
@@ -170,7 +170,7 @@ pub async fn find_key(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<
     rows.first().map(map_key).transpose()
 }
 
-pub async fn delete_key(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<()> {
+pub async fn delete_key(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     db.execute_async(
         "DELETE FROM vault_ssh_keys WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],

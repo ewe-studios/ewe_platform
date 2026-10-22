@@ -5,11 +5,11 @@
 //! Cloudflare Workers login app demo.
 //!
 //! Uses foundation_auth types:
-//! - `SessionManager<CredentialStorage>` — session management via `AsyncCredentialStore`
+//! - `SessionManager<CredentialStorage>` — session management via `CredentialStore`
 //! - `CredentialStorage` wraps `StorageProvider` backed by `D1WasmStorage`
 //!
 //! All async handlers call `SessionManager::*_async` methods which delegate
-//! to `AsyncCredentialStore::get_async/set_async/list_keys_async` on
+//! to `CredentialStore::get_async/set_async/list_keys_async` on
 //! `CredentialStorage`, which in turn calls `StorageProvider::*_async`,
 //! which delegates to `D1WasmStorage::*_async` — direct JS Promise resolution,
 //! no valtron stream involved.
@@ -77,6 +77,7 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
         db: Arc::clone(&db),
         table_prefix: "app".to_string(),
     })
+    .await
     .map_err(|e| format!("storage provider init failed: {e:?}"))?;
     let cred_storage = CredentialStorage::new(provider);
 
@@ -459,9 +460,9 @@ async fn handle_post_login(app: &LazyApp, req: &web_sys::Request) -> web_sys::Re
     }
     log::info!("Argon2 verify OK");
 
-    // SessionManager async — calls AsyncCredentialStore → StorageProvider → D1WasmStorage async.
+    // SessionManager async — calls CredentialStore → StorageProvider → D1WasmStorage async.
     // All JS Promises, no valtron streams.
-    let (session, cookies) = match app.session_mgr.create_session_async(
+    let (session, cookies) = match app.session_mgr.create_session(
         &email,
         None,
         None,
@@ -501,8 +502,8 @@ async fn handle_dashboard(app: &LazyApp, req: &web_sys::Request) -> web_sys::Res
         return redirect_response("/login", "Redirecting to login...");
     };
 
-    // SessionManager async — calls AsyncCredentialStore methods directly.
-    match app.session_mgr.get_session_async(&token).await {
+    // SessionManager async — calls CredentialStore methods directly.
+    match app.session_mgr.get_session(&token).await {
         Ok(Some(session)) => html_response(&render_dashboard(&session.user_id), 200),
         Ok(None) => redirect_response("/login", "Redirecting to login..."),
         Err(e) => {
@@ -517,9 +518,9 @@ async fn handle_logout(app: &LazyApp, req: &web_sys::Request) -> web_sys::Respon
     if let Some(cookie_values) = cookie_values {
         let token = extract_session_token_from_cookie(&[cookie_values]);
         if let Some(token) = token {
-            match app.session_mgr.get_session_async(&token).await {
+            match app.session_mgr.get_session(&token).await {
                 Ok(Some(session)) => {
-                    let _ = app.session_mgr.revoke_session_async(&session.id).await;
+                    let _ = app.session_mgr.revoke_session(&session.id).await;
                 }
                 _ => {}
             }
@@ -552,7 +553,7 @@ async fn handle_save_note(app: &LazyApp, req: &web_sys::Request) -> web_sys::Res
         return json_response(&serde_json::json!({"error": "not authenticated"}), 401);
     };
 
-    let session = match app.session_mgr.get_session_async(&token).await {
+    let session = match app.session_mgr.get_session(&token).await {
         Ok(Some(s)) => s,
         _ => return json_response(&serde_json::json!({"error": "not authenticated"}), 401),
     };
@@ -593,7 +594,7 @@ async fn handle_get_note(app: &LazyApp, req: &web_sys::Request) -> web_sys::Resp
         return json_response(&serde_json::json!({"error": "not authenticated"}), 401);
     };
 
-    let session = match app.session_mgr.get_session_async(&token).await {
+    let session = match app.session_mgr.get_session(&token).await {
         Ok(Some(s)) => s,
         _ => return json_response(&serde_json::json!({"error": "not authenticated"}), 401),
     };

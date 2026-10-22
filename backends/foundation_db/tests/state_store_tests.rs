@@ -3,8 +3,8 @@
 //! WHY: Verify that the `FileStateStore` backend correctly implements the
 //! `StateStore` trait, and that types/helpers work as expected.
 //!
-//! WHAT: Tests for `FileStateStore` CRUD, `collect_first`, `collect_all`,
-//! `drive_to_completion`, `config_hash`, `StateStatus`, and `ResourceState`.
+//! WHAT: Tests for `FileStateStore` CRUD, `config_hash`, `StateStatus`, and
+//! `ResourceState`.
 //!
 //! HOW: Uses `tempfile::TempDir` for isolated file system tests.
 
@@ -12,10 +12,15 @@ use chrono::Utc;
 use serde_json::json;
 use tempfile::TempDir;
 
-use foundation_db::state::{
-    collect_all, collect_first, config_hash, drive_to_completion, FileStateStore, ResourceState,
-    StateStatus, StateStore,
-};
+use foundation_core::valtron::valtron_test;
+use foundation_db::core::state::traits::StateStoreStream;
+use foundation_db::state::{config_hash, FileStateStore, ResourceState, StateStatus, StateStore};
+use futures_lite::StreamExt;
+
+/// Drain a state stream, failing the test on any item error.
+async fn collect<T>(stream: StateStoreStream<T>) -> Vec<T> {
+    stream.map(Result::unwrap).collect().await
+}
 
 /// Helper: create a test `ResourceState`.
 fn make_state(id: &str, status: StateStatus) -> ResourceState {
@@ -36,162 +41,150 @@ fn make_state(id: &str, status: StateStatus) -> ResourceState {
 
 // ── FileStateStore CRUD ──────────────────────────────────────────────
 
-#[test]
-fn file_store_init_creates_directory() {
+#[valtron_test]
+async fn file_store_init_creates_directory() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "staging");
-    store.init().unwrap();
+    store.init().await.unwrap();
     assert!(tmp.path().join(".deployment/test-project/staging").exists());
 }
 
-#[test]
-fn file_store_set_and_get() {
+#[valtron_test]
+async fn file_store_set_and_get() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
     let state = make_state("my-worker", StateStatus::Created);
-    drive_to_completion(store.set("my-worker", &state).unwrap()).unwrap();
+    store.set("my-worker", &state).await.unwrap();
 
-    let retrieved = collect_first(store.get("my-worker").unwrap())
-        .unwrap()
-        .unwrap();
+    let retrieved = store.get("my-worker").await.unwrap();
     assert!(retrieved.is_some());
     let retrieved = retrieved.unwrap();
     assert_eq!(retrieved.id, "my-worker");
     assert_eq!(retrieved.kind, "test::resource");
 }
 
-#[test]
-fn file_store_get_nonexistent_returns_none() {
+#[valtron_test]
+async fn file_store_get_nonexistent_returns_none() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
-    let result = collect_first(store.get("does-not-exist").unwrap())
-        .unwrap()
-        .unwrap();
+    let result = store.get("does-not-exist").await.unwrap();
     assert!(result.is_none());
 }
 
-#[test]
-fn file_store_list_and_count() {
+#[valtron_test]
+async fn file_store_list_and_count() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
     let s1 = make_state("alpha", StateStatus::Created);
     let s2 = make_state("bravo", StateStatus::Creating);
-    drive_to_completion(store.set("alpha", &s1).unwrap()).unwrap();
-    drive_to_completion(store.set("bravo", &s2).unwrap()).unwrap();
+    store.set("alpha", &s1).await.unwrap();
+    store.set("bravo", &s2).await.unwrap();
 
-    let ids = collect_all(store.list().unwrap()).unwrap();
+    let ids = collect(store.list().await.unwrap()).await;
     assert_eq!(ids, vec!["alpha", "bravo"]);
 
-    let count = collect_first(store.count().unwrap()).unwrap().unwrap();
+    let count = store.count().await.unwrap();
     assert_eq!(count, 2);
 }
 
-#[test]
-fn file_store_all() {
+#[valtron_test]
+async fn file_store_all() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
     let s1 = make_state("alpha", StateStatus::Created);
     let s2 = make_state("bravo", StateStatus::Created);
-    drive_to_completion(store.set("alpha", &s1).unwrap()).unwrap();
-    drive_to_completion(store.set("bravo", &s2).unwrap()).unwrap();
+    store.set("alpha", &s1).await.unwrap();
+    store.set("bravo", &s2).await.unwrap();
 
-    let all = collect_all(store.all().unwrap()).unwrap();
+    let all = collect(store.all().await.unwrap()).await;
     assert_eq!(all.len(), 2);
     assert_eq!(all[0].id, "alpha");
     assert_eq!(all[1].id, "bravo");
 }
 
-#[test]
-fn file_store_get_batch() {
+#[valtron_test]
+async fn file_store_get_batch() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
     let s1 = make_state("a", StateStatus::Created);
     let s2 = make_state("b", StateStatus::Created);
     let s3 = make_state("c", StateStatus::Created);
-    drive_to_completion(store.set("a", &s1).unwrap()).unwrap();
-    drive_to_completion(store.set("b", &s2).unwrap()).unwrap();
-    drive_to_completion(store.set("c", &s3).unwrap()).unwrap();
+    store.set("a", &s1).await.unwrap();
+    store.set("b", &s2).await.unwrap();
+    store.set("c", &s3).await.unwrap();
 
-    let batch = collect_all(store.get_batch(&["a", "c"]).unwrap()).unwrap();
+    let batch = collect(store.get_batch(&["a", "c"]).await.unwrap()).await;
     assert_eq!(batch.len(), 2);
     let ids: Vec<&str> = batch.iter().map(|s| s.id.as_str()).collect();
     assert!(ids.contains(&"a"));
     assert!(ids.contains(&"c"));
 }
 
-#[test]
-fn file_store_delete() {
+#[valtron_test]
+async fn file_store_delete() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
     let state = make_state("doomed", StateStatus::Created);
-    drive_to_completion(store.set("doomed", &state).unwrap()).unwrap();
-    assert!(collect_first(store.get("doomed").unwrap())
-        .unwrap()
-        .unwrap()
+    store.set("doomed", &state).await.unwrap();
+    assert!(store.get("doomed").await.unwrap()
         .is_some());
 
-    drive_to_completion(store.delete("doomed").unwrap()).unwrap();
-    assert!(collect_first(store.get("doomed").unwrap())
-        .unwrap()
-        .unwrap()
+    store.delete("doomed").await.unwrap();
+    assert!(store.get("doomed").await.unwrap()
         .is_none());
 }
 
-#[test]
-fn file_store_delete_nonexistent_is_ok() {
+#[valtron_test]
+async fn file_store_delete_nonexistent_is_ok() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
-    drive_to_completion(store.delete("ghost").unwrap()).unwrap();
+    store.delete("ghost").await.unwrap();
 }
 
-#[test]
-fn file_store_upsert_overwrites() {
+#[valtron_test]
+async fn file_store_upsert_overwrites() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
     let v1 = make_state("worker", StateStatus::Creating);
-    drive_to_completion(store.set("worker", &v1).unwrap()).unwrap();
+    store.set("worker", &v1).await.unwrap();
 
     let v2 = make_state("worker", StateStatus::Created);
-    drive_to_completion(store.set("worker", &v2).unwrap()).unwrap();
+    store.set("worker", &v2).await.unwrap();
 
-    let retrieved = collect_first(store.get("worker").unwrap())
-        .unwrap()
-        .unwrap()
+    let retrieved = store.get("worker").await.unwrap()
         .unwrap();
     assert_eq!(retrieved.status, StateStatus::Created);
 }
 
-#[test]
-fn file_store_slash_in_resource_id() {
+#[valtron_test]
+async fn file_store_slash_in_resource_id() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
     let state = make_state("ns/my-worker", StateStatus::Created);
-    drive_to_completion(store.set("ns/my-worker", &state).unwrap()).unwrap();
+    store.set("ns/my-worker", &state).await.unwrap();
 
-    let ids = collect_all(store.list().unwrap()).unwrap();
+    let ids = collect(store.list().await.unwrap()).await;
     assert_eq!(ids, vec!["ns/my-worker"]);
 
-    let retrieved = collect_first(store.get("ns/my-worker").unwrap())
-        .unwrap()
-        .unwrap()
+    let retrieved = store.get("ns/my-worker").await.unwrap()
         .unwrap();
     assert_eq!(retrieved.id, "ns/my-worker");
 }
@@ -241,8 +234,8 @@ fn resource_state_config_changed() {
     assert!(state.config_changed(&diff_hash));
 }
 
-#[test]
-fn resource_state_needs_deploy() {
+#[valtron_test]
+async fn resource_state_needs_deploy() {
     let hash = config_hash(&json!({"key": "worker"})).unwrap();
     let diff = config_hash(&json!({"key": "changed"})).unwrap();
 
@@ -262,27 +255,25 @@ fn resource_state_needs_deploy() {
     assert!(creating.needs_deploy(&hash), "creating always deploys");
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────
+// ── Empty store ──────────────────────────────────────────────────────────
 
-#[test]
-fn collect_first_empty_stream() {
+#[valtron_test]
+async fn empty_store_counts_zero() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
-    // Empty store — list returns empty stream
-    let result = collect_first(store.list().unwrap()).unwrap();
-    assert!(result.is_none());
+    assert_eq!(store.count().await.unwrap(), 0);
 }
 
-#[test]
-fn collect_all_empty_stream() {
+#[valtron_test]
+async fn empty_store_lists_nothing() {
     let tmp = TempDir::new().unwrap();
     let store = FileStateStore::new(tmp.path(), "test-project", "dev");
-    store.init().unwrap();
+    store.init().await.unwrap();
 
-    let result = collect_all(store.list().unwrap()).unwrap();
-    assert!(result.is_empty());
+    let result = collect(store.list().await.unwrap()).await;
+    assert_eq!(result, Vec::<String>::new());
 }
 
 // ── Config hash ──────────────────────────────────────────────────────

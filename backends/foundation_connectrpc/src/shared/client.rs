@@ -37,7 +37,7 @@ use crate::shared::message::{Request, Response};
 use crate::shared::protocol::connect::constants as connect_consts;
 use crate::shared::protocol::grpc_web::constants as grpc_web_consts;
 use crate::shared::protocol::grpc::parse_grpc_error_trailer;
-use crate::shared::protocol::{ClientExchange, ProtocolClient};
+use crate::shared::protocol::{ClientExchange, ClientExchangeConfig, ProtocolClient};
 use crate::ConnectClient;
 use crate::GrpcClient;
 use crate::GrpcWebClient;
@@ -89,14 +89,31 @@ impl ProtocolSelection {
 // ============================================================================
 
 /// Read and send size limits for a client call.
-#[derive(Debug, Clone, Default)]
+///
+/// `read_max_bytes` defaults to 4 MiB, gRPC's default maximum receive message
+/// size (grpc-go `defaultClientMaxReceiveMessageSize`), the same default the
+/// server uses ([`crate::SizeLimits`]); `0` opts out.
+#[derive(Debug, Clone)]
 pub struct SizeLimits {
-    /// Maximum response body size (`0` = unlimited).
+    /// Maximum response message size (`0` = unlimited): a unary response body,
+    /// or each streaming response envelope (checked against its length prefix
+    /// before the payload is read).
     pub read_max_bytes: usize,
     /// Maximum request body size (`0` = unlimited).
     pub send_max_bytes: usize,
     /// Minimum payload size for compression (`0` = always compress).
     pub compress_min_bytes: usize,
+}
+
+impl Default for SizeLimits {
+    fn default() -> Self {
+        Self {
+            // 4 MiB — gRPC's default max receive message size (see above).
+            read_max_bytes: 4 * 1024 * 1024,
+            send_max_bytes: 0,
+            compress_min_bytes: 0,
+        }
+    }
 }
 
 // ============================================================================
@@ -288,7 +305,8 @@ impl ClientOptions {
 
     // ── Limits ──────────────────────────────────────────────────────────────────
 
-    /// Maximum response body size in bytes (`0` = unlimited).
+    /// Maximum response message size in bytes (`0` = unlimited; default 4 MiB,
+    /// see [`SizeLimits`]).
     #[must_use]
     pub fn with_read_max_bytes(mut self, n: usize) -> Self {
         self.config.limits.read_max_bytes = n;
@@ -780,7 +798,15 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         stream: TransportStream,
         ctx: &Ctx,
     ) -> ConnectResult<ClientExchange> {
-        self.protocol.new_conn(spec, headers, stream, CancelSignal::linked(ctx.cancel_signal()))
+        self.protocol.new_conn(
+            spec,
+            headers,
+            stream,
+            ClientExchangeConfig {
+                cancel: CancelSignal::linked(ctx.cancel_signal()),
+                read_max_bytes: self.config.limits.read_max_bytes,
+            },
+        )
     }
 
     // ── POST unary ─────────────────────────────────────────────────────────
@@ -837,6 +863,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
         // Build the inner unary function.
         let transport = Arc::clone(&self.transport);
+        let read_max_bytes = self.config.limits.read_max_bytes;
         let url_clone = url.clone();
         // Proto is Clone but not Copy; clone it into each closure scope.
         let proto_for_inner = proto.clone();
@@ -857,7 +884,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
                 };
 
                 // Execute via transport.open + push + close + read.
-                do_unary_round_trip(&*transport, desc, call.frame).await
+                do_unary_round_trip(&*transport, desc, call.frame, read_max_bytes).await
             })
         });
 
@@ -943,7 +970,13 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             method: SimpleMethod::GET,
         };
 
-        let result = do_unary_round_trip(&*self.transport, desc, Bytes::new()).await;
+        let result = do_unary_round_trip(
+            &*self.transport,
+            desc,
+            Bytes::new(),
+            self.config.limits.read_max_bytes,
+        )
+        .await;
 
         match result {
             Ok(reply) => {
@@ -1321,6 +1354,7 @@ async fn do_unary_round_trip(
     transport: &dyn Transport,
     desc: RequestDescriptor,
     body: Bytes,
+    read_max_bytes: usize,
 ) -> ConnectResult<UnaryReply> {
     let mut stream = transport.open(desc).map_err(ConnectError::from)?;
 
@@ -1340,10 +1374,16 @@ async fn do_unary_round_trip(
         .ok_or_else(|| ConnectError::unavailable("transport closed without response head"))?
         .map_err(ConnectError::from)?;
 
-    // Collect response body.
+    // Collect the response body (one message), never past `read_max_bytes`.
     let mut body_buf = Vec::new();
     while let Some(chunk) = stream.recv_body.next().await {
         body_buf.extend_from_slice(&chunk.map_err(ConnectError::from)?);
+        if read_max_bytes != 0 && body_buf.len() > read_max_bytes {
+            return Err(ConnectError::resource_exhausted(format!(
+                "response body exceeds read_max_bytes {read_max_bytes}"
+            ))
+            .into());
+        }
     }
 
     // Read trailers (h2 trailing HEADERS for gRPC grpc-status; empty for Connect).

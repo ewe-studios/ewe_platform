@@ -1,6 +1,6 @@
 [package]
 name = "foundation_toolings"
-version = "0.0.1"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,13 +10,13 @@ description = "Development tooling server: reverse proxy, file watcher, hot relo
 keywords = ["devserver", "proxy", "hot-reload", "valtron", "native-apis"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
-foundation_http = { path = "../foundation_http", version = "0.0.1" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
-foundation_runtimes = { path = "../foundation_runtimes", version = "0.0.3" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.3" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4" }
+foundation_http = { path = "../foundation_http", version = "0.0.3" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
+foundation_runtimes = { path = "../foundation_runtimes", version = "0.0.5" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 
 tracing.workspace = true
 derive_more.workspace = true
@@ -26,6 +26,16 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 
 which = "7"
+
+# Unix: kill the whole wrangler process group (wrangler → workerd) on stop.
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[features]
+# Opt-in: run the Cloudflare Worker examples under miniflare against a mocked
+# vendor (tests/cf_examples.rs). Needs worker-build, the wasm32 target and
+# wrangler/npx on PATH.
+cf-worker-tests = []
 
 [dev-dependencies]
 tracing-test.workspace = true

@@ -24,7 +24,7 @@ pub use shared::auth_manager::{AuthManager, AuthManagerConfig, AuthManagerError}
 pub use shared::auth_state::{AuthEvent, AuthState, AuthStateError, AuthStateMachine, QueuedRequest};
 pub use shared::auth_token::AuthToken;
 pub use shared::credential_store::{
-    AsyncCredentialStore, CredentialStorage, CredentialStore, CredentialStoreError, OAuthState, OAuthTokenStore,
+    CredentialStore, CredentialStorage, CredentialStoreError, OAuthState, OAuthTokenStore,
     StoredCredential,
 };
 

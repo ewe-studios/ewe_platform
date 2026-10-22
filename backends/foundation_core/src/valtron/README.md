@@ -334,6 +334,54 @@ cargo run -p foundation_core --example valtron_state_task_async
 
 ---
 
+## Async first, sync at the boundary
+
+Write APIs once, async: an `async fn`, a returned future, or an async
+`Stream`. Waiting is then a real `.await` on every target — including wasm in
+a Worker or browser, where blocking the one thread would starve the JS event
+loop that delivers the I/O. Code that needs sync wraps the async API at its
+boundary with valtron; libraries never carry a sync twin.
+
+**Valtron stream → async** (methods on any `StreamIteratorExt` stream; waiting
+parks, it never polls):
+
+| Method | Gives | (old name, still works) |
+|--------|-------|----------|
+| `.values()` | `Stream<Item = D>`: each `Next`, and each `Done` inside a `Spread` | `into_next_stream` |
+| `.items()` | `Stream<Item = Stream<D, P>>`: every item, progress included | `into_future_stream` |
+| `.collect_async()` | future of `Vec<D>` | `into_collect_future` |
+| `.first()` | future of `Option<(D, rest_of_stream)>` | `into_ready_future` |
+
+**Async → sync** (native and the host-ABI wasm path only):
+
+| Call | Gives |
+|------|-------|
+| `fut.block()` / `block_on_future(fut)` | the future's output |
+| `stream.blocking()?` / `run_stream_iter(stream)?` | a plain `Iterator` to `for`-loop or `collect()` |
+| `run_future_iter(..)` | a future that resolves to an iterator, as an iterator |
+| `next_values(stream_iter)` | the values of a valtron stream, lazily, as an `Iterator` |
+
+These do not exist on JS-hosted wasm (`js-wasmbindgen`, `js-foundation-wasm`):
+blocking there would freeze the isolate, so using one is a compile error —
+`.await` instead. The same goes for `sync_one`, `sync_all`,
+`sync_collect_one` and `block_on_collect`.
+
+**Inside a task** that pulls a stream, one call maps an item to the status to
+return — `Next` → `Ready`, `Wait` → parked on the stream (`park_on`), end of
+stream → `None`:
+
+```rust
+fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<u32, char>> {
+    match TaskStatus::from_stream(&mut self.input)? {
+        TaskStatus::Ready(v) => Some(TaskStatus::Ready(v * 2)),
+        other => Some(other),
+    }
+}
+```
+
+Never drain a stream with a loop that `continue`s on `Wait`: on wasm that
+spins forever.
+
 ## The unified API
 
 These free functions live at `foundation_core::valtron::*` and resolve to the
@@ -378,7 +426,7 @@ polling itself:
 
 | Function | Use it for |
 |----------|-----------|
-| `run_future(fut)` | Block until an async block / future completes, return its outputs. |
+| `block_on_future(fut)` / `fut.block()` | Block until a future completes and return its output (not on JS wasm). |
 | `run_future_iter(future_fn, queue_size, backpressure_sleep)` | Run a future that resolves to an iterator of `Result`s; stream the items out (queue/backpressure options apply under `multi`). |
 | `from_future(fut)` / `from_stream(s)` | Wrap a future / `futures_core::Stream` as a `TaskIterator` (then `execute` it like any task). |
 | `drive_future(fut)` / `drive_future_stream(s)` | Same, pre-wrapped into a driven iterator. |
@@ -430,10 +478,10 @@ Notes:
   chain). This is exactly why tests and shared code should use the unified
   API: `single::spawn()` panics with "Thread pool not initialized" when the
   unified `initialize_pool` actually brought up the multi pool.
-- wasm32 builds of this workspace need `--profile uat` or
-  `CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm` (the dev profile's Cranelift backend
-  also cannot initiate panic unwinding — panic-in-task tests abort under dev
-  but pass under uat).
+- Under mise, `dev` builds use Cranelift (mise's `[env]`), which can't
+  target wasm32 and can't initiate panic unwinding (panic-in-task tests abort
+  under it). Use `--profile uat`, or unset `CARGO_PROFILE_DEV_CODEGEN_BACKEND`;
+  plain `cargo` outside mise builds `dev` with LLVM.
 
 ---
 

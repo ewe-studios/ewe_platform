@@ -41,6 +41,7 @@ pub use errors::{
 };
 pub use memory::{MemoryConfig, MemoryParseStrategy};
 pub use memory_store::{KvMemoryStore, MemoryStore};
+pub use message_api::MessageApiConfig;
 pub use progress::{AgentProgress, MemoryKind};
 pub use session::{AgentSession, AgentSessionBuilder};
 pub use token_ledger::TokenSnapshot;
@@ -48,7 +49,9 @@ pub use tool_impl::{FnTool, ToolArgs, ToolCallResult, ToolError, ToolImpl};
 pub use toolshed::{
     tool_fn, ContextSearch, MemoryAccess, SessionParts, ToolConstructor, ToolShed, ToolShedError,
 };
-pub use turn::{Answer, Turn, TurnEvent, TurnEvents, TurnOutcome, TurnStream, TurnSummary};
+pub use turn::{
+    Answer, Turn, TurnEvent, TurnEvents, TurnOutcome, TurnStream, TurnSummary, TurnTextStream,
+};
 
 /// Loop internals, for custom loops, extensions and tests.
 ///
@@ -72,7 +75,9 @@ pub mod internals {
     pub use super::memory::{MemoryAction, MemoryHierarchy};
     pub use super::memory_coordinator::MemoryCoordinator;
     pub use super::memory_store::{MemoryTier, SessionMemory};
-    pub use super::message_api::{MessageApi, MessageEvent, Receiver as MessageReceiver};
+    pub use super::message_api::{
+        MessageApi, MessageApiConfig, MessageEvent, Receiver as MessageReceiver,
+    };
     pub use super::progress::{lift_model_item, AgentStream};
     pub use super::serialization::{
         from_record_batch, to_record_batch, SerError, SessionRecordRow,
@@ -88,7 +93,7 @@ pub mod internals {
         FileMatch, FileSearch, FileSearchKind, SearchContextTool, SearchFileTool, VfsSearchBackend,
     };
     pub use super::tools::shed::{
-        ShedQuery, ShedResult, ToolDiscovery, ToolSummary, SHED_TOOL_NAME,
+        IndexFailure, ShedQuery, ShedResult, ToolDiscovery, ToolSummary, SHED_TOOL_NAME,
     };
     #[cfg(not(target_family = "wasm"))]
     pub use foundation_nativeapis::{VfsSearchKind, VfsSearchMatch, VfsSearcher};

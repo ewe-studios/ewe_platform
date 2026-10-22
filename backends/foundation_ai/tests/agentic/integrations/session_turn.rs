@@ -28,7 +28,7 @@ use foundation_ai::harness::{Gemma4E2b, RouterMix};
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelOutput, SessionRecord, TextContent, UserModelContent,
 };
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{block_on_future, valtron_test};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type TestSession = AgentSession<MemoryDocumentStore, KvMemoryStore<MemoryStorage>>;
@@ -87,7 +87,7 @@ fn greeting_interaction() -> foundation_ai::types::ModelInteraction {
 
 /// Build the session exactly the way `answerme-agent` does, so a break here is a
 /// break in the shipped app path.
-fn gemma_session() -> TestSession {
+async fn gemma_session() -> TestSession {
     let provider = Gemma4E2b::q4_k_m(Some(gguf_config())).expect("provider builds");
     let model_id = ModelId::Name(Gemma4E2b::MODEL_ID.to_string(), None);
 
@@ -103,6 +103,7 @@ fn gemma_session() -> TestSession {
         .with_memory_config(MemoryConfig::default())
         .with_error_policy(ErrorPolicy::new())
         .build()
+        .await
         .expect("session builds")
 }
 
@@ -208,11 +209,11 @@ fn provider_stream_yields_text() {
 
 /// A single turn must reach the model and come back with an assistant message.
 #[valtron_test]
-fn run_turn_returns_an_assistant_reply() {
-    let session = gemma_session();
+async fn run_turn_returns_an_assistant_reply() {
+    let session = gemma_session().await;
 
     let records = session
-        .run_turn(user_msg("Reply with a single short greeting."))
+        .run_turn(user_msg("Reply with a single short greeting.")).await
         .expect("turn should succeed");
 
     assert!(
@@ -242,11 +243,11 @@ fn run_turn_returns_an_assistant_reply() {
 /// than re-emitted on the stream. So this asserts against session history, not
 /// the returned records.
 #[valtron_test]
-fn run_turn_persists_the_user_prompt() {
-    let session = gemma_session();
+async fn run_turn_persists_the_user_prompt() {
+    let session = gemma_session().await;
 
     session
-        .run_turn(user_msg("Reply with a single short greeting."))
+        .run_turn(user_msg("Reply with a single short greeting.")).await
         .expect("turn should succeed");
 
     let history = session
@@ -293,12 +294,15 @@ fn concurrent_agents_share_one_model_safely() {
     let handles: Vec<_> = (0..2)
         .map(|agent| {
             thread::spawn(move || {
-                let session = gemma_session();
+                // A plain OS thread is a sync boundary: block on the async calls.
+                let session = block_on_future(gemma_session());
                 let mut replies = Vec::new();
                 for turn in 0..3 {
-                    let records = session
-                        .run_turn(user_msg("Reply with a single short greeting."))
-                        .unwrap_or_else(|e| {
+                    // A plain OS thread: the sync adapter drives the async turn.
+                    let records = block_on_future(
+                        session.run_turn(user_msg("Reply with a single short greeting.")),
+                    )
+                    .unwrap_or_else(|e| {
                             panic!("agent {agent} turn {turn} failed: {e:?}");
                         });
                     let text = assistant_text(&records);
@@ -328,11 +332,11 @@ fn concurrent_agents_share_one_model_safely() {
 /// from disk per turn rather than held. This test pins both halves — the second
 /// turn answers, and loading happens once.
 #[valtron_test]
-fn second_turn_answers_and_reuses_the_loaded_model() {
-    let session = gemma_session();
+async fn second_turn_answers_and_reuses_the_loaded_model() {
+    let session = gemma_session().await;
 
     let first = session
-        .run_turn(user_msg("Reply with a single short greeting."))
+        .run_turn(user_msg("Reply with a single short greeting.")).await
         .expect("first turn should succeed");
     assert!(
         !assistant_text(&first).is_empty(),
@@ -340,7 +344,7 @@ fn second_turn_answers_and_reuses_the_loaded_model() {
     );
 
     let second = session
-        .run_turn(user_msg("Reply with one more short greeting."))
+        .run_turn(user_msg("Reply with one more short greeting.")).await
         .expect("second turn should succeed");
     assert!(
         !assistant_text(&second).is_empty(),

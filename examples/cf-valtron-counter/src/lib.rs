@@ -132,7 +132,7 @@ async fn handle_counter() -> web_sys::Response {
         Some(std::time::Duration::from_millis(4)),
     ).expect("should schedule task");
 
-    let future_stream = driven_iter.into_future_stream();
+    let future_stream = driven_iter.into_pure_future_stream();
 
     let future_stream = Rc::new(RefCell::new(Some(future_stream)));
 

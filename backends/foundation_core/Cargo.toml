@@ -1,6 +1,6 @@
 [package]
 name = "foundation_core"
-version = "0.0.4"
+version = "0.0.6"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -22,14 +22,17 @@ crate-type = ["rlib"]
 # foundation_compact's vendored entropy — NOT upstream rand/getrandom — so wasm
 # builds never drag getrandom's wasm-bindgen backend into the OWNED path
 # (decision 031 / feature 14). std is followed from this crate's `std` feature.
-foundation_compact = { path = "../foundation_compact", version = "0.2.1", default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.2", default-features = false }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
-foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
 
 # -- Workspace dependencies
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.4" }
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
+# Only the `js-foundation-wasm` JS-yield backend (wasm targets) uses it, so it is
+# optional: native builds no longer compile foundation_wasm and its native-only
+# CLI tooling (clap, toml_edit, foundation_codegen, ...).
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.5", optional = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
@@ -63,9 +66,6 @@ tracing-subscriber = "0.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 serial_test = { workspace = true }
-foundation_testing = { path = "../foundation_testing" }
-reqwest = { version = "0.12.15", features = ["blocking"] }
-ntest = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt"] }
 smol = "2"
 
@@ -85,14 +85,15 @@ std = ["futures-core/std", "foundation_nostd/std", "foundation_compact/std", "de
 multi = ["std", "alloc"]  # Multi-threaded executor requires std
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
-js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop"]
-js-foundation-wasm = ["foundation_wasm/web"]
+# Each also picks foundation_compact's matching wasm32 time/entropy backend.
+js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop", "foundation_compact/wasm-bindgen"]
+js-foundation-wasm = ["dep:foundation_wasm", "foundation_wasm/web", "foundation_compact/host-abi"]
 
 # default flags
 default = ["standard", "std", "alloc"]
 
 [build-dependencies]
-foundation_buildtools = { path = "../foundation_buildtools", version = "0.0.1" }
+foundation_buildtools = { path = "../foundation_buildtools", version = "0.0.2" }
 
 [lints]
 workspace = true

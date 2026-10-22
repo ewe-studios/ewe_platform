@@ -32,7 +32,6 @@ tools/depot_tools/
 
 /target
 **/*.rs.bk
-Cargo.lock
 pkg/
 wasm-pack.log
 
@@ -205,3 +204,6 @@ backends/foundation_testbed/.testbed/.*
 
 # Vendored external repo (has its own .git) — cloned tooling, not our source.
 infrastructure/docker/docker-android/
+
+# wasm-testbed bindgen-* runs regenerate these (wasm-bindgen output + run.js) on every run
+backends/*/integrations/bindgen-*/

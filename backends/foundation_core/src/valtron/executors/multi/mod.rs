@@ -56,9 +56,9 @@ use crate::valtron::{
 use crate::compati::{CondVarMutex, Condvar, Mutex, RwLock};
 use foundation_nostd::comp::condvar_comp::{CondVar, CondVarMutex as CvMutex};
 
-use crate::valtron::{split_thread_count, BackgroundJobRegistry, GenericResult};
-
-use crate::valtron::executors::background::DEFAULT_BG_YIELD_DURATION;
+use crate::valtron::{
+    split_thread_count, BackgroundJobConfig, BackgroundJobRegistry, GenericResult, ShutdownOutcome,
+};
 
 /// Global registry - stores the `ThreadRegistry` Arc.
 /// Uses Mutex<Option> to allow resetting between tests.
@@ -205,6 +205,15 @@ impl LocalPoolHandle {
     }
 }
 
+/// Whether a pool is running (see [`get_pool`], which panics when not).
+#[must_use]
+pub fn is_pool_initialized() -> bool {
+    REGISTRY
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .is_some()
+}
+
 /// [`get_pool`] returns a handle for spawning tasks.
 ///
 /// # Panics
@@ -265,6 +274,43 @@ where
 ///
 /// The caller is responsible for signal handling via the `PoolGuard`.
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
+    initialize_pool_with_config(seed_for_rng, user_thread_num, PoolConfig::default())
+}
+
+/// Tunables for the multi-threaded pool beyond its seed and thread count.
+///
+/// WHY: Limits are configuration, not constants (CLAUDE.md rule 8).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PoolConfig {
+    /// The longest `PoolGuard::shutdown` waits for queued background jobs
+    /// before dropping the unstarted ones and detaching stuck workers. Default
+    /// [`BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT`].
+    pub background_shutdown_timeout: std::time::Duration,
+}
+
+impl Default for PoolConfig {
+    fn default() -> Self {
+        Self {
+            background_shutdown_timeout: BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT,
+        }
+    }
+}
+
+impl PoolConfig {
+    /// Set [`Self::background_shutdown_timeout`].
+    #[must_use]
+    pub fn with_background_shutdown_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.background_shutdown_timeout = timeout;
+        self
+    }
+}
+
+/// [`initialize_pool`] with explicit [`PoolConfig`] tunables.
+pub fn initialize_pool_with_config(
+    seed_for_rng: u64,
+    user_thread_num: Option<usize>,
+    config: PoolConfig,
+) -> PoolGuard {
     // Acquire the process-wide lifecycle gate FIRST — blocks (in FIFO order)
     // until any previous pool's PoolGuard has dropped. This serializes all pool
     // users (across test files, regardless of #[serial]) since the global
@@ -304,11 +350,11 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
             .expect("Failed to spawn worker thread");
     }
 
-    // Create background job registry sharing the kill signal
-    let bg_registry = BackgroundJobRegistry::new(
-        bg_threads,
-        registry.kill_signal(),
-        DEFAULT_BG_YIELD_DURATION,
+    // The background registry has its own lifecycle: `PoolGuard::shutdown`
+    // shuts it down (running every job it accepted) before the task workers.
+    let bg_registry = BackgroundJobRegistry::with_config(
+        BackgroundJobConfig::new(bg_threads)
+            .with_shutdown_timeout(config.background_shutdown_timeout),
     );
 
     let mut reg_guard = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
@@ -393,9 +439,11 @@ where
 /// Returned by `initialize_pool`. Provides deterministic cleanup.
 ///
 /// On drop (or explicit `shutdown()` call):
-/// 1. `OnSignal::turn_on()` — broadcast kill to all threads
-/// 2. `LockSignal::signal_all()` — wake any blocked/parked threads
-/// 3. `BackgroundJobRegistry::shutdown()` — wait for background workers
+/// 1. `BackgroundJobRegistry::shutdown()` — stop accepting background jobs,
+///    run the ones already queued, and join the background workers (first,
+///    while task workers are alive, since queued jobs may depend on them)
+/// 2. `OnSignal::turn_on()` — broadcast kill to all task threads
+/// 3. `LockSignal::signal_all()` — wake any blocked/parked threads
 /// 4. `WaitGroup::wait()` — block until all task threads report death
 /// 5. Join all `JoinHandle`s
 /// 6. Clear global registries ONLY if generation still matches
@@ -462,10 +510,23 @@ impl PoolGuard {
             .is_ok()
         {
             tracing::debug!("PoolGuard::shutdown() - signaling kill to all threads");
-            // Shut down background workers first (they share the kill signal)
+            // Shut down background workers first, while the task workers are
+            // still alive: queued background jobs may depend on them.
             if let Some(ref bg) = self.bg_registry {
                 tracing::debug!("PoolGuard::shutdown() - shutting down background workers");
-                bg.shutdown();
+                if let ShutdownOutcome::TimedOut {
+                    abandoned_jobs,
+                    busy_workers,
+                } = bg.shutdown()
+                {
+                    // Already logged by the registry; the pool carries on tearing
+                    // down the task workers rather than hanging on stuck jobs.
+                    tracing::warn!(
+                        abandoned_jobs,
+                        busy_workers,
+                        "PoolGuard::shutdown() - background shutdown timed out"
+                    );
+                }
             }
 
             self.registry.shutdown();
@@ -475,6 +536,46 @@ impl PoolGuard {
         } else {
             tracing::debug!("PoolGuard::shutdown() - already shut down, skipping");
         }
+    }
+
+    /// [`Self::shutdown`] with a deadline for the task workers.
+    ///
+    /// WHY: `shutdown` waits for every worker to reach its kill check, so a
+    /// worker stuck inside a task (blocked in a syscall, or deadlocked) makes it
+    /// wait forever, and the process-wide lifecycle gate is never released. A
+    /// test harness that has already given up on a hung test needs the pool torn
+    /// down in bounded time so the next pool user can start.
+    ///
+    /// WHAT: returns `true` if every worker stopped within `timeout`, `false` if
+    /// some were detached still busy (see [`ThreadRegistry::shutdown_within`]).
+    /// Either way the global registries are cleared, and dropping the guard
+    /// afterwards releases the lifecycle gate without waiting again. Idempotent:
+    /// a second call, or a call after `shutdown`, returns `true`.
+    #[must_use]
+    pub fn shutdown_within(&self, timeout: std::time::Duration) -> bool {
+        if self
+            .shut_down
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::Relaxed)
+            .is_err()
+        {
+            return true;
+        }
+        if let Some(ref bg) = self.bg_registry {
+            if let ShutdownOutcome::TimedOut {
+                abandoned_jobs,
+                busy_workers,
+            } = bg.shutdown()
+            {
+                tracing::warn!(
+                    abandoned_jobs,
+                    busy_workers,
+                    "PoolGuard::shutdown_within() - background shutdown timed out"
+                );
+            }
+        }
+        let stopped = self.registry.shutdown_within(timeout);
+        clear_global_registries();
+        stopped
     }
 
     /// Get the `WaitGroup` for this pool.
@@ -700,17 +801,25 @@ impl ProcessController for ThreadYielder {
             .send(ThreadActivity::Parked(self.thread_id.clone()))
             .expect("should send event");
 
-        let guard = self.wait_state.lock().unwrap();
+        // A parked task becoming ready anywhere interrupts this wait
+        // (`request_executor_resume`), so it resumes at once.
+        let interrupter = self.clone();
+        crate::valtron::executors::idle_wake::park_idle(
+            std::sync::Arc::new(move || interrupter.interrupt()),
+            || {
+                let guard = self.wait_state.lock().unwrap();
 
-        // Wait while not notified (spurious wakeups are handled by re-checking)
-        let (mut guard, result) = self
-            .condvar
-            .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
-            .unwrap();
-        let _timed_out = result.timed_out();
+                // Wait while not notified (spurious wakeups are handled by re-checking)
+                let (mut guard, result) = self
+                    .condvar
+                    .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
+                    .unwrap();
+                let _timed_out = result.timed_out();
 
-        // CRITICAL: Reset state using the guard returned by wait_timeout_while.
-        *guard = WaitState::Waiting;
+                // CRITICAL: Reset state using the guard returned by wait_timeout_while.
+                *guard = WaitState::Waiting;
+            },
+        );
 
         self.sender
             .send(ThreadActivity::Unparked(self.thread_id.clone()))
@@ -1419,6 +1528,38 @@ impl ThreadRegistry {
         // Clear all remaining thread entries from the registry
         self.registry.clear();
         self.kill_latch.signal_all();
+    }
+
+    /// [`Self::shutdown`], but wait at most `timeout` for the workers to stop.
+    ///
+    /// Returns `true` when every worker stopped and was joined. Returns `false`
+    /// when some worker was still busy at the deadline: a worker blocked inside
+    /// a task (a blocking syscall, a deadlock) never reaches the kill check.
+    /// Those workers are detached rather than joined. They keep the registry
+    /// alive through their `Arc` and exit on their own if their task returns,
+    /// because the kill signal is already set.
+    #[must_use]
+    pub fn shutdown_within(&self, timeout: std::time::Duration) -> bool {
+        self.kill_signal.turn_on();
+        self.interrupt_all_yielders();
+        self.latch.signal_all();
+        let stopped = self.waitgroup.wait_timeout(timeout);
+        if stopped {
+            self.join_all_threads();
+        } else {
+            let detached = {
+                let mut map = self.thread_handles.write().unwrap_or_else(|p| p.into_inner());
+                std::mem::take(&mut *map).len()
+            };
+            tracing::error!(
+                detached,
+                timeout_ms = timeout.as_millis(),
+                "valtron pool: workers still busy at the shutdown deadline; detaching them"
+            );
+        }
+        self.registry.clear();
+        self.kill_latch.signal_all();
+        stopped
     }
 
     /// Join all thread handles.

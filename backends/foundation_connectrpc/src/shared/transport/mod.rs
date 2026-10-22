@@ -36,4 +36,6 @@ pub use conn::{
     HandlerConn, HandlerConnEnds, PipeClientConn, PipeHandlerConn,
 };
 pub use facade::{FrameMiddleware, MessageSink, MessageSource, TypedMiddleware};
-pub use frame::{race, BoxFuture, Either, Frame, FramePipe, DEFAULT_PIPE_DEPTH};
+pub use frame::{
+    copy_error, fail_stream, race, BoxFuture, Either, Frame, FramePipe, DEFAULT_PIPE_DEPTH,
+};

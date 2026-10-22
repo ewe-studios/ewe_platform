@@ -1,26 +1,21 @@
-//! In-memory `DocumentStore` implementation — for testing and development.
+//! In-memory document store — for testing, development and sessions that
+//! need no persistence.
 //!
 //! Ordering is by `doc_id` (scru128, lexicographic == chronological) on every
 //! scan — NOT a separate sequence counter and NOT `"mem-{seq}"` ids (which sort
 //! incorrectly: `"mem-10" < "mem-2"`). This matches the SQL backend (F06 Part 0).
 //!
-//! The real read/write logic lives in the neutral private helpers (`put`,
-//! `collect_rows`, `remove_*`, `count_rows`); the sync [`DocumentStore`] and the
-//! async [`AsyncDocumentStore`] impls both delegate to them, so neither wraps the
-//! other. (The general house pattern — real logic in the async impl, sync wraps
-//! it via valtron — applies to the I/O-backed backends like Turso; this in-memory
-//! store has no I/O to invert and is not cheaply shareable across worker threads,
-//! so it uses shared helpers instead.)
+//! It implements only [`DocumentStore`], like every other store; its
+//! futures resolve at once (there is no I/O). The read/write logic lives in private helpers
+//! (`put`, `collect_rows`, `remove_*`, `count_rows`).
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncDocumentStore, AsyncStorageItemStream, Document, DocumentStore, PromotableDocument,
-    StorageItemStream,
+    DocumentStore, AsyncStorageItemStream, Document, PromotableDocument,
 };
-use foundation_core::valtron::Stream;
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 
 /// One stored document row.
 #[derive(Clone)]
@@ -61,7 +56,12 @@ impl MemoryDocumentStore {
         }
     }
 
-    // ---- neutral real logic (shared by the sync + async trait impls) ----
+    /// Lock the collections; a poisoned lock is a backend error.
+    fn lock(&self) -> StorageResult<MutexGuard<'_, HashMap<String, Vec<Row>>>> {
+        self.documents
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))
+    }
 
     /// Serialize `content`, store a row (with optional promoted columns), and
     /// return the `Document` view.
@@ -85,17 +85,12 @@ impl MemoryDocumentStore {
             record_type,
         };
         let doc = row.to_document();
-        self.documents
-            .lock()
-            .unwrap()
-            .entry(key.to_string())
-            .or_default()
-            .push(row);
+        self.lock()?.entry(key.to_string()).or_default().push(row);
         Ok(doc)
     }
 
     /// Snapshot the matching rows, ordered + filtered + limited — the single read
-    /// path behind every scan (sync and async).
+    /// path behind every scan.
     ///
     /// - `newest_first`: order by `doc_id` DESC (true) or ASC (false).
     /// - `from_id`: keep only rows with `doc_id >= from_id` (inclusive, OD-06-2).
@@ -106,8 +101,8 @@ impl MemoryDocumentStore {
         newest_first: bool,
         from_id: Option<&str>,
         limit: Option<usize>,
-    ) -> Vec<Row> {
-        let docs = self.documents.lock().unwrap();
+    ) -> StorageResult<Vec<Row>> {
+        let docs = self.lock()?;
         let mut rows: Vec<Row> = docs
             .get(key)
             .map(|v| {
@@ -127,24 +122,23 @@ impl MemoryDocumentStore {
         if let Some(n) = limit {
             rows.truncate(n);
         }
-        rows
+        Ok(rows)
     }
 
-    fn remove_one(&self, key: &str, doc_id: &str) {
-        let mut docs = self.documents.lock().unwrap();
+    fn remove_one(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+        let mut docs = self.lock()?;
         if let Some(collection) = docs.get_mut(key) {
             collection.retain(|r| r.doc_id != doc_id);
         }
+        Ok(())
     }
 
-    fn remove_all(&self, key: &str) -> u64 {
-        let mut docs = self.documents.lock().unwrap();
-        docs.remove(key).map_or(0, |v| v.len() as u64)
+    fn remove_all(&self, key: &str) -> StorageResult<u64> {
+        Ok(self.lock()?.remove(key).map_or(0, |v| v.len() as u64))
     }
 
-    fn count_rows(&self, key: &str) -> u64 {
-        let docs = self.documents.lock().unwrap();
-        docs.get(key).map_or(0, |v| v.len() as u64)
+    fn count_rows(&self, key: &str) -> StorageResult<u64> {
+        Ok(self.lock()?.get(key).map_or(0, |v| v.len() as u64))
     }
 }
 
@@ -157,17 +151,6 @@ impl Default for MemoryDocumentStore {
 /// `0` means "unlimited" → `None`; otherwise `Some(limit)` (OD-06-2 / matches SQL).
 fn limit_opt(limit: usize) -> Option<usize> {
     (limit > 0).then_some(limit)
-}
-
-/// Replay snapshotted rows as the sync [`StorageItemStream`] (a valtron-`Stream`
-/// iterator of deserialized values).
-fn rows_to_sync<V: DeserializeOwned + Send + 'static>(
-    rows: Vec<Row>,
-) -> StorageItemStream<'static, V> {
-    Box::new(rows.into_iter().map(|r| match serde_json::from_str::<V>(&r.content) {
-        Ok(v) => Stream::Next(Ok(v)),
-        Err(e) => Stream::Next(Err(StorageError::Deserialization(e.to_string()))),
-    }))
 }
 
 /// Replay snapshotted rows as the async [`AsyncStorageItemStream`] — pulled one
@@ -185,116 +168,11 @@ fn rows_to_async<V: DeserializeOwned + Send + 'static>(
     Box::pin(futures_lite::stream::iter(items))
 }
 
-impl DocumentStore for MemoryDocumentStore {
-    fn append<V: Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        content: V,
-    ) -> StorageResult<Document> {
-        let doc_id = foundation_compact::ids::new_scru128_string();
-        self.put(key, doc_id, &content, None, None, None)
-    }
-
-    fn append_with_id<V: Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        doc_id: &str,
-        content: V,
-    ) -> StorageResult<Document> {
-        self.put(key, doc_id.to_string(), &content, None, None, None)
-    }
-
-    fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
-        &self,
-        key: &str,
-        content: V,
-    ) -> StorageResult<Document> {
-        let doc_id = foundation_compact::ids::new_scru128_string();
-        let (t, s, rt) = (content.title(), content.summary(), content.record_type());
-        self.put(key, doc_id, &content, t, s, rt)
-    }
-
-    fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
-        &self,
-        key: &str,
-        doc_id: &str,
-        content: V,
-    ) -> StorageResult<Document> {
-        let (t, s, rt) = (content.title(), content.summary(), content.record_type());
-        self.put(key, doc_id.to_string(), &content, t, s, rt)
-    }
-
-    fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
-        Ok(self
-            .collect_rows(key, true, None, Some(limit))
-            .iter()
-            .map(Row::to_document)
-            .collect())
-    }
-
-    fn scan_documents_from(
-        &self,
-        key: &str,
-        from_id: &str,
-        limit: usize,
-    ) -> StorageResult<Vec<Document>> {
-        Ok(self
-            .collect_rows(key, false, Some(from_id), limit_opt(limit))
-            .iter()
-            .map(Row::to_document)
-            .collect())
-    }
-
-    fn scan<V: DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-        limit: usize,
-    ) -> StorageResult<StorageItemStream<'_, V>> {
-        Ok(rows_to_sync(self.collect_rows(key, true, None, Some(limit))))
-    }
-
-    fn scan_all<V: DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> StorageResult<StorageItemStream<'_, V>> {
-        Ok(rows_to_sync(self.collect_rows(key, false, None, None)))
-    }
-
-    fn scan_from<V: DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-        from_id: &str,
-        limit: usize,
-    ) -> StorageResult<StorageItemStream<'_, V>> {
-        Ok(rows_to_sync(self.collect_rows(
-            key,
-            false,
-            Some(from_id),
-            limit_opt(limit),
-        )))
-    }
-
-    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
-        self.remove_one(key, doc_id);
-        Ok(())
-    }
-
-    fn delete_all(&self, key: &str) -> StorageResult<u64> {
-        Ok(self.remove_all(key))
-    }
-
-    fn count(&self, key: &str) -> StorageResult<u64> {
-        Ok(self.count_rows(key))
-    }
-}
-
-/// Async `DocumentStore` over the same in-memory state — lets the async backends
-/// (D1/wasm, F23) and the agentic layer be exercised in tests without a live
-/// Promise-based backend. Scans return a lazily-pulled [`AsyncStorageItemStream`]
-/// (never a `Vec`); every method delegates to the same neutral helpers the sync
-/// impl uses, so ordering/id/promoted-column semantics are identical.
+/// The in-memory document store. Every future is ready at once. Scans return
+/// an [`AsyncStorageItemStream`] over a snapshot of the matching rows;
+/// ordering, ids and promoted columns match the SQL backend.
 #[async_trait::async_trait]
-impl AsyncDocumentStore for MemoryDocumentStore {
+impl DocumentStore for MemoryDocumentStore {
     async fn append_async<V: Serialize + Send + 'static>(
         &self,
         key: &str,
@@ -335,7 +213,7 @@ impl AsyncDocumentStore for MemoryDocumentStore {
 
     async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
         Ok(self
-            .collect_rows(key, true, None, Some(limit))
+            .collect_rows(key, true, None, Some(limit))?
             .iter()
             .map(Row::to_document)
             .collect())
@@ -348,7 +226,7 @@ impl AsyncDocumentStore for MemoryDocumentStore {
         limit: usize,
     ) -> StorageResult<Vec<Document>> {
         Ok(self
-            .collect_rows(key, false, Some(from_id), limit_opt(limit))
+            .collect_rows(key, false, Some(from_id), limit_opt(limit))?
             .iter()
             .map(Row::to_document)
             .collect())
@@ -359,14 +237,14 @@ impl AsyncDocumentStore for MemoryDocumentStore {
         key: &str,
         limit: usize,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
-        Ok(rows_to_async(self.collect_rows(key, true, None, Some(limit))))
+        Ok(rows_to_async(self.collect_rows(key, true, None, Some(limit))?))
     }
 
     async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
-        Ok(rows_to_async(self.collect_rows(key, false, None, None)))
+        Ok(rows_to_async(self.collect_rows(key, false, None, None)?))
     }
 
     async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
@@ -380,19 +258,18 @@ impl AsyncDocumentStore for MemoryDocumentStore {
             false,
             Some(from_id),
             limit_opt(limit),
-        )))
+        )?))
     }
 
     async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
-        self.remove_one(key, doc_id);
-        Ok(())
+        self.remove_one(key, doc_id)
     }
 
     async fn delete_all_async(&self, key: &str) -> StorageResult<u64> {
-        Ok(self.remove_all(key))
+        self.remove_all(key)
     }
 
     async fn count_async(&self, key: &str) -> StorageResult<u64> {
-        Ok(self.count_rows(key))
+        self.count_rows(key)
     }
 }

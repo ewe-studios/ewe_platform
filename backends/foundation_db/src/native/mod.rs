@@ -25,9 +25,11 @@ pub use d1_kvstore::D1Store;
 pub use r2_blobstore::R2Store;
 
 pub mod json_file;
+#[cfg(feature = "libsql")]
 pub mod rows_stream;
 
 pub use json_file::*;
+#[cfg(feature = "libsql")]
 pub use rows_stream::*;
 
 use crate::core::state::traits::StateStore;
@@ -50,7 +52,15 @@ use std::path::Path;
 /// # Errors
 ///
 /// Returns an error if the selected backend fails to initialize.
-pub fn create_state_store(
+///
+/// The libsql backend opens (and may sync) its database here, so this is
+/// `async`; a sync entry point awaits it through `block_on_future` /
+/// `.block()` behind `blocking_boundary!`.
+#[cfg_attr(
+    not(feature = "libsql"),
+    allow(clippy::unused_async, reason = "only the libsql backend awaits; the signature is the same for every feature set")
+)]
+pub async fn create_state_store(
     project: &str,
     project_dir: &Path,
     _provider: &str,
@@ -67,21 +77,14 @@ pub fn create_state_store(
     }
 
     #[cfg(feature = "libsql")]
+    if std::env::var("TURSO_DATABASE_URL").is_ok()
+        || std::env::var("LIBSQL_TURSO_URL").is_ok()
+        || std::env::var("LIBSQL_LOCAL_PATH").is_ok()
+        || std::env::var("DEPLOYMENT_STATE_DB").is_ok()
+        || project_dir.join(".deployment/state.db").exists()
     {
-        if std::env::var("TURSO_DATABASE_URL").is_ok() {
-            return Ok(Box::new(LibsqlStore::from_env_state(project_dir, project, stage)?));
-        }
-
-        if std::env::var("LIBSQL_TURSO_URL").is_ok() {
-            return Ok(Box::new(LibsqlStore::from_env_state(project_dir, project, stage)?));
-        }
-
-        if std::env::var("LIBSQL_LOCAL_PATH").is_ok()
-            || std::env::var("DEPLOYMENT_STATE_DB").is_ok()
-            || project_dir.join(".deployment/state.db").exists()
-        {
-            return Ok(Box::new(LibsqlStore::from_env_state(project_dir, project, stage)?));
-        }
+        let store = LibsqlStore::from_env_state(project_dir, project, stage).await?;
+        return Ok(Box::new(store));
     }
 
     Ok(Box::new(FileStateStore::new(project_dir, project, stage)))

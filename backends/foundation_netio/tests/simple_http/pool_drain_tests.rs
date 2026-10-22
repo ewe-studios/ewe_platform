@@ -15,7 +15,6 @@ use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use tracing_test::traced_test;
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
@@ -32,7 +31,6 @@ fn server_addr(server: &TestHttpServer) -> SocketAddr {
 /// returned to the pool in an inconsistent state.
 #[test]
 #[serial(valtron_pool)]
-#[traced_test]
 fn test_pool_204_then_get_succeeds() {
     let _guard = initialize_pool(45, None);
 
@@ -97,7 +95,6 @@ fn test_pool_204_then_get_succeeds() {
 /// the pool after draining.
 #[test]
 #[serial(valtron_pool)]
-#[traced_test]
 fn test_pool_sequential_head_requests() {
     let _guard = initialize_pool(45, None);
 
@@ -170,7 +167,6 @@ fn test_pool_sequential_head_requests() {
 /// connection in an inconsistent state.
 #[test]
 #[serial(valtron_pool)]
-#[traced_test]
 fn test_pool_put_head_delete_head_sequence() {
     let _guard = initialize_pool(45, None);
 

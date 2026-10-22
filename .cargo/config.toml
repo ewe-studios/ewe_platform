@@ -6,9 +6,6 @@ ARTEFACTS_TEMPLATES_DIR = { value = "artefacts/temples/templates", relative=true
 BACKENDS_DIR = { value = "backends", relative=true, force = true }
 INFRASTRUCTURE_DIR = { value = "infrastructure", relative=true, force = true }
 
-# templates
-TEMPLATES_DIR = { value = "templates", relative = true, force = true }
-
 # build environment variables for infrastructure
 TOOLS_DIR = { value = "tools", relative=true, force = true }
 LLAMA_BINDINGS_DIR = { value = "infrastructure/llama-bindings", relative=true, force = true }
@@ -25,8 +22,9 @@ linker = "clang"
 rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
 
-[unstable]
-codegen-backend = true
+# No `[unstable]` table: stable cargo (which builds releases) ignores it, and
+# the Cranelift opt-in it carried now lives in mise.toml's [env]
+# (CARGO_UNSTABLE_CODEGEN_BACKEND) next to the profile backend it enables.
 
 # ── Android cross-compilation targets (spec-55 mobile) ──────────────────
 # The NDK lives in a different place and uses a different host prebuilt per OS

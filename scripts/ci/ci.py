@@ -56,14 +56,9 @@ GLOBAL_PATHS = (
     ".github/workflows/platform-images.yaml",
 )
 
-STEPS = ("fmt", "build", "clippy", "test")
+STEPS = ("fmt", "build", "clippy", "test", "wasm")
 MODES = ("enforce", "report", "off")
 
-# The `dev` profile uses the Cranelift backend, which CI doesn't install. CI
-# builds with `--profile uat`, but cargo invocations nested inside tests (e.g.
-# trybuild compile tests) build their own project with `dev`; point that
-# profile at LLVM too. A value already set in the environment wins.
-NESTED_BUILD_ENV = {"CARGO_PROFILE_DEV_CODEGEN_BACKEND": "llvm"}
 
 
 # ---------------------------------------------------------------------------
@@ -88,6 +83,8 @@ class Settings:
     clippy: str
     test: str
     runs: list[str]  # one `cargo test` per entry; each entry is its feature flags
+    wasm: str  # wasm32-unknown-unknown compile check mode
+    wasm_runs: list[str]  # one `cargo check --target wasm32` per entry; feature flags
     test_args: list[str]
     timeout_minutes: int
     reason: str | None
@@ -172,6 +169,8 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
             clippy=merged.get("clippy", "enforce"),
             test=merged.get("test", "enforce"),
             runs=list(merged.get("runs", [""])) or [""],
+            wasm=merged.get("wasm", "off"),
+            wasm_runs=list(merged.get("wasm-runs", [""])) or [""],
             test_args=list(merged.get("test-args", [])),
             timeout_minutes=int(merged.get("timeout-minutes", 60)),
             reason=merged.get("reason"),
@@ -284,6 +283,15 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
             if s.test_args:
                 cmd += ["--", *s.test_args]
             plan["test"].append(cmd)
+    if s.wasm != "off":
+        # A wasm32 compile gate: no `--all-targets`/profile (wasm has no test
+        # binaries or uat tuning), just `cargo check` on the wasm-relevant
+        # feature set. Catches the `multi`-into-`!Send`-wasm leak and other
+        # native-dep regressions that native-only builds never see.
+        for run in s.wasm_runs:
+            plan["wasm"].append(
+                ["cargo", "check", "--target", "wasm32-unknown-unknown", "-p", name, *feature_flags(run)]
+            )
     return plan
 
 
@@ -303,7 +311,7 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
     plan = commands(name, s, profile)
     # The package's `env` applies to every step. A value already set in the
     # environment wins, so a bigger machine can still override it locally.
-    env = {**NESTED_BUILD_ENV, **s.env, **os.environ}
+    env = {**s.env, **os.environ}
     if s.env:
         print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(s.env.items())), flush=True)
     failures: list[str] = []
@@ -336,7 +344,7 @@ def cmd_list(_: argparse.Namespace) -> int:
     settings = load_settings(packages)
     for name in sorted(packages):
         p, s = packages[name], settings[name]
-        status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} build={s.build} clippy={s.clippy} test={s.test}"
+        status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} build={s.build} clippy={s.clippy} test={s.test} wasm={s.wasm}"
         runs = ", ".join(repr(r) for r in s.runs)
         env = "".join(f"  {k}={v}" for k, v in sorted(s.env.items()))
         print(f"{name:36} {status:42} runs=[{runs}]{'  +llama.cpp' if p.needs_llama else ''}{env}")

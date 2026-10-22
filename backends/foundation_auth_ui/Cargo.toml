@@ -1,6 +1,6 @@
 [package]
 name = "foundation_auth_ui"
-version = "0.0.1"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -14,10 +14,10 @@ keywords.workspace = true
 # default features that would link `std` (signals' cross-thread hub,
 # wasm_ui's arrow-rs IPC, serde/serde_json `std`). `foundation_core` is not a
 # dependency: it is a std-only crate and nothing here uses it.
-foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.0", default-features = false }
-foundation_signals = { path = "../foundation_signals", version = "0.0.1", default-features = false, features = ["single_threaded"] }
-foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.2" }
-foundation_ui_components = { path = "../foundation_ui_components", version = "0.1.0" }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.1", default-features = false }
+foundation_signals = { path = "../foundation_signals", version = "0.0.3", default-features = false, features = ["single_threaded"] }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.3" }
+foundation_ui_components = { path = "../foundation_ui_components", version = "0.1.1" }
 
 serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }

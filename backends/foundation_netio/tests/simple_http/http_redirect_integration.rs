@@ -8,12 +8,10 @@ use foundation_netio::shared::http::HttpClientError;
 use foundation_testing::http::HttpResponse;
 use foundation_testing::TestHttpServer;
 use serial_test::serial;
-use tracing_test::traced_test;
 
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn test_redirect_chain_resolves_successfully() {
     // Initialize Valtron executor for HTTP client concurrency
@@ -39,7 +37,6 @@ fn test_redirect_chain_resolves_successfully() {
 }
 
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn test_redirect_chain_limit_enforced() {
     // Initialize Valtron executor for HTTP client concurrency
@@ -99,7 +96,6 @@ fn test_post_without_redirect() {
 /// NOTE: This test uses http_chain which inherently returns each redirect as a final
 ///       response to each request in the chain, exercising the CheckRedirect state.
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn test_redirect_as_final_response_chain() {
     // Initialize Valtron executor for HTTP client concurrency
@@ -135,7 +131,6 @@ fn test_redirect_as_final_response_chain() {
 ///
 /// IMPORTANCE: 307 differs from 302 in that it preserves POST method and body.
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn test_redirect_307_as_final_response() {
     // Initialize Valtron executor for HTTP client concurrency
@@ -167,7 +162,6 @@ fn test_redirect_307_as_final_response() {
 ///
 /// IMPORTANCE: Prevents infinite redirect loops from hanging the client.
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn test_too_many_redirects_as_final_response() {
     // Initialize Valtron executor for HTTP client concurrency
@@ -208,7 +202,6 @@ fn test_too_many_redirects_as_final_response() {
 /// IMPORTANCE: Ensures the client properly handles 100 Continue interim responses and still
 ///       follows redirects that come as the final response after the interim.
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn test_redirect_after_100_continue() {
     use std::sync::{Arc, Mutex};
@@ -281,7 +274,6 @@ fn test_redirect_after_100_continue() {
 /// WriteBody. Before the fix, WriteBody would call `Http11::request_body()` on
 /// a bodyless request and attempt to render/write an empty body.
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn get_without_body_completes_successfully() {
     let _pool_guard = foundation_core::valtron::initialize_pool(48, None);
@@ -305,7 +297,6 @@ fn get_without_body_completes_successfully() {
 /// SendSafeBody field) must NOT trigger the Expect: 100-continue handshake
 /// probe. The body field directly tells us there's nothing to write.
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn post_with_empty_body_skips_100_continue() {
     let _pool_guard = foundation_core::valtron::initialize_pool(49, None);
@@ -326,7 +317,6 @@ fn post_with_empty_body_skips_100_continue() {
 /// A POST with an actual body must still work correctly — this is the
 /// regression guard for the happy path.
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn post_with_body_still_works() {
     let _pool_guard = foundation_core::valtron::initialize_pool(50, None);
@@ -351,7 +341,6 @@ fn post_with_body_still_works() {
 /// A redirect chain where each hop is a bodyless GET must complete without
 /// entering WriteBody at any redirect step.
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn redirect_chain_bodyless_requests_skip_writebody() {
     let _pool_guard = foundation_core::valtron::initialize_pool(51, None);

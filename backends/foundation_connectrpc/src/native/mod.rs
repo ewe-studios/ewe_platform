@@ -13,6 +13,9 @@ pub mod server;
 /// Lets the HTTP/1.1 server's dispatch future wait on its socket.
 mod conn_io;
 
+/// The deadline timer of the HTTP/2 and HTTP/3 servers.
+pub(crate) mod deadline_timer;
+
 /// HTTP/2 server connection-owner adapter (foundation_http `H2Serve`).
 pub mod h2_serve;
 

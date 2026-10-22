@@ -1,6 +1,6 @@
 //! Integration tests for `StoreStateTask` and `StoreStateIdentifierTask`.
 
-use foundation_core::valtron::{Ctx, TaskIterator};
+use foundation_core::valtron::{valtron_test, Ctx, TaskIterator, TaskStatus};
 use foundation_db::core::state::file::FileStateStore;
 use foundation_db::core::state::resource_identifier::ResourceIdentifier;
 use foundation_db::core::state::store_state_task::{StoreStateIdentifierTask, StoreStateTask};
@@ -37,13 +37,13 @@ impl<T: Clone + Send + 'static> TaskIterator for MockSuccessTask<T> {
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending>>
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>>
     {
         if self.called {
             None
         } else {
             self.called = true;
-            Some(foundation_core::valtron::TaskStatus::Ready(Ok(self
+            Some(TaskStatus::Ready(Ok(self
                 .value
                 .clone())))
         }
@@ -73,13 +73,13 @@ impl TaskIterator for MockFailResourceTask {
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending>>
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>>
     {
         if self.called {
             None
         } else {
             self.called = true;
-            Some(foundation_core::valtron::TaskStatus::Ready(Err(self
+            Some(TaskStatus::Ready(Err(self
                 .error
                 .clone())))
         }
@@ -109,13 +109,13 @@ impl TaskIterator for MockFailTask {
     fn next_status(
         &mut self,
         _ctx: Ctx,
-    ) -> Option<foundation_core::valtron::TaskStatus<Self::Ready, Self::Pending>>
+    ) -> Option<TaskStatus<Self::Ready, Self::Pending>>
     {
         if self.called {
             None
         } else {
             self.called = true;
-            Some(foundation_core::valtron::TaskStatus::Ready(Err(self
+            Some(TaskStatus::Ready(Err(self
                 .error
                 .clone())))
         }
@@ -153,11 +153,11 @@ struct TestArgs {
 // StoreStateTask tests
 // ============================================================================
 
-#[test]
-fn test_store_state_task_success() {
+#[valtron_test]
+async fn test_store_state_task_success() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().expect("Failed to init state store");
+    state_store.init().await.expect("Failed to init state store");
 
     let output = TestResource {
         id: "res-123".to_string(),
@@ -186,11 +186,11 @@ fn test_store_state_task_success() {
 
     while let Some(status) = task.next_status(Ctx::new()) {
         match status {
-            foundation_core::valtron::TaskStatus::Ready(Ok(result)) => {
+            TaskStatus::Ready(Ok(result)) => {
                 assert_eq!(result.id, "res-123");
                 found_success = true;
             }
-            foundation_core::valtron::TaskStatus::Ready(Err(e)) => {
+            TaskStatus::Ready(Err(e)) => {
                 panic!("Task failed with error: {e}");
             }
             _ => {}
@@ -204,27 +204,21 @@ fn test_store_state_task_success() {
 
     // Verify state was stored
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    let mut get_stream = state_store
+    let state = state_store
         .get("test::Resource/res-123")
-        .expect("Failed to get state");
-    let stored_state = get_stream.next().expect("Stream should yield value");
-
-    match stored_state {
-        foundation_core::valtron::ThreadedValue::Value(Ok(Some(state))) => {
-            assert_eq!(state.id, "test::Resource/res-123");
-            assert_eq!(state.kind, "test::Resource");
-            assert_eq!(state.provider, "test");
-        }
-        foundation_core::valtron::ThreadedValue::Value(_) => panic!("Expected stored state"),
-        foundation_core::valtron::ThreadedValue::Waiting => unreachable!("stream should yield value"),
-    }
+        .await
+        .expect("Failed to get state")
+        .expect("Expected stored state");
+    assert_eq!(state.id, "test::Resource/res-123");
+    assert_eq!(state.kind, "test::Resource");
+    assert_eq!(state.provider, "test");
 }
 
-#[test]
-fn test_store_state_task_inner_failure() {
+#[valtron_test]
+async fn test_store_state_task_inner_failure() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().expect("Failed to init state store");
+    state_store.init().await.expect("Failed to init state store");
 
     let input = TestArgs {
         name: "test".to_string(),
@@ -248,10 +242,10 @@ fn test_store_state_task_inner_failure() {
 
     while let Some(status) = task.next_status(Ctx::new()) {
         match status {
-            foundation_core::valtron::TaskStatus::Ready(Err(_)) => {
+            TaskStatus::Ready(Err(_)) => {
                 found_error = true;
             }
-            foundation_core::valtron::TaskStatus::Ready(Ok(_)) => {
+            TaskStatus::Ready(Ok(_)) => {
                 panic!("Task should have failed");
             }
             _ => {}
@@ -262,31 +256,25 @@ fn test_store_state_task_inner_failure() {
 
     // Verify state was NOT stored
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    let mut get_stream = state_store
-        .get("test::Resource/res-123")
-        .expect("Failed to get state");
-    let stored_state = get_stream.next().expect("Stream should yield value");
-
-    match stored_state {
-        foundation_core::valtron::ThreadedValue::Value(Ok(None)) => {
-            // Expected - state should not exist
-        }
-        foundation_core::valtron::ThreadedValue::Value(_) => {
-            panic!("Expected no state to be stored")
-        }
-        foundation_core::valtron::ThreadedValue::Waiting => unreachable!("stream should yield value"),
-    }
+    assert!(
+        state_store
+            .get("test::Resource/res-123")
+            .await
+            .expect("Failed to get state")
+            .is_none(),
+        "Expected no state to be stored"
+    );
 }
 
 // ============================================================================
 // StoreStateIdentifierTask tests
 // ============================================================================
 
-#[test]
-fn test_store_state_identifier_task_success() {
+#[valtron_test]
+async fn test_store_state_identifier_task_success() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().expect("Failed to init state store");
+    state_store.init().await.expect("Failed to init state store");
 
     let output = TestResource {
         id: "res-456".to_string(),
@@ -312,11 +300,11 @@ fn test_store_state_identifier_task_success() {
 
     while let Some(status) = task.next_status(Ctx::new()) {
         match status {
-            foundation_core::valtron::TaskStatus::Ready(Ok(result)) => {
+            TaskStatus::Ready(Ok(result)) => {
                 assert_eq!(result.id, "res-456");
                 found_success = true;
             }
-            foundation_core::valtron::TaskStatus::Ready(Err(e)) => {
+            TaskStatus::Ready(Err(e)) => {
                 panic!("Task failed with error: {e}");
             }
             _ => {}
@@ -330,27 +318,21 @@ fn test_store_state_identifier_task_success() {
 
     // Verify state was stored with correct resource ID from trait
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    let mut get_stream = state_store
+    let state = state_store
         .get("test::Resource/res-456")
-        .expect("Failed to get state");
-    let stored_state = get_stream.next().expect("Stream should yield value");
-
-    match stored_state {
-        foundation_core::valtron::ThreadedValue::Value(Ok(Some(state))) => {
-            assert_eq!(state.id, "test::Resource/res-456");
-            assert_eq!(state.kind, "test::Resource");
-            assert_eq!(state.provider, "test");
-        }
-        foundation_core::valtron::ThreadedValue::Value(_) => panic!("Expected stored state"),
-        foundation_core::valtron::ThreadedValue::Waiting => unreachable!("stream should yield value"),
-    }
+        .await
+        .expect("Failed to get state")
+        .expect("Expected stored state");
+    assert_eq!(state.id, "test::Resource/res-456");
+    assert_eq!(state.kind, "test::Resource");
+    assert_eq!(state.provider, "test");
 }
 
-#[test]
-fn test_store_state_identifier_task_inner_failure() {
+#[valtron_test]
+async fn test_store_state_identifier_task_inner_failure() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().expect("Failed to init state store");
+    state_store.init().await.expect("Failed to init state store");
 
     let input = TestArgs {
         name: "test".to_string(),
@@ -371,10 +353,10 @@ fn test_store_state_identifier_task_inner_failure() {
 
     while let Some(status) = task.next_status(Ctx::new()) {
         match status {
-            foundation_core::valtron::TaskStatus::Ready(Err(_)) => {
+            TaskStatus::Ready(Err(_)) => {
                 found_error = true;
             }
-            foundation_core::valtron::TaskStatus::Ready(Ok(_)) => {
+            TaskStatus::Ready(Ok(_)) => {
                 panic!("Task should have failed");
             }
             _ => {}
@@ -385,20 +367,14 @@ fn test_store_state_identifier_task_inner_failure() {
 
     // Verify state was NOT stored
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    let mut get_stream = state_store
-        .get("test::Resource/res-456")
-        .expect("Failed to get state");
-    let stored_state = get_stream.next().expect("Stream should yield value");
-
-    match stored_state {
-        foundation_core::valtron::ThreadedValue::Value(Ok(None)) => {
-            // Expected - state should not exist
-        }
-        foundation_core::valtron::ThreadedValue::Value(_) => {
-            panic!("Expected no state to be stored")
-        }
-        foundation_core::valtron::ThreadedValue::Waiting => unreachable!("stream should yield value"),
-    }
+    assert!(
+        state_store
+            .get("test::Resource/res-456")
+            .await
+            .expect("Failed to get state")
+            .is_none(),
+        "Expected no state to be stored"
+    );
 }
 
 // ============================================================================

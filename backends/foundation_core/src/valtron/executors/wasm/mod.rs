@@ -23,24 +23,18 @@ mod wasm_bindgen;
     feature = "js-wasmbindgen",
     not(feature = "js-foundation-wasm")
 ))]
-pub use wasm_bindgen::{JSThreadYielder, JS_WAIT_CHECK_INTERVAL};
+pub use wasm_bindgen::js_stream;
 #[cfg(all(
     target_family = "wasm",
     feature = "js-wasmbindgen",
     not(feature = "js-foundation-wasm")
 ))]
-pub use wasm_bindgen::js_stream;
+pub use wasm_bindgen::{request_resume, JSThreadYielder, JS_WAIT_CHECK_INTERVAL};
 
-#[cfg(all(
-    target_family = "wasm",
-    feature = "js-foundation-wasm"
-))]
+#[cfg(all(target_family = "wasm", feature = "js-foundation-wasm"))]
 mod foundation_wasm;
-#[cfg(all(
-    target_family = "wasm",
-    feature = "js-foundation-wasm"
-))]
-pub use foundation_wasm::{JSThreadYielder, JS_WAIT_CHECK_INTERVAL};
+#[cfg(all(target_family = "wasm", feature = "js-foundation-wasm"))]
+pub use foundation_wasm::{request_resume, JSThreadYielder, JS_WAIT_CHECK_INTERVAL};
 
 // The JS yield *path* in `local.rs` is feature-gated (not target-gated): on native
 // it runs against `NoThreadController` but still references `JS_WAIT_CHECK_INTERVAL`.

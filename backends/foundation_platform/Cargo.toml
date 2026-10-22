@@ -7,22 +7,23 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 keywords.workspace = true
+description = "Cross-platform application layer for native, desktop, mobile and web apps: sessions, route policies, capabilities, caching, transport lanes and WebView management, with Tauri as one host"
 
 [dependencies]
 # Host platform (generic R: Runtime — works on Wry, Android, iOS)
 tauri = { version = "2.11.5", features = [] }
 
 # Embedded assets (EmbeddableDirectory trait + #[derive(EmbedDirectoryAs)])
-foundation_nostd = { path = "../foundation_nostd" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
 
 # Shared types (dependency-free, compiles for wasm32)
-foundation_ui_traits = { path = "../foundation_ui_traits" }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.3" }
 
 # WASM UI build pipeline — WasmBundleGenerator (native-only, target-gated)
-foundation_wasm_ui = { path = "../foundation_wasm_ui", features = ["embedded-js"] }
+foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.1", features = ["embedded-js"] }
 
 # Portable WASM primitives — WasmCapability trait + CapabilityRegistry (F23)
-foundation_wasm = { path = "../foundation_wasm" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.5" }
 
 # Lock-free queue for streaming IPC chunks (F26)
 concurrent-queue = { workspace = true }
@@ -38,10 +39,10 @@ tracing = { workspace = true }
 # HTTP client + networking — only need the client, not all of netcap/TCP
 # We explicitly enable only what HttpClientBuilder::build() requires.
 # `multi` enables NativeHttpClient; `ssl-rustls-ring` provides TLS.
-foundation_netio = { path = "../foundation_netio", default-features = false, features = ["multi", "ssl-rustls-ring", "compression", "wire-native", "std"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false, features = ["multi", "ssl-rustls-ring", "compression", "wire-native", "std"] }
 
 # Wasmtime shell — Surface 3 WASM runtime (F33)
-foundation_wasmtime = { path = "../foundation_wasmtime" }
+foundation_wasmtime = { path = "../foundation_wasmtime", version = "0.1.0" }
 
 # Build-time code generation — wraps tauri_build::build() + annotation scanning.
 tauri-build = { version = "2" }

@@ -7,7 +7,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{AsyncQueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -59,7 +59,7 @@ fn map_row(row: &SqlRow) -> AppResult<CipherRow> {
 }
 
 /// Insert a new cipher.
-pub async fn insert(db: &dyn AsyncQueryStore, row: &CipherRow) -> AppResult<()> {
+pub async fn insert(db: &dyn QueryStore, row: &CipherRow) -> AppResult<()> {
     db.execute_async(
         "INSERT INTO ciphers \
          (uuid, user_uuid, organization_uuid, atype, folder_uuid, favorite, name, data, \
@@ -88,7 +88,7 @@ pub async fn insert(db: &dyn AsyncQueryStore, row: &CipherRow) -> AppResult<()> 
 }
 
 /// All ciphers owned by a user (including soft-deleted — the sync/list layer decides).
-pub async fn find_by_user(db: &dyn AsyncQueryStore, user_uuid: &str) -> AppResult<Vec<CipherRow>> {
+pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<CipherRow>> {
     let rows = db
         .query_async(
             &format!("SELECT {COLUMNS} FROM ciphers WHERE user_uuid = ? ORDER BY created_at"),
@@ -103,7 +103,7 @@ pub async fn find_by_user(db: &dyn AsyncQueryStore, user_uuid: &str) -> AppResul
 }
 
 /// A single cipher by uuid.
-pub async fn find(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<CipherRow>> {
+pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<CipherRow>> {
     let rows = db
         .query_async(
             &format!("SELECT {COLUMNS} FROM ciphers WHERE uuid = ?"),
@@ -118,7 +118,7 @@ pub async fn find(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<Option<Ciph
 }
 
 /// Update the mutable content + metadata of a cipher.
-pub async fn update(db: &dyn AsyncQueryStore, row: &CipherRow) -> AppResult<()> {
+pub async fn update(db: &dyn QueryStore, row: &CipherRow) -> AppResult<()> {
     db.execute_async(
         "UPDATE ciphers SET atype = ?, folder_uuid = ?, favorite = ?, name = ?, data = ?, \
          updated_at = ? WHERE uuid = ?",
@@ -138,7 +138,7 @@ pub async fn update(db: &dyn AsyncQueryStore, row: &CipherRow) -> AppResult<()> 
 }
 
 /// Soft-delete: set `deleted_at` (moves the cipher to trash).
-pub async fn soft_delete(db: &dyn AsyncQueryStore, uuid: &str, when: DateTime<Utc>) -> AppResult<()> {
+pub async fn soft_delete(db: &dyn QueryStore, uuid: &str, when: DateTime<Utc>) -> AppResult<()> {
     db.execute_async(
         "UPDATE ciphers SET deleted_at = ?, updated_at = ? WHERE uuid = ?",
         &[
@@ -153,7 +153,7 @@ pub async fn soft_delete(db: &dyn AsyncQueryStore, uuid: &str, when: DateTime<Ut
 }
 
 /// Restore a soft-deleted cipher (clears `deleted_at`).
-pub async fn restore(db: &dyn AsyncQueryStore, uuid: &str, when: DateTime<Utc>) -> AppResult<()> {
+pub async fn restore(db: &dyn QueryStore, uuid: &str, when: DateTime<Utc>) -> AppResult<()> {
     db.execute_async(
         "UPDATE ciphers SET deleted_at = NULL, updated_at = ? WHERE uuid = ?",
         &[
@@ -167,7 +167,7 @@ pub async fn restore(db: &dyn AsyncQueryStore, uuid: &str, when: DateTime<Utc>) 
 }
 
 /// Hard-delete a cipher.
-pub async fn delete(db: &dyn AsyncQueryStore, uuid: &str) -> AppResult<()> {
+pub async fn delete(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
     db.execute_async(
         "DELETE FROM ciphers WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],

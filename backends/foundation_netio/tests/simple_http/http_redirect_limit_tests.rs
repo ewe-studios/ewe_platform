@@ -12,7 +12,6 @@ use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::thread;
 use std::time::Duration;
-use tracing_test::traced_test;
 
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
 
@@ -37,7 +36,6 @@ fn spawn_redirect_server() -> u16 {
 }
 
 #[test]
-#[traced_test]
 #[serial(valtron_pool)]
 fn redirect_limit_triggers_too_many_redirects() {
     // Initialize Valtron executor for HTTP client concurrency

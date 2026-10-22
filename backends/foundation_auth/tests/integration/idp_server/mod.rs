@@ -7,7 +7,7 @@ use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::{IdpConfig, IdpServer};
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
-use foundation_db::{MemoryStorage, StorageBackend, StorageProvider};
+use foundation_db::{QueryStore, MemoryStorage};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
@@ -19,11 +19,8 @@ use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 fn make_storage() -> Arc<HandlerStorage<MemoryStorage>> {
     let dir = tempfile::tempdir().expect("tempdir");
     let db_path = dir.path().join("test_auth.db");
-    let provider = StorageProvider::new(StorageBackend::Turso {
-        url: db_path.to_str().unwrap().to_string(),
-    })
-    .expect("init turso");
-    let query_store: Arc<dyn foundation_db::QueryStore> = Arc::new(provider);
+    let provider = super::turso_provider(db_path.to_str().unwrap().to_string());
+    let query_store: Arc<dyn QueryStore> = Arc::new(provider);
     let cache = MemoryStorage::new();
     Arc::new(HandlerStorage::new(query_store, cache))
 }
@@ -272,6 +269,45 @@ fn discovery_then_jwks_flow() {
 // ============================================================================
 // Scenario 4: Token introspection — returns inactive for unknown tokens
 // ============================================================================
+
+/// A body over `IdpConfig::max_request_body_bytes` is refused with 413, and
+/// one at the limit is still read and handled.
+#[valtron_test(threads = 8)]
+fn request_body_over_the_limit_is_rejected() {
+    let token_form = "token=some_random_invalid_token";
+    let (addr, shutdown, handle) =
+        start_idp(test_config().with_max_request_body_bytes(token_form.len()));
+    let client = make_client(addr);
+
+    let at_limit = client
+        .post("http://testserver/idp/introspect")
+        .unwrap()
+        .body_text(token_form)
+        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+    let (status, _, body, _, _) = at_limit.into_parts();
+    assert_eq!(status_code(&status), 200);
+    assert_eq!(parse_json(&read_body(body))["active"], false);
+
+    let over_limit = client
+        .post("http://testserver/idp/introspect")
+        .unwrap()
+        .body_text(format!("{token_form}x"))
+        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+    let (status, _, body, _, _) = over_limit.into_parts();
+    assert_eq!(status_code(&status), 413);
+    assert_eq!(parse_json(&read_body(body))["error"], "payload_too_large");
+
+    shutdown.turn_on();
+    let _ = handle.join();
+}
 
 #[valtron_test(threads = 8)]
 fn introspect_returns_inactive_for_unknown_token() {

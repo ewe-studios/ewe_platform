@@ -14,10 +14,9 @@ use zeroize::Zeroizing;
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream,
-    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
+    RateLimiterStore, DataValue,
 };
-use foundation_core::valtron::Stream;
 
 /// JSON file storage backend.
 ///
@@ -147,173 +146,14 @@ impl JsonFileStorage {
     }
 }
 
-impl KeyValueStore for JsonFileStorage {
-    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
-        let data = self
-            .data
-            .lock()
-            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-
-        match data.get(key) {
-            Some(bytes) => {
-                let value: V = serde_json::from_slice(bytes)
-                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                Ok(Some(value))
-            }
-            None => Ok(None),
-        }
-    }
-
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
-        let bytes =
-            serde_json::to_vec(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
-
-        let mut data = self
-            .data
-            .lock()
-            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-
-        data.insert(key.to_string(), Zeroizing::new(bytes));
-        drop(data); // Release lock before flushing
-
-        self.flush_to_disk()
-    }
-
-    fn delete(&self, key: &str) -> StorageResult<()> {
-        let mut data = self
-            .data
-            .lock()
-            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-
-        data.remove(key);
-        drop(data); // Release lock before flushing
-
-        self.flush_to_disk()
-    }
-
-    fn exists(&self, key: &str) -> StorageResult<bool> {
-        let data = self
-            .data
-            .lock()
-            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        Ok(data.contains_key(key))
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let data = self
-            .data
-            .lock()
-            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-
-        let keys: Vec<String> = data
-            .keys()
-            .filter(|k| prefix.is_none_or(|p| k.starts_with(p)))
-            .cloned()
-            .collect();
-
-        Ok(Box::new(keys.into_iter().map(|k| Stream::Next(Ok(k)))))
-    }
-}
-
-/// `QueryStore` not supported for `JsonFileStorage`.
-impl QueryStore for JsonFileStorage {
-    fn query(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        Err(StorageError::Generic(
-            "QueryStore not supported for JsonFileStorage".to_string(),
-        ))
-    }
-
-    fn execute(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<u64> {
-        Err(StorageError::Generic(
-            "QueryStore not supported for JsonFileStorage".to_string(),
-        ))
-    }
-
-    fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
-        Err(StorageError::Generic(
-            "QueryStore not supported for JsonFileStorage".to_string(),
-        ))
-    }
-}
-
-/// `RateLimiterStore` not supported for `JsonFileStorage`.
-impl RateLimiterStore for JsonFileStorage {
-    fn check_rate_limit(
-        &self,
-        _key: &str,
-        _max_count: u32,
-        _window_seconds: u64,
-    ) -> StorageResult<bool> {
-        Err(StorageError::Generic(
-            "RateLimiterStore not supported for JsonFileStorage".to_string(),
-        ))
-    }
-
-    fn record_rate_limit(&self, _key: &str) -> StorageResult<u32> {
-        Err(StorageError::Generic(
-            "RateLimiterStore not supported for JsonFileStorage".to_string(),
-        ))
-    }
-
-    fn reset_rate_limit(&self, _key: &str) -> StorageResult<()> {
-        Err(StorageError::Generic(
-            "RateLimiterStore not supported for JsonFileStorage".to_string(),
-        ))
-    }
-}
-
-impl BlobStore for JsonFileStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        let mut storage = self
-            .data
-            .lock()
-            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        storage.insert(key.to_string(), Zeroizing::new(data.to_vec()));
-        drop(storage); // Release lock before flushing
-        self.flush_to_disk()
-    }
-
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        let data = self
-            .data
-            .lock()
-            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        Ok(data.get(key).cloned().map(|z| z.to_vec()))
-    }
-
-    fn delete_blob(&self, key: &str) -> StorageResult<()> {
-        let mut data = self
-            .data
-            .lock()
-            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        data.remove(key);
-        drop(data); // Release lock before flushing
-        self.flush_to_disk()
-    }
-
-    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
-        let data = self
-            .data
-            .lock()
-            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        Ok(data.contains_key(key))
-    }
-}
-
 // ===========================================================================
-// Async trait implementations — disk-backed, but async since I/O is involved.
+// Async trait implementations — the only storage traits this backend
+// implements. The file I/O is synchronous `std::fs`, so it runs directly in
+// the async bodies.
 // ===========================================================================
 
 #[async_trait::async_trait]
-impl AsyncKeyValueStore for JsonFileStorage {
+impl KeyValueStore for JsonFileStorage {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self.data.lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
@@ -366,7 +206,7 @@ impl AsyncKeyValueStore for JsonFileStorage {
 }
 
 #[async_trait::async_trait]
-impl AsyncBlobStore for JsonFileStorage {
+impl BlobStore for JsonFileStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let mut storage = self.data.lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
@@ -393,5 +233,60 @@ impl AsyncBlobStore for JsonFileStorage {
         let data = self.data.lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         Ok(data.contains_key(key))
+    }
+}
+
+/// `JsonFileStorage` is a key-value file, not a SQL database: every query
+/// method fails with `StorageError::Generic`.
+#[async_trait::async_trait]
+impl QueryStore for JsonFileStorage {
+    async fn query_async(
+        &self,
+        _sql: &str,
+        _params: &[DataValue],
+    ) -> StorageResult<AsyncQueryStream> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for JsonFileStorage".to_string(),
+        ))
+    }
+
+    async fn execute_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for JsonFileStorage".to_string(),
+        ))
+    }
+
+    async fn execute_batch_async(&self, _sql: &str) -> StorageResult<()> {
+        Err(StorageError::Generic(
+            "QueryStore not supported for JsonFileStorage".to_string(),
+        ))
+    }
+}
+
+/// Rate limiting is not supported by `JsonFileStorage`: every method fails
+/// with `StorageError::Generic`.
+#[async_trait::async_trait]
+impl RateLimiterStore for JsonFileStorage {
+    async fn check_rate_limit_async(
+        &self,
+        _key: &str,
+        _max_count: u32,
+        _window_seconds: u64,
+    ) -> StorageResult<bool> {
+        Err(StorageError::Generic(
+            "RateLimiterStore not supported for JsonFileStorage".to_string(),
+        ))
+    }
+
+    async fn record_rate_limit_async(&self, _key: &str, _window_seconds: u64) -> StorageResult<u32> {
+        Err(StorageError::Generic(
+            "RateLimiterStore not supported for JsonFileStorage".to_string(),
+        ))
+    }
+
+    async fn reset_rate_limit_async(&self, _key: &str) -> StorageResult<()> {
+        Err(StorageError::Generic(
+            "RateLimiterStore not supported for JsonFileStorage".to_string(),
+        ))
     }
 }

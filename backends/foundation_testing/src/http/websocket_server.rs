@@ -495,6 +495,15 @@ impl WebSocketEchoServer {
         // connection lifetime.
         stream.set_read_timeout(None)?;
 
+        // `read_http_request` parses the upgrade via foundation_netio's
+        // `http_streams`, whose request-intro task puts the connection into
+        // non-blocking mode. Because that reader runs on a `try_clone` of this
+        // stream, the non-blocking flag (a shared file-status flag) leaks back
+        // to this socket, so `decode_frame` below would get `WouldBlock` instead
+        // of waiting for the client's first frame. Restore blocking mode before
+        // the frame loop.
+        stream.set_nonblocking(false)?;
+
         while running.load(Ordering::Relaxed) {
             tracing::info!("WebsocketEchoServer: next loop for message");
             match decode_frame(stream) {

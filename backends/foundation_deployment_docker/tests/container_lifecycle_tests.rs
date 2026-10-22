@@ -14,14 +14,16 @@
 
 #![cfg(all(unix, feature = "docker"))]
 
-use std::io::{Read, Write};
-use std::os::unix::net::UnixListener;
+mod mock_socket;
+
+use std::io::Write;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 use foundation_core::valtron::valtron_test;
-use foundation_deployment_docker::DockerClient;
+use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
+use foundation_deployment_docker::{DockerClient, DockerError, DockerLimits};
 use foundation_deployment_docker::generated::top::ContainerTopResponse;
 
 fn temp_socket_path(tag: &str) -> PathBuf {
@@ -59,6 +61,11 @@ fn route(method: &str, path: &str) -> (u16, String) {
             (204, String::new())
         }
 
+        // GET /containers/{id}/logs → one multiplexed stdout frame, "hello"
+        ("GET", p) if p.starts_with("containers/") && p.ends_with("/logs") => {
+            (200, "\u{1}\0\0\0\0\0\0\u{5}hello".to_string())
+        }
+
         // GET /containers/{id}/top → canned JSON
         ("GET", p) if p.starts_with("containers/") && p.ends_with("/top") => {
             let body = r#"{"Processes":[["root","1","0.0","0.0","123456","?","Ss","12:34","sleep 30"]],"Titles":["USER","PID","%CPU","%MEM","VSZ","RSS","TTY","STAT","START","COMMAND"]}"#;
@@ -77,37 +84,20 @@ fn route(method: &str, path: &str) -> (u16, String) {
 
 /// Start a mock Docker daemon on `socket_path`. Serves until `stop` is set.
 fn mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>) {
-    let listener = UnixListener::bind(&socket_path).expect("bind mock docker socket");
-    listener
-        .set_nonblocking(true)
-        .expect("set nonblocking");
-    std::thread::spawn(move || {
-        while !stop.load(Ordering::Relaxed) {
-            match listener.accept() {
-                Ok((mut stream, _)) => {
-                    let mut buf = [0u8; 8192];
-                    let n = stream.read(&mut buf).unwrap_or(0);
-                    let req = String::from_utf8_lossy(&buf[..n]);
-                    let first = req.lines().next().unwrap_or("");
-                    let mut parts = first.split_whitespace();
-                    let method = parts.next().unwrap_or("");
-                    let path = parts.next().unwrap_or("");
-                    let (status, body) = route(method, path);
-                    let reason = if status == 204 { "No Content" } else { "OK" };
-                    let response = format!(
-                        "HTTP/1.1 {status} {reason}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
-                        body.len(),
-                        body
-                    );
-                    let _ = stream.write_all(response.as_bytes());
-                    let _ = stream.flush();
-                }
-                Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                    std::thread::yield_now();
-                }
-                Err(_) => break,
-            }
-        }
+    mock_socket::serve(&socket_path, stop, move |mut stream| {
+        let Some(req) = mock_socket::read_request(&mut stream) else {
+            return;
+        };
+        let (method, path) = (req.method.as_str(), req.target.as_str());
+        let (status, body) = route(method, path);
+        let reason = if status == 204 { "No Content" } else { "OK" };
+        let response = format!(
+            "HTTP/1.1 {status} {reason}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        let _ = stream.write_all(response.as_bytes());
+        let _ = stream.flush();
     });
 }
 
@@ -127,8 +117,7 @@ async fn docker_restart_container() {
         .await
         .expect("restart_container should succeed");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -144,8 +133,7 @@ async fn docker_restart_container_defaults() {
         .await
         .expect("restart_container with defaults should succeed");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 // ── rename tests ──────────────────────────────────────────────────────
@@ -164,8 +152,7 @@ async fn docker_rename_container() {
         .await
         .expect("rename_container should succeed");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 // ── top tests ─────────────────────────────────────────────────────────
@@ -195,8 +182,7 @@ async fn docker_container_top() {
     assert_eq!(processes[0].len(), 9);
     assert_eq!(processes[0][8], "sleep 30");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -213,8 +199,7 @@ async fn docker_container_top_no_ps_args() {
         .expect("container_top without ps_args should succeed");
     assert!(top.titles.is_some());
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 // ── list tests ────────────────────────────────────────────────────────
@@ -237,8 +222,7 @@ async fn docker_container_list() {
     assert_eq!(arr[0]["Id"].as_str(), Some("abc123"));
     assert_eq!(arr[0]["Names"][0].as_str(), Some("/test_container"));
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -255,8 +239,7 @@ async fn docker_container_list_with_filters() {
         .expect("container_list with filters should succeed");
     assert!(containers.is_array());
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 // ── unit tests ────────────────────────────────────────────────────────
@@ -272,4 +255,46 @@ fn container_top_response_deserializes_pascalcase_json() {
     let procs = resp.processes.expect("should have Processes");
     assert_eq!(procs.len(), 1);
     assert_eq!(procs[0][0], "root");
+}
+// ── logs tests ────────────────────────────────────────────────────────
+
+#[valtron_test]
+async fn docker_container_logs_demultiplexes_frames() {
+    let socket = temp_socket_path("logs");
+    let stop = Arc::new(AtomicBool::new(false));
+    mock_daemon(socket.clone(), stop.clone());
+    let client = DockerClient::connect_unix(&socket);
+
+    let (mut out, mut err) = (String::new(), String::new());
+    client
+        .container_logs("abc123", &ContainerLogsOptions::default())
+        .await
+        .expect("container_logs should succeed")
+        .read_into(&mut out, &mut err)
+        .await
+        .expect("frames");
+    assert_eq!((out.as_str(), err.as_str()), ("hello", ""));
+
+    mock_socket::stop(&socket, &stop);
+}
+
+/// The client's configured frame cap reaches the log stream it hands out.
+#[valtron_test]
+async fn docker_container_logs_use_the_clients_frame_cap() {
+    let socket = temp_socket_path("logs_cap");
+    let stop = Arc::new(AtomicBool::new(false));
+    mock_daemon(socket.clone(), stop.clone());
+    let client = DockerClient::connect_unix(&socket)
+        .with_limits(DockerLimits::default().with_max_log_frame(4));
+
+    let mut frames = client
+        .container_logs("abc123", &ContainerLogsOptions::default())
+        .await
+        .expect("the status is fine; the frame is not");
+    match frames.next().await {
+        Some(Err(DockerError::JsonParse(m))) => assert!(m.contains("larger than 4 bytes"), "{m}"),
+        other => panic!("expected JsonParse, got {other:?}"),
+    }
+
+    mock_socket::stop(&socket, &stop);
 }

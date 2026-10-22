@@ -74,6 +74,34 @@ pub fn race<A: Future, B: Future>(a: A, b: B) -> Race<A, B> {
     Race { a, b }
 }
 
+/// A copy of `error` (code and message) — `ErrorTrace` is not `Clone`, and a
+/// read failure is reported both to the stream's consumer and to the caller.
+#[must_use]
+pub fn copy_error(error: &ErrorTrace<ConnectError>) -> ErrorTrace<ConnectError> {
+    let ctx = error.current_context();
+    ConnectError::new(ctx.code(), ctx.message().to_string()).into()
+}
+
+/// End the stream behind `tx` with `error`, so its consumer sees the failure
+/// instead of a closed pipe that reads like a clean end of stream.
+///
+/// The consumer may not be reading (a full pipe): the send also gives up once
+/// `cancel` fires. A consumer that is gone has nobody left to tell.
+pub async fn fail_stream(
+    tx: &foundation_core::valtron::PipeSender<Frame>,
+    error: &ErrorTrace<ConnectError>,
+    cancel: &crate::shared::context::CancelSignal,
+) {
+    let frame = Frame::EndStream {
+        error: Some(copy_error(error)),
+        trailers: SimpleHeaders::new(),
+    };
+    // Either way the stream is over: delivered, the consumer gone, or the call
+    // cancelled — nothing is left to do with the outcome.
+    let _ = race(tx.send(frame), cancel.cancelled()).await;
+    tx.close();
+}
+
 /// Future returned by [`race`].
 pub struct Race<A, B> {
     a: A,

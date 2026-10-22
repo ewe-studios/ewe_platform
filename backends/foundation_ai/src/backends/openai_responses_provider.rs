@@ -4,9 +4,7 @@
 //! patterns — no tokio, no async-trait.
 
 use foundation_compact::SystemTime;
-use std::collections::HashMap;
 use std::sync::Arc;
-use std::thread;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -24,8 +22,10 @@ use foundation_netio::shared::http::{
 };
 use serde::{Deserialize, Serialize};
 
+use crate::backends::model_info::{self, ModelInfoCache};
+use crate::backends::openai_provider::{parse_openai_error, OpenAIModelInfo, OpenAIModelResponse};
 use crate::backends::backend_utils::{
-    empty_usage_report, flatten_tools, model_id_to_string, tool_arguments_from_str,
+    empty_usage_report, flatten_tools, model_id_to_string, sleep, tool_arguments_from_str,
 };
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
@@ -352,8 +352,7 @@ pub struct ResponsesProvider {
     config: ResponsesConfig,
     api_key: Option<ConfidentialText>,
     http_client: Option<Arc<dyn HttpClient>>,
-    models_cache:
-        Arc<std::sync::Mutex<HashMap<String, crate::backends::openai_provider::OpenAIModelInfo>>>,
+    models_cache: ModelInfoCache,
 }
 
 impl Default for ResponsesProvider {
@@ -369,7 +368,7 @@ impl ResponsesProvider {
             config: ResponsesConfig::default(),
             api_key: None,
             http_client: None,
-            models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            models_cache: model_info::new_cache(),
         }
     }
 
@@ -386,7 +385,7 @@ impl ResponsesProvider {
             config,
             api_key: None,
             http_client: None,
-            models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            models_cache: model_info::new_cache(),
         }
     }
 
@@ -396,7 +395,7 @@ impl ResponsesProvider {
             config: ResponsesConfig::default(),
             api_key: None,
             http_client: Some(client),
-            models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            models_cache: model_info::new_cache(),
         }
     }
 
@@ -409,7 +408,7 @@ impl ResponsesProvider {
             config,
             api_key: None,
             http_client: Some(client),
-            models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            models_cache: model_info::new_cache(),
         }
     }
 
@@ -428,18 +427,65 @@ impl ResponsesProvider {
         headers
     }
 
+    /// `GET` for an empty body (the `models` lookups), `POST` otherwise.
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
         let uri =
             Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        let (method, body) = if body.is_empty() {
+            (SimpleMethod::GET, SendSafeBody::None)
+        } else {
+            (SimpleMethod::POST, SendSafeBody::Text(body.to_string()))
+        };
         Ok(PreparedRequest {
-            method: SimpleMethod::POST,
+            method,
             url: uri,
             headers,
-            body: SendSafeBody::Text(body.to_string()),
+            body,
             extensions: Extensions::default(),
         })
+    }
+
+    /// The `GET models/{name}` request.
+    fn model_info_request(&self, model_name: &str) -> GenerationResult<PreparedRequest> {
+        let url = self.build_url(&format!("models/{model_name}"));
+        self.build_prepared_request(&url, "")
+    }
+
+    /// Fetch `model_name`'s metadata (`GET models/{name}`) without blocking:
+    /// on wasm it yields to the JS event loop while the `fetch` is in flight.
+    /// On success the result replaces the cached entry, so later
+    /// [`ModelProvider::get_model`] calls and [`ResponsesModel::info`] see it.
+    ///
+    /// # Errors
+    ///
+    /// When no HTTP client is configured, the request fails, the vendor
+    /// answers non-2xx, or the body is not a model object.
+    pub async fn fetch_model_info(&self, model_name: &str) -> GenerationResult<OpenAIModelInfo> {
+        let client = self
+            .http_client
+            .clone()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
+        let req = self.model_info_request(model_name)?;
+        let info = model_info::fetch(client, req, parse_openai_error, model_from_response).await?;
+        model_info::store(&self.models_cache, model_name, info.clone());
+        Ok(info)
+    }
+
+    /// Placeholder metadata now; the `GET models/{name}` lookup runs in the
+    /// background ([`model_info::spawn_lookup`]) and replaces it in the shared
+    /// cache, which [`ResponsesModel::info`] reads. `get_model` never blocks
+    /// on the network, on any target.
+    fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
+        if let (Some(client), Ok(req)) = (&self.http_client, self.model_info_request(model_name)) {
+            model_info::spawn_lookup(
+                Arc::clone(&self.models_cache),
+                model_name.to_string(),
+                model_info::fetch(Arc::clone(client), req, parse_openai_error, model_from_response),
+            );
+        }
+        model_info::placeholder(model_name, "")
     }
 
     fn build_url(&self, endpoint: &str) -> String {
@@ -464,7 +510,7 @@ impl ResponsesProvider {
                     }
                     let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
                     attempt += 1;
-                    thread::sleep(Duration::from_secs(delay));
+                    sleep(Duration::from_secs(delay));
                 }
             }
         }
@@ -563,44 +609,10 @@ impl ModelProvider for ResponsesProvider {
     fn get_model(&self, model_id: ModelId) -> ModelProviderResult<Self::Model> {
         let model_name = model_id_to_string(&model_id);
 
-        let cache = self.models_cache.lock().expect("model cache poisoned");
-        if let Some(info) = cache.get(&model_name) {
-            return Ok(ResponsesModel {
-                config: self.config.clone(),
-                model_id: model_id.clone(),
-                model_name: model_name.clone(),
-                api_key: self.api_key.clone(),
-                http_client: self.http_client.clone(),
-                info: info.clone(),
-                pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-                cumulative_cost: Arc::new(std::sync::Mutex::new(
-                    crate::costing::CostAccumulator::new(),
-                )),
-            });
+        if !model_info::contains(&self.models_cache, &model_name) {
+            let info = self.lookup_model_info(&model_name);
+            model_info::store_if_absent(&self.models_cache, &model_name, info);
         }
-        drop(cache);
-
-        let url = self.build_url(&format!("models/{model_name}"));
-        let result: Result<crate::backends::openai_provider::OpenAIModelResponse, _> =
-            self.execute_request(&url, "");
-
-        let info = match result {
-            Ok(resp) => crate::backends::openai_provider::OpenAIModelInfo {
-                id: resp.id,
-                object: resp.object,
-                owned_by: resp.owned_by.unwrap_or_default(),
-                created: resp.created.unwrap_or(0),
-            },
-            Err(_) => crate::backends::openai_provider::OpenAIModelInfo {
-                id: model_name.clone(),
-                object: String::from("model"),
-                owned_by: String::new(),
-                created: 0,
-            },
-        };
-
-        let mut cache = self.models_cache.lock().expect("model cache poisoned");
-        cache.insert(model_name.clone(), info.clone());
 
         Ok(ResponsesModel {
             config: self.config.clone(),
@@ -608,7 +620,7 @@ impl ModelProvider for ResponsesProvider {
             model_name,
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
-            info,
+            models_cache: Arc::clone(&self.models_cache),
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
             cumulative_cost: Arc::new(std::sync::Mutex::new(
                 crate::costing::CostAccumulator::new(),
@@ -669,8 +681,7 @@ pub struct ResponsesModel {
     model_name: String,
     api_key: Option<ConfidentialText>,
     http_client: Option<Arc<dyn HttpClient>>,
-    #[allow(dead_code)]
-    info: crate::backends::openai_provider::OpenAIModelInfo,
+    models_cache: ModelInfoCache,
     /// Per-million pricing, sourced the same way `OpenAIModel` sources it.
     pricing: crate::types::base_types::ModelUsageCosting,
     /// Running usage total across this model instance's calls. Without it
@@ -680,6 +691,13 @@ pub struct ResponsesModel {
 }
 
 impl ResponsesModel {
+    /// This model's metadata: the vendor's `models/{name}` answer once a lookup
+    /// has completed, otherwise a placeholder carrying just the model id.
+    #[must_use]
+    pub fn info(&self) -> OpenAIModelInfo {
+        model_info::cached_or_placeholder(&self.models_cache, &self.model_name, "")
+    }
+
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
@@ -819,7 +837,7 @@ impl ResponsesModel {
                     }
                     let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
                     attempt += 1;
-                    thread::sleep(Duration::from_secs(delay));
+                    sleep(Duration::from_secs(delay));
                 }
             }
         }
@@ -974,6 +992,17 @@ struct ResponsesStream {
     accumulated_text: String,
     response: Option<Response>,
     done: bool,
+}
+
+/// Readiness comes from the underlying SSE stream: a consumer parked on this
+/// stream's `Wait` is woken when the next SSE event (or end of stream) arrives.
+impl foundation_core::valtron::WakeableStream for ResponsesStream {
+    fn wake(
+        &mut self,
+        cb: foundation_core::valtron::WakeCallback,
+    ) -> foundation_core::valtron::WakeResult {
+        self.inner.wake(cb)
+    }
 }
 
 impl Iterator for ResponsesStream {
@@ -1373,4 +1402,8 @@ fn convert_tool_choice(choice: &crate::types::base_types::ToolChoice) -> Respons
             },
         },
     }
+}
+
+fn model_from_response(resp: OpenAIModelResponse) -> OpenAIModelInfo {
+    OpenAIModelInfo::from(resp)
 }

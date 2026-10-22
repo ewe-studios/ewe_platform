@@ -15,20 +15,27 @@
 //! SSE responses use `WasmSseIterator` from the `stream` module.
 //! Streaming request bodies are bridged to JS `ReadableStream` via
 //! valtron's `iterator_to_readable_stream`.
-//! Async methods are canonical; sync methods wrap via `valtron::run_future()`.
+//! Async methods are canonical. The sync `send_sse` returns a lazy stream that
+//! spawns the fetch on first poll; the sync `send` is unsupported (it would block
+//! the isolate) and returns an error pointing at `send_async`.
 
 use std::sync::Arc;
 
+use concurrent_queue::ConcurrentQueue;
 use foundation_compact::SendWrapper;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::js_stream;
-use foundation_core::valtron::run_future;
-use foundation_core::valtron::StreamIteratorExt;
+use foundation_core::valtron::{
+    Stream, StreamIteratorExt, WakeCallback, WakeRegistry, WakeResult, WakeableStream,
+};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, Response};
 
-use crate::shared::client::http_client::{BoxedSseFutureStream, BoxedSseIterator, HttpClient};
+use crate::event_source::ParseResult;
+use crate::shared::client::http_client::{
+    BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
+};
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
 use crate::shared::client::ClientConfig;
@@ -121,75 +128,184 @@ impl HttpClient for FetchHttpClient {
     ) -> Result<BoxedSseFutureStream, HttpClientError> {
         let max_redirects = self.config.max_redirects;
         SendWrapper::new(async move {
-            let ws_req = build_web_request(req, max_redirects)?;
-            let resp = do_fetch(&ws_req).await?;
-
-            let status_code = resp.status();
-            if !(200..=299).contains(&status_code) {
-                return Err(HttpClientError::Reason(format!(
-                    "SSE request failed with status {status_code}"
-                )));
-            }
-
-            let body = resp
-                .body()
-                .ok_or_else(|| HttpClientError::Reason("SSE response has no body".into()))?;
-
-            let iter = WasmSseIterator::new(body);
+            let iter = fetch_sse(req, max_redirects).await?;
+            // `into_future_stream` (not the raw `into_pure_future_stream`) parks on
+            // the in-band `Wait`/`Pending` states via `WasmSseIterator`'s
+            // `WakeableStream` impl, so an `.await` consumer yields to the JS event
+            // loop instead of busy-polling.
             let future_stream = iter.into_future_stream();
             Ok(Box::pin(future_stream) as BoxedSseFutureStream)
         })
         .await
     }
 
+    /// Synchronous one-shot requests are not supported on wasm.
+    ///
+    /// WHY: a sync `send` has to wait for the `fetch` promise before returning,
+    /// and the single-threaded wasm isolate cannot wait: the only way to "block"
+    /// is to spin the valtron executor inline (the old `block_on_collect` call),
+    /// which never yields to the JS event loop, so the promise never resolves and
+    /// the whole isolate freezes. Failing fast keeps the isolate alive and tells
+    /// the caller to use [`HttpClient::send_async`] (or the lazy `send_sse`).
     fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
-        // Build an owned future (no `&self` borrow) so it satisfies `run_future`'s
-        // `'static` bound — the sync wrapper drives the canonical async path.
-        let req = self.merge_default_headers(req);
-        let max_redirects = self.config.max_redirects;
-        let results = run_future(SendWrapper::new(fetch_and_read(req, max_redirects)))
-            .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
-        results
-            .into_iter()
-            .next()
-            .unwrap_or(Err(HttpClientError::Reason(
-                "run_future returned no result".into(),
-            )))
+        Err(HttpClientError::Reason(format!(
+            "synchronous HttpClient::send is unsupported on wasm (it would block the JS event \
+             loop); use send_async or send_sse instead (request: {} {})",
+            method_str(&req.method),
+            req.url
+        )))
     }
 
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
         let max_redirects = self.config.max_redirects;
-        let fut = SendWrapper::new(async move {
-            let ws_req = build_web_request(req, max_redirects)?;
-            let resp = do_fetch(&ws_req).await?;
-
-            let status_code = resp.status();
-            if !(200..=299).contains(&status_code) {
-                return Err(HttpClientError::Reason(format!(
-                    "SSE request failed with status {status_code}"
-                )));
-            }
-
-            let body = resp
-                .body()
-                .ok_or_else(|| HttpClientError::Reason("SSE response has no body".into()))?;
-
-            let iter = WasmSseIterator::new(body);
-            Ok(Box::new(iter) as BoxedSseIterator)
-        });
-        let results = run_future(fut)
-            .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
-        results
-            .into_iter()
-            .next()
-            .unwrap_or(Err(HttpClientError::Reason(
-                "run_future returned no result".into(),
-            )))
+        // Lazy: the fetch is spawned via `spawn_local` on the first poll, so the
+        // single-threaded wasm isolate is never blocked waiting on the fetch.
+        Ok(Box::new(LazySseIterator::new(req, max_redirects)) as BoxedSseIterator)
     }
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
         let task = WasmHttpExchangeTask::new(req);
         Box::new(task)
+    }
+}
+
+/// Fetch an SSE stream and return the body iterator, without blocking.
+///
+/// Builds the web request, performs the `fetch`, checks the status, and wraps the
+/// response body in a [`WasmSseIterator`]. Extracted as a free async fn so the async
+/// `send_sse_async` seam and the lazy `send_sse` (`LazySseIterator` via
+/// `spawn_local`) drive the identical path. It holds `web_sys` types across
+/// `.await`s, so the future is `!Send` — `send_sse_async` wraps it in
+/// `SendWrapper`, while `spawn_local` needs no `Send` bound.
+async fn fetch_sse(
+    req: PreparedRequest,
+    max_redirects: u8,
+) -> Result<WasmSseIterator, HttpClientError> {
+    let ws_req = build_web_request(req, max_redirects)?;
+    let resp = do_fetch(&ws_req).await?;
+
+    let status_code = resp.status();
+    if !(200..=299).contains(&status_code) {
+        return Err(HttpClientError::Reason(format!(
+            "SSE request failed with status {status_code}"
+        )));
+    }
+
+    let body = resp
+        .body()
+        .ok_or_else(|| HttpClientError::Reason("SSE response has no body".into()))?;
+
+    Ok(WasmSseIterator::new(body))
+}
+
+/// Lazy SSE iterator for the wasm sync `send_sse` path.
+///
+/// WHY: `send_sse` must not block the single-threaded wasm isolate. It returns
+/// this iterator immediately and defers the `fetch` to `spawn_local` on the first
+/// poll, so the JS event loop keeps turning while the fetch is in flight.
+///
+/// WHAT: On first `next()` it spawns the fetch, then yields
+/// `Pending(Connecting)` / `Wait` until the fetch resolves, then flattens the body
+/// [`WasmSseIterator`]. A fetch failure surfaces as `Pending(Failed(msg))` then
+/// `None`.
+///
+/// HOW: The fetch task pushes its result into a shared `ConcurrentQueue` and fires
+/// a [`WakeRegistry`]; the iterator pops that queue on each poll. Before the body
+/// iterator exists, `wake` registers on the fetch registry; after, it delegates to
+/// the body iterator's own registry.
+struct LazySseIterator {
+    req: Option<PreparedRequest>,
+    max_redirects: u8,
+    outcome: Arc<ConcurrentQueue<Result<WasmSseIterator, HttpClientError>>>,
+    wake: Arc<WakeRegistry>,
+    inner: Option<WasmSseIterator>,
+    started: bool,
+    failed: Option<String>,
+}
+
+impl LazySseIterator {
+    fn new(req: PreparedRequest, max_redirects: u8) -> Self {
+        Self {
+            req: Some(req),
+            max_redirects,
+            outcome: Arc::new(ConcurrentQueue::unbounded()),
+            wake: Arc::new(WakeRegistry::new()),
+            inner: None,
+            started: false,
+            failed: None,
+        }
+    }
+
+    fn spawn_fetch(&mut self) {
+        let req = self
+            .req
+            .take()
+            .expect("LazySseIterator fetch spawned twice");
+        let outcome = Arc::clone(&self.outcome);
+        let wake = Arc::clone(&self.wake);
+        let max_redirects = self.max_redirects;
+        wasm_bindgen_futures::spawn_local(async move {
+            let result = fetch_sse(req, max_redirects).await;
+            let _ = outcome.push(result);
+            wake.fire();
+        });
+    }
+}
+
+// SAFETY: wasm32 is single-threaded; the `!Send` `WakeRegistry` callbacks and the
+// spawned fetch task are only ever touched from that one thread.
+unsafe impl Send for LazySseIterator {}
+
+impl Iterator for LazySseIterator {
+    type Item = Stream<ParseResult, SseProgress>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // Terminal: a fetch failure has already been surfaced as `Failed`.
+        if self.failed.is_some() {
+            return None;
+        }
+
+        // First poll: spawn the fetch and report "connecting".
+        if !self.started {
+            self.started = true;
+            self.spawn_fetch();
+            return Some(Stream::Pending(SseProgress::Connecting));
+        }
+
+        // Fetch resolved successfully: flatten the body iterator.
+        if let Some(inner) = &mut self.inner {
+            return inner.next();
+        }
+
+        // Fetch still pending or just resolved: check the outcome queue.
+        match self.outcome.pop() {
+            Ok(Ok(iter)) => {
+                self.inner = Some(iter);
+                self.inner.as_mut().and_then(|inner| inner.next())
+            }
+            Ok(Err(e)) => {
+                let msg = e.to_string();
+                self.failed = Some(msg.clone());
+                Some(Stream::Pending(SseProgress::Failed(msg)))
+            }
+            Err(_) => Some(Stream::Wait),
+        }
+    }
+}
+
+impl WakeableStream for LazySseIterator {
+    fn wake(&mut self, cb: WakeCallback) -> WakeResult {
+        if let Some(inner) = &mut self.inner {
+            inner.wake(cb)
+        } else {
+            self.wake.register(cb);
+            // Register-then-check: a fetch that already resolved will not fire
+            // the registry again, so fire it now.
+            if !self.outcome.is_empty() {
+                self.wake.fire();
+            }
+            WakeResult::Successful
+        }
     }
 }
 
@@ -203,10 +319,8 @@ impl HttpClient for FetchHttpClient {
 ///   JS `ReadableStream` via valtron's `iterator_to_readable_stream`
 /// Perform one fetch and read the full response body into a `SimpleResponse`.
 ///
-/// WHY: Extracted as a free async fn over owned data so both `send_async` (async
-/// seam) and `send` (sync wrapper via `run_future`) drive the identical path
-/// without either future borrowing `&FetchHttpClient` — `run_future` requires a
-/// `'static` future.
+/// WHY: Extracted as a free async fn over owned data so the `send_async` future
+/// does not borrow `&FetchHttpClient`.
 async fn fetch_and_read(
     req: PreparedRequest,
     max_redirects: u8,

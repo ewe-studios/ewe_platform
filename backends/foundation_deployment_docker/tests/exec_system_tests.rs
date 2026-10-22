@@ -12,10 +12,11 @@
 
 #![cfg(all(unix, feature = "docker"))]
 
-use std::io::{Read, Write};
-use std::os::unix::net::UnixListener;
+mod mock_socket;
+
+use std::io::Write;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 use foundation_core::valtron::valtron_test;
@@ -75,41 +76,24 @@ fn route(method: &str, path: &str) -> (u16, String, String) {
 
 /// Start a mock Docker daemon on `socket_path`. Serves until `stop` is set.
 fn mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>) {
-    let listener = UnixListener::bind(&socket_path).expect("bind mock docker socket");
-    listener
-        .set_nonblocking(true)
-        .expect("set nonblocking");
-    std::thread::spawn(move || {
-        while !stop.load(Ordering::Relaxed) {
-            match listener.accept() {
-                Ok((mut stream, _)) => {
-                    let mut buf = [0u8; 8192];
-                    let n = stream.read(&mut buf).unwrap_or(0);
-                    let req = String::from_utf8_lossy(&buf[..n]);
-                    let first = req.lines().next().unwrap_or("");
-                    let mut parts = first.split_whitespace();
-                    let method = parts.next().unwrap_or("");
-                    let path = parts.next().unwrap_or("");
-                    let (status, content_type, body) = route(method, path);
-                    let reason = match status {
-                        201 => "Created",
-                        204 => "No Content",
-                        _ => "OK",
-                    };
-                    let response = format!(
-                        "HTTP/1.1 {status} {reason}\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
-                        body.len(),
-                        body
-                    );
-                    let _ = stream.write_all(response.as_bytes());
-                    let _ = stream.flush();
-                }
-                Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                    std::thread::yield_now();
-                }
-                Err(_) => break,
-            }
-        }
+    mock_socket::serve(&socket_path, stop, move |mut stream| {
+        let Some(req) = mock_socket::read_request(&mut stream) else {
+            return;
+        };
+        let (method, path) = (req.method.as_str(), req.target.as_str());
+        let (status, content_type, body) = route(method, path);
+        let reason = match status {
+            201 => "Created",
+            204 => "No Content",
+            _ => "OK",
+        };
+        let response = format!(
+            "HTTP/1.1 {status} {reason}\r\nContent-Type: {content_type}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            body.len(),
+            body
+        );
+        let _ = stream.write_all(response.as_bytes());
+        let _ = stream.flush();
     });
 }
 
@@ -129,8 +113,7 @@ async fn system_ping_returns_ok() {
         .await
         .expect("system_ping should succeed");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -146,14 +129,12 @@ async fn system_info_returns_data() {
     assert_eq!(info.get("ID").and_then(|v| v.as_str()), Some("abc"));
     assert_eq!(info.get("Containers").and_then(|v| v.as_i64()), Some(0));
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 // ── Exec tests ────────────────────────────────────────────────────────
 
 #[valtron_test]
-#[ignore = "POST-body mock daemon test known-fragile (async body write race)"]
 async fn exec_create_returns_id() {
     // WHY: Proves `exec_create` sends the JSON body with Cmd, AttachStdout,
     // AttachStderr and deserializes the `Id` response.
@@ -168,8 +149,7 @@ async fn exec_create_returns_id() {
         .expect("exec_create should succeed");
     assert_eq!(id_resp.id, "exec123");
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }
 
 #[valtron_test]
@@ -188,6 +168,5 @@ async fn exec_inspect_returns_json() {
     assert_eq!(inspect["ID"].as_str(), Some("exec123"));
     assert_eq!(inspect["Running"].as_bool(), Some(false));
 
-    stop.store(true, Ordering::Relaxed);
-    let _ = std::fs::remove_file(&socket);
+    mock_socket::stop(&socket, &stop);
 }

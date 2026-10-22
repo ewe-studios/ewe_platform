@@ -9,5 +9,6 @@ mod readers_tests;
 mod shared_buffer_tests;
 mod shared_byte_buffer_stream_probe;
 mod shared_write_reader_tests;
+mod stream_ext_tests;
 mod stringpointer_tests;
 mod ubytes_tests;

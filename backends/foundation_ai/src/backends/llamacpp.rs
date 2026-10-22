@@ -758,6 +758,10 @@ fn stream_error(msg: impl std::fmt::Display) -> Stream<Messages, ModelState> {
     Stream::Pending(ModelState::Error(msg))
 }
 
+/// No readiness signal: this stream never yields `Wait` while waiting on
+/// external I/O, so the default `wake` (`NotSupported`) is correct.
+impl foundation_core::valtron::WakeableStream for LlamaCppStream {}
+
 impl Iterator for LlamaCppStream {
     type Item = Stream<Messages, ModelState>;
 

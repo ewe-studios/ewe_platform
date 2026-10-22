@@ -42,11 +42,12 @@ use futures::StreamExt;
 
 use crate::shared::compression::CompressionRegistry;
 use crate::shared::context::{CancelSignal, Ctx, Spec};
-use crate::shared::protocol::{HandlerExchange, ProtocolHandler};
+use crate::shared::protocol::{ExchangeConfig, HandlerExchange, ProtocolHandler};
 use crate::shared::router::dispatch::{
-    self, allowed_methods, blank_response, build_ctx, capabilities_for, extract_path,
-    http_version_not_supported, method_not_allowed, request_from_header, run_unary,
-    status_only, unsupported_media_type, write_error,
+    self, allowed_methods, blank_response, build_ctx, capabilities_for, deadline_exceeded,
+    exchange_until_aborted, extract_path, http_version_not_supported, method_not_allowed,
+    request_from_header, run_unary, status_only, stream_error_frame, stream_failure,
+    unclosed_stream_error, unsupported_media_type, write_error, Abort, StreamEnd, ThreadTimer,
 };
 use crate::shared::router::erased::ErasedStreamHandler;
 use crate::shared::router::{ConnectRpcHandler, HandlerKind};
@@ -166,7 +167,7 @@ pub async fn dispatch_h3(
         .as_ref()
         .unwrap_or_else(|| router.global_compression());
     let spec = entry.spec.clone();
-    let ctx = build_ctx(bag, &request, spec.clone(), protocol);
+    let ctx = build_ctx(bag, &request, spec.clone(), protocol, CancelSignal::new());
 
     // ── 3. Dispatch ──────────────────────────────────────────────────────
     match &entry.handler {
@@ -193,6 +194,9 @@ pub async fn dispatch_h3(
             let mut request = request;
             request.body = Some(SendSafeBody::Bytes(body));
 
+            // The deadline bounds the handler; the body read above is bounded
+            // by the transport's own idle timeout.
+            let cancel = ctx.cancel_signal().clone();
             let response = run_unary(
                 handler_fn.clone(),
                 protocol,
@@ -201,9 +205,15 @@ pub async fn dispatch_h3(
                 compression,
                 ctx,
                 read_max_bytes,
+                Some(&ThreadTimer),
             )
             .await;
-            send_h3_response(&mut req, response).await
+            let sent = send_h3_response(&mut req, response).await;
+            if sent.is_err() {
+                // The peer is gone; anything the handler left running stops.
+                cancel.cancel();
+            }
+            sent
         }
         HandlerKind::ServerStream(handler)
         | HandlerKind::ClientStream(handler)
@@ -217,6 +227,7 @@ pub async fn dispatch_h3(
                 compression,
                 ctx,
                 entry.options.pipe_depth,
+                entry.options.limits.read_max_bytes,
                 req,
             )
             .await
@@ -247,12 +258,20 @@ async fn run_streaming_h3(
     compression: &CompressionRegistry,
     ctx: Ctx,
     pipe_depth: usize,
+    read_max_bytes: usize,
     mut req: Req,
 ) -> io::Result<()> {
     let (req_tx, req_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
     let (resp_tx, resp_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
 
-    let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, compression) {
+    let cancel = ctx.cancel_signal().clone();
+    let deadline = ctx.request.deadline;
+    let config = ExchangeConfig {
+        compression,
+        cancel: cancel.clone(),
+        read_max_bytes,
+    };
+    let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, config) {
         Ok(exchange) => exchange,
         Err(e) => {
             // Reporting this needs none of the body; stop the peer sending it.
@@ -271,30 +290,6 @@ async fn run_streaming_h3(
     let shared = Mutex::new(req);
     let body_done = AtomicBool::new(false);
 
-    // Forward inbound DATA frames as they arrive — no buffering of the body.
-    // `send` parks while the pipe is full, which stops us reading and lets QUIC
-    // flow control push back on the peer. A failed read is NOT end-of-body: it
-    // is returned so the call is aborted, instead of the handler mistaking a
-    // truncated request for a complete one.
-    let feeder = async {
-        while let Some(chunk) = poll_shared(&shared, H3Request::poll_body).await? {
-            if req_tx.send(chunk).await.is_err() {
-                // The protocol reader is gone and will never read the rest;
-                // the response side decides the outcome.
-                tracing::debug!("h3 request pipe closed by its reader; abandoning the body");
-                req_tx.close();
-                return Ok(());
-            }
-        }
-        body_done.store(true, Ordering::Release);
-        req_tx.close();
-        Ok::<(), io::Error>(())
-    };
-    // `try_join` short-circuits on a failed read, so the call is aborted before
-    // the reader can hand the handler a closed pipe that looks like a clean end.
-    let request_side =
-        futures::future::try_join(feeder, async { Ok::<_, io::Error>(reader_task.await) });
-
     // Forward framed response bytes out as DATA frames. HEADERS are withheld
     // until the first chunk so that a handler which fails before emitting
     // anything can still be reported with a real status.
@@ -303,61 +298,115 @@ async fn run_streaming_h3(
     // is only valid when the encoding header goes out with the response HEADERS.
     let response_encoding = protocol.streaming_response_encoding(&request, compression);
     let pump_content_type = content_type.clone();
-    let pump = async {
-        let mut opened = false;
-        while let Some(chunk) = resp_rx.receive().await {
-            if !opened {
-                opened = true;
-                let mut headers = vec![
-                    (Bytes::from_static(b":status"), Bytes::from_static(b"200")),
-                    (
-                        Bytes::from_static(b"content-type"),
-                        Bytes::from(pump_content_type.clone()),
-                    ),
-                ];
-                if let Some((name, enc)) = &response_encoding {
-                    headers.push((Bytes::from(name.clone()), Bytes::from(enc.clone())));
-                }
-                let mut header_frame = Req::encode_headers(&headers);
-                poll_shared(&shared, |r| r.poll_send_headers(&mut header_frame)).await?;
-            }
-            let mut data_frame = Req::encode_data(chunk);
-            poll_shared(&shared, |r| r.poll_send_data(&mut data_frame)).await?;
-        }
-        Ok::<bool, io::Error>(opened)
-    };
-
-    let cancel = ctx.cancel_signal().clone();
     let handler_fut = handler.handle(ctx, &codec_name, conn);
 
     // As over h2: the request side lives as long as the CLIENT keeps its request
     // stream open, and a bidi peer may hold it open until it sees our response
-    // end — joining on it first would deadlock. Race the two: if the response
-    // finishes first, abandon the request side; if the request side FAILS (a
-    // peer reset), abort the call.
-    let outcome = {
-        let request_side = std::pin::pin!(request_side);
-        let response_side =
-            std::pin::pin!(async { futures::join!(writer_task, handler_fut, pump) });
-        match futures::future::select(request_side, response_side).await {
-            futures::future::Either::Left((Ok(((), reader_res)), response_side)) => {
-                let (writer_res, handler_res, pumped) = response_side.await;
-                Ok((reader_res, writer_res, handler_res, pumped))
+    // end — joining on it first would deadlock. The response side decides the
+    // outcome; a failed request read (a peer reset) or the deadline aborts the
+    // call. Scoped so every borrow of `shared` ends before it is taken back.
+    let pumped = {
+        // Forward inbound DATA frames as they arrive — no buffering of the
+        // body. `send` parks while the pipe is full, which stops us reading
+        // and lets QUIC flow control push back on the peer. A failed read is
+        // NOT end-of-body: it is returned so the call is aborted, instead of
+        // the handler mistaking a truncated request for a complete one.
+        let feeder = async {
+            while let Some(chunk) = poll_shared(&shared, H3Request::poll_body).await? {
+                if req_tx.send(chunk).await.is_err() {
+                    // The protocol reader is gone and will never read the rest;
+                    // the response side decides the outcome.
+                    tracing::debug!("h3 request pipe closed by its reader; abandoning the body");
+                    req_tx.close();
+                    return Ok(());
+                }
             }
-            // The response side (handler, writer, pump) is dropped here.
-            futures::future::Either::Left((Err(e), _)) => Err(e),
-            futures::future::Either::Right(((writer_res, handler_res, pumped), _)) => {
-                Ok((Ok(()), writer_res, handler_res, pumped))
+            body_done.store(true, Ordering::Release);
+            req_tx.close();
+            Ok::<(), io::Error>(())
+        };
+        let request_side =
+            futures::future::try_join(feeder, async { Ok::<_, io::Error>(reader_task.await) });
+        let response_side = futures::future::join(writer_task, handler_fut);
+
+        // The pump owns `resp_rx`, so when it stops the writer task's sends
+        // fail instead of waiting on a full pipe forever.
+        let pump = async {
+            let resp_rx = resp_rx;
+            let mut opened = false;
+            while let Some(chunk) = resp_rx.receive().await {
+                if !opened {
+                    opened = true;
+                    let mut headers = vec![
+                        (Bytes::from_static(b":status"), Bytes::from_static(b"200")),
+                        (
+                            Bytes::from_static(b"content-type"),
+                            Bytes::from(pump_content_type.clone()),
+                        ),
+                    ];
+                    if let Some((name, enc)) = &response_encoding {
+                        headers.push((Bytes::from(name.clone()), Bytes::from(enc.clone())));
+                    }
+                    let mut header_frame = Req::encode_headers(&headers);
+                    poll_shared(&shared, |r| r.poll_send_headers(&mut header_frame)).await?;
+                }
+                let mut data_frame = Req::encode_data(chunk);
+                poll_shared(&shared, |r| r.poll_send_data(&mut data_frame)).await?;
             }
+            Ok::<bool, io::Error>(opened)
+        };
+
+        let rest = std::pin::pin!(exchange_until_aborted(
+            request_side,
+            response_side,
+            dispatch::deadline_expiry(Some(&ThreadTimer), deadline),
+            // A reset of our response half shows up as a failed send in the
+            // pump; QUIC offers no separate signal to wait on.
+            std::future::pending::<()>(),
+        ));
+        let pump = std::pin::pin!(pump);
+        match futures::future::select(pump, rest).await {
+            futures::future::Either::Left((Err(e), _rest)) => Err(e),
+            futures::future::Either::Left((Ok(opened), rest)) => Ok((opened, rest.await)),
+            // The writer has finished or been dropped, which ends the pump.
+            futures::future::Either::Right((end, pump)) => pump.await.map(|opened| (opened, end)),
         }
     };
 
     let mut req = shared
         .into_inner()
         .map_err(|_| io::Error::other("h3 request lock poisoned"))?;
-    let (reader_res, writer_res, handler_res, pumped) = match outcome {
-        Ok(results) => results,
-        Err(e) => return Err(abort_call(&mut req, &cancel, &e)),
+    let (opened, end) = match pumped {
+        Ok(pumped) => pumped,
+        Err(e) => {
+            // The response could not be written: the peer is gone.
+            cancel.cancel();
+            return Err(e);
+        }
+    };
+
+    let failure = match end {
+        StreamEnd::Aborted(Abort::BodyFailed(e)) => {
+            return Err(abort_call(&mut req, &cancel, &e));
+        }
+        StreamEnd::Aborted(Abort::PeerGone) => {
+            cancel.cancel();
+            return Ok(());
+        }
+        StreamEnd::Aborted(Abort::Deadline) => {
+            cancel.cancel();
+            Some(deadline_exceeded())
+        }
+        // An opened stream framed its own outcome unless the call failed
+        // without closing it.
+        StreamEnd::Done {
+            writer, handler, ..
+        } if opened => unclosed_stream_error(writer, handler),
+        StreamEnd::Done {
+            reader,
+            writer,
+            handler,
+        } => stream_failure(reader, writer, handler),
     };
 
     if !body_done.load(Ordering::Acquire) {
@@ -366,14 +415,21 @@ async fn run_streaming_h3(
         req.stop_sending(error_code::H3_NO_ERROR);
     }
 
-    if pumped? {
+    if opened {
+        if let Some(frame) = failure
+            .as_ref()
+            .and_then(|e| stream_error_frame(protocol, &request, e))
+        {
+            let mut data_frame = Req::encode_data(frame);
+            poll_h3(|| req.poll_send_data(&mut data_frame)).await?;
+        }
         poll_h3_finish(&mut req).await?;
         return Ok(());
     }
 
     // Nothing was emitted: report the failure, or an empty successful stream.
     let mut response = blank_response(&request);
-    if let Some(e) = handler_res.err().or(writer_res.err()).or(reader_res.err()) {
+    if let Some(e) = failure {
         write_error(&mut response, &request, &e);
     } else {
         response.status = Status::OK;

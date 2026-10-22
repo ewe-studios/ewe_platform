@@ -14,7 +14,7 @@ use std::time::Duration;
 use base64::Engine;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::initialize_pool;
+use foundation_core::valtron::{initialize_pool, BlockingFutureExt};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
@@ -266,7 +266,7 @@ fn proxy_server_starts_with_acme_letsencrypt_provider() {
         .acme(noop_dns_setter(), Some(directory))
         .service(svc);
 
-    let proxy = ProxyServer::start(config).expect("proxy must start with ACME-provisioned TLS");
+    let proxy = ProxyServer::start(config).block().expect("proxy must start with ACME-provisioned TLS");
     assert!(proxy.local_addr().port() > 0, "TLS front end bound");
     proxy.shutdown();
 

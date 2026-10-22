@@ -5,6 +5,9 @@
 //! very short (microseconds, not milliseconds) because if we block for too long
 //! waiting for a notification, nothing else runs to produce the notification -
 //! causing a deadlock.
+//!
+//! Tests that hand a `NotifyQueue` to a producer thread are `multi`-only:
+//! `NotifyQueue` is only `Send` under `multi`.
 
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -15,9 +18,10 @@ use foundation_core::valtron::{
 };
 use foundation_core::valtron::{
     InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotifyQueue,
-    NotifyQueueStreamIterator, NotifyRecvIter, NotifyRecvIterator, PriorityOrder,
-    NotificationItem,
+    NotifyQueueStreamIterator, NotifyRecvIterator, PriorityOrder, NotificationItem,
 };
+#[cfg(feature = "multi")]
+use foundation_core::valtron::NotifyRecvIter;
 use foundation_core::{
     retries::ExponentialBackoffDecider,
     synca::{IdleMan, SleepyMan},
@@ -38,6 +42,7 @@ impl ProcessController for NoYielder {
 // NotifyQueue Tests
 // ============================================================================
 
+#[cfg(feature = "multi")]
 /// Test that `NotifyQueue` blocks until item is available in single-threaded mode.
 /// Uses a producer thread to push items while consumer waits.
 #[test]
@@ -99,6 +104,7 @@ fn test_notify_queue_receives_item_with_notification() {
     assert_eq!(result, Some(NotificationItem::Ready(42)));
 }
 
+#[cfg(feature = "multi")]
 /// Test `NotifyQueue` handles multiple items with blocking behavior.
 /// This simulates a stream of values being processed.
 #[test]
@@ -177,6 +183,7 @@ fn test_notify_queue_bounded_capacity() {
     queue.push(3).unwrap();
 }
 
+#[cfg(feature = "multi")]
 /// Test that extremely short timeout parameter still results in blocking behavior.
 /// The timeout is just for internal re-checking, not for returning None.
 #[test]
@@ -216,6 +223,7 @@ fn test_notify_queue_timeout_is_recheck_interval() {
 // NotifyRecvIter Tests
 // ============================================================================
 
+#[cfg(feature = "multi")]
 /// Test that `NotifyRecvIter` blocks until item is available.
 #[test]
 fn test_notify_recv_iterator_blocks_until_item() {
@@ -277,6 +285,7 @@ fn test_notify_recv_iterator_iterates_with_notification() {
 // NotifyQueueStreamIterator Tests
 // ============================================================================
 
+#[cfg(feature = "multi")]
 /// Test `NotifyQueueStreamIterator` blocks until values are available.
 #[test]
 fn test_notify_queue_stream_iterator_blocks_until_values() {

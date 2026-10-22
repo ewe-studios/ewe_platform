@@ -11,7 +11,7 @@ use foundation_auth::AuthCredential;
 use foundation_core::extensions::strings_ext::IntoString;
 use foundation_core::url::Uri;
 use foundation_core::valtron::Stream;
-use foundation_core::valtron::StreamIterator;
+use foundation_core::valtron::WakeableStream;
 use foundation_errstacks::ErrorTrace;
 use lazy_regex::regex;
 use regex::Regex;
@@ -1785,8 +1785,14 @@ pub type BoxModel = Box<dyn Model>;
 /// Type alias for the boxed stream iterator returned by [`Model::stream`].
 ///
 /// Reduces repetition and silences `clippy::type_complexity`.
+///
+/// It is a [`WakeableStream`]: when the model stream yields `Stream::Wait`
+/// (no token yet, e.g. the wasm SSE fetch still in flight) the agent loop parks
+/// on it with `valtron::park_on` instead of re-polling. Streams that cannot
+/// signal readiness keep the default `wake` (`WakeResult::NotSupported`), and
+/// `park_on` falls back to `TaskStatus::Wait`.
 pub type ModelStreamBox = Box<
-    dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send,
+    dyn WakeableStream<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send,
 >;
 
 pub trait Model {

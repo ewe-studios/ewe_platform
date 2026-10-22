@@ -170,3 +170,18 @@ fn can_queue_and_complete_stream_with_iterator() {
     assert_eq!(complete, vec![1, 2, 3, 4, 5]);
     assert_eq!(shared_list.borrow().clone(), vec![0, 1, 2, 3, 4]);
 }
+
+/// `is_initialized` reports whether this thread's engine exists, so host resume
+/// callbacks (JS timers queued by a yield) can skip `run_until` instead of
+/// panicking on a thread that never created a pool. The engine is thread-local,
+/// so a fresh thread starts uninitialized.
+#[test]
+fn is_initialized_tracks_this_threads_engine() {
+    std::thread::spawn(|| {
+        assert!(!foundation_core::valtron::single::is_initialized());
+        initialize_pool(7);
+        assert!(foundation_core::valtron::single::is_initialized());
+    })
+    .join()
+    .expect("probe thread panicked");
+}

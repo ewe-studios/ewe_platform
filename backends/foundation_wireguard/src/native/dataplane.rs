@@ -58,11 +58,9 @@ impl MeshDataPlane {
                 panic!("kernel TUN is not available on wasm targets");
             }
             DataPlaneMode::Netstack => {
-                Self::Stack(NetStack::new(NetStackConfig {
-                    address: my_ip,
-                    prefix_len,
-                    mtu: 1380,
-                }))
+                Self::Stack(NetStack::new(
+                    NetStackConfig::new(my_ip, prefix_len).with_mtu(1380),
+                ))
             }
         })
     }

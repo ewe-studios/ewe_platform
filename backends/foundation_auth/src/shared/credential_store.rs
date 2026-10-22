@@ -2,75 +2,32 @@
 //!
 //! `foundation_db` already selects the backend (Turso, libsql, D1, R2, JSON
 //! file, in-memory) through `StorageBackend`. There is no reason to expose
-//! one credential-store wrapper per backend — the wrapper only needs to
-//! drain Valtron streams into sync `Result`s. A single [`CredentialStorage`]
-//! therefore covers every backend `foundation_db` supports.
+//! one credential-store wrapper per backend: a single [`CredentialStorage`]
+//! covers every backend `foundation_db` supports.
+//!
+//! `StorageProvider` implements only the async storage traits, and
+//! [`CredentialStore`] — the only credential trait — maps onto them
+//! directly. Its futures are `Send` natively (so they run on valtron's thread
+//! pool) and `?Send` on wasm, where the D1 bindings hold JS values.
 
-use foundation_core::valtron::Stream;
+use std::sync::Arc;
+
 #[cfg(feature = "turso")]
 use foundation_db::StorageBackend;
-use foundation_db::{core::AsyncKeyValueStore, KeyValueStore, StorageError, StorageProvider};
+use foundation_db::{core::KeyValueStore, StorageError, StorageProvider};
 use serde::{Deserialize, Serialize};
 
 use crate::shared::oauth_token::OAuthToken;
 
-/// Synchronous credential storage API.
-///
-/// Implementations drain Valtron streams from `foundation_db` into plain
-/// `Result` values so that auth code can treat credential IO as blocking.
-pub trait CredentialStore: Send + Sync {
-    /// Get a credential by key.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CredentialStoreError`] if the storage operation or
-    /// deserialization fails.
-    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> Result<Option<V>, CredentialStoreError>;
-
-    /// Set a credential.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CredentialStoreError`] if the storage operation or
-    /// serialization fails.
-    fn set<V: Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        value: V,
-    ) -> Result<(), CredentialStoreError>;
-
-    /// Delete a credential.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CredentialStoreError`] if the storage operation fails.
-    fn delete(&self, key: &str) -> Result<(), CredentialStoreError>;
-
-    /// Check whether a credential exists.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CredentialStoreError`] if the storage operation fails.
-    fn exists(&self, key: &str) -> Result<bool, CredentialStoreError>;
-
-    /// List credential keys, optionally filtered by prefix.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`CredentialStoreError`] if the storage operation fails.
-    fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError>;
-}
-
-/// Asynchronous credential storage API.
+/// Credential storage API.
 ///
 /// Implementations use native async/await for I/O (e.g. D1 Promises,
 /// HTTP requests). Specific impls exist for each storage type to avoid
-/// orphan/coherence conflicts.
-#[async_trait::async_trait(?Send)]
-pub trait AsyncCredentialStore: Sync {
+/// orphan/coherence conflicts. The futures are `Send` natively and `?Send` on
+/// wasm.
+#[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
+pub trait CredentialStore: Sync {
     /// Get a credential by key.
     async fn get_async<V: for<'de> Deserialize<'de> + Send + 'static>(
         &self,
@@ -126,17 +83,19 @@ impl std::error::Error for CredentialStoreError {}
 /// Credential storage backed by a [`foundation_db::StorageProvider`].
 ///
 /// The backend (Turso, libsql, D1, R2, JSON file, in-memory) is chosen when
-/// the underlying [`StorageProvider`] is constructed. This type just adapts
-/// its streaming API to the synchronous [`CredentialStore`] trait.
+/// the underlying [`StorageProvider`] is constructed. This type adapts it to
+/// [`CredentialStore`].
 pub struct CredentialStorage {
-    storage: StorageProvider,
+    storage: Arc<StorageProvider>,
 }
 
 impl CredentialStorage {
     /// Wrap an existing [`StorageProvider`].
     #[must_use]
     pub fn new(storage: StorageProvider) -> Self {
-        Self { storage }
+        Self {
+            storage: Arc::new(storage),
+        }
     }
 
     /// Build credential storage against a Turso database URL.
@@ -146,20 +105,19 @@ impl CredentialStorage {
     /// Returns [`CredentialStoreError`] if the Turso backend cannot be
     /// initialized.
     #[cfg(feature = "turso")]
-    pub fn turso(url: &str) -> Result<Self, CredentialStoreError> {
+    pub async fn turso(url: &str) -> Result<Self, CredentialStoreError> {
         let storage = StorageProvider::new(StorageBackend::Turso {
             url: url.to_string(),
-        })?;
-        Ok(Self { storage })
+        })
+        .await?;
+        Ok(Self::new(storage))
     }
 
     /// Build in-memory credential storage. Intended for tests and local
     /// development.
     #[must_use]
     pub fn memory() -> Self {
-        Self {
-            storage: StorageProvider::memory(),
-        }
+        Self::new(StorageProvider::memory())
     }
 
     /// Borrow the underlying [`StorageProvider`].
@@ -169,57 +127,9 @@ impl CredentialStorage {
     }
 }
 
+#[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
 impl CredentialStore for CredentialStorage {
-    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> Result<Option<V>, CredentialStoreError> {
-        self.storage.get(key).map_err(|e| match e {
-            StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
-            other => CredentialStoreError::Storage(other),
-        })
-    }
-
-    fn set<V: Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        value: V,
-    ) -> Result<(), CredentialStoreError> {
-        self.storage
-            .set(key, value)
-            .map_err(CredentialStoreError::Storage)
-    }
-
-    fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        self.storage
-            .delete(key)
-            .map_err(CredentialStoreError::Storage)
-    }
-
-    fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        self.storage
-            .exists(key)
-            .map_err(CredentialStoreError::Storage)
-    }
-
-    fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        let stream = self
-            .storage
-            .list_keys(prefix)
-            .map_err(CredentialStoreError::Storage)?;
-
-        stream
-            .flat_map(|stream_item| match stream_item {
-                Stream::Next(Ok(result)) => vec![Ok(result)],
-                Stream::Next(Err(e)) => vec![Err(CredentialStoreError::Storage(e))],
-                _ => vec![],
-            })
-            .collect::<Result<Vec<_>, _>>()
-    }
-}
-
-#[async_trait::async_trait(?Send)]
-impl AsyncCredentialStore for CredentialStorage {
     async fn get_async<V: for<'de> Deserialize<'de> + Send + 'static>(
         &self,
         key: &str,
@@ -265,19 +175,21 @@ impl AsyncCredentialStore for CredentialStorage {
 }
 
 /// Helper methods for OAuth token storage.
+#[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
 pub trait OAuthTokenStore: CredentialStore {
     /// Store OAuth tokens for a provider.
     ///
     /// # Errors
     ///
     /// Returns [`CredentialStoreError`] if the storage operation fails.
-    fn store_oauth_token(
+    async fn store_oauth_token(
         &self,
         provider: &str,
         token: &OAuthToken,
     ) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
-        self.set(&key, token.clone())
+        self.set_async(&key, token.clone()).await
     }
 
     /// Get OAuth tokens for a provider.
@@ -286,9 +198,9 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// Returns [`CredentialStoreError`] if the storage operation or
     /// deserialization fails.
-    fn get_oauth_token(&self, provider: &str) -> Result<Option<OAuthToken>, CredentialStoreError> {
+    async fn get_oauth_token(&self, provider: &str) -> Result<Option<OAuthToken>, CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
-        self.get(&key)
+        self.get_async(&key).await
     }
 
     /// Delete OAuth tokens for a provider.
@@ -296,9 +208,9 @@ pub trait OAuthTokenStore: CredentialStore {
     /// # Errors
     ///
     /// Returns [`CredentialStoreError`] if the storage operation fails.
-    fn delete_oauth_token(&self, provider: &str) -> Result<(), CredentialStoreError> {
+    async fn delete_oauth_token(&self, provider: &str) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
-        self.delete(&key)
+        self.delete_async(&key).await
     }
 
     /// Store OAuth state (for PKCE flow).
@@ -306,7 +218,7 @@ pub trait OAuthTokenStore: CredentialStore {
     /// # Errors
     ///
     /// Returns [`CredentialStoreError`] if the storage operation fails.
-    fn store_oauth_state(
+    async fn store_oauth_state(
         &self,
         state: &str,
         code_verifier: &str,
@@ -317,7 +229,7 @@ pub trait OAuthTokenStore: CredentialStore {
             code_verifier: code_verifier.to_string(),
             expires_at,
         };
-        self.set(&key, value)
+        self.set_async(&key, value).await
     }
 
     /// Get and validate OAuth state.
@@ -326,9 +238,9 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// Returns [`CredentialStoreError`] if the storage operation or
     /// deserialization fails.
-    fn get_oauth_state(&self, state: &str) -> Result<Option<OAuthState>, CredentialStoreError> {
+    async fn get_oauth_state(&self, state: &str) -> Result<Option<OAuthState>, CredentialStoreError> {
         let key = format!("oauth:state:{state}");
-        self.get(&key)
+        self.get_async(&key).await
     }
 
     /// Delete OAuth state.
@@ -336,9 +248,9 @@ pub trait OAuthTokenStore: CredentialStore {
     /// # Errors
     ///
     /// Returns [`CredentialStoreError`] if the storage operation fails.
-    fn delete_oauth_state(&self, state: &str) -> Result<(), CredentialStoreError> {
+    async fn delete_oauth_state(&self, state: &str) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:state:{state}");
-        self.delete(&key)
+        self.delete_async(&key).await
     }
 }
 
@@ -360,8 +272,8 @@ impl OAuthState {
     }
 }
 
-// Blanket impl: any CredentialStore picks up OAuth helpers for free.
-impl<T: CredentialStore> OAuthTokenStore for T {}
+// Blanket impl: any credential store picks up the OAuth helpers for free.
+impl<T: CredentialStore + ?Sized> OAuthTokenStore for T {}
 
 /// Credential wrapper for secure storage.
 #[derive(Debug, Clone, Serialize, Deserialize)]

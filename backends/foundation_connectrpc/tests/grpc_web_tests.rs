@@ -175,19 +175,28 @@ fn roundtrip(text: bool) {
             },
             req_rx,
             resp_tx,
-            &registry,
+            foundation_connectrpc::ExchangeConfig {
+                compression: &registry,
+                cancel: CancelSignal::new(),
+                read_max_bytes: 0,
+            },
         )
         .expect("server exchange");
-    // Head pipe for the mock client transport: this streaming test drives I/O
-    // through the split conn and never reads the response head, so hand over an
-    // open (empty) head receiver whose sender is parked for the test's lifetime.
-    let (_client_head_tx, client_head_rx): (
+    // Head pipe for the mock client transport (the 200 head is pushed below).
+    let (client_head_tx, client_head_rx): (
         foundation_core::valtron::PipeSender<(
             foundation_netio::shared::http::Status,
             foundation_netio::shared::http::SimpleHeaders,
         )>,
         foundation_connectrpc::shared::transport::HeadSource,
     ) = foundation_core::valtron::Pipe::with_depth(1);
+    // The client reader starts from the response head: a plain 200.
+    client_head_tx
+        .try_send((
+            foundation_netio::shared::http::Status::OK,
+            foundation_netio::shared::http::SimpleHeaders::new(),
+        ))
+        .expect("head");
     let client = GrpcWebClient { text }
         .new_conn(
             &Spec {
@@ -209,7 +218,10 @@ fn roundtrip(text: bool) {
                     rx
                 },
             },
-            CancelSignal::new(),
+            foundation_connectrpc::ClientExchangeConfig {
+                cancel: CancelSignal::new(),
+                read_max_bytes: 0,
+            },
         )
         .expect("client exchange");
 

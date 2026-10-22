@@ -1,6 +1,6 @@
 [package]
 name = "foundation_proxy"
-version = "0.1.0"
+version = "0.1.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -9,15 +9,19 @@ repository.workspace = true
 description = "Reverse proxy — SSL termination, zero-downtime deploys, health-check routing"
 
 [dependencies]
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
-foundation_core = { path = "../foundation_core", version = "0.0.4", features = ["multi"] }
-foundation_http = { path = "../foundation_http", version = "0.0.1", features = ["multi", "ssl"] }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2", features = ["ssl", "multi"] }
-foundation_iogate = { path = "../foundation_iogate", version = "0.0.1" }
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["fd"] }
-foundation_db = { path = "../foundation_db", version = "0.0.2" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
-foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", version = "0.1.1", optional = true }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
+foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["multi"] }
+foundation_http = { path = "../foundation_http", version = "0.0.3", features = ["multi", "ssl"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["ssl", "multi"] }
+foundation_iogate = { path = "../foundation_iogate", version = "0.0.3" }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.3", features = ["fd"] }
+foundation_db = { path = "../foundation_db", version = "0.0.4" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
+foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", version = "0.1.3", optional = true }
+# T3/T4: the proxy's H2 upstream leg reuses connectrpc's streaming H2 client
+# (`H2Transport`) — the only H2 client in the tree with trailing-HEADERS support.
+# `default-features = false` keeps it lean: we only need the transport seam.
+foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.3", default-features = false }
 
 serde.workspace = true
 serde_json.workspace = true
@@ -37,10 +41,11 @@ rcgen = { version = "0.13", default-features = false, features = ["ring", "pem",
 # Drive the ACME provisioning future to completion at startup (its I/O is the
 # shared client's blocking send, so it resolves in a single poll).
 futures-lite = "2"
+# Stream combinators (`StreamExt`) and `join` for the async H2 forward relays.
+futures-util = "0.3"
 
 [dev-dependencies]
-foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0" }
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net"] }
+foundation_deployment_platform = { path = "../foundation_deployment_platform" }
 # The mock ACME CA in the F15 test parses the client CSR (DER) via rcgen, whose
 # `from_der` takes a `CertificateSigningRequestDer` from rustls-pki-types.
 rustls-pki-types = "1"

@@ -10,7 +10,6 @@ use foundation_netio::shared::client::*;
 use foundation_netio::http::*;
 use foundation_netio::shared::http::*;
 use std::time::Duration;
-use tracing_test::traced_test;
 
 #[test]
 fn test_client_config_default() {

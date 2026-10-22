@@ -344,7 +344,7 @@ let provider = HuggingFaceCandleProvider::new(config)?;
 |------|---------|---------|--------|
 | `MemoryDocumentStore` | `Vec<SessionRecord>` in RAM | (always) | dev / test |
 | `SqlDocumentStore<Q>` | Any `QueryStore` (sync SQL) | `turso` / `libsql` | embedded |
-| `AsyncSqlDocumentStore<Q>` | Any `AsyncQueryStore` | `turso` / `libsql` | native server |
+| `SqlDocumentStore<Q>` | Any `QueryStore` | `turso` / `libsql` | native server |
 | `D1R2DocumentStore<Q, B>` | D1 (query) + R2 (blobs) | `d1` + `r2` | Cloudflare Workers |
 
 #### In-Memory (Default)

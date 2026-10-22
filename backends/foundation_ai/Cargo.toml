@@ -1,6 +1,6 @@
 [package]
 name = "foundation_ai"
-version = "0.0.1"
+version = "0.0.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -13,23 +13,25 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 
 # -- Workspace dependencies
 
-foundation_nostd = { path = "../foundation_nostd", version = "0.0.5" }
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false }
-foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
+foundation_auth = { path = "../foundation_auth", version = "0.0.4", default-features = false }
+foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
+# foundation_netio is target-gated below (native vs wasm): native needs the
+# multi-threaded executor (`multi`) + TLS/compression/wire modules; wasm needs
+# only `wasm-fetch` (the browser fetch client) — matching foundation_auth.
 # foundation_deployment_huggingface is native-only (uses reqwest/std networking)
 # pulled in by llamacpp/candle features via the native target gate below
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2", features = ["to_structured"] }
-foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.2" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.1", features = ["serde"] }
-foundation_arrow = { path = "../foundation_arrow", version = "0.0.2" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", features = ["to_structured"] }
+foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.3" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.2", features = ["serde"] }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.3" }
 # DocumentStore / KeyValueStore traits + StorageResult for the agentic memory
 # stores (F07). default-features=false → just the core traits + in-memory backends
 # (no turso/d1/r2 pulled into foundation_ai).
-foundation_db = { path = "../foundation_db", version = "0.0.2", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
 # VFS abstraction for file search tools (F32). vfs + vfs-search — no native/turso/etc.
-foundation_vectors = { path = "../foundation_vectors", version = "0.0.1" }
+foundation_vectors = { path = "../foundation_vectors", version = "0.0.3" }
 concurrent-queue = "2.5.0"
 
 # -- Other dependencies
@@ -40,25 +42,30 @@ lazy-regex = { version = "3.1" }
 derive_more = { version = "2.1", features = ["from", "debug", "display", "error"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-ahash = "0.8"
 # Tool-boundary panic containment in the agentic loop (catch_unwind on the
 # tool future). Also a dev-dependency for block_on in tests.
 futures-lite = "2"
 
 # native-only deps
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["turso"], default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.4", features = ["turso"], default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["multi"] }
 # vfs-search-fff (F18): the real fff search engine for native search_file, via
 # the CascadingVfsSearcher (fff → CLI rg/grep → in-code VFS walk fallback).
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["vfs", "vfs-search", "vfs-search-fff"] }
-foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.0", optional = true }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.3", features = ["vfs", "vfs-search", "vfs-search-fff"] }
+foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.2", optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["wasm"], default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.4", features = ["wasm"], default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false, features = ["wasm-fetch"] }
+# VFS traits + in-code searcher only (`vfs` + `vfs-search`, no `vfs-search-fff`:
+# the fff engine and the CLI rg/grep cascade are native-only, already
+# cfg(not(target_family = "wasm"))-gated in foundation_nativeapis).
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.3", default-features = false, features = ["vfs", "vfs-search"] }
 
 # llamacpp — target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
 [target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]
-infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.2", optional = true }
+infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.3", optional = true }
 
 # Candle ML framework (optional, behind feature flags)
 [dependencies.candle-core]
@@ -92,7 +99,7 @@ optional = true
 candle-core = { version = "0.11", features = ["metal"] }
 
 [dev-dependencies]
-foundation_testing = { path = "../foundation_testing", version = "0.0.1", features = ["huggingface"] }
+foundation_testing = { path = "../foundation_testing", features = ["huggingface"] }
 serial_test = { workspace = true }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 futures-lite = "2"
@@ -100,8 +107,7 @@ futures-lite = "2"
 # Native-only: lets tests construct the source llama.cpp error types to cover the
 # From/Display conversions in errors/llama.rs (already a build dep via llamacpp).
 [target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
-infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.2" }
-tokio = { version = "1", features = ["macros", "rt"] }
+infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp" }
 
 [[test]]
 name = "foundation_ai_tests"

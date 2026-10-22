@@ -3,6 +3,7 @@
 pub mod errors;
 pub mod storage_provider;
 pub mod cleanup;
+pub(crate) mod rate_limit;
 pub mod auth_store;
 
 pub mod backends;

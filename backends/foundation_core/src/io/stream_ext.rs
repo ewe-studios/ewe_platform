@@ -37,21 +37,25 @@ use crate::io::buffer_pool::{BytesPool, PooledBuffer};
 /// let n = cursor.read_into_bytes(&mut buf, 5).unwrap();
 /// ```
 pub trait ReadBytesExt: Read {
-    /// Read into a user-supplied `BytesMut`.
+    /// Read into a user-supplied `BytesMut`, appending after its current
+    /// contents.
     ///
     /// # WHY
     ///
-    /// Allows zero-copy reads when caller owns the buffer. No intermediate
-    /// allocation - data goes directly into caller's buffer.
+    /// Allows reads straight into a buffer the caller owns, with no
+    /// intermediate allocation.
     ///
     /// # Arguments
     ///
-    /// * `buf` - Buffer to read into (must have capacity)
+    /// * `buf` - Buffer to append to. It grows (`reserve`) when it has less
+    ///   than `max_len` bytes of spare capacity, so a full or empty
+    ///   `BytesMut` never makes the read look like EOF.
     /// * `max_len` - Maximum bytes to read
     ///
     /// # Returns
     ///
-    /// Number of bytes read (0 = EOF, >0 = data available)
+    /// Number of bytes appended: `0` means EOF (or `max_len == 0`), `>0`
+    /// means data was read. On error `buf` is left as it was.
     ///
     /// # Errors
     ///
@@ -117,22 +121,26 @@ pub trait ReadBytesExt: Read {
 
 impl<R: Read> ReadBytesExt for R {
     fn read_into_bytes(&mut self, buf: &mut BytesMut, max_len: usize) -> std::io::Result<usize> {
-        let available = buf.spare_capacity_mut();
-        let to_read = max_len.min(available.len());
-
-        if to_read == 0 {
+        if max_len == 0 {
             return Ok(0);
         }
 
-        let slice = &mut available[..to_read];
-        let ptr = slice.as_mut_ptr().cast();
-
-        let n = unsafe { Read::read(self, std::slice::from_raw_parts_mut(ptr, to_read))? };
-
-        unsafe {
-            buf.set_len(buf.len() + n);
+        // `Read::read` takes `&mut [u8]`, and a `&mut [u8]` over the
+        // uninitialised spare capacity is undefined behaviour. Zero-fill the
+        // region (the same cost `read_exact_into_bytes` pays) and trim it back
+        // to what was actually read.
+        let start = buf.len();
+        buf.resize(start + max_len, 0);
+        match Read::read(self, &mut buf[start..]) {
+            Ok(n) => {
+                buf.truncate(start + n);
+                Ok(n)
+            }
+            Err(err) => {
+                buf.truncate(start);
+                Err(err)
+            }
         }
-        Ok(n)
     }
 
     fn read_exact_into_bytes(&mut self, len: usize) -> std::io::Result<BytesMut> {

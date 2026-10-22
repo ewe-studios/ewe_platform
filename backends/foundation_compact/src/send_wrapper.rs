@@ -1,4 +1,5 @@
 use core::future::Future;
+use core::ops::{Deref, DerefMut};
 use core::pin::Pin;
 use core::task::{Context, Poll};
 
@@ -39,6 +40,22 @@ impl<T> SendWrapper<T> {
     #[inline]
     pub fn into_inner(self) -> T {
         self.0
+    }
+}
+
+impl<T> Deref for SendWrapper<T> {
+    type Target = T;
+
+    #[inline]
+    fn deref(&self) -> &T {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for SendWrapper<T> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut T {
+        &mut self.0
     }
 }
 

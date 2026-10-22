@@ -1,6 +1,9 @@
+// Dual-target: runs natively and on wasm.
+mod async_first_api;
 #[cfg(not(target_family = "wasm"))]
 mod bridge_park;
 mod bridge_park_executor;
+mod park_busy_loop;
 mod local_executor;
 mod wake_registry;
 #[cfg(not(target_family = "wasm"))]
@@ -26,9 +29,13 @@ mod spread;
 #[cfg(not(target_family = "wasm"))]
 mod spread_drain;
 #[cfg(feature = "std")]
+// Blocking sync-boundary helpers do not exist on JS-hosted wasm.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 mod state_task;
 mod stream_future;
 mod stream_iterators;
+// Blocking sync-boundary helpers do not exist on JS-hosted wasm.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 mod sync_boundary_helpers;
 mod task_iterators;
 #[cfg(not(target_family = "wasm"))]
@@ -39,6 +46,8 @@ mod threaded_future_std;
 mod units;
 mod wasm_js_yield_integration;
 mod wasm_yielder_tests;
+// Blocking sync-boundary helpers do not exist on JS-hosted wasm.
+#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 mod valtron_macro_tests;
 #[cfg(not(target_family = "wasm"))]
 mod wakeable_stream;

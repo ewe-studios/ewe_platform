@@ -616,6 +616,47 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         Self: WakeableStream,
         Self::D: Clone;
 
+    // -- Async-first names (the `into_*` forms above stay as aliases) -------
+
+    /// The stream's values as an async `Stream<Item = D>`: `Next` and each
+    /// `Done` inside a `Spread`, in order; waiting parks (no polling).
+    /// Same as [`into_next_stream`](Self::into_next_stream).
+    #[cfg(any(feature = "std", feature = "alloc"))]
+    fn values(self) -> crate::valtron::StreamNextStream<Self>
+    where
+        Self: WakeableStream + Sized,
+    {
+        self.into_next_stream()
+    }
+
+    /// Every item, progress included, as an async `Stream<Item = Stream<D, P>>`;
+    /// waiting parks. Same as [`into_future_stream`](Self::into_future_stream).
+    fn items(self) -> crate::valtron::StreamParkingFutureStream<Self>
+    where
+        Self: WakeableStream + Sized,
+    {
+        self.into_future_stream()
+    }
+
+    /// All the values, awaited: a future of `Vec<D>`.
+    /// Same as [`into_collect_future`](Self::into_collect_future).
+    fn collect_async(self) -> crate::valtron::StreamCollectFuture<Self>
+    where
+        Self: WakeableStream + Sized,
+        Self::D: Clone,
+    {
+        self.into_collect_future()
+    }
+
+    /// The first value and the rest of the stream, awaited (`None` if the
+    /// stream ends first). Same as [`into_ready_future`](Self::into_ready_future).
+    fn first(self) -> crate::valtron::StreamReadyFuture<Self>
+    where
+        Self: WakeableStream + Sized,
+    {
+        self.into_ready_future()
+    }
+
     /// Wrap into a [`Future`] that resolves on the first `Next(D)` value.
     ///
     /// Returns `Some(value, remaining_iterator)` if a `Next` is found,
@@ -632,8 +673,18 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     where
         Self: WakeableStream;
 
-    /// Wrap into a `futures_core::Stream` that yields each `Stream<D, P>` item as-is.
-    fn into_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self>;
+    /// Wrap into a `futures_core::Stream` that yields each `Stream<D, P>` item,
+    /// parking on the in-band control states (`Wait`/`Pending`/`Delayed`/`Init`)
+    /// via [`WakeableStream::wake`] so an `await` consumer does not busy-poll.
+    /// `Next(v)` and `Spread(items)` are yielded as-is; `Ignore` is skipped.
+    fn into_future_stream(self) -> crate::valtron::StreamParkingFutureStream<Self>
+    where
+        Self: WakeableStream;
+
+    /// Wrap into a `futures_core::Stream` that yields each `Stream<D, P>` item
+    /// **as-is, without parking** (the pure/raw lens). Control states such as
+    /// `Wait` are forwarded as items; there is no [`WakeableStream`] bound.
+    fn into_pure_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self>;
 
     /// Wrap into a `futures_core::Stream<Item = D>` that surfaces `Next` / `Spread`
     /// `Done` payloads and parks over in-band control states, enabling
@@ -1196,7 +1247,14 @@ where
         crate::valtron::StreamPendingFuture::new(self)
     }
 
-    fn into_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self> {
+    fn into_future_stream(self) -> crate::valtron::StreamParkingFutureStream<Self>
+    where
+        Self: WakeableStream,
+    {
+        crate::valtron::StreamParkingFutureStream::new(self)
+    }
+
+    fn into_pure_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self> {
         crate::valtron::StreamAsFutureStream::new(self)
     }
 

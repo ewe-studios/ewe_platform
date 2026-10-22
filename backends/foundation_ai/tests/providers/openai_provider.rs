@@ -628,6 +628,18 @@ fn test_openai_config_builder() {
     assert!(!config.streaming);
 }
 
+/// The `OpenRouter` preset must not double the version segment: the base URL
+/// already ending in `/v1` plus the appended `api_version` produced
+/// `.../api/v1/v1/chat/completions`, which `OpenRouter` does not serve.
+#[test]
+fn test_openrouter_build_url_has_single_version_segment() {
+    let config = OpenAIConfig::openrouter("key");
+    assert_eq!(
+        config.build_url("chat/completions"),
+        "https://openrouter.ai/api/v1/chat/completions"
+    );
+}
+
 #[test]
 fn test_build_url() {
     let config = OpenAIConfig::new()

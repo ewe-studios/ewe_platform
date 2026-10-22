@@ -1,6 +1,6 @@
 [package]
 name = "foundation_http"
-version = "0.0.1"
+version = "0.0.3"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,9 +10,8 @@ description = "Connection-owned, worker-pooled HTTP serving framework built on f
 keywords = ["http", "server", "foundation", "sync"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.4" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.2" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.2" }
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -29,12 +28,16 @@ async-trait = "0.1"
 # only — there is no reactor on wasm. iogate brings foundation_nativeapis in
 # transitively, above netio, so no dependency cycle forms.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-foundation_iogate = { path = "../foundation_iogate", version = "0.0.1" }
+foundation_iogate = { path = "../foundation_iogate", version = "0.0.3" }
+# netio is target-gated so wasm never pulls its `multi` feature (native =
+# defaults, wasm = `wasm-fetch`) — mirroring foundation_auth/foundation_ai.
+foundation_netio = { path = "../foundation_netio", version = "0.0.4" }
 
 # On wasm32, uuid needs a randomness source
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 uuid = { version = "1.6", features = ["v4", "js"] }
 getrandom = { version = "0.2", optional = true }
+foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false, features = ["wasm-fetch"] }
 
 # Wasm-bindgen bridge dependencies (optional)
 wasm-bindgen = { version = "0.2", optional = true }
@@ -52,15 +55,15 @@ web-sys = { version = "0.3", features = [
     "ReadableStreamDefaultReader",
     "ReadableStreamReadResult",
 ], optional = true }
-foundation_db = { path = "../foundation_db", version = "0.0.2", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.4", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
 
 [dev-dependencies]
-foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.1" }
-foundation_testing = { path = "../foundation_testing", version = "0.0.1" }
+foundation_wireguard = { path = "../foundation_wireguard" }
+foundation_testing = { path = "../foundation_testing" }
 # `#[foundation_macros::timeout(..)]` bounds the end-to-end server tests.
-foundation_macros = { path = "../foundation_macros", version = "0.0.5" }
+foundation_macros = { path = "../foundation_macros" }
 # Reactor for the RawStream→RegisteredFd seam integration test (Decision 12 §12).
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["fd"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", features = ["fd"] }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 serial_test = { version = "3" }
 ntest = { version = "0.9" }

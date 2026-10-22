@@ -33,14 +33,14 @@ has_fundamentals: true
 builds_on: ""
 related_specs:
   - "specifications/completed/28-cloudflare-workers-readiness"
-  - "specifications/63-connectrpc-proxy"
+  - "specifications/completed/63-connectrpc-proxy"
   - "specifications/61-llama-vendoring-and-crate-publishing"
   - "specifications/29-wasm-http-client"
   - "specifications/completed/41-connectrpc"
 features:
   completed: 0
-  uncompleted: 6
-  total: 6
+  uncompleted: 7
+  total: 7
   completion_percentage: 0
 ---
 
@@ -89,7 +89,7 @@ There are therefore **two independent auth channels**:
 This mirrors the existing deployment primitives (`foundation_packager`,
 `foundation_deployment_docker`, `foundation_deployment_platform`) and the RPC
 layer (`foundation_connectrpc`), and extends the proxy work begun in
-`specifications/63-connectrpc-proxy`.
+`specifications/completed/63-connectrpc-proxy`.
 
 # Goals
 
@@ -183,6 +183,7 @@ corresponding skills BEFORE implementation.
 | 3  | [Proxy Registration Authority](./features/03-proxy-registration/feature.md) | Authenticated register/deregister/heartbeat + live backend routing table | None (extends spec 63) | ⬜ Pending |
 | 4  | [Registrar Sidecar](./features/04-registrar-sidecar/feature.md) | Reads manifest, reviews proxied binaries, registers them with the proxy | 2, 3 | ⬜ Pending |
 | 5  | [Cloudflare Deployment](./features/05-cloudflare/feature.md) | Thin WASM orchestrator on Workers + full model server on Sandboxes/Containers, consuming 00-foundation | 0, 1 | ⬜ Pending |
+| 6  | [WASM Lazy Streaming](./features/06-wasm-async-streaming/feature.md) | Remove the wasm-unsafe `run_future`/`collect()` anti-pattern from the streaming path: park-friendly `into_future_stream`, lazy `send_sse` + `SseProgress::Failed`, zero `Model` API change; fix the T6 sync-streaming hang | 0 | 🔄 In Progress |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
@@ -417,7 +418,7 @@ agent-rpc client token; agent-rpc never sees the registration token.
   (Sandboxes/Containers gap is `05-cloudflare` T3).
 - `backends/foundation_proxy/src/{config,router,h2_proxy,forward}.rs` — where the
   registration authority and routing table land.
-- `specifications/63-connectrpc-proxy/` — per-endpoint protocol selection the
+- `specifications/completed/63-connectrpc-proxy/` — per-endpoint protocol selection the
   registrar's routing table plugs into.
 
 ---

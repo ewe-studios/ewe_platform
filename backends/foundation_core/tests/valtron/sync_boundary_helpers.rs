@@ -320,3 +320,166 @@ fn test_sync_collect_one_multi_value_returns_first() {
     let result = sync_collect_one(task).expect("sync_collect_one should succeed");
     assert_eq!(result, 10);
 }
+
+// ---------------------------------------------------------------------------
+// next_values / run_stream_iter — lazy sync iteration at the boundary
+// ---------------------------------------------------------------------------
+
+/// `next_values` yields each `Next` (and each `Done` inside a `Spread`) in
+/// order and skips every control state.
+#[test]
+fn next_values_yields_values_in_order_and_skips_control_states() {
+    use foundation_core::valtron::{next_values, StreamSpread};
+
+    let items: Vec<Stream<u32, &str>> = vec![
+        Stream::Init,
+        Stream::Next(1),
+        Stream::Pending("working"),
+        Stream::Wait,
+        Stream::Spread(vec![
+            StreamSpread::Done(2),
+            StreamSpread::Pending("half"),
+            StreamSpread::Done(3),
+        ]),
+        Stream::Ignore,
+        Stream::Delayed(std::time::Duration::from_millis(1)),
+        Stream::Next(4),
+    ];
+    let values: Vec<u32> = next_values(items.into_iter()).collect();
+    assert_eq!(values, vec![1, 2, 3, 4]);
+}
+
+/// `run_stream_iter` lets synchronous code `for`-loop over an async stream;
+/// it ends with the stream.
+#[valtron_test]
+fn run_stream_iter_iterates_an_async_stream_from_sync_code() {
+    use foundation_core::valtron::run_stream_iter;
+
+    let mut seen = Vec::new();
+    for value in run_stream_iter(futures_lite::stream::iter(vec![10u32, 20, 30]))
+        .expect("scheduled")
+    {
+        seen.push(value);
+    }
+    assert_eq!(seen, vec![10, 20, 30]);
+
+    let empty: Vec<u32> = run_stream_iter(futures_lite::stream::empty::<u32>())
+        .expect("scheduled")
+        .collect();
+    assert!(empty.is_empty());
+}
+
+/// Items that are not ready yet are waited for (the stream returns `Pending`
+/// and wakes later), not dropped or spun on.
+#[valtron_test]
+fn run_stream_iter_waits_for_items_that_arrive_later() {
+    use foundation_core::valtron::run_stream_iter;
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    let (tx, rx) = mpsc::channel::<u32>();
+    let producer = std::thread::spawn(move || {
+        for i in 0..3 {
+            std::thread::sleep(Duration::from_millis(20));
+            tx.send(i).expect("receiver alive");
+        }
+    });
+    // An async stream over a channel that is empty when first polled.
+    let rx = std::sync::Arc::new(std::sync::Mutex::new(rx));
+    let stream = futures_lite::stream::unfold(rx, |rx| async move {
+        let next = futures_lite::future::poll_fn(|cx| {
+            match rx.lock().expect("rx").try_recv() {
+                Ok(v) => std::task::Poll::Ready(Some(v)),
+                Err(mpsc::TryRecvError::Disconnected) => std::task::Poll::Ready(None),
+                Err(mpsc::TryRecvError::Empty) => {
+                    cx.waker().wake_by_ref();
+                    std::task::Poll::Pending
+                }
+            }
+        })
+        .await;
+        next.map(|v| (v, rx))
+    });
+    let values: Vec<u32> = run_stream_iter(stream).expect("scheduled").collect();
+    producer.join().expect("producer");
+    assert_eq!(values, vec![0, 1, 2]);
+}
+
+// ---------------------------------------------------------------------------
+// .block() / .blocking() — the method forms at a sync boundary
+// ---------------------------------------------------------------------------
+
+/// `.block()` returns a future's output; `.blocking()?` iterates a stream.
+#[valtron_test]
+fn block_and_blocking_are_the_sync_boundary() {
+    use foundation_core::valtron::{BlockingFutureExt, BlockingStreamExt};
+
+    assert_eq!(async { 6 * 7 }.block(), 42);
+    let doubled: Vec<u32> = futures_lite::StreamExt::map(futures_lite::stream::iter(1..=3u32), |x| x * 2)
+        .blocking()
+        .expect("scheduled")
+        .collect();
+    assert_eq!(doubled, vec![2, 4, 6]);
+}
+
+/// A blocked-on future that itself awaits a valtron task's stream (the shape
+/// of `session.ask(..).block()`): the inner task must still be driven.
+#[valtron_test]
+fn block_on_a_future_that_awaits_a_valtron_stream() {
+    use foundation_core::valtron::{BlockingFutureExt, StreamIteratorExt};
+
+    let values = async {
+        let inner = foundation_core::valtron::execute(CounterTask::new(3, 9), None).expect("scheduled");
+        futures_lite::StreamExt::collect::<Vec<u32>>(inner.values()).await
+    }
+    .block();
+    assert_eq!(values, vec![9]);
+}
+
+/// Two blocking iterators pulled in lock-step (`zip`): neither may starve the
+/// other, though both are driven by the same pool.
+#[valtron_test]
+fn two_blocking_iterators_interleave() {
+    use foundation_core::valtron::BlockingStreamExt;
+
+    let a = futures_lite::stream::iter(0..100u32).blocking().expect("a");
+    let b = futures_lite::stream::iter(100..200u32).blocking().expect("b");
+    let pairs: Vec<(u32, u32)> = a.zip(b).collect();
+    assert_eq!(pairs.len(), 100);
+    assert!(pairs.iter().all(|(x, y)| y - x == 100));
+}
+
+/// Stopping early (dropping the iterator mid-stream) leaves the pool usable.
+#[valtron_test]
+fn dropping_a_blocking_iterator_early_leaves_the_pool_usable() {
+    use foundation_core::valtron::{BlockingFutureExt, BlockingStreamExt};
+
+    let first_three: Vec<u32> = futures_lite::stream::iter(0..1_000_000u32)
+        .blocking()
+        .expect("scheduled")
+        .take(3)
+        .collect();
+    assert_eq!(first_three, vec![0, 1, 2]);
+    assert_eq!(async { "still works" }.block(), "still works");
+}
+
+/// A stream that is pending between every item (it wakes itself) still yields
+/// everything, in order, through `.blocking()`.
+#[valtron_test]
+fn blocking_over_a_stream_pending_between_items() {
+    use foundation_core::valtron::BlockingStreamExt;
+
+    let mut toggle = false;
+    let mut next = 0u32;
+    let stream = futures_lite::stream::poll_fn(move |cx| {
+        toggle = !toggle;
+        if toggle {
+            cx.waker().wake_by_ref();
+            return std::task::Poll::Pending;
+        }
+        next += 1;
+        std::task::Poll::Ready((next <= 50).then_some(next))
+    });
+    let got: Vec<u32> = stream.blocking().expect("scheduled").collect();
+    assert_eq!(got, (1..=50).collect::<Vec<_>>());
+}

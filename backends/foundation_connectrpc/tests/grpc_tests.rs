@@ -14,10 +14,13 @@
 //! `H2Transport`. Typed-Client tests use `Client::new(...).with_grpc()` — the
 //! reader/writer tasks handle envelopes transparently.
 //!
-//! NOTE: `grpc-status` trailers are not yet verifiable. HTTP/2 trailing HEADERS
-//! are consumed by the h2 pump but not forwarded to the transport-level caller
-//! nor plumbed into the seam's `ClientConn`. When the h2 transport gains a
-//! trailer pipe, every test should also assert `grpc-status` in the response.
+//! NOTE: `grpc-status` trailers are verified end-to-end (spec-63 T1). HTTP/2
+//! trailing HEADERS are decoded by the h2 pump and piped through
+//! `TransportStream::trailers` into the seam's `ClientConn` /
+//! `Response::trailers()`. The tests below assert `grpc-status` directly:
+//! `grpc_trailers_readable_from_transport_stream`,
+//! `grpc_unary_response_carries_trailers`, and
+//! `grpc_error_trailers_readable_from_response`.
 
 use std::sync::Arc;
 use std::thread;

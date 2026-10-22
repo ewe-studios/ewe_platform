@@ -10,7 +10,7 @@
 use clap::{Parser, Subcommand};
 use foundation_ai::agentic::{AgentSession, AgenticError, Answer};
 use foundation_ai::harness::RouterPreset;
-use foundation_core::valtron::valtron;
+use foundation_core::valtron::{block_on_future, valtron};
 use foundation_errstacks::ErrorTrace;
 use foundation_repl::{Repl, ReplTheme};
 
@@ -59,7 +59,7 @@ enum Command {
 #[valtron(tracing = "info", tracing_targets = true, tracing_names = true)]
 fn main() {
     let cli = Cli::parse();
-    let session = match build_session() {
+    let session = match block_on_future(build_session()) {
         Ok(session) => session,
         Err(e) => {
             tracing::error!("building the agent session failed: {e}");
@@ -76,7 +76,7 @@ fn main() {
     };
 
     // Persist the session log before exiting — including after a failed turn.
-    let ended = session.end();
+    let ended = block_on_future(session.end());
     if let Err(e) = &ended {
         tracing::error!("ending the session failed: {e}");
     }
@@ -88,12 +88,13 @@ fn main() {
 /// Build the llama.cpp-backed agent session shared by both commands: Gemma 4
 /// E2B on the CPU, with the default GGUF config (`HuggingFace` cache dir,
 /// `q4_k_m`, 4096-token context, one thread per CPU). The preset's model is
-/// the session's model.
-fn build_session() -> Result<Session, ErrorTrace<AgenticError>> {
+/// the session's model. `main` is the sync boundary that waits on it.
+async fn build_session() -> Result<Session, ErrorTrace<AgenticError>> {
     let preset = RouterPreset::huggingface_cpu("unsloth/gemma-4-E2B-it-GGUF", None)?;
     AgentSession::builder(preset)
         .with_system_prompt("You are a helpful assistant. Be concise and direct.")
         .build()
+        .await
 }
 
 /// One-shot: run a single turn and print the reply on stdout. Returns whether
@@ -101,7 +102,7 @@ fn build_session() -> Result<Session, ErrorTrace<AgenticError>> {
 fn run_ask(session: &Session, question: String) -> bool {
     tracing::trace!("ask: sending question to model: {question}");
 
-    match session.ask(question) {
+    match block_on_future(session.ask(question)) {
         Ok(Answer::Complete(text)) => {
             println!("{}", or_no_response(&text));
             true
@@ -149,7 +150,7 @@ fn run_repl(session: &Session) {
         tracing::trace!("agent: sending message to model: {input}");
 
         let thinking = repl.animation("thinking");
-        let outcome = session.ask(input);
+        let outcome = block_on_future(session.ask(input));
         thinking.finish();
 
         // `report_error` styles errors as errors rather than as the model's
