@@ -21,16 +21,15 @@ pub trait Deployable {
     type DestroyOutput: Send + Sync;            // often ()
     type Error:    std::error::Error + Send + Sync + std::fmt::Debug;
     type Store:    StateStore + Send + Sync + 'static;
-    type Resolver: DnsResolver + Clone + 'static;
 
-    fn deploy(&self, instance_id: usize, client: ProviderClient<Self::Store, Self::Resolver>)
+    fn deploy(&self, instance_id: usize, client: ProviderClient<Self::Store>)
         -> BoxFuture<'static, Result<Self::DeployOutput, Self::Error>>;
 
-    fn destroy(&self, instance_id: usize, client: ProviderClient<Self::Store, Self::Resolver>)
+    fn destroy(&self, instance_id: usize, client: ProviderClient<Self::Store>)
         -> BoxFuture<'static, Result<Self::DestroyOutput, Self::Error>>;
 
     // provided:
-    fn store(&self, client: &ProviderClient<Self::Store, Self::Resolver>)
+    fn store(&self, client: &ProviderClient<Self::Store>)
         -> NamespacedStore<Self::Store> { /* namespaced by NAMESPACE */ }
 }
 ```
@@ -78,7 +77,6 @@ Write the real work as an `async move` block and `Box::pin` it:
 use foundation_deployment::{BoxFuture, Deployable};
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_db::core::state::FileStateStore;
-use foundation_netio::shared::client::dns::SystemDnsResolver;
 
 struct Worker { name: String }
 
@@ -88,9 +86,8 @@ impl Deployable for Worker {
     type DestroyOutput = ();
     type Error = std::io::Error;
     type Store = FileStateStore;
-    type Resolver = SystemDnsResolver;
 
-    fn deploy(&self, id: usize, client: ProviderClient<Self::Store, Self::Resolver>)
+    fn deploy(&self, id: usize, client: ProviderClient<Self::Store>)
         -> BoxFuture<'static, Result<String, std::io::Error>>
     {
         let name = self.name.clone();
@@ -102,7 +99,7 @@ impl Deployable for Worker {
         })
     }
 
-    fn destroy(&self, id: usize, client: ProviderClient<Self::Store, Self::Resolver>)
+    fn destroy(&self, id: usize, client: ProviderClient<Self::Store>)
         -> BoxFuture<'static, Result<(), std::io::Error>>
     {
         let store = self.store(&client);
@@ -130,14 +127,15 @@ stream internally), so they compose fine inside the async block.
 
 ## Unique underlying mechanics
 
-`ProviderClient` carries a TCP+DNS HTTP client (`http_client: SimpleHttpClient<R>`)
-tuned for cloud REST APIs. **A provider whose transport is different is free to
+`ProviderClient` carries the platform HTTP client (`http_client: DynNetClient`,
+built with `HttpClientBuilder`, or given to `ProviderClient::with_client`)
+for cloud REST APIs. **A provider whose transport is different is free to
 use its own client** and treat `ProviderClient` purely as the state-persistence
 handle. `deploy`/`destroy` are just async blocks — they can dial anything.
 
 The reference case is **`foundation_deployment_docker`'s `ContainerDeployment`**.
 Docker's Engine API is served over a **Unix socket** (`/var/run/docker.sock`),
-which does not fit `ProviderClient`'s TCP+DNS client at all. So its impl:
+which does not fit `ProviderClient`'s HTTP client at all. So its impl:
 
 ```rust
 fn deploy(&self, id, client) -> BoxFuture<'static, Result<ContainerDeployOutput, DockerError>> {
@@ -181,7 +179,7 @@ let task = foundation_core::valtron::from_future(deployment.deploy(0, client));
 Object safety means you can also fan out over a collection:
 
 ```rust
-let resources: Vec<Box<dyn Deployable<Store = _, Resolver = _, DeployOutput = _, DestroyOutput = _, Error = _>>> = /* … */;
+let resources: Vec<Box<dyn Deployable<Store = _, DeployOutput = _, DestroyOutput = _, Error = _>>> = /* … */;
 for r in &resources {
     r.deploy(0, client.clone()).await?;
 }

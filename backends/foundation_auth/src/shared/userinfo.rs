@@ -3,6 +3,9 @@
 //! Sends a GET request with a Bearer token and parses the response into
 //! standard OIDC UserInfo claims.
 
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::http::SimpleHeader;
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 
 /// User profile from OIDC UserInfo endpoint.
@@ -87,9 +90,31 @@ impl UserInfo {
 }
 
 /// UserInfo client — fetches user profile from OIDC provider.
-pub struct UserInfoClient;
+pub struct UserInfoClient {
+    http: DynNetClient,
+}
+
+impl Default for UserInfoClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl UserInfoClient {
+    /// A client that uses the platform's default HTTP client
+    /// ([`HttpClientBuilder`]: the native client, or the fetch client on wasm32).
+    #[must_use]
+    pub fn new() -> Self {
+        Self::with_client(HttpClientBuilder::new().build())
+    }
+
+    /// A client that sends its requests through `http` (a shared client, or a
+    /// test client).
+    #[must_use]
+    pub fn with_client(http: DynNetClient) -> Self {
+        Self { http }
+    }
+
     /// Fetch user profile using the given access token.
     ///
     /// # Errors
@@ -97,10 +122,11 @@ impl UserInfoClient {
     /// Returns `UserInfoError` if the request fails, the response is not 200,
     /// or the JSON cannot be parsed.
     pub async fn fetch(
+        &self,
         userinfo_url: &str,
         access_token: &str,
     ) -> Result<UserInfo, UserInfoError> {
-        let body = fetch_userinfo(userinfo_url, access_token).await?;
+        let body = fetch_userinfo(&self.http, userinfo_url, access_token).await?;
         let info: UserInfo = serde_json::from_str(&body)
             .map_err(|e| UserInfoError::ParseError(e.to_string()))?;
         info.validate()?;
@@ -138,39 +164,19 @@ impl core::fmt::Display for UserInfoError {
 impl std::error::Error for UserInfoError {}
 
 // ===========================================================================
-// HTTP fetch — uses the cross-platform HttpClient trait (native + wasm).
+// HTTP fetch — over the platform network client, `DynNetClient` (native + wasm).
 // ===========================================================================
 
 async fn fetch_userinfo(
+    client: &DynNetClient,
     url: &str,
     access_token: &str,
 ) -> Result<String, UserInfoError> {
-    use foundation_core::url::Uri;
-    use foundation_netio::default_http_client;
-    use foundation_netio::shared::client::body_reader::try_collect_bytes;
-    use foundation_netio::shared::client::request::PreparedRequest;
-    use foundation_netio::shared::http::{
-        SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
-    };
-
-    let client = default_http_client();
-    let uri = Uri::parse(url)
-        .map_err(|e| UserInfoError::FetchFailed(format!("invalid URL: {e}")))?;
-
-    let mut headers = SimpleHeaders::new();
-    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
-    headers.insert(
-        SimpleHeader::AUTHORIZATION,
-        vec![format!("Bearer {access_token}")],
-    );
-
-    let req = PreparedRequest {
-        method: SimpleMethod::GET,
-        url: uri,
-        headers,
-        body: SendSafeBody::None,
-        extensions: Default::default(),
-    };
+    let req = PreparedRequestBuilder::get(url)
+        .map_err(|e| UserInfoError::FetchFailed(format!("invalid URL: {e}")))?
+        .header(SimpleHeader::ACCEPT, "application/json")
+        .bearer_token(access_token)
+        .build();
 
     let resp = client
         .send_async(req)

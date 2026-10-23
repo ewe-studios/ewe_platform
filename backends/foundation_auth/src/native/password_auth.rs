@@ -1,10 +1,10 @@
 //! Password Authentication Client (native).
 //!
 //! Implements username/password login against an IdP endpoint using
-//! `NativeHttpClient`. Supports MFA challenge flow.
+//! the platform network client (`DynNetClient`). Supports MFA challenge flow.
 
-use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 
 use crate::ConfidentialText;
@@ -85,14 +85,23 @@ pub enum LoginResult {
 /// Password authentication client.
 #[derive(Clone)]
 pub struct PasswordAuthClient {
+    http: DynNetClient,
     base_url: String,
 }
 
 impl PasswordAuthClient {
-    /// Create a new password auth client.
+    /// Create a new password auth client that uses the platform's default
+    /// HTTP client ([`HttpClientBuilder`]).
     #[must_use]
     pub fn new(base_url: String) -> Self {
-        Self { base_url }
+        Self::with_client(HttpClientBuilder::new().build(), base_url)
+    }
+
+    /// Create a new password auth client that sends its requests through
+    /// `http` (a shared client, or a test client).
+    #[must_use]
+    pub fn with_client(http: DynNetClient, base_url: String) -> Self {
+        Self { http, base_url }
     }
 
     /// Attempt login with email and password.
@@ -151,7 +160,7 @@ impl PasswordAuthClient {
         let body_str = serde_json::to_string(&body)
             .map_err(|e| PasswordAuthError::ParseError(e.to_string()))?;
 
-        let resp = Self::post_json(&url, &body_str).await?;
+        let resp = self.post_json(&url, &body_str).await?;
         parse_login_response(resp).await
     }
 
@@ -164,24 +173,24 @@ impl PasswordAuthClient {
         let body = serde_json::to_string(&request)
             .map_err(|e| PasswordAuthError::ParseError(e.to_string()))?;
 
-        let resp = Self::post_json(&url, &body).await?;
+        let resp = self.post_json(&url, &body).await?;
         parse_login_response(resp).await
     }
 
     /// POST JSON body and return response.
     async fn post_json(
+        &self,
         url: &str,
         body: &str,
     ) -> Result<serde_json::Value, PasswordAuthError> {
-        let client = NativeHttpClient::from_system();
-        let resp = client
-            .post(url)
+        let request = PreparedRequestBuilder::post(url)
             .map_err(|e| PasswordAuthError::ConnectionFailed(e.to_string()))?
             .header(SimpleHeader::CONTENT_TYPE, "application/json")
-            .body_text(body.to_string())
-            .build_client()
-            .map_err(|e| PasswordAuthError::ConnectionFailed(e.to_string()))?
-            .send_async()
+            .body_text(body)
+            .build();
+        let resp = self
+            .http
+            .send_async(request)
             .await
             .map_err(|e| PasswordAuthError::ConnectionFailed(e.to_string()))?;
 
@@ -198,7 +207,7 @@ impl PasswordAuthClient {
                 .map_err(|e| PasswordAuthError::ParseError(e.to_string()));
         }
 
-        if !resp.is_success() {
+        if !(200..=299).contains(&status) {
             let body = extract_body(resp.get_body_ref());
             return Err(PasswordAuthError::ServerError {
                 status: status as u16,

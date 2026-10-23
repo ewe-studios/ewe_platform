@@ -129,10 +129,11 @@ use foundation_connectrpc::{
     Client, ClientOptions, Ctx, H1Transport, ProcedureCodecs, Request,
 };
 use foundation_connectrpc::transport::Transport;
-use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_netio::HttpClientBuilder;
 
-// HTTP/1.1 transport (Connect + gRPC-Web)
-let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(SimpleHttpClient::from_system()));
+// HTTP/1.1 transport (Connect + gRPC-Web). The builder gives the platform's
+// client: the native client, or the fetch client on wasm32.
+let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
 
 // HTTP/2 cleartext transport (Connect + gRPC, all four modes including bidi)
 // let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());

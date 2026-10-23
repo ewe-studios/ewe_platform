@@ -173,7 +173,7 @@ fn sse_text(body: &str) -> String {
         .collect()
 }
 
-/// `cf-cloud-provider`: `OpenRouter` via `FetchHttpClient`, reply streamed as SSE.
+/// `cf-cloud-provider`: `OpenRouter` via the fetch client (`HttpClientBuilder`), reply streamed as SSE.
 #[test]
 fn cf_cloud_provider_streams_one_generation_and_stays_responsive() {
     let dir = example_dir("cf-cloud-provider");
@@ -203,7 +203,7 @@ fn cf_cloud_provider_streams_one_generation_and_stays_responsive() {
     assert_eq!(status, 200, "the isolate must keep serving after a chat turn");
 }
 
-/// `cf-agent-loop`: Workers AI via `FetchHttpClient`, reply returned whole.
+/// `cf-agent-loop`: Workers AI via the fetch client (`HttpClientBuilder`), reply returned whole.
 #[test]
 fn cf_agent_loop_answers_one_generation_and_stays_responsive() {
     let dir = example_dir("cf-agent-loop");

@@ -2,8 +2,9 @@
 //!
 //! WHY: `HttpConnectionPool` has a `Connector` trait with `connect(host, port, timeout)`.
 //! `OverlayConnector` implements it by calling `WgHandle::overlay_connect()` — so every
-//! netio HTTP consumer (ConnectRPC, gRPC, NativeHttpClient) works over the mesh with
-//! one `.with_connector(Arc::new(OverlayConnector::new(handle)))` call.
+//! netio HTTP consumer (ConnectRPC, gRPC, the HTTP client from `HttpClientBuilder`)
+//! works over the mesh with one `.with_connector(Arc::new(OverlayConnector::new(handle)))`
+//! call.
 //!
 //! WHAT: `OverlayConnector` holds an `Arc<WgHandle>` (cheap clone). `connect()` parses
 //! the host as an overlay IP (10.x.y.z), calls `handle.overlay_connect(ip, port)`.

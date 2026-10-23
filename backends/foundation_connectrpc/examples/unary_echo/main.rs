@@ -33,13 +33,13 @@ use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
-use foundation_netio::http::NativeHttpClient;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
     ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, HandlerOptions,
     IdempotencyLevel, ProcedureCodecs, Request, Response, Router, Client,
 };
+use foundation_netio::HttpClientBuilder;
 
 /// The fully-qualified procedure path (leading slash, `/<pkg>.<Service>/<Method>`).
 const PROCEDURE: &str = "/demo.EchoService/Echo";
@@ -151,7 +151,7 @@ async fn main() {
     let (addr, shutdown) = start_server();
 
     // Build the client stack: an HTTP/1.1 transport + a typed per-procedure client.
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(Arc::new(NativeHttpClient::from_system())));
+    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
     let url = format!("http://127.0.0.1:{}{PROCEDURE}", addr.port());
     let client: Client<EchoMessage, EchoMessage> = Client::new(
         transport,

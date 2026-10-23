@@ -23,7 +23,6 @@ use std::path::PathBuf;
 use foundation_db::core::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_deployment::traits::{BoxFuture, Deployable};
-use foundation_netio::shared::client::dns::SystemDnsResolver;
 use serde::{Deserialize, Serialize};
 
 use crate::client::{DockerClient, DEFAULT_DOCKER_SOCKET};
@@ -119,12 +118,11 @@ impl Deployable for ContainerDeployment {
     type DestroyOutput = ();
     type Error = DockerError;
     type Store = FileStateStore;
-    type Resolver = SystemDnsResolver;
 
     fn deploy(
         &self,
         instance_id: usize,
-        client: ProviderClient<Self::Store, Self::Resolver>,
+        client: ProviderClient<Self::Store>,
     ) -> BoxFuture<'static, Result<Self::DeployOutput, Self::Error>> {
         // Docker dials its own Unix socket; ProviderClient is used only for the
         // namespaced state store (built here — needs `&self`/`&client` — and
@@ -149,7 +147,7 @@ impl Deployable for ContainerDeployment {
     fn destroy(
         &self,
         instance_id: usize,
-        client: ProviderClient<Self::Store, Self::Resolver>,
+        client: ProviderClient<Self::Store>,
     ) -> BoxFuture<'static, Result<Self::DestroyOutput, Self::Error>> {
         let docker = DockerClient::connect_unix(&self.socket_path);
         let store = self.store(&client);

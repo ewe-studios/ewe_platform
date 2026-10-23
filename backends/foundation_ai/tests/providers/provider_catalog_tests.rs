@@ -25,9 +25,8 @@ use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, Respon
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::valtron_test;
-use foundation_netio::http::NativeHttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
-use foundation_netio::shared::client::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 
 // ---------------------------------------------------------------------------
@@ -67,8 +66,7 @@ const CATALOG: &[u8] = br#"{
 }"#;
 
 fn provider_for(server: &TestHttpServer) -> OpenAIProvider {
-    let resolver = StaticSocketAddr::new(server_addr(server));
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)
@@ -327,8 +325,7 @@ fn anthropic_get_one_resolves_the_synthesised_spec() {
 // ---------------------------------------------------------------------------
 
 fn responses_provider_for(server: &TestHttpServer) -> ResponsesProvider {
-    let resolver = StaticSocketAddr::new(server_addr(server));
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = ResponsesConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)

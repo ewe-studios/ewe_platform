@@ -7,14 +7,14 @@ use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::{IdpConfig, IdpServer};
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
-use foundation_db::{QueryStore, MemoryStorage};
+use foundation_db::{MemoryStorage, QueryStore};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
-use foundation_netio::shared::client::StaticSocketAddr;
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::shared::http::SimpleResponse;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 fn make_storage() -> Arc<HandlerStorage<MemoryStorage>> {
     let dir = tempfile::tempdir().expect("tempdir");
@@ -84,13 +84,18 @@ fn start_idp_with_prefix(
     (addr, shutdown, handle)
 }
 
-fn make_client(addr: std::net::SocketAddr) -> SimpleHttpClient<StaticSocketAddr> {
-    let resolver = StaticSocketAddr::new(addr);
-    SimpleHttpClient::with_resolver(resolver)
+fn make_client(addr: std::net::SocketAddr) -> DynNetClient {
+    HttpClientBuilder::new()
+        .resolve_to(addr)
         .max_retries(10)
         .connect_timeout(Duration::from_secs(5))
         .read_timeout(Duration::from_secs(20))
         .write_timeout(Duration::from_secs(5))
+        .build()
+}
+
+fn is_success(resp: &SimpleResponse<SendSafeBody>) -> bool {
+    (200..=299).contains(&resp.get_status().into_usize())
 }
 
 fn read_body(body: SendSafeBody) -> String {
@@ -126,15 +131,15 @@ fn discovery_returns_valid_oidc_document() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/idp/.well-known/openid-configuration")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/idp/.well-known/openid-configuration")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    assert!(response.is_success());
-    let (status, _headers, body, _, _) = response.into_parts();
+    assert!(is_success(&response));
+    let (status, _headers, body) = response.into_parts();
     assert_eq!(status_code(&status), 200);
 
     let body = read_body(body);
@@ -199,15 +204,15 @@ fn jwks_returns_ed25519_public_key() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/idp/.well-known/jwks.json")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/idp/.well-known/jwks.json")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    assert!(response.is_success());
-    let (_, _, body, _, _) = response.into_parts();
+    assert!(is_success(&response));
+    let (_, _, body) = response.into_parts();
     let body = read_body(body);
     let jwks = parse_json(&body);
 
@@ -236,28 +241,28 @@ fn discovery_then_jwks_flow() {
     let client = make_client(addr);
 
     let disc_resp = client
-        .get("http://testserver/idp/.well-known/openid-configuration")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/idp/.well-known/openid-configuration")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    assert!(disc_resp.is_success());
-    let (_, _, body, _, _) = disc_resp.into_parts();
+    assert!(is_success(&disc_resp));
+    let (_, _, body) = disc_resp.into_parts();
     let doc = parse_json(&read_body(body));
     let _jwks_uri = doc["jwks_uri"].as_str().unwrap();
 
     let jwks_resp = client
-        .get("http://testserver/idp/.well-known/jwks.json")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/idp/.well-known/jwks.json")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    assert!(jwks_resp.is_success());
-    let (_, _, body, _, _) = jwks_resp.into_parts();
+    assert!(is_success(&jwks_resp));
+    let (_, _, body) = jwks_resp.into_parts();
     let jwks = parse_json(&read_body(body));
     assert!(jwks["keys"].is_array());
     assert!(!jwks["keys"].as_array().unwrap().is_empty());
@@ -280,28 +285,34 @@ fn request_body_over_the_limit_is_rejected() {
     let client = make_client(addr);
 
     let at_limit = client
-        .post("http://testserver/idp/introspect")
-        .unwrap()
-        .body_text(token_form)
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/idp/introspect")
+                .unwrap()
+                .body_text(token_form)
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
+        )
         .unwrap();
-    let (status, _, body, _, _) = at_limit.into_parts();
+    let (status, _, body) = at_limit.into_parts();
     assert_eq!(status_code(&status), 200);
     assert_eq!(parse_json(&read_body(body))["active"], false);
 
     let over_limit = client
-        .post("http://testserver/idp/introspect")
-        .unwrap()
-        .body_text(format!("{token_form}x"))
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::post("http://testserver/idp/introspect")
+                .unwrap()
+                .body_text(format!("{token_form}x"))
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
+        )
         .unwrap();
-    let (status, _, body, _, _) = over_limit.into_parts();
+    let (status, _, body) = over_limit.into_parts();
     assert_eq!(status_code(&status), 413);
     assert_eq!(parse_json(&read_body(body))["error"], "payload_too_large");
 
@@ -319,21 +330,21 @@ fn introspect_returns_inactive_for_unknown_token() {
     println!("TEST: sending POST to introspect...");
 
     let response = client
-        .post("http://testserver/idp/introspect")
-        .unwrap()
-        .body_text("token=some_random_invalid_token")
-        .header(
-            SimpleHeader::CONTENT_TYPE,
-            "application/x-www-form-urlencoded",
+        .send(
+            PreparedRequestBuilder::post("http://testserver/idp/introspect")
+                .unwrap()
+                .body_text("token=some_random_invalid_token")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
         )
-        .build_client()
-        .unwrap()
-        .send()
         .unwrap();
     println!("TEST: got response");
 
-    assert!(response.is_success());
-    let (status, _, body, _, _) = response.into_parts();
+    assert!(is_success(&response));
+    let (status, _, body) = response.into_parts();
     assert_eq!(status_code(&status), 200);
 
     let body = parse_json(&read_body(body));
@@ -353,14 +364,12 @@ fn authorize_without_session_returns_bad_request() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/idp/authorize?client_id=test&response_type=code&redirect_uri=http://localhost/cb")
+        .send(PreparedRequestBuilder::get("http://testserver/idp/authorize?client_id=test&response_type=code&redirect_uri=http://localhost/cb")
         .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .build())
         .unwrap();
 
-    let (status, _, body, _, _) = response.into_parts();
+    let (status, _, body) = response.into_parts();
     assert_eq!(status_code(&status), 400);
 
     let body = parse_json(&read_body(body));
@@ -381,19 +390,19 @@ fn token_endpoint_returns_error_without_storage() {
     let client = make_client(addr);
 
     let response = client
-        .post("http://testserver/idp/token")
-        .unwrap()
-        .body_text("grant_type=authorization_code&code=test_code&client_id=test_client")
-        .header(
-            SimpleHeader::CONTENT_TYPE,
-            "application/x-www-form-urlencoded",
+        .send(
+            PreparedRequestBuilder::post("http://testserver/idp/token")
+                .unwrap()
+                .body_text("grant_type=authorization_code&code=test_code&client_id=test_client")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
         )
-        .build_client()
-        .unwrap()
-        .send()
         .unwrap();
 
-    let (status, _, body, _, _) = response.into_parts();
+    let (status, _, body) = response.into_parts();
     assert_eq!(status_code(&status), 400);
 
     let body = parse_json(&read_body(body));
@@ -414,14 +423,14 @@ fn userinfo_without_bearer_returns_unauthorized() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/idp/userinfo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/idp/userinfo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    let (status, _, body, _, _) = response.into_parts();
+    let (status, _, body) = response.into_parts();
     assert_eq!(status_code(&status), 401);
 
     let body = parse_json(&read_body(body));
@@ -445,19 +454,19 @@ fn device_authorize_returns_error_without_storage() {
     let client = make_client(addr);
 
     let response = client
-        .post("http://testserver/idp/device/authorize")
-        .unwrap()
-        .body_text("client_id=test_client")
-        .header(
-            SimpleHeader::CONTENT_TYPE,
-            "application/x-www-form-urlencoded",
+        .send(
+            PreparedRequestBuilder::post("http://testserver/idp/device/authorize")
+                .unwrap()
+                .body_text("client_id=test_client")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
         )
-        .build_client()
-        .unwrap()
-        .send()
         .unwrap();
 
-    let (status, _, body, _, _) = response.into_parts();
+    let (status, _, body) = response.into_parts();
     assert_eq!(status_code(&status), 400);
 
     let body = parse_json(&read_body(body));
@@ -478,40 +487,42 @@ fn custom_prefix_routes_work() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/auth/v1/.well-known/openid-configuration")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get(
+                "http://testserver/auth/v1/.well-known/openid-configuration",
+            )
+            .unwrap()
+            .build(),
+        )
         .unwrap();
 
-    assert!(response.is_success());
-    let (_, _, body, _, _) = response.into_parts();
+    assert!(is_success(&response));
+    let (_, _, body) = response.into_parts();
     let doc = parse_json(&read_body(body));
     assert_eq!(doc["issuer"], "https://auth.example.com");
 
     let jwks_resp = client
-        .get("http://testserver/auth/v1/.well-known/jwks.json")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/auth/v1/.well-known/jwks.json")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
-    assert!(jwks_resp.is_success());
+    assert!(is_success(&jwks_resp));
 
     let token_resp = client
-        .post("http://testserver/auth/v1/token")
-        .unwrap()
-        .body_text("grant_type=authorization_code")
-        .header(
-            SimpleHeader::CONTENT_TYPE,
-            "application/x-www-form-urlencoded",
+        .send(
+            PreparedRequestBuilder::post("http://testserver/auth/v1/token")
+                .unwrap()
+                .body_text("grant_type=authorization_code")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
         )
-        .build_client()
-        .unwrap()
-        .send()
         .unwrap();
-    let (status, _, _, _, _) = token_resp.into_parts();
+    let (status, _, _) = token_resp.into_parts();
     assert_eq!(status_code(&status), 400);
 
     shutdown.turn_on();
@@ -528,14 +539,14 @@ fn default_prefix_not_accessible_under_custom() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/idp/.well-known/openid-configuration")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/idp/.well-known/openid-configuration")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    let (status, _, _, _, _) = response.into_parts();
+    let (status, _, _) = response.into_parts();
     assert_ne!(status_code(&status), 200);
 
     shutdown.turn_on();
@@ -553,73 +564,69 @@ fn full_client_lifecycle_discovery_to_token_attempt() {
 
     // Step 1: Client discovers the IdP
     let disc_resp = client
-        .get("http://testserver/idp/.well-known/openid-configuration")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/idp/.well-known/openid-configuration")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
-    assert!(disc_resp.is_success());
-    let (_, _, body, _, _) = disc_resp.into_parts();
+    assert!(is_success(&disc_resp));
+    let (_, _, body) = disc_resp.into_parts();
     let doc = parse_json(&read_body(body));
 
     // Step 2: Client fetches JWKS for future token verification
     let jwks_resp = client
-        .get("http://testserver/idp/.well-known/jwks.json")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/idp/.well-known/jwks.json")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
-    assert!(jwks_resp.is_success());
-    let (_, _, body, _, _) = jwks_resp.into_parts();
+    assert!(is_success(&jwks_resp));
+    let (_, _, body) = jwks_resp.into_parts();
     let jwks = parse_json(&read_body(body));
     let keys = jwks["keys"].as_array().unwrap();
     assert!(!keys.is_empty());
 
     // Step 3: Client attempts authorization (no session → error expected)
     let auth_resp = client
-        .get("http://testserver/idp/authorize?client_id=myapp&response_type=code&redirect_uri=http://localhost/cb&scope=openid&state=xyz")
+        .send(PreparedRequestBuilder::get("http://testserver/idp/authorize?client_id=myapp&response_type=code&redirect_uri=http://localhost/cb&scope=openid&state=xyz")
         .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .build())
         .unwrap();
-    let (status, _, body, _, _) = auth_resp.into_parts();
+    let (status, _, body) = auth_resp.into_parts();
     assert_eq!(status_code(&status), 400);
     let auth_err = parse_json(&read_body(body));
     assert_eq!(auth_err["error"], "bad_request");
 
     // Step 4: Client attempts token exchange (no storage → error expected)
     let token_resp = client
-        .post("http://testserver/idp/token")
+        .send(PreparedRequestBuilder::post("http://testserver/idp/token")
         .unwrap()
         .body_text("grant_type=authorization_code&code=fake_code&client_id=myapp&redirect_uri=http://localhost/cb")
         .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .build_client()
-        .unwrap()
-        .send()
+        .build())
         .unwrap();
-    let (status, _, body, _, _) = token_resp.into_parts();
+    let (status, _, body) = token_resp.into_parts();
     assert_eq!(status_code(&status), 400);
     let token_err = parse_json(&read_body(body));
     assert_eq!(token_err["error"], "bad_request");
 
     // Step 5: Resource server introspects a token (unknown → inactive)
     let intro_resp = client
-        .post("http://testserver/idp/introspect")
-        .unwrap()
-        .body_text("token=fake_access_token&client_id=myapp&client_secret=secret")
-        .header(
-            SimpleHeader::CONTENT_TYPE,
-            "application/x-www-form-urlencoded",
+        .send(
+            PreparedRequestBuilder::post("http://testserver/idp/introspect")
+                .unwrap()
+                .body_text("token=fake_access_token&client_id=myapp&client_secret=secret")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
         )
-        .build_client()
-        .unwrap()
-        .send()
         .unwrap();
-    assert!(intro_resp.is_success());
-    let (_, _, body, _, _) = intro_resp.into_parts();
+    assert!(is_success(&intro_resp));
+    let (_, _, body) = intro_resp.into_parts();
     let intro = parse_json(&read_body(body));
     assert_eq!(intro["active"], false);
 
@@ -649,18 +656,18 @@ fn error_responses_follow_oidc_format() {
 
     // 400 errors have "error" + "error_description"
     let resp_400 = client
-        .post("http://testserver/idp/token")
-        .unwrap()
-        .body_text("grant_type=authorization_code")
-        .header(
-            SimpleHeader::CONTENT_TYPE,
-            "application/x-www-form-urlencoded",
+        .send(
+            PreparedRequestBuilder::post("http://testserver/idp/token")
+                .unwrap()
+                .body_text("grant_type=authorization_code")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
         )
-        .build_client()
-        .unwrap()
-        .send()
         .unwrap();
-    let (status, _, body, _, _) = resp_400.into_parts();
+    let (status, _, body) = resp_400.into_parts();
     assert_eq!(status_code(&status), 400);
     let err = parse_json(&read_body(body));
     assert!(err["error"].is_string(), "400 must have 'error' field");
@@ -671,13 +678,13 @@ fn error_responses_follow_oidc_format() {
 
     // 401 errors have "error" + "error_description"
     let resp_401 = client
-        .get("http://testserver/idp/userinfo")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/idp/userinfo")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
-    let (status, _, body, _, _) = resp_401.into_parts();
+    let (status, _, body) = resp_401.into_parts();
     assert_eq!(status_code(&status), 401);
     let err = parse_json(&read_body(body));
     assert_eq!(err["error"], "invalid_token");
@@ -701,15 +708,15 @@ fn issuer_url_trailing_slash_normalized() {
     let client = make_client(addr);
 
     let response = client
-        .get("http://testserver/idp/.well-known/openid-configuration")
-        .unwrap()
-        .build_client()
-        .unwrap()
-        .send()
+        .send(
+            PreparedRequestBuilder::get("http://testserver/idp/.well-known/openid-configuration")
+                .unwrap()
+                .build(),
+        )
         .unwrap();
 
-    assert!(response.is_success());
-    let (_, _, body, _, _) = response.into_parts();
+    assert!(is_success(&response));
+    let (_, _, body) = response.into_parts();
     let doc = parse_json(&read_body(body));
 
     // Endpoints should NOT have double slashes
@@ -735,13 +742,13 @@ fn jwks_returns_stable_key_across_requests() {
 
     let fetch_jwks = || {
         let resp = client
-            .get("http://testserver/idp/.well-known/jwks.json")
-            .unwrap()
-            .build_client()
-            .unwrap()
-            .send()
+            .send(
+                PreparedRequestBuilder::get("http://testserver/idp/.well-known/jwks.json")
+                    .unwrap()
+                    .build(),
+            )
             .unwrap();
-        let (_, _, body, _, _) = resp.into_parts();
+        let (_, _, body) = resp.into_parts();
         parse_json(&read_body(body))
     };
 
@@ -768,18 +775,18 @@ fn device_code_endpoint_is_post_only_at_correct_path() {
 
     // POST works (returns error because no storage, but 400 not 404)
     let post_resp = client
-        .post("http://testserver/idp/device/authorize")
-        .unwrap()
-        .body_text("client_id=test")
-        .header(
-            SimpleHeader::CONTENT_TYPE,
-            "application/x-www-form-urlencoded",
+        .send(
+            PreparedRequestBuilder::post("http://testserver/idp/device/authorize")
+                .unwrap()
+                .body_text("client_id=test")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
         )
-        .build_client()
-        .unwrap()
-        .send()
         .unwrap();
-    let (status, _, _, _, _) = post_resp.into_parts();
+    let (status, _, _) = post_resp.into_parts();
     assert_eq!(
         status_code(&status),
         400,
