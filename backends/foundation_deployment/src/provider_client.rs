@@ -6,13 +6,13 @@
 //! WHAT: Generic wrapper around any `StateStore` implementation,
 //!       storing project and stage metadata, with integrated HTTP client.
 //!
-//! HOW: Holds Arc<StateStore> and Arc<SimpleHttpClient> for thread-safe sharing across
-//!       per-API provider instances.
+//! HOW: Holds `Arc<StateStore>` and a `DynNetClient` for thread-safe sharing
+//!       across per-API provider instances.
 
-use foundation_netio::shared::client::DnsResolver;
-use foundation_netio::http::SimpleHttpClient;
-use foundation_db::core::state::traits::StateStore;
 use std::sync::Arc;
+
+use foundation_db::core::state::traits::StateStore;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 /// Central provider client wrapping a `StateStore` with HTTP client.
 ///
@@ -22,12 +22,12 @@ use std::sync::Arc;
 /// WHAT: Generic wrapper around any `StateStore` implementation,
 ///       storing project and stage metadata, with integrated HTTP client.
 ///
-/// HOW: Holds Arc<StateStore> and Arc<SimpleHttpClient> for thread-safe sharing across
-///       per-API provider instances.
-pub struct ProviderClient<S, R>
+/// HOW: Holds `Arc<StateStore>` and a [`DynNetClient`] (the platform's network
+///       client: the native client, or the fetch client on wasm32) for
+///       thread-safe sharing across per-API provider instances.
+pub struct ProviderClient<S>
 where
     S: StateStore + Send + Sync + 'static,
-    R: DnsResolver + Clone + 'static,
 {
     /// State store for persistence
     pub state_store: Arc<S>,
@@ -35,14 +35,14 @@ where
     pub project: String,
     /// Stage (dev/staging/prod)
     pub stage: String,
-    /// HTTP client for API calls (Arc'd for cheap cloning and pool sharing)
-    pub http_client: Arc<SimpleHttpClient<R>>,
+    /// HTTP client for API calls. A clone is cheap (`Arc`) and shares the
+    /// client's connection pool.
+    pub http_client: DynNetClient,
 }
 
-impl<S, R> Clone for ProviderClient<S, R>
+impl<S> Clone for ProviderClient<S>
 where
     S: StateStore + Send + Sync + 'static,
-    R: DnsResolver + Clone + 'static,
 {
     fn clone(&self) -> Self {
         Self {
@@ -54,19 +54,18 @@ where
     }
 }
 
-impl<S, R> ProviderClient<S, R>
+impl<S> ProviderClient<S>
 where
     S: StateStore + Send + Sync + 'static,
-    R: DnsResolver + Clone + 'static,
 {
-    /// Create new provider client with state store and HTTP client.
+    /// Create a provider client with a state store and the platform's default
+    /// HTTP client (built with [`HttpClientBuilder`]).
     ///
     /// # Arguments
     ///
     /// * `project` - Project name for state namespacing
     /// * `stage` - Stage name (dev, staging, prod)
     /// * `state_store` - State store implementation
-    /// * `http_client` - HTTP client for API calls
     ///
     /// # Example
     ///
@@ -74,23 +73,27 @@ where
     /// use std::path::Path;
     /// use foundation_deployment::provider_client::ProviderClient;
     /// use foundation_db::core::state::FileStateStore;
-    /// use foundation_netio::http::NativeHttpClient;
     ///
     /// let state_store = FileStateStore::new(Path::new("/path"), "my-project", "dev");
-    /// let http_client = NativeHttpClient::default();
-    /// let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+    /// let client = ProviderClient::new("my-project", "dev", state_store);
     /// ```
-    pub fn new(
+    pub fn new(project: &str, stage: &str, state_store: S) -> Self {
+        Self::with_client(HttpClientBuilder::new().build(), project, stage, state_store)
+    }
+
+    /// Create a provider client that sends its HTTP calls through
+    /// `http_client` (a shared client, or a client with its own settings).
+    pub fn with_client(
+        http_client: DynNetClient,
         project: &str,
         stage: &str,
         state_store: S,
-        http_client: SimpleHttpClient<R>,
     ) -> Self {
         Self {
             state_store: Arc::new(state_store),
             project: project.to_string(),
             stage: stage.to_string(),
-            http_client: Arc::new(http_client),
+            http_client,
         }
     }
 
@@ -114,7 +117,7 @@ where
 
     /// Get reference to HTTP client.
     #[must_use]
-    pub fn http_client(&self) -> &SimpleHttpClient<R> {
+    pub fn http_client(&self) -> &DynNetClient {
         &self.http_client
     }
 }

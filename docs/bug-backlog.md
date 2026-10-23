@@ -66,6 +66,14 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 - **QUIC streams register no waker.** Every H3 future must wake itself, so it busy-polls a worker while idle. `h3_serve.rs` works around this. The quinn driver should wake stream tasks when they become ready.
 - **`FramedRecv` buffers whole DATA frames.** It holds up to `DEFAULT_MAX_FRAME_SIZE` (16 MiB) before yielding. Stream within a frame, and make the size config **(rule 8)**.
 - **`H3Connection::poll_accept_webtransport` loses streams.** It drops the accepted stream if its headers aren't ready yet. It also drops a non-WebTransport request whose headers it has already read.
+- **`AsyncSendSafeBody` polls sync body iterators inline**
+  (`shared/client/body_reader.rs`). `poll_next` calls the inner iterator's
+  `next()`. Unless that iterator returns a "not ready" item (`Data::Retry`), a
+  read that waits for the socket waits inside `poll_next` and holds the worker.
+  Every async caller that reads a streamed body (the deployment API clients,
+  `TurboPufferVectorStore`) has this. Fix: give the body iterators a
+  readiness-based async form that returns `Poll::Pending` and wakes on socket
+  readiness.
 - **`SendSafeBodyBytesIterator` reports would-block inconsistently.** It returns `Err` for chunked bodies but `Ignore` for sized bodies, so its ~15 users can't tell "not ready" apart from bookkeeping items.
 - **`BatchReader` logs every `WouldBlock` at `error!`.**
 - **Case-sensitive `chunked` check.** The request reader's `transfer_encodings.iter().position(|n| n == CHUNKED_VALUE)` compares case-sensitively, unlike the lowercase set check just before it.
@@ -213,6 +221,8 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 
 - **`wait_for_stdout`:** re-reads the whole log on every poll, misses a message split across frames, and scans stderr too.
 - **`docker_container_macro_supports_async_functions`** fails instead of skipping when no Docker daemon is running.
+- **Docker-gated tests check only that the socket file exists.** `docker_available()` in `tests/container_integration.rs`, `tests/ssh_backend_tests.rs`, `tests/runner_integration_tests.rs` and `tests/image_build_integration.rs` returns true when `/var/run/docker.sock` exists, also when no daemon listens on it. Then `--ignored` runs fail with "Docker daemon not reachable" instead of skipping. Fix: add one shared test helper that connects with `DockerClient::connect_with_defaults` and pings the daemon, and use it in all Docker-gated tests (foundation_proxy has the same helper, see §9).
+- **Vagrant box lookup runs a `curl` subprocess** (`src/import/mod.rs`, near line 512). The comment says this avoids "tokio runtime conflicts", but no tokio runtime is used now. The subprocess needs `curl` installed and returns no structured errors. Fix: use the valtron-based HTTP client from `foundation_netio` with a bounded, streamed read of the JSON response, and remove the comment.
 - **Inline tests remain** in `docker/wireguard.rs` (rule 7).
 - **Warnings:**
   - deprecated `SimpleHttpClient`, used in `wait_for.rs` and in `foundation_deployment/src/provider_client.rs`;
@@ -240,6 +250,10 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
   change one entry and save it back. Two admin commands at once can each save
   over the other's change. Fix: serialise the read-modify-write behind a
   mutex in `ProxyStateStore` (or store each backend's state as its own record).
+- **Docker-gated tests check only that the socket file exists**
+  (`tests/proxy_integration_tests.rs`, `docker_available()`). When the socket
+  exists but no daemon listens on it, the `--ignored` runs fail instead of
+  skipping. Fix: use a shared helper that pings the daemon (see §7).
 - **The `mut` on `h3_local_addr` warns without the `h3` feature**
   (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
   expression instead of assigning inside the `cfg` block.
@@ -267,6 +281,11 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
   body to extract the vendor message. Likely fix: read at most a configured
   number of bytes (a field on each provider config, default 64 KiB like Go
   `net/http`'s error-drain limit) before parsing.
+- **`ResponsesProvider::fetch_model_info` has no success test.**
+  `tests/models/provider_model_info_tests.rs` defines `GPT_JSON` (a model
+  object) but no test uses it, so only the error and placeholder paths of the
+  Responses provider are tested. Fix: add the success test (a `GET` with the
+  bearer token that parses `GPT_JSON`), as the Anthropic one does.
 
 - **Embeddings are generated synchronously inside async code.**
   `EmbeddingProvider::embed` is sync, and `CachedEmbeddingProvider` calls the
@@ -372,6 +391,22 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   50 F04), and `CredentialStorage` over a D1 `StorageProvider` already serves
   `AsyncCredentialStore` on Workers. Fix: fold callers onto
   `CredentialStorage` and delete the duplicates.
+- **`NativeOAuth` and `PasswordAuthClient` read an empty body.**
+  `src/native/oauth.rs` (`extract_body_text`, `error_body_text`) and
+  `src/native/password_auth.rs` (`extract_body`) read the response through
+  `get_body_ref()`. The client gives a lazy `SendSafeBody::Stream`, which
+  these helpers read as an empty string, so a token or login answer fails to
+  parse and an error answer has no message. Fix: take the body and read it as
+  a stream (status first; an error body only up to a configured limit), as the
+  `shared` clients do.
+- **The `shared` HTTP clients read bodies synchronously and whole.**
+  `discovery`, `jwks`, `introspection`, `userinfo` and `upstream_client`
+  (`src/shared/`) call the sync `try_collect_bytes` inside `async fn`s (a
+  blocking read on the executor; on wasm it cannot wait for `fetch`), and
+  read an error body whole before they use the status. Fix: read with
+  `collect_bytes_async` (`AsyncSendSafeBody`), check the status first, and
+  read an error body only up to a limit on a config (64 KiB, as
+  `foundation_deployment`'s `BodyLimits`).
 - **`NativeOAuth` keeps sync twins** (`exchange_code`, `client_credentials`,
   `refresh_token`) next to the `*_async` methods (`src/native/oauth.rs`),
   against the async-only API rule. Fix: keep only the async methods (as the
@@ -461,15 +496,57 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 17. foundation_vectors
 
-- **`AsyncVectorStore::len_async` returns `usize`,** so a backend error can't
-  be reported (`src/store.rs`); the SQL stores count a failure as 0. Fix:
-  return `Result<usize, VectorStoreError>` from `len_async` (and `len`) across
-  every vector store. Owner decision 2026-10-21: recorded, not fixed in F04.
+- **`FjallVectorStore` runs fjall inline in its async methods**
+  (`src/fjall_store.rs`). fjall has only a sync API. The calls read and write
+  the page cache without `fsync`, but the first use of a namespace scans all
+  of its vectors to rebuild the index, and `flush` (`fsync`) is sync. Both can
+  hold a worker for a long time. Fix: run them on a blocking-work seam when
+  valtron has one (or in a task of their own), and make `flush` async.
+- **`SqliteVecVectorStore` ships only a linux-x86_64 `vec0.so`**
+  (`vendor/vec0.so`). `open` fails on every other platform. Fix: vendor the
+  extension for each supported target, or build sqlite-vec from source.
+- **`SqliteVecVectorStore` tables from before spec 50 F05 T1 do not work.**
+  T1 changed the `vec0` schema (text primary key, `metadata` column, distance
+  metric). An old `vec0_{ns}` table gives SQL errors. Fix: detect the old
+  schema on `open` and migrate it, or fail with a clear message.
+- **`TurboPufferVectorStore` is tested only against a mock.** The mock
+  follows the request and response types of the official Python client
+  (`turbopuffer` 2.14.0), because the documentation site was not reachable.
+  Two details are not proven against the live service: that `deleted_ids`
+  lists only ids that existed (`delete_async` reports `NotFound` from it), and
+  that `include_attributes: ["vector"]` returns the vector. Fix: an opt-in
+  test against a real namespace (API key from the environment).
+- **`TurboPufferVectorStore` does not retry HTTP 429.** `TurboPuffer` throttles
+  writes with 429 (backpressure). The store reports it as an error. Fix: retry
+  with backoff, with the attempts and delays on a config.
+- **The `sql-store` feature does not build for wasm32.**
+  `cargo check --target wasm32-unknown-unknown -p foundation_vectors
+  --features sql-store` fails in `foundation_core` (`idle_wake` missing, a
+  `NoopMutex` `PoisonError` mismatch). The crate takes `foundation_db` with
+  its default features on every target, so `foundation_core/multi` is on for
+  wasm. This was so before spec 50 F05 T1. CI builds `sql-store` only for
+  native, so it does not see it. Fix: take `foundation_db` without default
+  features on wasm32, then add `sql-store` to the crate's `wasm-runs` in
+  `ci/packages.toml`.
+- **`hybrid_search` gives the reranker no texts** (`src/fusion.rs`). It calls
+  `Reranker::rerank(query, fused, &[])`, so a reranker cannot read the
+  candidate documents. Fix: take a text lookup (id → text) as an argument, or
+  change `Reranker` to fetch the texts it needs.
 - **The SQL-backed stores scan a whole namespace per search**
   (`SqlVectorStore::search_async`): memory is bounded (`TopK`), but time is
   O(n·d) per query. Expected for the portable fallback; large namespaces
   should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
 
+
+## 18. foundation_testbed
+
+- **The embedded JavaScript runner uses a tokio runtime** (`src/wasm/embedded_js.rs`, `tokio_runtime()`, and the optional `tokio` dependency behind `wasm-embedded-js` in `Cargo.toml`). The event loop and timers of `deno_core` (`reactor_tokio.rs`) need a tokio runtime, and `deno_websocket` uses tokio for its TCP connection. This is the only tokio runtime in `backends` outside the cross-runtime tests of valtron. The project rule is "valtron always". Options:
+  - keep it as a documented third-party boundary: a current-thread runtime, local to this module and behind the feature flag;
+  - or drive the event loop of `deno_core` another way (poll `JsRuntime::poll_event_loop` from a valtron task with a valtron timer), if `deno_core` lets us replace its reactor.
+
+## 19. Apps (tokio and axum)
+
+- **The apps still use tokio and axum, not valtron and `foundation_http`.** This is `bin/platform` (and its templates `api-app`, `static-html-app`, `web-app`), `examples/devbinary`, `examples/web/wello`, `examples/todo`, `crates/channels` and `crates/domain`: tokio/axum servers and tokio tests. `crates/channels` also has inline `#[cfg(test)]` modules (`src/broadcast.rs`, `src/mspc.rs`, `src/executor.rs`), which go against rule 7. Tracked in [#137](https://github.com/ewe-studios/ewe_platform/issues/137).
 
 ## Paused
 

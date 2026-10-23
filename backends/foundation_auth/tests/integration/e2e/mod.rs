@@ -10,18 +10,18 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_auth::server::config::IdpConfig;
-use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::idp_server::IdpServer;
+use foundation_auth::server::storage::HandlerStorage;
+use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
-use foundation_db::{QueryStore, MemoryStorage};
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
-use foundation_netio::shared::client::StaticSocketAddr;
-use foundation_netio::http::SimpleHttpClient;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
+use foundation_db::{MemoryStorage, QueryStore};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
-use foundation_core::synca::OnSignal;
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::http::SimpleResponse;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 // ─── Test Infrastructure ─────────────────────────────────────────────────────
 
@@ -66,7 +66,11 @@ impl TestIdpServer {
         // Give server a moment to start
         std::thread::sleep(Duration::from_millis(100));
 
-        Self { addr, shutdown, _db_dir: dir }
+        Self {
+            addr,
+            shutdown,
+            _db_dir: dir,
+        }
     }
 
     fn base_url(&self) -> String {
@@ -82,22 +86,27 @@ impl Drop for TestIdpServer {
 
 /// HTTP client with cookie persistence for session-based tests.
 struct TestClient {
-    inner: SimpleHttpClient<StaticSocketAddr>,
+    inner: DynNetClient,
     cookies: std::sync::Mutex<Vec<String>>,
 }
 
 impl TestClient {
     fn new(addr: std::net::SocketAddr) -> Self {
-        let resolver = StaticSocketAddr::new(addr);
         Self {
-            inner: SimpleHttpClient::with_resolver(resolver)
+            inner: HttpClientBuilder::new()
+                .resolve_to(addr)
                 .max_retries(3)
                 .connect_timeout(Duration::from_secs(5))
                 .read_timeout(Duration::from_secs(20))
-                .write_timeout(Duration::from_secs(5)),
+                .write_timeout(Duration::from_secs(5))
+                .build(),
             cookies: std::sync::Mutex::new(Vec::new()),
         }
     }
+}
+
+fn is_success(resp: &SimpleResponse<SendSafeBody>) -> bool {
+    (200..=299).contains(&resp.get_status().into_usize())
 }
 
 fn read_body(body: SendSafeBody) -> String {
@@ -124,24 +133,42 @@ fn status_code(status: &Status) -> usize {
 #[valtron_test(threads = 8)]
 fn e2e_discovery_returns_valid_oidc_document() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .get(&format!("{}/idp/.well-known/openid-configuration", server.base_url()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::get(&format!(
+                "{}/idp/.well-known/openid-configuration",
+                server.base_url()
+            ))
+            .unwrap()
+            .build(),
+        )
+        .unwrap();
 
-    assert!(resp.is_success());
-    let (_, _, body, _, _) = resp.into_parts();
+    assert!(is_success(&resp));
+    let (_, _, body) = resp.into_parts();
     let doc = parse_json(&read_body(body));
 
     assert_eq!(doc["issuer"], "https://auth.example.com");
-    assert_eq!(doc["authorization_endpoint"], "https://auth.example.com/idp/authorize");
+    assert_eq!(
+        doc["authorization_endpoint"],
+        "https://auth.example.com/idp/authorize"
+    );
     assert_eq!(doc["token_endpoint"], "https://auth.example.com/idp/token");
-    assert_eq!(doc["userinfo_endpoint"], "https://auth.example.com/idp/userinfo");
-    assert_eq!(doc["jwks_uri"], "https://auth.example.com/idp/.well-known/jwks.json");
+    assert_eq!(
+        doc["userinfo_endpoint"],
+        "https://auth.example.com/idp/userinfo"
+    );
+    assert_eq!(
+        doc["jwks_uri"],
+        "https://auth.example.com/idp/.well-known/jwks.json"
+    );
 
     // Supported algorithms and flows
-    let algs = doc["id_token_signing_alg_values_supported"].as_array().unwrap();
+    let algs = doc["id_token_signing_alg_values_supported"]
+        .as_array()
+        .unwrap();
     assert!(algs.iter().any(|v| v == "EdDSA"));
 
     let pkce = doc["code_challenge_methods_supported"].as_array().unwrap();
@@ -153,14 +180,21 @@ fn e2e_discovery_returns_valid_oidc_document() {
 #[valtron_test(threads = 8)]
 fn e2e_jwks_returns_ed25519_key() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .get(&format!("{}/idp/.well-known/jwks.json", server.base_url()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::get(&format!(
+                "{}/idp/.well-known/jwks.json",
+                server.base_url()
+            ))
+            .unwrap()
+            .build(),
+        )
+        .unwrap();
 
-    assert!(resp.is_success());
-    let (_, _, body, _, _) = resp.into_parts();
+    assert!(is_success(&resp));
+    let (_, _, body) = resp.into_parts();
     let jwks = parse_json(&read_body(body));
 
     let keys = jwks["keys"].as_array().unwrap();
@@ -176,25 +210,32 @@ fn e2e_jwks_returns_ed25519_key() {
 #[valtron_test(threads = 8)]
 fn e2e_user_registration_creates_account() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .post(&format!("{}/auth/v1/users/register", server.base_url()))
-        .unwrap()
-        .header(SimpleHeader::CONTENT_TYPE, "application/json")
-        .body_json(&serde_json::json!({
-            "email": "newuser@example.com",
-            "password": "Str0ng!Password#2026",
-        })).unwrap()
-        .build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::post(&format!("{}/auth/v1/users/register", server.base_url()))
+                .unwrap()
+                .header(SimpleHeader::CONTENT_TYPE, "application/json")
+                .body_json(&serde_json::json!({
+                    "email": "newuser@example.com",
+                    "password": "Str0ng!Password#2026",
+                }))
+                .unwrap()
+                .build(),
+        )
+        .unwrap();
 
-    let (status, _, body, _, _) = resp.into_parts();
+    let (status, _, body) = resp.into_parts();
     let json = parse_json(&read_body(body));
 
     // With no PoW, registration may require it — either 200 or 400 for missing PoW.
     // Spec 48 F03: success returns `{"id", "email", "status": "created"}`.
     if status_code(&status) == 200 {
-        assert!(json["id"].is_string(), "registration should return the new user's id");
+        assert!(
+            json["id"].is_string(),
+            "registration should return the new user's id"
+        );
         assert_eq!(json["status"], "created");
     } else {
         assert_eq!(status_code(&status), 400);
@@ -206,15 +247,19 @@ fn e2e_user_registration_creates_account() {
 #[valtron_test(threads = 8)]
 fn e2e_pow_challenge_and_solve() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     // Get challenge
     let resp = client
-        .get(&format!("{}/auth/v1/pow", server.base_url()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::get(&format!("{}/auth/v1/pow", server.base_url()))
+                .unwrap()
+                .build(),
+        )
+        .unwrap();
 
-    assert!(resp.is_success());
-    let (_, _, body, _, _) = resp.into_parts();
+    assert!(is_success(&resp));
+    let (_, _, body) = resp.into_parts();
     let challenge = parse_json(&read_body(body));
 
     assert!(challenge["challenge"].is_string());
@@ -223,16 +268,20 @@ fn e2e_pow_challenge_and_solve() {
 
     // Submit invalid solution (nonce=0 will almost certainly fail)
     let resp = client
-        .post(&format!("{}/auth/v1/pow", server.base_url()))
-        .unwrap()
-        .header(SimpleHeader::CONTENT_TYPE, "application/json")
-        .body_json(&serde_json::json!({
-            "challenge": challenge["challenge"],
-            "solution": "0",
-        })).unwrap()
-        .build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::post(&format!("{}/auth/v1/pow", server.base_url()))
+                .unwrap()
+                .header(SimpleHeader::CONTENT_TYPE, "application/json")
+                .body_json(&serde_json::json!({
+                    "challenge": challenge["challenge"],
+                    "solution": "0",
+                }))
+                .unwrap()
+                .build(),
+        )
+        .unwrap();
 
-    let (_, _, body, _, _) = resp.into_parts();
+    let (_, _, body) = resp.into_parts();
     let result = parse_json(&read_body(body));
     // Either valid (extremely unlikely with nonce=0) or invalid
     assert!(result["valid"].is_boolean() || result["error"].is_string());
@@ -243,21 +292,28 @@ fn e2e_pow_challenge_and_solve() {
 #[valtron_test(threads = 8)]
 fn e2e_password_reset_request() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     // Request password reset for non-existent user
     let resp = client
-        .post(&format!("{}/auth/v1/users/request_reset", server.base_url()))
-        .unwrap()
-        .header(SimpleHeader::CONTENT_TYPE, "application/json")
-        .body_json(&serde_json::json!({
-            "email": "nonexistent@example.com",
-        })).unwrap()
-        .build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::post(&format!(
+                "{}/auth/v1/users/request_reset",
+                server.base_url()
+            ))
+            .unwrap()
+            .header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .body_json(&serde_json::json!({
+                "email": "nonexistent@example.com",
+            }))
+            .unwrap()
+            .build(),
+        )
+        .unwrap();
 
     // Should not reveal whether user exists (security best practice).
     // Spec 48 F04: always `202 {"status": "reset_requested"}`.
-    let (status, _, _, _, _) = resp.into_parts();
+    let (status, _, _) = resp.into_parts();
     assert_eq!(status_code(&status), 202);
 }
 
@@ -266,14 +322,18 @@ fn e2e_password_reset_request() {
 #[valtron_test(threads = 8)]
 fn e2e_tos_latest_returns_config() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .get(&format!("{}/auth/v1/tos/latest", server.base_url()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::get(&format!("{}/auth/v1/tos/latest", server.base_url()))
+                .unwrap()
+                .build(),
+        )
+        .unwrap();
 
-    assert!(resp.is_success());
-    let (_, _, body, _, _) = resp.into_parts();
+    assert!(is_success(&resp));
+    let (_, _, body) = resp.into_parts();
     let tos = parse_json(&read_body(body));
 
     // Either configured ToS or "not configured" message
@@ -285,14 +345,18 @@ fn e2e_tos_latest_returns_config() {
 #[valtron_test(threads = 8)]
 fn e2e_template_config_returns_policy() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .get(&format!("{}/auth/v1/templates/config", server.base_url()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::get(&format!("{}/auth/v1/templates/config", server.base_url()))
+                .unwrap()
+                .build(),
+        )
+        .unwrap();
 
-    assert!(resp.is_success());
-    let (_, _, body, _, _) = resp.into_parts();
+    assert!(is_success(&resp));
+    let (_, _, body) = resp.into_parts();
     let config = parse_json(&read_body(body));
 
     assert!(config["password_policy"]["min_length"].is_number());
@@ -302,14 +366,21 @@ fn e2e_template_config_returns_policy() {
 #[valtron_test(threads = 8)]
 fn e2e_password_policy_returns_requirements() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .get(&format!("{}/auth/v1/templates/password_policy", server.base_url()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::get(&format!(
+                "{}/auth/v1/templates/password_policy",
+                server.base_url()
+            ))
+            .unwrap()
+            .build(),
+        )
+        .unwrap();
 
-    assert!(resp.is_success());
-    let (_, _, body, _, _) = resp.into_parts();
+    assert!(is_success(&resp));
+    let (_, _, body) = resp.into_parts();
     let policy = parse_json(&read_body(body));
 
     assert_eq!(policy["min_length"], 12);
@@ -324,17 +395,23 @@ fn e2e_password_policy_returns_requirements() {
 #[valtron_test(threads = 8)]
 fn e2e_introspect_unknown_token_returns_inactive() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .post(&format!("{}/idp/introspect", server.base_url()))
-        .unwrap()
-        .body_text("token=nonexistent_token_xyz")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::post(&format!("{}/idp/introspect", server.base_url()))
+                .unwrap()
+                .body_text("token=nonexistent_token_xyz")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
+        )
+        .unwrap();
 
-    assert!(resp.is_success());
-    let (_, _, body, _, _) = resp.into_parts();
+    assert!(is_success(&resp));
+    let (_, _, body) = resp.into_parts();
     let result = parse_json(&read_body(body));
 
     assert_eq!(result["active"], false);
@@ -345,13 +422,17 @@ fn e2e_introspect_unknown_token_returns_inactive() {
 #[valtron_test(threads = 8)]
 fn e2e_userinfo_without_bearer_returns_401() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .get(&format!("{}/idp/userinfo", server.base_url()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::get(&format!("{}/idp/userinfo", server.base_url()))
+                .unwrap()
+                .build(),
+        )
+        .unwrap();
 
-    let (status, _, body, _, _) = resp.into_parts();
+    let (status, _, body) = resp.into_parts();
     assert_eq!(status_code(&status), 401);
 
     let err = parse_json(&read_body(body));
@@ -364,13 +445,14 @@ fn e2e_userinfo_without_bearer_returns_401() {
 #[valtron_test(threads = 8)]
 fn e2e_authorize_without_session_returns_400() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .get(&format!("{}/idp/authorize?client_id=test&response_type=code&redirect_uri=http://localhost/cb", server.base_url()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(PreparedRequestBuilder::get(&format!("{}/idp/authorize?client_id=test&response_type=code&redirect_uri=http://localhost/cb", server.base_url()))
+        .unwrap().build())
+        .unwrap();
 
-    let (status, _, body, _, _) = resp.into_parts();
+    let (status, _, body) = resp.into_parts();
     assert_eq!(status_code(&status), 400);
 
     let err = parse_json(&read_body(body));
@@ -382,16 +464,22 @@ fn e2e_authorize_without_session_returns_400() {
 #[valtron_test(threads = 8)]
 fn e2e_device_authorize_requires_storage() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .post(&format!("{}/idp/device/authorize", server.base_url()))
-        .unwrap()
-        .body_text("client_id=test_client")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::post(&format!("{}/idp/device/authorize", server.base_url()))
+                .unwrap()
+                .body_text("client_id=test_client")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
+        )
+        .unwrap();
 
-    let (status, _, body, _, _) = resp.into_parts();
+    let (status, _, body) = resp.into_parts();
     assert_eq!(status_code(&status), 400);
 
     let err = parse_json(&read_body(body));
@@ -403,16 +491,22 @@ fn e2e_device_authorize_requires_storage() {
 #[valtron_test(threads = 8)]
 fn e2e_token_without_storage_returns_400() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let resp = client
-        .post(&format!("{}/idp/token", server.base_url()))
-        .unwrap()
-        .body_text("grant_type=authorization_code&code=fake&client_id=test")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::post(&format!("{}/idp/token", server.base_url()))
+                .unwrap()
+                .body_text("grant_type=authorization_code&code=fake&client_id=test")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
+        )
+        .unwrap();
 
-    let (status, _, body, _, _) = resp.into_parts();
+    let (status, _, body) = resp.into_parts();
     assert_eq!(status_code(&status), 400);
 }
 
@@ -421,28 +515,41 @@ fn e2e_token_without_storage_returns_400() {
 #[valtron_test(threads = 8)]
 fn e2e_errors_follow_oidc_format() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     // 400 error
     let resp_400 = client
-        .post(&format!("{}/idp/token", server.base_url()))
-        .unwrap()
-        .body_text("grant_type=authorization_code")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::post(&format!("{}/idp/token", server.base_url()))
+                .unwrap()
+                .body_text("grant_type=authorization_code")
+                .header(
+                    SimpleHeader::CONTENT_TYPE,
+                    "application/x-www-form-urlencoded",
+                )
+                .build(),
+        )
+        .unwrap();
 
-    let (status, _, body, _, _) = resp_400.into_parts();
+    let (status, _, body) = resp_400.into_parts();
     assert_eq!(status_code(&status), 400);
     let err = parse_json(&read_body(body));
     assert!(err["error"].is_string(), "400 must have 'error' field");
-    assert!(err["error_description"].is_string(), "400 must have 'error_description'");
+    assert!(
+        err["error_description"].is_string(),
+        "400 must have 'error_description'"
+    );
 
     // 401 error
     let resp_401 = client
-        .get(&format!("{}/idp/userinfo", server.base_url()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::get(&format!("{}/idp/userinfo", server.base_url()))
+                .unwrap()
+                .build(),
+        )
+        .unwrap();
 
-    let (status, _, body, _, _) = resp_401.into_parts();
+    let (status, _, body) = resp_401.into_parts();
     assert_eq!(status_code(&status), 401);
     let err = parse_json(&read_body(body));
     assert_eq!(err["error"], "invalid_token");
@@ -478,17 +585,27 @@ fn e2e_issuer_trailing_slash_normalized() {
     });
     std::thread::sleep(Duration::from_millis(100));
 
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+    let client = HttpClientBuilder::new().resolve_to(addr).build();
     let resp = client
-        .get(&format!("http://127.0.0.1:{}/idp/.well-known/openid-configuration", addr.port()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::get(&format!(
+                "http://127.0.0.1:{}/idp/.well-known/openid-configuration",
+                addr.port()
+            ))
+            .unwrap()
+            .build(),
+        )
+        .unwrap();
 
-    assert!(resp.is_success());
-    let (_, _, body, _, _) = resp.into_parts();
+    assert!(is_success(&resp));
+    let (_, _, body) = resp.into_parts();
     let doc = parse_json(&read_body(body));
 
     let token_ep = doc["token_endpoint"].as_str().unwrap();
-    assert!(!token_ep.contains("//token"), "no double slashes: {token_ep}");
+    assert!(
+        !token_ep.contains("//token"),
+        "no double slashes: {token_ep}"
+    );
     assert!(token_ep.ends_with("/token"));
 
     shutdown.turn_on();
@@ -499,13 +616,20 @@ fn e2e_issuer_trailing_slash_normalized() {
 #[valtron_test(threads = 8)]
 fn e2e_jwks_returns_same_key_across_requests() {
     let server = TestIdpServer::start();
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
+    let client = HttpClientBuilder::new().resolve_to(server.addr).build();
 
     let fetch_jwks = || {
         let resp = client
-            .get(&format!("{}/idp/.well-known/jwks.json", server.base_url()))
-            .unwrap().build_client().unwrap().send().unwrap();
-        let (_, _, body, _, _) = resp.into_parts();
+            .send(
+                PreparedRequestBuilder::get(&format!(
+                    "{}/idp/.well-known/jwks.json",
+                    server.base_url()
+                ))
+                .unwrap()
+                .build(),
+            )
+            .unwrap();
+        let (_, _, body) = resp.into_parts();
         parse_json(&read_body(body))
     };
 
@@ -549,21 +673,35 @@ fn e2e_custom_prefix_routes_work() {
     });
     std::thread::sleep(Duration::from_millis(100));
 
-    let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(addr));
+    let client = HttpClientBuilder::new().resolve_to(addr).build();
     let resp = client
-        .get(&format!("http://127.0.0.1:{}/auth/v1/.well-known/openid-configuration", addr.port()))
-        .unwrap().build_client().unwrap().send().unwrap();
+        .send(
+            PreparedRequestBuilder::get(&format!(
+                "http://127.0.0.1:{}/auth/v1/.well-known/openid-configuration",
+                addr.port()
+            ))
+            .unwrap()
+            .build(),
+        )
+        .unwrap();
 
-    assert!(resp.is_success());
-    let (_, _, body, _, _) = resp.into_parts();
+    assert!(is_success(&resp));
+    let (_, _, body) = resp.into_parts();
     let doc = parse_json(&read_body(body));
     assert_eq!(doc["issuer"], "https://auth.example.com");
 
     // Discovery at custom prefix works
     let jwks_resp = client
-        .get(&format!("http://127.0.0.1:{}/auth/v1/.well-known/jwks.json", addr.port()))
-        .unwrap().build_client().unwrap().send().unwrap();
-    assert!(jwks_resp.is_success());
+        .send(
+            PreparedRequestBuilder::get(&format!(
+                "http://127.0.0.1:{}/auth/v1/.well-known/jwks.json",
+                addr.port()
+            ))
+            .unwrap()
+            .build(),
+        )
+        .unwrap();
+    assert!(is_success(&jwks_resp));
 
     shutdown.turn_on();
 }

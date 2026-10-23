@@ -480,6 +480,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         let tool_manager = self
             .toolshed
             .build(&parts)
+            .await
             .map_err(|e| ErrorTrace::new(AgenticError::from(e)))?;
 
         let inner = SessionInner {

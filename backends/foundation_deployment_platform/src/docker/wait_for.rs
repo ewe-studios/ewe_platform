@@ -19,7 +19,7 @@ use foundation_core::valtron::sleep_async;
 use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
 use foundation_deployment_docker::streaming::decoder::LogOutput;
 use foundation_deployment_docker::DockerClient;
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 use crate::docker::error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
 
 /// A readiness condition for a running container.
@@ -268,23 +268,24 @@ async fn wait_for_stdout(
     }
 }
 
-/// HTTP GET loop via `SimpleHttpClient` — uses the workspace's HTTP stack.
+/// HTTP GET loop over the platform network client (`HttpClientBuilder`).
+/// Only the status is checked; the body is never read.
 async fn wait_for_http(url: &str, expected_status: u16, timeout: Duration) -> DockerResult<()> {
-    let client = SimpleHttpClient::from_system();
+    let client = HttpClientBuilder::new().build();
     let start = Instant::now();
     let mut backoff = Duration::from_millis(100);
 
     loop {
+        let request = PreparedRequestBuilder::get(url)
+            .map_err(|e| docker_err(DockerError::InvalidConfig(format!("{e}"))))?
+            .build();
         let response = client
-            .get(url)
-            .map_err(|e| docker_err(DockerError::InvalidConfig(format!("{e}"))))?
-            .build_client()
-            .map_err(|e| docker_err(DockerError::InvalidConfig(format!("{e}"))))?
-            .send_async()
+            .send_async(request)
             .await
             .map_err(|e| docker_err(DockerError::InvalidConfig(format!("{e}"))))?;
+        let status: usize = response.get_status().into();
 
-        if response.get_status().into_usize() == expected_status as usize {
+        if status == usize::from(expected_status) {
             return Ok(());
         }
 

@@ -4,7 +4,7 @@
 
 use foundation_cedar::{load_from_store, PolicyStore, SqlPolicyStore};
 use foundation_core::valtron::valtron_test;
-use foundation_db::{QueryStore, DataValue, TursoStorage};
+use foundation_db::{DataValue, QueryStore, TursoStorage};
 
 const SCHEMA: &str = r#"
 entity User;

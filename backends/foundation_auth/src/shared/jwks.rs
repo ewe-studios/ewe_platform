@@ -14,6 +14,9 @@
 use std::time::{Duration, Instant};
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::http::SimpleHeader;
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 
 use super::jwt::{JwtError, JwtVerifier, JwtVerifierConfig};
@@ -243,16 +246,27 @@ struct RawJwk {
 
 /// JWKS manager — fetches, caches, and provides keys for JWT verification.
 pub struct JwksManager {
+    http: DynNetClient,
     jwks_url: String,
     cached_jwks: Option<(Jwks, Instant)>,
     cache_ttl: Duration,
 }
 
 impl JwksManager {
-    /// Create a new JWKS manager.
+    /// Create a new JWKS manager that fetches through the platform's default
+    /// HTTP client ([`HttpClientBuilder`]: the native client, or the fetch
+    /// client on wasm32).
     #[must_use]
     pub fn new(jwks_url: String, cache_ttl: Option<Duration>) -> Self {
+        Self::with_client(HttpClientBuilder::new().build(), jwks_url, cache_ttl)
+    }
+
+    /// Create a new JWKS manager that fetches through `http` (a shared
+    /// client, or a test client).
+    #[must_use]
+    pub fn with_client(http: DynNetClient, jwks_url: String, cache_ttl: Option<Duration>) -> Self {
         Self {
+            http,
             jwks_url,
             cached_jwks: None,
             cache_ttl: cache_ttl.unwrap_or(Duration::from_secs(3600)),
@@ -266,7 +280,7 @@ impl JwksManager {
     /// Returns `JwksError::JwksFetchFailed` if the HTTP request fails, or
     /// `JwksParseError` if the response cannot be parsed.
     pub async fn fetch(&mut self) -> Result<&Jwks, JwksError> {
-        let json = fetch_jwks(&self.jwks_url).await?;
+        let json = fetch_jwks(&self.http, &self.jwks_url).await?;
         let mut jwks = Jwks::from_json(&json)?;
         // If the URL contains an issuer hint, store it
         if let Some(issuer) = extract_issuer_from_url(&self.jwks_url) {
@@ -442,31 +456,14 @@ impl From<JwtError> for JwksError {
 }
 
 // ===========================================================================
-// HTTP fetch — uses the cross-platform HttpClient trait (native + wasm).
+// HTTP fetch — over the platform network client, `DynNetClient` (native + wasm).
 // ===========================================================================
 
-async fn fetch_jwks(url: &str) -> Result<String, JwksError> {
-    use foundation_core::url::Uri;
-    use foundation_netio::default_http_client;
-    use foundation_netio::shared::client::body_reader::try_collect_bytes;
-    use foundation_netio::shared::client::request::PreparedRequest;
-    use foundation_netio::shared::http::{
-        SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
-    };
-
-    let client = default_http_client();
-    let uri = Uri::parse(url)
-        .map_err(|e| JwksError::JwksFetchFailed(format!("invalid URL: {e}")))?;
-    let mut headers = SimpleHeaders::new();
-    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
-
-    let req = PreparedRequest {
-        method: SimpleMethod::GET,
-        url: uri,
-        headers,
-        body: SendSafeBody::None,
-        extensions: Default::default(),
-    };
+async fn fetch_jwks(client: &DynNetClient, url: &str) -> Result<String, JwksError> {
+    let req = PreparedRequestBuilder::get(url)
+        .map_err(|e| JwksError::JwksFetchFailed(format!("invalid URL: {e}")))?
+        .header(SimpleHeader::ACCEPT, "application/json")
+        .build();
 
     let resp = client
         .send_async(req)

@@ -395,7 +395,7 @@ impl ToolShed {
     /// [`ToolShedError::ReservedName`] for a tool named `shed`,
     /// [`ToolShedError::NameMismatch`] if a constructor built a tool under a
     /// different name, [`ToolShedError::Discovery`] if indexing fails.
-    pub fn build(self, session: &SessionParts) -> Result<ToolCallManager, ToolShedError> {
+    pub async fn build(self, session: &SessionParts) -> Result<ToolCallManager, ToolShedError> {
         if let Some(problem) = self.problems.into_iter().next() {
             return Err(problem);
         }
@@ -420,6 +420,7 @@ impl ToolShed {
             let discovery = ToolDiscovery::in_memory(Arc::clone(embedder), model.clone());
             manager
                 .enable_discovery(Arc::new(discovery))
+                .await
                 .map_err(|e| ToolShedError::Discovery(e.to_string()))?;
         }
 

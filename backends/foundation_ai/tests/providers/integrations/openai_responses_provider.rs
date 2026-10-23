@@ -16,7 +16,7 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::Stream;
-use foundation_netio::http::NativeHttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
 
 fn setup_responses_provider(
@@ -27,10 +27,9 @@ fn setup_responses_provider(
     let base_url = guard.base_url();
     let api_key = guard.api_key.clone();
 
-    let resolver = foundation_netio::shared::client::SystemDnsResolver;
-    let http_client: Arc<dyn HttpClient> = Arc::new(
-        NativeHttpClient::with_expect_continue_timeout(resolver, Duration::from_secs(30)),
-    );
+    let http_client: DynNetClient = HttpClientBuilder::new()
+        .expect_continue_timeout(Duration::from_secs(30))
+        .build();
 
     let config = ResponsesConfig::new()
         .with_base_url(base_url)

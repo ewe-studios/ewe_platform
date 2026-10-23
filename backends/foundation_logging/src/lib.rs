@@ -186,11 +186,16 @@ macro_rules! trace_impl {
 ///
 /// # Example
 ///
+/// The example uses the valtron entry macro from `foundation_core`. It is not
+/// compiled as a doctest because `foundation_core` is not a dependency of this
+/// crate.
+///
 /// ```rust,ignore
+/// use foundation_core::valtron::valtron;
 /// use foundation_logging::init;
 ///
-/// #[tokio::main]
-/// async fn main() {
+/// #[valtron]
+/// fn main() {
 ///     init();
 ///     // ... rest of your code
 /// }

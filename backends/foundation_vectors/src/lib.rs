@@ -62,8 +62,8 @@ pub use ivf::IvfIndex;
 pub use metric::{DistanceMetric, OrderedScore};
 pub use sqrt::SqrtStrategy;
 pub use store::{
-    AsyncVectorStore, InMemoryVectorStore, VectorEntry, VectorMatch, VectorStore,
-    VectorStoreConfig, VectorStoreError,
+    InMemoryVectorStore, VectorEntry, VectorMatch, VectorStore, VectorStoreConfig,
+    VectorStoreError,
 };
 #[cfg(feature = "sql-store")]
 pub use sql_store::SqlVectorStore;
@@ -74,5 +74,5 @@ pub use fjall_store::{FjallVectorStore, SharedFjallVectorStore};
 #[cfg(all(feature = "sqlite-vec", not(target_arch = "wasm32")))]
 pub use sqlite_vec_store::SqliteVecVectorStore;
 #[cfg(feature = "turbopuffer")]
-pub use turbopuffer::TurboPufferVectorStore;
+pub use turbopuffer::{TurboPufferLimits, TurboPufferVectorStore};
 pub use vector::Vector;

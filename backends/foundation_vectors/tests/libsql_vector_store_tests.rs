@@ -1,13 +1,16 @@
 //! `LibsqlVectorStore` tests (F29) — native `DiskANN` (`vector_top_k`) over a
 //! real local libSQL database, with namespace over-fetch + exact re-rank.
 
+#[macro_use]
+mod contract;
+
 use std::sync::Arc;
 
 use foundation_core::valtron::valtron_test;
 use foundation_db::LibsqlStore;
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{
-    AsyncVectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
+    VectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
     VectorStoreError,
 };
 use foundation_vectors::vector::Vector;
@@ -23,6 +26,8 @@ async fn make_store() -> (TempDir, LibsqlVectorStore<LibsqlStore>) {
         .unwrap();
     (dir, store)
 }
+
+vector_store_contract!(make_store);
 
 fn entry(id: &str, v: [f32; 3]) -> VectorEntry {
     VectorEntry {
@@ -99,14 +104,14 @@ async fn get_update_and_delete() {
 
     // Upsert replaces the vector for the same (namespace, id).
     store.insert_async("ns", entry("k", [0.0, 0.0, 1.0])).await.unwrap();
-    assert_eq!(store.len_async("ns").await, 1);
+    assert_eq!(store.len_async("ns").await.unwrap(), 1);
     let updated = store.get_async("ns", "k").await.unwrap().unwrap();
     assert!((updated.vector.data[2] - 1.0).abs() < 1e-4);
 
     assert!(store.get_async("ns", "missing").await.unwrap().is_none());
     store.delete_async("ns", "k").await.unwrap();
     assert!(store.get_async("ns", "k").await.unwrap().is_none());
-    assert_eq!(store.len_async("ns").await, 0);
+    assert_eq!(store.len_async("ns").await.unwrap(), 0);
     assert!(matches!(
         store.delete_async("ns", "k").await.unwrap_err(),
         VectorStoreError::NotFound { .. }

@@ -58,7 +58,7 @@ async-stream = "0.3"
 # Native-only storage backends — excluded on wasm32 to avoid
 # transitive deps (e.g. tracing-appender → symlink) that don't compile.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-turso = { version = "0.5.3", optional = true, default-features = false }
+turso = { version = "0.8.3", optional = true, default-features = false }
 libsql = { version = "0.6", optional = true }
 
 [dev-dependencies]

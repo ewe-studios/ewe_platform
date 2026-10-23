@@ -5,7 +5,8 @@
 //! SSRF gadget against internal addresses. Ported from OrangeVault `api/icons.rs`.
 //!
 //! WHAT: `fetch_icon(domain)` validates the domain, fetches
-//! `https://<domain>/favicon.ico` over the shared cross-platform HTTP client, and
+//! `https://<domain>/favicon.ico` over the platform network client
+//! (`HttpClientBuilder`: the native client, or the fetch client on wasm32), and
 //! returns the bytes + content type. Caching is a backend concern (KV / R2) layered
 //! on by the transport.
 //!
@@ -13,11 +14,9 @@
 //! shapes before any network call, via [`crate::core::util::validate_icon_domain`]
 //! plus explicit structural checks.
 
-use foundation_core::url::Uri;
-use foundation_netio::default_http_client;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
-use foundation_netio::shared::client::request::PreparedRequest;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::shared::http::SimpleHeader;
+use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 
 use crate::core::error::{AppError, AppResult};
 use crate::core::util::validate_icon_domain;
@@ -52,22 +51,16 @@ pub async fn fetch_icon(domain: &str) -> AppResult<IconData> {
         return Err(AppError::Forbidden);
     }
 
-    let client = default_http_client();
-    let uri = Uri::parse(&url).map_err(|e| AppError::BadRequest(format!("invalid domain URL: {e}")))?;
+    let req = PreparedRequestBuilder::get(&url)
+        .map_err(|e| AppError::BadRequest(format!("invalid domain URL: {e}")))?
+        .header(SimpleHeader::ACCEPT, "image/*")
+        .build();
     // Belt-and-suspenders: the parsed URL must still be a plain https host.
-    if uri.host_str().as_deref() != Some(domain.as_str()) || uri.port().is_some() {
+    if req.url.host_str().as_deref() != Some(domain.as_str()) || req.url.port().is_some() {
         return Err(AppError::Forbidden);
     }
 
-    let mut headers = SimpleHeaders::new();
-    headers.insert(SimpleHeader::ACCEPT, vec!["image/*".into()]);
-    let req = PreparedRequest {
-        method: SimpleMethod::GET,
-        url: uri,
-        headers,
-        body: SendSafeBody::None,
-        extensions: Default::default(),
-    };
+    let client = HttpClientBuilder::new().build();
 
     let resp = client
         .send_async(req)

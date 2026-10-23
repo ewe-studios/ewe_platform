@@ -210,7 +210,8 @@ wasm-runs = ["--no-default-features --features wasm-fetch"]
 # `sql-store` adds the SQL / libsql vector stores and their tests.
 runs = ["", "sql-store"]
 wasm = "enforce"
-wasm-runs = [""]
+# `turbopuffer` takes the fetch client on wasm32 (foundation_netio `wasm-fetch`).
+wasm-runs = ["", "turbopuffer"]
 
 [packages.foundation_nativeapis]
 # The D1/R2 delta VFS tests skip without the local Cloudflare emulator; the

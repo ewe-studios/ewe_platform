@@ -634,9 +634,10 @@ impl ToolCallManager {
     /// built-in discovery tool: a tool registered under it is never offered or
     /// run.
     ///
-    /// When discovery is enabled the tool is also indexed for embedding search;
-    /// if that fails it is logged and the tool stays findable by name and
-    /// description.
+    /// When discovery is enabled the tool is also queued for the embedding
+    /// index. The next [`search_tools`](Self::search_tools) indexes it; a
+    /// failure is reported in that search's [`ShedResult::index_failures`],
+    /// and the tool stays findable by name and description.
     /// # Panics
     /// Panics if a registry lock is poisoned.
     pub fn register(&self, tool: Arc<dyn ToolImpl>) {
@@ -651,13 +652,7 @@ impl ToolCallManager {
 
         let discovery = self.inner.discovery.read().unwrap().clone();
         if let Some(discovery) = discovery {
-            if let Err(err) = discovery.index_tool(&def) {
-                tracing::warn!(
-                    tool = %tool_name,
-                    "indexing the tool for `{SHED_TOOL_NAME}` failed ({err}); it stays \
-                     findable by name and description"
-                );
-            }
+            discovery.queue_index(&def);
         }
 
         let mut tools = self.inner.tools.write().unwrap();
@@ -666,8 +661,9 @@ impl ToolCallManager {
         tools.insert(tool_name, tool);
     }
 
-    /// Deregister a tool by name. It is also dropped from the active set and
-    /// from the discovery index.
+    /// Deregister a tool by name. It is also dropped from the active set, and
+    /// its removal from the discovery index is queued for the next
+    /// [`search_tools`](Self::search_tools).
     /// # Panics
     /// Panics if a registry lock is poisoned.
     pub fn deregister(&self, name: &str) {
@@ -676,12 +672,7 @@ impl ToolCallManager {
         self.inner.active.write().unwrap().remove(name);
         let discovery = self.inner.discovery.read().unwrap().clone();
         if let Some(discovery) = discovery {
-            if let Err(err) = discovery.remove(name) {
-                tracing::warn!(
-                    tool = %name,
-                    "removing the tool from the discovery index failed: {err}"
-                );
-            }
+            discovery.queue_remove(name);
         }
     }
 
@@ -767,19 +758,26 @@ impl ToolCallManager {
     /// without discovery). Each query word that appears in a tool's name,
     /// description or category scores a point; ties sort by name. An empty
     /// description lists every tool.
+    ///
+    /// With discovery enabled it first applies the queued index changes
+    /// (from [`register`](Self::register) / [`deregister`](Self::deregister)).
+    /// The ones that fail are in the result's
+    /// [`index_failures`](ShedResult::index_failures).
     /// # Errors
     /// [`ToolError::Execution`] if the embedding search fails.
-    pub fn search_tools(
+    pub async fn search_tools(
         &self,
         description: &str,
         limit: usize,
-    ) -> Result<Vec<ToolSummary>, ToolError> {
+    ) -> Result<ShedResult, ToolError> {
         let limit = limit.max(1);
         let mut hits: Vec<ToolSummary> = Vec::new();
+        let mut index_failures = Vec::new();
 
         let discovery = self.inner.discovery.read().unwrap().clone();
         if let Some(discovery) = discovery {
-            let found = discovery.search(description, limit)?;
+            index_failures = discovery.apply_pending().await;
+            let found = discovery.search(description, limit).await?;
             let registered = self.inner.defs.read().unwrap();
             hits.extend(
                 found
@@ -816,7 +814,10 @@ impl ToolCallManager {
         }
 
         hits.truncate(limit);
-        Ok(hits)
+        Ok(ShedResult {
+            tools: hits,
+            index_failures,
+        })
     }
 
     /// Search with an embedder from now on: index every registered tool (and,
@@ -824,7 +825,7 @@ impl ToolCallManager {
     /// # Errors
     /// [`ToolError::Execution`] if indexing a registered tool fails; discovery
     /// is then left disabled.
-    pub fn enable_discovery(&self, discovery: Arc<ToolDiscovery>) -> Result<(), ToolError> {
+    pub async fn enable_discovery(&self, discovery: Arc<ToolDiscovery>) -> Result<(), ToolError> {
         let defs: Vec<Tool> = self
             .inner
             .defs
@@ -835,24 +836,24 @@ impl ToolCallManager {
             .map(|(_, def)| def.clone())
             .collect();
         for def in &defs {
-            discovery.index_tool(def)?;
+            discovery.index_tool(def).await?;
         }
         *self.inner.discovery.write().unwrap() = Some(discovery);
         Ok(())
     }
 
     /// Run the built-in `shed`: search, activate the hits, return them.
-    fn run_shed(&self, arguments: &ToolArguments) -> Result<ToolCallResult, ToolError> {
+    async fn run_shed(&self, arguments: &ToolArguments) -> Result<ToolCallResult, ToolError> {
         validate_arguments(&shed_definition(), SHED_TOOL_NAME, arguments)?;
         let args = ToolArgs::new(SHED_TOOL_NAME, arguments);
         let description = args.str("description")?;
         let limit = args.opt_usize("limit")?.unwrap_or(DEFAULT_SHED_LIMIT);
 
-        let hits = self.search_tools(description, limit)?;
-        let names: Vec<String> = hits.iter().map(|h| h.name.clone()).collect();
+        let result = self.search_tools(description, limit).await?;
+        let names: Vec<String> = result.tools.iter().map(|h| h.name.clone()).collect();
         self.activate(&names);
 
-        let json = serde_json::to_string(&ShedResult { tools: hits }).map_err(|e| {
+        let json = serde_json::to_string(&result).map_err(|e| {
             ToolError::Execution {
                 tool: SHED_TOOL_NAME.into(),
                 reason: format!("serialization failed: {e}"),
@@ -906,7 +907,7 @@ impl ToolCallManager {
         request: &ToolCallRequest,
     ) -> Result<ToolCallResult, ToolError> {
         if request.name == SHED_TOOL_NAME {
-            return self.run_shed(&request.arguments);
+            return self.run_shed(&request.arguments).await;
         }
 
         let tool = self

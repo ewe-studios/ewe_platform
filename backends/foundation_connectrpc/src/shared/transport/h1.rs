@@ -5,29 +5,26 @@
 //! it no longer names `SimpleHttpClient`, `HttpExchangeTask`, or
 //! `HttpConnectionPool` — the client owns its pool/resolver and exposes an
 //! `open_exchange` task. This module is now platform-agnostic in its client
-//! dependency (holds `Arc<dyn HttpClient>`).
+//! dependency (holds a `DynNetClient`).
 //!
 //! WHAT: `open()` calls `self.client.open_exchange(prepared)` to get a
 //! `HttpExchangeClientTask`, then fans its `HttpExchange` output with valtron
 //! splits — identical to before, just through the trait method.
 //!
-//! HOW: `PreparedRequest` → `self.client.open_exchange(prepared)` →
+//! HOW: `PreparedRequestBuilder` → `self.client.open_exchange(prepared)` →
 //! `.split_collect_until_map(head)` → `.split_collector_map(body)` →
 //! `body_cont.map_ready(|_| ())` → `valtron::send()`.
 
 use std::sync::Arc;
 
-use foundation_core::url::Uri;
 use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
 use foundation_netio::shared::client::request_task::HttpExchange;
-use foundation_netio::shared::client::PreparedRequest;
 use foundation_netio::DynNetClient;
-use foundation_netio::shared::http::Extensions;
 use foundation_netio::shared::http::{
     pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor,
     SimpleHeader, SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
 };
-use foundation_netio::HttpClientBuilder;
+use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 
 use super::{
     BodyStream, ByteSink, HeadStream, Transport, TransportCapabilities, TransportError,
@@ -55,7 +52,7 @@ impl H1Transport {
 impl Default for H1Transport {
     fn default() -> Self {
         // `HttpClientBuilder::build()` returns the platform's default
-        // `Arc<dyn HttpClient>` (native pool client or wasm fetch client). The
+        // `DynNetClient` (native pool client or wasm fetch client). The
         // transport stays free of any native/wasm cfg gating (F51 de-leak).
         Self::new(HttpClientBuilder::new().build())
     }
@@ -95,16 +92,15 @@ impl Transport for H1Transport {
         let (pushable, body_stream) = pushable_request_body_with_depth(DEFAULT_PUSHABLE_DEPTH);
         let send_body: ByteSink = pushable.into_sender();
 
-        let uri = Uri::parse(&url_str).map_err(|e| {
-            http_to_transport_error(HttpClientError::Reason(format!("invalid URL: {e}")))
-        })?;
-        let prepared = PreparedRequest {
-            method,
-            url: uri,
-            headers,
-            body: body_stream,
-            extensions: Extensions::new(),
-        };
+        // `headers` replaces the builder's own headers; it already carries
+        // `Host` (above). `body` sets the streamed body without adding headers.
+        let prepared = PreparedRequestBuilder::new(method, &url_str)
+            .map_err(|e| {
+                http_to_transport_error(HttpClientError::Reason(format!("invalid URL: {e}")))
+            })?
+            .headers(headers)
+            .body(body_stream)
+            .build();
 
         // F51: the client owns the pool, resolver, and config — the transport
         // just asks for the task. No more reaching into SimpleHttpClient internals.

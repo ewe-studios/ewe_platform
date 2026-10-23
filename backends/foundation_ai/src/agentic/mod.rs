@@ -93,7 +93,7 @@ pub mod internals {
         FileMatch, FileSearch, FileSearchKind, SearchContextTool, SearchFileTool, VfsSearchBackend,
     };
     pub use super::tools::shed::{
-        ShedQuery, ShedResult, ToolDiscovery, ToolSummary, SHED_TOOL_NAME,
+        IndexFailure, ShedQuery, ShedResult, ToolDiscovery, ToolSummary, SHED_TOOL_NAME,
     };
     #[cfg(not(target_family = "wasm"))]
     pub use foundation_nativeapis::{VfsSearchKind, VfsSearchMatch, VfsSearcher};

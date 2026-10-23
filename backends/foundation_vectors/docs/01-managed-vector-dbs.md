@@ -60,7 +60,7 @@ backend has no ANN.
 
 ## 5. The TurboPuffer adapter, concretely
 
-`TurboPufferVectorStore` holds an `Arc<dyn HttpClient>` (Doc 03), an API key, a
+`TurboPufferVectorStore` holds a `DynNetClient` (Doc 03), an API key, a
 base URL, and a `VectorStoreConfig` (dimension + metric). Each trait method becomes
 one REST call:
 

@@ -11,7 +11,7 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::http::NativeHttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
 
 /// A cheap, widely-available OpenRouter model with tool support.
@@ -28,11 +28,9 @@ fn provider_or_skip() -> Option<impl Model> {
     if key.is_empty() {
         return None;
     }
-    let resolver = foundation_netio::shared::client::SystemDnsResolver;
-    let http: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::with_expect_continue_timeout(
-        resolver,
-        Duration::from_secs(60),
-    ));
+    let http: DynNetClient = HttpClientBuilder::new()
+        .expect_continue_timeout(Duration::from_secs(60))
+        .build();
     let config = OpenAIConfig::new()
         // Base URL must NOT include the version segment: `build_url` composes
         // `{base_url}/{api_version}/{endpoint}` and `api_version` defaults to

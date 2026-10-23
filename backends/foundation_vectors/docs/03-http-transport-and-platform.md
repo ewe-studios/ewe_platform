@@ -34,20 +34,45 @@ pub trait HttpClient: Send + Sync {
 - **Native** impl wraps the platform HTTP client.
 - **Wasm** impl is `FetchHttpClient` — `web_sys` `fetch` under the same trait.
 
-`TurboPufferVectorStore` holds an **`Arc<dyn HttpClient>`** and never names a
-concrete client. The deployment injects the right one. That single decision is what
-makes the adapter **platform-agnostic** — it builds and runs for both
-`x86_64` and `wasm32-unknown-unknown` (verified: the wasm build of the
-`turbopuffer` feature is clean).
+`TurboPufferVectorStore` holds a **`DynNetClient`** (`foundation_netio`) and never
+names a concrete client. `DynNetClient` is the platform's network client layer:
+`HttpClientBuilder::new().build()` gives the native client on native targets and
+the fetch client (`FetchHttpClient`) on wasm32. That single decision is what makes
+the adapter **platform-agnostic** in its code. On wasm32 the crate takes
+`foundation_netio` with only its `wasm-fetch` feature, and CI builds the
+`turbopuffer` feature for `wasm32-unknown-unknown`.
 
 ```rust
-let store = TurboPufferVectorStore::new(http_client, api_key, config);
-//                                       ^^^^^^^^^^^ Arc<dyn HttpClient>: native or fetch
+// The default client: native or fetch, from HttpClientBuilder.
+let store = TurboPufferVectorStore::new(api_key, config)?;
+
+// A client that the caller built (a shared client, or a test client).
+let store = TurboPufferVectorStore::with_client(net_client, api_key, config)?;
+//                                              ^^^^^^^^^^ DynNetClient
+// Both refuse DistanceMetric::Dot: TurboPuffer has only cosine and L2.
 ```
+
+Every request is built with `PreparedRequestBuilder`. Every method awaits `HttpClient::send_async`, so no call blocks a worker. The
+store checks the status before it reads the body. It reads a 2xx body up to
+`TurboPufferLimits::max_response_body` (default 16 MiB) and an error body up to
+`TurboPufferLimits::max_error_body` (default 64 KiB).
+
+The adapter uses the TurboPuffer v2 API:
+
+| Method | Request |
+|---|---|
+| `insert_async` | `POST /v2/namespaces/{ns}` with `upsert_rows` and `distance_metric` |
+| `delete_async` | `POST /v2/namespaces/{ns}` with `deletes` and `return_affected_ids` (an id that is not deleted is `NotFound`) |
+| `search_async` | `POST /v2/namespaces/{ns}/query` with `rank_by: ["vector", "ANN", q]` |
+| `get_async` | `POST /v2/namespaces/{ns}/query` with `filters: ["id", "Eq", id]` |
+| `len_async` | `POST /v2/namespaces/{ns}/query` with `aggregate_by: {"count": ["Count"]}` |
+
+A query on a namespace that does not exist (HTTP 404) reads as an empty
+namespace.
 
 ## 3. `Send` on single-threaded wasm (the `?Send` resolution)
 
-`AsyncVectorStore` is a single **`Send`** async trait — *not* `?Send`. But wasm
+`VectorStore` is a single **`Send`** async trait — *not* `?Send`. But wasm
 `fetch` futures are `!Send` (they touch JS objects bound to the single thread). How
 do both hold?
 
@@ -90,15 +115,17 @@ External providers need an API key. The rules:
 
 ## 6. Testing without a network
 
-Because the adapter depends only on `Arc<dyn HttpClient>`, tests inject a **mock**
-client that records requests and returns canned responses (`turbopuffer_tests.rs`).
-That asserts the exact REST contract — URL, method, `Bearer` auth, upsert/query
-body shapes, and the `dist → score` mapping — deterministically and offline. The
-same seam that makes the adapter portable makes it trivially testable.
+`turbopuffer_tests.rs` starts an in-process mock of the TurboPuffer v2 API on
+a local port. The mock keeps rows per namespace and answers writes, vector
+queries, id lookups and counts. The store talks to it through the real native
+HTTP client. The tests check the request shapes (URL, method, `Bearer` auth,
+bodies), the score mapping, the error paths and the body limits. The shared
+`VectorStore` contract also runs against the mock. No network leaves the
+machine.
 
 ---
 
-That's the platform story: **one trait (`AsyncVectorStore`), one HTTP seam
+That's the platform story: **one trait (`VectorStore`), one HTTP seam
 (`HttpClient`), `SendWrapper` to bridge wasm** — so a single TurboPuffer adapter
 serves native servers and edge Workers alike, while CF-native D1/KV ride their
 bindings for the serverless fetch-then-search path.

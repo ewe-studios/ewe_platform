@@ -558,7 +558,8 @@ impl WgHandle {
     /// Open an overlay `Connection` to a peer over the WireGuard mesh (F11).
     ///
     /// The returned `Connection::Overlay(...)` plugs into every netio HTTP
-    /// consumer — `HttpServer`, `NativeHttpClient`, ConnectRPC, gRPC — with
+    /// consumer — `HttpServer`, the HTTP client (`HttpClientBuilder::with_connector`),
+    /// ConnectRPC, gRPC — with
     /// zero transport changes.
     ///
     /// # Errors

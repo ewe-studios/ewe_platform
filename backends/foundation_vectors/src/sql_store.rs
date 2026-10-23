@@ -1,4 +1,4 @@
-//! Portable full-scan `AsyncVectorStore` over any async SQL store.
+//! Portable full-scan `VectorStore` over any async SQL store.
 //!
 //! Vectors are little-endian `f32` blobs in the `vectors` table; search scans
 //! the namespace and ranks rows as they stream in (O(k) memory).
@@ -11,7 +11,7 @@ use futures_lite::StreamExt;
 use crate::flat::TopK;
 use crate::schema;
 use crate::store::{
-    AsyncVectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
+    VectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
     VectorStoreError,
 };
 use crate::vector::Vector;
@@ -76,7 +76,7 @@ fn backend_err<E: core::fmt::Display>(ctx: &'static str) -> impl Fn(E) -> Vector
 }
 
 #[async_trait::async_trait]
-impl<Q: QueryStore + 'static> AsyncVectorStore for SqlVectorStore<Q> {
+impl<Q: QueryStore + 'static> VectorStore for SqlVectorStore<Q> {
     async fn insert_async(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(&entry)?;
         let blob = vector_to_blob(&entry.vector);
@@ -175,17 +175,13 @@ impl<Q: QueryStore + 'static> AsyncVectorStore for SqlVectorStore<Q> {
         }))
     }
 
-    /// The namespace's vector count. `AsyncVectorStore::len_async` can't
-    /// report errors (see the `foundation_vectors` entry in
-    /// `docs/bug-backlog.md`), so a failed count reads as 0.
-    async fn len_async(&self, namespace: &str) -> usize {
+    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError> {
         count_rows(
             self.backend.as_ref(),
             "SELECT COUNT(*) FROM vectors WHERE namespace = ?",
             namespace,
         )
         .await
-        .unwrap_or(0)
     }
 
     fn config(&self) -> &VectorStoreConfig {

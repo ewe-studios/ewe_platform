@@ -108,7 +108,6 @@ futures-lite = "2"
 # From/Display conversions in errors/llama.rs (already a build dep via llamacpp).
 [target.'cfg(not(target_family = "wasm"))'.dev-dependencies]
 infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp" }
-tokio = { version = "1", features = ["macros", "rt"] }
 
 [[test]]
 name = "foundation_ai_tests"

@@ -4,14 +4,14 @@
 //!      The `Deployable` trait provides a unified interface for deploying and
 //!      destroying resources across all providers.
 //!
-//! WHAT: A trait with associated types for output, error, state store, and DNS
-//!       resolver. `deploy()` and `destroy()` are **async**: they return a
+//! WHAT: A trait with associated types for output, error and state store.
+//!       `deploy()` and `destroy()` are **async**: they return a
 //!       [`BoxFuture`] (a `Pin<Box<dyn Future<Output = Result<..>> + Send>>`).
 //!       Implementors write ordinary async logic and `Box::pin(async move { … })`
 //!       it — no `async_trait` macro, and the trait stays object-safe.
 //!
 //! HOW: Users implement `Deployable` on their structs. The methods receive a
-//!      [`ProviderClient<Store, Resolver>`] for state persistence and (for
+//!      [`ProviderClient<Store>`] for state persistence and (for
 //!      HTTP-first providers) an API client. A provider whose transport does
 //!      not fit `ProviderClient`'s HTTP client — e.g. Docker over a Unix socket
 //!      — may build its own client inside the future and use `ProviderClient`
@@ -20,7 +20,6 @@
 use std::future::Future;
 use std::pin::Pin;
 
-use foundation_netio::shared::client::DnsResolver;
 use foundation_db::core::state::namespaced::NamespacedStore;
 use foundation_db::core::state::traits::StateStore;
 
@@ -64,10 +63,10 @@ pub enum Deploying {
 ///      No YAML, TOML, or custom configuration formats needed.
 ///
 /// WHAT: Trait with associated types for deploy output, destroy output, error,
-///       state store, and DNS resolver. `deploy()` and `destroy()` are async —
+///       and state store. `deploy()` and `destroy()` are async —
 ///       they return a [`BoxFuture`] the caller `.await`s.
 ///
-/// HOW: Implement on user structs. Methods receive `ProviderClient<Store, Resolver>`
+/// HOW: Implement on user structs. Methods receive `ProviderClient<Store>`
 ///      providing state persistence and HTTP client access. Write the real work
 ///      as an `async move` block and `Box::pin` it.
 ///
@@ -77,7 +76,6 @@ pub enum Deploying {
 /// * `DestroyOutput` - Destruction output type (often `()` but can contain metadata)
 /// * `Error` - Error type implementing `std::error::Error + Send + Sync + Debug`
 /// * `Store` - State store implementation for persistence
-/// * `Resolver` - DNS resolver for HTTP calls (e.g., `SystemDnsResolver` or `StaticSocketAddr`)
 ///
 /// # Examples
 ///
@@ -85,7 +83,6 @@ pub enum Deploying {
 /// use foundation_deployment::traits::{BoxFuture, Deployable};
 /// use foundation_deployment::provider_client::ProviderClient;
 /// use foundation_db::core::state::FileStateStore;
-/// use foundation_netio::shared::client::dns::SystemDnsResolver;
 ///
 /// struct MyWorker {
 ///     name: String,
@@ -98,12 +95,11 @@ pub enum Deploying {
 ///     type DestroyOutput = ();
 ///     type Error = std::io::Error;
 ///     type Store = FileStateStore;
-///     type Resolver = SystemDnsResolver;
 ///
 ///     fn deploy(
 ///         &self,
 ///         instance_id: usize,
-///         client: ProviderClient<Self::Store, Self::Resolver>,
+///         client: ProviderClient<Self::Store>,
 ///     ) -> BoxFuture<'static, Result<Self::DeployOutput, Self::Error>> {
 ///         let name = self.name.clone();
 ///         Box::pin(async move {
@@ -115,7 +111,7 @@ pub enum Deploying {
 ///     fn destroy(
 ///         &self,
 ///         instance_id: usize,
-///         client: ProviderClient<Self::Store, Self::Resolver>,
+///         client: ProviderClient<Self::Store>,
 ///     ) -> BoxFuture<'static, Result<Self::DestroyOutput, Self::Error>> {
 ///         Box::pin(async move { Ok(()) })
 ///     }
@@ -142,9 +138,6 @@ pub trait Deployable {
     /// State store type for persistence.
     type Store: StateStore + Send + Sync + 'static;
 
-    /// DNS resolver type for HTTP calls.
-    type Resolver: DnsResolver + Clone + 'static;
-
     /// Deploy a specific instance (async).
     ///
     /// Returns a [`BoxFuture`] the caller `.await`s (or drives on valtron via
@@ -157,7 +150,7 @@ pub trait Deployable {
     fn deploy(
         &self,
         instance_id: usize,
-        client: ProviderClient<Self::Store, Self::Resolver>,
+        client: ProviderClient<Self::Store>,
     ) -> BoxFuture<'static, Result<Self::DeployOutput, Self::Error>>;
 
     /// Destroy a specific instance (async).
@@ -172,7 +165,7 @@ pub trait Deployable {
     fn destroy(
         &self,
         instance_id: usize,
-        client: ProviderClient<Self::Store, Self::Resolver>,
+        client: ProviderClient<Self::Store>,
     ) -> BoxFuture<'static, Result<Self::DestroyOutput, Self::Error>>;
 
     // -- Default methods --
@@ -184,7 +177,7 @@ pub trait Deployable {
     /// to persist and read back what was deployed (the id to tear down, etc.).
     fn store(
         &self,
-        client: &ProviderClient<Self::Store, Self::Resolver>,
+        client: &ProviderClient<Self::Store>,
     ) -> NamespacedStore<Self::Store> {
         NamespacedStore::new(client.state_store.clone(), Self::NAMESPACE)
     }

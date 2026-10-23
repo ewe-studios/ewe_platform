@@ -8,6 +8,9 @@ mod base_types_tests;
 mod enum_fallback_tests;
 mod error_types_tests;
 mod errors_tests;
+// The generator is native only (`models::generator`).
+#[cfg(not(target_family = "wasm"))]
+mod generator_tests;
 mod openai_model_info_tests;
 mod provider_model_info_tests;
 // The llama.cpp error conversions only exist with the `llamacpp` feature.

@@ -16,10 +16,26 @@ libm = "0.2"
 async-trait = "0.1"
 petgraph = { version = "0.8", optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["std"], optional = true }
-foundation_netio = { path = "../foundation_netio", version = "0.0.4", optional = true }
 foundation_db = { path = "../foundation_db", version = "0.0.4", optional = true }
-foundation_compact = { path = "../foundation_compact", version = "0.2.2", optional = true }
 futures-lite = { version = "2", optional = true }
+
+# foundation_netio (the `turbopuffer` HTTP client) is target-gated, as in
+# foundation_ai: native takes the native client (`multi`, plus the default TLS,
+# compression and wire modules); wasm takes only `wasm-fetch` (the fetch client
+# for the browser and Cloudflare Workers). The native default features turn on
+# `foundation_core/multi`, which does not build for wasm32.
+[target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_netio]
+path = "../foundation_netio"
+version = "0.0.4"
+features = ["multi"]
+optional = true
+
+[target.'cfg(target_family = "wasm")'.dependencies.foundation_netio]
+path = "../foundation_netio"
+version = "0.0.4"
+default-features = false
+features = ["wasm-fetch"]
+optional = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tree-sitter = { version = "0.26", optional = true }
@@ -31,7 +47,6 @@ tree-sitter-go = { version = "0.23", optional = true }
 # fjall (on-disk LSM) backs the persistent fjall-IVF VectorStore — native only.
 fjall = { version = "2", optional = true }
 libsql = { version = "0.6", optional = true }
-pollster = { version = "0.4", optional = true }
 tempfile = { version = "3", optional = true }
 
 [dev-dependencies]
@@ -47,11 +62,11 @@ foundation_netio = { path = "../foundation_netio" }
 code-graph = ["dep:petgraph", "dep:serde_json", "dep:tree-sitter", "dep:tree-sitter-rust", "dep:tree-sitter-javascript", "dep:tree-sitter-typescript", "dep:tree-sitter-python", "dep:tree-sitter-go"]
 code-graph-query = ["dep:petgraph", "dep:serde_json"]
 sql-store = ["dep:serde_json", "dep:foundation_db", "dep:futures-lite"]
-turbopuffer = ["dep:serde_json", "dep:foundation_core", "dep:foundation_netio"]
+turbopuffer = ["dep:serde_json", "dep:foundation_core", "dep:foundation_netio", "dep:futures-lite"]
 # Persistent native VectorStore over fjall + a persisted F25 IVF index (F29).
 fjall-store = ["dep:fjall", "dep:serde_json"]
 # SQLite vec0 KNN via bundled sqlite-vec .so (F29). Native only.
-sqlite-vec = ["dep:serde_json", "dep:foundation_compact", "dep:libsql", "dep:pollster", "dep:tempfile"]
+sqlite-vec = ["dep:serde_json", "dep:libsql", "dep:tempfile"]
 
 [[test]]
 name = "code_graph_tests"

@@ -33,9 +33,8 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::valtron_test;
-use foundation_netio::http::NativeHttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
-use foundation_netio::shared::client::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 
 // ---------------------------------------------------------------------------
@@ -81,8 +80,7 @@ fn json_error(status: u16, status_text: &str, body: &[u8]) -> HttpResponse {
 /// Retries default to 3 with exponential backoff; the failure tests pass 0 so a
 /// non-recoverable status fails immediately instead of sleeping.
 fn model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
-    let resolver = StaticSocketAddr::new(server_addr(server));
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)
@@ -348,8 +346,7 @@ fn a_retry_eventually_succeeds() {
 // ---------------------------------------------------------------------------
 
 fn anthropic_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
-    let resolver = StaticSocketAddr::new(server_addr(server));
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = AnthropicConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)
@@ -444,8 +441,7 @@ fn anthropic_non_retryable_status_is_not_retried() {
 // ---------------------------------------------------------------------------
 
 fn responses_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
-    let resolver = StaticSocketAddr::new(server_addr(server));
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = ResponsesConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)
