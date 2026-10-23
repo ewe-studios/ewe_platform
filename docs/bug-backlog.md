@@ -255,6 +255,11 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
   body to extract the vendor message. Likely fix: read at most a configured
   number of bytes (a field on each provider config, default 64 KiB like Go
   `net/http`'s error-drain limit) before parsing.
+- **`ResponsesProvider::fetch_model_info` has no success test.**
+  `tests/models/provider_model_info_tests.rs` defines `GPT_JSON` (a model
+  object) but no test uses it, so only the error and placeholder paths of the
+  Responses provider are tested. Fix: add the success test (a `GET` with the
+  bearer token that parses `GPT_JSON`), as the Anthropic one does.
 
 - **Embeddings are generated synchronously inside async code.**
   `EmbeddingProvider::embed` is sync, and `CachedEmbeddingProvider` calls the
@@ -360,6 +365,22 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   50 F04), and `CredentialStorage` over a D1 `StorageProvider` already serves
   `AsyncCredentialStore` on Workers. Fix: fold callers onto
   `CredentialStorage` and delete the duplicates.
+- **`NativeOAuth` and `PasswordAuthClient` read an empty body.**
+  `src/native/oauth.rs` (`extract_body_text`, `error_body_text`) and
+  `src/native/password_auth.rs` (`extract_body`) read the response through
+  `get_body_ref()`. The client gives a lazy `SendSafeBody::Stream`, which
+  these helpers read as an empty string, so a token or login answer fails to
+  parse and an error answer has no message. Fix: take the body and read it as
+  a stream (status first; an error body only up to a configured limit), as the
+  `shared` clients do.
+- **The `shared` HTTP clients read bodies synchronously and whole.**
+  `discovery`, `jwks`, `introspection`, `userinfo` and `upstream_client`
+  (`src/shared/`) call the sync `try_collect_bytes` inside `async fn`s (a
+  blocking read on the executor; on wasm it cannot wait for `fetch`), and
+  read an error body whole before they use the status. Fix: read with
+  `collect_bytes_async` (`AsyncSendSafeBody`), check the status first, and
+  read an error body only up to a limit on a config (64 KiB, as
+  `foundation_deployment`'s `BodyLimits`).
 - **`NativeOAuth` keeps sync twins** (`exchange_code`, `client_credentials`,
   `refresh_token`) next to the `*_async` methods (`src/native/oauth.rs`),
   against the async-only API rule. Fix: keep only the async methods (as the
@@ -472,17 +493,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **`TurboPufferVectorStore` does not retry HTTP 429.** `TurboPuffer` throttles
   writes with 429 (backpressure). The store reports it as an error. Fix: retry
   with backoff, with the attempts and delays on a config.
-- **The `turbopuffer` and `sql-store` features do not build for wasm32.**
+- **The `sql-store` feature does not build for wasm32.**
   `cargo check --target wasm32-unknown-unknown -p foundation_vectors
-  --features turbopuffer` (or `sql-store`) fails in `foundation_core`
-  (`idle_wake` missing, a `NoopMutex` `PoisonError` mismatch). The crate takes
-  `foundation_netio` with its default features (`multi`, `ssl`, `wire-native`)
-  on every target, and `sql-store` takes `foundation_db` the same way, so
-  `foundation_core/multi` is on for wasm. This was so before spec 50 F05 T1.
-  CI builds only the default features for wasm, so it does not see it. Fix:
-  take `foundation_netio` / `foundation_db` without default features on
-  wasm32, then add `turbopuffer` and `sql-store` to the crate's `wasm-runs`
-  in `ci/packages.toml`.
+  --features sql-store` fails in `foundation_core` (`idle_wake` missing, a
+  `NoopMutex` `PoisonError` mismatch). The crate takes `foundation_db` with
+  its default features on every target, so `foundation_core/multi` is on for
+  wasm. This was so before spec 50 F05 T1. CI builds `sql-store` only for
+  native, so it does not see it. Fix: take `foundation_db` without default
+  features on wasm32, then add `sql-store` to the crate's `wasm-runs` in
+  `ci/packages.toml`.
 - **`hybrid_search` gives the reranker no texts** (`src/fusion.rs`). It calls
   `Reranker::rerank(query, fused, &[])`, so a reranker cannot read the
   candidate documents. Fix: take a text lookup (id → text) as an argument, or

@@ -2,8 +2,12 @@
 //!
 //! WHY: `TurboPuffer` is the managed vector database the platform uses when a
 //! session needs vectors outside the process. The adapter is a thin REST
-//! translation over the platform's [`HttpClient`] seam, so it runs natively and
-//! in a Cloudflare Worker with the same code.
+//! translation over the platform's network client, [`DynNetClient`]. That
+//! client is the native HTTP client on native targets and the fetch client on
+//! wasm32 (a browser or a Cloudflare Worker), so the same code runs on both.
+//! [`TurboPufferVectorStore::new`] builds the default client with
+//! [`HttpClientBuilder`]; [`TurboPufferVectorStore::with_client`] takes a
+//! client that the caller built (a shared client, or a test client).
 //!
 //! WHAT: [`TurboPufferVectorStore`] implements the async [`VectorStore`]:
 //!
@@ -15,7 +19,8 @@
 //! | `get_async` | `POST /v2/namespaces/{ns}/query` with `filters: ["id", "Eq", id]` |
 //! | `len_async` | `POST /v2/namespaces/{ns}/query` with `aggregate_by: {"count": ["Count"]}` |
 //!
-//! HOW: every request goes through [`HttpClient::send_async`], so no method
+//! HOW: every request is built with [`PreparedRequestBuilder`] and goes
+//! through `HttpClient::send_async` on the [`DynNetClient`], so no method
 //! blocks a worker. The status is checked before the body is read. A 2xx body
 //! is a small JSON object that the next step needs whole, so it is read up to
 //! [`TurboPufferLimits::max_response_body`]. A non-2xx body is read only up to
@@ -31,13 +36,10 @@
 //! negative squared distance, the same as [`DistanceMetric::L2`]).
 
 use std::collections::HashMap;
-use std::sync::Arc;
 
-use foundation_core::url::Uri;
 use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
-use foundation_netio::shared::client::http_client::HttpClient;
-use foundation_netio::shared::client::request::{Extensions, PreparedRequest};
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use futures_lite::StreamExt;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -96,8 +98,10 @@ impl TurboPufferLimits {
     }
 }
 
+/// A [`VectorStore`] over one `TurboPuffer` account. See the module
+/// documentation for the requests that each method sends.
 pub struct TurboPufferVectorStore {
-    client: Arc<dyn HttpClient>,
+    client: DynNetClient,
     api_key: String,
     base_url: String,
     config: VectorStoreConfig,
@@ -111,15 +115,28 @@ enum Reply {
 }
 
 impl TurboPufferVectorStore {
-    /// A store that talks to `https://api.turbopuffer.com`. Use
+    /// A store that talks to `https://api.turbopuffer.com` through the
+    /// platform's default network client ([`HttpClientBuilder`]: the native
+    /// client on native targets, the fetch client on wasm32). Use
     /// [`with_base_url`](Self::with_base_url) for a region endpoint
     /// (`https://{region}.turbopuffer.com`).
     ///
     /// # Errors
     /// [`VectorStoreError::Unsupported`] for [`DistanceMetric::Dot`]:
     /// `TurboPuffer` has no dot-product metric.
-    pub fn new(
-        client: Arc<dyn HttpClient>,
+    pub fn new(api_key: String, config: VectorStoreConfig) -> Result<Self, VectorStoreError> {
+        Self::with_client(HttpClientBuilder::new().build(), api_key, config)
+    }
+
+    /// A store that sends its requests through `client`: a client that the
+    /// caller shares with other code, or a test client. Otherwise the same as
+    /// [`new`](Self::new).
+    ///
+    /// # Errors
+    /// [`VectorStoreError::Unsupported`] for [`DistanceMetric::Dot`]:
+    /// `TurboPuffer` has no dot-product metric.
+    pub fn with_client(
+        client: DynNetClient,
         api_key: String,
         config: VectorStoreConfig,
     ) -> Result<Self, VectorStoreError> {
@@ -137,6 +154,8 @@ impl TurboPufferVectorStore {
         })
     }
 
+    /// Send the requests to `base_url` (for example a region endpoint, or a
+    /// mock server in tests) in place of `https://api.turbopuffer.com`.
     #[must_use]
     pub fn with_base_url(mut self, base_url: String) -> Self {
         self.base_url = base_url;
@@ -150,24 +169,10 @@ impl TurboPufferVectorStore {
         self
     }
 
-    fn auth_headers(&self) -> SimpleHeaders {
-        let mut headers = SimpleHeaders::new();
-        headers.insert(
-            SimpleHeader::AUTHORIZATION,
-            vec![format!("Bearer {}", self.api_key)],
-        );
-        headers.insert(
-            SimpleHeader::CONTENT_TYPE,
-            vec![String::from("application/json")],
-        );
-        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
-        headers
-    }
-
     /// `/v2/namespaces/{ns}{suffix}`. `TurboPuffer` namespace names use only
     /// ASCII letters, digits, `-`, `_` and `.` (at most 128 bytes), so a
     /// valid name needs no URL encoding.
-    fn namespace_url(&self, namespace: &str, suffix: &str) -> Result<Uri, VectorStoreError> {
+    fn namespace_url(&self, namespace: &str, suffix: &str) -> Result<String, VectorStoreError> {
         let valid = !namespace.is_empty()
             && namespace.len() <= 128
             && namespace
@@ -179,8 +184,7 @@ impl TurboPufferVectorStore {
                  digits, '-', '_' and '.', 1 to 128 bytes"
             )));
         }
-        let url = format!("{}/v2/namespaces/{namespace}{suffix}", self.base_url);
-        Uri::parse(&url).map_err(|e| VectorStoreError::Backend(format!("invalid URL: {e}")))
+        Ok(format!("{}/v2/namespaces/{namespace}{suffix}", self.base_url))
     }
 
     fn distance_metric_name(&self) -> &'static str {
@@ -201,14 +205,14 @@ impl TurboPufferVectorStore {
 
     /// POST `body` as JSON. The status is checked first; an error body is
     /// read only up to `max_error_body`.
-    async fn post(&self, url: Uri, body: &serde_json::Value) -> Result<Reply, VectorStoreError> {
-        let req = PreparedRequest {
-            method: SimpleMethod::POST,
-            url,
-            headers: self.auth_headers(),
-            body: SendSafeBody::Text(body.to_string()),
-            extensions: Extensions::default(),
-        };
+    async fn post(&self, url: &str, body: &serde_json::Value) -> Result<Reply, VectorStoreError> {
+        let req = PreparedRequestBuilder::post(url)
+            .map_err(|e| VectorStoreError::Backend(format!("invalid URL {url}: {e}")))?
+            .bearer_token(&self.api_key)
+            .header(SimpleHeader::ACCEPT, "application/json")
+            .body_json(body)
+            .map_err(|e| VectorStoreError::Backend(format!("serialize request: {e}")))?
+            .build();
         let response = self
             .client
             .send_async(req)
@@ -240,7 +244,7 @@ impl TurboPufferVectorStore {
         body: &serde_json::Value,
     ) -> Result<Option<QueryResponse>, VectorStoreError> {
         let url = self.namespace_url(namespace, "/query")?;
-        match self.post(url, body).await? {
+        match self.post(&url, body).await? {
             Reply::NotFound => Ok(None),
             Reply::Ok(text) => serde_json::from_str(&text)
                 .map(Some)
@@ -255,7 +259,7 @@ impl TurboPufferVectorStore {
         body: &serde_json::Value,
     ) -> Result<Option<WriteResponse>, VectorStoreError> {
         let url = self.namespace_url(namespace, "")?;
-        match self.post(url, body).await? {
+        match self.post(&url, body).await? {
             Reply::NotFound => Ok(None),
             Reply::Ok(text) => serde_json::from_str(&text)
                 .map(Some)

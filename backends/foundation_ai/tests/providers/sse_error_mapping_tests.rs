@@ -17,12 +17,18 @@ use foundation_ai::types::{
     ModelStreamBox, TextContent, ToolDeclarations, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream, StreamIter};
+use foundation_netio::DynNetClient;
 use foundation_netio::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
 use foundation_netio::shared::client::request::PreparedRequest;
 use foundation_netio::shared::client::HttpExchangeClientTask;
 use foundation_netio::shared::http::{HttpClientError, SendSafeBody, SimpleResponse};
+use foundation_netio::websocket::shared::client::{
+    MessageDelivery, WebSocketClient, WebSocketConnectConfig,
+};
+use foundation_netio::websocket::shared::connector::{WebSocketConnector, WsExchangeTask};
+use foundation_netio::websocket::shared::error::WebSocketError;
 
 /// A mock `HttpClient` whose `send_sse` yields a single
 /// `Stream::Pending(SseProgress::Failed(..))` before ending.
@@ -58,6 +64,25 @@ impl HttpClient for FailedSseClient {
         unimplemented!("open_exchange is not exercised by the error-mapping tests")
     }
 }
+/// The tests send no WebSocket traffic; the impl only makes the fake a
+/// `DynNetClient`.
+impl WebSocketConnector for FailedSseClient {
+    fn open_websocket(
+        &self,
+        _url: &str,
+        _config: WebSocketConnectConfig,
+    ) -> Result<WebSocketClient, WebSocketError> {
+        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+    }
+
+    fn open_websocket_task(
+        &self,
+        _url: &str,
+        _config: WebSocketConnectConfig,
+    ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError> {
+        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+    }
+}
 
 fn interaction(prompt: &str) -> ModelInteraction {
     ModelInteraction {
@@ -90,7 +115,7 @@ fn assert_maps_failed(mut stream: ModelStreamBox) {
 
 #[valtron_test]
 fn openai_stream_maps_failed_to_model_error() {
-    let client: Arc<dyn HttpClient> = Arc::new(FailedSseClient);
+    let client: DynNetClient = Arc::new(FailedSseClient);
     let config = OpenAIConfig::new().with_base_url("http://localhost");
     let provider = OpenAIProvider::with_http_client_and_config(client, config.clone())
         .create(Some(config))
@@ -104,7 +129,7 @@ fn openai_stream_maps_failed_to_model_error() {
 
 #[valtron_test]
 fn workers_ai_stream_maps_failed_to_model_error() {
-    let client: Arc<dyn HttpClient> = Arc::new(FailedSseClient);
+    let client: DynNetClient = Arc::new(FailedSseClient);
     let config = WorkersAiConfig::new()
         .with_base_url("http://localhost")
         .with_account_id("test-account");

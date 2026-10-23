@@ -16,9 +16,26 @@ libm = "0.2"
 async-trait = "0.1"
 petgraph = { version = "0.8", optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["std"], optional = true }
-foundation_netio = { path = "../foundation_netio", version = "0.0.4", optional = true }
 foundation_db = { path = "../foundation_db", version = "0.0.4", optional = true }
 futures-lite = { version = "2", optional = true }
+
+# foundation_netio (the `turbopuffer` HTTP client) is target-gated, as in
+# foundation_ai: native takes the native client (`multi`, plus the default TLS,
+# compression and wire modules); wasm takes only `wasm-fetch` (the fetch client
+# for the browser and Cloudflare Workers). The native default features turn on
+# `foundation_core/multi`, which does not build for wasm32.
+[target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_netio]
+path = "../foundation_netio"
+version = "0.0.4"
+features = ["multi"]
+optional = true
+
+[target.'cfg(target_family = "wasm")'.dependencies.foundation_netio]
+path = "../foundation_netio"
+version = "0.0.4"
+default-features = false
+features = ["wasm-fetch"]
+optional = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tree-sitter = { version = "0.26", optional = true }

@@ -12,11 +12,9 @@
 //! (the `response` field is cumulative). There is no `[DONE]` sentinel; the
 //! stream ends when the connection closes.
 
-use std::sync::Arc;
-
 use foundation_compact::SystemTime;
 
-use crate::backends::backend_utils::{empty_usage_report, model_id_to_string};
+use crate::backends::backend_utils::{empty_usage_report, model_id_to_string, prepared_request};
 use crate::backends::openai_provider::OpenAIFormatter;
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
@@ -26,15 +24,17 @@ use crate::types::base_types::{
     UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::url::Uri;
 use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
     body_reader::collect_strings_from_send_safe,
-    http_client::{BoxedSseIterator, HttpClient, SseProgress},
-    request::{Extensions, PreparedRequest},
+    http_client::{BoxedSseIterator, SseProgress},
+    request::PreparedRequest,
 };
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
 use serde::{Deserialize, Serialize};
 
 /// Cloudflare Workers AI REST API base URL.
@@ -154,7 +154,7 @@ impl AuthProvider for WorkersAiConfig {
 pub struct WorkersAiProvider {
     config: WorkersAiConfig,
     api_token: Option<ConfidentialText>,
-    http_client: Option<Arc<dyn HttpClient>>,
+    http_client: Option<DynNetClient>,
 }
 
 impl Default for WorkersAiProvider {
@@ -188,8 +188,12 @@ impl WorkersAiProvider {
         }
     }
 
+    /// A provider that sends its requests through `client` (a shared client,
+    /// or a test client). Without it, `create` builds the default native
+    /// client with `HttpClientBuilder` on native targets; on wasm32 the caller
+    /// gives the client (`HttpClientBuilder::new().build()` is the fetch client).
     #[must_use]
-    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
+    pub fn with_http_client(client: DynNetClient) -> Self {
         Self {
             config: WorkersAiConfig::default(),
             api_token: None,
@@ -197,9 +201,10 @@ impl WorkersAiProvider {
         }
     }
 
+    /// [`Self::with_http_client`] with a config.
     #[must_use]
     pub fn with_http_client_and_config(
-        client: Arc<dyn HttpClient>,
+        client: DynNetClient,
         config: WorkersAiConfig,
     ) -> Self {
         Self {
@@ -241,10 +246,11 @@ impl ModelProvider for WorkersAiProvider {
             }
             self.config = cfg;
         }
-
+        // Native only: on wasm the sync `generate` path cannot wait for a
+        // `fetch`, so a wasm caller injects its client (`with_http_client`).
         #[cfg(not(target_family = "wasm"))]
         if self.http_client.is_none() {
-            self.http_client = Some(foundation_netio::http::default_http_client());
+            self.http_client = Some(HttpClientBuilder::new().build());
         }
 
         Ok(self)
@@ -313,7 +319,7 @@ pub struct WorkersAiModel {
     model_id: ModelId,
     model_name: String,
     api_token: Option<ConfidentialText>,
-    http_client: Option<Arc<dyn HttpClient>>,
+    http_client: Option<DynNetClient>,
     pricing: ModelUsageCosting,
 }
 
@@ -344,34 +350,18 @@ impl WorkersAiModel {
     }
 
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri =
-            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
-        Ok(PreparedRequest {
-            method: SimpleMethod::POST,
-            url: uri,
-            headers,
-            body: SendSafeBody::Text(body.to_string()),
-            extensions: Extensions::default(),
-        })
+        prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
     fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri =
-            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(
             SimpleHeader::ACCEPT,
             vec![String::from("text/event-stream")],
         );
-        Ok(PreparedRequest {
-            method: SimpleMethod::POST,
-            url: uri,
-            headers,
-            body: SendSafeBody::Text(body.to_string()),
-            extensions: Extensions::default(),
-        })
+        prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
     /// Execute a single non-streaming request (no retry: wasm has no `thread`).

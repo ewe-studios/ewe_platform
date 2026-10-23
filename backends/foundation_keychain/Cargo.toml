@@ -34,7 +34,7 @@ thiserror = { workspace = true }
 # Foundation deps
 foundation_core = { path = "../foundation_core", version = "0.0.6" }
 foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
-# Cross-platform HTTP client (`default_http_client`) for the icon proxy etc.
+# Cross-platform HTTP client (`HttpClientBuilder`) for the icon proxy etc.
 # `default-features = false`; the right backend comes from the target (multi on
 # native via foundation_db/turso, wasm-fetch on wasm — see per-target sections).
 foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false }

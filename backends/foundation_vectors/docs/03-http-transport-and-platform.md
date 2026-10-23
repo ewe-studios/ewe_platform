@@ -34,20 +34,25 @@ pub trait HttpClient: Send + Sync {
 - **Native** impl wraps the platform HTTP client.
 - **Wasm** impl is `FetchHttpClient` — `web_sys` `fetch` under the same trait.
 
-`TurboPufferVectorStore` holds an **`Arc<dyn HttpClient>`** and never names a
-concrete client. The deployment injects the right one. That single decision is what
-makes the adapter **platform-agnostic** in its code. Note: today the `turbopuffer`
-feature does not build for `wasm32-unknown-unknown`, because the crate takes
-`foundation_netio` with its native default features. The bug backlog
-(`foundation_vectors`) has the fix.
+`TurboPufferVectorStore` holds a **`DynNetClient`** (`foundation_netio`) and never
+names a concrete client. `DynNetClient` is the platform's network client layer:
+`HttpClientBuilder::new().build()` gives the native client on native targets and
+the fetch client (`FetchHttpClient`) on wasm32. That single decision is what makes
+the adapter **platform-agnostic** in its code. On wasm32 the crate takes
+`foundation_netio` with only its `wasm-fetch` feature, and CI builds the
+`turbopuffer` feature for `wasm32-unknown-unknown`.
 
 ```rust
-let store = TurboPufferVectorStore::new(http_client, api_key, config)?;
-//                                       ^^^^^^^^^^^ Arc<dyn HttpClient>: native or fetch
-// `new` refuses DistanceMetric::Dot: TurboPuffer has only cosine and L2.
+// The default client: native or fetch, from HttpClientBuilder.
+let store = TurboPufferVectorStore::new(api_key, config)?;
+
+// A client that the caller built (a shared client, or a test client).
+let store = TurboPufferVectorStore::with_client(net_client, api_key, config)?;
+//                                              ^^^^^^^^^^ DynNetClient
+// Both refuse DistanceMetric::Dot: TurboPuffer has only cosine and L2.
 ```
 
-Every method awaits `HttpClient::send_async`, so no call blocks a worker. The
+Every request is built with `PreparedRequestBuilder`. Every method awaits `HttpClient::send_async`, so no call blocks a worker. The
 store checks the status before it reads the body. It reads a 2xx body up to
 `TurboPufferLimits::max_response_body` (default 16 MiB) and an error body up to
 `TurboPufferLimits::max_error_body` (default 64 KiB).

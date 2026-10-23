@@ -6,3 +6,4 @@ pub mod jwks;
 pub mod middleware;
 pub mod session;
 pub mod userinfo;
+pub mod upstream_client;

@@ -4,7 +4,7 @@
 //! blob storage, rate limiting, and deployment state.
 //!
 //! WHAT: `D1Store` implements the `Async*` storage traits (KV, query, rate
-//! limiting, blobs) and `StateStore` via `NativeHttpClient` calls to the D1
+//! limiting, blobs) and `StateStore` via `DynNetClient` (`HttpClientBuilder`) calls to the D1
 //! HTTP API.
 //!
 //! HOW: Different constructors for different usage modes:
@@ -13,7 +13,7 @@
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_string_async};
-use foundation_netio::http::NativeHttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::shared::http::{SimpleHeader, Status};
 use futures_lite::{stream, StreamExt};
 use serde::{de::DeserializeOwned, Serialize};
@@ -128,7 +128,7 @@ pub struct D1Store {
     account_id: String,
     database_id: String,
     base_url: String,
-    client: NativeHttpClient,
+    client: DynNetClient,
     mode: D1Mode,
 }
 
@@ -151,7 +151,7 @@ impl D1Store {
             account_id: account_id.to_string(),
             database_id: database_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
-            client: NativeHttpClient::from_system(),
+            client: HttpClientBuilder::new().build(),
             mode: D1Mode::KeyValue { kv_table: format!("{table_prefix}_kv") },
         }
     }
@@ -199,7 +199,7 @@ impl D1Store {
             account_id: account_id.to_string(),
             database_id: database_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
-            client: NativeHttpClient::from_system(),
+            client: HttpClientBuilder::new().build(),
             mode: D1Mode::State { state_table },
         }
     }
@@ -239,14 +239,14 @@ impl D1Store {
         let body = serde_json::json!({ "sql": sql, "params": params });
         let response = self
             .client
-            .post(&self.query_url())
-            .map_err(|e| StorageError::Backend(format!("D1 request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header())
-            .header(SimpleHeader::CONTENT_TYPE, "application/json")
-            .body_text(body.to_string())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("D1 request build failed: {e}")))?
-            .send_async()
+            .send_async(
+                PreparedRequestBuilder::post(&self.query_url())
+                    .map_err(|e| StorageError::Backend(format!("D1 request build failed: {e}")))?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header())
+                    .header(SimpleHeader::CONTENT_TYPE, "application/json")
+                    .body_text(body.to_string())
+                    .build(),
+            )
             .await
             .map_err(|e| StorageError::Backend(format!("D1 request failed: {e}")))?;
 
@@ -254,7 +254,7 @@ impl D1Store {
             return Err(StorageError::Backend(format!("D1 query failed with status {}", response.get_status())));
         }
 
-        let (_, _, send_safe_body, ..) = response.into_parts();
+        let (_, _, send_safe_body) = response.into_parts();
         let text = collect_string_async(AsyncSendSafeBody::from(send_safe_body))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 body read failed: {e}")))?;

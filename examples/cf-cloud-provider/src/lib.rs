@@ -1,5 +1,6 @@
 //! `foundation_ai` on Cloudflare Workers: a chat page backed by an agent
-//! session that calls OpenRouter through `FetchHttpClient` (wasm `fetch`) and
+//! session that calls OpenRouter through the platform client from
+//! `HttpClientBuilder` (the fetch client on wasm) and
 //! streams each reply back as it is generated (spec 65 T5).
 //!
 //! - `GET /` — the chat page.
@@ -9,7 +10,7 @@
 //! The session is built on the first request and reused by this isolate.
 
 use std::cell::RefCell;
-use std::sync::{Arc, OnceLock};
+use std::sync::OnceLock;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
@@ -18,7 +19,7 @@ use foundation_ai::agentic::AgentSession;
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_core::valtron::{initialize_pool, PoolGuard};
-use foundation_netio::wasm::client::FetchHttpClient;
+use foundation_netio::HttpClientBuilder;
 use foundation_netio::wasm::response::sse_response;
 
 /// Default OpenRouter model; override with the `MODEL` binding.
@@ -72,7 +73,7 @@ async fn session(env: &worker::Env) -> Result<AgentSession, String> {
     if let Some(base_url) = setting(env, "OPENROUTER_BASE_URL") {
         config = config.with_base_url(base_url);
     }
-    let provider = OpenAIProvider::with_http_client(Arc::new(FetchHttpClient::new()))
+    let provider = OpenAIProvider::with_http_client(HttpClientBuilder::new().build())
         .create(Some(config))
         .map_err(|e| e.to_string())?;
     let model = setting(env, "MODEL").unwrap_or_else(|| DEFAULT_MODEL.to_string());

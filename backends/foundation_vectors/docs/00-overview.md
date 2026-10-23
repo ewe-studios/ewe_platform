@@ -70,7 +70,7 @@ them for each store:
 | `SqlVectorStore`, `LibsqlVectorStore` | SQL | Awaits the async `QueryStore`. |
 | `SqliteVecVectorStore` | local SQLite file | Awaits libSQL's async API. `open` writes and loads the `.so` with sync calls, once. |
 | `FjallVectorStore` | local disk | fjall has only a sync API. Calls run inline (page cache, no `fsync`), like `FjallDocumentStore` in `foundation_nativeapis`. `flush` (`fsync`) is a sync method. |
-| `TurboPufferVectorStore` | network | Awaits `HttpClient::send_async`. Bodies are read with limits (`TurboPufferLimits`). |
+| `TurboPufferVectorStore` | network | Holds a `DynNetClient` (native or fetch client). Awaits `HttpClient::send_async`. Bodies are read with limits (`TurboPufferLimits`). |
 
 ## 3. What F30 actually ships (scope, post-decisions)
 
