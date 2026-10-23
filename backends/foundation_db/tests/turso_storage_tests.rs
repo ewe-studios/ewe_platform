@@ -271,3 +271,43 @@ async fn test_social_login_tables_functional() {
     assert_eq!(link_rows.len(), 1);
     assert_eq!(link_rows[0].get::<String>(0).unwrap(), "user-1");
 }
+
+/// `TursoStorage::open` connects without blocking, so it runs inside a future;
+/// a reopened file keeps what was written.
+#[test]
+fn test_turso_storage_open_async_persists_across_reopen() {
+    use foundation_db::AsyncQueryStore;
+
+    init_valtron();
+    let temp_dir = TempDir::new().unwrap();
+    let url = temp_dir.path().join("open.db").to_str().unwrap().to_string();
+
+    let rows = foundation_core::valtron::block_on_future(async move {
+        let first = TursoStorage::open(&url).await.expect("open");
+        first
+            .execute_batch_async("CREATE TABLE IF NOT EXISTS t (k TEXT PRIMARY KEY, v INTEGER)")
+            .await
+            .expect("schema");
+        first
+            .execute_async(
+                "INSERT INTO t (k, v) VALUES (?, ?)",
+                &[DataValue::Text("a".into()), DataValue::Integer(7)],
+            )
+            .await
+            .expect("insert");
+        drop(first);
+
+        let reopened = TursoStorage::open(&url).await.expect("reopen");
+        reopened
+            .query_async("SELECT k, v FROM t", &[])
+            .await
+            .expect("query")
+            .collect_all()
+            .await
+            .expect("rows")
+    });
+
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].get::<String>(0).unwrap(), "a");
+    assert_eq!(rows[0].get::<i64>(1).unwrap(), 7);
+}

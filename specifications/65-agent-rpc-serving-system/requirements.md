@@ -38,10 +38,10 @@ related_specs:
   - "specifications/29-wasm-http-client"
   - "specifications/completed/41-connectrpc"
 features:
-  completed: 0
-  uncompleted: 7
+  completed: 2
+  uncompleted: 5
   total: 7
-  completion_percentage: 0
+  completion_percentage: 29
 ---
 
 # Overview
@@ -178,12 +178,13 @@ corresponding skills BEFORE implementation.
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
 | 0  | [WASM & CF-Workers Readiness (foundation)](./features/00-foundation/feature.md) | Make foundation_ai + deps compile/run on wasm32, verified via miniflare + Cloudflare; reuses DynNetClient/HttpClient, extends spec 28 | None (extends spec 28) | ⬜ Pending |
-| 1  | [Agent RPC Model Server](./features/01-agent-rpc/feature.md) | Load-once, threaded-inference RPC server with named instances and client-facing token→mTLS auth | None | ⬜ Pending |
+| 1  | [Agent RPC Model Server](./features/01-agent-rpc/feature.md) | Load-once, threaded-inference RPC server with named instances and client-facing token→mTLS auth | None | ✅ Complete |
 | 2  | [Manifest Installer](./features/02-manifest-installer/feature.md) | Manifest schema + source/deploy adapters (systemd/Docker) + bootstrap-script generation | None | ⬜ Pending |
 | 3  | [Proxy Registration Authority](./features/03-proxy-registration/feature.md) | Authenticated register/deregister/heartbeat + live backend routing table | None (extends spec 63) | ⬜ Pending |
 | 4  | [Registrar Sidecar](./features/04-registrar-sidecar/feature.md) | Reads manifest, reviews proxied binaries, registers them with the proxy | 2, 3 | ⬜ Pending |
 | 5  | [Cloudflare Deployment](./features/05-cloudflare/feature.md) | Thin WASM orchestrator on Workers + full model server on Sandboxes/Containers, consuming 00-foundation | 0, 1 | ⬜ Pending |
 | 6  | [WASM Lazy Streaming](./features/06-wasm-async-streaming/feature.md) | Remove the wasm-unsafe `run_future`/`collect()` anti-pattern from the streaming path: park-friendly `into_future_stream`, lazy `send_sse` + `SseProgress::Failed`, zero `Model` API change; fix the T6 sync-streaming hang | 0 | 🔄 In Progress |
+| 7  | [Pluggable Agent RPC](./features/07-pluggable-agent-rpc/feature.md) | One RPC surface on native, Docker, Cloudflare Workers and the browser: a core behind traits, auth in foundation_auth, injected side effects for deterministic simulation testing, model capabilities and instance kinds | 1 | ⬜ Pending (design done) |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
@@ -424,5 +425,5 @@ agent-rpc client token; agent-rpc never sees the registration token.
 ---
 
 _Created: 2026-10-19_
-_Last Updated: 2026-10-19_
+_Last Updated: 2026-10-20_
 _Structure: Feature-based (has_features: true, has_fundamentals: true)_

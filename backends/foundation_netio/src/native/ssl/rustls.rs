@@ -486,6 +486,17 @@ pub type RustTlsServerStream = RustlsStream<rustls::ServerConnection>;
 pub struct RustlsAcceptor(Arc<rustls::ServerConfig>);
 
 impl RustlsAcceptor {
+    /// Creates an acceptor from a caller-built `ServerConfig` — the server-side
+    /// twin of [`RustlsConnector::with_config`].
+    ///
+    /// Use this for anything [`from_pem`](Self::from_pem) cannot express, such
+    /// as **mutual TLS** (a `ServerConfig` built with a client-certificate
+    /// verifier) or ALPN protocols.
+    #[must_use]
+    pub fn with_config(config: Arc<rustls::ServerConfig>) -> Self {
+        Self(config)
+    }
+
     ///
     /// # Errors
     ///

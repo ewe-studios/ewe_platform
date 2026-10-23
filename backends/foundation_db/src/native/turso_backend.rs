@@ -75,6 +75,31 @@ impl TursoStorage {
         })
     }
 
+    /// Open (creating if needed) a local database without blocking: the async
+    /// counterpart of [`new`](Self::new), for callers already inside a
+    /// future (e.g. a valtron task), where `new`'s internal block-on would
+    /// park a worker. `url` is a file path or `:memory:`.
+    ///
+    /// Only the connection is opened; run any schema the caller needs
+    /// through [`AsyncQueryStore`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database cannot be opened or connected.
+    pub async fn open(url: &str) -> StorageResult<Self> {
+        let db = Builder::new_local(url)
+            .build()
+            .await
+            .map_err(|e| StorageError::Backend(format!("Open failed: {e}")))?;
+        let conn = db
+            .connect()
+            .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
+        Ok(Self {
+            conn: Arc::new(conn),
+            encryption_key: None,
+        })
+    }
+
     /// Initialize the database schema.
     ///
     /// # Errors

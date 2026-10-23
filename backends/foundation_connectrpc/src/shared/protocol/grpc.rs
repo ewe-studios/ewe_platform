@@ -627,12 +627,10 @@ pub(crate) fn parse_grpc_error_trailer(
         .cloned()
         .unwrap_or_default();
     let decoded = percent_decode(&message);
-    // SAFETY: Code is #[repr(u32)] and its discriminants match gRPC status
-    // codes exactly (Decision 03). Out-of-range values are clamped to Unknown
-    // first, so the transmute stays within the enum's variants.
-    let status = if (1..=16).contains(&status) { status } else { 2 };
-    let code: Code = unsafe { std::mem::transmute(status) };
-    Some(ErrorTrace::new(ConnectError::new(code, decoded)))
+    // The status came from the peer: a wire error, like the Connect and
+    // gRPC-Web decoders produce. Out-of-range codes map to Unknown.
+    let code = Code::from_u32(status).unwrap_or(Code::Unknown);
+    Some(ErrorTrace::new(ConnectError::wire(code, decoded)))
 }
 
 /// Percent-decode a `grpc-message` value (spec: space and non-ASCII are

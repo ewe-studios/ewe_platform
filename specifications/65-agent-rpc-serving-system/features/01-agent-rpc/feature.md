@@ -1,18 +1,18 @@
 ---
 feature: "Agent RPC Model Server"
 description: "A long-lived per-machine RPC server (foundation_agent_rpc) that loads a model once, runs threaded inference, and exposes named agent instances over Connect/gRPC/gRPC-Web with its own client-facing secret-token → mTLS auth."
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
 created: 2026-10-19
-last_updated: 2026-10-19
+last_updated: 2026-10-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Agent RPC Model Server
@@ -307,31 +307,31 @@ service AgentService {
 
 ## Tasks
 
-- [ ] **T1 — Shareability spike (gate).** Prove `foundation_ai`'s loaded backend
+- [x] **T1 — Shareability spike (gate).** Prove `foundation_ai`'s loaded backend
       (llamacpp GGUF and/or Candle) is `Send + Sync` and that one loaded model
       serves two+ `AgentSession`s concurrently. Red test: two sessions on one
       model complete interleaved chats without per-session reload.
-- [ ] **T2 — Crate scaffold.** `foundation_agent_rpc` crate + workspace wiring;
+- [x] **T2 — Crate scaffold.** `foundation_agent_rpc` crate + workspace wiring;
       `lib.rs` module map; compile-clean with zero deps beyond the allowed set.
-- [ ] **T3 — `ModelHandle`.** `Arc`-backed load-once handle with the
+- [x] **T3 — `ModelHandle`.** `Arc`-backed load-once handle with the
       `Send + Sync + 'static` bound; if the backend isn't `Sync`, apply the
       `Arc<Mutex<…>>` fallback and record it in LEARNINGS.
-- [ ] **T4 — `InstanceRegistry` + `InstanceHandle`.** Named create/get/list/destroy;
+- [x] **T4 — `InstanceRegistry` + `InstanceHandle`.** Named create/get/list/destroy;
       tests assert create is cheap and never reloads the model.
-- [ ] **T5 — Generated RPC service.** Define + generate the `AgentService` types
+- [x] **T5 — Generated RPC service.** Define + generate the `AgentService` types
       (CreateInstance/Chat/ChatStream/ListInstances/DestroyInstance/Health);
       wire into a connectrpc `Router`.
-- [ ] **T6 — Unary round-trip.** `CreateInstance` + `Chat` (unary) round-trip
+- [x] **T6 — Unary round-trip.** `CreateInstance` + `Chat` (unary) round-trip
       over Connect on loopback; error → status mapping asserted.
-- [ ] **T7 — Streaming round-trip.** `ChatStream` server-streaming over Connect;
+- [x] **T7 — Streaming round-trip.** `ChatStream` server-streaming over Connect;
       assert streaming (not buffered) with a slow producer.
-- [ ] **T8 — Client auth.** `BootstrapToken` → mTLS provisioning; reject a call
+- [x] **T8 — Client auth.** `BootstrapToken` → mTLS provisioning; reject a call
       without a valid cert after bootstrap; never log the token.
-- [ ] **T9 — Bootstrap payload.** Emit base64 + QR `BootstrapPayload`; round-trip
+- [x] **T9 — Bootstrap payload.** Emit base64 + QR `BootstrapPayload`; round-trip
       decode asserts address/fingerprint/token/capabilities survive.
-- [ ] **T10 — End-to-end over all three protocols.** gRPC + gRPC-Web (unary +
+- [x] **T10 — End-to-end over all three protocols.** gRPC + gRPC-Web (unary +
       streaming) round-trip on real loopback TCP; note gRPC `grpc-status` assertion
-      is gated on spec 63 T1 (see LEARNINGS).
+      is gated on spec 63 T1 (see LEARNINGS) — landed; asserted.
 
 ## Testing
 
@@ -367,11 +367,11 @@ cargo test -p foundation_agent_rpc --test rpc_e2e_tests
 
 ## Success Criteria
 
-- [ ] All 10 tasks completed with one red→green test each
-- [ ] One loaded model serves ≥2 concurrent instances (proven by T1)
-- [ ] Connect + gRPC + gRPC-Web round-trip unary and streaming
-- [ ] Client token→mTLS enforced; token never logged
-- [ ] No TODO/FIXME/stubs; no buffered bodies; no ignored `Result`s
+- [x] All 10 tasks completed with one red→green test each
+- [x] One loaded model serves ≥2 concurrent instances (proven by T1)
+- [x] Connect + gRPC + gRPC-Web round-trip unary and streaming
+- [x] Client token→mTLS enforced; token never logged
+- [x] No TODO/FIXME/stubs; no buffered bodies; no ignored `Result`s
 
 ---
 
