@@ -92,6 +92,25 @@ Green under `--profile uat --features testing`: `provider_tests` 249 passed,
 `agentic_tests` 324 passed. The `docs/bug-backlog.md` "`TurnTextStream` drops the
 terminal `Failed` event" entry is removed.
 
+## Post-deploy fix — overlapping text and the empty-queue EOF bug
+
+The deployed `cf-cloud-provider` repeated the reply text and logged
+"Failed to parse SSE chunk". Both are fixed and re-deployed.
+
+- `chat()` now streams `turn.into_text_stream()` (deltas), not `turn.events()`
+  (snapshots). The client appends each delta once. Commit `609fb3ab9`.
+- The wasm `QueueReader` returned `Ok(0)` (end of stream) when the byte queue
+  was empty for a moment, so a `data:` line split across two JS chunks parsed
+  early. It now returns `WouldBlock` until the stream is done. Commit
+  `273349fa4`.
+- `EventSourceError::ReadError` keeps the `io::Error`; the SSE iterator logs
+  real errors and parks only on `WouldBlock`. Commit `273349fa4`.
+- `tracing-wasm` froze the isolate (User Timing API, error 1101). A
+  `console.log` writer replaces it. Commit `609fb3ab9`.
+
+Deployed: `cf-cloud-provider` and `cf-agent-loop` both answer. See LEARNINGS.md
+"Text overlapping and the empty-queue EOF bug".
+
 ## Feature status
 
 - **00-foundation** — 🔧 6/7: T1–T6 done (T6:

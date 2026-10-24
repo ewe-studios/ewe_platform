@@ -80,10 +80,13 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
 - **Ignored tests.**
   - 14 network-dependent tests are ignored: `http_external_validation`, `tls_integration`, `http_server_integration`. Make them hermetic (task #31).
   - 33 doctests are ignored (task #33).
-- **Wasm SSE parser errors are swallowed.** `wasm/client/stream.rs`
-  `WasmSseIterator::next` maps `parse_next()`'s `Err(_)` to the same arm as
-  `Ok(None)` (`Wait`, or end of stream), so a malformed event or a reader error
-  silently stalls or truncates the stream. Surface it as
+- **Wasm SSE parser errors still stall instead of terminating the stream.**
+  `wasm/client/stream.rs` `WasmSseIterator::next` now distinguishes `WouldBlock`
+  (a real "wait" signal, kept in `EventSourceError::ReadError(io::Error)`) from a
+  genuine read or parse error and logs the latter with `tracing::error!`. What is
+  left: a non-`WouldBlock` parse error (a malformed event) still returns
+  `Stream::Wait` rather than ending the stream, so a permanently malformed feed
+  stalls the consumer instead of failing. Surface it as
   `Stream::Pending(SseProgress::Failed(msg))` then `None`, like a fetch failure.
 - **Wasm `send_sse_async` returns a non-parking stream.** It boxes via
   `into_future_stream()` (`StreamAsFutureStream`, a raw lens whose `poll_next` is

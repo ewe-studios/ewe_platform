@@ -577,4 +577,56 @@ Tests prove each layer:
 
 All suites pass under `--profile uat --features testing`.
 
+## Text overlapping and the empty-queue EOF bug (2026-10-24)
+
+After the zero-response fix, the deployed `cf-cloud-provider` still showed two
+problems. The chat text repeated itself, and the worker log showed
+"Failed to parse SSE chunk".
+
+### Overlapping text: snapshots, not deltas
+
+`chat()` mapped `turn.events()`. Each `TurnEvent::Text` carries the full text
+so far (a snapshot), because HTTP backends re-send the whole reply each chunk.
+The client appends every `content`, so it repeated the whole prefix each time.
+
+The fix: `chat()` now maps `turn.into_text_stream()`. That stream yields
+`TurnTextEvent::Text` deltas. It reduces each snapshot to its new suffix. The
+client appends each delta once. `event_frame` became `text_frame`.
+
+### The empty-queue EOF bug: a split `data:` line parsed early
+
+The wasm `QueueReader` adapted a `ConcurrentQueue<Vec<u8>>` to `std::io::Read`
+for `SseParser`. When the queue was empty for a moment, `read` returned `Ok(0)`,
+the end-of-stream signal. A `data:` line split across two JS chunks then parsed
+as a complete line. The parser emitted a partial JSON payload and failed with
+"Failed to parse SSE chunk".
+
+The fix: `QueueReader` now holds the `done` flag. When the queue is empty and
+the stream is not done, `read` returns `ErrorKind::WouldBlock`. `SseParser` parks
+and resumes when more data arrives. `read` returns `Ok(0)` only when the queue
+is empty and the stream ended.
+
+### The swallowed error kind
+
+`EventSourceError::ReadError` held a `String`, so the `io::ErrorKind` was lost.
+`WasmSseIterator::next` could not tell `WouldBlock` from a real error, and mapped
+every error to `Wait`. `ReadError` now holds the `io::Error`. `next` logs real
+errors with `tracing::error!` and treats only `WouldBlock` as "wait".
+
+### The tracing-wasm hang
+
+The worker used `tracing-wasm`. Its span hooks call
+`performance.mark` and `performance.measure`, the User Timing API. Workerd does
+not implement that API, so the first span froze the isolate (error 1101). A
+custom `tracing_subscriber::fmt` writer that forwards lines to
+`web_sys::console::log_1` replaces it. That writer needs only the console API,
+which workerd supports.
+
+Deployed and checked: `cf-cloud-provider` streams the poem as five deltas with
+no overlap. `cf-agent-loop` answers with text. Both workers run under
+`wrangler tail`.
+
+Green under `--profile uat`: `foundation_netio` event-source tests (65 passed),
+`foundation_ai` full suite (agentic 324, tools/memory/models 148, doc-tests 8).
+
 
