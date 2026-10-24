@@ -45,6 +45,7 @@ Reference and how-to docs for everything the getting-started guides skim:
 | [12. Harness Presets](docs/12-how-to-harness-presets.md) | One-call model + router setup |
 | [14. GPU Acceleration](docs/14-gpu-acceleration.md) | CUDA, Metal, Vulkan — both backends |
 | [15. API Simplification (proposal)](docs/15-api-simplification-proposal.md) | Where the public API is heading |
+| [16. Streaming & SSE](docs/16-streaming-and-sse.md) | Deltas vs snapshots, `TurnStream` views, the SSE reader contract |
 
 Root-caused bug write-ups live in [`docs/fixes/`](docs/fixes/).
 
