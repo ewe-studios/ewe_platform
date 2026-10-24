@@ -2047,6 +2047,17 @@ export class FoundationWasm {
         }
         return 0;
       },
+      // Console log for foundation_compact's `host-abi` trace backend: read a
+      // UTF-8 line from WASM memory and print it with console.log (no wasm-bindgen).
+      host_console_log(ptr, len) {
+        const length = Number(len);
+        const message = length
+          ? new TextDecoder().decode(
+              new Uint8Array(this.bridge.memory.buffer, Number(ptr), length),
+            )
+          : "";
+        console.log(message);
+      },
 
       // Function registry: register a JS fn (source string) → handle; invoke it.
       host_register_function(start, len, utf) {

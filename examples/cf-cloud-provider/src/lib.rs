@@ -10,7 +10,6 @@
 //! The session is built on the first request and reused by this isolate.
 
 use std::cell::RefCell;
-use std::io;
 use std::sync::OnceLock;
 
 use wasm_bindgen::prelude::*;
@@ -20,6 +19,7 @@ use foundation_ai::agentic::{AgentSession, TurnTextEvent};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_core::valtron::{initialize_pool, PoolGuard};
+use foundation_core::wasm_logs;
 use foundation_netio::HttpClientBuilder;
 use foundation_netio::wasm::response::sse_response;
 
@@ -36,10 +36,10 @@ thread_local! {
     static SESSION: RefCell<Option<AgentSession>> = const { RefCell::new(None) };
 }
 
+#[wasm_logs(console, tracing = "trace")]
 #[wasm_bindgen]
 pub async fn fetch(req: web_sys::Request, env: worker::Env) -> web_sys::Response {
     console_error_panic_hook::set_once();
-    init_logs();
     POOL.get_or_init(|| initialize_pool(42, None));
 
     match (req.method().as_str(), path(&req).as_str()) {
@@ -51,55 +51,7 @@ pub async fn fetch(req: web_sys::Request, env: worker::Env) -> web_sys::Response
     }
 }
 
-/// Install a `tracing` subscriber that writes events to `console.log`, so they
-/// show up in `wrangler tail`.
-///
-/// WHY a custom writer instead of `tracing-wasm`: `tracing-wasm` calls the
-/// `performance.mark`/`performance.measure` User Timing API from its span
-/// `on_enter`/`on_exit` hooks. Workerd does not implement that API, so the
-/// first span freezes the isolate (error 1101). A plain `console.log` writer
-/// needs only the console API, which workerd does support.
-fn init_logs() {
-    static INIT: std::sync::Once = std::sync::Once::new();
-    INIT.call_once(|| {
-        let _ = tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::TRACE)
-            .without_time()
-            .with_ansi(false)
-            .with_writer(|| ConsoleWriter::default())
-            .try_init();
-    });
-}
 
-/// A `std::io::Write` sink that forwards each flushed line to `console.log`.
-#[derive(Default)]
-struct ConsoleWriter {
-    buf: String,
-}
-
-impl io::Write for ConsoleWriter {
-    fn write(&mut self, data: &[u8]) -> io::Result<usize> {
-        self.buf.push_str(&String::from_utf8_lossy(data));
-        // Emit each complete line as one `console.log` entry, so a single
-        // event is not fragmented across several log lines.
-        while let Some(pos) = self.buf.find('\n') {
-            let line: String = self.buf.drain(..=pos).collect();
-            let line = line.trim_end_matches(['\n', '\r']);
-            if !line.is_empty() {
-                web_sys::console::log_1(&JsValue::from_str(line));
-            }
-        }
-        Ok(data.len())
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        if !self.buf.is_empty() {
-            let line = std::mem::take(&mut self.buf);
-            web_sys::console::log_1(&JsValue::from_str(&line));
-        }
-        Ok(())
-    }
-}
 
 /// Run one turn of the session and stream its text to the client.
 ///

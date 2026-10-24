@@ -629,4 +629,26 @@ no overlap. `cf-agent-loop` answers with text. Both workers run under
 Green under `--profile uat`: `foundation_netio` event-source tests (65 passed),
 `foundation_ai` full suite (agentic 324, tools/memory/models 148, doc-tests 8).
 
+## Reusable `#[wasm_logs]` console backend (2026-10-24)
+
+Each example hand-wrote the same tracing subscriber + `console.log` writer in an
+`init_logs` function. That is now one reusable attribute macro.
+
+- `#[wasm_logs(console, tracing = "…")]` on a wasm entry point installs the
+  console subscriber. `foundation_macros` emits it; `foundation_core` re-exports
+  it. The macro injects one idempotent init call into the function body.
+- The default backend is `console`. An early `#[derive(Default)]` made the
+  default `stdout`, a no-op on wasm, so `#[wasm_logs]` with no arguments logged
+  nothing. A manual `Default` impl fixes it to `console`.
+- `foundation_compact`'s `host-abi` backend declares a `host_console_log` `abi`
+  import (like `host_fill_random`) and a `ConsoleWriter`. This lets the
+  no-wasm-bindgen path log too. `foundation-wasm.js` supplies `host_console_log`
+  in its `web_abi`.
+- Both examples use the macro. Their `init_logs` functions and the unused
+  `console_log`/`tracing`/`tracing-subscriber` dependencies are removed.
+
+Verified: `foundation_compact` checks on native, `host-abi`, and `wasm-bindgen`;
+both examples check on `wasm32-unknown-unknown`; `foundation_macros` unit tests
+(33) pass.
+
 

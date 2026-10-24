@@ -19,6 +19,7 @@ use foundation_ai::agentic::{AgentSession, Answer};
 use foundation_ai::backends::workers_ai::{WorkersAiConfig, WorkersAiProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_core::valtron::{initialize_pool, PoolGuard};
+use foundation_core::wasm_logs;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::wasm::bridge::cf::CfHttpApp;
@@ -197,23 +198,10 @@ fn build_app() -> CfHttpApp {
     CfHttpApp::from_app(app)
 }
 
-fn init_logs() {
-    static INIT: std::sync::Once = std::sync::Once::new();
-    INIT.call_once(|| {
-        let _ = console_log::init_with_level(log::Level::Trace);
-        let filter = tracing_subscriber::EnvFilter::new("foundation_ai=trace,foundation_http=trace");
-        let _ = tracing_subscriber::fmt()
-            .without_time()
-            .with_max_level(tracing::Level::TRACE)
-            .with_env_filter(filter)
-            .try_init();
-    });
-}
-
+#[wasm_logs(console, tracing = "foundation_ai=trace,foundation_http=trace")]
 #[wasm_bindgen]
 pub async fn fetch(req: web_sys::Request, env: JsValue) -> Result<web_sys::Response, JsValue> {
     console_error_panic_hook::set_once();
-    init_logs();
     POOL_GUARD.get_or_init(|| initialize_pool(42, None));
 
     store_creds(&env);

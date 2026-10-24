@@ -29,7 +29,3 @@ web-sys = { version = "0.3", features = ["Request", "Response", "Headers", "Resp
 
 worker = { version = "0.8.3" }
 console_error_panic_hook = "0.1"
-console_log = "1"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-log = "0.4"

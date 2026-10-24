@@ -30,9 +30,15 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 
 # wasm32-unknown-unknown only: wasm-bindgen bindings for the time polyfill and
 # Web Crypto entropy. Optional: the `host-abi` backend needs neither.
+#
+# `tracing` + `tracing-subscriber` power the wasm `console` trace writer (see
+# `trace`). They are optional and wired to the `wasm-bindgen` feature, so the
+# `host-abi` backend (no wasm-bindgen, no console) stays free of them.
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
 wasm-bindgen = { version = "0.2.70", optional = true }
 js-sys = { version = "0.3.20", optional = true }
+tracing = { version = "0.1", optional = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"], optional = true }
 
 [features]
 default = ["std", "wasm-bindgen"]
@@ -51,8 +57,8 @@ std = ["fstr/std"]
 # keeps compact's default features cannot put wasm-bindgen imports back into an
 # owned module. With neither on, the host-ABI backend is used: it is the only
 # one that needs no extra dependency.
-wasm-bindgen = ["dep:wasm-bindgen", "dep:js-sys"]
-host-abi = []
+wasm-bindgen = ["dep:wasm-bindgen", "dep:js-sys", "dep:tracing", "dep:tracing-subscriber"]
+host-abi = ["dep:tracing", "dep:tracing-subscriber"]
 serde = ["dep:serde"]
 global_gen = ["std", "dep:forkguard"]
 native = ["std", "global_gen"]

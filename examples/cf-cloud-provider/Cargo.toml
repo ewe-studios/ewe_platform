@@ -24,8 +24,6 @@ wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3" # keep: worker-build builds with WASM_BINDGEN_USE_JS_SYS=1, so wasm-bindgen names `js_sys`; removing this breaks the release wasm build
 futures-lite = "2"
-tracing = "0.1"
-tracing-subscriber = "0.3"
 web-sys = { version = "0.3", features = ["Request", "Response", "ResponseInit", "Headers", "Url", "console"] }
 
 worker = { version = "0.8.3" }

@@ -111,6 +111,25 @@ The deployed `cf-cloud-provider` repeated the reply text and logged
 Deployed: `cf-cloud-provider` and `cf-agent-loop` both answer. See LEARNINGS.md
 "Text overlapping and the empty-queue EOF bug".
 
+## Reusable `#[wasm_logs]` console backend
+
+Each example hand-wrote the same tracing subscriber + `console.log` writer in an
+`init_logs` function. This is now one reusable macro.
+
+- `#[wasm_logs(console, tracing = "…")]` on a wasm entry point installs the
+  console subscriber. `foundation_macros` emits it; `foundation_core` re-exports
+  it. The macro injects one idempotent init call into the function body.
+- `foundation_compact`'s `host-abi` backend now declares a `host_console_log`
+  `abi` import (like `host_fill_random`) and a `ConsoleWriter`, so the
+  no-wasm-bindgen path can log too. `foundation-wasm.js` supplies
+  `host_console_log` in its `web_abi`.
+- Both examples use the macro; their `init_logs` functions and the unused
+  `console_log`/`tracing`/`tracing-subscriber` dependencies are removed.
+
+Verified: `foundation_compact` checks on native, `host-abi`, and `wasm-bindgen`;
+both examples check on `wasm32-unknown-unknown`; `foundation_macros` unit tests
+(33) pass.
+
 ## Feature status
 
 - **00-foundation** — 🔧 6/7: T1–T6 done (T6:

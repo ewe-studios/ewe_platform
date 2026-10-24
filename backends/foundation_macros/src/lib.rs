@@ -17,6 +17,7 @@ mod schema_fields;
 mod to_arrow;
 mod type_uuid;
 mod wasm_entrypoint;
+mod wasm_logs;
 mod html_macro;
 mod theme_macro;
 mod theme_tokens;
@@ -206,6 +207,35 @@ pub fn platform_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn wasm_entrypoint(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_entrypoint::expand(attr.into(), item.into()).into()
+}
+
+/// `#[wasm_logs(stdout | console)]` — install a tracing subscriber at the top of
+/// a function body, so `tracing` events reach the right sink without hand-writing
+/// the setup each time.
+///
+/// - `console` (default) — forwards each event line to `console.log`, visible in
+///   `wrangler tail`. This is the wasm/Cloudflare Workers backend.
+/// - `stdout` — writes to standard output (native).
+///
+/// Both forms take the same `tracing_*` knobs as [`valtron`]:
+/// `tracing = "debug"`, `tracing_targets`, `tracing_ids`, `tracing_names`,
+/// `tracing_files`, `tracing_lines`, `tracing_ansi`.
+///
+/// The init is idempotent (guarded once per process), so a worker may call it on
+/// every request. It runs before the function's own statements and does not wrap
+/// the body, so `return`, `?`, and `async` all keep their meaning.
+///
+/// ```ignore
+/// use foundation_macros::wasm_logs;
+///
+/// #[wasm_logs(console, tracing = "debug", tracing_targets = true)]
+/// pub async fn fetch(req: web_sys::Request) -> web_sys::Response {
+///     // tracing::debug!(…) lands in `console.log`.
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn wasm_logs(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wasm_logs::wasm_logs(attr.into(), item.into()).into()
 }
 
 /// Derive macro that adds a `struct_hash()` method to structs.
