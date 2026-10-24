@@ -790,6 +790,7 @@ dependencies = [
  "foundation_core",
  "foundation_netio",
  "futures-lite",
+ "js-sys",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
