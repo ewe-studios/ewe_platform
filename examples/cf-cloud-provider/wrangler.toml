@@ -13,4 +13,4 @@ compatibility_date = "2024-01-01"
 # (the client appends the `v1/` version segment itself)
 
 [vars]
-MODEL = "google/gemma-4-31b-it:free"
+MODEL = "deepseek/deepseek-v4.1-flash-1017"

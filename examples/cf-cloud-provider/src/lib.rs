@@ -15,12 +15,14 @@ use std::sync::OnceLock;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
-use foundation_ai::agentic::AgentSession;
+use foundation_ai::agentic::{AgentSession, TurnEvent};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_netio::HttpClientBuilder;
 use foundation_netio::wasm::response::sse_response;
+
+use futures_lite::StreamExt;
 
 /// Default OpenRouter model; override with the `MODEL` binding.
 const DEFAULT_MODEL: &str = "google/gemma-4-31b-it:free";
@@ -47,7 +49,13 @@ pub async fn fetch(req: web_sys::Request, env: worker::Env) -> web_sys::Response
     }
 }
 
-/// Run one turn of the session and stream its text to the client.
+/// Run one turn of the session and stream its events to the client.
+///
+/// Each Server-Sent Event carries one line of JSON describing a turn event:
+/// `{"type":"text","content":…}` for text, `{"type":"thinking","content":…}`
+/// for reasoning, `{"type":"activity","message":…}` for tool work or retries,
+/// and a terminal `{"type":"error","message":…}` or `{"type":"done"}`. The
+/// client shows a loading state until the first event, then text or the error.
 async fn chat(env: &worker::Env, req: &web_sys::Request) -> Result<web_sys::Response, String> {
     let prompt = body_text(req).await?;
     if prompt.trim().is_empty() {
@@ -57,7 +65,72 @@ async fn chat(env: &worker::Env, req: &web_sys::Request) -> Result<web_sys::Resp
         .await?
         .run_turn_stream(prompt)
         .map_err(|e| e.to_string())?;
-    sse_response(turn.into_text_stream()).map_err(|e| format!("{e:?}"))
+    sse_response(turn.events().map(event_frame)).map_err(|e| format!("{e:?}"))
+}
+
+/// One turn event as a single-line JSON payload for the client.
+fn event_frame(event: TurnEvent) -> String {
+    match event {
+        TurnEvent::Text(text) => json_object(&[("type", "text"), ("content", &text)]),
+        TurnEvent::Thinking(thinking) => {
+            json_object(&[("type", "thinking"), ("content", &thinking)])
+        }
+        TurnEvent::ToolCall { name, .. } => {
+            let message = format!("calling {name}");
+            json_object(&[("type", "activity"), ("message", &message)])
+        }
+        TurnEvent::ToolResult { name, .. } => {
+            let message = format!("{name} done");
+            json_object(&[("type", "activity"), ("message", &message)])
+        }
+        TurnEvent::Retract { reason } => {
+            let message = format!("retrying: {reason}");
+            json_object(&[("type", "activity"), ("message", &message)])
+        }
+        TurnEvent::Progress(_) => "{\"type\":\"activity\"}".to_string(),
+        TurnEvent::Failed(error) => {
+            json_object(&[("type", "error"), ("message", &error.to_string())])
+        }
+        TurnEvent::Done(_) => "{\"type\":\"done\"}".to_string(),
+        _ => "{\"type\":\"activity\"}".to_string(),
+    }
+}
+
+/// A small JSON object with string values, for the SSE frames above. Keys are
+/// fixed and known-safe; only the values are escaped.
+fn json_object(fields: &[(&str, &str)]) -> String {
+    let mut out = String::from("{");
+    for (i, (key, value)) in fields.iter().enumerate() {
+        if i > 0 {
+            out.push(',');
+        }
+        out.push('"');
+        out.push_str(key);
+        out.push_str("\":\"");
+        out.push_str(&json_escape(value));
+        out.push('"');
+    }
+    out.push('}');
+    out
+}
+
+/// Escape a string for inclusion in a JSON string value.
+fn json_escape(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 8);
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => {
+                out.push_str(&format!("\\u{:04x}", c as u32));
+            }
+            c => out.push(c),
+        }
+    }
+    out
 }
 
 /// The isolate's session, built on first use.

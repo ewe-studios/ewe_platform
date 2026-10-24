@@ -15,7 +15,7 @@ use foundation_netio::DynNetClient;
 use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
     body_reader::collect_strings_from_send_safe,
-    http_client::BoxedSseIterator,
+    http_client::{BoxedSseIterator, SseProgress},
     request::PreparedRequest,
 };
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
@@ -1074,6 +1074,10 @@ impl Iterator for AnthropicStream {
 
         match item {
             Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
+            Stream::Pending(SseProgress::Failed(msg)) => {
+                // Emit any partial text already accumulated, then the failure.
+                Some(self.partial_then_error(msg))
+            }
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
@@ -1090,9 +1094,12 @@ impl Iterator for AnthropicStream {
                                 Stream::Delayed(_)
                                 | Stream::Init
                                 | Stream::Ignore
-                                | Stream::Wait
-                                | Stream::Spread(_) => {}
+                                | Stream::Wait => {}
+                                Stream::Spread(inner) => mapped.extend(inner),
                             }
+                        }
+                        StreamSpread::Pending(SseProgress::Failed(msg)) => {
+                            mapped.push(StreamSpread::Pending(ModelState::Error(msg)));
                         }
                         StreamSpread::Pending(_) => {
                             mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
@@ -1221,8 +1228,53 @@ impl AnthropicStream {
                 self.cumulative_cost.lock().unwrap().add(&report.cost);
                 Stream::Ignore
             }
+            "error" => {
+                // Anthropic reports in-band failures (overload, invalid request)
+                // as an SSE `error` event. Surface it as a model error so the
+                // loop ends the turn with a `FailedAction`, instead of silently
+                // ignoring the event and ending with empty text.
+                let message = parse_anthropic_error(data).unwrap_or_else(|| data.to_string());
+                tracing::warn!(%message, "Anthropic stream returned an error event");
+                self.partial_then_error(message)
+            }
             _ => Stream::Ignore,
         }
+    }
+
+    /// Emit the text accumulated so far, then a failure, in one `Spread`.
+    ///
+    /// An in-band failure can happen after the model already produced partial
+    /// text. The loop must see that partial output before it records the
+    /// `FailedAction`, so this spreads `Done(partial text)` then
+    /// `Pending(ModelState::Error)`. The failure is terminal: it also marks the
+    /// stream `done` so the next poll ends instead of re-reading a still-open
+    /// connection.
+    fn partial_then_error(&mut self, message: String) -> Stream<Messages, ModelState> {
+        self.done = true;
+        if self.accumulated_text.is_empty() {
+            return Stream::Pending(ModelState::Error(message));
+        }
+
+        let partial = Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
+            model: self.model_id.clone(),
+            timestamp: SystemTime::now(),
+            usage: empty_usage_report(),
+            content: ModelOutput::Text(TextContent {
+                content: self.accumulated_text.clone(),
+                signature: None,
+            }),
+            stop_reason: StopReason::Stop,
+            provider: ModelProviders::ANTHROPIC,
+            error_detail: None,
+            signature: None,
+            metadata: None,
+        };
+
+        Stream::Spread(vec![
+            StreamSpread::Done(partial),
+            StreamSpread::Pending(ModelState::Error(message)),
+        ])
     }
 
     fn build_final_messages_with_cost(&self) -> (Vec<Messages>, UsageReport) {

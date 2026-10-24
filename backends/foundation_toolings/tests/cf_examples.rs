@@ -122,7 +122,7 @@ fn serve(stream: &TcpStream, vendor: Vendor, requests: &AtomicUsize) {
                 "model": "mock",
                 "choices": [{"index": 0, "delta": {"content": word}, "finish_reason": null}],
             }),
-            Vendor::WorkersAi => serde_json::json!({ "response": so_far }),
+            Vendor::WorkersAi => serde_json::json!({ "response": word }),
         };
         if out.write_all(format!("data: {data}\n\n").as_bytes()).is_err() {
             return;
@@ -141,6 +141,11 @@ fn serve(stream: &TcpStream, vendor: Vendor, requests: &AtomicUsize) {
             "usage": {"prompt_tokens": 5, "completion_tokens": 7, "total_tokens": 12},
         });
         let _ = out.write_all(format!("data: {done}\n\ndata: [DONE]\n\n").as_bytes());
+    }
+    if let Vendor::WorkersAi = vendor {
+        // Real Workers AI closes the stream with an empty `response` delta and
+        // a `[DONE]` sentinel.
+        let _ = out.write_all(b"data: {\"response\":\"\"}\n\ndata: [DONE]\n\n");
     }
     let _ = out.flush();
 }

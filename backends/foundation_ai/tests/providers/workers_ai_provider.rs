@@ -3,21 +3,22 @@
 //! (`generate`) and SSE streaming (`stream`) paths.
 //!
 //! - `TestHttpServer` (request-response) — verifies non-streaming response parsing
-//! - `SseTestServer` (streaming) — verifies SSE parsing with a clean EOF close.
-//!   Workers AI streams carry no `[DONE]` sentinel; the stream ends when the
-//!   server closes the connection, so the test must close it cleanly.
+//! - `SseTestServer` (streaming) — verifies SSE parsing against the real wire
+//!   format: `response` is an incremental delta (not the full text so far),
+//!   the first and last chunks carry an empty `response`, and the stream ends
+//!   with a `[DONE]` sentinel.
 
 use std::net::SocketAddr;
 use std::sync::Arc;
 
 use foundation_ai::backends::workers_ai::{WorkersAiConfig, WorkersAiProvider};
 use foundation_ai::types::{
-    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider,
+    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, ModelState,
     StopReason, TextContent, ToolDeclarations, UserModelContent,
 };
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{valtron_test, Stream};
+use foundation_core::valtron::{valtron_test, Stream, StreamSpread};
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_testing::http::HttpRequest;
@@ -121,8 +122,11 @@ fn test_workers_ai_generate() {
 fn test_workers_ai_stream() {
     let server = SseTestServer::with_handler(
         move |_req: &HttpRequest, writer: &mut SseStreamWriter, _conn: usize| {
+            let _ = writer.event(r#"{"response":""}"#);
             let _ = writer.event(r#"{"response":"Hello"}"#);
-            let _ = writer.event(r#"{"response":"Hello world"}"#);
+            let _ = writer.event(r#"{"response":" world"}"#);
+            let _ = writer.event(r#"{"response":""}"#);
+            let _ = writer.event("[DONE]");
             SseConnectionResult::clean_close()
         },
     );
@@ -170,5 +174,76 @@ fn test_workers_ai_stream() {
         assert_eq!(*stop_reason, StopReason::Stop);
     } else {
         panic!("Expected Assistant message");
+    }
+}
+
+/// Verify that an in-band error after partial text emits the accumulated text
+/// first, then the failure, in one `Stream::Spread` — not an empty message.
+#[valtron_test]
+fn test_workers_ai_stream_error_emits_partial_then_failure() {
+    let server = SseTestServer::with_handler(
+        move |_req: &HttpRequest, writer: &mut SseStreamWriter, _conn: usize| {
+            // A valid delta accumulates partial text.
+            let _ = writer.event(r#"{"response":"Hello"}"#);
+            // A `response` of the wrong type is not a valid chunk.
+            let _ = writer.event(r#"{"response":123}"#);
+            SseConnectionResult::clean_close()
+        },
+    );
+    let model = setup_provider_and_model(server.base_url());
+
+    let mut stream = model.stream(make_interaction("Hi"), None).unwrap();
+    let mut items: Vec<Stream<Messages, ModelState>> = Vec::new();
+    for item in &mut stream {
+        items.push(item);
+    }
+
+    // The delta "Hello" is emitted (as a `Next` message) before the failure.
+    let partial: Vec<String> = items
+        .iter()
+        .filter_map(|item| match item {
+            Stream::Next(Messages::Assistant {
+                content: ModelOutput::Text(tc),
+                ..
+            }) => Some(tc.content.clone()),
+            _ => None,
+        })
+        .collect();
+    assert!(
+        partial.iter().any(|t| t == "Hello"),
+        "expected partial text \"Hello\", got {partial:?}"
+    );
+
+    // The failure arrives as a Spread: partial text, then Pending(Error).
+    let spread = items
+        .iter()
+        .find_map(|item| match item {
+            Stream::Spread(inner) => Some(inner),
+            _ => None,
+        })
+        .expect("expected a Stream::Spread carrying the failure");
+
+    assert_eq!(
+        spread.len(),
+        2,
+        "spread should be [partial text, error], got {spread:?}"
+    );
+
+    match &spread[0] {
+        StreamSpread::Done(Messages::Assistant {
+            content: ModelOutput::Text(tc),
+            ..
+        }) => assert_eq!(tc.content, "Hello"),
+        other => panic!("expected partial text before failure, got {other:?}"),
+    }
+
+    match &spread[1] {
+        StreamSpread::Pending(ModelState::Error(msg)) => {
+            assert!(
+                msg.contains("Failed to parse SSE chunk"),
+                "unexpected error message: {msg}"
+            );
+        }
+        other => panic!("expected Pending(ModelState::Error), got {other:?}"),
     }
 }

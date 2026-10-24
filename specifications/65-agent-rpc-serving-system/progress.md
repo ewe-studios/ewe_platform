@@ -79,6 +79,19 @@ Found and recorded in `docs/bug-backlog.md`: readiness signals that never reques
 a resume stall on wasm; nested blocking helpers spin on wasm; wasm SSE parser
 errors are swallowed; interval callbacks run under the registry lock.
 
+## Post-T5 fix — a failed turn streams its error, not an empty 200
+
+The deployed examples answered a failed turn with an empty 200 (the "zero
+response"). The failure was dropped at four layers: the providers (lost the
+partial text and the error), `lift_model_item` (mapped a spread error to
+`Initializing`), the agent loop (kept only the first spread item), and
+`into_text_stream` (dropped the `Failed` event). All four are fixed and proven by
+tests — see LEARNINGS.md "Zero response root cause" for the full list.
+
+Green under `--profile uat --features testing`: `provider_tests` 249 passed,
+`agentic_tests` 324 passed. The `docs/bug-backlog.md` "`TurnTextStream` drops the
+terminal `Failed` event" entry is removed.
+
 ## Feature status
 
 - **00-foundation** — 🔧 6/7: T1–T6 done (T6:

@@ -15,10 +15,10 @@ use std::sync::{Arc, OnceLock};
 
 use wasm_bindgen::prelude::*;
 
-use foundation_ai::agentic::AgentSession;
+use foundation_ai::agentic::{AgentSession, Answer};
 use foundation_ai::backends::workers_ai::{WorkersAiConfig, WorkersAiProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
-use foundation_core::valtron::{initialize_pool, PoolGuard, StreamIteratorExt};
+use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::wasm::bridge::cf::CfHttpApp;
@@ -105,10 +105,19 @@ async fn get_or_build_session() -> Result<AgentSession, String> {
     Ok(SESSION.with(|cell| cell.borrow_mut().get_or_insert(session).clone()))
 }
 
-/// Run one agentic turn and return the accumulated assistant text.
-async fn run_prompt(prompt: &str) -> Result<String, String> {
+/// One turn's result: complete text, or a failure with the text produced
+/// before the error and the error itself.
+enum PromptOutcome {
+    Complete(String),
+    Failed { partial: String, error: String },
+}
+
+/// Run one agentic turn and return its outcome (keeps partial text on error).
+async fn run_prompt(prompt: &str) -> Result<PromptOutcome, String> {
     if prompt.trim().is_empty() {
-        return Ok("Send a prompt in the request body.".to_string());
+        return Ok(PromptOutcome::Complete(
+            "Send a prompt in the request body.".to_string(),
+        ));
     }
     // `ask` waits by parking, yielding to the JS event loop while the
     // Workers AI fetch is in flight; snapshot/delta chunks are already joined.
@@ -117,7 +126,17 @@ async fn run_prompt(prompt: &str) -> Result<String, String> {
         .ask(prompt.to_string())
         .await
         .map_err(|e| e.to_string())?;
-    answer.into_result().map_err(|e| e.to_string())
+    Ok(match answer {
+        Answer::Complete(text) => PromptOutcome::Complete(text),
+        Answer::Failed {
+            partial_text,
+            error,
+            ..
+        } => PromptOutcome::Failed {
+            partial: partial_text,
+            error: error.to_string(),
+        },
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -147,10 +166,20 @@ impl CfServe for AgentHandler {
         };
 
         match run_prompt(&prompt).await {
-            Ok(text) => {
+            Ok(PromptOutcome::Complete(text)) => {
                 conn.set_status(200);
                 conn.set_header("Content-Type", "text/plain; charset=utf-8");
                 conn.set_body(text.into_bytes());
+            }
+            Ok(PromptOutcome::Failed { partial, error }) => {
+                conn.set_status(500);
+                conn.set_header("Content-Type", "text/plain; charset=utf-8");
+                let body = if partial.trim().is_empty() {
+                    format!("error: {error}")
+                } else {
+                    format!("error: {error}\n\npartial:\n{partial}")
+                };
+                conn.set_body(body.into_bytes());
             }
             Err(e) => {
                 conn.set_status(500);

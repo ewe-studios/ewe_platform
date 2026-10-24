@@ -1071,7 +1071,8 @@ impl Iterator for OpenAIStream {
         match item {
             Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
             Stream::Pending(SseProgress::Failed(msg)) => {
-                Some(Stream::Pending(ModelState::Error(msg)))
+                // Emit any partial text already accumulated, then the failure.
+                Some(self.partial_then_error(msg))
             }
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
@@ -1093,8 +1094,8 @@ impl Iterator for OpenAIStream {
                                 }
                                 Stream::Init
                                 | Stream::Ignore
-                                | Stream::Wait
-                                | Stream::Spread(_) => {}
+                                | Stream::Wait => {}
+                                Stream::Spread(inner) => mapped.extend(inner),
                             }
                         }
                         StreamSpread::Pending(SseProgress::Failed(msg)) => {
@@ -1131,21 +1132,10 @@ impl OpenAIStream {
 
         let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
             tracing::warn!(data = %data, "Failed to parse SSE chunk JSON");
-            return Stream::Next(Messages::Assistant {
-                id: foundation_compact::ids::new_scru128(),
-                model: self.model_id.clone(),
-                timestamp: SystemTime::now(),
-                usage: empty_usage_report(),
-                content: ModelOutput::Text(TextContent {
-                    content: self.accumulated_text.clone(),
-                    signature: None,
-                }),
-                stop_reason: StopReason::Error,
-                provider: ModelProviders::OPENAI,
-                error_detail: Some(format!("Failed to parse SSE chunk: {data}")),
-                signature: None,
-                metadata: None,
-            });
+            // An in-band error (e.g. `{"error":{...}}` from OpenRouter) is not a
+            // chunk. Emit the text accumulated so far, then the failure, in one
+            // `Spread`, so the loop sees partial output before `FailedAction`.
+            return self.partial_then_error(format!("Failed to parse SSE chunk: {data}"));
         };
 
         if let Some(u) = chunk.usage {
@@ -1191,6 +1181,42 @@ impl OpenAIStream {
         } else {
             Stream::Ignore
         }
+    }
+
+    /// Emit the text accumulated so far, then a failure, in one `Spread`.
+    ///
+    /// An in-band parse failure can happen after the model already produced
+    /// partial text. The loop must see that partial output before it records the
+    /// `FailedAction`, so this spreads `Done(partial text)` then
+    /// `Pending(ModelState::Error)`. The failure is terminal: it also marks the
+    /// stream `done` so the next poll ends instead of re-reading a still-open
+    /// connection.
+    fn partial_then_error(&mut self, message: String) -> Stream<Messages, ModelState> {
+        self.done = true;
+        if self.accumulated_text.is_empty() {
+            return Stream::Pending(ModelState::Error(message));
+        }
+
+        let partial = Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
+            model: self.model_id.clone(),
+            timestamp: SystemTime::now(),
+            usage: empty_usage_report(),
+            content: ModelOutput::Text(TextContent {
+                content: self.accumulated_text.clone(),
+                signature: None,
+            }),
+            stop_reason: StopReason::Stop,
+            provider: ModelProviders::OPENAI,
+            error_detail: None,
+            signature: None,
+            metadata: None,
+        };
+
+        Stream::Spread(vec![
+            StreamSpread::Done(partial),
+            StreamSpread::Pending(ModelState::Error(message)),
+        ])
     }
 
     fn accumulate_tool_calls(&mut self, deltas: &[OpenAIToolCallDelta]) {

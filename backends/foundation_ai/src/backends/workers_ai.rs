@@ -521,7 +521,8 @@ impl Iterator for WorkersAiStream {
         match item {
             Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
             Stream::Pending(SseProgress::Failed(msg)) => {
-                Some(Stream::Pending(ModelState::Error(msg)))
+                // Emit any partial text already accumulated, then the failure.
+                Some(self.partial_then_error(msg))
             }
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
@@ -547,8 +548,8 @@ impl Iterator for WorkersAiStream {
                                 }
                                 Stream::Init
                                 | Stream::Ignore
-                                | Stream::Wait
-                                | Stream::Spread(_) => {}
+                                | Stream::Wait => {}
+                                Stream::Spread(inner) => mapped.extend(inner),
                             }
                         }
                         StreamSpread::Pending(SseProgress::Failed(msg)) => {
@@ -590,18 +591,21 @@ impl WorkersAiStream {
             Ok(chunk) => chunk,
             Err(_) => {
                 tracing::warn!(data = %data, "Failed to parse Workers AI SSE chunk");
-                return Stream::Next(assistant_message(
-                    &self.model_id,
-                    self.accumulated_text.clone(),
-                    StopReason::Error,
-                    Some(format!("Failed to parse SSE chunk: {data}")),
-                ));
+                // Surface the bad chunk as a model error, not an empty assistant
+                // message, so the loop ends the turn with a `FailedAction`.
+                // Emit the partial text first, then the failure, in one `Spread`.
+                return self.partial_then_error(format!("Failed to parse SSE chunk: {data}"));
             }
         };
 
         match chunk.response {
-            Some(text) => {
-                self.accumulated_text = text;
+            // Workers AI streams `response` as an incremental delta, not the
+            // full text so far. Append it; the first and last chunks carry an
+            // empty `response` (and `[DONE]` closes the stream), so replacing
+            // here would drop every earlier token. Empty deltas are skipped, as
+            // the OpenAI backend does, so the loop never sees a blank frame.
+            Some(text) if !text.is_empty() => {
+                self.accumulated_text.push_str(&text);
                 Stream::Next(assistant_message(
                     &self.model_id,
                     self.accumulated_text.clone(),
@@ -609,8 +613,35 @@ impl WorkersAiStream {
                     None,
                 ))
             }
-            None => Stream::Ignore,
+            Some(_) | None => Stream::Ignore,
         }
+    }
+
+    /// Emit the text accumulated so far, then a failure, in one `Spread`.
+    ///
+    /// An in-band parse failure can happen after the model already produced
+    /// partial text. The loop must see that partial output before it records the
+    /// `FailedAction`, so this spreads `Done(partial text)` then
+    /// `Pending(ModelState::Error)`. The failure is terminal: it also marks the
+    /// stream `done` so the next poll ends instead of re-reading a still-open
+    /// connection.
+    fn partial_then_error(&mut self, message: String) -> Stream<Messages, ModelState> {
+        self.done = true;
+        if self.accumulated_text.is_empty() {
+            return Stream::Pending(ModelState::Error(message));
+        }
+
+        let partial = assistant_message(
+            &self.model_id,
+            self.accumulated_text.clone(),
+            StopReason::Stop,
+            None,
+        );
+
+        Stream::Spread(vec![
+            StreamSpread::Done(partial),
+            StreamSpread::Pending(ModelState::Error(message)),
+        ])
     }
 }
 

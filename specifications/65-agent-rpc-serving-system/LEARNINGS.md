@@ -529,3 +529,52 @@ the isolate.
 - **`cargo test -p foundation_ai` skips the agentic suite**: `agentic_tests`
   needs `--features testing`. Run it explicitly.
 
+## "Zero response" root cause (2026-10-24) — a failed turn streamed nothing
+
+Both deployed examples (`cf-cloud-provider`, `cf-agent-loop`) answered a failed
+turn with an empty 200 response. The failure was dropped at four layers, so the
+terminal `Failed` event never reached the caller.
+
+- **The providers dropped the partial text and the error.** On an in-band error
+  after some text had streamed (a bad Server-Sent Events (SSE) chunk, a vendor
+  `error` event, or a transport failure), each provider emitted a bare
+  `Stream::Pending(ModelState::Error(..))`. The text already streamed was lost.
+  Fix: `partial_then_error` emits `Stream::Spread([Done(partial),
+  Pending(ModelState::Error(..))])` — the accumulated text first, then the failure.
+- **`lift_model_item` dropped the error inside a spread.** Its `Stream::Spread`
+  arm mapped `StreamSpread::Pending(ModelState::Error(..))` through the general
+  progress arm, which returned `Initializing`. The failure became a progress event
+  and was never reported. Fix: the spread arm maps `Pending(ModelState::Error(..))`
+  to `Done(FailedAction)`.
+- **The agent loop dropped all but the first spread item.**
+  `transition_inner_generate` emitted only the first element of a `Stream::Spread`.
+  A `[partial, error]` spread lost the error. Fix: it fans the whole spread out as
+  `TaskStatus::Spread`.
+- **`into_text_stream` dropped the terminal `Failed`.** It yielded only text
+  chunks; `TurnEvent::Failed` fell into a catch-all and was discarded. Fix: it now
+  yields `TurnTextEvent` (`Text` / `Done` / `Failed`), so the terminal outcome
+  always reaches the caller.
+
+The mock substrate gained `MockModelProvider::stream_fails_after_partial(..)`
+(a `MockSpreadStream` that emits the in-band error shape). This scripts the spread
+path in tests, not only the `Err`-returning path.
+
+Tests prove each layer:
+
+- `tests/providers/{openai_provider, anthropic_messages_provider,
+  workers_ai_provider}.rs`: each has a `*_stream_error_emits_partial_then_failure`
+  test. Partial text, then the failure in one spread, for all three providers.
+- `tests/agentic/progress_tests.rs`:
+  `lift_spread_error_becomes_failed_action_not_progress` — the lift maps the
+  spread error to a `FailedAction`.
+- `tests/agentic/agent_loop_generation_tests.rs`:
+  `stream_error_after_partial_emits_partial_then_failed_action` — the loop fans
+  the spread out (partial text plus `FailedAction`).
+- `tests/agentic/session_mock_tests.rs`:
+  `run_turn_keeps_partial_text_from_an_in_band_stream_error` and
+  `text_stream_reports_an_in_band_stream_error_after_partial` — end to end through
+  `Turn` and `into_text_stream`, partial text then `Failed`.
+
+All suites pass under `--profile uat --features testing`.
+
+
