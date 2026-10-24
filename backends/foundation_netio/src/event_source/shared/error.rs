@@ -24,7 +24,7 @@ pub enum EventSourceError {
     InvalidRetry(String),
 
     /// I/O read error.
-    ReadError(String),
+    ReadError(std::io::Error),
 
     /// I/O write error (server-side).
     WriteError(String),
@@ -43,7 +43,7 @@ impl fmt::Display for EventSourceError {
             Self::ParseError(msg) => write!(f, "Parse error: {msg}"),
             Self::ConnectionClosed => write!(f, "Connection closed"),
             Self::InvalidRetry(msg) => write!(f, "Invalid retry value: {msg}"),
-            Self::ReadError(msg) => write!(f, "Read error: {msg}"),
+            Self::ReadError(err) => write!(f, "Read error: {err}"),
             Self::WriteError(msg) => write!(f, "Write error: {msg}"),
             Self::InvalidUrl(msg) => write!(f, "Invalid URL: {msg}"),
             Self::Timeout => write!(f, "Connection timeout"),
@@ -55,6 +55,6 @@ impl std::error::Error for EventSourceError {}
 
 impl From<std::io::Error> for EventSourceError {
     fn from(err: std::io::Error) -> Self {
-        Self::ReadError(err.to_string())
+        Self::ReadError(err)
     }
 }
