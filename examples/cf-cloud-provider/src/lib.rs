@@ -10,12 +10,13 @@
 //! The session is built on the first request and reused by this isolate.
 
 use std::cell::RefCell;
+use std::io;
 use std::sync::OnceLock;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
-use foundation_ai::agentic::{AgentSession, TurnEvent};
+use foundation_ai::agentic::{AgentSession, TurnTextEvent};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_core::valtron::{initialize_pool, PoolGuard};
@@ -38,6 +39,7 @@ thread_local! {
 #[wasm_bindgen]
 pub async fn fetch(req: web_sys::Request, env: worker::Env) -> web_sys::Response {
     console_error_panic_hook::set_once();
+    init_logs();
     POOL.get_or_init(|| initialize_pool(42, None));
 
     match (req.method().as_str(), path(&req).as_str()) {
@@ -49,13 +51,64 @@ pub async fn fetch(req: web_sys::Request, env: worker::Env) -> web_sys::Response
     }
 }
 
-/// Run one turn of the session and stream its events to the client.
+/// Install a `tracing` subscriber that writes events to `console.log`, so they
+/// show up in `wrangler tail`.
 ///
-/// Each Server-Sent Event carries one line of JSON describing a turn event:
-/// `{"type":"text","content":…}` for text, `{"type":"thinking","content":…}`
-/// for reasoning, `{"type":"activity","message":…}` for tool work or retries,
-/// and a terminal `{"type":"error","message":…}` or `{"type":"done"}`. The
-/// client shows a loading state until the first event, then text or the error.
+/// WHY a custom writer instead of `tracing-wasm`: `tracing-wasm` calls the
+/// `performance.mark`/`performance.measure` User Timing API from its span
+/// `on_enter`/`on_exit` hooks. Workerd does not implement that API, so the
+/// first span freezes the isolate (error 1101). A plain `console.log` writer
+/// needs only the console API, which workerd does support.
+fn init_logs() {
+    static INIT: std::sync::Once = std::sync::Once::new();
+    INIT.call_once(|| {
+        let _ = tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .without_time()
+            .with_ansi(false)
+            .with_writer(|| ConsoleWriter::default())
+            .try_init();
+    });
+}
+
+/// A `std::io::Write` sink that forwards each flushed line to `console.log`.
+#[derive(Default)]
+struct ConsoleWriter {
+    buf: String,
+}
+
+impl io::Write for ConsoleWriter {
+    fn write(&mut self, data: &[u8]) -> io::Result<usize> {
+        self.buf.push_str(&String::from_utf8_lossy(data));
+        // Emit each complete line as one `console.log` entry, so a single
+        // event is not fragmented across several log lines.
+        while let Some(pos) = self.buf.find('\n') {
+            let line: String = self.buf.drain(..=pos).collect();
+            let line = line.trim_end_matches(['\n', '\r']);
+            if !line.is_empty() {
+                web_sys::console::log_1(&JsValue::from_str(line));
+            }
+        }
+        Ok(data.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        if !self.buf.is_empty() {
+            let line = std::mem::take(&mut self.buf);
+            web_sys::console::log_1(&JsValue::from_str(&line));
+        }
+        Ok(())
+    }
+}
+
+/// Run one turn of the session and stream its text to the client.
+///
+/// Each Server-Sent Event carries one line of JSON: `{"type":"text","content":…}`
+/// for a new piece of text (snapshots from the HTTP backend are reduced to their
+/// new suffix by [`TurnStream::into_text_stream`]), and a terminal
+/// `{"type":"error","message":…}` or `{"type":"done"}`. The client shows a
+/// loading state until the first event, then appends each text piece or the
+/// error.
 async fn chat(env: &worker::Env, req: &web_sys::Request) -> Result<web_sys::Response, String> {
     let prompt = body_text(req).await?;
     if prompt.trim().is_empty() {
@@ -65,33 +118,17 @@ async fn chat(env: &worker::Env, req: &web_sys::Request) -> Result<web_sys::Resp
         .await?
         .run_turn_stream(prompt)
         .map_err(|e| e.to_string())?;
-    sse_response(turn.events().map(event_frame)).map_err(|e| format!("{e:?}"))
+    sse_response(turn.into_text_stream().map(text_frame)).map_err(|e| format!("{e:?}"))
 }
 
-/// One turn event as a single-line JSON payload for the client.
-fn event_frame(event: TurnEvent) -> String {
+/// One turn-text event as a single-line JSON payload for the client.
+fn text_frame(event: TurnTextEvent) -> String {
     match event {
-        TurnEvent::Text(text) => json_object(&[("type", "text"), ("content", &text)]),
-        TurnEvent::Thinking(thinking) => {
-            json_object(&[("type", "thinking"), ("content", &thinking)])
-        }
-        TurnEvent::ToolCall { name, .. } => {
-            let message = format!("calling {name}");
-            json_object(&[("type", "activity"), ("message", &message)])
-        }
-        TurnEvent::ToolResult { name, .. } => {
-            let message = format!("{name} done");
-            json_object(&[("type", "activity"), ("message", &message)])
-        }
-        TurnEvent::Retract { reason } => {
-            let message = format!("retrying: {reason}");
-            json_object(&[("type", "activity"), ("message", &message)])
-        }
-        TurnEvent::Progress(_) => "{\"type\":\"activity\"}".to_string(),
-        TurnEvent::Failed(error) => {
+        TurnTextEvent::Text(text) => json_object(&[("type", "text"), ("content", &text)]),
+        TurnTextEvent::Done(_) => "{\"type\":\"done\"}".to_string(),
+        TurnTextEvent::Failed(error) => {
             json_object(&[("type", "error"), ("message", &error.to_string())])
         }
-        TurnEvent::Done(_) => "{\"type\":\"done\"}".to_string(),
         _ => "{\"type\":\"activity\"}".to_string(),
     }
 }

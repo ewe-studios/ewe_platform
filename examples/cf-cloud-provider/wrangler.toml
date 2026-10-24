@@ -14,3 +14,8 @@ compatibility_date = "2024-01-01"
 
 [vars]
 MODEL = "deepseek/deepseek-v4.1-flash-1017"
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
