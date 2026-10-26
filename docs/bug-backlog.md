@@ -9,7 +9,7 @@ How to use it:
 - When you fix one, delete its entry in the PR that fixes it and name the PR in the commit message.
 - Group entries by crate. Mark limits that are still hard-coded constants with **(rule 8)**.
 
-Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async store traits; in-memory stores async-only). Before that: 2026-10-21, on `db/async-stores` (foundation_db async-only stores); 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In flight on branches:
+Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS async-first). Before that: 2026-10-21, on `ai/async-stores` (foundation_ai on the async store traits; in-memory stores async-only). Before that: 2026-10-21, on `db/async-stores` (foundation_db async-only stores); 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In flight on branches:
 - `fix/connectrpc-cancel-and-limits`: connectrpc §1.
 - `fix/limits-and-core-sweep`: the Docker limits cleanup and the foundation_core leftovers.
 
@@ -403,13 +403,80 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `d1_delta::chunking` module sketches it) with a configurable chunk size.
 - **The VFS shim never uses the D1/R2 deltas.** `src/native/vfs/shim/mod.rs`
   logs "impls pending" and falls back to the memory delta for
-  `DeltaBackend::D1` / `R2`; the deltas now exist (as `SyncFs<D1Delta>` /
-  `SyncFs<R2Delta>` for the sync overlay). Fix: build them from the shim
-  config.
+  `DeltaBackend::D1` / `R2`. The overlay is async now, so the deltas plug in
+  directly (`DynFs::from_async(OverlayFileSystem::new(base, d1_delta))`).
+  Fix: build them from the shim config.
 - **`FjallDocumentStore` scans buffer their rows.** `scan_async`,
   `scan_all_async` and `scan_from_async` collect the matching rows into a
   `Vec` before streaming them (`src/shared/vfs/fjall_document_store.rs`);
   `scan_all_async` is unbounded. Fix: walk the fjall index range lazily.
+
+- **No delta store on the local Turso engine.** `TursoDelta` never compiled and was
+  deleted in spec 50 F05 T2 (with its example, the `vfs-turso` feature and the
+  shim's `turso` backend). A Turso cloud database still works through
+  `LibsqlDelta` with `TursoRemoteConfig`. Fix: rebuild it on the `turso` crate as
+  an async-only store; tracked in ewe-studios/ewe_platform#142.
+- **The `LD_PRELOAD` shim does not compile.** With `vfs-preload`,
+  `src/native/vfs/shim/mod.rs` defines `open` with a fixed argument list, and
+  the current compiler refuses it ("invalid definition of the runtime `open`
+  symbol"): libc's `open` is variadic. The `DeltaBackend::Sqlite` arm also
+  calls `initialize_pool` without an import. Fix: declare `open` / `openat`
+  as variadic (`c_variadic`) or export them from a small C file, and import
+  `initialize_pool`.
+- **The FUSE adapter cannot build in CI.** `vfs-fuse` needs the system
+  `libfuse` (`fuse.pc`); the build script of `fuser` panics without it, so
+  `FuseMount` is never compiled here. Fix: install `libfuse-dev` in the CI
+  image and add a `vfs-fuse` run, or use `fuser` without `libfuse`.
+- **CI does not build most VFS features.** `ci/packages.toml` runs
+  `foundation_nativeapis` with `""` and `vfs-native,vfs-d1,vfs-r2` only.
+  `vfs-sqlite`, `vfs-ipc`, `vfs-nfs`, `vfs-fjall`, `vfs-search-fff` and
+  `vfs-ptrace` are not built, which is how `vfs-sqlite` stopped compiling
+  (fixed in F05 T2). Fix: add a run with
+  `vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow`.
+- **`NativeFs` and `DirectoryDelta` block for each system call.** They
+  implement the async traits, but call `std::fs` inline: each call blocks the
+  valtron worker for one system call. Fix: an async file API (the crate's
+  `uring` layer on Linux, or a bounded offload thread elsewhere).
+- **The IPC bus is sync.** `ClientTransport::request`
+  (`src/native/vfs/ipc_bus.rs`) waits on the bus receive on the calling
+  thread, and `run_daemon_loop` is a thread that waits for each dispatch
+  through `exec_async`. The join timeout (30 s) and the receive poll (1 s)
+  are constants **(rule 8)**. Fix: an async receive on the bus, and the two
+  timeouts in a transport config.
+- **The VFS IPC protocol has no request ids.** Responses are matched to
+  requests by order only, so `ClientTransport` holds one lock across a send
+  and its receive, and counts released (closed) handles to skip their
+  responses. `ReadAt` sizes are `u32`. Fix: a request id in `VfsRequest` and
+  `VfsResponse`.
+- **The CLI and fff searchers block.** `CliSearcher` waits for the `rg` /
+  `grep` process on the calling thread; `FffSearcher::new` waits up to 30 s
+  for its scan, and the grep limits (50 per file, 200 per page, 5 s budget)
+  are constants **(rule 8)** (`src/shared/vfs/search.rs`). Fix: an async
+  process wait, and a `SearchConfig` for the limits.
+- **`InodeFs` / `InodeDelta` ignore their path.** `src/shared/vfs/fjall_fs/`
+  keeps everything in memory; `InodeFs::open(path)` and `open_with_config`
+  ignore the path and the config, and the `FjallFs` / `FjallDelta` aliases
+  suggest a disk store. They implement only the sync traits. Fix: rename the
+  constructors (`InodeFs::new()`), drop the aliases, and add the async face
+  like `MemoryFs`.
+- **`FjallDocumentStore` uses the sync VFS traits.** `FjallDocumentStore<V:
+  VfsFileSystem>` (`src/shared/vfs/fjall_document_store.rs`) calls its VFS
+  synchronously inside the async `DocumentStore` methods. With an I/O-backed
+  VFS (wrapped in `SyncFs`) each call blocks. Fix: make `V:
+  AsyncVfsFileSystem` and await the calls.
+- **NFS `readdir` ignores `start_after`.** `VfsNfs::readdir`
+  (`src/native/vfs/nfs/mod.rs`) always starts at the first entry, so a
+  directory larger than one page repeats; the attribute times are always 0.
+  Fix: skip entries up to `start_after`, and map `VfsMetadata` times.
+- **Whole-file reads in the VFS defaults.** `read_file`, `copy` and
+  `copy_async` on the VFS traits read the whole file into one `Vec`
+  **(rule 4)**. Fix: copy in chunks of a configured size.
+- **`SyncFs` is not gated as a blocking boundary.** `exec_async`
+  (`src/shared/vfs/exec_async.rs`) uses `collect_one` when a future is
+  pending, without `blocking_boundary!`, so on JS-hosted wasm it would spin.
+  Fix: gate `SyncFs` and `exec_async` with `blocking_boundary!`.
+- **ptrace warnings.** `src/native/vfs/ptrace/` has unused imports, unused
+  constants and an unreachable statement after `execvp`. Fix: remove them.
 
 ## 14. foundation_cronjobs
 

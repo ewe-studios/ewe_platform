@@ -34,7 +34,6 @@ thiserror = { workspace = true }
 derive_more = { workspace = true }
 serde_json = { version = "1", optional = true }
 libsql = { version = "0.9", optional = true }
-turso = { version = "0.8.3", optional = true }
 fjall = { version = "2", optional = true }
 nfsserve = { version = "0.11", optional = true }
 hex = { version = "0.4", optional = true }
@@ -308,11 +307,6 @@ name = "vfs_sqlite_delta"
 path = "examples/vfs_sqlite_delta/main.rs"
 required-features = ["vfs-sqlite"]
 
-[[example]]
-name = "vfs_turso_delta"
-path = "examples/vfs_turso_delta/main.rs"
-required-features = ["vfs-turso"]
-
 
 
 [features]
@@ -353,10 +347,7 @@ vfs-search-fff = ["vfs-search", "dep:fff-search"]
 vfs-native = ["vfs", "dep:foundation_macros", "dep:foundation_nostd"]
 
 # VFS SQLite-backed DeltaStore (libsql)
-vfs-sqlite = ["vfs", "dep:libsql", "dep:blake3"]
-
-# VFS Turso cloud-backed DeltaStore (remote connection, WASM-compatible)
-vfs-turso = ["vfs", "dep:turso", "dep:blake3"]
+vfs-sqlite = ["vfs", "dep:libsql", "dep:blake3", "dep:foundation_compact"]
 
 # Cloudflare D1 edge SQLite DeltaStore — uses foundation_db's D1 HTTP client
 vfs-d1 = ["vfs", "dep:foundation_db", "dep:serde_json", "foundation_db/d1"]
@@ -398,6 +389,11 @@ native-windows = ["native", "watcher-windows"]
 
 [lints]
 workspace = true
+
+[[test]]
+name = "vfs_async"
+path = "tests/vfs_async/mod.rs"
+required-features = ["vfs"]
 
 [[test]]
 name = "vfs_search"

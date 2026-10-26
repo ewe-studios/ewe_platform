@@ -1,16 +1,19 @@
+use std::sync::Arc;
+
 use foundation_nativeapis::shared::vfs::{
+    SyncFs,
     DeltaStore, MemoryDelta, MemoryFs, OpenMode, OverlayFileSystem, VfsDirectory, VfsFile,
     VfsFileSystem,
 };
 use tracing_test::traced_test;
 
-fn setup() -> OverlayFileSystem<MemoryFs, MemoryDelta> {
+fn setup() -> SyncFs<OverlayFileSystem<MemoryFs, MemoryDelta>> {
     let base = MemoryFs::new();
     let delta = MemoryDelta::new();
-    OverlayFileSystem::new(base, delta)
+    SyncFs::new(OverlayFileSystem::new(base, delta))
 }
 
-fn setup_with_base_files() -> OverlayFileSystem<MemoryFs, MemoryDelta> {
+fn setup_with_base_files() -> SyncFs<OverlayFileSystem<MemoryFs, MemoryDelta>> {
     let base = MemoryFs::new();
     base.mkdir("/src").unwrap();
     base.write_file("/src/main.rs", b"fn main() {}").unwrap();
@@ -18,7 +21,7 @@ fn setup_with_base_files() -> OverlayFileSystem<MemoryFs, MemoryDelta> {
     base.write_file("/readme.md", b"# Project").unwrap();
 
     let delta = MemoryDelta::new();
-    OverlayFileSystem::new(base, delta)
+    SyncFs::new(OverlayFileSystem::new(base, delta))
 }
 
 // ── Read passthrough ──
@@ -152,7 +155,7 @@ fn test_cow_creates_parent_dirs() {
     base.write_file("/a/b/deep.txt", b"deep").unwrap();
 
     let delta = MemoryDelta::new();
-    let overlay = OverlayFileSystem::new(base, delta);
+    let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     let _file = overlay.open("/a/b/deep.txt", OpenMode::Write).unwrap();
 
@@ -411,12 +414,12 @@ fn test_stacked_overlay() {
     let base = MemoryFs::new();
     base.write_file("/base.txt", b"base data").unwrap();
 
-    let inner_delta = MemoryDelta::new();
-    let inner = OverlayFileSystem::new(base, inner_delta);
-    inner.write_file("/inner.txt", b"inner data").unwrap();
+    let inner = Arc::new(OverlayFileSystem::new(base, MemoryDelta::new()));
+    SyncFs::from_arc(Arc::clone(&inner))
+        .write_file("/inner.txt", b"inner data")
+        .unwrap();
 
-    let outer_delta = MemoryDelta::new();
-    let outer = OverlayFileSystem::new(inner, outer_delta);
+    let outer = SyncFs::new(OverlayFileSystem::from_arcs(inner, Arc::new(MemoryDelta::new())));
     outer.write_file("/outer.txt", b"outer data").unwrap();
 
     assert_eq!(outer.read_file("/base.txt").unwrap(), b"base data");
@@ -430,12 +433,10 @@ fn test_stacked_whiteouts() {
     let base = MemoryFs::new();
     base.write_file("/hidden.txt", b"data").unwrap();
 
-    let inner_delta = MemoryDelta::new();
-    let inner = OverlayFileSystem::new(base, inner_delta);
-    inner.remove("/hidden.txt").unwrap();
+    let inner = Arc::new(OverlayFileSystem::new(base, MemoryDelta::new()));
+    SyncFs::from_arc(Arc::clone(&inner)).remove("/hidden.txt").unwrap();
 
-    let outer_delta = MemoryDelta::new();
-    let outer = OverlayFileSystem::new(inner, outer_delta);
+    let outer = SyncFs::new(OverlayFileSystem::from_arcs(inner, Arc::new(MemoryDelta::new())));
 
     assert!(!outer.exists("/hidden.txt").unwrap());
 }

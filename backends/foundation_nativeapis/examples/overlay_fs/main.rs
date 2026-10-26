@@ -1,7 +1,7 @@
 use foundation_nativeapis::shared::vfs::{
     DeltaStore, MemoryDelta, MemoryFs, VfsDirectory, VfsFileSystem,
 };
-use foundation_nativeapis::shared::vfs::OverlayFileSystem;
+use foundation_nativeapis::shared::vfs::{OverlayFileSystem, SyncFs};
 
 fn main() {
     println!("=== OverlayFileSystem Example ===\n");
@@ -17,8 +17,9 @@ fn main() {
     // Delta layer: writable MemoryDelta
     let delta = MemoryDelta::new();
 
-    // Compose the overlay
-    let overlay = OverlayFileSystem::new(base, delta);
+    // Compose the overlay. It implements the async VFS traits; `main` is a
+    // sync boundary, so the example uses it through `SyncFs`.
+    let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // Read from base layer (pass-through)
     let data = overlay.read_file("/src/main.rs").unwrap();

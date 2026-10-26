@@ -17,7 +17,7 @@ use crate::agentic::tool_impl::{ToolArgs, ToolCallResult, ToolError, ToolImpl};
 use crate::agentic::toolshed::ContextSearch;
 use crate::types::{Args, Tool, ToolArguments, ToolDefinition};
 use foundation_db::traits::DocumentStore;
-use foundation_nativeapis::{VfsFileSystem, VfsSearchMatch, VfsSearcher};
+use foundation_nativeapis::{AsyncVfsFileSystem, VfsSearchMatch, VfsSearcher};
 
 // ---------------------------------------------------------------------------
 // FileSearch types (re-exported from foundation_nativeapis)
@@ -50,10 +50,11 @@ impl From<VfsSearchMatch> for FileMatch {
 // ---------------------------------------------------------------------------
 
 /// Backend trait for filesystem search — delegates to `VfsSearcher`.
+#[async_trait]
 pub trait FileSearch: Send + Sync {
     /// # Errors
     /// Returns `ToolError::InvalidArguments` for invalid regex or `ToolError::Execution` for I/O failures.
-    fn search(
+    async fn search(
         &self,
         query: &str,
         kind: FileSearchKind,
@@ -79,7 +80,7 @@ impl VfsSearchBackend {
     }
 
     #[must_use]
-    pub fn from_vfs<F: VfsFileSystem + 'static>(fs: Arc<F>, root: String) -> Self {
+    pub fn from_vfs<F: AsyncVfsFileSystem + 'static>(fs: Arc<F>, root: String) -> Self {
         let searcher = foundation_nativeapis::vfs_searcher(fs);
         Self { searcher, root }
     }
@@ -90,14 +91,15 @@ impl VfsSearchBackend {
     /// native targets; `from_vfs` (in-code only) remains the wasm/VFS path.
     #[cfg(not(target_family = "wasm"))]
     #[must_use]
-    pub fn from_vfs_native<F: VfsFileSystem + 'static>(fs: Arc<F>, root: String) -> Self {
+    pub fn from_vfs_native<F: AsyncVfsFileSystem + 'static>(fs: Arc<F>, root: String) -> Self {
         let searcher = foundation_nativeapis::native_vfs_searcher(fs);
         Self { searcher, root }
     }
 }
 
+#[async_trait]
 impl FileSearch for VfsSearchBackend {
-    fn search(
+    async fn search(
         &self,
         query: &str,
         kind: FileSearchKind,
@@ -122,6 +124,7 @@ impl FileSearch for VfsSearchBackend {
         let vfs_matches = self
             .searcher
             .search(query, kind, &search_roots)
+            .await
             .map_err(|e| ToolError::Execution {
                 tool: "search_file".into(),
                 reason: format!("{e}"),
@@ -251,7 +254,7 @@ impl SearchFileTool {
     }
 
     #[must_use]
-    pub fn from_vfs<F: VfsFileSystem + 'static>(fs: Arc<F>, root: String) -> Self {
+    pub fn from_vfs<F: AsyncVfsFileSystem + 'static>(fs: Arc<F>, root: String) -> Self {
         Self {
             backend: Arc::new(VfsSearchBackend::from_vfs(fs, root)),
         }
@@ -269,7 +272,7 @@ impl SearchFileTool {
     /// [`Self::from_vfs`] when searching the real filesystem.
     #[cfg(not(target_family = "wasm"))]
     #[must_use]
-    pub fn native<F: VfsFileSystem + 'static>(fs: Arc<F>, root: String) -> Self {
+    pub fn native<F: AsyncVfsFileSystem + 'static>(fs: Arc<F>, root: String) -> Self {
         Self {
             backend: Arc::new(VfsSearchBackend::from_vfs_native(fs, root)),
         }
@@ -327,7 +330,8 @@ impl ToolImpl for SearchFileTool {
 
         let matches = self
             .backend
-            .search(&query, kind, paths.as_deref())?;
+            .search(&query, kind, paths.as_deref())
+            .await?;
 
         let json = serde_json::to_string(&matches).map_err(|e| ToolError::Execution {
             tool: "search_file".into(),

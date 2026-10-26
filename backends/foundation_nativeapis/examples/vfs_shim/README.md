@@ -66,15 +66,13 @@ Your Application
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `FOUNDATION_VFS_ROOT` | Base directory for the NativeFs overlay. Virtual paths not found in delta fall through here. | `.` (cwd) |
-| `FOUNDATION_VFS_DELTA` | Delta store backend: `memory`, `sqlite`, `turso`, `dir`, `d1`, `r2` | `memory` |
+| `FOUNDATION_VFS_DELTA` | Delta store backend: `memory`, `sqlite`, `dir`, `d1`, `r2` | `memory` |
 | `FOUNDATION_VFS_DELTA_PATH` | Path for persistent delta stores (sqlite, dir) | `/tmp/vfs-delta.{db,dir}` |
 
 ### Backend-specific (only needed for that backend)
 
 | Variable | Backend | Description |
 |----------|---------|-------------|
-| `FOUNDATION_VFS_TURSO_URL` | turso | libSQL connection URL |
-| `FOUNDATION_VFS_TURSO_TOKEN` | turso | Turso auth token |
 | `FOUNDATION_VFS_D1_ACCOUNT_ID` | d1 | Cloudflare account ID |
 | `FOUNDATION_VFS_D1_API_TOKEN` | d1 | Cloudflare API token |
 | `FOUNDATION_VFS_D1_DATABASE_ID` | d1 | D1 database UUID |
@@ -124,19 +122,7 @@ LD_PRELOAD=target/debug/libfoundation_nativeapis.so \
   /bin/bash
 ```
 
-### 4. Cloud-Synced Virtual Files
-
-```bash
-# Turso (remote SQLite) — share state across machines
-LD_PRELOAD=target/debug/libfoundation_nativeapis.so \
-  FOUNDATION_VFS_PREFIX=/virtual \
-  FOUNDATION_VFS_DELTA=turso \
-  FOUNDATION_VFS_TURSO_URL=libsql://your-db.turso.io \
-  FOUNDATION_VFS_TURSO_TOKEN=$TURSO_TOKEN \
-  /bin/bash
-```
-
-### 5. Edge Distribution (Cloudflare D1)
+### 4. Edge Distribution (Cloudflare D1)
 
 ```bash
 # D1 (edge SQLite) — serve virtual files from Cloudflare's edge
@@ -149,7 +135,7 @@ LD_PRELOAD=target/debug/libfoundation_nativeapis.so \
   /bin/bash
 ```
 
-### 6. Object Storage (Cloudflare R2)
+### 5. Object Storage (Cloudflare R2)
 
 ```bash
 # R2 (S3-compatible) — store virtual files in cloud object storage

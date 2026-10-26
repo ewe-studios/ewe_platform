@@ -10,7 +10,16 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_nativeapis::shared::vfs::{OpenMode, SeekableVfsFile, VfsFileSystem};
-use foundation_nativeapis::native::vfs::libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
+use foundation_nativeapis::native::vfs::libsql_delta::LibsqlDelta;
+use foundation_nativeapis::shared::vfs::exec_async::exec_async;
+use foundation_nativeapis::shared::vfs::SyncFs;
+
+/// Opens a `LibsqlDelta` and wraps it in `SyncFs`, the sync face of an
+/// I/O-backed store.
+fn open_sync(path: &std::path::Path) -> SyncFs<LibsqlDelta> {
+    let path = path.to_path_buf();
+    SyncFs::new(exec_async(async move { LibsqlDelta::new(path).await }).unwrap())
+}
 
 fn init_pool() -> PoolGuard {
     initialize_pool(42, Some(3))
@@ -56,7 +65,7 @@ impl Drop for TempFile {
 fn seekable_shared_cursor() {
     let _guard = init_pool();
     let tmp = TempFile::new("shared_cursor");
-    let sync = Arc::new(SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap()));
+    let sync = Arc::new(open_sync(tmp.path()));
 
     sync.write_file("/data.txt", b"0123456789ABCDEF").unwrap();
 
@@ -90,7 +99,7 @@ fn seekable_shared_cursor() {
 fn seekable_concurrent_reads() {
     let _guard = init_pool();
     let tmp = TempFile::new("concurrent_reads");
-    let sync = Arc::new(SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap()));
+    let sync = Arc::new(open_sync(tmp.path()));
 
     // Write test data: each byte is its position
     let data: Vec<u8> = (0..1000).map(|i| (i % 256) as u8).collect();
@@ -127,7 +136,7 @@ fn seekable_concurrent_reads() {
 fn seekable_write_position_tracking() {
     let _guard = init_pool();
     let tmp = TempFile::new("write_pos");
-    let sync = Arc::new(SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap()));
+    let sync = Arc::new(open_sync(tmp.path()));
 
     sync.write_file("/write.txt", b"initial").unwrap();
 
@@ -154,7 +163,7 @@ fn seekable_write_position_tracking() {
 fn seekable_no_panic_under_concurrency() {
     let _guard = init_pool();
     let tmp = TempFile::new("no_panic");
-    let sync = Arc::new(SyncLibsqlDelta::new(LibsqlDelta::new(tmp.path()).unwrap()));
+    let sync = Arc::new(open_sync(tmp.path()));
 
     let data: Vec<u8> = (0..1000).map(|i| (i % 256) as u8).collect();
     sync.write_file("/concurrent.bin", &data).unwrap();

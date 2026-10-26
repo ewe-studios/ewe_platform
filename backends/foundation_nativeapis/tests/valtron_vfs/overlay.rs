@@ -1,14 +1,13 @@
 //! Integration tests: OverlayFileSystem through valtron.
 //!
-//! These tests verify that OverlayFileSystem<SyncLibsqlDelta, MemoryDelta>
-//! and OverlayFileSystem<MemoryFs, MemoryDelta> work correctly when all
-//! operations go through valtron's executor.
+//! These tests verify that `SyncFs<OverlayFileSystem<MemoryFs, MemoryDelta>>`
+//! works correctly when all operations go through valtron's executor.
 
 #![cfg(feature = "vfs")]
 
 use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_nativeapis::shared::vfs::{
-    DeltaStore, MemoryDelta, MemoryFs, OverlayFileSystem, VfsFileSystem,
+    DeltaStore, MemoryDelta, MemoryFs, OverlayFileSystem, SyncFs, VfsFileSystem,
 };
 
 fn init_pool() -> PoolGuard {
@@ -30,7 +29,7 @@ fn overlay_memory_read_passthrough() {
     base.write_file("/readme.md", b"# Project").unwrap();
 
     let delta = MemoryDelta::new();
-    let overlay = OverlayFileSystem::new(base, delta);
+    let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // Read from base through overlay
     let data = overlay.read_file("/src/main.rs").unwrap();
@@ -49,7 +48,7 @@ fn overlay_memory_write_to_delta() {
 
     let base = MemoryFs::new();
     let delta = MemoryDelta::new();
-    let overlay = OverlayFileSystem::new(base, delta);
+    let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // Write goes to delta
     overlay.write_file("/new.txt", b"new content").unwrap();
@@ -67,7 +66,7 @@ fn overlay_memory_cow() {
     base.write_file("/file.txt", b"original").unwrap();
 
     let delta = MemoryDelta::new();
-    let overlay = OverlayFileSystem::new(base, delta);
+    let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // CoW: write to overlay copies base file to delta first
     overlay.write_file("/file.txt", b"modified").unwrap();
@@ -92,7 +91,7 @@ fn overlay_memory_whiteout_hides_base() {
     let delta = MemoryDelta::new();
     delta.add_whiteout("/old.txt", 1).unwrap();
 
-    let overlay = OverlayFileSystem::new(base, delta);
+    let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // Whiteout hides base file
     assert!(!overlay.exists("/old.txt").unwrap());
@@ -120,7 +119,7 @@ fn overlay_memory_directory_listing() {
     delta.write_file("/dir/base.txt", b"from delta").unwrap();
     delta.remove_whiteout("/dir/base.txt").unwrap();
 
-    let overlay = OverlayFileSystem::new(base, delta);
+    let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // Delta version overrides base
     assert_eq!(overlay.read_file("/dir/base.txt").unwrap(), b"from delta");
@@ -141,7 +140,7 @@ fn overlay_memory_nested_dirs() {
     base.write_file("/a/b/c.txt", b"nested").unwrap();
 
     let delta = MemoryDelta::new();
-    let overlay = OverlayFileSystem::new(base, delta);
+    let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     // Read nested
     assert_eq!(overlay.read_file("/a/b/c.txt").unwrap(), b"nested");
@@ -164,7 +163,7 @@ fn overlay_memory_remove_all() {
     base.write_file("/project/b.txt", b"b").unwrap();
 
     let delta = MemoryDelta::new();
-    let overlay = OverlayFileSystem::new(base, delta);
+    let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     overlay.remove_all("/project").unwrap();
     assert!(!overlay.exists("/project").unwrap());
@@ -179,7 +178,7 @@ fn overlay_memory_mkdir_all() {
 
     let base = MemoryFs::new();
     let delta = MemoryDelta::new();
-    let overlay = OverlayFileSystem::new(base, delta);
+    let overlay = SyncFs::new(OverlayFileSystem::new(base, delta));
 
     overlay.mkdir_all("/deep/nested/path").unwrap();
     assert!(overlay.exists("/deep").unwrap());

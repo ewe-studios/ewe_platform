@@ -90,11 +90,10 @@ Read from /virtual/persistent.txt:
   24.0 KB  /tmp/vfs-sqlite-example.db
 
 ┌─────────────────────────────────────────────────────────┐
-│ Try with Turso (remote libSQL)                          │
+│ Try with a Turso cloud database (remote replica)        │
 │                                                         │
-│  export FOUNDATION_VFS_TURSO_URL=libsql://your-db...   │
-│  export FOUNDATION_VFS_TURSO_TOKEN=your-token          │
-│  FOUNDATION_VFS_DELTA=turso                            │
+│  LibsqlDelta::with_turso_replica(path, url, token)      │
+│  then delta.sync_remote().await                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -102,7 +101,7 @@ Read from /virtual/persistent.txt:
 
 - `LD_PRELOAD` — Dynamic linker trick to intercept libc calls
 - `FOUNDATION_VFS_PREFIX` — Configure the virtual mount point (e.g., `/virtual`)
-- `FOUNDATION_VFS_DELTA` — Select the delta backend (`sqlite` or `turso`)
+- `FOUNDATION_VFS_DELTA` — Select the delta backend (`sqlite`)
 - `FOUNDATION_VFS_DELTA_PATH` — Path to the SQLite database file
 - `open(path, flags, mode)` — Intercepted and routed to VFS
 - `read(fd, buf, count)` — Reads from virtual files via delta store

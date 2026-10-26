@@ -1,20 +1,31 @@
+//! `NativeFs`: the host file system under a root directory, behind the async
+//! VFS traits.
+//!
+//! The methods call `std::fs` inline. The standard library has no async file
+//! API, so each call blocks the calling thread for the length of one system
+//! call (see the bug backlog). Sync consumers wrap it in `SyncFs`.
+
 use std::io::{Read as IoRead, Seek as IoSeek, Write as IoWrite};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 use std::time::SystemTime;
 
+use async_trait::async_trait;
 use foundation_errstacks::ErrorTrace;
 
+use crate::shared::vfs::async_traits::{
+    AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
+};
 use crate::shared::vfs::error::{VfsError, VfsResult};
 use crate::shared::vfs::path_utils::normalize_vfs_path as shared_normalize;
-use crate::shared::vfs::traits::{SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
 use crate::shared::vfs::types::{
     Checksum, OpenMode, SeekFrom, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType,
     VfsMetadata,
 };
 
 #[cfg(unix)]
-use std::os::unix::fs::{FileExt, MetadataExt};
+use std::os::unix::fs::{FileExt, MetadataExt, PermissionsExt};
 
 #[derive(Clone)]
 pub struct NativeFs {
@@ -24,15 +35,17 @@ pub struct NativeFs {
 impl NativeFs {
     pub fn new(root: impl Into<PathBuf>) -> VfsResult<Self> {
         let root: PathBuf = root.into();
-        let root = root.canonicalize().map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
+        let root = root
+            .canonicalize()
+            .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
         if !root.is_dir() {
             return Err(ErrorTrace::new(VfsError::NotADirectory {
                 path: root.display().to_string(),
             }));
         }
-        Ok(Self { root: Arc::new(root) })
+        Ok(Self {
+            root: Arc::new(root),
+        })
     }
 
     pub fn root(&self) -> &Path {
@@ -40,48 +53,7 @@ impl NativeFs {
     }
 
     fn resolve_path(&self, vfs_path: &str) -> VfsResult<PathBuf> {
-        let vfs_path = normalize_vfs_path(vfs_path);
-        if vfs_path == "/" {
-            return Ok((*self.root).clone());
-        }
-        let relative = vfs_path.trim_start_matches('/');
-        let joined = self.root.join(relative);
-
-        // For existence-checking, we need to handle the case where the path
-        // doesn't exist yet (create/mkdir). Try canonicalize; if it fails,
-        // canonicalize the parent and append the last component.
-        let resolved = if joined.exists() {
-            joined.canonicalize().map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })?
-        } else {
-            let parent = joined.parent().ok_or_else(|| {
-                ErrorTrace::new(VfsError::InvalidPath {
-                    path: vfs_path.clone(),
-                })
-            })?;
-            let name = joined.file_name().ok_or_else(|| {
-                ErrorTrace::new(VfsError::InvalidPath {
-                    path: vfs_path.clone(),
-                })
-            })?;
-            let resolved_parent = parent.canonicalize().map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })?;
-            if !resolved_parent.starts_with(self.root.as_path()) {
-                return Err(ErrorTrace::new(VfsError::PermissionDenied {
-                    path: format!("path escapes root: {vfs_path}"),
-                }));
-            }
-            resolved_parent.join(name)
-        };
-
-        if !resolved.starts_with(self.root.as_path()) {
-            return Err(ErrorTrace::new(VfsError::PermissionDenied {
-                path: format!("path escapes root: {vfs_path}"),
-            }));
-        }
-        Ok(resolved)
+        resolve_under(&self.root, vfs_path)
     }
 
     fn to_vfs_path(&self, fs_path: &Path) -> String {
@@ -95,8 +67,116 @@ impl NativeFs {
     }
 }
 
-fn normalize_vfs_path(path: &str) -> String {
-    shared_normalize(path).unwrap_or_else(|_| "/".to_string())
+/// Maps a VFS path to a host path under `root`.
+///
+/// A path with `..` is refused with [`VfsError::InvalidPath`], and a path
+/// that leaves `root` through a symbolic link is refused with
+/// [`VfsError::PermissionDenied`].
+fn resolve_under(root: &Path, vfs_path: &str) -> VfsResult<PathBuf> {
+    let vfs_path = shared_normalize(vfs_path)?;
+    if vfs_path == "/" {
+        return Ok(root.to_path_buf());
+    }
+    let relative = vfs_path.trim_start_matches('/');
+    let joined = root.join(relative);
+
+    // For existence-checking, we need to handle the case where the path
+    // doesn't exist yet (create/mkdir). Try canonicalize; if it fails,
+    // canonicalize the parent and append the last component.
+    let resolved = if joined.exists() {
+        joined.canonicalize().map_err(io_err)?
+    } else {
+        let parent = joined.parent().ok_or_else(|| {
+            ErrorTrace::new(VfsError::InvalidPath {
+                path: vfs_path.clone(),
+            })
+        })?;
+        let name = joined.file_name().ok_or_else(|| {
+            ErrorTrace::new(VfsError::InvalidPath {
+                path: vfs_path.clone(),
+            })
+        })?;
+        let resolved_parent = parent.canonicalize().map_err(io_err)?;
+        if !resolved_parent.starts_with(root) {
+            return Err(ErrorTrace::new(VfsError::PermissionDenied {
+                path: format!("path escapes root: {vfs_path}"),
+            }));
+        }
+        resolved_parent.join(name)
+    };
+
+    if !resolved.starts_with(root) {
+        return Err(ErrorTrace::new(VfsError::PermissionDenied {
+            path: format!("path escapes root: {vfs_path}"),
+        }));
+    }
+    Ok(resolved)
+}
+
+fn io_err(e: std::io::Error) -> ErrorTrace<VfsError> {
+    ErrorTrace::new(VfsError::Io { source: e })
+}
+
+fn open_host_file(fs_path: &Path, mode: OpenMode) -> VfsResult<std::fs::File> {
+    match mode {
+        OpenMode::Read => std::fs::File::open(fs_path),
+        OpenMode::Write => std::fs::OpenOptions::new().write(true).open(fs_path),
+        OpenMode::ReadWrite => std::fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(fs_path),
+    }
+    .map_err(io_err)
+}
+
+/// Checks that `fs_path` is an existing regular file (not a directory).
+fn check_is_file(fs_path: &Path, vfs_path: &str) -> VfsResult<()> {
+    if !fs_path.exists() {
+        return Err(ErrorTrace::new(VfsError::NotFound {
+            path: vfs_path.to_string(),
+        }));
+    }
+    if fs_path.is_dir() {
+        return Err(ErrorTrace::new(VfsError::NotAFile {
+            path: vfs_path.to_string(),
+        }));
+    }
+    Ok(())
+}
+
+fn create_host_file(fs_path: &Path, vfs_path: &str, mode: u32) -> VfsResult<NativeFile> {
+    if fs_path.exists() {
+        return Err(ErrorTrace::new(VfsError::AlreadyExists {
+            path: vfs_path.to_string(),
+        }));
+    }
+    // The handle is `ReadWrite`, so the host file is opened for both: a
+    // write-only `File::create` handle failed every read.
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create_new(true)
+        .open(fs_path)
+        .map_err(io_err)?;
+    #[cfg(unix)]
+    std::fs::set_permissions(fs_path, std::fs::Permissions::from_mode(mode)).map_err(io_err)?;
+    #[cfg(not(unix))]
+    let _ = mode;
+    Ok(NativeFile {
+        file,
+        path: fs_path.to_path_buf(),
+        mode: OpenMode::ReadWrite,
+    })
+}
+
+fn host_file_type(ft: std::fs::FileType) -> VfsFileType {
+    if ft.is_dir() {
+        VfsFileType::Directory
+    } else if ft.is_symlink() {
+        VfsFileType::Symlink
+    } else {
+        VfsFileType::Regular
+    }
 }
 
 fn fs_metadata_to_vfs(meta: &std::fs::Metadata) -> VfsMetadata {
@@ -172,78 +252,66 @@ impl std::fmt::Debug for NativeFile {
     }
 }
 
-impl VfsFile for NativeFile {
-    fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
-        #[cfg(unix)]
-        {
-            self.file.read_at(buf, offset).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })
-        }
-        #[cfg(not(unix))]
-        {
-            // Fallback: seek + read (not thread-safe for concurrent reads)
-            use std::io::{Read, Seek};
-            let file = &self.file;
-            // This is inherently racy without pread, but works for single-threaded use
-            let mut file_ref = file;
-            // Can't easily do this without &mut on Windows; use a workaround
-            Err(ErrorTrace::new(VfsError::Unsupported {
-                operation: "read_at on non-Unix".to_string(),
-            }))
-        }
-    }
-
-    fn write_at(&self, buf: &[u8], offset: u64) -> VfsResult<usize> {
-        if self.mode == OpenMode::Read {
-            return Err(ErrorTrace::new(VfsError::ReadOnly));
-        }
-        #[cfg(unix)]
-        {
-            self.file.write_at(buf, offset).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })
-        }
-        #[cfg(not(unix))]
-        {
-            Err(ErrorTrace::new(VfsError::Unsupported {
-                operation: "write_at on non-Unix".to_string(),
-            }))
-        }
-    }
-
-    fn sync_data(&self) -> VfsResult<()> {
-        self.file.sync_data().map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })
-    }
-
-    fn size(&self) -> VfsResult<u64> {
-        let meta = self.file.metadata().map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        Ok(meta.len())
-    }
-
-    fn truncate(&self, size: u64) -> VfsResult<()> {
-        if self.mode == OpenMode::Read {
-            return Err(ErrorTrace::new(VfsError::ReadOnly));
-        }
-        self.file.set_len(size).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })
-    }
-
-    fn metadata(&self) -> VfsResult<VfsMetadata> {
-        let meta = self.file.metadata().map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        Ok(fs_metadata_to_vfs(&meta))
-    }
+/// Reads up to `len` bytes at `offset`; a short result means end of file.
+#[cfg(unix)]
+fn read_at_host(file: &std::fs::File, len: usize, offset: u64) -> VfsResult<Vec<u8>> {
+    let mut buf = vec![0u8; len];
+    let n = file.read_at(&mut buf, offset).map_err(io_err)?;
+    buf.truncate(n);
+    Ok(buf)
 }
 
-unsafe impl Send for NativeFile {}
-unsafe impl Sync for NativeFile {}
+#[cfg(not(unix))]
+fn read_at_host(_file: &std::fs::File, _len: usize, _offset: u64) -> VfsResult<Vec<u8>> {
+    Err(ErrorTrace::new(VfsError::Unsupported {
+        operation: "read_at on non-Unix".to_string(),
+    }))
+}
+
+#[cfg(unix)]
+fn write_at_host(file: &std::fs::File, data: &[u8], offset: u64) -> VfsResult<usize> {
+    file.write_at(data, offset).map_err(io_err)
+}
+
+#[cfg(not(unix))]
+fn write_at_host(_file: &std::fs::File, _data: &[u8], _offset: u64) -> VfsResult<usize> {
+    Err(ErrorTrace::new(VfsError::Unsupported {
+        operation: "write_at on non-Unix".to_string(),
+    }))
+}
+
+#[async_trait]
+impl AsyncVfsFile for NativeFile {
+    async fn read_at_async(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>> {
+        read_at_host(&self.file, len, offset)
+    }
+
+    async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize> {
+        if self.mode == OpenMode::Read {
+            return Err(ErrorTrace::new(VfsError::ReadOnly));
+        }
+        write_at_host(&self.file, &data, offset)
+    }
+
+    async fn sync_data_async(&self) -> VfsResult<()> {
+        self.file.sync_data().map_err(io_err)
+    }
+
+    async fn size_async(&self) -> VfsResult<u64> {
+        Ok(self.file.metadata().map_err(io_err)?.len())
+    }
+
+    async fn truncate_async(&self, size: u64) -> VfsResult<()> {
+        if self.mode == OpenMode::Read {
+            return Err(ErrorTrace::new(VfsError::ReadOnly));
+        }
+        self.file.set_len(size).map_err(io_err)
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        Ok(fs_metadata_to_vfs(&self.file.metadata().map_err(io_err)?))
+    }
+}
 
 // ── SeekableNativeFile ──
 
@@ -251,7 +319,7 @@ pub struct SeekableNativeFile {
     file: RwLock<std::fs::File>,
     path: PathBuf,
     mode: OpenMode,
-    position: std::sync::atomic::AtomicU64,
+    position: AtomicU64,
 }
 
 impl std::fmt::Debug for SeekableNativeFile {
@@ -259,123 +327,93 @@ impl std::fmt::Debug for SeekableNativeFile {
         f.debug_struct("SeekableNativeFile")
             .field("path", &self.path)
             .field("mode", &self.mode)
-            .field("position", &self.position.load(std::sync::atomic::Ordering::Acquire))
+            .field("position", &self.position.load(Ordering::Acquire))
             .finish()
     }
 }
 
-impl VfsFile for SeekableNativeFile {
-    fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
-        #[cfg(unix)]
-        {
-            let file = self.file.read().unwrap();
-            file.read_at(buf, offset).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
+impl SeekableNativeFile {
+    fn file(&self) -> VfsResult<std::sync::RwLockReadGuard<'_, std::fs::File>> {
+        self.file.read().map_err(|_| {
+            ErrorTrace::new(VfsError::Backend {
+                message: "native file lock poisoned".into(),
             })
-        }
-        #[cfg(not(unix))]
-        {
-            Err(ErrorTrace::new(VfsError::Unsupported {
-                operation: "read_at on non-Unix".to_string(),
-            }))
-        }
-    }
-
-    fn write_at(&self, buf: &[u8], offset: u64) -> VfsResult<usize> {
-        if self.mode == OpenMode::Read {
-            return Err(ErrorTrace::new(VfsError::ReadOnly));
-        }
-        #[cfg(unix)]
-        {
-            let file = self.file.read().unwrap();
-            file.write_at(buf, offset).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })
-        }
-        #[cfg(not(unix))]
-        {
-            Err(ErrorTrace::new(VfsError::Unsupported {
-                operation: "write_at on non-Unix".to_string(),
-            }))
-        }
-    }
-
-    fn sync_data(&self) -> VfsResult<()> {
-        let file = self.file.read().unwrap();
-        file.sync_data().map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
         })
     }
 
-    fn size(&self) -> VfsResult<u64> {
-        let file = self.file.read().unwrap();
-        let meta = file.metadata().map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        Ok(meta.len())
-    }
-
-    fn truncate(&self, size: u64) -> VfsResult<()> {
-        if self.mode == OpenMode::Read {
-            return Err(ErrorTrace::new(VfsError::ReadOnly));
-        }
-        let file = self.file.read().unwrap();
-        file.set_len(size).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
+    fn file_mut(&self) -> VfsResult<std::sync::RwLockWriteGuard<'_, std::fs::File>> {
+        self.file.write().map_err(|_| {
+            ErrorTrace::new(VfsError::Backend {
+                message: "native file lock poisoned".into(),
+            })
         })
-    }
-
-    fn metadata(&self) -> VfsResult<VfsMetadata> {
-        let file = self.file.read().unwrap();
-        let meta = file.metadata().map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        Ok(fs_metadata_to_vfs(&meta))
     }
 }
 
-impl SeekableVfsFile for SeekableNativeFile {
-    fn read(&mut self, buf: &mut [u8]) -> VfsResult<usize> {
-        let mut file = self.file.write().unwrap();
-        let n = IoRead::read(&mut *file, buf).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        self.position
-            .fetch_add(n as u64, std::sync::atomic::Ordering::SeqCst);
-        Ok(n)
+#[async_trait]
+impl AsyncVfsFile for SeekableNativeFile {
+    async fn read_at_async(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>> {
+        read_at_host(&*self.file()?, len, offset)
     }
 
-    fn write(&mut self, buf: &[u8]) -> VfsResult<usize> {
+    async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize> {
         if self.mode == OpenMode::Read {
             return Err(ErrorTrace::new(VfsError::ReadOnly));
         }
-        let mut file = self.file.write().unwrap();
-        let n = IoWrite::write(&mut *file, buf).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        self.position
-            .fetch_add(n as u64, std::sync::atomic::Ordering::SeqCst);
+        write_at_host(&*self.file()?, &data, offset)
+    }
+
+    async fn sync_data_async(&self) -> VfsResult<()> {
+        self.file()?.sync_data().map_err(io_err)
+    }
+
+    async fn size_async(&self) -> VfsResult<u64> {
+        Ok(self.file()?.metadata().map_err(io_err)?.len())
+    }
+
+    async fn truncate_async(&self, size: u64) -> VfsResult<()> {
+        if self.mode == OpenMode::Read {
+            return Err(ErrorTrace::new(VfsError::ReadOnly));
+        }
+        self.file()?.set_len(size).map_err(io_err)
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        Ok(fs_metadata_to_vfs(
+            &self.file()?.metadata().map_err(io_err)?,
+        ))
+    }
+}
+
+#[async_trait]
+impl AsyncSeekableVfsFile for SeekableNativeFile {
+    async fn read_async(&mut self, len: usize) -> VfsResult<Vec<u8>> {
+        let mut buf = vec![0u8; len];
+        let n = IoRead::read(&mut *self.file_mut()?, &mut buf).map_err(io_err)?;
+        buf.truncate(n);
+        self.position.fetch_add(n as u64, Ordering::SeqCst);
+        Ok(buf)
+    }
+
+    async fn write_async(&mut self, data: Vec<u8>) -> VfsResult<usize> {
+        if self.mode == OpenMode::Read {
+            return Err(ErrorTrace::new(VfsError::ReadOnly));
+        }
+        let n = IoWrite::write(&mut *self.file_mut()?, &data).map_err(io_err)?;
+        self.position.fetch_add(n as u64, Ordering::SeqCst);
         Ok(n)
     }
 
-    fn seek(&mut self, pos: SeekFrom) -> VfsResult<u64> {
-        let mut file = self.file.write().unwrap();
-        let new_pos = IoSeek::seek(&mut *file, pos).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        self.position
-            .store(new_pos, std::sync::atomic::Ordering::SeqCst);
+    async fn seek_async(&mut self, pos: SeekFrom) -> VfsResult<u64> {
+        let new_pos = IoSeek::seek(&mut *self.file_mut()?, pos).map_err(io_err)?;
+        self.position.store(new_pos, Ordering::SeqCst);
         Ok(new_pos)
     }
 
-    fn position(&self) -> u64 {
-        self.position
-            .load(std::sync::atomic::Ordering::SeqCst)
+    fn position_async(&self) -> u64 {
+        self.position.load(Ordering::SeqCst)
     }
 }
-
-unsafe impl Send for SeekableNativeFile {}
-unsafe impl Sync for SeekableNativeFile {}
 
 // ── NativeDirectory ──
 
@@ -385,19 +423,22 @@ pub struct NativeDirectory {
 }
 
 impl NativeDirectory {
-    fn resolve(&self, name: &str) -> VfsResult<PathBuf> {
-        let vfs_path = if name == "." || name.is_empty() {
+    /// The VFS path of `name` in this directory (`"."` is the directory, an
+    /// absolute name is used as is).
+    fn vfs_path_of(&self, name: &str) -> String {
+        if name == "." || name.is_empty() {
             self.dir_path.clone()
         } else if name.starts_with('/') {
-            normalize_vfs_path(name)
-        } else if self.dir_path == "/" {
-            format!("/{name}")
+            name.to_string()
         } else {
-            format!("{}/{name}", self.dir_path)
-        };
-        let relative = vfs_path.trim_start_matches('/');
-        let joined = self.fs_root.join(relative);
-        Ok(joined)
+            self.child_vfs_path(name)
+        }
+    }
+
+    /// Maps `name` to a host path. The same root checks as `NativeFs` apply,
+    /// so a name with `..` cannot leave the root.
+    fn resolve(&self, name: &str) -> VfsResult<PathBuf> {
+        resolve_under(&self.fs_root, &self.vfs_path_of(name))
     }
 
     fn child_vfs_path(&self, name: &str) -> String {
@@ -409,270 +450,157 @@ impl NativeDirectory {
     }
 }
 
-impl VfsDirectory for NativeDirectory {
+type NativeDirBox =
+    Box<dyn AsyncVfsDirectory<File = NativeFile, SeekableFile = SeekableNativeFile>>;
+
+#[async_trait]
+impl AsyncVfsDirectory for NativeDirectory {
     type File = NativeFile;
     type SeekableFile = SeekableNativeFile;
 
-    fn path(&self) -> &str {
-        &self.dir_path
+    fn path(&self) -> String {
+        self.dir_path.clone()
     }
 
-    fn metadata(&self) -> VfsResult<VfsMetadata> {
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
         let fs_path = self.resolve(".")?;
-        let meta = std::fs::metadata(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        Ok(fs_metadata_to_vfs(&meta))
+        Ok(fs_metadata_to_vfs(
+            &std::fs::metadata(&fs_path).map_err(io_err)?,
+        ))
     }
 
-    fn list(&self) -> VfsResult<Vec<VfsDirEntry>> {
+    async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
         let fs_path = self.resolve(".")?;
         let mut entries = Vec::new();
-        let read_dir = std::fs::read_dir(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        for entry in read_dir {
-            let entry = entry.map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })?;
+        for entry in std::fs::read_dir(&fs_path).map_err(io_err)? {
+            let entry = entry.map_err(io_err)?;
             let name = entry.file_name().to_string_lossy().to_string();
-            let ft = entry.file_type().map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })?;
-            let file_type = if ft.is_dir() {
-                VfsFileType::Directory
-            } else if ft.is_symlink() {
-                VfsFileType::Symlink
-            } else {
-                VfsFileType::Regular
-            };
-            let inode;
+            let file_type = host_file_type(entry.file_type().map_err(io_err)?);
             #[cfg(unix)]
-            {
-                let m = entry.metadata().map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
-                inode = m.ino();
-            }
+            let inode = entry.metadata().map_err(io_err)?.ino();
             #[cfg(not(unix))]
-            {
-                inode = 0;
-            }
-            entries.push(VfsDirEntry { inode, name, file_type });
+            let inode = 0;
+            entries.push(VfsDirEntry {
+                inode,
+                name,
+                file_type,
+            });
         }
         entries.sort_by(|a, b| a.name.cmp(&b.name));
         Ok(entries)
     }
 
-    fn get_entry(&self, name: &str) -> VfsResult<Option<VfsDirEntry>> {
-        let fs_path = self.resolve(name)?;
+    async fn get_entry_async(&self, name: String) -> VfsResult<Option<VfsDirEntry>> {
+        let fs_path = self.resolve(&name)?;
         if !fs_path.exists() {
             return Ok(None);
         }
-        let meta = std::fs::symlink_metadata(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        let file_type = if meta.is_dir() {
-            VfsFileType::Directory
-        } else if meta.is_symlink() {
-            VfsFileType::Symlink
-        } else {
-            VfsFileType::Regular
-        };
-        let inode;
+        let meta = std::fs::symlink_metadata(&fs_path).map_err(io_err)?;
         #[cfg(unix)]
-        {
-            inode = meta.ino();
-        }
+        let inode = meta.ino();
         #[cfg(not(unix))]
-        {
-            inode = 0;
-        }
+        let inode = 0;
         Ok(Some(VfsDirEntry {
             inode,
-            name: name.to_string(),
-            file_type,
+            file_type: host_file_type(meta.file_type()),
+            name,
         }))
     }
 
-    fn create_file(&self, name: &str, mode: u32) -> VfsResult<Self::File> {
-        let fs_path = self.resolve(name)?;
-        if fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::AlreadyExists {
-                path: self.child_vfs_path(name),
-            }));
-        }
-        let file = std::fs::File::create(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let perms = std::fs::Permissions::from_mode(mode);
-            std::fs::set_permissions(&fs_path, perms).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })?;
-        }
-        Ok(NativeFile {
-            file,
-            path: fs_path,
-            mode: OpenMode::ReadWrite,
-        })
+    async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<NativeFile> {
+        let fs_path = self.resolve(&name)?;
+        create_host_file(&fs_path, &self.vfs_path_of(&name), mode)
     }
 
-    fn create_dir(
-        &self,
-        name: &str,
-    ) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
-    {
-        let fs_path = self.resolve(name)?;
+    async fn create_dir_async(&self, name: String) -> VfsResult<NativeDirBox> {
+        let fs_path = self.resolve(&name)?;
+        let vfs_path = self.vfs_path_of(&name);
         if fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::AlreadyExists {
-                path: self.child_vfs_path(name),
-            }));
+            return Err(ErrorTrace::new(VfsError::AlreadyExists { path: vfs_path }));
         }
-        std::fs::create_dir(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
+        std::fs::create_dir(&fs_path).map_err(io_err)?;
         Ok(Box::new(NativeDirectory {
             fs_root: self.fs_root.clone(),
-            dir_path: self.child_vfs_path(name),
+            dir_path: vfs_path,
         }))
     }
 
-    fn remove_entry(&self, name: &str) -> VfsResult<()> {
-        let fs_path = self.resolve(name)?;
+    async fn remove_entry_async(&self, name: String) -> VfsResult<()> {
+        let fs_path = self.resolve(&name)?;
         if !fs_path.exists() {
             return Err(ErrorTrace::new(VfsError::NotFound {
-                path: self.child_vfs_path(name),
+                path: self.vfs_path_of(&name),
             }));
         }
         if fs_path.is_dir() {
-            std::fs::remove_dir(&fs_path).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })?;
+            std::fs::remove_dir(&fs_path).map_err(io_err)
         } else {
-            std::fs::remove_file(&fs_path).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })?;
+            std::fs::remove_file(&fs_path).map_err(io_err)
         }
-        Ok(())
     }
 
-    fn rename_entry(&self, old_name: &str, new_name: &str) -> VfsResult<()> {
-        let old_path = self.resolve(old_name)?;
-        let new_path = self.resolve(new_name)?;
-        std::fs::rename(&old_path, &new_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })
+    async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> {
+        let old_path = self.resolve(&old_name)?;
+        let new_path = self.resolve(&new_name)?;
+        std::fs::rename(&old_path, &new_path).map_err(io_err)
     }
 
-    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
-        let full_vfs_path = self.child_vfs_path(path);
-        let fs_path = self.resolve(path)?;
-        if !fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::NotFound {
-                path: full_vfs_path,
-            }));
-        }
-        if fs_path.is_dir() {
-            return Err(ErrorTrace::new(VfsError::NotAFile {
-                path: full_vfs_path,
-            }));
-        }
-        let file = match mode {
-            OpenMode::Read => std::fs::File::open(&fs_path),
-            OpenMode::Write => std::fs::OpenOptions::new()
-                .write(true)
-                .open(&fs_path),
-            OpenMode::ReadWrite => std::fs::OpenOptions::new()
-                .read(true)
-                .write(true)
-                .open(&fs_path),
-        }
-        .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<NativeFile> {
+        let fs_path = self.resolve(&path)?;
+        check_is_file(&fs_path, &self.vfs_path_of(&path))?;
         Ok(NativeFile {
-            file,
+            file: open_host_file(&fs_path, mode)?,
             path: fs_path,
             mode,
         })
     }
 
-    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
-        let full_vfs_path = self.child_vfs_path(path);
-        let fs_path = self.resolve(path)?;
-        if !fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::NotFound {
-                path: full_vfs_path,
-            }));
-        }
-        if fs_path.is_dir() {
-            return Err(ErrorTrace::new(VfsError::NotAFile {
-                path: full_vfs_path,
-            }));
-        }
-        let file = match mode {
-            OpenMode::Read => std::fs::File::open(&fs_path),
-            OpenMode::Write => std::fs::OpenOptions::new()
-                .write(true)
-                .open(&fs_path),
-            OpenMode::ReadWrite => std::fs::OpenOptions::new()
-                .read(true)
-                .write(true)
-                .open(&fs_path),
-        }
-        .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
-        Ok(SeekableNativeFile {
-            file: RwLock::new(file),
-            path: fs_path,
-            mode,
-            position: std::sync::atomic::AtomicU64::new(0),
-        })
-    }
-
-    fn open_directory(
+    async fn open_seekable_async(
         &self,
-        path: &str,
-    ) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
-    {
-        let full_vfs_path = self.child_vfs_path(path);
-        let fs_path = self.resolve(path)?;
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<SeekableNativeFile> {
+        let fs_path = self.resolve(&path)?;
+        check_is_file(&fs_path, &self.vfs_path_of(&path))?;
+        Ok(SeekableNativeFile {
+            file: RwLock::new(open_host_file(&fs_path, mode)?),
+            path: fs_path,
+            mode,
+            position: AtomicU64::new(0),
+        })
+    }
+
+    async fn open_directory_async(&self, path: String) -> VfsResult<NativeDirBox> {
+        let fs_path = self.resolve(&path)?;
+        let vfs_path = shared_normalize(&self.vfs_path_of(&path))?;
         if !fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::NotFound {
-                path: full_vfs_path.clone(),
-            }));
+            return Err(ErrorTrace::new(VfsError::NotFound { path: vfs_path }));
         }
         if !fs_path.is_dir() {
-            return Err(ErrorTrace::new(VfsError::NotADirectory {
-                path: full_vfs_path,
-            }));
+            return Err(ErrorTrace::new(VfsError::NotADirectory { path: vfs_path }));
         }
         Ok(Box::new(NativeDirectory {
             fs_root: self.fs_root.clone(),
-            dir_path: full_vfs_path,
+            dir_path: vfs_path,
         }))
     }
 
-    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
-        let fs_path = self.resolve(path)?;
-        let meta = std::fs::metadata(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        Ok(fs_metadata_to_vfs(&meta))
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        let fs_path = self.resolve(&path)?;
+        Ok(fs_metadata_to_vfs(
+            &std::fs::metadata(&fs_path).map_err(io_err)?,
+        ))
     }
 
-    fn exists(&self, path: &str) -> VfsResult<bool> {
-        match self.resolve(path) {
-            Ok(fs_path) => Ok(fs_path.exists()),
-            Err(_) => Ok(false),
-        }
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        Ok(self.resolve(&path).is_ok_and(|p| p.exists()))
     }
 }
 
-unsafe impl Send for NativeDirectory {}
-unsafe impl Sync for NativeDirectory {}
+// ── AsyncVfsFileSystem for NativeFs ──
 
-// ── VfsFileSystem for NativeFs ──
-
-impl VfsFileSystem for NativeFs {
+#[async_trait]
+impl AsyncVfsFileSystem for NativeFs {
     type File = NativeFile;
     type SeekableFile = SeekableNativeFile;
     type Directory = NativeDirectory;
@@ -687,47 +615,23 @@ impl VfsFileSystem for NativeFs {
         }
     }
 
-    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
-        let fs_path = self.resolve_path(path)?;
-        let meta = std::fs::metadata(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        Ok(fs_metadata_to_vfs(&meta))
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        let fs_path = self.resolve_path(&path)?;
+        Ok(fs_metadata_to_vfs(
+            &std::fs::metadata(&fs_path).map_err(io_err)?,
+        ))
     }
 
-    fn exists(&self, path: &str) -> VfsResult<bool> {
-        match self.resolve_path(path) {
-            Ok(fs_path) => Ok(fs_path.exists()),
-            Err(_) => Ok(false),
-        }
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        Ok(self.resolve_path(&path).is_ok_and(|p| p.exists()))
     }
 
-    fn inode(&self, path: &str) -> VfsResult<u64> {
-        let meta = self.stat(path)?;
-        Ok(meta.inode)
-    }
-
-    fn path_by_inode(&self, _ino: u64) -> VfsResult<String> {
-        Err(ErrorTrace::new(VfsError::Unsupported {
-            operation: "path_by_inode on NativeFs (no efficient reverse lookup)".to_string(),
-        }))
-    }
-
-    fn stat_by_inode(&self, _ino: u64) -> VfsResult<VfsMetadata> {
-        Err(ErrorTrace::new(VfsError::Unsupported {
-            operation: "stat_by_inode on NativeFs (no efficient reverse lookup)".to_string(),
-        }))
-    }
-
-    fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
-        let fs_path = self.resolve_path(path)?;
+    async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> {
+        let fs_path = self.resolve_path(&path)?;
         #[cfg(unix)]
         {
-            use std::os::unix::fs::PermissionsExt;
-            let perms = std::fs::Permissions::from_mode(mode);
-            std::fs::set_permissions(&fs_path, perms).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })
+            std::fs::set_permissions(&fs_path, std::fs::Permissions::from_mode(mode))
+                .map_err(io_err)
         }
         #[cfg(not(unix))]
         {
@@ -738,13 +642,11 @@ impl VfsFileSystem for NativeFs {
         }
     }
 
-    fn symlink(&self, target: &str, link: &str) -> VfsResult<()> {
-        let link_path = self.resolve_path(link)?;
+    async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> {
+        let link_path = self.resolve_path(&link)?;
         #[cfg(unix)]
         {
-            std::os::unix::fs::symlink(target, &link_path).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })
+            std::os::unix::fs::symlink(target, &link_path).map_err(io_err)
         }
         #[cfg(not(unix))]
         {
@@ -755,164 +657,89 @@ impl VfsFileSystem for NativeFs {
         }
     }
 
-    fn readlink(&self, path: &str) -> VfsResult<String> {
-        let fs_path = self.resolve_path(path)?;
-        let target = std::fs::read_link(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
+    async fn readlink_async(&self, path: String) -> VfsResult<String> {
+        let fs_path = self.resolve_path(&path)?;
+        let target = std::fs::read_link(&fs_path).map_err(io_err)?;
         Ok(target.to_string_lossy().to_string())
     }
 
-    fn rename(&self, from: &str, to: &str) -> VfsResult<()> {
-        let from_path = self.resolve_path(from)?;
-        let to_path = self.resolve_path(to)?;
-        std::fs::rename(&from_path, &to_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })
+    async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
+        let from_path = self.resolve_path(&from)?;
+        let to_path = self.resolve_path(&to)?;
+        std::fs::rename(&from_path, &to_path).map_err(io_err)
     }
 
-    fn remove(&self, path: &str) -> VfsResult<()> {
-        let fs_path = self.resolve_path(path)?;
+    async fn remove_async(&self, path: String) -> VfsResult<()> {
+        let fs_path = self.resolve_path(&path)?;
         if !fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::NotFound {
-                path: path.to_string(),
-            }));
+            return Err(ErrorTrace::new(VfsError::NotFound { path }));
         }
         if fs_path.is_dir() {
-            std::fs::remove_dir(&fs_path).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })
+            std::fs::remove_dir(&fs_path).map_err(io_err)
         } else {
-            std::fs::remove_file(&fs_path).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })
+            std::fs::remove_file(&fs_path).map_err(io_err)
         }
     }
 
-    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
-        let fs_path = self.resolve_path(path)?;
-        if !fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::NotFound {
-                path: path.to_string(),
-            }));
-        }
-        if fs_path.is_dir() {
-            return Err(ErrorTrace::new(VfsError::NotAFile {
-                path: path.to_string(),
-            }));
-        }
-        let file = match mode {
-            OpenMode::Read => std::fs::File::open(&fs_path),
-            OpenMode::Write => std::fs::OpenOptions::new().write(true).open(&fs_path),
-            OpenMode::ReadWrite => std::fs::OpenOptions::new()
-                .read(true)
-                .write(true)
-                .open(&fs_path),
-        }
-        .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<NativeFile> {
+        let fs_path = self.resolve_path(&path)?;
+        check_is_file(&fs_path, &path)?;
         Ok(NativeFile {
-            file,
+            file: open_host_file(&fs_path, mode)?,
             path: fs_path,
             mode,
         })
     }
 
-    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
-        let fs_path = self.resolve_path(path)?;
-        if !fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::NotFound {
-                path: path.to_string(),
-            }));
-        }
-        if fs_path.is_dir() {
-            return Err(ErrorTrace::new(VfsError::NotAFile {
-                path: path.to_string(),
-            }));
-        }
-        let file = match mode {
-            OpenMode::Read => std::fs::File::open(&fs_path),
-            OpenMode::Write => std::fs::OpenOptions::new().write(true).open(&fs_path),
-            OpenMode::ReadWrite => std::fs::OpenOptions::new()
-                .read(true)
-                .write(true)
-                .open(&fs_path),
-        }
-        .map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<SeekableNativeFile> {
+        let fs_path = self.resolve_path(&path)?;
+        check_is_file(&fs_path, &path)?;
         Ok(SeekableNativeFile {
-            file: RwLock::new(file),
+            file: RwLock::new(open_host_file(&fs_path, mode)?),
             path: fs_path,
             mode,
-            position: std::sync::atomic::AtomicU64::new(0),
+            position: AtomicU64::new(0),
         })
     }
 
-    fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
-        let fs_path = self.resolve_path(path)?;
+    async fn open_directory_async(&self, path: String) -> VfsResult<NativeDirectory> {
+        let fs_path = self.resolve_path(&path)?;
         if !fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::NotFound {
-                path: path.to_string(),
-            }));
+            return Err(ErrorTrace::new(VfsError::NotFound { path }));
         }
         if !fs_path.is_dir() {
-            return Err(ErrorTrace::new(VfsError::NotADirectory {
-                path: path.to_string(),
-            }));
+            return Err(ErrorTrace::new(VfsError::NotADirectory { path }));
         }
-        let vfs_path = self.to_vfs_path(&fs_path);
         Ok(NativeDirectory {
             fs_root: self.root.clone(),
-            dir_path: vfs_path,
+            dir_path: self.to_vfs_path(&fs_path),
         })
     }
 
-    fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File> {
-        let fs_path = self.resolve_path(path)?;
+    async fn create_async(&self, path: String, mode: u32) -> VfsResult<NativeFile> {
+        let fs_path = self.resolve_path(&path)?;
+        create_host_file(&fs_path, &path, mode)
+    }
+
+    async fn mkdir_async(&self, path: String) -> VfsResult<()> {
+        let fs_path = self.resolve_path(&path)?;
         if fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::AlreadyExists {
-                path: path.to_string(),
-            }));
+            return Err(ErrorTrace::new(VfsError::AlreadyExists { path }));
         }
-        let file = std::fs::File::create(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })?;
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let perms = std::fs::Permissions::from_mode(mode);
-            std::fs::set_permissions(&fs_path, perms).map_err(|e| {
-                ErrorTrace::new(VfsError::Io { source: e })
-            })?;
-        }
-        Ok(NativeFile {
-            file,
-            path: fs_path,
-            mode: OpenMode::ReadWrite,
-        })
+        std::fs::create_dir(&fs_path).map_err(io_err)
     }
 
-    fn mkdir(&self, path: &str) -> VfsResult<()> {
-        let fs_path = self.resolve_path(path)?;
-        if fs_path.exists() {
-            return Err(ErrorTrace::new(VfsError::AlreadyExists {
-                path: path.to_string(),
-            }));
-        }
-        std::fs::create_dir(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })
+    async fn read_file_async(&self, path: String) -> VfsResult<Vec<u8>> {
+        let fs_path = self.resolve_path(&path)?;
+        std::fs::read(&fs_path).map_err(io_err)
     }
 
-    fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
-        let fs_path = self.resolve_path(path)?;
-        std::fs::read(&fs_path).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })
-    }
-
-    fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
-        let fs_path = self.resolve_path(path)?;
-        std::fs::write(&fs_path, data).map_err(|e| {
-            ErrorTrace::new(VfsError::Io { source: e })
-        })
+    async fn write_file_async(&self, path: String, data: Vec<u8>) -> VfsResult<()> {
+        let fs_path = self.resolve_path(&path)?;
+        std::fs::write(&fs_path, data).map_err(io_err)
     }
 }
