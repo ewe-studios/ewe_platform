@@ -1,6 +1,6 @@
 # Spec 65 Progress: Agent RPC Serving System
 
-_Last updated: 2026-10-22 (feature 07 design written). Read this first, then `LEARNINGS.md` ("Handoff guide"
+_Last updated: 2026-10-26 (spec review round 3: features 02 to 07 completed and clarified). Read this first, then `LEARNINGS.md` ("Handoff guide"
 at the top) before touching code._
 
 ## Status at a glance
@@ -9,10 +9,10 @@ at the top) before touching code._
 | ----------------------------------------------- | ---------------------------------------------------------------- | ----------------------------- |
 | 00 — foundation (wasm / Workers readiness)      | 🔧 6/7 (T7 open)                                                 | PR #124                       |
 | 01 — agent-rpc model server                     | ✅ 10/10 + GGUF; ⏸ owner review round 2 open (paused, see below) | PR #126                       |
-| 02 — manifest installer                         | ⏳ 0/9                                                           | —                             |
-| 03 — proxy registration                         | ⏳ 0/8                                                           | —                             |
-| 04 — registrar sidecar                          | ⏳ 0/7                                                           | —                             |
-| 05 — Cloudflare                                 | ⏳ 0/6                                                           | —                             |
+| 02 — manifest installer                         | ⏳ 0/10, design complete (review round 3)                                                       | —                             |
+| 03 — proxy registration                         | ⏳ 0/11, design complete (review round 3)                                                       | —                             |
+| 04 — registrar sidecar                          | ⏳ 0/10, design complete (review round 3)                                                       | —                             |
+| 05 — Cloudflare                                 | ⏳ 0/6 (T1, T2 replaced by 07 T19, T21)                                                       | —                             |
 | 06 — wasm async streaming                       | ✅ 5/5                                                           | PR #124                       |
 | 07 — pluggable agent-rpc (owner review round 2) | 📐 design done, decisions in, 0/27 tasks                         | PR #126 branch                |
 | (spec 68 — valtron wasm runtime tests)          | ✅ owned path 10/10, bindgen path 5/5                            | PR #124 (#125 merged into it) |
@@ -229,6 +229,49 @@ remain in `feature.md` section 12.
 Next: Then task T0 (merge
 `master` into this branch) starts the work. The plan above ("owner review round 2") is now
 replaced by feature 07.
+
+## Spec review round 3 (2026-10-26)
+
+The owner reviewed the spec on PR #126 (2026-10-25) and asked for a completeness, correctness and
+clarity pass before anything is marked ready. Spec only; no Rust code changed.
+
+What changed:
+
+- **02 installer:** every manifest field, `SourceSpec`, `Artifact` (`File`, `Tool`, `Image`),
+  `DeploySpec`, `Deployed`, `RunReport` and `InstallError` explained with maker, reader and
+  example; entry lifecycle with upgrade and rollback; install record and lock; marks on units and
+  containers for the sidecar; binary `src/bin/ewe-installer.rs`.
+- **03 proxy registration:** `BackendAck` replaced by typed `Register`, `Report` and `Deregister`
+  replies; the sidecar's one authenticated link (enrollment token, then mTLS on a separate
+  listener, or a Unix socket) and why; leases, sessions, generations, the rotation rule, the
+  router snapshot swap; lifecycles; a failure table (missed reports, proxy, sidecar and app
+  restarts, redeploy, stale and conflicting registrations, certificate expiry).
+- **04 sidecar:** rewritten as discovery, health (Kubernetes-style probes) and metrics. The proxy
+  owns client TLS. Binary `src/bin/ewe-registrar.rs`.
+- **07 `proto.md`:** `BootstrapPayload` has no version field and one `url` for every host.
+  `hosts.md`, `auth.md` and `feature.md` follow (owner decision 9).
+- **07 `migrations.md`:** groups per database, shared then specific, numbered from 1, recorded by
+  group (owner decision 10). The open question on number ranges is closed.
+- **00, 01, 05, 06:** glossaries, abbreviations, diagram captions. 01 lists what 07 changes. 05
+  maps its Worker tasks to 07.
+- `requirements.md`: the sidecar and proxy roles, the auth table, the binary layout rule, a
+  glossary.
+
+Not touched on purpose: Cloudflare at scale (D1 replication, region routing, Durable Object
+sharding, change logs). The owner wants to discuss it first. The notes are in `resources/`.
+
+Open questions added (each with a recommendation in its feature file):
+
+- 02: Q1 keep `manifest_version`; Q2 prune removed entries; Q3 Linux only.
+- 03: Q1 save the registry across restarts; Q2 the Unix socket transport; Q3 mTLS through the
+  proxy (SNI passthrough); Q4 shared enrollment in `foundation_auth`; Q5 metrics for load
+  balancing.
+- 04: Q1 restart on liveness failure; Q2 Kubernetes probes; Q3 more metrics.
+- 05: Q1 container rollout; Q2 container secrets.
+- 07 `migrations.md`: Q1 groups declared on disk; Q2 many tenant databases.
+
+Next: the owner answers the open questions. Then feature 07 task T0. CI on the owner's merge
+commit is red; that is code work, not spec.
 
 ## Feature 00 — foundation (`worktree-65-agent-rpc-serving-system`)
 
