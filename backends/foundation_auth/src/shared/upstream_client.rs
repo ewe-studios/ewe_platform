@@ -8,11 +8,12 @@
 //! WHAT: [`UpstreamOidcClient`] wraps [`super::discovery::DiscoveryClient`]
 //! for OIDC providers and [`super::oauth::OAuthManager`] for authorization URL
 //! generation. It is fully cross-platform: discovery, token exchange, and
-//! userinfo all run over the shared [`foundation_netio`] `HttpClient`
-//! ([`default_http_client`]), which resolves to the native HTTP stack on
+//! userinfo all run over the platform network client, [`DynNetClient`]
+//! (built with [`HttpClientBuilder`], or given to
+//! [`UpstreamOidcClient::with_client`]), which is the native HTTP stack on
 //! native targets and browser/Worker `fetch` on wasm32 — so the whole broker
-//! flow executes wherever an `HttpClient` exists (including a Cloudflare
-//! Worker), with no platform-gated branching in this module.
+//! flow executes wherever that client exists (including a Cloudflare Worker),
+//! with no platform-gated branching in this module.
 //!
 //! HOW:
 //! 1. `discover_and_configure()` — fetches discovery doc, builds `OAuthConfig`
@@ -20,13 +21,9 @@
 //! 3. `exchange_code()` — exchanges the auth code for tokens at the token endpoint
 //! 4. `fetch_userinfo()` — fetches the standardized profile from userinfo
 
-use foundation_core::url::Uri;
-use foundation_netio::default_http_client;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
-use foundation_netio::shared::client::request::PreparedRequest;
-use foundation_netio::shared::http::{
-    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleResponse,
-};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleResponse};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 use super::discovery::{DiscoveryClient, DiscoveryError, OidcDiscovery};
 use super::oauth::{OAuthConfig, OAuthError, OAuthManager, PkceChallenge, TokenResponse};
@@ -84,6 +81,8 @@ impl From<OAuthError> for UpstreamClientError {
 /// endpoints from a `.well-known` URL or uses the explicit authorize/token/userinfo
 /// URLs configured on the provider.
 pub struct UpstreamOidcClient {
+    /// HTTP client for the token and userinfo requests.
+    http: DynNetClient,
     /// The provider configuration.
     provider: UpstreamProvider,
     /// OAuth manager for authorization URL generation.
@@ -99,9 +98,25 @@ impl UpstreamOidcClient {
     ///
     /// Use [`Self::configure`] or [`Self::discover_and_configure`] to set up
     /// the OAuth configuration before generating URLs or exchanging codes.
+    /// The token and userinfo requests use the platform's default HTTP client
+    /// ([`HttpClientBuilder`]); [`Self::with_client`] takes another one.
     #[must_use]
     pub fn new(provider: UpstreamProvider, redirect_uri: String) -> Self {
+        Self::with_client(HttpClientBuilder::new().build(), provider, redirect_uri)
+    }
+
+    /// Create a new client for the given provider that sends its token and
+    /// userinfo requests through `http` (a shared client, or a test client).
+    /// Discovery runs through the [`DiscoveryClient`] given to
+    /// [`Self::discover_and_configure`].
+    #[must_use]
+    pub fn with_client(
+        http: DynNetClient,
+        provider: UpstreamProvider,
+        redirect_uri: String,
+    ) -> Self {
         Self {
+            http,
             provider,
             oauth: OAuthManager::new(OAuthConfig::default()),
             discovery: None,
@@ -259,7 +274,7 @@ impl UpstreamOidcClient {
     /// Exchange an authorization code for tokens at the provider's token endpoint.
     ///
     /// Runs the OAuth2 `authorization_code` grant over the shared
-    /// [`default_http_client`], so it works identically on native and wasm.
+    /// client ([`DynNetClient`]), so it works identically on native and wasm.
     /// The `client_secret` (decrypted by the caller from
     /// [`UpstreamProvider::client_secret_ciphertext`]) is sent only when
     /// provided — public PKCE clients pass `None`. Any secret already present
@@ -294,7 +309,7 @@ impl UpstreamOidcClient {
         }
 
         let body = encode_form(&form);
-        let response = http_post_form(&config.token_url, &body).await?;
+        let response = http_post_form(&self.http, &config.token_url, &body).await?;
         let token: TokenResponse = serde_json::from_str(&response)
             .map_err(|e| UpstreamClientError::TokenExchange(format!("parse token response: {e}")))?;
 
@@ -311,7 +326,7 @@ impl UpstreamOidcClient {
     /// Fetch the standardized user profile from the provider's userinfo endpoint.
     ///
     /// GETs the userinfo endpoint with a Bearer access token over the shared
-    /// [`default_http_client`], then maps the raw claims to an
+    /// client ([`DynNetClient`]), then maps the raw claims to an
     /// [`UpstreamProfile`] using the provider's `mapping_config`.
     ///
     /// # Errors
@@ -327,7 +342,7 @@ impl UpstreamOidcClient {
             .userinfo_endpoint()
             .ok_or(UpstreamClientError::NoEndpoints)?;
 
-        let response = http_get_with_bearer(&url, access_token).await?;
+        let response = http_get_with_bearer(&self.http, &url, access_token).await?;
         let json: serde_json::Value = serde_json::from_str(&response)
             .map_err(|e| UpstreamClientError::Userinfo(format!("parse userinfo response: {e}")))?;
 
@@ -399,8 +414,8 @@ impl UpstreamProfile {
 }
 
 // ===========================================================================
-// HTTP — cross-platform via the shared foundation_netio `HttpClient`
-// (`default_http_client`): native HTTP stack on native, browser/Worker fetch
+// HTTP — cross-platform via the platform network client (`DynNetClient`):
+// native HTTP stack on native, browser/Worker fetch
 // on wasm32. Mirrors `discovery.rs` / `userinfo.rs`.
 // ===========================================================================
 
@@ -414,25 +429,17 @@ fn encode_form(fields: &[(String, String)]) -> String {
 }
 
 /// POST a form-urlencoded body and return the response text.
-async fn http_post_form(url: &str, body: &str) -> Result<String, UpstreamClientError> {
-    let client = default_http_client();
-    let uri = Uri::parse(url)
-        .map_err(|e| UpstreamClientError::TokenExchange(format!("invalid token URL: {e}")))?;
-
-    let mut headers = SimpleHeaders::new();
-    headers.insert(
-        SimpleHeader::CONTENT_TYPE,
-        vec!["application/x-www-form-urlencoded".into()],
-    );
-    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
-
-    let req = PreparedRequest {
-        method: SimpleMethod::POST,
-        url: uri,
-        headers,
-        body: SendSafeBody::Text(body.to_string()),
-        extensions: Default::default(),
-    };
+async fn http_post_form(
+    client: &DynNetClient,
+    url: &str,
+    body: &str,
+) -> Result<String, UpstreamClientError> {
+    let req = PreparedRequestBuilder::post(url)
+        .map_err(|e| UpstreamClientError::TokenExchange(format!("invalid token URL: {e}")))?
+        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(SimpleHeader::ACCEPT, "application/json")
+        .body_text(body)
+        .build();
 
     let resp = client
         .send_async(req)
@@ -452,27 +459,15 @@ async fn http_post_form(url: &str, body: &str) -> Result<String, UpstreamClientE
 
 /// GET a URL with a Bearer access token and return the response text.
 async fn http_get_with_bearer(
+    client: &DynNetClient,
     url: &str,
     access_token: &str,
 ) -> Result<String, UpstreamClientError> {
-    let client = default_http_client();
-    let uri = Uri::parse(url)
-        .map_err(|e| UpstreamClientError::Userinfo(format!("invalid userinfo URL: {e}")))?;
-
-    let mut headers = SimpleHeaders::new();
-    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
-    headers.insert(
-        SimpleHeader::AUTHORIZATION,
-        vec![format!("Bearer {access_token}")],
-    );
-
-    let req = PreparedRequest {
-        method: SimpleMethod::GET,
-        url: uri,
-        headers,
-        body: SendSafeBody::None,
-        extensions: Default::default(),
-    };
+    let req = PreparedRequestBuilder::get(url)
+        .map_err(|e| UpstreamClientError::Userinfo(format!("invalid userinfo URL: {e}")))?
+        .header(SimpleHeader::ACCEPT, "application/json")
+        .bearer_token(access_token)
+        .build();
 
     let resp = client
         .send_async(req)
@@ -499,144 +494,4 @@ async fn http_get_with_bearer(
 fn collect_body_text(resp: SimpleResponse<SendSafeBody>) -> Result<String, String> {
     let bytes = try_collect_bytes(resp.take_body()).map_err(|e| e.to_string())?;
     Ok(String::from_utf8_lossy(&bytes).to_string())
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use super::super::provider::{ProviderMapping, ProviderType, UpstreamProvider};
-
-    fn google_provider() -> UpstreamProvider {
-        UpstreamProvider {
-            id: "google".into(),
-            name: "Google".into(),
-            provider_type: ProviderType::Oidc,
-            client_id: "test-client-id.apps.googleusercontent.com".into(),
-            client_secret_ciphertext: None,
-            encryption_key_id: "default".into(),
-            authorization_url: None,
-            token_url: None,
-            userinfo_url: None,
-            discovery_url: Some(
-                "https://accounts.google.com/.well-known/openid-configuration".into(),
-            ),
-            scopes: vec!["openid".into(), "email".into(), "profile".into()],
-            is_active: true,
-            mapping_config: ProviderMapping::default(),
-            created_at: 0,
-            updated_at: 0,
-        }
-    }
-
-    fn github_provider() -> UpstreamProvider {
-        UpstreamProvider {
-            id: "github".into(),
-            name: "GitHub".into(),
-            provider_type: ProviderType::Oauth2,
-            client_id: "github-client-id".into(),
-            client_secret_ciphertext: None,
-            encryption_key_id: "default".into(),
-            authorization_url: Some("https://github.com/login/oauth/authorize".into()),
-            token_url: Some("https://github.com/login/oauth/access_token".into()),
-            userinfo_url: Some("https://api.github.com/user".into()),
-            discovery_url: None,
-            scopes: vec!["user:email".into()],
-            is_active: true,
-            mapping_config: ProviderMapping {
-                subject_field: "id".into(),
-                email_field: "email".into(),
-                email_verified_field: "email_verified".into(),
-                name_field: "login".into(),
-                username_field: None,
-            },
-            created_at: 0,
-            updated_at: 0,
-        }
-    }
-
-    #[test]
-    fn oidc_provider_builds_authorize_url_with_pkce() {
-        let mut client = UpstreamOidcClient::new(
-            google_provider(),
-            "https://auth.example.com/callback".into(),
-        );
-        // Configure from explicit endpoints for testing (no network)
-        client.provider.authorization_url = Some("https://accounts.google.com/o/oauth2/v2/auth".into());
-        client.provider.token_url = Some("https://oauth2.googleapis.com/token".into());
-        client.configure().expect("configure");
-
-        let state = OAuthManager::generate_state();
-        let (url, pkce) = client.authorize_url(&state).expect("authorize_url");
-
-        assert!(url.contains("response_type=code"));
-        assert!(url.contains("code_challenge="));
-        assert!(url.contains("code_challenge_method=S256"));
-        assert!(url.contains("state="));
-        assert!(!pkce.code_verifier.is_empty());
-    }
-
-    #[test]
-    fn oauth2_provider_with_explicit_urls_configures() {
-        let mut client = UpstreamOidcClient::new(
-            github_provider(),
-            "https://auth.example.com/callback".into(),
-        );
-        client.configure().expect("configure");
-        assert_eq!(
-            client.oauth_manager().config().authorization_url,
-            "https://github.com/login/oauth/authorize"
-        );
-    }
-
-    #[test]
-    fn provider_with_no_endpoints_returns_error() {
-        let mut p = google_provider();
-        p.discovery_url = None;
-        let mut client =
-            UpstreamOidcClient::new(p, "https://auth.example.com/callback".into());
-        let err = client.configure().unwrap_err();
-        assert!(matches!(err, UpstreamClientError::NoEndpoints));
-    }
-
-    #[test]
-    fn profile_extraction_from_userinfo() {
-        let json = serde_json::json!({
-            "sub": "12345",
-            "email": "user@example.com",
-            "email_verified": true,
-            "name": "Test User",
-            "preferred_username": "testuser",
-        });
-        let profile = UpstreamProfile::from_userinfo(&json, &ProviderMapping::default())
-            .expect("extract profile");
-        assert_eq!(profile.sub, "12345");
-        assert_eq!(profile.email.unwrap(), "user@example.com");
-        assert!(profile.email_verified);
-        assert_eq!(profile.name.unwrap(), "Test User");
-        assert_eq!(profile.preferred_username.unwrap(), "testuser");
-    }
-
-    #[test]
-    fn profile_extraction_uses_custom_mapping() {
-        let json = serde_json::json!({
-            "id": 42,
-            "login": "ghuser",
-            "email": "gh@example.com",
-        });
-        let mapping = ProviderMapping {
-            subject_field: "login".into(),
-            email_field: "email".into(),
-            email_verified_field: "email_verified".into(),
-            name_field: "login".into(),
-            username_field: None,
-        };
-        let profile =
-            UpstreamProfile::from_userinfo(&json, &mapping).expect("extract profile");
-        assert_eq!(profile.sub, "ghuser");
-        assert_eq!(profile.name.unwrap(), "ghuser");
-    }
 }

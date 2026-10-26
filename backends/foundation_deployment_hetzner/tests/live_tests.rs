@@ -27,7 +27,6 @@ use foundation_deployment::traits::Deployable;
 use foundation_deployment_hetzner::{
     HetznerClient, HetznerError, HetznerServer, ServerDeployOutput,
 };
-use foundation_netio::http::NativeHttpClient;
 
 /// A client from the environment, or `None` when nobody exported a token.
 fn live_client() -> Option<HetznerClient> {
@@ -176,7 +175,7 @@ async fn the_server_lifecycle_against_the_real_api() {
     std::fs::create_dir_all(&dir).expect("scratch dir");
     let store = FileStateStore::new(&dir, "ewe-live", "test");
     store.init().await.expect("init state store");
-    let provider = ProviderClient::new("ewe-live", "test", store, NativeHttpClient::default());
+    let provider = ProviderClient::new("ewe-live", "test", store);
 
     let deployable = HetznerServer::new(client.clone(), &name)
         .server_type(LIVE_TYPE)

@@ -17,6 +17,7 @@ use foundation_ai::backends::anthropic_messages_provider::{
 use foundation_ai::backends::model_info::rfc3339_to_unix;
 use foundation_ai::backends::openai_responses_provider::ResponsesProvider;
 use foundation_ai::types::{ModelId, ModelProvider};
+use foundation_netio::DynNetClient;
 use foundation_netio::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient,
 };
@@ -26,6 +27,11 @@ use foundation_netio::shared::http::{
     HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleResponse,
     Status,
 };
+use foundation_netio::websocket::shared::client::{
+    MessageDelivery, WebSocketClient, WebSocketConnectConfig,
+};
+use foundation_netio::websocket::shared::connector::{WebSocketConnector, WsExchangeTask};
+use foundation_netio::websocket::shared::error::WebSocketError;
 
 /// Answers both `send` and `send_async` with a fixed status and body and
 /// records every request it saw.
@@ -88,6 +94,25 @@ impl HttpClient for RecordingClient {
         unimplemented!("open_exchange is not exercised by the model-info tests")
     }
 }
+/// The tests send no WebSocket traffic; the impl only makes the fake a
+/// `DynNetClient`.
+impl WebSocketConnector for RecordingClient {
+    fn open_websocket(
+        &self,
+        _url: &str,
+        _config: WebSocketConnectConfig,
+    ) -> Result<WebSocketClient, WebSocketError> {
+        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+    }
+
+    fn open_websocket_task(
+        &self,
+        _url: &str,
+        _config: WebSocketConnectConfig,
+    ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError> {
+        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+    }
+}
 
 fn header(headers: &SimpleHeaders, name: &str) -> Option<String> {
     headers
@@ -99,7 +124,7 @@ const CLAUDE: &str = "claude-test";
 const CLAUDE_JSON: &str = r#"{"type":"model","id":"claude-test","display_name":"Claude Test","created_at":"2025-02-19T00:00:00Z"}"#;
 
 fn anthropic(client: &Arc<RecordingClient>) -> AnthropicMessagesProvider {
-    AnthropicMessagesProvider::with_http_client(Arc::clone(client) as Arc<dyn HttpClient>)
+    AnthropicMessagesProvider::with_http_client(Arc::clone(client) as DynNetClient)
         .create(Some(AnthropicConfig::api_key("sk-test")))
         .expect("provider")
 }
@@ -164,7 +189,7 @@ const GPT: &str = "gpt-test";
 const GPT_JSON: &str = r#"{"id":"gpt-test","object":"model","owned_by":"acme","created":1700000000}"#;
 
 fn responses(client: &Arc<RecordingClient>) -> ResponsesProvider {
-    ResponsesProvider::with_http_client(Arc::clone(client) as Arc<dyn HttpClient>)
+    ResponsesProvider::with_http_client(Arc::clone(client) as DynNetClient)
         .create(None)
         .expect("provider")
 }
@@ -228,12 +253,31 @@ impl HttpClient for NeverAnswers {
         unimplemented!("open_exchange is not exercised by the model-info tests")
     }
 }
+/// The tests send no WebSocket traffic; the impl only makes the fake a
+/// `DynNetClient`.
+impl WebSocketConnector for NeverAnswers {
+    fn open_websocket(
+        &self,
+        _url: &str,
+        _config: WebSocketConnectConfig,
+    ) -> Result<WebSocketClient, WebSocketError> {
+        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+    }
+
+    fn open_websocket_task(
+        &self,
+        _url: &str,
+        _config: WebSocketConnectConfig,
+    ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError> {
+        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+    }
+}
 
 /// `get_model` returns placeholder metadata at once even when the models
 /// endpoint never answers (each provider).
 #[test]
 fn get_model_never_waits_on_the_network() {
-    let client: Arc<dyn HttpClient> = Arc::new(NeverAnswers);
+    let client: DynNetClient = Arc::new(NeverAnswers);
 
     let model = AnthropicMessagesProvider::with_http_client(Arc::clone(&client))
         .create(Some(AnthropicConfig::api_key("sk-test")))

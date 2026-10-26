@@ -436,11 +436,9 @@ fn connect_with_retry(addr: std::net::SocketAddr) -> TcpStream {
 fn h1_transport_capabilities_are_correct() {
     use foundation_connectrpc::shared::transport::Transport;
     use foundation_connectrpc::H1Transport;
-    use foundation_netio::http::NativeHttpClient;
     use foundation_netio::shared::http::Proto;
 
-    let client = NativeHttpClient::from_system();
-    let transport = H1Transport::new(Arc::new(client));
+    let transport = H1Transport::new(HttpClientBuilder::new().build());
     let caps = transport.capabilities();
 
     assert!(caps.request_streaming, "h1 supports chunked upload");
@@ -469,7 +467,6 @@ fn h1_transport_capabilities_are_correct() {
 async fn h1_client_transport_over_real_socket() {
     use foundation_connectrpc::shared::transport::Transport;
     use foundation_connectrpc::H1Transport;
-    use foundation_netio::http::NativeHttpClient;
     use foundation_netio::shared::http::{
         Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, SimpleUrl,
     };
@@ -496,7 +493,7 @@ async fn h1_client_transport_over_real_socket() {
 
     // Client: H1Transport. `open()` is synchronous — spawns the pump on the pool
     // and returns the three caller-facing pipe halves immediately.
-    let transport = H1Transport::new(Arc::new(NativeHttpClient::from_system()));
+    let transport = H1Transport::new(HttpClientBuilder::new().build());
 
     let url = format!("http://127.0.0.1:{}{PROCEDURE}", addr.port());
     let uri = Uri::parse(&url).expect("parse URL");
@@ -582,7 +579,6 @@ async fn h1_client_server_stream_over_real_socket() {
     use foundation_connectrpc::shared::transport::Transport;
     use foundation_connectrpc::H1Transport;
     use foundation_core::url::Uri;
-    use foundation_netio::http::NativeHttpClient;
     use foundation_netio::shared::http::{
         Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, SimpleUrl,
     };
@@ -607,7 +603,7 @@ async fn h1_client_server_stream_over_real_socket() {
     let _ = TcpStream::connect_timeout(&addr, Duration::from_secs(2)).expect("server ready");
 
     // Client: H1Transport, Connect streaming content-type.
-    let transport = H1Transport::new(Arc::new(NativeHttpClient::from_system()));
+    let transport = H1Transport::new(HttpClientBuilder::new().build());
     let url = format!("http://127.0.0.1:{}{LIST_PROCEDURE}", addr.port());
     let uri = Uri::parse(&url).expect("parse URL");
     let descriptor = RequestDescriptor {
@@ -693,6 +689,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::task::{Context, Poll};
 
 use foundation_connectrpc::{Code, ConnectError};
+use foundation_netio::HttpClientBuilder;
 
 /// Start an `HttpServer` serving `serve` at `route`; returns its address and the
 /// shutdown switch.

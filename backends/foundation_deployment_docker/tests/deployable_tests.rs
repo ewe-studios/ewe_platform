@@ -19,25 +19,22 @@ use foundation_db::core::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_deployment::traits::Deployable;
 use foundation_deployment_docker::{ContainerDeployment, DockerClient};
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::client::dns::SystemDnsResolver;
 
 const DOCKER_SOCK: &str = "/var/run/docker.sock";
 const CONTAINER_NAME: &str = "ewe-deployable-it";
 
-/// A `ProviderClient` whose state store is a fresh temp dir. The HTTP client is
-/// unused by the Docker deployable (it dials its own Unix socket) but the trait
-/// requires one.
+/// A `ProviderClient` whose state store is a fresh temp dir. Its HTTP client
+/// (the default one) is unused by the Docker deployable, which dials its own
+/// Unix socket.
 fn provider_client() -> (
-    ProviderClient<FileStateStore, SystemDnsResolver>,
+    ProviderClient<FileStateStore>,
     std::path::PathBuf,
 ) {
     let dir = std::env::temp_dir().join(format!("ewe-deployable-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     let store = FileStateStore::new(&dir, "ewe-test", "dev");
     store.init().expect("init state store");
-    let http = NativeHttpClient::default();
-    (ProviderClient::new("ewe-test", "dev", store, http), dir)
+    (ProviderClient::new("ewe-test", "dev", store), dir)
 }
 
 #[valtron_test]

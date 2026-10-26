@@ -5,8 +5,10 @@
 //! answers writes (`upsert_rows`, `deletes`), vector queries (`rank_by` ANN),
 //! id lookups (`filters: ["id", "Eq", id]`) and counts (`aggregate_by`). A
 //! query on a namespace that was never written is HTTP 404, as on the real
-//! service. The store talks to it through the real native HTTP client, so the
-//! tests cover the request shapes, the status handling and the body limits.
+//! service. The store talks to it through the platform's default network
+//! client (`HttpClientBuilder`), given to
+//! [`TurboPufferVectorStore::with_client`] as a `DynNetClient`, so the tests
+//! cover the request shapes, the status handling and the body limits.
 //!
 //! The shared contract runs against it, plus checks of the request shapes,
 //! the error paths and the body limits.
@@ -28,9 +30,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use foundation_core::valtron::valtron_test;
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::client::http_client::HttpClient;
-use foundation_netio::shared::client::StaticSocketAddr;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{
     VectorEntry, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
@@ -288,9 +288,8 @@ fn start_mock() -> Mock {
 }
 
 fn store_for(mock: &Mock, metric: DistanceMetric) -> TurboPufferVectorStore {
-    let client: Arc<dyn HttpClient> =
-        Arc::new(NativeHttpClient::new(StaticSocketAddr::new(mock.addr)));
-    TurboPufferVectorStore::new(client, "test-key".into(), VectorStoreConfig::new(3, metric))
+    let client: DynNetClient = HttpClientBuilder::new().build();
+    TurboPufferVectorStore::with_client(client, "test-key".into(), VectorStoreConfig::new(3, metric))
         .unwrap()
         .with_base_url(format!("http://{}", mock.addr))
 }
@@ -373,16 +372,27 @@ async fn l2_uses_euclidean_squared_and_negative_scores() {
 
 #[valtron_test]
 async fn dot_metric_is_unsupported() {
-    let mock = start_mock();
-    let client: Arc<dyn HttpClient> =
-        Arc::new(NativeHttpClient::new(StaticSocketAddr::new(mock.addr)));
-    let err = TurboPufferVectorStore::new(
+    let client: DynNetClient = HttpClientBuilder::new().build();
+    let err = TurboPufferVectorStore::with_client(
         client,
         "k".into(),
         VectorStoreConfig::new(3, DistanceMetric::Dot),
     )
     .err()
     .expect("dot is refused");
+    assert!(matches!(err, VectorStoreError::Unsupported(_)));
+}
+
+#[valtron_test]
+async fn new_builds_the_default_client() {
+    let store =
+        TurboPufferVectorStore::new("k".into(), VectorStoreConfig::new(3, DistanceMetric::L2))
+            .expect("cosine and L2 are accepted");
+    assert_eq!(store.config().metric, DistanceMetric::L2);
+
+    let err = TurboPufferVectorStore::new("k".into(), VectorStoreConfig::new(3, DistanceMetric::Dot))
+        .err()
+        .expect("dot is refused");
     assert!(matches!(err, VectorStoreError::Unsupported(_)));
 }
 

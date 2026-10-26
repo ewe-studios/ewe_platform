@@ -10,6 +10,9 @@
 //! persistence, no foundation_db involvement. Use `refresh()` to force
 //! re-fetch or `clear_cache()` to drop the cached entry.
 
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::http::SimpleHeader;
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 
 use super::oauth::OAuthConfig;
@@ -149,6 +152,7 @@ impl OidcDiscovery {
 /// The discovery document is configuration metadata that rarely changes.
 /// It is cached in memory for the lifetime of the client.
 pub struct DiscoveryClient {
+    http: DynNetClient,
     cached: Option<(String, OidcDiscovery)>, // (issuer_url, discovery)
 }
 
@@ -159,10 +163,19 @@ impl Default for DiscoveryClient {
 }
 
 impl DiscoveryClient {
-    /// Create a new discovery client with an empty cache.
+    /// Create a new discovery client with an empty cache and the platform's
+    /// default HTTP client ([`HttpClientBuilder`]: the native client, or the
+    /// fetch client on wasm32).
     #[must_use]
     pub fn new() -> Self {
-        Self { cached: None }
+        Self::with_client(HttpClientBuilder::new().build())
+    }
+
+    /// Create a new discovery client with an empty cache that sends its
+    /// requests through `http` (a shared client, or a test client).
+    #[must_use]
+    pub fn with_client(http: DynNetClient) -> Self {
+        Self { http, cached: None }
     }
 
     /// Get the cached discovery document, fetching if not cached.
@@ -186,7 +199,7 @@ impl DiscoveryClient {
     /// Returns `DiscoveryError` if the fetch or parse fails.
     pub async fn fetch(&mut self, issuer_url: &str) -> Result<&OidcDiscovery, DiscoveryError> {
         let url = build_well_known_url(issuer_url);
-        let discovery = do_fetch(&url).await?;
+        let discovery = do_fetch(&self.http, &url).await?;
         self.cached = Some((issuer_url.to_string(), discovery));
         Ok(&self.cached.as_ref().unwrap().1)
     }
@@ -197,7 +210,7 @@ impl DiscoveryClient {
     ///
     /// Returns `DiscoveryError` if the fetch or parse fails.
     pub async fn fetch_from_url(&self, url: &str) -> Result<OidcDiscovery, DiscoveryError> {
-        do_fetch(url).await
+        do_fetch(&self.http, url).await
     }
 
     /// Clear the cached discovery document.
@@ -224,8 +237,8 @@ fn build_well_known_url(issuer: &str) -> String {
 }
 
 /// Fetch and parse a discovery document from a URL.
-async fn do_fetch(url: &str) -> Result<OidcDiscovery, DiscoveryError> {
-    let json = fetch_discovery(url).await?;
+async fn do_fetch(client: &DynNetClient, url: &str) -> Result<OidcDiscovery, DiscoveryError> {
+    let json = fetch_discovery(client, url).await?;
     serde_json::from_str(&json)
         .map_err(|e| DiscoveryError::ParseError(e.to_string()))
 }
@@ -280,31 +293,14 @@ impl core::fmt::Display for DiscoveryError {
 impl std::error::Error for DiscoveryError {}
 
 // ===========================================================================
-// HTTP fetch — uses the cross-platform HttpClient trait (native + wasm).
+// HTTP fetch — over the platform network client, `DynNetClient` (native + wasm).
 // ===========================================================================
 
-async fn fetch_discovery(url: &str) -> Result<String, DiscoveryError> {
-    use foundation_core::url::Uri;
-    use foundation_netio::default_http_client;
-    use foundation_netio::shared::client::body_reader::try_collect_bytes;
-    use foundation_netio::shared::client::request::PreparedRequest;
-    use foundation_netio::shared::http::{
-        SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
-    };
-
-    let client = default_http_client();
-    let uri = Uri::parse(url)
-        .map_err(|e| DiscoveryError::FetchFailed(format!("invalid URL: {e}")))?;
-    let mut headers = SimpleHeaders::new();
-    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
-
-    let req = PreparedRequest {
-        method: SimpleMethod::GET,
-        url: uri,
-        headers,
-        body: SendSafeBody::None,
-        extensions: Default::default(),
-    };
+async fn fetch_discovery(client: &DynNetClient, url: &str) -> Result<String, DiscoveryError> {
+    let req = PreparedRequestBuilder::get(url)
+        .map_err(|e| DiscoveryError::FetchFailed(format!("invalid URL: {e}")))?
+        .header(SimpleHeader::ACCEPT, "application/json")
+        .build();
 
     let resp = client
         .send_async(req)

@@ -12,7 +12,7 @@
 
 use futures_lite::{StreamExt, stream};
 use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_bytes_async, collect_string_async};
-use foundation_netio::http::NativeHttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::shared::http::{SimpleHeader, Status};
 
 use crate::core::errors::{StorageError, StorageResult};
@@ -40,7 +40,7 @@ pub struct R2Store {
     api_token: String,
     account_id: String,
     base_url: String,
-    client: NativeHttpClient,
+    client: DynNetClient,
     mode: R2Mode,
 }
 
@@ -62,7 +62,7 @@ impl R2Store {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
-            client: NativeHttpClient::from_system(),
+            client: HttpClientBuilder::new().build(),
             mode: R2Mode::Blob { bucket: bucket_name.to_string(), prefix: prefix.to_string() },
         }
     }
@@ -104,7 +104,7 @@ impl R2Store {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
-            client: NativeHttpClient::from_system(),
+            client: HttpClientBuilder::new().build(),
             mode: R2Mode::State { bucket: bucket_name.to_string(), project: project.to_string(), stage: stage.to_string() },
         }
     }
@@ -179,12 +179,12 @@ impl R2Store {
         let url = self.object_url(key);
         let response = self
             .client
-            .get(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 GET request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send_async()
+            .send_async(
+                PreparedRequestBuilder::get(&url)
+                    .map_err(|e| StorageError::Backend(format!("R2 GET request build failed: {e}")))?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+                    .build(),
+            )
             .await
             .map_err(|e| StorageError::Backend(format!("R2 GET request failed: {e}")))?;
 
@@ -194,7 +194,7 @@ impl R2Store {
         if response.get_status() != Status::OK {
             return Err(StorageError::Backend(format!("R2 GET failed with status {}", response.get_status())));
         }
-        let (_, _, body, ..) = response.into_parts();
+        let (_, _, body) = response.into_parts();
         let bytes = collect_bytes_async(AsyncSendSafeBody::from(body))
             .await
             .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
@@ -206,14 +206,14 @@ impl R2Store {
         let url = self.object_url(key);
         let response = self
             .client
-            .put(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 PUT request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .header(SimpleHeader::CONTENT_TYPE, content_type)
-            .body_bytes(data.to_vec())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send_async()
+            .send_async(
+                PreparedRequestBuilder::put(&url)
+                    .map_err(|e| StorageError::Backend(format!("R2 PUT request build failed: {e}")))?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+                    .header(SimpleHeader::CONTENT_TYPE, content_type)
+                    .body_bytes(data.to_vec())
+                    .build(),
+            )
             .await
             .map_err(|e| StorageError::Backend(format!("R2 PUT request failed: {e}")))?;
 
@@ -229,13 +229,13 @@ impl R2Store {
         let url = self.object_url(key);
         let response = self
             .client
-            .delete(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 DELETE request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .header(SimpleHeader::CONNECTION, "close")
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send_async()
+            .send_async(
+                PreparedRequestBuilder::delete(&url)
+                    .map_err(|e| StorageError::Backend(format!("R2 DELETE request build failed: {e}")))?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+                    .header(SimpleHeader::CONNECTION, "close")
+                    .build(),
+            )
             .await
             .map_err(|e| StorageError::Backend(format!("R2 DELETE request failed: {e}")))?;
 
@@ -251,13 +251,13 @@ impl R2Store {
         let url = self.object_url(key);
         let response = self
             .client
-            .head(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 HEAD request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .header(SimpleHeader::CONNECTION, "close")
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send_async()
+            .send_async(
+                PreparedRequestBuilder::head(&url)
+                    .map_err(|e| StorageError::Backend(format!("R2 HEAD request build failed: {e}")))?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+                    .header(SimpleHeader::CONNECTION, "close")
+                    .build(),
+            )
             .await
             .map_err(|e| StorageError::Backend(format!("R2 HEAD request failed: {e}")))?;
 
@@ -285,19 +285,19 @@ impl R2Store {
         }
         let response = self
             .client
-            .get(&url)
-            .map_err(|e| StorageError::Backend(format!("R2 LIST request build failed: {e}")))?
-            .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
-            .build_client()
-            .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
-            .send_async()
+            .send_async(
+                PreparedRequestBuilder::get(&url)
+                    .map_err(|e| StorageError::Backend(format!("R2 LIST request build failed: {e}")))?
+                    .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
+                    .build(),
+            )
             .await
             .map_err(|e| StorageError::Backend(format!("R2 LIST request failed: {e}")))?;
 
         if response.get_status() != Status::OK {
             return Err(StorageError::Backend(format!("R2 LIST failed with status {}", response.get_status())));
         }
-        let (_, _, body, ..) = response.into_parts();
+        let (_, _, body) = response.into_parts();
         let text = collect_string_async(AsyncSendSafeBody::from(body))
             .await
             .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;

@@ -529,3 +529,126 @@ the isolate.
 - **`cargo test -p foundation_ai` skips the agentic suite**: `agentic_tests`
   needs `--features testing`. Run it explicitly.
 
+## "Zero response" root cause (2026-10-24) — a failed turn streamed nothing
+
+Both deployed examples (`cf-cloud-provider`, `cf-agent-loop`) answered a failed
+turn with an empty 200 response. The failure was dropped at four layers, so the
+terminal `Failed` event never reached the caller.
+
+- **The providers dropped the partial text and the error.** On an in-band error
+  after some text had streamed (a bad Server-Sent Events (SSE) chunk, a vendor
+  `error` event, or a transport failure), each provider emitted a bare
+  `Stream::Pending(ModelState::Error(..))`. The text already streamed was lost.
+  Fix: `partial_then_error` emits `Stream::Spread([Done(partial),
+  Pending(ModelState::Error(..))])` — the accumulated text first, then the failure.
+- **`lift_model_item` dropped the error inside a spread.** Its `Stream::Spread`
+  arm mapped `StreamSpread::Pending(ModelState::Error(..))` through the general
+  progress arm, which returned `Initializing`. The failure became a progress event
+  and was never reported. Fix: the spread arm maps `Pending(ModelState::Error(..))`
+  to `Done(FailedAction)`.
+- **The agent loop dropped all but the first spread item.**
+  `transition_inner_generate` emitted only the first element of a `Stream::Spread`.
+  A `[partial, error]` spread lost the error. Fix: it fans the whole spread out as
+  `TaskStatus::Spread`.
+- **`into_text_stream` dropped the terminal `Failed`.** It yielded only text
+  chunks; `TurnEvent::Failed` fell into a catch-all and was discarded. Fix: it now
+  yields `TurnTextEvent` (`Text` / `Done` / `Failed`), so the terminal outcome
+  always reaches the caller.
+
+The mock substrate gained `MockModelProvider::stream_fails_after_partial(..)`
+(a `MockSpreadStream` that emits the in-band error shape). This scripts the spread
+path in tests, not only the `Err`-returning path.
+
+Tests prove each layer:
+
+- `tests/providers/{openai_provider, anthropic_messages_provider,
+  workers_ai_provider}.rs`: each has a `*_stream_error_emits_partial_then_failure`
+  test. Partial text, then the failure in one spread, for all three providers.
+- `tests/agentic/progress_tests.rs`:
+  `lift_spread_error_becomes_failed_action_not_progress` — the lift maps the
+  spread error to a `FailedAction`.
+- `tests/agentic/agent_loop_generation_tests.rs`:
+  `stream_error_after_partial_emits_partial_then_failed_action` — the loop fans
+  the spread out (partial text plus `FailedAction`).
+- `tests/agentic/session_mock_tests.rs`:
+  `run_turn_keeps_partial_text_from_an_in_band_stream_error` and
+  `text_stream_reports_an_in_band_stream_error_after_partial` — end to end through
+  `Turn` and `into_text_stream`, partial text then `Failed`.
+
+All suites pass under `--profile uat --features testing`.
+
+## Text overlapping and the empty-queue EOF bug (2026-10-24)
+
+After the zero-response fix, the deployed `cf-cloud-provider` still showed two
+problems. The chat text repeated itself, and the worker log showed
+"Failed to parse SSE chunk".
+
+### Overlapping text: snapshots, not deltas
+
+`chat()` mapped `turn.events()`. Each `TurnEvent::Text` carries the full text
+so far (a snapshot), because HTTP backends re-send the whole reply each chunk.
+The client appends every `content`, so it repeated the whole prefix each time.
+
+The fix: `chat()` now maps `turn.into_text_stream()`. That stream yields
+`TurnTextEvent::Text` deltas. It reduces each snapshot to its new suffix. The
+client appends each delta once. `event_frame` became `text_frame`.
+
+### The empty-queue EOF bug: a split `data:` line parsed early
+
+The wasm `QueueReader` adapted a `ConcurrentQueue<Vec<u8>>` to `std::io::Read`
+for `SseParser`. When the queue was empty for a moment, `read` returned `Ok(0)`,
+the end-of-stream signal. A `data:` line split across two JS chunks then parsed
+as a complete line. The parser emitted a partial JSON payload and failed with
+"Failed to parse SSE chunk".
+
+The fix: `QueueReader` now holds the `done` flag. When the queue is empty and
+the stream is not done, `read` returns `ErrorKind::WouldBlock`. `SseParser` parks
+and resumes when more data arrives. `read` returns `Ok(0)` only when the queue
+is empty and the stream ended.
+
+### The swallowed error kind
+
+`EventSourceError::ReadError` held a `String`, so the `io::ErrorKind` was lost.
+`WasmSseIterator::next` could not tell `WouldBlock` from a real error, and mapped
+every error to `Wait`. `ReadError` now holds the `io::Error`. `next` logs real
+errors with `tracing::error!` and treats only `WouldBlock` as "wait".
+
+### The tracing-wasm hang
+
+The worker used `tracing-wasm`. Its span hooks call
+`performance.mark` and `performance.measure`, the User Timing API. Workerd does
+not implement that API, so the first span froze the isolate (error 1101). A
+custom `tracing_subscriber::fmt` writer that forwards lines to
+`web_sys::console::log_1` replaces it. That writer needs only the console API,
+which workerd supports.
+
+Deployed and checked: `cf-cloud-provider` streams the poem as five deltas with
+no overlap. `cf-agent-loop` answers with text. Both workers run under
+`wrangler tail`.
+
+Green under `--profile uat`: `foundation_netio` event-source tests (65 passed),
+`foundation_ai` full suite (agentic 324, tools/memory/models 148, doc-tests 8).
+
+## Reusable `#[wasm_logs]` console backend (2026-10-24)
+
+Each example hand-wrote the same tracing subscriber + `console.log` writer in an
+`init_logs` function. That is now one reusable attribute macro.
+
+- `#[wasm_logs(console, tracing = "…")]` on a wasm entry point installs the
+  console subscriber. `foundation_macros` emits it; `foundation_core` re-exports
+  it. The macro injects one idempotent init call into the function body.
+- The default backend is `console`. An early `#[derive(Default)]` made the
+  default `stdout`, a no-op on wasm, so `#[wasm_logs]` with no arguments logged
+  nothing. A manual `Default` impl fixes it to `console`.
+- `foundation_compact`'s `host-abi` backend declares a `host_console_log` `abi`
+  import (like `host_fill_random`) and a `ConsoleWriter`. This lets the
+  no-wasm-bindgen path log too. `foundation-wasm.js` supplies `host_console_log`
+  in its `web_abi`.
+- Both examples use the macro. Their `init_logs` functions and the unused
+  `console_log`/`tracing`/`tracing-subscriber` dependencies are removed.
+
+Verified: `foundation_compact` checks on native, `host-abi`, and `wasm-bindgen`;
+both examples check on `wasm32-unknown-unknown`; `foundation_macros` unit tests
+(33) pass.
+
+

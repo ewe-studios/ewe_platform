@@ -4,6 +4,9 @@
 //! authorization server's introspection endpoint.
 
 use base64::{engine::general_purpose::STANDARD, Engine};
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::http::SimpleHeader;
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 
 /// Token introspection result (RFC 7662).
@@ -67,9 +70,31 @@ impl IntrospectionResult {
 }
 
 /// Token introspection client.
-pub struct IntrospectionClient;
+pub struct IntrospectionClient {
+    http: DynNetClient,
+}
+
+impl Default for IntrospectionClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl IntrospectionClient {
+    /// A client that uses the platform's default HTTP client
+    /// ([`HttpClientBuilder`]: the native client, or the fetch client on wasm32).
+    #[must_use]
+    pub fn new() -> Self {
+        Self::with_client(HttpClientBuilder::new().build())
+    }
+
+    /// A client that sends its requests through `http` (a shared client, or a
+    /// test client).
+    #[must_use]
+    pub fn with_client(http: DynNetClient) -> Self {
+        Self { http }
+    }
+
     /// Introspect a token at the given endpoint.
     ///
     /// The resource authenticates with HTTP Basic Auth using `client_id`
@@ -80,12 +105,14 @@ impl IntrospectionClient {
     /// Returns `IntrospectionError` if the request fails or the response
     /// cannot be parsed.
     pub async fn introspect(
+        &self,
         introspection_url: &str,
         token: &str,
         client_id: &str,
         client_secret: &str,
     ) -> Result<IntrospectionResult, IntrospectionError> {
-        let body = do_introspect(introspection_url, token, client_id, client_secret).await?;
+        let body =
+            do_introspect(&self.http, introspection_url, token, client_id, client_secret).await?;
         serde_json::from_str(&body)
             .map_err(|e| IntrospectionError::ParseError(e.to_string()))
     }
@@ -126,7 +153,7 @@ impl core::fmt::Display for IntrospectionError {
 impl std::error::Error for IntrospectionError {}
 
 // ===========================================================================
-// HTTP fetch — uses the cross-platform HttpClient trait (native + wasm).
+// HTTP fetch — over the platform network client, `DynNetClient` (native + wasm).
 // ===========================================================================
 
 fn basic_auth_header(client_id: &str, client_secret: &str) -> String {
@@ -135,42 +162,19 @@ fn basic_auth_header(client_id: &str, client_secret: &str) -> String {
 }
 
 async fn do_introspect(
+    client: &DynNetClient,
     url: &str,
     token: &str,
     client_id: &str,
     client_secret: &str,
 ) -> Result<String, IntrospectionError> {
-    use foundation_core::url::Uri;
-    use foundation_netio::default_http_client;
-    use foundation_netio::shared::client::body_reader::try_collect_bytes;
-    use foundation_netio::shared::client::request::PreparedRequest;
-    use foundation_netio::shared::http::{
-        SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
-    };
-
-    let client = default_http_client();
-    let uri = Uri::parse(url)
-        .map_err(|e| IntrospectionError::ConnectionFailed(format!("invalid URL: {e}")))?;
-
     let body_text = format!("token={}", urlencoding::encode(token));
-
-    let mut headers = SimpleHeaders::new();
-    headers.insert(
-        SimpleHeader::CONTENT_TYPE,
-        vec!["application/x-www-form-urlencoded".into()],
-    );
-    headers.insert(
-        SimpleHeader::AUTHORIZATION,
-        vec![basic_auth_header(client_id, client_secret)],
-    );
-
-    let req = PreparedRequest {
-        method: SimpleMethod::POST,
-        url: uri,
-        headers,
-        body: SendSafeBody::Text(body_text),
-        extensions: Default::default(),
-    };
+    let req = PreparedRequestBuilder::post(url)
+        .map_err(|e| IntrospectionError::ConnectionFailed(format!("invalid URL: {e}")))?
+        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(SimpleHeader::AUTHORIZATION, basic_auth_header(client_id, client_secret))
+        .body_text(body_text)
+        .build();
 
     let resp = client
         .send_async(req)

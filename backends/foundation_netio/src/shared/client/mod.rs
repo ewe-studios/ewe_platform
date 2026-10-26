@@ -7,6 +7,7 @@ pub mod dns;
 pub mod http_client;
 pub mod intro;
 pub mod proxy;
+pub mod queue_reader;
 pub mod redirects;
 pub mod request;
 pub mod request_builder;

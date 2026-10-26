@@ -21,9 +21,10 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use foundation_netio::shared::client::{
-    body_reader::collect_strings_from_send_safe, http_client::HttpClient,
+    body_reader::collect_strings_from_send_safe,
     request::PreparedRequest,
 };
+use foundation_netio::DynNetClient;
 use serde::de::DeserializeOwned;
 
 use crate::backends::openai_provider::format_http_error;
@@ -103,7 +104,7 @@ pub fn store_if_absent(cache: &ModelInfoCache, model_name: &str, info: OpenAIMod
 /// When the request fails, the vendor answers non-2xx, or the body is not a
 /// model object.
 pub async fn fetch<T: DeserializeOwned>(
-    client: Arc<dyn HttpClient>,
+    client: DynNetClient,
     req: PreparedRequest,
     error_detail: fn(&str) -> Option<String>,
     convert: fn(T) -> OpenAIModelInfo,

@@ -20,6 +20,8 @@ use foundation_netio::shared::http::{
 };
 use foundation_netio::websocket::shared::client::WebSocketConnectConfig;
 use foundation_netio::network_client::DynNetClient;
+#[cfg(all(feature = "rpc_multi", not(target_family = "wasm")))]
+use foundation_netio::HttpClientBuilder;
 use foundation_netio::websocket::shared::error::WebSocketError;
 use foundation_netio::websocket::shared::message::WebSocketMessage;
 
@@ -59,8 +61,7 @@ impl WsTransport {
     #[must_use]
     #[cfg(all(feature = "rpc_multi", not(target_family = "wasm")))]
     pub fn from_default_client() -> Self {
-        use foundation_netio::shared::client::dns::SystemDnsResolver;
-        Self::new(Arc::new(foundation_netio::http::NativeHttpClient::new(SystemDnsResolver)))
+        Self::new(HttpClientBuilder::new().build())
     }
 
     fn to_ws_url(http_url: &str) -> Result<String, TransportError> {

@@ -14,7 +14,7 @@ use std::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{Stream, StreamSpread};
 
 use crate::errors::GenerationResult;
 use crate::types::{
@@ -47,6 +47,14 @@ struct Failure {
     error: String,
 }
 
+/// A stream that has already emitted some text and then fails in-band — the
+/// wire shape the real providers produce for an error after partial output.
+struct StreamFailure {
+    matcher: Matcher,
+    partial: Vec<Messages>,
+    error: String,
+}
+
 /// A deterministic model provider driven by `ModelInteraction` matchers.
 ///
 /// Implements `RoutableProvider` (F12) so it plugs directly into
@@ -68,6 +76,7 @@ pub struct MockModelProvider {
 struct MockInner {
     scripts: RwLock<Vec<Script>>,
     failures: RwLock<Vec<Failure>>,
+    stream_failures: RwLock<Vec<StreamFailure>>,
     call_count: AtomicUsize,
 }
 
@@ -124,6 +133,30 @@ impl MockModelProvider {
         self
     }
 
+    /// Fail `stream()` with `error` AFTER emitting `partial` text, when
+    /// `matcher` matches. This models an in-band provider error that arrives
+    /// after some text has already streamed (F06): the stream yields
+    /// `Spread([Done(partial), Pending(ModelState::Error(error))])`, so the
+    /// loop must hand back the partial text and THEN the failure — not drop
+    /// either. `generate()` is unaffected.
+    pub fn stream_fails_after_partial(
+        &mut self,
+        matcher: impl Fn(&ModelInteraction) -> bool + Send + Sync + 'static,
+        partial: Vec<Messages>,
+        error: impl Into<String>,
+    ) -> &mut Self {
+        self.inner
+            .stream_failures
+            .write()
+            .expect("mock stream failures poisoned")
+            .push(StreamFailure {
+                matcher: Box::new(move |mi, _| matcher(mi)),
+                partial,
+                error: error.into(),
+            });
+        self
+    }
+
     /// Number of generate/stream calls so far.
     pub fn call_count(&self) -> usize {
         self.inner.call_count.load(Ordering::Relaxed)
@@ -137,9 +170,15 @@ impl MockModelProvider {
 }
 
 impl MockInner {
-    fn resolve(&self, mi: &ModelInteraction) -> GenerationResult<Vec<Messages>> {
-        let n = self.call_count.fetch_add(1, Ordering::Relaxed);
+    /// Take the next call number (0-indexed) for this interaction.
+    fn next_call(&self) -> usize {
+        self.call_count.fetch_add(1, Ordering::Relaxed)
+    }
 
+    /// Resolve scripts/failures for call `n` without bumping the counter, so a
+    /// stream can check its own `stream_failures` first and fall back to the
+    /// shared scripts on the same call number.
+    fn resolve_at(&self, mi: &ModelInteraction, n: usize) -> GenerationResult<Vec<Messages>> {
         for f in self.failures.read().expect("mock failures poisoned").iter() {
             if (f.matcher)(mi, n) {
                 return Err(crate::errors::GenerationError::Generic(f.error.clone()));
@@ -155,6 +194,11 @@ impl MockInner {
         Err(crate::errors::GenerationError::Generic(
             "MockModelProvider: no matching script for interaction".into(),
         ))
+    }
+
+    fn resolve(&self, mi: &ModelInteraction) -> GenerationResult<Vec<Messages>> {
+        let n = self.next_call();
+        self.resolve_at(mi, n)
     }
 }
 
@@ -262,7 +306,22 @@ impl crate::types::Model for MockModel {
         interaction: ModelInteraction,
         _specs: Option<ModelParams>,
     ) -> GenerationResult<ModelStreamBox> {
-        let messages = self.inner.resolve(&interaction)?;
+        let n = self.inner.next_call();
+        for f in self
+            .inner
+            .stream_failures
+            .read()
+            .expect("mock stream failures poisoned")
+            .iter()
+        {
+            if (f.matcher)(&interaction, n) {
+                return Ok(Box::new(MockSpreadStream::new(
+                    f.partial.clone(),
+                    f.error.clone(),
+                )));
+            }
+        }
+        let messages = self.inner.resolve_at(&interaction, n)?;
         Ok(Box::new(MockStreamIterator::new(messages)))
     }
 }
@@ -307,6 +366,59 @@ impl Iterator for MockStreamIterator {
         } else {
             None
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// MockSpreadStream — an in-band error after partial output
+// ---------------------------------------------------------------------------
+
+/// A model stream that emits partial assistant text, then a
+/// `Pending(ModelState::Error)`. This mirrors the wire shape the real providers
+/// produce for an error that arrives after streaming began (F06):
+/// `Spread([Done(partial), Pending(Error)])`.
+pub struct MockSpreadStream {
+    partial: Vec<Messages>,
+    error: String,
+    sent_init: bool,
+    sent_spread: bool,
+}
+
+impl MockSpreadStream {
+    #[must_use]
+    pub fn new(partial: Vec<Messages>, error: impl Into<String>) -> Self {
+        Self {
+            partial,
+            error: error.into(),
+            sent_init: false,
+            sent_spread: false,
+        }
+    }
+}
+
+/// No readiness signal, as with `MockStreamIterator`.
+impl foundation_core::valtron::WakeableStream for MockSpreadStream {}
+
+impl Iterator for MockSpreadStream {
+    type Item = Stream<Messages, ModelState>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if !self.sent_init {
+            self.sent_init = true;
+            return Some(Stream::Init);
+        }
+        if !self.sent_spread {
+            self.sent_spread = true;
+            let mut items: Vec<StreamSpread<Messages, ModelState>> = self
+                .partial
+                .iter()
+                .cloned()
+                .map(StreamSpread::Done)
+                .collect();
+            items.push(StreamSpread::Pending(ModelState::Error(self.error.clone())));
+            return Some(Stream::Spread(items));
+        }
+        None
     }
 }
 

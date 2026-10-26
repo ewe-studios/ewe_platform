@@ -8,24 +8,26 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::url::Uri;
 use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
-    request::Extensions,
     body_reader::collect_strings_from_send_safe,
-    http_client::{BoxedSseIterator, HttpClient},
+    http_client::BoxedSseIterator,
     request::PreparedRequest,
 };
 use foundation_netio::shared::http::{
-    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+    SimpleHeader, SimpleHeaders, SimpleMethod,
 };
 use serde::{Deserialize, Serialize};
 
 use crate::backends::model_info::{self, ModelInfoCache};
 use crate::backends::openai_provider::{parse_openai_error, OpenAIModelInfo, OpenAIModelResponse};
 use crate::backends::backend_utils::{
-    empty_usage_report, flatten_tools, model_id_to_string, sleep, tool_arguments_from_str,
+    empty_usage_report, flatten_tools, model_id_to_string, prepared_request, sleep,
+    tool_arguments_from_str,
 };
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
@@ -351,7 +353,7 @@ pub enum ResponseEvent {
 pub struct ResponsesProvider {
     config: ResponsesConfig,
     api_key: Option<ConfidentialText>,
-    http_client: Option<Arc<dyn HttpClient>>,
+    http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
 }
 
@@ -389,8 +391,12 @@ impl ResponsesProvider {
         }
     }
 
+    /// A provider that sends its requests through `client` (a shared client,
+    /// or a test client). Without it, `create` builds the default native
+    /// client with `HttpClientBuilder` on native targets; on wasm32 the caller
+    /// gives the client (`HttpClientBuilder::new().build()` is the fetch client).
     #[must_use]
-    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
+    pub fn with_http_client(client: DynNetClient) -> Self {
         Self {
             config: ResponsesConfig::default(),
             api_key: None,
@@ -399,9 +405,10 @@ impl ResponsesProvider {
         }
     }
 
+    /// [`Self::with_http_client`] with a config.
     #[must_use]
     pub fn with_http_client_and_config(
-        client: Arc<dyn HttpClient>,
+        client: DynNetClient,
         config: ResponsesConfig,
     ) -> Self {
         Self {
@@ -429,22 +436,14 @@ impl ResponsesProvider {
 
     /// `GET` for an empty body (the `models` lookups), `POST` otherwise.
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri =
-            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
-        let (method, body) = if body.is_empty() {
-            (SimpleMethod::GET, SendSafeBody::None)
+        let method = if body.is_empty() {
+            SimpleMethod::GET
         } else {
-            (SimpleMethod::POST, SendSafeBody::Text(body.to_string()))
+            SimpleMethod::POST
         };
-        Ok(PreparedRequest {
-            method,
-            url: uri,
-            headers,
-            body,
-            extensions: Extensions::default(),
-        })
+        prepared_request(method, url, headers, body)
     }
 
     /// The `GET models/{name}` request.
@@ -577,10 +576,11 @@ impl ModelProvider for ResponsesProvider {
             }
             self.config = cfg;
         }
-
+        // Native only: on wasm the sync `generate` path cannot wait for a
+        // `fetch`, so a wasm caller injects its client (`with_http_client`).
         #[cfg(not(target_family = "wasm"))]
         if self.http_client.is_none() {
-            self.http_client = Some(foundation_netio::http::default_http_client());
+            self.http_client = Some(HttpClientBuilder::new().build());
         }
 
         Ok(self)
@@ -680,7 +680,7 @@ pub struct ResponsesModel {
     model_id: ModelId,
     model_name: String,
     api_key: Option<ConfidentialText>,
-    http_client: Option<Arc<dyn HttpClient>>,
+    http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
     /// Per-million pricing, sourced the same way `OpenAIModel` sources it.
     pricing: crate::types::base_types::ModelUsageCosting,
@@ -718,34 +718,18 @@ impl ResponsesModel {
     }
 
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri =
-            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
-        Ok(PreparedRequest {
-            method: SimpleMethod::POST,
-            url: uri,
-            headers,
-            body: SendSafeBody::Text(body.to_string()),
-            extensions: Extensions::default(),
-        })
+        prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
     fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri =
-            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(
             SimpleHeader::ACCEPT,
             vec![String::from("text/event-stream")],
         );
-        Ok(PreparedRequest {
-            method: SimpleMethod::POST,
-            url: uri,
-            headers,
-            body: SendSafeBody::Text(body.to_string()),
-            extensions: Extensions::default(),
-        })
+        prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
     fn build_request(

@@ -9,14 +9,13 @@ use foundation_ai::backends::anthropic_messages_provider::{
 };
 use foundation_ai::types::{
     Args, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction, ModelOutput,
-    ModelParams, ModelProvider, ModelProviders, ModelUsageCosting, StopReason, TextContent, Tool,
-    ToolDeclarations, ToolDefinition, UserModelContent,
+    ModelParams, ModelProvider, ModelProviders, ModelState, ModelUsageCosting, StopReason,
+    TextContent, Tool, ToolDeclarations, ToolDefinition, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::http::NativeHttpClient;
+use foundation_core::valtron::{valtron_test, Stream, StreamSpread};
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
-use foundation_netio::shared::client::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -77,8 +76,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
 
 fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
     let addr = server_addr(server);
-    let resolver = StaticSocketAddr::new(addr);
-    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = AnthropicConfig::new()
         .with_base_url(server.base_url())
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
@@ -178,6 +176,69 @@ event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n";
         assert_eq!(*stop_reason, StopReason::Stop);
     } else {
         panic!("Expected Assistant message");
+    }
+}
+
+/// Verify that an in-band `error` event after partial text emits the
+/// accumulated text first, then the failure, in one `Stream::Spread`.
+#[valtron_test]
+fn test_provider_streaming_error_emits_partial_then_failure() {
+    let sse_body = b"event: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"Hello\"}}\n\n\
+event: error\ndata: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"Overloaded\"}}\n\n";
+
+    let server = TestHttpServer::with_response(move |_req| sse_response(sse_body));
+    let model = setup_provider_and_model(&server);
+
+    let mut stream = model.stream(make_interaction("Hi"), None).unwrap();
+    let mut items: Vec<Stream<Messages, ModelState>> = Vec::new();
+    for item in &mut stream {
+        items.push(item);
+    }
+
+    // The delta "Hello" is emitted (as a `Next` message) before the failure.
+    let partial: Vec<String> = items
+        .iter()
+        .filter_map(|item| match item {
+            Stream::Next(Messages::Assistant {
+                content: ModelOutput::Text(tc),
+                ..
+            }) => Some(tc.content.clone()),
+            _ => None,
+        })
+        .collect();
+    assert!(
+        partial.iter().any(|t| t == "Hello"),
+        "expected partial text \"Hello\", got {partial:?}"
+    );
+
+    // The failure arrives as a Spread: partial text, then Pending(Error).
+    let spread = items
+        .iter()
+        .find_map(|item| match item {
+            Stream::Spread(inner) => Some(inner),
+            _ => None,
+        })
+        .expect("expected a Stream::Spread carrying the failure");
+
+    assert_eq!(
+        spread.len(),
+        2,
+        "spread should be [partial text, error], got {spread:?}"
+    );
+
+    match &spread[0] {
+        StreamSpread::Done(Messages::Assistant {
+            content: ModelOutput::Text(tc),
+            ..
+        }) => assert_eq!(tc.content, "Hello"),
+        other => panic!("expected partial text before failure, got {other:?}"),
+    }
+
+    match &spread[1] {
+        StreamSpread::Pending(ModelState::Error(msg)) => {
+            assert!(msg.contains("Overloaded"), "unexpected error message: {msg}");
+        }
+        other => panic!("expected Pending(ModelState::Error), got {other:?}"),
     }
 }
 

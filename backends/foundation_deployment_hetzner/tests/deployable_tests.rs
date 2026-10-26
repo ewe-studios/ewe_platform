@@ -41,8 +41,6 @@ use foundation_deployment_hetzner::generated::servers::{
     ListServersResponseServersItemPublicNetIpv4,
 };
 use foundation_deployment_hetzner::{HetznerClient, HetznerServer};
-use foundation_netio::shared::client::dns::SystemDnsResolver;
-use foundation_netio::http::NativeHttpClient;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 
 /// Every request the mock saw, as `METHOD path`.
@@ -127,10 +125,10 @@ fn json(status: u16, body: &str) -> HttpResponse {
 ///
 /// The HTTP client here goes unused — `HetznerServer` carries its own, pointed at
 /// the mock — but the trait requires one.
-async fn provider_client(dir: &std::path::Path) -> ProviderClient<FileStateStore, SystemDnsResolver> {
+async fn provider_client(dir: &std::path::Path) -> ProviderClient<FileStateStore> {
     let store = FileStateStore::new(dir, "ewe-test", "dev");
     store.init().await.expect("init state store");
-    ProviderClient::new("ewe-test", "dev", store, NativeHttpClient::default())
+    ProviderClient::new("ewe-test", "dev", store)
 }
 
 fn tmpdir(name: &str) -> std::path::PathBuf {

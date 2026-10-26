@@ -79,6 +79,57 @@ Found and recorded in `docs/bug-backlog.md`: readiness signals that never reques
 a resume stall on wasm; nested blocking helpers spin on wasm; wasm SSE parser
 errors are swallowed; interval callbacks run under the registry lock.
 
+## Post-T5 fix — a failed turn streams its error, not an empty 200
+
+The deployed examples answered a failed turn with an empty 200 (the "zero
+response"). The failure was dropped at four layers: the providers (lost the
+partial text and the error), `lift_model_item` (mapped a spread error to
+`Initializing`), the agent loop (kept only the first spread item), and
+`into_text_stream` (dropped the `Failed` event). All four are fixed and proven by
+tests — see LEARNINGS.md "Zero response root cause" for the full list.
+
+Green under `--profile uat --features testing`: `provider_tests` 249 passed,
+`agentic_tests` 324 passed. The `docs/bug-backlog.md` "`TurnTextStream` drops the
+terminal `Failed` event" entry is removed.
+
+## Post-deploy fix — overlapping text and the empty-queue EOF bug
+
+The deployed `cf-cloud-provider` repeated the reply text and logged
+"Failed to parse SSE chunk". Both are fixed and re-deployed.
+
+- `chat()` now streams `turn.into_text_stream()` (deltas), not `turn.events()`
+  (snapshots). The client appends each delta once. Commit `609fb3ab9`.
+- The wasm `QueueReader` returned `Ok(0)` (end of stream) when the byte queue
+  was empty for a moment, so a `data:` line split across two JS chunks parsed
+  early. It now returns `WouldBlock` until the stream is done. Commit
+  `273349fa4`.
+- `EventSourceError::ReadError` keeps the `io::Error`; the SSE iterator logs
+  real errors and parks only on `WouldBlock`. Commit `273349fa4`.
+- `tracing-wasm` froze the isolate (User Timing API, error 1101). A
+  `console.log` writer replaces it. Commit `609fb3ab9`.
+
+Deployed: `cf-cloud-provider` and `cf-agent-loop` both answer. See LEARNINGS.md
+"Text overlapping and the empty-queue EOF bug".
+
+## Reusable `#[wasm_logs]` console backend
+
+Each example hand-wrote the same tracing subscriber + `console.log` writer in an
+`init_logs` function. This is now one reusable macro.
+
+- `#[wasm_logs(console, tracing = "…")]` on a wasm entry point installs the
+  console subscriber. `foundation_macros` emits it; `foundation_core` re-exports
+  it. The macro injects one idempotent init call into the function body.
+- `foundation_compact`'s `host-abi` backend now declares a `host_console_log`
+  `abi` import (like `host_fill_random`) and a `ConsoleWriter`, so the
+  no-wasm-bindgen path can log too. `foundation-wasm.js` supplies
+  `host_console_log` in its `web_abi`.
+- Both examples use the macro; their `init_logs` functions and the unused
+  `console_log`/`tracing`/`tracing-subscriber` dependencies are removed.
+
+Verified: `foundation_compact` checks on native, `host-abi`, and `wasm-bindgen`;
+both examples check on `wasm32-unknown-unknown`; `foundation_macros` unit tests
+(33) pass.
+
 ## Feature status
 
 - **00-foundation** — 🔧 6/7: T1–T6 done (T6:

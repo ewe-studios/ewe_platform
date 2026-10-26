@@ -1,7 +1,8 @@
 //! OpenAI-compatible HTTP provider for connecting to `OpenAI`, llama.cpp server,
 //! vLLM, `Ollama`, `OpenRouter`, and any `OpenAI`-compatible endpoint.
 //!
-//! Uses `foundation_netio`'s `HttpClient` (`NativeHttpClient`) for HTTP I/O with
+//! Uses `foundation_netio`'s `DynNetClient` (the native client, or the fetch
+//! client on wasm32) for HTTP I/O with
 //! Valtron `TaskIterator`/`StreamIterator` patterns — no tokio, no async-trait.
 
 use foundation_compact::SystemTime;
@@ -10,21 +11,23 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crate::backends::backend_utils::{
-    empty_usage_report, flatten_tools, model_id_to_string, sleep, tool_arguments_from_str,
+    empty_usage_report, flatten_tools, model_id_to_string, prepared_request, sleep,
+    tool_arguments_from_str,
 };
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::url::Uri;
 use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::event_source::{Event, ParseResult};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
     body_reader::collect_strings_from_send_safe,
-    http_client::{BoxedSseIterator, HttpClient, SseProgress},
-    request::Extensions,
+    http_client::{BoxedSseIterator, SseProgress},
     request::PreparedRequest,
 };
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
 use serde::{Deserialize, Serialize};
 
 use crate::backends::model_info::{self, ModelInfoCache};
@@ -198,7 +201,7 @@ impl OpenAIProvider {
 pub struct OpenAIProvider {
     config: OpenAIConfig,
     api_key: Option<ConfidentialText>,
-    http_client: Option<Arc<dyn HttpClient>>,
+    http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
 }
 
@@ -236,8 +239,12 @@ impl OpenAIProvider {
         }
     }
 
+    /// A provider that sends its requests through `client` (a shared client,
+    /// or a test client). Without it, `create` builds the default native
+    /// client with `HttpClientBuilder` on native targets; on wasm32 the caller
+    /// gives the client (`HttpClientBuilder::new().build()` is the fetch client).
     #[must_use]
-    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
+    pub fn with_http_client(client: DynNetClient) -> Self {
         Self {
             config: OpenAIConfig::default(),
             api_key: None,
@@ -246,8 +253,9 @@ impl OpenAIProvider {
         }
     }
 
+    /// [`Self::with_http_client`] with a config.
     #[must_use]
-    pub fn with_http_client_and_config(client: Arc<dyn HttpClient>, config: OpenAIConfig) -> Self {
+    pub fn with_http_client_and_config(client: DynNetClient, config: OpenAIConfig) -> Self {
         Self {
             config,
             api_key: None,
@@ -279,22 +287,14 @@ impl OpenAIProvider {
     /// because the caller falls back to synthesised model info on any error, the
     /// lookup silently never succeeded.
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri =
-            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
-        let (method, body) = if body.is_empty() {
-            (SimpleMethod::GET, SendSafeBody::None)
+        let method = if body.is_empty() {
+            SimpleMethod::GET
         } else {
-            (SimpleMethod::POST, SendSafeBody::Text(body.to_string()))
+            SimpleMethod::POST
         };
-        Ok(PreparedRequest {
-            method,
-            url: uri,
-            headers,
-            body,
-            extensions: Extensions::default(),
-        })
+        prepared_request(method, url, headers, body)
     }
 
     /// Execute a non-streaming HTTP request with retry on 429/5xx errors.
@@ -420,7 +420,7 @@ impl OpenAIProvider {
 /// Owns its inputs so it can run as a detached task. The body is a small JSON
 /// object needed whole to parse it, so it is read in full after the status check.
 async fn fetch_model_info_with(
-    client: Arc<dyn HttpClient>,
+    client: DynNetClient,
     req: PreparedRequest,
 ) -> GenerationResult<OpenAIModelInfo> {
     model_info::fetch(client, req, parse_openai_error, <OpenAIModelInfo as From<OpenAIModelResponse>>::from).await
@@ -457,10 +457,11 @@ impl ModelProvider for OpenAIProvider {
             }
             self.config = cfg;
         }
-
+        // Native only: on wasm the sync `generate` path cannot wait for a
+        // `fetch`, so a wasm caller injects its client (`with_http_client`).
         #[cfg(not(target_family = "wasm"))]
         if self.http_client.is_none() {
-            self.http_client = Some(foundation_netio::http::default_http_client());
+            self.http_client = Some(HttpClientBuilder::new().build());
         }
 
         Ok(self)
@@ -561,7 +562,7 @@ pub struct OpenAIModel {
     model_id: ModelId,
     model_name: String,
     api_key: Option<ConfidentialText>,
-    http_client: Option<Arc<dyn HttpClient>>,
+    http_client: Option<DynNetClient>,
     /// The provider's model-metadata cache, shared so [`OpenAIModel::info`]
     /// reports a lookup that completes after this model was handed out.
     models_cache: ModelInfoCache,
@@ -604,39 +605,23 @@ impl OpenAIModel {
     /// because the caller falls back to synthesised model info on any error, the
     /// lookup silently never succeeded.
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri =
-            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
-        let (method, body) = if body.is_empty() {
-            (SimpleMethod::GET, SendSafeBody::None)
+        let method = if body.is_empty() {
+            SimpleMethod::GET
         } else {
-            (SimpleMethod::POST, SendSafeBody::Text(body.to_string()))
+            SimpleMethod::POST
         };
-        Ok(PreparedRequest {
-            method,
-            url: uri,
-            headers,
-            body,
-            extensions: Extensions::default(),
-        })
+        prepared_request(method, url, headers, body)
     }
 
     fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri =
-            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(
             SimpleHeader::ACCEPT,
             vec![String::from("text/event-stream")],
         );
-        Ok(PreparedRequest {
-            method: SimpleMethod::POST,
-            url: uri,
-            headers,
-            body: SendSafeBody::Text(body.to_string()),
-            extensions: Extensions::default(),
-        })
+        prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
     /// Execute a non-streaming HTTP request with retry on 429/5xx errors.
@@ -1086,7 +1071,8 @@ impl Iterator for OpenAIStream {
         match item {
             Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
             Stream::Pending(SseProgress::Failed(msg)) => {
-                Some(Stream::Pending(ModelState::Error(msg)))
+                // Emit any partial text already accumulated, then the failure.
+                Some(self.partial_then_error(msg))
             }
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
@@ -1108,8 +1094,8 @@ impl Iterator for OpenAIStream {
                                 }
                                 Stream::Init
                                 | Stream::Ignore
-                                | Stream::Wait
-                                | Stream::Spread(_) => {}
+                                | Stream::Wait => {}
+                                Stream::Spread(inner) => mapped.extend(inner),
                             }
                         }
                         StreamSpread::Pending(SseProgress::Failed(msg)) => {
@@ -1146,21 +1132,10 @@ impl OpenAIStream {
 
         let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
             tracing::warn!(data = %data, "Failed to parse SSE chunk JSON");
-            return Stream::Next(Messages::Assistant {
-                id: foundation_compact::ids::new_scru128(),
-                model: self.model_id.clone(),
-                timestamp: SystemTime::now(),
-                usage: empty_usage_report(),
-                content: ModelOutput::Text(TextContent {
-                    content: self.accumulated_text.clone(),
-                    signature: None,
-                }),
-                stop_reason: StopReason::Error,
-                provider: ModelProviders::OPENAI,
-                error_detail: Some(format!("Failed to parse SSE chunk: {data}")),
-                signature: None,
-                metadata: None,
-            });
+            // An in-band error (e.g. `{"error":{...}}` from OpenRouter) is not a
+            // chunk. Emit the text accumulated so far, then the failure, in one
+            // `Spread`, so the loop sees partial output before `FailedAction`.
+            return self.partial_then_error(format!("Failed to parse SSE chunk: {data}"));
         };
 
         if let Some(u) = chunk.usage {
@@ -1206,6 +1181,42 @@ impl OpenAIStream {
         } else {
             Stream::Ignore
         }
+    }
+
+    /// Emit the text accumulated so far, then a failure, in one `Spread`.
+    ///
+    /// An in-band parse failure can happen after the model already produced
+    /// partial text. The loop must see that partial output before it records the
+    /// `FailedAction`, so this spreads `Done(partial text)` then
+    /// `Pending(ModelState::Error)`. The failure is terminal: it also marks the
+    /// stream `done` so the next poll ends instead of re-reading a still-open
+    /// connection.
+    fn partial_then_error(&mut self, message: String) -> Stream<Messages, ModelState> {
+        self.done = true;
+        if self.accumulated_text.is_empty() {
+            return Stream::Pending(ModelState::Error(message));
+        }
+
+        let partial = Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
+            model: self.model_id.clone(),
+            timestamp: SystemTime::now(),
+            usage: empty_usage_report(),
+            content: ModelOutput::Text(TextContent {
+                content: self.accumulated_text.clone(),
+                signature: None,
+            }),
+            stop_reason: StopReason::Stop,
+            provider: ModelProviders::OPENAI,
+            error_detail: None,
+            signature: None,
+            metadata: None,
+        };
+
+        Stream::Spread(vec![
+            StreamSpread::Done(partial),
+            StreamSpread::Pending(ModelState::Error(message)),
+        ])
     }
 
     fn accumulate_tool_calls(&mut self, deltas: &[OpenAIToolCallDelta]) {

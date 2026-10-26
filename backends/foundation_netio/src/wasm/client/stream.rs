@@ -15,7 +15,6 @@
 //! to the JS event loop), `Stream::Next` for parsed events, and `None`
 //! when the stream is fully consumed.
 
-use std::io::{Cursor, Read};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
@@ -26,51 +25,10 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 
 use crate::event_source::shared::sse::SseParser;
-use crate::event_source::ParseResult;
+use crate::event_source::{EventSourceError, ParseResult};
 use crate::shared::client::http_client::SseProgress;
+use crate::shared::client::queue_reader::QueueReader;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-
-/// `Read` adapter over a `ConcurrentQueue<Vec<u8>>` with shared done flag.
-///
-/// WHY: `SseParser` requires `std::io::Read`. Byte chunks arrive
-/// asynchronously from the JS ReadableStream reader task.
-///
-/// WHAT: Buffers one chunk at a time. Returns `Ok(0)` when the queue
-/// is temporarily empty (parser retries on next poll) or when the
-/// stream is truly exhausted (EOF).
-///
-/// HOW: Holds `Arc<ConcurrentQueue>` shared with the async reader task.
-/// The cursor tracks position within the current chunk.
-struct QueueReader {
-    queue: Arc<ConcurrentQueue<Vec<u8>>>,
-    current: Cursor<Vec<u8>>,
-}
-
-impl QueueReader {
-    fn new(queue: Arc<ConcurrentQueue<Vec<u8>>>) -> Self {
-        Self {
-            queue,
-            current: Cursor::new(Vec::new()),
-        }
-    }
-}
-
-impl Read for QueueReader {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let remaining = self.current.get_ref().len() - self.current.position() as usize;
-        if remaining > 0 {
-            return self.current.read(buf);
-        }
-
-        match self.queue.pop() {
-            Ok(chunk) => {
-                self.current = Cursor::new(chunk);
-                self.current.read(buf)
-            }
-            Err(_) => Ok(0),
-        }
-    }
-}
 
 /// Spawn an async task that reads all chunks from a JS `ReadableStream`
 /// into the shared queue.
@@ -116,6 +74,7 @@ fn spawn_stream_reader(
                 let array = js_sys::Uint8Array::new(&value);
                 let bytes = array.to_vec();
                 if !bytes.is_empty() {
+                    tracing::trace!("SSE chunk: {} bytes", bytes.len());
                     if queue.push(bytes).is_err() {
                         done.store(true, Ordering::Release);
                         wake.fire();
@@ -159,7 +118,7 @@ impl WasmSseIterator {
 
         spawn_stream_reader(body, queue.clone(), done.clone(), wake.clone());
 
-        let reader = QueueReader::new(queue.clone());
+        let reader = QueueReader::new(queue.clone(), done.clone());
         let buffer = SharedByteBufferStream::ref_cell(reader);
         let parser = SseParser::new(buffer);
 
@@ -200,7 +159,25 @@ impl Iterator for WasmSseIterator {
 
         match self.parser.parse_next() {
             Ok(Some(result)) => Some(Stream::Next(result)),
-            Ok(None) | Err(_) => {
+            Ok(None) => {
+                if self.done.load(Ordering::Acquire) && self.queue.is_empty() {
+                    None
+                } else {
+                    Some(Stream::Wait)
+                }
+            }
+            Err(e) => {
+                // `WouldBlock` is the normal "no data yet" parking signal, not an
+                // error. Any other failure is a real read/parse error and must be
+                // visible in logs rather than silently swallowed as "wait".
+                let would_block = matches!(
+                    &e,
+                    EventSourceError::ReadError(err)
+                        if err.kind() == std::io::ErrorKind::WouldBlock
+                );
+                if !would_block {
+                    tracing::error!("SSE parse error: {e}");
+                }
                 if self.done.load(Ordering::Acquire) && self.queue.is_empty() {
                     None
                 } else {

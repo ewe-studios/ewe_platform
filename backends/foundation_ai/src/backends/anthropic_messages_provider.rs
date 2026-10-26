@@ -8,21 +8,24 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::url::Uri;
 use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
-    request::Extensions,
     body_reader::collect_strings_from_send_safe,
-    http_client::{BoxedSseIterator, HttpClient},
+    http_client::{BoxedSseIterator, SseProgress},
     request::PreparedRequest,
 };
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
 use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;
 
-use crate::backends::backend_utils::{sleep, tool_arguments_from_str, tool_arguments_from_value};
+use crate::backends::backend_utils::{
+    prepared_request, sleep, tool_arguments_from_str, tool_arguments_from_value,
+};
 use crate::backends::model_info::{self, ModelInfoCache};
 use crate::backends::openai_provider::OpenAIModelInfo;
 use crate::costing::{calculate_cost, CostAccumulator};
@@ -419,7 +422,7 @@ pub struct MessageDeltaDelta {
 pub struct AnthropicMessagesProvider {
     config: AnthropicConfig,
     api_key: Option<ConfidentialText>,
-    http_client: Option<Arc<dyn HttpClient>>,
+    http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
 }
 
@@ -457,8 +460,12 @@ impl AnthropicMessagesProvider {
         }
     }
 
+    /// A provider that sends its requests through `client` (a shared client,
+    /// or a test client). Without it, `create` builds the default native
+    /// client with `HttpClientBuilder` on native targets; on wasm32 the caller
+    /// gives the client (`HttpClientBuilder::new().build()` is the fetch client).
     #[must_use]
-    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
+    pub fn with_http_client(client: DynNetClient) -> Self {
         Self {
             config: AnthropicConfig::default(),
             api_key: None,
@@ -467,8 +474,9 @@ impl AnthropicMessagesProvider {
         }
     }
 
+    /// [`Self::with_http_client`] with a config.
     #[must_use]
-    pub fn with_http_client_and_config(client: Arc<dyn HttpClient>, config: AnthropicConfig) -> Self {
+    pub fn with_http_client_and_config(client: DynNetClient, config: AnthropicConfig) -> Self {
         Self {
             config,
             api_key: None,
@@ -483,17 +491,9 @@ impl AnthropicMessagesProvider {
         let Some(url) = self.config.models_url(model_name) else {
             return Ok(None);
         };
-        let uri = Uri::parse(&url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.config.auth_headers(self.api_key.as_ref());
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
-        Ok(Some(PreparedRequest {
-            method: SimpleMethod::GET,
-            url: uri,
-            headers,
-            body: SendSafeBody::None,
-            extensions: Extensions::default(),
-        }))
+        prepared_request(SimpleMethod::GET, &url, headers, "").map(Some)
     }
 
     /// Fetch `model_name`'s metadata (`GET /v1/models/{name}`) without
@@ -596,10 +596,11 @@ impl ModelProvider for AnthropicMessagesProvider {
             }
             self.config = cfg;
         }
-
+        // Native only: on wasm the sync `generate` path cannot wait for a
+        // `fetch`, so a wasm caller injects its client (`with_http_client`).
         #[cfg(not(target_family = "wasm"))]
         if self.http_client.is_none() {
-            self.http_client = Some(foundation_netio::http::default_http_client());
+            self.http_client = Some(HttpClientBuilder::new().build());
         }
 
         Ok(self)
@@ -680,7 +681,7 @@ pub struct AnthropicModel {
     model_id: ModelId,
     model_name: String,
     api_key: Option<ConfidentialText>,
-    http_client: Option<Arc<dyn HttpClient>>,
+    http_client: Option<DynNetClient>,
     models_cache: ModelInfoCache,
     pricing: ModelUsageCosting,
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
@@ -705,31 +706,15 @@ impl AnthropicModel {
     }
 
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri = Uri::parse(url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
-        Ok(PreparedRequest {
-            method: SimpleMethod::POST,
-            url: uri,
-            headers,
-            body: SendSafeBody::Text(body.to_string()),
-            extensions: Extensions::default(),
-        })
+        prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
     fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri = Uri::parse(url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("text/event-stream")]);
-        Ok(PreparedRequest {
-            method: SimpleMethod::POST,
-            url: uri,
-            headers,
-            body: SendSafeBody::Text(body.to_string()),
-            extensions: Extensions::default(),
-        })
+        prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
     fn execute_request<T: for<'de> Deserialize<'de> + Send>(
@@ -1089,6 +1074,10 @@ impl Iterator for AnthropicStream {
 
         match item {
             Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
+            Stream::Pending(SseProgress::Failed(msg)) => {
+                // Emit any partial text already accumulated, then the failure.
+                Some(self.partial_then_error(msg))
+            }
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
@@ -1105,9 +1094,12 @@ impl Iterator for AnthropicStream {
                                 Stream::Delayed(_)
                                 | Stream::Init
                                 | Stream::Ignore
-                                | Stream::Wait
-                                | Stream::Spread(_) => {}
+                                | Stream::Wait => {}
+                                Stream::Spread(inner) => mapped.extend(inner),
                             }
+                        }
+                        StreamSpread::Pending(SseProgress::Failed(msg)) => {
+                            mapped.push(StreamSpread::Pending(ModelState::Error(msg)));
                         }
                         StreamSpread::Pending(_) => {
                             mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
@@ -1236,8 +1228,53 @@ impl AnthropicStream {
                 self.cumulative_cost.lock().unwrap().add(&report.cost);
                 Stream::Ignore
             }
+            "error" => {
+                // Anthropic reports in-band failures (overload, invalid request)
+                // as an SSE `error` event. Surface it as a model error so the
+                // loop ends the turn with a `FailedAction`, instead of silently
+                // ignoring the event and ending with empty text.
+                let message = parse_anthropic_error(data).unwrap_or_else(|| data.to_string());
+                tracing::warn!(%message, "Anthropic stream returned an error event");
+                self.partial_then_error(message)
+            }
             _ => Stream::Ignore,
         }
+    }
+
+    /// Emit the text accumulated so far, then a failure, in one `Spread`.
+    ///
+    /// An in-band failure can happen after the model already produced partial
+    /// text. The loop must see that partial output before it records the
+    /// `FailedAction`, so this spreads `Done(partial text)` then
+    /// `Pending(ModelState::Error)`. The failure is terminal: it also marks the
+    /// stream `done` so the next poll ends instead of re-reading a still-open
+    /// connection.
+    fn partial_then_error(&mut self, message: String) -> Stream<Messages, ModelState> {
+        self.done = true;
+        if self.accumulated_text.is_empty() {
+            return Stream::Pending(ModelState::Error(message));
+        }
+
+        let partial = Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
+            model: self.model_id.clone(),
+            timestamp: SystemTime::now(),
+            usage: empty_usage_report(),
+            content: ModelOutput::Text(TextContent {
+                content: self.accumulated_text.clone(),
+                signature: None,
+            }),
+            stop_reason: StopReason::Stop,
+            provider: ModelProviders::ANTHROPIC,
+            error_detail: None,
+            signature: None,
+            metadata: None,
+        };
+
+        Stream::Spread(vec![
+            StreamSpread::Done(partial),
+            StreamSpread::Pending(ModelState::Error(message)),
+        ])
     }
 
     fn build_final_messages_with_cost(&self) -> (Vec<Messages>, UsageReport) {

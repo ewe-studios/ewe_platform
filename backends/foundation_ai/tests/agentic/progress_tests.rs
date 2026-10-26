@@ -145,6 +145,37 @@ fn lift_spread_lifts_each_element() {
     }
 }
 
+/// A model error inside a `Spread` must become a `FailedAction` record, not a
+/// `Pending` progress status — otherwise the failure is silently dropped.
+#[test]
+fn lift_spread_error_becomes_failed_action_not_progress() {
+    use foundation_core::valtron::StreamSpread;
+    let model = ModelId::Name("m".into(), None);
+    let items = vec![
+        StreamSpread::Done(user_message()),
+        StreamSpread::Pending(ModelState::Error("boom".into())),
+    ];
+    match lift_model_item(Stream::Spread(items), &model) {
+        Stream::Spread(lifted) => {
+            assert_eq!(lifted.len(), 2, "both spread elements must be lifted");
+            assert!(matches!(
+                lifted[0],
+                StreamSpread::Done(SessionRecord::Conversation { .. })
+            ));
+            match &lifted[1] {
+                StreamSpread::Done(SessionRecord::FailedAction { error, .. }) => {
+                    assert_eq!(
+                        *error,
+                        foundation_ai::agentic::errors::AgenticError::Unexpected("boom".into())
+                    );
+                }
+                other => panic!("expected FailedAction as Done, got {other:?}"),
+            }
+        }
+        other => panic!("expected Spread, got {other:?}"),
+    }
+}
+
 #[test]
 fn from_model_state_finished_is_session_ending() {
     let p = AgentProgress::from(&ModelState::Finished);

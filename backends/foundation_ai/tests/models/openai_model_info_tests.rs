@@ -20,6 +20,11 @@ use foundation_netio::shared::client::HttpExchangeClientTask;
 use foundation_netio::shared::http::{
     HttpClientError, SendSafeBody, SimpleHeaders, SimpleResponse, Status,
 };
+use foundation_netio::websocket::shared::client::{
+    MessageDelivery, WebSocketClient, WebSocketConnectConfig,
+};
+use foundation_netio::websocket::shared::connector::{WebSocketConnector, WsExchangeTask};
+use foundation_netio::websocket::shared::error::WebSocketError;
 
 const MODEL: &str = "gpt-test";
 
@@ -65,6 +70,25 @@ impl HttpClient for ModelInfoClient {
 
     fn open_exchange(&self, _req: PreparedRequest) -> HttpExchangeClientTask {
         unimplemented!("open_exchange is not exercised by the model-info tests")
+    }
+}
+/// The tests send no WebSocket traffic; the impl only makes the fake a
+/// `DynNetClient`.
+impl WebSocketConnector for ModelInfoClient {
+    fn open_websocket(
+        &self,
+        _url: &str,
+        _config: WebSocketConnectConfig,
+    ) -> Result<WebSocketClient, WebSocketError> {
+        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+    }
+
+    fn open_websocket_task(
+        &self,
+        _url: &str,
+        _config: WebSocketConnectConfig,
+    ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError> {
+        Err(WebSocketError::ProtocolError("not used by these tests".into()))
     }
 }
 

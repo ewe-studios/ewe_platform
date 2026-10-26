@@ -80,10 +80,13 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
 - **Ignored tests.**
   - 14 network-dependent tests are ignored: `http_external_validation`, `tls_integration`, `http_server_integration`. Make them hermetic (task #31).
   - 33 doctests are ignored (task #33).
-- **Wasm SSE parser errors are swallowed.** `wasm/client/stream.rs`
-  `WasmSseIterator::next` maps `parse_next()`'s `Err(_)` to the same arm as
-  `Ok(None)` (`Wait`, or end of stream), so a malformed event or a reader error
-  silently stalls or truncates the stream. Surface it as
+- **Wasm SSE parser errors still stall instead of terminating the stream.**
+  `wasm/client/stream.rs` `WasmSseIterator::next` now distinguishes `WouldBlock`
+  (a real "wait" signal, kept in `EventSourceError::ReadError(io::Error)`) from a
+  genuine read or parse error and logs the latter with `tracing::error!`. What is
+  left: a non-`WouldBlock` parse error (a malformed event) still returns
+  `Stream::Wait` rather than ending the stream, so a permanently malformed feed
+  stalls the consumer instead of failing. Surface it as
   `Stream::Pending(SseProgress::Failed(msg))` then `None`, like a fetch failure.
 - **Wasm `send_sse_async` returns a non-parking stream.** It boxes via
   `into_future_stream()` (`StreamAsFutureStream`, a raw lens whose `poll_next` is
@@ -195,6 +198,8 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
 
 - **`wait_for_stdout`:** re-reads the whole log on every poll, misses a message split across frames, and scans stderr too.
 - **`docker_container_macro_supports_async_functions`** fails instead of skipping when no Docker daemon is running.
+- **Docker-gated tests check only that the socket file exists.** `docker_available()` in `tests/container_integration.rs`, `tests/ssh_backend_tests.rs`, `tests/runner_integration_tests.rs` and `tests/image_build_integration.rs` returns true when `/var/run/docker.sock` exists, also when no daemon listens on it. Then `--ignored` runs fail with "Docker daemon not reachable" instead of skipping. Fix: add one shared test helper that connects with `DockerClient::connect_with_defaults` and pings the daemon, and use it in all Docker-gated tests (foundation_proxy has the same helper, see §9).
+- **Vagrant box lookup runs a `curl` subprocess** (`src/import/mod.rs`, near line 512). The comment says this avoids "tokio runtime conflicts", but no tokio runtime is used now. The subprocess needs `curl` installed and returns no structured errors. Fix: use the valtron-based HTTP client from `foundation_netio` with a bounded, streamed read of the JSON response, and remove the comment.
 - **Inline tests remain** in `docker/wireguard.rs` (rule 7).
 - **Warnings:**
   - deprecated `SimpleHttpClient`, used in `wait_for.rs` and in `foundation_deployment/src/provider_client.rs`;
@@ -222,6 +227,10 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   change one entry and save it back. Two admin commands at once can each save
   over the other's change. Fix: serialise the read-modify-write behind a
   mutex in `ProxyStateStore` (or store each backend's state as its own record).
+- **Docker-gated tests check only that the socket file exists**
+  (`tests/proxy_integration_tests.rs`, `docker_available()`). When the socket
+  exists but no daemon listens on it, the `--ignored` runs fail instead of
+  skipping. Fix: use a shared helper that pings the daemon (see §7).
 - **The `mut` on `h3_local_addr` warns without the `h3` feature**
   (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
   expression instead of assigning inside the `cfg` block.
@@ -249,6 +258,11 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   body to extract the vendor message. Likely fix: read at most a configured
   number of bytes (a field on each provider config, default 64 KiB like Go
   `net/http`'s error-drain limit) before parsing.
+- **`ResponsesProvider::fetch_model_info` has no success test.**
+  `tests/models/provider_model_info_tests.rs` defines `GPT_JSON` (a model
+  object) but no test uses it, so only the error and placeholder paths of the
+  Responses provider are tested. Fix: add the success test (a `GET` with the
+  bearer token that parses `GPT_JSON`), as the Anthropic one does.
 
 - **Embeddings are generated synchronously inside async code.**
   `EmbeddingProvider::embed` is sync, and `CachedEmbeddingProvider` calls the
@@ -354,6 +368,22 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   50 F04), and `CredentialStorage` over a D1 `StorageProvider` already serves
   `AsyncCredentialStore` on Workers. Fix: fold callers onto
   `CredentialStorage` and delete the duplicates.
+- **`NativeOAuth` and `PasswordAuthClient` read an empty body.**
+  `src/native/oauth.rs` (`extract_body_text`, `error_body_text`) and
+  `src/native/password_auth.rs` (`extract_body`) read the response through
+  `get_body_ref()`. The client gives a lazy `SendSafeBody::Stream`, which
+  these helpers read as an empty string, so a token or login answer fails to
+  parse and an error answer has no message. Fix: take the body and read it as
+  a stream (status first; an error body only up to a configured limit), as the
+  `shared` clients do.
+- **The `shared` HTTP clients read bodies synchronously and whole.**
+  `discovery`, `jwks`, `introspection`, `userinfo` and `upstream_client`
+  (`src/shared/`) call the sync `try_collect_bytes` inside `async fn`s (a
+  blocking read on the executor; on wasm it cannot wait for `fetch`), and
+  read an error body whole before they use the status. Fix: read with
+  `collect_bytes_async` (`AsyncSendSafeBody`), check the status first, and
+  read an error body only up to a limit on a config (64 KiB, as
+  `foundation_deployment`'s `BodyLimits`).
 - **`NativeOAuth` keeps sync twins** (`exchange_code`, `client_credentials`,
   `refresh_token`) next to the `*_async` methods (`src/native/oauth.rs`),
   against the async-only API rule. Fix: keep only the async methods (as the
@@ -533,17 +563,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **`TurboPufferVectorStore` does not retry HTTP 429.** `TurboPuffer` throttles
   writes with 429 (backpressure). The store reports it as an error. Fix: retry
   with backoff, with the attempts and delays on a config.
-- **The `turbopuffer` and `sql-store` features do not build for wasm32.**
+- **The `sql-store` feature does not build for wasm32.**
   `cargo check --target wasm32-unknown-unknown -p foundation_vectors
-  --features turbopuffer` (or `sql-store`) fails in `foundation_core`
-  (`idle_wake` missing, a `NoopMutex` `PoisonError` mismatch). The crate takes
-  `foundation_netio` with its default features (`multi`, `ssl`, `wire-native`)
-  on every target, and `sql-store` takes `foundation_db` the same way, so
-  `foundation_core/multi` is on for wasm. This was so before spec 50 F05 T1.
-  CI builds only the default features for wasm, so it does not see it. Fix:
-  take `foundation_netio` / `foundation_db` without default features on
-  wasm32, then add `turbopuffer` and `sql-store` to the crate's `wasm-runs`
-  in `ci/packages.toml`.
+  --features sql-store` fails in `foundation_core` (`idle_wake` missing, a
+  `NoopMutex` `PoisonError` mismatch). The crate takes `foundation_db` with
+  its default features on every target, so `foundation_core/multi` is on for
+  wasm. This was so before spec 50 F05 T1. CI builds `sql-store` only for
+  native, so it does not see it. Fix: take `foundation_db` without default
+  features on wasm32, then add `sql-store` to the crate's `wasm-runs` in
+  `ci/packages.toml`.
 - **`hybrid_search` gives the reranker no texts** (`src/fusion.rs`). It calls
   `Reranker::rerank(query, fused, &[])`, so a reranker cannot read the
   candidate documents. Fix: take a text lookup (id → text) as an argument, or
@@ -552,6 +580,16 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   (`SqlVectorStore::search_async`): memory is bounded (`TopK`), but time is
   O(n·d) per query. Expected for the portable fallback; large namespaces
   should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
+
+## 18. foundation_testbed
+
+- **The embedded JavaScript runner uses a tokio runtime** (`src/wasm/embedded_js.rs`, `tokio_runtime()`, and the optional `tokio` dependency behind `wasm-embedded-js` in `Cargo.toml`). The event loop and timers of `deno_core` (`reactor_tokio.rs`) need a tokio runtime, and `deno_websocket` uses tokio for its TCP connection. This is the only tokio runtime in `backends` outside the cross-runtime tests of valtron. The project rule is "valtron always". Options:
+  - keep it as a documented third-party boundary: a current-thread runtime, local to this module and behind the feature flag;
+  - or drive the event loop of `deno_core` another way (poll `JsRuntime::poll_event_loop` from a valtron task with a valtron timer), if `deno_core` lets us replace its reactor.
+
+## 19. Apps (tokio and axum)
+
+- **The apps still use tokio and axum, not valtron and `foundation_http`.** This is `bin/platform` (and its templates `api-app`, `static-html-app`, `web-app`), `examples/devbinary`, `examples/web/wello`, `examples/todo`, `crates/channels` and `crates/domain`: tokio/axum servers and tokio tests. `crates/channels` also has inline `#[cfg(test)]` modules (`src/broadcast.rs`, `src/mspc.rs`, `src/executor.rs`), which go against rule 7. Tracked in [#137](https://github.com/ewe-studios/ewe_platform/issues/137).
 
 ## Paused
 
