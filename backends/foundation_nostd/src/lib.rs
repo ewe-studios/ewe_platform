@@ -10,3 +10,5 @@ pub mod macros;
 pub mod primitives;
 pub mod raw_parts;
 pub mod spin_mutex;
+#[cfg(feature = "trace")]
+pub mod trace;

@@ -651,4 +651,45 @@ Verified: `foundation_compact` checks on native, `host-abi`, and `wasm-bindgen`;
 both examples check on `wasm32-unknown-unknown`; `foundation_macros` unit tests
 (33) pass.
 
+## no_std tracing subscriber — what it takes (investigation)
+
+There is no ready-made no_std formatting subscriber on crates.io.
+`tracing-subscriber`'s no_std support (PR #1648) covers only the
+`Layer`/`LookupSpan` traits, not `fmt` or `EnvFilter`. `tracing-wasm` uses the
+User Timing API and froze workerd. So a no_std subscriber must be hand-rolled.
+
+What a hand-rolled subscriber needs:
+
+- `tracing = { version = "0.1", default-features = false }` in
+  `foundation_nostd`. This drops `std` and `attributes`; the `info!`/`debug!`
+  macros still work because they are `macro_rules!` inside the crate.
+- Seven required `Subscriber` methods: `enabled`, `new_span`, `record`,
+  `record_follows_from`, `event`, `enter`, `exit`. A `field::Visit` impl needs
+  only `record_debug`; the typed methods default into it. `record_error` is
+  `#[cfg(feature = "std")]`, so it is absent in no_std.
+- A sink. no_std has no stdout. Two options: (A) a host-injected `fn(&str)`
+  set before install, forwarded by `foundation_wasm`'s `host_console_log` seam;
+  (B) drop events. Option A is ~90 lines; Option B is ~15 lines.
+
+Implemented Option A in `foundation_nostd::trace` (feature `trace`):
+`NoStdSubscriber` (7 methods + a `field::Visit` formatter), `set_sink(fn(&str))`,
+and `try_init(Level)`. `set_global_default` is not `std`-gated (only the
+thread-local `set_default`/`with_default` are), so install works in no_std.
+
+Two things the first pass got wrong, now fixed:
+
+- `tracing = { workspace = true, default-features = false }` is ignored: the
+  workspace dep sets no `default-features`, so the override needs the 2024
+  edition. It silently compiled `tracing` with `std` + `attributes`. The fix is
+  `tracing = { version = "0.1", default-features = false, optional = true }`,
+  which compiles only `tracing` + `tracing-core` in no_std.
+- `trace.rs` must declare `extern crate alloc;` itself, like `embeddable.rs` and
+  `raw_parts.rs`. The crate root's `extern crate alloc` is `#[cfg(not(feature =
+  "std"))]`, so a dev-dependency that turns on `std` removes it and breaks
+  `use alloc::…` in modules that do not declare their own.
+
+Verified: `--no-default-features --features trace` (no_std) and
+`--features "std trace"` both check; the integration test passes. The message
+field prints unquoted (`fmt::Arguments`), while `&str` fields print quoted.
+
 

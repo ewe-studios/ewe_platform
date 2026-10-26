@@ -5298,6 +5298,7 @@ dependencies = [
  "foundation_testing",
  "ntest",
  "serial_test",
+ "tracing",
  "tracing-subscriber",
  "tracing-test",
 ]
