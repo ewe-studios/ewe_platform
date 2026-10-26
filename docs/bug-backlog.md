@@ -524,6 +524,23 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 - **The apps still use tokio and axum, not valtron and `foundation_http`.** This is `bin/platform` (and its templates `api-app`, `static-html-app`, `web-app`), `examples/devbinary`, `examples/web/wello`, `examples/todo`, `crates/channels` and `crates/domain`: tokio/axum servers and tokio tests. `crates/channels` also has inline `#[cfg(test)]` modules (`src/broadcast.rs`, `src/mspc.rs`, `src/executor.rs`), which go against rule 7. Tracked in [#137](https://github.com/ewe-studios/ewe_platform/issues/137).
 
+## 20. foundation_deployment_huggingface
+
+- **The Hub client API is sync.** `client::{whoami, list_*, create_repo, …}`
+  and `repository::*` (`src/client.rs`, `src/repository.rs`) block on the
+  native client's sync `HttpClient::send`, so they freeze a valtron worker
+  and cannot run on wasm. Fix: async functions over `send_async`
+  (`collect_bytes_async` for the downloads), with `.block()` at the callers
+  (`foundation_ai`'s candle/gguf providers, `foundation_testing`).
+- **Uploads are buffered whole.** `repo_create_commit` reads each added file
+  into memory (`std::fs::read`) and builds the whole multipart body before
+  sending it. Fix: a streamed multipart body (`SendSafeBody::Stream` over the
+  file chunks) with the length computed up front.
+- **`list_*` and `repo_list_tree` read one page only.** They ignore the Hub's
+  `Link: rel="next"` pagination header, so a listing stops at the first page
+  (the docs say "with pagination"). Fix: follow `Link` lazily as the stream
+  is pulled.
+
 ## Paused
 
 - Windows/macOS VM images (#69).
