@@ -4,6 +4,7 @@ description: "The agent-rpc Cloudflare target as two artifacts — a thin WASM a
 status: "pending"
 priority: "high"
 depends_on:
+  - "07-pluggable-agent-rpc"
   - "00-foundation"
   - "01-agent-rpc"
 estimated_effort: "large"
@@ -18,6 +19,30 @@ tasks:
 ---
 
 # Cloudflare Deployment
+
+_Status note (2026-10-26): pending. New text is in ASD-STE100 Simplified Technical English (STE);
+older paragraphs keep their wording. Code and identifiers stay as they are. **Feature 07 now
+designs the Worker side of this feature**; section "Relation to feature 07" says which tasks
+remain here._
+
+**Abbreviations in this file.** WebAssembly (wasm); Cloudflare (CF); remote procedure call
+(RPC); Transport Layer Security (TLS); mutual TLS (mTLS); Hypertext Transfer Protocol (HTTP);
+HTTP version 2 (H2); WebSocket (WS); Representational State Transfer (REST); application
+programming interface (API); continuous integration and continuous delivery (CI/CD); foreign
+function interface (FFI); AeroSpace and Defence Industries Association of Europe (ASD), the
+owner of the STE standard ASD-STE100.
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| Worker | A Cloudflare Worker: a wasm program that answers HTTP `fetch` events. One thread, about 128 MB of memory. |
+| Thin orchestrator | The agent layer on a Worker, with remote models only. Feature 07 calls it the Worker host. |
+| Sandboxes, Containers | Cloudflare products that run a normal Linux container. The full native agent-rpc can run there. |
+| Workers AI | Cloudflare's hosted model service. |
+| F24 fetch transport | The `foundation_connectrpc` client transport over `fetch`. Feature 07 names it `FetchTransport`. |
+| `dispatch_cf` | The `foundation_http` function that hands a Worker `fetch` event to a router. |
+
 
 ## Overview
 
@@ -130,6 +155,9 @@ graph TD
     ARPC --> LLAMA
 ```
 
+_The diagram shows the two Cloudflare shapes: a thin orchestrator on a Worker, and the full native server in a container._
+
+
 ### Changes required in existing crates
 
 The user-facing heart of this feature: the concrete changes needed, and why.
@@ -174,6 +202,9 @@ sequenceDiagram
     W-->>C: streamed response
 ```
 
+_The diagram shows one streamed answer from Workers AI through the Worker._
+
+
 1. Client hits the Worker over Connect/gRPC-Web (fetch/WebSocket, no H2).
 2. The thin orchestrator calls Workers AI (or a remote agent-rpc via the F24
    transport) with the agentic-layer prompt.
@@ -207,9 +238,10 @@ impl ContainersDeploy { async fn deploy(&self, spec: ContainerSpec) -> Result<()
 
 - Workers AI auth uses the Worker's bound binding/env secrets, never a hardcoded
   token in the bundle.
-- The thin orchestrator is stateless; any client auth is the same client-facing
-  token→mTLS model from `01-agent-rpc` (mTLS is via TLS on fetch/WS, gated on
-  Cloudflare TLS config).
+- _Corrected 2026-10-26:_ Cloudflare ends TLS in front of a Worker, so a Worker cannot run
+  agent-rpc's own mTLS. Client auth on a Worker is a signed secret sent as a bearer credential,
+  or Cloudflare's own mTLS (`request.cf.tlsClientAuth`), through the `ClientAuth` providers of
+  feature 07 ([auth.md](../07-pluggable-agent-rpc/auth.md) section 8).
 - Sandboxes/Containers credentials are never bundled in the container image; they
   are injected by the deployment surface.
 
@@ -302,6 +334,41 @@ cargo test -p foundation_deployment_cloudflare --test containers_tests
 - [ ] Full model-server agent-rpc runs on Sandboxes/Containers (native, not WASM)
 - [ ] No installer involvement in Cloudflare deployment
 - [ ] No TODO/FIXME/stubs; streamed, typed; no ignored `Result`s
+
+## Relation to feature 07
+
+Feature 07 designs the Worker host in full ([hosts.md](../07-pluggable-agent-rpc/hosts.md)
+section 5). To keep one design, the tasks map like this:
+
+| Task here | State | Where it is now |
+|---|---|---|
+| T1: thin orchestrator build target (`src/wasm.rs`, `wasm_worker_entry`) | **Replaced** | Feature 07 T21: `host/worker/*` with `FetchServe` and one Durable Object per instance. |
+| T2: Connect fetch transport (`WasmFetchTransport`) | **Replaced** | Feature 07 T19: `FetchTransport` and `FetchServe` in `foundation_connectrpc/src/wasm/`. |
+| T3: Sandboxes and Containers in `foundation_deployment_cloudflare` | **Stays here** | This feature. |
+| T4: end to end on Workers with Workers AI | **Stays here**, built on feature 07 T21 | The `cf-agent-rpc` example of feature 07 is its base. |
+| T5: end to end, Worker to a remote native agent-rpc | **Stays here**, built on feature 07 T19 | |
+| T6: end to end, native agent-rpc in a Cloudflare container | **Stays here** | |
+
+So `depends_on` of this feature is now 00, 01 and 07.
+
+### Lifecycle of the native container (T3, T6)
+
+| Phase | What happens |
+|---|---|
+| Deploy | `ContainersDeploy::deploy` sends the image (a CI/CD-built tag) and the container settings through the generated Cloudflare API types. |
+| Start | Cloudflare starts the container. The native agent-rpc host starts as on any machine (feature 07, hosts.md section 4). |
+| Update | Deploy a new image tag. The open question below covers how traffic moves. |
+| Stop | Cloudflare stops the container; the native host shuts down with its `shutdown_grace`. |
+
+## Open questions
+
+1. **How traffic moves to a new container version.** Cloudflare's container rollout settings
+   decide this. **Recommendation:** read the current Containers API when T3 starts, and write
+   the rollout steps here before building.
+2. **Secrets for the container** (model keys, the key encryption key of feature 07). They must
+   come from the deployment surface, never from the image. **Recommendation:** use the same
+   secret source as the Worker (feature 07 owner decision 6), passed as container environment
+   at deploy.
 
 ---
 

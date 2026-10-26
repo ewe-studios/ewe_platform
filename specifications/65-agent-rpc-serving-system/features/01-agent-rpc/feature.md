@@ -17,6 +17,34 @@ tasks:
 
 # Agent RPC Model Server
 
+_Status note (2026-10-26): complete (10/10 tasks and the GGUF follow-up, PR #126). This file
+is the design record of what was built. **Feature 07 changes parts of it**; section "Changes
+made by later features" at the end lists each one. New text is in ASD-STE100 Simplified
+Technical English (STE); older paragraphs keep their wording. Code and identifiers stay as they
+are._
+
+**Abbreviations in this file.** remote procedure call (RPC); Transport Layer Security (TLS);
+mutual TLS (mTLS); Quick Response code (QR code); command-line interface (CLI); software
+development kit (SDK); GPT-Generated Unified Format (GGUF), the model file format of llama.cpp;
+key-value (KV); transmission control protocol (TCP); AeroSpace and Defence Industries
+Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| agent-rpc | This crate's server: one process for each machine that loads each model one time and serves many agent instances. |
+| `ModelHandle` | A cheap-to-clone handle (`Arc`) to one loaded model. Every instance on that model holds a clone. |
+| Instance | A named agent: one `foundation_ai::AgentSession` with its own history and settings, on a shared model. |
+| `InstanceRegistry` | The map from instance name to instance. Create, get, list and destroy never load a model. |
+| Connect, gRPC, gRPC-Web | Three RPC protocols that `foundation_connectrpc` serves on one router. |
+| Bootstrap secret | A signed, time-boxed secret that a client shows one time to get a client certificate (enrollment). |
+| Enrollment | The exchange of a bootstrap secret and a certificate signing request for a client certificate. |
+| Bootstrap payload | The base64 text (or QR code) that gives a client everything it needs to connect. Feature 07 changes its fields. |
+| `TurnEvent` | One streamed event of a chat turn: text, thinking, tool call, tool result, retract, failed or done. |
+| Valtron | The task engine in `foundation_core`. Inference runs on it; the RPC handlers are async. |
+
+
 ## Overview
 
 `foundation_agent_rpc` is the crate that makes "launch the binary and it starts
@@ -136,6 +164,9 @@ graph TD
     MH --> L[candle_llama / gguf_provider]
 ```
 
+_The diagram shows the parts of the server: the router, the instance registry over shared model handles, client auth and the bootstrap payload._
+
+
 **File Structure:**
 ```
 backends/foundation_agent_rpc/
@@ -210,8 +241,14 @@ sequenceDiagram
     S-->>C: TurnEvent stream (server-streaming)
 ```
 
+_The diagram shows enrollment, then one streamed chat call through the proxy._
+
+
 1. Client authenticates to agent-rpc with the bootstrap token, receives a cert.
 2. Client calls `ChatStream` through the proxy (which forwards opaquely).
+   _Correction (2026-10-26):_ a proxy that ends TLS cannot pass a client certificate to
+   agent-rpc. Through the proxy, a client uses agent-rpc's signed-secret bearer auth (feature 07).
+   mTLS works on a direct connection, or through TLS passthrough (feature 03, open question 3).
 3. agent-rpc runs inference on the shared `ModelHandle` (threaded/valtron).
 4. Results stream back as `TurnEvent`s, unbuffered.
 
@@ -372,6 +409,19 @@ cargo test -p foundation_agent_rpc --test rpc_e2e_tests
 - [x] Connect + gRPC + gRPC-Web round-trip unary and streaming
 - [x] Client token→mTLS enforced; token never logged
 - [x] No TODO/FIXME/stubs; no buffered bodies; no ignored `Result`s
+
+## Changes made by later features
+
+Feature 07 ([feature.md](../07-pluggable-agent-rpc/feature.md) section 7) changes these parts. The
+code on branch `65-f01-agent-rpc` still has the feature 01 form until feature 07 is built.
+
+| Here | After feature 07 |
+|---|---|
+| File list above (`server.rs`, `auth.rs`, ...). The built crate also has `secret.rs`, `trust.rs`, `client.rs`, `error.rs`, `proto.rs`. | `core/`, `host/native/`, `host/worker/`, `client/`; auth moves to `foundation_auth` (feature 07 section 8). |
+| `with_bootstrap_token`, `with_mtls`, the `Auth` enum | One `ClientAuth` value (signed secret, mTLS, JWT, Cloudflare mTLS). |
+| `BootstrapPayload { addr, tls_fingerprint, token, capabilities }` | `url`, `enroll_url`, `tls_fingerprint_sha256`, `token`, `capabilities`; no version field ([proto.md](../07-pluggable-agent-rpc/proto.md) section 6). |
+| The illustrative `AgentService` above (`returns (InstanceHandle)`, `returns (Empty)`) | The real contract is [proto.md](../07-pluggable-agent-rpc/proto.md) section 3 (`InstanceInfo`, `DestroyInstanceResponse`, plus `GetCapabilities`). |
+| Start-up and shutdown of the server | The native host lifecycle in [hosts.md](../07-pluggable-agent-rpc/hosts.md) section 4. |
 
 ---
 

@@ -221,7 +221,7 @@ corresponding skills BEFORE implementation.
 | 2  | [Manifest Installer](./features/02-manifest-installer/feature.md) | Manifest schema + source/deploy adapters (systemd/Docker) + bootstrap-script generation | None | ⬜ Pending |
 | 3  | [Proxy Registration Authority](./features/03-proxy-registration/feature.md) | Sidecar enrollment, `Register`/`Report`/`Deregister` on leases, live backend registry feeding the router | None (extends spec 63; uses 07's `foundation_auth`) | ⬜ Pending |
 | 4  | [Registrar Sidecar](./features/04-registrar-sidecar/feature.md) | Reads the manifest, discovers and probes apps, reads metrics, reports to the proxy | 2, 3 | ⬜ Pending |
-| 5  | [Cloudflare Deployment](./features/05-cloudflare/feature.md) | Thin WASM orchestrator on Workers + full model server on Sandboxes/Containers, consuming 00-foundation | 0, 1 | ⬜ Pending |
+| 5  | [Cloudflare Deployment](./features/05-cloudflare/feature.md) | Full native model server on Cloudflare Sandboxes/Containers, and end-to-end tests on Workers; the Worker host itself is designed in 07 | 0, 1, 7 | ⬜ Pending |
 | 6  | [WASM Lazy Streaming](./features/06-wasm-async-streaming/feature.md) | Remove the wasm-unsafe `run_future`/`collect()` anti-pattern from the streaming path: park-friendly `into_future_stream`, lazy `send_sse` + `SseProgress::Failed`, zero `Model` API change; fix the T6 sync-streaming hang | 0 | ✅ Complete |
 | 7  | [Pluggable Agent RPC](./features/07-pluggable-agent-rpc/feature.md) | One RPC surface on native, Docker, Cloudflare Workers and the browser: a core behind traits, auth in foundation_auth, injected side effects for deterministic simulation testing, model capabilities and instance kinds | 1 | ⬜ Pending (design done) |
 
