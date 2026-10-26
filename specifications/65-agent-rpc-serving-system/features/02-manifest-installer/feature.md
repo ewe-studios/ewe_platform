@@ -471,6 +471,15 @@ What each adapter does:
      (`rename_container`).
 - **`none`**: it records the artifact and does nothing more.
 
+**Marks for the registrar.** The installer marks what it starts, so the registrar (feature 04)
+can find it without the installer's private install record:
+
+- A systemd unit gets `Environment=EWE_ENTRY=<name>` and `Environment=EWE_VERSION=<version>`.
+- A container gets the labels `dev.ewe.entry=<name>` and `dev.ewe.version=<version>`.
+
+These marks are part of the contract between the installer and the registrar, as the manifest
+is.
+
 The installer checks only that a program **started**. It does not check that the program is
 **healthy**. Health is the registrar's job (feature 04), with the `probes` block.
 
