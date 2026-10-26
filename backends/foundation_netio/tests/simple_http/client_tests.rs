@@ -1,6 +1,6 @@
 //! Unit tests for `client::client` moved into the canonical units test tree.
 //!
-//! These tests exercise `ClientConfig` and `SimpleHttpClient` builder/constructor
+//! These tests exercise `ClientConfig` and `NativeHttpClient` builder/constructor
 //! behaviors in a fast, deterministic way. They are non-destructive copies of
 //! the original in-crate tests and import the public API via `foundation_core`.
 //!
@@ -40,7 +40,7 @@ fn debug_invalid_location_error() {
     initialize_pool(45);
 
     // Setup: Create a client with default config
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
 
     // Build a GET request to an invalid URL
     let request_result = client.get("http://");

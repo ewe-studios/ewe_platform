@@ -1,7 +1,7 @@
 //! Fetch-based HTTP client for wasm32 (browser + CF Workers).
 //!
 //! WHY: AI providers and other HTTP consumers need to work on wasm32.
-//! The native `SimpleHttpClient` uses TCP sockets — unavailable in
+//! The native `NativeHttpClient` uses TCP sockets — unavailable in
 //! browsers and CF Workers. The `fetch()` Web API is the standard
 //! HTTP primitive on these platforms.
 //!

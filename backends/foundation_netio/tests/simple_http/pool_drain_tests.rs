@@ -8,7 +8,7 @@
 //! when connection pooling is enabled.
 
 use foundation_core::valtron::initialize_pool;
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::http::NativeHttpClient;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use serial_test::serial;
 use std::net::SocketAddr;
@@ -64,7 +64,7 @@ fn test_pool_204_then_get_succeeds() {
     let addr = server_addr(&server);
     let base_url = format!("http://{}", addr);
 
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
 
     // First request: DELETE (will get 204)
     let resp = client
@@ -124,7 +124,7 @@ fn test_pool_sequential_head_requests() {
     let base_url = format!("http://{}", addr);
 
     tracing::trace!("[TEST] Creating http client");
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
 
     for i in 0..3 {
         tracing::trace!("[test] sending request for head at index: {}", i);
@@ -190,7 +190,7 @@ fn test_pool_put_head_delete_head_sequence() {
     let base_url = format!("http://{}", addr);
 
     tracing::trace!("[TEST] Creating http client");
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
 
     // PUT
     tracing::trace!("[TEST] Sending put request");

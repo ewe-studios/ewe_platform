@@ -3,36 +3,36 @@ use std::time::Duration;
 use foundation_netio::shared::client::{
     ClientConfig, MockDnsResolver, StaticSocketAddr, SystemDnsResolver,
 };
-use foundation_netio::http::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::http::{ClientRequestBuilder, NativeHttpClient};
 
 use super::*;
 
 // ========================================================================
-// SimpleHttpClient Tests
+// NativeHttpClient Tests
 // ========================================================================
 
-/// WHY: Verify `SimpleHttpClient::new` creates client with system resolver
+/// WHY: Verify `NativeHttpClient::new` creates client with system resolver
 /// WHAT: Tests that `new()` creates client with default config
 #[test]
 fn test_simple_http_client_new() {
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
 
     let config = client.client_config();
 
     assert_eq!(config.max_redirects, 5);
 }
 
-/// WHY: Verify `SimpleHttpClient::with_resolver` accepts custom resolver
+/// WHY: Verify `NativeHttpClient::with_resolver` accepts custom resolver
 /// WHAT: Tests that `with_resolver` works with `MockDnsResolver`
 #[test]
 fn test_simple_http_client_with_resolver() {
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
 
     let config = client.client_config();
     assert_eq!(config.max_redirects, 5);
 }
 
-/// WHY: Verify `SimpleHttpClient::config` sets configuration
+/// WHY: Verify `NativeHttpClient::config` sets configuration
 /// WHAT: Tests that `config()` replaces configuration
 #[test]
 fn test_simple_http_client_config() {
@@ -41,17 +41,17 @@ fn test_simple_http_client_config() {
         ..Default::default()
     };
 
-    let client = SimpleHttpClient::from_system().config(custom_config);
+    let client = NativeHttpClient::from_system().config(custom_config);
     let config = client.client_config();
 
     assert_eq!(config.max_redirects, 10);
 }
 
-/// WHY: Verify `SimpleHttpClient::connect_timeout` sets timeout
+/// WHY: Verify `NativeHttpClient::connect_timeout` sets timeout
 /// WHAT: Tests that builder method sets connect timeout
 #[test]
 fn test_simple_http_client_connect_timeout() {
-    let client = SimpleHttpClient::from_system().connect_timeout(std::time::Duration::from_secs(5));
+    let client = NativeHttpClient::from_system().connect_timeout(std::time::Duration::from_secs(5));
     let config = client.client_config();
 
     assert_eq!(
@@ -60,11 +60,11 @@ fn test_simple_http_client_connect_timeout() {
     );
 }
 
-/// WHY: Verify `SimpleHttpClient::read_timeout` sets timeout
+/// WHY: Verify `NativeHttpClient::read_timeout` sets timeout
 /// WHAT: Tests that builder method sets read timeout
 #[test]
 fn test_simple_http_client_read_timeout() {
-    let client = SimpleHttpClient::from_system().read_timeout(std::time::Duration::from_secs(15));
+    let client = NativeHttpClient::from_system().read_timeout(std::time::Duration::from_secs(15));
 
     let config = client.client_config();
     assert_eq!(
@@ -73,11 +73,11 @@ fn test_simple_http_client_read_timeout() {
     );
 }
 
-/// WHY: Verify `SimpleHttpClient::write_timeout` sets timeout
+/// WHY: Verify `NativeHttpClient::write_timeout` sets timeout
 /// WHAT: Tests that builder method sets write timeout
 #[test]
 fn test_simple_http_client_write_timeout() {
-    let client = SimpleHttpClient::from_system().write_timeout(std::time::Duration::from_secs(20));
+    let client = NativeHttpClient::from_system().write_timeout(std::time::Duration::from_secs(20));
 
     let config = client.client_config();
     assert_eq!(
@@ -86,31 +86,31 @@ fn test_simple_http_client_write_timeout() {
     );
 }
 
-/// WHY: Verify `SimpleHttpClient::max_redirects` sets redirect limit
+/// WHY: Verify `NativeHttpClient::max_redirects` sets redirect limit
 /// WHAT: Tests that builder method sets max redirects
 #[test]
 fn test_simple_http_client_max_redirects() {
-    let client = SimpleHttpClient::from_system().max_redirects(3);
+    let client = NativeHttpClient::from_system().max_redirects(3);
 
     let config = client.client_config();
     assert_eq!(config.max_redirects, 3);
 }
 
-/// WHY: Verify `SimpleHttpClient::with_connection_pool` enables connection pooling
+/// WHY: Verify `NativeHttpClient::with_connection_pool` enables connection pooling
 /// WHAT: Tests that builder method creates a connection pool
 #[test]
 fn test_simple_http_client_with_connection_pool() {
-    let client = SimpleHttpClient::from_system().with_connection_pool();
+    let client = NativeHttpClient::from_system().with_connection_pool();
 
     let pool = client.client_pool();
     assert!(pool.is_some());
 }
 
-/// WHY: Verify `SimpleHttpClient` builder methods are chainable
+/// WHY: Verify `NativeHttpClient` builder methods are chainable
 /// WHAT: Tests that multiple builder methods can be chained
 #[test]
 fn test_simple_http_client_builder_chaining() {
-    let client = SimpleHttpClient::from_system()
+    let client = NativeHttpClient::from_system()
         .connect_timeout(std::time::Duration::from_secs(10))
         .max_redirects(3)
         .with_connection_pool();
@@ -124,7 +124,7 @@ fn test_simple_http_client_builder_chaining() {
     assert!(client.client_pool().is_some());
 }
 
-/// WHY: Verify `SimpleHttpClient::get` creates GET request builder
+/// WHY: Verify `NativeHttpClient::get` creates GET request builder
 /// WHAT: Tests that `get()` returns `ClientRequestBuilder::`<SystemDnsResolver> for GET
 #[test]
 fn test_simple_http_client_get() {
@@ -134,7 +134,7 @@ fn test_simple_http_client_get() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify `SimpleHttpClient::get` validates URL
+/// WHY: Verify `NativeHttpClient::get` validates URL
 /// WHAT: Tests that `get()` returns error for invalid URL
 #[test]
 fn test_simple_http_client_get_invalid_url() {
@@ -143,7 +143,7 @@ fn test_simple_http_client_get_invalid_url() {
     assert!(result.is_err());
 }
 
-/// WHY: Verify `SimpleHttpClient::post` creates POST request builder
+/// WHY: Verify `NativeHttpClient::post` creates POST request builder
 /// WHAT: Tests that `post()` returns `ClientRequestBuilder::`<SystemDnsResolver> for POST
 #[test]
 fn test_simple_http_client_post() {
@@ -153,7 +153,7 @@ fn test_simple_http_client_post() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify `SimpleHttpClient::put` creates PUT request builder
+/// WHY: Verify `NativeHttpClient::put` creates PUT request builder
 /// WHAT: Tests that `put()` returns `ClientRequestBuilder::`<SystemDnsResolver> for PUT
 #[test]
 fn test_simple_http_client_put() {
@@ -163,7 +163,7 @@ fn test_simple_http_client_put() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify `SimpleHttpClient::delete` creates DELETE request builder
+/// WHY: Verify `NativeHttpClient::delete` creates DELETE request builder
 /// WHAT: Tests that `delete()` returns `ClientRequestBuilder::`<SystemDnsResolver> for DELETE
 #[test]
 fn test_simple_http_client_delete() {
@@ -173,7 +173,7 @@ fn test_simple_http_client_delete() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify `SimpleHttpClient::patch` creates PATCH request builder
+/// WHY: Verify `NativeHttpClient::patch` creates PATCH request builder
 /// WHAT: Tests that `patch()` returns `ClientRequestBuilder::`<SystemDnsResolver> for PATCH
 #[test]
 fn test_simple_http_client_patch() {
@@ -183,7 +183,7 @@ fn test_simple_http_client_patch() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify `SimpleHttpClient::head` creates HEAD request builder
+/// WHY: Verify `NativeHttpClient::head` creates HEAD request builder
 /// WHAT: Tests that `head()` returns `ClientRequestBuilder::`<SystemDnsResolver> for HEAD
 #[test]
 fn test_simple_http_client_head() {
@@ -193,7 +193,7 @@ fn test_simple_http_client_head() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify `SimpleHttpClient::options` creates OPTIONS request builder
+/// WHY: Verify `NativeHttpClient::options` creates OPTIONS request builder
 /// WHAT: Tests that `options()` returns `ClientRequestBuilder::`<SystemDnsResolver> for OPTIONS
 #[test]
 fn test_simple_http_client_options() {
@@ -203,11 +203,11 @@ fn test_simple_http_client_options() {
     assert_eq!(request.url.host_str().unwrap(), "example.com");
 }
 
-/// WHY: Verify `SimpleHttpClient` implements Default
+/// WHY: Verify `NativeHttpClient` implements Default
 /// WHAT: Tests that Default trait is implemented
 #[test]
 fn test_simple_http_client_default() {
-    let client = SimpleHttpClient::<SystemDnsResolver>::default();
+    let client = NativeHttpClient::<SystemDnsResolver>::default();
 
     let config = client.client_config();
     assert_eq!(config.max_redirects, 5);

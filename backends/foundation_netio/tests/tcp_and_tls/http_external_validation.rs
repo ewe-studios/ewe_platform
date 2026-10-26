@@ -12,20 +12,20 @@
 //! Run with: cargo test -- --ignored
 
 // Note: Uncomment these when HTTP client public API is ready
-// use foundation_netio::http::SimpleHttpClient;
+// use foundation_netio::http::NativeHttpClient;
 
 // ========================================================================
 // External HTTP Server Validation Tests
 // ========================================================================
 
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::http::NativeHttpClient;
 
 /// WHY: Verify HTTP client works with real external HTTP server
 /// WHAT: Tests basic GET request against httpbin.org
 #[test]
 #[ignore] // Run with: cargo test test_external_httpbin_get -- --ignored
 fn test_external_httpbin_get() {
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
     let response = client.get("http://httpbin.org/get").execute().unwrap();
     assert_eq!(response.status(), 200);
     assert!(response
@@ -39,8 +39,8 @@ fn test_external_httpbin_get() {
 #[test]
 #[ignore] // Requires network
 fn test_external_httpbin_redirect() {
-    // TODO: Uncomment when SimpleHttpClient has execute() method
-    // let client = SimpleHttpClient::new();
+    // TODO: Uncomment when NativeHttpClient has execute() method
+    // let client = NativeHttpClient::new();
     // // httpbin.org/redirect/1 returns 302 to /get
     // let response = client.get("http://httpbin.org/redirect/1").execute().unwrap();
     // assert_eq!(response.status(), 200); // After following redirect
@@ -52,8 +52,8 @@ fn test_external_httpbin_redirect() {
 #[test]
 #[ignore] // Requires network
 fn test_external_httpbin_https() {
-    // TODO: Uncomment when SimpleHttpClient has execute() method
-    // let client = SimpleHttpClient::new();
+    // TODO: Uncomment when NativeHttpClient has execute() method
+    // let client = NativeHttpClient::new();
     // let response = client.get("https://httpbin.org/get").execute().unwrap();
     // assert_eq!(response.status(), 200);
 }
@@ -63,8 +63,8 @@ fn test_external_httpbin_https() {
 #[test]
 #[ignore] // Requires network
 fn test_external_httpbin_status_codes() {
-    // TODO: Uncomment when SimpleHttpClient has execute() method
-    // let client = SimpleHttpClient::new();
+    // TODO: Uncomment when NativeHttpClient has execute() method
+    // let client = NativeHttpClient::new();
     //
     // let response_404 = client.get("http://httpbin.org/status/404").execute().unwrap();
     // assert_eq!(response_404.status(), 404);
@@ -81,10 +81,10 @@ fn test_external_httpbin_status_codes() {
 #[test]
 #[ignore] // Requires network
 fn test_external_httpbin_headers() {
-    // TODO: Uncomment when SimpleHttpClient has execute() method and header support
+    // TODO: Uncomment when NativeHttpClient has execute() method and header support
     // use foundation_netio::shared::http::SimpleHeader;
     //
-    // let client = SimpleHttpClient::new();
+    // let client = NativeHttpClient::new();
     // let response = client
     //     .get("http://httpbin.org/headers")
     //     .header(SimpleHeader::USER_AGENT, "foundation-http/1.0")
