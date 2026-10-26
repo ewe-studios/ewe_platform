@@ -15,10 +15,8 @@ use foundation_ai::types::{
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream, StreamSpread};
 use foundation_netio::{DynNetClient, HttpClientBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
-use std::sync::Arc;
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
@@ -76,7 +74,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
 
 fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
     let addr = server_addr(server);
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(addr).build();
     let config = AnthropicConfig::new()
         .with_base_url(server.base_url())
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(

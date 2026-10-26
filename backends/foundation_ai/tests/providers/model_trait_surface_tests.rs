@@ -15,7 +15,6 @@
 //! the OpenAI-shaped providers resolve against a `TestHttpServer` catalog.
 
 use std::net::SocketAddr;
-use std::sync::Arc;
 
 use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
@@ -26,7 +25,6 @@ use foundation_ai::types::{Model, ModelId, ModelProvider, ModelProviders};
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::valtron_test;
 use foundation_netio::{DynNetClient, HttpClientBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 
 // ---------------------------------------------------------------------------
@@ -125,7 +123,7 @@ fn anthropic_tool_formatter_is_available() {
 #[valtron_test]
 fn openai_model_trait_surface() {
     let server = catalog_server();
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(server_addr(&server)).build();
     let cfg = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)
@@ -161,7 +159,7 @@ fn openai_model_trait_surface() {
 #[valtron_test]
 fn responses_model_trait_surface() {
     let server = catalog_server();
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(server_addr(&server)).build();
     let cfg = ResponsesConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)
@@ -207,7 +205,7 @@ fn each_provider_reports_a_distinct_identity() {
     // The failure this guards: a descriptor copy-pasted between providers, so
     // two different backends claim the same id and pricing.
     let server = catalog_server();
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(server_addr(&server)).build();
     let cfg = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)
