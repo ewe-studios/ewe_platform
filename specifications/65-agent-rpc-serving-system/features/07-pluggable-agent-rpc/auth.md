@@ -2106,10 +2106,10 @@ sequenceDiagram
     participant T as Trust store
     Op->>H: ask for a payload
     H->>H: SecretIssuer.issue (purpose enroll, window from Env clock)
-    H-->>Op: BootstrapPayload (addresses, fingerprint, signed secret)
+    H-->>Op: BootstrapPayload (url, enroll_url, fingerprint, signed secret)
     Op->>C: give the payload (string or QR code)
     C->>C: decode, check own signature and window
-    C->>H: TLS to the bootstrap listener, pinned fingerprint
+    C->>H: TLS to enroll_url, pinned fingerprint
     C->>H: Enroll(secret, client name, CSR)
     H->>H: SecretVerifier.verify (signature, purpose, window with skew)
     H->>T: is the secret revoked?

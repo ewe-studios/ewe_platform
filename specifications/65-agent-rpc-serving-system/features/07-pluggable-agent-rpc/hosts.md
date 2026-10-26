@@ -175,9 +175,14 @@ pub struct NativeHostConfig {
     /// wait. Default true (as today).
     pub preload: bool,
     pub security: NativeSecurity,
-    /// The bootstrap payload version that `RunningServer::payload_with`
-    /// writes. Default `V1` (proto.md section 6.2).
-    pub payload_version: PayloadVersion,
+    /// The AgentService URL that `RunningServer::payload_with` writes in
+    /// `BootstrapPayload.url`. `None`: `https://` and the bound agent address
+    /// (as today). Set it when clients reach the host by another name, for
+    /// example "https://agents.example.com:7443" (proto.md section 6.4).
+    pub public_url: Option<String>,
+    /// The BootstrapService URL for `BootstrapPayload.enroll_url`. `None`:
+    /// `https://` and the bound enrollment address.
+    pub public_enroll_url: Option<String>,
     /// The HTTP limits of `foundation_http` (`ServerConfig::defaults()`).
     pub http: ServerConfig,
     pub registry: RegistryConfig,
@@ -203,12 +208,6 @@ pub enum NativeSecurity {
     /// Development only: no TLS and no auth. The host refuses to start
     /// unless `bind` is a loopback address.
     InsecurePlaintext,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PayloadVersion {
-    V1,
-    V2,
 }
 ```
 
@@ -317,7 +316,7 @@ pub(crate) async fn serve(
         spawn_tls(agent_app, agent_listener, config.http.clone().with_tls(Arc::new(SSLAcceptor::with_config(agent_tls))), &shutdown)?,
         spawn_tls(bootstrap_app, bootstrap_listener, ServerConfig::defaults().with_tls(Arc::new(SSLAcceptor::with_config(bootstrap_tls))), &shutdown)?,
     ];
-    Ok(RunningServer::new(core.clone(), security, shutdown, threads, config.payload_version))
+    Ok(RunningServer::new(core.clone(), security, shutdown, threads, config.public_urls()))
 }
 ```
 
@@ -462,7 +461,7 @@ key.
 #[derive(Debug, Clone)]
 pub struct WorkerHostConfig {
     /// The public base URL. It is the audience of bearer secrets and the
-    /// `base_url` of version 2 payloads. Var `AGENT_RPC_PUBLIC_URL`.
+    /// `url` of the bootstrap payload. Var `AGENT_RPC_PUBLIC_URL`.
     pub public_url: String,
     /// Remote models. Var `AGENT_RPC_MODELS` (JSON list of `ApiModelConfig`).
     pub models: Vec<ApiModelConfig>,
@@ -994,20 +993,21 @@ pub struct WebClient {
 }
 
 impl WebClient {
-    /// Read a version 2 payload and make a client. The payload token is
-    /// the bearer secret.
+    /// Read a bootstrap payload and make a client. The payload must give
+    /// `BootstrapAccess::Bearer` and `TlsTrust::SystemRoots` (or `Plaintext`
+    /// on loopback); the token is the bearer secret.
     ///
     /// # Errors
     /// `Codec` for a bad payload; `Config` for a payload that a browser
     /// cannot use (section 6.4).
     pub fn from_payload(payload: &str) -> AgentRpcResult<Self> {
         let payload = core::bootstrap::decode(payload)?;
-        check_browser_payload(&payload)?;
+        let token = check_browser_payload(&payload)?; // the bearer token, section 6.4
         let transport: Arc<dyn Transport> = Arc::new(FetchTransport::new(GlobalFetcher, FetchTransportConfig::default()));
         let options = ClientOptions::new()
             .with_connect()
-            .with_header("authorization", format!("Bearer {}", payload.token));
-        let agent = AgentServiceClient::new(transport, &payload.base_url, options).map_err(client_error)?;
+            .with_header("authorization", format!("Bearer {}", token.encode()));
+        let agent = AgentServiceClient::new(transport, payload.url.as_str(), options).map_err(client_error)?;
         Ok(Self { agent })
     }
 
@@ -1031,10 +1031,10 @@ The example `examples/agent-rpc-web` (task T22) exports `WebClient` to JS with
 
 | Payload | Browser client behavior |
 |---|---|
-| Version 1 | Refuse with `Config` ("a browser cannot enroll; ask for a version 2 payload"). Enrollment needs a client certificate and a pinned TLS channel. |
-| Version 2, `TLS_TRUST_SYSTEM_ROOTS` | Accept. The browser checks the certificate. |
-| Version 2, `TLS_TRUST_PINNED_SHA256` | Refuse with `Config`. A page has no API to pin a certificate. Accepting it would drop the pin without telling anyone. |
-| Version 2, `TLS_TRUST_PLAINTEXT` | Accept only for a loopback `base_url`, for development (the decode rule of proto.md section 6.1). |
+| `BootstrapAccess::Enroll` (token purpose `Enroll`) | Refuse with `Config` ("a browser cannot enroll; ask for a payload with an access token"). Enrollment needs a client certificate and a pinned TLS channel. |
+| `TlsTrust::SystemRoots` with `BootstrapAccess::Bearer` | Accept. The browser checks the certificate. |
+| `TlsTrust::PinnedSha256` | Refuse with `Config`. A page has no API to pin a certificate. Accepting it would drop the pin without telling anyone. |
+| `TlsTrust::Plaintext` | Accept. `decode` allows it only for a loopback `url`, for development (proto.md section 6.3). |
 | `auth_modes` without `signed-secret` | Refuse with `Config`. The host does not accept bearer secrets. |
 
 ### 6.5 CORS on the server
@@ -1075,7 +1075,7 @@ blocks the page from the response.
 
 ### 6.7 One call from start to end
 
-This diagram shows a browser page that uses a version 2 payload with a Worker host.
+This diagram shows a browser page that uses a bearer payload with a Worker host.
 
 ```mermaid
 sequenceDiagram
@@ -1084,8 +1084,8 @@ sequenceDiagram
     participant B as WebClient (wasm)
     participant F as FetchTransport
     participant W as Worker host
-    U->>B: WebClient.from_payload (version 2 payload)
-    B->>B: decode, refuse pinned or version 1 payloads
+    U->>B: WebClient.from_payload (bearer payload)
+    B->>B: decode, refuse pinned or enrollment payloads
     U->>B: create_instance (name, kind API)
     B->>F: unary call with the bearer header
     F->>W: CORS preflight (OPTIONS), then POST
@@ -1109,8 +1109,8 @@ sequenceDiagram
 The native client of today (`client.rs`) keeps its behavior. It moves to
 `client::native` and uses the new parts:
 
-- A version 1 payload: dial the enrollment listener with the pinned fingerprint (`foundation_auth::mtls::client_config_pinned`), enroll with a new key and CSR, then dial the agent listener with mTLS (`client_config_mutual`).
-- A version 2 payload: dial `base_url` with the system roots (or the pin) and send the token as a bearer secret on each call.
+- `BootstrapAccess::Enroll`: dial `enroll_url` with the pinned fingerprint (`foundation_auth::mtls::client_config_pinned`), enroll with a new key and CSR, then dial `url` with mTLS (`client_config_mutual`).
+- `BootstrapAccess::Bearer`: dial `url` with the pin (`TlsTrust::PinnedSha256`) or the system roots (`TlsTrust::SystemRoots`), and send the token as a bearer secret on each call.
 - The client key comes from `Env` entropy, so a DST run makes the same CSR each time ([env.md](./env.md), section 8).
 - The client checks the payload window before it dials, as today. The check uses `Env::wall_now()`.
 
@@ -1125,7 +1125,7 @@ lists the fields of the core and of `foundation_auth`.
 | `NativeHostConfig::workers` | native | 16 | LEARNINGS 01 T6: at least 8 workers |
 | `NativeHostConfig::shutdown_grace` | native | 30 s | Kubernetes `terminationGracePeriodSeconds` |
 | `NativeHostConfig::preload` | native | true | as today |
-| `NativeHostConfig::payload_version` | native | `V1` | as today |
+| `NativeHostConfig::public_url`, `public_enroll_url` | native | `None`: `https://` and the bound address | as today |
 | `NativeHostConfig::http` | native | `ServerConfig::defaults()` | `foundation_http` (as today) |
 | `WorkerHostConfig::max_request_bytes` | Worker | 4 MiB | gRPC default maximum receive message size |
 | `WorkerHostConfig::instance_idle_ttl` | Worker | none | an instance lives until `DestroyInstance` (as on the native host) |

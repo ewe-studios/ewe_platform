@@ -9,7 +9,7 @@ builds_on:
   - "PR #130, #131, #132, #133 (async-first valtron, async-only foundation_db)"
 estimated_effort: "large"
 created: 2026-10-22
-last_updated: 2026-10-22
+last_updated: 2026-10-26
 author: "Main Agent"
 tasks:
   completed: 0
@@ -109,7 +109,7 @@ It does this with three ideas:
 |---|---|
 | ASD-STE100 | A standard for simple technical English. Short sentences, one meaning per word. |
 | AuthInfo | The result of a successful auth check: who the caller is and what it can do. Handlers see only this. |
-| Bootstrap payload | The text (or QR code) that a client gets out of band. It holds the server address, the TLS fingerprint and a signed secret. |
+| Bootstrap payload | The text (or QR code) that a client gets out of band. It holds the server URL, an optional TLS fingerprint, an optional enrollment URL and a signed secret. It has no version field ([proto.md](./proto.md) section 6). |
 | Bundle (`Env`) | One value that holds all ambient side effects: clock, entropy, IDs, timer. |
 | CA | Certificate Authority: the key that signs certificates for clients and the server. |
 | Capabilities | The list of model kinds and devices that a server supports. `GetCapabilities` returns it. |
@@ -426,8 +426,13 @@ For users of the current `foundation_agent_rpc` on branch `65-f01-agent-rpc`:
 - `foundation_connectrpc::AuthInfo` moves to `foundation_auth`. connectrpc re-exports it, so
   its path for connectrpc users does not change.
 
-Unchanged: the version 1 `SignedSecret` wire format, the `BootstrapPayload` version 1 format,
-and the existing RPC methods.
+- `BootstrapPayload` drops `version`, `addr` and `bootstrap_addr` (reserved) and gets `url` and
+  `enroll_url`. `Capabilities.auth_mode` becomes `auth_modes`. A payload from feature 01 is
+  refused; the operator issues a new one. Feature 01 was never released, so no deployed client
+  is affected ([proto.md](./proto.md) section 6; owner decision 9).
+- `NativeHostConfig` gets `public_url` and `public_enroll_url` in place of a payload version.
+
+Unchanged: the version 1 `SignedSecret` wire format and the existing RPC methods.
 
 ## 8. Migration, file by file
 
@@ -436,7 +441,7 @@ and the existing RPC methods.
 | `src/secret.rs` | `foundation_auth::secret` (types and verify) and `foundation_auth::keystore` (key loading) |
 | `src/auth.rs` | `foundation_auth::{pki, mtls, fingerprint}`; `EnrollmentService` goes to `core/enroll.rs` |
 | `src/trust.rs` | `foundation_auth::trust` |
-| `src/bootstrap.rs` | `core/bootstrap.rs` (payload encode and decode, version 1 and 2) |
+| `src/bootstrap.rs` | `core/bootstrap.rs` (payload encode, and decode into `Bootstrap`, `TlsTrust`, `BootstrapAccess`) |
 | `src/service.rs` | `core/service.rs`: handlers that use `InstanceRegistry` and `ModelCatalog` |
 | `src/instance.rs` | `core/registry/{mod,local}.rs` |
 | `src/model.rs` | `core/model/{mod,handle,catalog,remote}.rs`; local loaders in `host/native/models.rs` |
@@ -545,9 +550,9 @@ _The diagram shows which task must finish before another task starts._
 | G | T19, T20, T21, T22, T26 | Worker host, web client, history archive |
 | H | T24 | Remote KMS backends (can come after the rest) |
 
-## 11. Owner decisions (2026-10-22)
+## 11. Owner decisions (2026-10-22 and 2026-10-25)
 
-The owner answered the open questions on 2026-10-22.
+The owner answered the open questions on 2026-10-22. Decisions 9 and 10 come from the PR #126 review of 2026-10-25.
 
 | # | Question | Decision | Where it is designed |
 |---|---|---|---|
@@ -559,6 +564,8 @@ The owner answered the open questions on 2026-10-22.
 | 6 | Model provider API keys | **Worker secrets or Secrets Store secrets**; never in vars, D1, KV or logs | [hosts.md](./hosts.md) section 5.11 |
 | 7 | Postgres | **Only if it is not too much work.** It is a sizable job (section 11.1), so it is **not part of this feature**. The owner also asked for directory migrations: **yes**, task T25 | [migrations.md](./migrations.md) |
 | 8 | Rename timing | **Wait** for the rename PR (`Async*` to plain names) to merge, then start | section 1.5 |
+| 9 | Bootstrap payload versions (2026-10-25) | **No version field.** One `url` for every host; the client derives TLS trust from the fingerprint and access from the token purpose | [proto.md](./proto.md) section 6 |
+| 10 | Migration layout (2026-10-25) | **Groups per database**: a shared group, then specific groups, each numbered from 1 and recorded by group. No number ranges per crate | [migrations.md](./migrations.md) |
 
 ### 11.1 Why Postgres is a separate feature
 
