@@ -6,7 +6,6 @@ pub enum DeltaBackend {
     #[default]
     Memory,
     Sqlite,
-    Turso,
     Directory,
     D1,
     R2,
@@ -18,12 +17,11 @@ impl std::str::FromStr for DeltaBackend {
         match s.to_lowercase().as_str() {
             "memory" | "mem" => Ok(DeltaBackend::Memory),
             "sqlite" | "libsql" => Ok(DeltaBackend::Sqlite),
-            "turso" => Ok(DeltaBackend::Turso),
             "dir" | "directory" | "native" => Ok(DeltaBackend::Directory),
             "d1" | "cloudflare-d1" => Ok(DeltaBackend::D1),
             "r2" | "cloudflare-r2" => Ok(DeltaBackend::R2),
             _ => Err(format!(
-                "unknown delta backend: {s} (use: memory, sqlite, turso, dir, d1, r2)"
+                "unknown delta backend: {s} (use: memory, sqlite, dir, d1, r2)"
             )),
         }
     }

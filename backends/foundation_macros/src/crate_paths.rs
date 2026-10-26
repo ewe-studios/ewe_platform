@@ -31,10 +31,6 @@ pub fn foundation_core_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_core")
 }
 
-pub fn foundation_compact_path() -> proc_macro2::TokenStream {
-    resolve_crate("foundation_compact")
-}
-
 pub fn foundation_ui_traits_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_ui_traits")
 }

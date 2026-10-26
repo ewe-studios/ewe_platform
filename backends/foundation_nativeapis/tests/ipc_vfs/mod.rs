@@ -5,9 +5,16 @@ use std::sync::Arc;
 use foundation_nativeapis::native::vfs::NativeFs;
 use foundation_nativeapis::shared::vfs::ipc_client::{DirectTransport, VfsClient};
 use foundation_nativeapis::shared::vfs::ipc_daemon::VfsDaemon;
+use foundation_nativeapis::shared::vfs::exec_async::exec_async;
+use foundation_nativeapis::shared::vfs::ipc_client::VfsTransport;
 use foundation_nativeapis::shared::vfs::{
-    OpenMode, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem,
+    OpenMode, SeekableVfsFile, SyncFs, VfsDirectory, VfsFile, VfsFileSystem,
 };
+
+/// Connects a client and wraps it in `SyncFs` for these sync tests.
+fn connect(transport: Arc<dyn VfsTransport>) -> SyncFs<VfsClient> {
+    SyncFs::new(exec_async(async move { Ok(VfsClient::new(transport).await) }).unwrap())
+}
 use std::fs;
 use std::path::PathBuf;
 
@@ -38,11 +45,11 @@ impl Drop for TempDir {
     }
 }
 
-fn make_client(tmp: &TempDir) -> VfsClient {
+fn make_client(tmp: &TempDir) -> SyncFs<VfsClient> {
     let native_fs = NativeFs::new(tmp.path()).expect("create NativeFs");
     let daemon = VfsDaemon::new(Arc::new(native_fs));
     let transport = DirectTransport::new(daemon);
-    VfsClient::new(Arc::new(transport))
+    connect(Arc::new(transport))
 }
 
 // ── Test 1: Basic file operations through IPC transport ──
@@ -86,7 +93,7 @@ fn test_stat_through_client_matches_direct() {
     let client_meta = client.stat("/data.txt").expect("stat failed");
 
     // Direct stat on NativeFs
-    let native_fs = NativeFs::new(tmp.path()).expect("create NativeFs");
+    let native_fs = SyncFs::new(NativeFs::new(tmp.path()).expect("create NativeFs"));
     let direct_meta = native_fs.stat("/data.txt").expect("direct stat failed");
 
     assert_eq!(client_meta.size, direct_meta.size);
@@ -104,12 +111,12 @@ fn test_multiple_clients_shared_daemon() {
     let native_fs_a = NativeFs::new(tmp.path()).expect("create NativeFs A");
     let daemon_a = VfsDaemon::new(Arc::new(native_fs_a));
     let transport_a = DirectTransport::new(daemon_a);
-    let client_a = VfsClient::new(Arc::new(transport_a));
+    let client_a = connect(Arc::new(transport_a));
 
     let native_fs_b = NativeFs::new(tmp.path()).expect("create NativeFs B");
     let daemon_b = VfsDaemon::new(Arc::new(native_fs_b));
     let transport_b = DirectTransport::new(daemon_b);
-    let client_b = VfsClient::new(Arc::new(transport_b));
+    let client_b = connect(Arc::new(transport_b));
 
     // Client A creates a file
     client_a.write_file("/shared.txt", b"from client A").unwrap();

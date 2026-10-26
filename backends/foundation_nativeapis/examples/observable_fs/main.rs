@@ -1,12 +1,14 @@
 use foundation_nativeapis::shared::vfs::{
-    MemoryFs, ObservableFs, VfsFile, VfsFileSystem,
+    MemoryFs, ObservableFs, SyncFs, VfsFile, VfsFileSystem,
 };
 
 fn main() {
     println!("=== ObservableFs Example ===\n");
 
     let inner = MemoryFs::new();
-    let fs = ObservableFs::new(inner);
+    // ObservableFs implements the async VFS traits; `main` is a sync
+    // boundary, so the example uses it through `SyncFs`.
+    let fs = SyncFs::new(ObservableFs::new(inner));
 
     // Subscribe to events before performing operations
     let rx = fs.subscribe();

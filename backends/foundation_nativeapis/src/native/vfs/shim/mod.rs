@@ -37,6 +37,10 @@ mod shim_exports {
     use crate::shared::vfs::memory_delta::MemoryDelta;
     use crate::shared::vfs::overlay_fs::OverlayFileSystem;
     use crate::shared::vfs::types::OpenMode;
+    #[cfg(feature = "vfs-sqlite")]
+    use crate::native::vfs::libsql_delta::LibsqlDelta;
+    #[cfg(feature = "vfs-sqlite")]
+    use crate::shared::vfs::exec_async::exec_async;
 
     use super::config::ShimConfig;
     use super::fd_table::VirtualFdTable;
@@ -45,7 +49,7 @@ mod shim_exports {
 
     /// VFS runtime — holds the type-erased VFS stack and the valtron pool guard.
     /// The pool guard must be kept alive so worker threads stay running for
-    /// LibsqlDelta/TursoDelta async-through-sync execution.
+    /// LibsqlDelta async-through-sync execution.
     struct VfsRuntime {
         fs: DynFs,
         #[allow(dead_code)]
@@ -55,7 +59,7 @@ mod shim_exports {
     /// Type-erased VFS stack — supports any delta store at runtime.
     ///
     /// The delta backend is selected via `FOUNDATION_VFS_DELTA` env var.
-    /// Supported: `memory` (default), `sqlite`, `turso`, `dir`, `d1`, `r2`.
+    /// Supported: `memory` (default), `sqlite`, `dir`, `d1`, `r2`.
     /// Each falls back to `memory` if the required feature flag is not enabled
     /// or if initialization fails.
     static VFS: Lazy<VfsRuntime> = Lazy::new(|| {
@@ -68,7 +72,7 @@ mod shim_exports {
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
                 return VfsRuntime {
-                    fs: DynFs::new(Arc::new(overlay)),
+                    fs: DynFs::from_async(overlay),
                     guard: None,
                 };
             }};
@@ -79,7 +83,7 @@ mod shim_exports {
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
                 VfsRuntime {
-                    fs: DynFs::new(Arc::new(overlay)),
+                    fs: DynFs::from_async(overlay),
                     guard: None,
                 }
             }
@@ -88,52 +92,25 @@ mod shim_exports {
                 {
                     // Initialize valtron pool for async-through-sync execution
                     let guard = initialize_pool(42, Some(4));
-                    use crate::native::vfs::libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
                     let path = CONFIG.delta_path.clone().unwrap_or_else(|| {
                         let dir = std::env::temp_dir();
                         dir.join("vfs-delta.db").to_string_lossy().to_string()
                     });
-                    let async_delta = match LibsqlDelta::new(&path) {
+                    let delta = match exec_async(async move { LibsqlDelta::new(&path).await }) {
                         Ok(d) => d,
                         Err(e) => {
                             drop(guard);
                             mem_fallback!(format!("sqlite delta failed: {e}"))
                         }
                     };
-                    let delta = SyncLibsqlDelta::new(async_delta);
                     let overlay = OverlayFileSystem::new(base, delta);
                     VfsRuntime {
-                        fs: DynFs::new(Arc::new(overlay)),
+                        fs: DynFs::from_async(overlay),
                         guard: Some(guard),
                     }
                 }
                 #[cfg(not(feature = "vfs-sqlite"))]
                 mem_fallback!("vfs-sqlite feature not enabled");
-            }
-            super::config::DeltaBackend::Turso => {
-                #[cfg(feature = "vfs-turso")]
-                {
-                    // Initialize valtron pool for async-through-sync execution
-                    let guard = initialize_pool(42, Some(4));
-                    use crate::native::vfs::turso_delta::TursoDelta;
-                    let url = std::env::var("FOUNDATION_VFS_TURSO_URL")
-                        .unwrap_or_else(|_| "libsql://localhost".to_string());
-                    let token = std::env::var("FOUNDATION_VFS_TURSO_TOKEN").ok();
-                    let delta = match TursoDelta::new(&url, token.as_deref()) {
-                        Ok(d) => d,
-                        Err(e) => {
-                            drop(guard);
-                            mem_fallback!(format!("turso delta failed: {e}"))
-                        }
-                    };
-                    let overlay = OverlayFileSystem::new(base, delta);
-                    VfsRuntime {
-                        fs: DynFs::new(Arc::new(overlay)),
-                        guard: Some(guard),
-                    }
-                }
-                #[cfg(not(feature = "vfs-turso"))]
-                mem_fallback!("vfs-turso feature not enabled");
             }
             super::config::DeltaBackend::Directory => {
                 use crate::native::vfs::dir_delta::DirectoryDelta;
@@ -147,7 +124,7 @@ mod shim_exports {
                 };
                 let overlay = OverlayFileSystem::new(base, delta);
                 VfsRuntime {
-                    fs: DynFs::new(Arc::new(overlay)),
+                    fs: DynFs::from_async(overlay),
                     guard: None,
                 }
             }
@@ -155,13 +132,13 @@ mod shim_exports {
                 tracing::warn!("[vfs-shim] D1Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
-                VfsRuntime { fs: DynFs::new(Arc::new(overlay)), guard: None }
+                VfsRuntime { fs: DynFs::from_async(overlay), guard: None }
             }
             super::config::DeltaBackend::R2 => {
                 tracing::warn!("[vfs-shim] R2Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
-                VfsRuntime { fs: DynFs::new(Arc::new(overlay)), guard: None }
+                VfsRuntime { fs: DynFs::from_async(overlay), guard: None }
             }
         }
     });

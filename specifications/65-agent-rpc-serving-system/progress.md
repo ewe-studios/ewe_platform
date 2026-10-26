@@ -130,6 +130,13 @@ Verified: `foundation_compact` checks on native, `host-abi`, and `wasm-bindgen`;
 both examples check on `wasm32-unknown-unknown`; `foundation_macros` unit tests
 (33) pass.
 
+A no_std `tracing` subscriber now lives in `foundation_nostd::trace` (feature
+`trace`): `NoStdSubscriber`, `set_sink(fn(&str))`, `try_init(Level)`. It uses a
+host-injected sink (Option A), so `foundation_wasm`'s `host_console_log` seam
+can forward its lines. See LEARNINGS.md "no_std tracing subscriber" for the
+two gotchas it surfaced (`workspace = true` dropping `default-features = false`,
+and the module-local `extern crate alloc`).
+
 ## Feature status
 
 - **00-foundation** — 🔧 6/7: T1–T6 done (T6:

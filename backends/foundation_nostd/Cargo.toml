@@ -13,12 +13,17 @@ keywords = ["foundation_nostd"]
 default = []
 std = []
 js-event-loop = []
+trace = ["dep:tracing"]
+
+[dependencies]
+tracing = { version = "0.1", default-features = false, optional = true }
 
 [lints]
 workspace = true
 
 [dev-dependencies]
 serial_test = { workspace = true }
+tracing = { version = "0.1", default-features = false }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
 ntest = { workspace = true }

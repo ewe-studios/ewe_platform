@@ -31,7 +31,7 @@ use foundation_core::valtron::{
     DrivenStreamIterator, EventReadiness, TaskIterator, TaskStatus,
 };
 
-use crate::shared::vfs::{ObservableFs, VfsEvent, VfsFileSystem};
+use crate::shared::vfs::{AsyncVfsFileSystem, ObservableFs, VfsEvent};
 
 use super::broadcaster::Broadcaster as EventBroadcaster;
 use super::stop_signal::CompositeReadiness;
@@ -78,7 +78,7 @@ impl VfsTask {
     ///
     /// Never panics. The subscribe call is on a `Mutex<Broadcaster>` which
     /// will only panic if the mutex is poisoned (unrecoverable).
-    pub fn from_observable<F: VfsFileSystem>(fs: &mut ObservableFs<F>) -> Self {
+    pub fn from_observable<F: AsyncVfsFileSystem>(fs: &mut ObservableFs<F>) -> Self {
         let receiver = fs.subscribe();
         Self {
             receiver,
@@ -167,7 +167,7 @@ pub struct VfsTaskBuilder {
 
 impl VfsTaskBuilder {
     /// Create a builder from an [`ObservableFs`].
-    pub fn from_observable<F: VfsFileSystem>(fs: &mut ObservableFs<F>) -> Self {
+    pub fn from_observable<F: AsyncVfsFileSystem>(fs: &mut ObservableFs<F>) -> Self {
         Self {
             task: VfsTask::from_observable(fs),
         }
