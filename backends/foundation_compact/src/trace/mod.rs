@@ -249,7 +249,12 @@ mod imp {
 
 // ── Wasm without wasm-bindgen (host-abi) ────────────────────────────────────
 
-#[cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"), not(feature = "wasm-bindgen")))]
+#[cfg(all(
+    target_family = "wasm",
+    any(target_os = "unknown", target_os = "none"),
+    not(feature = "wasm-bindgen"),
+    feature = "host-abi"
+))]
 mod imp {
     use super::{TraceWriter, TracingTestConfig};
     use std::io;
@@ -328,6 +333,26 @@ mod imp {
     pub fn try_init_tracing() {
         try_init_tracing_with(TracingTestConfig::default());
     }
+}
+
+// ── Wasm with neither backend feature ───────────────────────────────────────
+
+// Neither `wasm-bindgen` nor `host-abi` is on, so there is no console to write
+// to and no `tracing-subscriber` dependency. Initialising tracing does nothing.
+#[cfg(all(
+    target_family = "wasm",
+    any(target_os = "unknown", target_os = "none"),
+    not(feature = "wasm-bindgen"),
+    not(feature = "host-abi")
+))]
+mod imp {
+    use super::TracingTestConfig;
+
+    /// No-op: this build has no wasm console backend (`wasm-bindgen` or `host-abi`).
+    pub fn try_init_tracing_with(_config: TracingTestConfig) {}
+
+    /// No-op: this build has no wasm console backend (`wasm-bindgen` or `host-abi`).
+    pub fn try_init_tracing() {}
 }
 
 pub use imp::*;
