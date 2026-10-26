@@ -13,7 +13,7 @@ use foundation_ai::agentic::testing::{
 };
 use foundation_ai::agentic::{
     AgentSession, Answer, ContextConfig, ErrorPolicy, KvMemoryStore, MemoryConfig, TurnEvent,
-    TurnOutcome,
+    TurnOutcome, TurnTextEvent,
 };
 use foundation_ai::types::{
     MessageRole, Messages, ModelOutput, SessionRecord, TextContent, ToolArguments, UserModelContent,
@@ -628,14 +628,26 @@ async fn text_stream_yields_deltas_once() {
 
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("Hel"), mock_text("lo")]);
-    let pieces: Vec<String> = session_with(mock).await
+    let pieces: Vec<TurnTextEvent> = session_with(mock).await
         .run_turn_stream("hi")
         .expect("turn runs")
         .into_text_stream()
         .collect()
         .await;
-    assert_eq!(pieces.concat(), "Hello", "{pieces:?}");
-    assert!(pieces.iter().all(|p| !p.is_empty()));
+    let text: String = pieces
+        .iter()
+        .filter_map(|e| match e {
+            TurnTextEvent::Text(t) => Some(t.as_str()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(text, "Hello", "{pieces:?}");
+    assert!(
+        pieces
+            .iter()
+            .all(|p| !matches!(p, TurnTextEvent::Text(t) if t.is_empty()))
+    );
+    assert!(matches!(pieces.last(), Some(TurnTextEvent::Done(_))), "{pieces:?}");
 }
 
 /// Snapshots (HTTP backends re-send the text so far) yield only what is new.
@@ -644,14 +656,103 @@ async fn text_stream_turns_snapshots_into_new_text() {
 
     let mut mock = MockModelProvider::new();
     mock.on_any(vec![mock_text("Hel"), mock_text("Hello"), mock_text("Hello!")]);
-    let pieces: Vec<String> = session_with(mock).await
+    let pieces: Vec<TurnTextEvent> = session_with(mock).await
         .run_turn_stream("hi")
         .expect("turn runs")
         .into_text_stream()
         .collect()
         .await;
-    assert_eq!(pieces.concat(), "Hello!", "{pieces:?}");
-    assert_eq!(pieces.first().map(String::as_str), Some("Hel"));
+    let text: String = pieces
+        .iter()
+        .filter_map(|e| match e {
+            TurnTextEvent::Text(t) => Some(t.as_str()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(text, "Hello!", "{pieces:?}");
+    assert_eq!(pieces.first(), Some(&TurnTextEvent::Text("Hel".into())));
+    assert!(matches!(pieces.last(), Some(TurnTextEvent::Done(_))), "{pieces:?}");
+}
+
+/// A failing turn yields its partial text and then the `Failed` outcome, so a
+/// chat UI can tell failure from success instead of the stream ending blank.
+#[valtron_test]
+async fn text_stream_reports_a_failed_turn() {
+    let session = session_with(fails_after_partial_output()).await;
+    let events: Vec<TurnTextEvent> = session
+        .run_turn_stream("do the thing")
+        .expect("the turn started")
+        .into_text_stream()
+        .collect()
+        .await;
+
+    let text: String = events
+        .iter()
+        .filter_map(|e| match e {
+            TurnTextEvent::Text(t) => Some(t.as_str()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(text, "Working on it. ", "{events:?}");
+    assert!(
+        matches!(events.last(), Some(TurnTextEvent::Failed(_))),
+        "Failed must be the terminal event: {events:?}"
+    );
+    assert!(
+        !events.iter().any(|e| matches!(e, TurnTextEvent::Done(_))),
+        "no Done follows a failure: {events:?}"
+    );
+}
+
+/// A provider that errors in-band AFTER streaming partial text — the HTTP
+/// backends' `Spread([Done(partial), Pending(Error)])` shape — must leave the
+/// partial text in the turn and report the failure, not an empty success.
+#[valtron_test]
+async fn run_turn_keeps_partial_text_from_an_in_band_stream_error() {
+    let mut mock = MockModelProvider::new();
+    mock.stream_fails_after_partial(|_| true, vec![mock_text("Hello")], "stream exploded");
+
+    let session = session_with(mock).await;
+    let turn = session.run_turn("hi").await.expect("the turn started");
+
+    assert_eq!(turn.text(), "Hello", "{turn:?}");
+    assert!(matches!(turn.outcome(), TurnOutcome::Failed { .. }), "{turn:?}");
+    let failure = turn.failure().expect("the failure is reported");
+    assert!(failure.to_string().contains("stream exploded"), "{failure}");
+}
+
+/// The same in-band stream error through `into_text_stream`: partial text, then
+/// the terminal `Failed` — so a chat UI appends "Hello" and reports the error
+/// instead of streaming a blank body.
+#[valtron_test]
+async fn text_stream_reports_an_in_band_stream_error_after_partial() {
+    let mut mock = MockModelProvider::new();
+    mock.stream_fails_after_partial(|_| true, vec![mock_text("Hello")], "stream exploded");
+
+    let session = session_with(mock).await;
+    let events: Vec<TurnTextEvent> = session
+        .run_turn_stream("hi")
+        .expect("the turn started")
+        .into_text_stream()
+        .collect()
+        .await;
+
+    let text: String = events
+        .iter()
+        .filter_map(|e| match e {
+            TurnTextEvent::Text(t) => Some(t.as_str()),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(text, "Hello", "{events:?}");
+    assert!(
+        matches!(events.last(), Some(TurnTextEvent::Failed(_))),
+        "Failed must be the terminal event: {events:?}"
+    );
+    assert!(
+        !events.iter().any(|e| matches!(e, TurnTextEvent::Done(_))),
+        "no Done follows a failure: {events:?}"
+    );
 }
 
 /// Sync at the boundary: a plain `for` loop over the async events, driven by

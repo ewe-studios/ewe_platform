@@ -5,17 +5,17 @@ at the top) before touching code._
 
 ## Status at a glance
 
-| Feature | State | Where |
-|---|---|---|
-| 00 — foundation (wasm / Workers readiness) | 🔧 6/7 (T7 open) | PR #124 |
-| 01 — agent-rpc model server | ✅ 10/10 + GGUF; ⏸ owner review round 2 open (paused, see below) | PR #126 |
-| 02 — manifest installer | ⏳ 0/9 | — |
-| 03 — proxy registration | ⏳ 0/8 | — |
-| 04 — registrar sidecar | ⏳ 0/7 | — |
-| 05 — Cloudflare | ⏳ 0/6 | — |
-| 06 — wasm async streaming | ✅ 5/5 | PR #124 |
-| 07 — pluggable agent-rpc (owner review round 2) | 📐 design done, decisions in, 0/27 tasks | PR #126 branch |
-| (spec 68 — valtron wasm runtime tests) | ✅ owned path 10/10, bindgen path 5/5 | PR #124 (#125 merged into it) |
+| Feature                                         | State                                                            | Where                         |
+| ----------------------------------------------- | ---------------------------------------------------------------- | ----------------------------- |
+| 00 — foundation (wasm / Workers readiness)      | 🔧 6/7 (T7 open)                                                 | PR #124                       |
+| 01 — agent-rpc model server                     | ✅ 10/10 + GGUF; ⏸ owner review round 2 open (paused, see below) | PR #126                       |
+| 02 — manifest installer                         | ⏳ 0/9                                                           | —                             |
+| 03 — proxy registration                         | ⏳ 0/8                                                           | —                             |
+| 04 — registrar sidecar                          | ⏳ 0/7                                                           | —                             |
+| 05 — Cloudflare                                 | ⏳ 0/6                                                           | —                             |
+| 06 — wasm async streaming                       | ✅ 5/5                                                           | PR #124                       |
+| 07 — pluggable agent-rpc (owner review round 2) | 📐 design done, decisions in, 0/27 tasks                         | PR #126 branch                |
+| (spec 68 — valtron wasm runtime tests)          | ✅ owned path 10/10, bindgen path 5/5                            | PR #124 (#125 merged into it) |
 
 ## Branches and PRs (how the work is stacked)
 
@@ -39,21 +39,21 @@ master
 
 ## Feature 01 — Agent RPC Model Server (`65-f01-agent-rpc`)
 
-| Task | Status | Commit |
-|------|--------|--------|
-| T1 — shareability spike (candle: shared weights, per-generation KV) | ✅ | `5ab440281` |
-| T2 — crate scaffold, `AgentRpcError` ↔ wire codes | ✅ | `82141d432` |
-| T3 — `ModelHandle` (load once, `Arc`) | ✅ | `9f126086c` |
-| T4 — `InstanceRegistry` | ✅ | `5d53b2788` |
-| T5 — generated `AgentService` (+ codegen fixes) | ✅ | `319b71153` |
-| T6 — unary round-trip over Connect | ✅ | `563a146da` |
-| T7 — streaming round-trip, proven unbuffered | ✅ | `c46ee3e4b` |
-| T8 — client auth (token → client cert → mTLS) | ✅ | `ca7b4d923` |
-| T9 — bootstrap payload (base64url + QR) | ✅ | `db79cfcdd` |
-| T10 — Connect / gRPC / gRPC-Web end to end | ✅ | `f734645e3` |
-| docker `buildkit` buffa pin (found during review) | ✅ | `47af8d9ba` |
-| GGUF `ModelSource` + llama.cpp shareability tests | ✅ | `9f10b5011` |
-| Signed, expiring bootstrap secret + SQL trusted-client store | 🔧 in progress | see "Current work" |
+| Task                                                                | Status         | Commit             |
+| ------------------------------------------------------------------- | -------------- | ------------------ |
+| T1 — shareability spike (candle: shared weights, per-generation KV) | ✅             | `5ab440281`        |
+| T2 — crate scaffold, `AgentRpcError` ↔ wire codes                   | ✅             | `82141d432`        |
+| T3 — `ModelHandle` (load once, `Arc`)                               | ✅             | `9f126086c`        |
+| T4 — `InstanceRegistry`                                             | ✅             | `5d53b2788`        |
+| T5 — generated `AgentService` (+ codegen fixes)                     | ✅             | `319b71153`        |
+| T6 — unary round-trip over Connect                                  | ✅             | `563a146da`        |
+| T7 — streaming round-trip, proven unbuffered                        | ✅             | `c46ee3e4b`        |
+| T8 — client auth (token → client cert → mTLS)                       | ✅             | `ca7b4d923`        |
+| T9 — bootstrap payload (base64url + QR)                             | ✅             | `db79cfcdd`        |
+| T10 — Connect / gRPC / gRPC-Web end to end                          | ✅             | `f734645e3`        |
+| docker `buildkit` buffa pin (found during review)                   | ✅             | `47af8d9ba`        |
+| GGUF `ModelSource` + llama.cpp shareability tests                   | ✅             | `9f10b5011`        |
+| Signed, expiring bootstrap secret + SQL trusted-client store        | 🔧 in progress | see "Current work" |
 
 Tests: `PROTOC=~/.local/share/mise/installs/protoc/36.2/bin/protoc cargo test --profile uat -p foundation_agent_rpc`
 (candle default) and `... --no-default-features --features gguf --test gguf_share_tests`.
@@ -69,7 +69,7 @@ secret**, and persists enrolled clients:
    invalidates every outstanding secret (by design).
 2. **Secret** = random bytes + `valid_from`/`valid_until`, signed by that key.
    Shared form: base64 of a JSON dict `{public_key, signature, secret,
-   valid_from, valid_until}` (the QR code embeds the same string). Verification
+valid_from, valid_until}` (the QR code embeds the same string). Verification
    rejects a bad signature, a key mismatch, or a time outside the window.
 3. **Trusted clients** that complete enrollment + mTLS are stored through
    `foundation_db`'s SQL storage (SQLite by default; any foundation_db SQL
@@ -84,12 +84,13 @@ secret_tests --test trust_tests --test auth_tests --test bootstrap_tests
 fails; then `-p foundation_db --test turso_storage_tests` (passed: 7/7).
 
 What landed:
+
 - `src/secret.rs` — `SigningKey` (ring; Ed25519 generated, operator RSA
   PKCS#8 accepted), `SigningKeyConfig` (env `EWE_AGENT_RPC_SIGNING_KEY` =
   inline PEM or path, else `<state>/bootstrap-signing-key.pem`, generated
   0600 when missing; corrupt file = error, never overwritten),
   `SignedSecret` (base64url JSON `{v, alg, public_key, secret, valid_from,
-  valid_until, signature}`; signature over a domain-separated,
+valid_until, signature}`; signature over a domain-separated,
   length-prefixed encoding, not the JSON), `BootstrapSecrets` (issue /
   verify; default validity 24 h = kubeadm token TTL).
 - `src/trust.rs` — `TrustedClientStore` over any `foundation_db`
@@ -97,7 +98,7 @@ What landed:
   per-secret use counts (single statement upsert, pruned after expiry);
   in-memory index for the sync TLS verifier.
 - `src/auth.rs` — `BootstrapToken` removed; `MtlsConfig::new(ca, secrets,
-  trusted)` / `from_state_dir(dir).await` (CA persisted as
+trusted)` / `from_state_dir(dir).await` (CA persisted as
   `ca-cert.pem`/`ca-key.pem`); async `EnrollmentService::enroll_client`
   (verify → sign CSR → spend use → record); `TrustedClientVerifier` wraps
   WebPKI and refuses certs not in the store / revoked / expired, writing
@@ -128,6 +129,7 @@ https://github.com/ewe-studios/ewe_platform/pull/126#issuecomment-6316012815.
 one RPC surface that runs on bare metal, Docker and Cloudflare Workers.
 
 Work, in order:
+
 1. **Merge master** into `65-f01-agent-rpc` (merge commit, no rebase) and adapt
    to the async APIs. These include async `StorageProvider::new`/Turso
    constructors, `Blocking<S>` only at sync boundaries, async
@@ -143,8 +145,9 @@ Work, in order:
    - `SigningKey` / `SignedSecret` / `BootstrapSecrets`;
    - the trusted-client store;
    - the mTLS verifier.
-   
+
    agent-rpc keeps only its wiring (enrollment service, listeners).
+
 4. **A `CaStore` provider trait** (owner, `auth.rs` L213). It loads or generates,
    then persists, the CA and signing key through any backend: filesystem,
    memory, JSON files, Turso/libsql, D1/KV/R2. One generic impl goes over
@@ -172,7 +175,7 @@ Work, in order:
    - an `InstanceRegistry` trait;
    - model access behind a provider trait;
    - `ClientAuth`.
-   
+
    The native host (TCP/TLS listeners, local models, Turso) sits on top. The
    Workers host isn't built in this PR; it gets a new feature doc under
    `features/`, covering:
@@ -184,6 +187,7 @@ Work, in order:
    - `ClientAuth` via the signed secret (public key from config), JWT, or
      Cloudflare mTLS (`request.cf.tlsClientAuth`);
    - how a URL-based host fills `BootstrapPayload`'s endpoint fields.
+
 7. **Model capabilities + instance kind** (owner, proto L52):
    - a `GetCapabilities` RPC returning the supported kinds (`API`, `CANDLE`,
      `GGUF`, with room for `VIDEO` / `AUDIO`; zero = `UNSPECIFIED`) and their
@@ -228,25 +232,25 @@ replaced by feature 07.
 
 ## Feature 00 — foundation (`worktree-65-agent-rpc-serving-system`)
 
-| Task | Status |
-|------|--------|
-| T1 — `foundation_ai` wasm-clean (getrandom/ahash removed) | ✅ |
-| T2 — dependency-crate wasm audit | ✅ |
-| T3 — wasm32 CI compile gate | ✅ |
-| T4 — Workers AI provider (SSE without `[DONE]`) | ✅ |
-| T5 — examples `cf-agent-loop`, `cf-cloud-provider` | ✅ |
-| T6 — both examples green under Miniflare (`foundation_toolings/tests/cf_examples.rs`, `--features cf-worker-tests`) | ✅ |
-| T7 — `wrangler deploy` + live smoke test | ⏳ needs a Cloudflare account + `OPENROUTER_API_KEY` |
+| Task                                                                                                                | Status                                               |
+| ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| T1 — `foundation_ai` wasm-clean (getrandom/ahash removed)                                                           | ✅                                                   |
+| T2 — dependency-crate wasm audit                                                                                    | ✅                                                   |
+| T3 — wasm32 CI compile gate                                                                                         | ✅                                                   |
+| T4 — Workers AI provider (SSE without `[DONE]`)                                                                     | ✅                                                   |
+| T5 — examples `cf-agent-loop`, `cf-cloud-provider`                                                                  | ✅                                                   |
+| T6 — both examples green under Miniflare (`foundation_toolings/tests/cf_examples.rs`, `--features cf-worker-tests`) | ✅                                                   |
+| T7 — `wrangler deploy` + live smoke test                                                                            | ⏳ needs a Cloudflare account + `OPENROUTER_API_KEY` |
 
 ## Feature 06 — WASM async streaming
 
-| Task | Status | Commit |
-|------|--------|--------|
-| T1 — parking `into_future_stream` bridge + pure-lens rename | ✅ | `59c4ef14d` |
-| T2 — `run_future` → `block_on_collect`, single-threaded `FutureIterator` fix | ✅ | `35d27d89f` |
-| T3 — lazy wasm `send_sse` + `SseProgress::Failed` | ✅ | `4ce7ad6e5` |
-| T4 — `Failed` → `ModelState::Error`, wasm `sleep` no-op | ✅ | `89db93212` |
-| T5 — `cf-cloud-provider` streams live under `wrangler dev --local` | ✅ | `0e33260b7`, `f69a727eb` |
+| Task                                                                         | Status | Commit                   |
+| ---------------------------------------------------------------------------- | ------ | ------------------------ |
+| T1 — parking `into_future_stream` bridge + pure-lens rename                  | ✅     | `59c4ef14d`              |
+| T2 — `run_future` → `block_on_collect`, single-threaded `FutureIterator` fix | ✅     | `35d27d89f`              |
+| T3 — lazy wasm `send_sse` + `SseProgress::Failed`                            | ✅     | `4ce7ad6e5`              |
+| T4 — `Failed` → `ModelState::Error`, wasm `sleep` no-op                      | ✅     | `89db93212`              |
+| T5 — `cf-cloud-provider` streams live under `wrangler dev --local`           | ✅     | `0e33260b7`, `f69a727eb` |
 
 The two T5 hangs (sync `get_model` lookup blocking the isolate; `Wait`
 busy-looping) and their fixes are in LEARNINGS "06 T5".
@@ -254,10 +258,10 @@ busy-looping) and their fixes are in LEARNINGS "06 T5".
 ## Spec 68 — valtron wasm runtime tests (lives on #124)
 
 - **Bindgen tier** (`js-wasmbindgen`, what Workers run): `wasm-testbed test
-  bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std
-  --filter wasm_js_yield_integration` → 5/5.
+bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std
+--filter wasm_js_yield_integration` → 5/5.
 - **Owned tier** (`js-foundation-wasm`, no wasm-bindgen): `wasm-testbed deno
-  backends/foundation_core/integration/wasm_tests` → 10/10. Unblocked by:
+backends/foundation_core/integration/wasm_tests` → 10/10. Unblocked by:
   foundation_compact's `host-abi` backend; a `crypto.getRandomValues` shim in the
   embedded Deno; the `#[wasm_test]` runner disposing each case's timers.
 - Not done: browser run (Playwright); these suites are not in CI yet (backlog).
@@ -280,3 +284,86 @@ busy-looping) and their fixes are in LEARNINGS "06 T5".
 3. F00 T7 when credentials exist.
 
 _Created: 2026-10-20 · Rewritten for handoff: 2026-10-21_
+Found and recorded in `docs/bug-backlog.md`: readiness signals that never request
+a resume stall on wasm; nested blocking helpers spin on wasm; wasm SSE parser
+errors are swallowed; interval callbacks run under the registry lock.
+
+## Post-T5 fix — a failed turn streams its error, not an empty 200
+
+The deployed examples answered a failed turn with an empty 200 (the "zero
+response"). The failure was dropped at four layers: the providers (lost the
+partial text and the error), `lift_model_item` (mapped a spread error to
+`Initializing`), the agent loop (kept only the first spread item), and
+`into_text_stream` (dropped the `Failed` event). All four are fixed and proven by
+tests — see LEARNINGS.md "Zero response root cause" for the full list.
+
+Green under `--profile uat --features testing`: `provider_tests` 249 passed,
+`agentic_tests` 324 passed. The `docs/bug-backlog.md` "`TurnTextStream` drops the
+terminal `Failed` event" entry is removed.
+
+## Post-deploy fix — overlapping text and the empty-queue EOF bug
+
+The deployed `cf-cloud-provider` repeated the reply text and logged
+"Failed to parse SSE chunk". Both are fixed and re-deployed.
+
+- `chat()` now streams `turn.into_text_stream()` (deltas), not `turn.events()`
+  (snapshots). The client appends each delta once. Commit `609fb3ab9`.
+- The wasm `QueueReader` returned `Ok(0)` (end of stream) when the byte queue
+  was empty for a moment, so a `data:` line split across two JS chunks parsed
+  early. It now returns `WouldBlock` until the stream is done. Commit
+  `273349fa4`.
+- `EventSourceError::ReadError` keeps the `io::Error`; the SSE iterator logs
+  real errors and parks only on `WouldBlock`. Commit `273349fa4`.
+- `tracing-wasm` froze the isolate (User Timing API, error 1101). A
+  `console.log` writer replaces it. Commit `609fb3ab9`.
+
+Deployed: `cf-cloud-provider` and `cf-agent-loop` both answer. See LEARNINGS.md
+"Text overlapping and the empty-queue EOF bug".
+
+## Reusable `#[wasm_logs]` console backend
+
+Each example hand-wrote the same tracing subscriber + `console.log` writer in an
+`init_logs` function. This is now one reusable macro.
+
+- `#[wasm_logs(console, tracing = "…")]` on a wasm entry point installs the
+  console subscriber. `foundation_macros` emits it; `foundation_core` re-exports
+  it. The macro injects one idempotent init call into the function body.
+- `foundation_compact`'s `host-abi` backend now declares a `host_console_log`
+  `abi` import (like `host_fill_random`) and a `ConsoleWriter`, so the
+  no-wasm-bindgen path can log too. `foundation-wasm.js` supplies
+  `host_console_log` in its `web_abi`.
+- Both examples use the macro; their `init_logs` functions and the unused
+  `console_log`/`tracing`/`tracing-subscriber` dependencies are removed.
+
+Verified: `foundation_compact` checks on native, `host-abi`, and `wasm-bindgen`;
+both examples check on `wasm32-unknown-unknown`; `foundation_macros` unit tests
+(33) pass.
+
+A no_std `tracing` subscriber now lives in `foundation_nostd::trace` (feature
+`trace`): `NoStdSubscriber`, `set_sink(fn(&str))`, `try_init(Level)`. It uses a
+host-injected sink (Option A), so `foundation_wasm`'s `host_console_log` seam
+can forward its lines. See LEARNINGS.md "no_std tracing subscriber" for the
+two gotchas it surfaced (`workspace = true` dropping `default-features = false`,
+and the module-local `extern crate alloc`).
+
+## Feature status
+
+- **00-foundation** — 🔧 6/7: T1–T6 done (T6:
+  `foundation_toolings/tests/cf_examples.rs`, both examples green under
+  miniflare with mocked vendors); T7 (deploy to Cloudflare, live key) open.
+- **01-agent-rpc** — ⏳ not started (0/10)
+- **02-manifest-installer** — ⏳ not started (0/9)
+- **03-proxy-registration** — ⏳ not started (0/8)
+- **04-registrar-sidecar** — ⏳ not started (0/7)
+- **05-cloudflare** — ⏳ not started (0/6)
+- **06-wasm-async-streaming** — ✅ complete (5/5)
+
+## Next steps
+
+1. Feature 01 (agent-rpc server), then 02 → 05 in order.
+2. Feature 00 T7: deploy + live OpenRouter run (needs a Cloudflare account and
+   `OPENROUTER_API_KEY`; not available in this sandbox).
+3. Spec 68 leftovers: the owned (`js-foundation-wasm`) path is blocked on
+   `foundation_compact`'s wasm-bindgen dependency (backlog §5); browser run.
+
+_Created: 2026-10-20_

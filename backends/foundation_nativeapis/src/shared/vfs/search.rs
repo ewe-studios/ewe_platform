@@ -1,9 +1,16 @@
+//! Search over a VFS: grep and find. `InCodeVfsSearcher` walks any
+//! `AsyncVfsFileSystem`; on native targets `CliSearcher` (rg / grep) and
+//! `FffSearcher` search the host file system directly.
+
+use std::future::Future;
+use std::pin::Pin;
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
+use super::async_traits::{AsyncVfsDirectory, AsyncVfsFileSystem};
 use super::error::{VfsError, VfsResult};
-use super::traits::{VfsDirectory, VfsFileSystem};
 use super::types::VfsFileType;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -21,6 +28,7 @@ pub struct VfsSearchMatch {
     pub score: f32,
 }
 
+#[async_trait]
 pub trait VfsSearcher: Send + Sync {
     fn is_available(&self) -> bool {
         true
@@ -28,7 +36,7 @@ pub trait VfsSearcher: Send + Sync {
 
     /// # Errors
     /// Returns `VfsError::Backend` for invalid regex or I/O failures.
-    fn search(
+    async fn search(
         &self,
         query: &str,
         kind: VfsSearchKind,
@@ -36,18 +44,19 @@ pub trait VfsSearcher: Send + Sync {
     ) -> VfsResult<Vec<VfsSearchMatch>>;
 }
 
+#[async_trait]
 impl VfsSearcher for Box<dyn VfsSearcher> {
     fn is_available(&self) -> bool {
         (**self).is_available()
     }
 
-    fn search(
+    async fn search(
         &self,
         query: &str,
         kind: VfsSearchKind,
         roots: &[String],
     ) -> VfsResult<Vec<VfsSearchMatch>> {
-        (**self).search(query, kind, roots)
+        (**self).search(query, kind, roots).await
     }
 }
 
@@ -61,22 +70,23 @@ const EXCLUDED_DIRS: &[&str] = &[
 ];
 
 // ---------------------------------------------------------------------------
-// InCodeVfsSearcher — walks VfsFileSystem directories with regex matching
+// InCodeVfsSearcher — walks AsyncVfsFileSystem directories with regex matching
 // ---------------------------------------------------------------------------
 
-pub struct InCodeVfsSearcher<F: VfsFileSystem> {
+pub struct InCodeVfsSearcher<F: AsyncVfsFileSystem> {
     fs: Arc<F>,
 }
 
-impl<F: VfsFileSystem> InCodeVfsSearcher<F> {
+impl<F: AsyncVfsFileSystem> InCodeVfsSearcher<F> {
     #[must_use]
     pub fn new(fs: Arc<F>) -> Self {
         Self { fs }
     }
 }
 
-impl<F: VfsFileSystem + 'static> VfsSearcher for InCodeVfsSearcher<F> {
-    fn search(
+#[async_trait]
+impl<F: AsyncVfsFileSystem + 'static> VfsSearcher for InCodeVfsSearcher<F> {
+    async fn search(
         &self,
         query: &str,
         kind: VfsSearchKind,
@@ -88,14 +98,7 @@ impl<F: VfsFileSystem + 'static> VfsSearcher for InCodeVfsSearcher<F> {
 
         let mut matches = Vec::new();
         for root in roots {
-            match kind {
-                VfsSearchKind::Grep | VfsSearchKind::MultiGrep => {
-                    walk_grep(&*self.fs, root, &re, &mut matches);
-                }
-                VfsSearchKind::Find => {
-                    walk_find(&*self.fs, root, &re, &mut matches);
-                }
-            }
+            walk(&*self.fs, root.clone(), &re, kind, &mut matches).await;
         }
 
         if matches!(kind, VfsSearchKind::Grep | VfsSearchKind::MultiGrep) {
@@ -107,82 +110,72 @@ impl<F: VfsFileSystem + 'static> VfsSearcher for InCodeVfsSearcher<F> {
     }
 }
 
-fn walk_grep<F: VfsFileSystem>(
-    fs: &F,
-    dir: &str,
-    re: &regex::Regex,
-    matches: &mut Vec<VfsSearchMatch>,
-) {
-    let Ok(d) = fs.open_directory(dir) else {
-        return;
-    };
-    let Ok(entries) = d.list() else {
-        return;
-    };
-    for entry in entries {
-        let child = if dir == "/" {
-            format!("/{}", entry.name)
-        } else {
-            format!("{}/{}", dir, entry.name)
+type WalkFuture<'a> = Pin<Box<dyn Future<Output = ()> + Send + 'a>>;
+
+/// Walks `dir` depth first. `Grep` matches file lines, `Find` matches entry
+/// names. A directory or file that cannot be read is skipped.
+fn walk<'a, F: AsyncVfsFileSystem>(
+    fs: &'a F,
+    dir: String,
+    re: &'a regex::Regex,
+    kind: VfsSearchKind,
+    matches: &'a mut Vec<VfsSearchMatch>,
+) -> WalkFuture<'a> {
+    Box::pin(async move {
+        let Ok(d) = fs.open_directory_async(dir.clone()).await else {
+            return;
         };
-        if entry.file_type == VfsFileType::Directory {
-            if EXCLUDED_DIRS.contains(&entry.name.as_str()) {
-                continue;
+        let Ok(entries) = d.list_async().await else {
+            return;
+        };
+        for entry in entries {
+            let child = if dir == "/" {
+                format!("/{}", entry.name)
+            } else {
+                format!("{}/{}", dir, entry.name)
+            };
+            let is_dir = entry.file_type == VfsFileType::Directory;
+            if kind == VfsSearchKind::Find && re.is_match(&entry.name) {
+                matches.push(VfsSearchMatch {
+                    path: child.clone(),
+                    line_number: 0,
+                    content: String::new(),
+                    score: 1.0,
+                });
             }
-            walk_grep(fs, &child, re, matches);
-        } else {
-            let Ok(data) = fs.read_file(&child) else {
-                continue;
-            };
-            let Ok(content) = String::from_utf8(data) else {
-                continue;
-            };
-            for (i, line) in content.lines().enumerate() {
-                if re.is_match(line) {
-                    #[allow(clippy::cast_possible_truncation)]
-                    matches.push(VfsSearchMatch {
-                        path: child.clone(),
-                        line_number: (i + 1) as u32,
-                        content: line.to_string(),
-                        score: 1.0,
-                    });
+            if is_dir {
+                if EXCLUDED_DIRS.contains(&entry.name.as_str()) {
+                    continue;
                 }
+                walk(fs, child, re, kind, matches).await;
+            } else if kind != VfsSearchKind::Find {
+                grep_file(fs, child, re, matches).await;
             }
         }
-    }
+    })
 }
 
-fn walk_find<F: VfsFileSystem>(
+async fn grep_file<F: AsyncVfsFileSystem>(
     fs: &F,
-    dir: &str,
+    path: String,
     re: &regex::Regex,
     matches: &mut Vec<VfsSearchMatch>,
 ) {
-    let Ok(d) = fs.open_directory(dir) else {
+    let Ok(data) = fs.read_file_async(path.clone()).await else {
         return;
     };
-    let Ok(entries) = d.list() else {
+    let Ok(content) = String::from_utf8(data) else {
         return;
     };
-    for entry in entries {
-        let child = if dir == "/" {
-            format!("/{}", entry.name)
-        } else {
-            format!("{}/{}", dir, entry.name)
-        };
-        if re.is_match(&entry.name) {
+    for (i, line) in content.lines().enumerate() {
+        if re.is_match(line) {
+            #[allow(clippy::cast_possible_truncation)]
             matches.push(VfsSearchMatch {
-                path: child.clone(),
-                line_number: 0,
-                content: String::new(),
+                path: path.clone(),
+                line_number: (i + 1) as u32,
+                content: line.to_string(),
                 score: 1.0,
             });
-        }
-        if entry.file_type == VfsFileType::Directory {
-            if EXCLUDED_DIRS.contains(&entry.name.as_str()) {
-                continue;
-            }
-            walk_find(fs, &child, re, matches);
         }
     }
 }
@@ -309,9 +302,12 @@ impl CliSearcher {
     }
 }
 
+/// The child process runs to completion on the calling thread (see the bug
+/// backlog: `std::process` has no async wait).
 #[cfg(not(target_family = "wasm"))]
+#[async_trait]
 impl VfsSearcher for CliSearcher {
-    fn search(
+    async fn search(
         &self,
         query: &str,
         kind: VfsSearchKind,
@@ -368,12 +364,13 @@ impl CascadingVfsSearcher {
     }
 }
 
+#[async_trait]
 impl VfsSearcher for CascadingVfsSearcher {
     fn is_available(&self) -> bool {
-        self.backends.iter().any(VfsSearcher::is_available)
+        self.backends.iter().any(|b| b.is_available())
     }
 
-    fn search(
+    async fn search(
         &self,
         query: &str,
         kind: VfsSearchKind,
@@ -381,7 +378,7 @@ impl VfsSearcher for CascadingVfsSearcher {
     ) -> VfsResult<Vec<VfsSearchMatch>> {
         for backend in &self.backends {
             if backend.is_available() {
-                return backend.search(query, kind, roots);
+                return backend.search(query, kind, roots).await;
             }
         }
         Err(VfsError::Unsupported {
@@ -430,8 +427,9 @@ impl FffSearcher {
 }
 
 #[cfg(all(not(target_family = "wasm"), feature = "vfs-search-fff"))]
+#[async_trait]
 impl VfsSearcher for FffSearcher {
-    fn search(
+    async fn search(
         &self,
         query: &str,
         kind: VfsSearchKind,
@@ -522,13 +520,13 @@ impl VfsSearcher for FffSearcher {
 // ---------------------------------------------------------------------------
 
 #[must_use]
-pub fn vfs_searcher<F: VfsFileSystem + 'static>(fs: Arc<F>) -> Box<dyn VfsSearcher> {
+pub fn vfs_searcher<F: AsyncVfsFileSystem + 'static>(fs: Arc<F>) -> Box<dyn VfsSearcher> {
     Box::new(InCodeVfsSearcher::new(fs))
 }
 
 #[must_use]
 #[cfg(not(target_family = "wasm"))]
-pub fn native_vfs_searcher<F: VfsFileSystem + 'static>(fs: Arc<F>) -> Box<dyn VfsSearcher> {
+pub fn native_vfs_searcher<F: AsyncVfsFileSystem + 'static>(fs: Arc<F>) -> Box<dyn VfsSearcher> {
     let mut backends: Vec<Box<dyn VfsSearcher>> = Vec::new();
 
     #[cfg(feature = "vfs-search-fff")]

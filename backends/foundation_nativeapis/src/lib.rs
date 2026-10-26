@@ -59,7 +59,7 @@ pub use valtron::FdMonitorTask;
 // VFS types when the vfs feature is enabled.
 #[cfg(feature = "vfs")]
 pub use shared::vfs::{
-    ObservableFs, ObservableFile, ObservableSeekableFile, VfsEvent,
+    AsyncVfsFileSystem, ObservableFs, ObservableFile, ObservableSeekableFile, SyncFs, VfsEvent,
     VfsError, VfsResult, VfsFileSystem, MemoryFs,
 };
 

@@ -1,12 +1,13 @@
 #![cfg(feature = "vfs-native")]
 
+use foundation_core::valtron::valtron_test;
 use foundation_nativeapis::native::vfs::{DirectoryDelta, NativeFs};
 use foundation_nativeapis::shared::vfs::{
-    DeltaStore, OverlayFileSystem, VfsDirectory, VfsFileSystem,
+    AsyncDeltaStore, AsyncVfsDirectory, AsyncVfsFileSystem, DeltaStore, OverlayFileSystem,
+    SyncFs, VfsDirectory, VfsFileSystem,
 };
 use std::fs;
 use std::path::PathBuf;
-use tracing_test::traced_test;
 
 struct TempDir(PathBuf);
 
@@ -36,11 +37,10 @@ impl Drop for TempDir {
 }
 
 #[test]
-#[traced_test]
 fn test_write_creates_file_in_shadow() {
     let tmp = TempDir::new("write_shadow");
     let shadow = tmp.path().join("shadow");
-    let delta = DirectoryDelta::new(&shadow).unwrap();
+    let delta = SyncFs::new(DirectoryDelta::new(&shadow).unwrap());
 
     delta.write_file("/test.txt", b"shadow data").unwrap();
 
@@ -50,11 +50,10 @@ fn test_write_creates_file_in_shadow() {
 }
 
 #[test]
-#[traced_test]
 fn test_whiteout_creates_sentinel() {
     let tmp = TempDir::new("sentinel");
     let shadow = tmp.path().join("shadow");
-    let delta = DirectoryDelta::new(&shadow).unwrap();
+    let delta = SyncFs::new(DirectoryDelta::new(&shadow).unwrap());
 
     delta.add_whiteout("/deleted.txt", 5).unwrap();
 
@@ -65,11 +64,10 @@ fn test_whiteout_creates_sentinel() {
 }
 
 #[test]
-#[traced_test]
 fn test_whiteout_check_from_cache() {
     let tmp = TempDir::new("cache");
     let shadow = tmp.path().join("shadow");
-    let delta = DirectoryDelta::new(&shadow).unwrap();
+    let delta = SyncFs::new(DirectoryDelta::new(&shadow).unwrap());
 
     assert!(delta.is_whiteout("/foo.txt").unwrap().is_none());
 
@@ -78,11 +76,10 @@ fn test_whiteout_check_from_cache() {
 }
 
 #[test]
-#[traced_test]
 fn test_whiteout_inheritance() {
     let tmp = TempDir::new("inherit");
     let shadow = tmp.path().join("shadow");
-    let delta = DirectoryDelta::new(&shadow).unwrap();
+    let delta = SyncFs::new(DirectoryDelta::new(&shadow).unwrap());
 
     delta.add_whiteout("/parent", 10).unwrap();
     assert_eq!(
@@ -96,7 +93,6 @@ fn test_whiteout_inheritance() {
 }
 
 #[test]
-#[traced_test]
 fn test_whiteout_scan_on_construction() {
     let tmp = TempDir::new("scan");
     let shadow = tmp.path().join("shadow");
@@ -107,17 +103,16 @@ fn test_whiteout_scan_on_construction() {
     fs::create_dir_all(shadow.join("src")).unwrap();
     fs::write(shadow.join("src").join(".wh.removed.rs"), "12").unwrap();
 
-    let delta = DirectoryDelta::new(&shadow).unwrap();
+    let delta = SyncFs::new(DirectoryDelta::new(&shadow).unwrap());
     assert_eq!(delta.is_whiteout("/old.txt").unwrap(), Some(7));
     assert_eq!(delta.is_whiteout("/src/removed.rs").unwrap(), Some(12));
 }
 
 #[test]
-#[traced_test]
 fn test_reset_clears_shadow() {
     let tmp = TempDir::new("reset");
     let shadow = tmp.path().join("shadow");
-    let delta = DirectoryDelta::new(&shadow).unwrap();
+    let delta = SyncFs::new(DirectoryDelta::new(&shadow).unwrap());
 
     delta.write_file("/file.txt", b"data").unwrap();
     delta.add_whiteout("/gone.txt", 1).unwrap();
@@ -128,11 +123,10 @@ fn test_reset_clears_shadow() {
 }
 
 #[test]
-#[traced_test]
 fn test_listing_excludes_sentinels() {
     let tmp = TempDir::new("filter");
     let shadow = tmp.path().join("shadow");
-    let delta = DirectoryDelta::new(&shadow).unwrap();
+    let delta = SyncFs::new(DirectoryDelta::new(&shadow).unwrap());
 
     delta.write_file("/visible.txt", b"see me").unwrap();
     delta.add_whiteout("/hidden.txt", 1).unwrap();
@@ -145,11 +139,10 @@ fn test_listing_excludes_sentinels() {
 }
 
 #[test]
-#[traced_test]
 fn test_whiteout_path_traversal_rejected() {
     let tmp = TempDir::new("traversal");
     let shadow = tmp.path().join("shadow");
-    let delta = DirectoryDelta::new(&shadow).unwrap();
+    let delta = SyncFs::new(DirectoryDelta::new(&shadow).unwrap());
 
     let result = delta.add_whiteout("/../../../etc/passwd", 1);
     assert!(result.is_err(), "path traversal in whiteout should be rejected");
@@ -158,9 +151,8 @@ fn test_whiteout_path_traversal_rejected() {
     assert!(result.is_err(), "path traversal in whiteout should be rejected");
 }
 
-#[test]
-#[traced_test]
-fn test_end_to_end_overlay_with_native_base() {
+#[valtron_test]
+async fn test_end_to_end_overlay_with_native_base() {
     let tmp = TempDir::new("e2e");
     let base_dir = tmp.path().join("base");
     let shadow_dir = tmp.path().join("shadow");
@@ -177,21 +169,19 @@ fn test_end_to_end_overlay_with_native_base() {
 
     // Read base files through overlay
     assert_eq!(
-        overlay.read_file("/src/main.rs").unwrap(),
+        overlay.read_file_async("/src/main.rs".into()).await.unwrap(),
         b"fn main() {}"
     );
 
     // Create new file through overlay
-    overlay.write_file("/new.txt", b"added").unwrap();
-    assert_eq!(overlay.read_file("/new.txt").unwrap(), b"added");
+    overlay.write_file_async("/new.txt".into(), b"added".to_vec()).await.unwrap();
+    assert_eq!(overlay.read_file_async("/new.txt".into()).await.unwrap(), b"added");
     assert!(shadow_dir.join("new.txt").exists());
 
     // Modify base file through overlay (CoW)
-    overlay
-        .write_file("/src/main.rs", b"fn main() { modified }")
-        .unwrap();
+    overlay.write_file_async("/src/main.rs".into(), b"fn main() { modified }".to_vec()).await.unwrap();
     assert_eq!(
-        overlay.read_file("/src/main.rs").unwrap(),
+        overlay.read_file_async("/src/main.rs".into()).await.unwrap(),
         b"fn main() { modified }"
     );
     // Base unchanged
@@ -201,19 +191,40 @@ fn test_end_to_end_overlay_with_native_base() {
     );
 
     // Delete base file through overlay
-    overlay.remove("/README.md").unwrap();
-    assert!(!overlay.exists("/README.md").unwrap());
+    overlay.remove_async("/README.md".into()).await.unwrap();
+    assert!(!overlay.exists_async("/README.md".into()).await.unwrap());
     // Base still has it
     assert!(base_dir.join("README.md").exists());
     // Whiteout sentinel exists
     assert!(shadow_dir.join(".wh.README.md").exists());
 
     // Reset delta — everything goes back to base
-    overlay.delta().reset().unwrap();
+    overlay.delta().reset_async().await.unwrap();
     assert_eq!(
-        overlay.read_file("/src/main.rs").unwrap(),
+        overlay.read_file_async("/src/main.rs".into()).await.unwrap(),
         b"fn main() {}"
     );
-    assert!(overlay.exists("/README.md").unwrap());
-    assert!(!overlay.exists("/new.txt").unwrap());
+    assert!(overlay.exists_async("/README.md".into()).await.unwrap());
+    assert!(!overlay.exists_async("/new.txt".into()).await.unwrap());
+}
+
+/// Bug fix: a subdirectory opened through `DirectoryDelta` showed the
+/// `.wh.*` sentinel files; only the top directory was filtered.
+#[valtron_test]
+async fn subdirectories_hide_whiteout_sentinels() {
+    let tmp = TempDir::new("sub_sentinels");
+    let shadow = tmp.path().join("shadow");
+    let delta = DirectoryDelta::new(&shadow).unwrap();
+    delta.mkdir_async("/a".into()).await.unwrap();
+    delta.mkdir_async("/a/b".into()).await.unwrap();
+    delta.write_file_async("/a/b/kept.txt".into(), b"x".to_vec()).await.unwrap();
+    delta.add_whiteout_async("/a/b/gone.txt".into(), 1).await.unwrap();
+    assert!(shadow.join("a/b/.wh.gone.txt").exists());
+
+    let root = delta.open_directory_async("/".into()).await.unwrap();
+    let a = root.open_directory_async("a".into()).await.unwrap();
+    let b = a.open_directory_async("b".into()).await.unwrap();
+    let names: Vec<String> = b.list_async().await.unwrap().into_iter().map(|e| e.name).collect();
+    assert_eq!(names, vec!["kept.txt".to_string()]);
+    assert!(b.get_entry_async(".wh.gone.txt".into()).await.unwrap().is_none());
 }

@@ -194,10 +194,9 @@ fn main() {
     let _ = std::fs::remove_file(&db);
 
     println!("\n┌─────────────────────────────────────────────────────────┐");
-    println!("│ Try with Turso (remote libSQL)                          │");
+    println!("│ Try with a Turso cloud database (remote replica)        │");
     println!("│                                                         │");
-    println!("│  export FOUNDATION_VFS_TURSO_URL=libsql://your-db...   │");
-    println!("│  export FOUNDATION_VFS_TURSO_TOKEN=your-token          │");
-    println!("│  FOUNDATION_VFS_DELTA=turso                            │");
+    println!("│  LibsqlDelta::with_turso_replica(path, url, token)      │");
+    println!("│  then delta.sync_remote().await                         │");
     println!("└─────────────────────────────────────────────────────────┘");
 }

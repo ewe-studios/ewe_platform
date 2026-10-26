@@ -144,12 +144,18 @@ pub fn lift_model_item(item: Stream<Messages, ModelState>, model: &ModelId) -> A
         Stream::Delayed(d) => Stream::Delayed(d),
         Stream::Spread(items) => {
             // Lift each spread element; Spread carries StreamSpread<D,P> = Done(D)|Pending(P).
+            // A model error inside a spread becomes a `FailedAction` record, exactly
+            // as the non-spread `Pending(ModelState::Error)` path does — not a
+            // progress status, which would silently drop the failure.
             use foundation_core::valtron::StreamSpread;
             let lifted = items
                 .into_iter()
                 .map(|s| match s {
                     StreamSpread::Done(message) => {
                         StreamSpread::Done(SessionRecord::Conversation { message })
+                    }
+                    StreamSpread::Pending(ModelState::Error(msg)) => {
+                        StreamSpread::Done(AgenticError::Unexpected(msg).into_failed_action())
                     }
                     StreamSpread::Pending(state) => {
                         StreamSpread::Pending(AgentProgress::from(&state))

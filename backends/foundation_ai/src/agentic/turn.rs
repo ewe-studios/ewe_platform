@@ -626,14 +626,15 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
         }
     }
 
-    /// The assistant's text as an async stream of the **new** text only —
-    /// what a chat UI appends.
+    /// The assistant's text as an async stream of [`TurnTextEvent`]s: the
+    /// **new** text a chat UI appends, then the terminal `Done` or `Failed`.
     ///
-    /// Each chunk follows the turn's text rule ([`Turn::text`]): a chunk that
-    /// extends the text shown so far is a snapshot (the HTTP backends) and
+    /// Each text chunk follows the turn's text rule ([`Turn::text`]): a chunk
+    /// that extends the text shown so far is a snapshot (the HTTP backends) and
     /// only its new suffix is yielded; any other chunk is a delta (the local
     /// backends) and is yielded whole. Empty chunks are skipped. The stream
-    /// ends with the turn (completed or failed).
+    /// always ends with the turn's terminal event, so a consumer can tell
+    /// success (`Done`) from failure (`Failed`).
     #[must_use]
     pub fn into_text_stream(self) -> TurnTextStream<D, M> {
         TurnTextStream {
@@ -641,6 +642,20 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> TurnStream<D, M> {
             shown: String::new(),
         }
     }
+}
+
+/// One item of [`TurnStream::into_text_stream`]: new assistant text, or the
+/// turn's terminal outcome.
+#[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
+pub enum TurnTextEvent {
+    /// New assistant text to append (deltas, or snapshots reduced to their new
+    /// suffix).
+    Text(String),
+    /// Terminal: the turn completed.
+    Done(TurnSummary),
+    /// Terminal: the turn failed; the text before it still stands.
+    Failed(AgenticError),
 }
 
 /// See [`TurnStream::into_text_stream`].
@@ -660,8 +675,8 @@ where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
-    /// The new text `event` adds, if any.
-    fn new_text(&mut self, event: TurnEvent) -> Option<String> {
+    /// The [`TurnTextEvent`] `event` maps to, if any.
+    fn from_event(&mut self, event: TurnEvent) -> Option<TurnTextEvent> {
         match event {
             TurnEvent::Text(chunk) => {
                 let new = if !self.shown.is_empty() && chunk.starts_with(self.shown.as_str()) {
@@ -672,10 +687,14 @@ where
                     self.shown.push_str(&chunk);
                     chunk
                 };
-                (!new.is_empty()).then_some(new)
+                (!new.is_empty()).then_some(TurnTextEvent::Text(new))
             }
             TurnEvent::Progress(_) | TurnEvent::Thinking(_) => None,
-            _ => {
+            TurnEvent::Done(summary) => Some(TurnTextEvent::Done(summary)),
+            TurnEvent::Failed(error) => Some(TurnTextEvent::Failed(error)),
+            TurnEvent::ToolCall { .. }
+            | TurnEvent::ToolResult { .. }
+            | TurnEvent::Retract { .. } => {
                 self.shown.clear();
                 None
             }
@@ -688,17 +707,17 @@ where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
-    type Item = String;
+    type Item = TurnTextEvent;
 
     fn poll_next(
         self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-    ) -> Poll<Option<String>> {
+    ) -> Poll<Option<TurnTextEvent>> {
         let this = self.get_mut();
         loop {
             match Pin::new(&mut this.events).poll_next(cx) {
                 Poll::Ready(Some(event)) => {
-                    if let Some(text) = this.new_text(event) {
+                    if let Some(text) = this.from_event(event) {
                         return Poll::Ready(Some(text));
                     }
                 }

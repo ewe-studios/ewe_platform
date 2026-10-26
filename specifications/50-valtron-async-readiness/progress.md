@@ -1,8 +1,8 @@
 # Spec 50 Progress: Valtron Async Readiness
 
-_Updated: 2026-10-22_
+_Updated: 2026-10-22 (F05 T2)_
 
-## Status: storage layer async-only (#134 merged); F05 T1 (vector stores) done on `db/async-vectors`; F05 T2–T4 and F02 open
+## Status: storage layer async-only (#134 merged); F05 T1 (vector stores) merged (#136); F05 T2 (VFS) done on `nativeapis/async-vfs` (`TursoDelta` deleted; rebuild is #142); F05 T3–T4 and F02 open
 
 ## The async-storage stream (overall plan and status)
 
@@ -218,9 +218,20 @@ Mechanical, names only. 129 files.
 | Tests | New `tests/contract` (7 checks) runs for every store: in-memory, SQL (Turso), libSQL, Fjall, SQLite-vec, `TurboPuffer` (in-process mock of the v2 API). New `foundation_ai` tests for the index queue (5). |
 | Checks | `ci.py run foundation_vectors` (build, clippy, test, wasm; runs `""` and `sql-store`): pass. `cargo test -p foundation_vectors --features sql-store,turbopuffer,fjall-store,sqlite-vec`: pass. `ci.py run foundation_ai`, steps one at a time (build, clippy, test, wasm): pass; test: 2745 pass, 0 fail. `cargo check --workspace --tests`: pass. |
 
+### Feature 05 task T2: VFS async-first (branch `nativeapis/async-vfs`)
+
+| Item | Detail |
+|---|---|
+| Stores | `NativeFs`, `DirectoryDelta`, `VfsClient`, `LibsqlDelta` implement only the async traits. `SyncLibsqlDelta` is deleted; `SyncFs<A>` is the only sync face of an I/O store. `MemoryFs` / `MemoryDelta` keep both faces; `InodeFs` / `InodeDelta` are memory-only and keep the sync face. |
+| Consumers | `OverlayFileSystem`, `ObservableFs`, `search`, `VfsNfs`, the IPC daemon and `VfsTask` use the async traits. `DynFs` stays sync (only the shim and ptrace use it, both sync boundaries) and gains `from_async`. FUSE stays sync. `foundation_ai` `FileSearch` is async. |
+| Deleted | `TursoDelta` (never compiled), its example, `vfs-turso` and the shim's `turso` backend. Rebuild on the `turso` crate: ewe-studios/ewe_platform#142. |
+| Open | `FjallDocumentStore` still uses the sync VFS traits (backlog). |
+| Bugs fixed | `..` paths in `NativeFs`; directory-handle root escape; sentinel leak in `DirectoryDelta` subdirectories; dangling layer pointers in `OverlayDirectory`; overlay `create_file` in a base-only directory; NFS `remove` / `rename` ignored the directory; absolute paths on remote directory handles; `ClientTransport` request/response race; `vfs-sqlite` did not compile. |
+| Checks | See `features/05-remaining-sync-twins/feature.md` section 6. |
+
 ## Next
 
-1. Review and merge the F05 T1 pull request (`db/async-vectors`).
-2. Feature 05 task T2 (VFS async-first core), then task T3 (drop the `_async` method suffixes).
+1. Review and merge the F05 T2 pull request (`nativeapis/async-vfs`). `TursoDelta` rebuild: #142.
+2. Feature 05 task T3 (drop the `_async` method suffixes).
 3. Then spec 65 feature 07 (agent-rpc), task T0.
 4. F02 (readiness-source seam) and the F01/F03 front matter.

@@ -15,12 +15,15 @@ use std::sync::OnceLock;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
-use foundation_ai::agentic::AgentSession;
+use foundation_ai::agentic::{AgentSession, TurnTextEvent};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_core::valtron::{initialize_pool, PoolGuard};
+use foundation_core::wasm_logs;
 use foundation_netio::HttpClientBuilder;
 use foundation_netio::wasm::response::sse_response;
+
+use futures_lite::StreamExt;
 
 /// Default OpenRouter model; override with the `MODEL` binding.
 const DEFAULT_MODEL: &str = "google/gemma-4-31b-it:free";
@@ -33,6 +36,7 @@ thread_local! {
     static SESSION: RefCell<Option<AgentSession>> = const { RefCell::new(None) };
 }
 
+#[wasm_logs(console, tracing = "trace")]
 #[wasm_bindgen]
 pub async fn fetch(req: web_sys::Request, env: worker::Env) -> web_sys::Response {
     console_error_panic_hook::set_once();
@@ -47,7 +51,16 @@ pub async fn fetch(req: web_sys::Request, env: worker::Env) -> web_sys::Response
     }
 }
 
+
+
 /// Run one turn of the session and stream its text to the client.
+///
+/// Each Server-Sent Event carries one line of JSON: `{"type":"text","content":…}`
+/// for a new piece of text (snapshots from the HTTP backend are reduced to their
+/// new suffix by [`TurnStream::into_text_stream`]), and a terminal
+/// `{"type":"error","message":…}` or `{"type":"done"}`. The client shows a
+/// loading state until the first event, then appends each text piece or the
+/// error.
 async fn chat(env: &worker::Env, req: &web_sys::Request) -> Result<web_sys::Response, String> {
     let prompt = body_text(req).await?;
     if prompt.trim().is_empty() {
@@ -57,7 +70,56 @@ async fn chat(env: &worker::Env, req: &web_sys::Request) -> Result<web_sys::Resp
         .await?
         .run_turn_stream(prompt)
         .map_err(|e| e.to_string())?;
-    sse_response(turn.into_text_stream()).map_err(|e| format!("{e:?}"))
+    sse_response(turn.into_text_stream().map(text_frame)).map_err(|e| format!("{e:?}"))
+}
+
+/// One turn-text event as a single-line JSON payload for the client.
+fn text_frame(event: TurnTextEvent) -> String {
+    match event {
+        TurnTextEvent::Text(text) => json_object(&[("type", "text"), ("content", &text)]),
+        TurnTextEvent::Done(_) => "{\"type\":\"done\"}".to_string(),
+        TurnTextEvent::Failed(error) => {
+            json_object(&[("type", "error"), ("message", &error.to_string())])
+        }
+        _ => "{\"type\":\"activity\"}".to_string(),
+    }
+}
+
+/// A small JSON object with string values, for the SSE frames above. Keys are
+/// fixed and known-safe; only the values are escaped.
+fn json_object(fields: &[(&str, &str)]) -> String {
+    let mut out = String::from("{");
+    for (i, (key, value)) in fields.iter().enumerate() {
+        if i > 0 {
+            out.push(',');
+        }
+        out.push('"');
+        out.push_str(key);
+        out.push_str("\":\"");
+        out.push_str(&json_escape(value));
+        out.push('"');
+    }
+    out.push('}');
+    out
+}
+
+/// Escape a string for inclusion in a JSON string value.
+fn json_escape(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 8);
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => {
+                out.push_str(&format!("\\u{:04x}", c as u32));
+            }
+            c => out.push(c),
+        }
+    }
+    out
 }
 
 /// The isolate's session, built on first use.

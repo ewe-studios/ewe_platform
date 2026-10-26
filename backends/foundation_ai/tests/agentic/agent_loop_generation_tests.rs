@@ -29,7 +29,7 @@ use foundation_ai::types::{
     MessageRole, Messages, ModelId, ModelOutput, ProviderRouter, SessionId, SessionRecord,
     TextContent, ToolArguments, UserModelContent,
 };
-use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_core::valtron::{Ctx, TaskIterator, TaskSpread, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
 type TestMemStore = KvMemoryStore<MemoryStorage>;
@@ -154,6 +154,13 @@ fn drive(h: &mut Harness) -> Vec<SessionRecord> {
         match h.agent.next_status(Ctx::new()) {
             None => return records,
             Some(TaskStatus::Ready(record)) => records.push(record),
+            Some(TaskStatus::Spread(items)) => {
+                for item in items {
+                    if let TaskSpread::Ready(record) = item {
+                        records.push(record);
+                    }
+                }
+            }
             Some(_) => {}
         }
     }
@@ -269,6 +276,36 @@ fn provider_failure_emits_failed_action_not_silent_success() {
     assert!(
         assistant_texts(&records).is_empty(),
         "a failed turn must not emit assistant text: {records:?}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Matrix 5.1 (spread form) — an in-band stream error after partial text
+//
+// The provider emits `Spread([Done(partial), Pending(Error)])`; the loop must
+// hand back the partial text and THEN the failure — not drop either. This is
+// the loop-level half of the F06 fix (the provider and `lift_model_item`
+// halves are covered in `providers/` and `progress_tests.rs`).
+
+#[test]
+fn stream_error_after_partial_emits_partial_then_failed_action() {
+    let mut mock = MockModelProvider::new();
+    mock.stream_fails_after_partial(|_| true, vec![mock_text("Hello")], "stream exploded");
+
+    let mut h = harness_with(mock.into_router(), AgentConfig::default());
+    let _ = h.follow_up.push(user_msg("hi"));
+
+    let records = drive(&mut h);
+
+    assert_eq!(
+        assistant_texts(&records),
+        vec!["Hello".to_string()],
+        "partial text must reach the caller before the failure: {records:?}"
+    );
+    assert!(
+        has_failed_action(&records),
+        "the in-band stream error must surface as FailedAction, not be dropped by \
+         the spread fan-out: {records:?}"
     );
 }
 

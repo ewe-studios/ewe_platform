@@ -30,7 +30,7 @@ use foundation_ai::types::{
 use foundation_ai::types::*;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{valtron_test, Stream};
+use foundation_core::valtron::{valtron_test, Stream, StreamSpread};
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_netio::shared::http::SimpleMethod;
@@ -416,6 +416,106 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
         "Chat completions should include body, got body_len={}",
         chat_req.2
     );
+}
+
+/// Verify that an in-band error after partial text emits the accumulated text
+/// first, then the failure, in one `Stream::Spread` — not an empty message.
+#[valtron_test]
+fn test_provider_streaming_error_emits_partial_then_failure() {
+    let server = SseTestServer::with_handler(
+        move |req: &HttpRequest, writer: &mut SseStreamWriter, _conn: usize| {
+            if req.path.url.contains("/chat/completions") {
+                // A valid delta accumulates partial text.
+                let _ = writer.event(
+                    r#"{"id":"c1","object":"chat.completion.chunk","created":0,"model":"gpt-4","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}"#,
+                );
+                // An OpenAI-compatible in-band error is not a chunk; it fails to
+                // parse as `ChatCompletionChunk`.
+                let _ = writer.event(r#"{"error":{"message":"boom"}}"#);
+                SseConnectionResult::clean_close()
+            } else {
+                let _ = writer
+                    .event(r#"{"id":"gpt-4","object":"model","created":0,"owned_by":"openai"}"#);
+                SseConnectionResult::clean_close()
+            }
+        },
+    );
+
+    let addr: SocketAddr = server
+        .base_url()
+        .strip_prefix("http://")
+        .unwrap()
+        .parse()
+        .unwrap();
+    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let config = OpenAIConfig::new()
+        .with_base_url(server.base_url())
+        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            "test-key".to_string(),
+        )));
+
+    let provider = OpenAIProvider::with_http_client_and_config(http_client, config)
+        .create(Some(OpenAIConfig::new().with_base_url(server.base_url())))
+        .unwrap();
+    let model = provider
+        .get_model(ModelId::Name("gpt-4".into(), None))
+        .unwrap();
+
+    let mut stream = model.stream(make_interaction("Hi"), None).unwrap();
+
+    let mut items: Vec<Stream<Messages, ModelState>> = Vec::new();
+    for item in &mut stream {
+        items.push(item);
+    }
+
+    // The delta "Hello" is emitted (as a `Next` message) before the failure.
+    let partial: Vec<String> = items
+        .iter()
+        .filter_map(|item| match item {
+            Stream::Next(Messages::Assistant {
+                content: ModelOutput::Text(tc),
+                ..
+            }) => Some(tc.content.clone()),
+            _ => None,
+        })
+        .collect();
+    assert!(
+        partial.iter().any(|t| t == "Hello"),
+        "expected partial text \"Hello\", got {partial:?}"
+    );
+
+    // The failure arrives as a Spread: partial text, then Pending(Error).
+    let spread = items
+        .iter()
+        .find_map(|item| match item {
+            Stream::Spread(inner) => Some(inner),
+            _ => None,
+        })
+        .expect("expected a Stream::Spread carrying the failure");
+
+    assert_eq!(
+        spread.len(),
+        2,
+        "spread should be [partial text, error], got {spread:?}"
+    );
+
+    match &spread[0] {
+        StreamSpread::Done(Messages::Assistant {
+            content: ModelOutput::Text(tc),
+            ..
+        }) => assert_eq!(tc.content, "Hello"),
+        other => panic!("expected partial text before failure, got {other:?}"),
+    }
+
+    match &spread[1] {
+        StreamSpread::Pending(ModelState::Error(msg)) => {
+            assert!(
+                msg.contains("Failed to parse SSE chunk"),
+                "unexpected error message: {msg}"
+            );
+        }
+        other => panic!("expected Pending(ModelState::Error), got {other:?}"),
+    }
 }
 
 #[test]

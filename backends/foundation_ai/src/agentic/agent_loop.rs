@@ -23,7 +23,7 @@ use std::time::Duration;
 use foundation_core::valtron::{
     drive_iterator, CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, EventReadinessPtr,
     FutureTask,
-    Stream, StreamSpread, TaskIterator, park_on, TaskStatus,
+    Stream, StreamSpread, TaskIterator, TaskSpread, park_on, TaskStatus,
 };
 use foundation_db::traits::DocumentStore;
 use foundation_db::{StorageError, StorageResult};
@@ -1012,14 +1012,20 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                     }
                 }
                 self.state = AgentLoopState::InnerGenerate { stream, collected };
-                // Emit the first spread item; rest will be picked up on next poll.
-                if let Some(first) = items.into_iter().next() {
-                    match first {
-                        StreamSpread::Done(rec) => TaskStatus::Ready(rec),
-                        StreamSpread::Pending(p) => TaskStatus::Pending(p),
-                    }
-                } else {
+                // Emit every spread element; the executor fans out each one as
+                // `Ready`/`Pending`. Emitting only the first would drop a failure
+                // that follows partial text (spread [partial, error]).
+                let spread: Vec<TaskSpread<SessionRecord, AgentProgress>> = items
+                    .into_iter()
+                    .map(|s| match s {
+                        StreamSpread::Done(rec) => TaskSpread::Ready(rec),
+                        StreamSpread::Pending(p) => TaskSpread::Pending(p),
+                    })
+                    .collect();
+                if spread.is_empty() {
                     TaskStatus::Ignore
+                } else {
+                    TaskStatus::Spread(spread)
                 }
             }
         }

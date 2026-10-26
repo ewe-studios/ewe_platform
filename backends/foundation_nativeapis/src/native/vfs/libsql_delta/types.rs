@@ -132,22 +132,22 @@ impl SqliteDentry {
 
 /// Generate a new SCRU128 version ID.
 pub fn next_version_id() -> [u8; 16] {
-    scru128::new().to_bytes()
+    foundation_compact::ids::new_scru128().to_bytes()
 }
 
 /// Pack an overlay u64 version into a SCRU128 ID.
 pub fn pack_version(overlay_version: u64) -> [u8; 16] {
-    let ts = scru128::new().timestamp();
+    let ts = foundation_compact::ids::new_scru128().timestamp();
     let counter = (overlay_version & 0xFF_FFFF) as u32;
     // try_from_fields expects: timestamp(48-bit), counter_hi(24-bit), counter_lo(24-bit), entropy(32-bit)
-    scru128::Id::try_from_fields(ts, counter, 0, 0)
+    foundation_compact::ids::Id::try_from_fields(ts, counter, 0, 0)
         .expect("valid scru128 fields")
         .to_bytes()
 }
 
 /// Extract u64 from SCRU128 ID, preserving ordering.
 pub fn unpack_version(id: [u8; 16]) -> u64 {
-    let scru = scru128::Id::from_bytes(id);
+    let scru = foundation_compact::ids::Id::from_bytes(id);
     let ts = scru.timestamp();
     let counter_hi = scru.counter_hi();
     (ts << 24) | counter_hi as u64

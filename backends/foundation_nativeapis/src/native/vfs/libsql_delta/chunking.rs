@@ -66,13 +66,16 @@ pub async fn read_chunk_range_async(
     Ok(to_read)
 }
 
-/// Write all chunks for a file.
+/// Replace a file's content with `data`: the old chunks are deleted first.
 pub async fn write_all_chunks_async(
     conn: &Connection,
     ino: i64,
     data: &[u8],
     chunk_size: usize,
 ) -> VfsResult<()> {
+    conn.execute("DELETE FROM vfs_chunks WHERE ino = ?", [ino])
+        .await
+        .map_err(types::libsql_err)?;
     let chunks = split_into_chunks(data, chunk_size);
 
     // Batch insert all chunks in a single dynamic multi-row INSERT.
@@ -93,7 +96,9 @@ pub async fn write_all_chunks_async(
         values.push((idx as i64).into());
         values.push(chunk.to_vec().into());
     }
-    conn.execute(&sql, values).await.map_err(types::libsql_err)?;
+    if !chunks.is_empty() {
+        conn.execute(&sql, values).await.map_err(types::libsql_err)?;
+    }
 
     let checksum = blake3::hash(data);
     let updated_at = std::time::SystemTime::now()
