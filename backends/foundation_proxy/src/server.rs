@@ -214,7 +214,7 @@ impl ProxyServer {
         // Spawn health probes for every service that configured one.
         let health: Vec<HealthMonitor> = services
             .iter()
-            .map(|svc| spawn_service_probes(svc, client.clone(), shutdown.clone()))
+            .map(|svc| spawn_service_probes(svc, shutdown.clone()))
             .collect();
 
         // Unix-domain admin socket (Decision 20), if the config enabled it. It
@@ -392,13 +392,7 @@ fn ssl_redirect_loop(listener: TcpListener, shutdown: &Arc<OnSignal>) {
                 match stream.read(&mut buf) {
                     Ok(n) if n > 0 => {
                         let head = String::from_utf8_lossy(&buf[..n]);
-                        let host = extract_header(&head, "host:").unwrap_or("localhost");
-                        let path = extract_path(&head);
-                        let redirect = format!(
-                            "HTTP/1.1 301 Moved Permanently\r\n\
-                             Location: https://{host}{path}\r\n\
-                             Connection: close\r\n\r\n"
-                        );
+                        let redirect = ssl_redirect_response(&head);
                         let _ = stream.write_all(redirect.as_bytes());
                     }
                     _ => {}
@@ -414,8 +408,23 @@ fn ssl_redirect_loop(listener: TcpListener, shutdown: &Arc<OnSignal>) {
     }
 }
 
+/// The `301 Moved Permanently` answer to a plain-HTTP request whose head is
+/// `head`: `Location: https://{host}{path}` (host `localhost` when the request
+/// has none), then the connection closes.
+#[must_use]
+pub fn ssl_redirect_response(head: &str) -> String {
+    let host = extract_header(head, "host:").unwrap_or("localhost");
+    let path = extract_path(head);
+    format!(
+        "HTTP/1.1 301 Moved Permanently\r\n\
+         Location: https://{host}{path}\r\n\
+         Connection: close\r\n\r\n"
+    )
+}
+
 /// Best-effort: extract the first header value matching `prefix:` (case-insensitive).
-fn extract_header<'a>(head: &'a str, prefix: &str) -> Option<&'a str> {
+#[must_use]
+pub fn extract_header<'a>(head: &'a str, prefix: &str) -> Option<&'a str> {
     let prefix_lower = prefix.to_lowercase();
     head.lines()
         .find(|line| line.to_lowercase().starts_with(&prefix_lower))
@@ -424,7 +433,8 @@ fn extract_header<'a>(head: &'a str, prefix: &str) -> Option<&'a str> {
 }
 
 /// Extract the path from an HTTP request line (e.g. "GET /path HTTP/1.1" → "/path").
-fn extract_path(head: &str) -> &str {
+#[must_use]
+pub fn extract_path(head: &str) -> &str {
     head.lines()
         .next()
         .and_then(|line| line.split_whitespace().nth(1))
@@ -510,63 +520,5 @@ fn parse_backend_state(s: &str) -> Option<BackendState> {
         "draining" => Some(BackendState::Draining),
         "paused" => Some(BackendState::Paused),
         _ => None,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn extract_header_finds_host() {
-        let head = "GET /some/path HTTP/1.1\r\nHost: example.com:443\r\nConnection: close\r\n\r\n";
-        assert_eq!(extract_header(head, "host:"), Some("example.com:443"));
-    }
-
-    #[test]
-    fn extract_header_case_insensitive() {
-        let head = "GET / HTTP/1.1\r\nHOST: myapp.local\r\n\r\n";
-        assert_eq!(extract_header(head, "host:"), Some("myapp.local"));
-    }
-
-    #[test]
-    fn extract_header_absent_returns_none() {
-        let head = "GET / HTTP/1.1\r\nConnection: close\r\n\r\n";
-        assert_eq!(extract_header(head, "host:"), None);
-    }
-
-    #[test]
-    fn extract_header_strips_whitespace() {
-        let head = "GET / HTTP/1.1\r\nHost:   padded.example.com  \r\n\r\n";
-        assert_eq!(extract_header(head, "host:"), Some("padded.example.com"));
-    }
-
-    #[test]
-    fn extract_path_from_get() {
-        assert_eq!(extract_path("GET /api/health HTTP/1.1\r\nHost: x\r\n\r\n"), "/api/health");
-    }
-
-    #[test]
-    fn extract_path_root() {
-        assert_eq!(extract_path("GET / HTTP/1.1\r\n\r\n"), "/");
-    }
-
-    #[test]
-    fn extract_path_fallback() {
-        assert_eq!(extract_path(""), "/");
-    }
-
-    #[test]
-    fn redirect_response_has_correct_status() {
-        let redirect = format!(
-            "HTTP/1.1 301 Moved Permanently\r\n\
-             Location: https://{}{}\r\n\
-             Connection: close\r\n\r\n",
-            "example.com",
-            "/login"
-        );
-        assert!(redirect.starts_with("HTTP/1.1 301"));
-        assert!(redirect.contains("Location: https://example.com/login"));
-        assert!(redirect.contains("Connection: close"));
     }
 }

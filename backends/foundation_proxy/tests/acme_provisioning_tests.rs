@@ -19,10 +19,9 @@ use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
-use foundation_netio::http::{HttpConnectionPool, NativeHttpClient};
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
-use foundation_netio::shared::client::{ClientConfig, SystemDnsResolver};
 use foundation_netio::shared::http::{
     Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
     Status,
@@ -204,13 +203,8 @@ fn start_mock_acme() -> (String, Arc<OnSignal>) {
     (format!("{base}/directory"), shutdown)
 }
 
-fn test_client() -> Arc<NativeHttpClient<SystemDnsResolver>> {
-    let pool = Arc::new(HttpConnectionPool::default());
-    Arc::new(NativeHttpClient::with_config_and_pool(
-        ClientConfig::default(),
-        pool,
-        SystemDnsResolver::default(),
-    ))
+fn test_client() -> DynNetClient {
+    HttpClientBuilder::new().build()
 }
 
 fn noop_dns_setter() -> Dns01Setter {

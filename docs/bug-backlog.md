@@ -231,6 +231,24 @@ Last refreshed: 2026-10-21, on `ai/async-stores` (foundation_ai on the async sto
   (`tests/proxy_integration_tests.rs`, `docker_available()`). When the socket
   exists but no daemon listens on it, the `--ignored` runs fail instead of
   skipping. Fix: use a shared helper that pings the daemon (see §7).
+- **The ACME client does not follow RFC 8555's account flow** (`src/acme.rs`).
+  `create_account` returns the newAccount directory URL instead of the
+  account URL from the `Location` header (it only checks that the answer has
+  an `orders` field), and `provision` discards it, so `key_id` is never set
+  and every later request is signed with the `jwk` instead of the `kid`
+  (§6.2 requires the `kid` once the account exists). The nonce is fetched
+  fresh for every request instead of taken from each answer's
+  `Replay-Nonce`. `provision` waits for DNS with `std::thread::sleep(5s)`
+  inside an `async fn` (it blocks the executor; the 5 s is a constant, not a
+  setting). The mock CA in `tests/acme_provisioning_tests.rs` sends no
+  `Location`, so the tests miss all of this. Fix: return and use the account
+  URL as the `kid`, carry the nonce from each answer, wait with an async
+  sleep (or poll the challenge status) under a configured timeout, and make
+  the mock CA strict.
+- **The SSL redirect listener hard-codes its limits** (`src/server.rs`,
+  `ssl_redirect_loop`): a 4096-byte head buffer, a 2 s read timeout and a
+  10 ms accept poll are constants, and a head longer than one read is cut
+  (rule 8). Fix: fields on the redirect config with documented defaults.
 - **The `mut` on `h3_local_addr` warns without the `h3` feature**
   (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
   expression instead of assigning inside the `cfg` block.

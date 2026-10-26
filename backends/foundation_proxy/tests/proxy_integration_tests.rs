@@ -320,7 +320,7 @@ fn test_no_healthy_backend_returns_503() {
 /// indirectly: a request with `X-Forwarded-For: test-client` reaches the backend
 /// and returns 200.
 ///
-/// httpbin is not used here — `SimpleHttpClient` timeouts against it under
+/// httpbin is not used here — the native HTTP client timed out against it under
 /// valtron-driven execution in this configuration.  The header-echo case is
 /// covered by asserting the proxy does not crash or 502 on hop-by-hop headers.
 #[valtron_test(seed = 53, threads = 4)]
