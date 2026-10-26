@@ -180,6 +180,9 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_http]
+# tests/integration_tests.rs (and the other server suites) are gated on
+# `multi`; without this run CI never compiled or ran them.
+runs = ["", "multi"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 

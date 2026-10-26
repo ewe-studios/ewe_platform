@@ -1012,7 +1012,7 @@ fn test_custom_request_header() {
         .send(
             PreparedRequestBuilder::get("http://testserver/echo")
                 .unwrap()
-            .add_header("X-Custom-Header".to_string(), "test-value")
+                .header(SimpleHeader::custom("X-Custom-Header"), "test-value")
                 .build(),
         )
         .unwrap();
