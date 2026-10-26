@@ -1,9 +1,9 @@
 //! WireGuard overlay HTTP integration test (spec-55, F11).
 //!
 //! Proves the full pipeline: WgNode mesh → OverlayAcceptor → HttpServer →
-//! OverlayConnector → NativeHttpClient. Two nodes form a mesh, B serves HTTP
-//! on the overlay, A sends a request through NativeHttpClient with
-//! OverlayConnector — zero raw HTTP, zero manual framing.
+//! OverlayConnector → the HTTP client (`HttpClientBuilder::with_connector`).
+//! Two nodes form a mesh, B serves HTTP on the overlay, A sends a request
+//! through that client with OverlayConnector — zero raw HTTP, zero manual framing.
 
 #![cfg(feature = "multi")]
 
@@ -12,15 +12,14 @@ use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::OnSignal;
-use foundation_netio::PreparedRequestBuilder;
+use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::native::connection::Connector;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::shared::client::{HttpClient, SystemDnsResolver};
+use foundation_netio::shared::client::HttpClient;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleIncomingRequest, SimpleMethod, SimpleResponse,
 };
-use foundation_netio::http::{HttpConnectionPool, NativeHttpClient};
 use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 use foundation_wireguard::native::{
     overlay_acceptor::OverlayAcceptor,
@@ -116,21 +115,13 @@ fn overlay_connector_http_round_trip() {
     std::thread::spawn(move || { server.serve_with_acceptor(&acc, &s); });
     std::thread::sleep(Duration::from_millis(500));
 
-    // ── A: NativeHttpClient with OverlayConnector ───────────────────
+    // ── A: the HTTP client with OverlayConnector ────────────────────
     // The connector opens overlay connections instead of DNS+TcpStream.
     let connector: Arc<dyn Connector> =
         Arc::new(OverlayConnector::new(Arc::new(handle_a)));
-    let pool = Arc::new(
-        HttpConnectionPool::<SystemDnsResolver>::default()
-            .with_connector(connector),
-    );
     // Keep Expect: 100-continue enabled (client default) so this test also
     // exercises interim (100 Continue) handling over the non-blocking overlay.
-    let client = NativeHttpClient::with_config_and_pool(
-        Default::default(),
-        pool,
-        SystemDnsResolver::new(),
-    );
+    let client = HttpClientBuilder::new().with_connector(connector).build();
 
     // Send request. The overlay URL uses the mesh IP (10.x.y.z).
     // The connector intercepts the connection, DNS is skipped.
