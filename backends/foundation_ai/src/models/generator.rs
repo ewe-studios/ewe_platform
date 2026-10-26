@@ -70,6 +70,7 @@ pub struct GenerationResult {
 // Compile-time shape verification
 // ---------------------------------------------------------------------------
 
+#[must_use]
 pub fn verify_struct_shape() -> ModelProviderDescriptor {
     ModelProviderDescriptor {
         id: "",
@@ -217,12 +218,14 @@ struct AiGatewayPricing {
 // Small helpers
 // ---------------------------------------------------------------------------
 
+#[must_use]
 pub fn has_image(modalities: Option<&ModelsDevModalities>) -> bool {
     modalities
         .and_then(|m| m.input.as_ref())
         .is_some_and(|v| v.iter().any(|s| s == "image"))
 }
 
+#[must_use]
 pub fn dev_cost(c: Option<&ModelsDevCost>) -> (f64, f64, f64, f64) {
     match c {
         Some(c) => (
@@ -236,15 +239,18 @@ pub fn dev_cost(c: Option<&ModelsDevCost>) -> (f64, f64, f64, f64) {
 }
 
 #[allow(clippy::cast_possible_truncation)]
+#[must_use]
 pub fn ctx(limit: Option<&ModelsDevLimit>, default: u32) -> u32 {
     limit.and_then(|l| l.context).map_or(default, |v| v as u32)
 }
 
 #[allow(clippy::cast_possible_truncation)]
+#[must_use]
 pub fn max_tok(limit: Option<&ModelsDevLimit>, default: u32) -> u32 {
     limit.and_then(|l| l.output).map_or(default, |v| v as u32)
 }
 
+#[must_use]
 pub fn pricing_val(v: Option<&serde_json::Value>) -> f64 {
     match v {
         Some(serde_json::Value::Number(n)) => n.as_f64().unwrap_or(0.0),
@@ -254,6 +260,7 @@ pub fn pricing_val(v: Option<&serde_json::Value>) -> f64 {
 }
 
 #[allow(clippy::too_many_arguments)]
+#[must_use]
 pub fn entry(
     id: &str,
     name: &str,
@@ -283,6 +290,7 @@ pub fn entry(
     }
 }
 
+#[must_use]
 pub fn from_dev(
     model_id: &str,
     m: &ModelsDevModel,
@@ -311,6 +319,7 @@ pub fn from_dev(
 // Static / fallback models
 // ---------------------------------------------------------------------------
 
+#[must_use]
 pub fn static_codex_models() -> Vec<ModelEntry> {
     let b = "https://chatgpt.com/backend-api";
     let (cw, mt) = (272_000, 128_000);
@@ -402,6 +411,7 @@ pub fn static_codex_models() -> Vec<ModelEntry> {
     ]
 }
 
+#[must_use]
 pub fn static_cloud_code_assist() -> Vec<ModelEntry> {
     let ep = "https://cloudcode-pa.googleapis.com";
     let (a, p) = ("google-gemini-cli", "google-gemini-cli");
@@ -469,6 +479,7 @@ pub fn static_cloud_code_assist() -> Vec<ModelEntry> {
     ]
 }
 
+#[must_use]
 pub fn static_antigravity() -> Vec<ModelEntry> {
     let ep = "https://daily-cloudcode-pa.sandbox.googleapis.com";
     let (a, p) = ("google-gemini-cli", "google-antigravity");
@@ -573,6 +584,7 @@ pub fn static_antigravity() -> Vec<ModelEntry> {
 }
 
 #[allow(clippy::too_many_lines)]
+#[must_use]
 pub fn static_vertex() -> Vec<ModelEntry> {
     let (b, a, p) = (
         "https://{location}-aiplatform.googleapis.com",
@@ -727,6 +739,7 @@ pub fn static_vertex() -> Vec<ModelEntry> {
     ]
 }
 
+#[must_use]
 pub fn static_kimi_fallbacks() -> Vec<ModelEntry> {
     let b = "https://api.kimi.com/coding";
     vec![
@@ -761,6 +774,7 @@ pub fn static_kimi_fallbacks() -> Vec<ModelEntry> {
 // Overrides & missing-model insertion
 // ---------------------------------------------------------------------------
 
+#[must_use]
 pub fn has(models: &[ModelEntry], provider: &str, id: &str) -> bool {
     models.iter().any(|m| m.provider == provider && m.id == id)
 }
@@ -943,6 +957,7 @@ pub fn apply_overrides(models: &mut Vec<ModelEntry>) {
 // Deduplicate & group
 // ---------------------------------------------------------------------------
 
+#[must_use]
 pub fn deduplicate(models: Vec<ModelEntry>) -> BTreeMap<String, BTreeMap<String, ModelEntry>> {
     let mut providers: BTreeMap<String, BTreeMap<String, ModelEntry>> = BTreeMap::new();
     for m in models {
@@ -959,6 +974,7 @@ pub fn deduplicate(models: Vec<ModelEntry>) -> BTreeMap<String, BTreeMap<String,
 // Code generation
 // ---------------------------------------------------------------------------
 
+#[must_use]
 pub fn format_u32(v: u32) -> String {
     let raw = v.to_string();
     if v < 10_000 {
@@ -975,6 +991,7 @@ pub fn format_u32(v: u32) -> String {
     result
 }
 
+#[must_use]
 pub fn format_f64(v: f64) -> String {
     if v == 0.0 {
         return "0.0".to_string();
@@ -995,6 +1012,7 @@ pub fn format_f64(v: f64) -> String {
     s
 }
 
+#[must_use]
 pub fn format_int_with_separators(s: &str) -> String {
     let (sign, digits) = if let Some(rest) = s.strip_prefix('-') {
         ("-", rest)
@@ -1013,6 +1031,7 @@ pub fn format_int_with_separators(s: &str) -> String {
     result
 }
 
+#[must_use]
 pub fn api_to_variant(api: &str) -> String {
     match api {
         "openai-completions" => "ModelAPI::OpenAICompletions".to_string(),
@@ -1028,6 +1047,7 @@ pub fn api_to_variant(api: &str) -> String {
     }
 }
 
+#[must_use]
 pub fn provider_to_variant(provider: &str) -> String {
     match provider {
         "amazon-bedrock" => "ModelProviders::AMAZONBEDROCK".to_string(),
@@ -1057,10 +1077,12 @@ pub fn provider_to_variant(provider: &str) -> String {
     }
 }
 
+#[must_use]
 pub fn provider_to_filename(provider: &str) -> String {
     provider.replace('-', "_")
 }
 
+#[must_use]
 pub fn generate_provider_file(provider_name: &str, models: &BTreeMap<String, ModelEntry>) -> String {
     use std::fmt::Write;
 
@@ -1132,6 +1154,7 @@ pub static MODELS: &[ModelProviderDescriptor] = &["
     out
 }
 
+#[must_use]
 pub fn generate_providers_mod(providers: &BTreeMap<String, BTreeMap<String, ModelEntry>>) -> String {
     use std::fmt::Write;
 
