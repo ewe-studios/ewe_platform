@@ -71,7 +71,7 @@ It does this with three ideas:
 | [`hosts.md`](./hosts.md) | The native host, the Worker host, the web client, the native client |
 | [`proto.md`](./proto.md) | The wire contract (`agent.proto`) |
 | [`key-protection.md`](./key-protection.md) | Private keys always encrypted at rest: where the KEK comes from on each platform, remote KMS |
-| [`migrations.md`](./migrations.md) | Migrations from code and from numbered directories, with duplicate checks |
+| [`migrations.md`](./migrations.md) | Migrations per database, as ordered groups (shared, then specific), each numbered from 1 and recorded by group |
 | [`deterministic-simulation-testing.md`](./deterministic-simulation-testing.md) | DST in plain words |
 
 ### 1.3 Goals
@@ -497,7 +497,7 @@ group of section 10.2 can be one PR.
 | T22 | Web client: `WebClient` over `FetchTransport`; `examples/agent-rpc-web` | `client/web.rs` | the web client tests pass in a headless browser |
 | T23 | Key protection: `KekSource`, async `KeySealer`, native and Worker KEK sources, `WebCryptoSealer`, always-encrypt rule, plain-text migration, KEK rotation | `foundation_auth/src/keystore/*`, `host/*/kek.rs` | [key-protection.md](./key-protection.md) section 8 tests pass (except Vault) |
 | T24 | Envelope encryption with a remote KMS: `EnvelopeSealer`, `KmsBackend`; Vault Transit, then AWS KMS and GCP Cloud KMS | `foundation_auth/src/keystore/kms.rs` | sealer contract passes with `FakeKms`; the Vault test passes |
-| T25 | Migration runner: code, embedded and directory sources; number-uniqueness and checksum rules; transactions; `embed_migrations!`; fix migration 023 | `foundation_db/src/core/schema/*`, `foundation_macros` | [migrations.md](./migrations.md) section 5 tests pass |
+| T25 | Migration runner by groups: `MigrationSet` from code, embedded files and directories; `MigrationRunner::from_static` / `add_from_static`; per-group numbering from 1 with no gaps; checksums; one transaction per migration; record rows keyed by group; upgrade of today's table with the 023 repair; `embed_migrations!` | `foundation_db/src/core/schema/*`, `foundation_macros` | [migrations.md](./migrations.md) section 6 tests pass |
 | T26 | History archive to R2 on `DestroyInstance` (Worker and native) | `host/worker/object.rs`, `core/archive.rs` | the archive tests pass; a failed upload deletes nothing |
 
 ### 10.1 Order
@@ -586,10 +586,10 @@ client. We record it as a separate feature for spec 50 (storage), after this one
 
 ## 12. Open questions for the owner
 
-1. **Migration number ranges.** [migrations.md](./migrations.md) section 3.7 proposes one record
-   table with a number range per crate (`foundation_db` 1 to 999, `foundation_auth` 1000 to 1999,
-   `foundation_agent_rpc` 2000 to 2999). The other choice is one record table per component.
-   **Recommendation: the ranges.**
+1. ~~Migration number ranges.~~ **Resolved** by owner decision 10: migrations are groups per
+   database, each numbered from 1 and recorded by group. There are no number ranges and no
+   record table per component. [migrations.md](./migrations.md) has the design and its own open
+   questions.
 2. **Remote KMS order.** [key-protection.md](./key-protection.md) section 4.6 starts with Vault
    Transit, then AWS KMS, then GCP Cloud KMS. **Recommendation: this order**, unless a deployment
    needs one of the clouds first.
