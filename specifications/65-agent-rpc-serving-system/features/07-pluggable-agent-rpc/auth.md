@@ -238,6 +238,10 @@ pub struct SecretDomain(pub &'static str);
 impl SecretDomain {
     /// agent-rpc bootstrap secrets. Version 1 signs exactly the bytes of today.
     pub const AGENT_RPC: SecretDomain = SecretDomain("ewe.agent_rpc.bootstrap_secret");
+    /// Enrollment tokens of registrar sidecars at the proxy registration
+    /// authority (feature 03, section 5). A different domain, so an agent-rpc
+    /// secret never enrolls a sidecar, and the other way round.
+    pub const PROXY_REGISTRATION: SecretDomain = SecretDomain("ewe.proxy.registrar_secret");
 }
 
 /// What a secret may be used for.
