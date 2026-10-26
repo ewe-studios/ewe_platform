@@ -407,12 +407,12 @@ impl TursoStorage {
     fn list_keys_stream(
         conn: Arc<turso::Connection>,
         sql: String,
-        param: turso::Value,
+        params: Vec<turso::Value>,
     ) -> impl AsyncStream<Item = StorageResult<String>> + Send {
         try_stream! {
             let mut stmt = conn.prepare(&sql).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
-            let mut rows = stmt.query([param]).await
+            let mut rows = stmt.query(params).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
 
             while let Some(row) = rows.next().await
@@ -471,19 +471,17 @@ impl KeyValueStore for TursoStorage {
     }
 
     async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
-        let (sql, param) = match prefix {
+        // Without a prefix the query has no placeholder, so it binds nothing
+        // (binding one gave "bind index 1 is out of bounds").
+        let (sql, params) = match prefix {
             Some(p) => (
                 "SELECT key FROM kv_store WHERE key LIKE ? ORDER BY key",
                 Self::to_turso_params(&[DataValue::Text(format!("{p}%"))]),
             ),
-            None => (
-                "SELECT key FROM kv_store ORDER BY key",
-                Self::to_turso_params(&[DataValue::Null]),
-            ),
+            None => ("SELECT key FROM kv_store ORDER BY key", Vec::new()),
         };
         let conn = Arc::clone(&self.conn);
-        // param is Vec<turso::Value>, we take the first element
-        let stream = Self::list_keys_stream(conn, sql.to_string(), param.into_iter().next().unwrap_or(turso::Value::Null));
+        let stream = Self::list_keys_stream(conn, sql.to_string(), params);
         Ok(AsyncListStream::new(stream))
     }
 }
