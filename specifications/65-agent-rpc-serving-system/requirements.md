@@ -435,7 +435,7 @@ sidecar does not take part in client TLS.
 - **gRPC-JSON transcoding / a REST façade** over the agent RPCs (separate surface,
   not requested).
 - **Cross-org or multi-tenant proxy federation** — registrations are within one
-  proxy's trust domain (one token → mTLS issuer).
+  proxy's trust domain (one registration CA that signs the sidecar certificates, feature 03).
 
 # Module References
 
