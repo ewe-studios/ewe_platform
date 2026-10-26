@@ -26,14 +26,14 @@ const CONTAINER_NAME: &str = "ewe-deployable-it";
 /// A `ProviderClient` whose state store is a fresh temp dir. Its HTTP client
 /// (the default one) is unused by the Docker deployable, which dials its own
 /// Unix socket.
-fn provider_client() -> (
+async fn provider_client() -> (
     ProviderClient<FileStateStore>,
     std::path::PathBuf,
 ) {
     let dir = std::env::temp_dir().join(format!("ewe-deployable-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     let store = FileStateStore::new(&dir, "ewe-test", "dev");
-    store.init().expect("init state store");
+    store.init().await.expect("init state store");
     (ProviderClient::new("ewe-test", "dev", store), dir)
 }
 
@@ -52,7 +52,7 @@ async fn deploy_then_destroy_container() {
     // stale name can never cause a 409 conflict on create.
     let _ = docker.remove_container(CONTAINER_NAME, true).await;
 
-    let (client, state_dir) = provider_client();
+    let (client, state_dir) = provider_client().await;
     let deployment = ContainerDeployment::new("alpine:latest")
         .with_name(CONTAINER_NAME)
         .with_cmd(["sleep", "30"]);
