@@ -399,6 +399,7 @@ mod h2_connection;
 mod h3_server;
 mod protocol_detect;
 
+pub use h2_connection::H2ConnectionHandler;
 #[cfg(feature = "quic")]
 pub use h3_server::serve_h3;
 

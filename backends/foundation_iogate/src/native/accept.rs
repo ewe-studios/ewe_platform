@@ -46,7 +46,7 @@ static NEXT_TOKEN: AtomicUsize = AtomicUsize::new(1);
 ///
 /// # Panics
 /// Never panics.
-fn next_token() -> Token {
+pub(crate) fn next_token() -> Token {
     let n = NEXT_TOKEN.fetch_add(1, Ordering::Relaxed) & ((1usize << 62) - 1);
     Token(n)
 }

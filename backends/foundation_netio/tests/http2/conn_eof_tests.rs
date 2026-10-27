@@ -40,3 +40,66 @@ fn a_peer_that_closes_mid_preface_ends_the_handshake() {
         "a closed peer must not read like 'not yet': {err}"
     );
 }
+
+/// A socket that takes at most `per_write` bytes per call, and every other
+/// call answers `WouldBlock` — a non-blocking socket whose send buffer fills.
+struct Trickle {
+    written: Vec<u8>,
+    per_write: usize,
+    block_next: bool,
+}
+
+impl io::Read for Trickle {
+    fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
+        Err(io::ErrorKind::WouldBlock.into())
+    }
+}
+
+impl io::Write for Trickle {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        let block = self.block_next;
+        self.block_next = !block;
+        if block {
+            return Err(io::ErrorKind::WouldBlock.into());
+        }
+        let n = buf.len().min(self.per_write);
+        self.written.extend_from_slice(&buf[..n]);
+        Ok(n)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+/// A flush interrupted by `WouldBlock` resumes where it stopped: every byte is
+/// written exactly once. It used to `write_all` the whole buffer again, so the
+/// prefix written before the `WouldBlock` went out twice.
+#[test]
+fn a_flush_interrupted_by_would_block_resumes_without_repeating_bytes() {
+    use foundation_netio::http2::connection::H2Connection;
+
+    let socket = Trickle {
+        written: Vec::new(),
+        per_write: 7,
+        block_next: false,
+    };
+    let mut conn = H2Connection::new(socket, true);
+    let frames: Vec<u8> = (0u8..=200).collect();
+    conn.write_buf_mut().extend_from_slice(&frames);
+
+    let mut attempts = 0;
+    loop {
+        attempts += 1;
+        assert!(attempts < 1000, "flush never finished");
+        match conn.flush() {
+            Ok(()) => break,
+            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                assert!(conn.has_pending_writes(), "a WouldBlock leaves the rest queued");
+            }
+            Err(e) => panic!("flush failed: {e}"),
+        }
+    }
+    assert!(!conn.has_pending_writes());
+    assert_eq!(conn.socket_ref().written, frames, "every byte once, in order");
+}

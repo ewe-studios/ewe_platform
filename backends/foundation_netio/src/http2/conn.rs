@@ -242,6 +242,29 @@ impl H2Conn {
         self.inner.flush()
     }
 
+    /// The socket's fd, to watch it for readiness; `-1` for a transport with
+    /// no kernel fd (the WireGuard overlay).
+    #[cfg(unix)]
+    #[must_use]
+    pub fn raw_fd(&self) -> std::os::unix::io::RawFd {
+        use std::os::unix::io::AsRawFd;
+        self.stream.with_inner_ref(AsRawFd::as_raw_fd)
+    }
+
+    /// Register a callback fired when the transport becomes readable, for a
+    /// transport with its own readiness (the overlay). `false` if it has none.
+    #[must_use]
+    pub fn register_read_waker(&self, waker: crate::native::connection::ConnWaker) -> bool {
+        self.stream.with_inner_ref(|raw| raw.register_read_waker(waker.clone()))
+    }
+
+    /// Whether frames are queued but not yet written (a flush hit
+    /// `WouldBlock`); the caller should wait for the socket to be writable.
+    #[must_use]
+    pub fn has_pending_writes(&self) -> bool {
+        self.inner.has_pending_writes()
+    }
+
     /// Decode an HPACK header block into (name, value) pairs, advancing the
     /// connection's dynamic table.
     ///
