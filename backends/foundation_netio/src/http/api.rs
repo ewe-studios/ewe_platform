@@ -274,7 +274,7 @@ pub struct ClientRequest<R: DnsResolver + 'static> {
 impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// Creates a new client request (internal constructor).
     ///
-    /// WHY: `SimpleHttpClient` needs to construct `ClientRequest` instances from
+    /// WHY: `NativeHttpClient` needs to construct `ClientRequest` instances from
     /// `PreparedRequest`. This constructor is internal to the client module.
     ///
     /// WHAT: Initializes request in `NotStarted` state with all necessary data.

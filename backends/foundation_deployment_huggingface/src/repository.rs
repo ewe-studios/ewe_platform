@@ -5,23 +5,16 @@
 
 #![allow(clippy::too_many_lines)]
 
-use crate::client::{is_success_status, status_code, HFClient};
-use crate::constants;
+use crate::client::{is_success_status, HFClient};
 use crate::error::{HuggingFaceError, Result};
 use crate::types::{
     AddSource, CommitInfo, CommitOperation, RepoCreateCommitParams, RepoDeleteFileParams,
     RepoDownloadFileParams, RepoInfo, RepoInfoParams, RepoListTreeParams, RepoTreeEntry, RepoType,
     RepoUploadFileParams,
 };
-use foundation_core::synca::RunOnDrop;
-use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::http::{HttpClientConnection, RequestIntro};
-use foundation_netio::shared::client::{
-    body_reader::{self, collect_bytes_into, collect_strings_from_send_safe},
-    ResponseIntro,
-};
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders};
-use std::collections::BTreeMap;
+use foundation_core::valtron::Stream;
+use foundation_netio::shared::client::body_reader::collect_bytes_into;
+use foundation_netio::shared::http::{SimpleHeader, SimpleMethod};
 
 use foundation_macros::JsonHash;
 use serde::Serialize;
@@ -108,7 +101,7 @@ impl HFRepository {
 /// Returns `HuggingFaceError::Http` if the Hub responds with a non-2xx
 /// status (e.g., 404 if the repo or revision does not exist),
 /// `HuggingFaceError::Json` if the response cannot be deserialized into
-/// `RepoInfo`, or a transport/executor failure variant.
+/// `RepoInfo`, or `HuggingFaceError::Backend` for a transport failure.
 pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInfo> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
@@ -134,52 +127,9 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
         url
     };
 
-    let http_client = repo.inner.client.simple_http();
-
-    let builder = http_client
-        .get(&url)
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-    let builder = {
-        if let Some(token) = repo.inner.client.token() {
-            if HFClient::is_implicit_token_disabled() {
-                builder
-            } else {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
-            }
-        } else {
-            builder
-        }
-    };
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let body = body_reader::collect_string(stream);
-                let info: RepoInfo = serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
-                Ok(info)
-            }
-            RequestIntro::Failed(e) => {
-                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
-            }
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    collect_one(stream)
-        .ok_or_else(|| HuggingFaceError::Backend("No result from repo_info".into()))?
+    let client = &repo.inner.client;
+    let request = client.request(SimpleMethod::GET, &url, true)?.build();
+    client.send_json(request, &url)
 }
 
 /// Check if repository exists.
@@ -187,8 +137,8 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
 /// # Errors
 ///
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built or
-/// `HuggingFaceError::Valtron` if the executor cannot be scheduled. A 4xx
-/// response from the Hub is mapped to `Ok(false)` rather than an error.
+/// the request fails in transport (the Hub could not be asked). Any non-2xx
+/// answer from the Hub is `Ok(false)`.
 pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
@@ -208,44 +158,13 @@ pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
         ),
     };
 
-    let http_client = repo.inner.client.simple_http();
-
-    let builder = http_client
-        .get(&url)
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-    let builder = {
-        if let Some(token) = repo.inner.client.token() {
-            if HFClient::is_implicit_token_disabled() {
-                builder
-            } else {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
-            }
-        } else {
-            builder
-        }
-    };
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { intro, .. } => {
-                let status = &intro.0;
-                Ok(is_success_status(status))
-            }
-            RequestIntro::Failed(_) => Ok(false),
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    match collect_one(stream) {
-        Some(Ok(value)) => Ok(value),
-        Some(Err(e)) => Err(e),
-        None => Ok(false),
-    }
+    // A 2xx answer means it exists; any other status means it does not. A
+    // transport failure is an error, not "does not exist". The body is
+    // dropped unread.
+    let client = &repo.inner.client;
+    let request = client.request(SimpleMethod::GET, &url, true)?.build();
+    let (status, _body) = client.send_raw(request)?;
+    Ok(is_success_status(&status))
 }
 
 /// Check if revision exists.
@@ -253,8 +172,8 @@ pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
 /// # Errors
 ///
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built or
-/// `HuggingFaceError::Valtron` if the executor cannot be scheduled. A 4xx
-/// response from the Hub (missing revision) is mapped to `Ok(false)`.
+/// the request fails in transport. Any non-2xx answer (missing revision) is
+/// `Ok(false)`.
 pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
@@ -277,52 +196,20 @@ pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool>
         ),
     };
 
-    let http_client = repo.inner.client.simple_http();
-
-    let builder = http_client
-        .get(&url)
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-    let builder = {
-        if let Some(token) = repo.inner.client.token() {
-            if HFClient::is_implicit_token_disabled() {
-                builder
-            } else {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
-            }
-        } else {
-            builder
-        }
-    };
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { intro, .. } => {
-                let status = &intro.0;
-                Ok(is_success_status(status))
-            }
-            RequestIntro::Failed(_) => Ok(false),
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    match collect_one(stream) {
-        Some(Ok(value)) => Ok(value),
-        Some(Err(e)) => Err(e),
-        None => Ok(false),
-    }
+    // A 2xx answer means it exists; any other status means it does not. A
+    // transport failure is an error, not "does not exist". The body is
+    // dropped unread.
+    let client = &repo.inner.client;
+    let request = client.request(SimpleMethod::GET, &url, true)?.build();
+    let (status, _body) = client.send_raw(request)?;
+    Ok(is_success_status(&status))
 }
 
 /// List tree entries.
 ///
 /// # Errors
 ///
-/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built or
-/// `HuggingFaceError::Valtron` if the executor cannot be scheduled. Per-page
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built. Per-page
 /// errors (HTTP failures, JSON parse failures) surface as `Err` items inside
 /// the returned stream.
 pub fn repo_list_tree(
@@ -343,67 +230,21 @@ pub fn repo_list_tree(
         revision
     );
 
-    let http_client = repo.inner.client.simple_http();
-
-    let builder = http_client
-        .get(&url)
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-    let builder = {
-        if let Some(token) = repo.inner.client.token() {
-            if HFClient::is_implicit_token_disabled() {
-                builder
-            } else {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
-            }
-        } else {
-            builder
-        }
+    let client = &repo.inner.client;
+    let request = client.request(SimpleMethod::GET, &url, true)?.build();
+    let page = client.send_json::<Vec<RepoTreeEntry>>(request, &url);
+    let items: Vec<Stream<Result<RepoTreeEntry>, ()>> = match page {
+        Ok(entries) => entries.into_iter().map(|e| Stream::Next(Ok(e))).collect(),
+        Err(e) => vec![Stream::Next(Err(e))],
     };
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let body = body_reader::collect_string(stream);
-                let entries: Vec<RepoTreeEntry> =
-                    serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
-                Ok(entries)
-            }
-            RequestIntro::Failed(e) => {
-                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
-            }
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    Ok(stream.flat_map_next(|result| match result {
-        Ok(entries) => {
-            let v: Vec<_> = Iterator::collect(entries.into_iter().map(Ok));
-            v.into_iter()
-        }
-        Err(e) => {
-            let v: Vec<_> = Iterator::collect(vec![Err(e)].into_iter());
-            v.into_iter()
-        }
-    }))
+    Ok(items.into_iter())
 }
 
 /// Download a file, handling `HuggingFace`'s CDN redirect.
 ///
-/// `HuggingFace` returns a 302 redirect to their CDN for file downloads.
-/// This function handles that redirect manually.
+/// `HuggingFace` returns a 302 redirect to their CDN for file downloads; the
+/// client follows it and keeps the auth header. A non-2xx answer is an error
+/// (its body, up to `max_error_body`, is the message) and nothing is written.
 ///
 /// # Errors
 ///
@@ -423,114 +264,20 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
     // Build destination path: directory/filename
     let destination = params.directory.join(&params.filename);
 
-    let http_client = repo.inner.client.simple_http();
-
-    let builder = http_client
-        .get(&url)
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        // .client_config_follow_other_redirects_response(false)
-        .client_config_headers_to_add(BTreeMap::<SimpleHeader, Vec<String>>::from([(
-            SimpleHeader::USER_AGENT,
-            vec![constants::HF_USER_AGENT.to_string()],
-        )]))
-        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-    let builder = {
-        if let Some(token) = repo.inner.client.token() {
-            if HFClient::is_implicit_token_disabled() {
-                tracing::debug!("HF_TOKEN was disabled and will not be added!");
-                builder
-            } else {
-                tracing::debug!("Adding HF_TOKEN with token having length={}", &token.len());
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
-            }
-        } else {
-            builder
-        }
-    };
-
-    // First request - may return 302 redirect to CDN
-    let mut request = builder
-        .build_client()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
+    // The client follows the Hub's redirect to its CDN, keeping the auth
+    // header (see `HFClientBuilder::build`).
+    let client = &repo.inner.client;
+    let request = client.request(SimpleMethod::GET, &url, true)?.build();
 
     tracing::debug!("Call endpoint for huggingface={:?}", &params);
 
-    let pool = request.get_pool();
-    let (intro_stream, body_stream) = request
-        .start()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
-
-    // Get intro (status + headers)
-    let mut intro_data: Option<(ResponseIntro, SimpleHeaders)> = None;
-    for intro_element in intro_stream {
-        if let Stream::Next(value) = intro_element {
-            intro_data = Some(value);
-            break;
-        }
+    // Status first: an error answer (404 for a missing file, 401/403 for a
+    // gated model) must never be written to disk as the file.
+    let (status, body) = client.send_raw(request)?;
+    tracing::debug!("Received response with status={}", &status);
+    if !is_success_status(&status) {
+        return Err(client.http_error(&status, &url, body));
     }
-
-    let (intro, _headers) =
-        intro_data.ok_or_else(|| HuggingFaceError::Backend("No response intro received".into()))?;
-
-    let status = &intro.status;
-    let status_num = status_code(status);
-
-    tracing::debug!("Received initial response with status={}", &status);
-
-    if status_num == 400 {
-        // return Err(HuggingFaceError::Http {
-        //     status: status_code(&response.get_status()),
-        //     url: url.clone(),
-        //     body: format!("HTTP {}", status_code(&response.get_status())),
-        // });
-
-        let mut response_body: Option<(HttpClientConnection, SendSafeBody)> = None;
-
-        tracing::trace!("Read body stream for response body");
-        for body_element in body_stream {
-            if let Stream::Next(value) = body_element {
-                let res = value.map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
-                response_body = Some(res);
-                break;
-            }
-        }
-
-        let Some((_, body)) = response_body else {
-            return Err(HuggingFaceError::Http {
-                status: status_num,
-                url: url.clone(),
-                body: format!("HTTP {status_num} - Unable to get body"),
-            });
-        };
-
-        let response_body = collect_strings_from_send_safe(body)
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
-
-        return Err(HuggingFaceError::Http {
-            status: status_num,
-            url: url.clone(),
-            body: format!("HTTP {status_num} - {response_body}"),
-        });
-    }
-
-    let mut response_body: Option<(HttpClientConnection, SendSafeBody)> = None;
-    for body_element in body_stream {
-        if let Stream::Next(value) = body_element {
-            response_body = Some(value.map_err(|e| HuggingFaceError::Backend(e.to_string()))?);
-            break;
-        }
-    }
-
-    let Some((conn, body)) = response_body else {
-        return Err(HuggingFaceError::Backend(
-            "Failed to get response body".into(),
-        ));
-    };
-
-    let _guard = RunOnDrop::new(move || {
-        pool.return_to_pool(conn);
-    });
 
     // Stream the body to a temporary `.part` file and only rename it into place
     // once the full download succeeds. This prevents a failed/partial download
@@ -603,13 +350,12 @@ pub fn repo_delete_file(repo: &HFRepository, params: &RepoDeleteFileParams) -> R
 /// Returns `HuggingFaceError::Io` if a local source file cannot be read,
 /// `HuggingFaceError::Json` if the embedded summary cannot be serialised,
 /// `HuggingFaceError::Http` if the Hub responds with a non-2xx status, or
-/// `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` for transport and
-/// executor failures.
+/// `HuggingFaceError::Backend` for transport failures.
 pub fn repo_create_commit(
     repo: &HFRepository,
     params: &RepoCreateCommitParams,
 ) -> Result<CommitInfo> {
-    use std::fmt::Write as _;
+    use std::io::Write as _;
 
     let base_path = match repo.inner.repo_type {
         RepoType::Dataset => "datasets",
@@ -625,19 +371,23 @@ pub fn repo_create_commit(
         revision
     );
 
-    // Build multipart body
+    // Build multipart body. Bytes, not a `String`: an added file can be
+    // binary (weights, images), so it must not pass through UTF-8.
     let boundary = "----RustBoundary".to_string();
-    let mut body = String::new();
+    let mut body: Vec<u8> = Vec::new();
 
     let _ = write!(body, "--{boundary}\r\n");
-    body.push_str("Content-Disposition: form-data; name=\"summary\"\r\n\r\n");
-    body.push_str(&serde_json::to_string(&serde_json::json!({
-        "type": "commit",
-        "summary": params.commit_message,
-        "description": params.commit_description,
-        "hub": "huggingface.co",
-    }))?);
-    body.push_str("\r\n");
+    body.extend_from_slice(b"Content-Disposition: form-data; name=\"summary\"\r\n\r\n");
+    body.extend_from_slice(
+        serde_json::to_string(&serde_json::json!({
+            "type": "commit",
+            "summary": params.commit_message,
+            "description": params.commit_description,
+            "hub": "huggingface.co",
+        }))?
+        .as_bytes(),
+    );
+    body.extend_from_slice(b"\r\n");
 
     for op in &params.operations {
         match op {
@@ -650,80 +400,35 @@ pub fn repo_create_commit(
                     body,
                     "Content-Disposition: form-data; name=\"files\"; filename=\"{path_in_repo}\"\r\n"
                 );
-                body.push_str("Content-Type: application/octet-stream\r\n\r\n");
+                body.extend_from_slice(b"Content-Type: application/octet-stream\r\n\r\n");
                 match source {
-                    AddSource::Bytes(data) => {
-                        body.push_str(&String::from_utf8_lossy(data));
-                    }
+                    AddSource::Bytes(data) => body.extend_from_slice(data),
                     AddSource::File(path) => {
-                        let content =
-                            std::fs::read_to_string(path).map_err(HuggingFaceError::Io)?;
-                        body.push_str(&content);
+                        let content = std::fs::read(path).map_err(HuggingFaceError::Io)?;
+                        body.extend_from_slice(&content);
                     }
                 }
-                body.push_str("\r\n");
+                body.extend_from_slice(b"\r\n");
             }
             CommitOperation::Delete { path_in_repo } => {
                 let _ = write!(body, "--{boundary}\r\n");
-                body.push_str("Content-Disposition: form-data; name=\"deletedFiles\"\r\n\r\n");
-                body.push_str(path_in_repo);
-                body.push_str("\r\n");
+                body.extend_from_slice(
+                    b"Content-Disposition: form-data; name=\"deletedFiles\"\r\n\r\n",
+                );
+                body.extend_from_slice(path_in_repo.as_bytes());
+                body.extend_from_slice(b"\r\n");
             }
         }
     }
 
     let _ = write!(body, "--{boundary}--\r\n");
 
-    let http_client = repo.inner.client.simple_http();
-
+    let client = &repo.inner.client;
     let content_type = format!("multipart/form-data; boundary={boundary}");
-    let builder = http_client
-        .post(&url)
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-    let builder = {
-        if let Some(token) = repo.inner.client.token() {
-            if HFClient::is_implicit_token_disabled() {
-                builder
-            } else {
-                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
-            }
-        } else {
-            builder
-        }
-    };
-
-    let builder = builder
+    let request = client
+        .request(SimpleMethod::POST, &url, true)?
         .header(SimpleHeader::CONTENT_TYPE, content_type)
-        .body_text(body);
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let body = body_reader::collect_string(stream);
-                let commit_info: CommitInfo =
-                    serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
-                Ok(commit_info)
-            }
-            RequestIntro::Failed(e) => {
-                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
-            }
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    collect_one(stream)
-        .ok_or_else(|| HuggingFaceError::Backend("No result from repo_create_commit".into()))?
+        .body_bytes(body)
+        .build();
+    client.send_json(request, &url)
 }

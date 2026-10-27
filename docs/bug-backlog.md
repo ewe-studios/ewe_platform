@@ -192,6 +192,13 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   - `upload_to_container` takes the whole tar as a `Vec<u8>`; it should stream.
   - `system_data_usage` returns untyped JSON. Route all seven through the generated functions, fixing the spec conversion where needed (rule 5).
 - **`send_json` has no body cap.** It reads a successful JSON body whole. Add `max_json_body` to `BodyLimits` **(rule 8)**.
+- **The `integration-tests` targets are never compiled in CI.**
+  `foundation_deployment_docker`'s CI runs are `""` and `docker`, so
+  `tests/deployable_tests.rs` (gated on `integration-tests`) rotted: it
+  still called the now-async `FileStateStore::init` synchronously until
+  #140's verification fixed it. Fix: a CI step that at least builds the
+  `docker,integration-tests` targets (`cargo test --no-run`), with the
+  daemon-backed runs kept manual.
 - **`LogFrameDecoder::decode` returns `None` for two cases:** "need more bytes" and "skipped an unknown frame type". Callers have to compare buffer lengths to tell them apart.
 
 ## 7. foundation_deployment_platform
@@ -231,6 +238,30 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   (`tests/proxy_integration_tests.rs`, `docker_available()`). When the socket
   exists but no daemon listens on it, the `--ignored` runs fail instead of
   skipping. Fix: use a shared helper that pings the daemon (see §7).
+- **The ACME client does not follow RFC 8555's account flow** (`src/acme.rs`).
+  `create_account` returns the newAccount directory URL instead of the
+  account URL from the `Location` header (it only checks that the answer has
+  an `orders` field), and `provision` discards it, so `key_id` is never set
+  and every later request is signed with the `jwk` instead of the `kid`
+  (§6.2 requires the `kid` once the account exists). The nonce is fetched
+  fresh for every request instead of taken from each answer's
+  `Replay-Nonce`. `provision` waits for DNS with `std::thread::sleep(5s)`
+  inside an `async fn` (it blocks the executor; the 5 s is a constant, not a
+  setting). The mock CA in `tests/acme_provisioning_tests.rs` sends no
+  `Location`, so the tests miss all of this. Fix: return and use the account
+  URL as the `kid`, carry the nonce from each answer, wait with an async
+  sleep (or poll the challenge status) under a configured timeout, and make
+  the mock CA strict.
+- **The SSL redirect listener hard-codes its limits** (`src/server.rs`,
+  `ssl_redirect_loop`): a 4096-byte head buffer, a 2 s read timeout and a
+  10 ms accept poll are constants, and a head longer than one read is cut
+  (rule 8). Fix: fields on the redirect config with documented defaults.
+- **`tests/diag_client_tap.rs` is a "TEMPORARY diagnostic", not a test.**
+  It is `#[ignore]`d, only `eprintln!`s what the client sent and received, and
+  asserts nothing, so it can never fail. Fix: turn it into a real test of
+  `forward_http`'s outgoing request (assert the `Host`, `X-Forwarded-*` and
+  `Connection` headers the fake upstream receives and the 200 status) and run
+  it un-ignored, or delete it if `proxy_integration_tests.rs` already covers it.
 - **The `mut` on `h3_local_addr` warns without the `h3` feature**
   (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
   expression instead of assigning inside the `cfg` block.
@@ -515,6 +546,13 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   exists. Fix: port it to the current async `Deployable` / `StateStore` and
   add it to the workspace (or delete it if superseded by the per-provider
   deployment crates).
+  Its HTTP client references were moved to `HttpClientBuilder` /
+  `ProviderClient::with_client` for #140, but the rest is still stale: it
+  imports `foundation_netio::simple_http`, `ProviderClient<S, R>` and
+  `foundation_deployment::providers::cloudflare` (now
+  `foundation_deployment_cloudflare`). `CloudflareWorker::deploy` also reads
+  the script from disk into `_script` and never uploads it, so a deploy would
+  push an empty module.
 - **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
 - **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
   compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target
@@ -590,6 +628,36 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 ## 19. Apps (tokio and axum)
 
 - **The apps still use tokio and axum, not valtron and `foundation_http`.** This is `bin/platform` (and its templates `api-app`, `static-html-app`, `web-app`), `examples/devbinary`, `examples/web/wello`, `examples/todo`, `crates/channels` and `crates/domain`: tokio/axum servers and tokio tests. `crates/channels` also has inline `#[cfg(test)]` modules (`src/broadcast.rs`, `src/mspc.rs`, `src/executor.rs`), which go against rule 7. Tracked in [#137](https://github.com/ewe-studios/ewe_platform/issues/137).
+
+## 20. foundation_deployment_huggingface
+
+- **The Hub client API is sync.** `client::{whoami, list_*, create_repo, …}`
+  and `repository::*` (`src/client.rs`, `src/repository.rs`) block on the
+  native client's sync `HttpClient::send`, so they freeze a valtron worker
+  and cannot run on wasm. Fix: async functions over `send_async`
+  (`collect_bytes_async` for the downloads), with `.block()` at the callers
+  (`foundation_ai`'s candle/gguf providers, `foundation_testing`).
+- **Uploads are buffered whole.** `repo_create_commit` reads each added file
+  into memory (`std::fs::read`) and builds the whole multipart body before
+  sending it. Fix: a streamed multipart body (`SendSafeBody::Stream` over the
+  file chunks) with the length computed up front.
+- **`list_*` and `repo_list_tree` read one page only.** They ignore the Hub's
+  `Link: rel="next"` pagination header, so a listing stops at the first page
+  (the docs say "with pagination"). Fix: follow `Link` lazily as the stream
+  is pulled.
+
+## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
+
+- **`foundation_keychain`**: `rmpv` is an unused dependency on wasm32
+  (`Cargo.toml`; only native code uses it), and `src/server/signalr_do.rs:29`
+  imports `notifications::self` without using it, and binds `mut resp` at
+  line 74 that is never mutated. Fix: move `rmpv` to the native target
+  section, drop the `self` import and the `mut`.
+- **`foundation_deployment_cloudflare`**: `src/workers/durable_object.rs:24`
+  imports `worker::Error` without using it. Fix: drop it.
+- **`foundation_wasm`**: `src/capability.rs:24` imports
+  `foundation_nostd::comp::basic::Mutex` without using it on wasm32. Fix:
+  gate the import with the `cfg` of its use, or drop it.
 
 ## Paused
 

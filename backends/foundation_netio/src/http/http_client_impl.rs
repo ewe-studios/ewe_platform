@@ -8,7 +8,7 @@
 //!
 //! WHAT: `NativeHttpClient<R>` with generic DNS resolver `R`. Methods that take
 //! `&self` (verb builders, `request`) are call-compatible with generated code's
-//! `&SimpleHttpClient<R>` usage. `SimpleHttpClient` is a deprecated type alias.
+//! `&SimpleHttpClient<R>` usage (the `SimpleHttpClient` alias is gone, #140).
 //!
 //! HOW: Owns `ClientConfig`, `HttpConnectionPool<R>`, and a `resolver: R` for
 //! SSE task construction. All configuration is builder-pattern on `self`.

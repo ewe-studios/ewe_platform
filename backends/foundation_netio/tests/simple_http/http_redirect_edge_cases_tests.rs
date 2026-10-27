@@ -5,10 +5,10 @@ use foundation_netio::shared::http::HttpClientError;
 /// WHAT: Asserts client handles redirects correctly and surfaces errors (no panic)
 #[test]
 fn test_redirect_edge_cases() {
-    use foundation_netio::http::{ClientRequestBuilder, SimpleHttpClient};
+    use foundation_netio::http::{ClientRequestBuilder, NativeHttpClient};
     use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod};
 
-    let client = SimpleHttpClient::from_system().max_redirects(2);
+    let client = NativeHttpClient::from_system().max_redirects(2);
     let request = ClientRequestBuilder::<SystemDnsResolver>::post("http://host1.com/redirect")
         .unwrap()
         .header(SimpleHeader::AUTHORIZATION, "Bearer secret_token")

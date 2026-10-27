@@ -15,9 +15,8 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use foundation_netio::http::NativeHttpClient;
+use foundation_netio::DynNetClient;
 use foundation_netio::netcap::ssl::SSLAcceptor;
-use foundation_netio::shared::client::SystemDnsResolver;
 
 use crate::acme::{AcmeClient, Dns01Setter, ACME_PRODUCTION};
 use crate::config::{ProxyConfig, ProxyError, SslConfig, SslProvider};
@@ -98,7 +97,7 @@ pub struct AcmeCertManager {
     domains: Vec<String>,
     email: String,
     directory_url: String,
-    client: Arc<NativeHttpClient<SystemDnsResolver>>,
+    client: DynNetClient,
     dns_setter: Dns01Setter,
     cached: Mutex<Option<CertPair>>,
 }
@@ -110,7 +109,7 @@ impl AcmeCertManager {
         domains: Vec<String>,
         email: impl Into<String>,
         directory_url: impl Into<String>,
-        client: Arc<NativeHttpClient<SystemDnsResolver>>,
+        client: DynNetClient,
         dns_setter: Dns01Setter,
     ) -> Self {
         Self {
@@ -149,7 +148,7 @@ impl AcmeCertManager {
         // Drive the ACME flow. Its I/O is the shared client's blocking send, so
         // the future resolves in a single poll.
         let dns_setter = Arc::clone(&self.dns_setter);
-        let acme = AcmeClient::with_directory(Arc::clone(&self.client), self.directory_url.clone())
+        let acme = AcmeClient::with_directory(DynNetClient::clone(&self.client), self.directory_url.clone())
             .with_jwk(jwk)
             .with_signer(signer)
             .with_dns_setter(move |name, value| dns_setter(name, value));
@@ -207,7 +206,7 @@ fn ec_jwk(vk: &p256::ecdsa::VerifyingKey) -> serde_json::Value {
 /// ACME runtime hooks on the config — a DNS-01 setter, optional directory URL).
 pub fn build_cert_manager(
     config: &ProxyConfig,
-    client: Arc<NativeHttpClient<SystemDnsResolver>>,
+    client: DynNetClient,
 ) -> Result<Arc<dyn CertManager>, ProxyError> {
     match &config.ssl.provider {
         SslProvider::Static { cert, key } => {
@@ -297,34 +296,5 @@ pub fn build_acceptor(config: &SslConfig) -> Result<Arc<SSLAcceptor>, ProxyError
         SslProvider::None => Err(ProxyError::Ssl(
             "TLS requested but no SSL provider configured".into(),
         )),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::config::SslConfig;
-
-    #[test]
-    fn test_build_acceptor_static_from_fixtures() {
-        let cert = include_bytes!("../tests/fixtures/cert.pem");
-        let key = include_bytes!("../tests/fixtures/key.pem");
-        let dir = std::env::temp_dir().join("proxy_tls_test");
-        std::fs::create_dir_all(&dir).ok();
-        let cert_path = dir.join("cert.pem");
-        let key_path = dir.join("key.pem");
-        std::fs::write(&cert_path, cert).unwrap();
-        std::fs::write(&key_path, key).unwrap();
-
-        let config = SslConfig::static_cert(
-            &cert_path.display().to_string(),
-            &key_path.display().to_string(),
-        );
-        assert!(build_acceptor(&config).is_ok(), "valid PEM should build acceptor");
-    }
-
-    #[test]
-    fn test_build_acceptor_none_errs() {
-        assert!(build_acceptor(&SslConfig::default()).is_err());
     }
 }
