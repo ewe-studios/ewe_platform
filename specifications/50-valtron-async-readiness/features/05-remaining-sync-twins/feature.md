@@ -261,7 +261,7 @@ line and column. Code that a normal build does not compile was checked
 with its own build: wasm32 (`wasm-bindgen-storage`, `wasm-bindgen-session`),
 `libsql`, the vector store features, `foundation_auth` `server-test` and
 `server-native`, `foundation_cedar` `db`, `foundation_nativeapis`
-`vfs-fjall`, and `examples/cf-login-app`. Doc comments and the crate docs
+`vfs-native,vfs-d1,vfs-r2,vfs-fjall`, and `examples/cf-login-app`. Doc comments and the crate docs
 (`backends/*/docs`) use the new names.
 
 **Checks (2026-10-27):**
@@ -274,10 +274,10 @@ with its own build: wasm32 (`wasm-bindgen-storage`, `wasm-bindgen-session`),
 | `cargo check -p foundation_vectors --all-targets --features sql-store,turbopuffer,fjall-store,sqlite-vec` | pass |
 | `cargo check -p foundation_auth --all-targets --features server-test,server-native` | pass |
 | `cargo check -p foundation_cedar --all-targets --features db` | pass |
-| `cargo check -p foundation_nativeapis --all-targets --features vfs-fjall` | pass |
+| `cargo check -p foundation_nativeapis --all-targets --features vfs-native,vfs-d1,vfs-r2,vfs-fjall` | pass (the first push missed `vfs-d1` / `vfs-r2`: CI found old `BlobStore` calls in `blob_delta.rs`, fixed in the second commit) |
 | `ci.py run <crate> --step wasm` for `foundation_db`, `foundation_vectors`, `foundation_ai`, `foundation_auth` | pass |
 | `cargo check --target wasm32-unknown-unknown -p foundation_auth --no-default-features --features wasm,wasm-bindgen-session` | pass (same warnings as `master`) |
 | `cargo check --target wasm32-unknown-unknown` of `examples/cf-login-app` | pass |
 | `ci.py run <crate> --step fmt` for every changed crate | pass |
-| `ci.py run` build, clippy and test steps | see the PR: CI runs them; this checkout had less than 1 GB of free disk |
+| `ci.py run` build, clippy and test steps | run by GitHub CI on PR #159 (this checkout had less than 1 GB of free disk) |
 
