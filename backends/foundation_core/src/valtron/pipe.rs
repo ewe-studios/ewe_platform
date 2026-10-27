@@ -210,6 +210,18 @@ impl<T> PipeSender<T> {
         QueueVacancyReadiness::new(self.inner.queue.clone())
     }
 
+    /// Wake `waker` when an item is popped or the pipe closes. For a producer
+    /// that is not a future (a valtron task): register, then `try_send`, and
+    /// park on what the waker sets when the pipe is full. The pipe holds one
+    /// producer waker; this replaces any other (a pending
+    /// [`send`](Self::send)'s included), so use one producer style per pipe.
+    ///
+    /// # Panics
+    /// Panics if the waker lock is poisoned.
+    pub fn register_waker(&self, waker: &Waker) {
+        *self.inner.producer_waker.lock().unwrap() = Some(waker.clone());
+    }
+
     /// `true` if the pipe is currently at capacity.
     #[must_use]
     pub fn is_full(&self) -> bool {
@@ -414,6 +426,19 @@ impl<T> PipeReceiver<T> {
         T: Send,
     {
         QueueReadiness::new(self.inner.queue.clone())
+    }
+
+    /// Wake `waker` on the next push or close. For a consumer that is not a
+    /// future (a valtron task): register, then `try_recv`, and park on what the
+    /// waker sets when the pipe is empty — a push between the two still wakes
+    /// it. The pipe holds one consumer waker; this replaces any other (the
+    /// parked waker of a pending [`receive`](Self::receive) included), so use
+    /// one consumer style per pipe.
+    ///
+    /// # Panics
+    /// Panics if the waker lock is poisoned.
+    pub fn register_waker(&self, waker: &Waker) {
+        *self.inner.consumer_waker.lock().unwrap() = Some(waker.clone());
     }
 
     /// `true` if no items are currently buffered.

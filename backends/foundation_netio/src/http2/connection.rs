@@ -18,7 +18,7 @@
 use std::collections::BTreeMap;
 use std::io::{self, Read, Write};
 
-use bytes::{BufMut, Bytes, BytesMut};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 
 use crate::http2::flow_control::{FlowControl, WindowSize};
 use crate::http2::frame::{
@@ -390,13 +390,32 @@ impl<S: Read + Write> H2Connection<S> {
     }
 
     /// Write all buffered frames to the socket.
+    /// Write out the buffered frames. On a non-blocking socket a write can be
+    /// partial: what was written leaves the buffer, and a `WouldBlock` returns
+    /// with the rest still queued, so the next flush resumes exactly where
+    /// this one stopped. (`write_all` here used to resend the written prefix
+    /// after a `WouldBlock`, corrupting the frame stream.)
     fn flush_write(&mut self) -> io::Result<()> {
-        if !self.write_buf.is_empty() {
-            self.socket.write_all(&self.write_buf)?;
-            self.socket.flush()?;
-            self.write_buf.clear();
+        while !self.write_buf.is_empty() {
+            match self.socket.write(&self.write_buf) {
+                Ok(0) => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::WriteZero,
+                        "h2: the socket accepted no bytes",
+                    ))
+                }
+                Ok(n) => self.write_buf.advance(n),
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+                Err(e) => return Err(e),
+            }
         }
-        Ok(())
+        self.socket.flush()
+    }
+
+    /// Whether frames are queued but not yet written to the socket.
+    #[must_use]
+    pub fn has_pending_writes(&self) -> bool {
+        !self.write_buf.is_empty()
     }
 
     /// Queue a frame for writing (call `flush_write` to send).

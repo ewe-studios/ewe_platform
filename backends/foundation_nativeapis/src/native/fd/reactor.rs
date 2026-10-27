@@ -648,10 +648,16 @@ fn drain_loop(
                 // non-task waiters (F50 B2). Only on real events — a bare poll
                 // timeout latched nothing.
                 if latched > 0 {
-                    let (lock, cvar) = &**events_gen;
-                    let mut gen = lock.lock().expect("events_gen lock poisoned");
-                    *gen = gen.wrapping_add(1);
-                    cvar.notify_all();
+                    {
+                        let (lock, cvar) = &**events_gen;
+                        let mut gen = lock.lock().expect("events_gen lock poisoned");
+                        *gen = gen.wrapping_add(1);
+                        cvar.notify_all();
+                    }
+                    // Tasks parked on `Depends(reactor readiness)` are re-checked
+                    // by their executor; wake idle executor threads now rather
+                    // than leaving them to sleep out their back-off.
+                    foundation_core::valtron::request_executor_resume();
                 }
             }
             Err(e) if e.kind() == io::ErrorKind::Interrupted => {}

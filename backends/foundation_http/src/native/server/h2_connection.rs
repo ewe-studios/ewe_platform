@@ -14,20 +14,27 @@
 //! HOW: Each poll performs the h2 handshake (once), reads at most one frame,
 //! routes it, then drains every active stream's response pipe into `H2Conn`.
 //! Nothing here blocks: request bodies stream through pipes rather than being
-//! collected, and handler futures run elsewhere. `WouldBlock` parks the task on
-//! a timer (see the reactor-parking gap tracked as feature 47b).
+//! collected, and handler futures run elsewhere. When nothing is ready the task
+//! parks (`Depends`) until the socket is readable or writable (watched through
+//! the shared reactor, or the overlay's own read waker), a handler pushes a
+//! response frame, a body pipe frees a slot, the idle deadline passes, or the
+//! server shuts down. Only a transport that can be watched none of these ways
+//! falls back to polling on a timer.
 
 use std::collections::{BTreeMap, VecDeque};
 use std::io;
 use std::sync::Arc;
+use std::task::{Wake, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{Ctx, 
-    FutureTask, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
-    TryRecvError,
+use foundation_core::valtron::{
+    AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, FutureTask, Pipe, PipeReceiver, PipeSender,
+    TaskIterator, TaskStatus, TryRecvError,
 };
+#[cfg(unix)]
+use foundation_iogate::FdReadiness as SocketReadiness;
 use foundation_netio::http2::conn::H2Conn;
 use foundation_netio::http2::frame::{
     data_flags, headers_flags, ErrorCode, Head, HeadersFrame, Kind, ResetFrame,
@@ -123,6 +130,97 @@ pub struct H2ConnectionHandler {
     /// Consumed bytes not yet credited back on the connection window —
     /// flushed as one `WINDOW_UPDATE` at [`CREDIT_FLUSH_THRESHOLD`].
     uncredited_conn: u32,
+    /// How the task parks when nothing is ready; see [`Parker`].
+    parker: Parker,
+    /// The transport took our read waker (the overlay has no fd to watch).
+    overlay_waker: bool,
+}
+
+/// What wakes a parked h2 connection task.
+struct Parker {
+    /// Set by `waker`: a handler pushed a response frame, a body pipe freed a
+    /// slot, or the overlay transport became readable.
+    woken: BoolSignal,
+    waker: Waker,
+    /// The socket on the shared reactor; `None` until first needed, or when it
+    /// cannot be watched that way.
+    fd: Option<Arc<SocketReadiness>>,
+    /// Registration was tried (and `fd` holds its outcome).
+    fd_tried: bool,
+}
+
+impl Parker {
+    fn new() -> Self {
+        let woken = BoolSignal::new(false);
+        Self {
+            waker: Waker::from(Arc::new(SignalWaker(woken.clone()))),
+            woken,
+            fd: None,
+            fd_tried: false,
+        }
+    }
+}
+
+/// A `Waker` that sets a [`BoolSignal`] (which asks the executor to run).
+struct SignalWaker(BoolSignal);
+
+impl Wake for SignalWaker {
+    fn wake(self: Arc<Self>) {
+        self.0.set(true);
+    }
+
+    fn wake_by_ref(self: &Arc<Self>) {
+        self.0.set(true);
+    }
+}
+
+/// No reactor off unix: the socket cannot be watched, so the task polls.
+#[cfg(not(unix))]
+struct SocketReadiness;
+
+#[cfg(not(unix))]
+impl SocketReadiness {
+    fn register(_fd: i32) -> io::Result<Self> {
+        Err(io::ErrorKind::Unsupported.into())
+    }
+
+    fn clear(&self) {}
+}
+
+#[cfg(not(unix))]
+impl EventReadiness for SocketReadiness {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        false
+    }
+}
+
+/// The connection's socket fd, or `-1` when it has none to watch.
+#[cfg(unix)]
+fn socket_fd(conn: &H2Conn) -> i32 {
+    conn.raw_fd()
+}
+
+#[cfg(not(unix))]
+fn socket_fd(_conn: &H2Conn) -> i32 {
+    -1
+}
+
+/// Ready once a deadline has passed.
+struct DeadlinePassed(Instant);
+
+impl EventReadiness for DeadlinePassed {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        Instant::now() >= self.0
+    }
+}
+
+/// Ready once the server is shutting down.
+struct ShutdownRequested(Arc<OnSignal>);
+
+impl EventReadiness for ShutdownRequested {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.0.probe()
+    }
 }
 
 impl H2ConnectionHandler {
@@ -144,6 +242,8 @@ impl H2ConnectionHandler {
             handshaked: false,
             streams: BTreeMap::new(),
             uncredited_conn: 0,
+            parker: Parker::new(),
+            overlay_waker: false,
         }
     }
 }
@@ -157,6 +257,10 @@ impl TaskIterator for H2ConnectionHandler {
             tracing::debug!("h2 server: shutdown signaled, closing connection");
             return None;
         }
+
+        // Arm every wake source before looking for work, so whatever becomes
+        // ready while we look still wakes us.
+        self.arm_wakers();
 
         // The socket is non-blocking, so the handshake — which reads the client
         // preface — may not complete on the first poll.
@@ -174,15 +278,18 @@ impl TaskIterator for H2ConnectionHandler {
                     // default so bulk uploads aren't paced by credit round
                     // trips (see CONNECTION_WINDOW_EXTRA).
                     self.conn.send_window_update(0, CONNECTION_WINDOW_EXTRA);
-                    self.conn.flush().ok();
+                    if !self.flush() {
+                        return None;
+                    }
                     tracing::debug!("h2 server: handshake done, keepalive PING + window raise sent");
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    // Handshake in progress — 1ms poll to minimise response latency.
-                    // grpc-go's transport may fire GOAWAY within 10ms of completing
-                    // its side of the handshake. Our SETTINGS + PING must arrive
-                    // before that window closes.
-                    return Some(TaskStatus::Delayed(HANDSHAKE_POLL_DELAY));
+                    // Handshake in progress: wait for the rest of the preface.
+                    // Parked on the socket we resume as soon as it arrives;
+                    // without a watchable socket, poll at 1 ms — grpc-go's
+                    // transport may fire GOAWAY within 10 ms of completing its
+                    // side, and our SETTINGS + PING must arrive before that.
+                    return Some(self.park_or(HANDSHAKE_POLL_DELAY, None));
                 }
                 Err(e) => {
                     tracing::debug!(err = %e, "h2 server handshake failed");
@@ -219,7 +326,9 @@ impl TaskIterator for H2ConnectionHandler {
             }
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                 self.drain_pending_bodies();
-                self.pump_responses();
+                if !self.pump_responses() {
+                    return None;
+                }
                 // Log the first WouldBlock to confirm the server is alive and waiting.
                 if self.idle_since.is_none() {
                     tracing::trace!("h2 server: idle — waiting for frames");
@@ -233,7 +342,9 @@ impl TaskIterator for H2ConnectionHandler {
         }
 
         self.drain_pending_bodies();
-        self.pump_responses();
+        if !self.pump_responses() {
+            return None;
+        }
         Some(TaskStatus::Pending(()))
     }
 }
@@ -244,16 +355,74 @@ impl H2ConnectionHandler {
     fn park(&mut self) -> Option<TaskStatus<(), ()>> {
         if !self.streams.is_empty() {
             self.idle_since = None;
-            return Some(TaskStatus::Delayed(POLL_DELAY));
+            return Some(self.park_or(POLL_DELAY, None));
         }
-        match self.idle_since {
-            None => {
-                self.idle_since = Some(Instant::now());
-                Some(TaskStatus::Delayed(POLL_DELAY))
+        let since = *self.idle_since.get_or_insert_with(Instant::now);
+        if since.elapsed() >= IDLE_TIMEOUT {
+            return None;
+        }
+        Some(self.park_or(POLL_DELAY, Some(since + IDLE_TIMEOUT)))
+    }
+
+    /// Start a turn: forget earlier wakes and readiness, so only what happens
+    /// from now on wakes the parked task, and arm the socket (on the reactor,
+    /// or the overlay's read waker). The pipes are armed when parking.
+    fn arm_wakers(&mut self) {
+        self.parker.woken.set(false);
+        if !self.parker.fd_tried {
+            self.parker.fd_tried = true;
+            let fd = socket_fd(&self.conn);
+            if fd >= 0 {
+                match SocketReadiness::register(fd) {
+                    Ok(readiness) => self.parker.fd = Some(Arc::new(readiness)),
+                    Err(e) => tracing::debug!(
+                        error = %e,
+                        "h2 server: cannot watch the socket on the reactor; polling instead"
+                    ),
+                }
             }
-            Some(since) if since.elapsed() < IDLE_TIMEOUT => Some(TaskStatus::Delayed(POLL_DELAY)),
-            Some(_) => None,
         }
+        if let Some(fd) = &self.parker.fd {
+            fd.clear();
+        } else {
+            let woken = self.parker.woken.clone();
+            let overlay: foundation_netio::native::connection::ConnWaker =
+                Arc::new(move || woken.set(true));
+            self.overlay_waker = self.conn.register_read_waker(overlay);
+        }
+    }
+
+    /// Park until something wakes the task (see [`Self::arm_wakers`]), the
+    /// `deadline` passes, or the server shuts down. Falls back to polling every
+    /// `fallback` when the socket cannot be watched at all.
+    fn park_or(&self, fallback: Duration, deadline: Option<Instant>) -> TaskStatus<(), ()> {
+        let socket: Option<EventReadinessPtr> = match &self.parker.fd {
+            Some(fd) => Some(Arc::clone(fd) as EventReadinessPtr),
+            None if self.overlay_waker => None,
+            None => return TaskStatus::Delayed(fallback),
+        };
+        let mut ready = AnyReadiness::either(
+            Arc::new(self.parker.woken.clone()),
+            Arc::new(ShutdownRequested(Arc::clone(&self.shutdown))),
+        );
+        // Streams opened, or bodies held back, during this turn were not armed
+        // at its start: arm them now, and let their pipes' own readiness cover
+        // a push or pop that lands before the waker is in place.
+        for stream in self.streams.values() {
+            stream.resp_rx.register_waker(&self.parker.waker);
+            ready = ready.with(Arc::new(stream.resp_rx.readiness()));
+            if !stream.pending_body.is_empty() {
+                stream.body_tx.register_waker(&self.parker.waker);
+                ready = ready.with(Arc::new(stream.body_tx.vacancy()));
+            }
+        }
+        if let Some(socket) = socket {
+            ready = ready.with(socket);
+        }
+        if let Some(deadline) = deadline {
+            ready = ready.with(Arc::new(DeadlinePassed(deadline)));
+        }
+        TaskStatus::Depends(Arc::new(ready))
     }
 
     /// A new stream: decode headers, route it, and spawn its handler future.
@@ -418,7 +587,7 @@ impl H2ConnectionHandler {
     /// Drain every live stream's response pipe onto the shared write buffer, then
     /// reap finished streams. This is the only place `H2Conn` is written, so
     /// frames from different streams never interleave mid-frame.
-    fn pump_responses(&mut self) {
+    fn pump_responses(&mut self) -> bool {
         let mut finished: Vec<u32> = Vec::new();
 
         for (&sid, stream) in &mut self.streams {
@@ -456,7 +625,21 @@ impl H2ConnectionHandler {
             }
         }
 
-        self.conn.flush().ok();
+        self.flush()
+    }
+
+    /// Write out queued frames. A `WouldBlock` keeps the rest queued for the
+    /// next turn (the socket's writability wakes us); any other failure means
+    /// the connection is gone. Returns `false` then.
+    fn flush(&mut self) -> bool {
+        match self.conn.flush() {
+            Ok(()) => true,
+            Err(e) if e.kind() == io::ErrorKind::WouldBlock => true,
+            Err(e) => {
+                tracing::debug!(err = %e, "h2 server: write failed — closing connection");
+                false
+            }
+        }
     }
 }
 
