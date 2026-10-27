@@ -16,11 +16,12 @@
 //! use ewe_deployables::gcp::CloudRunService;
 //! use foundation_deployment::provider_client::ProviderClient;
 //! use foundation_db::state::FileStateStore;
-//! use foundation_netio::simple_http::client::SimpleHttpClient;
+//! use foundation_netio::HttpClientBuilder;
 //!
 //! // Deploy a Cloudflare Worker
 //! let worker: CloudflareWorker = CloudflareWorker::new("my-worker", "./worker.js", "account-id");
-//! // let client = ProviderClient::new("my-project", "dev", state_store, http_client);
+//! // let http_client = HttpClientBuilder::new().build();
+//! // let client = ProviderClient::with_client(http_client, "my-project", "dev", state_store);
 //! // let stream = worker.deploy(client)?;
 //!
 //! // Deploy a GCP Cloud Run service

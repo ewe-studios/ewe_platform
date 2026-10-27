@@ -108,6 +108,10 @@ impl ProxyServer {
             .collect();
         let router = Arc::new(Router::new(services.clone()));
 
+        // Native on purpose (group B of #140): this is the forwarders'
+        // `SharedHttpClient`. They take the upstream connection out of each
+        // response and hand it back to this explicit pool themselves, which a
+        // `DynNetClient` from `HttpClientBuilder` hides. See `forward.rs`.
         let pool = Arc::new(HttpConnectionPool::default());
         let client = NativeHttpClient::with_config_and_pool(
             ClientConfig::default(),

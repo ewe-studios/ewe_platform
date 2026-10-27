@@ -256,6 +256,12 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   `ssl_redirect_loop`): a 4096-byte head buffer, a 2 s read timeout and a
   10 ms accept poll are constants, and a head longer than one read is cut
   (rule 8). Fix: fields on the redirect config with documented defaults.
+- **`tests/diag_client_tap.rs` is a "TEMPORARY diagnostic", not a test.**
+  It is `#[ignore]`d, only `eprintln!`s what the client sent and received, and
+  asserts nothing, so it can never fail. Fix: turn it into a real test of
+  `forward_http`'s outgoing request (assert the `Host`, `X-Forwarded-*` and
+  `Connection` headers the fake upstream receives and the 200 status) and run
+  it un-ignored, or delete it if `proxy_integration_tests.rs` already covers it.
 - **The `mut` on `h3_local_addr` warns without the `h3` feature**
   (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
   expression instead of assigning inside the `cfg` block.
@@ -540,6 +546,13 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   exists. Fix: port it to the current async `Deployable` / `StateStore` and
   add it to the workspace (or delete it if superseded by the per-provider
   deployment crates).
+  Its HTTP client references were moved to `HttpClientBuilder` /
+  `ProviderClient::with_client` for #140, but the rest is still stale: it
+  imports `foundation_netio::simple_http`, `ProviderClient<S, R>` and
+  `foundation_deployment::providers::cloudflare` (now
+  `foundation_deployment_cloudflare`). `CloudflareWorker::deploy` also reads
+  the script from disk into `_script` and never uploads it, so a deploy would
+  push an empty module.
 - **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
 - **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
   compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target

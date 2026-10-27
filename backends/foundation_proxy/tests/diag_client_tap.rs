@@ -43,6 +43,9 @@ fn diag_tap() {
         std::thread::sleep(Duration::from_secs(2));
     });
 
+    // Native on purpose (group B of #140): this mirrors the proxy's
+    // `SharedHttpClient` (see `foundation_proxy::forward`), which the builder's
+    // `DynNetClient` cannot express because it hides the pooled connection.
     let pool: Arc<HttpConnectionPool<SystemDnsResolver>> = Arc::new(HttpConnectionPool::default());
     let client = NativeHttpClient::with_config_and_pool(
         ClientConfig::default(),

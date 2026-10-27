@@ -26,16 +26,15 @@ use foundation_testing::http::{test_tls_connector, HttpResponse, TestHttpsServer
 fn make_client(
     server: &TestHttpsServer,
     state_store: FileStateStore,
-) -> ProviderClient<FileStateStore, StaticSocketAddr> {
+) -> ProviderClient<FileStateStore> {
     let port = server.port();
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
-    let dns = StaticSocketAddr::new(addr);
-    let http_client =
-        foundation_netio::simple_http::client::SimpleHttpClient::with_resolver(dns)
-            .with_tls_connector(test_tls_connector())
-            .with_connection_pool();
+    let http_client = foundation_netio::HttpClientBuilder::new()
+        .resolve_to(addr)
+        .with_tls_connector(test_tls_connector())
+        .build();
 
-    ProviderClient::new("test-project", "dev", state_store, http_client)
+    ProviderClient::with_client(http_client, "test-project", "dev", state_store)
 }
 
 type TestWorker = CloudflareWorker<StaticSocketAddr>;
