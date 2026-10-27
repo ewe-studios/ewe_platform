@@ -2183,11 +2183,27 @@ pub fn sleep(
 }
 
 /// Return a [`Future`](std::future::Future) that completes after `duration`.
-/// Calls [`sleep()`] and bridges via
+///
+/// Native: a [`timer`](crate::valtron::timer) future, woken by the timer
+/// thread. It schedules no valtron task, so it fires even when every worker is
+/// busy or the pool is shutting down (racing it as a `select` timeout used to
+/// hang then). Wasm: a valtron [`sleep()`] task, bridged with
 /// [`into_ready_future()`](crate::valtron::StreamIteratorExt::into_ready_future).
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub async fn sleep_async(duration: std::time::Duration) {
-    let _ = sleep(duration).expect("sleep").into_ready_future().await;
+    #[cfg(all(feature = "std", not(target_family = "wasm")))]
+    crate::valtron::timer::sleep_for(duration).await;
+
+    #[cfg(not(all(feature = "std", not(target_family = "wasm"))))]
+    {
+        match sleep(duration) {
+            Ok(timer) => {
+                let _ = timer.into_ready_future().await;
+            }
+            // No executor to run the timer: return rather than panic.
+            Err(e) => tracing::error!(error = ?e, "sleep_async could not schedule its timer"),
+        }
+    }
 }
 
 // --- Task builders and `OnNext` constructors (single-threaded: nothing moves to another thread, so no `Send` bound.)

@@ -69,8 +69,25 @@ impl BoolSignal {
     }
 
     /// Get a clone of the underlying `Arc<AtomicBool>` for external mutation.
+    ///
+    /// Prefer [`BoolSignal::set`]: a raw store does not ask the executor to
+    /// run again, so on a JS wasm build (which hands control back to the event
+    /// loop while every task is parked) a task parked on this signal is never
+    /// re-polled unless the writer also calls
+    /// [`request_executor_resume`](crate::valtron::request_executor_resume).
     pub fn clone_inner(&self) -> Arc<AtomicBool> {
         self.0.clone()
+    }
+
+    /// Set the signal. Turning it on asks the executor's host to run again
+    /// ([`request_executor_resume`](crate::valtron::request_executor_resume)),
+    /// so a task parked on it is re-polled even when the writer is JS-side async
+    /// work on a wasm build, and at once on native.
+    pub fn set(&self, value: bool) {
+        self.0.store(value, Ordering::SeqCst);
+        if value {
+            crate::valtron::request_executor_resume();
+        }
     }
 }
 
@@ -236,8 +253,31 @@ impl<T> QueueReadiness<T> {
     }
 
     /// Get a clone of the underlying queue for external mutation (pushing messages).
+    ///
+    /// A producer outside the executor (JS-side async work on wasm) should
+    /// push with [`QueueReadiness::push`] instead, which asks the executor to
+    /// run again; a raw push leaves a parked consumer asleep on a JS wasm build.
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
         self.0.clone()
+    }
+
+    /// Push `item` and ask the executor's host to run again, so a consumer
+    /// parked on this readiness is re-polled.
+    ///
+    /// # Errors
+    /// The queue is full or closed; the item is handed back.
+    pub fn push(&self, item: T) -> Result<(), concurrent_queue::PushError<T>> {
+        self.0.push(item)?;
+        crate::valtron::request_executor_resume();
+        Ok(())
+    }
+
+    /// Close the queue and ask the executor to run again, so a parked consumer
+    /// observes the end. Returns `true` if this call closed it.
+    pub fn close(&self) -> bool {
+        let closed = self.0.close();
+        crate::valtron::request_executor_resume();
+        closed
     }
 }
 
@@ -301,8 +341,31 @@ impl<T> QueueVacancyReadiness<T> {
     }
 
     /// Get a clone of the underlying queue for external mutation (popping messages).
+    ///
+    /// A consumer outside the executor should pop with
+    /// [`QueueVacancyReadiness::pop`] instead, which asks the executor to run
+    /// again; a raw pop leaves a parked producer asleep on a JS wasm build.
     pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
         self.0.clone()
+    }
+
+    /// Pop an item and ask the executor's host to run again, so a producer
+    /// parked on the full queue is re-polled.
+    ///
+    /// # Errors
+    /// The queue is empty or closed.
+    pub fn pop(&self) -> Result<T, concurrent_queue::PopError> {
+        let item = self.0.pop()?;
+        crate::valtron::request_executor_resume();
+        Ok(item)
+    }
+
+    /// Close the queue and ask the executor to run again, so a parked producer
+    /// observes the close. Returns `true` if this call closed it.
+    pub fn close(&self) -> bool {
+        let closed = self.0.close();
+        crate::valtron::request_executor_resume();
+        closed
     }
 }
 

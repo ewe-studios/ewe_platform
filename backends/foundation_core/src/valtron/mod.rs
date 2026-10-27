@@ -13,6 +13,8 @@ mod pipe_mapped;
 mod stream_future;
 mod streams;
 mod task;
+#[cfg(all(feature = "std", not(target_family = "wasm")))]
+pub mod timer;
 mod types;
 mod wake;
 

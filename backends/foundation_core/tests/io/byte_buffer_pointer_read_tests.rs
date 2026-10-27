@@ -260,13 +260,16 @@ fn peekable_peek_does_not_consume() {
 }
 
 #[test]
-fn peekable_peek_at_eof_returns_zero() {
+fn peekable_peek_at_eof_reports_end_of_stream() {
     let mut ptr = pointer(16, b"ab");
     let mut buf = [0u8; 2];
     assert_eq!(ptr.read(&mut buf).unwrap(), 2);
 
     let mut peeked = [0u8; 4];
-    assert_eq!(PeekableReadStream::peek(&mut ptr, &mut peeked).unwrap(), 0);
+    assert!(matches!(
+        PeekableReadStream::peek(&mut ptr, &mut peeked),
+        Err(foundation_core::io::ioutils::PeekError::EndOfStream)
+    ));
 }
 
 #[test]

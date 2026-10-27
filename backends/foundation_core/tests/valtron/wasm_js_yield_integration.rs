@@ -386,3 +386,117 @@ async fn depends_task_parks_until_wake_signal_fires() {
     assert_eq!(value.load(Ordering::Relaxed), 7, "resumed and completed after the wake");
 }
 
+
+/// Parks on a [`BoolSignal`](foundation_core::valtron::BoolSignal) until it is
+/// set, then emits one value.
+struct ParkOnBoolTask {
+    signal: foundation_core::valtron::BoolSignal,
+    step: u8,
+}
+
+impl TaskIterator for ParkOnBoolTask {
+    type Ready = usize;
+    type Pending = ();
+
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        use foundation_core::valtron::EventReadiness;
+        match self.step {
+            0 if !self.signal.is_ready(None) => Some(TaskStatus::Depends(Arc::new(self.signal.clone()))),
+            0 => {
+                self.step = 1;
+                Some(TaskStatus::Ready(9))
+            }
+            _ => None,
+        }
+    }
+}
+
+/// A task parked on a `BoolSignal` resumes when JS-side async work sets it.
+/// The executor hands control back to the event loop while every task is
+/// parked; `BoolSignal::set` asks it to run again. A raw store on the atomic
+/// did not, so the task was never re-polled.
+#[wasm_bindgen_test]
+async fn bool_signal_set_from_js_resumes_a_parked_task() {
+    initialize_pool(43);
+
+    let signal = foundation_core::valtron::BoolSignal::new(false);
+    let value = Arc::new(AtomicUsize::new(0));
+    let value_clone = Arc::clone(&value);
+    spawn()
+        .with_task(ParkOnBoolTask {
+            signal: signal.clone(),
+            step: 0,
+        })
+        .with_resolver(Box::new(FnReady::new(move |item, _| {
+            if let TaskStatus::Ready(v) = item {
+                value_clone.store(v, Ordering::Relaxed);
+            }
+        })))
+        .as_scheduled()
+        .spawn()
+        .expect("should schedule");
+
+    run_until_complete();
+    assert_eq!(value.load(Ordering::Relaxed), 0, "parked until the signal is set");
+
+    wasm_bindgen_futures::spawn_local(async move {
+        sleep_ms(5).await;
+        signal.set(true);
+    });
+
+    for _ in 0..200 {
+        if value.load(Ordering::Relaxed) == 9 {
+            break;
+        }
+        sleep_ms(1).await;
+    }
+    assert_eq!(value.load(Ordering::Relaxed), 9, "resumed after BoolSignal::set");
+}
+
+/// Calls `run_until_complete` from inside its own `next_status` — what a sync
+/// "block on" helper reached from a task does — then finishes.
+struct NestedRunTask {
+    step: u8,
+}
+
+impl TaskIterator for NestedRunTask {
+    type Ready = usize;
+    type Pending = ();
+
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        match self.step {
+            0 => {
+                self.step = 1;
+                // Nothing else is scheduled: this nested run must return, not
+                // spin on the slot of the very task that called it.
+                run_until_complete();
+                Some(TaskStatus::Ready(11))
+            }
+            _ => None,
+        }
+    }
+}
+
+/// A `run_until` nested inside a task returns when only its callers are left.
+/// The polled task's slot counts as active, so the nested loop used to see
+/// "work to do" for ever and freeze the isolate without yielding to JS.
+#[wasm_bindgen_test]
+fn nested_run_until_returns_instead_of_spinning() {
+    initialize_pool(44);
+
+    let value = Arc::new(AtomicUsize::new(0));
+    let value_clone = Arc::clone(&value);
+    spawn()
+        .with_task(NestedRunTask { step: 0 })
+        .with_resolver(Box::new(FnReady::new(move |item, _| {
+            if let TaskStatus::Ready(v) = item {
+                value_clone.store(v, Ordering::Relaxed);
+            }
+        })))
+        .as_scheduled()
+        .spawn()
+        .expect("should schedule");
+
+    run_until_complete();
+    assert_eq!(value.load(Ordering::Relaxed), 11, "the nested run returned and the task finished");
+}

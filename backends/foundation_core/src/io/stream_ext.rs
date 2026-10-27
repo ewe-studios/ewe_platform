@@ -107,7 +107,8 @@ pub trait ReadBytesExt: Read {
     ///
     /// # Returns
     ///
-    /// `Some(PooledBuffer)` with data, or `None` on EOF.
+    /// `Some(PooledBuffer)` with data (empty when `max_len` is 0), or `None`
+    /// on EOF.
     ///
     /// # Errors
     ///
@@ -164,6 +165,11 @@ impl<R: Read> ReadBytesExt for R {
         max_len: usize,
     ) -> std::io::Result<Option<PooledBuffer>> {
         let mut buf = pool.acquire_with_capacity(max_len);
+        // Nothing asked for: an empty buffer, not `None` — `None` means EOF.
+        if max_len == 0 {
+            buf.clear();
+            return Ok(Some(buf));
+        }
         buf.resize(max_len, 0);
 
         let n = self.read(&mut buf)?;
