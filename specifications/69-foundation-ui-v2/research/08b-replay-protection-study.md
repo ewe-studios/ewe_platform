@@ -1,4 +1,4 @@
-# Idea 7: tamper and replay protection for signed component state
+# 08b. Replay protection study: Livewire, LiveView, ViewState, Hotwire
 
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they
 are._
@@ -152,7 +152,7 @@ Source: `phoenixframework/phoenix_live_view`, `lib/phoenix_live_view/static.ex` 
 
 ## 6. Recommendation: **adopt** the layered model in §4
 
-See Q11, Q12 and Q13 in [`questions.md`](questions.md).
+See Q17 to Q19 in [`questions.md`](questions.md), and the design in [`08-state-security-and-replay.md`](08-state-security-and-replay.md).
 
 ## 7. Sources
 
