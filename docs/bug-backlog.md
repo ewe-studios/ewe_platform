@@ -15,10 +15,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 1. foundation_connectrpc
 
-- **gRPC over h3 sends no status.** `native/h3_serve.rs` `send_h3_response`
-  (line ~523) drops `response.trailers`, and `run_streaming_h3` ends an opened
-  gRPC stream with a bare FIN, never a trailing HEADERS with `grpc-status`.
-  The h2 path does it (`shared/router/dispatch.rs` `grpc_status_trailers`).
 - **HTTP/1.1 RPC holds a worker for its whole life.**
   - `foundation_http`'s `Serve` trait (`shared/serve/mod.rs:72`) is
     synchronous, so a long-lived h1 stream occupies a valtron worker until it
@@ -32,21 +28,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
     timeout.
 - **Conformance coverage.** Every conformance test runs with `threads = 4`
   (`tests/conformance_tests.rs`). Add an 8-thread variant (task #27).
-- **A streaming handler can't await its own cancellation.**
-  `exchange_until_aborted` (`shared/router/dispatch.rs:937`) drops the
-  exchange — which holds the handler future — when the deadline or the
-  peer-gone signal wins (and on `BodyFailed`), before the caller fires
-  `cancel.cancel()`. A handler's `ctx.cancelled().await` therefore never
-  completes on a peer disconnect. Fire the cancel before dropping the handler
-  and poll it once more.
-- **The client's `cancel()` does not emit a wire-level reset.** *(Partly
-  fixed in 77c73ed53: dropping the response stream makes the h2 pump send
-  `RST_STREAM(CANCEL)`, `native/transport/h2.rs` `abort_peer_stream`.)* What
-  is left: `CancelSignal::cancel` alone does not stop the client reader task
-  (`shared/protocol/connect.rs` `read_connect_response`, and the gRPC /
-  gRPC-Web readers), which keeps the transport body open, so the server never
-  learns of the abort until the caller drops the stream. The reader and
-  writer tasks should end on cancel so the pump resets the stream.
 
 ## 2. foundation_netio
 
@@ -60,11 +41,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `DEFAULT_MAX_FRAME_SIZE` (16 MiB, `http3/frame.rs:233`) **(rule 8)**, and a
   DATA frame is still buffered whole before it is yielded. Stream within a
   frame, and put the cap on the connection config.
-- **`H3Connection::poll_accept_webtransport` loses streams**
-  (`http3/connection.rs:340`). It drops the accepted stream if its headers
-  aren't ready yet (or the 200 HEADERS / FIN cannot be queued at once). It
-  also drops a non-WebTransport request whose headers it has already read
-  (returns `Ok(false)` without the request).
 - **`AsyncSendSafeBody` polls sync body iterators inline**
   (`shared/client/body_reader.rs` `poll_next`). `poll_next` calls the inner
   iterator's `next()`. Unless that iterator returns a "not ready" item
@@ -77,11 +53,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   returns `Ignore` for a sized body's `Data::Retry` but passes a chunked body's
   `WouldBlock` through as `StreamError`, so its users can't tell "not ready"
   apart from bookkeeping items or failures.
-- **Case-sensitive `chunked` check.** The request and response readers
-  (`shared/http/impls.rs` ~4020 and ~4574) find chunked's position with
-  `transfer_encodings.iter().position(|n| n == CHUNKED_VALUE)`, case-sensitively,
-  unlike the lowercase set check just before it, so `gzip, Chunked` is
-  rejected.
 - **Non-blocking work not done yet:**
   - non-blocking connect and TLS handshake (task #23):
     `HttpClientConnection::connect` blocks in `TcpStream::connect_timeout`
@@ -89,51 +60,36 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
     handshakes in place;
   - a pushed request body should wait on pipe readiness (task #24);
   - the remaining transports (task #25).
-- **Unix-socket sends fail on macOS.** The send path calls
-  `set_read_timeout_as` (`http/tasks/send_request.rs`), which sets
-  `SO_RCVTIMEO`; macOS answers `EINVAL` when the peer has already shut the
-  socket down, so `unix_socket_builder_send_reaches_server` fails with
-  `Invalid argument (os error 22)` there. Treat `EINVAL` on a Unix socket as
-  "timeout not applied" rather than failing. (macOS CI only builds, it does
-  not run tests.)
 - **Ignored tests.**
   - 17 network-dependent or never-finished tests are ignored:
     `tcp_and_tls/http_external_validation.rs` (8),
     `tcp_and_tls/http_server_integration.rs` (6),
     `tcp_and_tls/tls_integration.rs` (3). Make them hermetic (task #31).
   - 37 doc examples are `ignore`/`no_run` (task #33).
-- **Wasm SSE parser errors still stall instead of terminating the stream.**
-  `wasm/client/stream.rs` `WasmSseIterator::next` logs a non-`WouldBlock`
-  parse error and then returns `Stream::Wait`, so a permanently malformed feed
-  stalls the consumer instead of failing. Surface it as
-  `Stream::Pending(SseProgress::Failed(msg))` then `None`, like a fetch
-  failure.
+- **A wasm SSE read error ends the stream as if it finished cleanly.**
+  `wasm/client/stream.rs` `spawn_stream_reader` sets `done` on a JS
+  `ReadableStream` read error, so the consumer sees a normal end. Fix: record
+  the error next to `done` and have `QueueSseEvents` end with
+  `Pending(SseProgress::Failed(..))`.
+- **`poll_accept_webtransport` finishes the CONNECT stream after the `200`**
+  (`http3/connection.rs`). In WebTransport over HTTP/3 the session lives as
+  long as its CONNECT stream; closing it (FIN) ends the session. Check
+  against the draft and keep the stream open, handing it to `WtSession`.
 
 ## 3. foundation_http
 
 - **h2 connection polls on a 10 ms timer** (`native/server/h2_connection.rs`
   `POLL_DELAY`, the "47b gap"). `ConnectionHandler`'s idle path delays instead
   of waiting for TCP readiness.
-- **Ignored write errors, and leftover body bytes on keep-alive.**
-  - The middleware-response and 404 paths (`native/server/connection.rs`
-    ~729 and ~781) ignore render and write errors (`let _ = …`).
-  - They also leave an unread request body on a kept-alive connection, so the
-    leftover bytes are read as the next request. This was fixed for
-    ConnectRPC in #96.
-- **`H3AcceptTask` problems** (`native/server/h3_server.rs`):
-  - ignores the result of `valtron::send(FutureTask)`;
-  - polls on a fixed 5 ms delay, which is not readiness-driven and is a
-    hard-coded limit **(rule 8)**;
-  - swallows a `poll_accept` error (`_ => break`) and keeps the dead
-    connection in its list, polling it forever.
+- **`H3AcceptTask` polls on a fixed 5 ms delay** (`native/server/h3_server.rs`),
+  which is not readiness-driven and is a hard-coded limit **(rule 8)**. It
+  should park until the QUIC driver has a connection or stream for it.
+- **The accept loop polls a non-blocking listener** (`native/server/mod.rs`,
+  `serve_with_listener`): on `WouldBlock` it sleeps `would_block_sleep` and
+  tries again, instead of waiting for the listener to be readable.
 
 ## 4. foundation_core / valtron
 
-- **`StreamIteratorExt::collect` shadows `Iterator::collect`.** Any iterator
-  whose items are `Stream<D, P>` gets two `collect` methods, so a plain
-  `.collect()` into a `Vec` is ambiguous (`streams/{sendable,non_sendable}.rs`).
-  Likely fix: rename the valtron one (e.g. `collect_stream`), keeping the old
-  name deprecated.
 - **A stream's first empty pull still blocks once.**
   `NotifyQueueStreamIterator::next` (`executors/local.rs`) stops blocking only
   after a consumer registers a wake, so the first pull on an empty queue by
@@ -152,9 +108,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - **`BackgroundJobRegistry`** (`executors/background.rs`): the queue is
   unbounded (it needs a capacity setting), and `new` panics if it can't spawn
   a thread instead of returning an error.
-- **Misleading docs.** `send_any_task` / `send_typed_task`
-  (`executors/local.rs`) are documented as delivering to the global queue,
-  but they differ from `any_task` / `typed_task` only in their trait bounds.
 - **`BytesPool` has no bounds** (`io/buffer_pool.rs`).
   - It is unbounded and keeps returned buffers of any size, so it needs a
     capacity and a maximum buffer size **(rule 8)**.
@@ -162,38 +115,9 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
     pooled buffer is too small.
   - `PooledBuffer::owned` builds a throwaway pool for every buffer.
   - `PooledBuffer` has no `Debug`.
-- **`read_pooled_buffer` returns `None`** (the EOF signal) when
-  `max_len == 0` (`io/stream_ext.rs`).
-- **A readiness signal that never asks for a resume stalls on wasm.** The JS
-  wasm `run_until` hands control back to the event loop when every task is
-  parked on `TaskStatus::Depends`, and relies on the code that flips the
-  signal to call `request_executor_resume()` (`WakeSignal` does).
-  `BoolSignal`, `QueueReadiness` and `QueueVacancyReadiness` (`valtron/task.rs`)
-  do not, so a wasm task parked on one whose producer is JS-side async work is
-  never re-run. Fix: give them a producer side that calls
-  `request_executor_resume()`.
-- **A blocking helper called from inside a task spins forever on wasm.**
-  *(Partly fixed: `block_on_future` / `block_on_collect` are no longer
-  compiled into the JS wasm builds, `executors/non_sendables.rs`.)* What is
-  left: a nested `run_until` (from any other sync "block on" path reached
-  inside a task) still never sees "nothing runnable", because the polled
-  task's slot counts as active, and loops on `CanProgress(None)` without
-  yielding to JS. Make the nested-run case return instead of spinning.
 - **Release coupling.** `foundation_macros` calls
   `foundation_core::valtron::initialize_current_thread`, so the two crates
   need a coordinated version bump when published.
-- **`sleep_async` as a `select` timeout under `block_on_future` can fail to
-  fire.** `sleep_async` schedules a separate `sleep()` task and awaits it
-  (`.expect`ing the schedule), so when the pool is contended (e.g. during
-  shutdown) the timer may never resolve, hanging the future raced against it.
-  Surfaced by the proxy's gRPC health probe (§9). Likely fix: a timer future
-  that does not depend on scheduling another task.
-- **`SharedByteBufferStream::peek` conflates EOF with `WouldBlock`.** The
-  `PeekableReadStream` impl (`io/ioutils/mod.rs`) maps `PeekState::EndOfFile`
-  (and `NoNext` / `EndOfBuffered`) to `Ok(0)` — the same result as "no bytes
-  yet" — so a peeker cannot tell a peer that closed the socket from one that
-  is just slow. `foundation_http`'s h2 server therefore parks forever on a
-  half-closed peer. The peeker should return a distinct EOF signal.
 - **`BatchReader` logs every `WouldBlock` at `error!`**
   (`io/readers/mod.rs`, the `WouldBlock`/`TimedOut` arm). It is the ordinary
   "not ready" signal on a non-blocking socket.
@@ -203,20 +127,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - **`SpinWaiter`** (foundation_nostd `primitives/spin_waiter.rs`, still used on
   wasm) rounds sub-millisecond waits down to zero, and its spin calibration is
   arbitrary.
-- **foundation_wasm wasm32 warnings.** `src/capability.rs:24` imports `Mutex`
-  without using it on wasm32, and `foundation_macros` is reported as an unused
-  dependency on wasm32.
-- **Interval callbacks run under the registry lock.** `host_runtime.rs`
-  `internal_api::run_interval_callback` calls the callback while holding
-  `RECURRING_INTERVAL_CALLBACKS`, so a callback that registers or cancels an
-  interval re-locks that mutex (panic or deadlock). Clone the callback out of
-  the registry, drop the lock, then call.
-- **iogate's undeclared `uring` feature.**
-  - `native/completion_socket.rs` gates `write_from_provided_buf` and `split`
-    on `feature = "uring"`, but `Cargo.toml` declares no such feature (by
-    design: io_uring is a Linux target property), so that code can never
-    compile in.
-  - `ReadHalf`, `peer_addr` and others are dead as a result.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 
@@ -259,9 +169,9 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 ## 9. foundation_proxy
 
 - **gRPC health probe leaks a thread + H2 connection when its inner timeout hangs.**
-  - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer can fail to fire (see §4) and `H2Transport`'s pump parks on the socket read with no read timeout.
+  - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer could fail to fire (fixed on `fix/foundational-backlog`: `sleep_async` now runs on valtron's timer thread) and `H2Transport`'s pump parks on the socket read with no read timeout.
   - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
-  - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread.
+  - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread (the timer half of the cause is gone).
 - **Backend-state persistence can lose an update.** Each control-socket
   connection runs on its own thread, and `ProxyStateStore::save_backend_state`
   / `save_tls_cert` (`src/persistence.rs`) load the whole persisted state,
@@ -609,6 +519,18 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `test:wasm-bindgen:deno` cannot start even though it only needs deno and
   wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
   task invoke the two binaries via `mise which`.
+
+- **Wasm runtime tests never run in CI.** `foundation_core`'s
+  `tests/valtron/wasm_js_yield_integration.rs` (and the other
+  `wasm_bindgen_test` suites) need `wasm-testbed` + Deno; the CI wasm step
+  only runs `cargo check --target wasm32` on the library, so these tests are
+  not even compiled there. Fix: a CI step that at least builds them
+  (`cargo check --tests --target wasm32-unknown-unknown`) and, where a
+  runner is available, runs them.
+- **`foundation_db` dead-code warnings in test builds**: `core/rate_limit.rs`
+  `CREATE_TABLE_SQL`, `RECORD_SQL`, `SELECT_SQL`, `sql_check`, `sql_record`,
+  `sql_reset` are unused in the feature set the connectrpc test builds pull
+  in. Fix: gate them on the features that use them.
 
 ## 17. foundation_vectors
 

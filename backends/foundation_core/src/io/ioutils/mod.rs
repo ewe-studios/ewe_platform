@@ -2352,10 +2352,11 @@ impl<T: Read> ByteBufferPointer<T> {
                     let slice = &self.buffer[self.pos..self.peek_pos];
                     let slice_length = slice.len();
 
-                    unsafe {
-                        let mut buf_vec = buf.as_mut_vec();
-                        buf_vec.extend_from_slice(slice);
-                    };
+                    // Decode as the line branch does: a `String` must stay UTF-8.
+                    match std::str::from_utf8(slice) {
+                        Ok(text) => buf.push_str(text),
+                        Err(_) => buf.extend(slice.iter().map(|b| char::from(*b))),
+                    }
 
                     self.skip();
                     return Ok(slice_length);

@@ -337,3 +337,20 @@ fn shared_stream_read_exact_after_partial_read() {
     stream.read_to_end(&mut tail).unwrap();
     assert_eq!(tail, b"89");
 }
+
+/// The last line of a stream (no newline before EOF) is decoded like any
+/// other line. It used to be appended raw through `String::as_mut_vec`, so a
+/// non-UTF-8 tail produced an invalid `String` (undefined behaviour).
+#[test]
+fn read_line_keeps_a_non_utf8_last_line_valid() {
+    let mut ptr = pointer(16, b"ok\nab\xff");
+    let mut first = String::new();
+    ptr.read_line(&mut first).unwrap();
+    assert_eq!(first, "ok\n");
+
+    let mut last = String::new();
+    let n = ptr.read_line(&mut last).unwrap();
+    assert_eq!(n, 3);
+    assert!(std::str::from_utf8(last.as_bytes()).is_ok(), "{:?}", last.as_bytes());
+    assert_eq!(last, "ab\u{ff}");
+}
