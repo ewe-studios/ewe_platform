@@ -45,7 +45,8 @@ use crate::shared::context::{CancelSignal, Ctx, Spec};
 use crate::shared::protocol::{ExchangeConfig, HandlerExchange, ProtocolHandler};
 use crate::shared::router::dispatch::{
     self, allowed_methods, blank_response, build_ctx, capabilities_for, deadline_exceeded,
-    exchange_until_aborted, extract_path, http_version_not_supported, method_not_allowed,
+    exchange_until_aborted, extract_path, grpc_status_trailers, h2_headers,
+    http_version_not_supported, method_not_allowed,
     request_from_header, run_unary, status_only, stream_error_frame, stream_failure,
     unclosed_stream_error, unsupported_media_type, write_error, Abort, StreamEnd, ThreadTimer,
 };
@@ -363,10 +364,15 @@ async fn run_streaming_h3(
             // A reset of our response half shows up as a failed send in the
             // pump; QUIC offers no separate signal to wait on.
             std::future::pending::<()>(),
+            &cancel,
         ));
         let pump = std::pin::pin!(pump);
         match futures::future::select(pump, rest).await {
-            futures::future::Either::Left((Err(e), _rest)) => Err(e),
+            futures::future::Either::Left((Err(e), rest)) => {
+                // The response could not be written: the peer is gone.
+                dispatch::cancel_and_settle(&cancel, rest);
+                Err(e)
+            }
             futures::future::Either::Left((Ok(opened), rest)) => Ok((opened, rest.await)),
             // The writer has finished or been dropped, which ends the pump.
             futures::future::Either::Right((end, pump)) => pump.await.map(|opened| (opened, end)),
@@ -385,6 +391,7 @@ async fn run_streaming_h3(
         }
     };
 
+    let is_grpc = protocol.kind() == ProtocolKind::Grpc;
     let failure = match end {
         StreamEnd::Aborted(Abort::BodyFailed(e)) => {
             return Err(abort_call(&mut req, &cancel, &e));
@@ -397,11 +404,11 @@ async fn run_streaming_h3(
             cancel.cancel();
             Some(deadline_exceeded())
         }
-        // An opened stream framed its own outcome unless the call failed
-        // without closing it.
+        // An opened Connect / gRPC-Web stream framed its own outcome unless the
+        // call failed without closing it.
         StreamEnd::Done {
             writer, handler, ..
-        } if opened => unclosed_stream_error(writer, handler),
+        } if opened && !is_grpc => unclosed_stream_error(writer, handler),
         StreamEnd::Done {
             reader,
             writer,
@@ -416,7 +423,12 @@ async fn run_streaming_h3(
     }
 
     if opened {
-        if let Some(frame) = failure
+        if is_grpc {
+            // gRPC's outcome rides trailing HEADERS (`grpc-status`); a stream
+            // that ends without them reads as `Unknown` to every gRPC client.
+            let mut trailer_frame = Req::encode_headers(&grpc_status_trailers(failure.as_ref()));
+            poll_h3(|| req.poll_send_headers(&mut trailer_frame)).await?;
+        } else if let Some(frame) = failure
             .as_ref()
             .and_then(|e| stream_error_frame(protocol, &request, e))
         {
@@ -436,6 +448,12 @@ async fn run_streaming_h3(
         response
             .headers
             .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
+        if is_grpc {
+            // A gRPC stream with no messages still ends in `grpc-status`.
+            response
+                .trailers
+                .insert(SimpleHeader::from("grpc-status".to_string()), vec!["0".to_string()]);
+        }
     }
     send_h3_response(&mut req, response).await
 }
@@ -523,6 +541,8 @@ async fn collect_h3_body(req: &mut Req, max_bytes: usize) -> io::Result<Collecte
 async fn send_h3_response(req: &mut Req, mut response: SimpleOutgoingResponse) -> io::Result<()> {
     let response_fields = response_to_fields(&response);
     let body = response.body.take();
+    // gRPC (unary, Trailers-Only, or an empty stream) carries its status here.
+    let trailers = std::mem::take(&mut response.trailers);
     // response borrow done.
 
     let mut header_frame = Req::encode_headers(&response_fields);
@@ -538,6 +558,12 @@ async fn send_h3_response(req: &mut Req, mut response: SimpleOutgoingResponse) -
             let mut data_frame = Req::encode_data(Bytes::from(chunk));
             poll_h3(|| req.poll_send_data(&mut data_frame)).await?;
         }
+    }
+
+    if !trailers.is_empty() {
+        // The trailer section is a HEADERS frame after the body (RFC 9114 §4.1).
+        let mut trailer_frame = Req::encode_headers(&h2_headers(&trailers));
+        poll_h3(|| req.poll_send_headers(&mut trailer_frame)).await?;
     }
 
     poll_h3_finish(req).await

@@ -820,14 +820,15 @@ async fn run_streaming(
         response_side,
         deadline_expiry(timer, deadline),
         std::future::pending::<()>(),
+        &cancel,
     ));
     // Scoped so the pump's borrow of `sink` ends before the closing write.
     let (opened, end) = {
         let pump = std::pin::pin!(pump);
         match select(pump, rest).await {
             // The peer is gone: cancel the call and drop everything now.
-            Either::Left((Err(e), _rest)) => {
-                cancel.cancel();
+            Either::Left((Err(e), rest)) => {
+                cancel_and_settle(&cancel, rest);
                 return Err(e);
             }
             Either::Left((Ok(opened), rest)) => (opened, rest.await),
@@ -934,11 +935,16 @@ pub(crate) enum Abort {
 /// buildkitd's fsutil does), so once the response is complete the request
 /// side is abandoned (RFC 9113 lets a server end a stream whose request is
 /// still open).
+///
+/// When the call is cut short, `cancel` fires *before* the handler is dropped,
+/// and the response side is polled once more, so a handler awaiting
+/// `ctx.cancelled()` runs its cancellation path.
 pub(crate) async fn exchange_until_aborted<Req, Resp, Expiry, Gone>(
     request_side: Req,
     response_side: Resp,
     expiry: Expiry,
     gone: Gone,
+    cancel: &CancelSignal,
 ) -> StreamEnd
 where
     Req: std::future::Future<Output = Result<((), ConnectResult<()>), io::Error>>,
@@ -958,7 +964,10 @@ where
                     handler,
                 }
             }
-            Either::Left((Err(e), _response_side)) => StreamEnd::Aborted(Abort::BodyFailed(e)),
+            Either::Left((Err(e), response_side)) => {
+                cancel_and_settle(cancel, response_side);
+                StreamEnd::Aborted(Abort::BodyFailed(e))
+            }
             Either::Right(((writer, handler), _request_side)) => StreamEnd::Done {
                 reader: Ok(()),
                 writer,
@@ -971,9 +980,27 @@ where
     let cut_short = select(expiry, gone);
     match select(exchange, cut_short).await {
         Either::Left((end, _)) => end,
-        Either::Right((Either::Left(_), _exchange)) => StreamEnd::Aborted(Abort::Deadline),
-        Either::Right((Either::Right(_), _exchange)) => StreamEnd::Aborted(Abort::PeerGone),
+        Either::Right((Either::Left(_), exchange)) => {
+            cancel_and_settle(cancel, exchange);
+            StreamEnd::Aborted(Abort::Deadline)
+        }
+        Either::Right((Either::Right(_), exchange)) => {
+            cancel_and_settle(cancel, exchange);
+            StreamEnd::Aborted(Abort::PeerGone)
+        }
     }
+}
+
+/// Fire the call's `cancel`, then poll `rest` — the part of the call still
+/// holding the handler — once, so a handler awaiting `ctx.cancelled()` runs
+/// its cancellation path before it is dropped. One poll, not a wait: a handler
+/// that ignores cancellation must not hold the stream open.
+pub(crate) fn cancel_and_settle<F: std::future::Future>(
+    cancel: &CancelSignal,
+    rest: std::pin::Pin<&mut F>,
+) {
+    cancel.cancel();
+    let _ = futures::FutureExt::now_or_never(rest);
 }
 
 /// The error to end an already-started stream with when the call failed
@@ -1287,7 +1314,7 @@ const H2_FORBIDDEN_HEADERS: [&str; 5] = [
 /// h2 field names must be lowercase (RFC 7540 §8.1.2) — a capitalised name is a
 /// protocol error at a strict peer, so names are lowered rather than trusted.
 #[cfg(not(target_family = "wasm"))]
-fn h2_headers(headers: &SimpleHeaders) -> Vec<(Bytes, Bytes)> {
+pub(crate) fn h2_headers(headers: &SimpleHeaders) -> Vec<(Bytes, Bytes)> {
     let mut out = Vec::new();
     for (key, values) in headers.iter() {
         let name = key.to_string().to_lowercase();
@@ -1723,13 +1750,14 @@ async fn run_streaming_h2(
         response_side,
         deadline_expiry(Some(&ThreadTimer), deadline),
         tx.closed(),
+        &cancel,
     ));
     let (opened, end) = {
         let pump = std::pin::pin!(pump);
         match select(pump, rest).await {
             // The stream is gone: cancel the call and drop everything now.
-            Either::Left((Err(e), _rest)) => {
-                cancel.cancel();
+            Either::Left((Err(e), rest)) => {
+                cancel_and_settle(&cancel, rest);
                 return Err(e);
             }
             Either::Left((Ok(opened), rest)) => (opened, rest.await),
@@ -1825,7 +1853,7 @@ async fn run_streaming_h2(
 
 /// gRPC trailing headers for a streaming outcome: `grpc-status: 0` on success,
 /// the error's code and percent-encoded message otherwise (gRPC spec §Responses).
-fn grpc_status_trailers(
+pub(crate) fn grpc_status_trailers(
     error: Option<&foundation_errstacks::ErrorTrace<crate::ConnectError>>,
 ) -> Vec<(Bytes, Bytes)> {
     match error {

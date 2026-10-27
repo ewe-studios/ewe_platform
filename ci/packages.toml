@@ -181,8 +181,9 @@ wasm-runs = ["--no-default-features --features wasm"]
 
 [packages.foundation_http]
 # tests/integration_tests.rs (and the other server suites) are gated on
-# `multi`; without this run CI never compiled or ran them.
-runs = ["", "multi"]
+# `multi`; without this run CI never compiled or ran them. `quic` adds the
+# HTTP/3 server suite (tests/http3_server_tests.rs).
+runs = ["", "multi quic"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
@@ -198,6 +199,9 @@ wasm-runs = [
 ]
 
 [packages.foundation_netio]
+# `quic` adds the QUIC, HTTP/3 and WebTransport suites (tests/quic, tests/http3,
+# tests/webtransport), which no run compiled before.
+runs = ["", "quic"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm-fetch"]
 
@@ -231,5 +235,7 @@ wasm = "enforce"
 wasm-runs = [""]
 
 [packages.foundation_connectrpc]
+# `h3` adds the HTTP/3 suites (tests/h3_*), which no run compiled before.
+runs = ["", "h3"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features rpc"]
