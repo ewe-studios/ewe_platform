@@ -209,6 +209,38 @@ impl IntervalRegistry {
     pub fn delete(&mut self, id: InternalPointer) -> Option<()> {
         self.tree.remove(&id).map(|_| ())
     }
+
+    /// A shared handle to interval `id`'s callback, to run with
+    /// [`perform_interval`] after the registry's lock is released: a callback
+    /// that registers or cancels an interval re-locks the registry. Intervals
+    /// recur, so the entry stays; the handle shares it.
+    #[must_use]
+    pub fn get(&self, id: InternalPointer) -> Option<IntervalItem> {
+        self.tree.get(&id).cloned()
+    }
+}
+
+/// A callback handle taken from the [`IntervalRegistry`] by [`IntervalRegistry::get`].
+#[cfg(target_family = "wasm")]
+pub type IntervalItem = WrappedItem<Box<dyn IntervalCallback + 'static>>;
+
+/// A callback handle taken from the [`IntervalRegistry`] by [`IntervalRegistry::get`].
+#[cfg(not(target_family = "wasm"))]
+pub type IntervalItem = WrappedItem<Box<dyn IntervalCallback + Sync + Send + 'static>>;
+
+/// Run an interval callback taken with [`IntervalRegistry::get`].
+pub fn perform_interval(item: &IntervalItem) -> TickState {
+    #[cfg(target_family = "wasm")]
+    {
+        item.0.perform()
+    }
+    #[cfg(not(target_family = "wasm"))]
+    {
+        item.0
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+            .perform()
+    }
 }
 
 #[cfg(target_family = "wasm")]

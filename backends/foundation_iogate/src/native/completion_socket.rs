@@ -293,7 +293,7 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
     /// # Panics
     /// Panics if an internal lock is poisoned, or if `write_mode` is not
     /// `WriteMode::SendZc`.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
+    #[cfg(target_os = "linux")]
     pub fn write_from_provided_buf(
         &mut self,
         buf: foundation_nativeapis::native::fd::completion::ProvidedBuf,
@@ -306,77 +306,9 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         self.inner.send_bytes_zc_direct(buf)
     }
 
-    // ── split_read_write (F49 Phase C) ────────────────────────────────────
-
-    /// Split this socket into independent read and write halves, each on its own
-    /// `dup(2)`'d fd with its own reactor registration.
-    ///
-    /// WHY: some transports want to move the read half and write half to
-    /// different tasks. A plain `dup(2)` + `write(2)` write-half already exists
-    /// in `ReadWriteStream::split_read_write`; this is the completion-backed
-    /// analogue — the write half is a full `CompletionSocket` with its own
-    /// token, its own registration, and its own SEND/SEND_ZC path.
-    ///
-    /// WHAT: `dup(2)` the fd, create a [`ReadHalf`] (this socket, with writes
-    /// disabled) and a [`WriteHalf`] (a new `CompletionSocket` on the dup'd fd,
-    /// with reads disabled, registered for SEND only).
-    ///
-    /// HOW: the dup'd fd gets a fresh token and an independent registration.
-    /// Dropping either half shuts down its direction and deregisters its fd
-    /// from the reactor. The halves share no state — the dup makes them
-    /// independent kernel objects, each with its own buffer.
-    ///
-    /// # Errors
-    /// `dup(2)` or registration failure.
-    ///
-    /// # Panics
-    /// Never panics.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn split(mut self) -> io::Result<(ReadHalf<T>, WriteHalf<T>)> {
-        use std::os::unix::io::FromRawFd;
-
-        let read_fd = self.inner.as_raw_fd();
-        // SAFETY: dup(2) of a valid, open fd — the only failure is EMFILE/ENFILE.
-        let write_raw = unsafe { libc::dup(read_fd) };
-        if write_raw < 0 {
-            return Err(io::Error::last_os_error());
-        }
-
-        // Shut down the read direction on the write half and the write direction
-        // on the read half so each half only does what it is meant to.
-        let _ = self.inner.get_mut().shutdown(Shutdown::Write);
-
-        // SAFETY: write_raw is a fresh owned fd from dup(2).
-        let write_stream = unsafe { T::from_raw_fd(write_raw) };
-        let _ = write_stream.shutdown(Shutdown::Read);
-
-        // The write half needs its own reactor registration. Use the same
-        // registry as the read half (the shared reactor).
-        let reactor = foundation_nativeapis::native::fd::Reactor::get()?;
-        let registry = reactor.registry();
-        // Allocate a fresh token for the write half.
-        let write_token = {
-            use std::sync::atomic::{AtomicUsize, Ordering};
-            static NEXT_SPLIT_TOKEN: AtomicUsize = AtomicUsize::new(1 << 30);
-            let n = NEXT_SPLIT_TOKEN.fetch_add(1, Ordering::Relaxed) & ((1usize << 62) - 1);
-            Token(n)
-        };
-
-        let write_socket = CompletionSocket::<T>::with_modes(
-            write_stream,
-            registry,
-            write_token,
-            self.peer,
-            false, // no RECV on the write half
-            ReadMode::Std,
-            self.write_mode,
-        )?;
-
-        let read_half = ReadHalf { socket: self };
-        let write_half = WriteHalf { socket: write_socket };
-
-        Ok((read_half, write_half))
-    }
+    // A completion-backed split into read and write halves (spec 41 F49
+    // Phase C) is deferred until a consumer needs one; the earlier draft sat
+    // behind an undeclared `uring` feature and never compiled.
 }
 
 // ── Read / Write impls (explicit mode branches) ──────────────────────────
@@ -437,69 +369,6 @@ impl<T: AsRawFd + Read + Write> AsRawFd for CompletionSocket<T> {
 impl<T: AsRawFd + Read + Write + AsFd> AsFd for CompletionSocket<T> {
     fn as_fd(&self) -> BorrowedFd<'_> {
         self.inner.as_fd()
-    }
-}
-
-// ── Split halves ─────────────────────────────────────────────────────────
-
-/// The read half of a split [`CompletionSocket`] (F49 Phase C).
-///
-/// Dropping this shuts down the read direction and deregisters the fd.
-pub struct ReadHalf<T: AsRawFd + Read + Write> {
-    socket: CompletionSocket<T>,
-}
-
-impl<T: AsRawFd + Read + Write> ReadHalf<T> {
-    /// The peer address captured at accept time.
-    pub fn peer_addr(&self) -> Option<SocketAddr> {
-        self.socket.peer_addr()
-    }
-}
-
-impl<T: AsRawFd + Read + Write> Read for ReadHalf<T> {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.socket.read(buf)
-    }
-}
-
-impl<T: AsRawFd + Read + Write> AsRawFd for ReadHalf<T> {
-    fn as_raw_fd(&self) -> RawFd {
-        self.socket.as_raw_fd()
-    }
-}
-
-/// The write half of a split [`CompletionSocket`] (F49 Phase C).
-///
-/// Dropping this shuts down the write direction and deregisters the dup'd fd.
-pub struct WriteHalf<T: AsRawFd + Read + Write> {
-    socket: CompletionSocket<T>,
-}
-
-impl<T: AsRawFd + Read + Write> WriteHalf<T> {
-    /// The peer address captured at accept time.
-    pub fn peer_addr(&self) -> Option<SocketAddr> {
-        self.socket.peer_addr()
-    }
-
-    /// How writes are performed on this half.
-    pub fn write_mode(&self) -> WriteMode {
-        self.socket.write_mode()
-    }
-}
-
-impl<T: AsRawFd + Read + Write> Write for WriteHalf<T> {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.socket.write(buf)
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        self.socket.flush()
-    }
-}
-
-impl<T: AsRawFd + Read + Write> AsRawFd for WriteHalf<T> {
-    fn as_raw_fd(&self) -> RawFd {
-        self.socket.as_raw_fd()
     }
 }
 
