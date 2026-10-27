@@ -47,17 +47,17 @@ async fn persists_across_reopen() {
     let dir = TempDir::new().unwrap();
     {
         let store = FjallVectorStore::open(dir.path(), cfg()).unwrap();
-        store.insert_async("ns", entry("x", [1.0, 0.0, 0.0])).await.unwrap();
-        store.insert_async("ns", entry("y", [0.0, 1.0, 0.0])).await.unwrap();
+        store.insert("ns", entry("x", [1.0, 0.0, 0.0])).await.unwrap();
+        store.insert("ns", entry("y", [0.0, 1.0, 0.0])).await.unwrap();
         store.flush().unwrap(); // persist vectors + the IVF index blob
     }
     // Reopen from the same path: a fresh store with no in-memory state.
     let store = FjallVectorStore::open(dir.path(), cfg()).unwrap();
-    assert_eq!(store.len_async("ns").await.unwrap(), 2);
-    let got = store.get_async("ns", "x").await.unwrap().unwrap();
+    assert_eq!(store.len("ns").await.unwrap(), 2);
+    let got = store.get("ns", "x").await.unwrap().unwrap();
     assert_eq!(got.vector.data, vec![1.0, 0.0, 0.0]);
     // Search works after reload (index loaded from disk or rebuilt from vectors).
-    let m = store.search_async("ns", &[1.0, 0.0, 0.0], 1).await.unwrap();
+    let m = store.search("ns", &[1.0, 0.0, 0.0], 1).await.unwrap();
     assert_eq!(ids(&m), vec!["x"]);
 }
 
@@ -66,12 +66,12 @@ async fn reopen_rebuilds_index_from_vectors() {
     let dir = TempDir::new().unwrap();
     {
         let store = FjallVectorStore::open(dir.path(), cfg()).unwrap();
-        store.insert_async("ns", entry("x", [1.0, 0.0, 0.0])).await.unwrap();
+        store.insert("ns", entry("x", [1.0, 0.0, 0.0])).await.unwrap();
         store.flush().unwrap();
     }
     // The vector partition is durable; even if the index blob were absent the
     // store rebuilds the namespace index by scanning stored vectors.
     let store = FjallVectorStore::open(dir.path(), cfg()).unwrap();
-    let m = store.search_async("ns", &[1.0, 0.0, 0.0], 1).await.unwrap();
+    let m = store.search("ns", &[1.0, 0.0, 0.0], 1).await.unwrap();
     assert_eq!(ids(&m), vec!["x"]);
 }

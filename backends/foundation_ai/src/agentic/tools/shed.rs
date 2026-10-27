@@ -174,7 +174,7 @@ impl ToolDiscovery {
             .insert("tool_name".into(), summary.name.clone());
 
         store
-            .insert_async(
+            .insert(
                 NAMESPACE,
                 VectorEntry {
                     id: format!("tool:{}", summary.name),
@@ -211,7 +211,7 @@ impl ToolDiscovery {
         let Some(store) = self.vector_store.get() else {
             return Ok(());
         };
-        match store.delete_async(NAMESPACE, &format!("tool:{name}")).await {
+        match store.delete(NAMESPACE, &format!("tool:{name}")).await {
             Ok(()) | Err(VectorStoreError::NotFound { .. }) => Ok(()),
             Err(e) => Err(ToolError::Execution {
                 tool: SHED_TOOL_NAME.into(),
@@ -291,7 +291,7 @@ impl ToolDiscovery {
         })?;
 
         let matches = store
-            .search_async(NAMESPACE, &embedding, k)
+            .search(NAMESPACE, &embedding, k)
             .await
             .map_err(|e| ToolError::Execution {
                 tool: SHED_TOOL_NAME.into(),

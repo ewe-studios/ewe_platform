@@ -177,7 +177,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
     ) -> Result<Option<String>, ProvisioningError> {
         let mut stream = self
             .query_store
-            .query_async(
+            .query(
                 "SELECT user_id FROM user_provider_links \
                  WHERE provider_id = ? AND upstream_subject = ?",
                 &[
@@ -200,7 +200,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
     ) -> Result<Option<String>, ProvisioningError> {
         let stream = self
             .query_store
-            .query_async(
+            .query(
                 "SELECT id FROM users WHERE email = ? AND email_verified = 1 LIMIT 2",
                 &[DataValue::Text(email.to_string())],
             )
@@ -224,7 +224,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         user_id: &str,
     ) -> Result<(), ProvisioningError> {
         self.query_store
-            .execute_async(
+            .execute(
                 "INSERT OR IGNORE INTO user_provider_links \
                  (id, provider_id, upstream_subject, user_id) VALUES (?, ?, ?, ?)",
                 &[
@@ -249,7 +249,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         let email_verified = i64::from(profile.email_verified);
 
         self.query_store
-            .execute_async(
+            .execute(
                 "INSERT INTO users (id, email, username, email_verified, created_at, updated_at) \
                  VALUES (?, ?, ?, ?, strftime('%s', 'now') * 1000, strftime('%s', 'now') * 1000)",
                 &[
@@ -288,7 +288,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
     ) -> Result<Vec<String>, ProvisioningError> {
         let stream = self
             .query_store
-            .query_async(
+            .query(
                 "SELECT provider_id FROM user_provider_links WHERE user_id = ?",
                 &[DataValue::Text(user_id.to_string())],
             )

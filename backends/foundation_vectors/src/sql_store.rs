@@ -77,14 +77,14 @@ fn backend_err<E: core::fmt::Display>(ctx: &'static str) -> impl Fn(E) -> Vector
 
 #[async_trait::async_trait]
 impl<Q: QueryStore + 'static> VectorStore for SqlVectorStore<Q> {
-    async fn insert_async(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
+    async fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(&entry)?;
         let blob = vector_to_blob(&entry.vector);
         let meta_json = metadata_to_json(&entry.metadata)?;
         let dim = i64::try_from(entry.vector.dimension())
             .map_err(|_| VectorStoreError::Backend("dimension does not fit in i64".into()))?;
         self.backend
-            .execute_async(
+            .execute(
                 "INSERT OR REPLACE INTO vectors (id, namespace, dimension, vector, metadata) \
                  VALUES (?, ?, ?, ?, ?)",
                 &[
@@ -100,10 +100,10 @@ impl<Q: QueryStore + 'static> VectorStore for SqlVectorStore<Q> {
         Ok(())
     }
 
-    async fn delete_async(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
+    async fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
         let affected = self
             .backend
-            .execute_async(
+            .execute(
                 "DELETE FROM vectors WHERE namespace = ? AND id = ?",
                 &[
                     DataValue::Text(namespace.to_string()),
@@ -118,7 +118,7 @@ impl<Q: QueryStore + 'static> VectorStore for SqlVectorStore<Q> {
         Ok(())
     }
 
-    async fn search_async(
+    async fn search(
         &self,
         namespace: &str,
         query: &[f32],
@@ -132,7 +132,7 @@ impl<Q: QueryStore + 'static> VectorStore for SqlVectorStore<Q> {
         }
         let mut rows = self
             .backend
-            .query_async(
+            .query(
                 "SELECT id, vector FROM vectors WHERE namespace = ?",
                 &[DataValue::Text(namespace.to_string())],
             )
@@ -149,10 +149,10 @@ impl<Q: QueryStore + 'static> VectorStore for SqlVectorStore<Q> {
         Ok(top.finish())
     }
 
-    async fn get_async(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
+    async fn get(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
         let mut rows = self
             .backend
-            .query_async(
+            .query(
                 "SELECT id, vector, metadata FROM vectors WHERE namespace = ? AND id = ?",
                 &[
                     DataValue::Text(namespace.to_string()),
@@ -175,7 +175,7 @@ impl<Q: QueryStore + 'static> VectorStore for SqlVectorStore<Q> {
         }))
     }
 
-    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError> {
+    async fn len(&self, namespace: &str) -> Result<usize, VectorStoreError> {
         count_rows(
             self.backend.as_ref(),
             "SELECT COUNT(*) FROM vectors WHERE namespace = ?",
@@ -196,7 +196,7 @@ pub(crate) async fn count_rows<Q: QueryStore + ?Sized>(
     namespace: &str,
 ) -> Result<usize, VectorStoreError> {
     let mut rows = backend
-        .query_async(sql, &[DataValue::Text(namespace.to_string())])
+        .query(sql, &[DataValue::Text(namespace.to_string())])
         .await
         .map_err(backend_err("count failed"))?;
     let Some(row) = rows.next().await else {

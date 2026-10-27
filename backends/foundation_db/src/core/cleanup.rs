@@ -130,14 +130,14 @@ pub trait StorageCleanup: QueryStore {
     async fn cleanup_expired_sessions(&self, now: i64, max_inactive: Option<Duration>) -> StorageResult<u64> {
         match max_inactive {
             Some(inactive) => {
-                self.execute_async(
+                self.execute(
                     "DELETE FROM sessions WHERE expires_at < ? OR (last_active_at IS NOT NULL AND last_active_at < ?)",
                     &[DataValue::Integer(now), DataValue::Integer(cutoff(now, inactive)?)],
                 )
                 .await
             }
             None => {
-                self.execute_async("DELETE FROM sessions WHERE expires_at < ?", &[DataValue::Integer(now)])
+                self.execute("DELETE FROM sessions WHERE expires_at < ?", &[DataValue::Integer(now)])
                     .await
             }
         }
@@ -149,7 +149,7 @@ pub trait StorageCleanup: QueryStore {
     ///
     /// Returns a `StorageError` if the database query fails.
     async fn cleanup_expired_jwt_tokens(&self, before: i64) -> StorageResult<u64> {
-        self.execute_async("DELETE FROM jwt_tokens WHERE expires_at < ?", &[DataValue::Integer(before)])
+        self.execute("DELETE FROM jwt_tokens WHERE expires_at < ?", &[DataValue::Integer(before)])
             .await
     }
 
@@ -159,7 +159,7 @@ pub trait StorageCleanup: QueryStore {
     ///
     /// Returns a `StorageError` if the database query fails.
     async fn cleanup_expired_verification_tokens(&self, before: i64) -> StorageResult<u64> {
-        self.execute_async(
+        self.execute(
             "DELETE FROM verification_tokens WHERE expires_at < ?",
             &[DataValue::Integer(before)],
         )
@@ -172,7 +172,7 @@ pub trait StorageCleanup: QueryStore {
     ///
     /// Returns a `StorageError` if the database query fails.
     async fn cleanup_expired_oauth_states(&self, before: i64) -> StorageResult<u64> {
-        self.execute_async("DELETE FROM oauth_states WHERE expires_at < ?", &[DataValue::Integer(before)])
+        self.execute("DELETE FROM oauth_states WHERE expires_at < ?", &[DataValue::Integer(before)])
             .await
     }
 
@@ -182,7 +182,7 @@ pub trait StorageCleanup: QueryStore {
     ///
     /// Returns a `StorageError` if the database query fails.
     async fn cleanup_expired_magic_links(&self, before: i64) -> StorageResult<u64> {
-        self.execute_async("DELETE FROM magic_links WHERE expires_at < ?", &[DataValue::Integer(before)])
+        self.execute("DELETE FROM magic_links WHERE expires_at < ?", &[DataValue::Integer(before)])
             .await
     }
 
@@ -192,7 +192,7 @@ pub trait StorageCleanup: QueryStore {
     ///
     /// Returns a `StorageError` if the database query fails.
     async fn cleanup_expired_email_otps(&self, before: i64) -> StorageResult<u64> {
-        self.execute_async("DELETE FROM email_otps WHERE expires_at < ?", &[DataValue::Integer(before)])
+        self.execute("DELETE FROM email_otps WHERE expires_at < ?", &[DataValue::Integer(before)])
             .await
     }
 
@@ -203,7 +203,7 @@ pub trait StorageCleanup: QueryStore {
     ///
     /// Returns a `StorageError` if the database query fails.
     async fn cleanup_old_rate_limits(&self, now: i64, window: Duration) -> StorageResult<u64> {
-        self.execute_async(
+        self.execute(
             "DELETE FROM rate_limits WHERE window_start < ?",
             &[DataValue::Integer(cutoff(now, window)?)],
         )

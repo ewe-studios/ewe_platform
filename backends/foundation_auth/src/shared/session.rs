@@ -195,7 +195,7 @@ impl<S: CredentialStore> SessionManager<S> {
         };
 
         self.store
-            .set_async(&session_id, session.clone())
+            .set(&session_id, session.clone())
             .await
             .map_err(SessionError::Storage)?;
 
@@ -216,7 +216,7 @@ impl<S: CredentialStore> SessionManager<S> {
                 let key = format!("session:{}:{}", cache_data.user_id, token_prefix);
                 if let Some(session) = self
                     .store
-                    .get_async::<Session>(&key)
+                    .get::<Session>(&key)
                     .await
                     .map_err(SessionError::Storage)?
                 {
@@ -233,13 +233,13 @@ impl<S: CredentialStore> SessionManager<S> {
 
         let keys = self
             .store
-            .list_keys_async(Some("session:"))
+            .list_keys(Some("session:"))
             .await
             .map_err(SessionError::Storage)?;
         for key in &keys {
             if let Some(session) = self
                 .store
-                .get_async::<Session>(key)
+                .get::<Session>(key)
                 .await
                 .map_err(SessionError::Storage)?
             {
@@ -271,7 +271,7 @@ impl<S: CredentialStore> SessionManager<S> {
     ) -> Result<(), SessionError> {
         if let Some(session) = self
             .store
-            .get_async::<Session>(session_id)
+            .get::<Session>(session_id)
             .await
             .map_err(SessionError::Storage)?
         {
@@ -282,7 +282,7 @@ impl<S: CredentialStore> SessionManager<S> {
             updated.revoked = true;
             let sid = updated.id.clone();
             self.store
-                .set_async(&sid, updated)
+                .set(&sid, updated)
                 .await
                 .map_err(SessionError::Storage)?;
         }
@@ -297,7 +297,7 @@ impl<S: CredentialStore> SessionManager<S> {
         let prefix = format!("session:{user_id}:");
         let keys = self
             .store
-            .list_keys_async(Some(&prefix))
+            .list_keys(Some(&prefix))
             .await
             .map_err(SessionError::Storage)?;
 
@@ -305,7 +305,7 @@ impl<S: CredentialStore> SessionManager<S> {
         for key in &keys {
             if let Some(session) = self
                 .store
-                .get_async::<Session>(key)
+                .get::<Session>(key)
                 .await
                 .map_err(SessionError::Storage)?
             {
@@ -314,7 +314,7 @@ impl<S: CredentialStore> SessionManager<S> {
                     updated.revoked = true;
                     let sid = updated.id.clone();
                     self.store
-                        .set_async(&sid, updated)
+                        .set(&sid, updated)
                         .await
                         .map_err(SessionError::Storage)?;
                     count += 1;
@@ -337,7 +337,7 @@ impl<S: CredentialStore> SessionManager<S> {
             updated.expires_at = now + self.config.max_session_age;
             let sid = session.id.clone();
             self.store
-                .set_async(&sid, updated)
+                .set(&sid, updated)
                 .await
                 .map_err(SessionError::Storage)?;
         }

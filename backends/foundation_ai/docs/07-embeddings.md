@@ -106,7 +106,7 @@ later are indexed by the next `shed` search (see doc 04).
 ## 5. Storing vectors yourself
 
 `VectorStore`, `VectorEntry` and `VectorMatch` live in `foundation_vectors`.
-The trait is async (`insert_async`, `search_async`, …). To index your own documents, embed with the provider and insert the
+The trait is async (`insert`, `search`, …). To index your own documents, embed with the provider and insert the
 `EmbeddingVector::data` into your store; see that crate's docs for the exact
 API and distance metrics.
 

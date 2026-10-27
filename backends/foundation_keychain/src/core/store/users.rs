@@ -78,7 +78,7 @@ fn map_row(row: &SqlRow) -> AppResult<UserRow> {
 
 /// Insert a new user.
 pub async fn insert(db: &dyn QueryStore, row: &UserRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO vault_accounts \
          (uuid, email, name, password_hash, salt, password_iterations, security_stamp, akey, \
           client_kdf_type, client_kdf_iter, client_kdf_memory, client_kdf_parallelism, \
@@ -114,7 +114,7 @@ async fn find_one(
     value: &str,
 ) -> AppResult<Option<UserRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {COLUMNS} FROM vault_accounts WHERE {where_col} = ?"),
             &[DataValue::Text(value.to_string())],
         )
@@ -144,7 +144,7 @@ pub async fn update_profile(
     hint: &Option<String>,
     updated_at: DateTime<Utc>,
 ) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "UPDATE vault_accounts SET name = ?, master_password_hint = ?, updated_at = ? WHERE uuid = ?",
         &[
             opt_text(name),

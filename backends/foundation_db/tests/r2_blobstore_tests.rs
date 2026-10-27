@@ -31,10 +31,10 @@ async fn test_r2_blobstore_put_get() {
     let Some(storage) = store() else { return };
     let key = key("test_put_get");
 
-    storage.put_blob_async(&key, b"Hello, R2!").await.unwrap();
-    assert_eq!(storage.get_blob_async(&key).await.unwrap(), Some(b"Hello, R2!".to_vec()));
+    storage.put_blob(&key, b"Hello, R2!").await.unwrap();
+    assert_eq!(storage.get_blob(&key).await.unwrap(), Some(b"Hello, R2!".to_vec()));
 
-    storage.delete_blob_async(&key).await.unwrap();
+    storage.delete_blob(&key).await.unwrap();
 }
 
 #[valtron_test]
@@ -42,11 +42,11 @@ async fn test_r2_blobstore_delete() {
     let Some(storage) = store() else { return };
     let key = key("test_delete");
 
-    storage.put_blob_async(&key, b"To be deleted").await.unwrap();
-    assert!(storage.blob_exists_async(&key).await.unwrap());
+    storage.put_blob(&key, b"To be deleted").await.unwrap();
+    assert!(storage.blob_exists(&key).await.unwrap());
 
-    storage.delete_blob_async(&key).await.unwrap();
-    assert!(!storage.blob_exists_async(&key).await.unwrap());
+    storage.delete_blob(&key).await.unwrap();
+    assert!(!storage.blob_exists(&key).await.unwrap());
 }
 
 #[valtron_test]
@@ -54,11 +54,11 @@ async fn test_r2_blobstore_exists() {
     let Some(storage) = store() else { return };
     let key = key("test_exists");
 
-    assert!(!storage.blob_exists_async(&key).await.unwrap());
-    storage.put_blob_async(&key, b"Exists!").await.unwrap();
-    assert!(storage.blob_exists_async(&key).await.unwrap());
+    assert!(!storage.blob_exists(&key).await.unwrap());
+    storage.put_blob(&key, b"Exists!").await.unwrap();
+    assert!(storage.blob_exists(&key).await.unwrap());
 
-    storage.delete_blob_async(&key).await.unwrap();
+    storage.delete_blob(&key).await.unwrap();
 }
 
 #[valtron_test]
@@ -67,15 +67,15 @@ async fn test_r2_blobstore_binary_data() {
     let key = key("test_binary");
 
     let test_data = vec![0x00, 0x01, 0x02, 0xFF, 0xFE, 0xFD];
-    storage.put_blob_async(&key, &test_data).await.unwrap();
-    assert_eq!(storage.get_blob_async(&key).await.unwrap(), Some(test_data));
+    storage.put_blob(&key, &test_data).await.unwrap();
+    assert_eq!(storage.get_blob(&key).await.unwrap(), Some(test_data));
 
-    storage.delete_blob_async(&key).await.unwrap();
+    storage.delete_blob(&key).await.unwrap();
 }
 
 #[valtron_test]
 async fn test_r2_blobstore_delete_nonexistent() {
     let Some(storage) = store() else { return };
     // Deleting a missing key is not an error.
-    storage.delete_blob_async(&key("test_del_none")).await.unwrap();
+    storage.delete_blob(&key("test_del_none")).await.unwrap();
 }

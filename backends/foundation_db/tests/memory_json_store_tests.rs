@@ -17,16 +17,16 @@ fn test_memory_json_set_and_get() {
     block_on(async {
         let store = MemoryJsonStore::new();
 
-        store.set_async::<()>("key", ()).await.unwrap();
-        let result: Option<()> = store.get_async("key").await.unwrap();
+        store.set::<()>("key", ()).await.unwrap();
+        let result: Option<()> = store.get("key").await.unwrap();
         assert!(result.is_some());
 
-        store.set_async("count", 42i64).await.unwrap();
-        let count: Option<i64> = store.get_async("count").await.unwrap();
+        store.set("count", 42i64).await.unwrap();
+        let count: Option<i64> = store.get("count").await.unwrap();
         assert_eq!(count, Some(42));
 
-        store.set_async("name", "test").await.unwrap();
-        let name: Option<String> = store.get_async("name").await.unwrap();
+        store.set("name", "test").await.unwrap();
+        let name: Option<String> = store.get("name").await.unwrap();
         assert_eq!(name, Some("test".to_string()));
     });
 }
@@ -35,7 +35,7 @@ fn test_memory_json_set_and_get() {
 fn test_memory_json_get_missing_key() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        let result: Option<String> = store.get_async("nonexistent").await.unwrap();
+        let result: Option<String> = store.get("nonexistent").await.unwrap();
         assert_eq!(result, None);
     });
 }
@@ -44,9 +44,9 @@ fn test_memory_json_get_missing_key() {
 fn test_memory_json_delete() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        store.set_async("key", "value").await.unwrap();
-        store.delete_async("key").await.unwrap();
-        let result: Option<String> = store.get_async("key").await.unwrap();
+        store.set("key", "value").await.unwrap();
+        store.delete("key").await.unwrap();
+        let result: Option<String> = store.get("key").await.unwrap();
         assert_eq!(result, None);
     });
 }
@@ -55,11 +55,11 @@ fn test_memory_json_delete() {
 fn test_memory_json_exists() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        let exists: bool = store.exists_async("key").await.unwrap();
+        let exists: bool = store.exists("key").await.unwrap();
         assert!(!exists);
 
-        store.set_async("key", "value").await.unwrap();
-        let exists: bool = store.exists_async("key").await.unwrap();
+        store.set("key", "value").await.unwrap();
+        let exists: bool = store.exists("key").await.unwrap();
         assert!(exists);
     });
 }
@@ -68,15 +68,15 @@ fn test_memory_json_exists() {
 fn test_memory_json_list_keys() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        store.set_async("user:1", "alice").await.unwrap();
-        store.set_async("user:2", "bob").await.unwrap();
-        store.set_async("admin:1", "charlie").await.unwrap();
+        store.set("user:1", "alice").await.unwrap();
+        store.set("user:2", "bob").await.unwrap();
+        store.set("admin:1", "charlie").await.unwrap();
 
-        let all_keys = store.list_keys_async(None).await.unwrap().collect_all().await.unwrap();
+        let all_keys = store.list_keys(None).await.unwrap().collect_all().await.unwrap();
         assert_eq!(all_keys.len(), 3);
 
         let user_keys = store
-            .list_keys_async(Some("user:"))
+            .list_keys(Some("user:"))
             .await
             .unwrap()
             .collect_all()
@@ -100,8 +100,8 @@ fn test_memory_json_struct_value() {
             name: "Alice".to_string(),
             age: 30,
         };
-        store.set_async("user:1", user.clone()).await.unwrap();
-        let retrieved: Option<User> = store.get_async("user:1").await.unwrap();
+        store.set("user:1", user.clone()).await.unwrap();
+        let retrieved: Option<User> = store.get("user:1").await.unwrap();
         assert_eq!(retrieved, Some(user));
     });
 }
@@ -115,14 +115,14 @@ fn test_memory_json_rate_limit_basic() {
     block_on(async {
         let store = MemoryJsonStore::new();
 
-        let allowed: bool = store.check_rate_limit_async("api", 3, 60).await.unwrap();
+        let allowed: bool = store.check_rate_limit("api", 3, 60).await.unwrap();
         assert!(allowed);
 
-        store.record_rate_limit_async("api", 60).await.unwrap();
-        store.record_rate_limit_async("api", 60).await.unwrap();
-        store.record_rate_limit_async("api", 60).await.unwrap();
+        store.record_rate_limit("api", 60).await.unwrap();
+        store.record_rate_limit("api", 60).await.unwrap();
+        store.record_rate_limit("api", 60).await.unwrap();
 
-        let allowed: bool = store.check_rate_limit_async("api", 3, 60).await.unwrap();
+        let allowed: bool = store.check_rate_limit("api", 3, 60).await.unwrap();
         assert!(!allowed);
     });
 }
@@ -131,9 +131,9 @@ fn test_memory_json_rate_limit_basic() {
 fn test_memory_json_rate_limit_reset() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        store.record_rate_limit_async("api", 60).await.unwrap();
-        store.reset_rate_limit_async("api").await.unwrap();
-        let allowed: bool = store.check_rate_limit_async("api", 1, 60).await.unwrap();
+        store.record_rate_limit("api", 60).await.unwrap();
+        store.reset_rate_limit("api").await.unwrap();
+        let allowed: bool = store.check_rate_limit("api", 1, 60).await.unwrap();
         assert!(allowed);
     });
 }
@@ -147,9 +147,9 @@ fn test_memory_json_blob_roundtrip() {
     block_on(async {
         let store = MemoryJsonStore::new();
         let data = b"hello world";
-        store.put_blob_async("blob1", data).await.unwrap();
+        store.put_blob("blob1", data).await.unwrap();
 
-        let retrieved: Option<Vec<u8>> = store.get_blob_async("blob1").await.unwrap();
+        let retrieved: Option<Vec<u8>> = store.get_blob("blob1").await.unwrap();
         assert_eq!(retrieved, Some(data.to_vec()));
     });
 }
@@ -158,11 +158,11 @@ fn test_memory_json_blob_roundtrip() {
 fn test_memory_json_blob_exists() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        let exists: bool = store.blob_exists_async("blob1").await.unwrap();
+        let exists: bool = store.blob_exists("blob1").await.unwrap();
         assert!(!exists);
 
-        store.put_blob_async("blob1", b"data").await.unwrap();
-        let exists: bool = store.blob_exists_async("blob1").await.unwrap();
+        store.put_blob("blob1", b"data").await.unwrap();
+        let exists: bool = store.blob_exists("blob1").await.unwrap();
         assert!(exists);
     });
 }
@@ -171,9 +171,9 @@ fn test_memory_json_blob_exists() {
 fn test_memory_json_delete_blob() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        store.put_blob_async("blob1", b"data").await.unwrap();
-        store.delete_blob_async("blob1").await.unwrap();
-        let exists: bool = store.blob_exists_async("blob1").await.unwrap();
+        store.put_blob("blob1", b"data").await.unwrap();
+        store.delete_blob("blob1").await.unwrap();
+        let exists: bool = store.blob_exists("blob1").await.unwrap();
         assert!(!exists);
     });
 }
@@ -184,8 +184,8 @@ fn test_memory_json_blob_binary_data() {
         let store = MemoryJsonStore::new();
         // Binary data with null bytes
         let data = vec![0x00, 0xFF, 0x42, 0x00, 0x01];
-        store.put_blob_async("binary", &data).await.unwrap();
-        let retrieved: Option<Vec<u8>> = store.get_blob_async("binary").await.unwrap();
+        store.put_blob("binary", &data).await.unwrap();
+        let retrieved: Option<Vec<u8>> = store.get_blob("binary").await.unwrap();
         assert_eq!(retrieved, Some(data));
     });
 }
@@ -195,9 +195,9 @@ fn test_memory_json_blob_binary_data() {
 fn test_memory_json_get_blob_rejects_a_non_blob_value() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        store.set_async("not-a-blob", "plain text").await.unwrap();
+        store.set("not-a-blob", "plain text").await.unwrap();
         assert!(matches!(
-            store.get_blob_async("not-a-blob").await,
+            store.get_blob("not-a-blob").await,
             Err(StorageError::Deserialization(_))
         ));
     });
@@ -211,7 +211,7 @@ fn test_memory_json_get_blob_rejects_a_non_blob_value() {
 fn test_memory_json_query_not_supported() {
     block_on(async {
         let store = MemoryJsonStore::new();
-        let result = store.query_async("SELECT 1", &[]).await;
+        let result = store.query("SELECT 1", &[]).await;
         assert!(result.is_err());
     });
 }
@@ -221,9 +221,9 @@ fn test_memory_json_query_not_supported() {
 fn test_memory_json_async_query_not_supported() {
     let store = MemoryJsonStore::new();
     block_on(async {
-        assert!(matches!(store.query_async("SELECT 1", &[]).await, Err(StorageError::Generic(_))));
-        assert!(matches!(store.execute_async("DELETE FROM t", &[]).await, Err(StorageError::Generic(_))));
-        assert!(matches!(store.execute_batch_async("SELECT 1").await, Err(StorageError::Generic(_))));
+        assert!(matches!(store.query("SELECT 1", &[]).await, Err(StorageError::Generic(_))));
+        assert!(matches!(store.execute("DELETE FROM t", &[]).await, Err(StorageError::Generic(_))));
+        assert!(matches!(store.execute_batch("SELECT 1").await, Err(StorageError::Generic(_))));
     });
 }
 
@@ -235,8 +235,8 @@ fn test_memory_json_async_query_not_supported() {
 fn test_storage_provider_memory_json() {
     block_on(async {
         let provider = StorageProvider::memory_json();
-        provider.set_async::<()>("key", ()).await.unwrap();
-        let result: Option<()> = provider.get_async("key").await.unwrap();
+        provider.set::<()>("key", ()).await.unwrap();
+        let result: Option<()> = provider.get("key").await.unwrap();
         assert!(result.is_some());
     });
 }
@@ -245,8 +245,8 @@ fn test_storage_provider_memory_json() {
 fn test_storage_provider_memory_json_via_new() {
     block_on(async {
         let provider = StorageProvider::new(StorageBackend::MemoryJson).await.unwrap();
-        provider.set_async("count", 99i64).await.unwrap();
-        let count: Option<i64> = provider.get_async("count").await.unwrap();
+        provider.set("count", 99i64).await.unwrap();
+        let count: Option<i64> = provider.get("count").await.unwrap();
         assert_eq!(count, Some(99));
     });
 }

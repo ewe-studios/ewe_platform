@@ -245,7 +245,7 @@ impl FjallVectorStore {
 
 #[async_trait::async_trait]
 impl VectorStore for FjallVectorStore {
-    async fn insert_async(
+    async fn insert(
         &self,
         namespace: &str,
         entry: VectorEntry,
@@ -262,7 +262,7 @@ impl VectorStore for FjallVectorStore {
         })
     }
 
-    async fn delete_async(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
+    async fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
         let key = Self::vec_key(namespace, id);
         if !self
             .vectors
@@ -279,7 +279,7 @@ impl VectorStore for FjallVectorStore {
         })
     }
 
-    async fn search_async(
+    async fn search(
         &self,
         namespace: &str,
         query: &[f32],
@@ -291,7 +291,7 @@ impl VectorStore for FjallVectorStore {
         })
     }
 
-    async fn get_async(
+    async fn get(
         &self,
         namespace: &str,
         id: &str,
@@ -307,7 +307,7 @@ impl VectorStore for FjallVectorStore {
         }
     }
 
-    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError> {
+    async fn len(&self, namespace: &str) -> Result<usize, VectorStoreError> {
         let mut count = 0;
         for kv in self.vectors.prefix(Self::ns_prefix(namespace)) {
             kv.map_err(backend_err("count vectors"))?;

@@ -92,11 +92,11 @@ fn hydrate_falls_back_to_audit_and_repopulates_cache() {
         coord.record_async(&session, &obs).await.unwrap();
 
         // Simulate a cache loss (crash before the cache write / eviction).
-        coord.memory().clear_async(&session).await.unwrap();
+        coord.memory().clear(&session).await.unwrap();
         assert_eq!(
             coord
                 .memory()
-                .get_async(&session, MemoryTier::Observation)
+                .get(&session, MemoryTier::Observation)
                 .await
                 .unwrap(),
             None,
@@ -111,7 +111,7 @@ fn hydrate_falls_back_to_audit_and_repopulates_cache() {
         assert_eq!(
             coord
                 .memory()
-                .get_async(&session, MemoryTier::Observation)
+                .get(&session, MemoryTier::Observation)
                 .await
                 .unwrap(),
             Some(obs),

@@ -53,17 +53,17 @@ async fn collect_stream<T>(mut stream: foundation_db::AsyncStorageItemStream<'_,
 async fn append_and_scan_returns_documents() {
     let store = make_store();
     let doc1 = store
-        .append_async("col", TestRecord { name: "first".into(), value: 1 }).await
+        .append("col", TestRecord { name: "first".into(), value: 1 }).await
         .unwrap();
     let doc2 = store
-        .append_async("col", TestRecord { name: "second".into(), value: 2 }).await
+        .append("col", TestRecord { name: "second".into(), value: 2 }).await
         .unwrap();
 
     assert!(!doc1.id.is_empty());
     assert!(!doc2.id.is_empty());
     assert!(doc1.id < doc2.id, "scru128 ids should be chronologically ordered");
 
-    let results: Vec<TestRecord> = collect_stream(store.scan_async("col", 10).await.unwrap()).await;
+    let results: Vec<TestRecord> = collect_stream(store.scan("col", 10).await.unwrap()).await;
     assert_eq!(results.len(), 2);
     assert_eq!(results[0].name, "second"); // newest first
     assert_eq!(results[1].name, "first");
@@ -72,11 +72,11 @@ async fn append_and_scan_returns_documents() {
 #[valtron_test]
 async fn scan_all_returns_oldest_first() {
     let store = make_store();
-    store.append_async("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    store.append_async("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
-    store.append_async("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
+    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+    store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    store.append("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
 
-    let results: Vec<TestRecord> = collect_stream(store.scan_all_async("col").await.unwrap()).await;
+    let results: Vec<TestRecord> = collect_stream(store.scan_all("col").await.unwrap()).await;
     assert_eq!(results.len(), 3);
     assert_eq!(results[0].name, "a");
     assert_eq!(results[1].name, "b");
@@ -86,12 +86,12 @@ async fn scan_all_returns_oldest_first() {
 #[valtron_test]
 async fn scan_from_returns_from_given_id() {
     let store = make_store();
-    let _d1 = store.append_async("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    let d2 = store.append_async("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
-    let _d3 = store.append_async("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
+    let _d1 = store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+    let d2 = store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    let _d3 = store.append("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
 
     let results: Vec<TestRecord> =
-        collect_stream(store.scan_from_async("col", &d2.id, 0).await.unwrap()).await;
+        collect_stream(store.scan_from("col", &d2.id, 0).await.unwrap()).await;
     assert_eq!(results.len(), 2);
     assert_eq!(results[0].name, "b");
     assert_eq!(results[1].name, "c");
@@ -100,13 +100,13 @@ async fn scan_from_returns_from_given_id() {
 #[valtron_test]
 async fn scan_from_with_limit() {
     let store = make_store();
-    store.append_async("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    let d2 = store.append_async("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
-    store.append_async("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
-    store.append_async("col", TestRecord { name: "d".into(), value: 4 }).await.unwrap();
+    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+    let d2 = store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    store.append("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
+    store.append("col", TestRecord { name: "d".into(), value: 4 }).await.unwrap();
 
     let results: Vec<TestRecord> =
-        collect_stream(store.scan_from_async("col", &d2.id, 2).await.unwrap()).await;
+        collect_stream(store.scan_from("col", &d2.id, 2).await.unwrap()).await;
     assert_eq!(results.len(), 2);
     assert_eq!(results[0].name, "b");
     assert_eq!(results[1].name, "c");
@@ -119,11 +119,11 @@ async fn append_with_id_uses_provided_id() {
     let store = make_store();
     let custom_id = foundation_compact::ids::new_scru128_string();
     let doc = store
-        .append_with_id_async("col", &custom_id, TestRecord { name: "custom".into(), value: 42 }).await
+        .append_with_id("col", &custom_id, TestRecord { name: "custom".into(), value: 42 }).await
         .unwrap();
     assert_eq!(doc.id, custom_id);
 
-    let results: Vec<TestRecord> = collect_stream(store.scan_async("col", 10).await.unwrap()).await;
+    let results: Vec<TestRecord> = collect_stream(store.scan("col", 10).await.unwrap()).await;
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].name, "custom");
 }
@@ -134,7 +134,7 @@ async fn append_with_id_uses_provided_id() {
 async fn append_promotable_populates_promoted_columns() {
     let store = make_store();
     let doc = store
-        .append_promotable_async(
+        .append_promotable(
             "col",
             TypedRecord { name: "obs-1".into(), kind: "observation".into() },
         ).await
@@ -149,7 +149,7 @@ async fn append_promotable_with_id_works() {
     let store = make_store();
     let custom_id = foundation_compact::ids::new_scru128_string();
     let doc = store
-        .append_promotable_with_id_async(
+        .append_promotable_with_id(
             "col",
             &custom_id,
             TypedRecord { name: "refl-1".into(), kind: "reflection".into() },
@@ -167,19 +167,19 @@ async fn append_promotable_with_id_works() {
 async fn scan_documents_returns_full_document_views() {
     let store = make_store();
     store
-        .append_promotable_async(
+        .append_promotable(
             "col",
             TypedRecord { name: "item-1".into(), kind: "conversation".into() },
         ).await
         .unwrap();
     store
-        .append_promotable_async(
+        .append_promotable(
             "col",
             TypedRecord { name: "item-2".into(), kind: "observation".into() },
         ).await
         .unwrap();
 
-    let docs = store.scan_documents_async("col", 10).await.unwrap();
+    let docs = store.scan_documents("col", 10).await.unwrap();
     assert_eq!(docs.len(), 2);
     assert_eq!(docs[0].title.as_deref(), Some("item-2")); // newest first
     assert_eq!(docs[1].title.as_deref(), Some("item-1"));
@@ -188,10 +188,10 @@ async fn scan_documents_returns_full_document_views() {
 #[valtron_test]
 async fn scan_documents_from_returns_from_id() {
     let store = make_store();
-    store.append_async("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    let d2 = store.append_async("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+    let d2 = store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
 
-    let docs = store.scan_documents_from_async("col", &d2.id, 0).await.unwrap();
+    let docs = store.scan_documents_from("col", &d2.id, 0).await.unwrap();
     assert_eq!(docs.len(), 1);
     assert_eq!(docs[0].id, d2.id);
 }
@@ -201,12 +201,12 @@ async fn scan_documents_from_returns_from_id() {
 #[valtron_test]
 async fn delete_removes_document_from_index() {
     let store = make_store();
-    let d1 = store.append_async("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    store.append_async("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    let d1 = store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+    store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
 
-    store.delete_async("col", &d1.id).await.unwrap();
+    store.delete("col", &d1.id).await.unwrap();
 
-    let results: Vec<TestRecord> = collect_stream(store.scan_all_async("col").await.unwrap()).await;
+    let results: Vec<TestRecord> = collect_stream(store.scan_all("col").await.unwrap()).await;
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].name, "b");
 }
@@ -214,14 +214,14 @@ async fn delete_removes_document_from_index() {
 #[valtron_test]
 async fn delete_all_removes_everything() {
     let store = make_store();
-    store.append_async("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    store.append_async("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
-    store.append_async("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
+    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+    store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    store.append("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
 
-    let count = store.delete_all_async("col").await.unwrap();
+    let count = store.delete_all("col").await.unwrap();
     assert_eq!(count, 3);
 
-    let results: Vec<TestRecord> = collect_stream(store.scan_all_async("col").await.unwrap()).await;
+    let results: Vec<TestRecord> = collect_stream(store.scan_all("col").await.unwrap()).await;
     assert!(results.is_empty());
 }
 
@@ -230,13 +230,13 @@ async fn delete_all_removes_everything() {
 #[valtron_test]
 async fn count_returns_number_of_documents() {
     let store = make_store();
-    assert_eq!(store.count_async("col").await.unwrap(), 0);
+    assert_eq!(store.count("col").await.unwrap(), 0);
 
-    store.append_async("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    assert_eq!(store.count_async("col").await.unwrap(), 1);
+    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+    assert_eq!(store.count("col").await.unwrap(), 1);
 
-    store.append_async("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
-    assert_eq!(store.count_async("col").await.unwrap(), 2);
+    store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    assert_eq!(store.count("col").await.unwrap(), 2);
 }
 
 // --- Multiple collections ---
@@ -244,11 +244,11 @@ async fn count_returns_number_of_documents() {
 #[valtron_test]
 async fn separate_collections_are_independent() {
     let store = make_store();
-    store.append_async("alpha", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    store.append_async("beta", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    store.append("alpha", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+    store.append("beta", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
 
-    let alpha: Vec<TestRecord> = collect_stream(store.scan_all_async("alpha").await.unwrap()).await;
-    let beta: Vec<TestRecord> = collect_stream(store.scan_all_async("beta").await.unwrap()).await;
+    let alpha: Vec<TestRecord> = collect_stream(store.scan_all("alpha").await.unwrap()).await;
+    let beta: Vec<TestRecord> = collect_stream(store.scan_all("beta").await.unwrap()).await;
 
     assert_eq!(alpha.len(), 1);
     assert_eq!(alpha[0].name, "a");
@@ -261,14 +261,14 @@ async fn separate_collections_are_independent() {
 #[valtron_test]
 async fn scan_empty_collection_returns_empty() {
     let store = make_store();
-    let results: Vec<TestRecord> = collect_stream(store.scan_async("empty", 10).await.unwrap()).await;
+    let results: Vec<TestRecord> = collect_stream(store.scan("empty", 10).await.unwrap()).await;
     assert!(results.is_empty());
 }
 
 #[valtron_test]
 async fn scan_all_empty_collection_returns_empty() {
     let store = make_store();
-    let results: Vec<TestRecord> = collect_stream(store.scan_all_async("empty").await.unwrap()).await;
+    let results: Vec<TestRecord> = collect_stream(store.scan_all("empty").await.unwrap()).await;
     assert!(results.is_empty());
 }
 
@@ -287,18 +287,18 @@ async fn batched_durability_accumulates_then_flushes() {
     )
     .unwrap();
 
-    store.append_async("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    store.append_async("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+    store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
 
     // Data should still be scannable from the batch
-    let results: Vec<TestRecord> = collect_stream(store.scan_all_async("col").await.unwrap()).await;
+    let results: Vec<TestRecord> = collect_stream(store.scan_all("col").await.unwrap()).await;
     assert_eq!(results.len(), 2);
 
     // Explicit flush
     store.flush("col").unwrap();
 
     // Still readable after flush
-    let results: Vec<TestRecord> = collect_stream(store.scan_all_async("col").await.unwrap()).await;
+    let results: Vec<TestRecord> = collect_stream(store.scan_all("col").await.unwrap()).await;
     assert_eq!(results.len(), 2);
 }
 
@@ -320,8 +320,8 @@ async fn tail_rebuild_recovers_unindexed_records() {
         )
         .unwrap();
 
-        store.append_async("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-        store.append_async("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+        store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+        store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
     }
 
     // Simulate crash: write more data to the NDJSON file directly (bypassing index)
@@ -347,7 +347,7 @@ async fn tail_rebuild_recovers_unindexed_records() {
     )
     .unwrap();
 
-    assert_eq!(store2.count_async("col").await.unwrap(), 3);
+    assert_eq!(store2.count("col").await.unwrap(), 3);
 }
 
 // --- Ordering matches other backends ---
@@ -358,19 +358,19 @@ async fn ordering_is_chronological_by_scru128() {
     let mut ids = Vec::new();
     for i in 0..5 {
         let doc = store
-            .append_async("col", TestRecord { name: format!("item-{i}"), value: i }).await
+            .append("col", TestRecord { name: format!("item-{i}"), value: i }).await
             .unwrap();
         ids.push(doc.id);
     }
 
     // scan_all: oldest first
-    let all_docs = store.scan_documents_from_async("col", &ids[0], 0).await.unwrap();
+    let all_docs = store.scan_documents_from("col", &ids[0], 0).await.unwrap();
     for (i, doc) in all_docs.iter().enumerate() {
         assert_eq!(doc.id, ids[i]);
     }
 
     // scan: newest first
-    let newest = store.scan_documents_async("col", 5).await.unwrap();
+    let newest = store.scan_documents("col", 5).await.unwrap();
     for (i, doc) in newest.iter().enumerate() {
         assert_eq!(doc.id, ids[4 - i]);
     }
@@ -382,13 +382,13 @@ async fn ordering_is_chronological_by_scru128() {
 async fn default_store_is_usable_and_starts_empty() {
     let store = FjallDocumentStore::<MemoryFs>::default();
     store
-        .append_async("col", TestRecord { name: "first".into(), value: 1 }).await
+        .append("col", TestRecord { name: "first".into(), value: 1 }).await
         .unwrap();
-    let docs = collect_stream(store.scan_all_async::<TestRecord>("col").await.unwrap()).await;
+    let docs = collect_stream(store.scan_all::<TestRecord>("col").await.unwrap()).await;
     assert_eq!(docs, vec![TestRecord { name: "first".into(), value: 1 }]);
 
     // A second default store gets its own index, so it doesn't see the first's data.
     let other = FjallDocumentStore::<MemoryFs>::default();
-    let other_docs = collect_stream(other.scan_all_async::<TestRecord>("col").await.unwrap()).await;
+    let other_docs = collect_stream(other.scan_all::<TestRecord>("col").await.unwrap()).await;
     assert_eq!(other_docs, Vec::<TestRecord>::new());
 }

@@ -9,7 +9,7 @@
 //! WHAT: Lightweight session management with HMAC-SHA256 signed tokens,
 //! storing sessions via `CredentialStore`.
 //!
-//! HOW: Generic over `S: CredentialStore`, delegates to its `*_async` methods.
+//! HOW: Generic over `S: CredentialStore`, delegates to its methods.
 
 use std::sync::Arc;
 
@@ -54,7 +54,7 @@ impl<S: CredentialStore> WasmSessionManager<S> {
         let token = Self::create_token(&self.signing_key, json.as_bytes());
 
         self.store
-            .set_async(&format!("session:{id}"), payload)
+            .set(&format!("session:{id}"), payload)
             .await
             .map_err(|e| format!("D1 insert failed: {e:?}"))?;
 
@@ -66,7 +66,7 @@ impl<S: CredentialStore> WasmSessionManager<S> {
         let payload = Self::verify_token(&self.signing_key, token)?;
         let stored: Option<SessionPayload> = self
             .store
-            .get_async(&format!("session:{}", payload.id))
+            .get(&format!("session:{}", payload.id))
             .await
             .map_err(|e| format!("D1 query failed: {e:?}"))?;
         if stored.is_none() {
@@ -82,7 +82,7 @@ impl<S: CredentialStore> WasmSessionManager<S> {
             Err(_) => return Ok(()),
         };
         self.store
-            .delete_async(&format!("session:{}", payload.id))
+            .delete(&format!("session:{}", payload.id))
             .await
             .map_err(|e| format!("D1 delete failed: {e:?}"))?;
         Ok(())

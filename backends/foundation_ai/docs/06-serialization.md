@@ -41,9 +41,9 @@ buffer itself: await `flush()` once `needs_flush()` is true.
 
 | Record | Written as |
 |---|---|
-| `Conversation { message }` | `append_with_id_async`, using the message's scru128 id as the document id |
-| `WorkingMemory`, `Observation`, `Reflection` | `append_promotable_async` (promoted columns filled) — when written through `MessageApi` |
-| `Retracted`, `Summary`, `FailedAction` | `append_async` |
+| `Conversation { message }` | `append_with_id`, using the message's scru128 id as the document id |
+| `WorkingMemory`, `Observation`, `Reflection` | `append_promotable` (promoted columns filled) — when written through `MessageApi` |
+| `Retracted`, `Summary`, `FailedAction` | `append` |
 
 The agent loop appends user messages, accepted assistant messages and tool
 results. It does not append `FailedAction` or `Summary`; those only reach the

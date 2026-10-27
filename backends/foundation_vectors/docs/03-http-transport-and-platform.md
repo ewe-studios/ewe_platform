@@ -61,11 +61,11 @@ The adapter uses the TurboPuffer v2 API:
 
 | Method | Request |
 |---|---|
-| `insert_async` | `POST /v2/namespaces/{ns}` with `upsert_rows` and `distance_metric` |
-| `delete_async` | `POST /v2/namespaces/{ns}` with `deletes` and `return_affected_ids` (an id that is not deleted is `NotFound`) |
-| `search_async` | `POST /v2/namespaces/{ns}/query` with `rank_by: ["vector", "ANN", q]` |
-| `get_async` | `POST /v2/namespaces/{ns}/query` with `filters: ["id", "Eq", id]` |
-| `len_async` | `POST /v2/namespaces/{ns}/query` with `aggregate_by: {"count": ["Count"]}` |
+| `insert` | `POST /v2/namespaces/{ns}` with `upsert_rows` and `distance_metric` |
+| `delete` | `POST /v2/namespaces/{ns}` with `deletes` and `return_affected_ids` (an id that is not deleted is `NotFound`) |
+| `search` | `POST /v2/namespaces/{ns}/query` with `rank_by: ["vector", "ANN", q]` |
+| `get` | `POST /v2/namespaces/{ns}/query` with `filters: ["id", "Eq", id]` |
+| `len` | `POST /v2/namespaces/{ns}/query` with `aggregate_by: {"count": ["Count"]}` |
 
 A query on a namespace that does not exist (HTTP 404) reads as an empty
 namespace.
