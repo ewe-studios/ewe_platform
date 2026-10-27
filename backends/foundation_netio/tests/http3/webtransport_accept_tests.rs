@@ -50,7 +50,8 @@ fn h3_pair() -> (
     let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
     let mut sq = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
     let addr = sq.local_addr().expect("addr");
-    let (mut cq, client_conn) = QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+    let (mut cq, client_conn) =
+        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
 
     let deadline = Instant::now() + BUDGET;
     let server_conn = loop {
@@ -71,7 +72,12 @@ fn h3_pair() -> (
     (sq, cq, server, client)
 }
 
-fn send(sq: &mut QuicDriver, cq: &mut QuicDriver, req: &mut H3Request<QuinnBidiStream>, mut bytes: Bytes) {
+fn send(
+    sq: &mut QuicDriver,
+    cq: &mut QuicDriver,
+    req: &mut H3Request<QuinnBidiStream>,
+    mut bytes: Bytes,
+) {
     until!(sq, cq, req.poll_send_headers(&mut bytes));
 }
 
@@ -91,7 +97,12 @@ fn a_stream_accepted_before_its_headers_is_not_lost() {
     let mut req = until!(sq, cq, client.poll_open_request());
 
     // A reserved frame type (0x21 + 0x1f * N), empty payload.
-    send(&mut sq, &mut cq, &mut req, Bytes::from_static(&[0x21, 0x00]));
+    send(
+        &mut sq,
+        &mut cq,
+        &mut req,
+        Bytes::from_static(&[0x21, 0x00]),
+    );
     // Let the server accept the stream and find no HEADERS yet.
     let deadline = Instant::now() + Duration::from_millis(300);
     while Instant::now() < deadline {
@@ -109,7 +120,12 @@ fn a_stream_accepted_before_its_headers_is_not_lost() {
         (b":authority", b"example.com"),
         (b":path", b"/late"),
     ];
-    send(&mut sq, &mut cq, &mut req, H3Request::<QuinnBidiStream>::encode_headers(&fields));
+    send(
+        &mut sq,
+        &mut cq,
+        &mut req,
+        H3Request::<QuinnBidiStream>::encode_headers(&fields),
+    );
     until!(sq, cq, req.poll_finish());
 
     match until!(sq, cq, server.poll_accept_webtransport()) {
@@ -132,12 +148,20 @@ fn an_ordinary_request_is_handed_back_with_its_headers() {
         (b":authority", b"example.com"),
         (b":path", b"/echo"),
     ];
-    send(&mut sq, &mut cq, &mut req, H3Request::<QuinnBidiStream>::encode_headers(&fields));
+    send(
+        &mut sq,
+        &mut cq,
+        &mut req,
+        H3Request::<QuinnBidiStream>::encode_headers(&fields),
+    );
     let mut data = H3Request::<QuinnBidiStream>::encode_data(Bytes::from_static(b"body"));
     until!(sq, cq, req.poll_send_data(&mut data));
     until!(sq, cq, req.poll_finish());
 
-    let WtAccept::Request { mut request, headers } = until!(sq, cq, server.poll_accept_webtransport())
+    let WtAccept::Request {
+        mut request,
+        headers,
+    } = until!(sq, cq, server.poll_accept_webtransport())
     else {
         panic!("a POST is not a WebTransport CONNECT");
     };
@@ -158,7 +182,12 @@ fn a_webtransport_connect_is_answered_and_reported() {
         (b":authority", b"example.com"),
         (b":path", b"/wt"),
     ];
-    send(&mut sq, &mut cq, &mut req, H3Request::<QuinnBidiStream>::encode_headers(&fields));
+    send(
+        &mut sq,
+        &mut cq,
+        &mut req,
+        H3Request::<QuinnBidiStream>::encode_headers(&fields),
+    );
 
     assert!(matches!(
         until!(sq, cq, server.poll_accept_webtransport()),

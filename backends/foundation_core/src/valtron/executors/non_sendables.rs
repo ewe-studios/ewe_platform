@@ -16,7 +16,7 @@ use crate::valtron::collect_result;
 use crate::valtron::{
     collect_one, Ctx, ExecutionAction, GenericResult, NotificationItem,
     NotifyQueueStreamIterator, NotifyRecvIterator, ProgressIndicator, State, Stream,
-    StreamIterator, StreamIteratorExt, StreamSpread, TaskIterator, TaskStatus, WakeCallback,
+    StreamIterator, StreamSpread, TaskIterator, TaskStatus, WakeCallback,
     WakeResult, WakeableStream,
 };
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -2196,6 +2196,7 @@ pub async fn sleep_async(duration: std::time::Duration) {
 
     #[cfg(not(all(feature = "std", not(target_family = "wasm"))))]
     {
+        use crate::valtron::StreamIteratorExt;
         match sleep(duration) {
             Ok(timer) => {
                 let _ = timer.into_ready_future().await;

@@ -38,7 +38,9 @@ fn request_reader_accepts_mixed_case_chunked_as_last_coding() {
     assert!(
         matches!(
             parts.last(),
-            Some(IncomingRequestParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_))))
+            Some(IncomingRequestParts::StreamedBody(
+                SendSafeBody::ChunkedStream(Some(_))
+            ))
         ),
         "the body should be read as chunked, got {parts:?}"
     );
@@ -56,7 +58,9 @@ fn response_reader_accepts_mixed_case_chunked_as_last_coding() {
     assert!(
         matches!(
             parts.last(),
-            Some(IncomingResponseParts::StreamedBody(SendSafeBody::ChunkedStream(Some(_))))
+            Some(IncomingResponseParts::StreamedBody(
+                SendSafeBody::ChunkedStream(Some(_))
+            ))
         ),
         "the body should be read as chunked, got {parts:?}"
     );
