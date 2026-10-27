@@ -78,6 +78,8 @@ pub struct QuicDriver {
     conns: HashMap<ConnectionHandle, SharedConn>,
     /// Connections that finished their handshake and have not been taken yet.
     accepted: Arc<Mutex<VecDeque<QuinnConnection>>>,
+    /// Woken when a connection lands in `accepted`.
+    accept_wakers: Arc<Mutex<Vec<std::task::Waker>>>,
     /// Scratch buffer for endpoint responses (retry, version negotiation).
     scratch: Vec<u8>,
     /// Scratch buffer for connection transmits.
@@ -108,6 +110,7 @@ impl QuicDriver {
             socket: Arc::new(socket),
             conns: HashMap::new(),
             accepted: Arc::new(Mutex::new(VecDeque::new())),
+            accept_wakers: Arc::new(Mutex::new(Vec::new())),
             scratch: Vec::with_capacity(MAX_DATAGRAM),
             tx_buf: Vec::with_capacity(MAX_DATAGRAM),
             fd_readiness: None,
@@ -210,6 +213,17 @@ impl QuicDriver {
         Arc::clone(&self.accepted)
     }
 
+    /// WHY: an accept loop should park until a connection is ready rather than
+    /// poll the accept queue on a timer.
+    ///
+    /// WHAT: a list the driver wakes (and empties) whenever a connection lands
+    /// in [`Self::accept_queue`]. Register before checking the queue, so a
+    /// connection queued in between still wakes you.
+    #[must_use]
+    pub fn accept_wakers(&self) -> Arc<Mutex<Vec<std::task::Waker>>> {
+        Arc::clone(&self.accept_wakers)
+    }
+
     /// WHY: an idle QUIC connection should cost nothing. Wrap the UDP socket's fd
     /// in `RegisteredFd`/`SharedReadiness` (Decision 14) and inject it here; idle
     /// polls then park on the reactor instead of spinning on `Delayed`.
@@ -246,6 +260,7 @@ impl QuicDriver {
             recv_datagrams: VecDeque::new(),
             datagrams_supported: false,
             max_datagram_size: None,
+            wakers: Vec::new(),
         }));
         self.conns.insert(handle, Arc::clone(&state));
         state
@@ -363,12 +378,15 @@ impl QuicDriver {
         let mut surfaced = None;
         let mut closed_handles = Vec::new();
 
+        let mut to_wake = Vec::new();
         for (handle, state) in &self.conns {
             let Ok(mut guard) = state.lock() else {
                 continue;
             };
 
+            let mut progressed = false;
             while let Some(event) = guard.conn.poll() {
+                progressed = true;
                 match event {
                     quinn_proto::Event::Connected => {
                         // For a server this is the accept point.
@@ -400,8 +418,25 @@ impl QuicDriver {
                         });
                     }
                     // Readable/Writable/Finished/Stopped/DatagramsUnblocked are
-                    // observed by the stream/datagram handles on their next call.
+                    // observed by the stream/datagram handles on their next call,
+                    // which the wake below triggers.
                     _ => {}
+                }
+            }
+            if progressed {
+                to_wake.extend(guard.take_wakers());
+            }
+        }
+
+        // Woken outside every connection lock: a woken future may run at once
+        // on another worker and take the lock itself.
+        for waker in to_wake {
+            waker.wake();
+        }
+        if let Ok(mut accept_wakers) = self.accept_wakers.lock() {
+            if !self.accepted.lock().map(|q| q.is_empty()).unwrap_or(true) {
+                for waker in accept_wakers.drain(..) {
+                    waker.wake();
                 }
             }
         }

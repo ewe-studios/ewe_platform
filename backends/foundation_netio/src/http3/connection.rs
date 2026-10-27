@@ -223,6 +223,13 @@ impl<C: QuicConnection> H3Connection<C> {
         }
     }
 
+    /// Wake `waker` when the connection next makes progress, so a caller whose
+    /// `poll_*` returned `Pending` can park instead of re-polling. Register
+    /// before polling. Returns `false` if the QUIC backend cannot wake.
+    pub fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        self.conn.register_waker(waker)
+    }
+
     /// The peer's SETTINGS, once its control stream has delivered them.
     pub fn peer_settings(&self) -> Option<&[(u64, u64)]> {
         self.peer_settings.as_deref()
@@ -695,6 +702,14 @@ impl<S: QuicBidiStream> H3Request<S> {
     /// Abort the stream with an HTTP/3 error code.
     pub fn reset(&mut self, code: u64) {
         self.framed.get_mut().reset(code);
+    }
+
+    /// Wake `waker` when this request's connection next makes progress, so a
+    /// caller whose `poll_*` returned `Pending` can park instead of
+    /// re-polling. Register before polling. Returns `false` if the QUIC
+    /// backend cannot wake.
+    pub fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        QuicRecvStream::register_waker(self.framed.get_ref(), waker)
     }
 
     /// WHY: a server that answers before reading the whole request (an early
