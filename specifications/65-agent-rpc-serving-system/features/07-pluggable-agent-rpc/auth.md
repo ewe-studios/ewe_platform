@@ -167,7 +167,7 @@ fixed (section 3.8).
 
 Owner decision 2: the issuer makes **version 2 by default**. The verifier still accepts version 1.
 
-Version 2 adds four fields:
+Version 2 adds five fields:
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -175,6 +175,11 @@ Version 2 adds four fields:
 | `aud` | string, optional | The audience: the base URL of the one host that accepts it. |
 | `kid` | string, optional | The key ID. It selects the public key during key rotation. |
 | `max_uses` | integer, optional | The most uses that the issuer allows. 0 or absent: no limit from the token (the server policy applies). |
+| `sub` | string, optional | The subject: the `client_id` of an enrolled client. Set only on an access secret that enrollment or refresh issued (section 9.1). `SignedSecretAuth` then also checks that this client is not revoked. |
+
+An **enrollment** secret always has `aud` set to the host's `url` from the bootstrap payload. So the
+server address is inside the signature: a changed `url` in the payload no longer matches `aud`,
+and the client stops (proto.md section 6.3).
 
 A version 2 example (an access secret for a Worker):
 
@@ -208,6 +213,7 @@ u32be(len) aud           empty when absent
 u64be(valid_from)
 u64be(valid_until)
 u32be(max_uses)          0 when absent
+u32be(len) sub           empty when absent
 ```
 
 Compatibility rules:
@@ -1844,6 +1850,11 @@ impl ClientAuth for SignedSecretAuth {
             }
             let verified = self.verifier.verify(&token).map_err(secret_error_to_auth)?;
             self.trust.check_secret_not_revoked(&verified.id).await.map_err(trust_error_to_auth)?;
+            if let Some(client_id) = verified.subject.as_deref() {
+                // An access secret from enrollment or refresh: the client must
+                // still be enrolled and not revoked (section 9.1).
+                self.trust.check_client_not_revoked(client_id).await.map_err(trust_error_to_auth)?;
+            }
             if let Some(limit) = effective_limit(self.policy.max_uses, verified.max_uses) {
                 self.trust.spend_secret(&verified, limit).await.map_err(trust_error_to_auth)?;
             }
@@ -2021,9 +2032,63 @@ impl EnvKeyStore {
 
 ### 9.1 Enrollment (`foundation_agent_rpc::core::enroll`)
 
+**The owner's design (PR #126 review, 2026-10-26).** The bootstrap payload is one base64 string.
+It holds everything that a client needs: the server address, a secret, a signature that makes
+it tamper-proof, and the server's public key. With it, **any** client (a native program, a
+browser page or a Worker) can connect, check that it talks to the right server, and exchange the
+secret for a credential that it then uses on every call. Enrollment needs no client certificate
+and no pinned TLS channel.
+
+How the payload carries each item:
+
+| Item | Where in the payload | Signed? |
+|---|---|---|
+| Server address | `BootstrapPayload.url`, and the same value as `aud` inside the token | yes, through `aud` |
+| Secret | `token.secret` (32 random bytes) | yes |
+| Signature | `token.signature` | it is the signature |
+| Server public key | `token.public_key` (with `kid`) | yes |
+
+#### 9.1.1 How the client knows that it talks to the right server
+
+TLS proves only that the client talks to *some* holder of a certificate for that name. A proxy or
+Cloudflare can end that TLS. So enrollment adds an application-level proof that does not depend on
+TLS:
+
+1. The client makes 32 random bytes, the **nonce**.
+2. It sends the nonce in `EnrollRequest`.
+3. The server signs a **server proof** with the private key whose public key is in the token:
+
+   ```text
+   "ewe.agent_rpc.enroll_proof.v1" 0x00
+   u32be(len) secret_id          the SHA-256 of the token secret
+   u32be(len) nonce
+   u32be(len) client_key         the client public key, or the SHA-256 of the CSR
+   u32be(len) client_id
+   ```
+
+4. The client checks the proof with `token.public_key`. A server without that private key cannot
+   make it. So a wrong server, or a changed `url`, fails here.
+
+A native client can also pin the TLS certificate (`tls_fingerprint_sha256`). That is extra
+protection on a self-signed host; it is not required for enrollment.
+
+#### 9.1.2 The two credential kinds
+
+`EnrollRequest` carries one of two things. The client picks:
+
+| Kind | Who uses it | What the client sends | What the client gets | How later calls authenticate |
+|---|---|---|---|---|
+| **Client key** (`EnrollRequest.client_key`) | every client; the only kind for a browser or a Worker | a public key (Ed25519 or P-256) whose private key never leaves the client. A browser makes it with WebCrypto as a non-extractable key and keeps it in IndexedDB. | `client_id` and an **access secret**: a `SignedSecret` v2 with `purpose = access`, `aud = url`, `sub = client_id`, and a short window | `Authorization: Bearer <access secret>`, checked by `SignedSecretAuth`. Before it expires, the client calls `RefreshAccess`, signed with its private key, to get a new one. |
+| **Client certificate** (`EnrollRequest.csr_pem`) | native clients that want mTLS (as today) | a certificate signing request | a client certificate and the CA certificate | mTLS, checked by `TrustedClientVerifier` and `MtlsAuth` |
+
+Both kinds record the client in `TrustedClients` (by key fingerprint or certificate fingerprint),
+so revocation works the same way.
+
+#### 9.1.3 Code
+
 ```rust
 // foundation_agent_rpc/src/core/enroll.rs
-/// Signs CSRs. Native hosts give the CA (`foundation_auth::pki`).
+/// Signs CSRs. Only a native host has a CA (`foundation_auth::pki`).
 pub trait ClientCertIssuer: Send + Sync + 'static {
     fn sign_client_csr(&self, csr_pem: &str, client_name: &str, lifetime: Duration)
         -> Result<IssuedClientCert, AgentRpcError>;
@@ -2031,38 +2096,64 @@ pub trait ClientCertIssuer: Send + Sync + 'static {
 }
 
 pub struct EnrollmentService {
-    verifier: SecretVerifier,              // purpose = Enroll
-    issuer: Arc<dyn ClientCertIssuer>,
+    verifier: SecretVerifier,                  // purpose = Enroll, audience = this host's url
+    signer: SecretIssuer,                      // the payload key: server proofs, access secrets
+    issuer: Option<Arc<dyn ClientCertIssuer>>, // None on a Worker: no certificate kind
     trust: Arc<TrustedClients>,
     env: Env,
     config: EnrollConfig,
 }
 
 impl EnrollmentService {
-    /// Verify the secret, sign the CSR, spend one use, record the client.
+    /// Verify the secret, check the credential, spend one use, record the
+    /// client, and return the credential with a server proof.
     pub async fn enroll(&self, req: &EnrollRequest) -> AgentRpcResult<EnrollResponse> {
         validate_client_name(&req.client_name)?;
-        let verified = self.verifier.verify(&req.token)?;                 // 1. signature, purpose, window
+        let nonce = check_nonce(&req.nonce)?;                             // exactly 32 bytes
+        let verified = self.verifier.verify(&req.token)?;                 // 1. signature, purpose, aud, window
         self.trust.check_secret_not_revoked(&verified.id).await?;         // 2. not revoked
-        let issued = self.issuer.sign_client_csr(                         // 3. a bad CSR spends no use
-            &req.csr_pem, &req.client_name, self.config.client_cert_lifetime)?;
+        let client_id = self.env.ids().next_id().to_string();
+        let (record, credential) = match &req.credential {               // 3. a bad credential spends no use
+            Some(Credential::ClientKey(key)) => {
+                let key = ClientPublicKey::parse(key)?;                  // Ed25519 or P-256, size checked
+                let access = self.signer.issue(&SecretRequest::access_for(
+                    self.config.access_lifetime, self.verifier.audience(), &client_id))?;
+                (TrustedClient::for_key(&client_id, &req.client_name, &key, self.env.unix_secs()),
+                 Issued::Access { access_secret: access.encode().to_string() })
+            }
+            Some(Credential::CsrPem(csr)) => {
+                let issuer = self.issuer.as_ref().ok_or(AgentRpcError::Unsupported("client certificates"))?;
+                let cert = issuer.sign_client_csr(csr, &req.client_name, self.config.client_cert_lifetime)?;
+                (TrustedClient::for_cert(&client_id, &req.client_name, &cert, self.env.unix_secs()),
+                 Issued::Certificate { cert_pem: cert.cert_pem, ca_cert_pem: issuer.ca_cert_pem().into() })
+            }
+            None => return Err(AgentRpcError::InvalidArgument("credential is required".into())),
+        };
         self.trust.spend_secret(&verified, self.config.max_enrollments_per_secret).await?; // 4. atomic
-        self.trust.record_enrollment(TrustedClient {                      // 5. durable record
-            fingerprint_sha256: issued.fingerprint_sha256.clone(),
-            client_name: req.client_name.clone(),
-            enrolled_at: self.env.unix_secs(),
-            expires_at: issued.not_after,
-            last_seen_at: None,
-            revoked_at: None,
-        }, &issued.cert_pem).await?;
-        Ok(EnrollResponse {
-            client_cert_pem: issued.cert_pem,
-            ca_cert_pem: self.issuer.ca_cert_pem().to_string(),
-            ..Default::default()
-        })
+        self.trust.record_enrollment(record).await?;                      // 5. durable record
+        let proof = self.signer.sign_enroll_proof(&verified.id, nonce, &req.credential, &client_id)?; // 6.
+        Ok(EnrollResponse::new(client_id, credential, proof))
+    }
+
+    /// A new access secret for an enrolled client-key client. The request is
+    /// signed with the client's private key over
+    /// "ewe.agent_rpc.refresh.v1" 0x00 client_id unix_ms nonce.
+    pub async fn refresh_access(&self, req: &RefreshAccessRequest) -> AgentRpcResult<RefreshAccessResponse> {
+        let client = self.trust.client_by_id(&req.client_id).await?      // 1. known, not revoked
+            .ok_or(AgentRpcError::Unauthenticated)?;
+        client.check_refresh_signature(req, self.env.wall_now(), self.config.clock_skew)?; // 2. signature, time
+        self.trust.mark_refresh_nonce(&req.client_id, &req.nonce).await?; // 3. each nonce once
+        let access = self.signer.issue(&SecretRequest::access_for(
+            self.config.access_lifetime, self.verifier.audience(), &req.client_id))?;
+        Ok(RefreshAccessResponse { access_secret: access.encode().to_string(), ..Default::default() })
     }
 }
 ```
+
+What the code does: `enroll` checks the token, then the credential, and only then spends a use,
+so a bad request never wastes a token. It records the client and signs the server proof last.
+`refresh_access` gives a client-key client a new short access secret. The client proves that it
+still holds its private key, and the trust store refuses a revoked client.
 
 ```rust
 // foundation_agent_rpc/src/core/config.rs
@@ -2071,10 +2162,16 @@ impl EnrollmentService {
 pub struct EnrollConfig {
     /// Default 90 days: the lifetime of a Let's Encrypt certificate (as today).
     pub client_cert_lifetime: Duration,
+    /// Lifetime of an access secret that enrollment or refresh issues.
+    /// Default 1 hour: the lifetime of a Google OAuth 2.0 access token.
+    pub access_lifetime: Duration,
+    /// Allowed difference between client and server clocks on a refresh.
+    /// Default 5 minutes (as `VerifyPolicy::clock_skew`).
+    pub clock_skew: Duration,
     /// Default 1: an enrollment secret enrolls one client (as today).
     pub max_enrollments_per_secret: u32,
-    /// `Enroll` calls per peer address. Default 1 per second with a burst
-    /// of 5: the `limit_req` example in the nginx documentation.
+    /// `Enroll` and `RefreshAccess` calls per peer address. Default 1 per
+    /// second with a burst of 5: the `limit_req` example in the nginx documentation.
     pub rate: RateLimit,
     /// Largest CSR in PEM. Default 8 KiB: the size of one nginx
     /// `large_client_header_buffers` buffer. An RSA 8192-bit CSR is about 3.3 KiB.
@@ -2088,41 +2185,69 @@ pub struct RateLimit {
 }
 ```
 
-What the code does: it holds the limits that `enroll` uses. The rate limit is a small token
-bucket in memory, one per peer address, on the `Env` clock. Only a native host enrolls
-clients, so memory is enough. We do not use `foundation_db`'s `AsyncRateLimiterStore`: its
-backends read the global clock (`unix_now_secs()`), so DST could not move their time. That
-is recorded as a bug in `docs/bug-backlog.md`.
+The rate limit is a small token bucket in memory, one per peer address, on the `Env` clock. We do
+not use `foundation_db`'s `AsyncRateLimiterStore`: its backends read the global clock
+(`unix_now_secs()`), so DST could not move their time. That is recorded as a bug in
+`docs/bug-backlog.md`. On a Worker, the bucket lives in the isolate, so it is a per-isolate
+limit; Cloudflare rate limiting rules can add a global limit.
 
-If the process stops between step 4 and step 5, the secret is spent and no client is
-recorded. The client then gets an error, and the operator issues a new secret. This is safe:
-it can only refuse a client, it can never accept one twice.
+If the process stops between step 4 and step 5, the secret is spent and no client is recorded.
+The client then gets an error, and the operator issues a new secret. This is safe: it can only
+refuse a client, it can never accept one twice.
 
-This sequence diagram shows the whole bootstrap on a native host: the operator makes a
-payload, the client checks it, enrolls once, and then calls over mTLS.
+**Which hosts enroll.** A host that enrolls must hold the private key of the payload, because it
+signs server proofs and access secrets. The native host has it. A Worker host enrolls only when
+`WorkerHostConfig::enrollment` is set: the private key then comes from a Worker secret, sealed as
+[key-protection.md](./key-protection.md) requires. A Worker without it stays verify-only and
+accepts only access secrets that an operator's tool issued. See open question 4 in
+[feature.md](./feature.md).
+
+This sequence diagram shows enrollment with a client key, for example from a browser page. The
+TLS channel uses the normal certificate roots; no pin and no client certificate are needed.
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant Op as Operator
-    participant H as Native host
-    participant C as Client
+    participant H as Host (native or Worker)
+    participant C as Client (browser, Worker or native)
     participant T as Trust store
     Op->>H: ask for a payload
-    H->>H: SecretIssuer.issue (purpose enroll, window from Env clock)
-    H-->>Op: BootstrapPayload (url, enroll_url, fingerprint, signed secret)
+    H->>H: SecretIssuer.issue (purpose enroll, aud = url, window from Env clock)
+    H-->>Op: BootstrapPayload (url, enroll_url, signed secret with public key)
     Op->>C: give the payload (string or QR code)
-    C->>C: decode, check own signature and window
-    C->>H: TLS to enroll_url, pinned fingerprint
-    C->>H: Enroll(secret, client name, CSR)
-    H->>H: SecretVerifier.verify (signature, purpose, window with skew)
+    C->>C: decode; check signature, window, and aud = url
+    C->>C: make a key pair (WebCrypto, non-extractable) and a nonce
+    C->>H: Enroll(secret, client name, client public key, nonce) over HTTPS
+    H->>H: SecretVerifier.verify (signature, purpose, aud, window with skew)
     H->>T: is the secret revoked?
     T-->>H: no
-    H->>H: sign the CSR (CA)
     H->>T: consume one use (atomic)
-    T-->>H: Counted, or Spent
-    H->>T: record the client (fingerprint)
-    H-->>C: client certificate and CA certificate
+    H->>T: record the client (client_id, key fingerprint)
+    H->>H: sign server proof (nonce, client key, client_id) and an access secret (sub = client_id)
+    H-->>C: client_id, access secret, server proof
+    C->>C: check the server proof with the payload public key
+    C->>H: RPC calls with Authorization: Bearer <access secret>
+    H->>H: SignedSecretAuth: signature, aud, window, client not revoked
+    C->>H: before expiry: RefreshAccess(client_id, time, nonce, signature by client key)
+    H-->>C: a new access secret
+```
+
+This sequence diagram shows the native certificate kind. It is the flow of today, plus the nonce
+and the server proof.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Native client
+    participant H as Native host
+    participant T as Trust store
+    C->>H: TLS to enroll_url (pinned fingerprint, if the payload has one)
+    C->>H: Enroll(secret, client name, CSR, nonce)
+    H->>H: verify the secret; sign the CSR (CA)
+    H->>T: consume one use; record the client (certificate fingerprint)
+    H-->>C: client certificate, CA certificate, server proof
+    C->>C: check the server proof
     C->>H: mTLS to the agent listener
     H->>H: TrustedClientVerifier checks the index (no I/O)
     C->>H: an RPC call
@@ -2137,20 +2262,22 @@ sequenceDiagram
 | Someone copies a payload or an enrollment secret | the right to enroll | One use only (atomic count). A short window (24 hours). The operator gives the payload over a trusted path. Revocation by secret ID. |
 | Someone forges a secret | the right to enroll or call | Ed25519 signature with a domain-separated message. Unknown keys fail. |
 | Someone changes the purpose or audience of a secret | the right to call another host | Both fields are inside the signature (version 2). |
-| Someone sits between the client and the bootstrap listener | the enrollment | The client pins the server certificate (SHA-256 from the payload). A changed certificate fails the handshake. |
-| Someone steals a client private key | the right to call | The key never leaves the client. Revoke the client; the next call fails (`MtlsAuth` checks each call). |
+| Someone sits between the client and the enrollment endpoint, or changes the `url` in the payload | the enrollment | The server proof (section 9.1.1): only the holder of the payload private key can sign the client's nonce. `aud = url` is inside the token signature. A native client can also pin the certificate. |
+| Someone steals an access secret (client-key kind) | the right to call until it expires | Short window (`access_lifetime`, default 1 hour); revoking the client stops it at once (`SignedSecretAuth` checks `sub`); a new one needs the client private key (`RefreshAccess`). |
+| Someone steals a client private key | the right to call | The key never leaves the client (a browser key is non-extractable). Revoke the client; the next call fails (`MtlsAuth` and `SignedSecretAuth` check each call). |
 | Someone steals the database | private keys | Private keys in databases are sealed with a KEK that is not in the database. AEAD binds each blob to its record. |
 | Someone copies an old sealed record back (rollback) | an old key | Not blocked: it needs a counter outside the database. Recorded as a limit; the operator rotates keys after a breach. |
 | A wrong client clock | false refusals | `clock_skew` of 5 minutes at both ends of the window; certificates start 5 minutes in the past. |
 | A wrong server clock | false acceptance of an expired secret | The window check uses the server clock; operators run time sync. DST tests skew on both sides. |
-| Many enrollment attempts | CPU (CSR checks, signing) | A rate limit per peer address on `Enroll` (`EnrollConfig::rate`, default 1 per second with a burst of 5 — the `limit_req` example in the nginx documentation). Bad secrets fail before the CSR is parsed. |
+| Many enrollment attempts | CPU (CSR checks, signing) | A rate limit per peer address on `Enroll` and `RefreshAccess` (`EnrollConfig::rate`, default 1 per second with a burst of 5 — the `limit_req` example in the nginx documentation). Bad secrets fail before the credential is parsed. |
 | A client sends a false `ewe-forwarded-principal` header to a Worker | another identity in the DO | The Worker deletes every `ewe-forwarded-*` header before auth. The DO is reachable only through the Worker binding. |
 | One client uses another client's instance | sessions and history | Instance names are scoped by owner when `ScopePolicy::PerOwner` is set (owner decision 1 in [feature.md](./feature.md)). |
 | Secrets or keys in logs | all secrets | Redacting `Debug` and `Display` (as today). A log test captures the log output at trace level for the whole flow (`auth_log_tests` moves to the native host tests). |
 
 ### 9.3 Replay protection
 
-- **Enrollment secrets:** one use (atomic in SQL), inside a short window, over a pinned TLS channel. A replay gets `UNAUTHENTICATED` ("credentials already used").
+- **Enrollment secrets:** one use (atomic in SQL), inside a short window. A replay gets `UNAUTHENTICATED` ("credentials already used"). The server proof binds the reply to the client's own nonce and key, so a recorded reply is useless to anyone else.
+- **Refresh requests:** signed by the client key over a time and a nonce; the time must be inside `clock_skew` and each nonce works once (`mark_refresh_nonce`).
 - **Access secrets:** a bearer credential works for many calls inside its window, like an API token. Defenses: the audience binds it to one host; the window is limited (30 days by default); `max_uses` can limit it; revocation by ID stops it at once; TLS protects it in transit.
 - **Cross-purpose replay:** a version 1 secret is always `enroll`. `SignedSecretAuth` requires `access`. So an enrollment secret never works as a bearer credential.
 
@@ -2159,6 +2286,7 @@ sequenceDiagram
 | What | How | When it takes effect |
 |---|---|---|
 | One client certificate | `TrustedClients::revoke_client` | The next handshake (verifier) and the next call (`MtlsAuth`). |
+| One client-key client | `TrustedClients::revoke_client` | The next call (`SignedSecretAuth` checks `sub`) and the next `RefreshAccess`. |
 | One secret | `TrustedClients::revoke_secret` | The next enrollment or call that shows it. |
 | All secrets of a key | Remove the public key from the verifiers (rotation) | When the host reloads its configuration. |
 | All client certificates | Make a new CA; clients enroll again | At once for new handshakes. |

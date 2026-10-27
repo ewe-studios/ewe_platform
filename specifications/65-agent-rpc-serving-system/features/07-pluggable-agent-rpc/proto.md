@@ -87,8 +87,12 @@ service AgentService {
 }
 
 service BootstrapService {
-  // Present a signed bootstrap secret and a CSR; receive a client certificate.
+  // Present a signed bootstrap secret and a credential (a client public key,
+  // or a CSR); receive a client_id, the credential, and a server proof.
+  // Any client can call it, a browser included (auth.md section 9.1).
   rpc Enroll(EnrollRequest) returns (EnrollResponse);
+  // NEW (07): a new access secret for a client-key client, signed with its key.
+  rpc RefreshAccess(RefreshAccessRequest) returns (RefreshAccessResponse);
 }
 
 // ---------------------------------------------------------------------------
@@ -307,18 +311,58 @@ message TurnDone {
 
 message EnrollRequest {
   // A signed bootstrap secret (base64url JSON, see auth.md), as carried by
-  // BootstrapPayload.token. Its purpose must be "enroll".
+  // BootstrapPayload.token. Its purpose must be "enroll" and its aud must be
+  // this host's url.
   string token = 1;
-  // Recorded as the certificate's common name.
+  // A display name for the client, recorded with it.
   string client_name = 2;
-  // PKCS#10 certificate signing request; the private key stays on the client.
-  string csr_pem = 3;
+  // The credential the client wants. Exactly one is set.
+  oneof credential {
+    // PKCS#10 certificate signing request; the private key stays on the
+    // client. The client then uses mTLS. Native hosts only.
+    string csr_pem = 3;
+    // NEW (07): a client public key; the private key stays on the client.
+    // The client then uses access secrets. Every host that enrolls.
+    ClientKey client_key = 4;
+  }
+  // NEW (07): 32 random bytes from the client. The server signs them in
+  // server_proof.
+  bytes nonce = 5;
+}
+
+// NEW (07): a client public key.
+message ClientKey {
+  // "ed25519" (raw 32 bytes) or "p256" (uncompressed SEC1, 65 bytes).
+  string alg = 1;
+  bytes public_key = 2;
 }
 
 message EnrollResponse {
+  // Set for the csr_pem credential.
   string client_cert_pem = 1;
-  // The CA that signs client and server certificates.
+  // The CA that signs client and server certificates. Set for csr_pem.
   string ca_cert_pem = 2;
+  // NEW (07): the ID of the enrolled client.
+  string client_id = 3;
+  // NEW (07): set for the client_key credential. A SignedSecret v2 with
+  // purpose access, aud = url, sub = client_id. Send it as a bearer credential.
+  string access_secret = 4;
+  // NEW (07): the server's signature, with the payload private key, over the
+  // nonce, the client credential and client_id (auth.md section 9.1.1).
+  bytes server_proof = 5;
+}
+
+// NEW (07). Signed with the client private key over
+// "ewe.agent_rpc.refresh.v1" 0x00 client_id unix_ms nonce.
+message RefreshAccessRequest {
+  string client_id = 1;
+  uint64 unix_ms = 2;
+  bytes nonce = 3;
+  bytes signature = 4;
+}
+
+message RefreshAccessResponse {
+  string access_secret = 1;
 }
 
 // What an operator gives a client, as base64url text or a QR code.
@@ -335,16 +379,18 @@ message BootstrapPayload {
   // system root certificates (a host with a public certificate, such as a
   // Cloudflare Worker).
   string tls_fingerprint_sha256 = 4;
-  // The signed, time-boxed secret (see auth.md). Its purpose says what the
-  // client does with it: Enroll = get a client certificate at enroll_url;
-  // Access = send it as a bearer credential on each call to url.
+  // The signed, time-boxed secret (see auth.md). It also carries the server
+  // public key. Its purpose says what the client does with it: Enroll = call
+  // Enroll at enroll_url (any client, a browser included); Access = send it
+  // as a bearer credential on each call to url.
   string token = 5;
   Capabilities capabilities = 6;
   // NEW (07): the base URL of AgentService. One form for every host, for
   // example "https://203.0.113.7:7443" or "https://agents.example.com/rpc".
   string url = 7;
   // NEW (07): the base URL of BootstrapService. Set only when the token
-  // purpose is Enroll. The same tls_fingerprint_sha256 applies to it.
+  // purpose is Enroll. It can equal url (one listener, for example a Worker).
+  // The same tls_fingerprint_sha256 applies to it.
   string enroll_url = 8;
 }
 
@@ -364,6 +410,9 @@ message Capabilities {
 | Message.field | Number | Change | Effect on old peers |
 |---|---|---|---|
 | `AgentService.GetCapabilities` | — | new RPC | An old server answers `UNIMPLEMENTED`. A new client then falls back to `Health`. |
+| `BootstrapService.RefreshAccess` | — | new RPC | Only clients that enrolled with a client key call it. |
+| `EnrollRequest.credential` (`csr_pem` in a oneof, new `client_key`), `.nonce` | 3, 4, 5 | changed, new | `csr_pem` keeps number 3, so a feature 01 request still decodes. Without a `nonce`, the server refuses (`INVALID_ARGUMENT`): feature 01 clients enroll again with a new build. |
+| `EnrollResponse.client_id`, `.access_secret`, `.server_proof` | 3, 4, 5 | new | An old client ignores them. |
 | `CreateInstanceRequest.kind` | 6 | new | An old server ignores it and uses `model` as today. |
 | `CreateInstanceRequest.device` | 7 | new | Same as above. |
 | `InstanceInfo.kind`, `.device` | 5, 6 | new | An old client ignores them. |
@@ -444,6 +493,9 @@ and one for serverless, when a Cloudflare Worker also has an address?
   field adds a second rule that can disagree with the fields. The earlier design used
   `version = 2` only to say "use `base_url`, not `addr`". With one address form, nothing is left
   for it to say.
+- **The address is signed.** An enrollment token carries `aud` = `url` inside its signature, and
+  the server proves that it holds the payload private key (auth.md section 9.1.1). So the payload
+  is the owner's tamper-proof package: address, secret, signature and server public key.
 - **One address type.** Every host has an address, and a URL can hold all of them:
   `https://203.0.113.7:7443` for a native host, `https://agents.example.com/rpc` for a Worker.
   The host kinds differ in two other facts, and the payload already carries each one:
@@ -451,7 +503,7 @@ and one for serverless, when a Cloudflare Worker also has an address?
   | Fact | Native host | Worker | Where the payload says it |
   |---|---|---|---|
   | How the client checks the server certificate | pin the host's own certificate | system root certificates | `tls_fingerprint_sha256` set or empty |
-  | How the client gets access | enroll for a client certificate, then mTLS | send the token as a bearer credential | the token's `purpose` (`Enroll` or `Access`), and `enroll_url` |
+  | How the client gets access | enroll (client key or, for a native client, a CSR) | enroll with a client key, or a bearer token from the operator | the token's `purpose` (`Enroll` or `Access`), and `enroll_url` |
 
   Two URL types would repeat these facts, and could disagree with them (for example a
   "serverless" URL with a pinned fingerprint). So the payload has one `url`, and the client
@@ -489,7 +541,9 @@ pub enum TlsTrust {
 /// How the client gets access. Derived from the token purpose.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BootstrapAccess {
-    /// Purpose `Enroll`: enroll at `enroll_url`, then call `url` with mTLS.
+    /// Purpose `Enroll`: call `Enroll` at `enroll_url` with a client key (any
+    /// client) or a CSR (native, then mTLS). Check the server proof with
+    /// `token.public_key` (auth.md section 9.1).
     Enroll { token: SignedSecret, enroll_url: Url },
     /// Purpose `Access`: send the token as a bearer credential on each call.
     Bearer { token: SignedSecret },
@@ -502,7 +556,7 @@ pub enum BootstrapAccess {
 |---|---|
 | `url` | Required. `https://<host>[:port][/path]`, or `http://` only with a loopback host. An empty `url` gives the message "this payload has no url; payloads made before feature 07 are not accepted, issue a new one". |
 | `tls_fingerprint_sha256` | Empty, or 64 lowercase hex characters. Must be empty with an `http` URL. |
-| `token` | Required. Decodes as a `SignedSecret` with purpose `Enroll` or `Access`. |
+| `token` | Required. Decodes as a `SignedSecret` with purpose `Enroll` or `Access`. Its signature is checked with its own `public_key`. For `Enroll`, its `aud` must equal `url`, so a changed address fails. |
 | `enroll_url` | Required when the purpose is `Enroll`. Must be empty when the purpose is `Access`. Same scheme rules as `url`. |
 | `capabilities` | Optional. |
 
@@ -515,15 +569,19 @@ A decode error is `AgentRpcError::Codec`. It maps to `INVALID_ARGUMENT`.
   listener, as today. It sets the fingerprint and issues an `Enroll` token. With
   `NativeSecurity::Mtls { accept_access_secrets: true }`, the operator can also issue a payload
   with an `Access` token and no `enroll_url`.
-- The Worker host writes its public URL, no fingerprint, an `Access` token and no `enroll_url`.
+- The Worker host writes its public URL and no fingerprint. With
+  `WorkerHostConfig::enrollment` set, it issues an `Enroll` token and sets `enroll_url` to the
+  same URL (the Worker serves `BootstrapService` on the same origin). Without it, the operator's
+  tool issues an `Access` token and `enroll_url` stays empty.
 
 A Worker fills the payload like this:
 
 ```rust
-// host::worker::bootstrap — the payload a Worker hands out.
+// host::worker::bootstrap — a verify-only Worker (no `enrollment` config).
 // `public_url` comes from the Worker configuration (var AGENT_RPC_PUBLIC_URL).
 // `token` is a SignedSecret with purpose = Access, issued by the operator's
-// tool that holds the private key (the Worker has only the public key).
+// tool that holds the private key. A Worker with `enrollment` set writes an
+// Enroll token instead, with enroll_url = url, and clients enroll with it.
 let payload = BootstrapPayload {
     url: "https://agents.example.com/rpc".into(),
     enroll_url: String::new(),                        // no enrollment on a Worker
@@ -542,7 +600,8 @@ let payload = BootstrapPayload {
 ```
 
 What the code does: it gives a URL, no pin and a bearer token. The client derives
-`TlsTrust::SystemRoots` and `BootstrapAccess::Bearer`.
+`TlsTrust::SystemRoots` and `BootstrapAccess::Bearer`. With an `Enroll` token, the client derives
+`BootstrapAccess::Enroll` and enrolls with a client key (auth.md section 9.1).
 
 A native host fills the same message like this:
 

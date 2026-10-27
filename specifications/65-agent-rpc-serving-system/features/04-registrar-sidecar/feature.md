@@ -461,8 +461,9 @@ pub struct RegistrarConfig {
     pub manifest_path: PathBuf,
     /// The registration authority: "https://10.0.0.2:9443", or "unix:///run/ewe/registration.sock".
     pub proxy: String,
-    /// The SHA-256 fingerprint of the proxy registration certificate, used
-    /// only at enrollment. Comes with the token.
+    /// Optional extra check at enrollment: the SHA-256 fingerprint of the
+    /// proxy registration certificate. The server proof (feature 03, section
+    /// 5.2) already proves the proxy; a pin adds protection.
     pub proxy_fingerprint_sha256: Option<String>,
     /// The enrollment token file. Read at first start, then deleted.
     pub enrollment_token_path: Option<PathBuf>,

@@ -478,6 +478,20 @@ pub struct WorkerHostConfig {
     /// Largest request body that `FetchServe` reads. Default 4 MiB: the
     /// gRPC default maximum receive message size.
     pub max_request_bytes: usize,
+    /// `Some`: this Worker serves `BootstrapService` (Enroll, RefreshAccess)
+    /// on its own origin, so browsers and other clients can enroll with a
+    /// client key (auth.md section 9.1). The payload private key comes from
+    /// the Worker secret named here, sealed as key-protection.md requires.
+    /// `None` (default): verify-only; only operator-issued access secrets work.
+    pub enrollment: Option<WorkerEnrollment>,
+}
+
+#[derive(Debug, Clone)]
+pub struct WorkerEnrollment {
+    /// The Worker secret (or Secrets Store secret) that holds the sealed
+    /// payload private key. Var `AGENT_RPC_SIGNING_KEY_SECRET`.
+    pub signing_key_secret: String,
+    pub enroll: EnrollConfig,
 }
 
 impl WorkerHostConfig {
@@ -986,30 +1000,50 @@ What the code does:
 
 ### 6.3 The client API
 
+A browser client enrolls with the payload, as every other client can (auth.md section 9.1). It
+makes a client key with WebCrypto, enrolls, checks the server proof, and then sends a short
+access secret on each call. It refreshes the access secret with its key before it expires.
+
 ```rust
 // foundation_agent_rpc/src/client/web.rs (cfg(target_family = "wasm"), feature "web-client", task T22)
 pub struct WebClient {
     agent: AgentServiceClient,
+    bootstrap: BootstrapServiceClient,
+    /// The client key and the current access secret.
+    session: Arc<WebSession>,
+}
+
+/// Where a page keeps its enrolled identity between visits. The default,
+/// `IndexedDbCredentials`, stores the non-extractable WebCrypto key and the
+/// client_id in IndexedDB, so a page reload does not enroll again.
+#[async_trait::async_trait(?Send)]
+pub trait WebCredentialStore {
+    async fn load(&self, url: &str) -> AgentRpcResult<Option<WebIdentity>>;
+    async fn save(&self, url: &str, identity: &WebIdentity) -> AgentRpcResult<()>;
 }
 
 impl WebClient {
-    /// Read a bootstrap payload and make a client. The payload must give
-    /// `BootstrapAccess::Bearer` and `TlsTrust::SystemRoots` (or `Plaintext`
-    /// on loopback); the token is the bearer secret.
+    /// Enroll with a payload whose token purpose is `Enroll`:
+    /// 1. decode; check the token signature, window and `aud == url`;
+    /// 2. make a non-extractable key (`crypto.subtle.generateKey`, Ed25519,
+    ///    or P-256 where the browser has no Ed25519) and a nonce;
+    /// 3. call `Enroll` with `client_key` and the nonce;
+    /// 4. check `server_proof` with the payload public key;
+    /// 5. save the identity; keep the access secret in memory.
     ///
     /// # Errors
     /// `Codec` for a bad payload; `Config` for a payload that a browser
-    /// cannot use (section 6.4).
-    pub fn from_payload(payload: &str) -> AgentRpcResult<Self> {
-        let payload = core::bootstrap::decode(payload)?;
-        let token = check_browser_payload(&payload)?; // the bearer token, section 6.4
-        let transport: Arc<dyn Transport> = Arc::new(FetchTransport::new(GlobalFetcher, FetchTransportConfig::default()));
-        let options = ClientOptions::new()
-            .with_connect()
-            .with_header("authorization", format!("Bearer {}", token.encode()));
-        let agent = AgentServiceClient::new(transport, payload.url.as_str(), options).map_err(client_error)?;
-        Ok(Self { agent })
-    }
+    /// cannot use (section 6.4); `Unauthenticated` for a used, revoked or
+    /// expired token, or a server proof that does not verify.
+    pub async fn enroll(payload: &str, client_name: &str, store: &dyn WebCredentialStore) -> AgentRpcResult<Self> { todo!("T22") }
+
+    /// Use an identity that `enroll` saved: call `RefreshAccess` for a new
+    /// access secret, signed with the stored key.
+    pub async fn resume(url: &str, store: &dyn WebCredentialStore) -> AgentRpcResult<Option<Self>> { todo!("T22") }
+
+    /// Use a payload whose token purpose is `Access` (operator-issued bearer):
+    /// no enrollment, the token is the bearer secret until it expires.
+    pub fn from_access_payload(payload: &str) -> AgentRpcResult<Self> { todo!("T22") }
 
     pub async fn capabilities(&self) -> AgentRpcResult<pb::GetCapabilitiesResponse> { todo!("T22") }
     pub async fn create_instance(&self, spec: InstanceSpec) -> AgentRpcResult<InstanceInfo> { todo!("T22") }
@@ -1020,9 +1054,10 @@ impl WebClient {
 }
 ```
 
-What the code does: `from_payload` decodes the payload with the same core function as every
-other client. It checks the browser rules. It then makes the generated client over
-`FetchTransport` with the bearer header on every call.
+What the code does: every call goes through `FetchTransport` with
+`Authorization: Bearer <access secret>`. `WebSession` refreshes the access secret when less than
+a fifth of its window is left, and once more after an `UNAUTHENTICATED` reply, before it gives
+the error to the page.
 
 The example `examples/agent-rpc-web` (task T22) exports `WebClient` to JS with
 `wasm-bindgen`. A page can then call it from JS.
@@ -1031,11 +1066,12 @@ The example `examples/agent-rpc-web` (task T22) exports `WebClient` to JS with
 
 | Payload | Browser client behavior |
 |---|---|
-| `BootstrapAccess::Enroll` (token purpose `Enroll`) | Refuse with `Config` ("a browser cannot enroll; ask for a payload with an access token"). Enrollment needs a client certificate and a pinned TLS channel. |
-| `TlsTrust::SystemRoots` with `BootstrapAccess::Bearer` | Accept. The browser checks the certificate. |
-| `TlsTrust::PinnedSha256` | Refuse with `Config`. A page has no API to pin a certificate. Accepting it would drop the pin without telling anyone. |
+| `BootstrapAccess::Enroll` (token purpose `Enroll`) | **Accept.** Enroll with a client key (section 6.3). The server proof, not a pinned channel, proves the server. |
+| `BootstrapAccess::Bearer` (token purpose `Access`) | Accept. The token is the bearer secret. |
+| `TlsTrust::SystemRoots` | Accept. The browser checks the certificate. |
+| `TlsTrust::PinnedSha256` | Refuse with `Config` ("this host has a certificate that only a pin trusts; a browser cannot open TLS to it; serve the host with a public certificate or behind the proxy"). This is a TLS limit of browsers, not an enrollment limit: the browser refuses the TLS connection before any call. |
 | `TlsTrust::Plaintext` | Accept. `decode` allows it only for a loopback `url`, for development (proto.md section 6.3). |
-| `auth_modes` without `signed-secret` | Refuse with `Config`. The host does not accept bearer secrets. |
+| `auth_modes` without `signed-secret` | Refuse with `Config`. The host does not accept access secrets. |
 
 ### 6.5 CORS on the server
 
@@ -1075,7 +1111,7 @@ blocks the page from the response.
 
 ### 6.7 One call from start to end
 
-This diagram shows a browser page that uses a bearer payload with a Worker host.
+This diagram shows a browser page that enrolls with a Worker host and then streams a turn.
 
 ```mermaid
 sequenceDiagram
@@ -1084,11 +1120,16 @@ sequenceDiagram
     participant B as WebClient (wasm)
     participant F as FetchTransport
     participant W as Worker host
-    U->>B: WebClient.from_payload (bearer payload)
-    B->>B: decode, refuse pinned or enrollment payloads
-    U->>B: create_instance (name, kind API)
-    B->>F: unary call with the bearer header
+    U->>B: WebClient.enroll (payload, client name)
+    B->>B: decode; check token signature, window, aud = url; make key and nonce
+    B->>F: Enroll (token, client key, nonce)
     F->>W: CORS preflight (OPTIONS), then POST
+    W-->>F: client_id, access secret, server proof
+    F-->>B: EnrollResponse
+    B->>B: check server proof with the payload public key; save identity
+    U->>B: create_instance (name, kind API)
+    B->>F: unary call with the bearer header (access secret)
+    F->>W: POST
     W-->>F: InstanceInfo
     F-->>B: InstanceInfo
     U->>B: chat_stream (instance, prompt)
@@ -1109,7 +1150,9 @@ sequenceDiagram
 The native client of today (`client.rs`) keeps its behavior. It moves to
 `client::native` and uses the new parts:
 
-- `BootstrapAccess::Enroll`: dial `enroll_url` with the pinned fingerprint (`foundation_auth::mtls::client_config_pinned`), enroll with a new key and CSR, then dial `url` with mTLS (`client_config_mutual`).
+- `BootstrapAccess::Enroll`: dial `enroll_url` (with the pin when the payload has one, `foundation_auth::mtls::client_config_pinned`, else the system roots). Enroll with a nonce and one of the two credential kinds (auth.md section 9.1.2), and check the server proof:
+  - **certificate** (default on native when the host has a CA): send a CSR, then dial `url` with mTLS (`client_config_mutual`);
+  - **client key**: send a public key, then send the access secret on each call and refresh it, as the web client does.
 - `BootstrapAccess::Bearer`: dial `url` with the pin (`TlsTrust::PinnedSha256`) or the system roots (`TlsTrust::SystemRoots`), and send the token as a bearer secret on each call.
 - The client key comes from `Env` entropy, so a DST run makes the same CSR each time ([env.md](./env.md), section 8).
 - The client checks the payload window before it dials, as today. The check uses `Env::wall_now()`.
@@ -1126,6 +1169,7 @@ lists the fields of the core and of `foundation_auth`.
 | `NativeHostConfig::shutdown_grace` | native | 30 s | Kubernetes `terminationGracePeriodSeconds` |
 | `NativeHostConfig::preload` | native | true | as today |
 | `NativeHostConfig::public_url`, `public_enroll_url` | native | `None`: `https://` and the bound address | as today |
+| `WorkerHostConfig::enrollment` | Worker | `None` (verify-only) | enrollment needs the payload private key, which is opt-in on a Worker |
 | `NativeHostConfig::http` | native | `ServerConfig::defaults()` | `foundation_http` (as today) |
 | `WorkerHostConfig::max_request_bytes` | Worker | 4 MiB | gRPC default maximum receive message size |
 | `WorkerHostConfig::instance_idle_ttl` | Worker | none | an instance lives until `DestroyInstance` (as on the native host) |

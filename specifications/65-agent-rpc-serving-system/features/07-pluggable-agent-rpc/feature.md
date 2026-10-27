@@ -123,7 +123,9 @@ It does this with three ideas:
 | Device | Where a local model runs: CPU, CUDA GPU or Metal GPU. |
 | DO | Durable Object: a Cloudflare object with its own storage and one thread. We use one per instance. |
 | DST | Deterministic simulation testing: tests where every side effect comes from one seed, so a run can be repeated exactly. |
-| Enrollment | The step where a client shows a signed secret and gets a client certificate. |
+| Enrollment | The step where a client (native, Worker or browser) shows a signed secret, a nonce and a credential (a client public key or a CSR), and gets a `client_id`, an access secret or a client certificate, and a server proof. [auth.md](./auth.md) section 9.1. |
+| Server proof | The host's signature, with the payload private key, over the client's nonce and credential. It proves the right server answered, without a pinned TLS channel. |
+| Access secret | A short-lived `SignedSecret` (purpose `access`, `sub` = client ID) that a client-key client sends on each call and renews with `RefreshAccess`. |
 | Entropy | Random bytes. `EntropySource` is the trait that gives them. |
 | Fake | A small, controllable copy of a real part, for tests. |
 | gRPC, gRPC-Web | Google's RPC protocol over HTTP/2, and its variant for browsers. |
@@ -295,7 +297,7 @@ The other traits go to each component as a constructor argument._
 | `Clock` | `SystemClock` | `SystemClock` (wasm `Date.now()`) | `SimClock` |
 | `EntropySource` | `OsEntropy` | `OsEntropy` (wasm `crypto.getRandomValues`) | `SeededEntropy` |
 | `ClientAuth` | `MtlsAuth`, `SignedSecretAuth` | `SignedSecretAuth`, `CfMtlsAuth`, `JwtAuth` | any, with fakes |
-| `KeyStore` | `FsKeyStore` or `DbKeyStore<Turso>` | `DbKeyStore<KV>` (verify-only) | `MemoryKeyStore` |
+| `KeyStore` | `FsKeyStore` or `DbKeyStore<Turso>` | `DbKeyStore<KV>`: verify-only, or the sealed payload private key when `WorkerHostConfig::enrollment` is set | `MemoryKeyStore` |
 | `TrustStore` | `SqlTrustStore<Turso>` | `SqlTrustStore<D1>` | `MemoryTrustStore` |
 | `InstanceRegistry` | `LocalInstanceRegistry` | `DurableObjectRegistry` (a `LocalInstanceRegistry` inside each DO) | `LocalInstanceRegistry` |
 | `ModelCatalog` | `LocalCatalog` (Candle, GGUF, API) | `RemoteCatalog` (API only) | `ScriptedCatalog` |
@@ -343,7 +345,7 @@ sequenceDiagram
     participant D as Instance DO
     participant P as Remote model provider
     B->>W: HTTPS request (Connect or gRPC-Web)
-    W->>A: verify signed secret (public key only)
+    W->>A: verify access secret (signature, aud, window, client not revoked)
     A-->>W: AuthInfo
     W->>S: dispatch on Router
     S->>D: forward to the DO of this instance
@@ -368,17 +370,19 @@ sequenceDiagram
     O->>I: issue enroll secret (window, max uses)
     I-->>O: BootstrapPayload (address, fingerprint, signed secret)
     O->>C: give payload out of band (text or QR code)
-    C->>E: Enroll(secret, CSR) over server-auth TLS
-    E->>E: verify signature and window (SecretVerifier)
+    C->>E: Enroll(secret, nonce, client key or CSR) over HTTPS
+    E->>E: verify signature, aud = url and window (SecretVerifier)
     E->>T: spend one use (atomic)
-    E->>K: sign the CSR
+    E->>K: CSR only: sign it
     E->>T: record the enrolled client
-    E-->>C: client certificate and CA certificate
-    C->>C: connect again with mTLS
+    E-->>C: client_id, access secret or certificate, server proof
+    C->>C: check the server proof with the payload public key
+    C->>C: call with the access secret (any client) or mTLS (native, CSR)
 ```
 
-_The diagram shows how a client gets its certificate. The signed secret proves that the
-server issued it. The trust store makes sure each secret is used only as often as allowed._
+_The diagram shows how any client, a browser included, enrolls. The signed secret proves that the
+server issued it; the server proof proves that the right server answered. The trust store makes
+sure each secret is used only as often as allowed._
 
 ## 5. The owner's directions, and where each one is answered
 
@@ -431,6 +435,11 @@ For users of the current `foundation_agent_rpc` on branch `65-f01-agent-rpc`:
   refused; the operator issues a new one. Feature 01 was never released, so no deployed client
   is affected ([proto.md](./proto.md) section 6; owner decision 9).
 - `NativeHostConfig` gets `public_url` and `public_enroll_url` in place of a payload version.
+- Enrollment works for every client (owner, PR #126 review, 2026-10-26). `EnrollRequest` takes a
+  nonce and a credential oneof (`csr_pem` or a new `client_key`); `EnrollResponse` adds
+  `client_id`, `access_secret` and `server_proof`; `BootstrapService` adds `RefreshAccess`;
+  `SignedSecret` v2 adds a signed `sub`. A browser no longer refuses an enrollment payload
+  ([auth.md](./auth.md) section 9.1, [hosts.md](./hosts.md) section 6).
 
 Unchanged: the version 1 `SignedSecret` wire format and the existing RPC methods.
 
@@ -595,3 +604,11 @@ client. We record it as a separate feature for spec 50 (storage), after this one
    needs one of the clouds first.
 3. **Archive on native.** [hosts.md](./hosts.md) section 5.12 gives the native host the same archive
    step through a `foundation_db` blob store. **Recommendation: yes, default to a local directory.**
+4. **A Worker that enrolls holds the payload private key.** Enrollment from a browser to a
+   Worker needs a host that can sign server proofs and access secrets ([auth.md](./auth.md)
+   section 9.1). Options:
+   - A: the Worker holds the private key as a sealed Worker secret, behind
+     `WorkerHostConfig::enrollment` (off by default).
+   - B: a native host does the enrollment, and the Worker stays verify-only.
+   - **Recommendation: A, opt-in.** It keeps one flow on every host. Its risk: a leak of the Worker
+     secret lets an attacker issue tokens; rotation by `kid` limits it.

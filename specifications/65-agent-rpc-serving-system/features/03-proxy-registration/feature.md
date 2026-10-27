@@ -336,6 +336,8 @@ message EnrollRequest {
   string host_id = 2;
   // PKCS#10 CSR. The private key stays on the sidecar.
   string csr_pem = 3;
+  // 32 random bytes. The proxy signs them in server_proof.
+  bytes nonce = 4;
 }
 
 message EnrollResponse {
@@ -343,6 +345,9 @@ message EnrollResponse {
   // The registration CA. The sidecar uses it to check the proxy's
   // registration listener certificate from now on.
   string ca_cert_pem = 2;
+  // The proxy's signature with the token key over the nonce, the CSR hash
+  // and host_id (feature 07 auth.md section 9.1.1).
+  bytes server_proof = 3;
 }
 
 message RenewCertificateRequest {
@@ -409,9 +414,16 @@ sequenceDiagram
 _The diagram shows how a sidecar gets its certificate one time, and then uses mTLS for every
 call._
 
-At enrollment, the sidecar checks the proxy's registration certificate against a pinned SHA-256
-fingerprint that comes with the token (the same way as an agent-rpc client in feature 07). After
-enrollment it checks against the registration CA.
+At enrollment, the sidecar uses the same enrollment as an agent-rpc client (feature 07,
+[auth.md](../07-pluggable-agent-rpc/auth.md) section 9.1), with the certificate credential kind:
+
+- The token's `aud` is the registration URL, inside the signature, so a changed address fails.
+- The sidecar sends a nonce. The proxy signs a server proof with the token's key, and the sidecar
+  checks it with the public key in the token. This proves the right proxy answered.
+- If the operator also gives the registration certificate fingerprint, the sidecar pins it as
+  extra protection. It is optional.
+
+After enrollment, the sidecar checks the registration listener against the registration CA.
 
 ### 5.3 Certificate lifecycle
 
