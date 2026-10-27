@@ -8,11 +8,11 @@
 //! WHAT: [`ConnectRpcServeH3`] wrapping a [`ConnectRpcHandler`].
 //!
 //! HOW: `serve_h3()` returns a future that drives `H3Request::poll_headers`,
-//! `poll_body`, and `poll_send_*` via `std::future::poll_fn`. QUIC streams have
-//! no waker registration (`quinn-proto` is sans-IO and the endpoint driver task
-//! moves the datagrams), so a not-ready H3 poll wakes its own task before
-//! yielding: valtron then requeues it behind the driver instead of parking it on
-//! a wake that would never come.
+//! `poll_body`, and `poll_send_*` via `std::future::poll_fn`. Before each poll
+//! the future registers its waker on the QUIC connection; the endpoint driver
+//! task (which moves the datagrams for the sans-IO `quinn-proto`) wakes it when
+//! the connection makes progress, so a not-ready H3 future parks instead of
+//! busy-polling a worker.
 //!
 //! The request body of a streaming procedure is never collected: each DATA frame
 //! is forwarded into the protocol's bounded request pipe as it arrives, while the
@@ -101,7 +101,7 @@ pub async fn dispatch_h3(
     mut req: H3Request<QuinnBidiStream>,
 ) -> io::Result<()> {
     // ── 1. Read the request headers ──────────────────────────────────────
-    let fields = poll_h3(|| req.poll_headers()).await?;
+    let fields = poll_req(&mut req, H3Request::poll_headers).await?;
 
     let header = request_from_fields(&fields, connection)
         .map_err(|e| io::Error::other(e.to_string()))?;
@@ -427,13 +427,13 @@ async fn run_streaming_h3(
             // gRPC's outcome rides trailing HEADERS (`grpc-status`); a stream
             // that ends without them reads as `Unknown` to every gRPC client.
             let mut trailer_frame = Req::encode_headers(&grpc_status_trailers(failure.as_ref()));
-            poll_h3(|| req.poll_send_headers(&mut trailer_frame)).await?;
+            poll_req(&mut req, |r| r.poll_send_headers(&mut trailer_frame)).await?;
         } else if let Some(frame) = failure
             .as_ref()
             .and_then(|e| stream_error_frame(protocol, &request, e))
         {
             let mut data_frame = Req::encode_data(frame);
-            poll_h3(|| req.poll_send_data(&mut data_frame)).await?;
+            poll_req(&mut req, |r| r.poll_send_data(&mut data_frame)).await?;
         }
         poll_h3_finish(&mut req).await?;
         return Ok(());
@@ -474,29 +474,44 @@ fn abort_call(req: &mut Req, cancel: &CancelSignal, error: &io::Error) -> io::Er
 
 /// Map one H3 poll result onto `std::task::Poll`.
 ///
-/// QUIC streams register no waker: bytes arrive when the endpoint driver task
-/// moves datagrams. A not-ready poll therefore wakes its own task before
-/// yielding, so valtron's `FutureTask` requeues it (`TaskStatus::Ignore`) behind
-/// the driver rather than parking it (`Depends`) on a wake that never comes.
-fn map_h3<T>(cx: &Context<'_>, polled: VStream<Result<T, H3Error>, ()>) -> Poll<io::Result<T>> {
+/// A not-ready poll parks: the caller registered `cx`'s waker on the QUIC
+/// connection first (`parked`), and the endpoint driver wakes it when the
+/// connection makes progress. Only a backend that cannot wake (`!parked`)
+/// falls back to waking its own task, so valtron requeues it behind the
+/// driver rather than parking it on a wake that never comes.
+fn map_h3<T>(
+    cx: &Context<'_>,
+    polled: VStream<Result<T, H3Error>, ()>,
+    parked: bool,
+) -> Poll<io::Result<T>> {
     match polled {
         VStream::Next(Ok(v)) => Poll::Ready(Ok(v)),
         VStream::Next(Err(e)) => Poll::Ready(Err(io::Error::other(e.to_string()))),
         _ => {
-            cx.waker().wake_by_ref();
+            if !parked {
+                cx.waker().wake_by_ref();
+            }
             Poll::Pending
         }
     }
 }
 
-/// Poll an `H3Request` method until it yields `Next(..)`.
-fn poll_h3<T>(
-    mut f: impl FnMut() -> VStream<Result<T, H3Error>, ()>,
-) -> impl Future<Output = io::Result<T>> {
-    std::future::poll_fn(move |cx: &mut Context<'_>| map_h3(cx, f()))
+/// Poll an `H3Request` method until it yields `Next(..)`, parking on the
+/// connection between attempts. The waker is registered *before* each
+/// attempt, so progress made between a `Pending` and the registration still
+/// wakes us.
+fn poll_req<'a, T>(
+    req: &'a mut Req,
+    mut f: impl FnMut(&mut Req) -> VStream<Result<T, H3Error>, ()> + 'a,
+) -> impl Future<Output = io::Result<T>> + 'a {
+    std::future::poll_fn(move |cx: &mut Context<'_>| {
+        let parked = req.register_waker(cx.waker());
+        let polled = f(req);
+        map_h3(cx, polled, parked)
+    })
 }
 
-/// [`poll_h3`] over the request shared by the body feeder and the response
+/// [`poll_req`] over the request shared by the body feeder and the response
 /// pump. The lock is taken for one synchronous poll and released before
 /// yielding, so it is never held across an `.await`.
 fn poll_shared<'a, T>(
@@ -504,11 +519,11 @@ fn poll_shared<'a, T>(
     mut f: impl FnMut(&mut Req) -> VStream<Result<T, H3Error>, ()> + 'a,
 ) -> impl Future<Output = io::Result<T>> + 'a {
     std::future::poll_fn(move |cx: &mut Context<'_>| {
-        let polled = match shared.lock() {
-            Ok(mut req) => f(&mut req),
+        let (parked, polled) = match shared.lock() {
+            Ok(mut req) => (req.register_waker(cx.waker()), f(&mut req)),
             Err(_) => return Poll::Ready(Err(io::Error::other("h3 request lock poisoned"))),
         };
-        map_h3(cx, polled)
+        map_h3(cx, polled, parked)
     })
 }
 
@@ -524,7 +539,7 @@ enum CollectedBody {
 /// `max_bytes` (`0` = unlimited, as for `SizeLimits::read_max_bytes`).
 async fn collect_h3_body(req: &mut Req, max_bytes: usize) -> io::Result<CollectedBody> {
     let mut body = Vec::new();
-    while let Some(chunk) = poll_h3(|| req.poll_body()).await? {
+    while let Some(chunk) = poll_req(req, H3Request::poll_body).await? {
         let read = body.len() + chunk.len();
         if max_bytes > 0 && read > max_bytes {
             return Ok(CollectedBody::TooLarge { read });
@@ -546,7 +561,7 @@ async fn send_h3_response(req: &mut Req, mut response: SimpleOutgoingResponse) -
     // response borrow done.
 
     let mut header_frame = Req::encode_headers(&response_fields);
-    poll_h3(|| req.poll_send_headers(&mut header_frame)).await?;
+    poll_req(req, |r| r.poll_send_headers(&mut header_frame)).await?;
 
     let stream = body
         .filter(|b| !matches!(b, SendSafeBody::None))
@@ -556,14 +571,14 @@ async fn send_h3_response(req: &mut Req, mut response: SimpleOutgoingResponse) -
         while let Some(chunk) = stream.next().await {
             let chunk = chunk.map_err(|e| io::Error::other(e.to_string()))?;
             let mut data_frame = Req::encode_data(Bytes::from(chunk));
-            poll_h3(|| req.poll_send_data(&mut data_frame)).await?;
+            poll_req(req, |r| r.poll_send_data(&mut data_frame)).await?;
         }
     }
 
     if !trailers.is_empty() {
         // The trailer section is a HEADERS frame after the body (RFC 9114 §4.1).
         let mut trailer_frame = Req::encode_headers(&h2_headers(&trailers));
-        poll_h3(|| req.poll_send_headers(&mut trailer_frame)).await?;
+        poll_req(req, |r| r.poll_send_headers(&mut trailer_frame)).await?;
     }
 
     poll_h3_finish(req).await
@@ -571,5 +586,5 @@ async fn send_h3_response(req: &mut Req, mut response: SimpleOutgoingResponse) -
 
 /// Poll `poll_finish` until the FIN is queued.
 fn poll_h3_finish(req: &mut Req) -> impl Future<Output = io::Result<()>> + '_ {
-    poll_h3(move || req.poll_finish())
+    poll_req(req, H3Request::poll_finish)
 }

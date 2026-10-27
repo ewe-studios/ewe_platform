@@ -20,6 +20,7 @@
 use std::collections::VecDeque;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
+use std::task::Waker;
 
 use bytes::Bytes;
 use quinn_proto::{ConnectionHandle, Dir};
@@ -54,6 +55,11 @@ pub(crate) struct ConnState {
     pub(crate) datagrams_supported: bool,
     /// Maximum datagram size the peer can receive, if supported.
     pub(crate) max_datagram_size: Option<usize>,
+    /// Futures parked on this connection (a stream read, write, accept or
+    /// open that returned `Pending`). The driver wakes them all whenever the
+    /// connection makes progress — any `quinn_proto` event, or its loss — so
+    /// they need not re-poll themselves.
+    pub(crate) wakers: Vec<Waker>,
 }
 
 impl ConnState {
@@ -69,6 +75,18 @@ impl ConnState {
             Dir::Bi => self.inbound_bidi.pop_front(),
             Dir::Uni => self.inbound_uni.pop_front(),
         }
+    }
+
+    /// Park `waker` until the connection next makes progress.
+    pub(crate) fn park(&mut self, waker: &Waker) {
+        if !self.wakers.iter().any(|w| w.will_wake(waker)) {
+            self.wakers.push(waker.clone());
+        }
+    }
+
+    /// Take every parked waker, to wake once the lock is released.
+    pub(crate) fn take_wakers(&mut self) -> Vec<Waker> {
+        std::mem::take(&mut self.wakers)
     }
 
     /// Queue an inbound stream the driver accepted from `quinn_proto`.

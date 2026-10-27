@@ -50,6 +50,18 @@ fn closed_error(state: &SharedConn) -> Option<QuicStreamError> {
     })
 }
 
+/// Park `waker` on the connection behind `state` (see
+/// [`QuicConnection::register_waker`]). A poisoned lock cannot park.
+fn park_on(state: &SharedConn, waker: &std::task::Waker) -> bool {
+    match lock(state) {
+        Ok(mut guard) => {
+            guard.park(waker);
+            true
+        }
+        Err(_) => false,
+    }
+}
+
 /// A live QUIC connection over `quinn-proto`.
 pub struct QuinnConnection {
     state: SharedConn,
@@ -243,6 +255,10 @@ impl QuicConnection for QuinnConnection {
         };
         guard.max_datagram_size
     }
+
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        park_on(&self.state, waker)
+    }
 }
 
 /// The write half of a `quinn-proto` stream.
@@ -343,6 +359,10 @@ impl QuicSendStream for QuinnSendStream {
     fn id(&self) -> StreamId {
         self.id
     }
+
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        park_on(&self.state, waker)
+    }
 }
 
 /// The read half of a `quinn-proto` stream.
@@ -442,6 +462,10 @@ impl QuicRecvStream for QuinnRecvStream {
     fn id(&self) -> StreamId {
         self.id
     }
+
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        park_on(&self.state, waker)
+    }
 }
 
 /// A bidirectional `quinn-proto` stream — both halves over one id.
@@ -495,6 +519,10 @@ impl QuicSendStream for QuinnBidiStream {
     fn id(&self) -> StreamId {
         self.send.id()
     }
+
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        QuicSendStream::register_waker(&self.send, waker)
+    }
 }
 
 impl QuicRecvStream for QuinnBidiStream {
@@ -506,6 +534,10 @@ impl QuicRecvStream for QuinnBidiStream {
     }
     fn id(&self) -> StreamId {
         self.recv.id()
+    }
+
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        QuicRecvStream::register_waker(&self.recv, waker)
     }
 }
 
