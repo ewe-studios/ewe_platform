@@ -207,6 +207,14 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
 
 ## 8. foundation_openapi / foundation_codegentools
 
+- **D1 `read_replication` update bodies are untyped**
+  (`foundation_deployment_cloudflare/src/generated/workers/mod.rs`).
+  `D1DatabaseUpdateRequestBody.read_replication` and
+  `D1DatabaseUpdatePartialRequestBody.read_replication` are
+  `HashMap<String, serde_json::Value>`, while the create and details types use
+  `D1ReadReplicationDetails`. Code that turns read replication on (`mode: auto`)
+  would have to write untyped JSON (rule 5). Fix the generator so the update
+  bodies use the same typed struct, then regenerate.
 - **Boolean query parameters are generated as `Option<String>`** (for example `ContainerStatsArgs.stream` / `one_shot`), probably for every endpoint.
   - Generate `Option<bool>` and serialise it.
   - Related: Docker `image_build` can only send one tag, because `t` isn't treated as an array.
@@ -334,6 +342,20 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   runs that had rotted (foundation_db `libsql`, foundation_nativeapis
   `vfs-native,vfs-d1,vfs-r2`, foundation_vectors `sql-store`, foundation_auth
   `server-test`) are in `ci/packages.toml` since F04 T12.
+- **`BlobStore` moves whole objects in memory** (`src/core/storage_provider.rs`).
+  `get_blob_async` returns `Vec<u8>` and `put_blob_async` takes `&[u8]`, so every
+  R2 or file object is read and written whole (rule 4). The trait also has no
+  range read, no conditional put (`If-None-Match` / `If-Match`) and no ordered
+  listing from a start key, which an append log or a tiered store on R2 needs
+  (see `specifications/research/edge-data/tiered-store.md`, issue #155). Fix:
+  stream bodies in and out (a body stream for put, a stream for get), and add
+  range get, conditional put and `list_after` with their own tests.
+- **`QueryStore::execute_batch_async` takes one raw SQL string with no bound
+  parameters** (`src/core/storage_provider.rs`). D1 `batch()` of prepared
+  statements is the only atomic multi-statement write on D1, so a flush of many
+  rows from a Durable Object to D1 cannot be done safely through the trait.
+  Fix: add a batch of `(sql, params)` statements that maps to D1 `batch()` and
+  to one transaction on libsql and Turso.
 
 ## 12. foundation_auth
 
