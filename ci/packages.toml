@@ -208,6 +208,13 @@ wasm = "enforce"
 # `turbopuffer` takes the fetch client on wasm32 (foundation_netio `wasm-fetch`).
 wasm-runs = ["", "turbopuffer"]
 
+[packages.foundation_keychain]
+# Runs on Cloudflare Workers (D1 + the fetch client for the icon proxy, #140);
+# the wasm32 target pulls its own backend features, so the default set is the
+# wasm build.
+wasm = "enforce"
+wasm-runs = [""]
+
 [packages.foundation_nativeapis]
 # The D1/R2 delta VFS tests skip without the local Cloudflare emulator; the
 # blob-delta and native VFS tests always run.

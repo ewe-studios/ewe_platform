@@ -646,6 +646,18 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   (the docs say "with pagination"). Fix: follow `Link` lazily as the stream
   is pulled.
 
+## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
+
+- **`foundation_keychain`**: `rmpv` is an unused dependency on wasm32
+  (`Cargo.toml`; only native code uses it), and `src/server/signalr_do.rs:29`
+  imports `notifications::self` without using it. Fix: move `rmpv` to the
+  native target section and drop the `self` import.
+- **`foundation_deployment_cloudflare`**: `src/workers/durable_object.rs:24`
+  imports `worker::Error` without using it. Fix: drop it.
+- **`foundation_wasm`**: `src/capability.rs:24` imports
+  `foundation_nostd::comp::basic::Mutex` without using it on wasm32. Fix:
+  gate the import with the `cfg` of its use, or drop it.
+
 ## Paused
 
 - Windows/macOS VM images (#69).
