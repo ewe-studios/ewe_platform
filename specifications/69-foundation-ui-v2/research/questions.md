@@ -15,22 +15,25 @@ named after each question has the detail.
 
 ## Wire format
 
-**Q1. Which FlatBuffers generator, and where do the types live?** ([`wire-envelope.md`](wire-envelope.md))
-- (a) `flatc` (C++ binary in the build).
-- (b) A pure Rust generator such as `planus`.
-- (c) Hand-written readers (against rule 5).
+**Q1. Where do the schema and the generated code live?** ([`wire-envelope.md`](wire-envelope.md))
 
-Types live in (i) `foundation_ui_traits` (adds a dependency to a zero-dependency crate) or
-(ii) a new `foundation_ui_wire` crate.
+The generator is `flatc`, because it is the one tool that generates Rust, TypeScript, Swift and
+Kotlin from one schema (D7). `planus` generates only Rust.
 
-**Rec.** (b) plus (ii), if a spike shows `no_std` support and 8-byte vector alignment. Else
-(a) plus (ii).
+- (a) A new `foundation_ui_wire` crate holds the `.fbs` files and the generated Rust code.
+  A build script (or a checked-in generation step, like our other generators) writes the
+  TypeScript, Swift and Kotlin packages next to it.
+- (b) The `.fbs` files in `foundation_ui_traits` (adds a dependency to a zero-dependency
+  `no_std` crate).
 
-**Q2. Drop MessagePack from the payload union?** ([`wire-envelope.md`](wire-envelope.md))
-- (a) Drop. FlatBuffers tables and Arrow cover the cases.
+**Rec.** (a), with the generated code checked in and a CI check that regenerates and compares,
+so a build does not need `flatc` installed.
+
+**Q2. Drop MessagePack from the body union?** ([`wire-envelope.md`](wire-envelope.md))
+- (a) Drop. It has no schema, so it cannot be generated for every language (D7).
 - (b) Keep as a union member for schema-less data.
 
-**Rec.** (a). Add it later if a real schema-less case appears.
+**Rec.** (a).
 
 **Q3. State format on the wire.** ([`wire-envelope.md`](wire-envelope.md))
 - (a) The document's eight-way `StateFormatPayload` union.
@@ -39,12 +42,12 @@ Types live in (i) `foundation_ui_traits` (adds a dependency to a zero-dependency
 
 **Rec.** (b). The client never reads state, so the format is a server concern.
 
-**Q4. Do we benchmark before we pick a default body?** ([`columnar-zero-copy.md`](columnar-zero-copy.md))
-- (a) Yes: columnar versus FlatBuffers table at 1, 10, 100 and 10 000 ops, on web and native.
-- (b) No: keep columnar as the default for web and use FlatBuffers tables for native.
+**Q4. When do we retire the hand-written columnar code?** ([`columnar-zero-copy.md`](columnar-zero-copy.md))
+- (a) When the generated FlatBuffers columnar table matches `ColumnarBatch` and the JavaScript
+  `ColumnarParser` in a benchmark (1, 10, 100 and 10 000 operations).
+- (b) At once, with no benchmark.
 
-**Rec.** (b) now, (a) before the web work starts. Native first (D4) means native uses typed
-tables in any case.
+**Rec.** (a). The schema type is built first for native; the web switches after the benchmark.
 
 ## Native rendering
 
@@ -157,3 +160,22 @@ case appears.
 - (b) Archive spec 52 and remove the Tauri parts of `foundation_platform`.
 
 **Rec.** (a) until the spec 69 design is accepted.
+
+## Added after the PR #157 review
+
+**Q19. Does "FlatBuffers is the top format" also apply to stored `foundation_ai` data?** ([`wire-envelope.md`](wire-envelope.md) §5)
+
+Spec 36 decision 10 stores conversation data (messages, tool calls, memory snapshots, events)
+as JSON and Arrow. It is not about the UI.
+- (a) UI wire only. Decision 10 stays as it is.
+- (b) Everywhere: stored conversation data also gets a FlatBuffers schema, with JSON and
+  Arrow as derived views. Decision 10 is rewritten.
+
+**Rec.** (a) for this spec, and (b) as a separate decision if you want it, because it changes
+`foundation_ai` storage and its tests.
+
+**Q20. What happens to Arrow IPC for UI frames?** ([`wire-envelope.md`](wire-envelope.md) §4 risk 5)
+- (a) Drop it from the UI wire. The columnar FlatBuffers table covers UI frames.
+- (b) Keep it as a union member that holds Arrow IPC bytes, for data that goes to Arrow tools.
+
+**Rec.** (a) for UI frames. Use (b) only when a real Arrow consumer exists.

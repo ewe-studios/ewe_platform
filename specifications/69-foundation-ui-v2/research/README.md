@@ -68,6 +68,7 @@ These decisions are fixed. The research does not argue against them.
 | D1 | Start with the ideas in the document only. Research, not design. |
 | D2 | No Tauri content for now. |
 | D3 | The new direction **overrides** spec 36 decision 10 (FlatBuffers fallback dropped), spec 52, and spec 39 decision 025 where they conflict. The files note each conflict. They do not defend the old decisions. |
+| D7 | (PR #157 review) **FlatBuffers is the top format.** Everything else, columnar included, is a type in the FlatBuffers schema, code-generated for every supported language (Rust, TypeScript, Swift, Kotlin). |
 | D4 | **Native first.** Other rendering layers come later. |
 | D5 | **State signing:** "Client never signs, its always from the server or the wasm bundle running on the client on the web – for on-device, this does not matter." State is always signed by the server. |
 | D6 | **Replay protection:** "Look at industry standard, at Livewire and learn and refine what works best for us." |
@@ -76,7 +77,7 @@ These decisions are fixed. The research does not argue against them.
 
 | File | Idea |
 |---|---|
-| [`wire-envelope.md`](wire-envelope.md) | FlatBuffers outer envelope with a payload union (columnar, Arrow, MessagePack, mobile layout). |
+| [`wire-envelope.md`](wire-envelope.md) | FlatBuffers as the top format: one schema, every body (columnar, native layout, actions) a generated type. |
 | [`columnar-zero-copy.md`](columnar-zero-copy.md) | 8-byte aligned columnar blocks and zero-copy typed arrays in the browser. No virtual DOM. |
 | [`native-mobile-rendering.md`](native-mobile-rendering.md) | SwiftUI and Jetpack Compose renderers fed by layout operations, core compiled in through UniFFI or C bindings. |
 | [`stateless-signed-state.md`](stateless-signed-state.md) | Stateless servers. Each element carries its state and an HMAC state token that any replica can verify. |
@@ -90,9 +91,9 @@ These decisions are fixed. The research does not argue against them.
 | # | Idea | What we have now | Recommendation |
 |---|---|---|---|
 | 1 | No virtual DOM, no client diff | Already true. `DomOp` targets ids from the `html!` macro. | **Adopt** (keep). No new work. |
-| 2 | FlatBuffers outer envelope with a payload union | 6-byte `Envelope` header with a protocol byte. No sequence id, no typed union. | **Adapt.** Use FlatBuffers for the envelope and for the inbound action request. Keep the existing columnar and Arrow bodies inside it. Make the native layout payload a first-class body. Overrides spec 36 decision 10. |
-| 3 | MessagePack payload | Not in the UI stack. `rmp-serde` is used only in `foundation_keychain`. | **Drop for now.** FlatBuffers tables and Arrow cover the cases. Revisit if a schema-less use case appears. |
-| 4 | Columnar zero-copy typed arrays | Done in spec 39 feature 19 (`ColumnarBatch`, JS `ColumnarParser`). | **Adopt** (keep). Do not move the web applicator out of WASM yet (native first). |
+| 2 | FlatBuffers as the top format | 6-byte `Envelope` header with a protocol byte; hand-written bodies. No schema, no sequence id, no typed union. | **Adopt (D7).** One `.fbs` schema for every frame, body and action; `flatc` generates Rust, TypeScript, Swift and Kotlin. |
+| 3 | MessagePack payload | Not in the UI stack. `rmp-serde` is used only in `foundation_keychain`. | **Drop.** It has no schema, so it cannot be generated for every language (D7). |
+| 4 | Columnar zero-copy typed arrays | Done in spec 39 feature 19 by hand (`ColumnarBatch`, JS `ColumnarParser`). | **Adopt, as a schema type (D7).** A FlatBuffers table of aligned typed vectors; generated readers give the same zero-copy views. Retire the hand-written code after a benchmark. |
 | 5 | Native mobile rendering (SwiftUI, Compose) through UniFFI or C | Only the `ViewKind::Native` enum variant, marked post-MVP. No renderer, no bindings. | **Adapt.** This is the first build target (D4). Needs a native layout vocabulary that is not HTML. |
 | 6 | Stateless servers, element-riding signed state | Opposite model: server `App` holds signals in memory. Decision 025 says the client never sends state. | **Adapt.** Adopt server-signed state tokens (D5). Keep the client input separate from the signed state. Overrides decision 025. |
 | 7 | Replay protection | Nothing in the UI stack. `foundation_auth` has a private HMAC signer. | **Adopt a layered model** from the study: key id, expiry, session and action binding, constant-time compare, typed decode, optional single-use nonce. |
@@ -105,7 +106,7 @@ Per D3, these decisions give way to the new direction. Each idea file gives the 
 
 | Earlier decision | Conflict | File |
 |---|---|---|
-| Spec 36 decision 10, "FlatBuffers Fallback — dropped" (`specifications/completed/36-agentic-api/decisions/10-serialization-format.md:116-118`) | The new envelope is FlatBuffers. That decision was about agentic API records, not the UI wire, but it is the only written position on FlatBuffers. | `wire-envelope.md` |
+| Spec 36 decision 10, "FlatBuffers Fallback — dropped" (`specifications/completed/36-agentic-api/decisions/10-serialization-format.md:116-118`) | That decision is about how `foundation_ai` stores conversation data (JSON plus Arrow), not the UI wire. It is the only written position on FlatBuffers. FlatBuffers is now the top format for the UI (D7); Q19 asks if the same rule applies to the stored data. | `wire-envelope.md` |
 | Spec 39 decision 025, "The client never tells the server its state" (`specifications/completed/39-foundation-wasm-ui/decisions/025-server-client-state-sync.md:8`) | The client now sends back a server-signed state token with each action. | `stateless-signed-state.md` |
 | Spec 39 decision 025, "No signal values need to be synced or embedded" (same file, line 40) | State is embedded on elements. | `stateless-signed-state.md` |
 | Spec 52 `ViewKind::Native` is post-MVP, "MVP renders everything in WebViews" (`backends/foundation_ui_traits/src/platform_types.rs:180-187`) | Native is first (D4). | `native-mobile-rendering.md` |

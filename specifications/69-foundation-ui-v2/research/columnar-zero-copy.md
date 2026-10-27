@@ -47,8 +47,9 @@ into a live subtree (`dom_op.rs:159`).
    applies them. For server-sent frames, the bytes arrive in JS first and JS applies them. So
    the "bypass WASM" path the document describes already exists for server frames. There is
    no gap here for the web.
-2. **Envelope.** The zero-copy view sits inside our 6-byte envelope today. Inside a
-   FlatBuffers envelope, the body alignment must be kept. See
+2. **No schema.** The columnar layout is hand-written in Rust and parsed by hand in
+   JavaScript. Each new platform needs another hand-written parser. In a FlatBuffers schema
+   the readers are generated. The vector alignment must be kept; see
    [`wire-envelope.md`](wire-envelope.md) §4 risk 1.
 3. **Native.** No native consumer of the columnar body exists. A native renderer reads
    memory directly, so it gets zero-copy with any aligned layout. It does not need typed
@@ -63,10 +64,23 @@ into a live subtree (`dom_op.rs:159`).
    the string columns are not. The document's "zero object allocation" claim is too strong.
 3. `MorphNode` carries HTML. That works on the web only.
 
-## 5. Recommendation: **adopt** (keep what we have)
+## 5. Recommendation: **adopt the idea, move it into the FlatBuffers schema**
 
-- Keep `ColumnarBatch`, the JS `ColumnarParser`, and the Arrow IPC encoder as they are.
-- Make them union members of the new envelope.
-- Do not start new web work here. Native comes first (owner decision D4).
-- Add a benchmark (columnar versus FlatBuffers table, for 1, 10, 100 and 10 000 ops) before
-  the design picks a default body for each platform. See Q4 in [`questions.md`](questions.md).
+Owner direction (PR #157 review): columnar is a type in the FlatBuffers schema, generated for
+every language. It is not a separate hand-written format.
+
+- Define the columnar `DomOp` batch as a FlatBuffers table of typed vectors: operation codes
+  (`[ubyte]`), node ids (`[uint32]`), string offsets (`[uint32]`) and one string byte vector.
+  Put `force_align: 8` on the numeric vectors.
+- The zero-copy gain stays. A FlatBuffers vector of scalars is a contiguous little-endian
+  array. The `flatc` TypeScript reader returns a typed-array view (for example `Uint32Array`)
+  over the received buffer for such a vector, so JavaScript reads the columns with no copy and
+  no hand-written parser. Swift and Kotlin readers get the same columns from their generated
+  code.
+- Retire `ColumnarBatch` (`columnar_encoder.rs`) and the JavaScript `ColumnarParser`
+  (`foundation-wasm-ui.js:94-187`) when the generated form matches them in a benchmark (1, 10,
+  100 and 10 000 operations). Until then they stay, so nothing breaks.
+- The Arrow IPC `DomOp` encoder (`foundation_arrow/src/dom_ops.rs`) is not needed for UI
+  frames once the schema type exists. See Q20 in [`questions.md`](questions.md).
+- Native comes first (owner decision D4), so the first consumer of the schema type is the
+  native renderer, not the web.
