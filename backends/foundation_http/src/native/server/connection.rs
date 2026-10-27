@@ -298,11 +298,11 @@ impl ConnectionHandler {
                         method = %req.method,
                         "Idle: unsupported HTTP version on HTTP/1.x connection, sending 505"
                     );
-                    let _ = respond::text(
+                    report_closing_write(respond::text(
                         &mut self.conn.clone(),
                         505,
                         "HTTP Version Not Supported",
-                    );
+                    ));
                     return None;
                 }
 
@@ -353,7 +353,7 @@ impl ConnectionHandler {
                         status: 400,
                         reason: e.to_string(),
                     });
-                    let _ = respond::text(&mut self.conn.clone(), 400, "Bad Request");
+                    report_closing_write(respond::text(&mut self.conn.clone(), 400, "Bad Request"));
                     None
                 }
             }
@@ -505,11 +505,11 @@ impl ConnectionHandler {
                         max_retries = self.max_continue_retries,
                         "Failed to write 100 Continue after all retries"
                     );
-                    let _ = respond::text(
+                    report_closing_write(respond::text(
                         &mut self.conn.clone(),
                         502,
                         "Bad Gateway — Expect: failed to write response",
-                    );
+                    ));
                     return None;
                 }
             }
@@ -568,7 +568,7 @@ impl ConnectionHandler {
                         err = ?e,
                         "WaitingForBody: hard error on probe"
                     );
-                    let _ = respond::text(&mut self.conn.clone(), 400, "Bad Request");
+                    report_closing_write(respond::text(&mut self.conn.clone(), 400, "Bad Request"));
                     None
                 }
             }
@@ -620,11 +620,11 @@ impl ConnectionHandler {
                 max_attempts = self.max_expect_attempts,
                 "WaitingForBody: max attempts reached, sending 408"
             );
-            let _ = respond::text(
+            report_closing_write(respond::text(
                 &mut self.conn.clone(),
                 408,
                 "Request Timeout — body not received after 100 Continue",
-            );
+            ));
             None
         }
     }
@@ -716,6 +716,9 @@ impl ConnectionHandler {
 
         if let Some(mut resp) = middleware_response {
             tracing::trace!("Running middleware response process");
+            // The request body was never read: the next request on this
+            // connection would start inside it, so the connection must close.
+            let should_close = should_close || body_left_unread(&req);
             if should_close {
                 resp.headers
                     .insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
@@ -726,7 +729,15 @@ impl ConnectionHandler {
                     vec![format!("h3=\":{port}\"")],
                 );
             }
-            let _ = Http11::response(resp).http_render_to_writer(&mut self.conn.clone());
+            if let Err(err) = Http11::response(resp).http_render_to_writer(&mut self.conn.clone())
+            {
+                tracing::debug!(
+                    client_ip = %self.client_ip,
+                    err = ?err,
+                    "Processing: writing the middleware response failed; closing"
+                );
+                return None;
+            }
             if should_close {
                 tracing::trace!(client_ip = %self.client_ip, "Processing: connection closed after middleware response");
                 return None;
@@ -778,14 +789,45 @@ impl ConnectionHandler {
                 path = %path,
                 "Processing: no route matched, returning 404"
             );
-            let _ = respond::not_found(&mut self.conn.clone());
-            if should_close {
+            if let Err(err) = respond::not_found(&mut self.conn.clone()) {
+                tracing::debug!(
+                    client_ip = %self.client_ip,
+                    err = ?err,
+                    "Processing: writing the 404 failed; closing"
+                );
+                return None;
+            }
+            // The request body was never read: the next request on this
+            // connection would start inside it, so the connection must close.
+            if should_close || body_left_unread(&req) {
                 return None;
             }
             self.state = Some(HandlerState::Idle);
             Some(TaskStatus::Pending(()))
         }
     }
+}
+
+/// Log a failed write of an error response the connection closes after
+/// anyway: there is no one left to tell, but the failure is not hidden.
+fn report_closing_write(result: Result<(), ErrorTrace<ServeError>>) {
+    if let Err(err) = result {
+        tracing::debug!(err = ?err, "could not write the closing error response");
+    }
+}
+
+/// Whether `req` still has body bytes on the connection that nobody read.
+///
+/// A body the reader already holds in memory (`Bytes` / `Text`) is off the
+/// wire; a streamed body is read lazily from the connection, so if the
+/// response goes out without it the bytes are still there and the next
+/// request would be parsed out of them (request smuggling). Go's `net/http`
+/// and nginx discard a bounded amount; closing is the simple safe choice.
+fn body_left_unread(req: &SimpleIncomingRequest) -> bool {
+    !matches!(
+        req.body,
+        None | Some(SendSafeBody::None | SendSafeBody::Bytes(_) | SendSafeBody::Text(_))
+    )
 }
 
 // ---------------------------------------------------------------------------

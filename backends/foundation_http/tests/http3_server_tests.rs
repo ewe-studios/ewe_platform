@@ -210,3 +210,71 @@ fn http3_server_echoes_a_request_over_quic() {
 
     shutdown.turn_on();
 }
+
+/// A request the server cannot route is reset with `H3_REQUEST_REJECTED`, so
+/// the client learns at once. It used to be dropped without a word, leaving
+/// the client waiting for a response until its own timeout.
+#[test]
+fn http3_server_rejects_a_request_it_has_no_handler_for() {
+    let _guard = initialize_pool(78, Some(8));
+
+    let app = HttpApp::new_h3_serve();
+    let shutdown = Arc::new(OnSignal::new());
+    let server_addr = serve_h3(
+        "127.0.0.1:0".parse().unwrap(),
+        CERT,
+        KEY,
+        Arc::new(app),
+        Arc::clone(&shutdown),
+    )
+    .expect("start h3 server");
+
+    let client_cfg = client_config_trusting_pem(CA).expect("client config");
+    let (driver, conn) = QuicDriver::connect(server_addr, client_cfg, "localhost").expect("connect");
+    foundation_core::valtron::send(driver).expect("spawn client driver");
+
+    let mut h3 = H3Connection::new(conn);
+    let deadline = Instant::now() + Duration::from_secs(15);
+    drive(|| h3.poll_setup(), deadline).expect("client h3 setup");
+    let mut request = loop {
+        match h3.poll_open_request() {
+            Stream::Next(Ok(r)) => break r,
+            Stream::Next(Err(e)) => panic!("open request: {e}"),
+            _ => {
+                assert!(Instant::now() < deadline, "could not open a request");
+                std::thread::sleep(ms(1));
+            }
+        }
+    };
+    send_frame(
+        &mut request,
+        H3Request::<QuinnBidiStream>::encode_headers(&[
+            (b":method".as_ref(), b"GET".as_ref()),
+            (b":scheme".as_ref(), b"https".as_ref()),
+            (b":authority".as_ref(), b"localhost".as_ref()),
+            (b":path".as_ref(), b"/nowhere".as_ref()),
+        ]),
+        true,
+    );
+
+    let answer_deadline = Instant::now() + Duration::from_secs(5);
+    let rejected = loop {
+        match request.poll_headers() {
+            Stream::Next(Ok(headers)) => panic!("expected a reset, got a response: {headers:?}"),
+            Stream::Next(Err(e)) => break e,
+            _ => {
+                assert!(
+                    Instant::now() < answer_deadline,
+                    "the unroutable request was never answered or reset"
+                );
+                std::thread::sleep(ms(1));
+            }
+        }
+    };
+    assert!(
+        rejected.to_string().contains("0x10b") || rejected.to_string().contains("267"),
+        "expected H3_REQUEST_REJECTED, got {rejected}"
+    );
+
+    shutdown.turn_on();
+}

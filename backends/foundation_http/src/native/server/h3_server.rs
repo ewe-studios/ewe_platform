@@ -25,7 +25,8 @@ use foundation_core::synca::OnSignal;
 use foundation_core::valtron::{Ctx, 
     FutureTask, Stream, TaskIterator, TaskStatus,
 };
-use foundation_netio::http3::H3Connection;
+use foundation_netio::http3::connection::error_code;
+use foundation_netio::http3::{H3Connection, H3Error};
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::quic::{server_config_from_pem, QuicDriver, QuinnConnection};
 use foundation_netio::shared::http::SimpleMethod;
@@ -95,7 +96,7 @@ impl TaskIterator for H3AcceptTask {
     type Ready = ();
     type Pending = ();
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<(), ()>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<(), ()>> {
         if self.shutdown.probe() {
             return None;
         }
@@ -118,44 +119,64 @@ impl TaskIterator for H3AcceptTask {
         }
 
         // Drive each connection: send our SETTINGS, read the peer's, accept and
-        // dispatch request streams.
-        for c in &mut self.conns {
-            if !c.setup_done {
-                if let Stream::Next(Ok(())) = c.h3.poll_setup() {
-                    c.setup_done = true;
-                }
+        // dispatch request streams. A connection whose setup or accept fails is
+        // gone (closed, reset, or broken framing): drop it rather than keep
+        // polling a dead connection for ever.
+        let app = &self.app;
+        self.conns.retain_mut(|c| match drive_connection(c, app) {
+            Ok(()) => true,
+            Err(e) => {
+                tracing::debug!(error = %e, "h3 connection ended; dropping it");
+                false
             }
-            if c.setup_done && !c.settings_done {
-                if let Stream::Next(Ok(true)) = c.h3.poll_peer_settings() {
-                    c.settings_done = true;
-                }
-            }
-            if c.setup_done {
-                loop {
-                    match c.h3.poll_accept() {
-                        Stream::Next(Ok(request)) => {
-                            // The proxy registers a single catch-all H3 handler
-                            // (`route_any_h3`); it reads the request's own
-                            // headers to route, so any (method, path) resolves it.
-                            if let Some(handler) =
-                                self.app.router().dispatch(&SimpleMethod::GET, "/")
-                            {
-                                let fut = handler.serve_h3(
-                                    self.app.context().clone(),
-                                    Arc::clone(&c.ctx),
-                                    request,
-                                );
-                                let _ = foundation_core::valtron::send(FutureTask::new(fut));
-                            }
-                        }
-                        // No more request streams ready this tick, or the peer
-                        // reset/closed — either way stop accepting for now.
-                        _ => break,
-                    }
-                }
-            }
-        }
+        });
 
         Some(TaskStatus::Delayed(Duration::from_millis(5)))
+    }
+}
+
+/// One accept-task turn for `c`: finish setup, then dispatch every request
+/// stream that is ready. `Err` means the connection is gone.
+fn drive_connection(c: &mut ActiveConn, app: &H3App) -> Result<(), H3Error> {
+    if !c.setup_done {
+        match c.h3.poll_setup() {
+            Stream::Next(Ok(())) => c.setup_done = true,
+            Stream::Next(Err(e)) => return Err(e),
+            _ => {}
+        }
+    }
+    if c.setup_done && !c.settings_done {
+        match c.h3.poll_peer_settings() {
+            Stream::Next(Ok(true)) => c.settings_done = true,
+            Stream::Next(Ok(false)) => {}
+            Stream::Next(Err(e)) => return Err(e),
+            _ => {}
+        }
+    }
+    if !c.setup_done {
+        return Ok(());
+    }
+    loop {
+        match c.h3.poll_accept() {
+            Stream::Next(Ok(mut request)) => {
+                // The proxy registers a single catch-all H3 handler
+                // (`route_any_h3`); it reads the request's own headers to
+                // route, so any (method, path) resolves it.
+                let Some(handler) = app.router().dispatch(&SimpleMethod::GET, "/") else {
+                    tracing::debug!("no h3 handler registered; rejecting the request");
+                    request.reset(error_code::H3_REQUEST_REJECTED);
+                    continue;
+                };
+                let fut = handler.serve_h3(app.context().clone(), Arc::clone(&c.ctx), request);
+                if let Err(e) = foundation_core::valtron::send(FutureTask::new(fut)) {
+                    // The request moved into the future, which is dropped with
+                    // the failed spawn; the peer sees its stream go away.
+                    tracing::error!(error = ?e, "could not spawn the h3 request handler");
+                }
+            }
+            Stream::Next(Err(e)) => return Err(e),
+            // No more request streams ready this tick.
+            _ => return Ok(()),
+        }
     }
 }
