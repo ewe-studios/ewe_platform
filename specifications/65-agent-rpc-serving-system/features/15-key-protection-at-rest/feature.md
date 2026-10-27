@@ -1,9 +1,9 @@
 ---
 feature: "Key Protection at Rest"
 description: "Deferred from feature 07 for the proof of concept: a KeyStore over foundation_db backends, keys that hosts make and store, private keys always encrypted at rest (KEK sources per platform, WebCrypto, envelope encryption with a remote KMS), passphrase-protected key files, and rotation by kid."
-status: "deferred"
-priority: "medium"
-depends_on: ["07-pluggable-agent-rpc"]
+status: "todo"
+priority: "low"
+depends_on: ["13-native-host-and-dst", "11-foundation-auth"]
 estimated_effort: "large"
 created: 2026-10-27
 last_updated: 2026-10-27
@@ -17,8 +17,9 @@ tasks:
 
 # Key Protection at Rest
 
-_Status: **deferred** (owner direction, 2026-10-27). Written in ASD-STE100 Simplified Technical
-English (STE). Code and identifiers stay as they are._
+_Status: **todo**, the last feature of spec 65 (owner direction, 2026-10-27). Start it only after
+the agent-rpc proof of concept works end to end (features 07 to 13). Written in ASD-STE100
+Simplified Technical English (STE). Code and identifiers stay as they are._
 
 **Abbreviations in this file.** key encryption key (KEK); key management service (KMS);
 Certificate Authority (CA); proof of concept (POC); identifier (ID); AeroSpace and Defence
@@ -35,7 +36,8 @@ So feature 07 now does one thing: the operator makes each private key with `ssh-
 `openssl`, and the host loads it from a file, an environment variable or a Worker secret
 ([auth.md](../07-pluggable-agent-rpc/auth.md) section 4, decision 11 in
 [feature 07](../07-pluggable-agent-rpc/feature.md)). Everything else about keys moved here.
-The design is complete. It waits until the POC works end to end.
+The design is complete. It waits until the POC works end to end. It was feature 08; the owner
+moved it to the end of the list when feature 07 was split into features 07 to 14.
 
 ## 2. Where to read
 
@@ -71,5 +73,5 @@ _The diagram shows which task must finish before another task starts._
   `KeyStore` becomes one more place that a `PrivateKey` comes from.
 - The default file names in the state directory (`bootstrap-signing-key.pem`, `ca-key.pem`,
   `server-key.pem`). Task K3 seals them and removes the plain-text files.
-- The history archive to R2 (feature 07 task T26) stores objects without encryption in the POC.
+- The history archive to R2 (feature 14 task T26) stores objects without encryption in the POC.
   Task K4 adds envelope encryption of each object.

@@ -19,7 +19,8 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 1. `CLAUDE.md` at the repository root. All rules apply. Rules 8 (limits are configuration),
    10 (keep `progress.md` and `LEARNINGS.md` current), 11 (side effects are injected) and 12
    (write in STE) are central to this feature.
-2. [`feature.md`](./feature.md): overview, glossary, architecture, task list, open questions.
+2. [`feature.md`](./feature.md): overview, glossary, architecture, the feature split (section
+   10), open questions. Then the `feature.md` of the feature you work on (08 to 14).
 3. [`deterministic-simulation-testing.md`](./deterministic-simulation-testing.md): why every
    side effect is a trait.
 4. The topic file for your task: [`env.md`](./env.md), [`auth.md`](./auth.md),
@@ -31,8 +32,9 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 
 1. Do task T0 first. Merge `master` into `65-f01-agent-rpc` with a merge commit (no rebase,
    no force-push). Adapt the crate to the async storage traits and the async `AgentSession`.
-2. Do the tasks in the order of the diagram in `feature.md` section 10.1. Use the PR groups in
-   section 10.2.
+2. Do the features in the order of `feature.md` section 10.2 (features 08 to 14; feature 15 is
+   last and waits for the proof of concept). Each feature's `feature.md` lists its tasks, what
+   to read, and its pull requests. Inside a feature, follow the task order of section 10.3.
 3. For each task:
    1. Read its section in the topic file.
    2. Write the code. Use the trait signatures in the design. If a signature must change, update
@@ -40,7 +42,7 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
    3. Write the tests that the task names, in the crate's `tests/` directory.
    4. Run `python3 scripts/ci/ci.py run <crate> --step build --step clippy --step test --step wasm`
       for each crate that you change.
-   5. Update the task table in `feature.md` and the spec's `progress.md`. Add what you learned to
+   5. Update the task table in that feature's `feature.md` and the spec's `progress.md`. Add what you learned to
       `LEARNINGS.md`.
    6. Commit and push.
 4. If a design choice is not clear, stop. Ask the owner with the options and your

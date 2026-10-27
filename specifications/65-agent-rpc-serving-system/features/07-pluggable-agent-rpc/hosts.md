@@ -822,7 +822,7 @@ is in D1 and the session is in its DO.
 
 ### 5.10 KV and R2
 
-- **KV** is not used for keys in the proof of concept: the public keys are the var `AGENT_RPC_SECRET_PUBLIC_KEYS` ([auth.md](./auth.md) section 4.5). Keys in KV come with the key store of [feature 08](../08-key-protection-at-rest/feature.md). KV never holds the trust store, because it has no atomic write.
+- **KV** is not used for keys in the proof of concept: the public keys are the var `AGENT_RPC_SECRET_PUBLIC_KEYS` ([auth.md](./auth.md) section 4.5). Keys in KV come with the key store of [feature 15](../15-key-protection-at-rest/feature.md). KV never holds the trust store, because it has no atomic write.
 - **R2** holds the archive of each destroyed instance (owner decision 5). Section 5.12 describes it.
 
 ### 5.11 Model provider API keys
@@ -872,7 +872,7 @@ in a `Zeroizing` string, and fails with the secret's name if one is missing. `ap
 
 The native host uses the same `SecretRef` idea with an environment variable or a secret file (a
 path in configuration, mode 0600). More native sources, such as systemd credentials, come with
-[feature 08](../08-key-protection-at-rest/key-protection.md).
+[feature 15](../15-key-protection-at-rest/key-protection.md).
 
 Rotation: put the new value with the same secret name and redeploy. Cloudflare starts new isolates
 with the new value. Revoke the old key at the provider after the deploy.
@@ -923,7 +923,7 @@ archive._
 
 Security: R2 encrypts every object at rest. The proof of concept adds no encryption of its own.
 Envelope encryption of each archive object (its own data key, wrapped by a KEK) is task K4 of
-[feature 08](../08-key-protection-at-rest/feature.md).
+[feature 15](../15-key-protection-at-rest/feature.md).
 
 Configuration (`WorkerHostConfig::archive`):
 

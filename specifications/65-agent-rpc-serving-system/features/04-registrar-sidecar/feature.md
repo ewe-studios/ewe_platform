@@ -382,7 +382,7 @@ pub struct Observation {
 pub struct RegistrationClient {
     client: RegistrationServiceClient,
     session: SessionRef,              // host_id + a new random session_id
-    identity: IdentityStore,          // certificate and key, sealed at rest (feature 07)
+    identity: IdentityStore,          // certificate and key (sealed at rest later, feature 15)
 }
 
 impl RegistrationClient {
@@ -540,7 +540,7 @@ pub enum RegistrarError {
 ## 8. Security
 
 - The enrollment token is read one time and the file is deleted. It is never logged.
-- The private key is sealed at rest (feature 07, key protection).
+- The private key is a plain file with mode 0600 in the proof of concept. Sealing at rest comes with feature 15 (key protection).
 - The manifest is untrusted input: entry names have the installer's rule; `exec` probes take an
   argument list, never a shell string; `exec` probes are refused in container mode.
 - The sidecar needs read access to the systemd bus or `systemctl`, the Docker socket (read-only

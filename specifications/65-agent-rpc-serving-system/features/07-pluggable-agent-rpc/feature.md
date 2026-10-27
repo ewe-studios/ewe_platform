@@ -9,12 +9,12 @@ builds_on:
   - "PR #130, #131, #132, #133 (async-first valtron, async-only foundation_db)"
 estimated_effort: "large"
 created: 2026-10-22
-last_updated: 2026-10-26
+last_updated: 2026-10-27
 author: "Main Agent"
 tasks:
   completed: 0
-  uncompleted: 24
-  total: 24
+  uncompleted: 1
+  total: 1
   completion_percentage: 0
 ---
 
@@ -63,14 +63,15 @@ It does this with three ideas:
 
 | File | What it covers |
 |---|---|
-| This file | Overview, glossary, architecture, owner directions, breaking changes, migration, tests, task list, open questions |
+| This file | Overview, glossary, architecture, owner directions, breaking changes, migration, tests, the feature split and task T0, open questions |
 | [`start.md`](./start.md) | How an agent starts the work |
 | [`env.md`](./env.md) | Side effects, the `Env` bundle, valtron's `Ctx`, the lint |
 | [`auth.md`](./auth.md) | Auth in `foundation_auth`: signed secrets, key store, CA, trusted clients, mTLS, client auth providers, security |
 | [`registry-and-models.md`](./registry-and-models.md) | Model catalog, kinds and devices, the instance registry, Durable Objects |
 | [`hosts.md`](./hosts.md) | The native host, the Worker host, the web client, the native client |
 | [`proto.md`](./proto.md) | The wire contract (`agent.proto`) |
-| [feature 08](../08-key-protection-at-rest/feature.md) (deferred) | Key store, encryption at rest, KEK sources, remote KMS, rotation by `kid`. Moved out for the proof of concept (decision 11) |
+| Features [08](../08-env-and-side-effects/feature.md) to [14](../14-worker-host-and-web-client/feature.md) | The work of this feature, split into smaller features (section 10) |
+| [feature 15](../15-key-protection-at-rest/feature.md) (todo, last) | Key store, encryption at rest, KEK sources, remote KMS, rotation by `kid`. Moved out for the proof of concept (decision 11) |
 | [`migrations.md`](./migrations.md) | Migrations per database, as ordered groups (shared, then specific), each numbered from 1 and recorded by group |
 | [`deterministic-simulation-testing.md`](./deterministic-simulation-testing.md) | DST in plain words |
 
@@ -132,7 +133,7 @@ It does this with three ideas:
 | Host | The program-specific part that gives the core its network, storage, models and `Env`: native, Worker or DST. |
 | Instance | A named agent with its own session and history, on a shared model. |
 | Instance kind | `API`, `CANDLE` or `GGUF` (later `VIDEO`, `AUDIO`): what model an instance uses. |
-| Key source (`KeySource`) | Where the host reads an operator private key: a file, or an inline value from an environment variable or a Worker secret. The key store trait is deferred to feature 08. |
+| Key source (`KeySource`) | Where the host reads an operator private key: a file, or an inline value from an environment variable or a Worker secret. The key store trait is deferred to feature 15. |
 | Miniflare, wrangler | Cloudflare tools that run a Worker on a local machine. |
 | mTLS | Mutual TLS: both sides show a certificate. |
 | Registry (`InstanceRegistry`) | The trait that creates, finds, lists and removes instances. |
@@ -387,7 +388,7 @@ sure each secret is used only as often as allowed._
 |---|---|---|
 | 1 | Traits so one RPC surface runs on bare metal, Docker and Workers | Sections 3 and 4; [hosts.md](./hosts.md) |
 | 2 | Move auth into `foundation_auth`, built on `foundation_db` | [auth.md](./auth.md) sections 1 and 2 |
-| 3 | A `CaStore` trait for key material in any backend | Proof of concept: operator key files ([auth.md](./auth.md) section 4, decision 11). The `KeyStore` trait is designed in [feature 08](../08-key-protection-at-rest/keystore.md) (deferred) |
+| 3 | A `CaStore` trait for key material in any backend | Proof of concept: operator key files ([auth.md](./auth.md) section 4, decision 11). The `KeyStore` trait is designed in [feature 15](../15-key-protection-at-rest/keystore.md) (deferred) |
 | 4 | Pluggable client auth; the default is our signed JSON secret, not a JWT | [auth.md](./auth.md) sections 3 and 8 |
 | 5 | `mark_seen` out of the TLS verifier | [auth.md](./auth.md) section 7; section 4.1 here |
 | 6 | Capabilities endpoint and instance kinds | [proto.md](./proto.md); [registry-and-models.md](./registry-and-models.md) section 2 |
@@ -474,42 +475,66 @@ Unchanged: the version 1 `SignedSecret` wire format and the existing RPC methods
 
 Each topic file ends with its own test table.
 
-## 10. Task list
+## 10. Features and tasks
 
-Each task names its files and tests and ends with a "done when" line. Tasks in the same row
-group of section 10.2 can be one PR.
+Owner direction (2026-10-27): this feature was too large, so its work is split into features
+07 to 14. Feature 07 keeps the overview, the shared design files and task T0. Each new feature
+has its own `feature.md` with its tasks, what to read, and a "done when" line. The design files
+stay here, because they link to each other. Task IDs keep their numbers, so a reference such as
+"task T21" still names one task.
+
+Features 07 to 13 make the **agent-rpc proof of concept**: one native agent-rpc host, with
+operator key files, that clients enroll with and call, tested end to end and under simulation.
+Feature 14 adds Workers and the browser. Feature 15 (key protection at rest) is last, and starts
+only after the proof of concept works.
+
+| Feature | Tasks | What | Proof of concept |
+|---|---|---|---|
+| 07 (this file) | T0 | Merge `master` into `65-f01-agent-rpc`; adapt to async storage and async `AgentSession` | yes |
+| [08 Env and side effects](../08-env-and-side-effects/feature.md) | T1, T2, T12 | `Clock`, `EntropySource`, `IdSource`, the `Env` bundle in valtron `Ctx`, the macro argument, `foundation_ai` on `Env` | yes |
+| [09 Transport prerequisites](../09-transport-prerequisites/feature.md) | T3, T4 | connectrpc keeps request extensions and uses the `Env` clock; `foundation_http` reports the TLS peer certificate | yes |
+| [10 Migration groups](../10-migration-groups/feature.md) | T25 | Migration groups per database, from code or directories; `FleetRunner` | yes |
+| [11 Auth in `foundation_auth`](../11-foundation-auth/feature.md) | T5, T7, T8, T9, T10, T11 | Signed secrets, operator key files, CA, trusted clients, mTLS, client auth providers | yes |
+| [12 Agent RPC core](../12-agent-rpc-core/feature.md) | T13, T14, T15, T16 | `agent.proto`, model catalog, instance registry, service and enrollment handlers | yes |
+| [13 Native host and DST](../13-native-host-and-dst/feature.md) | T17, T18 | The native host and the simulation harness. **Done here = the proof of concept works** | yes |
+| [14 Worker host and web client](../14-worker-host-and-web-client/feature.md) | T19, T20, T21, T22, T26 | Workers, Durable Objects, the browser client, the R2 history archive | no |
+| [15 Key protection at rest](../15-key-protection-at-rest/feature.md) | K1 to K6 (were T6, T23, T24) | Key store, encryption at rest, KMS, rotation by `kid`. Status: todo | no (last) |
+
+### 10.1 Task T0 (this feature)
 
 | Task | What | Main files | Done when |
 |---|---|---|---|
 | T0 | Merge `master` into `65-f01-agent-rpc`; adapt to async storage and async `AgentSession` | the crate | `ci.py run foundation_agent_rpc` passes |
-| T1 | `Clock`, `EntropySource`, `IdSource` traits; `SystemClock`, `SimClock`, `OsEntropy`, `SeededEntropy`, `Scru128Source` | `foundation_compact/src/{clock,entropy,ids}` | contract tests pass natively and on wasm |
-| T2 | `Env` bundle; `Env` in valtron's root `Ctx`; `current_ctx`, `with_ctx`; `Timer` on the `Env` clock; `single::initialize_pool_with`; `#[valtron(env = …)]` / `#[valtron_test(env = …)]` macro argument ([env.md](./env.md) 7.1) | `foundation_core/src/{env.rs,valtron/*}` | `env_tests`, `env_install_tests`, `sim_time_tests` pass |
-| T3 | connectrpc: keep request extensions through dispatch (`build_ctx` fix); `CallHooks::with_clock` | `foundation_connectrpc/src/shared/router/dispatch.rs` | dispatch tests pass; deadlines follow the `Env` clock |
-| T4 | `ConnectionContext::tls` holds the peer certificates after the handshake | `foundation_http` | `tls_peer_info_tests` pass |
-| T5 | `foundation_auth::secret`: `SignedSecret` v1 and v2, `SigningKey`, `VerifyingKey`, `SecretIssuer`, `SecretVerifier`; the clippy lint file | `foundation_auth/src/secret/*` | v1 secrets from the branch tests verify unchanged; verify-order tests pass |
-| T6 | **Deferred** to [feature 08](../08-key-protection-at-rest/feature.md) task K1 (only the key store needed it) | — | — |
-| T7 | `foundation_auth::keys`: `KeySource`, `PrivateKey` (OpenSSH, PKCS#8 and SEC1 PEM), `KeyLoadError`, `VerifyingKey::list_from_json`; test keys from `SeededEntropy` | `foundation_auth/src/keys/*` | the key loading tests of [auth.md](./auth.md) section 10 pass |
-| T8 | `foundation_auth::pki` (native): CA, server identity, CSR signing with `Env` time and randomness | `foundation_auth/src/pki/*` | same seed gives byte-identical certificates |
-| T9 | `foundation_auth::trust`: `TrustStore`, `SqlTrustStore`, `KvTrustStore`, `TrustedClients` | `foundation_auth/src/trust/*` | `TrustStore` contract and concurrent-use tests pass |
-| T10 | `foundation_auth::mtls` (native): pure `TrustedClientVerifier`, `PinnedServerVerifier`, rustls config builders | `foundation_auth/src/mtls/*` | verifier tests show zero store calls during a handshake |
-| T11 | `foundation_auth::client_auth`: `ClientAuth`, providers, `ClientAuthInterceptor`, presets | `foundation_auth/src/client_auth/*` | provider tests pass with `SimClock` |
-| T12 | `foundation_ai` reads IDs and time through `Env` (`SessionId::from_id`) | `foundation_ai/src/agentic/*` | agent loop runs under `SimRuntime` with stable IDs |
-| T13 | New `agent.proto`; `InstanceSpec::from_wire`; model selection rules | `proto/`, `core/model/mod.rs` | one test per selection rule passes |
-| T14 | `ModelCatalog` trait, `ModelHandle`, `RemoteCatalog` | `core/model/*` | load-once and remote catalog tests pass |
-| T15 | `InstanceRegistry` trait, `Scope`, `RegistryConfig`, `TurnLimits`, `LocalInstanceRegistry` | `core/registry/*` | registry contract tests pass on the local registry |
-| T16 | `core/service.rs`: `AgentService` handlers over the traits; `GetCapabilities`; `core/enroll.rs` | `core/{service,enroll}.rs` | handler tests pass with fakes |
-| T17 | Native host: config, listeners, mTLS, last-seen after handshake, `LocalCatalog` with Candle device, operator key paths (`--signing-key`, `--ca-key`, `--server-key`) | `host/native/*` | native end-to-end and revocation tests pass |
-| T18 | DST: `SimRuntime`, `MemNetwork`, `MemTransport`, `Faulty*` wrappers, `ScriptedCatalog`, `TestWorld`; first DST tests | `testing` features in `foundation_core`, `foundation_connectrpc`, `foundation_db`, `foundation_agent_rpc` | DST tests pass for 32 fixed seeds, twice in a row with identical traces |
-| T19 | `FetchServe` and `FetchTransport` (wasm) | `foundation_connectrpc/src/wasm/*` | wasm fetch tests pass under Node |
-| T20 | `DoSqlStore`: `foundation_db` storage over a DO's SQL | `foundation_db` | contract tests pass under Miniflare |
-| T21 | Worker host: entry, instance DO, `DurableObjectRegistry`, `DoStubTransport`; `examples/cf-agent-rpc` | `host/worker/*` | the `cf-agent-rpc` Miniflare case passes |
-| T22 | Web client: `WebClient` over `FetchTransport`; `examples/agent-rpc-web` | `client/web.rs` | the web client tests pass in a headless browser |
-| T23 | **Deferred** to [feature 08](../08-key-protection-at-rest/feature.md) task K3 (key protection at rest) | — | — |
-| T24 | **Deferred** to [feature 08](../08-key-protection-at-rest/feature.md) task K4 (remote KMS) | — | — |
-| T25 | Migration runner by groups: `MigrationSet` from code, embedded files and directories; `MigrationRunner::from_static` / `add_from_static`; per-group numbering from 1 with no gaps; checksums; one transaction per migration; record rows keyed by group; upgrade of today's table with the 023 repair; `embed_migrations!` | `foundation_db/src/core/schema/*`, `foundation_macros` | [migrations.md](./migrations.md) section 6 tests pass |
-| T26 | History archive to R2 on `DestroyInstance` (Worker and native) | `host/worker/object.rs`, `core/archive.rs` | the archive tests pass; a failed upload deletes nothing |
 
-### 10.1 Order
+State on 2026-10-27: paused by the owner. Three local commits in the `pr126` worktree fix
+`foundation_db`, `foundation_ai` and most of `foundation_agent_rpc`; they are not pushed yet.
+
+### 10.2 Order of the features
+
+```mermaid
+flowchart LR
+    F07[07 T0] --> F08[08 Env]
+    F07 --> F10[10 Migrations]
+    F08 --> F09[09 Transport]
+    F08 --> F11[11 Auth]
+    F09 --> F11
+    F10 --> F11
+    F08 --> F12[12 Core]
+    F11 --> F12
+    F09 --> F13[13 Native host + DST]
+    F11 --> F13
+    F12 --> F13
+    F09 --> F14[14 Worker + web]
+    F12 --> F14
+    F13 --> F15[15 Key protection]
+    F14 -.-> F15
+```
+
+_The diagram shows which feature must finish before another starts. Feature 15 waits for the
+proof of concept (feature 13); the dashed line means it also covers the Worker when feature 14 is
+done._
+
+### 10.3 Order of the tasks
 
 ```mermaid
 flowchart LR
@@ -542,18 +567,6 @@ flowchart LR
 
 _The diagram shows which task must finish before another task starts._
 
-### 10.2 Suggested PRs
-
-| PR | Tasks | Why together |
-|---|---|---|
-| A | T0 | Gets #126 green on current `master` |
-| B | T1, T2 | Side effects and `Env` (cross-crate base) |
-| C | T3, T4, T25 | Library changes that others need (T25: migration runner) |
-| D | T5, T7, T8, T9, T10, T11 | Auth in `foundation_auth`, with operator key files |
-| E | T12, T13, T14, T15, T16 | The transport-agnostic core |
-| F | T17, T18 | Native host and DST |
-| G | T19, T20, T21, T22, T26 | Worker host, web client, history archive |
-
 ## 11. Owner decisions (2026-10-22, 2026-10-25 and 2026-10-27)
 
 The owner answered the open questions on 2026-10-22. Decisions 9 and 10 come from the PR #126 review of 2026-10-25. Decision 11 comes from the owner on 2026-10-27.
@@ -562,7 +575,7 @@ The owner answered the open questions on 2026-10-22. Decisions 9 and 10 come fro
 |---|---|---|---|
 | 1 | Instance name scope on the Worker | **Per caller** (`ScopePolicy::PerOwner`) on the Worker; shared on native | [registry-and-models.md](./registry-and-models.md) section 3.1 |
 | 2 | Version 2 signed secrets | **Issue version 2 by default**; still accept version 1 | [auth.md](./auth.md) section 3.2 |
-| 3 | Private keys at rest | **Always encrypted, on every host and backend.** No plain-text mode. The KEK comes from the safest source of each platform. _Deferred by decision 11: it is the target of feature 08, not of the proof of concept._ | [feature 08 key-protection.md](../08-key-protection-at-rest/key-protection.md) |
+| 3 | Private keys at rest | **Always encrypted, on every host and backend.** No plain-text mode. The KEK comes from the safest source of each platform. _Deferred by decision 11: it is the target of feature 15, not of the proof of concept._ | [feature 15 key-protection.md](../15-key-protection-at-rest/key-protection.md) |
 | 4 | JWT provider | **Ship `JwtAuth` in this feature**, behind a feature flag | [auth.md](./auth.md) section 8 |
 | 5 | History on `DestroyInstance` | **Archive to R2**, then delete the DO storage | [hosts.md](./hosts.md) section 5.12 |
 | 6 | Model provider API keys | **Worker secrets or Secrets Store secrets**; never in vars, D1, KV or logs | [hosts.md](./hosts.md) section 5.11 |
@@ -570,7 +583,7 @@ The owner answered the open questions on 2026-10-22. Decisions 9 and 10 come fro
 | 8 | Rename timing | **Wait** for the rename PR (`Async*` to plain names) to merge, then start | section 1.5 |
 | 9 | Bootstrap payload versions (2026-10-25) | **No version field.** One `url` for every host; the client derives TLS trust from the fingerprint and access from the token purpose | [proto.md](./proto.md) section 6 |
 | 10 | Migration layout (2026-10-25) | **Groups per database**: a shared group, then specific groups, each numbered from 1 and recorded by group. No number ranges per crate | [migrations.md](./migrations.md) |
-| 11 | Secret setup for the proof of concept (2026-10-27) | **Simple first.** The operator makes each private key with `ssh-keygen` or `openssl`; the host loads it from a file, an environment variable or a Worker secret, and uses it. The host does not make, seal, store or rotate keys. The key store, encryption at rest, remote KMS and rotation by `kid` move to the deferred feature 08 | [auth.md](./auth.md) section 4; [feature 08](../08-key-protection-at-rest/feature.md) |
+| 11 | Secret setup for the proof of concept (2026-10-27) | **Simple first.** The operator makes each private key with `ssh-keygen` or `openssl`; the host loads it from a file, an environment variable or a Worker secret, and uses it. The host does not make, seal, store or rotate keys. The key store, encryption at rest, remote KMS and rotation by `kid` move to the deferred feature 15 | [auth.md](./auth.md) section 4; [feature 15](../15-key-protection-at-rest/feature.md) |
 
 ### 11.1 Why Postgres is a separate feature
 
@@ -595,7 +608,7 @@ client. We record it as a separate feature for spec 50 (storage), after this one
    database, each numbered from 1 and recorded by group. There are no number ranges and no
    record table per component. [migrations.md](./migrations.md) has the design and its own open
    questions.
-2. ~~Remote KMS order.~~ **Moved** to the deferred [feature 08](../08-key-protection-at-rest/feature.md)
+2. ~~Remote KMS order.~~ **Moved** to the deferred [feature 15](../15-key-protection-at-rest/feature.md)
    by decision 11. The recommendation there stays: Vault Transit, then AWS KMS, then GCP Cloud KMS.
 3. **Archive on native.** [hosts.md](./hosts.md) section 5.12 gives the native host the same archive
    step through a `foundation_db` blob store. **Recommendation: yes, default to a local directory.**

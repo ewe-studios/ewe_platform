@@ -221,7 +221,7 @@ The owner's review round 2 on #126 is now a full design in
 
 Owner decisions (2026-10-22), recorded in `feature.md` section 11: per-caller instance scope on
 the Worker; version 2 secrets by default; private keys always encrypted at rest
-(now deferred to feature 08 by decision 11 of 2026-10-27: the proof of concept loads operator
+(now deferred to feature 15 by decision 11 of 2026-10-27: the proof of concept loads operator
 key files made with `ssh-keygen` or `openssl`); `JwtAuth` ships; destroyed instances are archived to R2; model API keys
 are Worker or Secrets Store secrets; Postgres is a separate later feature; directory migrations
 are task T25 (`migrations.md`); work starts after the rename PR merges. Three small open questions
@@ -411,3 +411,12 @@ and the module-local `extern crate alloc`).
    `foundation_compact`'s wasm-bindgen dependency (backlog §5); browser run.
 
 _Created: 2026-10-20_
+
+## 2026-10-27: feature 07 split into features 07 to 14; key protection is feature 15
+
+The owner said feature 07 was too large. Its work is now features 07 to 14. Feature 07 keeps the
+overview, the shared design files and task T0. Each new feature has its own `feature.md` with its
+tasks (the task IDs keep their numbers), what to read, and a "done when" line. Features 07 to 13
+make the agent-rpc proof of concept on a native host; feature 14 adds Workers and the browser.
+Key protection at rest (was feature 08) is now feature 15, status todo, and starts only after the
+proof of concept works. Task T0 is paused with three local commits in the `pr126` worktree.

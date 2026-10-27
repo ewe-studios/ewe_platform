@@ -6,7 +6,7 @@ priority: "high"
 depends_on: []
 builds_on:
   - "specifications/completed/63-connectrpc-proxy"
-  - "07-pluggable-agent-rpc (foundation_auth: signed secrets, CA, trusted clients, mtls)"
+  - "11-foundation-auth (foundation_auth: signed secrets, CA, trusted clients, mtls; design in feature 07 auth.md)"
 estimated_effort: "large"
 created: 2026-10-19
 last_updated: 2026-10-26
@@ -401,7 +401,7 @@ sequenceDiagram
     O->>P: control socket: issue-registrar-token host-17 (window 1 h, 1 use)
     P-->>O: token (SignedSecret, purpose Enroll)
     O->>S: put token in the sidecar secret (file or env), one time
-    S->>S: make key pair and CSR (key sealed at rest, feature 07)
+    S->>S: make key pair and CSR (sealed at rest later, feature 15)
     S->>P: Enroll(token, host_id, CSR) over server-auth TLS
     P->>P: verify signature, purpose, window; spend one use; sign CSR; record sidecar
     P-->>S: client certificate, registration CA certificate
@@ -614,7 +614,7 @@ _The diagram shows how a registered backend enters rotation, leaves it, and is r
 
 | Phase | What happens |
 |---|---|
-| Start | Load `RegistrationConfig`. Load the operator's registration CA key and make the CA and listener certificates (`KeySource` and `CertificateAuthority::from_key`, feature 07; a missing key stops the start; encryption at rest is the deferred feature 08). Open the trust store. Start the registration listener and, if set, the Unix socket. Start the sweeper task. The registry starts empty (see 7.2). |
+| Start | Load `RegistrationConfig`. Load the operator's registration CA key and make the CA and listener certificates (`KeySource` and `CertificateAuthority::from_key`, feature 07; a missing key stops the start; encryption at rest is the deferred feature 15). Open the trust store. Start the registration listener and, if set, the Unix socket. Start the sweeper task. The registry starts empty (see 7.2). |
 | Run | Serve calls. The sweeper runs every `sweep_interval` and calls `BackendRegistry::sweep`. |
 | Config reload | The existing `reload` command re-reads the file. Config services are rebuilt. Registered services stay. Policy changes apply to the next call; a backend that the new policy forbids moves to `Draining`. |
 | Stop | Stop accepting registration calls. The public listener drains as today (`start_drain`). Registered backends are not deregistered: the apps still run. |

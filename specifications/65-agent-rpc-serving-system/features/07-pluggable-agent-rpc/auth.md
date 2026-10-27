@@ -632,7 +632,7 @@ carries the ID that the trust store uses for use counts and revocation.
 
 In the proof of concept the operator rotates a key by a restart with a new key file. The
 verifier can hold the old public key until its last secret expires (section 4.6). Rotation with
-no restart is task K6 of [feature 08](../08-key-protection-at-rest/feature.md).
+no restart is task K6 of [feature 15](../15-key-protection-at-rest/feature.md).
 
 ### 3.7 Use counts
 
@@ -661,7 +661,7 @@ loads the key from a file, an environment variable or a Worker secret, and uses 
 does not make, seal, store or rotate private keys.
 
 These parts moved to the deferred
-[feature 08](../08-key-protection-at-rest/feature.md):
+[feature 15](../15-key-protection-at-rest/feature.md):
 
 - a key store over `foundation_db` backends;
 - keys that the host makes and stores, and the race between two processes;
@@ -875,7 +875,7 @@ To keep old secrets valid during a change, give the verifier the old public key 
 `--extra-verifying-key <path>` on native (a `.pub` file or a PEM public key), or one more entry
 in `AGENT_RPC_SECRET_PUBLIC_KEYS` on a Worker. `SecretVerifier` already takes a list of keys
 (section 3.5). Remove the old key when its last secret has expired. Rotation with no restart
-and no manual steps is task K6 of [feature 08](../08-key-protection-at-rest/feature.md).
+and no manual steps is task K6 of [feature 15](../15-key-protection-at-rest/feature.md).
 
 A new CA key makes every client certificate invalid. Clients enroll again (section 9.4).
 
@@ -902,7 +902,7 @@ the file, or the environment of the host process, has the key. The proof of conc
 - `SecureBytes` zeroes the key bytes on drop.
 
 Encryption at rest with a KEK, and keys that never leave a hardware module, are
-[feature 08](../08-key-protection-at-rest/feature.md).
+[feature 15](../15-key-protection-at-rest/feature.md).
 
 ## 5. The CA and certificates (`foundation_auth::pki`, native)
 
@@ -2075,7 +2075,7 @@ sequenceDiagram
 | Someone steals an access secret (client-key kind) | the right to call until it expires | Short window (`access_lifetime`, default 1 hour); revoking the client stops it at once (`SignedSecretAuth` checks `sub`); a new one needs the client private key (`RefreshAccess`). |
 | Someone steals a client private key | the right to call | The key never leaves the client (a browser key is non-extractable). Revoke the client; the next call fails (`MtlsAuth` and `SignedSecretAuth` check each call). |
 | Someone steals the database | private keys | No private key is in a database. The trust store holds only public keys, fingerprints and counts. |
-| Someone reads a key file or the host environment | the secret-signing, CA and server keys | Proof of concept: the host refuses a key file that other users can read; Worker secrets are encrypted at rest by Cloudflare. Not blocked for a person with the host user's rights. Recorded as a limit (section 4.8); encryption at rest is [feature 08](../08-key-protection-at-rest/feature.md). After a breach, the operator makes new keys (section 4.6). |
+| Someone reads a key file or the host environment | the secret-signing, CA and server keys | Proof of concept: the host refuses a key file that other users can read; Worker secrets are encrypted at rest by Cloudflare. Not blocked for a person with the host user's rights. Recorded as a limit (section 4.8); encryption at rest is [feature 15](../15-key-protection-at-rest/feature.md). After a breach, the operator makes new keys (section 4.6). |
 | A wrong client clock | false refusals | `clock_skew` of 5 minutes at both ends of the window; certificates start 5 minutes in the past. |
 | A wrong server clock | false acceptance of an expired secret | The window check uses the server clock; operators run time sync. DST tests skew on both sides. |
 | Many enrollment attempts | CPU (CSR checks, signing) | A rate limit per peer address on `Enroll` and `RefreshAccess` (`EnrollConfig::rate`, default 1 per second with a burst of 5 — the `limit_req` example in the nginx documentation). Bad secrets fail before the credential is parsed. |

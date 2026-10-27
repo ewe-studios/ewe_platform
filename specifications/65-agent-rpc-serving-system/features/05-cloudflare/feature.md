@@ -4,6 +4,7 @@ description: "The agent-rpc Cloudflare target as two artifacts — a thin WASM a
 status: "pending"
 priority: "high"
 depends_on:
+  - "14-worker-host-and-web-client"
   - "07-pluggable-agent-rpc"
   - "00-foundation"
   - "01-agent-rpc"
@@ -342,11 +343,11 @@ section 5). To keep one design, the tasks map like this:
 
 | Task here | State | Where it is now |
 |---|---|---|
-| T1: thin orchestrator build target (`src/wasm.rs`, `wasm_worker_entry`) | **Replaced** | Feature 07 T21: `host/worker/*` with `FetchServe` and one Durable Object per instance. |
-| T2: Connect fetch transport (`WasmFetchTransport`) | **Replaced** | Feature 07 T19: `FetchTransport` and `FetchServe` in `foundation_connectrpc/src/wasm/`. |
+| T1: thin orchestrator build target (`src/wasm.rs`, `wasm_worker_entry`) | **Replaced** | Feature 14 T21 (designed in feature 07): `host/worker/*` with `FetchServe` and one Durable Object per instance. |
+| T2: Connect fetch transport (`WasmFetchTransport`) | **Replaced** | Feature 14 T19 (designed in feature 07): `FetchTransport` and `FetchServe` in `foundation_connectrpc/src/wasm/`. |
 | T3: Sandboxes and Containers in `foundation_deployment_cloudflare` | **Stays here** | This feature. |
-| T4: end to end on Workers with Workers AI | **Stays here**, built on feature 07 T21 | The `cf-agent-rpc` example of feature 07 is its base. |
-| T5: end to end, Worker to a remote native agent-rpc | **Stays here**, built on feature 07 T19 | |
+| T4: end to end on Workers with Workers AI | **Stays here**, built on feature 14 T21 | The `cf-agent-rpc` example of feature 07 is its base. |
+| T5: end to end, Worker to a remote native agent-rpc | **Stays here**, built on feature 14 T19 | |
 | T6: end to end, native agent-rpc in a Cloudflare container | **Stays here** | |
 
 So `depends_on` of this feature is now 00, 01 and 07.
@@ -365,7 +366,7 @@ So `depends_on` of this feature is now 00, 01 and 07.
 1. **How traffic moves to a new container version.** Cloudflare's container rollout settings
    decide this. **Recommendation:** read the current Containers API when T3 starts, and write
    the rollout steps here before building.
-2. **Secrets for the container** (model keys, the key encryption key of feature 07). They must
+2. **Secrets for the container** (model keys, the operator key files of feature 11). They must
    come from the deployment surface, never from the image. **Recommendation:** use the same
    secret source as the Worker (feature 07 owner decision 6), passed as container environment
    at deploy.

@@ -1,6 +1,6 @@
 # Key store and sealed key records (deferred)
 
-_Part of [feature 08](./feature.md) (deferred). Written in ASD-STE100 Simplified Technical English
+_Part of [feature 15](./feature.md) (deferred). Written in ASD-STE100 Simplified Technical English
 (STE). Code and identifiers stay as they are._
 
 This is the design that was section 4 of [feature 07 auth.md](../07-pluggable-agent-rpc/auth.md)

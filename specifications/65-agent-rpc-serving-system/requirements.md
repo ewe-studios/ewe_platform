@@ -223,8 +223,15 @@ corresponding skills BEFORE implementation.
 | 4  | [Registrar Sidecar](./features/04-registrar-sidecar/feature.md) | Reads the manifest, discovers and probes apps, reads metrics, reports to the proxy | 2, 3 | ⬜ Pending |
 | 5  | [Cloudflare Deployment](./features/05-cloudflare/feature.md) | Full native model server on Cloudflare Sandboxes/Containers, and end-to-end tests on Workers; the Worker host itself is designed in 07 | 0, 1, 7 | ⬜ Pending |
 | 6  | [WASM Lazy Streaming](./features/06-wasm-async-streaming/feature.md) | Remove the wasm-unsafe `run_future`/`collect()` anti-pattern from the streaming path: park-friendly `into_future_stream`, lazy `send_sse` + `SseProgress::Failed`, zero `Model` API change; fix the T6 sync-streaming hang | 0 | ✅ Complete |
-| 7  | [Pluggable Agent RPC](./features/07-pluggable-agent-rpc/feature.md) | One RPC surface on native, Docker, Cloudflare Workers and the browser: a core behind traits, auth in foundation_auth, injected side effects for deterministic simulation testing, model capabilities and instance kinds | 1 | ⬜ Pending (design done) |
-| 8  | [Key Protection at Rest](./features/08-key-protection-at-rest/feature.md) | Key store over foundation_db, private keys encrypted at rest (KEK sources, WebCrypto, remote KMS), passphrase key files, rotation by kid. Deferred from 7 for the proof of concept | 7 | ⏸ Deferred |
+| 7  | [Pluggable Agent RPC](./features/07-pluggable-agent-rpc/feature.md) | Overview and shared design of one RPC surface on native, Docker, Cloudflare Workers and the browser; task T0 (merge master into #126). Split into features 8 to 14 | 1 | ⬜ Pending (design done) |
+| 8  | [Env and Side Effects](./features/08-env-and-side-effects/feature.md) | `Clock`, `EntropySource`, `IdSource`, the `Env` bundle in valtron `Ctx`, the macro `env` argument, foundation_ai on Env | 7 | ⬜ Pending |
+| 9  | [Transport Prerequisites](./features/09-transport-prerequisites/feature.md) | connectrpc keeps request extensions and uses the Env clock; foundation_http reports TLS peer certificates | 8 | ⬜ Pending |
+| 10 | [Migration Groups](./features/10-migration-groups/feature.md) | Migration groups per database from code or directories; `FleetRunner` | 7 | ⬜ Pending |
+| 11 | [Auth in foundation_auth](./features/11-foundation-auth/feature.md) | Signed secrets, operator key files, CA, trusted clients, mTLS, client auth providers | 8, 9, 10 | ⬜ Pending |
+| 12 | [Agent RPC Core](./features/12-agent-rpc-core/feature.md) | `agent.proto`, model catalog, instance registry, service and enrollment handlers | 8, 11 | ⬜ Pending |
+| 13 | [Native Host and DST](./features/13-native-host-and-dst/feature.md) | Native host and simulation harness; when done, the agent-rpc proof of concept works | 9, 11, 12 | ⬜ Pending |
+| 14 | [Worker Host and Web Client](./features/14-worker-host-and-web-client/feature.md) | Workers, Durable Objects, browser client, R2 history archive | 9, 12 | ⬜ Pending |
+| 15 | [Key Protection at Rest](./features/15-key-protection-at-rest/feature.md) | Key store over foundation_db, private keys encrypted at rest (KEK sources, WebCrypto, remote KMS), passphrase key files, rotation by kid. Last: starts after the proof of concept works | 11, 13 | 📝 Todo |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 

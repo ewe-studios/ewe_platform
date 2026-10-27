@@ -1,6 +1,6 @@
 # Key protection: private keys are always encrypted at rest
 
-_Part of [feature 08](./feature.md) (deferred). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [feature 15](./feature.md) (deferred). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** key encryption key (KEK); data encryption key (DEK); key
