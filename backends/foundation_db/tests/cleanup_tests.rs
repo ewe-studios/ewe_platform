@@ -19,7 +19,7 @@ async fn turso() -> (TursoStorage, tempfile::TempDir) {
 
 async fn insert_jwt(store: &TursoStorage, id: &str, expires_at: i64) {
     store
-        .execute_async(
+        .execute(
             "INSERT INTO jwt_tokens (id, access_token_encrypted, expires_at) VALUES (?, ?, ?)",
             &[
                 DataValue::Text(id.into()),
@@ -33,7 +33,7 @@ async fn insert_jwt(store: &TursoStorage, id: &str, expires_at: i64) {
 
 async fn jwt_ids(store: &TursoStorage) -> Vec<String> {
     let rows = store
-        .query_async("SELECT id FROM jwt_tokens ORDER BY id", &[])
+        .query("SELECT id FROM jwt_tokens ORDER BY id", &[])
         .await
         .unwrap()
         .collect_all()

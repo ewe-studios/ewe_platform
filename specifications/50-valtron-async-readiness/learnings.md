@@ -262,3 +262,14 @@ _Updated: 2026-10-21. Add to this after every task and before stopping work._
 - **A shared target directory is not yours.** Other sessions built and pruned the shared target
   at the same time; deleted dependency outputs gave "can't find crate" errors that `cargo` does
   not repair. A private target in the worktree (with `CARGO_PROFILE_DEV_DEBUG=0`) was reliable.
+- **Let the compiler find the call sites of a rename.** For F05 T3 a script renamed the trait
+  method definitions only. Each `no method named get_async` error then gave the exact file, line
+  and column of a call, and a second script changed only that spot. A global `sed` on short names
+  (`get`, `set`, `count`) would also have changed the wasm stores' inherent `*_async` methods and
+  the VFS methods, which keep their names. Build each feature set and target (wasm32, `libsql`,
+  the vector store features, `server-test`) separately: the workspace build does not compile them.
+- **Check which method a renamed call reaches, not only that it compiles.** An inherent method
+  wins over a trait method of the same name, and a trait implemented on `Arc<T>` wins over one on
+  `T`. Before a rename, list each implementing type's inherent methods and the other traits it
+  implements. Two traits with one name on one type (`KeyValueStore` and `StateStore` on `D1Store`)
+  are safe: a call with both in scope does not compile.

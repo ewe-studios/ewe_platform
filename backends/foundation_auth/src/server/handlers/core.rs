@@ -1345,7 +1345,7 @@ fn has_query_param(name: &str, req: &SimpleIncomingRequest) -> bool {
 async fn lookup_upstream_provider(
     qs: &dyn QueryStore, id: &str,
 ) -> Result<Option<UpstreamProvider>, String> {
-    let mut stream = qs.query_async(
+    let mut stream = qs.query(
         "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
          encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
          scopes, is_active, mapping_config, created_at, updated_at \
@@ -1410,7 +1410,7 @@ async fn provision_from_upstream_profile(
     let name = profile.name.as_deref().unwrap_or(&profile.sub);
     let email = profile.email.as_deref().unwrap_or("");
     let now = chrono::Utc::now().timestamp_millis();
-    qs.execute_async(
+    qs.execute(
         "INSERT INTO users (id, email, username, password_hash, \
          created_at, updated_at) VALUES (?, ?, ?, '', ?, ?)",
         &[
@@ -1425,7 +1425,7 @@ async fn provision_from_upstream_profile(
 }
 
 async fn find_user_by_email_lax(qs: &dyn QueryStore, email: &str) -> Result<Option<String>, String> {
-    let mut stream = qs.query_async(
+    let mut stream = qs.query(
         "SELECT id FROM users WHERE email = ?",
         &[DataValue::Text(email.to_lowercase())],
     ).await.map_err(|e| e.to_string())?;

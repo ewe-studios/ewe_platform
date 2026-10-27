@@ -154,7 +154,7 @@ fn limit_opt(limit: usize) -> Option<usize> {
 }
 
 /// Replay snapshotted rows as the async [`AsyncStorageItemStream`] — pulled one
-/// item at a time via `.next().await` (same shape as `list_keys_async`).
+/// item at a time via `.next().await` (same shape as `list_keys`).
 fn rows_to_async<V: DeserializeOwned + Send + 'static>(
     rows: Vec<Row>,
 ) -> AsyncStorageItemStream<'static, V> {
@@ -173,7 +173,7 @@ fn rows_to_async<V: DeserializeOwned + Send + 'static>(
 /// ordering, ids and promoted columns match the SQL backend.
 #[async_trait::async_trait]
 impl DocumentStore for MemoryDocumentStore {
-    async fn append_async<V: Serialize + Send + 'static>(
+    async fn append<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         content: V,
@@ -182,7 +182,7 @@ impl DocumentStore for MemoryDocumentStore {
         self.put(key, doc_id, &content, None, None, None)
     }
 
-    async fn append_with_id_async<V: Serialize + Send + 'static>(
+    async fn append_with_id<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -191,7 +191,7 @@ impl DocumentStore for MemoryDocumentStore {
         self.put(key, doc_id.to_string(), &content, None, None, None)
     }
 
-    async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         content: V,
@@ -201,7 +201,7 @@ impl DocumentStore for MemoryDocumentStore {
         self.put(key, doc_id, &content, t, s, rt)
     }
 
-    async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -211,7 +211,7 @@ impl DocumentStore for MemoryDocumentStore {
         self.put(key, doc_id.to_string(), &content, t, s, rt)
     }
 
-    async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+    async fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
         Ok(self
             .collect_rows(key, true, None, Some(limit))?
             .iter()
@@ -219,7 +219,7 @@ impl DocumentStore for MemoryDocumentStore {
             .collect())
     }
 
-    async fn scan_documents_from_async(
+    async fn scan_documents_from(
         &self,
         key: &str,
         from_id: &str,
@@ -232,7 +232,7 @@ impl DocumentStore for MemoryDocumentStore {
             .collect())
     }
 
-    async fn scan_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         limit: usize,
@@ -240,14 +240,14 @@ impl DocumentStore for MemoryDocumentStore {
         Ok(rows_to_async(self.collect_rows(key, true, None, Some(limit))?))
     }
 
-    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan_all<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
         Ok(rows_to_async(self.collect_rows(key, false, None, None)?))
     }
 
-    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan_from<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         from_id: &str,
@@ -261,15 +261,15 @@ impl DocumentStore for MemoryDocumentStore {
         )?))
     }
 
-    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+    async fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         self.remove_one(key, doc_id)
     }
 
-    async fn delete_all_async(&self, key: &str) -> StorageResult<u64> {
+    async fn delete_all(&self, key: &str) -> StorageResult<u64> {
         self.remove_all(key)
     }
 
-    async fn count_async(&self, key: &str) -> StorageResult<u64> {
+    async fn count(&self, key: &str) -> StorageResult<u64> {
         self.count_rows(key)
     }
 }

@@ -82,7 +82,7 @@ impl<KV: KeyValueStore> PowService<KV> {
             expires_at: Utc::now().timestamp() + self.validity_secs as i64,
             solved: false,
         };
-        self.cache.set_async(&challenge_key(&challenge), entry).await?;
+        self.cache.set(&challenge_key(&challenge), entry).await?;
 
         Ok(PowChallenge {
             difficulty: self.difficulty,
@@ -97,7 +97,7 @@ impl<KV: KeyValueStore> PowService<KV> {
     /// Cache errors are logged and treated as a verification failure.
     pub async fn verify_solution(&self, solution: &PowSolution) -> bool {
         let key = challenge_key(&solution.challenge);
-        let mut entry: ChallengeEntry = match self.cache.get_async(&key).await {
+        let mut entry: ChallengeEntry = match self.cache.get(&key).await {
             Ok(Some(e)) => e,
             Ok(None) => return false,
             Err(e) => {
@@ -109,7 +109,7 @@ impl<KV: KeyValueStore> PowService<KV> {
         // Lazy expiry check.
         if Utc::now().timestamp() >= entry.expires_at {
             // Best-effort eviction: the entry is already unusable.
-            if let Err(e) = self.cache.delete_async(&key).await {
+            if let Err(e) = self.cache.delete(&key).await {
                 eprintln!("PoW: failed to evict expired challenge: {e}");
             }
             return false;
@@ -127,7 +127,7 @@ impl<KV: KeyValueStore> PowService<KV> {
 
         if valid {
             entry.solved = true;
-            if let Err(e) = self.cache.set_async(&key, entry).await {
+            if let Err(e) = self.cache.set(&key, entry).await {
                 eprintln!("cache error: {e}");
                 return false;
             }

@@ -99,7 +99,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
 
     /// Record a memory `SessionRecord`: audit first, then cache (OD-07-3 ordering).
     ///
-    /// A non-memory variant is rejected by `MemoryStore::set_async`. If the audit
+    /// A non-memory variant is rejected by `MemoryStore::set`. If the audit
     /// append fails the error propagates and the cache is left untouched; if the
     /// cache write fails afterwards it is logged and `Ok` is returned (the audit is
     /// the source of truth and the cache rebuilds on the next hydrate fallback).
@@ -113,10 +113,10 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
         // Audit first — promoted columns (record_type/summary) come from
         // `PromotableDocument for SessionRecord` above.
         self.audit
-            .append_promotable_async(&Self::audit_key(session), record.clone())
+            .append_promotable(&Self::audit_key(session), record.clone())
             .await?;
 
-        if let Err(e) = self.memory.set_async(session, record).await {
+        if let Err(e) = self.memory.set(session, record).await {
             tracing::warn!(
                 session = %session,
                 error = %e,
@@ -131,7 +131,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     /// # Errors
     /// Returns [`StorageError`] if the record cannot be retrieved.
     pub async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory> {
-        let mut memory = self.memory.hydrate_async(session).await?;
+        let mut memory = self.memory.hydrate(session).await?;
 
         let missing: Vec<MemoryTier> = [
             MemoryTier::Working,
@@ -154,7 +154,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
         // must stay `Send` for the `MemoryAccess` trait, and wasm has one thread.
         let mut records = SendWrapper::new(
             self.audit
-                .scan_all_async::<SessionRecord>(&audit_key)
+                .scan_all::<SessionRecord>(&audit_key)
                 .await?,
         );
         while let Some(item) = SendWrapper::new(records.next()).await {
@@ -168,14 +168,14 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
 
         for tier in missing {
             if let Some(record) = tier_ref(&memory, tier).cloned() {
-                self.memory.set_async(session, &record).await?;
+                self.memory.set(session, &record).await?;
             }
         }
 
         Ok(memory)
     }
 
-    /// Borrow the underlying cache (e.g. for direct `get_async` of a single tier).
+    /// Borrow the underlying cache (e.g. for direct `get` of a single tier).
     pub fn memory(&self) -> &M {
         &self.memory
     }

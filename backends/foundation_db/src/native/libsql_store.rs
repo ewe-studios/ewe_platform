@@ -756,19 +756,19 @@ impl StateStore for LibsqlStore {
 
 #[async_trait::async_trait]
 impl KeyValueStore for LibsqlStore {
-    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         self.get_async_internal::<V>(key).await
     }
-    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+    async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         self.set_async_internal(key, value).await
     }
-    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete(&self, key: &str) -> StorageResult<()> {
         self.delete_async_internal(key).await
     }
-    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn exists(&self, key: &str) -> StorageResult<bool> {
         self.exists_async_internal(key).await
     }
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         let (sql, param) = match prefix {
             Some(p) => (
                 "SELECT key FROM kv_store WHERE key LIKE ? ORDER BY key",
@@ -788,46 +788,46 @@ impl KeyValueStore for LibsqlStore {
 
 #[async_trait::async_trait]
 impl QueryStore for LibsqlStore {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+    async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let conn = Arc::clone(&self.conn);
         let sql = sql.to_string();
         let params = Self::to_libsql_params(params);
         let stream = Self::query_rows_stream(conn, sql, params);
         Ok(AsyncQueryStream::new(stream))
     }
-    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+    async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
         self.execute_async_internal(sql, params).await
     }
-    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
+    async fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_batch_async_internal(sql).await
     }
 }
 
 #[async_trait::async_trait]
 impl RateLimiterStore for LibsqlStore {
-    async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
+    async fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
         rate_limit::sql_check(self, key, max_count, window_seconds).await
     }
-    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+    async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
         rate_limit::sql_record(self, key, window_seconds).await
     }
-    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
+    async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         rate_limit::sql_reset(self, key).await
     }
 }
 
 #[async_trait::async_trait]
 impl BlobStore for LibsqlStore {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         self.put_blob_async_internal(key, data).await
     }
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         self.get_blob_async_internal(key).await
     }
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
         self.delete_blob_async_internal(key).await
     }
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         self.blob_exists_async_internal(key).await
     }
 }

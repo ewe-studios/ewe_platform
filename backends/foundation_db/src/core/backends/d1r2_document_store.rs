@@ -119,7 +119,7 @@ impl<Q: QueryStore, B: BlobStore> D1R2DocumentStore<Q, B> {
     ) -> StorageResult<Document> {
         let r2_key = if content_json.len() > R2_OFFLOAD_THRESHOLD {
             let rk = Self::blob_key(key, &doc_id);
-            self.blob_store.put_blob_async(&rk, content_json.as_bytes()).await?;
+            self.blob_store.put_blob(&rk, content_json.as_bytes()).await?;
             Some(rk)
         } else {
             None
@@ -152,7 +152,7 @@ impl<Q: QueryStore, B: BlobStore> D1R2DocumentStore<Q, B> {
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             self.table
         );
-        self.query_store.execute_async(&sql, &params).await?;
+        self.query_store.execute(&sql, &params).await?;
 
         Ok(Document {
             id: doc_id,
@@ -170,7 +170,7 @@ impl<Q: QueryStore, B: BlobStore> D1R2DocumentStore<Q, B> {
             Some(rk) => {
                 let blob = self
                     .blob_store
-                    .get_blob_async(rk)
+                    .get_blob(rk)
                     .await?
                     .ok_or_else(|| StorageError::Backend(format!("R2 blob not found: {rk}")))?;
                 String::from_utf8(blob)
@@ -213,7 +213,7 @@ impl<Q: QueryStore, B: BlobStore> D1R2DocumentStore<Q, B> {
     ) -> StorageResult<Vec<Document>> {
         let stmt = self.scan_sql(DOC_COLUMNS_R2, from_id.is_some(), desc, true);
         let params = Self::scan_params(key, from_id, Some(limit));
-        let rows = self.query_store.query_async(&stmt, &params).await?.collect_all().await?;
+        let rows = self.query_store.query(&stmt, &params).await?.collect_all().await?;
 
         let mut docs = Vec::with_capacity(rows.len());
         for row in &rows {
@@ -231,7 +231,7 @@ impl<Q: QueryStore, B: BlobStore> D1R2DocumentStore<Q, B> {
     ) -> StorageResult<Vec<StorageResult<V>>> {
         let stmt = self.scan_sql("content, r2_key", from_id.is_some(), desc, limit.is_some());
         let params = Self::scan_params(key, from_id, limit);
-        let rows = self.query_store.query_async(&stmt, &params).await?.collect_all().await?;
+        let rows = self.query_store.query(&stmt, &params).await?.collect_all().await?;
 
         let mut items = Vec::with_capacity(rows.len());
         for row in &rows {
@@ -249,7 +249,7 @@ impl<Q: QueryStore, B: BlobStore> D1R2DocumentStore<Q, B> {
 
 #[async_trait::async_trait]
 impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
-    async fn append_async<V: Serialize + Send + 'static>(
+    async fn append<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         content: V,
@@ -260,7 +260,7 @@ impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
         self.insert_row(key, doc_id, json, None, None, None).await
     }
 
-    async fn append_with_id_async<V: Serialize + Send + 'static>(
+    async fn append_with_id<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -271,7 +271,7 @@ impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
         self.insert_row(key, doc_id.to_string(), json, None, None, None).await
     }
 
-    async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         content: V,
@@ -283,7 +283,7 @@ impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
         self.insert_row(key, doc_id, json, t, s, rt).await
     }
 
-    async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -295,11 +295,11 @@ impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
         self.insert_row(key, doc_id.to_string(), json, t, s, rt).await
     }
 
-    async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+    async fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
         self.collect_documents(None, key, true, Self::limit_to_i64(limit)).await
     }
 
-    async fn scan_documents_from_async(
+    async fn scan_documents_from(
         &self,
         key: &str,
         from_id: &str,
@@ -308,7 +308,7 @@ impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
         self.collect_documents(Some(from_id), key, false, Self::limit_or_unlimited(limit)).await
     }
 
-    async fn scan_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         limit: usize,
@@ -319,7 +319,7 @@ impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
         Ok(Box::pin(futures_lite::stream::iter(items)))
     }
 
-    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan_all<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
@@ -327,7 +327,7 @@ impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
         Ok(Box::pin(futures_lite::stream::iter(items)))
     }
 
-    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan_from<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         from_id: &str,
@@ -339,7 +339,7 @@ impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
         Ok(Box::pin(futures_lite::stream::iter(items)))
     }
 
-    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+    async fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         let check_sql = format!(
             "SELECT r2_key FROM {} WHERE collection_key = ? AND doc_id = ?",
             self.table
@@ -348,10 +348,10 @@ impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
             DataValue::Text(key.to_string()),
             DataValue::Text(doc_id.to_string()),
         ];
-        let rows = self.query_store.query_async(&check_sql, &params).await?.collect_all().await?;
+        let rows = self.query_store.query(&check_sql, &params).await?.collect_all().await?;
         if let Some(row) = rows.first() {
             if let Ok(Some(rk)) = row.get::<Option<String>>(0) {
-                self.blob_store.delete_blob_async(&rk).await?;
+                self.blob_store.delete_blob(&rk).await?;
             }
         }
 
@@ -359,37 +359,37 @@ impl<Q: QueryStore, B: BlobStore> DocumentStore for D1R2DocumentStore<Q, B> {
             "DELETE FROM {} WHERE collection_key = ? AND doc_id = ?",
             self.table
         );
-        self.query_store.execute_async(&delete_sql, &params).await?;
+        self.query_store.execute(&delete_sql, &params).await?;
         Ok(())
     }
 
-    async fn delete_all_async(&self, key: &str) -> StorageResult<u64> {
+    async fn delete_all(&self, key: &str) -> StorageResult<u64> {
         let select_sql = format!(
             "SELECT r2_key FROM {} WHERE collection_key = ? AND r2_key IS NOT NULL",
             self.table
         );
         let key_param = [DataValue::Text(key.to_string())];
-        let rows = self.query_store.query_async(&select_sql, &key_param).await?.collect_all().await?;
+        let rows = self.query_store.query(&select_sql, &key_param).await?.collect_all().await?;
         for row in &rows {
             if let Ok(rk) = row.get::<String>(0) {
-                self.blob_store.delete_blob_async(&rk).await?;
+                self.blob_store.delete_blob(&rk).await?;
             }
         }
 
         let delete_sql = format!("DELETE FROM {} WHERE collection_key = ?", self.table);
         self.query_store
-            .execute_async(&delete_sql, &[DataValue::Text(key.to_string())])
+            .execute(&delete_sql, &[DataValue::Text(key.to_string())])
             .await
     }
 
-    async fn count_async(&self, key: &str) -> StorageResult<u64> {
+    async fn count(&self, key: &str) -> StorageResult<u64> {
         let sql = format!(
             "SELECT COUNT(*) as cnt FROM {} WHERE collection_key = ?",
             self.table
         );
         let rows = self
             .query_store
-            .query_async(&sql, &[DataValue::Text(key.to_string())])
+            .query(&sql, &[DataValue::Text(key.to_string())])
             .await?
             .collect_all()
             .await?;

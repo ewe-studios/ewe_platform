@@ -158,7 +158,7 @@ impl<'a> MigrationRunner<'a> {
     /// Returns an error if any migration SQL statement fails.
     pub async fn run_async(&self, store: &dyn QueryStore) -> StorageResult<usize> {
         // Ensure the migrations tracking table exists
-        store.execute_batch_async(
+        store.execute_batch(
             "CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))"
         ).await?;
 
@@ -166,7 +166,7 @@ impl<'a> MigrationRunner<'a> {
 
         for migration in self.migrations {
             // Check if migration already applied
-            let mut rows = store.query_async(
+            let mut rows = store.query(
                 "SELECT 1 FROM _migrations WHERE id = ?",
                 &[DataValue::Text(migration.id.to_string())],
             ).await?;
@@ -182,10 +182,10 @@ impl<'a> MigrationRunner<'a> {
 
             if !exists {
                 // Apply migration
-                store.execute_batch_async(migration.sql).await?;
+                store.execute_batch(migration.sql).await?;
 
                 // Record migration
-                store.execute_async(
+                store.execute(
                     "INSERT INTO _migrations (id, name) VALUES (?, ?)",
                     &[
                         DataValue::Text(migration.id.to_string()),

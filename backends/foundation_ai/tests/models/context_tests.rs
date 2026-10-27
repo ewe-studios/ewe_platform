@@ -105,7 +105,7 @@ fn working_memory_injected() {
     block_on(async {
         provider
             .memory_store()
-            .set_async(provider.session_id(), &working_record("user likes rust"))
+            .set(provider.session_id(), &working_record("user likes rust"))
             .await
             .unwrap();
         let ctx = provider.assemble().await.expect("assemble");
@@ -123,7 +123,7 @@ fn incon03_observation_injected_when_no_reflection() {
         let obs = observation_record("saw something", SystemTime::UNIX_EPOCH);
         provider
             .memory_store()
-            .set_async(provider.session_id(), &obs)
+            .set(provider.session_id(), &obs)
             .await
             .unwrap();
         let ctx = provider.assemble().await.expect("assemble");
@@ -144,12 +144,12 @@ fn incon03_observation_suppressed_when_reflection_newer() {
         let refl = reflection_record("newer reflection", t2);
         provider
             .memory_store()
-            .set_async(provider.session_id(), &obs)
+            .set(provider.session_id(), &obs)
             .await
             .unwrap();
         provider
             .memory_store()
-            .set_async(provider.session_id(), &refl)
+            .set(provider.session_id(), &refl)
             .await
             .unwrap();
         let ctx = provider.assemble().await.expect("assemble");
@@ -177,12 +177,12 @@ fn incon03_observation_injected_when_newer_than_reflection() {
         let obs = observation_record("newer observation", t2);
         provider
             .memory_store()
-            .set_async(provider.session_id(), &refl)
+            .set(provider.session_id(), &refl)
             .await
             .unwrap();
         provider
             .memory_store()
-            .set_async(provider.session_id(), &obs)
+            .set(provider.session_id(), &obs)
             .await
             .unwrap();
         let ctx = provider.assemble().await.expect("assemble");
@@ -219,17 +219,17 @@ fn assembly_order_is_deterministic() {
 
         provider
             .memory_store()
-            .set_async(provider.session_id(), &working_record("fact A"))
+            .set(provider.session_id(), &working_record("fact A"))
             .await
             .unwrap();
         provider
             .memory_store()
-            .set_async(provider.session_id(), &reflection_record("reflection B", t1))
+            .set(provider.session_id(), &reflection_record("reflection B", t1))
             .await
             .unwrap();
         provider
             .memory_store()
-            .set_async(
+            .set(
                 provider.session_id(),
                 &observation_record("observation C", t2),
             )

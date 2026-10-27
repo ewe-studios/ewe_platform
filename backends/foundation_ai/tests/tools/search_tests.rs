@@ -132,7 +132,7 @@ fn search_context_hybrid_searches_messages_and_memory() {
             timestamp: foundation_compact::SystemTime::UNIX_EPOCH,
         };
         ctx.memory_store()
-            .set_async(&SessionId::new(), &working)
+            .set(&SessionId::new(), &working)
             .await
             .unwrap();
 

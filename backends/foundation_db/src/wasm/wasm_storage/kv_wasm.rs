@@ -163,23 +163,23 @@ impl KVWasmStorage {
 
 #[async_trait::async_trait]
 impl KeyValueStore for KVWasmStorage {
-    async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: serde::de::DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         foundation_compact::SendWrapper::new(async move { self.get_async(key).await }).await
     }
 
-    async fn set_async<V: serde::Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+    async fn set<V: serde::Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.set_async(key, value).await }).await
     }
 
-    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete(&self, key: &str) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.delete_async(key).await }).await
     }
 
-    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn exists(&self, key: &str) -> StorageResult<bool> {
         foundation_compact::SendWrapper::new(async move { self.exists_async(key).await }).await
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         let keys = foundation_compact::SendWrapper::new(async move {
             self.list_keys_async(prefix).await
         }).await?;
@@ -197,7 +197,7 @@ impl KeyValueStore for KVWasmStorage {
 /// `StorageError::Generic`.
 #[async_trait::async_trait]
 impl QueryStore for KVWasmStorage {
-    async fn query_async(
+    async fn query(
         &self,
         _sql: &str,
         _params: &[DataValue],
@@ -207,13 +207,13 @@ impl QueryStore for KVWasmStorage {
         ))
     }
 
-    async fn execute_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
+    async fn execute(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
         Err(StorageError::Generic(
             "QueryStore not supported for KVWasmStorage".to_string(),
         ))
     }
 
-    async fn execute_batch_async(&self, _sql: &str) -> StorageResult<()> {
+    async fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
         Err(StorageError::Generic(
             "QueryStore not supported for KVWasmStorage".to_string(),
         ))
@@ -286,7 +286,7 @@ impl KVWasmStorage {
 
 #[async_trait::async_trait]
 impl RateLimiterStore for KVWasmStorage {
-    async fn check_rate_limit_async(
+    async fn check_rate_limit(
         &self,
         key: &str,
         max_count: u32,
@@ -297,11 +297,11 @@ impl RateLimiterStore for KVWasmStorage {
         }).await
     }
 
-    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+    async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
         foundation_compact::SendWrapper::new(async move { self.record_rate_limit_async(key, window_seconds).await }).await
     }
 
-    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
+    async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.reset_rate_limit_async(key).await }).await
     }
 }
@@ -382,19 +382,19 @@ impl KVWasmStorage {
 
 #[async_trait::async_trait]
 impl BlobStore for KVWasmStorage {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
     }
 
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         foundation_compact::SendWrapper::new(async move { self.get_blob_async(key).await }).await
     }
 
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.delete_blob_async(key).await }).await
     }
 
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         foundation_compact::SendWrapper::new(async move { self.blob_exists_async(key).await }).await
     }
 }

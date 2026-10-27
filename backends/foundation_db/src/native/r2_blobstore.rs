@@ -392,19 +392,19 @@ fn query_escape(value: &str) -> String {
 
 #[async_trait::async_trait]
 impl BlobStore for R2Store {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         self.put_object_async(&self.blob_object_key(key), data, "application/octet-stream").await
     }
 
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         self.get_object_async(&self.blob_object_key(key)).await
     }
 
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
         self.delete_object_async(&self.blob_object_key(key)).await
     }
 
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         self.head_object_async(&self.blob_object_key(key)).await
     }
 }
