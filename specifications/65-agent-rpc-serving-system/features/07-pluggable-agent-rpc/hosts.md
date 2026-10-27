@@ -54,7 +54,7 @@ its own implementation. This table shows what each host plugs into each seam.
 | Protocols served | Connect, gRPC, gRPC-Web | Connect, gRPC-Web | Connect (from the Worker only) | none | Connect |
 | Client transport | `H1Transport`, `H2Transport` | `DoStubTransport` (to the DO) | none | `FetchTransport` | `MemTransport` |
 | `ClientAuth` | `MtlsAuth`, optionally `AnyOf` with `SignedSecretAuth` | `AnyOf(CfMtlsAuth, SignedSecretAuth)`, optionally `JwtAuth` | `ForwardedPrincipalAuth` | sends a bearer secret | any provider, over memory stores |
-| `KeyStore` | `FsKeyStore` behind `EnvKeyStore` | `EnvKeyStore` or `DbKeyStore<KVWasmStorage>` (public keys only) | none | none | `MemoryKeyStore` |
+| Key material ([auth.md](./auth.md) section 4) | operator key files (`KeySource::File`), or `EWE_AGENT_RPC_*_KEY` variables | public keys from the var `AGENT_RPC_SECRET_PUBLIC_KEYS`; the signing key from the secret `AGENT_RPC_SIGNING_KEY` only with enrollment | none | none | `KeySource::Inline` with fixture or seeded keys |
 | `TrustStore` | `SqlTrustStore<TursoStorage>` | `SqlTrustStore<D1WasmStorage>` | none | none | `MemoryTrustStore` |
 | `ModelCatalog` | `LocalCatalog` | `RemoteCatalog` (checks requests, fills the index) | `RemoteCatalog` (runs the turns) | none | `ScriptedCatalog` |
 | `InstanceRegistry` | `LocalInstanceRegistry<InMemoryStores>` | `DurableObjectRegistry` | `LocalInstanceRegistry<DoStores>`, `max_instances = 1` | none | `LocalInstanceRegistry<InMemoryStores>` |
@@ -230,9 +230,11 @@ impl NativeHost {
     /// `ModelLoad` when `preload` is on and a model cannot load; `Transport`
     /// when an address cannot be bound.
     pub async fn start(config: NativeHostConfig, env: Env) -> AgentRpcResult<RunningServer> {
-        // 1. Keys: the legacy environment variable first, then the state directory.
-        let keys = security::native_key_store(&config)?;            // EnvKeyStore over FsKeyStore
-        let material = KeyMaterial::new(keys, security::protection_from_process_env()?, env.clone());
+        // 1. Keys: operator files (auth.md section 4.5). A missing key stops the
+        //    start with the command that makes it; the host never makes a key.
+        let keys = security::load_operator_keys(&config).await?;    // signing, CA, server
+        let ca = security::certificate_authority(&config, &keys.ca, &env).await?;   // writes ca-cert.pem if new
+        let identity = security::server_identity(&config, &ca, &keys.server, &env).await?;
 
         // 2. Trusted clients: one Turso file in the state directory (as today).
         let db_url = config.state_dir.join("trusted-clients.db");
@@ -386,7 +388,8 @@ sequenceDiagram
 
 | State | Where it lives | Who writes it | Awaited operations |
 |---|---|---|---|
-| Signing key, CA key, server identity | `state_dir/keys/*.json` (or the legacy PEM files) | `KeyMaterial` at start | `KeyStore::get`, `create_if_absent` |
+| Signing key, CA key, server key | operator files, by default `state_dir/{bootstrap-signing-key,ca-key,server-key}.pem` | the operator (`ssh-keygen` or `openssl`) | `PrivateKey::load` at start |
+| CA certificate, server certificate | `state_dir/{ca-cert,server-cert}.pem` | the host at start, when missing or due for renewal | file read and write at start |
 | Trusted clients, secret uses, revocations | `state_dir/trusted-clients.db` (Turso) | `TrustedClients` | `get`, `touch`, `spend_secret`, `record_enrollment` |
 | Trust index | memory (`TrustIndex`) | `TrustedClients` after each write | none: the verifier reads it with no I/O |
 | Loaded models | memory (`LocalCatalog` slots) | `BackgroundLoader` | `resolve` awaits a load once |
@@ -480,15 +483,16 @@ pub struct WorkerHostConfig {
     /// `Some`: this Worker serves `BootstrapService` (Enroll, RefreshAccess)
     /// on its own origin, so browsers and other clients can enroll with a
     /// client key (auth.md section 9.1). The payload private key comes from
-    /// the Worker secret named here, sealed as key-protection.md requires.
+    /// the Worker secret named here (PEM text or base64 PEM, auth.md 4.5).
     /// `None` (default): verify-only; only operator-issued access secrets work.
     pub enrollment: Option<WorkerEnrollment>,
 }
 
 #[derive(Debug, Clone)]
 pub struct WorkerEnrollment {
-    /// The Worker secret (or Secrets Store secret) that holds the sealed
-    /// payload private key. Var `AGENT_RPC_SIGNING_KEY_SECRET`.
+    /// The name of the Worker secret that holds the payload private key.
+    /// Default `AGENT_RPC_SIGNING_KEY`. Set it with
+    /// `wrangler secret put AGENT_RPC_SIGNING_KEY < bootstrap-signing-key.pem`.
     pub signing_key_secret: String,
     pub enroll: EnrollConfig,
 }
@@ -524,7 +528,7 @@ impl WorkerHost {
         let trust = TrustedClients::open(Arc::new(trust_store), env.clone(), config.trust.clone())
             .await
             .map_err(trust_error)?;
-        let verifier = security::access_verifier(bindings, &config, &env).await?;   // EnvKeyStore or KV keys
+        let verifier = security::access_verifier(bindings, &config, &env).await?;   // AGENT_RPC_SECRET_PUBLIC_KEYS
         let mut providers: Vec<Arc<dyn ClientAuth>> = Vec::new();
         if config.cloudflare_mtls {
             providers.push(Arc::new(CfMtlsAuth::new(Arc::clone(&trust))));
@@ -818,14 +822,14 @@ is in D1 and the session is in its DO.
 
 ### 5.10 KV and R2
 
-- **KV** holds the public keys that verify bearer secrets (optional). `DbKeyStore<KVWasmStorage>` reads them through `KeyMaterial::verify_only`. KV is eventually consistent: a new key can take about 60 seconds to reach every location. That is acceptable for adding a key. To stop a key at once, revoke its secrets in D1 ([auth.md](./auth.md), section 9.4). KV never holds the trust store, because it has no atomic write.
+- **KV** is not used for keys in the proof of concept: the public keys are the var `AGENT_RPC_SECRET_PUBLIC_KEYS` ([auth.md](./auth.md) section 4.5). Keys in KV come with the key store of [feature 08](../08-key-protection-at-rest/feature.md). KV never holds the trust store, because it has no atomic write.
 - **R2** holds the archive of each destroyed instance (owner decision 5). Section 5.12 describes it.
 
 ### 5.11 Model provider API keys
 
 An **API key** here is the secret that a remote model provider (OpenAI, OpenRouter, Anthropic,
 Workers AI) gives to its customers. The Worker sends it with each model request. Anyone with the
-key can use the account and spend its money. So it is a secret, like the KEK.
+key can use the account and spend its money. So it is a secret, like a private key.
 
 Owner decision 6: API keys are **Worker secrets** or **Secrets Store secrets**. They are never in
 `wrangler.toml`, never in a var, never in D1 or KV, and never in a log.
@@ -866,9 +870,9 @@ in a `Zeroizing` string, and fails with the secret's name if one is missing. `ap
    provider client. The key stays in the provider client and goes only into the
    `Authorization` header of the model request.
 
-The native host uses the same `SecretRef` idea with the native sources of
-[key-protection.md](./key-protection.md) section 3.4: a systemd credential, a secret file, or (last
-choice, with permission) an environment variable.
+The native host uses the same `SecretRef` idea with an environment variable or a secret file (a
+path in configuration, mode 0600). More native sources, such as systemd credentials, come with
+[feature 08](../08-key-protection-at-rest/key-protection.md).
 
 Rotation: put the new value with the same secret name and redeploy. Cloudflare starts new isolates
 with the new value. Revoke the old key at the provider after the deploy.
@@ -917,10 +921,9 @@ sequenceDiagram
 _The diagram shows the archive step. The DO deletes its storage only after R2 confirms the
 archive._
 
-Security: R2 encrypts every object at rest. The archive also holds conversation content, so the
-host seals it with the KEK when one is configured
-([key-protection.md](./key-protection.md)): each object gets its own data key, and the object
-metadata holds the wrapped data key.
+Security: R2 encrypts every object at rest. The proof of concept adds no encryption of its own.
+Envelope encryption of each archive object (its own data key, wrapped by a KEK) is task K4 of
+[feature 08](../08-key-protection-at-rest/feature.md).
 
 Configuration (`WorkerHostConfig::archive`):
 
@@ -928,7 +931,6 @@ Configuration (`WorkerHostConfig::archive`):
 |---|---|---|
 | `enabled` | `true` when the `AGENT_RPC_ARCHIVE` binding exists | owner decision 5 |
 | `part_size` | 8 MiB | above the R2 minimum part size of 5 MiB, and the default part size of the AWS command-line tool |
-| `seal_with_kek` | `true` when a KEK is configured | conversations are private data |
 
 Keep or delete archives with R2 lifecycle rules (for example, delete after 90 days). The native
 host has the same step with any `foundation_db` blob store (a directory or R2 over its REST API).

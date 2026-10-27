@@ -386,7 +386,7 @@ The proxy does not have its own copy.
 | Part | Type (feature 07) | Use here |
 |---|---|---|
 | Enrollment token | `SignedSecret`, `SecretIssuer`, `SecretVerifier`, domain `SecretDomain::PROXY_REGISTRATION` = `"ewe.proxy.registrar_secret"` | The operator makes one token for each sidecar. |
-| Registration CA | `KeyMaterial::certificate_authority` over a `KeyStore` | Signs the sidecar certificates and the registration listener certificate. It is **not** the public certificate of the proxy, and **not** agent-rpc's CA. |
+| Registration CA | `CertificateAuthority::from_key` over an operator CA key (`KeySource`, feature 07 decision 11) | Signs the sidecar certificates and the registration listener certificate. It is **not** the public certificate of the proxy, and **not** agent-rpc's CA. |
 | Trusted sidecars | `TrustedClients` over a `TrustStore` | Records each enrolled sidecar, its certificate fingerprint, last-seen time and revocation. |
 | TLS checks | `mtls::server_config_mutual`, `TrustedClientVerifier` | The registration listener requires a client certificate that the registration CA signed and that is not revoked. |
 
@@ -614,7 +614,7 @@ _The diagram shows how a registered backend enters rotation, leaves it, and is r
 
 | Phase | What happens |
 |---|---|
-| Start | Load `RegistrationConfig`. Load or make the registration CA and the listener certificate (`KeyMaterial`, feature 07; keys always encrypted at rest). Open the trust store. Start the registration listener and, if set, the Unix socket. Start the sweeper task. The registry starts empty (see 7.2). |
+| Start | Load `RegistrationConfig`. Load the operator's registration CA key and make the CA and listener certificates (`KeySource` and `CertificateAuthority::from_key`, feature 07; a missing key stops the start; encryption at rest is the deferred feature 08). Open the trust store. Start the registration listener and, if set, the Unix socket. Start the sweeper task. The registry starts empty (see 7.2). |
 | Run | Serve calls. The sweeper runs every `sweep_interval` and calls `BackendRegistry::sweep`. |
 | Config reload | The existing `reload` command re-reads the file. Config services are rebuilt. Registered services stay. Policy changes apply to the next call; a backend that the new policy forbids moves to `Draining`. |
 | Stop | Stop accepting registration calls. The public listener drains as today (`start_drain`). Registered backends are not deregistered: the apps still run. |

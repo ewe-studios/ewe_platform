@@ -1,6 +1,6 @@
 # Key protection: private keys are always encrypted at rest
 
-_Part of [feature 07](./feature.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [feature 08](./feature.md) (deferred). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** key encryption key (KEK); data encryption key (DEK); key
@@ -14,11 +14,11 @@ Google Cloud Platform (GCP); Identity and Access Management (IAM); temporary fil
 memory (tmpfs); process identifier (PID); random-access memory (RAM); teletypewriter, the name
 for an interactive terminal (TTY); AeroSpace and Defence Industries Association of Europe
 (ASD), the owner of the STE standard ASD-STE100. The
-[glossary in feature.md](./feature.md#2-glossary) explains each term.
+[glossary in feature 07](../07-pluggable-agent-rpc/feature.md#2-glossary) explains each term.
 
 ## 1. The decision
 
-The owner decided (decision 3 in [feature.md](./feature.md)): **a private key is always encrypted when it is stored.**
+The owner decided (decision 3 in [feature 07](../07-pluggable-agent-rpc/feature.md); for the proof of concept, decision 11 there defers it to this feature): **a private key is always encrypted when it is stored.**
 There is no plain-text mode. This applies on every host and every backend: files, databases,
 D1, KV, R2.
 
@@ -104,16 +104,16 @@ _The diagram shows the two traits. A `KekSource` knows where the KEK comes from.
 
 - A **`KekSource`** knows where the KEK comes from. The host calls it one time at start.
 - A **`KeySealer`** encrypts ("seals") and decrypts ("opens") private keys. The key store
-  ([auth.md](./auth.md) section 4) uses it.
+  ([keystore.md](./keystore.md)) uses it.
 
 ### 3.2 `KeySealer` becomes async
 
-[auth.md](./auth.md) section 4.2 defines `KeySealer` with sync functions. WebCrypto and a remote
+[keystore.md](./keystore.md) section 2 defines `KeySealer` with sync functions. WebCrypto and a remote
 KMS are async: they return promises or make network calls. So the trait becomes async. This
 replaces the trait in auth.md section 4.2.
 
 ```rust
-// foundation_auth/src/keystore/sealing.rs (task T23; replaces the sync trait)
+// foundation_auth/src/keystore/sealing.rs (task K3; replaces the sync trait)
 use std::future::Future;
 use std::pin::Pin;
 
@@ -148,7 +148,7 @@ zeros when it is dropped.
 ### 3.3 `KekSource`
 
 ```rust
-// foundation_auth/src/keystore/kek.rs (task T23)
+// foundation_auth/src/keystore/kek.rs (task K3)
 use std::sync::Arc;
 
 use foundation_core::env::Env;
@@ -209,7 +209,7 @@ printing the key.
 `SealedBlob` gets one new field for envelope encryption:
 
 ```rust
-// foundation_auth/src/keystore/sealing.rs (changed, task T23)
+// foundation_auth/src/keystore/sealing.rs (changed, task K3)
 pub struct SealedBlob {
     pub v: u32,
     /// "chacha20poly1305", "argon2id+chacha20poly1305", "aes256gcm",
@@ -229,10 +229,10 @@ pub struct SealedBlob {
 
 ### 4.1 Native host
 
-Configuration (part of `NativeHostConfig`, [hosts.md](./hosts.md) section 4.1):
+Configuration (part of `NativeHostConfig`, [hosts.md](../07-pluggable-agent-rpc/hosts.md) section 4.1):
 
 ```rust
-// foundation_agent_rpc/src/host/native/config.rs (changed, task T23)
+// foundation_agent_rpc/src/host/native/config.rs (changed, task K3)
 #[derive(Debug, Clone)]
 pub enum KekConfig {
     /// Default on Linux with systemd: credential name "agent-rpc-kek".
@@ -317,7 +317,7 @@ environment variables in many places.
 ### 4.4 Environment variable (last choice)
 
 ```rust
-// foundation_agent_rpc/src/host/native/kek.rs (task T23)
+// foundation_agent_rpc/src/host/native/kek.rs (task K3)
 /// Read and remove the KEK variable. Call this in `main` before the valtron
 /// pool or any other thread starts: changing the environment is not safe
 /// while other threads run.
@@ -339,7 +339,7 @@ reason why this is the last choice.
 ### 4.5 Cloudflare Worker
 
 ```toml
-# examples/cf-agent-rpc/wrangler.toml (changed, task T23)
+# examples/cf-agent-rpc/wrangler.toml (changed, task K3)
 [[secrets_store_secrets]]
 binding = "AGENT_RPC_KEK"
 store_id = "<secrets store ID>"
@@ -347,7 +347,7 @@ secret_name = "agent-rpc-kek"
 ```
 
 ```rust
-// foundation_auth/src/keystore/webcrypto.rs (cfg(target_family = "wasm"), task T23)
+// foundation_auth/src/keystore/webcrypto.rs (cfg(target_family = "wasm"), task K3)
 /// A sealer whose key lives inside a non-extractable WebCrypto key.
 pub struct WebCryptoSealer {
     kek_id: String,
@@ -374,7 +374,7 @@ documentation lists `wrapKey` only for AES-CTR, AES-CBC and RSA-OAEP, but `encry
 `decrypt` support AES-GCM.
 
 A Worker that only verifies bearer secrets holds no private key. It needs no KEK
-([hosts.md](./hosts.md) section 5).
+([hosts.md](../07-pluggable-agent-rpc/hosts.md) section 5).
 
 ### 4.6 Remote KMS (envelope encryption)
 
@@ -406,7 +406,7 @@ _The diagram shows envelope encryption. The KMS sees only the DEK, never the pri
 the master key stays in the KMS._
 
 ```rust
-// foundation_auth/src/keystore/kms.rs (task T24)
+// foundation_auth/src/keystore/kms.rs (task K4)
 /// One remote KMS. Each backend is a small HTTP client over
 /// foundation_netio, so it works on native and in a Worker.
 pub trait KmsBackend: Send + Sync + 'static {
@@ -450,8 +450,8 @@ lets tests check envelope encryption with no network.
 
 ## 6. Today's plain-text key files
 
-The branch stores key files in plain text with mode 0600. With "always encrypt", the host must
-not keep them.
+The proof of concept (decision 11 in [feature 07](../07-pluggable-agent-rpc/feature.md)) reads
+operator key files in plain text with mode 0600. With "always encrypt", the host must not keep them.
 
 1. At start, `FsKeyStore` finds a plain-text key file.
 2. If a KEK is available, the host seals the key into the new format, writes it, checks that it
@@ -486,5 +486,5 @@ not keep them.
 
 | Task | What | Done when |
 |---|---|---|
-| T23 | `KekSource`, async `KeySealer`, `KekSealer`, `PassphraseSealer`, `WebCryptoSealer`; native sources (systemd credential, secret file, passphrase prompt, environment variable with permission); Worker sources (Secrets Store, Worker secret); always-encrypt rule and the plain-text migration; rotation command | the tests in section 8, except the Vault test, pass |
-| T24 | `EnvelopeSealer`, `KmsBackend`, Vault Transit backend, then AWS KMS and GCP Cloud KMS | the sealer contract passes with `FakeKms`; the Vault test passes |
+| K3 | `KekSource`, async `KeySealer`, `KekSealer`, `PassphraseSealer`, `WebCryptoSealer`; native sources (systemd credential, secret file, passphrase prompt, environment variable with permission); Worker sources (Secrets Store, Worker secret); always-encrypt rule and the plain-text migration; rotation command | the tests in section 8, except the Vault test, pass |
+| K4 | `EnvelopeSealer`, `KmsBackend`, Vault Transit backend, then AWS KMS and GCP Cloud KMS | the sealer contract passes with `FakeKms`; the Vault test passes |

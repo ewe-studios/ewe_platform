@@ -13,8 +13,8 @@ last_updated: 2026-10-26
 author: "Main Agent"
 tasks:
   completed: 0
-  uncompleted: 27
-  total: 27
+  uncompleted: 24
+  total: 24
   completion_percentage: 0
 ---
 
@@ -70,7 +70,7 @@ It does this with three ideas:
 | [`registry-and-models.md`](./registry-and-models.md) | Model catalog, kinds and devices, the instance registry, Durable Objects |
 | [`hosts.md`](./hosts.md) | The native host, the Worker host, the web client, the native client |
 | [`proto.md`](./proto.md) | The wire contract (`agent.proto`) |
-| [`key-protection.md`](./key-protection.md) | Private keys always encrypted at rest: where the KEK comes from on each platform, remote KMS |
+| [feature 08](../08-key-protection-at-rest/feature.md) (deferred) | Key store, encryption at rest, KEK sources, remote KMS, rotation by `kid`. Moved out for the proof of concept (decision 11) |
 | [`migrations.md`](./migrations.md) | Migrations per database, as ordered groups (shared, then specific), each numbered from 1 and recorded by group |
 | [`deterministic-simulation-testing.md`](./deterministic-simulation-testing.md) | DST in plain words |
 
@@ -132,7 +132,7 @@ It does this with three ideas:
 | Host | The program-specific part that gives the core its network, storage, models and `Env`: native, Worker or DST. |
 | Instance | A named agent with its own session and history, on a shared model. |
 | Instance kind | `API`, `CANDLE` or `GGUF` (later `VIDEO`, `AUDIO`): what model an instance uses. |
-| Key store (`KeyStore`) | The trait that loads and saves key material (CA key, signing key) in any backend. |
+| Key source (`KeySource`) | Where the host reads an operator private key: a file, or an inline value from an environment variable or a Worker secret. The key store trait is deferred to feature 08. |
 | Miniflare, wrangler | Cloudflare tools that run a Worker on a local machine. |
 | mTLS | Mutual TLS: both sides show a certificate. |
 | Registry (`InstanceRegistry`) | The trait that creates, finds, lists and removes instances. |
@@ -234,11 +234,10 @@ classDiagram
         <<trait>>
         authenticate(call) AuthInfo
     }
-    class KeyStore {
-        <<trait>>
-        get(id)
-        create(record)
-        replace(record)
+    class KeySource {
+        <<enum>>
+        File(path)
+        Inline(pem)
     }
     class TrustStore {
         <<trait>>
@@ -274,9 +273,7 @@ classDiagram
     ClientAuth <|.. CfMtlsAuth
     ClientAuth <|.. JwtAuth
     ClientAuth <|.. InsecureNoAuth
-    KeyStore <|.. FsKeyStore
-    KeyStore <|.. DbKeyStore
-    KeyStore <|.. MemoryKeyStore
+    KeySource ..> PrivateKey : load()
     TrustStore <|.. SqlTrustStore
     TrustStore <|.. KvTrustStore
     TrustStore <|.. MemoryTrustStore
@@ -297,7 +294,7 @@ The other traits go to each component as a constructor argument._
 | `Clock` | `SystemClock` | `SystemClock` (wasm `Date.now()`) | `SimClock` |
 | `EntropySource` | `OsEntropy` | `OsEntropy` (wasm `crypto.getRandomValues`) | `SeededEntropy` |
 | `ClientAuth` | `MtlsAuth`, `SignedSecretAuth` | `SignedSecretAuth`, `CfMtlsAuth`, `JwtAuth` | any, with fakes |
-| `KeyStore` | `FsKeyStore` or `DbKeyStore<Turso>` | `DbKeyStore<KV>`: verify-only, or the sealed payload private key when `WorkerHostConfig::enrollment` is set | `MemoryKeyStore` |
+| `KeySource` | operator key files | public keys from a var; the payload private key from a Worker secret only when `WorkerHostConfig::enrollment` is set | `KeySource::Inline` with fixture or seeded keys |
 | `TrustStore` | `SqlTrustStore<Turso>` | `SqlTrustStore<D1>` | `MemoryTrustStore` |
 | `InstanceRegistry` | `LocalInstanceRegistry` | `DurableObjectRegistry` (a `LocalInstanceRegistry` inside each DO) | `LocalInstanceRegistry` |
 | `ModelCatalog` | `LocalCatalog` (Candle, GGUF, API) | `RemoteCatalog` (API only) | `ScriptedCatalog` |
@@ -390,7 +387,7 @@ sure each secret is used only as often as allowed._
 |---|---|---|
 | 1 | Traits so one RPC surface runs on bare metal, Docker and Workers | Sections 3 and 4; [hosts.md](./hosts.md) |
 | 2 | Move auth into `foundation_auth`, built on `foundation_db` | [auth.md](./auth.md) sections 1 and 2 |
-| 3 | A `CaStore` trait for key material in any backend | `KeyStore` in [auth.md](./auth.md) section 4 |
+| 3 | A `CaStore` trait for key material in any backend | Proof of concept: operator key files ([auth.md](./auth.md) section 4, decision 11). The `KeyStore` trait is designed in [feature 08](../08-key-protection-at-rest/keystore.md) (deferred) |
 | 4 | Pluggable client auth; the default is our signed JSON secret, not a JWT | [auth.md](./auth.md) sections 3 and 8 |
 | 5 | `mark_seen` out of the TLS verifier | [auth.md](./auth.md) section 7; section 4.1 here |
 | 6 | Capabilities endpoint and instance kinds | [proto.md](./proto.md); [registry-and-models.md](./registry-and-models.md) section 2 |
@@ -420,10 +417,13 @@ For users of the current `foundation_agent_rpc` on branch `65-f01-agent-rpc`:
 
 - The `Auth` enum on `AgentRpcServerBuilder` is replaced by a `ClientAuth` value.
 - `MtlsConfig` and `TrustedClientStore` move to `foundation_auth` with new names
-  (`KeyMaterial`, `TrustedClients`). Their constructors take an `Env` and a store.
+  (`KeySource` / `PrivateKey`, `TrustedClients`). `TrustedClients` takes an `Env` and a store.
+- The host no longer makes keys at the first start. The operator makes them with `ssh-keygen` or
+  `openssl` ([auth.md](./auth.md) section 4.2). A state directory of today keeps working, because
+  its key files are the default paths (section 4.7 there).
 - `BootstrapSecrets` splits into `SecretIssuer` and `SecretVerifier`.
-- `CertificateAuthority::load_or_generate(dir)` becomes `KeyMaterial::certificate_authority`
-  over any `KeyStore`.
+- `CertificateAuthority::load_or_generate(dir)` becomes `CertificateAuthority::from_key` over
+  the operator's CA key.
 - `CreateInstanceRequest` gains `kind` and `device`. A request without them still works: the
   server picks a default (rules in [proto.md](./proto.md) section 5).
 - `ModelSource::Candle` gains a `Device`.
@@ -466,7 +466,7 @@ Unchanged: the version 1 `SignedSecret` wire format and the existing RPC methods
 | Level | What | Where |
 |---|---|---|
 | Unit | One behavior of one type | each crate's `tests/` |
-| Contract | One test set that every implementation of a trait passes (`KeyStore`, `TrustStore`, `InstanceRegistry`, `ModelCatalog`, `Clock`, `EntropySource`) | each crate's `tests/*/contract.rs` |
+| Contract | One test set that every implementation of a trait passes (`TrustStore`, `InstanceRegistry`, `ModelCatalog`, `Clock`, `EntropySource`) | each crate's `tests/*/contract.rs` |
 | DST | The full client to server to instance flow from one seed, with failure injection | `foundation_agent_rpc/tests/dst/` |
 | Native end to end | Real sockets, real TLS and mTLS | `foundation_agent_rpc/tests/native_*` |
 | Worker | Miniflare, as for the other `examples/cf-*` | `foundation_toolings/tests/cf_examples.rs` |
@@ -482,13 +482,13 @@ group of section 10.2 can be one PR.
 | Task | What | Main files | Done when |
 |---|---|---|---|
 | T0 | Merge `master` into `65-f01-agent-rpc`; adapt to async storage and async `AgentSession` | the crate | `ci.py run foundation_agent_rpc` passes |
-| T1 | `Clock`, `EntropySource`, `IdSource` traits; `SystemClock`, `SimClock`, `OsEntropy`, `SeededEntropy`, `Scru128Source`; `seal_with` | `foundation_compact/src/{clock,entropy,ids}` | contract tests pass natively and on wasm |
+| T1 | `Clock`, `EntropySource`, `IdSource` traits; `SystemClock`, `SimClock`, `OsEntropy`, `SeededEntropy`, `Scru128Source` | `foundation_compact/src/{clock,entropy,ids}` | contract tests pass natively and on wasm |
 | T2 | `Env` bundle; `Env` in valtron's root `Ctx`; `current_ctx`, `with_ctx`; `Timer` on the `Env` clock; `single::initialize_pool_with`; `#[valtron(env = …)]` / `#[valtron_test(env = …)]` macro argument ([env.md](./env.md) 7.1) | `foundation_core/src/{env.rs,valtron/*}` | `env_tests`, `env_install_tests`, `sim_time_tests` pass |
 | T3 | connectrpc: keep request extensions through dispatch (`build_ctx` fix); `CallHooks::with_clock` | `foundation_connectrpc/src/shared/router/dispatch.rs` | dispatch tests pass; deadlines follow the `Env` clock |
 | T4 | `ConnectionContext::tls` holds the peer certificates after the handshake | `foundation_http` | `tls_peer_info_tests` pass |
 | T5 | `foundation_auth::secret`: `SignedSecret` v1 and v2, `SigningKey`, `VerifyingKey`, `SecretIssuer`, `SecretVerifier`; the clippy lint file | `foundation_auth/src/secret/*` | v1 secrets from the branch tests verify unchanged; verify-order tests pass |
-| T6 | `foundation_db`: `insert_if_absent_async` with a default body; `StorageError::Unsupported` if missing | `foundation_db/src/core/storage_provider.rs` | tests pass on memory, Turso, libsql |
-| T7 | `foundation_auth::keystore`: `KeyStore`, `KeyMaterial`, sealing (`KekSealer`, `PassphraseSealer`) | `foundation_auth/src/keystore/*` | `KeyStore` contract, sealing and race tests pass |
+| T6 | **Deferred** to [feature 08](../08-key-protection-at-rest/feature.md) task K1 (only the key store needed it) | — | — |
+| T7 | `foundation_auth::keys`: `KeySource`, `PrivateKey` (OpenSSH, PKCS#8 and SEC1 PEM), `KeyLoadError`, `VerifyingKey::list_from_json`; test keys from `SeededEntropy` | `foundation_auth/src/keys/*` | the key loading tests of [auth.md](./auth.md) section 10 pass |
 | T8 | `foundation_auth::pki` (native): CA, server identity, CSR signing with `Env` time and randomness | `foundation_auth/src/pki/*` | same seed gives byte-identical certificates |
 | T9 | `foundation_auth::trust`: `TrustStore`, `SqlTrustStore`, `KvTrustStore`, `TrustedClients` | `foundation_auth/src/trust/*` | `TrustStore` contract and concurrent-use tests pass |
 | T10 | `foundation_auth::mtls` (native): pure `TrustedClientVerifier`, `PinnedServerVerifier`, rustls config builders | `foundation_auth/src/mtls/*` | verifier tests show zero store calls during a handshake |
@@ -498,14 +498,14 @@ group of section 10.2 can be one PR.
 | T14 | `ModelCatalog` trait, `ModelHandle`, `RemoteCatalog` | `core/model/*` | load-once and remote catalog tests pass |
 | T15 | `InstanceRegistry` trait, `Scope`, `RegistryConfig`, `TurnLimits`, `LocalInstanceRegistry` | `core/registry/*` | registry contract tests pass on the local registry |
 | T16 | `core/service.rs`: `AgentService` handlers over the traits; `GetCapabilities`; `core/enroll.rs` | `core/{service,enroll}.rs` | handler tests pass with fakes |
-| T17 | Native host: config, listeners, mTLS, last-seen after handshake, `LocalCatalog` with Candle device, `keys migrate` command | `host/native/*` | native end-to-end and revocation tests pass |
+| T17 | Native host: config, listeners, mTLS, last-seen after handshake, `LocalCatalog` with Candle device, operator key paths (`--signing-key`, `--ca-key`, `--server-key`) | `host/native/*` | native end-to-end and revocation tests pass |
 | T18 | DST: `SimRuntime`, `MemNetwork`, `MemTransport`, `Faulty*` wrappers, `ScriptedCatalog`, `TestWorld`; first DST tests | `testing` features in `foundation_core`, `foundation_connectrpc`, `foundation_db`, `foundation_agent_rpc` | DST tests pass for 32 fixed seeds, twice in a row with identical traces |
 | T19 | `FetchServe` and `FetchTransport` (wasm) | `foundation_connectrpc/src/wasm/*` | wasm fetch tests pass under Node |
 | T20 | `DoSqlStore`: `foundation_db` storage over a DO's SQL | `foundation_db` | contract tests pass under Miniflare |
 | T21 | Worker host: entry, instance DO, `DurableObjectRegistry`, `DoStubTransport`; `examples/cf-agent-rpc` | `host/worker/*` | the `cf-agent-rpc` Miniflare case passes |
 | T22 | Web client: `WebClient` over `FetchTransport`; `examples/agent-rpc-web` | `client/web.rs` | the web client tests pass in a headless browser |
-| T23 | Key protection: `KekSource`, async `KeySealer`, native and Worker KEK sources, `WebCryptoSealer`, always-encrypt rule, plain-text migration, KEK rotation | `foundation_auth/src/keystore/*`, `host/*/kek.rs` | [key-protection.md](./key-protection.md) section 8 tests pass (except Vault) |
-| T24 | Envelope encryption with a remote KMS: `EnvelopeSealer`, `KmsBackend`; Vault Transit, then AWS KMS and GCP Cloud KMS | `foundation_auth/src/keystore/kms.rs` | sealer contract passes with `FakeKms`; the Vault test passes |
+| T23 | **Deferred** to [feature 08](../08-key-protection-at-rest/feature.md) task K3 (key protection at rest) | — | — |
+| T24 | **Deferred** to [feature 08](../08-key-protection-at-rest/feature.md) task K4 (remote KMS) | — | — |
 | T25 | Migration runner by groups: `MigrationSet` from code, embedded files and directories; `MigrationRunner::from_static` / `add_from_static`; per-group numbering from 1 with no gaps; checksums; one transaction per migration; record rows keyed by group; upgrade of today's table with the 023 repair; `embed_migrations!` | `foundation_db/src/core/schema/*`, `foundation_macros` | [migrations.md](./migrations.md) section 6 tests pass |
 | T26 | History archive to R2 on `DestroyInstance` (Worker and native) | `host/worker/object.rs`, `core/archive.rs` | the archive tests pass; a failed upload deletes nothing |
 
@@ -517,7 +517,6 @@ flowchart LR
     T2 --> T3
     T2 --> T5
     T5 --> T7 --> T8
-    T6 --> T9
     T7 --> T9
     T8 --> T10
     T9 --> T10
@@ -537,10 +536,7 @@ flowchart LR
     T19 --> T21
     T20 --> T21
     T19 --> T22
-    T7 --> T23 --> T24
-    T6 --> T25
     T25 --> T9
-    T23 --> T26
     T21 --> T26
 ```
 
@@ -552,22 +548,21 @@ _The diagram shows which task must finish before another task starts._
 |---|---|---|
 | A | T0 | Gets #126 green on current `master` |
 | B | T1, T2 | Side effects and `Env` (cross-crate base) |
-| C | T3, T4, T6, T25 | Library changes that others need (T25: migration runner) |
-| D | T5, T7, T23, T8, T9, T10, T11 | Auth in `foundation_auth`, with key protection |
+| C | T3, T4, T25 | Library changes that others need (T25: migration runner) |
+| D | T5, T7, T8, T9, T10, T11 | Auth in `foundation_auth`, with operator key files |
 | E | T12, T13, T14, T15, T16 | The transport-agnostic core |
 | F | T17, T18 | Native host and DST |
 | G | T19, T20, T21, T22, T26 | Worker host, web client, history archive |
-| H | T24 | Remote KMS backends (can come after the rest) |
 
-## 11. Owner decisions (2026-10-22 and 2026-10-25)
+## 11. Owner decisions (2026-10-22, 2026-10-25 and 2026-10-27)
 
-The owner answered the open questions on 2026-10-22. Decisions 9 and 10 come from the PR #126 review of 2026-10-25.
+The owner answered the open questions on 2026-10-22. Decisions 9 and 10 come from the PR #126 review of 2026-10-25. Decision 11 comes from the owner on 2026-10-27.
 
 | # | Question | Decision | Where it is designed |
 |---|---|---|---|
 | 1 | Instance name scope on the Worker | **Per caller** (`ScopePolicy::PerOwner`) on the Worker; shared on native | [registry-and-models.md](./registry-and-models.md) section 3.1 |
 | 2 | Version 2 signed secrets | **Issue version 2 by default**; still accept version 1 | [auth.md](./auth.md) section 3.2 |
-| 3 | Private keys at rest | **Always encrypted, on every host and backend.** No plain-text mode. The KEK comes from the safest source of each platform | [key-protection.md](./key-protection.md) |
+| 3 | Private keys at rest | **Always encrypted, on every host and backend.** No plain-text mode. The KEK comes from the safest source of each platform. _Deferred by decision 11: it is the target of feature 08, not of the proof of concept._ | [feature 08 key-protection.md](../08-key-protection-at-rest/key-protection.md) |
 | 4 | JWT provider | **Ship `JwtAuth` in this feature**, behind a feature flag | [auth.md](./auth.md) section 8 |
 | 5 | History on `DestroyInstance` | **Archive to R2**, then delete the DO storage | [hosts.md](./hosts.md) section 5.12 |
 | 6 | Model provider API keys | **Worker secrets or Secrets Store secrets**; never in vars, D1, KV or logs | [hosts.md](./hosts.md) section 5.11 |
@@ -575,6 +570,7 @@ The owner answered the open questions on 2026-10-22. Decisions 9 and 10 come fro
 | 8 | Rename timing | **Wait** for the rename PR (`Async*` to plain names) to merge, then start | section 1.5 |
 | 9 | Bootstrap payload versions (2026-10-25) | **No version field.** One `url` for every host; the client derives TLS trust from the fingerprint and access from the token purpose | [proto.md](./proto.md) section 6 |
 | 10 | Migration layout (2026-10-25) | **Groups per database**: a shared group, then specific groups, each numbered from 1 and recorded by group. No number ranges per crate | [migrations.md](./migrations.md) |
+| 11 | Secret setup for the proof of concept (2026-10-27) | **Simple first.** The operator makes each private key with `ssh-keygen` or `openssl`; the host loads it from a file, an environment variable or a Worker secret, and uses it. The host does not make, seal, store or rotate keys. The key store, encryption at rest, remote KMS and rotation by `kid` move to the deferred feature 08 | [auth.md](./auth.md) section 4; [feature 08](../08-key-protection-at-rest/feature.md) |
 
 ### 11.1 Why Postgres is a separate feature
 
@@ -599,16 +595,16 @@ client. We record it as a separate feature for spec 50 (storage), after this one
    database, each numbered from 1 and recorded by group. There are no number ranges and no
    record table per component. [migrations.md](./migrations.md) has the design and its own open
    questions.
-2. **Remote KMS order.** [key-protection.md](./key-protection.md) section 4.6 starts with Vault
-   Transit, then AWS KMS, then GCP Cloud KMS. **Recommendation: this order**, unless a deployment
-   needs one of the clouds first.
+2. ~~Remote KMS order.~~ **Moved** to the deferred [feature 08](../08-key-protection-at-rest/feature.md)
+   by decision 11. The recommendation there stays: Vault Transit, then AWS KMS, then GCP Cloud KMS.
 3. **Archive on native.** [hosts.md](./hosts.md) section 5.12 gives the native host the same archive
    step through a `foundation_db` blob store. **Recommendation: yes, default to a local directory.**
 4. **A Worker that enrolls holds the payload private key.** Enrollment from a browser to a
    Worker needs a host that can sign server proofs and access secrets ([auth.md](./auth.md)
    section 9.1). Options:
-   - A: the Worker holds the private key as a sealed Worker secret, behind
-     `WorkerHostConfig::enrollment` (off by default).
+   - A: the Worker holds the private key as the Worker secret `AGENT_RPC_SIGNING_KEY` (PEM
+     text, decision 11), behind `WorkerHostConfig::enrollment` (off by default).
    - B: a native host does the enrollment, and the Worker stays verify-only.
    - **Recommendation: A, opt-in.** It keeps one flow on every host. Its risk: a leak of the Worker
-     secret lets an attacker issue tokens; rotation by `kid` limits it.
+     secret lets an attacker issue tokens; a new key and a restart stop it ([auth.md](./auth.md)
+     section 4.6).

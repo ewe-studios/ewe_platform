@@ -221,7 +221,8 @@ The owner's review round 2 on #126 is now a full design in
 
 Owner decisions (2026-10-22), recorded in `feature.md` section 11: per-caller instance scope on
 the Worker; version 2 secrets by default; private keys always encrypted at rest
-(`key-protection.md`); `JwtAuth` ships; destroyed instances are archived to R2; model API keys
+(now deferred to feature 08 by decision 11 of 2026-10-27: the proof of concept loads operator
+key files made with `ssh-keygen` or `openssl`); `JwtAuth` ships; destroyed instances are archived to R2; model API keys
 are Worker or Secrets Store secrets; Postgres is a separate later feature; directory migrations
 are task T25 (`migrations.md`); work starts after the rename PR merges. Three small open questions
 remain in `feature.md` section 12.

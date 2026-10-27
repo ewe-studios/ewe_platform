@@ -8,8 +8,7 @@ deterministic simulation testing (DST); remote procedure call (RPC); WebAssembly
 JavaScript (JS); Durable Object (DO); Transport Layer Security (TLS); mutual TLS (mTLS);
 Certificate Authority (CA); certificate signing request (CSR); Elliptic Curve Digital
 Signature Algorithm (ECDSA); Rivest–Shamir–Adleman (RSA), a public-key algorithm;
-Probabilistic Signature Scheme (PSS), a padding mode for RSA signatures; authenticated
-encryption with associated data (AEAD); key encryption key (KEK); application programming
+Probabilistic Signature Scheme (PSS), a padding mode for RSA signatures; application programming
 interface (API); continuous integration (CI); Request for Comments (RFC), an internet
 standard document; Sortable, Clock and Random number based 128-bit ID (scru128); Structured
 Query Language (SQL); Hypertext Transfer Protocol (HTTP); JavaScript Object Notation (JSON); JSON Web Token (JWT); key-value
@@ -1020,8 +1019,6 @@ Some libraries read randomness themselves. This table says which steps can use t
 | Certificate validity dates | `rcgen` `CertificateParams` | we pass them | yes | Take them from `Env::wall_now()`. |
 | Client key and CSR | `rcgen` | `SystemRandom` | no | Use the same `RemoteKeyPair` signer with a key from `Env::entropy`. |
 | TLS handshake | `rustls` with `ring` | key exchange uses `SystemRandom` (sealed) | no | DST does not run TLS. Native end-to-end tests cover TLS. |
-| AEAD nonce for sealed keys | `chacha20poly1305` | we pass it | yes | Read 12 bytes from `Env::entropy`. |
-| Argon2id salt for a passphrase KEK | `argon2` | we pass it | yes | Read 16 bytes from `Env::entropy`. |
 | Secret bytes of a signed secret | — | we pass them | yes | Read 32 bytes from `Env::entropy`. |
 | Time in JWT checks | `jwt-simple` | its own clock (`coarsetime`) | yes, with a change | Set `VerificationOptions::artificial_time` from `Env::wall_now()` on each check. |
 
@@ -1039,7 +1036,7 @@ arguments.
 | Network, server side | `ConnectRpcHandler::dispatch_to(bag, request, body, sink, hooks)` (`foundation_connectrpc`, exists) | `ConnectRpcServe` (native HTTP/1.1), `ConnectRpcServeH2`; `FetchServe` (wasm, task T19) | `MemNetwork` calls `dispatch_to` directly (task T18) |
 | Listener | owned by each host: `foundation_http::native::server::HttpServer` (native); the Cloudflare runtime (Worker) | — | none: DST has no sockets |
 | Storage | `KeyValueStore`, `QueryStore`, `BlobStore`, `DocumentStore` (`foundation_db`, exist) | Turso, libsql, D1, KV, R2, JSON file | `MemoryStorage`, `MemoryDocumentStore`, and the `Faulty*` wrappers (task T18) |
-| Key material | `KeyStore` (`foundation_auth::keystore`, new) | `FsKeyStore`, `DbKeyStore<K>`, `EnvKeyStore` | `MemoryKeyStore` |
+| Key material | none: operator key files, read once at start (`foundation_auth::keys::PrivateKey::load`, new) | `KeySource::File`, `KeySource::Inline` | `KeySource::Inline` with fixture or seeded keys |
 | Trusted clients | `TrustStore` (`foundation_auth::trust`, new) | `SqlTrustStore<Q>`, `KvTrustStore<K>` | `MemoryTrustStore` |
 | Model inference | `ModelCatalog` (`foundation_agent_rpc::core::model`, new) | `LocalCatalog` (native), `RemoteCatalog` (Worker) | `ScriptedCatalog` (task T18) |
 

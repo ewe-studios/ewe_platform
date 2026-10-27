@@ -10,13 +10,12 @@ Certificate Authority (CA); certificate signing request (CSR); Transport Layer S
 format for private keys; Privacy-Enhanced Mail (PEM), a text form of keys and
 certificates; Distinguished Encoding Rules (DER), a binary form; Secure Hash Algorithm with
 256 bits (SHA-256); Rivest–Shamir–Adleman (RSA); Probabilistic Signature Scheme (PSS);
-Elliptic Curve Digital Signature Algorithm (ECDSA); authenticated encryption with associated
-data (AEAD); key encryption key (KEK); identifier (ID); uniform resource locator (URL);
+Elliptic Curve Digital Signature Algorithm (ECDSA); key encryption key (KEK); identifier (ID); uniform resource locator (URL);
 Durable Object (DO); WebAssembly (wasm); Structured Query Language (SQL); key-value store
 (KV); input/output (I/O); deterministic simulation testing (DST); Request for Comments (RFC);
 application programming interface (API); central processing unit (CPU); Hypertext Transfer
-Protocol (HTTP); additional authenticated data (AAD), the context bytes that AEAD binds to a
-sealed blob; Representational State Transfer (REST); Domain Name System (DNS); Internet
+Protocol (HTTP); Standards for Efficient Cryptography number 1 (SEC1), a file format for
+elliptic-curve private keys; Secure Shell (SSH); Representational State Transfer (REST); Domain Name System (DNS); Internet
 Protocol (IP); AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
 STE standard ASD-STE100.
 D1 and R2 are names of Cloudflare products (a SQL database and an object store), not
@@ -35,9 +34,9 @@ agent-rpc keeps only its wiring: the enrollment service and the listeners.
 | `secret.rs` `SignedSecret` | `foundation_auth::secret::SignedSecret` | Same version 1 wire format. Adds version 2. |
 | `secret.rs` `SigningKey`, `SigningAlgorithm` | `foundation_auth::secret::{SigningKey, VerifyingKey, SigningAlgorithm}` | Ed25519 moves from `ring` to `ed25519-compact`, which also builds for wasm. Signatures are identical (RFC 8032). |
 | `secret.rs` `BootstrapSecrets` (issue + verify) | `foundation_auth::secret::{SecretIssuer, SecretVerifier}` | Split: the verifier needs only public keys. |
-| `secret.rs` `SigningKeyConfig`, `default_state_dir`, `write_secret_file` | `foundation_auth::keystore::FsKeyStore`; `foundation_agent_rpc::host::native::state_dir` | The key source becomes a `KeyStore`. |
+| `secret.rs` `SigningKeyConfig`, `default_state_dir`, `write_secret_file` | `foundation_auth::keys::{KeySource, PrivateKey}`; `foundation_agent_rpc::host::native::state_dir` | The operator makes the key; the host only loads it (section 4). |
 | `auth.rs` `CertificateAuthority`, `IssuedClientCert`, `ServerIdentity` | `foundation_auth::pki` (native) | Time and randomness come from `Env`. |
-| `auth.rs` `CertificateAuthority::load_or_generate` | `foundation_auth::keystore::KeyMaterial::certificate_authority` | Any `KeyStore`, not only a directory. |
+| `auth.rs` `CertificateAuthority::load_or_generate` | `foundation_auth::pki::CertificateAuthority::from_key` | The CA key is an operator file (section 4.5); the host makes only the certificate. |
 | `auth.rs` `sha256_fingerprint` | `foundation_auth::fingerprint::sha256_hex` | Shared helper. |
 | `auth.rs` `TrustedClientVerifier` | `foundation_auth::mtls::TrustedClientVerifier` (native) | Pure check. No `mark_seen`, no task. |
 | `auth.rs` `tls_listeners` | `foundation_auth::mtls::{server_config_mutual, server_config_server_auth}` + `host::native::tls` | Config builders move; the listeners stay in agent-rpc. |
@@ -58,13 +57,10 @@ backends/foundation_auth/src/
 │   ├── keys.rs           SigningKey, VerifyingKey, PKCS#8 parsing
 │   ├── issuer.rs
 │   └── verifier.rs
-├── keystore/             KeyStore trait, KeyRecord, KeyMaterial        all targets
+├── keys/                 KeySource, PrivateKey, KeyLoadError           all targets
 │   ├── mod.rs
-│   ├── sealing.rs        KeySealer, KekSealer, PassphraseSealer        all targets
-│   ├── db.rs             DbKeyStore<K: KeyValueStore>             all targets
-│   ├── env_source.rs     EnvKeyStore (read-only)                       all targets
-│   ├── fs.rs             FsKeyStore                                    native only
-│   └── memory.rs         MemoryKeyStore                                feature "testing"
+│   ├── source.rs         a file (native only) or an inline value
+│   └── parse.rs          OpenSSH, PKCS#8 and SEC1 PEM to PKCS#8 DER
 ├── pki/                  CertificateAuthority, DeterministicSigner     native + feature "pki"
 ├── trust/                TrustStore, TrustedClients, TrustIndex        all targets
 │   ├── sql.rs            SqlTrustStore<Q: QueryStore>
@@ -87,8 +83,9 @@ Feature changes in `backends/foundation_auth/Cargo.toml`:
 ```toml
 [features]
 default = ["turso", "secret"]
-# Signed secrets with Ed25519 (pure Rust, all targets).
-secret = ["dep:ed25519-compact"]
+# Signed secrets with Ed25519 (pure Rust, all targets). `ssh-key` reads
+# OpenSSH private key files (section 4.3).
+secret = ["dep:ed25519-compact", "dep:ssh-key"]
 # Operator-supplied RSA-PSS keys for signed secrets. `ring` is native only.
 secret-rsa = ["secret", "dep:ring"]
 # The CA and certificate issuance. `rcgen` + `x509-parser` verify CSRs with
@@ -96,11 +93,12 @@ secret-rsa = ["secret", "dep:ring"]
 pki = ["secret", "dep:rcgen", "dep:p256", "dep:x509-parser", "dep:ring"]
 # rustls verifiers and config builders. Native only.
 mtls = ["pki", "dep:rustls"]
-# Fakes for tests: MemoryKeyStore, MemoryTrustStore, scripted providers.
+# Fakes for tests: MemoryTrustStore, seeded test keys, scripted providers.
 testing = ["foundation_compact/testing", "foundation_core/testing"]
 
 [dependencies]
 ed25519-compact = { version = "2.6", default-features = false, features = ["std", "pem"], optional = true }
+ssh-key = { version = "0.6", default-features = false, features = ["alloc", "ed25519", "p256"], optional = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 ring = { version = "0.17", optional = true }
@@ -116,8 +114,8 @@ What works on wasm (Cloudflare Workers, browsers):
 |---|---|---|
 | `secret` with Ed25519 | yes | `ed25519-compact` is pure Rust. Randomness comes from `Env`. |
 | `secret` with RSA-PSS | no | `ring` is C code. A wasm host refuses an RSA secret with `SecretError::UnsupportedAlgorithm`. |
-| `keystore` (`DbKeyStore`, `EnvKeyStore`, sealing) | yes | `foundation_db` async traits, `chacha20poly1305`, `argon2` are pure Rust. |
-| `keystore::FsKeyStore` | no | No file system in a Worker. |
+| `keys` with `KeySource::Inline` | yes | `ssh-key`, `ed25519-compact` and `p256` are pure Rust. |
+| `keys` with `KeySource::File` | no | No file system in a Worker. |
 | `pki` | no | CSR verification uses `ring` through `x509-parser`. |
 | `trust` | yes | `foundation_db` async traits only. |
 | `mtls` | no | `rustls` with `ring`. A Worker has no TLS listener anyway: Cloudflare terminates TLS. |
@@ -632,13 +630,9 @@ carries the ID that the trust store uses for use counts and revocation.
 
 ### 3.6 Key rotation
 
-1. Make a new key with a new `kid`.
-2. Give the verifiers both public keys.
-3. Issue new secrets with the new key only.
-4. When the last old secret has expired (its `valid_until` plus `clock_skew`), remove the old public key from the verifiers.
-
-A lost private key on a native host is made again at start (as today). That makes every
-open secret invalid, which is the intended behavior.
+In the proof of concept the operator rotates a key by a restart with a new key file. The
+verifier can hold the old public key until its last secret expires (section 4.6). Rotation with
+no restart is task K6 of [feature 08](../08-key-protection-at-rest/feature.md).
 
 ### 3.7 Use counts
 
@@ -659,429 +653,256 @@ All in `backends/foundation_auth/tests/secret/` (registered in `tests/secret/mod
 - `pkcs8_tests.rs`: version 1 and version 2 Ed25519 files load; a version 2 file with a wrong public key fails; the existing RSA fixture loads (native).
 - `wasm` gate: `cargo check --target wasm32-unknown-unknown -p foundation_auth --no-default-features --features wasm,secret`.
 
-## 4. Key material store (`foundation_auth::keystore`)
+## 4. Key material (`foundation_auth::keys`)
 
-The owner asked for a `CaStore` provider trait. We call it `KeyStore`, because it holds
-every kind of key material: the CA, the secret-signing key and the server identity. A
-`KeyStore` loads, or makes and then keeps, key material in any backend: the file system,
-memory, JSON files, Turso, libsql, D1, Workers KV or R2.
+**Proof of concept (owner direction, 2026-10-27; decision 11 in [feature.md](./feature.md)).**
+The operator makes each private key with a standard tool (`ssh-keygen` or `openssl`). The host
+loads the key from a file, an environment variable or a Worker secret, and uses it. The host
+does not make, seal, store or rotate private keys.
 
-### 4.1 The trait and the record
+These parts moved to the deferred
+[feature 08](../08-key-protection-at-rest/feature.md):
+
+- a key store over `foundation_db` backends;
+- keys that the host makes and stores, and the race between two processes;
+- encryption at rest with a KEK;
+- remote key management services;
+- passphrase-protected key files;
+- rotation by `kid` with no gap.
+
+### 4.1 The keys of a host
+
+| Key | Algorithm | Used for | Which hosts |
+|---|---|---|---|
+| Secret-signing key | Ed25519 (RSA-PSS on native with feature `secret-rsa`, as today) | Signs signed secrets and the server proof of enrollment (section 9.1.1) | Native. A Worker only when `WorkerHostConfig::enrollment` is set |
+| CA key | ECDSA P-256 (default) or Ed25519 | Signs client CSRs and the server certificate (section 5) | Native |
+| Server key | ECDSA P-256 (default) or Ed25519 | The key of the TLS server certificate (section 5.3) | Native |
+
+A verify-only host (a Worker without enrollment) holds no private key. It reads only public
+keys from configuration (section 4.5).
+
+### 4.2 How the operator makes the keys
+
+```sh
+# Secret-signing key, Ed25519. Either tool works.
+ssh-keygen -t ed25519 -N "" -C agent-rpc-signing -f bootstrap-signing-key.pem
+openssl genpkey -algorithm ed25519 -out bootstrap-signing-key.pem
+
+# CA key and server key, ECDSA P-256 (every TLS client accepts it).
+ssh-keygen -t ecdsa -b 256 -N "" -C agent-rpc-ca -f ca-key.pem
+openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out server-key.pem
+
+chmod 600 *.pem
+```
+
+`-N ""` makes a key with no passphrase. The proof of concept refuses a key with a passphrase
+(`KeyLoadError::Encrypted`). `ssh-keygen` also writes a `.pub` file. The host does not need it:
+it gets the public key from the private key.
+
+### 4.3 The formats that the host reads
+
+| Format | First line | Algorithms | Parser |
+|---|---|---|---|
+| OpenSSH private key, no passphrase | `-----BEGIN OPENSSH PRIVATE KEY-----` | Ed25519, ECDSA `nistp256` | `ssh-key` 0.6 (pure Rust, all targets; already in the workspace through `foundation_keychain`) |
+| PKCS#8 PEM, version 1 and 2 | `-----BEGIN PRIVATE KEY-----` | Ed25519, ECDSA P-256; RSA on native with `secret-rsa` | `ed25519-compact`, `p256`, `ring` (as today) |
+| SEC1 PEM (`openssl ecparam -genkey`) | `-----BEGIN EC PRIVATE KEY-----` | ECDSA P-256 | `p256` |
+
+Any other input gives `KeyLoadError::UnsupportedFormat`. This includes an encrypted PKCS#8
+file (`-----BEGIN ENCRYPTED PRIVATE KEY-----`) and an OpenSSH key with a passphrase, which give
+`KeyLoadError::Encrypted`. A key with the wrong algorithm for its role gives
+`KeyLoadError::WrongAlgorithm`. An example is a P-256 key as the secret-signing key.
+
+The `kid` of a key is the first 16 hexadecimal characters of the SHA-256 of its public key.
+Configuration can set another `kid`.
+
+### 4.4 The code
 
 ```rust
-// foundation_auth/src/keystore/mod.rs
-use core::future::Future;
-use core::pin::Pin;
+// foundation_auth/src/keys/mod.rs
+use std::path::PathBuf;
 
-use serde::{Deserialize, Serialize};
+use foundation_compact::crypto::SecureBytes;
 
-/// The future that every `KeyStore` call returns.
-pub type KeyFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T, KeyStoreError>> + Send + 'a>>;
-
-/// The name of one record: 1 to 64 of `[a-z0-9._-]`.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct KeyId(String);
-
-impl KeyId {
-    pub const CA: &'static str = "ca";
-    pub const SECRET_SIGNING: &'static str = "secret-signing";
-    pub const SERVER_IDENTITY: &'static str = "server-identity";
-
-    /// # Errors
-    /// [`KeyStoreError::BadId`].
-    pub fn new(id: &str) -> Result<Self, KeyStoreError> { todo!("T7") }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum KeyKind {
-    CertificateAuthority,
-    SecretSigning,
-    ServerIdentity,
-}
-
-/// One stored item of key material.
-#[derive(Clone, Serialize, Deserialize)]
-pub struct KeyRecord {
-    pub id: KeyId,
-    pub kind: KeyKind,
-    /// Starts at 1. Each replacement adds 1.
-    pub revision: u64,
-    pub created_at_unix: u64,
-    /// Certificates only.
-    pub not_after_unix: Option<u64>,
-    pub public: PublicMaterial,
-    pub private: StoredPrivateKey,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PublicMaterial {
-    /// "ed25519", "ecdsa-p256" or "rsa-pss-sha256".
-    pub algorithm: String,
-    pub public_key_b64url: String,
-    /// CA and server identity only.
-    pub cert_pem: Option<String>,
-    /// Server identity only: the DNS names and IP literals it covers.
-    pub subject_names: Vec<String>,
-}
-
-/// How the private key is kept.
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(tag = "protection", rename_all = "kebab-case")]
-pub enum StoredPrivateKey {
-    /// Encrypted with a KEK (section 4.2). The normal case.
-    Sealed(SealedBlob),
-    /// PKCS#8 PEM in clear text. **Read only**, for the legacy files of
-    /// today (section 4.6). No store writes it (owner decision 3: always
-    /// encrypt at rest). The host seals it at the first start with a KEK.
-    Plaintext { pkcs8_pem: SecretText },
-    /// The key lives outside the store (a Worker secret, an environment
-    /// variable). The record keeps only the name of that place.
-    External { reference: String },
-    /// No private key: a verify-only record.
-    Absent,
-}
-
-/// A `String` that is zeroed on drop and never printed.
+/// Where a private key comes from. The operator makes the key; the host
+/// reads it one time, at start.
 #[derive(Clone)]
-pub struct SecretText(zeroize::Zeroizing<String>);
-// `Serialize`/`Deserialize` are written by hand: they read and write the
-// plain string; `Debug` prints "<redacted>".
-
-pub enum CreateOutcome {
-    Created,
-    /// Another writer made the record first. Use theirs.
-    AlreadyExists(KeyRecord),
+pub enum KeySource {
+    /// A file (native only). On Unix the host refuses a file that the
+    /// group or others can read, as OpenSSH does ("UNPROTECTED PRIVATE
+    /// KEY FILE"). `NativeHostConfig::allow_loose_key_permissions` turns
+    /// the check off for development.
+    #[cfg(not(target_family = "wasm"))]
+    File(PathBuf),
+    /// The key text from an environment variable or a Worker secret: the
+    /// PEM text, or the PEM text in standard base64 (for a system that
+    /// cannot keep line breaks in a variable).
+    Inline(SecureBytes),
 }
 
-/// Facts about a store, so callers can refuse unsafe setups.
+impl KeySource {
+    /// Reads an environment variable as the native host does today with
+    /// `EWE_AGENT_RPC_SIGNING_KEY`: a value that starts with `-----BEGIN`
+    /// is PEM; a value that decodes from base64 to PEM is base64; any
+    /// other value is a file path.
+    ///
+    /// # Errors
+    /// [`KeyLoadError::NotFound`] when the variable is not set.
+    #[cfg(not(target_family = "wasm"))]
+    pub fn from_env_var(name: &str) -> Result<Self, KeyLoadError> { todo!("T7") }
+
+    /// A Worker secret (`wrangler secret put AGENT_RPC_SIGNING_KEY`):
+    /// PEM text or base64 PEM, never a path.
+    ///
+    /// # Errors
+    /// [`KeyLoadError::NotFound`] when the secret is not bound.
+    #[cfg(target_family = "wasm")]
+    pub fn from_worker_secret(bindings: &worker::Env, name: &str) -> Result<Self, KeyLoadError> { todo!("T7") }
+}
+
+/// The algorithm of a loaded private key.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct KeyStoreInfo {
-    pub name: &'static str,
-    /// `create` is atomic across processes ("first writer wins").
-    pub atomic_create: bool,
-    /// Other processes can write the same records.
-    pub shared: bool,
-    pub writable: bool,
+pub enum PrivateKeyAlgorithm {
+    Ed25519,
+    EcdsaP256,
+    /// Native with feature `secret-rsa` only.
+    Rsa,
 }
 
-/// Loads and keeps key material in any backend.
-pub trait KeyStore: Send + Sync + 'static {
-    /// The record, or `None`.
-    fn get<'a>(&'a self, id: &'a KeyId) -> KeyFuture<'a, Option<KeyRecord>>;
+/// A private key that the host loaded, with its public key. `Debug`
+/// prints the algorithm and the `kid`, never key bytes. The key bytes are
+/// zeroed on drop.
+pub struct PrivateKey {
+    algorithm: PrivateKeyAlgorithm,
+    kid: String,
+    /// The key in PKCS#8 DER form, whatever the input format was.
+    pkcs8_der: SecureBytes,
+    public_key: Vec<u8>,
+}
 
-    /// Store `record` only if no record with its ID exists. The check and
-    /// the write are one atomic step when `info().atomic_create` is true.
-    fn create<'a>(&'a self, record: &'a KeyRecord) -> KeyFuture<'a, CreateOutcome>;
+impl PrivateKey {
+    /// Reads and parses the key. File I/O runs inside this async function,
+    /// like `foundation_db::JsonFileStorage`.
+    ///
+    /// # Errors
+    /// [`KeyLoadError`].
+    pub async fn load(source: &KeySource) -> Result<Self, KeyLoadError> { todo!("T7") }
 
-    /// Replace the record when the stored revision is `expected_revision`.
-    /// Rotation is an operator action; it does not race with `create`.
-    fn replace<'a>(&'a self, record: &'a KeyRecord, expected_revision: u64) -> KeyFuture<'a, ()>;
+    /// Parses key text in one of the formats of section 4.3.
+    ///
+    /// # Errors
+    /// [`KeyLoadError::UnsupportedFormat`], [`KeyLoadError::Encrypted`].
+    pub fn parse(text: &[u8]) -> Result<Self, KeyLoadError> { todo!("T7") }
 
-    fn info(&self) -> KeyStoreInfo;
+    /// Sets a `kid` from configuration in place of the derived one.
+    #[must_use]
+    pub fn with_kid(self, kid: impl Into<String>) -> Self { todo!("T7") }
+
+    #[must_use]
+    pub fn algorithm(&self) -> PrivateKeyAlgorithm { self.algorithm }
+    #[must_use]
+    pub fn kid(&self) -> &str { &self.kid }
+
+    /// The key as a secret-signing key (section 3.4).
+    ///
+    /// # Errors
+    /// [`KeyLoadError::WrongAlgorithm`] for a P-256 key.
+    pub fn into_signing_key(self) -> Result<SigningKey, KeyLoadError> { todo!("T7") }
+
+    /// The PKCS#8 DER bytes, for the CA and the server identity (section 5).
+    #[cfg(feature = "pki")]
+    #[must_use]
+    pub fn pkcs8_der(&self) -> &[u8] { self.pkcs8_der.as_ref() }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, derive_more::Display, derive_more::Error)]
-pub enum KeyStoreError {
-    #[display("bad key id {_0:?}")]
-    BadId(#[error(not(source))] String),
-    #[display("no key material named {_0}")]
+pub enum KeyLoadError {
+    /// The message names the path or variable and the command that makes
+    /// the key (section 4.2).
+    #[display("no key at {_0}; make one with: ssh-keygen -t ed25519 -N \"\" -f {_0}")]
     NotFound(#[error(not(source))] String),
-    #[display("the stored record {_0} is corrupt; it is not overwritten")]
-    Corrupt(#[error(not(source))] String),
-    #[display("the store is read-only")]
-    ReadOnly,
-    #[display("this backend cannot create records atomically")]
-    NotAtomic,
-    #[display("revision conflict for {_0}")]
-    Conflict(#[error(not(source))] String),
-    #[display("plain-text private keys are not allowed in {_0}")]
-    PlaintextRefused(#[error(not(source))] &'static str),
-    #[display("sealing failed: {_0}")]
-    Seal(#[error(not(source))] String),
-    #[display("storage error: {_0}")]
-    Storage(#[error(not(source))] String),
+    #[display("cannot read key {_0}")]
+    Io(#[error(not(source))] String),
+    #[display("key file {_0} can be read by other users; run: chmod 600 {_0}")]
+    LoosePermissions(#[error(not(source))] String),
+    #[display("the key has a passphrase; the proof of concept reads only keys made with -N \"\"")]
+    Encrypted,
+    #[display("unsupported key format: {_0}")]
+    UnsupportedFormat(#[error(not(source))] String),
+    #[display("this role needs a {expected:?} key, found {found:?}")]
+    WrongAlgorithm { expected: PrivateKeyAlgorithm, found: PrivateKeyAlgorithm },
 }
 ```
 
-What the code does: `KeyStore` has three operations. `create` is "insert only if absent",
-so two processes that start at the same time cannot both write a CA. `KeyRecord` keeps the
-public part in clear text and the private part sealed. `KeyStoreInfo` tells the caller if
-the backend is safe for shared use.
+What the code does: `KeySource` says where the key text is. `PrivateKey::load` reads it,
+finds the format from the first line and turns every format into PKCS#8 DER. The rest of
+`foundation_auth` uses only that one form, so the signing and certificate code does not know
+the input format.
 
-### 4.2 Encryption at rest
+### 4.5 Where each host reads its keys
 
-A private key in a database or a file must be sealed. **Sealing** means AEAD encryption
-with a KEK. The AEAD also signs some extra bytes (the associated data), so a sealed key
-cannot move to another record.
-
-```rust
-// foundation_auth/src/keystore/sealing.rs
-use foundation_compact::crypto::{EncryptionKey, SecureBytes};
-use foundation_core::env::Env;
-
-/// Encrypts and decrypts private keys.
-pub trait KeySealer: Send + Sync + 'static {
-    /// The name of the KEK, stored with each blob (for rotation).
-    fn kek_id(&self) -> &str;
-    fn seal(&self, aad: &[u8], plaintext: &[u8]) -> Result<SealedBlob, KeyStoreError>;
-    fn open(&self, aad: &[u8], sealed: &SealedBlob) -> Result<SecureBytes, KeyStoreError>;
-}
-
-/// The stored form of a sealed key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SealedBlob {
-    /// Format version: 1.
-    pub v: u32,
-    /// "chacha20poly1305" or "argon2id+chacha20poly1305".
-    pub alg: String,
-    pub kek_id: String,
-    pub nonce_b64url: String,
-    pub ciphertext_b64url: String,
-    /// `argon2id+…` only.
-    pub salt_b64url: Option<String>,
-    /// `argon2id+…` only: memory KiB, iterations, lanes.
-    pub argon2: Option<Argon2Params>,
-}
-
-/// A 32-byte KEK (from an environment variable, a file or a Worker secret).
-pub struct KekSealer {
-    kek_id: String,
-    key: EncryptionKey<32>,
-    env: Env,
-}
-
-/// A KEK derived from a passphrase with Argon2id, one salt per blob.
-pub struct PassphraseSealer {
-    kek_id: String,
-    passphrase: zeroize::Zeroizing<String>,
-    params: Argon2Params,
-    env: Env,
-}
-
-/// Argon2id cost. Default: 19 MiB memory, 2 passes, 1 lane — the OWASP
-/// Password Storage Cheat Sheet minimum for Argon2id (RFC 9106 profile).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Argon2Params {
-    pub memory_kib: u32,
-    pub iterations: u32,
-    pub lanes: u32,
-}
-
-/// The associated data for one record. It binds the blob to the record
-/// ID, kind and revision.
-#[must_use]
-pub fn record_aad(id: &KeyId, kind: KeyKind, revision: u64) -> Vec<u8> {
-    let mut aad = b"ewe.keystore.v1\0".to_vec();
-    aad.extend_from_slice(id.as_str().as_bytes());
-    aad.push(0);
-    aad.extend_from_slice(kind.as_str().as_bytes());
-    aad.push(0);
-    aad.extend_from_slice(&revision.to_be_bytes());
-    aad
-}
-```
-
-What the code does: `KekSealer` uses ChaCha20-Poly1305 with a random 12-byte nonce from
-`env`. `PassphraseSealer` first turns a passphrase into a key with Argon2id and a random
-salt. `record_aad` makes the associated data. A blob for record `ca` revision 3 does not
-open as record `secret-signing`.
-
-`foundation_compact::crypto::chacha::{encrypt, decrypt}` take no associated data and read
-the nonce from global entropy. Task T1 adds `seal_with(key, nonce, aad, plaintext)` and
-`open_with(key, aad, blob)` next to them. The existing functions stay.
-
-Where the KEK comes from: [key-protection.md](./key-protection.md). Owner decision 3: a private
-key is **always** encrypted at rest, on every host and every backend. There is no plain-text mode.
-key-protection.md also makes `KeySealer` async (for WebCrypto and remote key management services)
-and replaces the sync trait above.
-
-### 4.3 Implementations
-
-| Type | Backends | `atomic_create` | `shared` | Notes |
-|---|---|---|---|---|
-| `FsKeyStore` | a local directory (native) | yes: write a temporary file, then `std::fs::hard_link` it to the final name; `hard_link` fails if the name exists | no | Reads the legacy files of today (section 4.6). File I/O runs inside the async functions, like `foundation_db::JsonFileStorage`. |
-| `DbKeyStore<K: KeyValueStore>` | `MemoryStorage`, `MemoryJsonStore`, `JsonFileStorage`, `TursoStorage`, `LibsqlStore`, `D1Store` (native REST), `D1WasmStorage`, `StorageProvider` | yes, through the new `insert_if_absent_async` (task T6) | yes | Workers KV is eventually consistent, so its `insert_if_absent_async` returns `Unsupported` and the store is read-only there. |
-| `DbKeyStore<BlobKv<B: BlobStore>>` | `R2WasmStorage`, `R2Store` | no | yes | `BlobKv` adapts a blob store to the key-value trait. Read-only use: the operator uploads the records. |
-| `EnvKeyStore` | values from configuration (environment variables, Worker vars and secrets) | — | — | Read-only. A Worker uses it for the public verifying keys. |
-| `MemoryKeyStore` | memory (feature `testing`) | yes | no | For unit tests and DST. |
-
-`DbKeyStore` stores each record as JSON under the key `ewe/keystore/v1/<id>` (the prefix is
-configuration).
-
-`foundation_db` change (task T6): a new method on `KeyValueStore` with a default body,
-so existing implementations outside the workspace still build:
-
-```rust
-// foundation_db/src/core/storage_provider.rs (changed)
-#[async_trait::async_trait]
-pub trait KeyValueStore: Send + Sync {
-    // … the five existing methods …
-
-    /// Store `value` under `key` only if `key` is absent. Returns `true`
-    /// when this call stored it. Atomic across processes on SQL backends
-    /// (`INSERT … ON CONFLICT DO NOTHING`) and inside one process on the
-    /// memory and JSON-file backends.
-    ///
-    /// # Errors
-    /// [`StorageError::Unsupported`] when the backend cannot do it
-    /// atomically (the default, and Workers KV).
-    async fn insert_if_absent_async<V: Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        value: V,
-    ) -> StorageResult<bool> {
-        let _ = (key, value);
-        Err(StorageError::Unsupported("insert_if_absent_async".into()))
-    }
-}
-```
-
-If `StorageError` has no `Unsupported` variant on master, task T6 adds it.
-
-### 4.4 Load or make key material
-
-```rust
-// foundation_auth/src/keystore/material.rs
-use std::sync::Arc;
-
-use foundation_core::env::Env;
-
-/// How private keys are kept in a store. Owner decision 3: always sealed.
-/// There is no plain-text variant ([key-protection.md](./key-protection.md)).
-#[derive(Clone)]
-pub enum KeyProtection {
-    /// The current sealer, and older sealers that can still open blobs
-    /// sealed before a KEK rotation.
-    Sealed { current: Arc<dyn KeySealer>, previous: Vec<Arc<dyn KeySealer>> },
-}
-
-/// Loads or makes the key material of a host.
-pub struct KeyMaterial {
-    store: Arc<dyn KeyStore>,
-    /// `None` for a verify-only host: it never makes or opens a private key.
-    protection: Option<KeyProtection>,
-    env: Env,
-}
-
-impl KeyMaterial {
-    #[must_use]
-    pub fn new(store: Arc<dyn KeyStore>, protection: KeyProtection, env: Env) -> Self {
-        Self { store, protection: Some(protection), env }
-    }
-
-    /// For a host that only verifies (a Worker). Every call that needs a
-    /// private key returns `KeyStoreError::ReadOnly`.
-    #[must_use]
-    pub fn verify_only(store: Arc<dyn KeyStore>, env: Env) -> Self {
-        Self { store, protection: None, env }
-    }
-
-    /// The secret-signing key: loaded, or made (Ed25519) and stored.
-    ///
-    /// # Errors
-    /// [`KeyStoreError`] variants; a corrupt record is an error and is not
-    /// replaced.
-    pub async fn signing_key(&self, id: &KeyId) -> Result<SigningKey, KeyStoreError> {
-        let record = self
-            .load_or_create(id, |env| {
-                let key = SigningKey::generate_ed25519(env, Some(id.as_str().into()))
-                    .map_err(|e| KeyStoreError::Seal(e.to_string()))?;
-                self.record_for_signing_key(id, &key)
-            })
-            .await?;
-        self.open_signing_key(&record)
-    }
-
-    /// The public keys for a verify-only host (a Worker).
-    ///
-    /// # Errors
-    /// [`KeyStoreError::NotFound`] when a key is missing.
-    pub async fn verifying_keys(&self, ids: &[KeyId]) -> Result<Vec<VerifyingKey>, KeyStoreError> { todo!("T7") }
-
-    /// The CA (native): loaded, or made and stored.
-    #[cfg(feature = "pki")]
-    pub async fn certificate_authority(&self, id: &KeyId, config: &CaConfig) -> Result<CertificateAuthority, KeyStoreError> { todo!("T8") }
-
-    /// The server certificate (native): reused while it covers `names` and
-    /// is not close to expiry; else made again and stored (section 5.3).
-    #[cfg(feature = "pki")]
-    pub async fn server_identity(&self, ca: &CertificateAuthority, config: &ServerIdentityConfig) -> Result<ServerIdentity, KeyStoreError> { todo!("T8") }
-
-    /// The common algorithm: read; if absent, make and try to store;
-    /// if another writer won, use theirs.
-    async fn load_or_create<F>(&self, id: &KeyId, make: F) -> Result<KeyRecord, KeyStoreError>
-    where
-        F: FnOnce(&Env) -> Result<KeyRecord, KeyStoreError>,
-    {
-        if let Some(found) = self.store.get(id).await? {
-            return Ok(found);
-        }
-        let info = self.store.info();
-        if !info.writable {
-            return Err(KeyStoreError::NotFound(id.as_str().into()));
-        }
-        if info.shared && !info.atomic_create {
-            return Err(KeyStoreError::NotAtomic);
-        }
-        let fresh = make(&self.env)?;
-        match self.store.create(&fresh).await? {
-            CreateOutcome::Created => Ok(fresh),
-            CreateOutcome::AlreadyExists(winner) => {
-                tracing::info!(key = id.as_str(), "another process created this key first; using it");
-                Ok(winner) // `fresh` drops here; its key bytes are zeroed
-            }
-        }
-    }
-}
-```
-
-What the code does: `load_or_create` reads the record. If it is absent, it makes a new key,
-seals it and tries to store it with `create`. If another process stored one first, it uses
-that one. A shared store that cannot create atomically is refused, because two processes
-could then make two different CAs.
-
-This sequence diagram shows two processes that start at the same time on one shared store.
-Only one key wins, and both processes use it.
-
-```mermaid
-sequenceDiagram
-    participant A as Process A
-    participant B as Process B
-    participant S as KeyStore (shared, atomic create)
-    A->>S: get("ca")
-    S-->>A: none
-    B->>S: get("ca")
-    S-->>B: none
-    A->>A: make key A and seal it
-    B->>B: make key B and seal it
-    A->>S: create(record A)
-    S-->>A: Created
-    B->>S: create(record B)
-    S-->>B: AlreadyExists(record A)
-    B->>B: drop key B, open record A
-    Note over A,B: both processes now use key A
-```
-
-### 4.5 Which store on which host
-
-| Host | Signing key | CA and server identity | Trusted clients |
+| Key | Native: flag, or environment variable | Native default | Worker |
 |---|---|---|---|
-| Native, one process (default) | `FsKeyStore` in the state directory | `FsKeyStore` | `SqlTrustStore<TursoStorage>` in the state directory |
-| Native, several replicas | `DbKeyStore<LibsqlStore>` or `DbKeyStore<D1Store>`, sealed | same | `SqlTrustStore` on the same database |
-| Worker, verify only | `EnvKeyStore` (public key from the var `AGENT_RPC_SECRET_PUBLIC_KEYS`) | none (Cloudflare terminates TLS) | `SqlTrustStore<D1WasmStorage>` |
-| DST | `MemoryKeyStore` | `MemoryKeyStore` (native DST only) | `MemoryTrustStore`. The `turso` feature of `foundation_db` turns on valtron `multi`, so Turso cannot be in the single-threaded DST build. The `SqlTrustStore` contract tests run in the normal test build. |
+| Secret-signing key | `--signing-key`, or `EWE_AGENT_RPC_SIGNING_KEY` (a path, PEM or base64 PEM, as today plus base64) | `<state>/bootstrap-signing-key.pem` | Secret `AGENT_RPC_SIGNING_KEY`, only with `WorkerHostConfig::enrollment` |
+| CA key | `--ca-key`, or `EWE_AGENT_RPC_CA_KEY` | `<state>/ca-key.pem` | none (Cloudflare terminates TLS) |
+| Server key | `--server-key`, or `EWE_AGENT_RPC_SERVER_KEY` | `<state>/server-key.pem` | none |
+| Public verifying keys | from the secret-signing key, plus `--extra-verifying-key <path>` (repeatable, section 4.6) | — | Var `AGENT_RPC_SECRET_PUBLIC_KEYS`: a JSON list of `{"kid": "...", "alg": "ed25519", "public_key": "<base64url>"}` |
 
-### 4.6 The legacy files of today
+- **A missing key stops the host.** The error names the path and the command of section 4.2.
+  The host never makes a key in place of a missing one.
+- **Several native replicas** get the same key files from the operator. The trusted-client
+  store is the shared database (section 6), as before.
+- **DST and tests** use `KeySource::Inline` with fixture keys from
+  `foundation_auth/tests/fixtures/` (made with the commands of section 4.2), or keys that
+  `foundation_auth::testing::ed25519_pem(seed)` and `p256_pem(seed)` make from `SeededEntropy`.
 
-A state directory of today holds `ca-cert.pem`, `ca-key.pem`,
-`bootstrap-signing-key.pem` and `trusted-clients.db`. They must keep working.
+```rust
+// foundation_auth/src/secret/keys.rs (added)
+impl VerifyingKey {
+    /// Parses the JSON list of `AGENT_RPC_SECRET_PUBLIC_KEYS`.
+    ///
+    /// # Errors
+    /// [`KeyLoadError::UnsupportedFormat`] for bad JSON or an unknown `alg`.
+    pub fn list_from_json(text: &str) -> Result<Vec<Self>, KeyLoadError> { todo!("T7") }
+}
+```
 
-1. `FsKeyStore::get("ca")` reads `keys/ca.json`. If that file is absent and both legacy CA files exist, it returns a record built from them (`revision = 1`, `Plaintext`). If only one of them exists, it returns `Corrupt` (as today).
-2. `FsKeyStore::get("secret-signing")` reads `keys/secret-signing.json`, else the legacy `bootstrap-signing-key.pem`.
-3. The environment variable `EWE_AGENT_RPC_SIGNING_KEY` (inline PEM or a path) still overrides the signing key. The native host reads it into an `EnvKeyStore` that it puts in front of the `FsKeyStore`.
-4. A KEK is required (owner decision 3). At the first start with legacy files, the host seals each key into `keys/*.json`, checks that the sealed record opens, and then removes the plain-text file. `agent-rpc keys migrate` (a sub-command of the native binary, task T17) does the same steps by hand. With no KEK, the host does not start ([key-protection.md](./key-protection.md) section 6).
+### 4.6 Rotation in the proof of concept
+
+The operator makes a new key file and restarts the host. Secrets signed by the old key then fail
+verification at once. Clients enroll again, or get new access secrets.
+
+To keep old secrets valid during a change, give the verifier the old public key too:
+`--extra-verifying-key <path>` on native (a `.pub` file or a PEM public key), or one more entry
+in `AGENT_RPC_SECRET_PUBLIC_KEYS` on a Worker. `SecretVerifier` already takes a list of keys
+(section 3.5). Remove the old key when its last secret has expired. Rotation with no restart
+and no manual steps is task K6 of [feature 08](../08-key-protection-at-rest/feature.md).
+
+A new CA key makes every client certificate invalid. Clients enroll again (section 9.4).
+
+### 4.7 The legacy files of today
+
+A state directory of today holds `ca-cert.pem`, `ca-key.pem`, `bootstrap-signing-key.pem` and
+`trusted-clients.db`. The branch code made the two key files in PKCS#8 PEM with mode 0600.
+
+1. They are the default paths of section 4.5, so a state directory of today loads with no change and no migration step.
+2. `ca-cert.pem` is reused when its public key matches `ca-key.pem`. Otherwise the host makes a new self-signed CA certificate from the key and writes it (section 5.1). A certificate is public, so the host can write it.
+3. Today the host makes a new server key at each start. Now `server-key.pem` is an operator file. If it is missing, the host stops with the command to make it (section 4.2).
+4. `EWE_AGENT_RPC_SIGNING_KEY` keeps its meaning (inline PEM or a path) and also accepts base64 PEM.
 5. `trusted-clients.db` keeps its tables. `SqlTrustStore` adds one new table (section 6.2).
+
+### 4.8 What the proof of concept does not protect
+
+The private keys are plain text in a file or a variable. A person or a process that can read
+the file, or the environment of the host process, has the key. The proof of concept limits this:
+
+- The host refuses a key file that other users can read (section 4.4).
+- Keys never go into a database, a log line, an error message, a payload or `Debug` output.
+- On a Worker, the key is a Worker secret: Cloudflare encrypts it at rest and shows it only to
+  the bound Worker.
+- `SecureBytes` zeroes the key bytes on drop.
+
+Encryption at rest with a KEK, and keys that never leave a hardware module, are
+[feature 08](../08-key-protection-at-rest/feature.md).
 
 ## 5. The CA and certificates (`foundation_auth::pki`, native)
 
@@ -1105,6 +926,7 @@ pub enum KeyAlgorithm {
 #[derive(Debug, Clone)]
 pub struct CaConfig {
     pub common_name: String,
+    /// The algorithm that the operator's key must have (section 4.1).
     pub key_algorithm: KeyAlgorithm,
     /// Default 10 years: the mkcert root lifetime (as today).
     pub ca_lifetime: Duration,
@@ -1123,24 +945,21 @@ pub struct CertificateAuthority {
 }
 
 impl CertificateAuthority {
-    /// A new self-signed CA. The key comes from `env` entropy and the dates
-    /// from `env` time. Returns the CA and the record to store.
+    /// The CA over the operator's CA key (section 4.5). Reuses
+    /// `existing_cert_pem` (today's `ca-cert.pem`) when its public key is
+    /// the key's public key. Otherwise it makes a new self-signed
+    /// certificate, with dates from `env` time, and returns its PEM so that
+    /// the host writes it.
     ///
     /// # Errors
     /// [`PkiError`].
-    pub fn generate(config: &CaConfig, env: &Env) -> Result<(Self, KeyRecord), PkiError> { todo!("T8") }
+    pub fn from_key(key: &PrivateKey, existing_cert_pem: Option<&str>, config: &CaConfig, env: &Env) -> Result<(Self, Option<String>), PkiError> { todo!("T8") }
 
-    /// Rebuild from a stored record and its opened private key.
+    /// A server certificate for `names` over the operator's server key.
     ///
     /// # Errors
     /// [`PkiError`].
-    pub fn from_record(record: &KeyRecord, private_pkcs8_der: &[u8], env: &Env, config: &CaConfig) -> Result<Self, PkiError> { todo!("T8") }
-
-    /// A server certificate for `names`.
-    ///
-    /// # Errors
-    /// [`PkiError`].
-    pub fn issue_server_identity(&self, names: &[String], lifetime: Duration) -> Result<(ServerIdentity, KeyRecord), PkiError> { todo!("T8") }
+    pub fn issue_server_identity(&self, server_key: &PrivateKey, names: &[String], lifetime: Duration) -> Result<ServerIdentity, PkiError> { todo!("T8") }
 
     /// Sign a client CSR. Only the public key of the CSR is used. The
     /// subject is `client_name`, the certificate is a non-CA leaf with the
@@ -1211,10 +1030,10 @@ also stable.
 Today `serve` makes a new server certificate on each start. So the pinned fingerprint in
 every payload stops working after a restart. We fix this:
 
-1. `KeyMaterial::server_identity` reads the record `server-identity`.
-2. It reuses the record when it covers the configured names and `now < not_after - renew_before`.
+1. The host reads `<state>/server-cert.pem`. The server key is the operator's file (section 4.5).
+2. It reuses the certificate when its public key is the server key's public key, it covers the configured names, and `now < not_after - renew_before`.
 3. `renew_before` is one third of the lifetime (30 days of 90). This is when certbot renews a 90-day certificate.
-4. Otherwise it makes a new certificate and replaces the record. The operator must hand out new payloads then. The host logs the new fingerprint.
+4. Otherwise it makes a new certificate with `CertificateAuthority::issue_server_identity` and writes `server-cert.pem`. The operator must hand out new payloads then. The host logs the new fingerprint.
 5. Enrolled clients do not need the pin. They trust the CA, so a renewal does not affect them.
 
 ```rust
@@ -1986,12 +1805,10 @@ Worker (public key from configuration, D1 trust store, optional Cloudflare mTLS)
 
 ```rust
 // host::worker::config (task T21)
-let keys = EnvKeyStore::from_worker(&bindings)?;                  // AGENT_RPC_SECRET_PUBLIC_KEYS
+let keys = VerifyingKey::list_from_json(&bindings.var("AGENT_RPC_SECRET_PUBLIC_KEYS")?.to_string())?;
 let verifier = SecretVerifier::new(
     SecretDomain::AGENT_RPC,
-    KeyMaterial::verify_only(Arc::new(keys), env.clone())
-        .verifying_keys(&[KeyId::new(KeyId::SECRET_SIGNING)?])
-        .await?,
+    keys,
     env.clone(),
     VerifyPolicy::access(config.public_url.clone()),
 );
@@ -2017,14 +1834,6 @@ impl VerifyPolicy {
 impl TrustConfig {
     pub fn native_default() -> Self;                 // Preload, 75 s, 5 min, 1 h, shared_store = false
     pub fn worker_default() -> Self;                 // StoreOnly, 75 s, 5 min, 1 h, shared_store = true
-}
-impl EnvKeyStore {
-    /// Native: reads EWE_AGENT_RPC_SIGNING_KEY (inline PEM or a path), as today.
-    pub fn from_process_env() -> Result<Self, KeyStoreError>;
-    /// Worker: reads the var AGENT_RPC_SECRET_PUBLIC_KEYS, a JSON list of
-    /// {"kid": "...", "alg": "ed25519", "public_key": "<base64url>"}.
-    #[cfg(target_family = "wasm")]
-    pub fn from_worker(bindings: &worker::Env) -> Result<Self, KeyStoreError>;
 }
 ```
 
@@ -2197,8 +2006,8 @@ refuse a client, it can never accept one twice.
 
 **Which hosts enroll.** A host that enrolls must hold the private key of the payload, because it
 signs server proofs and access secrets. The native host has it. A Worker host enrolls only when
-`WorkerHostConfig::enrollment` is set: the private key then comes from a Worker secret, sealed as
-[key-protection.md](./key-protection.md) requires. A Worker without it stays verify-only and
+`WorkerHostConfig::enrollment` is set: the private key then comes from the Worker secret
+`AGENT_RPC_SIGNING_KEY` (PEM text or base64 PEM, section 4.5). A Worker without it stays verify-only and
 accepts only access secrets that an operator's tool issued. See open question 4 in
 [feature.md](./feature.md).
 
@@ -2265,8 +2074,8 @@ sequenceDiagram
 | Someone sits between the client and the enrollment endpoint, or changes the `url` in the payload | the enrollment | The server proof (section 9.1.1): only the holder of the payload private key can sign the client's nonce. `aud = url` is inside the token signature. A native client can also pin the certificate. |
 | Someone steals an access secret (client-key kind) | the right to call until it expires | Short window (`access_lifetime`, default 1 hour); revoking the client stops it at once (`SignedSecretAuth` checks `sub`); a new one needs the client private key (`RefreshAccess`). |
 | Someone steals a client private key | the right to call | The key never leaves the client (a browser key is non-extractable). Revoke the client; the next call fails (`MtlsAuth` and `SignedSecretAuth` check each call). |
-| Someone steals the database | private keys | Private keys in databases are sealed with a KEK that is not in the database. AEAD binds each blob to its record. |
-| Someone copies an old sealed record back (rollback) | an old key | Not blocked: it needs a counter outside the database. Recorded as a limit; the operator rotates keys after a breach. |
+| Someone steals the database | private keys | No private key is in a database. The trust store holds only public keys, fingerprints and counts. |
+| Someone reads a key file or the host environment | the secret-signing, CA and server keys | Proof of concept: the host refuses a key file that other users can read; Worker secrets are encrypted at rest by Cloudflare. Not blocked for a person with the host user's rights. Recorded as a limit (section 4.8); encryption at rest is [feature 08](../08-key-protection-at-rest/feature.md). After a breach, the operator makes new keys (section 4.6). |
 | A wrong client clock | false refusals | `clock_skew` of 5 minutes at both ends of the window; certificates start 5 minutes in the past. |
 | A wrong server clock | false acceptance of an expired secret | The window check uses the server clock; operators run time sync. DST tests skew on both sides. |
 | Many enrollment attempts | CPU (CSR checks, signing) | A rate limit per peer address on `Enroll` and `RefreshAccess` (`EnrollConfig::rate`, default 1 per second with a burst of 5 — the `limit_req` example in the nginx documentation). Bad secrets fail before the credential is parsed. |
@@ -2310,10 +2119,11 @@ test bodies against each implementation.
 
 | Test | Crate and file | Implementations it runs against |
 |---|---|---|
-| `KeyStore` contract | `foundation_auth/tests/keystore/contract.rs` | `MemoryKeyStore`, `FsKeyStore` (temp dir), `DbKeyStore<MemoryStorage>`, `DbKeyStore<JsonFileStorage>`, `DbKeyStore<TursoStorage>`; `DbKeyStore<D1Store>` behind `--features d1-tests` |
-| Sealing | `foundation_auth/tests/keystore/sealing.rs` | `KekSealer`, `PassphraseSealer`: a blob opens only with the same AAD; a wrong KEK fails; nonces come from `Env` |
-| Load-or-create race | `foundation_auth/tests/keystore/race.rs` | Two `KeyMaterial` over one store; both get the same key |
-| Legacy files | `foundation_auth/tests/keystore/legacy_fs.rs` | A state directory copied from the branch tests loads unchanged |
+| Key loading | `foundation_auth/tests/keys/load.rs` | Fixture keys made by `ssh-keygen` (Ed25519, ECDSA P-256) and `openssl` (PKCS#8 Ed25519 and P-256, SEC1 P-256); inline PEM; base64 PEM; a key with a passphrase fails with `Encrypted`; a mode-0644 file fails with `LoosePermissions`; a P-256 key as the signing key fails with `WrongAlgorithm`; the public key and `kid` match the fixtures |
+| Formats agree | `foundation_auth/tests/keys/formats_agree.rs` | One Ed25519 key in OpenSSH form and in PKCS#8 form gives the same public key and the same signature |
+| Missing key | `foundation_agent_rpc/tests/native_missing_key_tests.rs` | A host with no key file does not start, makes no key, and the error names the path and the `ssh-keygen` command |
+| Legacy files | `foundation_auth/tests/keys/legacy_state_dir.rs` | A state directory copied from the branch tests loads unchanged; `ca-cert.pem` is reused |
+| No key in output | `foundation_auth/tests/keys/debug_output_tests.rs` | `Debug` and error text of `PrivateKey`, `KeySource` and `SigningKey` contain no key bytes |
 | `TrustStore` contract | `foundation_auth/tests/trust/contract.rs` | `MemoryTrustStore`, `KvTrustStore<MemoryStorage>`, `SqlTrustStore<TursoStorage>`; D1 behind a feature |
 | Atomic use count | `foundation_auth/tests/trust/concurrent_uses.rs` | 16 concurrent `consume_secret_use` calls with one free use: exactly one `Counted` (SQL backends) |
 | Verifier | `foundation_auth/tests/mtls/verifier.rs` | Active, revoked, expired, unknown; and no task or write happens (a counting `TrustStore` fake sees zero calls) |

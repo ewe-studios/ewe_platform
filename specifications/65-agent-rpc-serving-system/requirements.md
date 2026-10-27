@@ -224,6 +224,7 @@ corresponding skills BEFORE implementation.
 | 5  | [Cloudflare Deployment](./features/05-cloudflare/feature.md) | Full native model server on Cloudflare Sandboxes/Containers, and end-to-end tests on Workers; the Worker host itself is designed in 07 | 0, 1, 7 | ⬜ Pending |
 | 6  | [WASM Lazy Streaming](./features/06-wasm-async-streaming/feature.md) | Remove the wasm-unsafe `run_future`/`collect()` anti-pattern from the streaming path: park-friendly `into_future_stream`, lazy `send_sse` + `SseProgress::Failed`, zero `Model` API change; fix the T6 sync-streaming hang | 0 | ✅ Complete |
 | 7  | [Pluggable Agent RPC](./features/07-pluggable-agent-rpc/feature.md) | One RPC surface on native, Docker, Cloudflare Workers and the browser: a core behind traits, auth in foundation_auth, injected side effects for deterministic simulation testing, model capabilities and instance kinds | 1 | ⬜ Pending (design done) |
+| 8  | [Key Protection at Rest](./features/08-key-protection-at-rest/feature.md) | Key store over foundation_db, private keys encrypted at rest (KEK sources, WebCrypto, remote KMS), passphrase key files, rotation by kid. Deferred from 7 for the proof of concept | 7 | ⏸ Deferred |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
