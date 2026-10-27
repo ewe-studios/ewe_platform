@@ -650,8 +650,9 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 - **`foundation_keychain`**: `rmpv` is an unused dependency on wasm32
   (`Cargo.toml`; only native code uses it), and `src/server/signalr_do.rs:29`
-  imports `notifications::self` without using it. Fix: move `rmpv` to the
-  native target section and drop the `self` import.
+  imports `notifications::self` without using it, and binds `mut resp` at
+  line 74 that is never mutated. Fix: move `rmpv` to the native target
+  section, drop the `self` import and the `mut`.
 - **`foundation_deployment_cloudflare`**: `src/workers/durable_object.rs:24`
   imports `worker::Error` without using it. Fix: drop it.
 - **`foundation_wasm`**: `src/capability.rs:24` imports
