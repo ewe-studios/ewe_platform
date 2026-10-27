@@ -139,25 +139,78 @@ A migration file name has this form:
 - The extension is `.sql`.
 - In one group, the numbers are 1, 2, 3, ... with no gap and no repeat.
 
-The recommended layout puts each database's own group under its name, and template groups
-beside them:
+### 4.2.1 Groups declared by directory (owner, PR #126 review, 2026-10-26)
+
+A program can declare its groups in code (section 4.1) **or** by directory. In a directory
+layout, **each folder is one group, and the folder name is the group name**:
 
 ```text
-migrations/
-├── shared/                       template group "shared", used by many databases
+database/                        the layout root
+├── shared/                      group "shared": a template group, first for every database
 │   ├── 0001_create_users.sql
 │   └── 0002_create_sessions.sql
-└── databases/
-    ├── tenant_france/            the France database's own group "tenant_france"
-    │   ├── 0001_create_invoices.sql
-    │   └── 0002_add_vat_rate.sql
-    └── tenant_2/
-        └── 0001_create_reports.sql
+├── france/                      group "france": only the database named "france"
+│   ├── 0001_create_invoices.sql
+│   └── 0002_add_vat_rate.sql
+└── tenant_2/                    group "tenant_2": only the database named "tenant_2"
+    └── 0001_create_reports.sql
 ```
 
-The layout tells a reader where each database's migrations are. Which groups a database gets,
-and in which order, is set in code when the program builds the runner (section 4.1). See open
-question 1.
+The rules of a layout:
+
+1. Each folder directly under the root is a group. Files inside a group follow section 4.2.
+   Sub-folders inside a group are an error (`NestedFolder`).
+2. The **template groups** are the folders named in `MigrationLayoutConfig::template_groups`
+   (default `["shared"]`). They apply to every database, first, in the order of that list.
+3. Every other folder is the **specific group** of the database with the same name. It applies
+   after the template groups.
+4. A database with no folder of its own gets only the template groups.
+5. A folder name follows the group name rule (`[a-z0-9_]{1,64}`).
+
+So `layout.runner_for("france")` is the runner `[shared, france]`, the same as
+`MigrationRunner::from_dir("database/shared").add_from_dir("database/france")` in code.
+
+```rust
+// foundation_db/src/core/schema/layout.rs (task T25)
+
+/// Groups found in one directory tree. Made by `scan` (native) or
+/// `embed_migration_layout!` (all targets, at build time). Read by
+/// `runner_for` and by `FleetRunner`.
+#[derive(Debug, Clone)]
+pub struct MigrationLayout {
+    templates: Vec<Arc<MigrationSet>>,                // in template order
+    specific: BTreeMap<String, Arc<MigrationSet>>,    // database name -> its group
+    config: MigrationConfig,
+}
+
+#[derive(Debug, Clone)]
+pub struct MigrationLayoutConfig {
+    /// Folders that apply to every database, in this order. Default ["shared"].
+    pub template_groups: Vec<String>,
+}
+
+impl MigrationLayout {
+    /// Read the folders under `root` (native only). Checks the layout rules
+    /// and the rules of section 4.4 for every group.
+    #[cfg(not(target_family = "wasm"))]
+    pub async fn scan(root: impl Into<PathBuf>, layout: MigrationLayoutConfig, config: MigrationConfig)
+        -> Result<Self, MigrationError>;
+
+    /// The runner of one database: the template groups, then its own group
+    /// when the layout has one.
+    pub fn runner_for(&self, database: &str) -> MigrationRunner;
+
+    /// The database names that have their own folder.
+    pub fn databases(&self) -> impl Iterator<Item = &str>;
+}
+
+// Any crate: embed a whole layout at build time (Workers have no file system).
+static LAYOUT: EmbeddedLayout = foundation_db::embed_migration_layout!("database", templates = ["shared"]);
+```
+
+What the code does: `scan` turns each folder into a group and keeps the templates apart from the
+specific groups. `runner_for` builds the same runner that code would build. The macro does the same
+work at build time and fails the build on a broken rule.
 
 This is the file form that Cloudflare's `wrangler d1 migrations` uses (`0001_name.sql`), so a
 group directory can also serve that tool. The two tools record applied migrations in different
@@ -414,6 +467,96 @@ rule "applied numbers are 1 to k" (section 4.5) would stop them. Migration 023 o
 step runs `023_create_vectors.sql` and records it, in the same transaction. After that, `db_core`
 is 1 to 25 with no gap. This repair exists only in the upgrade step and only for 023.
 
+### 4.9 Running groups on many databases (`FleetRunner`)
+
+The owner asked for a runner that takes groups and runs them on many databases, one at a time or
+in parallel, at the database level. `FleetRunner` does that. It never runs two runners on one
+database at the same time, and it never mixes the rows of two databases.
+
+```rust
+// foundation_db/src/core/schema/fleet.rs (task T25)
+
+/// Opens a database by name. The host gives it: for example one Turso file
+/// for each tenant, or one D1 binding for each tenant on a Worker.
+#[async_trait::async_trait]
+pub trait DatabaseResolver: Send + Sync {
+    async fn open(&self, database: &str) -> Result<Arc<dyn AsyncQueryStore>, StorageError>;
+}
+
+/// Which runner each database gets.
+#[derive(Debug, Clone)]
+pub enum FleetPlan {
+    /// The same runner on every listed database. Example: a new `shared`
+    /// migration on every tenant.
+    SameRunner { runner: MigrationRunner, databases: Vec<String> },
+    /// `layout.runner_for(name)` on every listed database.
+    FromLayout { layout: MigrationLayout, databases: Vec<String> },
+}
+
+/// Limits of a fleet run (`CLAUDE.md` rule 8).
+#[derive(Debug, Clone)]
+pub struct FleetConfig {
+    /// Most databases that migrate at the same time. Default 1: one database
+    /// at a time, as Flyway and Liquibase migrate one target per run. Set it
+    /// higher for many small tenant databases.
+    pub max_parallel: usize,
+    /// Stop starting new databases after the first failure. Default true:
+    /// a broken migration usually fails on every database, so stop early.
+    pub stop_on_first_failure: bool,
+}
+
+pub struct FleetRunner {
+    plan: FleetPlan,
+    resolver: Arc<dyn DatabaseResolver>,
+    config: FleetConfig,
+}
+
+impl FleetRunner {
+    pub fn new(plan: FleetPlan, resolver: Arc<dyn DatabaseResolver>, config: FleetConfig) -> Self;
+
+    /// Plans every runner first (no database access), then migrates each
+    /// database with at most `max_parallel` in flight. Returns one outcome
+    /// for each database, in the order of the list.
+    pub async fn run(&self) -> FleetReport;
+}
+
+#[derive(Debug)]
+pub struct FleetReport {
+    pub outcomes: Vec<(String, FleetOutcome)>,
+}
+
+#[derive(Debug)]
+pub enum FleetOutcome {
+    Migrated(RunSummary),
+    Failed(MigrationError),
+    /// Not started, because an earlier database failed and
+    /// `stop_on_first_failure` is set.
+    Skipped,
+}
+```
+
+What the code does: `run` first calls `plan` for every distinct runner, so a broken file stops
+the run before any database changes. It then opens and migrates the databases as a bounded stream
+of futures (`buffer_unordered(max_parallel)`). Each database uses its own transactions and its own
+record rows (section 4.6). The same code runs on native (valtron tasks on many threads) and on a
+Worker (one thread; the parallel work is the waiting for D1).
+
+```mermaid
+flowchart LR
+    P["FleetPlan<br/>(runner or layout + database names)"] --> PL["plan every runner<br/>(no database access)"]
+    PL -->|"a problem"| X["stop: report it"]
+    PL -->|"all good"| Q["queue of databases"]
+    Q -->|"at most max_parallel at a time"| W1["open france, run [shared, france]"]
+    Q --> W2["open tenant_2, run [shared, tenant_2]"]
+    Q --> W3["open tenant_3, run [shared]"]
+    W1 --> R["FleetReport: one outcome per database"]
+    W2 --> R
+    W3 --> R
+```
+
+_The diagram shows a fleet run from a layout: every runner is checked first, then the databases
+migrate with a limit on how many run at the same time._
+
 ## 5. Errors
 
 ```rust
@@ -439,6 +582,8 @@ pub enum MigrationProblem {
     AppliedNotPrefix { group: String, missing: Vec<u64> },
     AppliedButMissing { group: String, number: u64 },
     UnknownGroup { group: String },
+    /// A layout group folder contains a folder.
+    NestedFolder { origin: String },
     /// A migration's SQL failed. Nothing of that migration is kept.
     Apply { group: String, number: u64, message: String },
     Storage(StorageError),
@@ -463,24 +608,22 @@ line, with the group, the number and the file path or code location.
 | Compile-time check | `foundation_macros/tests/ui/embed_migrations_gap.rs` (`trybuild`) | A gap or a repeated number fails the build with a clear message. |
 | Upgrade | `foundation_db/tests/migrations/upgrade_tests.rs` | An old `_migrations` table with 1 to 22, 24, 25 becomes `db_core` 1 to 25, and `vectors` exists. |
 | Core list | `foundation_db/tests/migrations/core_list_tests.rs` | Every file in `src/core/schema/sql/` is in `DB_CORE`. |
+| Layout | `foundation_db/tests/migrations/layout_tests.rs` | Folder names become groups; templates come first in config order; a database without a folder gets only the templates; a nested folder fails; `embed_migration_layout!` gives the same runners as `scan`. |
+| Fleet | `foundation_db/tests/migrations/fleet_tests.rs` | Sequential and parallel runs give the same records; never more than `max_parallel` databases open at once; a failure with `stop_on_first_failure` skips the rest; one outcome per database. |
 
 ## 7. Task
 
 | Task | What | Done when |
 |---|---|---|
-| T25 | `MigrationSet`, `MigrationSource`, `MigrationRunner` with `from_static`, `add_from_static`, `from_dir`, `add_from_dir`; the rules; `plan`; transactional `run_async`; the record table and its upgrade with the 023 repair; `embed_migrations!`; the `DB_CORE`, `AUTH_KEYS` and `AUTH_TRUST` groups | the tests in section 6 pass on memory, Turso and libsql, and under Miniflare for D1 |
+| T25 | `MigrationSet`, `MigrationSource`, `MigrationRunner` with `from_static`, `add_from_static`, `from_dir`, `add_from_dir`; the rules; `plan`; transactional `run_async`; the record table and its upgrade with the 023 repair; `embed_migrations!`; directory layouts (`MigrationLayout`, `embed_migration_layout!`); `FleetRunner`; the `DB_CORE`, `AUTH_KEYS` and `AUTH_TRUST` groups | the tests in section 6 pass on memory, Turso and libsql, and under Miniflare for D1 |
 
 ## 8. Open questions
 
-1. **Should a database directory declare its groups on disk?** Today the code sets which groups
-   a database gets (section 4.1).
-   - Option A: code only.
-   - Option B: a file `migrations/databases/<db>/groups.txt` lists the groups in order, for
-     example `shared` then `tenant_france`, and `MigrationRunner::for_database(root, "tenant_france")`
-     reads it.
-   - **Recommendation: A for now.** The owner's sketch builds runners in code. Option B can come
-     later without a change to the record table.
-2. **Many tenant databases at once.** A deployment with many tenant databases runs each runner on
-   its own database. A loop that runs them all, with a limit on how many run at the same time, is
-   not part of this task.
-   - **Recommendation:** add it when the first multi-tenant host needs it.
+Both earlier questions are answered (owner, PR #126 review, 2026-10-26):
+
+1. ~~Declare groups on disk?~~ **Yes.** A folder is a group, named by the folder (section 4.2.1).
+   Code-built runners stay valid.
+2. ~~A runner for many tenant databases?~~ **Yes**, at the database level, sequential or parallel
+   with a configured limit: `FleetRunner` (section 4.9).
+
+No open questions remain in this file.
