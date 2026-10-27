@@ -1,6 +1,6 @@
 # Authentication in `foundation_auth`
 
-_Part of [feature 07](./feature.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [feature 11](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** authentication (auth); remote procedure call (RPC);
@@ -20,7 +20,7 @@ Protocol (IP); AeroSpace and Defence Industries Association of Europe (ASD), the
 STE standard ASD-STE100.
 D1 and R2 are names of Cloudflare products (a SQL database and an object store), not
 abbreviations.
-The [glossary in feature.md](./feature.md#2-glossary) explains each term.
+The [glossary in feature.md](../../agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. What moves, and why
 
@@ -125,7 +125,7 @@ What works on wasm (Cloudflare Workers, browsers):
 
 A **signed secret** is a short string that proves that a key holder made it. It has 32
 random bytes, a validity window and a signature. An operator gives it to a client, often
-inside a `BootstrapPayload` (see [proto.md](./proto.md)). It is **our own format, not a
+inside a `BootstrapPayload` (see [proto.md](../12-agent-rpc-core/proto.md)). It is **our own format, not a
 JWT.**
 
 ### 3.1 Version 1 wire format (unchanged)
@@ -655,7 +655,7 @@ All in `backends/foundation_auth/tests/secret/` (registered in `tests/secret/mod
 
 ## 4. Key material (`foundation_auth::keys`)
 
-**Proof of concept (owner direction, 2026-10-27; decision 11 in [feature.md](./feature.md)).**
+**Proof of concept (owner direction, 2026-10-27; decision 11 in [feature.md](../../agent-rpc-architecture.md)).**
 The operator makes each private key with a standard tool (`ssh-keygen` or `openssl`). The host
 loads the key from a file, an environment variable or a Worker secret, and uses it. The host
 does not make, seal, store or rotate private keys.
@@ -1179,7 +1179,7 @@ true. The `DELETE` of expired rows moves out of this call into `prune`, which th
 on a timer (`TrustConfig::prune_interval`).
 
 The SQL is portable to Postgres except the `?` placeholders. foundation_db has no Postgres
-backend (owner decision 7 in [feature.md](./feature.md): a separate feature).
+backend (owner decision 7 in [feature.md](../../agent-rpc-architecture.md): a separate feature).
 
 ### 6.3 `KvTrustStore<K: KeyValueStore>`
 
@@ -2009,7 +2009,7 @@ signs server proofs and access secrets. The native host has it. A Worker host en
 `WorkerHostConfig::enrollment` is set: the private key then comes from the Worker secret
 `AGENT_RPC_SIGNING_KEY` (PEM text or base64 PEM, section 4.5). A Worker without it stays verify-only and
 accepts only access secrets that an operator's tool issued. See open question 4 in
-[feature.md](./feature.md).
+[feature.md](../../agent-rpc-architecture.md).
 
 This sequence diagram shows enrollment with a client key, for example from a browser page. The
 TLS channel uses the normal certificate roots; no pin and no client certificate are needed.
@@ -2080,7 +2080,7 @@ sequenceDiagram
 | A wrong server clock | false acceptance of an expired secret | The window check uses the server clock; operators run time sync. DST tests skew on both sides. |
 | Many enrollment attempts | CPU (CSR checks, signing) | A rate limit per peer address on `Enroll` and `RefreshAccess` (`EnrollConfig::rate`, default 1 per second with a burst of 5 — the `limit_req` example in the nginx documentation). Bad secrets fail before the credential is parsed. |
 | A client sends a false `ewe-forwarded-principal` header to a Worker | another identity in the DO | The Worker deletes every `ewe-forwarded-*` header before auth. The DO is reachable only through the Worker binding. |
-| One client uses another client's instance | sessions and history | Instance names are scoped by owner when `ScopePolicy::PerOwner` is set (owner decision 1 in [feature.md](./feature.md)). |
+| One client uses another client's instance | sessions and history | Instance names are scoped by owner when `ScopePolicy::PerOwner` is set (owner decision 1 in [feature.md](../../agent-rpc-architecture.md)). |
 | Secrets or keys in logs | all secrets | Redacting `Debug` and `Display` (as today). A log test captures the log output at trace level for the whole flow (`auth_log_tests` moves to the native host tests). |
 
 ### 9.3 Replay protection

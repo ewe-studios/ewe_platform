@@ -1,13 +1,13 @@
 # Deterministic simulation testing
 
-_Part of [feature 07](./feature.md). Written in ASD-STE100 Simplified Technical English
+_Part of [feature 08](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English
 (STE). The reader can be 15 years old and new to this code._
 
 **Abbreviations in this file.** deterministic simulation testing (DST); remote procedure call
 (RPC); random number generator (RNG); identifier (ID); continuous integration (CI); key-value
 store (KV); Structured Query Language (SQL); Transport Layer Security (TLS); AeroSpace and
 Defence Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
-The [glossary in feature.md](./feature.md#2-glossary) explains each term.
+The [glossary in feature.md](../../agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. The problem
 

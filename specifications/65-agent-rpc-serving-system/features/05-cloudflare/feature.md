@@ -22,8 +22,8 @@ tasks:
 # Cloudflare Deployment
 
 _Status note (2026-10-26): pending. New text is in ASD-STE100 Simplified Technical English (STE);
-older paragraphs keep their wording. Code and identifiers stay as they are. **Feature 07 now
-designs the Worker side of this feature**; section "Relation to feature 07" says which tasks
+older paragraphs keep their wording. Code and identifiers stay as they are. **Feature 14 now
+builds the Worker side of this feature**; section "Relation to feature 14" says which tasks
 remain here._
 
 **Abbreviations in this file.** WebAssembly (wasm); Cloudflare (CF); remote procedure call
@@ -242,7 +242,7 @@ impl ContainersDeploy { async fn deploy(&self, spec: ContainerSpec) -> Result<()
 - _Corrected 2026-10-26:_ Cloudflare ends TLS in front of a Worker, so a Worker cannot run
   agent-rpc's own mTLS. Client auth on a Worker is a signed secret sent as a bearer credential,
   or Cloudflare's own mTLS (`request.cf.tlsClientAuth`), through the `ClientAuth` providers of
-  feature 07 ([auth.md](../07-pluggable-agent-rpc/auth.md) section 8).
+  feature 11 ([auth.md](../11-foundation-auth/auth.md) section 8).
 - Sandboxes/Containers credentials are never bundled in the container image; they
   are injected by the deployment surface.
 
@@ -336,17 +336,17 @@ cargo test -p foundation_deployment_cloudflare --test containers_tests
 - [ ] No installer involvement in Cloudflare deployment
 - [ ] No TODO/FIXME/stubs; streamed, typed; no ignored `Result`s
 
-## Relation to feature 07
+## Relation to feature 14
 
-Feature 07 designs the Worker host in full ([hosts.md](../07-pluggable-agent-rpc/hosts.md)
+Feature 07 designs the Worker host in full ([worker-and-web.md](../14-worker-host-and-web-client/worker-and-web.md)
 section 5). To keep one design, the tasks map like this:
 
 | Task here | State | Where it is now |
 |---|---|---|
-| T1: thin orchestrator build target (`src/wasm.rs`, `wasm_worker_entry`) | **Replaced** | Feature 14 T21 (designed in feature 07): `host/worker/*` with `FetchServe` and one Durable Object per instance. |
-| T2: Connect fetch transport (`WasmFetchTransport`) | **Replaced** | Feature 14 T19 (designed in feature 07): `FetchTransport` and `FetchServe` in `foundation_connectrpc/src/wasm/`. |
+| T1: thin orchestrator build target (`src/wasm.rs`, `wasm_worker_entry`) | **Replaced** | Feature 14 T21: `host/worker/*` with `FetchServe` and one Durable Object per instance. |
+| T2: Connect fetch transport (`WasmFetchTransport`) | **Replaced** | Feature 14 T19: `FetchTransport` and `FetchServe` in `foundation_connectrpc/src/wasm/`. |
 | T3: Sandboxes and Containers in `foundation_deployment_cloudflare` | **Stays here** | This feature. |
-| T4: end to end on Workers with Workers AI | **Stays here**, built on feature 14 T21 | The `cf-agent-rpc` example of feature 07 is its base. |
+| T4: end to end on Workers with Workers AI | **Stays here**, built on feature 14 T21 | The `cf-agent-rpc` example of feature 14 is its base. |
 | T5: end to end, Worker to a remote native agent-rpc | **Stays here**, built on feature 14 T19 | |
 | T6: end to end, native agent-rpc in a Cloudflare container | **Stays here** | |
 
@@ -357,7 +357,7 @@ So `depends_on` of this feature is now 00, 01 and 07.
 | Phase | What happens |
 |---|---|
 | Deploy | `ContainersDeploy::deploy` sends the image (a CI/CD-built tag) and the container settings through the generated Cloudflare API types. |
-| Start | Cloudflare starts the container. The native agent-rpc host starts as on any machine (feature 07, hosts.md section 4). |
+| Start | Cloudflare starts the container. The native agent-rpc host starts as on any machine (feature 13, hosts.md section 4). |
 | Update | Deploy a new image tag. The open question below covers how traffic moves. |
 | Stop | Cloudflare stops the container; the native host shuts down with its `shutdown_grace`. |
 
@@ -368,7 +368,7 @@ So `depends_on` of this feature is now 00, 01 and 07.
    the rollout steps here before building.
 2. **Secrets for the container** (model keys, the operator key files of feature 11). They must
    come from the deployment surface, never from the image. **Recommendation:** use the same
-   secret source as the Worker (feature 07 owner decision 6), passed as container environment
+   secret source as the Worker (owner decision 6 in agent-rpc-architecture.md), passed as container environment
    at deploy.
 
 ---

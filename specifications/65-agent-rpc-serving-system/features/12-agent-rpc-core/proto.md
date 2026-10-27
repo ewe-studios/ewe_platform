@@ -1,6 +1,6 @@
 # Wire contract changes (`agent.proto`)
 
-_Part of [feature 07](./feature.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [feature 12](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** remote procedure call (RPC); Protocol Buffers (protobuf);
@@ -13,7 +13,7 @@ processing unit (CPU); graphics processing unit (GPU); Compute Unified Device Ar
 GPT-Generated Unified Format (GGUF), the model file format of llama.cpp; Durable Object (DO); enumeration (enum). gRPC is the name of a Google RPC
 protocol over HTTP/2. gRPC-Web is its variant for browsers. Connect is an RPC protocol that
 works over HTTP/1.1 and HTTP/2. AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
-STE standard ASD-STE100. The [glossary in feature.md](./feature.md#2-glossary) explains
+STE standard ASD-STE100. The [glossary in feature.md](../../agent-rpc-architecture.md#2-glossary) explains
 each term.
 
 ## 1. What this file covers
@@ -630,7 +630,7 @@ What the code does: it gives two URLs, a pin and an enrollment token. The client
 ## 7. Use of `AgentService` between a Worker and a Durable Object
 
 A Durable Object (DO) is a Cloudflare object with one name, one thread and its own storage.
-The Worker host runs one DO for each agent instance (see [hosts.md](./hosts.md)).
+The Worker host runs one DO for each agent instance (see [hosts.md](../13-native-host-and-dst/hosts.md)).
 
 The Worker does not need a second service definition to talk to the DO:
 

@@ -3,15 +3,15 @@
 _Part of [feature 15](./feature.md) (deferred). Written in ASD-STE100 Simplified Technical English
 (STE). Code and identifiers stay as they are._
 
-This is the design that was section 4 of [feature 07 auth.md](../07-pluggable-agent-rpc/auth.md)
-before the proof of concept (decision 11 in [feature 07](../07-pluggable-agent-rpc/feature.md)).
+This is the design that was section 4 of [feature 11 auth.md](../11-foundation-auth/auth.md)
+before the proof of concept (decision 11 in [agent-rpc-architecture.md](../../agent-rpc-architecture.md)).
 It is kept here without change, except for the section numbers and the links. Feature 07 now
-loads operator key files ([auth.md](../07-pluggable-agent-rpc/auth.md) section 4). This feature
+loads operator key files ([auth.md](../11-foundation-auth/auth.md) section 4). This feature
 adds back, in order: a key store in `foundation_db` backends, keys that the host makes and
 stores, encryption at rest, rotation by `kid`, and remote key management.
 
 The abbreviations and the glossary are the ones of
-[feature 07](../07-pluggable-agent-rpc/feature.md#2-glossary).
+[agent-rpc-architecture.md](../../agent-rpc-architecture.md#2-glossary).
 
 The owner asked for a `CaStore` provider trait. We call it `KeyStore`, because it holds
 every kind of key material: the CA, the secret-signing key and the server identity. A
@@ -356,7 +356,7 @@ impl KeyMaterial {
     pub async fn certificate_authority(&self, id: &KeyId, config: &CaConfig) -> Result<CertificateAuthority, KeyStoreError> { todo!("K2") }
 
     /// The server certificate (native): reused while it covers `names` and
-    /// is not close to expiry; else made again and stored (feature 07 [auth.md](../07-pluggable-agent-rpc/auth.md) section 5.3).
+    /// is not close to expiry; else made again and stored (feature 11 [auth.md](../11-foundation-auth/auth.md) section 5.3).
     #[cfg(feature = "pki")]
     pub async fn server_identity(&self, ca: &CertificateAuthority, config: &ServerIdentityConfig) -> Result<ServerIdentity, KeyStoreError> { todo!("K2") }
 
@@ -433,12 +433,12 @@ A state directory of today holds `ca-cert.pem`, `ca-key.pem`,
 2. `FsKeyStore::get("secret-signing")` reads `keys/secret-signing.json`, else the legacy `bootstrap-signing-key.pem`.
 3. The environment variable `EWE_AGENT_RPC_SIGNING_KEY` (inline PEM or a path) still overrides the signing key. The native host reads it into an `EnvKeyStore` that it puts in front of the `FsKeyStore`.
 4. A KEK is required (owner decision 3). At the first start with legacy files, the host seals each key into `keys/*.json`, checks that the sealed record opens, and then removes the plain-text file. `agent-rpc keys migrate` (a sub-command of the native binary, task K3) does the same steps by hand. With no KEK, the host does not start ([key-protection.md](./key-protection.md) section 6).
-5. `trusted-clients.db` keeps its tables. `SqlTrustStore` adds one new table (feature 07 [auth.md](../07-pluggable-agent-rpc/auth.md) section 6.2).
+5. `trusted-clients.db` keeps its tables. `SqlTrustStore` adds one new table (feature 11 [auth.md](../11-foundation-auth/auth.md) section 6.2).
 
 ## 7. Key rotation by `kid`
 
 The proof of concept rotates a key by a restart with a new key file
-([auth.md](../07-pluggable-agent-rpc/auth.md) section 4.6). With a key store, rotation has no
+([auth.md](../11-foundation-auth/auth.md) section 4.6). With a key store, rotation has no
 gap:
 
 1. Make a new key with a new `kid`.

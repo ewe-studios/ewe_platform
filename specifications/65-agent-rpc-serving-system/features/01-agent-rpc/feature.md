@@ -247,7 +247,7 @@ _The diagram shows enrollment, then one streamed chat call through the proxy._
 1. Client authenticates to agent-rpc with the bootstrap token, receives a cert.
 2. Client calls `ChatStream` through the proxy (which forwards opaquely).
    _Correction (2026-10-26):_ a proxy that ends TLS cannot pass a client certificate to
-   agent-rpc. Through the proxy, a client uses agent-rpc's signed-secret bearer auth (feature 07).
+   agent-rpc. Through the proxy, a client uses agent-rpc's signed-secret bearer auth (feature 11).
    mTLS works on a direct connection, or through TLS passthrough (feature 03, open question 3).
 3. agent-rpc runs inference on the shared `ModelHandle` (threaded/valtron).
 4. Results stream back as `TurnEvent`s, unbuffered.
@@ -412,16 +412,16 @@ cargo test -p foundation_agent_rpc --test rpc_e2e_tests
 
 ## Changes made by later features
 
-Feature 07 ([feature.md](../07-pluggable-agent-rpc/feature.md) section 7) changes these parts. The
-code on branch `65-f01-agent-rpc` still has the feature 01 form until feature 07 is built.
+Features 07 to 14 ([agent-rpc-architecture.md](../../agent-rpc-architecture.md) section 7) change these parts. The
+code on branch `65-f01-agent-rpc` still has the feature 01 form until features 07 to 14 are built.
 
-| Here | After feature 07 |
+| Here | After features 07 to 14 |
 |---|---|
 | File list above (`server.rs`, `auth.rs`, ...). The built crate also has `secret.rs`, `trust.rs`, `client.rs`, `error.rs`, `proto.rs`. | `core/`, `host/native/`, `host/worker/`, `client/`; auth moves to `foundation_auth` (feature 07 section 8). |
 | `with_bootstrap_token`, `with_mtls`, the `Auth` enum | One `ClientAuth` value (signed secret, mTLS, JWT, Cloudflare mTLS). |
-| `BootstrapPayload { addr, tls_fingerprint, token, capabilities }` | `url`, `enroll_url`, `tls_fingerprint_sha256`, `token`, `capabilities`; no version field ([proto.md](../07-pluggable-agent-rpc/proto.md) section 6). |
-| The illustrative `AgentService` above (`returns (InstanceHandle)`, `returns (Empty)`) | The real contract is [proto.md](../07-pluggable-agent-rpc/proto.md) section 3 (`InstanceInfo`, `DestroyInstanceResponse`, plus `GetCapabilities`). |
-| Start-up and shutdown of the server | The native host lifecycle in [hosts.md](../07-pluggable-agent-rpc/hosts.md) section 4. |
+| `BootstrapPayload { addr, tls_fingerprint, token, capabilities }` | `url`, `enroll_url`, `tls_fingerprint_sha256`, `token`, `capabilities`; no version field ([proto.md](../12-agent-rpc-core/proto.md) section 6). |
+| The illustrative `AgentService` above (`returns (InstanceHandle)`, `returns (Empty)`) | The real contract is [proto.md](../12-agent-rpc-core/proto.md) section 3 (`InstanceInfo`, `DestroyInstanceResponse`, plus `GetCapabilities`). |
+| Start-up and shutdown of the server | The native host lifecycle in [hosts.md](../13-native-host-and-dst/hosts.md) section 4. |
 
 ---
 

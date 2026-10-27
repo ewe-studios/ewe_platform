@@ -116,7 +116,7 @@ Feature 03's glossary defines lease, report, rotation, enrollment and registrati
    revoked certificate.
 7. **One binary, two modes**, chosen by configuration.
 8. **Async all the way, side effects injected.** Clock, timers and randomness (for
-   `session_id`) come from `Env` (feature 07, `CLAUDE.md` rule 11), so a simulated test can
+   `session_id`) come from `Env` (feature 08, `CLAUDE.md` rule 11), so a simulated test can
    replay a run.
 
 ## 4. Design

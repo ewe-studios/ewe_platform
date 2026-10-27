@@ -806,7 +806,7 @@ cargo test -p foundation_installer --features docker-tests --test install_e2e_te
    - Option A: keep it. A reader stops when the number is higher than it knows.
    - Option B: drop it, and only add optional fields. Old readers ignore new fields.
    - **Recommendation: A.** Option B cannot express a change in the meaning of an existing
-     field. The owner removed the version from the bootstrap payload (feature 07), but that is
+     field. The owner removed the version from the bootstrap payload (feature 12, proto.md), but that is
      a protobuf message, where field numbers already give this safety. JSON has no field
      numbers.
 2. **Remove software that left the manifest?**

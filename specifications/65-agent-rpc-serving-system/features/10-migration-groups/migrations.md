@@ -1,13 +1,13 @@
 # Migrations: groups per database
 
-_Part of [feature 07](./feature.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [feature 10](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** Structured Query Language (SQL); identifier (ID); Secure Hash
 Algorithm with 256 bits (SHA-256); input/output (I/O); WebAssembly (wasm); continuous
 integration (CI); Durable Object (DO); data definition language (DDL), the SQL statements that
 change a schema; AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
-STE standard ASD-STE100. The [glossary in feature.md](./feature.md#2-glossary) explains the
+STE standard ASD-STE100. The [glossary in feature.md](../../agent-rpc-architecture.md#2-glossary) explains the
 shared terms. Section 2 explains the terms of this file.
 
 ## 1. What this file covers
@@ -17,7 +17,7 @@ A **migration** is one change to a database schema, for example "create the tabl
 yet, in order, and records each one.
 
 The owner set the design in the PR #126 review (2026-10-25, owner decision 10 in
-[feature.md](./feature.md) section 11). The reference is
+[feature.md](../../agent-rpc-architecture.md) section 11). The reference is
 [`resources/Migration Management.md`](../../resources/Migration%20Management.md) (topic 3: a
 shared pipeline first, then tenant pipelines, each with its own tracking records).
 
@@ -445,7 +445,7 @@ CREATE TABLE IF NOT EXISTS _migrations (
 One row for each applied migration. The rows of one group are the tracking records of that group.
 The reference document puts each pipeline's records in its own table; the owner chose one table
 with rows keyed by group, which gives the same isolation in one place. `applied_at` comes from
-`Env` (feature 07, `CLAUDE.md` rule 11), so a simulated test gives the same rows each run.
+`Env` (feature 08, `CLAUDE.md` rule 11), so a simulated test gives the same rows each run.
 
 `MigrationRunner::record_checksums(store)` (task T25) fills empty checksums from the current SQL.
 An operator calls it after checking that the files did not change. A host can expose it as a

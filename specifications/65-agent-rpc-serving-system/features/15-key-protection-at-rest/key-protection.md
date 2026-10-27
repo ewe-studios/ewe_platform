@@ -14,11 +14,11 @@ Google Cloud Platform (GCP); Identity and Access Management (IAM); temporary fil
 memory (tmpfs); process identifier (PID); random-access memory (RAM); teletypewriter, the name
 for an interactive terminal (TTY); AeroSpace and Defence Industries Association of Europe
 (ASD), the owner of the STE standard ASD-STE100. The
-[glossary in feature 07](../07-pluggable-agent-rpc/feature.md#2-glossary) explains each term.
+[glossary](../../agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. The decision
 
-The owner decided (decision 3 in [feature 07](../07-pluggable-agent-rpc/feature.md); for the proof of concept, decision 11 there defers it to this feature): **a private key is always encrypted when it is stored.**
+The owner decided (decision 3 in [agent-rpc-architecture.md](../../agent-rpc-architecture.md); for the proof of concept, decision 11 there defers it to this feature): **a private key is always encrypted when it is stored.**
 There is no plain-text mode. This applies on every host and every backend: files, databases,
 D1, KV, R2.
 
@@ -229,7 +229,7 @@ pub struct SealedBlob {
 
 ### 4.1 Native host
 
-Configuration (part of `NativeHostConfig`, [hosts.md](../07-pluggable-agent-rpc/hosts.md) section 4.1):
+Configuration (part of `NativeHostConfig`, [hosts.md](../13-native-host-and-dst/hosts.md) section 4.1):
 
 ```rust
 // foundation_agent_rpc/src/host/native/config.rs (changed, task K3)
@@ -374,7 +374,7 @@ documentation lists `wrapKey` only for AES-CTR, AES-CBC and RSA-OAEP, but `encry
 `decrypt` support AES-GCM.
 
 A Worker that only verifies bearer secrets holds no private key. It needs no KEK
-([hosts.md](../07-pluggable-agent-rpc/hosts.md) section 5).
+([worker-and-web.md](../14-worker-host-and-web-client/worker-and-web.md) section 5).
 
 ### 4.6 Remote KMS (envelope encryption)
 
@@ -450,7 +450,7 @@ lets tests check envelope encryption with no network.
 
 ## 6. Today's plain-text key files
 
-The proof of concept (decision 11 in [feature 07](../07-pluggable-agent-rpc/feature.md)) reads
+The proof of concept (decision 11 in [agent-rpc-architecture.md](../../agent-rpc-architecture.md)) reads
 operator key files in plain text with mode 0600. With "always encrypt", the host must not keep them.
 
 1. At start, `FsKeyStore` finds a plain-text key file.

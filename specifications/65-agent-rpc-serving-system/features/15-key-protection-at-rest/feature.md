@@ -24,7 +24,7 @@ Simplified Technical English (STE). Code and identifiers stay as they are._
 **Abbreviations in this file.** key encryption key (KEK); key management service (KMS);
 Certificate Authority (CA); proof of concept (POC); identifier (ID); AeroSpace and Defence
 Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100. The
-[glossary in feature 07](../07-pluggable-agent-rpc/feature.md#2-glossary) explains each term.
+[glossary](../../agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. Why this is a separate feature
 
@@ -32,10 +32,10 @@ The owner said on PR #126: "we are making the secret setup super complex. We nee
 initial poc that is simple and works. Like user adds a style generated private key and we use
 that. The other things can be broken into deferred features for later."
 
-So feature 07 now does one thing: the operator makes each private key with `ssh-keygen` or
+So feature 11 now loads keys in the simplest way: the operator makes each private key with `ssh-keygen` or
 `openssl`, and the host loads it from a file, an environment variable or a Worker secret
-([auth.md](../07-pluggable-agent-rpc/auth.md) section 4, decision 11 in
-[feature 07](../07-pluggable-agent-rpc/feature.md)). Everything else about keys moved here.
+([auth.md](../11-foundation-auth/auth.md) section 4, decision 11 in
+[agent-rpc-architecture.md](../../agent-rpc-architecture.md)). Everything else about keys moved here.
 The design is complete. It waits until the POC works end to end. It was feature 08; the owner
 moved it to the end of the list when feature 07 was split into features 07 to 14.
 
@@ -56,7 +56,7 @@ moved it to the end of the list when feature 07 was split into features 07 to 14
 | K3 | `KekSource`, async `KeySealer`, native and Worker KEK sources, `WebCryptoSealer`, always-encrypt rule, migration of the POC plain-text key files, KEK rotation, `agent-rpc keys migrate` | feature 07 T23 | [key-protection.md](./key-protection.md) section 8 tests pass (except Vault) |
 | K4 | Envelope encryption with a remote KMS: `EnvelopeSealer`, `KmsBackend`; Vault Transit, then AWS KMS and GCP Cloud KMS | feature 07 T24 | sealer contract passes with `FakeKms`; the Vault test passes |
 | K5 | Passphrase-protected key files (OpenSSH `bcrypt-pbkdf`, encrypted PKCS#8) with the passphrase from a KEK source | new | an encrypted `ssh-keygen` key loads with its passphrase and fails without it |
-| K6 | Rotation by `kid` with no gap: several verifying keys from the key store, an `agent-rpc keys rotate` command | feature 07 auth.md section 3.6 | old secrets verify until they expire; new secrets use the new key |
+| K6 | Rotation by `kid` with no gap: several verifying keys from the key store, an `agent-rpc keys rotate` command | feature 11 auth.md section 3.6 | old secrets verify until they expire; new secrets use the new key |
 
 ```mermaid
 flowchart LR
@@ -69,7 +69,7 @@ _The diagram shows which task must finish before another task starts._
 
 ## 4. What the POC keeps that this feature builds on
 
-- `KeySource` and `PrivateKey` ([auth.md](../07-pluggable-agent-rpc/auth.md) section 4.4). A
+- `KeySource` and `PrivateKey` ([auth.md](../11-foundation-auth/auth.md) section 4.4). A
   `KeyStore` becomes one more place that a `PrivateKey` comes from.
 - The default file names in the state directory (`bootstrap-signing-key.pem`, `ca-key.pem`,
   `server-key.pem`). Task K3 seals them and removes the plain-text files.

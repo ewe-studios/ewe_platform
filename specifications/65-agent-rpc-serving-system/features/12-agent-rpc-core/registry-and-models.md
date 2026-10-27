@@ -1,6 +1,6 @@
 # Instances and models
 
-_Part of [feature 07](./feature.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [feature 12](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** remote procedure call (RPC); Durable Object (DO);
@@ -14,7 +14,7 @@ Comments (RFC); Domain Name System (DNS); Representational State Transfer (REST)
 (MiB), 1,048,576 bytes; AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
 STE standard ASD-STE100. gRPC is the name of a Google RPC protocol over
 HTTP/2. D1 is the name of a Cloudflare SQL database product, not an abbreviation. The
-[glossary in feature.md](./feature.md#2-glossary) explains each term.
+[glossary in feature.md](../../agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. What this file covers
 
@@ -878,7 +878,7 @@ impl DurableObjectRegistry {
 What the code does: `do_name` makes one fixed name from the scope and the instance name.
 `id_from_name` turns it into the DO ID (Cloudflare hashes the name). The registry then talks
 to that DO with the normal generated client over `DoStubTransport` (see
-[hosts.md](./hosts.md)). The base URL is a placeholder: a DO stub ignores the host part.
+[hosts.md](../13-native-host-and-dst/hosts.md)). The base URL is a placeholder: a DO stub ignores the host part.
 
 ### 4.3 The instance index
 
@@ -955,7 +955,7 @@ Cloudflare can remove an idle DO from memory. The storage stays. The DO handles 
 
 1. At `create`, it writes a row `instance_meta` to DO storage: the spec and the session ID.
 2. At the first request after a restart, it reads `instance_meta`. If the row exists, it builds the session again with `AgentSession::builder(router).resume(session_id)` over the same stores. The history is then the same as before.
-3. At `destroy`, it archives the history to R2, then ends the session and deletes the DO storage (`storage.delete_all()`). [hosts.md](./hosts.md) section 5.12 gives the steps. If the archive fails, nothing is deleted.
+3. At `destroy`, it archives the history to R2, then ends the session and deletes the DO storage (`storage.delete_all()`). [worker-and-web.md](../14-worker-host-and-web-client/worker-and-web.md) section 5.12 gives the steps. If the archive fails, nothing is deleted.
 
 Optional: `WorkerHostConfig::instance_idle_ttl` (default `None`). When it is set, the DO sets
 an alarm after each turn and destroys an instance that had no turn for that long.
@@ -981,7 +981,7 @@ flowchart LR
 
 - The client pulls the Worker body. The Worker body pulls from the DO body. The DO body pulls from the model. So a slow client slows the model stream, and nothing piles up in memory.
 - When the client goes away, the runtime cancels the Worker body. The Worker drops the DO response reader, which cancels the DO body. The DO drops its turn stream, and `guarded_turn` aborts the session.
-- [hosts.md](./hosts.md) section 3 shows the same flow as a sequence of calls.
+- [hosts.md](../13-native-host-and-dst/hosts.md) section 3 shows the same flow as a sequence of calls.
 
 ## 5. Tests
 

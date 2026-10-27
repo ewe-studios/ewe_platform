@@ -6,7 +6,7 @@ priority: "high"
 depends_on: []
 builds_on:
   - "specifications/completed/63-connectrpc-proxy"
-  - "11-foundation-auth (foundation_auth: signed secrets, CA, trusted clients, mtls; design in feature 07 auth.md)"
+  - "11-foundation-auth (foundation_auth: signed secrets, CA, trusted clients, mtls; design in its auth.md)"
 estimated_effort: "large"
 created: 2026-10-19
 last_updated: 2026-10-26
@@ -143,7 +143,7 @@ The router's service list is fixed today. Section 6 makes it change at run time.
 
 1. **A registration listener**, separate from the public listener, that requires mTLS with
    certificates from the proxy's own registration CA (section 5).
-2. **Enrollment** of a sidecar with a one-time token, through `foundation_auth` (feature 07).
+2. **Enrollment** of a sidecar with a one-time token, through `foundation_auth` (feature 11).
 3. **Three calls**: `Register`, `Report`, `Deregister`, with generated types (section 4).
 4. **Leases.** Each sidecar session has one lease. A lease ends when reports stop. Backends of
    an ended lease leave rotation.
@@ -346,7 +346,7 @@ message EnrollResponse {
   // registration listener certificate from now on.
   string ca_cert_pem = 2;
   // The proxy's signature with the token key over the nonce, the CSR hash
-  // and host_id (feature 07 auth.md section 9.1.1).
+  // and host_id (feature 11 auth.md section 9.1.1).
   bytes server_proof = 3;
 }
 
@@ -380,13 +380,13 @@ backend in a `Register` does not fail the call: its `RegisterResult` says why.
 
 ### 5.1 The parts
 
-All the security parts come from `foundation_auth` (feature 07, [auth.md](../07-pluggable-agent-rpc/auth.md)).
+All the security parts come from `foundation_auth` (feature 11, [auth.md](../11-foundation-auth/auth.md)).
 The proxy does not have its own copy.
 
-| Part | Type (feature 07) | Use here |
+| Part | Type (feature 11) | Use here |
 |---|---|---|
 | Enrollment token | `SignedSecret`, `SecretIssuer`, `SecretVerifier`, domain `SecretDomain::PROXY_REGISTRATION` = `"ewe.proxy.registrar_secret"` | The operator makes one token for each sidecar. |
-| Registration CA | `CertificateAuthority::from_key` over an operator CA key (`KeySource`, feature 07 decision 11) | Signs the sidecar certificates and the registration listener certificate. It is **not** the public certificate of the proxy, and **not** agent-rpc's CA. |
+| Registration CA | `CertificateAuthority::from_key` over an operator CA key (`KeySource`, architecture decision 11) | Signs the sidecar certificates and the registration listener certificate. It is **not** the public certificate of the proxy, and **not** agent-rpc's CA. |
 | Trusted sidecars | `TrustedClients` over a `TrustStore` | Records each enrolled sidecar, its certificate fingerprint, last-seen time and revocation. |
 | TLS checks | `mtls::server_config_mutual`, `TrustedClientVerifier` | The registration listener requires a client certificate that the registration CA signed and that is not revoked. |
 
@@ -414,8 +414,8 @@ sequenceDiagram
 _The diagram shows how a sidecar gets its certificate one time, and then uses mTLS for every
 call._
 
-At enrollment, the sidecar uses the same enrollment as an agent-rpc client (feature 07,
-[auth.md](../07-pluggable-agent-rpc/auth.md) section 9.1), with the certificate credential kind:
+At enrollment, the sidecar uses the same enrollment as an agent-rpc client (feature 11,
+[auth.md](../11-foundation-auth/auth.md) section 9.1), with the certificate credential kind:
 
 - The token's `aud` is the registration URL, inside the signature, so a changed address fails.
 - The sidecar sends a nonce. The proxy signs a server proof with the token's key, and the sidecar
@@ -502,7 +502,7 @@ pub struct BackendRegistry {
     inner: Mutex<RegistryState>,
     /// The current router. Requests clone the inner `Arc` and keep it.
     router: RouterHandle,
-    env: Env,                         // clock for leases (feature 07, rule 11)
+    env: Env,                         // clock for leases (feature 08, rule 11)
     config: RegistrationConfig,
 }
 
@@ -614,7 +614,7 @@ _The diagram shows how a registered backend enters rotation, leaves it, and is r
 
 | Phase | What happens |
 |---|---|
-| Start | Load `RegistrationConfig`. Load the operator's registration CA key and make the CA and listener certificates (`KeySource` and `CertificateAuthority::from_key`, feature 07; a missing key stops the start; encryption at rest is the deferred feature 15). Open the trust store. Start the registration listener and, if set, the Unix socket. Start the sweeper task. The registry starts empty (see 7.2). |
+| Start | Load `RegistrationConfig`. Load the operator's registration CA key and make the CA and listener certificates (`KeySource` and `CertificateAuthority::from_key`, feature 11; a missing key stops the start; encryption at rest is the deferred feature 15). Open the trust store. Start the registration listener and, if set, the Unix socket. Start the sweeper task. The registry starts empty (see 7.2). |
 | Run | Serve calls. The sweeper runs every `sweep_interval` and calls `BackendRegistry::sweep`. |
 | Config reload | The existing `reload` command re-reads the file. Config services are rebuilt. Registered services stay. Policy changes apply to the next call; a backend that the new policy forbids moves to `Draining`. |
 | Stop | Stop accepting registration calls. The public listener drains as today (`start_drain`). Registered backends are not deregistered: the apps still run. |
@@ -805,12 +805,12 @@ cargo test -p foundation_proxy --test registration_e2e_tests
      step there.
 3. **mTLS from a client to agent-rpc through the proxy.** The proxy ends client TLS, so agent-rpc
    cannot see a client certificate on a TLS-ended route. Clients behind the proxy use
-   agent-rpc's signed-secret bearer auth (feature 07, `SignedSecretAuth`). End-to-end client mTLS
+   agent-rpc's signed-secret bearer auth (feature 11, `SignedSecretAuth`). End-to-end client mTLS
    needs TLS passthrough, routed by the TLS server name (SNI). The `tcp` passthrough of today
    uses one listener for each backend and cannot be registered at run time.
    - **Recommendation:** signed-secret auth behind the proxy now; SNI passthrough as a later
      feature.
-4. **Move the generic enrollment steps into `foundation_auth`.** agent-rpc (feature 07,
+4. **Move the generic enrollment steps into `foundation_auth`.** agent-rpc (feature 12,
    `core::enroll`) and the proxy run the same five steps.
    - **Recommendation: yes**, as `foundation_auth::enroll::EnrollmentService`, used by both.
 5. **Use metrics for load balancing?** This feature stores and shows them only.

@@ -420,3 +420,9 @@ tasks (the task IDs keep their numbers), what to read, and a "done when" line. F
 make the agent-rpc proof of concept on a native host; feature 14 adds Workers and the browser.
 Key protection at rest (was feature 08) is now feature 15, status todo, and starts only after the
 proof of concept works. Task T0 is paused with three local commits in the `pr126` worktree.
+
+Same day, later: each feature now holds its own design files (owner: "feature 07 should be
+focused on 1 thing"). Feature 07 is only task T0. The shared overview, glossary, owner decisions,
+open questions and the workflow moved to `agent-rpc-architecture.md` at the root of spec 65.
+`hosts.md` was split: the native part is in feature 13, the Worker and web client part is
+`worker-and-web.md` in feature 14. Section numbers did not change.

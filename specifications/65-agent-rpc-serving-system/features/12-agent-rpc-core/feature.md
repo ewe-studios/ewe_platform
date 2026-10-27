@@ -4,7 +4,7 @@ description: "The new agent.proto, model selection rules, the ModelCatalog trait
 status: "pending"
 priority: "high"
 depends_on: ["08-env-and-side-effects", "11-foundation-auth"]
-part_of: "07-pluggable-agent-rpc"
+part_of: "agent-rpc-architecture.md"
 estimated_effort: "large"
 created: 2026-10-27
 last_updated: 2026-10-27
@@ -18,14 +18,14 @@ tasks:
 
 # Transport-Agnostic Agent RPC Core
 
-_Split out of [feature 07](../07-pluggable-agent-rpc/feature.md) on 2026-10-27 (owner direction:
-feature 07 was too large). Written in ASD-STE100 Simplified Technical English (STE). Code and
+_Split out of feature 07 on 2026-10-27 (owner direction: each feature is focused on one
+thing). Written in ASD-STE100 Simplified Technical English (STE). Code and
 identifiers stay as they are._
 
-The design of this feature is in the topic files of feature 07. They stay in one place, because
-they link to each other. This file says what to build, what to read, and when it is done. Task
-IDs keep their feature 07 numbers, so references such as "task T13" stay valid. The
-[glossary in feature 07](../07-pluggable-agent-rpc/feature.md#2-glossary) explains each term.
+The design files of this feature are in this directory. The shared architecture, glossary and
+owner decisions are in [`agent-rpc-architecture.md`](../../agent-rpc-architecture.md). Task
+IDs keep their old numbers, so references such as "task T13" stay valid. The
+[glossary](../../agent-rpc-architecture.md#2-glossary) explains each term.
 
 ## 1. What this feature does
 
@@ -37,10 +37,10 @@ Part of the agent-rpc proof of concept (features 07 to 13).
 
 | Design file | Sections |
 |---|---|
-| [proto.md](../07-pluggable-agent-rpc/proto.md) | the wire contract and the bootstrap payload |
-| [registry-and-models.md](../07-pluggable-agent-rpc/registry-and-models.md) | model catalog, kinds and devices, the instance registry |
-| [feature 07 `feature.md`](../07-pluggable-agent-rpc/feature.md) | architecture (section 3), owner decisions (section 11) |
-| [feature 07 `start.md`](../07-pluggable-agent-rpc/start.md) | the workflow and the rules to check before each push |
+| [proto.md](./proto.md) | the wire contract and the bootstrap payload |
+| [registry-and-models.md](./registry-and-models.md) | model catalog, kinds and devices, the instance registry |
+| [agent-rpc-architecture.md](../../agent-rpc-architecture.md) | architecture (section 3), owner decisions (section 11) |
+| [agent-rpc-architecture.md](../../agent-rpc-architecture.md) | section 13: the workflow and the rules to check before each push |
 
 ## 3. Tasks
 
