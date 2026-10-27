@@ -910,23 +910,34 @@ What the code does: `fork` copies the type map, so the new `Env` is private to `
 ```rust
 // host wiring: the native agent-rpc binary (src/bin/agent-rpc.rs, task T17)
 use foundation_core::env::Env;
-use foundation_core::valtron::{initialize_pool_with_config, PoolConfig};
+use foundation_core::valtron::valtron;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let env = Env::system()?;                                   // real effects
-    let _pool = initialize_pool_with_config(
-        42,                                                     // scheduling seed
-        Some(16),                                               // at least 8 workers (LEARNINGS 01 T6)
-        PoolConfig::default().with_env(env.clone()),
-    );
-    let server = foundation_core::valtron::block_on_future(start(env))?;
-    server.wait_for_shutdown()?;                               // the one blocking point
+#[valtron(threads = 16, env = Env::system())]                  // at least 8 workers (LEARNINGS 01 T6)
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let env = Env::current();                                   // the Env the macro installed
+    let server = start(env).await?;
+    server.shutdown_signal().await;                             // waits for SIGINT/SIGTERM
+    server.stop().await?;
     Ok(())
 }
 ```
 
-What the code does: `main` builds the real `Env`, starts the pool with it, starts the
-server, and blocks once at the end. The pool installs `env` into its root `Ctx`.
+What the code does: the `#[valtron]` entry macro (`foundation_macros`) starts the pool, puts the
+`Env` into the root `Ctx`, runs the `async fn main` body to the end, and then shuts the pool
+down. `main` never calls `initialize_pool_with_config` or `block_on_future` itself. The macro is
+the program boundary: it is the only place that blocks (owner, PR #126 review, 2026-10-26).
+
+**Macro change (task T2).** Today `#[valtron]` takes `seed`, `threads`, `timeout`,
+`shutdown_grace` and the tracing options, and it accepts an `async fn` body. It cannot take an
+`Env` yet. Task T2 adds one optional argument:
+
+| Argument | Type | Default | What it does |
+|---|---|---|---|
+| `env = <expr>` | an expression that gives `Env` or `Result<Env, E>` | `Env::system()` | The macro puts the value into the pool's root `Ctx` before it runs the body. A `Result` that is `Err` stops the program with the error before the pool starts. |
+
+Tests and DST use the same argument, for example
+`#[valtron_test(seed = 7, env = test_env(7))]` where `test_env` builds a simulated `Env` with
+`Env::builder()` (section 7.3). `Env::current()` reads the `Env` from the current `Ctx` (section 5).
 
 ### 7.2 Worker host
 
@@ -1027,7 +1038,7 @@ arguments.
 | Network, client side | `Transport` (`foundation_connectrpc`, exists) | `H1Transport`, `H2Transport` (native); `FetchTransport` (wasm, task T19); `DoStubTransport` (Worker to DO, task T21) | `MemTransport` (task T18) |
 | Network, server side | `ConnectRpcHandler::dispatch_to(bag, request, body, sink, hooks)` (`foundation_connectrpc`, exists) | `ConnectRpcServe` (native HTTP/1.1), `ConnectRpcServeH2`; `FetchServe` (wasm, task T19) | `MemNetwork` calls `dispatch_to` directly (task T18) |
 | Listener | owned by each host: `foundation_http::native::server::HttpServer` (native); the Cloudflare runtime (Worker) | — | none: DST has no sockets |
-| Storage | `AsyncKeyValueStore`, `AsyncQueryStore`, `AsyncBlobStore`, `AsyncDocumentStore` (`foundation_db`, exist) | Turso, libsql, D1, KV, R2, JSON file | `MemoryStorage`, `MemoryDocumentStore`, and the `Faulty*` wrappers (task T18) |
+| Storage | `KeyValueStore`, `QueryStore`, `BlobStore`, `DocumentStore` (`foundation_db`, exist) | Turso, libsql, D1, KV, R2, JSON file | `MemoryStorage`, `MemoryDocumentStore`, and the `Faulty*` wrappers (task T18) |
 | Key material | `KeyStore` (`foundation_auth::keystore`, new) | `FsKeyStore`, `DbKeyStore<K>`, `EnvKeyStore` | `MemoryKeyStore` |
 | Trusted clients | `TrustStore` (`foundation_auth::trust`, new) | `SqlTrustStore<Q>`, `KvTrustStore<K>` | `MemoryTrustStore` |
 | Model inference | `ModelCatalog` (`foundation_agent_rpc::core::model`, new) | `LocalCatalog` (native), `RemoteCatalog` (Worker) | `ScriptedCatalog` (task T18) |

@@ -61,14 +61,14 @@ backends/foundation_auth/src/
 ├── keystore/             KeyStore trait, KeyRecord, KeyMaterial        all targets
 │   ├── mod.rs
 │   ├── sealing.rs        KeySealer, KekSealer, PassphraseSealer        all targets
-│   ├── db.rs             DbKeyStore<K: AsyncKeyValueStore>             all targets
+│   ├── db.rs             DbKeyStore<K: KeyValueStore>             all targets
 │   ├── env_source.rs     EnvKeyStore (read-only)                       all targets
 │   ├── fs.rs             FsKeyStore                                    native only
 │   └── memory.rs         MemoryKeyStore                                feature "testing"
 ├── pki/                  CertificateAuthority, DeterministicSigner     native + feature "pki"
 ├── trust/                TrustStore, TrustedClients, TrustIndex        all targets
-│   ├── sql.rs            SqlTrustStore<Q: AsyncQueryStore>
-│   ├── kv.rs             KvTrustStore<K: AsyncKeyValueStore>
+│   ├── sql.rs            SqlTrustStore<Q: QueryStore>
+│   ├── kv.rs             KvTrustStore<K: KeyValueStore>
 │   └── memory.rs         MemoryTrustStore                              feature "testing"
 ├── mtls/                 TrustedClientVerifier, PinnedServerVerifier,  native + feature "mtls"
 │                         rustls config builders, EnvTimeProvider
@@ -901,21 +901,21 @@ and replaces the sync trait above.
 | Type | Backends | `atomic_create` | `shared` | Notes |
 |---|---|---|---|---|
 | `FsKeyStore` | a local directory (native) | yes: write a temporary file, then `std::fs::hard_link` it to the final name; `hard_link` fails if the name exists | no | Reads the legacy files of today (section 4.6). File I/O runs inside the async functions, like `foundation_db::JsonFileStorage`. |
-| `DbKeyStore<K: AsyncKeyValueStore>` | `MemoryStorage`, `MemoryJsonStore`, `JsonFileStorage`, `TursoStorage`, `LibsqlStore`, `D1Store` (native REST), `D1WasmStorage`, `StorageProvider` | yes, through the new `insert_if_absent_async` (task T6) | yes | Workers KV is eventually consistent, so its `insert_if_absent_async` returns `Unsupported` and the store is read-only there. |
-| `DbKeyStore<BlobKv<B: AsyncBlobStore>>` | `R2WasmStorage`, `R2Store` | no | yes | `BlobKv` adapts a blob store to the key-value trait. Read-only use: the operator uploads the records. |
+| `DbKeyStore<K: KeyValueStore>` | `MemoryStorage`, `MemoryJsonStore`, `JsonFileStorage`, `TursoStorage`, `LibsqlStore`, `D1Store` (native REST), `D1WasmStorage`, `StorageProvider` | yes, through the new `insert_if_absent_async` (task T6) | yes | Workers KV is eventually consistent, so its `insert_if_absent_async` returns `Unsupported` and the store is read-only there. |
+| `DbKeyStore<BlobKv<B: BlobStore>>` | `R2WasmStorage`, `R2Store` | no | yes | `BlobKv` adapts a blob store to the key-value trait. Read-only use: the operator uploads the records. |
 | `EnvKeyStore` | values from configuration (environment variables, Worker vars and secrets) | — | — | Read-only. A Worker uses it for the public verifying keys. |
 | `MemoryKeyStore` | memory (feature `testing`) | yes | no | For unit tests and DST. |
 
 `DbKeyStore` stores each record as JSON under the key `ewe/keystore/v1/<id>` (the prefix is
 configuration).
 
-`foundation_db` change (task T6): a new method on `AsyncKeyValueStore` with a default body,
+`foundation_db` change (task T6): a new method on `KeyValueStore` with a default body,
 so existing implementations outside the workspace still build:
 
 ```rust
 // foundation_db/src/core/storage_provider.rs (changed)
 #[async_trait::async_trait]
-pub trait AsyncKeyValueStore: Send + Sync {
+pub trait KeyValueStore: Send + Sync {
     // … the five existing methods …
 
     /// Store `value` under `key` only if `key` is absent. Returns `true`
@@ -1318,7 +1318,7 @@ pub enum TrustError {
 }
 ```
 
-### 6.2 `SqlTrustStore<Q: AsyncQueryStore>`
+### 6.2 `SqlTrustStore<Q: QueryStore>`
 
 It keeps the SQL of `trust.rs` of today and the same table names (the prefix is
 configuration; the default `agent_rpc_` reads existing databases). One table is new:
@@ -1362,7 +1362,7 @@ on a timer (`TrustConfig::prune_interval`).
 The SQL is portable to Postgres except the `?` placeholders. foundation_db has no Postgres
 backend (owner decision 7 in [feature.md](./feature.md): a separate feature).
 
-### 6.3 `KvTrustStore<K: AsyncKeyValueStore>`
+### 6.3 `KvTrustStore<K: KeyValueStore>`
 
 For backends without SQL: `MemoryStorage`, `MemoryJsonStore`, `JsonFileStorage`.
 

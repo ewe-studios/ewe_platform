@@ -99,7 +99,7 @@ It does this with three ideas:
 - The branch `65-f01-agent-rpc` is behind `master` and has merge conflicts. Task T0 merges
   `master` first.
 - `master` has async-only storage (#131 to #133). The topic files use the trait names
-  `AsyncKeyValueStore`, `AsyncQueryStore` and so on. After the rename PR (branch
+  `KeyValueStore`, `QueryStore` and so on. After the rename PR (branch
   `db/rename-async-traits`) these traits are `KeyValueStore`, `QueryStore` and so on. Use
   the names that `master` has when you start.
 
@@ -483,7 +483,7 @@ group of section 10.2 can be one PR.
 |---|---|---|---|
 | T0 | Merge `master` into `65-f01-agent-rpc`; adapt to async storage and async `AgentSession` | the crate | `ci.py run foundation_agent_rpc` passes |
 | T1 | `Clock`, `EntropySource`, `IdSource` traits; `SystemClock`, `SimClock`, `OsEntropy`, `SeededEntropy`, `Scru128Source`; `seal_with` | `foundation_compact/src/{clock,entropy,ids}` | contract tests pass natively and on wasm |
-| T2 | `Env` bundle; `Env` in valtron's root `Ctx`; `current_ctx`, `with_ctx`; `Timer` on the `Env` clock; `single::initialize_pool_with` | `foundation_core/src/{env.rs,valtron/*}` | `env_tests`, `env_install_tests`, `sim_time_tests` pass |
+| T2 | `Env` bundle; `Env` in valtron's root `Ctx`; `current_ctx`, `with_ctx`; `Timer` on the `Env` clock; `single::initialize_pool_with`; `#[valtron(env = …)]` / `#[valtron_test(env = …)]` macro argument ([env.md](./env.md) 7.1) | `foundation_core/src/{env.rs,valtron/*}` | `env_tests`, `env_install_tests`, `sim_time_tests` pass |
 | T3 | connectrpc: keep request extensions through dispatch (`build_ctx` fix); `CallHooks::with_clock` | `foundation_connectrpc/src/shared/router/dispatch.rs` | dispatch tests pass; deadlines follow the `Env` clock |
 | T4 | `ConnectionContext::tls` holds the peer certificates after the handshake | `foundation_http` | `tls_peer_info_tests` pass |
 | T5 | `foundation_auth::secret`: `SignedSecret` v1 and v2, `SigningKey`, `VerifyingKey`, `SecretIssuer`, `SecretVerifier`; the clippy lint file | `foundation_auth/src/secret/*` | v1 secrets from the branch tests verify unchanged; verify-order tests pass |

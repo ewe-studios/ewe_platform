@@ -94,7 +94,7 @@ valid_until, signature}`; signature over a domain-separated,
   length-prefixed encoding, not the JSON), `BootstrapSecrets` (issue /
   verify; default validity 24 h = kubeadm token TTL).
 - `src/trust.rs` — `TrustedClientStore` over any `foundation_db`
-  `AsyncQueryStore` (`open_sqlite` = Turso/SQLite): clients table +
+  `QueryStore` (`open_sqlite` = Turso/SQLite): clients table +
   per-secret use counts (single statement upsert, pruned after expiry);
   in-memory index for the sync TLS verifier.
 - `src/auth.rs` — `BootstrapToken` removed; `MtlsConfig::new(ca, secrets,

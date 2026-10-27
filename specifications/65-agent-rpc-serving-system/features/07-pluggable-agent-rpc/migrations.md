@@ -57,7 +57,7 @@ File on `master`: `backends/foundation_db/src/core/schema/migrations.rs`.
 |---|---|
 | A migration | `Migration { id: &'static str, name: &'static str, sql: &'static str }` |
 | The list | `pub static MIGRATIONS: &[Migration]`, built with `include_str!("sql/NNN_name.sql")` |
-| The runner | `MigrationRunner::new(&[Migration]).run_async(&dyn AsyncQueryStore)` |
+| The runner | `MigrationRunner::new(&[Migration]).run_async(&dyn QueryStore)` |
 | The record | table `_migrations (id TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER)` |
 | IDs | three digits and a name, for example `001_create_kv_store` |
 
@@ -305,7 +305,7 @@ impl MigrationRunner {
 
     /// Compare the plan with the record table and apply what is missing, in
     /// apply order, each in its own transaction (section 4.6).
-    pub async fn run_async(&self, store: &dyn AsyncQueryStore) -> Result<RunSummary, MigrationError>;
+    pub async fn run_async(&self, store: &dyn QueryStore) -> Result<RunSummary, MigrationError>;
 }
 
 /// What one `run_async` did.
@@ -480,7 +480,7 @@ database at the same time, and it never mixes the rows of two databases.
 /// for each tenant, or one D1 binding for each tenant on a Worker.
 #[async_trait::async_trait]
 pub trait DatabaseResolver: Send + Sync {
-    async fn open(&self, database: &str) -> Result<Arc<dyn AsyncQueryStore>, StorageError>;
+    async fn open(&self, database: &str) -> Result<Arc<dyn QueryStore>, StorageError>;
 }
 
 /// Which runner each database gets.

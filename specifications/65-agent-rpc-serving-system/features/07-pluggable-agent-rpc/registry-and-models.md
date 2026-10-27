@@ -683,11 +683,11 @@ The code of `src/instance.rs` moves here with five changes:
 ```rust
 // foundation_agent_rpc/src/core/registry/local.rs
 use foundation_ai::agentic::{KvMemoryStore, MemoryStore};
-use foundation_db::{AsyncDocumentStore, MemoryDocumentStore, MemoryStorage};
+use foundation_db::{DocumentStore, MemoryDocumentStore, MemoryStorage};
 
 /// Makes the two stores of a new session.
 pub trait SessionStores: Send + Sync + 'static {
-    type Doc: AsyncDocumentStore + 'static;
+    type Doc: DocumentStore + 'static;
     type Mem: MemoryStore + 'static;
 
     /// # Errors
@@ -947,7 +947,7 @@ impl AgentInstanceObject {
 
 - The DO serves the normal `AgentService` (see [proto.md](./proto.md) section 7). Its auth provider is `ForwardedPrincipalAuth`. It reads the `ewe-forwarded-principal` header that only the Worker can set.
 - The DO registry is a `LocalInstanceRegistry` with `max_instances = 1`. So the DO code is the native code. Only the stores differ.
-- The session stores are on DO SQLite storage: `SqlDocumentStore<DoSqlStore>` for history and `KvMemoryStore<DoSqlStore>` for memory. `DoSqlStore` is a new `foundation_db` type (task T20). It implements `AsyncQueryStore` and `AsyncKeyValueStore` over `worker::Storage::sql()`.
+- The session stores are on DO SQLite storage: `SqlDocumentStore<DoSqlStore>` for history and `KvMemoryStore<DoSqlStore>` for memory. `DoSqlStore` is a new `foundation_db` type (task T20). It implements `QueryStore` and `KeyValueStore` over `worker::Storage::sql()`.
 
 ### 4.5 When Cloudflare removes the DO from memory
 

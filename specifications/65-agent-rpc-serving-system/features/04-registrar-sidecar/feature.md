@@ -559,7 +559,7 @@ backends/foundation_registrar/
 ├── src/
 │   ├── lib.rs              module map, re-exports
 │   ├── bin/
-│   │   └── ewe-registrar.rs  flags and env, Env::system(), block_on_future(run(config)) once
+│   │   └── ewe-registrar.rs  flags and env; #[valtron(env = Env::system())] async fn main awaits run(config)
 │   ├── config.rs           RegistrarConfig, RegistrarMode
 │   ├── manifest.rs         ManifestView, EntryView, ProxyBlock, ProbesBlock, ProbeSpec, ProbeCheck
 │   ├── discovery/

@@ -101,8 +101,8 @@ the registrar both read the same manifest file._
    version of an entry upgrades only that entry.
 7. **Safe upgrades.** If the new version fails to start, the old version stays in place and
    runs.
-8. **Async all the way.** Adapter methods are `async fn` (`CLAUDE.md` rule 6). The binary calls
-   `block_on_future` one time, in `main`.
+8. **Async all the way.** Adapter methods are `async fn` (`CLAUDE.md` rule 6). The binary's `main` is
+   `#[valtron] async fn main` (the `foundation_macros` entry macro), so it makes no blocking call.
 9. **Limits are configuration.** Every size limit and timeout is a field on `InstallerConfig`
    with a documented default (`CLAUDE.md` rule 8).
 

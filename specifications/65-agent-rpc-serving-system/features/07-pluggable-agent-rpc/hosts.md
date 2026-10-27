@@ -223,7 +223,7 @@ pub struct NativeHost;
 
 impl NativeHost {
     /// Build every part, bind the listeners and serve. Call it on the
-    /// valtron pool (the binary uses `block_on_future` once, in `main`).
+    /// valtron pool: the binary's `#[valtron] async fn main` awaits it.
     ///
     /// # Errors
     /// `Config` for a bad configuration; `Storage` when a store cannot open;
@@ -335,8 +335,7 @@ non-loopback `bind` before it binds anything.
 
 ### 4.4 Valtron on a native host
 
-- `main` builds `Env::system()` and starts the multi-threaded pool with it: `initialize_pool_with_config(seed, Some(workers), PoolConfig::default().with_env(env))` ([env.md](./env.md), section 7.1). The pool puts the `Env` into its root `Ctx`.
-- `main` calls `block_on_future(NativeHost::start(config, env))` once, then `server.wait_for_shutdown()`. These are the only two blocking calls. They are at the program boundary, as the valtron rules require.
+- `main` is `#[valtron(threads = N, env = Env::system())] async fn main` ([env.md](./env.md), section 7.1). The macro starts the multi-threaded pool, puts the `Env` into its root `Ctx`, and runs `main`; `main` awaits `NativeHost::start(config, env)` and then the shutdown signal. `main` makes no blocking call; the macro is the program boundary, as the valtron rules require.
 - Each HTTP/1.1 and HTTP/2 connection is a valtron task. RPC dispatch runs inside it. So `valtron::current_ctx()` works inside a handler.
 - The agent loop of each turn is a valtron task that `foundation_ai` starts. Its events reach the handler through `TurnStream::events()`, an async stream.
 - Model loads run on `run_background_job`. A load never blocks a valtron worker.
