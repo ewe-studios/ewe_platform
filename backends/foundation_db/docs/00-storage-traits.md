@@ -34,7 +34,7 @@ F04).
 use foundation_db::{KeyValueStore, TursoStorage};
 
 let store = TursoStorage::in_memory().await?;   // or TursoStorage::new("app.db").await? + init_schema()
-store.set_async("k", "v").await?;
+store.set("k", "v").await?;
 ```
 
 - Single values are awaited directly; multi-row results are async streams
@@ -55,10 +55,10 @@ The simplest trait — store and retrieve raw bytes:
 ```rust
 #[async_trait]
 trait BlobStore: Send + Sync {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()>;
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()>;
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool>;
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
+    async fn delete_blob(&self, key: &str) -> StorageResult<()>;
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool>;
 }
 ```
 
@@ -72,11 +72,11 @@ Typed key-value with serialization:
 ```rust
 #[async_trait]
 trait KeyValueStore: Send + Sync {
-    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>>;
-    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
-    async fn delete_async(&self, key: &str) -> StorageResult<()>;
-    async fn exists_async(&self, key: &str) -> StorageResult<bool>;
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream>;
+    async fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>>;
+    async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
+    async fn delete(&self, key: &str) -> StorageResult<()>;
+    async fn exists(&self, key: &str) -> StorageResult<bool>;
+    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream>;
 }
 ```
 
@@ -90,9 +90,9 @@ SQL-like queries with typed parameters and streamed result rows:
 ```rust
 #[async_trait]
 trait QueryStore: Send + Sync {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream>;
-    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
-    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()>;
+    async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream>;
+    async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
+    async fn execute_batch(&self, sql: &str) -> StorageResult<()>;
 }
 ```
 
@@ -116,8 +116,8 @@ whole result set, which the stream then yields one row at a time.
 
 ## 5. RateLimiterStore
 
-Fixed-window counters (`check_rate_limit_async`, `record_rate_limit_async`,
-`reset_rate_limit_async`). The window length comes from the caller's
+Fixed-window counters (`check_rate_limit`, `record_rate_limit`,
+`reset_rate_limit`). The window length comes from the caller's
 configuration.
 
 ## 6. DocumentStore
@@ -128,17 +128,17 @@ promoted columns:
 ```rust
 #[async_trait]
 trait DocumentStore: Send + Sync {
-    async fn append_async<V: Serialize + Send + 'static>(
+    async fn append<V: Serialize + Send + 'static>(
         &self, key: &str, content: V) -> StorageResult<Document>;
-    async fn scan_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan<V: DeserializeOwned + Send + 'static>(
         &self, key: &str, limit: usize) -> StorageResult<AsyncStorageItemStream<'_, V>>;
-    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan_from<V: DeserializeOwned + Send + 'static>(
         &self, key: &str, from_id: &str, limit: usize) -> StorageResult<AsyncStorageItemStream<'_, V>>;
-    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan_all<V: DeserializeOwned + Send + 'static>(
         &self, key: &str) -> StorageResult<AsyncStorageItemStream<'_, V>>;
-    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()>;
-    async fn delete_all_async(&self, key: &str) -> StorageResult<u64>;
-    async fn count_async(&self, key: &str) -> StorageResult<u64>;
+    async fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()>;
+    async fn delete_all(&self, key: &str) -> StorageResult<u64>;
+    async fn count(&self, key: &str) -> StorageResult<u64>;
     fn config(&self) -> &VectorStoreConfig; // (shared config pattern)
 }
 ```
@@ -194,11 +194,11 @@ routing to the selected backend:
 let provider = StorageProvider::new(config).await?;
 
 // As KeyValueStore
-provider.set_async("session:123", session_data).await?;
+provider.set("session:123", session_data).await?;
 
 // As QueryStore
 let rows = provider
-    .query_async("SELECT * FROM users WHERE id = ?", &[DataValue::Text("123".into())])
+    .query("SELECT * FROM users WHERE id = ?", &[DataValue::Text("123".into())])
     .await?
     .collect_all()
     .await?;

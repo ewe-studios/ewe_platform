@@ -13,17 +13,17 @@ fn test_memory_storage_basic() {
     block_on(async {
         let storage = MemoryStorage::new();
 
-        storage.set_async("test_key", "test_value").await.unwrap();
+        storage.set("test_key", "test_value").await.unwrap();
 
-        let value: Option<String> = storage.get_async("test_key").await.unwrap();
+        let value: Option<String> = storage.get("test_key").await.unwrap();
         assert_eq!(value, Some("test_value".to_string()));
 
-        assert!(storage.exists_async("test_key").await.unwrap());
-        assert!(!storage.exists_async("nonexistent").await.unwrap());
+        assert!(storage.exists("test_key").await.unwrap());
+        assert!(!storage.exists("nonexistent").await.unwrap());
 
-        storage.delete_async("test_key").await.unwrap();
+        storage.delete("test_key").await.unwrap();
 
-        assert!(!storage.exists_async("test_key").await.unwrap());
+        assert!(!storage.exists("test_key").await.unwrap());
     });
 }
 
@@ -32,12 +32,12 @@ fn test_memory_storage_list_keys() {
     block_on(async {
         let storage = MemoryStorage::new();
 
-        storage.set_async("prefix:key1", "value1").await.unwrap();
-        storage.set_async("prefix:key2", "value2").await.unwrap();
-        storage.set_async("other:key3", "value3").await.unwrap();
+        storage.set("prefix:key1", "value1").await.unwrap();
+        storage.set("prefix:key2", "value2").await.unwrap();
+        storage.set("other:key3", "value3").await.unwrap();
 
         let keys = storage
-            .list_keys_async(None)
+            .list_keys(None)
             .await
             .unwrap()
             .collect_all()
@@ -46,7 +46,7 @@ fn test_memory_storage_list_keys() {
         assert_eq!(keys.len(), 3);
 
         let keys = storage
-            .list_keys_async(Some("prefix:"))
+            .list_keys(Some("prefix:"))
             .await
             .unwrap()
             .collect_all()
@@ -74,9 +74,9 @@ fn test_memory_storage_complex_value() {
             count: 42,
         };
 
-        storage.set_async("complex", data.clone()).await.unwrap();
+        storage.set("complex", data.clone()).await.unwrap();
 
-        let retrieved: Option<TestData> = storage.get_async("complex").await.unwrap();
+        let retrieved: Option<TestData> = storage.get("complex").await.unwrap();
         assert_eq!(retrieved, Some(data));
     });
 }

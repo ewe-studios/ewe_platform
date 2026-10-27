@@ -37,7 +37,7 @@ fn map_row(row: &SqlRow) -> AppResult<FolderRow> {
 
 /// Insert a new folder.
 pub async fn insert(db: &dyn QueryStore, row: &FolderRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO folders (uuid, user_uuid, name, created_at, updated_at) \
          VALUES (?, ?, ?, ?, ?)",
         &[
@@ -56,7 +56,7 @@ pub async fn insert(db: &dyn QueryStore, row: &FolderRow) -> AppResult<()> {
 /// All folders owned by a user, ordered by name.
 pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<FolderRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {COLUMNS} FROM folders WHERE user_uuid = ? ORDER BY name"),
             &[DataValue::Text(user_uuid.to_string())],
         )
@@ -71,7 +71,7 @@ pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec
 /// A single folder by uuid, if it exists.
 pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<FolderRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {COLUMNS} FROM folders WHERE uuid = ?"),
             &[DataValue::Text(uuid.to_string())],
         )
@@ -90,7 +90,7 @@ pub async fn update_name(
     name: &str,
     updated_at: DateTime<Utc>,
 ) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "UPDATE folders SET name = ?, updated_at = ? WHERE uuid = ?",
         &[
             DataValue::Text(name.to_string()),
@@ -105,7 +105,7 @@ pub async fn update_name(
 
 /// Delete a folder by uuid.
 pub async fn delete(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "DELETE FROM folders WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],
     )

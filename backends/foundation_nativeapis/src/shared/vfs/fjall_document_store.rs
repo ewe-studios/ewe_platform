@@ -636,7 +636,7 @@ where
     V::SeekableFile: Send + Sync,
     V::Directory: Send + Sync,
 {
-    async fn append_async<C: Serialize + Send + 'static>(
+    async fn append<C: Serialize + Send + 'static>(
         &self,
         key: &str,
         content: C,
@@ -647,7 +647,7 @@ where
         self.put(key, doc_id, content_json, None, None, None)
     }
 
-    async fn append_with_id_async<C: Serialize + Send + 'static>(
+    async fn append_with_id<C: Serialize + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -658,7 +658,7 @@ where
         self.put(key, doc_id.to_string(), content_json, None, None, None)
     }
 
-    async fn append_promotable_async<C: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable<C: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         content: C,
@@ -670,7 +670,7 @@ where
         self.put(key, doc_id, content_json, t, s, rt)
     }
 
-    async fn append_promotable_with_id_async<C: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable_with_id<C: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -682,12 +682,12 @@ where
         self.put(key, doc_id.to_string(), content_json, t, s, rt)
     }
 
-    async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+    async fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
         let rows = self.collect_rows(key, true, None, Some(limit))?;
         Ok(rows.iter().map(NdjsonRow::to_document).collect())
     }
 
-    async fn scan_documents_from_async(
+    async fn scan_documents_from(
         &self,
         key: &str,
         from_id: &str,
@@ -697,7 +697,7 @@ where
         Ok(rows.iter().map(NdjsonRow::to_document).collect())
     }
 
-    async fn scan_async<C: DeserializeOwned + Send + 'static>(
+    async fn scan<C: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         limit: usize,
@@ -706,7 +706,7 @@ where
         Ok(rows_to_stream(rows))
     }
 
-    async fn scan_all_async<C: DeserializeOwned + Send + 'static>(
+    async fn scan_all<C: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<AsyncStorageItemStream<'_, C>> {
@@ -714,7 +714,7 @@ where
         Ok(rows_to_stream(rows))
     }
 
-    async fn scan_from_async<C: DeserializeOwned + Send + 'static>(
+    async fn scan_from<C: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         from_id: &str,
@@ -724,7 +724,7 @@ where
         Ok(rows_to_stream(rows))
     }
 
-    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+    async fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         let idx_key = Self::composite_key(key, doc_id);
 
         // Read the index entry to get record_type for secondary cleanup.
@@ -742,7 +742,7 @@ where
         Ok(())
     }
 
-    async fn delete_all_async(&self, key: &str) -> StorageResult<u64> {
+    async fn delete_all(&self, key: &str) -> StorageResult<u64> {
         let prefix = Self::collection_prefix(key);
         let mut range_end = prefix.clone();
         if let Some(last) = range_end.last_mut() {
@@ -791,7 +791,7 @@ where
         Ok(count)
     }
 
-    async fn count_async(&self, key: &str) -> StorageResult<u64> {
+    async fn count(&self, key: &str) -> StorageResult<u64> {
         let prefix = Self::collection_prefix(key);
         let mut range_end = prefix.clone();
         if let Some(last) = range_end.last_mut() {

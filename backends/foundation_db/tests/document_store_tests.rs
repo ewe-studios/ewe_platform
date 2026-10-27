@@ -41,7 +41,7 @@ impl PromotableDocument for Note {
 async fn append_promotable_round_trips_through_sqlite() {
     let (_dir, store) = make_store().await;
     let doc = store
-        .append_promotable_async(
+        .append_promotable(
             "k",
             Note {
                 kind: "observation".into(),
@@ -56,7 +56,7 @@ async fn append_promotable_round_trips_through_sqlite() {
     assert_eq!(doc.title, None);
 
     // Re-read through scan_documents — promoted columns survive the round-trip.
-    let docs = store.scan_documents_async("k", 10).await.unwrap();
+    let docs = store.scan_documents("k", 10).await.unwrap();
     assert_eq!(docs.len(), 1);
     assert_eq!(docs[0].id, doc.id);
     assert_eq!(docs[0].record_type.as_deref(), Some("observation"));
@@ -67,8 +67,8 @@ async fn append_promotable_round_trips_through_sqlite() {
 #[valtron_test]
 async fn plain_append_leaves_promoted_columns_null() {
     let (_dir, store) = make_store().await;
-    store.append_async("k", serde_json::json!({"n": 1})).await.unwrap();
-    let docs = store.scan_documents_async("k", 10).await.unwrap();
+    store.append("k", serde_json::json!({"n": 1})).await.unwrap();
+    let docs = store.scan_documents("k", 10).await.unwrap();
     assert_eq!(docs.len(), 1);
     assert_eq!(docs[0].record_type, None);
     assert_eq!(docs[0].title, None);
@@ -81,7 +81,7 @@ async fn scan_documents_from_is_inclusive_and_ordered_by_doc_id() {
     let mut ids = Vec::new();
     for n in 0..4 {
         let doc = store
-            .append_promotable_async(
+            .append_promotable(
                 "k",
                 Note {
                     kind: "n".into(),
@@ -94,14 +94,14 @@ async fn scan_documents_from_is_inclusive_and_ordered_by_doc_id() {
     }
 
     // Inclusive from the 2nd id, oldest-first.
-    let docs = store.scan_documents_from_async("k", &ids[1], 0).await.unwrap();
+    let docs = store.scan_documents_from("k", &ids[1], 0).await.unwrap();
     assert_eq!(docs.len(), 3);
     assert_eq!(docs[0].id, ids[1]);
     assert_eq!(docs[0].summary.as_deref(), Some("t1"));
     assert_eq!(docs[2].summary.as_deref(), Some("t3"));
 
     // limit caps results.
-    let limited = store.scan_documents_from_async("k", &ids[0], 2).await.unwrap();
+    let limited = store.scan_documents_from("k", &ids[0], 2).await.unwrap();
     assert_eq!(limited.len(), 2);
 }
 
@@ -112,13 +112,13 @@ async fn scan_documents_is_newest_first() {
     for n in 0..3 {
         ids.push(
             store
-                .append_async("k", serde_json::json!({ "n": n }))
+                .append("k", serde_json::json!({ "n": n }))
                 .await
                 .unwrap()
                 .id,
         );
     }
-    let docs = store.scan_documents_async("k", 10).await.unwrap();
+    let docs = store.scan_documents("k", 10).await.unwrap();
     let got: Vec<&String> = docs.iter().map(|d| &d.id).collect();
     assert_eq!(got, vec![&ids[2], &ids[1], &ids[0]]);
 }
@@ -141,7 +141,7 @@ async fn migration_runner_applies_all_then_is_idempotent() {
 
         // The documents table + promoted columns from 020/021 are usable.
         let docs = SqlDocumentStore::new(storage);
-        docs.append_async("k", serde_json::json!({"n": 1})).await.unwrap();
-        assert_eq!(docs.scan_documents_async("k", 10).await.unwrap().len(), 1);
+        docs.append("k", serde_json::json!({"n": 1})).await.unwrap();
+        assert_eq!(docs.scan_documents("k", 10).await.unwrap().len(), 1);
     }
 }

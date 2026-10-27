@@ -51,7 +51,7 @@ async fn save_then_load_round_trips_job_state() {
     first.save().await.expect("save defaults");
 
     // Record a run and save it.
-    db.execute_async(
+    db.execute(
         "UPDATE cron_jobs SET last_run = ?, last_status = ?, error_count = ?, next_run = ? WHERE id = ?",
         &[
             DataValue::Integer(100),
@@ -82,13 +82,13 @@ async fn save_then_load_round_trips_job_state() {
 async fn load_reports_a_bad_row_instead_of_resetting_it() {
     let (db, _dir) = turso().await;
     // A table whose `last_run` holds text: decoding it must fail loudly.
-    db.execute_batch_async(
+    db.execute_batch(
         "CREATE TABLE cron_jobs (id TEXT PRIMARY KEY, cron_expr TEXT, last_run TEXT, \
          last_status TEXT, error_count INTEGER, next_run INTEGER)",
     )
     .await
     .expect("create table");
-    db.execute_async(
+    db.execute(
         "INSERT INTO cron_jobs VALUES ('j1', '* * * * *', 'not-a-number', '', 0, 0)",
         &[],
     )

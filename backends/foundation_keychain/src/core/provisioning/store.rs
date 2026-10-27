@@ -39,7 +39,7 @@ fn map_app(row: &SqlRow) -> AppResult<AppRow> {
 }
 
 pub async fn insert_app(db: &dyn QueryStore, row: &AppRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO vault_apps (uuid, name, description, secret_hash, secret_salt, created_at) \
          VALUES (?, ?, ?, ?, ?, ?)",
         &[
@@ -58,7 +58,7 @@ pub async fn insert_app(db: &dyn QueryStore, row: &AppRow) -> AppResult<()> {
 
 pub async fn find_app(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<AppRow>> {
     let rows = db
-        .query_async(
+        .query(
             "SELECT uuid, name, description, secret_hash, secret_salt, created_at \
              FROM vault_apps WHERE uuid = ?",
             &[DataValue::Text(uuid.to_string())],
@@ -76,7 +76,7 @@ pub async fn delete_app(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
         "DELETE FROM vault_ssh_keys WHERE app_uuid = ?",
         "DELETE FROM vault_apps WHERE uuid = ?",
     ] {
-        db.execute_async(sql, &[DataValue::Text(uuid.to_string())])
+        db.execute(sql, &[DataValue::Text(uuid.to_string())])
             .await
             .map_err(store_err)?;
     }
@@ -118,7 +118,7 @@ fn map_key(row: &SqlRow) -> AppResult<SshKeyRow> {
 }
 
 pub async fn insert_key(db: &dyn QueryStore, row: &SshKeyRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO vault_ssh_keys \
          (uuid, app_uuid, name, key_type, public_key, private_key_encrypted, comment, expires_at, created_at) \
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -144,7 +144,7 @@ pub async fn insert_key(db: &dyn QueryStore, row: &SshKeyRow) -> AppResult<()> {
 
 pub async fn find_keys_by_app(db: &dyn QueryStore, app_uuid: &str) -> AppResult<Vec<SshKeyRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {KEY_COLS} FROM vault_ssh_keys WHERE app_uuid = ? ORDER BY created_at"),
             &[DataValue::Text(app_uuid.to_string())],
         )
@@ -158,7 +158,7 @@ pub async fn find_keys_by_app(db: &dyn QueryStore, app_uuid: &str) -> AppResult<
 
 pub async fn find_key(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<SshKeyRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {KEY_COLS} FROM vault_ssh_keys WHERE uuid = ?"),
             &[DataValue::Text(uuid.to_string())],
         )
@@ -171,7 +171,7 @@ pub async fn find_key(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<SshKe
 }
 
 pub async fn delete_key(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "DELETE FROM vault_ssh_keys WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],
     )

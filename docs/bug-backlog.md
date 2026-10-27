@@ -316,6 +316,18 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   record again on the next flush. Fix: make the writes idempotent (upsert on
   the document id for `append_with_id`, and give memory records a stable id),
   or clear the slot through a store acknowledgement.
+- **`MemoryCoordinator` keeps `_async` method names.** `record_async` and
+  `hydrate_async` (`src/agentic/memory_coordinator.rs`) are inherent, so spec
+  50 F05 T3 (storage trait methods) left them; next to `MemoryStore::hydrate`
+  the suffix now reads as a different operation. Fix: rename to `record` /
+  `hydrate` (no clash: `MemoryCoordinator` implements no store trait).
+- **The test targets need llama.cpp even without `llamacpp`.**
+  `infrastructure_llama_cpp` is an unconditional native dev-dependency
+  (`Cargo.toml`, for the `errors/llama.rs` conversion tests), so
+  `--no-default-features --features testing` still builds llama.cpp and fails
+  without the `tools/llama.cpp` submodule. Fix: drop the dev-dependency (a
+  dev-dependency cannot be optional) and reach the llama.cpp error types
+  through a `llamacpp`-gated re-export, with those tests gated on the feature.
 
 ## 11. foundation_db and its sync callers
 
@@ -359,6 +371,19 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `window_end`), which `CREATE TABLE IF NOT EXISTS` won't add to an existing
   old-shape table. Fix: a migration that rebuilds an old-shape table (rate
   limit rows are disposable), or drop it on detection.
+- **The wasm stores keep a second, inherent `*_async` API.** `D1WasmStorage`,
+  `KVWasmStorage` and `R2WasmStorage` (`src/wasm/wasm_storage/*.rs`) have
+  public inherent methods with the old trait names (`get_async`,
+  `query_async`, `put_blob_async`, ...). They return `!Send` futures, and
+  `D1WasmStorage::list_keys_async` / `KVWasmStorage::list_keys_async` return
+  a `Vec` instead of a stream. The trait impls, `StorageProvider`,
+  `WasmCredentialStore`, `foundation_auth`'s `CredentialStore for
+  D1WasmStorage` and `examples/cf-login-app` call these. Spec 50 F05 T3
+  dropped the suffix from the trait methods, so the two APIs no longer share
+  a name, but a caller can still pick either by accident. Fix: make the
+  inherent methods private helpers (as the native stores' `*_internal` ones
+  are) and route every caller through the traits (`list_keys` +
+  `collect_all` where a `Vec` is needed).
 - **No CI job builds the example workspaces** (`examples/cf-*`,
   `apps/answerme-agent`); `examples/cf-login-app`'s manifest had stopped
   loading unnoticed. Fix: an examples job (wasm32 for `cf-*`). The feature
@@ -392,13 +417,17 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   -p foundation_auth --no-default-features --features wasm` warns that
   `argon2`, `foundation_errstacks`, `pbkdf2`, `time` and `uuid` are unused
   there. Fix: make the native-only ones target-specific dependencies (or gate
-  them behind the features that use them).
+  them behind the features that use them). The same build warns that
+  `constant_time_eq` (`src/shared/password_hash.rs`) is never used on wasm32;
+  gate it with the native code that calls it.
 - **`foundation_db::wasm::{WasmCredentialStore, session}` duplicate
   `CredentialStorage`.** Their docs say they exist because the sync
   `CredentialStore` routed D1 through blocking calls; that trait is gone (spec
   50 F04), and `CredentialStorage` over a D1 `StorageProvider` already serves
-  `AsyncCredentialStore` on Workers. Fix: fold callers onto
-  `CredentialStorage` and delete the duplicates.
+  `CredentialStore` on Workers. Fix: fold callers onto
+  `CredentialStorage` and delete the duplicates. `wasm_credential_store.rs`
+  also has an inline `#[cfg(test)] mod tests` (against rule 7); deleting the
+  file removes it, otherwise move the tests to `tests/`.
 - **`NativeOAuth` and `PasswordAuthClient` read an empty body.**
   `src/native/oauth.rs` (`extract_body_text`, `error_body_text`) and
   `src/native/password_auth.rs` (`extract_body`) read the response through
@@ -427,7 +456,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   file, its metadata and its whiteout as separate blobs, and a blob store has
   no key listing: `list_async` and `list_whiteouts_async` return nothing and
   `reset_async` is unsupported. Fix: keep a per-directory index blob (or use
-  D1's key-value listing, `list_keys_async`, for the D1 delta).
+  D1's key-value listing, `list_keys`, for the D1 delta).
 - **A blob-delta write rewrites the whole file.** Each `write_at_async` reads
   the blob, splices the bytes in and writes it back, so a large file written
   in small pieces is O(n²). Fix: chunked storage (the unused
@@ -437,10 +466,10 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `DeltaBackend::D1` / `R2`. The overlay is async now, so the deltas plug in
   directly (`DynFs::from_async(OverlayFileSystem::new(base, d1_delta))`).
   Fix: build them from the shim config.
-- **`FjallDocumentStore` scans buffer their rows.** `scan_async`,
-  `scan_all_async` and `scan_from_async` collect the matching rows into a
+- **`FjallDocumentStore` scans buffer their rows.** `scan`,
+  `scan_all` and `scan_from` collect the matching rows into a
   `Vec` before streaming them (`src/shared/vfs/fjall_document_store.rs`);
-  `scan_all_async` is unbounded. Fix: walk the fjall index range lazily.
+  `scan_all` is unbounded. Fix: walk the fjall index range lazily.
 
 - **No delta store on the local Turso engine.** `TursoDelta` never compiled and was
   deleted in spec 50 F05 T2 (with its example, the `vfs-turso` feature and the
@@ -595,7 +624,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   follows the request and response types of the official Python client
   (`turbopuffer` 2.14.0), because the documentation site was not reachable.
   Two details are not proven against the live service: that `deleted_ids`
-  lists only ids that existed (`delete_async` reports `NotFound` from it), and
+  lists only ids that existed (`delete` reports `NotFound` from it), and
   that `include_attributes: ["vector"]` returns the vector. Fix: an opt-in
   test against a real namespace (API key from the environment).
 - **`TurboPufferVectorStore` does not retry HTTP 429.** `TurboPuffer` throttles
@@ -615,7 +644,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   candidate documents. Fix: take a text lookup (id → text) as an argument, or
   change `Reranker` to fetch the texts it needs.
 - **The SQL-backed stores scan a whole namespace per search**
-  (`SqlVectorStore::search_async`): memory is bounded (`TopK`), but time is
+  (`SqlVectorStore::search`): memory is bounded (`TopK`), but time is
   O(n·d) per query. Expected for the portable fallback; large namespaces
   should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
 

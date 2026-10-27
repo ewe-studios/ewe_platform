@@ -11,9 +11,9 @@ fn test_memory_blobstore_put_get() {
         let storage = MemoryStorage::new();
 
         let test_data = b"Hello, BlobStore!";
-        storage.put_blob_async("test_key", test_data).await.unwrap();
+        storage.put_blob("test_key", test_data).await.unwrap();
 
-        let retrieved: Option<Vec<u8>> = storage.get_blob_async("test_key").await.unwrap();
+        let retrieved: Option<Vec<u8>> = storage.get_blob("test_key").await.unwrap();
         assert_eq!(retrieved, Some(test_data.to_vec()));
     });
 }
@@ -24,17 +24,17 @@ fn test_memory_blobstore_delete() {
         let storage = MemoryStorage::new();
 
         let test_data = b"To be deleted";
-        storage.put_blob_async("del_key", test_data).await.unwrap();
+        storage.put_blob("del_key", test_data).await.unwrap();
 
-        let exists_before: bool = storage.blob_exists_async("del_key").await.unwrap();
+        let exists_before: bool = storage.blob_exists("del_key").await.unwrap();
         assert!(exists_before);
 
-        storage.delete_blob_async("del_key").await.unwrap();
+        storage.delete_blob("del_key").await.unwrap();
 
-        let exists_after: bool = storage.blob_exists_async("del_key").await.unwrap();
+        let exists_after: bool = storage.blob_exists("del_key").await.unwrap();
         assert!(!exists_after);
 
-        let retrieved: Option<Vec<u8>> = storage.get_blob_async("del_key").await.unwrap();
+        let retrieved: Option<Vec<u8>> = storage.get_blob("del_key").await.unwrap();
         assert_eq!(retrieved, None);
     });
 }
@@ -44,13 +44,13 @@ fn test_memory_blobstore_exists() {
     block_on(async {
         let storage = MemoryStorage::new();
 
-        let exists: bool = storage.blob_exists_async("nonexistent").await.unwrap();
+        let exists: bool = storage.blob_exists("nonexistent").await.unwrap();
         assert!(!exists);
 
         let test_data = b"Exists!";
-        storage.put_blob_async("exists_key", test_data).await.unwrap();
+        storage.put_blob("exists_key", test_data).await.unwrap();
 
-        let exists: bool = storage.blob_exists_async("exists_key").await.unwrap();
+        let exists: bool = storage.blob_exists("exists_key").await.unwrap();
         assert!(exists);
     });
 }
@@ -62,9 +62,9 @@ fn test_memory_blobstore_binary_data() {
 
         // Test with binary data including null bytes
         let test_data = vec![0x00, 0x01, 0x02, 0xFF, 0xFE, 0xFD];
-        storage.put_blob_async("binary_key", &test_data).await.unwrap();
+        storage.put_blob("binary_key", &test_data).await.unwrap();
 
-        let retrieved: Option<Vec<u8>> = storage.get_blob_async("binary_key").await.unwrap();
+        let retrieved: Option<Vec<u8>> = storage.get_blob("binary_key").await.unwrap();
         assert_eq!(retrieved, Some(test_data));
     });
 }

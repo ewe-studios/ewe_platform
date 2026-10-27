@@ -9,7 +9,7 @@
 //! - `CredentialStorage` wraps `StorageProvider` backed by `D1WasmStorage`
 //!
 //! All async handlers call `SessionManager::*_async` methods which delegate
-//! to `CredentialStore::get_async/set_async/list_keys_async` on
+//! to `CredentialStore::get/set/list_keys` on
 //! `CredentialStorage`, which in turn calls `StorageProvider::*_async`,
 //! which delegates to `D1WasmStorage::*_async` — direct JS Promise resolution,
 //! no valtron stream involved.

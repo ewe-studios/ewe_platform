@@ -286,53 +286,53 @@ pub trait QueryStore: Send + Sync {
     ///
     /// Use `.collect_all().await` to get all rows, or iterate row-by-row
     /// via `.next().await`.
-    async fn query_async(&self, sql: &str, params: &[DataValue])
+    async fn query(&self, sql: &str, params: &[DataValue])
         -> StorageResult<AsyncQueryStream>;
 
     /// Execute a statement that returns number of rows affected.
-    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
+    async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
 
     /// Execute a batch of SQL statements.
-    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()>;
+    async fn execute_batch(&self, sql: &str) -> StorageResult<()>;
 }
 
 /// Async key-value store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
 #[async_trait::async_trait]
 pub trait KeyValueStore: Send + Sync {
-    async fn get_async<V: DeserializeOwned + Send + 'static>(
+    async fn get<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<Option<V>>;
-    async fn set_async<V: Serialize + Send + 'static>(
+    async fn set<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         value: V,
     ) -> StorageResult<()>;
-    async fn delete_async(&self, key: &str) -> StorageResult<()>;
-    async fn exists_async(&self, key: &str) -> StorageResult<bool>;
+    async fn delete(&self, key: &str) -> StorageResult<()>;
+    async fn exists(&self, key: &str) -> StorageResult<bool>;
     /// List all keys with optional prefix filter, returning an async stream.
     ///
     /// For Turso/Libsql: yields keys one at a time.
     /// For D1 backends: buffered (API returns all keys at once).
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream>;
+    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream>;
 }
 
 /// Async blob store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
 #[async_trait::async_trait]
 pub trait BlobStore: Send + Sync {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()>;
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()>;
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool>;
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
+    async fn delete_blob(&self, key: &str) -> StorageResult<()>;
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool>;
 }
 
 /// Fixed-window rate limits.
 ///
 /// A window lasts `window_seconds`, which the caller takes from its own
-/// configuration and passes to both `check_rate_limit_async` and
-/// `record_rate_limit_async`. Once a key's window has elapsed
+/// configuration and passes to both `check_rate_limit` and
+/// `record_rate_limit`. Once a key's window has elapsed
 /// (`now - window_start >= window_seconds`) a check allows it again and the
 /// next record starts a new window; inside the window, a record increments
 /// the count and keeps the window's start.
@@ -340,7 +340,7 @@ pub trait BlobStore: Send + Sync {
 pub trait RateLimiterStore: Send + Sync {
     /// Whether one more hit on `key` is allowed: its window has elapsed, or it
     /// has had fewer than `max_count` hits in the current one.
-    async fn check_rate_limit_async(
+    async fn check_rate_limit(
         &self,
         key: &str,
         max_count: u32,
@@ -349,10 +349,10 @@ pub trait RateLimiterStore: Send + Sync {
 
     /// Record one hit on `key` and return the count in its current window
     /// (1 when this hit starts a new window).
-    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32>;
+    async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32>;
 
     /// Forget `key`'s window.
-    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()>;
+    async fn reset_rate_limit(&self, key: &str) -> StorageResult<()>;
 }
 
 /// A single document in a document store.
@@ -424,14 +424,14 @@ pub trait PromotableDocument {
 #[async_trait::async_trait]
 pub trait DocumentStore: Send + Sync {
     /// Append a document to a collection.
-    async fn append_async<V: Serialize + Send + 'static>(
+    async fn append<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         content: V,
     ) -> StorageResult<Document>;
 
     /// Append a document with a caller-supplied scru128 `doc_id` (OD-06-5).
-    async fn append_with_id_async<V: Serialize + Send + 'static>(
+    async fn append_with_id<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -440,14 +440,14 @@ pub trait DocumentStore: Send + Sync {
 
     /// Append a document, populating the promoted columns from [`PromotableDocument`]
     /// (async mirror of `append_promotable`; OD-22b-1).
-    async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(
+    async fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         content: V,
     ) -> StorageResult<Document>;
 
-    /// Like [`append_promotable_async`](Self::append_promotable_async) with a caller-supplied `doc_id`.
-    async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(
+    /// Like [`append_promotable`](Self::append_promotable) with a caller-supplied `doc_id`.
+    async fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
         doc_id: &str,
@@ -457,11 +457,11 @@ pub trait DocumentStore: Send + Sync {
     /// Scan the last N documents as full [`Document`]s (promoted columns observable),
     /// newest-first. Bounded by `limit`, so this returns a `Vec` (async mirror of
     /// `scan_documents`; OD-22b-1).
-    async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>>;
+    async fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>>;
 
     /// Scan documents with id **>= `from_id`** as full [`Document`]s, oldest-first,
     /// up to `limit` (0 = unlimited).
-    async fn scan_documents_from_async(
+    async fn scan_documents_from(
         &self,
         key: &str,
         from_id: &str,
@@ -471,7 +471,7 @@ pub trait DocumentStore: Send + Sync {
     /// Scan the last N documents from a collection, newest-first (by `doc_id`).
     /// Returns a lazily-pulled [`AsyncStorageItemStream`] — pull each item with
     /// `.next().await`; nothing is materialized into a `Vec` (no OOM).
-    async fn scan_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         limit: usize,
@@ -479,7 +479,7 @@ pub trait DocumentStore: Send + Sync {
 
     /// Scan all documents from a collection, oldest-first (by `doc_id`), as a
     /// lazily-pulled [`AsyncStorageItemStream`].
-    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan_all<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>>;
@@ -488,7 +488,7 @@ pub trait DocumentStore: Send + Sync {
     /// `limit` (0 = unlimited), as a lazily-pulled [`AsyncStorageItemStream`]
     /// (`while let Some(item) = stream.next().await { … }`). CF KV/D1 impls land
     /// in F23 — OD-06-7.
-    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
+    async fn scan_from<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         from_id: &str,
@@ -496,11 +496,11 @@ pub trait DocumentStore: Send + Sync {
     ) -> StorageResult<AsyncStorageItemStream<'_, V>>;
 
     /// Delete a specific document.
-    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()>;
+    async fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()>;
 
     /// Delete all documents in a collection.
-    async fn delete_all_async(&self, key: &str) -> StorageResult<u64>;
+    async fn delete_all(&self, key: &str) -> StorageResult<u64>;
 
     /// Count documents in a collection.
-    async fn count_async(&self, key: &str) -> StorageResult<u64>;
+    async fn count(&self, key: &str) -> StorageResult<u64>;
 }

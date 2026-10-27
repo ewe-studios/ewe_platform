@@ -251,18 +251,18 @@ impl StorageProvider {
 
 #[async_trait::async_trait]
 impl KeyValueStore for StorageProvider {
-    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.get_async(key).await,
+            StorageProviderInner::Turso(storage) => storage.get(key).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.get_async(key).await,
+            StorageProviderInner::Libsql(storage) => storage.get(key).await,
             #[cfg(not(target_family = "wasm"))]
-            StorageProviderInner::JsonFile(storage) => storage.get_async(key).await,
-            StorageProviderInner::Memory(storage) => storage.get_async(key).await,
-            StorageProviderInner::MemoryJson(storage) => storage.get_async(key).await,
+            StorageProviderInner::JsonFile(storage) => storage.get(key).await,
+            StorageProviderInner::Memory(storage) => storage.get(key).await,
+            StorageProviderInner::MemoryJson(storage) => storage.get(key).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.get_async(key).await,
+            StorageProviderInner::D1(storage) => storage.get(key).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
@@ -278,18 +278,18 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+    async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.set_async(key, value).await,
+            StorageProviderInner::Turso(storage) => storage.set(key, value).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.set_async(key, value).await,
+            StorageProviderInner::Libsql(storage) => storage.set(key, value).await,
             #[cfg(not(target_family = "wasm"))]
-            StorageProviderInner::JsonFile(storage) => storage.set_async(key, value).await,
-            StorageProviderInner::Memory(storage) => storage.set_async(key, value).await,
-            StorageProviderInner::MemoryJson(storage) => storage.set_async(key, value).await,
+            StorageProviderInner::JsonFile(storage) => storage.set(key, value).await,
+            StorageProviderInner::Memory(storage) => storage.set(key, value).await,
+            StorageProviderInner::MemoryJson(storage) => storage.set(key, value).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.set_async(key, value).await,
+            StorageProviderInner::D1(storage) => storage.set(key, value).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
@@ -305,18 +305,18 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.delete_async(key).await,
+            StorageProviderInner::Turso(storage) => storage.delete(key).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.delete_async(key).await,
+            StorageProviderInner::Libsql(storage) => storage.delete(key).await,
             #[cfg(not(target_family = "wasm"))]
-            StorageProviderInner::JsonFile(storage) => storage.delete_async(key).await,
-            StorageProviderInner::Memory(storage) => storage.delete_async(key).await,
-            StorageProviderInner::MemoryJson(storage) => storage.delete_async(key).await,
+            StorageProviderInner::JsonFile(storage) => storage.delete(key).await,
+            StorageProviderInner::Memory(storage) => storage.delete(key).await,
+            StorageProviderInner::MemoryJson(storage) => storage.delete(key).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.delete_async(key).await,
+            StorageProviderInner::D1(storage) => storage.delete(key).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
@@ -332,18 +332,18 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn exists(&self, key: &str) -> StorageResult<bool> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.exists_async(key).await,
+            StorageProviderInner::Turso(storage) => storage.exists(key).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.exists_async(key).await,
+            StorageProviderInner::Libsql(storage) => storage.exists(key).await,
             #[cfg(not(target_family = "wasm"))]
-            StorageProviderInner::JsonFile(storage) => storage.exists_async(key).await,
-            StorageProviderInner::Memory(storage) => storage.exists_async(key).await,
-            StorageProviderInner::MemoryJson(storage) => storage.exists_async(key).await,
+            StorageProviderInner::JsonFile(storage) => storage.exists(key).await,
+            StorageProviderInner::Memory(storage) => storage.exists(key).await,
+            StorageProviderInner::MemoryJson(storage) => storage.exists(key).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.exists_async(key).await,
+            StorageProviderInner::D1(storage) => storage.exists(key).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
@@ -359,18 +359,18 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.list_keys_async(prefix).await,
+            StorageProviderInner::Turso(storage) => storage.list_keys(prefix).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.list_keys_async(prefix).await,
+            StorageProviderInner::Libsql(storage) => storage.list_keys(prefix).await,
             #[cfg(not(target_family = "wasm"))]
-            StorageProviderInner::JsonFile(storage) => storage.list_keys_async(prefix).await,
-            StorageProviderInner::Memory(storage) => storage.list_keys_async(prefix).await,
-            StorageProviderInner::MemoryJson(storage) => storage.list_keys_async(prefix).await,
+            StorageProviderInner::JsonFile(storage) => storage.list_keys(prefix).await,
+            StorageProviderInner::Memory(storage) => storage.list_keys(prefix).await,
+            StorageProviderInner::MemoryJson(storage) => storage.list_keys(prefix).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.list_keys_async(prefix).await,
+            StorageProviderInner::D1(storage) => storage.list_keys(prefix).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
@@ -395,12 +395,12 @@ impl KeyValueStore for StorageProvider {
 
 #[async_trait::async_trait]
 impl QueryStore for StorageProvider {
-    async fn query_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+    async fn query(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.query_async(_sql, _params).await,
+            StorageProviderInner::Turso(storage) => storage.query(_sql, _params).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.query_async(_sql, _params).await,
+            StorageProviderInner::Libsql(storage) => storage.query(_sql, _params).await,
             #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
@@ -412,7 +412,7 @@ impl QueryStore for StorageProvider {
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.query_async(_sql, _params).await,
+            StorageProviderInner::D1(storage) => storage.query(_sql, _params).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
@@ -433,12 +433,12 @@ impl QueryStore for StorageProvider {
         }
     }
 
-    async fn execute_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
+    async fn execute(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.execute_async(_sql, _params).await,
+            StorageProviderInner::Turso(storage) => storage.execute(_sql, _params).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.execute_async(_sql, _params).await,
+            StorageProviderInner::Libsql(storage) => storage.execute(_sql, _params).await,
             #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
@@ -450,7 +450,7 @@ impl QueryStore for StorageProvider {
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.execute_async(_sql, _params).await,
+            StorageProviderInner::D1(storage) => storage.execute(_sql, _params).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
@@ -468,12 +468,12 @@ impl QueryStore for StorageProvider {
         }
     }
 
-    async fn execute_batch_async(&self, _sql: &str) -> StorageResult<()> {
+    async fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.execute_batch_async(_sql).await,
+            StorageProviderInner::Turso(storage) => storage.execute_batch(_sql).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.execute_batch_async(_sql).await,
+            StorageProviderInner::Libsql(storage) => storage.execute_batch(_sql).await,
             #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
@@ -485,7 +485,7 @@ impl QueryStore for StorageProvider {
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.execute_batch_async(_sql).await,
+            StorageProviderInner::D1(storage) => storage.execute_batch(_sql).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
@@ -506,7 +506,7 @@ impl QueryStore for StorageProvider {
 
 #[async_trait::async_trait]
 impl RateLimiterStore for StorageProvider {
-    async fn check_rate_limit_async(
+    async fn check_rate_limit(
         &self,
         key: &str,
         max_count: u32,
@@ -515,25 +515,25 @@ impl RateLimiterStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => {
-                storage.check_rate_limit_async(key, max_count, window_seconds).await
+                storage.check_rate_limit(key, max_count, window_seconds).await
             }
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => {
-                storage.check_rate_limit_async(key, max_count, window_seconds).await
+                storage.check_rate_limit(key, max_count, window_seconds).await
             }
             #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
             StorageProviderInner::Memory(storage) => {
-                storage.check_rate_limit_async(key, max_count, window_seconds).await
+                storage.check_rate_limit(key, max_count, window_seconds).await
             }
             StorageProviderInner::MemoryJson(storage) => {
-                storage.check_rate_limit_async(key, max_count, window_seconds).await
+                storage.check_rate_limit(key, max_count, window_seconds).await
             }
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => {
-                storage.check_rate_limit_async(key, max_count, window_seconds).await
+                storage.check_rate_limit(key, max_count, window_seconds).await
             }
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
@@ -541,7 +541,7 @@ impl RateLimiterStore for StorageProvider {
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => {
-                storage.check_rate_limit_async(key, max_count, window_seconds).await
+                storage.check_rate_limit(key, max_count, window_seconds).await
             }
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
@@ -554,26 +554,26 @@ impl RateLimiterStore for StorageProvider {
         }
     }
 
-    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+    async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.record_rate_limit_async(key, window_seconds).await,
+            StorageProviderInner::Turso(storage) => storage.record_rate_limit(key, window_seconds).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.record_rate_limit_async(key, window_seconds).await,
+            StorageProviderInner::Libsql(storage) => storage.record_rate_limit(key, window_seconds).await,
             #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
-            StorageProviderInner::Memory(storage) => storage.record_rate_limit_async(key, window_seconds).await,
-            StorageProviderInner::MemoryJson(storage) => storage.record_rate_limit_async(key, window_seconds).await,
+            StorageProviderInner::Memory(storage) => storage.record_rate_limit(key, window_seconds).await,
+            StorageProviderInner::MemoryJson(storage) => storage.record_rate_limit(key, window_seconds).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.record_rate_limit_async(key, window_seconds).await,
+            StorageProviderInner::D1(storage) => storage.record_rate_limit(key, window_seconds).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-            StorageProviderInner::D1Wasm(storage) => storage.record_rate_limit_async(key, window_seconds).await,
+            StorageProviderInner::D1Wasm(storage) => storage.record_rate_limit(key, window_seconds).await,
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
@@ -583,26 +583,26 @@ impl RateLimiterStore for StorageProvider {
         }
     }
 
-    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
+    async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.reset_rate_limit_async(key).await,
+            StorageProviderInner::Turso(storage) => storage.reset_rate_limit(key).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.reset_rate_limit_async(key).await,
+            StorageProviderInner::Libsql(storage) => storage.reset_rate_limit(key).await,
             #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
-            StorageProviderInner::Memory(storage) => storage.reset_rate_limit_async(key).await,
-            StorageProviderInner::MemoryJson(storage) => storage.reset_rate_limit_async(key).await,
+            StorageProviderInner::Memory(storage) => storage.reset_rate_limit(key).await,
+            StorageProviderInner::MemoryJson(storage) => storage.reset_rate_limit(key).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.reset_rate_limit_async(key).await,
+            StorageProviderInner::D1(storage) => storage.reset_rate_limit(key).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-            StorageProviderInner::D1Wasm(storage) => storage.reset_rate_limit_async(key).await,
+            StorageProviderInner::D1Wasm(storage) => storage.reset_rate_limit(key).await,
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
@@ -615,20 +615,20 @@ impl RateLimiterStore for StorageProvider {
 
 #[async_trait::async_trait]
 impl BlobStore for StorageProvider {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.put_blob_async(key, data).await,
+            StorageProviderInner::Turso(storage) => storage.put_blob(key, data).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.put_blob_async(key, data).await,
+            StorageProviderInner::Libsql(storage) => storage.put_blob(key, data).await,
             #[cfg(not(target_family = "wasm"))]
-            StorageProviderInner::JsonFile(storage) => storage.put_blob_async(key, data).await,
-            StorageProviderInner::Memory(storage) => storage.put_blob_async(key, data).await,
-            StorageProviderInner::MemoryJson(storage) => storage.put_blob_async(key, data).await,
+            StorageProviderInner::JsonFile(storage) => storage.put_blob(key, data).await,
+            StorageProviderInner::Memory(storage) => storage.put_blob(key, data).await,
+            StorageProviderInner::MemoryJson(storage) => storage.put_blob(key, data).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.put_blob_async(key, data).await,
+            StorageProviderInner::D1(storage) => storage.put_blob(key, data).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
-            StorageProviderInner::R2(storage) => storage.put_blob_async(key, data).await,
+            StorageProviderInner::R2(storage) => storage.put_blob(key, data).await,
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.put_blob_async(key, data).await,
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
@@ -638,20 +638,20 @@ impl BlobStore for StorageProvider {
         }
     }
 
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.get_blob_async(key).await,
+            StorageProviderInner::Turso(storage) => storage.get_blob(key).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.get_blob_async(key).await,
+            StorageProviderInner::Libsql(storage) => storage.get_blob(key).await,
             #[cfg(not(target_family = "wasm"))]
-            StorageProviderInner::JsonFile(storage) => storage.get_blob_async(key).await,
-            StorageProviderInner::Memory(storage) => storage.get_blob_async(key).await,
-            StorageProviderInner::MemoryJson(storage) => storage.get_blob_async(key).await,
+            StorageProviderInner::JsonFile(storage) => storage.get_blob(key).await,
+            StorageProviderInner::Memory(storage) => storage.get_blob(key).await,
+            StorageProviderInner::MemoryJson(storage) => storage.get_blob(key).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.get_blob_async(key).await,
+            StorageProviderInner::D1(storage) => storage.get_blob(key).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
-            StorageProviderInner::R2(storage) => storage.get_blob_async(key).await,
+            StorageProviderInner::R2(storage) => storage.get_blob(key).await,
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.get_blob_async(key).await,
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
@@ -661,20 +661,20 @@ impl BlobStore for StorageProvider {
         }
     }
 
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.delete_blob_async(key).await,
+            StorageProviderInner::Turso(storage) => storage.delete_blob(key).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.delete_blob_async(key).await,
+            StorageProviderInner::Libsql(storage) => storage.delete_blob(key).await,
             #[cfg(not(target_family = "wasm"))]
-            StorageProviderInner::JsonFile(storage) => storage.delete_blob_async(key).await,
-            StorageProviderInner::Memory(storage) => storage.delete_blob_async(key).await,
-            StorageProviderInner::MemoryJson(storage) => storage.delete_blob_async(key).await,
+            StorageProviderInner::JsonFile(storage) => storage.delete_blob(key).await,
+            StorageProviderInner::Memory(storage) => storage.delete_blob(key).await,
+            StorageProviderInner::MemoryJson(storage) => storage.delete_blob(key).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.delete_blob_async(key).await,
+            StorageProviderInner::D1(storage) => storage.delete_blob(key).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
-            StorageProviderInner::R2(storage) => storage.delete_blob_async(key).await,
+            StorageProviderInner::R2(storage) => storage.delete_blob(key).await,
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.delete_blob_async(key).await,
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
@@ -684,20 +684,20 @@ impl BlobStore for StorageProvider {
         }
     }
 
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.blob_exists_async(key).await,
+            StorageProviderInner::Turso(storage) => storage.blob_exists(key).await,
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.blob_exists_async(key).await,
+            StorageProviderInner::Libsql(storage) => storage.blob_exists(key).await,
             #[cfg(not(target_family = "wasm"))]
-            StorageProviderInner::JsonFile(storage) => storage.blob_exists_async(key).await,
-            StorageProviderInner::Memory(storage) => storage.blob_exists_async(key).await,
-            StorageProviderInner::MemoryJson(storage) => storage.blob_exists_async(key).await,
+            StorageProviderInner::JsonFile(storage) => storage.blob_exists(key).await,
+            StorageProviderInner::Memory(storage) => storage.blob_exists(key).await,
+            StorageProviderInner::MemoryJson(storage) => storage.blob_exists(key).await,
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.blob_exists_async(key).await,
+            StorageProviderInner::D1(storage) => storage.blob_exists(key).await,
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
-            StorageProviderInner::R2(storage) => storage.blob_exists_async(key).await,
+            StorageProviderInner::R2(storage) => storage.blob_exists(key).await,
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.blob_exists_async(key).await,
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]

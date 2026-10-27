@@ -28,7 +28,7 @@ fn stamp() -> u64 {
 
 async fn keys(storage: &D1Store, prefix: Option<&str>) -> Vec<String> {
     storage
-        .list_keys_async(prefix)
+        .list_keys(prefix)
         .await
         .unwrap()
         .map(Result::unwrap)
@@ -41,11 +41,11 @@ async fn test_d1_kvstore_put_get() {
     let Some(storage) = kv_store().await else { return };
     let key = format!("test_put_get_{}", stamp());
 
-    storage.set_async(&key, "Hello, D1!").await.unwrap();
-    let retrieved: Option<String> = storage.get_async(&key).await.unwrap();
+    storage.set(&key, "Hello, D1!").await.unwrap();
+    let retrieved: Option<String> = storage.get(&key).await.unwrap();
     assert_eq!(retrieved.as_deref(), Some("Hello, D1!"));
 
-    storage.delete_async(&key).await.unwrap();
+    storage.delete(&key).await.unwrap();
 }
 
 #[valtron_test]
@@ -53,11 +53,11 @@ async fn test_d1_kvstore_delete() {
     let Some(storage) = kv_store().await else { return };
     let key = format!("test_delete_{}", stamp());
 
-    storage.set_async(&key, "To be deleted").await.unwrap();
-    assert!(storage.exists_async(&key).await.unwrap());
+    storage.set(&key, "To be deleted").await.unwrap();
+    assert!(storage.exists(&key).await.unwrap());
 
-    storage.delete_async(&key).await.unwrap();
-    assert!(!storage.exists_async(&key).await.unwrap());
+    storage.delete(&key).await.unwrap();
+    assert!(!storage.exists(&key).await.unwrap());
 }
 
 #[valtron_test]
@@ -65,26 +65,26 @@ async fn test_d1_kvstore_exists() {
     let Some(storage) = kv_store().await else { return };
     let key = format!("test_exists_{}", stamp());
 
-    assert!(!storage.exists_async(&key).await.unwrap());
-    storage.set_async(&key, "Exists!").await.unwrap();
-    assert!(storage.exists_async(&key).await.unwrap());
+    assert!(!storage.exists(&key).await.unwrap());
+    storage.set(&key, "Exists!").await.unwrap();
+    assert!(storage.exists(&key).await.unwrap());
 
-    storage.delete_async(&key).await.unwrap();
+    storage.delete(&key).await.unwrap();
 }
 
 #[valtron_test]
 async fn test_d1_kvstore_list_keys() {
     let Some(storage) = kv_store().await else { return };
 
-    storage.set_async("prefix:a", "1").await.unwrap();
-    storage.set_async("prefix:b", "2").await.unwrap();
-    storage.set_async("other:c", "3").await.unwrap();
+    storage.set("prefix:a", "1").await.unwrap();
+    storage.set("prefix:b", "2").await.unwrap();
+    storage.set("other:c", "3").await.unwrap();
 
     assert_eq!(keys(&storage, None).await.len(), 3);
     assert_eq!(keys(&storage, Some("prefix:")).await.len(), 2);
 
     for key in ["prefix:a", "prefix:b", "other:c"] {
-        storage.delete_async(key).await.unwrap();
+        storage.delete(key).await.unwrap();
     }
 }
 
@@ -97,14 +97,14 @@ async fn test_d1_query_store() {
 
     let table_name = format!("test_table_{}", stamp());
     storage
-        .execute_batch_async(&format!(
+        .execute_batch(&format!(
             "CREATE TABLE IF NOT EXISTS {table_name} (name TEXT PRIMARY KEY, value INTEGER)"
         ))
         .await
         .unwrap();
 
     storage
-        .execute_async(
+        .execute(
             &format!("INSERT INTO {table_name} (name, value) VALUES (?, ?)"),
             &[DataValue::Text("test".to_string()), DataValue::Integer(42)],
         )
@@ -112,7 +112,7 @@ async fn test_d1_query_store() {
         .unwrap();
 
     let rows: Vec<_> = storage
-        .query_async(
+        .query(
             &format!("SELECT * FROM {table_name} WHERE name = ?"),
             &[DataValue::Text("test".to_string())],
         )
@@ -128,7 +128,7 @@ async fn test_d1_query_store() {
     assert_eq!(value, 42);
 
     storage
-        .execute_batch_async(&format!("DROP TABLE {table_name}"))
+        .execute_batch(&format!("DROP TABLE {table_name}"))
         .await
         .unwrap();
 }
