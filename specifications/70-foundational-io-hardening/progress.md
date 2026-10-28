@@ -1,0 +1,8 @@
+# Spec 70 progress
+
+_Newest first. One entry per feature PR: date, feature, PR, result._
+
+- 2026-10-28: spec written by the main session. Baseline: PR #160 (backlog sections 1–5
+  verified; correctness fixes; CI green). Readiness work in progress is on branch
+  `fix/foundational-readiness` (commits `31467ebd4`, `ed13119db`, and a work-in-progress commit
+  `fcbf523fa` with one hanging test).
