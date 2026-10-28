@@ -2,6 +2,25 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-29: feature 06 done on `fix/io-01-valtron-parking`. `Connection` and `RawStream`
+  gained `conn_readiness()` → a purpose-built `ConnReadiness` in netio: `Fd(fd,
+  Option<Arc<dyn TlsInterest>>)` for kernel sockets and `Overlay(Box<dyn OverlayReadWrite>)`
+  for the WireGuard overlay. `TlsInterest::corrected` maps an application direction to the
+  wire direction rustls needs (`wants_write` first, then "still handshaking"), so the
+  opposite-direction stall cannot park on the wrong fd event. The overlay reports the full
+  predicate (`readable` = data or EOF, `writable` = space or surfaced error) and is woken by
+  one-shot `ConnWaker` callbacks, not `poll(2)`. `conn_io` (connectrpc's blocking HTTP/1.1
+  driver) now parks on `ConnReadiness` through a wake socket pair. Two real bugs fixed along
+  the way: `OverlayStream`'s `Clone` removed its smoltcp socket twice on drop (now ref-counted
+  via `OverlayStreamOwner`), and `HttpClient::open_exchange` silently dropped a
+  `with_connector` connector by building a fresh pool (now reuses `self.pool`). Regression
+  tests: `overlay_readiness_tests.rs` (20/20, `expect_continue(false)` to dodge the
+  out-of-scope foundation_http 100-continue race) and `rustls_opposite_direction.rs` (20/20,
+  uses the new `refresh_traffic_keys()` to set `wants_write` deterministically). Inline
+  `#[cfg(test)]` blocks in `connection.rs` and `rustls.rs` moved to `tests/tcp_and_tls/`
+  (rule 7); two third-party-behaviour tests dropped. Remaining gap tracked in the backlog:
+  io_uring completion socket, openssl, and native-tls still report `Unsupported`. PR: see the PR.
+
 - 2026-10-28: feature 05 done on `fix/io-01-valtron-parking`. Pushed request body: the
   `WritingBody` state in `request_redirect.rs` parks on the pipe via
   `TaskStatus::Depends(readiness)` (register-then-check), and the `producer_stalls` back-off

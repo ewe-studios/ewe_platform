@@ -31,12 +31,13 @@
 //! request) is not a hangup and is left unread — `POLLHUP` only fires once that
 //! data is read, so a pipelined request is not mistaken for a close.
 //!
-//! Transports without a kernel fd that reports readiness (the WireGuard
-//! overlay, `io_uring` completion sockets, openssl/native-tls) cannot be waited
-//! on here: a wait on them fails with `Unsupported`, which fails the RPC
-//! instead of spinning. Over rustls the fd is polled in the direction of the
-//! application's read or write; a TLS session that needs the other direction
-//! (a key update mid-stream) waits until the deadline.
+//! Transports are waited on through `RawStream::conn_readiness` (Feature 06):
+//! a kernel-fd transport (TCP, Unix, rustls) is polled with the direction the
+//! TLS session needs (`wants_write` first, then "still handshaking"), not the
+//! direction the application asked for; the WireGuard overlay has no fd and is
+//! woken by its driver through a wake callback. A transport that still cannot
+//! report readiness (a completion socket, openssl/native-tls) fails with
+//! `Unsupported` instead of spinning.
 
 use std::future::Future;
 use std::io;
@@ -46,6 +47,8 @@ use std::task::{Context, Poll, Wake, Waker};
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
+#[cfg(unix)]
+use foundation_netio::native::connection::{ConnReadiness, ConnWaker};
 use foundation_netio::native::readiness::IoInterest;
 use foundation_netio::netcap::RawStream;
 
@@ -82,6 +85,18 @@ impl Waiters {
     }
 }
 
+/// The `poll(2)` plan for one kernel-fd connection: the fd, the combined event
+/// mask, and the per-direction events so a fired event is credited to the right
+/// waiter even when TLS corrects the direction.
+#[cfg(unix)]
+struct FdPoll {
+    fd: std::os::unix::io::RawFd,
+    events: libc::c_short,
+    read_events: libc::c_short,
+    write_events: libc::c_short,
+    hangup_events: libc::c_short,
+}
+
 /// Add `waker` to `list` with `deadline`, or move the deadline of the entry it
 /// already has.
 fn register_in(list: &mut Vec<(Waker, Instant)>, waker: &Waker, deadline: Instant) {
@@ -95,9 +110,11 @@ fn register_in(list: &mut Vec<(Waker, Instant)>, waker: &Waker, deadline: Instan
 /// Drives one request's dispatch future on the calling thread and lets it wait
 /// for the connection's socket. See the module docs.
 pub(crate) struct ConnIo {
-    /// The connection's socket, when it is a kernel fd that reports readiness.
+    /// How to wait for this connection's readiness, when the transport reports
+    /// it (kernel fd, rustls, the overlay). `None` is a completion socket or an
+    /// openssl/native-tls stream, which cannot be waited on here.
     #[cfg(unix)]
-    fd: Option<std::os::unix::io::RawFd>,
+    readiness: Option<ConnReadiness>,
     #[cfg(unix)]
     wake_rx: std::os::unix::net::UnixStream,
     #[cfg(unix)]
@@ -113,20 +130,12 @@ impl ConnIo {
     pub(crate) fn new(conn: &SharedByteBufferStream<RawStream>) -> io::Result<Self> {
         #[cfg(unix)]
         {
-            use std::os::unix::io::AsRawFd;
-
-            let fd = conn.with_inner_ref(|raw: &RawStream| {
-                let fd = raw.as_raw_fd();
-                // `readiness` is `None` for transports whose bytes do not come
-                // from fd readability (completion sockets, openssl); the overlay
-                // has no kernel fd at all (-1).
-                (fd >= 0 && raw.readiness(IoInterest::Readable).is_some()).then_some(fd)
-            });
+            let readiness = conn.with_inner_ref(|raw: &RawStream| raw.conn_readiness());
             let (wake_rx, wake_tx) = std::os::unix::net::UnixStream::pair()?;
             wake_rx.set_nonblocking(true)?;
             wake_tx.set_nonblocking(true)?;
             Ok(Self {
-                fd,
+                readiness,
                 wake_rx,
                 wake_tx: Arc::new(WakeTx(wake_tx)),
                 waiters: Mutex::new(Waiters::default()),
@@ -225,13 +234,19 @@ impl Future for Hangup<'_> {
 
 #[cfg(unix)]
 impl ConnIo {
+    /// The kernel fd for hangup probes, or `Unsupported` when the transport has
+    /// none (the overlay, a completion socket, openssl/native-tls).
     fn fd(&self) -> io::Result<std::os::unix::io::RawFd> {
-        self.fd.ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::Unsupported,
-                "this transport cannot report socket readiness, so the RPC cannot wait for the peer",
-            )
-        })
+        self.readiness
+            .as_ref()
+            .and_then(|r| r.poll_fd(IoInterest::Readable))
+            .map(|(fd, _)| fd)
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::Unsupported,
+                    "this transport cannot report socket readiness, so the RPC cannot wait for the peer",
+                )
+            })
     }
 
     /// Whether the peer has closed or reset the connection right now.
@@ -245,15 +260,73 @@ impl ConnIo {
         Ok(fds[0].revents & (HANGUP_EVENTS | GONE_EVENTS) != 0)
     }
 
-    /// Whether the socket is ready in `interest`'s direction right now.
+    /// Whether the connection is ready in `interest`'s direction right now.
     fn ready_now(&self, interest: IoInterest) -> io::Result<bool> {
-        let fd = self.fd()?;
-        let mut fds = [libc::pollfd {
-            fd,
-            events: poll_events(interest),
-            revents: 0,
-        }];
-        Ok(poll_fds(&mut fds, 0)? > 0)
+        match &self.readiness {
+            Some(r) => r.ready_now(interest),
+            None => Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                "this transport cannot report readiness, so the RPC cannot wait for the peer",
+            )),
+        }
+    }
+
+    /// The kernel-fd poll plan for the directions that have waiting futures:
+    /// the fd, the combined event mask, and the per-direction (TLS-corrected)
+    /// events. `None` for a transport with no pollable fd (the overlay), which
+    /// is woken by callbacks.
+    fn poll_plan(&self, waiters: &Waiters) -> Option<FdPoll> {
+        let readiness = self.readiness.as_ref()?;
+        let mut fd = None;
+        let mut read_events = 0;
+        let mut write_events = 0;
+        let mut hangup_events = 0;
+        if !waiters.read.is_empty() {
+            if let Some((f, dir)) = readiness.poll_fd(IoInterest::Readable) {
+                fd = Some(f);
+                read_events = poll_events(dir);
+            }
+        }
+        if !waiters.write.is_empty() {
+            if let Some((f, dir)) = readiness.poll_fd(IoInterest::Writable) {
+                fd = Some(f);
+                write_events = poll_events(dir);
+            }
+        }
+        if !waiters.hangup.is_empty() {
+            if let Some((f, _)) = readiness.poll_fd(IoInterest::Readable) {
+                fd = Some(f);
+                hangup_events = HANGUP_EVENTS;
+            }
+        }
+        fd.map(|f| FdPoll {
+            fd: f,
+            events: read_events | write_events | hangup_events,
+            read_events,
+            write_events,
+            hangup_events,
+        })
+    }
+
+    /// Register one-shot wake callbacks for the overlay directions a future is
+    /// waiting on. Each callback writes a byte to the wake pair, ending the
+    /// driver's `poll`. Kernel-fd transports are polled, not woken, so this is
+    /// a no-op for them.
+    fn register_overlay_wakers(&self) {
+        let Some(readiness) = self.readiness.as_ref() else {
+            return;
+        };
+        let waiters = self.waiters();
+        if !waiters.read.is_empty() {
+            let tx = self.wake_tx.clone();
+            let waker: ConnWaker = std::sync::Arc::new(move || tx.notify());
+            readiness.register_waker(IoInterest::Readable, waker);
+        }
+        if !waiters.write.is_empty() {
+            let tx = self.wake_tx.clone();
+            let waker: ConnWaker = std::sync::Arc::new(move || tx.notify());
+            readiness.register_waker(IoInterest::Writable, waker);
+        }
     }
 
     /// Run `future` to completion on this thread, sleeping in `poll(2)` while it
@@ -270,24 +343,14 @@ impl ConnIo {
         }
     }
 
-    /// Sleep until a waker fires, the socket is ready for a waiting future, or
-    /// the earliest wait deadline passes; then wake the futures that can move.
+    /// Sleep until a waker fires, the connection is ready for a waiting future,
+    /// or the earliest wait deadline passes; then wake the futures that can move.
     fn wait(&self) {
         use std::io::Read;
 
-        let (events, deadline) = {
+        let (plan, deadline) = {
             let waiters = self.waiters();
-            let mut events = 0;
-            if !waiters.read.is_empty() {
-                events |= poll_events(IoInterest::Readable);
-            }
-            if !waiters.write.is_empty() {
-                events |= poll_events(IoInterest::Writable);
-            }
-            if !waiters.hangup.is_empty() {
-                events |= HANGUP_EVENTS;
-            }
-            (events, waiters.earliest_deadline())
+            (self.poll_plan(&waiters), waiters.earliest_deadline())
         };
 
         let timeout_ms = deadline.map_or(-1, |deadline| {
@@ -296,6 +359,12 @@ impl ConnIo {
             i32::try_from(left.as_millis() + 1).unwrap_or(i32::MAX)
         });
 
+        // The overlay has no fd to poll: register wake callbacks so its driver
+        // ends this poll. Kernel-fd transports are handled by `plan`.
+        if plan.is_none() {
+            self.register_overlay_wakers();
+        }
+
         let mut fds = [
             libc::pollfd {
                 fd: std::os::unix::io::AsRawFd::as_raw_fd(&self.wake_rx),
@@ -303,16 +372,12 @@ impl ConnIo {
                 revents: 0,
             },
             libc::pollfd {
-                fd: self.fd.unwrap_or(-1),
-                events,
+                fd: plan.as_ref().map_or(-1, |p| p.fd),
+                events: plan.as_ref().map_or(0, |p| p.events),
                 revents: 0,
             },
         ];
-        let count = if events != 0 && self.fd.is_some() {
-            2
-        } else {
-            1
-        };
+        let count = if plan.is_some() { 2 } else { 1 };
         if let Err(e) = poll_fds(&mut fds[..count], timeout_ms) {
             // Wake everyone: each waiting future re-checks and reports the
             // socket's own error rather than sleeping on a broken poll.
@@ -337,18 +402,33 @@ impl ConnIo {
         let mut sink = [0u8; 64];
         while matches!((&self.wake_rx).read(&mut sink), Ok(n) if n > 0) {}
 
-        let fired = fds[1].revents;
         let now = Instant::now();
         let mut waiters = self.waiters();
-        let read_fired = count == 2 && fired & (libc::POLLIN | GONE_EVENTS) != 0;
-        let write_fired = count == 2 && fired & (libc::POLLOUT | GONE_EVENTS) != 0;
-        let hangup_fired = count == 2 && fired & (HANGUP_EVENTS | GONE_EVENTS) != 0;
-        wake_list(&mut waiters.read, read_fired, now);
-        wake_list(&mut waiters.write, write_fired, now);
-        wake_list(&mut waiters.timers, false, now);
-        if hangup_fired {
-            for waker in waiters.hangup.drain(..) {
-                waker.wake();
+        match plan {
+            Some(p) => {
+                let fired = fds[1].revents;
+                let read_fired = p.read_events != 0 && fired & (p.read_events | GONE_EVENTS) != 0;
+                let write_fired = p.write_events != 0 && fired & (p.write_events | GONE_EVENTS) != 0;
+                let hangup_fired = p.hangup_events != 0 && fired & (p.hangup_events | GONE_EVENTS) != 0;
+                wake_list(&mut waiters.read, read_fired, now);
+                wake_list(&mut waiters.write, write_fired, now);
+                wake_list(&mut waiters.timers, false, now);
+                if hangup_fired {
+                    for waker in waiters.hangup.drain(..) {
+                        waker.wake();
+                    }
+                }
+            }
+            None => {
+                // A transport wake callback fired, or a timer passed. Drop the
+                // read/write waiters so `block_on` re-polls them with fresh
+                // deadlines (it re-probes readiness and re-registers any that
+                // are still pending); wake only the due timers. Waking the
+                // read/write waiters here would write a byte back onto the wake
+                // pair and, on a spurious wake, spin.
+                waiters.read.clear();
+                waiters.write.clear();
+                wake_list(&mut waiters.timers, false, now);
             }
         }
     }
@@ -466,19 +546,26 @@ fn poll_fds(fds: &mut [libc::pollfd], timeout_ms: i32) -> io::Result<usize> {
 struct WakeTx(std::os::unix::net::UnixStream);
 
 #[cfg(unix)]
+impl WakeTx {
+    /// Write the wake byte. Idempotent: a full pair already holds a pending wake.
+    fn notify(&self) {
+        use std::io::Write;
+        match (&self.0).write(&[1]) {
+            Ok(_) => {}
+            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {}
+            Err(e) => tracing::warn!(error = %e, "could not wake the connection driver"),
+        }
+    }
+}
+
+#[cfg(unix)]
 impl Wake for WakeTx {
     fn wake(self: Arc<Self>) {
         self.wake_by_ref();
     }
 
     fn wake_by_ref(self: &Arc<Self>) {
-        use std::io::Write;
-        match (&self.0).write(&[1]) {
-            // A full pair already holds a pending wake.
-            Ok(_) => {}
-            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {}
-            Err(e) => tracing::warn!(error = %e, "could not wake the connection driver"),
-        }
+        self.notify();
     }
 }
 

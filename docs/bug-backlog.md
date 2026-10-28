@@ -20,12 +20,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
     synchronous, so a long-lived h1 stream occupies a valtron worker until it
     ends. Enough of them use up the pool.
   - Needs an async or pending `Serve` contract.
-- **Transports with no pollable fd fail.** `native/conn_io.rs` readiness waits
-  (`fd()`, `gone_now`, `ready_now`) return `Unsupported` for WireGuard
-  overlay, io_uring completion sockets and openssl/native-tls.
-  - With rustls, the fd is polled in the application's direction, so a TLS
-    session that needs the opposite direction mid-stream waits until the
-    timeout.
+- **Completion sockets and openssl/native-tls still report `Unsupported`.**
+  Feature 06 made the WireGuard overlay and rustls report readiness through
+  `conn_io` (`ConnReadiness`). What remains: the io_uring completion socket and
+  the openssl/native-tls backends return `None` from `Connection::conn_readiness`,
+  so `conn_io`'s `ready_now`/`gone_now` answer `Unsupported` instead of using a
+  documented poll-interval fallback. Wire each to readiness, or give `conn_io` a
+  poll fallback for them (task #25).
 - **Conformance coverage.** Every conformance test runs with `threads = 4`
   (`tests/conformance_tests.rs`). Add an 8-thread variant (task #27).
 
@@ -38,6 +39,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   transport build the driver without one. Also, `EventReadiness` has no `clear`,
   so the driver cannot clear edge-triggered readiness before `pump_recv`. Tracked
   as feature 28.
+- **`idle_h3_connection_uses_no_cpu` measures process-wide CPU.** The test
+  (`tests/http3/waker_tests.rs`) uses `getrusage(RUSAGE_SELF)` for a 1 s idle
+  window, so every concurrent test's CPU counts against it. It flakes under a
+  full parallel `quic` run (for example 820 ms in 1 s) but passes in isolation.
+  Fix: measure the polling thread's CPU with `CLOCK_THREAD_CPUTIME_ID`, as the
+  body-reader test (`async_body_readiness_tests.rs`) now does. The driver's real
+  1 ms idle poll is tracked as feature 28.
 - **`FramedRecv` buffers whole DATA frames.** *(Partly fixed:
   `http3/stream.rs` `FramedRecv::with_max_frame_size` exists.)* What is left:
   `H3Connection` / `H3Request` never expose it, so every connection uses
@@ -51,7 +59,8 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   the whole lookup. Fix: resolve through an async DNS seam, or offload the
   lookup to a blocking boundary with a configured timeout.
 - **Non-blocking work not done yet:**
-  - the remaining transports (task #25).
+  - the remaining transports: the io_uring completion socket, openssl, and
+    native-tls (task #25). The overlay and rustls landed in feature 06.
 - **Ignored tests.**
   - 17 network-dependent or never-finished tests are ignored:
     `tcp_and_tls/http_external_validation.rs` (8),
@@ -69,6 +78,17 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   against the draft and keep the stream open, handing it to `WtSession`.
 
 ## 3. foundation_http
+
+- **`Expect: 100-continue` body wait retries on a fixed delay, not readiness.**
+  The server's `WaitingForBody` state (`native/server/connection.rs`) retries
+  `probe()` on `TaskStatus::Delayed` (a few fixed 30 ms delays) and sends 408
+  after `ExpectContinueConfig` `max_attempts` (5), about 120 ms total. A body
+  that arrives through a transport with no pollable fd (the WireGuard overlay,
+  whose mesh delivers in up to 200 ms) can miss that window and get a 408 even
+  though the client is about to send the body. Fix: park `WaitingForBody` on the
+  connection's read wake source (the same `ReadWakeSource` the body reader uses)
+  instead of fixed delays. Exposed by the feature 06 overlay RPC test, which
+  works around it with `expect_continue(false)`.
 
 ## 4. foundation_core / valtron
 

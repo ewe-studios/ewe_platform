@@ -507,6 +507,10 @@ impl DataPlane for NetStack {
             handle,
             local,
             peer: addr,
+            owner: Arc::new(OverlayStreamOwner {
+                inner: Arc::clone(&self.inner),
+                handle,
+            }),
         })
     }
 
@@ -657,6 +661,10 @@ impl OverlayListener {
                 handle,
                 local: self.local,
                 peer,
+                owner: Arc::new(OverlayStreamOwner {
+                    inner: Arc::clone(&self.inner),
+                    handle,
+                }),
             });
         }
     }
@@ -704,6 +712,26 @@ pub struct OverlayStream {
     handle: SocketHandle,
     local: SocketAddr,
     peer: SocketAddr,
+    /// Shared owner of the smoltcp socket. `Clone` shares it, so a clone does
+    /// not remove the socket while another clone still uses it.
+    owner: Arc<OverlayStreamOwner>,
+}
+
+/// The single owner of an [`OverlayStream`]'s smoltcp socket. Clones of the
+/// stream share one owner, so the socket is removed exactly once, on the last
+/// drop (smoltcp `SocketSet::remove` panics on a handle that is already gone).
+struct OverlayStreamOwner {
+    inner: Arc<Mutex<Inner>>,
+    handle: SocketHandle,
+}
+
+impl Drop for OverlayStreamOwner {
+    fn drop(&mut self) {
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
+        inner.read_wakers.remove(&self.handle);
+        inner.write_wakers.remove(&self.handle);
+        inner.sockets.remove(self.handle);
+    }
 }
 
 impl std::fmt::Debug for OverlayStream {
@@ -787,6 +815,31 @@ impl OverlayStream {
             .is_active()
     }
 
+    /// True when the next [`Self::read`] will not return `WouldBlock`: data is
+    /// buffered, or the receive half is closed and the handshake is done (EOF).
+    ///
+    /// A synchronous I/O driver (`conn_io`) probes this to answer "readable now"
+    /// without consuming a byte (which [`Self::read`] would).
+    #[must_use]
+    pub fn readable(&self) -> bool {
+        let inner = self.inner.lock().expect("netstack mutex poisoned");
+        let socket = inner.sockets.get::<tcp::Socket>(self.handle);
+        socket.can_recv() || (!socket.may_recv() && !still_connecting(socket.state()))
+    }
+
+    /// True when the next [`Self::write`] will not return `WouldBlock`: the send
+    /// buffer has spare capacity, or the send half is closed (the write surfaces
+    /// the error).
+    ///
+    /// The write-side twin of [`Self::readable`]: probe "writable now" without
+    /// enqueuing anything.
+    #[must_use]
+    pub fn writable(&self) -> bool {
+        let inner = self.inner.lock().expect("netstack mutex poisoned");
+        let socket = inner.sockets.get::<tcp::Socket>(self.handle);
+        socket.can_send() || !socket.may_send()
+    }
+
     /// True once the connection is established and its send half is open — i.e. the
     /// handshake completed and the socket will accept application data.
     #[must_use]
@@ -843,15 +896,6 @@ impl OverlayStream {
     #[must_use]
     pub fn peer_addr(&self) -> SocketAddr {
         self.peer
-    }
-}
-
-impl Drop for OverlayStream {
-    fn drop(&mut self) {
-        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
-        inner.read_wakers.remove(&self.handle);
-        inner.write_wakers.remove(&self.handle);
-        inner.sockets.remove(self.handle);
     }
 }
 

@@ -371,6 +371,25 @@ impl RawStream {
         }
     }
 
+    /// A readiness handle for a synchronous I/O driver (`conn_io`) that blocks
+    /// its thread. See [`Connection::conn_readiness`]. Feature 06.
+    #[cfg(unix)]
+    #[must_use]
+    pub fn conn_readiness(&self) -> Option<crate::native::connection::ConnReadiness> {
+        match self {
+            Self::AsPlain(inner, _) => inner.get_core_ref().conn_readiness(),
+            #[cfg(feature = "ssl-rustls")]
+            Self::AsServerTls(inner, _) => Some(inner.get_core_ref().conn_readiness()),
+            #[cfg(feature = "ssl-rustls")]
+            Self::AsClientTls(inner, _) => Some(inner.get_core_ref().conn_readiness()),
+            #[cfg(all(
+                not(feature = "ssl-rustls"),
+                any(feature = "ssl-openssl", feature = "ssl-native-tls")
+            ))]
+            Self::AsServerTls(..) | Self::AsClientTls(..) => None,
+        }
+    }
+
     /// Build the [`ReadWakeSource`](crate::shared::client::body_reader::ReadWakeSource)
     /// that wakes a `std::task::Waker` when this stream becomes readable
     /// (Feature 29 / Feature 03).

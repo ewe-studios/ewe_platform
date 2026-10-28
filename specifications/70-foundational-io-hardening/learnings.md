@@ -2,6 +2,43 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-29 (feature 06): `conn_io` blocks its own thread, so it cannot reuse
+  `EventReadiness::is_ready`, which answers "ready now" without blocking. It got a
+  purpose-built `ConnReadiness` (`foundation_netio::native::connection`):
+  `Fd(fd, Option<Arc<dyn TlsInterest>>)` for kernel sockets and
+  `Overlay(Box<dyn OverlayReadWrite>)` for the WireGuard overlay.
+  `TlsInterest::corrected` maps the application's direction to the wire direction
+  the TLS session needs (`wants_write` first, then "still handshaking"), mirroring
+  the async `RustlsStream::readiness`. The overlay is woken by one-shot `ConnWaker`
+  callbacks that write a byte to the driver's wake pair, not by `poll(2)`.
+
+- 2026-10-29 (feature 06): `OverlayStream` derived `Clone` but its `Drop` removed
+  its smoltcp socket from the shared `SocketSet`, so `conn_readiness` cloning the
+  overlay stream (via `OverlayReadWrite::clone_box`) removed the socket twice. The
+  second remove panics ("handle does not refer to a valid socket") and corrupts the
+  connection. Fix: socket removal is now ref-counted through an `OverlayStreamOwner`
+  `Arc`; clones share it and the socket is removed once, on the last drop.
+  `OverlayStream` itself has no `Drop`.
+
+- 2026-10-29 (feature 06): the overlay's `readable()`/`writable()` probe the full
+  predicate, not just "buffered data": `readable` = `can_recv || (!may_recv &&
+  !still_connecting)` (data or EOF), `writable` = `can_send || !may_send` (space,
+  or the error surfaces). This lets `conn_io` answer "ready now" without consuming
+  a byte.
+
+- 2026-10-29 (feature 06): `HttpClient::open_exchange` built a fresh
+  `HttpConnectionPool` with `SystemDnsResolver`, silently dropping a connector set
+  with `with_connector` (WireGuard overlay, SSH dial-stdio). The async exchange
+  path now reuses `self.pool` (falling back to a fresh pool from `self.resolver`),
+  matching `send`/`send_async`.
+
+- 2026-10-29 (feature 06): the foundation_http server's `Expect: 100-continue`
+  `WaitingForBody` retries `probe()` on fixed delays (30 ms) and 408s after
+  ~120 ms, before the overlay's mesh delivers the body (up to 200 ms). This is out
+  of feature 06's crate list, so the overlay RPC test sets `expect_continue(false)`
+  and the race is tracked in the backlog. It is a real bug: `WaitingForBody` must
+  park on the read wake source, not fixed delays.
+
 - 2026-10-28 (feature 05): dropping the pipe producer is a graceful end, not an error. The
   spec's `pushed_body_producer_drop_fails_the_request` assumed a dropped producer errors the
   request, but the code path uses `PipeSender`; dropping it calls `close_queue()` = a close

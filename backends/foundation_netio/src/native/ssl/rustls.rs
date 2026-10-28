@@ -356,6 +356,79 @@ where
     }
 }
 
+/// A readiness handle for a synchronous I/O driver (`conn_io`) that blocks its
+/// thread, on a stream whose TLS connection type is `'static` and `Send + Sync`.
+/// Feature 06.
+///
+/// The handle clones this stream (cheap `Arc` bump) so the driver can query the
+/// TLS state (`wants_write` / `is_handshaking`) at each wait. The `'static`
+/// bound lets the clone coerce to `Arc<dyn TlsInterest>`.
+#[cfg(unix)]
+impl<T, D> RustlsStream<T>
+where
+    T: core::ops::Deref<Target = rustls::ConnectionCommon<D>> + Send + Sync + std::fmt::Debug + 'static,
+{
+    #[must_use]
+    pub fn conn_readiness(&self) -> crate::native::connection::ConnReadiness {
+        use std::os::fd::AsRawFd;
+        let fd = self.as_raw_fd();
+        crate::native::connection::ConnReadiness::Fd(
+            fd,
+            Some(std::sync::Arc::new(self.clone())),
+        )
+    }
+}
+#[cfg(unix)]
+impl<T, D> crate::native::connection::TlsInterest for RustlsStream<T>
+where
+    T: core::ops::Deref<Target = rustls::ConnectionCommon<D>> + Send + Sync + std::fmt::Debug,
+{
+    fn corrected(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> crate::native::readiness::IoInterest {
+        use crate::native::readiness::IoInterest;
+        let guard = self.0.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        if guard.conn.wants_write() {
+            IoInterest::Writable
+        } else if guard.conn.is_handshaking() {
+            IoInterest::Readable
+        } else {
+            interest
+        }
+    }
+
+    fn fd(&self) -> std::os::unix::io::RawFd {
+        use std::os::fd::AsRawFd;
+        self.as_raw_fd()
+    }
+}
+
+impl<T, D> RustlsStream<T>
+where
+    T: core::ops::DerefMut<Target = rustls::ConnectionCommon<D>>,
+{
+    /// Ask rustls to refresh the TLS 1.3 traffic keys.
+    ///
+    /// The next write carries the key update record. Until it is flushed the
+    /// session has pending TLS output (`wants_write`), which is the state a
+    /// plaintext read must still make progress past (Feature 06: the sync
+    /// driver corrects a read to the write direction in this state).
+    ///
+    /// # Errors
+    /// The rustls key-update error, or an error if the stream mutex is poisoned.
+    pub fn refresh_traffic_keys(&self) -> std::io::Result<()> {
+        let mut guard = self
+            .0
+            .lock()
+            .map_err(|e| std::io::Error::other(format!("Mutex poisoned: {e}")))?;
+        guard
+            .conn
+            .refresh_traffic_keys()
+            .map_err(std::io::Error::other)
+    }
+}
+
 impl RustlsStream<rustls::ClientConnection> {
     /// Drive the TLS handshake on the non-blocking socket until it finishes or
     /// would block.
@@ -755,90 +828,5 @@ impl RustlsConnector {
 impl Default for RustlsConnector {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_default_client_config() {
-        let config = default_client_config();
-        // Verify config is created successfully
-        assert!(Arc::strong_count(&config) == 1);
-    }
-
-    #[test]
-    fn test_rustls_connector_new() {
-        let connector = RustlsConnector::new();
-        // Verify connector is created with default config
-        assert!(Arc::strong_count(&connector.0) >= 1);
-    }
-
-    #[test]
-    fn test_rustls_connector_default() {
-        let connector = RustlsConnector::default();
-        // Verify Default trait works
-        assert!(Arc::strong_count(&connector.0) >= 1);
-    }
-
-    #[test]
-    fn test_rustls_connector_clone() {
-        let connector1 = RustlsConnector::new();
-        let connector2 = connector1.clone();
-        // Verify Arc is shared
-        assert!(Arc::strong_count(&connector1.0) == 2);
-        assert!(Arc::strong_count(&connector2.0) == 2);
-    }
-
-    #[test]
-    fn test_rustls_acceptor_from_pem_invalid() {
-        // Test with invalid certificate data
-        let certs = vec![0u8; 10];
-        let key = Zeroizing::new(vec![0u8; 10]);
-
-        let result = RustlsAcceptor::from_pem(certs, key);
-        // Should fail with invalid PEM data
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_server_name_parsing() {
-        // Test valid SNI
-        let valid_sni = "example.com";
-        let result: Result<ServerName, _> = valid_sni.try_into();
-        assert!(result.is_ok());
-
-        // Test invalid SNI (empty)
-        let invalid_sni = "";
-        let result: Result<ServerName, _> = invalid_sni.try_into();
-        assert!(result.is_err());
-
-        // Test invalid SNI (too long)
-        let too_long = "a".repeat(300);
-        let result: Result<ServerName, _> = too_long.as_str().try_into();
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_rustls_connector_create_from_endpoint() {
-        let custom_config = default_client_config();
-        let uri = foundation_core::url::Uri::parse("https://example.com:443").unwrap();
-        let endpoint =
-            Endpoint::WithIdentity(EndpointConfig::NoTimeout(uri), custom_config.clone());
-
-        let _ = RustlsConnector::create(&endpoint);
-
-        // Verify the connector uses the custom config
-        assert!(Arc::strong_count(&custom_config) >= 2);
-    }
-
-    #[test]
-    fn test_root_cert_store_not_empty() {
-        let _config = default_client_config();
-        // The config should have root certificates loaded
-        // We can't directly inspect the root store, but we know it was created with TLS_SERVER_ROOTS
-        assert!(!TLS_SERVER_ROOTS.is_empty());
     }
 }
