@@ -11,7 +11,7 @@
 //!   - `R2Store::new_state()` — `StateStore` (JSON objects, key: `{project}/{stage}/{id}.json`)
 
 use futures_lite::{StreamExt, stream};
-use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_bytes_async, collect_string_async};
+use foundation_netio::shared::client::body_reader::{collect_bytes_async, collect_string_async};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::shared::http::{SimpleHeader, Status};
 
@@ -194,8 +194,8 @@ impl R2Store {
         if response.get_status() != Status::OK {
             return Err(StorageError::Backend(format!("R2 GET failed with status {}", response.get_status())));
         }
-        let (_, _, body) = response.into_parts();
-        let bytes = collect_bytes_async(AsyncSendSafeBody::from(body))
+        let (_, _, body) = response.into_async_parts();
+        let bytes = collect_bytes_async(body)
             .await
             .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
         Ok(Some(bytes))
@@ -297,8 +297,8 @@ impl R2Store {
         if response.get_status() != Status::OK {
             return Err(StorageError::Backend(format!("R2 LIST failed with status {}", response.get_status())));
         }
-        let (_, _, body) = response.into_parts();
-        let text = collect_string_async(AsyncSendSafeBody::from(body))
+        let (_, _, body) = response.into_async_parts();
+        let text = collect_string_async(body)
             .await
             .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
         let parsed: serde_json::Value = serde_json::from_str(&text)

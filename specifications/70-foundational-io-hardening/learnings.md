@@ -2,6 +2,24 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-28 (feature 29): do not measure parking with process-wide `getrusage(RUSAGE_SELF)`.
+  `#[valtron_test]` gives each test a fresh pool and serializes pool use process-wide, so a
+  parked body leaves the polling worker thread almost idle. Measure that thread's CPU inside
+  the stream's `poll_next` with `clock_gettime(CLOCK_THREAD_CPUTIME_ID)` (first poll = baseline,
+  last poll = end). Process-wide CPU sums every concurrent test's CPU and flaked the chunked-body
+  test at 81 ms under a full parallel run while it passed at 0 ms in isolation. The H3
+  `idle_h3_connection_uses_no_cpu` test still uses process-wide CPU and fails the same way under
+  load (1588 ms at 1 s) but passes in isolation — pre-existing, feature 02/28, not this feature.
+
+- 2026-10-28 (feature 29): the body's wake source has three transport cases, and
+  `RawStream::supports_nonblocking_io()` is the clean discriminator. Overlay: register a
+  one-shot `ConnWaker` via `set_read_waker`. Non-blocking kernel socket (plain TCP/Unix, rustls
+  over those): `FdReadiness::register(fd)` then `register_waker(&Waker)`. Blocking socket and
+  io_uring completion socket: return `None` — a blocking `WouldBlock` is a timeout (a failure),
+  not a wait, and a completion socket reads from an inbox, not fd readiness. Register-then-check:
+  `AsyncSendSafeBody::poll_next` registers the waker, pulls the iterator once more, then returns
+  `Pending`, so no wake is lost between the first pull and the registration.
+
 - 2026-10-28 (feature 03/29): `foundation_netio` cannot depend on `foundation_iogate` or
   `foundation_nativeapis`. The graph is `nativeapis → db → netio` and `iogate → {netio,
   nativeapis}`, so iogate sits above netio on purpose. The client body reader therefore cannot

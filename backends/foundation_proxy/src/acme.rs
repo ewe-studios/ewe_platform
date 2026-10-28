@@ -14,7 +14,7 @@ use std::sync::Arc;
 
 use foundation_netio::shared::client::body_reader::{collect_bytes_async, AsyncSendSafeBody};
 use foundation_netio::shared::client::request::PreparedRequest;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders};
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
 use foundation_netio::{DynNetClient, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -544,13 +544,13 @@ impl AcmeClient {
         &self,
         url: &str,
         request: PreparedRequest,
-    ) -> Result<(SimpleHeaders, SendSafeBody), String> {
+    ) -> Result<(SimpleHeaders, AsyncSendSafeBody), String> {
         let response = self
             .client
             .send_async(request)
             .await
             .map_err(|e| format!("send {url}: {e}"))?;
-        let (status, headers, body) = response.into_parts();
+        let (status, headers, body) = response.into_async_parts();
         let code: usize = status.into();
         if !(200..=299).contains(&code) {
             let message = read_bounded(body, self.max_error_body).await;
@@ -594,19 +594,18 @@ fn jose_post(url: &str, body: &Value) -> Result<PreparedRequest, String> {
 
 /// Read a 2xx body whole: ACME answers are small JSON documents or a PEM
 /// chain that the next step of the flow needs entire.
-async fn read_all(url: &str, body: SendSafeBody) -> Result<Vec<u8>, String> {
-    collect_bytes_async(AsyncSendSafeBody::from(body))
+async fn read_all(url: &str, body: AsyncSendSafeBody) -> Result<Vec<u8>, String> {
+    collect_bytes_async(body)
         .await
         .map_err(|e| format!("read body from {url}: {e}"))
 }
 
 /// Read at most `limit` bytes of an error body as lossy UTF-8.
-async fn read_bounded(body: SendSafeBody, limit: usize) -> String {
+async fn read_bounded(mut body: AsyncSendSafeBody, limit: usize) -> String {
     use futures_lite::StreamExt;
 
-    let mut stream = AsyncSendSafeBody::from(body);
     let mut buf = Vec::new();
-    while let Some(next) = stream.next().await {
+    while let Some(next) = body.next().await {
         match next {
             Ok(chunk) => {
                 let room = limit - buf.len();

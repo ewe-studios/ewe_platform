@@ -5258,6 +5258,7 @@ dependencies = [
  "foundation_core",
  "foundation_macros",
  "foundation_nostd",
+ "foundation_reactor",
  "foundation_testbed",
  "foundation_testing",
  "foundation_wasm",

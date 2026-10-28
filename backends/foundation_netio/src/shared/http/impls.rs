@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use crate::netcap::ConnectionContext;
-use crate::shared::client::body_reader::AsyncSendSafeBody;
+use crate::shared::client::body_reader::{AsyncSendSafeBody, ReadWakeSource};
 use crate::shared::http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, SimpleRequestError, StringHandlingError,
@@ -3230,7 +3230,7 @@ impl RenderHttp for Http11 {
     }
 }
 
-pub struct SimpleResponse<T>(Status, SimpleHeaders, T);
+pub struct SimpleResponse<T>(Status, SimpleHeaders, T, Option<ReadWakeSource>);
 
 impl<T> core::fmt::Display for SimpleResponse<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -3254,13 +3254,13 @@ impl<T> core::fmt::Debug for SimpleResponse<T> {
 impl SimpleResponse<()> {
     #[must_use]
     pub fn no_body(status: Status, headers: SimpleHeaders) -> Self {
-        Self(status, headers, ())
+        Self(status, headers, (), None)
     }
 }
 
 impl<T> SimpleResponse<T> {
     pub fn new(status: Status, headers: SimpleHeaders, body: T) -> Self {
-        Self(status, headers, body)
+        Self(status, headers, body, None)
     }
 
     pub fn get_status(&self) -> Status {
@@ -3291,6 +3291,40 @@ impl<T> SimpleResponse<T> {
 
     pub fn take_body(self) -> T {
         self.2
+    }
+}
+
+impl SimpleResponse<SendSafeBody> {
+    /// Build a response whose body already carries an optional readiness source
+    /// (Feature 29). The sync `into_parts`/`take_body` still return the plain
+    /// `SendSafeBody` and drop the source; async callers use
+    /// [`Self::into_async_parts`] or [`Self::take_async_body`].
+    #[must_use]
+    pub fn with_read_wake(
+        status: Status,
+        headers: SimpleHeaders,
+        body: SendSafeBody,
+        source: Option<ReadWakeSource>,
+    ) -> Self {
+        Self(status, headers, body, source)
+    }
+
+    /// Consume the response and convert the body to [`AsyncSendSafeBody`] with
+    /// the readiness source attached, so `poll_next` parks instead of spinning.
+    #[must_use]
+    pub fn into_async_parts(self) -> (Status, SimpleHeaders, AsyncSendSafeBody) {
+        let Self(status, headers, body, source) = self;
+        let mut async_body = AsyncSendSafeBody::from(body);
+        if let Some(source) = source {
+            async_body = async_body.with_read_wake(source);
+        }
+        (status, headers, async_body)
+    }
+
+    /// Consume the response and return only the async body with its source.
+    #[must_use]
+    pub fn take_async_body(self) -> AsyncSendSafeBody {
+        self.into_async_parts().2
     }
 }
 

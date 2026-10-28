@@ -28,12 +28,44 @@ use foundation_nativeapis::{Interest, Token};
 /// Create a nonblocking pipe, returning `(read_fd, write_fd)`.
 fn nonblocking_pipe() -> io::Result<(RawFd, RawFd)> {
     let mut fds = [0 as RawFd; 2];
-    // SAFETY: `fds` is a valid 2-element array for pipe2 to fill.
+    // SAFETY: `fds` is a valid 2-element array for pipe/pipe2 to fill.
+    #[cfg(target_os = "linux")]
     let rc = unsafe { libc::pipe2(fds.as_mut_ptr(), libc::O_CLOEXEC | libc::O_NONBLOCK) };
+    // macOS has no `pipe2`; make the pipe nonblocking and close-on-exec after.
+    #[cfg(not(target_os = "linux"))]
+    let rc = unsafe { libc::pipe(fds.as_mut_ptr()) };
     if rc < 0 {
         return Err(io::Error::last_os_error());
     }
+    #[cfg(not(target_os = "linux"))]
+    for fd in fds {
+        set_nonblocking_cloexec(fd)?;
+    }
     Ok((fds[0], fds[1]))
+}
+
+/// Set `O_NONBLOCK` and `FD_CLOEXEC` on `fd` (macOS has no `pipe2`).
+#[cfg(not(target_os = "linux"))]
+fn set_nonblocking_cloexec(fd: RawFd) -> io::Result<()> {
+    // SAFETY: `fd` is a valid pipe descriptor we just created.
+    let flags = unsafe { libc::fcntl(fd, libc::F_GETFL) };
+    if flags < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: `fd` is a valid pipe descriptor.
+    if unsafe { libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: `fd` is a valid pipe descriptor.
+    let fdflags = unsafe { libc::fcntl(fd, libc::F_GETFD) };
+    if fdflags < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    // SAFETY: `fd` is a valid pipe descriptor.
+    if unsafe { libc::fcntl(fd, libc::F_SETFD, fdflags | libc::FD_CLOEXEC) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
 }
 
 /// Poll `Reactor::is_ready` until it turns true or `budget` elapses.

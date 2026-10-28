@@ -12,7 +12,7 @@
 //!   - `D1Store::new_state()` — `StateStore` (table: `{project}_{stage}_resources`)
 
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_string_async};
+use foundation_netio::shared::client::body_reader::collect_string_async;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::shared::http::{SimpleHeader, Status};
 use futures_lite::{stream, StreamExt};
@@ -254,8 +254,8 @@ impl D1Store {
             return Err(StorageError::Backend(format!("D1 query failed with status {}", response.get_status())));
         }
 
-        let (_, _, send_safe_body) = response.into_parts();
-        let text = collect_string_async(AsyncSendSafeBody::from(send_safe_body))
+        let (_, _, body) = response.into_async_parts();
+        let text = collect_string_async(body)
             .await
             .map_err(|e| StorageError::Backend(format!("D1 body read failed: {e}")))?;
 

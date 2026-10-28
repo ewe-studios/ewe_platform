@@ -2,6 +2,23 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-28: feature 29 done on `fix/io-01-valtron-parking`. The I/O reactor moved into the
+  new `foundation_reactor` crate below `foundation_netio`, so netio can reach `FdReadiness`
+  with no crate cycle. `FdReadiness::register_waker(&Waker)` was added. `RawStream::read_wake_source()`
+  builds the body's `ReadWakeSource` for three transports: an overlay registers a one-shot
+  `ConnWaker`, a non-blocking kernel socket registers its fd with the shared reactor, and a
+  blocking or completion socket returns `None` (a blocking `WouldBlock` is a timeout, not a
+  wait). `SimpleResponse` gained a fourth field that carries the source; `into_async_parts()`
+  and `take_async_body()` attach it, and the sync `into_parts()`/`take_body()` drop it. The
+  async downstream consumers (`foundation_ai`, D1, R2, `turbopuffer`, `acme`,
+  `foundation_deployment`) now use `into_async_parts` and `collect_*_async`. The regression
+  tests live in `tests/simple_http/async_body_readiness_tests.rs` and measure the polling
+  thread's CPU, not process CPU. Verification: `foundation_reactor` green (sourcefd doctest
+  fixed), netio 999/999 non-quic and 1068/1069 quic (the one quic failure is the pre-existing
+  `idle_h3_connection_uses_no_cpu` process-CPU test, feature 02/28), iogate/db/ai/vectors/
+  proxy/deployment/connectrpc green. nativeapis still fails `fd`/`poll`/`reactor_shared_selector`
+  on macOS (feature 26, pre-existing). PR: see the PR.
+
 - 2026-10-28: feature 29 added (client body reader reaches a Waker-capable readiness source).
   Feature 03 T1–T2 landed and pass (netio 1206 tests, connectrpc, iogate), but T3–T6 are
   blocked: the client body is built in `foundation_netio`, whose kernel-socket readiness is

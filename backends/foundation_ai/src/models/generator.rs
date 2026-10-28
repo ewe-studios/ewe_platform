@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 
 use derive_more::{Display, From};
 use foundation_core::valtron::{self, from_future, Stream};
-use foundation_netio::shared::client::body_reader::{collect_string_async, AsyncSendSafeBody};
+use foundation_netio::shared::client::body_reader::collect_string_async;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::Deserialize;
 
@@ -1239,13 +1239,13 @@ async fn fetch_catalog(
             return Vec::new();
         }
     };
-    let (status, _headers, body) = response.into_parts();
+    let (status, _headers, body) = response.into_async_parts();
     let status_code: usize = status.into();
     if !(200..=299).contains(&status_code) {
         tracing::warn!("{source}: HTTP {status_code} from {url}");
         return Vec::new();
     }
-    match collect_string_async(AsyncSendSafeBody::from(body)).await {
+    match collect_string_async(body).await {
         Ok(text) => parser(&text, source),
         Err(e) => {
             tracing::warn!("{source}: reading the body from {url} failed: {e}");

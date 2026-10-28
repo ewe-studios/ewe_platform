@@ -1,6 +1,6 @@
 ---
 feature: "Client body reader reaches a Waker-capable readiness source"
-status: "pending"
+status: "done"
 priority: "critical"
 depends_on: ["02-h2-h3-server-readiness"]
 branch: "fix/io-01-valtron-parking"
@@ -107,15 +107,15 @@ removes the waker's token so a stale edge does not re-wake forever.
 
 ## 7. Tasks
 
-- [ ] T1. Create the `foundation_reactor` crate. Move the §4 code. Fix `crate::` paths.
-- [ ] T2. Add the `foundation_reactor` dependency and §5 re-export shims to
+- [x] T1. Create the `foundation_reactor` crate. Move the §4 code. Fix `crate::` paths.
+- [x] T2. Add the `foundation_reactor` dependency and §5 re-export shims to
       `foundation_nativeapis` and `foundation_iogate`. Build until `cargo check --workspace`
       is green.
-- [ ] T3. Add `register_waker` (§6) with the register-then-check-then-clear pattern.
-- [ ] T4. Wire it into feature 03: build the `ReadWakeSource` from `FdReadiness` in
+- [x] T3. Add `register_waker` (§6) with the register-then-check-then-clear pattern.
+- [x] T4. Wire it into feature 03: build the `ReadWakeSource` from `FdReadiness` in
       `foundation_netio` and attach it at every body construction site.
-- [ ] T5. Finish feature 03 T5–T6 (regression tests, delete the two §2 backlog entries).
-- [ ] T6. Update `progress.md`, `learnings.md`. Delete the §2 reactor-bridge backlog entry.
+- [x] T5. Finish feature 03 T5–T6 (regression tests, delete the two §2 backlog entries).
+- [x] T6. Update `progress.md`, `learnings.md`. Delete the §2 reactor-bridge backlog entry.
 
 ## 8. Verification (run exactly)
 
@@ -132,6 +132,6 @@ under 50 ms).
 
 ## 9. Done when
 
-- [ ] A plain-TCP async body read parks on readiness, not on self-wake.
-- [ ] No crate cycle forms; `cargo check --workspace` is green.
-- [ ] Feature 03 T3–T6 pass.
+- [x] A plain-TCP async body read parks on readiness, not on self-wake.
+- [x] No crate cycle forms; `cargo check --workspace` is green.
+- [x] Feature 03 T3–T6 pass.

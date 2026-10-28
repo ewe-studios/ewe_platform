@@ -44,30 +44,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `DEFAULT_MAX_FRAME_SIZE` (16 MiB, `http3/frame.rs:233`) **(rule 8)**, and a
   DATA frame is still buffered whole before it is yielded. Stream within a
   frame, and put the cap on the connection config.
-- **`AsyncSendSafeBody` polls sync body iterators inline**
-  (`shared/client/body_reader.rs` `poll_next`). `poll_next` calls the inner
-  iterator's `next()`. Unless that iterator returns a "not ready" item
-  (`Data::Retry`), a read that waits for the socket waits inside `poll_next`
-  and holds the worker; a `Retry` self-wakes and busy-polls. Every async caller
-  that reads a streamed body has this. Fix: give the body iterators a
-  readiness-based async form that returns `Poll::Pending` and wakes on socket
-  readiness.
-- **`SendSafeBodyBytesIterator` reports would-block inconsistently.** It
-  returns `Ignore` for a sized body's `Data::Retry` but passes a chunked body's
-  `WouldBlock` through as `StreamError`, so its users can't tell "not ready"
-  apart from bookkeeping items or failures.
-- **The client body reader cannot reach the reactor.** Feature 03 §3.2 wants
-  `FdReadiness` (reactor-backed, `foundation_iogate/src/native/fd_readiness.rs`)
-  as the `ReadWakeSource` for streamed response bodies. But the body is built in
-  `foundation_netio` (`shared/http/impls.rs` `HttpReadState::Body`, around line
-  4651, and `shared/client/body_reader.rs`), and netio cannot depend on iogate
-  (iogate depends on netio) or nativeapis (nativeapis → db → netio). The
-  HTTP/1.1 client readiness is `SocketReadiness` (`native/readiness.rs`), a
-  poll-based `EventReadiness` that cannot wake a `std::task::Waker`. So the
-  plain-TCP async body reads still self-wake. Fix: give netio a
-  `std::task::Waker`-capable readiness source — move the reactor below netio,
-  add a netio-side poll reactor, or drive the body through the valtron
-  `Depends(EventReadiness)` bridge. Tracked as feature 29.
 - **Non-blocking work not done yet:**
   - non-blocking connect and TLS handshake (task #23):
     `HttpClientConnection::connect` blocks in `TcpStream::connect_timeout`

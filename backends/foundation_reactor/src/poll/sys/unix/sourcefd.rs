@@ -7,18 +7,21 @@
 /// # Example
 ///
 /// ```no_run
+/// use std::io;
+/// use std::os::unix::io::AsRawFd;
 /// use foundation_reactor::{Poll, Token, Interest, SourceFd};
 ///
 /// let poll = Poll::new().unwrap();
-/// let inotify_fd = unsafe { libc::inotify_init1(libc::IN_CLOEXEC | libc::IN_NONBLOCK) };
+/// // A nonblocking descriptor you own (for example one end of a pipe).
+/// let fd = io::stdin().as_raw_fd();
 ///
 /// poll.registry().register(
-///     &mut SourceFd(inotify_fd),
+///     &mut SourceFd(fd),
 ///     Token(0),
 ///     Interest::READABLE,
 /// ).unwrap();
 ///
-/// // The inotify fd is NOT closed — you are still responsible for closing it.
+/// // The fd is NOT closed — you are still responsible for closing it.
 /// ```
 
 use super::super::super::event::Source;

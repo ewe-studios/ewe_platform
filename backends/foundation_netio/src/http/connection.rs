@@ -377,6 +377,16 @@ impl HttpClientConnection {
             .with_inner_ref(|raw: &RawStream| raw.readiness(interest))
     }
 
+    /// Build the [`ReadWakeSource`](crate::shared::client::body_reader::ReadWakeSource)
+    /// that wakes a `std::task::Waker` when this connection becomes readable
+    /// (Feature 29 / Feature 03). See [`RawStream::read_wake_source`].
+    #[must_use]
+    pub fn read_wake_source(
+        &self,
+    ) -> Option<crate::shared::client::body_reader::ReadWakeSource> {
+        self.stream.with_inner_ref(RawStream::read_wake_source)
+    }
+
     /// Takes ownership of the underlying stream, consuming the connection.
     ///
     /// WHY: Allows transferring stream ownership to other components (e.g., `HttpResponseReader`)

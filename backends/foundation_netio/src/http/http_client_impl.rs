@@ -545,9 +545,10 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
 
         let request = self.request(builder)?;
         let response = request.send_async().await?;
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let (status, headers, body, _pool, conn) = response.into_parts();
+        let source = conn.as_ref().and_then(|c| c.read_wake_source());
 
-        Ok(SimpleResponse::new(status, headers, body))
+        Ok(SimpleResponse::with_read_wake(status, headers, body, source))
     }
 
     async fn send_sse_async(

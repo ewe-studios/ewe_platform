@@ -103,8 +103,8 @@ impl BodyLimits {
 /// # Panics
 ///
 /// Never panics.
-pub async fn read_bounded(body: SendSafeBody, limit: usize) -> String {
-    let mut body = AsyncSendSafeBody::from(body);
+pub async fn read_bounded<B: Into<AsyncSendSafeBody>>(body: B, limit: usize) -> String {
+    let mut body = body.into();
     let mut buf = Vec::new();
     while buf.len() < limit {
         match poll_fn(|cx| Pin::new(&mut body).poll_next(cx)).await {
@@ -129,7 +129,7 @@ pub async fn read_bounded(body: SendSafeBody, limit: usize) -> String {
 /// # Panics
 ///
 /// Never panics.
-pub async fn read_error_body(body: SendSafeBody, limit: usize) -> Option<String> {
+pub async fn read_error_body<B: Into<AsyncSendSafeBody>>(body: B, limit: usize) -> Option<String> {
     let text = read_bounded(body, limit).await;
     (!text.is_empty()).then_some(text)
 }
@@ -181,9 +181,9 @@ pub struct ByteStream {
 impl ByteStream {
     /// Wrap a body that has not been read yet.
     #[must_use]
-    pub fn new(body: SendSafeBody) -> Self {
+    pub fn new<B: Into<AsyncSendSafeBody>>(body: B) -> Self {
         Self {
-            body: Some(AsyncSendSafeBody::from(body)),
+            body: Some(body.into()),
         }
     }
 
@@ -269,7 +269,7 @@ impl<T: DeserializeOwned> JsonLinesStream<T> {
     /// Wrap a body that has not been read yet, buffering at most `max_line`
     /// bytes of one line (see [`BodyLimits::max_json_line`]).
     #[must_use]
-    pub fn new(body: SendSafeBody, max_line: usize) -> Self {
+    pub fn new<B: Into<AsyncSendSafeBody>>(body: B, max_line: usize) -> Self {
         Self {
             bytes: ByteStream::new(body),
             buf: Vec::new(),
