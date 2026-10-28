@@ -113,6 +113,12 @@ wasm-runs = [
   "--no-default-features --features std,js-wasmbindgen",
 ]
 
+[packages.foundation_agent_rpc]
+# Default (candle) plus the llama.cpp GGUF backend: `gguf` runs
+# tests/gguf_share_tests.rs (one GGUF model shared by concurrent sessions)
+# against the CPU build of llama.cpp.
+runs = ["", "gguf"]
+
 [packages.foundation_jsonschema]
 # `no_std + alloc` is a supported configuration (`--no-default-features`):
 # test it as well so std-only items cannot creep back into that path
@@ -143,7 +149,9 @@ runs = ["", "vms"]
 # (API version negotiation, error classification, every endpoint wrapper)
 # never ran. Test that configuration as well. The real-daemon tests stay
 # behind `integration-tests`.
-runs = ["", "docker"]
+# `docker buildkit` also builds the generated BuildKit client (buffa-build
+# codegen must match the buffa runtime; a 0.9/0.8 skew went unnoticed).
+runs = ["", "docker", "docker buildkit"]
 # ---------------------------------------------------------------------------
 # Packages that need more memory than the runner has to spare.
 

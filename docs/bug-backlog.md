@@ -29,6 +29,10 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
 - **HTTP/1.1 RPC holds a worker for its whole life.**
   - `foundation_http`'s `Serve` trait is synchronous, so a long-lived h1 stream occupies a valtron worker until it ends. Enough of them use up the pool.
   - Needs an async or pending `Serve` contract.
+  - Observed in spec 65 F1/T6: one agent-rpc `Chat` over HTTP/1.1 with a
+    4-worker pool deadlocks (the call's worker sleeps in `poll(2)`, the client
+    tasks hold others, and the agent loop never gets one); 8 workers suffice.
+    `foundation_agent_rpc` documents the pool sizing until this is fixed.
 - **Transports with no pollable fd fail.** `native/conn_io.rs` readiness waits return `Unsupported` for WireGuard overlay, io_uring completion sockets and openssl/native-tls.
   - With rustls, the fd is polled in the application's direction, so a TLS session that needs the opposite direction mid-stream waits until the timeout.
 - **Conformance coverage.** Add an 8-thread variant of the conformance suite (task #27).
@@ -46,6 +50,16 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   aborted. A cancelled client call should send `RST_STREAM` (or half-close) so
   the server observes the abort. Surfaced by spec 63 T13 — its e2e test drives a
   raw `RST_STREAM` because the typed client cannot.
+
+- **No gRPC client over TLS.** `native/transport/h2.rs` `H2Transport` dials h2c
+  only (no TLS, no ALPN), so a gRPC client cannot reach a TLS/mTLS server (seen
+  in spec 65 F1: agent-rpc's mTLS listener is reachable over Connect/gRPC-Web
+  only). Likely fix: an `H2Transport::tls(connector)` that runs the rustls
+  handshake with ALPN `h2` before the h2 preface.
+- **`foundation_connectrpc_codegen` has 102 pedantic clippy warnings**
+  (`src/generator.rs`: 76 `format_push_string`, 19 `doc_markdown`, a 231-line
+  function, …). Likely fix: emit through `std::fmt::Write` (`writeln!`) and split
+  `generate_client` per section.
 
 ## 2. foundation_netio
 
@@ -167,6 +181,18 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   half-closed peer instead of detecting the disconnect. Spec 63 T13 works around
   it by having the connectrpc client pump send an explicit `RST_STREAM(CANCEL)`;
   the peeker itself should return a distinct EOF signal.
+
+- **A task that blocks its worker strands the tasks parked on that worker.**
+  Readiness-parked tasks (`Depends(QueueReadiness)`, e.g. every
+  `from_future` task waiting on a waker) are re-polled only by the worker that
+  parked them (every `READINESS_POLL_QUANTUM`); other workers never steal them.
+  So when that worker then runs something that blocks — connectrpc's HTTP/1.1
+  `ConnIo::block_on` sleeping in `poll(2)` for a whole call, or a model stream
+  that blocks — the parked tasks wait until it unblocks. Seen in spec 65 F1/T7:
+  a same-process connectrpc client's reader task stalled until the server call
+  hit its deadline (20–30 s) even though the server had sent the frame in 8 ms.
+  Likely fix: let idle workers steal readiness sleepers (or move them to a
+  shared sleeper set), and stop blocking workers in the h1 serve path (§1).
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
@@ -647,6 +673,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   (`SqlVectorStore::search`): memory is bounded (`TopK`), but time is
   O(n·d) per query. Expected for the portable fallback; large namespaces
   should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
+
 
 ## 18. foundation_testbed
 

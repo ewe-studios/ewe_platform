@@ -1,7 +1,114 @@
 # LEARNINGS — Agent RPC Serving System
 
-_No implementation yet — this file is seeded at spec creation and updated after
-each milestone/task. See `.agents/skills/specifications-management/skill.md`._
+_Updated after each milestone/task (see
+`.agents/skills/specifications-management/skill.md`). The **Handoff guide** below
+is the current state of the world; the dated sections after it are the history,
+oldest first._
+
+## Handoff guide (2026-10-21) — read this before anything else
+
+### Where the work lives
+
+- `progress.md` has the task tables, the PR stack and next steps.
+- PR #124 (`worktree-65-agent-rpc-serving-system`) → master: F06, F00 T1–T6,
+  spec 68. PR #126 (`65-f01-agent-rpc`) → #124's branch: F01. Retarget #126 to
+  master once #124 merges. Merge the base into a stacked branch with a merge
+  commit (never rebase a pushed branch).
+
+### Build and test recipes (each one cost time to discover)
+
+- **Profiles:** tests use `--profile uat` (`dev` on LLVM). Plain `cargo` builds
+  `dev` with LLVM too; only mise's `[env]` switches `dev` to Cranelift
+  (`CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift` + `CARGO_UNSTABLE_CODEGEN_BACKEND`).
+  Never put `codegen-backend` (nightly-only) back in `Cargo.toml` or
+  `.cargo/config.toml`: releases build on **stable** (`ci/release-rust-toolchain`)
+  and stable cargo refuses to load such a workspace. Cranelift can't do
+  `catch_unwind`, coverage or wasm32 — another reason tests use `uat`.
+- **protoc:** agent-rpc's `build.rs` needs it:
+  `PROTOC=~/.local/share/mise/installs/protoc/36.2/bin/protoc`.
+- **Git worktrees have no submodules.** A fresh worktree's `tools/llama.cpp` is
+  empty, so llama.cpp "fails to build" (`llama.h` not found). Run
+  `git submodule update --init tools/llama.cpp`; the CPU build then works (CUDA
+  is exercised by CI's image smoke test). This is what made an earlier agent
+  wrongly conclude llama.cpp could not be built.
+- **Disk:** the container has ~250 GB but most is used; full `uat` builds of
+  agent-rpc + llama.cpp + candle take ~15–18 GB per target dir, and worktrees
+  each get their own. Check `df -h /` before big builds; delete stale `target/`
+  dirs (never sources). Don't run `mise run`/`mise exec`: it installs every
+  pinned tool first and has filled the disk.
+- **Wasm suites** (spec 68): owned path `cargo run -p foundation_testbed
+--no-default-features --features wasm-embedded-js --profile uat --bin
+wasm-testbed -- deno backends/foundation_core/integration/wasm_tests`; bindgen
+  path needs `deno` + `wasm-bindgen` 0.2.126 on PATH (mise installs under
+  `~/.local/share/mise/installs/`), then `wasm-testbed test bindgen-deno
+./backends/foundation_core --features js-wasmbindgen,std --filter
+wasm_js_yield_integration`.
+- **Miniflare** (F00 T6): `cargo test -p foundation_toolings --features
+cf-worker-tests --test cf_examples` (needs wrangler + worker-build).
+
+### Cross-cutting lessons from the 2026-10-20/21 sessions
+
+1. **Wasm: park, never poll; never block.** A wasm task waiting on I/O must
+   return `TaskStatus::Depends(WakeSignal)` and be resumed from a JS event
+   (`request_executor_resume()` → one coalesced microtask). Any sync
+   `HttpClient::send`/`block_on_*` inside a running wasm task freezes the isolate.
+   On wasm, `send` errors on purpose; use `send_async`/`send_sse`. Optional work
+   that used to be sync (OpenAI model metadata) now runs as its own detached
+   valtron task over `send_async` and fills a shared cache (`OpenAIModel::info()`).
+2. **Two wasm JS backends, each with its own hooks:** `js-wasmbindgen` (Workers,
+   wasm-bindgen glue) and `js-foundation-wasm` (owned runtime, `abi` imports from
+   `foundation-wasm.js`). foundation_compact follows the same split: features
+   `wasm-bindgen` (default) and `host-abi` (wins when both are on). If an owned
+   module imports `__wbindgen_placeholder__`, some crate in its graph pulled in
+   wasm-bindgen — check with `cargo tree --target wasm32-unknown-unknown -i
+wasm-bindgen`.
+3. **"No pool" panics on single-threaded wasm were a harness leak, not
+   threading.** The `#[wasm_test]` runner gives each case a fresh instance; a
+   case's `yield_for` timer outlived it and fired into the next, pool-less
+   instance. Fix: `FoundationWasm.dispose()` (cancel timeouts/intervals/
+   microtasks/rAF) per case. `single::is_initialized()` guards the resume
+   callback as a safety net. Lesson: when a single-threaded runtime "loses" its
+   pool, look for a callback outliving its instance.
+4. **Shared models: prove "same output as alone".** Greedy decoding makes a
+   generation deterministic, so interleaving two streams on one loaded model and
+   comparing against solo runs is an exact cross-talk test. It caught candle's
+   shared KV cache (fixed: `CandleWeights` shared, `CandleGeneration` per call).
+   llama.cpp passes by construction (fresh context per generation); pinned by
+   `gguf_share_tests.rs`.
+5. **Generated code must match its runtime:** `buffa-build` = the `buffa`
+   runtime version (`=0.8.1`); a 0.9 codegen against the 0.8 runtime does not
+   compile (it broke docker's untested `buildkit` feature on master too).
+6. **`https` silently didn't work** through connectrpc's `H1Transport` (built
+   `http://` URLs) and netio's `open_exchange` (fresh pool, TLS connector
+   dropped). Both fixed; test TLS paths end to end, not just "it connects".
+7. **connectrpc client error decoding** was wrong three ways (Connect status
+   from HTTP code only; gRPC trailers via `transmute`, not marked wire; gRPC-Web
+   unary errors decoded as messages). All fixed in F01; assert codes + messages
+   in protocol tests.
+8. **valtron worker starvation:** a task parked on a worker that then blocks
+   (h1 serve in `poll(2)`) is stranded until that call ends. Run agent-rpc with
+   ≥ 8 workers + one per concurrent HTTP/1.1 call; in-process h1 streaming tests
+   can stall ~30 s. Root fix belongs in valtron/connectrpc (backlog). The
+   foundation_proxy e2e intermittent hang (`rpc_proxy_e2e_tests`, 4 unary tests
+   hung to the 60-min CI timeout once on master) is probably the same class; an
+   agent started on `fix/proxy-e2e-hang` and stopped on a spend limit without a
+   conclusion — its worktree has unfinished work.
+9. **CUDA/NCCL:** llama.cpp `GGML_CUDA_NCCL` (default ON) compiles NCCL into
+   ggml-cuda when found; our `build.rs` links the static archives itself, so it
+   must name the library CMake found (`NCCL_LIBRARY` in `CMakeCache.txt`).
+   `cuda-no-nccl` opts out. The image smoke tests run on PRs that touch
+   `infrastructure/llama-*`.
+10. **Missing model files must be errors:** `infrastructure_llama_cpp` used
+    `debug_assert!(path.exists())` (panic in debug/uat); now `FileNotFound`.
+11. **Releases:** release-plz on stable (`ci/release-rust-toolchain`), triggered
+    by a green "Audit: Checks & Tests" on master; the release-PR job checks out a
+    local branch (release-plz refuses a detached HEAD). The Publish dry-run job
+    also runs on stable and guards stable-buildability.
+
+### Where bugs are tracked
+
+`docs/bug-backlog.md` (grouped by crate) is the source of truth; add an entry in
+the same change that finds a bug and remove it in the change that fixes it.
 
 ## Key finding (creation)
 
@@ -9,7 +116,7 @@ This system is **four single-mission components composed by a manifest and one
 live handshake — not a layered stack.** The instinct to make the proxy
 "understand" agent-rpc, or to have agent-rpc register itself, or to share a
 manifest/secret across components, all reintroduce the coupling the design
-explicitly forbids. The two hard seams are: (1) the manifest, read *only* by
+explicitly forbids. The two hard seams are: (1) the manifest, read _only_ by
 installer + registrar, and (2) the registration handshake, between registrar and
 proxy. Everything else is independent.
 
@@ -67,14 +174,14 @@ by the platform, not by taste:
   `foundation_auth`'s non-optional `rand 0.9` (`os_rng` → `rand_core 0.9`).
   `foundation_auth` itself fails the wasm check today (regression since spec 28):
   its `wasm` feature only enables `getrandom 0.2/js`, but getrandom 0.3+ moved
-  wasm support to a `wasm_js` *feature* that neither `rand_core 0.9` nor `ahash
-  0.8` forwards. (getrandom 0.4.3 via `jwt-simple`/`ed25519-compact` is already
+  wasm support to a `wasm_js` _feature_ that neither `rand_core 0.9` nor `ahash
+0.8` forwards. (getrandom 0.4.3 via `jwt-simple`/`ed25519-compact` is already
   fine — `ed25519-compact` forwards `wasm_js`.) Fix: enable `getrandom 0.3`'s
   `wasm_js` in `foundation_auth` (target-gated alias dep) + `ahash`
   `default-features = false` in `foundation_ai` (its 3 `AHasher::default()` sites
   are deterministic content-hashing). Note: getrandom 0.3.4's `compile_error!`
-  misleadingly names a `wasm_js` *configuration flag* (`--cfg
-  getrandom_backend="wasm_js"`), but its README says that cfg "is no longer
+  misleadingly names a `wasm_js` _configuration flag_ (`--cfg
+getrandom_backend="wasm_js"`), but its README says that cfg "is no longer
   required and does nothing" — the `wasm_js` **feature flag** is what's needed.
 - **The providers already hold `Arc<dyn HttpClient>`.** The three cloud providers
   already declare `http_client: Option<Arc<dyn HttpClient>>` + a
@@ -86,8 +193,8 @@ by the platform, not by taste:
   enables `foundation_netio/wasm-fetch`, and `std::thread::sleep` backoff compiles
   on wasm but panics at runtime.
 - **The repo already has the hard parts.** `foundation_netio::wasm::client::
-  FetchHttpClient` (behind `wasm-fetch`), `foundation_http::wasm::{serve_cf,
-  dispatch_cf}`, and `foundation_connectrpc::shared::Router` (wasm-compatible
+FetchHttpClient` (behind `wasm-fetch`), `foundation_http::wasm::{serve_cf,
+dispatch_cf}`, and `foundation_connectrpc::shared::Router` (wasm-compatible
   Connect/gRPC-Web handlers; H2/H3 + `ConnectRpcServe` are native-only). The one
   gap on the RPC side is `foundation_connectrpc::shared::transport::wasm` — a
   capabilities stub ("lands in F24").
@@ -134,7 +241,7 @@ Two substrate homes already exist — reuse them, do not invent new types:
 
 ## WASM T1 resolution (2026-10-20) — getrandom/ahash removed, not patched
 
-The original plan (above) was to *patch* getrandom 0.3's `wasm_js` feature and
+The original plan (above) was to _patch_ getrandom 0.3's `wasm_js` feature and
 `ahash`'s `runtime-rng`. The actual fix is **stronger**: it removes `getrandom 0.3`
 from the wasm graph entirely, by routing both call sites through `foundation_compact`.
 
@@ -155,11 +262,11 @@ from the wasm graph entirely, by routing both call sites through `foundation_com
   target-gated `getrandom` alias dep, no `wasm_js` feature plumbing, and the
   hasher is deterministic-by-default.
 
-**But `getrandom 0.3` was only the *first* of six stacked, pre-existing wasm
+**But `getrandom 0.3` was only the _first_ of six stacked, pre-existing wasm
 breakages** in `foundation_ai`'s wasm build — each fix unmasks the next:
 
 1. **`foundation_netio` pulled `multi` into wasm.** `foundation_ai` declared
-   `foundation_netio` in its *unconditional* `[dependencies]` with default
+   `foundation_netio` in its _unconditional_ `[dependencies]` with default
    features (→ `multi` → `foundation_core/multi`), so valtron's `TaskIteratorExt`
    and `send` resolved to their `+ Send` variants — but the wasm websocket/
    body-reader code is deliberately non-`Send` (single-threaded). Also valtron
@@ -168,7 +275,7 @@ breakages** in `foundation_ai`'s wasm build — each fix unmasks the next:
    target-gate `foundation_netio` in `foundation_ai` (native = defaults, wasm =
    `default-features = false, features = ["wasm-fetch"]`, mirroring
    `foundation_auth`), and add an explicit `impl TaskIterator for
-   StreamToTaskAdapter` (forwards `next()` → `next_status`, drops the unused `Ctx`).
+StreamToTaskAdapter` (forwards `next()` → `next_status`, drops the unused `Ctx`).
 2. **`foundation_auth` `password_hash.rs` wasm code gated by target, not
    feature.** Its WebCrypto PBKDF2 paths were `#[cfg(target_family = "wasm")]`
    but use `js_sys`/`web_sys`/`wasm_bindgen`/`wasm_bindgen_futures`, which only
@@ -213,7 +320,7 @@ exits 0 (only pre-existing dead-code warnings remain). T1 is complete.
 
 The T2 dependency-crate audit (`cargo check --target wasm32-unknown-unknown` on
 `foundation_netio`/`foundation_vectors`/`foundation_compact`/`foundation_arrow`/
-`foundation_connectrpc`) found **one real failure**, and it was *not* the crate the
+`foundation_connectrpc`) found **one real failure**, and it was _not_ the crate the
 spec predicted (`foundation_arrow`):
 
 - **`foundation_vectors`, `foundation_compact`, `foundation_arrow` all pass
@@ -266,7 +373,7 @@ standalone job back on:
   — no `--all-targets`, no `--profile uat` (wasm has neither test binaries nor a
   uat-tuned profile; a plain `check` is the gate). The `wasm32-unknown-unknown`
   target is already installed in the CI image (`check.yaml`'s `rustup toolchain
-  install ... --target wasm32-unknown-unknown`).
+install ... --target wasm32-unknown-unknown`).
 - **`ci/packages.toml` defaults `wasm = "off"`** (most crates aren't wasm targets);
   ten foundation crates opt in with `wasm = "enforce"` + a `wasm-runs` entry.
 - **Both CI jobs** (`package` and `package-artifact`) run `--step wasm`, so a fork/
@@ -274,18 +381,18 @@ standalone job back on:
 
 The ten gates (all verified green locally, wasm-relevant feature sets):
 
-| crate | wasm-runs |
-|-------|-----------|
-| foundation_core | `--no-default-features --features std` |
-| foundation_auth | `--no-default-features --features wasm` |
-| foundation_http | `--no-default-features --features wasm` |
-| foundation_db | `--no-default-features --features wasm` |
-| foundation_netio | `--no-default-features --features wasm-fetch` |
-| foundation_vectors | `""` (defaults) |
-| foundation_compact | `""` (defaults) |
-| foundation_arrow | `""` (defaults) |
-| foundation_connectrpc | `--no-default-features --features rpc` |
-| foundation_ai | `--no-default-features` |
+| crate                 | wasm-runs                                     |
+| --------------------- | --------------------------------------------- |
+| foundation_core       | `--no-default-features --features std`        |
+| foundation_auth       | `--no-default-features --features wasm`       |
+| foundation_http       | `--no-default-features --features wasm`       |
+| foundation_db         | `--no-default-features --features wasm`       |
+| foundation_netio      | `--no-default-features --features wasm-fetch` |
+| foundation_vectors    | `""` (defaults)                               |
+| foundation_compact    | `""` (defaults)                               |
+| foundation_arrow      | `""` (defaults)                               |
+| foundation_connectrpc | `--no-default-features --features rpc`        |
+| foundation_ai         | `--no-default-features`                       |
 
 The spec-28 commands are **stale** — `ssl-rustls-awsrc` moved to `foundation_netio`,
 `foundation_core`'s wasm surface is now just `std`/`alloc` (+ `js-wasmbindgen`/
@@ -304,13 +411,13 @@ non-stream `{"result":{"response":"…"}}` via `send`, and SSE `data:
 worth recording:
 
 - **Workers AI SSE streams carry no `[DONE]` sentinel** (unlike OpenAI/Anthropic).
-  Each `response` field is the *cumulative* text so far, and the stream ends only
+  Each `response` field is the _cumulative_ text so far, and the stream ends only
   when the server closes the connection (EOF). `WorkersAiStream` therefore
   terminates by the inner SSE iterator returning `None` on EOF, not by a sentinel;
   it still tolerates a `[DONE]` if one ever appears.
 - **The streaming test must use `SseTestServer`, not `TestHttpServer::with_response`.**
   The first test version used `TestHttpServer::with_response` with a fixed
-  `Content-Length` body and *hung forever* (~1.5 h before it was caught): the SSE
+  `Content-Length` body and _hung forever_ (~1.5 h before it was caught): the SSE
   body reader reads until EOF, not until `Content-Length`, so after consuming the
   whole body it blocks on the next read because `TestHttpServer` keeps the
   connection open. OpenAI/Anthropic's `[DONE]` sentinel masks this in their tests —
@@ -324,7 +431,7 @@ worth recording:
 
 Local `wrangler dev --local` runs the Worker fine, but `POST /generate` hangs
 with 0 bytes **and blocks the whole isolate** (`GET /` stops answering too). The
-root cause is *not* the executor selection — the wasm single-threaded executor
+root cause is _not_ the executor selection — the wasm single-threaded executor
 correctly selects `JSThreadYielder` (`single/mod.rs:77-88`), which hooks
 `setTimeout` to drive the engine. The bug is one layer up, in the **synchronous**
 streaming path:
@@ -389,10 +496,10 @@ the isolate.
   `Spread`-yielded-as-is. All 24 `bridge_park` tests pass under `--profile uat`.
 - Native `cargo check -p foundation_core --tests` and wasm
   `cargo check --target wasm32-unknown-unknown -p foundation_core --no-default-features
-  --features std` both pass; `foundation_netio` (native + `wasm-fetch`) compiles.
+--features std` both pass; `foundation_netio` (native + `wasm-fetch`) compiles.
 - Fixed two pre-existing broken tests (`test_into_ready_future_via_ext` and
   `test_tokio_await_ready_future`) that asserted `remaining.next().is_none()`
-  after `into_ready_future()`, though the bridge returns the *remaining* iterator
+  after `into_ready_future()`, though the bridge returns the _remaining_ iterator
   (which still holds the unconsumed item). Corrected to assert the remaining item
   then `None`. Now the whole foundation_core suite is green.
 
@@ -428,7 +535,7 @@ the isolate.
 
 - `SseProgress` gained `Failed(String)` (so `Clone, Debug, Eq, PartialEq`, but the
   `Copy` derive is gone — `String` isn't `Copy`). This was safe because no code
-  matches `SseProgress` exhaustively: the native `map_progress` only *constructs*
+  matches `SseProgress` exhaustively: the native `map_progress` only _constructs_
   it, and the model layer maps `Stream::Pending(_)` / `Stream::Pending(p)` by
   wildcard/bind, never by enumerating variants.
 - Wasm `send_sse` no longer wraps `fetch` in `block_on_collect`. It returns a
@@ -443,7 +550,7 @@ the isolate.
   wraps it in `SendWrapper`, `spawn_local` needs no `Send`.
 - `impl WakeableStream for WasmSseIterator` registers on a `WakeRegistry` that the
   `spawn_local` reader fires on every queue push and on done/close. `impl
-  WakeableStream for LazySseIterator` delegates to the body iterator once the fetch
+WakeableStream for LazySseIterator` delegates to the body iterator once the fetch
   resolved, else registers on its own fetch-stage registry. Both types carry
   `unsafe impl Send` (wasm is single-threaded; the `!Send` registry/callbacks are
   only touched on that thread).
@@ -451,7 +558,7 @@ the isolate.
   `Wait`/`Pending` and busy-polls) to `into_future_stream()` (parks via
   `WakeableStream`), which is what makes the async seam genuinely await-friendly.
 - Gates green: `cargo check -p foundation_netio` (native), wasm `--no-default-features
-  --features wasm-fetch`, and `cargo test -p foundation_netio --profile uat`
+--features wasm-fetch`, and `cargo test -p foundation_netio --profile uat`
   (979 passed, 1 pre-existing macOS unix-socket failure `EINVAL`, already in the
   backlog). `cargo check -p foundation_ai` (native + wasm) also green after the
   `SseProgress` change.
@@ -476,7 +583,7 @@ the isolate.
   `Model::stream` path through a mock `HttpClient` whose `send_sse` yields a single
   `Pending(Failed("boom"))`, asserting `OpenAIStream` and `WorkersAiStream` both map
   it to `ModelState::Error("boom")` and then terminate. Gates green: `cargo test -p
-  foundation_ai --profile uat` (all suites pass, provider_tests 243→245) and wasm
+foundation_ai --profile uat` (all suites pass, provider_tests 243→245) and wasm
   `cargo check --target wasm32-unknown-unknown -p foundation_ai --no-default-features`.
 
 ## 06 T5 (2026-10-20) — the live smoke test: park, don't poll; wake from JS
@@ -488,13 +595,13 @@ the isolate.
   waiting on it.
 - **Hang 1: a hidden sync HTTP call.** `OpenAIProvider::get_model` does a sync
   `GET models/{name}` on a cache miss (the first turn). On wasm, sync `send` was
-  `block_on_collect`, which runs a nested `run_until` *inside the running agent
-  task*. The running task's slot counts as active, so the nested loop spins on
+  `block_on_collect`, which runs a nested `run_until` _inside the running agent
+  task_. The running task's slot counts as active, so the nested loop spins on
   `CanProgress(None)` forever. Lesson: no sync "block on" helper may be reachable
   from a task on wasm. Wasm `send` now errors (`use send_async`), and `get_model`
   skips the optional lookup on wasm.
 - **Hang 2: `TaskStatus::Wait` is not a park.** `Wait` keeps the task active
-  *and* pushes a `Stream::Wait` item to the output queue; every push wakes the
+  _and_ pushes a `Stream::Wait` item to the output queue; every push wakes the
   consumer, whose next poll drives the executor and arms another `setTimeout`
   chain. Chains multiplied (~1,700 timer callbacks/s). Use
   `TaskStatus::Depends(signal)` for I/O waits.
@@ -529,6 +636,263 @@ the isolate.
 - **`cargo test -p foundation_ai` skips the agentic suite**: `agentic_tests`
   needs `--features testing`. Run it explicitly.
 
+## 01 T1 (2026-10-20) — shareability spike: shared weights, per-generation KV
+
+- **The assumption was false for Candle, and the test proved it.** `CandleModels`
+  was `Arc<Mutex<state>>` with the KV cache _inside_ the shared state, and the
+  stream took the lock per token. So it was `Send + Sync`, but two generations on
+  one loaded model reset and overwrote each other's KV cache between tokens.
+  `interleaved_streams_on_one_gemma2_model_do_not_cross_talk` (two greedy streams
+  polled A, B, A, B) was red: their tokens differed from the same streams run
+  alone. Greedy decoding makes "same as alone" an exact cross-talk check.
+- **Fix (in `foundation_ai/src/backends/candle.rs`), not the `Arc<Mutex>`
+  fallback:** split the model into read-only `CandleWeights` (in an `Arc`,
+  shared by every clone) and per-generation `CandleGeneration` (its KV cache).
+  Llama's cache is external, so a generation is just a fresh `Cache`; Gemma2's is
+  internal, so a generation clones the model (candle tensors are refcounted, so
+  no weights are copied) and clears the cache. No lock is held across a forward
+  pass, so sessions on one model now run in parallel, not serialized.
+- **Found on the way: Llama ran with the KV cache off** (`Cache::new(false, ..)`)
+  while the stream fed one token per step, so every token after the first
+  attended only to itself. Now `true`.
+- **Stream errors were swallowed**: a failed forward/sampling ended the stream as
+  `Finished`. It now yields `Pending(ModelState::Error(..))` (the loop maps it to
+  a `FailedAction`).
+- **`CandleModels::shares_weights_with`** (`Arc::ptr_eq`) is the observable proof
+  that two handles are one load; agent-rpc's `ModelHandle` builds on it.
+- **llama.cpp (`LlamaModels`)** was left unverified here because the agent's
+  worktree had no `tools/llama.cpp` submodule checkout; verified later (see
+  "01 T2–T3 … GGUF" and `tests/gguf_share_tests.rs`).
+- **Build notes:** candle's `pulp` does not link under the default cranelift dev
+  backend; build and test with `--profile uat` (LLVM). `foundation_ai`'s own test
+  targets cannot build without llama.cpp (unconditional dev-dependency), so the
+  spike's tests live in `foundation_agent_rpc/tests/model_share_tests.rs`.
+
+## 01 T2–T3 (2026-10-20) — scaffold and `ModelHandle`
+
+- **Scaffold:** one `AgentRpcError` enum (derive_more, not thiserror — the
+  rust-clean-code rule) with `code()` as the only Connect/gRPC status table;
+  modules are added when their task lands rather than as empty files.
+- **No `Arc<Mutex<…>>` fallback was needed** (T1 made candle concurrent), so
+  `ModelHandle` is `Arc<{name, ModelId, ProviderRouter}>`. A local model is
+  wrapped in `PreloadedProvider`, whose `get_model` hands every session a clone
+  of the same `CandleModels`. The handle holds no loader, so nothing downstream
+  can reload; `load_with(name, loader)` runs the loader exactly once.
+- **`from_router(name, model_id, router)`** serves any router (cloud providers,
+  `MockModelProvider` in tests). `MockModel` is not `Clone`, so it cannot go
+  through `PreloadedProvider`.
+- **GGUF:** `ModelSource::Gguf { name, path, device }` (feature `gguf`) loads a
+  `.gguf` file once through `LlamaBackends::load_model`. Each llama.cpp
+  generation copies the shared `Arc<LlamaModel>` under a brief lock and builds
+  its own context (KV cache), so sessions do not interfere:
+  `tests/gguf_share_tests.rs` pins it on the tiny GGUF fixture (interleaved
+  streams and two OS threads match their solo greedy output).
+  - An earlier note here said llama.cpp "cannot be compiled in this
+    environment". Wrong: the agent worked in a **git worktree**, and worktrees do
+    not initialize submodules, so `tools/llama.cpp` was empty. Run
+    `git submodule update --init tools/llama.cpp` in a fresh worktree; the CPU
+    build works.
+  - Loading a missing GGUF used to panic (a `debug_assert!` in
+    `infrastructure_llama_cpp`'s `load_from_file`); it now returns
+    `LlamaModelLoadError::FileNotFound`.
+
+## 01 T4 (2026-10-20) — `InstanceRegistry`
+
+- An instance is `Arc<{name, ModelHandle, AgentSession, busy flag}>` in a
+  `RwLock<BTreeMap>`; `create` builds the session on the model's router outside
+  the write lock and never loads (ten instances, loader count 1).
+- **One turn per instance at a time:** an `AgentSession` shares its steering
+  queues across turns, so two concurrent turns would read each other's prompts.
+  `begin_turn()` returns a `TurnGuard` or `InstanceBusy` (→ `aborted`).
+- Names: 1..=63 of `[a-z0-9._-]`, starting alphanumeric (RFC 1123 label). Limits
+  (`max_instances` 1024 = nginx `worker_connections`, `max_name_len` 63) are
+  `RegistryConfig` fields.
+- `destroy` aborts a running turn and calls `AgentSession::end()` (flush); an
+  `end()` error is returned, not dropped, after the instance is removed.
+
+## 01 T5 (2026-10-20) — generated `AgentService`
+
+- **Contract:** `proto/ewe/agent_rpc/v1/agent.proto` — `AgentService` (Health,
+  Create/List/DestroyInstance, Chat, ChatStream) + `BootstrapService` (Enroll)
+  - `BootstrapPayload`. `build.rs` = the docker BuildKit pattern: `buffa-build`
+    for messages, `foundation_connectrpc_codegen::generate_services` once per
+    service (each service's `pub mod procedure` needs its own module). Needs
+    `protoc` (`PROTOC`; installed under mise at `~/.local/share/mise/installs/protoc`).
+- **`buffa-build` must match the `buffa` runtime.** 0.9.2 codegen calls 0.9-only
+  APIs (`saturate_size`, `EncodeSink`) and does not compile against connectrpc's
+  0.8.1 runtime; pinned `=0.8.1`. The docker crate pairs 0.9.2 with 0.8.1 too
+  (backlog §6). Views are off (`generate_views(false)`), unused here.
+- **Generator fixes (not local `allow`s):** default trait bodies named their
+  unused params `ctx`/`request` (unused-variable warnings in every consumer), and
+  the client mocking trait used `async fn` in a public trait without allowing
+  `async_fn_in_trait`. Both fixed in `foundation_connectrpc_codegen`.
+- **Async turn consumption:** `TurnStream` did not implement `WakeableStream`,
+  so it could not use `into_future_stream()`; it now forwards `wake` to its
+  `DrivenStreamIterator`. And `TurnEvent::from_stream_item` (public) is the
+  record→event mapping `TurnEvents` uses, so an async handler can map raw items
+  without the blocking `TurnEvents` iterator.
+- **Boundary note:** `DrivenStreamIterator::next` waits up to its park duration
+  on the result queue before yielding `Wait`, so a poll of the bridged stream can
+  hold a worker briefly. That is valtron's existing boundary behaviour, not new.
+- `ChatStream` holds the instance's `TurnGuard` until the stream ends; dropping
+  it mid-turn (client gone) or a cancelled `Ctx` aborts the session's turn.
+
+## 01 T6 (2026-10-20) — unary over Connect on loopback
+
+- **Server shape:** one listener, `ServerApp::Both` (HTTP/1.1 for Connect and
+  gRPC-Web, h2c for gRPC), every `AgentService` procedure routed to a
+  connectrpc handler. `ConnectRpcHandler` is not `Clone`, so the h1 and h2 apps
+  each get their own `agent_router` over the same `Arc<AgentRpcService>`. The
+  serve loop runs on a named std thread; `RunningServer::graceful_shutdown`
+  turns the `OnSignal` and joins it (also on drop). The builder refuses to build
+  until auth is chosen explicitly (`insecure_plaintext()` for local use).
+- **Worker starvation (important for operators):** the h1 connection driver
+  blocks its valtron worker in `poll(2)` for the whole call, and a turn also
+  needs workers for the client tasks and the agent loop. With 4 workers a
+  `Chat` never ran (client hit its deadline); with 8 it completes, and 10
+  sequential calls before it show no per-call leak. The same `chat` future
+  completes under `futures::executor::block_on` off the pool, so the wake path
+  is fine; it is pure pool exhaustion. Run agent-rpc with ≥ 8 workers plus one
+  per concurrent HTTP/1.1 call (backlog §1 has the root cause).
+- **connectrpc client bug fixed:** a non-200 Connect unary response was decoded
+  from the HTTP status only and the raw JSON body became the message, so
+  `aborted`/`already_exists` (both 409) and `invalid_argument`/
+  `failed_precondition` (both 400) were indistinguishable, and `is_wire_error()`
+  was false. `do_unary_round_trip` now reads the `WireError` body's code and
+  message first. connectrpc's connect/error/conformance/grpc-web/client/grpc
+  suites still pass.
+
+## 01 T7 (2026-10-20) — `ChatStream`, proven unbuffered
+
+- **Proof design:** a gated model emits token `k+1` only once the _client_ has
+  received token `k`; any buffering between model and client keeps the gate shut
+  and the turn fails. The gate yields `Stream::Delayed(2ms)` instead of blocking
+  (the agent loop turns that into `TaskStatus::Delayed`). An in-process variant
+  drives `AgentService::chat_stream` directly.
+- **The first red was not buffering.** The first gated model blocked on a
+  condvar, and the stream "buffered" over both h1 and h2c. Bisecting: a raw
+  socket got head + frame 0 from a bare connectrpc server in 8 ms; `H1Transport`
+  alone delivered head (63 ms) and frame 0 (103 ms); but the connectrpc client's
+  `server_stream` only returned after the call's deadline. Cause: valtron
+  re-polls readiness-parked tasks only on the worker that parked them, so the
+  client's reader task (a `from_future` task parked on a waker) is stranded
+  when that worker blocks — on my condvar, or in the h1 server's
+  `ConnIo::block_on` `poll(2)`. Backlog §4 (valtron) and §1 (h1 serve).
+- **Consequence for tests:** the unbuffered proof runs Connect over **h2c**
+  (`H2Transport`; the server's h2 path never blocks a worker). Connect over
+  HTTP/1.1 streaming is round-tripped with an ungated producer; it passes but can
+  stall ~30 s when the client's reader lands on the server call's worker. This
+  only affects a client in the _same process_ as the server (tests); a remote
+  client is unaffected, though server-side tasks parked on a worker that then
+  blocks in an h1 call are affected the same way.
+
+## 01 T8 (2026-10-20) — bootstrap token → client certificate → mTLS
+
+- **Two listeners, no handler-level auth.** The agent listener is mutual TLS
+  (rustls `WebPkiClientVerifier` over our CA): a call without a CA-issued client
+  certificate fails in the handshake and never reaches a handler, so the router
+  has no auth logic (the spec's "auth gates the router"). A second, server-auth
+  TLS listener serves only `BootstrapService/Enroll`. One listener with optional
+  client auth would need the verified peer certificate plumbed into `Ctx`, which
+  `foundation_http` does not do.
+- **Enrollment = token + CSR.** The client generates its key locally and sends
+  a CSR; the CA copies only the CSR's public key (subject = validated client
+  name, non-CA, `clientAuth` EKU, our lifetime). The token is 256 bits of
+  `foundation_compact::entropy`, base64url, compared in constant time,
+  single-use by default (`MtlsConfig::with_max_enrollments`), rotatable
+  (`EnrollmentService::rotate`), zeroed on drop, redacted in `Debug`/`Display`.
+- **Before it has the CA, the client pins the server certificate's SHA-256**
+  (the fingerprint the bootstrap payload carries); handshake signatures are
+  still verified.
+- **Bugs fixed on the way (both made "https" silently not work):**
+  - `foundation_connectrpc` `H1Transport` rebuilt every URL as `http://`, so an
+    `https://` base URL sent plaintext to a TLS port (the client then read the
+    TLS alert as an HTTP status line).
+  - `foundation_netio` `NativeHttpClient::open_exchange` (the path H1Transport
+    uses) built a fresh connection pool, discarding the client's TLS connector
+    and custom `Connector` — custom roots and client certificates never applied
+    (`UnknownIssuer` against our CA). It now uses the client's pool.
+  - Added `RustlsAcceptor::with_config` (server twin of
+    `RustlsConnector::with_config`) so a server can use an mTLS `ServerConfig`.
+- **Log hygiene test:** `#[traced_test]` cannot coexist with `#[valtron_test]`
+  (both set the global subscriber), so `auth_log_tests` is its own binary that
+  installs a TRACE-level capturing subscriber before starting the pool and runs
+  the whole lifecycle — including logging the token's `Debug` on purpose.
+- **Not covered:** gRPC over TLS has no client (`H2Transport` is h2c only), so
+  gRPC is exercised in plaintext mode (T10). Proxy forwarding of the mTLS
+  channel is out of this feature (the spec's proxy terminates TLS; end-to-end
+  client certificates through it need passthrough — spec 65 F3).
+
+## 01 T9 (2026-10-20) — bootstrap payload
+
+- The payload is the generated `BootstrapPayload` message (version, agent
+  address, bootstrap address, server-cert SHA-256, token, capabilities),
+  protobuf-encoded then base64url without padding: ~200 bytes → a small QR code,
+  safe in URLs and shells. `decode` rejects bad base64, bad protobuf, an unknown
+  version, and missing addresses/fingerprint/token as `Codec` errors.
+- QR: `qrcode` 0.14 with only the `svg` feature (no image codecs); terminal
+  rendering uses Unicode half blocks (`Dense1x2`).
+- `RunningServer::bootstrap_payload(&token)` builds it (the server never stores
+  the token outside the enrollment service); `client::connect_with_payload`
+  decodes → enrolls (pinned) → returns an mTLS `AgentServiceClient` and the
+  identity, so a client needs nothing but the string.
+- The payload holds the token, so `EncodedPayload` redacts `Debug`/`Display`;
+  nothing here writes it to disk. Note the generated `BootstrapPayload`'s own
+  `Debug` prints every field — never log the message itself.
+
+## 01 T10 (2026-10-20) — gRPC and gRPC-Web end to end; feature complete
+
+- **The inherited gap is closed:** spec 63 T1 landed, so `grpc-status` is
+  observable; the gRPC test asserts the `grpc-status: 0` trailer on a unary
+  success and `not_found` + server message on an error, over h2c.
+- **Two more connectrpc client bugs, fixed:**
+  - gRPC trailer errors were built with `ConnectError::new` (not marked as
+    server-sent) and mapped the status with an `unsafe transmute`; now
+    `ConnectError::wire` + `Code::from_u32`, like the Connect and gRPC-Web
+    decoders.
+  - A gRPC-Web unary _error_ (body = only the `0x80` trailer frame) was decoded
+    as the response message ("proto codec: invalid wire type 7"): the unary path
+    never read in-body trailers. The client now splits the body into the message
+    envelope and the trailer frame and checks `grpc-status` from it.
+    connectrpc's connect/error/conformance/grpc-web/client/grpc/h2-streaming/
+    transport/router suites pass after both.
+- **Real model, concurrent instances:** `two_instances_chat_concurrently_on_
+one_loaded_model` loads the tiny candle Llama once (`load_with` counter = 1),
+  creates two instances, and runs two gRPC `Chat`s concurrently
+  (`futures::join!`) — both complete.
+- **Protocol coverage on loopback:** Connect (h1 unary + stream, h2c stream,
+  h1 mTLS), gRPC (h2c unary + stream), gRPC-Web (h1 unary + stream). Not
+  covered: gRPC over TLS (no h2-over-TLS client; backlog §1).
+- **Running the suite:** `cargo test --profile uat -p foundation_agent_rpc`
+  (needs `protoc`, e.g. `PROTOC=~/.local/share/mise/installs/protoc/36.2/bin/protoc`).
+  56 tests, ~20 s, dominated by the candle spike.
+
+## Feature 07 design (2026-10-22)
+
+- **Read before you design.** valtron already has a `Clock` trait, a `MockClock` in tests and
+  a seeded `ChaCha8Rng` in `Ctx`; `foundation_compact` already has wasm-safe `Instant`,
+  `SystemTime`, entropy and scru128 IDs. The `Env` design extends these. It does not add a
+  second system.
+- **Some crypto libraries hide their randomness.** `ring`'s `SystemRandom` is sealed, so
+  `rcgen` key generation and ECDSA signing cannot be made deterministic. The design makes
+  keys with the pure-Rust `p256` and `ed25519-compact` crates from `Env` entropy, and signs
+  certificates through an `rcgen::RemoteKeyPair` with RFC 6979 nonces. TLS handshakes stay
+  out of DST.
+- **`std::time::Instant::now()` panics on `wasm32-unknown-unknown`.** valtron's sleep and
+  connectrpc's deadline timer use it today. Both move to the injected timer (task T2, T3).
+- **A design agent can stop before it finishes** (the account spend limit stopped it after
+  five of eight files). Commit and push each design file as soon as it is written.
+
+- **Cloudflare has no key management service that a Worker can call** (checked 2026-10-22). The
+  best a Worker gets is a Secrets Store or Worker secret, imported as a non-extractable WebCrypto
+  key. WebCrypto in Workers supports AES-GCM `encrypt`/`decrypt`, but `wrapKey` only for AES-CTR,
+  AES-CBC and RSA-OAEP. On Linux bare metal, systemd encrypted credentials sealed to the TPM2 chip
+  are the strongest local choice. Environment variables are the weakest (`/proc/<pid>/environ`
+  keeps the start-up value even after `remove_var`).
+- **foundation_db migration 023 (`023_create_vectors.sql`) is in the directory but not in
+  `MIGRATIONS`,** so it never runs. Nothing checked this. Task T25 adds a test that every file is
+  planned.
+
 ## "Zero response" root cause (2026-10-24) — a failed turn streamed nothing
 
 Both deployed examples (`cf-cloud-provider`, `cf-agent-loop`) answered a failed
@@ -540,7 +904,7 @@ terminal `Failed` event never reached the caller.
   `error` event, or a transport failure), each provider emitted a bare
   `Stream::Pending(ModelState::Error(..))`. The text already streamed was lost.
   Fix: `partial_then_error` emits `Stream::Spread([Done(partial),
-  Pending(ModelState::Error(..))])` — the accumulated text first, then the failure.
+Pending(ModelState::Error(..))])` — the accumulated text first, then the failure.
 - **`lift_model_item` dropped the error inside a spread.** Its `Stream::Spread`
   arm mapped `StreamSpread::Pending(ModelState::Error(..))` through the general
   progress arm, which returned `Initializing`. The failure became a progress event
@@ -562,7 +926,7 @@ path in tests, not only the `Err`-returning path.
 Tests prove each layer:
 
 - `tests/providers/{openai_provider, anthropic_messages_provider,
-  workers_ai_provider}.rs`: each has a `*_stream_error_emits_partial_then_failure`
+workers_ai_provider}.rs`: each has a `*_stream_error_emits_partial_then_failure`
   test. Partial text, then the failure in one spread, for all three providers.
 - `tests/agentic/progress_tests.rs`:
   `lift_spread_error_becomes_failed_action_not_progress` — the lift maps the
@@ -685,11 +1049,48 @@ Two things the first pass got wrong, now fixed:
   which compiles only `tracing` + `tracing-core` in no_std.
 - `trace.rs` must declare `extern crate alloc;` itself, like `embeddable.rs` and
   `raw_parts.rs`. The crate root's `extern crate alloc` is `#[cfg(not(feature =
-  "std"))]`, so a dev-dependency that turns on `std` removes it and breaks
+"std"))]`, so a dev-dependency that turns on `std` removes it and breaks
   `use alloc::…` in modules that do not declare their own.
 
 Verified: `--no-default-features --features trace` (no_std) and
 `--features "std trace"` both check; the integration test passes. The message
 field prints unquoted (`fmt::Arguments`), while `&str` fields print quoted.
 
+## Spec review round 3 (2026-10-26): completeness, correctness, clarity
 
+The owner reviewed features 02, 03, 04 and feature 07's `proto.md` and `migrations.md` on PR #126
+(2026-10-25). What we learned:
+
+- **Every type needs four answers.** For each type, field and enum variant, say what it is, who
+  makes it, who reads it, and give an example. "`Artifact::Tool(String)`" with no words around
+  it is not a design.
+- **A reply type with only a `status` field hides the design.** `BackendAck { status }` covered
+  three calls and said nothing. Each call now has its own typed reply that carries what the
+  other side must do next (report interval, lease time, `REREGISTER`).
+- **Write the failure paths as a table, one row per case, with a test for each.** Missed
+  heartbeat, proxy restart, sidecar restart, app restart, redeploy at a new address, stale and
+  conflicting registrations, certificate expiry.
+- **Name the one place where a component authenticates, and why.** The first design gave the
+  sidecar "token → mTLS" with no reason, which read as if the sidecar took part in client TLS.
+  It does not. The proxy ends client TLS. The sidecar authenticates only on its link to the
+  proxy registration authority, because a registration changes where client traffic goes.
+- **Read the existing code before you design an extension.** `foundation_proxy` already has
+  `control.rs`, `health.rs` (with thresholds), `state.rs`, `persistence.rs` and
+  `passthrough.rs`. The first feature 03 did not mention them.
+- **A proxy that ends TLS cannot pass a client certificate.** So agent-rpc's mTLS does not work
+  through it. Clients behind the proxy use the signed-secret bearer auth of feature 07;
+  end-to-end mTLS needs SNI passthrough (feature 03, open question 3).
+- **Binaries go in `src/bin/<name>.rs`,** never `src/main.rs` next to `src/lib.rs`. The pattern
+  is `backends/foundation_testbed/src/bin/wasm-testbed.rs` with a `[[bin]]` entry.
+- **A protobuf message does not need a version field.** Field numbers already let old and new
+  readers work together. With one URL for every host, the client derives TLS trust from the
+  fingerprint and access from the token purpose. Reserve removed field numbers and names.
+- **Migrations belong to a database, in groups.** A shared group runs first, then specific
+  groups; each numbers from 1 with no gaps; record rows are keyed by group. Number ranges per
+  crate were a work-around for one flat list. Reference: `resources/Migration Management.md`.
+- **Do not fold discussion material into the spec.** `resources/` also holds Cloudflare, Durable
+  Object, D1 and NATS notes that the owner wants to discuss first.
+- **`async fn` in a trait is not object-safe.** For `Arc<dyn Trait>` with async methods, use
+  `#[async_trait::async_trait]`, as `foundation_db`'s storage traits do.
+- **A merge can leave a stray conflict marker** (`\=======` was at line 895 of this file). Search
+  for markers after each merge.

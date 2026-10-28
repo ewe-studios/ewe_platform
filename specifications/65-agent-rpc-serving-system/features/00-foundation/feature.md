@@ -17,6 +17,31 @@ tasks:
 
 # WASM & Cloudflare Workers Readiness (Foundation)
 
+_Status note (2026-10-26): tasks T1 to T6 are built (PR #124). This file is the design record.
+New text is in ASD-STE100 Simplified Technical English (STE); older paragraphs keep their
+wording. Code and identifiers stay as they are._
+
+**Abbreviations in this file.** WebAssembly (wasm); Cloudflare (CF); Hypertext Transfer
+Protocol (HTTP); server-sent events (SSE); continuous integration (CI); application
+programming interface (API); random number generator (RNG); identifier (ID); Representational
+State Transfer (REST); command-line interface (CLI); foreign function interface (FFI); AeroSpace
+and Defence Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| `wasm32-unknown-unknown` | The Rust target for WebAssembly with no operating system. Cloudflare Workers run it. |
+| Worker | A Cloudflare Worker: a wasm program that answers HTTP `fetch` events. It has one thread and about 128 MB of memory. |
+| Workers AI | Cloudflare's hosted model service. A Worker calls it over REST. |
+| OpenRouter | An HTTP gateway with the OpenAI API shape that forwards to many model vendors. This feature uses it to prove that `foundation_ai` works on a Worker. |
+| Miniflare, wrangler | Cloudflare tools. Miniflare runs a Worker on a local machine; `wrangler` builds, runs and deploys Workers. |
+| `HttpClient`, `DynNetClient` | The cross-platform HTTP traits of `foundation_netio`. `FetchHttpClient` implements them on wasm with `fetch`. |
+| `foundation_compact` | The crate for time, entropy, RNG, IDs and crypto that works on every target. |
+| Compile gate | A CI step that runs `cargo check --target wasm32-unknown-unknown` and fails the build on an error. |
+| Isolate | The single JavaScript thread that runs a Worker. Blocking it stops the Worker. |
+
+
 ## Overview
 
 This feature is the **foundation** of the whole serving system: it makes
@@ -202,6 +227,9 @@ graph TD
     LLAMA -.->|cfg not wasm| AGENT
 ```
 
+_The diagram shows the crates that run inside a Worker and the native-only parts that the wasm build leaves out._
+
+
 - The agentic layer is shared between wasm and native; only the model backend and
   the concrete HTTP client differ per target.
 - `DynNetClient`/`HttpClient` is the single cross-platform seam; providers never
@@ -226,6 +254,9 @@ sequenceDiagram
     W-->>C: streamed response
 ```
 
+_The diagram shows one streamed answer from Workers AI through the Worker to the client._
+
+
 ### Data Flow (OpenRouter — the validation path)
 
 ```mermaid
@@ -244,6 +275,9 @@ sequenceDiagram
     P-->>W: ModelStreamBox (Messages)
     W-->>C: streamed response
 ```
+
+_The diagram shows the validation path: a provider in the Worker streams from OpenRouter through `FetchHttpClient`._
+
 
 This is the decisive validation: `foundation_ai` compiled to wasm, deployed on
 Cloudflare, calling OpenRouter (via the existing `OpenAIConfig::openrouter`)

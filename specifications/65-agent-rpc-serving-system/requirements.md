@@ -38,13 +38,42 @@ related_specs:
   - "specifications/29-wasm-http-client"
   - "specifications/completed/41-connectrpc"
 features:
-  completed: 0
-  uncompleted: 7
+  completed: 2
+  uncompleted: 5
   total: 7
-  completion_percentage: 0
+  completion_percentage: 29
 ---
 
 # Overview
+
+_Written in ASD-STE100 Simplified Technical English (STE) from 2026-10-26. Older paragraphs are
+being changed to STE feature by feature. Code and identifiers stay as they are._
+
+**Abbreviations in this file.** remote procedure call (RPC); Transport Layer Security (TLS);
+mutual TLS (mTLS); WebAssembly (wasm); Cloudflare (CF); JavaScript Object Notation (JSON);
+Hypertext Transfer Protocol (HTTP); Quick Response code (QR code); command-line interface (CLI);
+software development kit (SDK); continuous integration and continuous delivery (CI/CD);
+GPT-Generated Unified Format (GGUF); Hypertext Transfer Protocol version 2 (H2); input/output
+(I/O); identifier (ID); random number generator (RNG); central processing unit (CPU); AeroSpace
+and Defence Industries Association of Europe (ASD), the owner of the STE standard ASD-STE100.
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| agent-rpc | The model server of feature 01 (`foundation_agent_rpc`). It loads a model one time and serves many named agent instances. |
+| Backend | A network address that the proxy forwards requests to, for example one agent-rpc. |
+| Bootstrap payload | The text (or QR code) that gives a client an agent-rpc address, the TLS trust data and a signed secret. Feature 07, `proto.md`. |
+| Host (feature 07) | The program-specific part that gives the agent-rpc core its network, storage and models: native, Worker or simulation. |
+| Installer | `ewe-installer` (feature 02). It installs and starts the entries of a manifest. |
+| Manifest | The JSON file that lists the software of a machine. Only the installer and the registrar read it. |
+| Proxy | `foundation_proxy`. It ends client TLS and routes requests to backends. |
+| Registrar, sidecar | `ewe-registrar` (feature 04). It runs beside the apps, checks what is installed and running, runs health probes, reads metrics, and reports to the proxy. |
+| Registration authority | The part of the proxy that enrolls sidecars and accepts their reports (feature 03). |
+| Signed secret | The credential of `foundation_auth::secret`: signed JSON with a time window. Not a JSON Web Token. |
+| Worker | A Cloudflare Worker: a wasm program that answers HTTP `fetch` events. |
+
+## Summary
 
 This specification turns the platform's RPC and AI layers into a **host-based
 agentic serving system**: a machine runs one long-lived `agent-rpc` server that
@@ -76,15 +105,23 @@ particular:
   mTLS ongoing) and advertises it to its clients/customers (CLI, SDK, dashboards)
   as a base64/QR payload. It knows nothing of the manifest, the registrar, or
   the proxy.
-- **The registrar (sidecar)** owns the *registration* auth channel to the proxy
-  (token → mTLS) and owns review of which installed binaries need proxying.
-- **The proxy** only cares that a backend registered and that it can forward to
-  it. It does not care how agent-rpc authenticates its own clients.
+- **The registrar (sidecar)** runs beside the apps (bare metal, Docker container or
+  Kubernetes pod). It reads the manifest, finds what is installed and running, runs startup,
+  liveness and readiness probes, reads CPU and memory use, and tells the proxy. It does not end
+  client TLS.
+- **The proxy** ends client TLS and routes to backends that the sidecar reports ready. It does
+  not care how agent-rpc checks its own clients.
 
-There are therefore **two independent auth channels**:
+The sidecar authenticates in **one place only**: its own link to the proxy registration
+authority. A registration changes where client traffic goes, so the proxy must know the caller
+is a trusted sidecar. The sidecar uses an enrollment token one time to get a certificate, then
+mTLS (or a local Unix socket with file permissions). Feature 03, section 5, explains it.
 
-1. client/customer ↔ agent-rpc (owned by agent-rpc),
-2. registrar ↔ proxy (owned by the registrar + proxy).
+So there are **two independent auth links**:
+
+1. client ↔ agent-rpc: agent-rpc's own auth (feature 07: signed secret, or mTLS when no proxy
+   ends TLS in between),
+2. sidecar → proxy registration authority: enrollment token, then mTLS.
 
 This mirrors the existing deployment primitives (`foundation_packager`,
 `foundation_deployment_docker`, `foundation_deployment_platform`) and the RPC
@@ -105,8 +142,8 @@ layer (`foundation_connectrpc`), and extends the proxy work begun in
   installer does **not** know about Cloudflare.
 - Extend `foundation_proxy` with a registration authority: authenticated
   register/deregister/heartbeat endpoints and a routing table of live backends.
-- Ship a sidecar registrar that reads the manifest, reviews which binaries must
-  be proxied, and keeps the proxy's routing table current (token → mTLS).
+- Ship a sidecar registrar that reads the manifest, checks which apps are installed, running
+  and healthy, reads their metrics, and keeps the proxy's routing table current.
 - Preserve strict separation of concerns: no shared Rust library between the
   components; the manifest is the only shared *format*, and only installer +
   registrar consume it.
@@ -115,8 +152,10 @@ layer (`foundation_connectrpc`), and extends the proxy work begun in
 
 - `backends/foundation_agent_rpc` — new crate: the agent-rpc model server.
 - `backends/foundation_installer` — new crate: manifest schema, source/deploy
-  adapters, bootstrap-script generation, installer binary (systemd + Docker only).
-- `backends/foundation_registrar` — new crate: the sidecar registrar binary.
+  adapters, bootstrap-script generation; binary `src/bin/ewe-installer.rs` (systemd + Docker only).
+- `backends/foundation_registrar` — new crate: the sidecar; binary `src/bin/ewe-registrar.rs`.
+- Crate layout rule: a library is `src/lib.rs`; each binary is `src/bin/<name>.rs` with a
+  `[[bin]]` entry (as `backends/foundation_testbed/src/bin/wasm-testbed.rs`). No `src/main.rs`.
 - `backends/foundation_proxy` — extended: registration authority + routing table.
 - `backends/foundation_ai` (+ `foundation_netio`, `foundation_arrow`, etc.) —
   modified only for wasm/CF-Workers readiness in `00-foundation`; the agentic
@@ -178,12 +217,21 @@ corresponding skills BEFORE implementation.
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
 | 0  | [WASM & CF-Workers Readiness (foundation)](./features/00-foundation/feature.md) | Make foundation_ai + deps compile/run on wasm32, verified via miniflare + Cloudflare; reuses DynNetClient/HttpClient, extends spec 28 | None (extends spec 28) | ⬜ Pending |
-| 1  | [Agent RPC Model Server](./features/01-agent-rpc/feature.md) | Load-once, threaded-inference RPC server with named instances and client-facing token→mTLS auth | None | ⬜ Pending |
+| 1  | [Agent RPC Model Server](./features/01-agent-rpc/feature.md) | Load-once, threaded-inference RPC server with named instances and client-facing token→mTLS auth | None | ✅ Complete |
 | 2  | [Manifest Installer](./features/02-manifest-installer/feature.md) | Manifest schema + source/deploy adapters (systemd/Docker) + bootstrap-script generation | None | ⬜ Pending |
-| 3  | [Proxy Registration Authority](./features/03-proxy-registration/feature.md) | Authenticated register/deregister/heartbeat + live backend routing table | None (extends spec 63) | ⬜ Pending |
-| 4  | [Registrar Sidecar](./features/04-registrar-sidecar/feature.md) | Reads manifest, reviews proxied binaries, registers them with the proxy | 2, 3 | ⬜ Pending |
-| 5  | [Cloudflare Deployment](./features/05-cloudflare/feature.md) | Thin WASM orchestrator on Workers + full model server on Sandboxes/Containers, consuming 00-foundation | 0, 1 | ⬜ Pending |
-| 6  | [WASM Lazy Streaming](./features/06-wasm-async-streaming/feature.md) | Remove the wasm-unsafe `run_future`/`collect()` anti-pattern from the streaming path: park-friendly `into_future_stream`, lazy `send_sse` + `SseProgress::Failed`, zero `Model` API change; fix the T6 sync-streaming hang | 0 | 🔄 In Progress |
+| 3  | [Proxy Registration Authority](./features/03-proxy-registration/feature.md) | Sidecar enrollment, `Register`/`Report`/`Deregister` on leases, live backend registry feeding the router | None (extends spec 63; uses 07's `foundation_auth`) | ⬜ Pending |
+| 4  | [Registrar Sidecar](./features/04-registrar-sidecar/feature.md) | Reads the manifest, discovers and probes apps, reads metrics, reports to the proxy | 2, 3 | ⬜ Pending |
+| 5  | [Cloudflare Deployment](./features/05-cloudflare/feature.md) | Full native model server on Cloudflare Sandboxes/Containers, and end-to-end tests on Workers; the Worker host itself is designed in 07 | 0, 1, 7 | ⬜ Pending |
+| 6  | [WASM Lazy Streaming](./features/06-wasm-async-streaming/feature.md) | Remove the wasm-unsafe `run_future`/`collect()` anti-pattern from the streaming path: park-friendly `into_future_stream`, lazy `send_sse` + `SseProgress::Failed`, zero `Model` API change; fix the T6 sync-streaming hang | 0 | ✅ Complete |
+| 7  | [Bring PR #126 onto master](./features/07-pluggable-agent-rpc/feature.md) | Task T0 only: merge master into `65-f01-agent-rpc`, adapt to async storage and async `AgentSession`. The shared design of features 7 to 15 is [`agent-rpc-architecture.md`](./agent-rpc-architecture.md) | 1 | ⬜ Pending (paused) |
+| 8  | [Env and Side Effects](./features/08-env-and-side-effects/feature.md) | `Clock`, `EntropySource`, `IdSource`, the `Env` bundle in valtron `Ctx`, the macro `env` argument, foundation_ai on Env | 7 | ⬜ Pending |
+| 9  | [Transport Prerequisites](./features/09-transport-prerequisites/feature.md) | connectrpc keeps request extensions and uses the Env clock; foundation_http reports TLS peer certificates | 8 | ⬜ Pending |
+| 10 | [Migration Groups](./features/10-migration-groups/feature.md) | Migration groups per database from code or directories; `FleetRunner` | 7 | ⬜ Pending |
+| 11 | [Auth in foundation_auth](./features/11-foundation-auth/feature.md) | Signed secrets, operator key files, CA, trusted clients, mTLS, client auth providers | 8, 9, 10 | ⬜ Pending |
+| 12 | [Agent RPC Core](./features/12-agent-rpc-core/feature.md) | `agent.proto`, model catalog, instance registry, service and enrollment handlers | 8, 11 | ⬜ Pending |
+| 13 | [Native Host and DST](./features/13-native-host-and-dst/feature.md) | Native host and simulation harness; when done, the agent-rpc proof of concept works | 9, 11, 12 | ⬜ Pending |
+| 14 | [Worker Host and Web Client](./features/14-worker-host-and-web-client/feature.md) | Workers, Durable Objects, browser client, R2 history archive | 9, 12 | ⬜ Pending |
+| 15 | [Key Protection at Rest](./features/15-key-protection-at-rest/feature.md) | Key store over foundation_db, private keys encrypted at rest (KEK sources, WebCrypto, remote KMS), passphrase key files, rotation by kid. Last: starts after the proof of concept works | 11, 13 | 📝 Todo |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
@@ -206,6 +254,9 @@ conversation settled the shape across several corrections:
   token for bootstrap, then mTLS ongoing — this is agent-rpc's own business,
   advertised via base64/QR. (2) registrar ↔ proxy: token → mTLS — this is the
   registration channel.
+- **Correction (owner, PR #126 review, 2026-10-25).** The sidecar's job is discovery, health and
+  metrics. The proxy owns client TLS termination. Token-then-mTLS applies only to the sidecar
+  proving its identity to the proxy registration authority (feature 03, section 5).
 - **Only installer + registrar know the manifest.** "None of them share
   anything; the registrar can read the manifest — that's all. No one else cares."
 - **Distribution is a manifest → script → installer chain**, using the existing
@@ -253,11 +304,12 @@ graph TD
     MANIFEST[(Manifest<br/>JSON)]
     FOUND[foundation_ai wasm-ready<br/>00-foundation]
 
-    CLI -->|"RPC: Connect/gRPC/gRPC-Web<br/>secret-token → mTLS"| PROXY
+    CLI -->|"RPC: Connect/gRPC/gRPC-Web<br/>HTTPS, proxy ends TLS"| PROXY
     PROXY -->|"forward registered backend"| ARPC
     ARPC -->|"threads share one loaded model"| MODEL
-    REG -->|"register/deregister/heartbeat<br/>token → mTLS"| PROXY
-    REG -.->|"reads manifest (reviews proxies)"| MANIFEST
+    REG -->|"Register/Report/Deregister<br/>enrollment token, then mTLS<br/>(the sidecar's only auth)"| PROXY
+    REG -.->|"probes, discovery, metrics"| ARPC
+    REG -.->|"reads manifest"| MANIFEST
     INST -.->|"reads manifest (installs)"| MANIFEST
     INST -->|"delegates Docker"| DOCKER[foundation_deployment_docker]
 
@@ -267,6 +319,9 @@ graph TD
     SB -->|"native model server"| ARPC
     FOUND -.->|"wasm-clean foundation"| WORCH
 ```
+
+_The diagram shows every component and link. Clients reach agent-rpc through the proxy, which
+ends TLS. The sidecar reports apps to the proxy and is the only part that authenticates to it._
 
 ### Component Responsibilities
 
@@ -287,15 +342,15 @@ graph TD
    entry through a source adapter, and applies it through a deploy-target
    adapter (systemd unit or Docker). Generates the tiny bootstrap script via
    `foundation_packager`. No Cloudflare. See `02-manifest-installer`.
-3. **proxy (`foundation_proxy`, extended)** — receives authenticated
-   registrations from the registrar and maintains a live routing table
-   (backend name → host/port/protocol/health). Forwards to registered backends,
-   reusing spec 63's per-endpoint protocol selection. See
+3. **proxy (`foundation_proxy`, extended)** — ends client TLS. Its registration
+   authority enrolls sidecars, accepts their `Register`/`Report`/`Deregister` calls on a
+   lease, and keeps a live backend registry that feeds the router. Forwards to ready
+   backends, reusing spec 63's per-endpoint protocol selection. See
    `03-proxy-registration`.
-4. **registrar (`foundation_registrar`)** — the sidecar. Reads the manifest
-   independently, reviews which installed binaries must be proxied, and keeps the
-   proxy's routing table current. Owns the registration auth channel. See
-   `04-registrar-sidecar`.
+4. **registrar (`foundation_registrar`)** — the sidecar. Runs beside the apps. Reads the
+   manifest, discovers what is installed and running, runs startup/liveness/readiness
+   probes, reads CPU and memory use, and reports to the proxy. Its only credential is
+   for its link to the proxy. See `04-registrar-sidecar`.
 5. **Cloudflare target (`05-cloudflare`)** — the thin WASM orchestrator on
    Workers and the full native model-server on Sandboxes/Containers, consuming
    the `00-foundation` readiness. Cloudflare deployment lives in
@@ -321,11 +376,13 @@ graph TD
 
 | Channel | Parties | Auth | Owner |
 |---------|---------|------|-------|
-| Client ↔ agent-rpc | CLI/SDK ↔ agent-rpc | secret token (bootstrap) → mTLS (ongoing) | agent-rpc |
-| Registrar ↔ proxy | sidecar ↔ proxy | token (bootstrap) → mTLS (ongoing) | registrar + proxy |
+| Client ↔ proxy | CLI/SDK ↔ proxy public listener | TLS, ended by the proxy (public certificate) | proxy |
+| Client ↔ agent-rpc | CLI/SDK ↔ agent-rpc | agent-rpc's `ClientAuth` (feature 07): signed secret as a bearer credential through the proxy; mTLS only on a direct connection | agent-rpc |
+| Sidecar → proxy registration authority | sidecar ↔ proxy | enrollment token (one time) → mTLS, or a local Unix socket | proxy (issues), sidecar (holds) |
 
-Neither channel is visible to the other component. The proxy never sees the
-agent-rpc client token; agent-rpc never sees the registration token.
+Neither credential is visible to the other component. The proxy never checks the
+agent-rpc client credential; agent-rpc never sees the registration certificate. The
+sidecar does not take part in client TLS.
 
 ### Deployment topology
 
@@ -356,12 +413,11 @@ agent-rpc client token; agent-rpc never sees the registration token.
 2. `agent-rpc` loads one model and serves **multiple concurrent** agent
    instances over Connect/gRPC/gRPC-Web on real loopback TCP, round-tripping
    unary and streaming chat.
-3. A client reaches an agent through the proxy, having authenticated to
-   agent-rpc with a secret token and then mTLS, with the proxy purely
-   forwarding (no awareness of the client↔agent-rpc auth).
-4. The registrar registers a backend with the proxy using token → mTLS, and the
-   proxy routes to it; deregister/restart converges without dropping unrelated
-   live connections.
+3. A client reaches an agent through the proxy. The proxy ends TLS; agent-rpc checks
+   the client's signed secret. The proxy does not take part in that check.
+4. The registrar enrolls with the proxy (token, then mTLS), registers a ready app,
+   and the proxy routes to it. Missed reports, restarts of the proxy, the sidecar or
+   the app, and redeploys all converge without dropping unrelated live connections.
 5. The components remain uncoupled: installer, registrar, agent-rpc, and proxy
    build and run independently, with the manifest as the only shared format and
    the registration handshake as the only live coupling. The installer never
@@ -387,7 +443,7 @@ agent-rpc client token; agent-rpc never sees the registration token.
 - **gRPC-JSON transcoding / a REST façade** over the agent RPCs (separate surface,
   not requested).
 - **Cross-org or multi-tenant proxy federation** — registrations are within one
-  proxy's trust domain (one token → mTLS issuer).
+  proxy's trust domain (one registration CA that signs the sidecar certificates, feature 03).
 
 # Module References
 
@@ -424,5 +480,5 @@ agent-rpc client token; agent-rpc never sees the registration token.
 ---
 
 _Created: 2026-10-19_
-_Last Updated: 2026-10-19_
+_Last Updated: 2026-10-26_
 _Structure: Feature-based (has_features: true, has_fundamentals: true)_

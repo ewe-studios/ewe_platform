@@ -26,7 +26,7 @@ use crate::shared::client::http_client::{
 };
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
-use crate::shared::client::{BoxedDnsResolver, ClientConfig, DnsResolver, SystemDnsResolver};
+use crate::shared::client::{ClientConfig, DnsResolver, SystemDnsResolver};
 use crate::http::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
 use crate::shared::http::timeout::TimeoutCalculator;
 use crate::shared::http::{HttpClientError, SendSafeBody, SimpleHeader, SimpleMethod, SimpleResponse};
@@ -598,8 +598,15 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
         let config = self.config.clone();
-        let resolver: BoxedDnsResolver = Arc::new(SystemDnsResolver);
-        let pool = Arc::new(HttpConnectionPool::new(ConnectionPool::default(), resolver));
+        // The client's own pool carries its TLS connector (custom roots, client
+        // certificates) and custom `Connector`; a fresh pool here silently
+        // dropped both, so every exchange used the default TLS config.
+        let pool = self.pool.clone().unwrap_or_else(|| {
+            Arc::new(HttpConnectionPool::new(
+                ConnectionPool::default(),
+                self.resolver.clone(),
+            ))
+        });
         let task = HttpExchangeTask::new(req, config.max_redirects, pool, config);
         Box::new(task)
     }
