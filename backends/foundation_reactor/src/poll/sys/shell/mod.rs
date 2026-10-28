@@ -3,7 +3,7 @@
 
 use super::super::event::Event;
 use super::super::super::Events;
-use crate::native::poll::{Interest, Registry, Token};
+use crate::poll::{Interest, Registry, Token};
 
 use std::io;
 use std::sync::Arc;

@@ -5101,6 +5101,7 @@ dependencies = [
  "foundation_core",
  "foundation_nativeapis",
  "foundation_netio",
+ "foundation_reactor",
  "serial_test",
  "tracing",
  "tracing-test",
@@ -5213,6 +5214,7 @@ dependencies = [
  "foundation_errstacks",
  "foundation_macros",
  "foundation_nostd",
+ "foundation_reactor",
  "fuser",
  "futures-lite",
  "hex",
@@ -5389,6 +5391,17 @@ dependencies = [
  "toml 0.9.6",
  "tracing",
  "tracing-test",
+]
+
+[[package]]
+name = "foundation_reactor"
+version = "0.0.1"
+dependencies = [
+ "foundation_core",
+ "io-uring",
+ "libc",
+ "tracing",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

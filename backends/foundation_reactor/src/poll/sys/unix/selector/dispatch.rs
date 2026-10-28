@@ -31,7 +31,7 @@ use super::epoll;
 use super::uring;
 #[cfg(feature = "uring")]
 use super::uring_completion::{self, Completion, SendCompletion};
-use crate::native::poll::{Interest, Token};
+use crate::poll::{Interest, Token};
 
 /// The raw fd type on Linux.
 pub type RawFd = std::os::unix::io::RawFd;

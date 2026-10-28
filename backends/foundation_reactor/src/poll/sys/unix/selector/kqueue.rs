@@ -1,6 +1,6 @@
 /// macOS/BSD kqueue selector.
 
-use crate::native::poll::{Events, Interest, Registry, Token};
+use crate::poll::{Events, Interest, Registry, Token};
 
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};

@@ -53,8 +53,8 @@ use io_uring::{cqueue, opcode, types, IoUring};
 
 use super::super::super::super::event::{Event, Events};
 use super::bufring::{BufRing, ProvidedBuf};
-use crate::native::fd::send_pool::{SendBuf, SendPool};
-use crate::native::poll::{Interest, Token};
+use crate::send_pool::{SendBuf, SendPool};
+use crate::poll::{Interest, Token};
 
 /// The raw fd type on Linux.
 pub type RawFd = std::os::unix::io::RawFd;

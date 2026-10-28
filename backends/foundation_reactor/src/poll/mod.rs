@@ -8,7 +8,7 @@
 /// # Example
 ///
 /// ```no_run
-/// use foundation_nativeapis::{Poll, Events, Token, Interest};
+/// use foundation_reactor::{Poll, Events, Token, Interest};
 /// use std::time::Duration;
 ///
 /// let poll = Poll::new().unwrap();

@@ -7,7 +7,7 @@
 /// # Example
 ///
 /// ```no_run
-/// use foundation_nativeapis::{Poll, Token, Interest, SourceFd};
+/// use foundation_reactor::{Poll, Token, Interest, SourceFd};
 ///
 /// let poll = Poll::new().unwrap();
 /// let inotify_fd = unsafe { libc::inotify_init1(libc::IN_CLOEXEC | libc::IN_NONBLOCK) };
@@ -22,7 +22,7 @@
 /// ```
 
 use super::super::super::event::Source;
-use crate::native::poll::{Interest, Registry, Token};
+use crate::poll::{Interest, Registry, Token};
 
 use std::io;
 use std::os::unix::io::RawFd;

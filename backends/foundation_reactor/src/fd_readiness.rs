@@ -21,9 +21,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::valtron::EventReadiness;
-use foundation_nativeapis::native::fd::{Reactor, Ready, SharedReadiness};
-use foundation_nativeapis::native::poll::Interest;
-use foundation_nativeapis::Token;
+
+use crate::poll::{Interest, Token};
+use crate::reactor::{Reactor, SharedReadiness};
+use crate::ready::Ready;
 
 /// Readiness of one fd on the shared reactor. See the module docs.
 pub struct FdReadiness {
@@ -52,7 +53,7 @@ impl FdReadiness {
     /// The reactor could not start, or the selector refused the fd.
     pub fn register(fd: RawFd) -> io::Result<Self> {
         let reactor = Reactor::get()?;
-        let token = super::accept::next_token();
+        let token = crate::token::next_token();
         let readiness = SharedReadiness::new(
             fd,
             Arc::clone(&reactor),

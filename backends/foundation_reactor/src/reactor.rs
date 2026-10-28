@@ -42,8 +42,8 @@ use std::sync::{Arc, Condvar, Mutex, OnceLock, RwLock};
 use std::thread;
 use std::time::Duration;
 
-use crate::native::fd::Ready;
-use crate::native::poll::{Backend, BackendPreference, Events, Interest, Poll, Registry, Token};
+use crate::ready::Ready;
+use crate::poll::{Backend, BackendPreference, Events, Interest, Poll, Registry, Token};
 
 /// Per-registration readiness tracking.
 ///
@@ -470,7 +470,7 @@ impl Reactor {
     /// # Panics
     /// Never panics.
     #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn take_completions(&self, token: Token) -> Option<Vec<super::completion::Completion>> {
+    pub fn take_completions(&self, token: Token) -> Option<Vec<crate::poll::sys::unix::selector::uring_completion::Completion>> {
         self.poll.take_completions(token)
     }
 
@@ -531,7 +531,7 @@ impl Reactor {
         &self,
         token: Token,
         fd: std::os::fd::RawFd,
-        buf: crate::native::poll::sys::unix::selector::bufring::ProvidedBuf,
+        buf: crate::poll::sys::unix::selector::bufring::ProvidedBuf,
     ) -> io::Result<usize> {
         self.poll.submit_send_zc_direct(token, fd, buf)
     }
@@ -541,7 +541,7 @@ impl Reactor {
     /// # Panics
     /// Never panics.
     #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn take_send_completions(&self, token: Token) -> Vec<super::completion::SendCompletion> {
+    pub fn take_send_completions(&self, token: Token) -> Vec<crate::poll::sys::unix::selector::uring_completion::SendCompletion> {
         self.poll.take_send_completions(token)
     }
 

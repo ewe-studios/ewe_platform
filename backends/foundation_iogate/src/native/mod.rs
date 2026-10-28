@@ -17,8 +17,9 @@
 
 mod accept;
 mod completion_socket;
-mod fd_readiness;
 
 pub use accept::{accept_connection, connect_completion, init_reactor_for};
 pub use completion_socket::CompletionSocket;
-pub use fd_readiness::FdReadiness;
+// `FdReadiness` now lives in `foundation_reactor` (below netio) so both netio
+// and iogate can reach it. Re-export to keep `foundation_iogate::native::FdReadiness`.
+pub use foundation_reactor::FdReadiness;

@@ -1,7 +1,7 @@
 /// Linux epoll selector.
 
 use super::super::super::super::event::Events;
-use crate::native::poll::{Interest, Token};
+use crate::poll::{Interest, Token};
 
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};

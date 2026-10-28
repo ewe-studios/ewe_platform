@@ -4,7 +4,7 @@
 /// (e.g., sockets, pipes, inotify fds) so it can be registered with a
 /// [`Registry`](super::super::Registry).
 
-use crate::native::poll::{Interest, Registry, Token};
+use crate::poll::{Interest, Registry, Token};
 
 use std::io;
 

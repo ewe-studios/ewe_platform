@@ -42,7 +42,7 @@ use io_uring::types::{SubmitArgs, Timespec};
 use io_uring::{cqueue, opcode, types, IoUring};
 
 use super::super::super::super::event::{Event, Events};
-use crate::native::poll::{Interest, Token};
+use crate::poll::{Interest, Token};
 
 /// The raw fd type on Linux.
 pub type RawFd = std::os::unix::io::RawFd;
