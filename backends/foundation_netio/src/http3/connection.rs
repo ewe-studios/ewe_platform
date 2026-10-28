@@ -34,7 +34,7 @@ use crate::quic::{
     QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError,
 };
 
-use super::frame::{setting, Frame};
+use super::frame::{setting, Frame, DEFAULT_MAX_FRAME_SIZE, DEFAULT_READ_CHUNK};
 use super::stream::{FramedRecv, StreamError};
 
 /// Unidirectional stream types (RFC 9114 §11.2.4, RFC 9204 §4.2).
@@ -57,6 +57,8 @@ pub mod error_code {
     pub const H3_NO_ERROR: u64 = 0x0100;
     /// A frame appeared where it is not allowed.
     pub const H3_FRAME_UNEXPECTED: u64 = 0x0105;
+    /// A frame failed layout requirements or carried an invalid size.
+    pub const H3_FRAME_ERROR: u64 = 0x0108;
     /// A stream required by the connection was closed.
     pub const H3_CLOSED_CRITICAL_STREAM: u64 = 0x0104;
     /// The first control frame was not SETTINGS.
@@ -128,12 +130,16 @@ impl From<StreamError> for H3Error {
     fn from(e: StreamError) -> Self {
         match e {
             StreamError::Quic(e) => Self::Stream(e),
+            // A malformed or truncated frame is a frame error (RFC 9114 §8.1
+            // `H3_FRAME_ERROR`), not an "unexpected" frame — that code is for a
+            // well-formed frame in the wrong place, which the poll paths set
+            // themselves.
             StreamError::Protocol(message) => Self::Protocol {
-                code: error_code::H3_FRAME_UNEXPECTED,
+                code: error_code::H3_FRAME_ERROR,
                 message,
             },
             StreamError::Truncated => Self::Protocol {
-                code: error_code::H3_FRAME_UNEXPECTED,
+                code: error_code::H3_FRAME_ERROR,
                 message: "stream ended mid-frame".into(),
             },
         }
@@ -162,6 +168,10 @@ pub struct H3Connection<C: QuicConnection> {
     /// The peer's SETTINGS, once received.
     peer_settings: Option<Vec<(u64, u64)>>,
     max_field_section_size: u64,
+    /// The cap on a single frame's payload (DATA streams within it, see §1).
+    max_frame_size: usize,
+    /// The most DATA payload bytes one yield hands back before the next poll.
+    read_chunk: usize,
     /// The stream [`H3Connection::poll_accept_webtransport`] accepted and is
     /// still reading or answering; kept across polls so it is never lost.
     pending_accept: Option<PendingAccept<C::BidiStream>>,
@@ -219,8 +229,26 @@ impl<C: QuicConnection> H3Connection<C> {
             peer_control: None,
             peer_settings: None,
             max_field_section_size,
+            max_frame_size: DEFAULT_MAX_FRAME_SIZE,
+            read_chunk: DEFAULT_READ_CHUNK,
             pending_accept: None,
         }
+    }
+
+    /// Cap a single frame's payload at `max` bytes (default 16 MiB). A frame that
+    /// announces a longer payload is rejected before it is buffered.
+    #[must_use]
+    pub fn max_frame_size(mut self, max: usize) -> Self {
+        self.max_frame_size = max;
+        self
+    }
+
+    /// Yield DATA payload in pieces of at most `read_chunk` bytes (default 16 KiB),
+    /// so a body streams instead of being buffered whole.
+    #[must_use]
+    pub fn read_chunk(mut self, read_chunk: usize) -> Self {
+        self.read_chunk = read_chunk.max(1);
+        self
     }
 
     /// Wake `waker` when the connection next makes progress, so a caller whose
@@ -291,7 +319,11 @@ impl<C: QuicConnection> H3Connection<C> {
                     // We only care about the control stream; QPACK's encoder and
                     // decoder streams are never used, because our dynamic table
                     // is disabled, and push is not implemented.
-                    self.peer_control = Some(FramedRecv::new(TypedRecv::new(recv)));
+                    self.peer_control = Some(
+                        FramedRecv::new(TypedRecv::new(recv))
+                            .with_max_frame_size(self.max_frame_size)
+                            .with_read_chunk(self.read_chunk),
+                    );
                 }
                 Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
                 _ => return Stream::Pending(()),
@@ -329,7 +361,12 @@ impl<C: QuicConnection> H3Connection<C> {
     pub fn poll_accept(&mut self) -> Stream<Result<H3Request<C::BidiStream>, H3Error>, ()> {
         match self.conn.accept_bidi() {
             Stream::Next(Ok(stream)) => {
-                Stream::Next(Ok(H3Request::new(stream, self.max_field_section_size)))
+                Stream::Next(Ok(H3Request::new(
+                    stream,
+                    self.max_field_section_size,
+                    self.max_frame_size,
+                    self.read_chunk,
+                )))
             }
             Stream::Next(Err(e)) => Stream::Next(Err(e.into())),
             _ => Stream::Pending(()),
@@ -340,7 +377,12 @@ impl<C: QuicConnection> H3Connection<C> {
     pub fn poll_open_request(&mut self) -> Stream<Result<H3Request<C::BidiStream>, H3Error>, ()> {
         match self.conn.open_bidi() {
             Stream::Next(Ok(stream)) => {
-                Stream::Next(Ok(H3Request::new(stream, self.max_field_section_size)))
+                Stream::Next(Ok(H3Request::new(
+                    stream,
+                    self.max_field_section_size,
+                    self.max_frame_size,
+                    self.read_chunk,
+                )))
             }
             Stream::Next(Err(e)) => Stream::Next(Err(e.into())),
             _ => Stream::Pending(()),
@@ -389,7 +431,12 @@ impl<C: QuicConnection> H3Connection<C> {
             Some(pending) => pending,
             None => match self.conn.accept_bidi() {
                 Stream::Next(Ok(stream)) => self.pending_accept.insert(PendingAccept {
-                    request: H3Request::new(stream, self.max_field_section_size),
+                    request: H3Request::new(
+                        stream,
+                        self.max_field_section_size,
+                        self.max_frame_size,
+                        self.read_chunk,
+                    ),
                     response: None,
                     finishing: false,
                 }),
@@ -552,9 +599,11 @@ pub struct H3Request<S: QuicBidiStream> {
 }
 
 impl<S: QuicBidiStream> H3Request<S> {
-    fn new(stream: S, max_field_section_size: u64) -> Self {
+    fn new(stream: S, max_field_section_size: u64, max_frame_size: usize, read_chunk: usize) -> Self {
         Self {
-            framed: FramedRecv::new(stream),
+            framed: FramedRecv::new(stream)
+                .with_max_frame_size(max_frame_size)
+                .with_read_chunk(read_chunk),
             max_field_section_size,
             headers_read: false,
             trailers: None,

@@ -209,8 +209,12 @@ fn push_varint(value: u64, out: &mut Vec<u8>) {
 enum State {
     /// Reading the type and length varints.
     Header,
-    /// Reading `remaining` payload bytes for the frame of type `ty`.
+    /// Reading a whole non-DATA frame of `len` payload bytes of type `ty`.
     Payload { ty: u64, len: usize },
+    /// Streaming a DATA frame: `remaining` payload bytes are still to come.
+    /// Unlike [`State::Payload`], each call yields what is already buffered
+    /// (up to the read-chunk cap) instead of waiting for the whole frame.
+    Data { remaining: usize },
 }
 
 /// A resumable HTTP/3 frame decoder.
@@ -223,14 +227,27 @@ pub struct FrameDecoder {
     state: State,
     /// Refuse absurd frame lengths rather than trying to buffer them.
     max_frame_size: usize,
+    /// The most payload bytes one DATA yield hands back before the next poll.
+    /// Streaming a frame means the receiver's memory use is bounded by this,
+    /// not by the frame length.
+    read_chunk: usize,
 }
 
 /// The default cap on a single frame's payload: 16 MiB.
 ///
 /// A DATA frame larger than this is a protocol abuse, not a legitimate body — a
 /// body is split across many DATA frames precisely so the receiver need not buffer
-/// it whole.
+/// it whole. The value is kept from the previous constant: HTTP/3 removes HTTP/2's
+/// `SETTINGS_MAX_FRAME_SIZE` (16 KiB), and neither the `h3` crate (hyperium) nor
+/// quinn's examples impose a hard cap on one frame, so there is no external default
+/// to copy.
 pub const DEFAULT_MAX_FRAME_SIZE: usize = 16 * 1024 * 1024;
+
+/// The default number of DATA payload bytes handed back per yield: 16 KiB.
+///
+/// Kept from the previous whole-frame constant and chosen to match Go `net/http`'s
+/// HTTP/2 default read size, so a receiver never holds a whole frame in memory.
+pub const DEFAULT_READ_CHUNK: usize = 16 * 1024;
 
 impl Default for FrameDecoder {
     fn default() -> Self {
@@ -239,13 +256,14 @@ impl Default for FrameDecoder {
 }
 
 impl FrameDecoder {
-    /// A decoder with the default frame-size cap.
+    /// A decoder with the default frame-size cap and read chunk.
     #[must_use]
     pub fn new() -> Self {
         Self {
             buffer: AccumulatingBuffer::new(),
             state: State::Header,
             max_frame_size: DEFAULT_MAX_FRAME_SIZE,
+            read_chunk: DEFAULT_READ_CHUNK,
         }
     }
 
@@ -253,6 +271,13 @@ impl FrameDecoder {
     #[must_use]
     pub fn with_max_frame_size(mut self, max_frame_size: usize) -> Self {
         self.max_frame_size = max_frame_size;
+        self
+    }
+
+    /// A decoder that yields DATA payload in pieces of at most `read_chunk` bytes.
+    #[must_use]
+    pub fn with_read_chunk(mut self, read_chunk: usize) -> Self {
+        self.read_chunk = read_chunk.max(1);
         self
     }
 
@@ -281,10 +306,36 @@ impl FrameDecoder {
                     }
 
                     self.buffer.advance(ty_len + len_len);
-                    self.state = State::Payload {
-                        ty: ty.value(),
-                        len,
+                    // DATA streams; every other frame stays whole. A zero-length
+                    // DATA frame has no payload to stream, so it falls through to
+                    // `Payload` and yields an empty `Frame::Data`.
+                    self.state = if ty.value() == ty::DATA && len > 0 {
+                        State::Data { remaining: len }
+                    } else {
+                        State::Payload {
+                            ty: ty.value(),
+                            len,
+                        }
                     };
+                }
+                State::Data { remaining } => {
+                    if self.buffer.is_empty() {
+                        return Ok(DecodeStep::Pending);
+                    }
+                    // Yield what is already buffered, capped by the frame remainder
+                    // and the per-yield chunk size. This is what streams the body:
+                    // the receiver does not wait for `remaining` bytes to arrive.
+                    let n = remaining
+                        .min(self.buffer.len())
+                        .min(self.read_chunk);
+                    let chunk = self.buffer.split_to(n);
+                    let remaining = remaining - n;
+                    self.state = if remaining == 0 {
+                        State::Header
+                    } else {
+                        State::Data { remaining }
+                    };
+                    return Ok(DecodeStep::Frame(Frame::Data(chunk)));
                 }
                 State::Payload { ty, len } => {
                     if self.buffer.len() < len {
@@ -382,6 +433,10 @@ impl IncrementalDecoder for FrameDecoder {
     }
 
     fn has_partial(&self) -> bool {
-        !self.buffer.is_empty() || matches!(self.state, State::Payload { .. })
+        !self.buffer.is_empty()
+            || matches!(
+                self.state,
+                State::Payload { .. } | State::Data { .. }
+            )
     }
 }

@@ -237,6 +237,57 @@ fn a_request_stream_that_opens_with_data_is_a_frame_unexpected_error() {
 }
 
 #[test]
+fn frame_over_configured_cap_is_rejected() {
+    // A frame announcing more than the configured cap is refused on the length
+    // alone — `H3_FRAME_ERROR`, not an allocation of the oversized payload.
+    use foundation_netio::http3::frame::Frame;
+    use foundation_netio::http3::VarInt;
+    use foundation_netio::quic::{QuicConnection, QuicSendStream};
+
+    let (mut sq, mut cq, server_conn, mut client_conn) = quic_pair();
+
+    // 1 KiB cap.
+    let mut server = H3Connection::new(server_conn).max_frame_size(1024);
+    until!(sq, cq, server.poll_setup());
+
+    // The client hand-rolls a 2 KiB HEADERS frame and sends it on a request
+    // stream, bypassing its own (16 MiB) framing.
+    let mut stream = until!(sq, cq, client_conn.open_bidi());
+    let frame = Frame::Headers(Bytes::from(vec![0u8; 2048]));
+    let mut bytes = Bytes::from(frame.to_bytes());
+    let deadline = Instant::now() + BUDGET;
+    while !bytes.is_empty() {
+        match stream.send(&mut bytes) {
+            Stream::Next(Ok(_)) => {}
+            Stream::Next(Err(e)) => panic!("{e}"),
+            _ => {}
+        }
+        assert!(Instant::now() < deadline, "timed out sending");
+        pump(&mut sq, &mut cq);
+    }
+
+    // The server accepts the stream and reads its HEADERS — which must fail on
+    // the cap, not allocate 2 KiB.
+    let mut inbound = until!(sq, cq, server.poll_accept());
+    let deadline = Instant::now() + BUDGET;
+    let err = loop {
+        match inbound.poll_headers() {
+            Stream::Next(Err(e)) => break e,
+            Stream::Next(Ok(_)) => panic!("an over-cap frame must be rejected"),
+            _ => {}
+        }
+        assert!(Instant::now() < deadline, "timed out");
+        pump(&mut sq, &mut cq);
+    };
+
+    let text = err.to_string();
+    assert!(
+        text.contains(&format!("{:#06x}", error_code::H3_FRAME_ERROR)),
+        "must be H3_FRAME_ERROR: {text}"
+    );
+}
+
+#[test]
 fn a_control_stream_whose_first_frame_is_not_settings_is_rejected() {
     // RFC 9114 §6.2.1: SETTINGS must be the first frame on the control stream.
     // Anything else is H3_MISSING_SETTINGS.
