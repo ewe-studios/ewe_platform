@@ -769,7 +769,7 @@ where
         super::run_background_job(move || {
             // The worker thread parks while the future is pending; the
             // future's waker unparks it. (It used to poll with a no-op waker
-            // and `yield_now`, spinning a whole thread.)
+            // and a yield loop, spinning a whole thread.)
             let thread = std::thread::current();
             let waker = Waker::from(Arc::new(ThreadUnpark(thread.clone())));
             let mut cx = Context::from_waker(&waker);

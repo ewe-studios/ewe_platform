@@ -1,14 +1,14 @@
 ---
-description: "Finish the foundational I/O and runtime backlog (docs/bug-backlog.md sections 1–5): park on readiness instead of polling or holding threads, move hard-coded limits into configuration, make the ignored tests run, and move inline tests out of source files. Designed by the main session; each feature is built by a Sonnet 5.5 agent and reviewed by the main session."
+description: "Fix every open entry in docs/bug-backlog.md (sections 1–21), foundational crates first: park on readiness instead of polling or holding threads, move hard-coded limits into configuration, make the ignored tests run, move inline tests out of source files, then the deployment, proxy, AI, database, auth, VFS, scheduler, workspace, vectors, apps and Hugging Face entries. Designed by the main session; each feature is built by a Sonnet 5.5 agent and reviewed by the main session."
 status: "in-progress"
 priority: "critical"
 created: 2026-10-28
 updated: 2026-10-28
 author: "Main Agent"
 metadata:
-  version: "1.0"
+  version: "2.0"
   estimated_effort: "large"
-  tags: [valtron, netio, http, connectrpc, iogate, readiness, limits, tests]
+  tags: [valtron, netio, http, connectrpc, iogate, readiness, limits, tests, deployment, proxy, ai, db, auth, vfs, vectors, ci]
 has_features: true
 builds_on:
   - "PR #160 (fix/foundational-backlog): backlog sections 1–5 verified against master; correctness fixes"
@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 0
-  uncompleted: 11
-  total: 11
+  uncompleted: 25
+  total: 25
   completion_percentage: 0%
 ---
 
@@ -51,6 +51,12 @@ and fixed the correctness bugs. What is left is in three groups:
 2. **Limits as configuration** (`CLAUDE.md` rule 8). Hard-coded sizes, times and counts.
 3. **Tests.** Ignored tests, ignored doc examples, missing test variants, and inline
    `#[cfg(test)]` modules in source files (`CLAUDE.md` rule 7).
+
+Features 01–11 cover those five crates. **Features 12–25 cover every other section of the
+backlog (6–21)**, plus four bugs recorded only on unmerged branches: the `TokenSigner`
+compare (PR #157's branch), and `BlobStore` whole objects, `QueryStore` batch without
+parameters and D1 `read_replication` (PR #158's branch). Each entry has a place in one feature
+file. When a feature merges, its entries leave the backlog. No entry is left without a feature.
 
 ## 2. How the work is done (delegation model)
 
@@ -126,9 +132,26 @@ done
 | 09 | [Limits as configuration](./features/09-limits-as-config/feature.md) | §4 constants, `BackgroundJobRegistry`, `BytesPool`, `BatchReader` log, §5 `SpinWaiter` | 01 | M |
 | 10 | [Hermetic tests, doc examples, 8-thread conformance](./features/10-tests-hermetic/feature.md) | §1 conformance, §2 ignored tests and doc examples | 04 | M |
 | 11 | [Inline tests out of source files](./features/11-inline-tests-out/feature.md) | `CLAUDE.md` rule 7 (24 files) | — | M |
+| 12 | [Docker deployment: generated types, JSON cap, CI, log decoder](./features/12-docker-deployment/feature.md) | §6 (4) | 03 | M |
+| 13 | [Deployment platform: stdout wait, daemon ping, Vagrant client](./features/13-deployment-platform/feature.md) | §7, §9 Docker helper | 03 | M |
+| 14 | [OpenAPI codegen: query params, D1 read replication](./features/14-openapi-codegen/feature.md) | §8, PR #158 D1 `read_replication` | — | M |
+| 15 | [Proxy: health probes, state race, ACME, redirects](./features/15-proxy/feature.md) | §9 (6) | 05 | L |
+| 16 | [AI: async generate and embed, capped error bodies, flush](./features/16-ai/feature.md) | §10 (9) | 03 | L |
+| 17 | [DB: StateStore keys, typed R2, streamed blobs, batches](./features/17-db/feature.md) | §11 (9), PR #158 `BlobStore` and batch, §16 db warnings | 03 | L |
+| 18 | [Auth: proof of work, constant-time tags, streamed bodies](./features/18-auth/feature.md) | §12 (10), PR #157 `TokenSigner` | 03 | L |
+| 19 | [VFS storage: blob deltas, Turso delta, lazy scans, NFS](./features/19-vfs-storage/feature.md) | §13 (10 of 18), #142 | 17 | L |
+| 20 | [VFS process side: preload shim, FUSE CI, async IPC, searchers](./features/20-vfs-process-ipc/feature.md) | §13 (8 of 18) | 09 | L |
+| 21 | [Cron jobs run on their expression; cedar loads in one query](./features/21-cronjobs-cedar/feature.md) | §14, §15 | 01 | M |
+| 22 | [Workspace and CI: target dirs, ewe_deployables, crate split, wasm tests in CI](./features/22-workspace-ci/feature.md) | §16 (8), §21, #28 | 10 | L |
+| 23 | [Vectors: fjall off the worker, sqlite-vec, TurboPuffer retry](./features/23-vectors/feature.md) | §17 (8) | 01, 17 | M |
+| 24 | [Last tokio runtimes: testbed JS runner and apps](./features/24-tokio-boundaries-apps/feature.md) | §18, §19, #137 | 08 | L |
+| 25 | [Hugging Face: async Hub client, streamed uploads, pagination](./features/25-huggingface/feature.md) | §20 (3) | 03, 05 | M |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
+
+Priority for 12–25: **18 (auth) first**, because E1 and E2 are security bugs. Then 17, 15, 21,
+22 and 16. Then the rest in number order, after their dependencies. One agent at a time.
 
 ```mermaid
 flowchart LR
@@ -143,6 +166,20 @@ flowchart LR
     F02 --> F07[07 h3 frames, WT, SSE]
     F04 --> F10[10 tests]
     F11[11 inline tests out]
+    F03 --> F12[12 docker]
+    F03 --> F13[13 platform]
+    F14[14 openapi]
+    F05 --> F15[15 proxy]
+    F03 --> F16[16 ai]
+    F03 --> F17[17 db]
+    F03 --> F18[18 auth]
+    F17 --> F19[19 vfs storage]
+    F09 --> F20[20 vfs process]
+    F01 --> F21[21 cron + cedar]
+    F10 --> F22[22 workspace + CI]
+    F17 --> F23[23 vectors]
+    F08 --> F24[24 tokio apps]
+    F05 --> F25[25 huggingface]
 ```
 
 _The diagram shows which feature must finish before another starts._
@@ -160,8 +197,9 @@ _The diagram shows which feature must finish before another starts._
 
 ## 7. Done for the whole spec
 
-- [ ] Every entry in `docs/bug-backlog.md` sections 1–5 is fixed and deleted, or rewritten with
-      a reason and a follow-up feature.
+- [ ] Every entry in `docs/bug-backlog.md` sections 1–21 (and the four branch-only bugs in §1)
+      is fixed and deleted, or rewritten with a reason and a follow-up feature.
+- [ ] Issues #28, #137 and #142 can be closed.
 - [ ] `rg -n 'thread::sleep|yield_now|spin_loop' backends/foundation_{core,netio,http,connectrpc,iogate}/src`
       returns only waits that sit behind `blocking_boundary!` or that the feature files name as
       allowed, each with a comment that says why.
