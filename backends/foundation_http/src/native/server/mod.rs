@@ -11,6 +11,8 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::{OnSignal, WaitGroup};
 use foundation_iogate::ServerIo;
+#[cfg(unix)]
+use foundation_iogate::FdReadiness;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::shared::http::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
@@ -172,6 +174,12 @@ pub struct ServerConfig {
     /// up to this long for active connections to finish before force-closing
     /// whatever remains. Default: 30s.
     pub shutdown_grace: Duration,
+    /// Upper bound on how long the idle accept loop stays asleep before it
+    /// checks shutdown again (Feature 05). On unix the loop parks on listener
+    /// readiness and wakes at once on a new connection; this bound only paces
+    /// shutdown checks, because `OnSignal` is a passive atomic with no wake
+    /// primitive. Default: 10 ms.
+    pub accept_shutdown_poll: Duration,
     /// When set, every response carries an `Alt-Svc: h3=":<port>"` header
     /// telling clients that this origin also speaks HTTP/3 on `port` (F53 /
     /// RFC 7838). `None` (the default) means no header is added.
@@ -202,6 +210,7 @@ impl ServerConfig {
             keep_alive: KeepAliveConfig::defaults(),
             max_body_bytes: 10 * 1024 * 1024, // 10 MB
             shutdown_grace: Duration::from_secs(30),
+            accept_shutdown_poll: Duration::from_millis(10),
             alt_svc_h3_port: None,
             io_mode: ServerIo::Std,
             #[cfg(any(
@@ -226,6 +235,11 @@ impl ServerConfig {
     }
 
     /// Get the `WouldBlock` sleep duration from calculator.
+    ///
+    /// Feature 05: on unix the accept loop parks on listener readiness instead
+    /// of sleeping, so this value is used only by the non-unix sleep fallback
+    /// and by [`ServerConfig::accept_error_sleep`]. Kept for callers that read
+    /// it; the accept loop no longer sleeps on it on unix.
     #[must_use]
     pub fn would_block_sleep(&self) -> Duration {
         // Use sleep duration for default context
@@ -269,6 +283,16 @@ impl ServerConfig {
             ..*self.timeout_calculator.config()
         };
         self.timeout_calculator = TimeoutCalculator::with_config(new_config);
+        self
+    }
+
+    /// Set how long the idle accept loop may wait before it checks shutdown
+    /// again (Feature 05). On unix the loop wakes at once on a new connection;
+    /// this only bounds shutdown-detection latency, since `OnSignal` is a
+    /// passive atomic.
+    #[must_use]
+    pub fn with_accept_shutdown_poll(mut self, dur: Duration) -> Self {
+        self.accept_shutdown_poll = dur;
         self
     }
 
@@ -670,8 +694,28 @@ impl HttpServer {
         let wrap_stream = Arc::new(wrap_stream);
         let would_block_sleep = self.config.would_block_sleep();
         let accept_error_sleep = self.config.accept_error_sleep();
+        #[cfg(unix)]
+        let accept_shutdown_poll = self.config.accept_shutdown_poll;
         let keep_alive_config = self.config.keep_alive.clone();
         let shutdown_grace = self.config.shutdown_grace;
+
+        // On unix, register the listener fd with the shared reactor so the
+        // accept loop can park on readiness instead of sleeping (Feature 05).
+        // Acceptors without an fd (an overlay) fall back to the sleep path.
+        #[cfg(unix)]
+        let listener_readiness: Option<FdReadiness> = match acceptor.raw_fd() {
+            Some(fd) => match FdReadiness::register(fd) {
+                Ok(r) => Some(r),
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        "could not register the listener fd; the accept loop falls back to sleep"
+                    );
+                    None
+                }
+            },
+            None => None,
+        };
 
         // Tracks connections currently owned by a valtron handler task. Each
         // handler holds a guard that decrements on completion, so the drain
@@ -683,6 +727,14 @@ impl HttpServer {
                 tracing::info!("Shutdown signal received, stopping accept loop");
                 break;
             }
+
+            // Snapshot the reactor's event generation before the accept, so the
+            // WouldBlock path never sleeps through a connection that landed in
+            // the race window (lost-wakeup guard, Feature 05).
+            #[cfg(unix)]
+            let gen = listener_readiness
+                .as_ref()
+                .map(|readiness| readiness.events_generation());
 
             match acceptor.accept_connection() {
                 Ok((conn, addr)) => {
@@ -758,6 +810,25 @@ impl HttpServer {
                     }
                 }
                 Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                    // Park on listener readiness (unix): the reactor wakes this
+                    // thread at once when a connection arrives, bounded by the
+                    // shutdown-poll timeout so a shutdown signal is still
+                    // noticed. Acceptors without a registered fd fall back to
+                    // the non-unix sleep path.
+                    #[cfg(unix)]
+                    {
+                        match &listener_readiness {
+                            Some(readiness) => {
+                                readiness.wait_for_events(
+                                    gen.expect("generation snapshotted before accept"),
+                                    accept_shutdown_poll,
+                                );
+                                continue;
+                            }
+                            None => std::thread::sleep(would_block_sleep),
+                        }
+                    }
+                    #[cfg(not(unix))]
                     std::thread::sleep(would_block_sleep);
                 }
                 Err(e) => {

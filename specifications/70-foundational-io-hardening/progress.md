@@ -2,6 +2,18 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-28: feature 05 done on `fix/io-01-valtron-parking`. Pushed request body: the
+  `WritingBody` state in `request_redirect.rs` parks on the pipe via
+  `TaskStatus::Depends(readiness)` (register-then-check), and the `producer_stalls` back-off
+  plus `MAX_PRODUCER_BACKOFF_MS` are deleted. Accept loop: `serve_loop` registers the
+  listener fd with `FdReadiness` and blocks in `wait_for_events`, waking at once on a
+  connection; shutdown detection is bounded by the new `accept_shutdown_poll` config (10 ms),
+  because `OnSignal` is a passive atomic with no wake primitive (see learnings + backlog).
+  `would_block_sleep` stays only on the non-unix fallback. Regression tests:
+  `pushed_body_waits_without_polling` (poll count under 20), `pushed_body_producer_drop_ends_the_body`
+  (renamed from the spec's `_fails_the_request`: dropping the producer closes the pipe = a
+  graceful end), and three `accept_loop_parking_tests`. PR: see the PR.
+
 - 2026-10-28: feature 04 done on `fix/io-01-valtron-parking`. The TCP connect and the
   rustls handshake no longer block a valtron worker. The task path
   (`request_redirect.rs`, not the spec's `request_intro.rs` — see learnings) gained two

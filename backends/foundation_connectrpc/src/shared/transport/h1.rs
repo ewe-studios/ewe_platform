@@ -21,7 +21,7 @@ use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, T
 use foundation_netio::shared::client::request_task::HttpExchange;
 use foundation_netio::DynNetClient;
 use foundation_netio::shared::http::{
-    pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor,
+    pushable_request_body_with_readiness, HttpClientError, Proto, RequestDescriptor,
     SimpleHeader, SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
 };
 use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
@@ -89,7 +89,8 @@ impl Transport for H1Transport {
             headers.insert(SimpleHeader::HOST, vec![host]);
         }
 
-        let (pushable, body_stream) = pushable_request_body_with_depth(DEFAULT_PUSHABLE_DEPTH);
+        let (pushable, body_stream, readiness) =
+            pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
         let send_body: ByteSink = pushable.into_sender();
 
         // `headers` replaces the builder's own headers; it already carries
@@ -100,6 +101,7 @@ impl Transport for H1Transport {
             })?
             .headers(headers)
             .body(body_stream)
+            .with_body_readiness(readiness)
             .build();
 
         // F51: the client owns the pool, resolver, and config — the transport

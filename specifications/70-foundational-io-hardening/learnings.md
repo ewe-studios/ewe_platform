@@ -2,6 +2,32 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-28 (feature 05): dropping the pipe producer is a graceful end, not an error. The
+  spec's `pushed_body_producer_drop_fails_the_request` assumed a dropped producer errors the
+  request, but the code path uses `PipeSender`; dropping it calls `close_queue()` = a close
+  event, which the pipe delivers as a clean end-of-body (zero-length chunk). The test is
+  therefore renamed `pushed_body_producer_drop_ends_the_body` and asserts a completed request
+  with the pushed bytes, not a failure. Only a mid-stream body *error* (not a drop) fails the
+  request.
+
+- 2026-10-28 (feature 05): `body_readiness: None` busy-spins as `State::Pending(None)`. A
+  producer that pushes nothing yet (empty pipe) must park with a real readiness source, not
+  `Pending(None)`, which valtron treats as "retry at once" and the old `producer_stalls`
+  back-off was masking. The fix registers the pipe's wake source first, repolls once, then
+  parks with `TaskStatus::Depends(readiness)`; a push or a close wakes it.
+
+- 2026-10-28 (feature 05): the accept loop's shutdown cannot "wake at once" from `OnSignal`.
+  `OnSignal` (`foundation_core::synca::signals.rs`) is a bare `Arc<AtomicUsize>` with only
+  `probe`/`turn_on`/`turn_off` — no fd write and no condvar notify. `FdReadiness::is_ready(Some(..))`
+  is also non-blocking (`SharedReadiness::is_ready` ignores the `dur` and only checks the
+  reactor's latched token). So neither spec option (§2.2: block in `is_ready(Some(timeout))`,
+  nor `poll(2)` on a shutdown-written wake fd) is reachable without changing those types. The
+  accept loop instead snapshots `events_generation()`, runs a non-blocking `accept`, then
+  `wait_for_events(gen, accept_shutdown_poll)` — the only blocking primitive. A connection
+  wakes it at once (a reactor event advances the generation); shutdown is detected within
+  `accept_shutdown_poll` (10 ms default), a poll rather than a literal wake. Recorded as a
+  backlog entry: `OnSignal` needs a wake primitive.
+
 - 2026-10-28 (feature 04): `connect_completion` in `foundation_iogate`
   (`src/native/accept.rs:140`) was read and **not** reused. Two reasons. First, it calls the
   blocking `TcpStream::connect(addr)` (line 141) and only sets `O_NONBLOCK` *after* the

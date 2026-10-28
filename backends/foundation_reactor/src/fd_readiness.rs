@@ -106,6 +106,23 @@ impl FdReadiness {
     pub fn register_waker(&self, waker: &std::task::Waker) -> bool {
         self.reactor.register_waker(self.token, waker.clone())
     }
+
+    /// Snapshot the reactor's event generation. A non-task thread (the accept
+    /// loop) snapshots this before it reads its fd, then passes it to
+    /// [`FdReadiness::wait_for_events`] so it only sleeps when nothing changed
+    /// since — the lost-wakeup guard (Feature 05). See [`Reactor::events_generation`].
+    #[must_use]
+    pub fn events_generation(&self) -> u64 {
+        self.reactor.events_generation()
+    }
+
+    /// Block the calling thread until the reactor latches new readiness (its
+    /// generation advances past `since`) or `timeout` elapses; returns the
+    /// generation observed on wake. A dedicated accept-loop thread uses this to
+    /// park on a listener instead of a fixed sleep. See [`Reactor::wait_for_events`].
+    pub fn wait_for_events(&self, since: u64, timeout: Duration) -> u64 {
+        self.reactor.wait_for_events(since, timeout)
+    }
 }
 
 impl EventReadiness for FdReadiness {

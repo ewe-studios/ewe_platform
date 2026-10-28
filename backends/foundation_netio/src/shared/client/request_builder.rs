@@ -17,7 +17,8 @@ use super::request::PreparedRequest;
 use super::request_task::HttpExchangeClientTask;
 use crate::network_client::DynNetClient;
 use crate::shared::http::{
-    Extensions, HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+    BodyReadiness, Extensions, HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders,
+    SimpleMethod,
 };
 
 pub struct PreparedRequestBuilder {
@@ -25,6 +26,7 @@ pub struct PreparedRequestBuilder {
     url: Option<Uri>,
     headers: SimpleHeaders,
     body: Option<SendSafeBody>,
+    body_readiness: Option<BodyReadiness>,
 }
 
 impl PreparedRequestBuilder {
@@ -48,6 +50,7 @@ impl PreparedRequestBuilder {
             url: Some(uri),
             headers,
             body: None,
+            body_readiness: None,
         })
     }
 
@@ -267,6 +270,15 @@ impl PreparedRequestBuilder {
         self
     }
 
+    /// Attach a pushable body's pipe readiness, so the non-blocking body writer
+    /// parks on `TaskStatus::Depends(readiness)` while the producer has nothing
+    /// yet, instead of a back-off timer. Only meaningful with `body`/`body_stream`.
+    #[must_use]
+    pub fn with_body_readiness(mut self, readiness: BodyReadiness) -> Self {
+        self.body_readiness = Some(readiness);
+        self
+    }
+
     // -- auth -------------------------------------------------------------
 
     /// Set a `Basic` auth header. Encodes `username:password` as base64.
@@ -416,6 +428,7 @@ impl PreparedRequestBuilder {
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
             extensions: Extensions::new(),
+            body_readiness: self.body_readiness,
         }
     }
 }

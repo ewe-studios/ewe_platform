@@ -51,7 +51,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   the whole lookup. Fix: resolve through an async DNS seam, or offload the
   lookup to a blocking boundary with a configured timeout.
 - **Non-blocking work not done yet:**
-  - a pushed request body should wait on pipe readiness (task #24);
   - the remaining transports (task #25).
 - **Ignored tests.**
   - 17 network-dependent or never-finished tests are ignored:
@@ -71,11 +70,15 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 3. foundation_http
 
-- **The accept loop polls a non-blocking listener** (`native/server/mod.rs`,
-  `serve_with_listener`): on `WouldBlock` it sleeps `would_block_sleep` and
-  tries again, instead of waiting for the listener to be readable.
-
 ## 4. foundation_core / valtron
+
+- **`OnSignal` cannot wake a blocking waiter.** `foundation_core::synca::signals::OnSignal`
+  is an `AtomicUsize` with only `probe`/`turn_on`/`turn_off`. It has no fd write and no
+  condvar notify, so a thread blocked in `Reactor::wait_for_events` (the accept loop's
+  shutdown wait, feature 05) cannot be woken by `turn_on`; it only sees the signal on its
+  next poll. The accept loop bounds shutdown detection with `accept_shutdown_poll` (a
+  config). Fix: add a wake primitive to `OnSignal` (an eventfd/pipe write, or a
+  `LockSignal`-style condvar) so shutdown wakes a waiter at once.
 
 - **Hard-coded valtron limits (rule 8):** `MAX_YIELD_DURATION`
   (`executors/local.rs`), `DEFAULT_YIELD_WAIT_TIME` (4 s) and `BACK_OFF_*`

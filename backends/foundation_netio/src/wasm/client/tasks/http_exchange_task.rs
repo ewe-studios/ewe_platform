@@ -186,6 +186,7 @@ mod tests {
             headers: SimpleHeaders::new(),
             body: SendSafeBody::None,
             extensions: Extensions::new(),
+            body_readiness: None,
         };
         let mut task = new_http_exchange_task(request);
         let _status = task.next_status(Ctx::new());

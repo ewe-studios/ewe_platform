@@ -1291,6 +1291,7 @@ pub(crate) fn request_from_header(header: &SimpleIncomingRequestHeader) -> Simpl
         request_uri: header.uri.clone(),
         request_url: header.url.clone(),
         body: None,
+        body_readiness: None,
         headers: header.headers.clone(),
         method: header.method.clone(),
         extensions: None,

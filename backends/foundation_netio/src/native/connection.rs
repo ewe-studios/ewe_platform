@@ -405,6 +405,14 @@ pub trait Acceptor: Send + Sync + 'static {
     fn accept_connection(&self) -> std::io::Result<(Connection, std::net::SocketAddr)>;
     fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()>;
     fn local_addr(&self) -> std::io::Result<std::net::SocketAddr>;
+
+    /// The underlying file descriptor, when the transport has one. Unix TCP
+    /// listeners return their fd so the accept loop can park on readiness
+    /// (Feature 05); acceptors without an fd (an overlay) return `None`.
+    #[cfg(unix)]
+    fn raw_fd(&self) -> Option<std::os::fd::RawFd> {
+        None
+    }
 }
 
 /// Opens a `Connection` for a given host:port (spec-55, F11).
@@ -443,6 +451,12 @@ impl Acceptor for std::net::TcpListener {
 
     fn local_addr(&self) -> std::io::Result<std::net::SocketAddr> {
         std::net::TcpListener::local_addr(self)
+    }
+
+    #[cfg(unix)]
+    fn raw_fd(&self) -> Option<std::os::fd::RawFd> {
+        use std::os::fd::AsRawFd;
+        Some(self.as_raw_fd())
     }
 }
 

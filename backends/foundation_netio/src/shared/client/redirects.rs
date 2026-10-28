@@ -192,6 +192,7 @@ pub fn build_followup_request_from(
         headers,
         body: SendSafeBody::None,
         extensions: Extensions::new(),
+        body_readiness: None,
     }
 }
 

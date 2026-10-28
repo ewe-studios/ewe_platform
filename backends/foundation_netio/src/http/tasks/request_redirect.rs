@@ -29,7 +29,6 @@ use crate::native::readiness::{DeadlineReadiness, IoInterest};
 use crate::netcap::{Connection, RawStream};
 #[cfg(unix)]
 use crate::native::readiness::SocketReadiness;
-#[cfg(unix)]
 use crate::native::readiness::io_or_deadline;
 #[cfg(unix)]
 use crate::netcap::PendingConnect;
@@ -37,15 +36,15 @@ use crate::netcap::PendingConnect;
 use crate::netcap::ssl::{ClientSSLStream, SSLConnector};
 use crate::shared::client::{redirects, ClientConfig, DnsResolver};
 use crate::shared::http::{
-    ensure_chunked_transfer_encoding, Http11, Http11RequestBodyIterator, HttpClientError,
-    HttpResponseReader, IncomingResponseParts, RenderHttp, RequestDescriptor, SendSafeBody,
-    SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
+    ensure_chunked_transfer_encoding, BodyReadiness, Http11, Http11RequestBodyIterator,
+    HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp, RequestDescriptor,
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
 use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
 use foundation_core::valtron::{Ctx, AnyReadiness, TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use super::nonblocking::{self, IdleDeadline, IoStep, Park, PendingBytes};
 use super::HttpOperationState;
@@ -81,10 +80,6 @@ type Step = TaskStatus<HttpRequestRedirectResponse, HttpOperationState>;
 /// Most body chunks written in one poll before yielding back to the executor, so
 /// a large in-memory body cannot monopolise a worker.
 const MAX_CHUNKS_PER_POLL: usize = 32;
-
-/// Longest back-off while the request body's *producer* has nothing yet (a
-/// pushable body the caller has not pushed into). See [`WritingBody`].
-const MAX_PRODUCER_BACKOFF_MS: u64 = 16;
 
 /// The request being sent and the connection carrying it.
 pub struct Exchange<R: DnsResolver + Send + 'static> {
@@ -155,11 +150,11 @@ pub struct ReadingHead<R: DnsResolver + Send + 'static> {
 ///
 /// WHY: the body renderer yields chunks one at a time. A pushable body
 /// (client-streaming RPCs) yields an empty chunk while its producer has not
-/// pushed anything yet. Socket stalls park on writability. Producer stalls back
-/// off on a short timer (1ms doubling to `MAX_PRODUCER_BACKOFF_MS`), because the
-/// renderer's `SendSafeBody::Stream` erases the pipe it reads from and exposes no
-/// readiness to park on. Either way the worker is released. The blocking writer
-/// used to spin on those empty chunks instead.
+/// pushed anything yet. Socket stalls park on writability. Producer stalls park
+/// on the pipe's [`BodyReadiness`] (the task wakes the moment the producer
+/// pushes), bounded by the idle deadline. A one-shot renderer transition (for
+/// example chunked trailers) is retried at once. Either way the worker is
+/// released. The blocking writer used to spin on those empty chunks instead.
 pub struct WritingBody {
     starters: Option<[IncomingResponseParts; 2]>,
     connection: HttpClientConnection,
@@ -168,7 +163,8 @@ pub struct WritingBody {
     pending: PendingBytes,
     rendered_all: bool,
     idle: IdleDeadline,
-    producer_stalls: u32,
+    /// Consumer-side pipe readiness for a pushable body; `None` for other bodies.
+    body_readiness: Option<BodyReadiness>,
 }
 
 /// A TCP connect in flight on a non-blocking socket (feature 04 §2.1).
@@ -942,6 +938,10 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             ..
         } = exchange;
         let idle = IdleDeadline::new(config.io_idle_timeout());
+        // The pushable body's pipe readiness travels on the request; take it out
+        // before the request is moved into the renderer, so the writer can park
+        // on it when the producer stalls.
+        let body_readiness = data.body_readiness.clone();
         self.pending(HttpRequestRedirectState::WritingBody(Some(Box::new(
             WritingBody {
                 starters,
@@ -951,7 +951,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 pending: PendingBytes::default(),
                 rendered_all: false,
                 idle,
-                producer_stalls: 0,
+                body_readiness,
             },
         ))))
     }
@@ -1282,8 +1282,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 Some(Ok(bytes)) if bytes.is_empty() => {
                     // A state transition in the renderer, or a pushable body whose
                     // producer has nothing yet. Push out what was written so the
-                    // server sees it, then retry: at once the first time, after a
-                    // short back-off while the producer stays empty.
+                    // server sees it, then wait for more.
                     match nonblocking::flush(st.connection.stream_mut()) {
                         Ok(IoStep::Done) => {}
                         Ok(IoStep::Blocked) => return self.park_body(st),
@@ -1292,17 +1291,30 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                             return self.fail(HttpClientError::WriteFailed);
                         }
                     }
-                    st.producer_stalls += 1;
-                    if st.producer_stalls == 1 {
-                        return self.pending(HttpRequestRedirectState::WritingBody(Some(st)));
+
+                    // A pushable body parks on its pipe readiness, bounded by the
+                    // idle deadline: the task wakes the moment the producer pushes
+                    // (or the pipe closes), with no back-off timer.
+                    if let Some(readiness) = st.body_readiness.clone() {
+                        if readiness.is_ready(None) {
+                            // Data is already queued (or the pipe closed): retry
+                            // at once instead of returning an already-ready signal.
+                            return self.pending(HttpRequestRedirectState::WritingBody(Some(st)));
+                        }
+                        if st.idle.expired() {
+                            tracing::error!("request body producer stalled past the idle deadline");
+                            return self.fail(HttpClientError::Timeout);
+                        }
+                        let deadline = st.idle.arm();
+                        self.0 = Some(HttpRequestRedirectState::WritingBody(Some(st)));
+                        return TaskStatus::Depends(io_or_deadline(readiness, deadline));
                     }
-                    let shift = (st.producer_stalls - 2).min(MAX_PRODUCER_BACKOFF_MS.ilog2());
-                    let backoff = Duration::from_millis(1u64 << shift);
-                    self.0 = Some(HttpRequestRedirectState::WritingBody(Some(st)));
-                    return TaskStatus::Delayed(backoff);
+
+                    // No pipe readiness: a one-shot renderer transition (chunked
+                    // trailers, …). Retry at once.
+                    return self.pending(HttpRequestRedirectState::WritingBody(Some(st)));
                 }
                 Some(Ok(bytes)) => {
-                    st.producer_stalls = 0;
                     st.pending = PendingBytes::new(bytes);
                 }
                 Some(Err(err)) => {

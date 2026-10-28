@@ -1100,6 +1100,7 @@ fn test_server_config_defaults() {
     let config = ServerConfig::defaults();
     assert_eq!(config.would_block_sleep(), Duration::from_millis(15)); // base sleep from calculator
     assert_eq!(config.accept_error_sleep(), Duration::from_millis(30)); // 2x base sleep
+    assert_eq!(config.accept_shutdown_poll, Duration::from_millis(10)); // Feature 05 shutdown poll
     assert_eq!(config.keep_alive.min_delay(), Duration::from_millis(15));
     assert_eq!(config.keep_alive.max_delay(), Duration::from_secs(300)); // max_read_timeout
     assert_eq!(config.keep_alive.idle_timeout(), Duration::from_secs(120)); // min_read_timeout
