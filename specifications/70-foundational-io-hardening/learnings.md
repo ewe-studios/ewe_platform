@@ -2,6 +2,39 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-28 (feature 04): `connect_completion` in `foundation_iogate`
+  (`src/native/accept.rs:140`) was read and **not** reused. Two reasons. First, it calls the
+  blocking `TcpStream::connect(addr)` (line 141) and only sets `O_NONBLOCK` *after* the
+  connect finishes, so it holds the worker for the exact reason feature 04 exists. Second,
+  iogate sits *above* netio in the dependency graph (`iogate → {netio, nativeapis}`), so netio
+  cannot call it at all — the same cycle that feature 03/29 hit. Feature 04 therefore uses
+  `PendingConnect::start(addr)` (socket2) directly inside netio, which creates the socket
+  non-blocking *before* `connect(2)`.
+
+- 2026-10-28 (feature 04): the work landed in `request_redirect.rs`, not the spec's
+  `request_intro.rs` (§2.3). The redirect task is the real HTTP/1.1 connection opener (it has
+  the checkout/resolve/connect sequence and the `Connecting`/`TlsHandshake` states); the
+  `request_intro.rs` calls in §1 are only the sync constructors' boundary (`SystemDnsResolver`
+  + `HttpClientConnection::connect`), which stay blocking on purpose. Branch note: the work is
+  on `fix/io-01-valtron-parking`, not the spec frontmatter's `fix/io-04-nonblocking-connect-tls`.
+
+- 2026-10-28 (feature 04): the connect and the TLS handshake park a valtron task with
+  `TaskStatus::Depends(SocketReadiness)`, not a `std::task::Waker`. That is the right tool
+  here: the valtron task itself is parking, and `Depends` + a deadline is exactly what it
+  needs. The `Waker`-capable `FdReadiness` from feature 03/29 is only required when a
+  `futures_core::Stream` (an async body consumer) must be woken across the task boundary; the
+  connect/handshake never cross it. `SocketReadiness::poll_now()` is a zero-timeout `poll(2)`
+  used only to test "writable now?" before parking.
+
+- 2026-10-28 (feature 04): the TLS handshake uses `RustlsStream::drive_handshake()`, which
+  loops `conn.complete_io(sock)` until `is_handshaking()` is false, `WouldBlock`, or a real
+  error. On `WouldBlock` the task parks on `readiness()`, which picks the direction from the
+  TLS session (`wants_write` first, then `is_handshaking` → readable, then the caller's
+  interest). This matters because a plaintext *read* can stall on TLS output and a plaintext
+  *write* can stall waiting for the server's reply; parking on the wrong direction either
+  never wakes or spins. The handshake must be its own step (not driven by the first request
+  write) so its wait uses the connect deadline, not the body's idle deadline.
+
 - 2026-10-28 (feature 29): do not measure parking with process-wide `getrusage(RUSAGE_SELF)`.
   `#[valtron_test]` gives each test a fresh pool and serializes pool use process-wide, so a
   parked body leaves the polling worker thread almost idle. Measure that thread's CPU inside

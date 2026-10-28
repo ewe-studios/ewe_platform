@@ -2,6 +2,22 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-28: feature 04 done on `fix/io-01-valtron-parking`. The TCP connect and the
+  rustls handshake no longer block a valtron worker. The task path
+  (`request_redirect.rs`, not the spec's `request_intro.rs` — see learnings) gained two
+  states: `Connecting` (a `PendingConnect`/socket2 non-blocking `connect(2)` that parks on
+  `SocketReadiness` write readiness and reads `SO_ERROR`) and `TlsHandshake` (rustls
+  `complete_io` driven by `drive_handshake`, parked on the direction rustls asks for). One
+  fixed connect deadline covers every address and the handshake, so a partial handshake
+  cannot reset it. Error kinds survive (`ConnectionTimeout`, `IoError` with the real
+  `ErrorKind`, `TlsHandshakeFailed`). The public sync constructors stay on the blocking
+  boundary (`Connection::with_timeout`, `TcpStreamWrapper::connect_timeout`, the SSL
+  connectors). `connect_completion` in iogate was read and not reused (it does a blocking
+  `TcpStream::connect` first, and iogate sits above netio). Four regression tests in
+  `tests/tcp_and_tls/nonblocking_connect_tls.rs` pin the behaviour; the blackhole test
+  shows a ticker keeps running on a 2-thread-saturated pool. Backlog task #23 deleted; a
+  new DNS entry added (`SystemDnsResolver::resolve` still blocks). PR: see the PR.
+
 - 2026-10-28: feature 03 done on `fix/io-01-valtron-parking`. T1–T2 (the §2 hunks:
   `SendSafeBodyBytesIterator` reports `Stream::Wait` for every body kind, and
   `is_would_block`) landed earlier. T3–T6 landed through feature 29 (the reactor bridge):

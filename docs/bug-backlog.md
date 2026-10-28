@@ -44,11 +44,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `DEFAULT_MAX_FRAME_SIZE` (16 MiB, `http3/frame.rs:233`) **(rule 8)**, and a
   DATA frame is still buffered whole before it is yielded. Stream within a
   frame, and put the cap on the connection config.
+- **DNS resolution blocks the HTTP client task.**
+  `SystemDnsResolver::resolve` (`shared/client/dns.rs:130`) calls
+  `to_socket_addrs()`, a blocking system call, inside the non-blocking connect
+  path (`HttpConnectionPool::resolve_host`). A slow resolver holds a worker for
+  the whole lookup. Fix: resolve through an async DNS seam, or offload the
+  lookup to a blocking boundary with a configured timeout.
 - **Non-blocking work not done yet:**
-  - non-blocking connect and TLS handshake (task #23):
-    `HttpClientConnection::connect` blocks in `TcpStream::connect_timeout`
-    (`native/connection.rs` `Connection::with_timeout`) and the TLS upgrade
-    handshakes in place;
   - a pushed request body should wait on pipe readiness (task #24);
   - the remaining transports (task #25).
 - **Ignored tests.**

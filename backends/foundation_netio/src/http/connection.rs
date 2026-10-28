@@ -303,6 +303,20 @@ impl HttpClientConnection {
         self.stream.clone()
     }
 
+    /// Wrap an already-connected stream for `host:port`.
+    ///
+    /// WHY: the non-blocking connect and TLS handshake path (feature 04) builds
+    /// the `RawStream` itself and needs a public way to turn it into an
+    /// `HttpClientConnection` without going through the blocking `connect`.
+    #[must_use]
+    pub fn from_stream(
+        stream: SharedByteBufferStream<RawStream>,
+        host: String,
+        port: u16,
+    ) -> Self {
+        Self { stream, host, port }
+    }
+
     /// Register a wake callback fired when this connection becomes readable.
     ///
     /// Returns `true` if the transport supports readiness wakeups (the WireGuard
@@ -665,6 +679,43 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     #[must_use]
     pub fn tls_connector(&self) -> Option<&Arc<SSLConnector>> {
         self.tls_connector.as_ref()
+    }
+
+    /// Resolve `host:port` with the pool's resolver.
+    ///
+    /// WHY: the non-blocking connect path (feature 04) must resolve DNS before it
+    /// can start `connect(2)` on each address. DNS still blocks (`SystemDnsResolver`);
+    /// that is recorded in the backlog and out of scope here.
+    ///
+    /// # Errors
+    /// The resolver's error, or `ConnectionFailed` if nothing resolved.
+    pub fn resolve_host(
+        &self,
+        host: &str,
+        port: u16,
+    ) -> Result<Vec<core::net::SocketAddr>, HttpClientError> {
+        let addrs = self
+            .resolver
+            .resolve(host, port)
+            .map_err(HttpClientError::DnsError)?;
+        if addrs.is_empty() {
+            return Err(HttpClientError::ConnectionFailed(format!(
+                "No addresses resolved for {host}"
+            )));
+        }
+        Ok(addrs)
+    }
+
+    /// Check out a pooled connection for `host:port`, if one is idle.
+    ///
+    /// WHY: the non-blocking connect path must reuse pooled connections exactly
+    /// as the blocking path does, without re-dialing. This wraps the private pool
+    /// so the request task can reach it.
+    #[must_use]
+    pub fn checkout_connection(&self, host: &str, port: u16) -> Option<HttpClientConnection> {
+        self.pool
+            .checkout(host, port)
+            .map(|stream| HttpClientConnection { stream, host: host.to_string(), port })
     }
 
     /// Create a new `HttpConnectionPool` from an `Arc<ConnectionPool>`.

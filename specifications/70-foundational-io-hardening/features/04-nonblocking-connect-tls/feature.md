@@ -1,11 +1,11 @@
 ---
 feature: "Non-blocking connect and TLS handshake"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: ["03-client-body-readiness"]
-branch: "fix/io-04-nonblocking-connect-tls"
+branch: "fix/io-01-valtron-parking"
 crates: ["foundation_netio", "foundation_iogate"]
-backlog: "docs/bug-backlog.md §2 Non-blocking work not done yet: non-blocking connect and TLS handshake (task #23)"
+backlog: "docs/bug-backlog.md §2 Non-blocking work not done yet: non-blocking connect and TLS handshake (task #23, deleted); DNS entry added"
 ---
 
 # Feature 04: Non-blocking connect and TLS handshake
@@ -80,12 +80,12 @@ same state machine to completion with a blocking wait.
 
 ## 3. Tasks
 
-- [ ] T1. Branch from the base after feature 03.
-- [ ] T2. Read `connect_completion` in `foundation_iogate`. Decide reuse or not; write it down.
-- [ ] T3. Non-blocking connect (§2.1), with the deadline and the address loop.
-- [ ] T4. Non-blocking rustls handshake (§2.2). Then the other TLS backends that are compiled.
-- [ ] T5. New states in `request_intro.rs` (§2.3). Sync constructors drive the same code.
-- [ ] T6. Regression tests in `backends/foundation_netio/tests/` (pick the right existing test
+- [x] T1. Branch from the base after feature 03.
+- [x] T2. Read `connect_completion` in `foundation_iogate`. Decide reuse or not; write it down.
+- [x] T3. Non-blocking connect (§2.1), with the deadline and the address loop.
+- [x] T4. Non-blocking rustls handshake (§2.2). Then the other TLS backends that are compiled.
+- [x] T5. New states in `request_intro.rs` (§2.3). Sync constructors drive the same code.
+- [x] T6. Regression tests in `backends/foundation_netio/tests/` (pick the right existing test
       directory, for example `tcp_and_tls/`, and register in its `mod.rs`):
   - `connect_to_blackhole_does_not_hold_a_worker`: connect to a non-routable address (for
     example `10.255.255.1:9`) with a 2 s timeout from a valtron task on a 2-thread pool, while a
@@ -98,7 +98,7 @@ same state machine to completion with a blocking wait.
     the ClientHello; assert the ticker keeps ticking and the handshake succeeds.
   - `tls_handshake_bad_cert_reports_alert`: a self-signed server without trust; assert the error
     kind.
-- [ ] T7. Backlog: delete the task #23 line; add the DNS entry (§2.4 rule 4). Update
+- [x] T7. Backlog: delete the task #23 line; add the DNS entry (§2.4 rule 4). Update
       `progress.md`, `learnings.md`.
 
 ## 4. Verification (run exactly)
@@ -115,9 +115,9 @@ rg -n 'connect_timeout\(' backends/foundation_netio/src   # only the sync bounda
 
 ## 5. Done when
 
-- [ ] All §4 commands pass; new tests passed 20 runs in a row.
-- [ ] `connect_to_blackhole_does_not_hold_a_worker` fails on the base code and passes now.
-- [ ] No `connect_timeout(` or in-place handshake left on the task path.
+- [x] All §4 commands pass; new tests passed 20 runs in a row.
+- [x] `connect_to_blackhole_does_not_hold_a_worker` fails on the base code and passes now.
+- [x] No `connect_timeout(` or in-place handshake left on the task path.
 - [ ] CI green (Linux and macOS if it runs).
 
 ## 6. Out of scope

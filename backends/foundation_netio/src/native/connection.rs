@@ -502,6 +502,85 @@ pub enum Connection {
     Overlay(Box<dyn OverlayReadWrite>),
 }
 
+/// A TCP connect that is in flight on a non-blocking socket.
+///
+/// WHY: a blocking `connect` holds a valtron worker for the whole kernel connect
+/// (one round-trip at best, the entire timeout for an unreachable host). The
+/// request task must instead create the socket non-blocking, start `connect(2)`,
+/// park on write readiness, and read `SO_ERROR` when the socket turns writable
+/// (feature 04).
+///
+/// WHAT: [`PendingConnect::start`] creates the socket, switches it to
+/// non-blocking, and starts the connect. The task parks on write readiness of
+/// [`PendingConnect::as_raw_fd`]. [`PendingConnect::check`] reads `SO_ERROR` and
+/// either returns the connected `TcpStream` (still non-blocking) or the connect
+/// error.
+///
+/// HOW: `socket2` owns the raw fd and hides the address-family and `SO_ERROR`
+/// details. `take_error` reads `SO_ERROR`; a `None` means connected, a `Some`
+/// means the connect failed with that error.
+#[cfg(unix)]
+pub struct PendingConnect {
+    socket: socket2::Socket,
+}
+
+#[cfg(unix)]
+impl PendingConnect {
+    /// Create a non-blocking socket and start connecting to `addr`.
+    ///
+    /// `Ok(())` from `connect` means the connect finished at once (a loopback
+    /// peer). `EINPROGRESS`/`WouldBlock` means it is still in flight and the
+    /// caller must wait for write readiness. Any other error (for example
+    /// `ECONNREFUSED` to a closed local port) is returned at once.
+    ///
+    /// # Errors
+    /// The socket could not be created, or the connect failed immediately.
+    pub fn start(addr: core::net::SocketAddr) -> std::io::Result<Self> {
+        let socket = socket2::Socket::new(
+            socket2::Domain::for_address(addr),
+            socket2::Type::STREAM,
+            Some(socket2::Protocol::TCP),
+        )?;
+        socket.set_nonblocking(true)?;
+
+        match socket.connect(&addr.into()) {
+            Ok(()) => {}
+            Err(err)
+                if err.raw_os_error() == Some(libc::EINPROGRESS)
+                    || err.kind() == std::io::ErrorKind::WouldBlock =>
+            {
+                // In flight: the caller parks on write readiness.
+            }
+            Err(err) => return Err(err),
+        }
+
+        Ok(Self { socket })
+    }
+
+    /// The raw fd to watch for write readiness.
+    #[must_use]
+    pub fn as_raw_fd(&self) -> std::os::unix::io::RawFd {
+        std::os::unix::io::AsRawFd::as_raw_fd(&self.socket)
+    }
+
+    /// Finish the connect by reading `SO_ERROR`.
+    ///
+    /// Call this only after the fd reports writable. `Ok` carries the connected
+    /// `TcpStream`, still in non-blocking mode. `Err` carries the connect error
+    /// (for example `ECONNREFUSED`, `ETIMEDOUT`).
+    ///
+    /// # Errors
+    /// The connect failed, or `SO_ERROR` could not be read.
+    pub fn check(self) -> std::io::Result<std::net::TcpStream> {
+        if let Some(err) = self.socket.take_error()? {
+            return Err(err);
+        }
+        // SAFETY: `socket` owns a live, connected fd; ownership moves to the
+        // `TcpStream`, which keeps the non-blocking mode socket2 set.
+        Ok(self.socket.into())
+    }
+}
+
 impl Connection {
     /// Create a new TCP connection without a timeout.
     ///

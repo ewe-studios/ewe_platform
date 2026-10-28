@@ -356,6 +356,54 @@ where
     }
 }
 
+impl RustlsStream<rustls::ClientConnection> {
+    /// Drive the TLS handshake on the non-blocking socket until it finishes or
+    /// would block.
+    ///
+    /// WHY: the first `write` of the request used to drive the handshake
+    /// implicitly, so the handshake's wait used the body's idle timeout instead
+    /// of the connect deadline. Driving it here as its own step lets the caller
+    /// use the connect deadline and park on the direction rustls asks for.
+    ///
+    /// WHAT: calls [`rustls::ConnectionCommon::complete_io`] in a loop while the
+    /// handshake makes progress. Returns `Ok(())` once the handshake is done,
+    /// `Err(WouldBlock)` when the socket must turn before more progress is
+    /// possible, or the handshake's real error (a bad certificate, a protocol
+    /// alert, …).
+    ///
+    /// The caller parks on [`Self::readiness`] when it gets `WouldBlock`; that
+    /// method already picks the direction from the TLS session (`wants_write`
+    /// first, then "still handshaking").
+    ///
+    /// # Errors
+    /// `WouldBlock` (park and call again), or the handshake's error.
+    pub fn drive_handshake(&self) -> std::io::Result<()> {
+        let mut guard = self
+            .0
+            .lock()
+            .map_err(|e| std::io::Error::other(format!("Mutex poisoned: {e}")))?;
+        let rustls::StreamOwned { conn, sock } = &mut *guard;
+
+        loop {
+            if !conn.is_handshaking() {
+                return Ok(());
+            }
+            match conn.complete_io(sock) {
+                Ok((rdlen, wrlen)) => {
+                    // Progress was made: drive again. No progress while still
+                    // handshaking cannot normally happen (`complete_io` returns
+                    // `WouldBlock` in that case), but do not spin if it does.
+                    if rdlen == 0 && wrlen == 0 {
+                        return Err(std::io::Error::from(std::io::ErrorKind::WouldBlock));
+                    }
+                }
+                Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => return Err(err),
+                Err(err) => return Err(err),
+            }
+        }
+    }
+}
+
 impl<T> Clone for RustlsStream<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone())

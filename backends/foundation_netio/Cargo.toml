@@ -74,7 +74,9 @@ rustls-pemfile = { version = "2.2", optional = true }
 webpki-roots = { version = "0.26", optional = true }
 native-tls = { version = "0.2", optional = true }
 openssl = { version = "0.10", optional = true }
-socket2 = { version = "0.6", optional = true }
+# Always available on native targets (feature 04 non-blocking connect), not just
+# under `nightly`. The `nightly` feature no longer needs to pull it in.
+socket2 = { version = "0.6" }
 quinn-proto = { version = "0.11", optional = true, features = ["rustls", "ring"] }
 
 # poll(2) for socket readiness: the H1 client parks its non-blocking sockets on
@@ -89,6 +91,9 @@ foundation_testbed = { path = "../foundation_testbed", default-features = false,
 wasm-bindgen-test = "=0.3.76"
 # Proc-macro crate — always compiled for host, safe for all targets.
 foundation_macros = { path = "../foundation_macros" }
+# Feature 04 TLS regression tests build a slow rustls server, which needs the
+# same `Zeroizing` wrapper the crate's `RustlsAcceptor::from_pem` takes.
+zeroize = { version = "1" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 foundation_testing = { path = "../foundation_testing" }
@@ -109,7 +114,7 @@ log_warnings = []
 log_errors = []
 log_debug = []
 log_info = []
-nightly = ["dep:socket2"]
+nightly = []
 
 socks5 = []
 # QUIC (F33). quinn-proto is sans-IO and needs a rustls crypto provider; declare
