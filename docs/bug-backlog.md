@@ -56,6 +56,18 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   returns `Ignore` for a sized body's `Data::Retry` but passes a chunked body's
   `WouldBlock` through as `StreamError`, so its users can't tell "not ready"
   apart from bookkeeping items or failures.
+- **The client body reader cannot reach the reactor.** Feature 03 §3.2 wants
+  `FdReadiness` (reactor-backed, `foundation_iogate/src/native/fd_readiness.rs`)
+  as the `ReadWakeSource` for streamed response bodies. But the body is built in
+  `foundation_netio` (`shared/http/impls.rs` `HttpReadState::Body`, around line
+  4651, and `shared/client/body_reader.rs`), and netio cannot depend on iogate
+  (iogate depends on netio) or nativeapis (nativeapis → db → netio). The
+  HTTP/1.1 client readiness is `SocketReadiness` (`native/readiness.rs`), a
+  poll-based `EventReadiness` that cannot wake a `std::task::Waker`. So the
+  plain-TCP async body reads still self-wake. Fix: give netio a
+  `std::task::Waker`-capable readiness source — move the reactor below netio,
+  add a netio-side poll reactor, or drive the body through the valtron
+  `Depends(EventReadiness)` bridge. Tracked as feature 29.
 - **Non-blocking work not done yet:**
   - non-blocking connect and TLS handshake (task #23):
     `HttpClientConnection::connect` blocks in `TcpStream::connect_timeout`

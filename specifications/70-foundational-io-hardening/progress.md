@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-28: feature 29 added (client body reader reaches a Waker-capable readiness source).
+  Feature 03 T1–T2 landed and pass (netio 1206 tests, connectrpc, iogate), but T3–T6 are
+  blocked: the client body is built in `foundation_netio`, whose kernel-socket readiness is
+  poll-based `SocketReadiness` (no `std::task::Waker`), while the reactor that could wake a
+  `Waker` (`FdReadiness`) lives in `foundation_iogate`, which depends on netio. Feature 03 §3.2
+  says stop and report rather than invent a global registry. Feature 29 records the bridge
+  (move the reactor below netio, add a netio poll reactor, or drive the body through valtron
+  `Depends`). Pending, size M, depends on 02; blocks 03 → 04 → 05 → 06.
+
 - 2026-10-28: feature 28 added (QUIC driver parks on its UDP socket). It closes the gap that
   feature 02 left open: `serve_h3` builds the `QuicDriver` without `with_fd_readiness`, so the
   driver still polls at 1 ms (`IDLE_POLL`), and `EventReadiness` has no `clear` for the

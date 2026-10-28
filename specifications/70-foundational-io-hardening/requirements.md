@@ -149,6 +149,7 @@ done
 | 26 | [Native reactor tests compile and run on macOS](./features/26-native-reactor-test-portability/feature.md) | §13 macOS `pipe2`/`/proc` | — | S |
 | 27 | [`SleepIterator` returns `Done` for a reached deadline](./features/27-valtron-sleep-iterator/feature.md) | §4 zero-duration deadline | — | S |
 | 28 | [QUIC driver parks on its UDP socket](./features/28-quic-driver-fd-readiness/feature.md) | §2 QUIC driver 1 ms poll | 02 | M |
+| 29 | [Client body reader reaches a Waker-capable readiness source](./features/29-client-reactor-bridge/feature.md) | §2 client body reader cannot reach the reactor | 02 | M |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.

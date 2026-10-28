@@ -2,6 +2,18 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-28 (feature 03/29): `foundation_netio` cannot depend on `foundation_iogate` or
+  `foundation_nativeapis`. The graph is `nativeapis → db → netio` and `iogate → {netio,
+  nativeapis}`, so iogate sits above netio on purpose. The client body reader therefore cannot
+  reach `FdReadiness` (iogate) even though the connection is right there where the body is
+  built (`impls.rs` `HttpReadState::Body`, `api.rs` `send_async`). The connection's
+  `readiness()` for `Tcp`/`Unix` is `SocketReadiness` (`connection.rs` around line 1170), a
+  zero-timeout `poll(2)` `EventReadiness` — it parks a valtron task via `Depends` but cannot
+  wake a `std::task::Waker`. Only `Overlay` and HTTP/3 register a real waker inside netio. So a
+  plain-TCP `futures_core::Stream` that returns `Pending` has no in-netio way to be woken.
+  Feature 03 §3.2's premise (the connection "already has the shared reactor") is wrong for
+  kernel sockets; see feature 29 for the bridge.
+
 - 2026-10-28 (feature 02): an idle TCP socket is always writable. If an fd is registered with
   both READABLE and WRITABLE, the kqueue `EVFILT_WRITE` filter fires forever and the reactor
   drain thread busy-spins. `FdReadiness` therefore registers READABLE only, and callers turn
