@@ -241,7 +241,6 @@ fn frame_over_configured_cap_is_rejected() {
     // A frame announcing more than the configured cap is refused on the length
     // alone — `H3_FRAME_ERROR`, not an allocation of the oversized payload.
     use foundation_netio::http3::frame::Frame;
-    use foundation_netio::http3::VarInt;
     use foundation_netio::quic::{QuicConnection, QuicSendStream};
 
     let (mut sq, mut cq, server_conn, mut client_conn) = quic_pair();

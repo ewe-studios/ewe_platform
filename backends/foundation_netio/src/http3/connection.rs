@@ -184,16 +184,22 @@ struct PendingAccept<S: QuicBidiStream> {
     /// The `200` HEADERS frame of a WebTransport CONNECT, while not yet fully
     /// written.
     response: Option<Bytes>,
-    /// The `200` is written; the FIN is still to be queued.
-    finishing: bool,
+    /// The `200` is written; the CONNECT stream is ready to hand over, still
+    /// open.
+    handshake_done: bool,
 }
 
 /// What [`H3Connection::poll_accept_webtransport`] accepted.
 #[derive(Debug)]
 pub enum WtAccept<S: QuicBidiStream> {
-    /// A WebTransport Extended CONNECT, answered with `200`: call
+    /// A WebTransport Extended CONNECT, answered with `200`. The CONNECT stream
+    /// is still open and handed back here; pass it to
     /// [`H3Connection::into_webtransport`].
-    Session,
+    Session {
+        /// The open CONNECT stream. Its close ends the session
+        /// (draft-ietf-webtrans-http3 §5).
+        connect: S,
+    },
     /// An ordinary HTTP/3 request. Its HEADERS are already read (they are
     /// `headers`); serve it from its body on.
     Request {
@@ -404,24 +410,31 @@ impl<C: QuicConnection> H3Connection<C> {
     /// Consume this `H3Connection` and return a [`WtSession`] wrapping the
     /// underlying QUIC connection (spec-55, F06 — server accept path).
     ///
-    /// Call after `poll_accept_bidi()` confirms a WebTransport Extended CONNECT
-    /// request (`:method = CONNECT` + `:protocol = webtransport`). The caller
-    /// stops driving HTTP/3 — the QUIC connection is now a WT session.
+    /// Call after `poll_accept_webtransport` confirms a WebTransport Extended
+    /// CONNECT request (`:method = CONNECT` + `:protocol = webtransport`). The
+    /// caller stops driving HTTP/3 — the QUIC connection is now a WT session.
+    /// `connect` is the open CONNECT stream handed back by the accept; the session
+    /// lives as long as it stays open (draft-ietf-webtrans-http3 §5).
     #[must_use]
-    pub fn into_webtransport(self, datagrams: bool) -> crate::webtransport::session::WtSession<C> {
-        crate::webtransport::session::WtSession::new(self.conn, datagrams)
+    pub fn into_webtransport(
+        self,
+        connect: C::BidiStream,
+        datagrams: bool,
+    ) -> crate::webtransport::session::WtSession<C> {
+        crate::webtransport::session::WtSession::new_with_connect(self.conn, connect, datagrams)
     }
 
     /// Poll for an incoming bidi stream and check if it's a WebTransport
     /// Extended CONNECT request (spec-55, F06 — server accept path).
     ///
-    /// Returns `Stream::Next(Ok(WtAccept::Session))` once a WebTransport
-    /// CONNECT has been answered with `200`; the caller then calls
-    /// [`Self::into_webtransport`]. Returns `Stream::Next(Ok(WtAccept::Request
-    /// { .. }))` for an ordinary HTTP/3 request, with the HEADERS it has already
-    /// read. `Stream::Pending(())` while nothing has arrived, or while the
-    /// accepted stream's HEADERS or the `200` are not through yet: the stream is
-    /// kept and the next call carries on with it, so none is lost.
+    /// Returns `Stream::Next(Ok(WtAccept::Session { connect }))` once a
+    /// WebTransport CONNECT has been answered with `200`; the caller then calls
+    /// [`Self::into_webtransport`] with that still-open `connect` stream. Returns
+    /// `Stream::Next(Ok(WtAccept::Request { .. }))` for an ordinary HTTP/3 request,
+    /// with the HEADERS it has already read. `Stream::Pending(())` while nothing
+    /// has arrived, or while the accepted stream's HEADERS or the `200` are not
+    /// through yet: the stream is kept and the next call carries on with it, so
+    /// none is lost.
     ///
     /// # Errors
     /// `Next(Err(..))` when the connection fails, or when the accepted stream is
@@ -438,14 +451,14 @@ impl<C: QuicConnection> H3Connection<C> {
                         self.read_chunk,
                     ),
                     response: None,
-                    finishing: false,
+                    handshake_done: false,
                 }),
                 Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
                 _ => return Stream::Pending(()),
             },
         };
 
-        if pending.response.is_none() && !pending.finishing {
+        if pending.response.is_none() && !pending.handshake_done {
             match pending.request.poll_headers() {
                 Stream::Next(Ok(headers)) => {
                     let field = |name: &[u8]| {
@@ -478,21 +491,25 @@ impl<C: QuicConnection> H3Connection<C> {
             match pending.request.poll_send_headers(frame) {
                 Stream::Next(Ok(())) => {
                     pending.response = None;
-                    pending.finishing = true;
+                    pending.handshake_done = true;
                 }
                 Stream::Next(Err(e)) => return Stream::Next(Err(self.drop_pending_accept(e))),
                 _ => return Stream::Pending(()),
             }
         }
 
-        match pending.request.poll_finish() {
-            Stream::Next(Ok(())) => {
-                self.pending_accept = None;
-                Stream::Next(Ok(WtAccept::Session))
-            }
-            Stream::Next(Err(e)) => Stream::Next(Err(self.drop_pending_accept(e))),
-            _ => Stream::Pending(()),
+        // The `200` is written. The CONNECT stream stays open — its close ends the
+        // session (draft-ietf-webtrans-http3 §5) — so it is handed over, not FIN'd.
+        if pending.handshake_done {
+            let Some(pending) = self.pending_accept.take() else {
+                return Stream::Pending(());
+            };
+            return Stream::Next(Ok(WtAccept::Session {
+                connect: pending.request.into_inner(),
+            }));
         }
+
+        Stream::Pending(())
     }
 
     /// The accepted stream failed: reset it (with the protocol's code when
@@ -776,5 +793,13 @@ impl<S: QuicBidiStream> H3Request<S> {
     /// This request's QUIC stream id.
     pub fn id(&self) -> crate::quic::StreamId {
         QuicSendStream::id(self.framed.get_ref())
+    }
+
+    /// Consume the request and return the underlying QUIC stream, still open.
+    ///
+    /// Used by the WebTransport accept path to hand the CONNECT stream to the
+    /// session instead of finishing it (draft-ietf-webtrans-http3 §5).
+    pub fn into_inner(self) -> S {
+        self.framed.into_inner()
     }
 }
