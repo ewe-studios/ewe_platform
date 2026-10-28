@@ -97,3 +97,41 @@ fn park_on_depends_on_a_waking_stream_and_waits_otherwise() {
     let status: TaskStatus<(), ()> = park_on(&mut buffered);
     assert!(matches!(status, TaskStatus::Wait), "no readiness signal: re-poll");
 }
+
+/// The first pull of an async bridge on an empty queue does not block: the
+/// bridge announces itself (registers a wake) before pulling, so the queue
+/// answers `Wait` and the future parks. It used to block the polling thread
+/// for `max_spins` timed waits first — here 20 × 50 ms, a full second.
+#[test]
+fn an_async_bridge_does_not_block_on_its_first_empty_pull() {
+    use foundation_core::valtron::TaskStatus;
+    use std::future::Future;
+    use std::task::{Context, Poll, Waker};
+
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let iterator = NotifyQueueStreamIterator::new(queue.clone(), 20, Duration::from_millis(50));
+    let mut ready = std::pin::pin!(iterator.into_ready_future());
+    let mut cx = Context::from_waker(Waker::noop());
+
+    let started = std::time::Instant::now();
+    assert!(ready.as_mut().poll(&mut cx).is_pending());
+    assert!(
+        started.elapsed() < Duration::from_millis(200),
+        "the first poll blocked for {:?}",
+        started.elapsed()
+    );
+
+    queue.push(Stream::Next(3)).unwrap();
+    match ready.as_mut().poll(&mut cx) {
+        Poll::Ready(Some((value, _rest))) => assert_eq!(value, 3),
+        other => panic!("expected the pushed value, got {:?}", other.map(|o| o.map(|(v, _)| v))),
+    }
+
+    // The task path: `TaskStatus::from_stream` parks at once too.
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let mut iterator = NotifyQueueStreamIterator::new(queue, 20, Duration::from_millis(50));
+    let started = std::time::Instant::now();
+    let status: Option<TaskStatus<usize, ()>> = TaskStatus::from_stream(&mut iterator);
+    assert!(matches!(status, Some(TaskStatus::Depends(_))));
+    assert!(started.elapsed() < Duration::from_millis(200), "from_stream blocked");
+}

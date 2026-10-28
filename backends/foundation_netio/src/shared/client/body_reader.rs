@@ -1713,12 +1713,28 @@ pub enum SendSafeBodyBytesItem {
 /// pumps need a chunk-at-a-time iterator wrapping any `SendSafeBody` variant.
 ///
 /// WHAT: Wraps a `SendSafeBody` and yields `Stream<SendSafeBodyBytesItem, ()>`:
-/// `Next(Bytes)` per data chunk, `Next(Error)` for stream errors, `Ignore` for
-/// transient non-data items, `None` when exhausted. All six variants handled.
+/// `Next(Bytes)` per data chunk, `Next(Error)` for stream errors, `Wait` when
+/// the transport has nothing yet (a non-blocking socket's `WouldBlock`, for
+/// every body kind), `Ignore` for bookkeeping items (a chunk-end marker,
+/// trailers, a skipped line or SSE comment), `None` when exhausted. All six
+/// variants handled. (A sized body's "not ready" used to come out as `Ignore`
+/// and a framed body's as a `StreamError`, so callers could not tell waiting
+/// from bookkeeping or failure.)
 ///
 /// HOW: Takes ownership of the `SendSafeBody` — the body IS the state. On each
 /// `next()` call, matches the current variant and extracts the next chunk.
 pub struct SendSafeBodyBytesIterator(SendSafeBody);
+
+/// Whether a body-reading error means "nothing yet" (`WouldBlock`), not a
+/// failure: an `io::Error` of that kind, or a reader error that wraps one.
+#[must_use]
+pub fn is_would_block(err: &(dyn std::error::Error + 'static)) -> bool {
+    if let Some(reader) = err.downcast_ref::<crate::shared::http::HttpReaderError>() {
+        return reader.is_would_block();
+    }
+    err.downcast_ref::<std::io::Error>()
+        .is_some_and(|io| io.kind() == std::io::ErrorKind::WouldBlock)
+}
 
 impl SendSafeBodyBytesIterator {
     /// Wrap a `SendSafeBody`. Takes ownership — the body cannot be read again.
@@ -1755,7 +1771,8 @@ impl Iterator for SendSafeBodyBytesIterator {
             SendSafeBody::Stream(ref mut opt) => match opt {
                 Some(iter) => match iter.next() {
                     Some(Ok(Data::Bytes(bytes))) => Some(Stream::Next(item(Bytes::from(bytes)))),
-                    Some(Ok(Data::Retry)) => Some(Stream::Ignore),
+                    Some(Ok(Data::Retry)) => Some(Stream::Wait),
+                    Some(Err(e)) if is_would_block(&*e) => Some(Stream::Wait),
                     Some(Err(e)) => Some(Stream::Next(err_item(e))),
                     None => None,
                 },
@@ -1767,6 +1784,7 @@ impl Iterator for SendSafeBodyBytesIterator {
                         ChunkedData::Data(bytes, _) => Some(Stream::Next(item(Bytes::from(bytes)))),
                         ChunkedData::Trailers(_) | ChunkedData::DataEnded => Some(Stream::Ignore),
                     },
+                    Some(Err(e)) if is_would_block(&*e) => Some(Stream::Wait),
                     Some(Err(e)) => Some(Stream::Next(err_item(e))),
                     None => None,
                 },
@@ -1782,6 +1800,7 @@ impl Iterator for SendSafeBodyBytesIterator {
                         }
                         LineFeed::SKIP | LineFeed::END => Some(Stream::Ignore),
                     },
+                    Some(Err(e)) if is_would_block(&*e) => Some(Stream::Wait),
                     Some(Err(e)) => Some(Stream::Next(err_item(e))),
                     None => None,
                 },
@@ -1793,6 +1812,7 @@ impl Iterator for SendSafeBodyBytesIterator {
                         Event::Message { data, .. } => Some(Stream::Next(item(Bytes::from(data)))),
                         Event::Comment(_) | Event::Reconnect => Some(Stream::Ignore),
                     },
+                    Some(Err(e)) if is_would_block(&*e) => Some(Stream::Wait),
                     Some(Err(e)) => Some(Stream::Next(err_item(e))),
                     None => None,
                 },

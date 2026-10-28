@@ -158,3 +158,67 @@ fn test_threaded_future_yields_waiting_on_empty_queue() {
         "a ~3 s empty-queue gap must yield at least one Waiting heartbeat"
     );
 }
+
+/// Pending until another thread wakes it, counting its polls.
+struct WakeLater {
+    polls: std::sync::Arc<std::sync::atomic::AtomicUsize>,
+    started: bool,
+    done: std::sync::Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl std::future::Future for WakeLater {
+    type Output = ();
+
+    fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<()> {
+        use std::sync::atomic::Ordering;
+        self.polls.fetch_add(1, Ordering::SeqCst);
+        if self.done.load(Ordering::SeqCst) {
+            return std::task::Poll::Ready(());
+        }
+        if !self.started {
+            self.started = true;
+            let waker = cx.waker().clone();
+            let done = std::sync::Arc::clone(&self.done);
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(100));
+                done.store(true, Ordering::SeqCst);
+                waker.wake();
+            });
+        }
+        std::task::Poll::Pending
+    }
+}
+
+/// The worker thread parks while its future is pending and resumes on the
+/// future's wake. It used to poll with a no-op waker in a `yield_now` loop,
+/// spinning a whole thread (thousands of polls in 100 ms).
+#[valtron_test(seed = 42, threads = 4)]
+fn test_threaded_future_parks_while_pending() {
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+    use std::sync::Arc;
+
+    let polls = Arc::new(AtomicUsize::new(0));
+    let counted = Arc::clone(&polls);
+    let threaded = ThreadedIterFuture::new(move || async move {
+        WakeLater {
+            polls: counted,
+            started: false,
+            done: Arc::new(AtomicBool::new(false)),
+        }
+        .await;
+        Ok::<_, ()>(vec![Ok::<i32, ()>(7)].into_iter())
+    });
+
+    let results: Vec<i32> = threaded
+        .execute()
+        .expect("should submit job")
+        .filter_map(|v| match v {
+            ThreadedValue::Value(Ok(val)) => Some(val),
+            ThreadedValue::Value(Err(())) | ThreadedValue::Waiting => None,
+        })
+        .collect();
+
+    assert_eq!(results, vec![7]);
+    let polls = polls.load(Ordering::SeqCst);
+    assert!(polls <= 5, "the pending future was polled {polls} times: busy-polling");
+}
