@@ -211,6 +211,12 @@ impl WakeableStream for RacingStream {
         }
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        // Forward the async-consumer announcement so the inner first empty
+        // pull answers `Wait` (setting `saw_empty`) instead of blocking.
+        self.inner.announce();
+    }
 }
 
 /// An item pushed after the empty pull and before the real wake is registered
@@ -232,4 +238,84 @@ fn item_pushed_between_empty_pull_and_registration_is_not_lost() {
         Poll::Ready(None) => panic!("stream ended"),
         Poll::Pending => panic!("the item pushed before the registration was lost"),
     }
+}
+
+/// A stream that always answers `Ignore` and forwards `wake` to a queue. It
+/// makes every no-op wake registered per `TaskStatus::from_stream` poll visible
+/// through [`NotifyQueue::pending_wakes`].
+struct IgnoreStream {
+    queue: Arc<NotifyQueue<Stream<usize, ()>>>,
+}
+
+impl Iterator for IgnoreStream {
+    type Item = Stream<usize, ()>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(Stream::Ignore)
+    }
+}
+
+impl WakeableStream for IgnoreStream {
+    fn wake(&mut self, cb: foundation_core::valtron::WakeCallback) -> WakeResult {
+        self.queue.register_wake(cb);
+        WakeResult::Successful
+    }
+}
+
+/// `TaskStatus::from_stream` announces (not wakes) before the pull, so repeated
+/// polls of a stream that never parks must not pile up no-op wake callbacks.
+#[test]
+fn from_stream_does_not_accumulate_noop_wakes() {
+    use foundation_core::valtron::TaskStatus;
+
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let mut stream = IgnoreStream { queue: queue.clone() };
+
+    for _ in 0..100 {
+        let status: Option<TaskStatus<usize, ()>> = TaskStatus::from_stream(&mut stream);
+        assert!(matches!(status, Some(TaskStatus::Ignore)));
+    }
+
+    assert_eq!(
+        queue.pending_wakes(),
+        0,
+        "from_stream must not register a wake callback per poll"
+    );
+}
+
+/// A producer re-registering its space wake on each retry of a full push must
+/// replace the earlier callback, not pile up stale ones.
+#[test]
+fn register_space_wake_replaces_not_accumulates() {
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::bounded(1));
+    queue.push(Stream::Next(1usize)).unwrap();
+    assert!(queue.queue().is_full(), "a capacity-1 queue with one item is full");
+
+    for _ in 0..100 {
+        queue.register_space_wake(Box::new(|| {}));
+    }
+
+    assert_eq!(
+        queue.pending_space_wakes(),
+        1,
+        "a re-registered space wake must replace the earlier one"
+    );
+}
+
+/// Taking an item from a full queue must wake a producer that registered a space
+/// wake (no lost wake through the `has_waiters` fast path).
+#[test]
+fn pop_wakes_a_waiting_producer() {
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::bounded(1));
+    queue.push(Stream::Next(1usize)).unwrap();
+
+    let fired = Arc::new(AtomicUsize::new(0));
+    let c = Arc::clone(&fired);
+    queue.register_space_wake(Box::new(move || {
+        c.fetch_add(1, Ordering::SeqCst);
+    }));
+
+    assert_eq!(fired.load(Ordering::SeqCst), 0, "not woken before a pop frees space");
+    assert!(matches!(queue.pop(), Ok(Stream::Next(1))), "pop returns the pushed item");
+    assert_eq!(fired.load(Ordering::SeqCst), 1, "pop must wake a registered space waiter");
 }

@@ -564,11 +564,12 @@ where
 }
 
 /// Tell `iter` that an async consumer is pulling it, before the first pull:
-/// register a (no-op) wake, forwarded down any combinators. A queue-backed
-/// stream then answers an empty pull with `Wait` at once, instead of blocking
-/// the polling thread for a timed wait first (it only learned of the async
-/// consumer from the first `wake`, after that blocking pull). The real wake is
-/// registered when a pull comes back empty, as before.
+/// announce it down any combinators. A queue-backed stream then answers an
+/// empty pull with `Wait` at once, instead of blocking the polling thread for a
+/// timed wait first (it only learned of the async consumer from the first
+/// `wake`, after that blocking pull). The real wake is registered when a pull
+/// comes back empty, as before. `announce` registers no callback, so calling it
+/// here cannot leak on repeated polls.
 fn prime<SI: WakeableStream>(iter: &mut SI, _cx: &Context<'_>) {
-    let _ = iter.wake(Box::new(|| {}));
+    iter.announce();
 }

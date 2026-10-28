@@ -1108,6 +1108,14 @@ where
             }
         }
     }
+
+    fn announce(&mut self) {
+        // Forward the idempotent async-consumer announcement down to the waking
+        // terminal, so its first empty pull answers `Wait` at once too.
+        if let Some(inner) = self.0.as_mut() {
+            inner.announce();
+        }
+    }
 }
 
 pub struct DrivenRecvIterator<T>(

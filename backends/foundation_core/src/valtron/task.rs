@@ -197,8 +197,9 @@ impl<D, P> TaskStatus<D, P> {
     {
         // Announce the parking consumer before pulling, so a queue-backed
         // stream answers an empty pull with `Wait` instead of blocking the
-        // executor thread for a timed wait first.
-        let _ = stream.wake(Box::new(|| {}));
+        // executor thread for a timed wait first. `announce` is idempotent and
+        // registers no callback, so it cannot leak on repeated polls.
+        stream.announce();
         Some(match stream.next()? {
             Stream::Next(value) => TaskStatus::Ready(value),
             Stream::Pending(progress) => TaskStatus::Pending(progress),

@@ -122,6 +122,17 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - **`BatchReader` logs every `WouldBlock` at `error!`**
   (`io/readers/mod.rs`, the `WouldBlock`/`TimedOut` arm). It is the ordinary
   "not ready" signal on a non-blocking socket.
+- **`SleepIterator` treats a reached zero-duration deadline as still pending.**
+  `delayed_iterators.rs` `SleepIterator::next` matches
+  `completed_at.checked_duration_since(now)` with `Some(diff) => Pending`, so
+  when `now == completed_at` (a zero-duration sleep, or the two `Instant::now`
+  calls landing on one clock tick) it returns `Pending(0ns)` instead of `Done`.
+  This makes `tests/valtron/delayed_iterators.rs:10`
+  `zero_duration_sleep_iterator_finishes_immediately` flake under parallel load
+  (`Instant::now` does not always advance between the constructor and `next`).
+  Likely fix: return `Done` when `diff` is zero (only `Pending` when
+  `diff > Duration::ZERO`), and make the test not depend on `Instant::now`
+  advancing.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 

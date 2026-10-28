@@ -364,10 +364,14 @@ impl<T> NotifyQueue<T> {
     }
 
     /// Pops an item from the queue without waiting. Taking an item wakes a
-    /// producer waiting for space ([`Self::register_space_wake`]).
+    /// producer waiting for space ([`Self::register_space_wake`]) — but only
+    /// when a producer actually waits, so a pop with no waiting producer stays
+    /// lock-free on the wake side.
     pub fn pop(&self) -> Result<T, PopError> {
         let item = self.queue.pop()?;
-        self.space.fire();
+        if self.space.has_waiters() {
+            self.space.fire();
+        }
         Ok(item)
     }
 
@@ -375,8 +379,12 @@ impl<T> NotifyQueue<T> {
     /// queue full: it fires when an item is taken through this queue or the
     /// queue closes — at once if there is already space or it is closed.
     /// Items taken straight from [`Self::queue`] do not fire it.
+    ///
+    /// The callback replaces any earlier space wake rather than joining it: a
+    /// single producer re-registers on each retry of a full push, so keeping
+    /// only the latest stops stale callbacks from piling up during a stall.
     pub fn register_space_wake(&self, cb: WakeCallback) {
-        self.space.register(cb);
+        self.space.replace(cb);
         if !self.queue.is_full() || self.queue.is_closed() {
             self.space.fire();
         }
@@ -499,6 +507,18 @@ impl<T> NotifyQueue<T> {
     /// `Arc<ConcurrentQueue<T>>` — not a borrow.
     pub fn queue_arc(&self) -> Arc<ConcurrentQueue<T>> {
         self.queue.clone()
+    }
+
+    /// Number of registered consumer wakes ([`Self::register_wake`]) not yet
+    /// fired. Tests use it to pin that repeated registrations do not grow.
+    pub fn pending_wakes(&self) -> usize {
+        self.wake.pending_len()
+    }
+
+    /// Number of registered producer space wakes ([`Self::register_space_wake`])
+    /// not yet fired. Tests use it to pin that repeated registrations do not grow.
+    pub fn pending_space_wakes(&self) -> usize {
+        self.space.pending_len()
     }
 }
 
@@ -739,6 +759,10 @@ where
         self.chan.register_wake(cb);
         WakeResult::Successful
     }
+
+    fn announce(&mut self) {
+        self.woken_consumer = true;
+    }
 }
 
 #[cfg(not(feature = "multi"))]
@@ -751,6 +775,10 @@ where
         self.woken_consumer = true;
         self.chan.register_wake(cb);
         WakeResult::Successful
+    }
+
+    fn announce(&mut self) {
+        self.woken_consumer = true;
     }
 }
 

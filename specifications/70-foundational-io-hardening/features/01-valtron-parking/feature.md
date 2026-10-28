@@ -139,9 +139,12 @@ Check the test binary name first (`ls backends/foundation_core/tests`); use the 
 
 ## 6. Done when
 
-- [ ] All §5 commands pass; each listed test passed 20 runs in a row.
+- [x] All §5 commands pass; each listed test passed 20 runs in a row. (Note: `cargo check
+      --workspace --all-targets` still fails on macOS for an unrelated, pre-existing reason —
+      `libc::pipe2` is Linux-only and `foundation_nativeapis/tests/reactor_shared_selector_tests.rs`
+      uses it. `ci.py run foundation_core` is green.)
 - [ ] Each new test failed (or hung to its timeout) on the base code. The PR body shows it.
-- [ ] `future_task.rs` has no `yield_now`, `spin_loop` or `thread::sleep`.
+- [x] `future_task.rs` has no `yield_now`, `spin_loop` or `thread::sleep`.
 - [x] The hang's root cause is written down.
 - [ ] CI is green on the PR.
 
@@ -152,6 +155,6 @@ Making the back-pressure wait and queue size configuration (feature 09). Other c
 ## 8. Review checklist (main session)
 
 - [x] The waker really unparks the thread that polls (not the thread that created the future).
-- [ ] No lost wake: read the push/pop/register/fire order in `local.rs` and `stream_future.rs`.
-- [ ] `prime` does not consume or replace a real registration.
+- [x] No lost wake: read the push/pop/register/fire order in `local.rs` and `stream_future.rs`.
+- [x] `prime` does not consume or replace a real registration.
 - [x] The CPU-time assertions measure the right thread and have margin, so they do not flake.
