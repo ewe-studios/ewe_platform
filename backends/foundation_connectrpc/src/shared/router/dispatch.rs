@@ -271,10 +271,9 @@ pub(crate) enum BodyStep {
 
 /// Reads a `SendSafeBody` one non-blocking step at a time.
 ///
-/// WHY: `SendSafeBodyBytesIterator` reports "not ready yet" (a non-blocking
-/// socket's `WouldBlock`) as a stream error for chunked bodies and folds it
-/// into `Ignore` for sized ones, next to bookkeeping items like the last chunk.
-/// A reader that must wait for the socket has to tell those apart.
+/// WHY: a reader that waits on the socket needs one answer per step — a
+/// chunk, the end, a failure, or "would block" — while the body iterators
+/// interleave bookkeeping items (the last chunk, trailers) with the data.
 pub(crate) struct BodyReader {
     body: SendSafeBody,
 }
@@ -1355,6 +1354,14 @@ async fn send_whole_response(
                 Some(Stream::Next(SendSafeBodyBytesItem::Chunk(b))) => return Ok(Some(b)),
                 Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
                     return Err(io::Error::other(e.to_string()));
+                }
+                // The body's transport has nothing yet: this writer cannot wait
+                // for it, so report it rather than spin.
+                Some(Stream::Wait) => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::WouldBlock,
+                        "response body not ready",
+                    ));
                 }
                 None => return Ok(None),
                 _ => {} // Ignore, Init, etc — skip.
