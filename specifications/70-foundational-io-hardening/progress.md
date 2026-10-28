@@ -2,6 +2,11 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-28: feature 01 (valtron parking) done on `fix/io-01-valtron-parking`. `ThreadedIterFuture`
+  parks on `Pending` and on a full queue; async stream lenses prime before the first pull; the
+  `smol/tokio_drives_parked_future_task` hang (without `multi`) is fixed in
+  `DrivenStreamIterator::wake`. PR number: see the PR.
+
 - 2026-10-28: spec written by the main session. Baseline: PR #160 (backlog sections 1–5
   verified; correctness fixes; CI green). Readiness work in progress is on branch
   `fix/foundational-readiness` (commits `31467ebd4`, `ed13119db`, and a work-in-progress commit

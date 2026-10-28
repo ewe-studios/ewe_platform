@@ -90,21 +90,22 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 4. foundation_core / valtron
 
-- **A stream's first empty pull still blocks once.**
-  `NotifyQueueStreamIterator::next` (`executors/local.rs`) stops blocking only
-  after a consumer registers a wake, so the first pull on an empty queue by
-  `.values()` / `TaskStatus::from_stream` still waits `max_spins` timed waits.
-  Likely fix: the async conversions register their wake before the first pull.
 - **Hard-coded valtron limits (rule 8):** `MAX_YIELD_DURATION`
   (`executors/local.rs`), `DEFAULT_YIELD_WAIT_TIME` (4 s) and `BACK_OFF_*`
   (`executors/constants.rs`), and `ThreadedIterFuture::new`'s queue size of 16
   and 10 ms back-pressure sleep (`executors/future_task.rs`; builder methods
   exist, but the defaults are literals and undocumented).
-- **`ThreadedIterFuture` (multi) busy-polls** (`executors/future_task.rs`
-  `execute`).
-  - It polls with a no-op waker plus `yield_now`.
-  - It uses `thread::sleep` for backpressure.
-  - It ignores the result of `let _ = worker_queue.push(Err(e))`.
+- **A single-thread `DrivenStreamIterator` cannot park an async consumer**
+  (`executors/non_sendables.rs`, `wake`). The iterator drives the engine in
+  `next`, and a parked task becomes runnable when a foreign thread flips its
+  readiness (`WakeSignal`, a future's waker, a socket) - which pushes nothing
+  and fires no queue wake. So its `wake` only registers on the queue and the
+  inner pull still blocks once (`max_spins` timed waits); an async consumer
+  (`into_collect_future` under smol/tokio) whose task stays parked for more
+  than about two of those waits returns `Pending` with nothing to wake it.
+  Likely fix: let `EventReadiness` sources register a wake (a `Send` callback;
+  `WakeCallback` is not `Send` without `multi`), and have this `wake` register
+  on the sleepers of the engine as well as on the queue.
 - **`BackgroundJobRegistry`** (`executors/background.rs`): the queue is
   unbounded (it needs a capacity setting), and `new` panics if it can't spawn
   a thread instead of returning an error.

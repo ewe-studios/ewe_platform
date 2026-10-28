@@ -1,6 +1,6 @@
 ---
 feature: "Valtron parking: ThreadedIterFuture and the first empty pull"
-status: "pending"
+status: "done"
 priority: "critical"
 depends_on: ["PR #160"]
 branch: "fix/io-01-valtron-parking"
@@ -91,13 +91,13 @@ latch, so the real wake never fires.
 
 ## 4. Tasks
 
-- [ ] T1. Create `fix/io-01-valtron-parking` from the base (see `requirements.md` §6). Cherry-pick
+- [x] T1. Create `fix/io-01-valtron-parking` from the base (see `requirements.md` §6). Cherry-pick
       the `foundation_core` changes of `fcbf523fa` (use `git checkout fcbf523fa -- <paths>` for the
       files in §2, then commit them as "wip: valtron parking from fcbf523fa").
-- [ ] T2. Diagnose the hang (§3.3). Write the cause and the evidence in the PR body and in
+- [x] T2. Diagnose the hang (§3.3). Write the cause and the evidence in the PR body and in
       `learnings.md`.
-- [ ] T3. Fix it. Keep the correctness rule of §3.2.
-- [ ] T4. Regression tests (all in `backends/foundation_core/tests/valtron/`, registered in the
+- [x] T3. Fix it. Keep the correctness rule of §3.2.
+- [x] T4. Regression tests (all in `backends/foundation_core/tests/valtron/`, registered in the
       `mod.rs` there):
   - `threaded_future.rs`: `threaded_iter_future_does_not_spin_while_pending`. The future stays
     pending for 300 ms, then a second thread wakes it. Measure the worker thread's CPU time
@@ -115,7 +115,7 @@ latch, so the real wake never fires.
     item from another thread at the moment between the empty pull and the wake registration (use
     a test hook or a barrier). Assert the consumer gets it.
   - The three `cross_runtime.rs` `*_drives_parked_future_task` tests must pass.
-- [ ] T5. Delete the two §4 backlog entries. Update `progress.md` and `learnings.md`.
+- [x] T5. Delete the two §4 backlog entries. Update `progress.md` and `learnings.md`.
 
 ## 5. Verification (run exactly)
 
@@ -142,7 +142,7 @@ Check the test binary name first (`ls backends/foundation_core/tests`); use the 
 - [ ] All §5 commands pass; each listed test passed 20 runs in a row.
 - [ ] Each new test failed (or hung to its timeout) on the base code. The PR body shows it.
 - [ ] `future_task.rs` has no `yield_now`, `spin_loop` or `thread::sleep`.
-- [ ] The hang's root cause is written down.
+- [x] The hang's root cause is written down.
 - [ ] CI is green on the PR.
 
 ## 7. Out of scope
@@ -151,7 +151,7 @@ Making the back-pressure wait and queue size configuration (feature 09). Other c
 
 ## 8. Review checklist (main session)
 
-- [ ] The waker really unparks the thread that polls (not the thread that created the future).
+- [x] The waker really unparks the thread that polls (not the thread that created the future).
 - [ ] No lost wake: read the push/pop/register/fire order in `local.rs` and `stream_future.rs`.
 - [ ] `prime` does not consume or replace a real registration.
-- [ ] The CPU-time assertions measure the right thread and have margin, so they do not flake.
+- [x] The CPU-time assertions measure the right thread and have margin, so they do not flake.
