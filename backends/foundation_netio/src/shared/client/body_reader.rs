@@ -3165,8 +3165,8 @@ mod tests {
             iter.next(),
             Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"a"
         ));
-        // Retry → Ignore
-        assert!(matches!(iter.next(), Some(Stream::Ignore)));
+        // Retry → Wait (nothing yet, not bookkeeping).
+        assert!(matches!(iter.next(), Some(Stream::Wait)));
         // Chunk "b"
         assert!(matches!(
             iter.next(),
