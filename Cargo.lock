@@ -4778,6 +4778,7 @@ dependencies = [
  "futures-core",
  "futures-lite",
  "js-sys",
+ "libc",
  "serde",
  "serde_json",
  "serial_test",

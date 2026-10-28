@@ -65,6 +65,7 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+libc = "0.2"
 serial_test = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt"] }
 smol = "2"

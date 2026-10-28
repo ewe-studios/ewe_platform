@@ -97,3 +97,139 @@ fn park_on_depends_on_a_waking_stream_and_waits_otherwise() {
     let status: TaskStatus<(), ()> = park_on(&mut buffered);
     assert!(matches!(status, TaskStatus::Wait), "no readiness signal: re-poll");
 }
+
+/// The first pull of an async bridge on an empty queue does not block: the
+/// bridge announces itself (registers a wake) before pulling, so the queue
+/// answers `Wait` and the future parks. It used to block the polling thread
+/// for `max_spins` timed waits first — here 20 × 50 ms, a full second.
+#[test]
+fn an_async_bridge_does_not_block_on_its_first_empty_pull() {
+    use foundation_core::valtron::TaskStatus;
+    use std::future::Future;
+    use std::task::{Context, Poll, Waker};
+
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let iterator = NotifyQueueStreamIterator::new(queue.clone(), 20, Duration::from_millis(50));
+    let mut ready = std::pin::pin!(iterator.into_ready_future());
+    let mut cx = Context::from_waker(Waker::noop());
+
+    let started = std::time::Instant::now();
+    assert!(ready.as_mut().poll(&mut cx).is_pending());
+    assert!(
+        started.elapsed() < Duration::from_millis(200),
+        "the first poll blocked for {:?}",
+        started.elapsed()
+    );
+
+    queue.push(Stream::Next(3)).unwrap();
+    match ready.as_mut().poll(&mut cx) {
+        Poll::Ready(Some((value, _rest))) => assert_eq!(value, 3),
+        other => panic!("expected the pushed value, got {:?}", other.map(|o| o.map(|(v, _)| v))),
+    }
+
+    // The task path: `TaskStatus::from_stream` parks at once too.
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let mut iterator = NotifyQueueStreamIterator::new(queue, 20, Duration::from_millis(50));
+    let started = std::time::Instant::now();
+    let status: Option<TaskStatus<usize, ()>> = TaskStatus::from_stream(&mut iterator);
+    assert!(matches!(status, Some(TaskStatus::Depends(_))));
+    assert!(started.elapsed() < Duration::from_millis(200), "from_stream blocked");
+}
+
+/// Counts how often it is woken.
+struct CountWake(AtomicUsize);
+
+impl std::task::Wake for CountWake {
+    fn wake(self: Arc<Self>) {
+        self.0.fetch_add(1, Ordering::SeqCst);
+    }
+}
+
+/// An async consumer's first poll on an empty queue returns `Pending` at once
+/// (the old code blocked the polling thread for `max_spins` timed waits: here
+/// 20 x 200 ms), registers a real wake, and a later push wakes it and delivers
+/// the item.
+#[test]
+fn first_empty_pull_does_not_block() {
+    use std::future::Future;
+    use std::task::{Context, Poll, Waker};
+
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let iterator = NotifyQueueStreamIterator::new(queue.clone(), 20, Duration::from_millis(200));
+    let mut ready = std::pin::pin!(iterator.into_ready_future());
+
+    let counter = Arc::new(CountWake(AtomicUsize::new(0)));
+    let waker = Waker::from(counter.clone());
+    let mut cx = Context::from_waker(&waker);
+
+    let started = std::time::Instant::now();
+    assert!(ready.as_mut().poll(&mut cx).is_pending());
+    assert!(
+        started.elapsed() < Duration::from_millis(5),
+        "the first empty pull blocked for {:?}",
+        started.elapsed()
+    );
+    assert_eq!(counter.0.load(Ordering::SeqCst), 0);
+
+    queue.push(Stream::Next(9)).unwrap();
+    assert_eq!(counter.0.load(Ordering::SeqCst), 1, "the push must wake the consumer");
+    match ready.as_mut().poll(&mut cx) {
+        Poll::Ready(Some((value, _rest))) => assert_eq!(value, 9),
+        _ => panic!("expected the pushed value"),
+    }
+}
+
+/// A stream whose producer pushes an item exactly between the consumer's empty
+/// pull and the registration of its real wake (the push fires only the wakes
+/// registered so far, so it never fires the real one).
+struct RacingStream {
+    inner: NotifyQueueStreamIterator<usize, ()>,
+    queue: Arc<NotifyQueue<Stream<usize, ()>>>,
+    saw_empty: bool,
+    pushed: bool,
+}
+
+impl Iterator for RacingStream {
+    type Item = Stream<usize, ()>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = self.inner.next();
+        if matches!(item, Some(Stream::Wait)) {
+            self.saw_empty = true;
+        }
+        item
+    }
+}
+
+impl WakeableStream for RacingStream {
+    fn wake(&mut self, cb: foundation_core::valtron::WakeCallback) -> WakeResult {
+        // The first registration after an empty pull is the real one (a
+        // priming call comes before any pull and does not count).
+        if self.saw_empty && !self.pushed {
+            self.pushed = true;
+            self.queue.push(Stream::Next(5)).unwrap();
+        }
+        self.inner.wake(cb)
+    }
+}
+
+/// An item pushed after the empty pull and before the real wake is registered
+/// is not lost: the consumer pulls once more after registering and returns it
+/// in the same poll.
+#[test]
+fn item_pushed_between_empty_pull_and_registration_is_not_lost() {
+    use std::future::Future;
+    use std::task::{Context, Poll, Waker};
+
+    let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
+    let inner = NotifyQueueStreamIterator::new(queue.clone(), 20, Duration::from_millis(200));
+    let racing = RacingStream { inner, queue, saw_empty: false, pushed: false };
+    let mut ready = std::pin::pin!(racing.into_ready_future());
+    let mut cx = Context::from_waker(Waker::noop());
+
+    match ready.as_mut().poll(&mut cx) {
+        Poll::Ready(Some((value, _rest))) => assert_eq!(value, 5),
+        Poll::Ready(None) => panic!("stream ended"),
+        Poll::Pending => panic!("the item pushed before the registration was lost"),
+    }
+}

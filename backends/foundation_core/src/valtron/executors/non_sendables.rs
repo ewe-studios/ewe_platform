@@ -1256,10 +1256,24 @@ where
     T::Pending: 'static,
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
-        // Forward to the waking terminal held inside. If the inner has been
-        // taken out (exhausted), there is nothing left to register against.
-        match self.0.as_mut() {
-            Some(inner) => inner.wake(cb),
+        // Register on the queue only. Do NOT forward to the inner
+        // `NotifyQueueStreamIterator::wake`: that also switches the inner to its
+        // non-blocking "async consumer" mode, which answers an empty pull with
+        // `Wait` and relies on a producer thread pushing to fire the wake.
+        // Here the producer is the engine this very iterator drives in `next`,
+        // and a parked task becomes runnable when a foreign thread flips its
+        // readiness signal (`WakeSignal`, a future's waker, a socket), which
+        // pushes nothing and fires nothing. With the non-blocking mode the
+        // consumer would park on a wake that no one fires and `next` would never
+        // drive the engine again (smol/tokio `into_collect_future` hung).
+        // Keeping the inner blocking preserves "block only when nothing here can
+        // run" in `next`: the one real boundary of a thread that is its own
+        // executor.
+        match self.0.as_ref() {
+            Some(inner) => {
+                inner.chan().register_wake(cb);
+                WakeResult::Successful
+            }
             None => {
                 let _ = cb;
                 WakeResult::NotSupported

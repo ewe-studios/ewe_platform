@@ -300,6 +300,9 @@ pub struct NotifyQueue<T> {
     /// One-shot stream-wake callbacks, fired on `push` and on `close`. Shared
     /// across clones so a consumer's registration is visible to any producer.
     wake: Arc<WakeRegistry>,
+    /// One-shot callbacks for a producer waiting on a full queue, fired when
+    /// an item is taken through this queue and on `close`.
+    space: Arc<WakeRegistry>,
 }
 
 impl<T> Clone for NotifyQueue<T> {
@@ -310,6 +313,7 @@ impl<T> Clone for NotifyQueue<T> {
             mutex: self.mutex.clone(),
             max_spins: AtomicUsize::new(self.max_spins.load(Ordering::Relaxed)),
             wake: self.wake.clone(),
+            space: self.space.clone(),
         }
     }
 }
@@ -323,6 +327,7 @@ impl<T> NotifyQueue<T> {
             mutex: Arc::new(foundation_nostd::comp::condvar_comp::Mutex::new(false)),
             max_spins: AtomicUsize::new(DEFAULT_NOTIFY_QUEUE_MAX_SPINS),
             wake: Arc::new(WakeRegistry::new()),
+            space: Arc::new(WakeRegistry::new()),
         }
     }
 
@@ -334,6 +339,7 @@ impl<T> NotifyQueue<T> {
             mutex: Arc::new(foundation_nostd::comp::condvar_comp::Mutex::new(false)),
             max_spins: AtomicUsize::new(DEFAULT_NOTIFY_QUEUE_MAX_SPINS),
             wake: Arc::new(WakeRegistry::new()),
+            space: Arc::new(WakeRegistry::new()),
         }
     }
 
@@ -357,9 +363,23 @@ impl<T> NotifyQueue<T> {
         Ok(())
     }
 
-    /// Pops an item from the queue without waiting.
+    /// Pops an item from the queue without waiting. Taking an item wakes a
+    /// producer waiting for space ([`Self::register_space_wake`]).
     pub fn pop(&self) -> Result<T, PopError> {
-        self.queue.pop()
+        let item = self.queue.pop()?;
+        self.space.fire();
+        Ok(item)
+    }
+
+    /// Registers a one-shot callback for a producer whose `push` found the
+    /// queue full: it fires when an item is taken through this queue or the
+    /// queue closes — at once if there is already space or it is closed.
+    /// Items taken straight from [`Self::queue`] do not fire it.
+    pub fn register_space_wake(&self, cb: WakeCallback) {
+        self.space.register(cb);
+        if !self.queue.is_full() || self.queue.is_closed() {
+            self.space.fire();
+        }
     }
 
     /// Waits for an item, blocking efficiently via CondVar.
@@ -368,7 +388,7 @@ impl<T> NotifyQueue<T> {
     /// or `None` (Option) if queue is closed — iteration should end.
     pub fn wait_for_item(&self, timeout: time::Duration) -> Option<NotificationItem<T>> {
         // First try non-blocking pop
-        match self.queue.pop() {
+        match self.pop() {
             Ok(item) => return Some(NotificationItem::Ready(item)),
             Err(PopError::Closed) => return None,
             Err(PopError::Empty) => {}
@@ -385,7 +405,7 @@ impl<T> NotifyQueue<T> {
             }
 
             // Check queue after acquiring lock
-            match self.queue.pop() {
+            match self.pop() {
                 Ok(item) => {
                     *guard = false;
                     return Some(NotificationItem::Ready(item));
@@ -403,7 +423,7 @@ impl<T> NotifyQueue<T> {
             spins += 1;
 
             // Check if item available after waking up
-            match self.queue.pop() {
+            match self.pop() {
                 Ok(item) => {
                     *guard = false;
                     return Some(NotificationItem::Ready(item));
@@ -442,6 +462,8 @@ impl<T> NotifyQueue<T> {
             // Wake a consumer parked on an empty-but-open queue so it observes the
             // close. No-op if the queue was already closed (nothing new to observe).
             self.wake.fire();
+            // And a producer waiting for space, which will now see `Closed`.
+            self.space.fire();
         }
         closed
     }

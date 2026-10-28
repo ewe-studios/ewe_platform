@@ -48,7 +48,7 @@ use crate::valtron::EventReadinessPtr;
 ///
 /// WHY: Valtron executor drives polling loop, no actual waking needed
 /// WHAT: Returns a Waker that does nothing when `wake()` is called
-#[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg(all(any(feature = "std", feature = "alloc"), not(feature = "multi")))]
 fn create_noop_waker() -> Waker {
     const VTABLE: RawWakerVTable = RawWakerVTable::new(
         |_| RAW_WAKER, // clone
@@ -667,6 +667,49 @@ impl<T, E> Iterator for FutureIterator<T, E> {
     }
 }
 
+/// Unparks the thread that owns it — the waker of a future polled on a
+/// background worker thread.
+#[cfg(feature = "multi")]
+struct ThreadUnpark(std::thread::Thread);
+
+#[cfg(feature = "multi")]
+impl std::task::Wake for ThreadUnpark {
+    fn wake(self: Arc<Self>) {
+        self.0.unpark();
+    }
+
+    fn wake_by_ref(self: &Arc<Self>) {
+        self.0.unpark();
+    }
+}
+
+/// Push `value`, waiting while the queue is full: the thread parks until the
+/// consumer takes an item (or the queue closes), checking again at least every
+/// `max_wait` when one is set. Returns `false` once the queue is closed — the
+/// consumer is gone.
+#[cfg(feature = "multi")]
+fn push_waiting<T>(
+    queue: &NotifyQueue<T>,
+    mut value: T,
+    max_wait: Option<std::time::Duration>,
+) -> bool {
+    loop {
+        match queue.push(value) {
+            Ok(()) => return true,
+            Err(PushError::Closed(_)) => return false,
+            Err(PushError::Full(v)) => {
+                value = v;
+                let thread = std::thread::current();
+                queue.register_space_wake(Box::new(move || thread.unpark()));
+                match max_wait {
+                    Some(wait) => std::thread::park_timeout(wait),
+                    None => std::thread::park(),
+                }
+            }
+        }
+    }
+}
+
 /// A future executor that runs !Send operations on a background worker thread.
 ///
 /// In multi-threaded mode, this submits work to the BackgroundJobRegistry.
@@ -724,7 +767,11 @@ where
         let backpressure_sleep = self.backpressure_sleep;
 
         super::run_background_job(move || {
-            let waker = create_noop_waker();
+            // The worker thread parks while the future is pending; the
+            // future's waker unparks it. (It used to poll with a no-op waker
+            // and `yield_now`, spinning a whole thread.)
+            let thread = std::thread::current();
+            let waker = Waker::from(Arc::new(ThreadUnpark(thread.clone())));
             let mut cx = Context::from_waker(&waker);
             let mut future = Box::pin((self.future_fn)());
 
@@ -733,30 +780,20 @@ where
                 match future.as_mut().poll(&mut cx) {
                     Poll::Ready(Ok(iter)) => break Some(iter),
                     Poll::Ready(Err(e)) => {
-                        let _ = worker_queue.push(ThreadedValue::Value(Err(e)));
+                        if !push_waiting(&worker_queue, ThreadedValue::Value(Err(e)), backpressure_sleep) {
+                            tracing::debug!("ThreadedIterFuture: consumer gone; dropping the error");
+                        }
                         break None;
                     }
-                    Poll::Pending => std::thread::yield_now(),
+                    Poll::Pending => std::thread::park(),
                 }
             };
 
             // Stream iterator results through the channel
             if let Some(iter) = iterator {
                 for result in iter {
-                    let mut value = ThreadedValue::Value(result);
-                    loop {
-                        match worker_queue.push(value) {
-                            Ok(()) => break,
-                            Err(PushError::Full(v)) => {
-                                value = v;
-                                if let Some(sleep_dur) = backpressure_sleep {
-                                    std::thread::sleep(sleep_dur);
-                                } else {
-                                    std::hint::spin_loop();
-                                }
-                            }
-                            Err(PushError::Closed(_)) => return,
-                        }
+                    if !push_waiting(&worker_queue, ThreadedValue::Value(result), backpressure_sleep) {
+                        return;
                     }
                 }
             }
