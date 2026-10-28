@@ -4,7 +4,7 @@ status: "pending"
 priority: "critical"
 depends_on: ["02-h2-h3-server-readiness"]
 branch: "fix/io-01-valtron-parking"
-crates: ["foundation_netio", "foundation_iogate", "foundation_nativeapis", "foundation_core"]
+crates: ["foundation_reactor", "foundation_netio", "foundation_nativeapis", "foundation_iogate"]
 backlog: "docs/bug-backlog.md §2 The client body reader cannot reach the reactor"
 starting_point: "feature 03 §3.2, blocked by the crate cycle netio ← iogate"
 ---
@@ -54,60 +54,75 @@ So `foundation_netio` cannot depend on `foundation_iogate` or `foundation_native
 closing a cycle. `foundation_iogate` sits above `foundation_netio` for exactly this reason (see
 its `lib.rs` header).
 
-## 3. Design options
+## 3. Decision
 
-Pick one. Each keeps the crate graph acyclic and does not invent a global registry.
+Option A, in a new crate **`foundation_reactor`** (chosen by the main session). The whole
+readiness layer moves below `foundation_netio`, so netio can use `FdReadiness` directly and no
+cycle forms.
 
-### Option A: Move the reactor below netio (recommended)
+The moved code is self-contained. It imports only `foundation_core` (valtron
+`EventReadiness`, `request_executor_resume`), `libc`, and `tracing` — never `foundation_db`,
+`foundation_arrow`, or `foundation_compact`. The `poll` module is 5 286 lines (epoll, kqueue,
+io_uring readiness and completion selectors).
 
-Move the shared reactor (and `SharedReadiness`, `Interest`) from `foundation_nativeapis` into a
-crate that `foundation_netio` may depend on: either `foundation_core` or a new
-`foundation_reactor`. Then `FdReadiness` (or a netio copy of it) can live in `foundation_netio`
-or the new crate, and the client body reader can register a `std::task::Waker`.
+## 4. What moves into `foundation_reactor`
 
-- Pros: one reactor for the whole tree; matches feature 02 and 28, which already use
-  `FdReadiness`; no duplicate machinery.
-- Cons: a wide refactor. Every crate that imports the reactor path
-  (`foundation_nativeapis::native::fd::{Reactor, Ready, SharedReadiness}`) must move to the new
-  path. `foundation_iogate` and `foundation_nativeapis` both change.
+| Source (today) | Target (foundation_reactor) |
+|---|---|
+| `foundation_nativeapis/src/native/poll/` (whole tree) | `src/poll/` |
+| `Ready` in `foundation_nativeapis/src/native/fd/mod.rs` (lines 80–183) | `src/ready.rs` |
+| `foundation_nativeapis/src/native/fd/reactor.rs` (`Reactor`, `SharedReadiness`, `AlreadyInitialised`, `drain_loop`, `Entry`) | `src/reactor.rs` |
+| `foundation_iogate/src/native/fd_readiness.rs` (`FdReadiness`) | `src/fd_readiness.rs` |
+| `next_token` in `foundation_iogate/src/native/accept.rs` (lines 31–52) | `src/token.rs` |
 
-### Option B: A small poll reactor inside `foundation_netio`
+`foundation_reactor` depends on `foundation_core`, `libc`, `tracing` only.
 
-Add a netio-side readiness source that registers fds and wakes `std::task::Waker`s on
-readability, using the same "register, then check, then clear" pattern as
-`FdReadiness`.
+## 5. What stays and re-exports
 
-- Pros: localized to netio; no dependency-graph change.
-- Cons: a second reactor beside the nativeapis one (rule 11 discourages a parallel system);
-  netio grows a background thread.
+- `foundation_nativeapis` gains a `foundation_reactor` dependency. `native/mod.rs` changes
+  `pub mod poll;` to `pub use foundation_reactor::poll;`. `native/fd/mod.rs` re-exports
+  `Ready` and `reactor::{Reactor, SharedReadiness, AlreadyInitialised}` from the new crate, so
+  every existing `foundation_nativeapis::{Poll, Token, Interest, Events, Registry}` and
+  `native::fd::{Reactor, Ready, SharedReadiness}` path keeps working.
+- The io_uring completion layer (`fd/completion.rs`, `fd/send_pool.rs`, `fd/mod.rs`
+  `FdRegistration`/`RegisteredFd`) stays in `foundation_nativeapis`. It references the moved
+  `poll` types through the re-export.
+- `foundation_iogate` re-exports `FdReadiness` from `foundation_reactor` (its public path stays
+  `foundation_iogate::native::FdReadiness`). Its `accept` module uses `foundation_reactor`'s
+  token counter.
+- `foundation_netio` gains a `foundation_reactor` dependency and uses `FdReadiness`.
 
-### Option C: Drive the async body through valtron `Depends`
+## 6. The new Waker capability
 
-Stop making the async body a `futures_core::Stream` that returns `Pending`. Instead expose the
-body as a valtron task that returns `TaskStatus::Depends(SocketReadiness)` on `WouldBlock`, and
-have async callers `execute(..).into_ready_future().await`. `SocketReadiness` is already an
-`EventReadiness`.
+`foundation_reactor`'s `FdReadiness` (or `Reactor`) gains:
 
-- Pros: reuses feature 01 and 02 machinery; no new reactor; no `std::task::Waker` needed.
-- Cons: changes the consumer API for every async body read (`collect_bytes_async`,
-  `collect_string_async`, deployment providers, `foundation_db`, `foundation_ai`, connectrpc);
-  feature 03's `ReadWakeSource` design is dropped.
+```rust
+pub fn register_waker(&self, waker: &std::task::Waker) -> bool;
+```
 
-## 4. Tasks
+It stores the waker with the token and the drain thread calls `waker.wake_by_ref()` after it
+latches readiness for that token. Register-before-check applies: the caller registers the
+waker, then reads once more, then parks. Clearing latched readiness before the next read
+removes the waker's token so a stale edge does not re-wake forever.
 
-- [ ] T1. Pick an option with the main session. Record the choice here.
-- [ ] T2. Implement the readiness source in the chosen crate.
-- [ ] T3. Add `FdReadiness`-style `register_waker(&std::task::Waker)` (or the chosen equivalent)
-      with the register-then-check-then-clear pattern.
-- [ ] T4. Update feature 03 §3.2 to point at the new source, then finish feature 03 T3–T6.
-- [ ] T5. Update `progress.md`, `learnings.md`. Delete the §2 backlog entry.
+## 7. Tasks
 
-## 5. Verification (run exactly)
+- [ ] T1. Create the `foundation_reactor` crate. Move the §4 code. Fix `crate::` paths.
+- [ ] T2. Add the `foundation_reactor` dependency and §5 re-export shims to
+      `foundation_nativeapis` and `foundation_iogate`. Build until `cargo check --workspace`
+      is green.
+- [ ] T3. Add `register_waker` (§6) with the register-then-check-then-clear pattern.
+- [ ] T4. Wire it into feature 03: build the `ReadWakeSource` from `FdReadiness` in
+      `foundation_netio` and attach it at every body construction site.
+- [ ] T5. Finish feature 03 T5–T6 (regression tests, delete the two §2 backlog entries).
+- [ ] T6. Update `progress.md`, `learnings.md`. Delete the §2 reactor-bridge backlog entry.
+
+## 8. Verification (run exactly)
 
 ```bash
 export CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0
 cargo check --workspace --all-targets --profile dev
-for c in foundation_core foundation_netio foundation_iogate foundation_nativeapis foundation_db foundation_connectrpc; do
+for c in foundation_reactor foundation_netio foundation_nativeapis foundation_iogate foundation_db foundation_connectrpc; do
   python3 scripts/ci/ci.py run $c --profile dev || exit 1
 done
 ```
@@ -115,7 +130,7 @@ done
 Then the feature 03 verification (`async_body_waits_without_spinning` poll count under 10, CPU
 under 50 ms).
 
-## 6. Done when
+## 9. Done when
 
 - [ ] A plain-TCP async body read parks on readiness, not on self-wake.
 - [ ] No crate cycle forms; `cargo check --workspace` is green.
