@@ -715,6 +715,15 @@ impl std::fmt::Debug for OverlayStream {
     }
 }
 
+/// Whether a TCP socket is still setting up its connection (an accepted
+/// socket sits in `SynReceived` until the client's ACK arrives).
+fn still_connecting(state: tcp::State) -> bool {
+    matches!(
+        state,
+        tcp::State::Listen | tcp::State::SynSent | tcp::State::SynReceived
+    )
+}
+
 impl OverlayStream {
     /// WHY: Overlay streams behave like non-blocking TCP sockets for the driver task.
     ///
@@ -733,7 +742,9 @@ impl OverlayStream {
             socket
                 .recv_slice(buf)
                 .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("tcp recv: {e}")))
-        } else if socket.may_recv() {
+        } else if socket.may_recv() || still_connecting(socket.state()) {
+            // `may_recv` is false until the handshake completes; a socket
+            // that is still connecting has not ended, it has nothing *yet*.
             Err(io::Error::new(io::ErrorKind::WouldBlock, "no data"))
         } else {
             Ok(0)

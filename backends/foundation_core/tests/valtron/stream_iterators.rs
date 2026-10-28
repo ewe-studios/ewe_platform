@@ -96,7 +96,7 @@ fn test_collect() {
         Stream::Next(1),
     ];
     let stream = TestStream::new(items);
-    let mut collected = StreamIteratorExt::collect(stream);
+    let mut collected = StreamIteratorExt::collect_stream(stream);
 
     // pop() returns: Next(1), Pending, Next(2), Next(3)
     // First Next(1) is collected, returns Ignore

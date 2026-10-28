@@ -69,3 +69,118 @@ impl Read for QueueReader {
         }
     }
 }
+
+/// SSE events parsed from a [`QueueReader`]'s queue, as valtron stream items.
+///
+/// WHY: the wasm SSE path (`WasmSseIterator`) feeds a queue from a JS
+/// `ReadableStream`. Its "what to yield" logic lives here, target-independent,
+/// so it is tested natively.
+///
+/// WHAT: `Next(event)` per parsed event; `Wait` while the queue is empty and
+/// the producer is still running (park on [`WakeableStream::wake`]); a failed
+/// read or parse ends the stream with `Pending(SseProgress::Failed(msg))` then
+/// `None` — a malformed feed never recovers, so waiting on it would stall the
+/// consumer forever; end of stream once the producer is done and the queue
+/// is drained.
+///
+/// HOW: the producer pushes chunks onto `queue`, sets `done` when it ends, and
+/// fires `wake` after each push and at the end.
+pub struct QueueSseEvents<R: Read = QueueReader> {
+    parser: crate::event_source::SseParser<R>,
+    done: Arc<AtomicBool>,
+    queue: Arc<ConcurrentQueue<Vec<u8>>>,
+    wake: Arc<foundation_core::valtron::WakeRegistry>,
+    failed: bool,
+}
+
+impl QueueSseEvents {
+    /// Events from `queue`, which the producer ends by setting `done`; the
+    /// producer fires `wake` whenever it pushes a chunk or ends.
+    #[must_use]
+    pub fn new(
+        queue: Arc<ConcurrentQueue<Vec<u8>>>,
+        done: Arc<AtomicBool>,
+        wake: Arc<foundation_core::valtron::WakeRegistry>,
+    ) -> Self {
+        let reader = QueueReader::new(queue.clone(), done.clone());
+        Self::over_reader(reader, queue, done, wake)
+    }
+}
+
+impl<R: Read> QueueSseEvents<R> {
+    /// Events parsed from `reader`, a reader over `queue` (normally a
+    /// [`QueueReader`]); `queue` and `done` tell "not yet" from "ended".
+    #[must_use]
+    pub fn over_reader(
+        reader: R,
+        queue: Arc<ConcurrentQueue<Vec<u8>>>,
+        done: Arc<AtomicBool>,
+        wake: Arc<foundation_core::valtron::WakeRegistry>,
+    ) -> Self {
+        let buffer = foundation_core::io::ioutils::SharedByteBufferStream::ref_cell(reader);
+        Self {
+            parser: crate::event_source::SseParser::new(buffer),
+            done,
+            queue,
+            wake,
+            failed: false,
+        }
+    }
+
+    fn drained(&self) -> bool {
+        self.done.load(Ordering::Acquire) && self.queue.is_empty()
+    }
+}
+
+impl<R: Read> Iterator for QueueSseEvents<R> {
+    type Item = foundation_core::valtron::Stream<
+        crate::event_source::ParseResult,
+        crate::shared::client::http_client::SseProgress,
+    >;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        use crate::event_source::EventSourceError;
+        use foundation_core::valtron::Stream;
+
+        if self.failed {
+            return None;
+        }
+        match self.parser.parse_next() {
+            Ok(Some(result)) => Some(Stream::Next(result)),
+            Ok(None) if self.drained() => None,
+            Ok(None) => Some(Stream::Wait),
+            // `WouldBlock` is the "no data yet" parking signal, not an error.
+            Err(EventSourceError::ReadError(err))
+                if err.kind() == std::io::ErrorKind::WouldBlock =>
+            {
+                if self.drained() {
+                    None
+                } else {
+                    Some(Stream::Wait)
+                }
+            }
+            Err(e) => {
+                tracing::error!("SSE stream failed: {e}");
+                self.failed = true;
+                Some(Stream::Pending(
+                    crate::shared::client::http_client::SseProgress::Failed(e.to_string()),
+                ))
+            }
+        }
+    }
+}
+
+impl<R: Read> foundation_core::valtron::WakeableStream for QueueSseEvents<R> {
+    fn wake(
+        &mut self,
+        cb: foundation_core::valtron::WakeCallback,
+    ) -> foundation_core::valtron::WakeResult {
+        self.wake.register(cb);
+        // Register-then-check: if a chunk (or the end) is already waiting, no
+        // later push will fire the registry, so fire it now.
+        if self.failed || !self.queue.is_empty() || self.done.load(Ordering::Acquire) {
+            self.wake.fire();
+        }
+        foundation_core::valtron::WakeResult::Successful
+    }
+}

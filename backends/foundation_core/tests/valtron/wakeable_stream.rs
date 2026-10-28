@@ -70,7 +70,7 @@ fn combinator_wake_forward_and_default_split() {
     // Default: Collect (buffering) must NOT forward.
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
     let iterator = NotifyQueueStreamIterator::new(queue, 5, Duration::from_micros(50));
-    let mut collected = StreamIteratorExt::collect(iterator);
+    let mut collected = StreamIteratorExt::collect_stream(iterator);
     assert_eq!(collected.wake(Box::new(|| {})), WakeResult::NotSupported);
 }
 
@@ -93,7 +93,7 @@ fn park_on_depends_on_a_waking_stream_and_waits_otherwise() {
 
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
     let mut buffered =
-        StreamIteratorExt::collect(NotifyQueueStreamIterator::new(queue, 5, Duration::from_micros(50)));
+        StreamIteratorExt::collect_stream(NotifyQueueStreamIterator::new(queue, 5, Duration::from_micros(50)));
     let status: TaskStatus<(), ()> = park_on(&mut buffered);
     assert!(matches!(status, TaskStatus::Wait), "no readiness signal: re-poll");
 }

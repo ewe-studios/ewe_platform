@@ -614,7 +614,7 @@ impl ReadTimeoutOperations for Connection {
                     &timeout,
                 );
 
-                u.set_read_timeout(Some(timeout))
+                unix_timeout_result(u.set_read_timeout(Some(timeout)))
             }
             #[cfg(any(
                 feature = "ssl-rustls",
@@ -732,7 +732,7 @@ impl Connection {
         match self {
             Self::Tcp(t) => t.set_write_timeout(dur),
             #[cfg(unix)]
-            Self::Unix(u) => u.set_write_timeout(dur),
+            Self::Unix(u) => unix_timeout_result(u.set_write_timeout(dur)),
             #[cfg(any(
                 feature = "ssl-rustls",
                 feature = "ssl-openssl",
@@ -762,7 +762,7 @@ impl Connection {
         match self {
             Self::Tcp(t) => t.set_read_timeout(dur),
             #[cfg(unix)]
-            Self::Unix(u) => u.set_read_timeout(dur),
+            Self::Unix(u) => unix_timeout_result(u.set_read_timeout(dur)),
             #[cfg(any(
                 feature = "ssl-rustls",
                 feature = "ssl-openssl",
@@ -778,6 +778,28 @@ impl Connection {
             }
             Self::Overlay(_) => Ok(()),
         }
+    }
+}
+
+/// Map the result of setting `SO_RCVTIMEO` / `SO_SNDTIMEO` on a Unix socket.
+///
+/// macOS (like the other BSDs) answers `EINVAL` when the socket has already
+/// been shut down by the peer — a server that wrote its whole response and
+/// closed (`Connection: close`) before we got to set the body-read timeout.
+/// The timeout cannot matter then (every read returns at once with the
+/// buffered bytes or EOF), so this is "timeout not applied", not a failed
+/// send. Linux accepts the option in that state.
+#[cfg(unix)]
+fn unix_timeout_result(result: std::io::Result<()>) -> std::io::Result<()> {
+    match result {
+        Err(err) if err.raw_os_error() == Some(libc::EINVAL) => {
+            tracing::debug!(
+                ?err,
+                "unix socket refused a timeout (peer already shut it down); continuing without it"
+            );
+            Ok(())
+        }
+        other => other,
     }
 }
 
@@ -816,7 +838,10 @@ impl SplitReadStream for Connection {
 impl PeekableReadStream for Connection {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError> {
         match self {
+            // `MSG_PEEK` answers 0 only at end of stream (a stall is
+            // `WouldBlock`), which the trait reports as `EndOfStream`.
             Self::Tcp(inner) => match inner.peek(buf) {
+                Ok(0) if !buf.is_empty() => Err(PeekError::EndOfStream),
                 Ok(count) => Ok(count),
                 Err(err) => Err(PeekError::IOError(err)),
             },
@@ -826,6 +851,7 @@ impl PeekableReadStream for Connection {
 
             #[cfg(all(feature = "nightly", unix))]
             Self::Unix(inner) => match inner.peek(buf) {
+                Ok(0) if !buf.is_empty() => Err(PeekError::EndOfStream),
                 Ok(count) => Ok(count),
                 Err(err) => Err(PeekError::IOError(err)),
             },

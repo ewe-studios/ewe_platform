@@ -62,6 +62,11 @@ pub struct H2Conn {
     handshake: ServerHandshake,
 }
 
+/// The peer closed the connection: no more frames will arrive.
+fn peer_closed() -> io::Error {
+    io::Error::new(io::ErrorKind::UnexpectedEof, "h2: the peer closed the connection")
+}
+
 /// Nothing is readable yet — the caller should park and retry.
 fn would_block() -> io::Error {
     io::Error::new(io::ErrorKind::WouldBlock, "h2: frame not yet buffered")
@@ -94,10 +99,10 @@ impl H2Conn {
     /// Are at least `n` bytes already buffered? Peeking consumes nothing, so a
     /// `false` answer leaves the stream exactly as it was.
     fn buffered(&mut self, n: usize) -> io::Result<bool> {
-        let mut probe = vec![0u8; n];
-        match self.stream.peek(&mut probe) {
-            Ok(got) => Ok(got >= n),
-            Err(PeekError::IOError(ref e)) if e.kind() == io::ErrorKind::WouldBlock => Ok(false),
+        match self.stream.has_buffered(n) {
+            Ok(enough) => Ok(enough),
+            // The peer closed: no more frames will come, whole or partial.
+            Err(PeekError::EndOfStream) => Err(peer_closed()),
             Err(PeekError::IOError(e)) => Err(e),
             Err(e) => Err(io::Error::new(io::ErrorKind::InvalidData, e.to_string())),
         }
@@ -115,6 +120,7 @@ impl H2Conn {
             Err(PeekError::IOError(ref e)) if e.kind() == io::ErrorKind::WouldBlock => {
                 return Ok(false)
             }
+            Err(PeekError::EndOfStream) => return Err(peer_closed()),
             Err(PeekError::IOError(e)) => return Err(e),
             Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e.to_string())),
         }

@@ -347,3 +347,19 @@ fn tun_device_opens_on_linux() {
         other => panic!("expected WouldBlock on empty tun, got {other:?}"),
     }
 }
+
+/// WHY: a stream whose handshake has not finished has not ended. `read` used to
+/// answer `Ok(0)` — end of stream — until the connection was established
+/// (smoltcp's `may_recv` is false while connecting), so a reader that took the
+/// first read at its word closed a connection that was still opening.
+#[test]
+fn netstack_read_while_connecting_is_would_block_not_eof() {
+    let mut client = stack(CLIENT_IP);
+    let stream = client.tcp_connect(server_addr()).expect("connect");
+
+    let mut buf = [0u8; 16];
+    let err = stream
+        .read(&mut buf)
+        .expect_err("a connecting stream has not reached end of stream");
+    assert_eq!(err.kind(), std::io::ErrorKind::WouldBlock);
+}

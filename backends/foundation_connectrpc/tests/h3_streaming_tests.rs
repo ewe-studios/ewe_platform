@@ -501,6 +501,53 @@ fn client_stream_sent_in_full_still_works() {
     assert_eq!(flags & END_STREAM_FLAG, END_STREAM_FLAG);
 }
 
+/// The `grpc-status` trailer, once the response body has ended.
+fn grpc_status(h: &Harness) -> Option<String> {
+    h.client.trailers().and_then(|fields| {
+        fields
+            .iter()
+            .find(|(n, _)| &n[..] == b"grpc-status")
+            .map(|(_, v)| String::from_utf8_lossy(v).to_string())
+    })
+}
+
+/// gRPC over HTTP/3 ends a unary call with a `grpc-status` trailer. The h3
+/// server used to drop the response's trailers, so every gRPC client read the
+/// call as failed (`Unknown`, "missing grpc-status").
+#[test]
+fn grpc_unary_over_h3_ends_with_grpc_status() {
+    let seen = Arc::new(Seen::default());
+    let mut h = Harness::open(router(&seen, 0), UNARY, "application/grpc+json");
+    h.send_data(envelope(&msg("hi")));
+    h.finish_request();
+    h.finish_call().expect("dispatch_h3");
+
+    assert_eq!(h.response_status(), "200");
+    let mut buf = Vec::new();
+    let (_, payload) = h.next_envelope(&mut buf);
+    assert_eq!(decode(&payload), msg("echo:hi"));
+    assert_eq!(h.response_end(), None, "no more DATA after the message");
+    assert_eq!(grpc_status(&h).as_deref(), Some("0"), "unary gRPC must end in grpc-status");
+}
+
+/// A streaming gRPC call over HTTP/3 ends with a `grpc-status` trailer, not a
+/// bare FIN.
+#[test]
+fn grpc_stream_over_h3_ends_with_grpc_status() {
+    let seen = Arc::new(Seen::default());
+    let mut h = Harness::open(router(&seen, 0), BIDI, "application/grpc+json");
+    h.send_data(envelope(&msg("x")));
+    h.finish_request();
+    h.finish_call().expect("dispatch_h3");
+
+    assert_eq!(h.response_status(), "200");
+    let mut buf = Vec::new();
+    let (_, payload) = h.next_envelope(&mut buf);
+    assert_eq!(decode(&payload), msg("re:x"));
+    assert_eq!(h.response_end(), None, "no more DATA after the message");
+    assert_eq!(grpc_status(&h).as_deref(), Some("0"), "streaming gRPC must end in grpc-status");
+}
+
 /// The client resets its request mid-stream. That is not a clean end of the
 /// body: the call is cancelled, no successful response goes out, and the
 /// server's half of the stream is reset.

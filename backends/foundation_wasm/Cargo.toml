@@ -17,7 +17,6 @@ path = "src/bin/ewe_wasm_bins.rs"
 
 [dependencies]
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
 
 # Lock-free queue for stream registry (F28) — no_std + wasm32 compatible
 concurrent-queue = { version = "2.5.0", default-features = false }
@@ -56,4 +55,6 @@ embedded-js = []
 workspace = true
 
 [dev-dependencies]
+# `tests/wasi_host.rs` uses `#[wasm_test]`; the library itself does not.
+foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
 tempfile = "3.10"

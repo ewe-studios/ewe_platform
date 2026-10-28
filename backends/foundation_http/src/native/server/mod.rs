@@ -746,11 +746,13 @@ impl HttpServer {
                                 err = ?e,
                                 "Failed to submit connection to valtron"
                             );
-                            let _ = respond::text(
+                            if let Err(err) = respond::text(
                                 &mut shared_stream.clone(),
                                 503,
                                 "Service Unavailable",
-                            );
+                            ) {
+                                tracing::debug!(%client_ip, err = ?err, "could not write the 503");
+                            }
                         }
                     }
                 }

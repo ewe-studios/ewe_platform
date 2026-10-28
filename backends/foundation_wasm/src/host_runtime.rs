@@ -336,11 +336,14 @@ pub mod internal_api {
     ///
     /// Panics if the internal mutex is poisoned.
     pub fn run_interval_callback(id: InternalPointer) -> crate::WasmRequestResult<TickState> {
-        match RECURRING_INTERVAL_CALLBACKS
+        // Take a handle and drop the registry lock BEFORE running it: a
+        // callback that registers or cancels an interval would otherwise
+        // re-lock this mutex (a panic or a deadlock).
+        let item = RECURRING_INTERVAL_CALLBACKS
             .lock()
             .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-            .call(id)
-        {
+            .get(id);
+        match item.as_ref().map(crate::intervals::perform_interval) {
             Some(inner) => Ok(inner),
             None => Err(crate::WASMErrors::GuestError(
                 crate::GuestOperationError::UnknownInternalPointer(id),

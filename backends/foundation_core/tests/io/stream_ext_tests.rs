@@ -217,6 +217,24 @@ fn read_pooled_buffer_returns_data_up_to_max_len() {
 }
 
 #[test]
+/// WHY: `None` means EOF, so a zero-length request must not return it: the
+/// reader is not at its end, nothing was asked for.
+/// WHAT: `max_len == 0` gives an empty buffer and leaves the reader untouched
+fn read_pooled_buffer_with_zero_max_len_is_not_eof() {
+    let pool = Arc::new(BytesPool::new(1024, 1));
+    let mut cursor = Cursor::new(b"data".to_vec());
+
+    let empty = cursor
+        .read_pooled_buffer(&pool, 0)
+        .unwrap()
+        .expect("a zero-length read is not end of stream");
+    assert!(empty.is_empty());
+
+    let rest = cursor.read_pooled_buffer(&pool, 1024).unwrap().unwrap();
+    assert_eq!(&rest[..], b"data");
+}
+
+#[test]
 /// WHY: None is the EOF signal for pooled reads
 /// WHAT: An exhausted reader returns None
 fn read_pooled_buffer_returns_none_at_eof() {

@@ -577,7 +577,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let exchange = self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
 
         // Spawn reader/writer tasks.
-        spawn_reader_writer(exchange.reader_task, exchange.writer_task)?;
+        spawn_reader_writer(exchange.reader_task, exchange.writer_task, call_ctx.cancel_signal())?;
 
         let (mut sender, mut receiver) = exchange.conn.split();
 
@@ -651,7 +651,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             .map_err(ConnectError::from)?;
 
         let exchange = self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
-        spawn_reader_writer(exchange.reader_task, exchange.writer_task)?;
+        spawn_reader_writer(exchange.reader_task, exchange.writer_task, call_ctx.cancel_signal())?;
 
         let (mut sender, mut receiver) = exchange.conn.split();
         let req_codec = self.codecs.for_request(&self.config.codec_name)?;
@@ -738,7 +738,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
             .map_err(ConnectError::from)?;
 
         let exchange = self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
-        spawn_reader_writer(exchange.reader_task, exchange.writer_task)?;
+        spawn_reader_writer(exchange.reader_task, exchange.writer_task, call_ctx.cancel_signal())?;
 
         let (sender, receiver) = exchange.conn.split();
         let req_codec = self.codecs.for_request(&self.config.codec_name)?;
@@ -1406,15 +1406,36 @@ async fn do_unary_round_trip(
 }
 
 /// Spawn the reader and writer tasks on the valtron pool.
+/// Spawn a streaming call's reader and writer tasks. Both end as soon as
+/// `cancel` fires: they own the transport's response and request halves, so
+/// dropping them closes the stream, and the transport tells the server (h2
+/// sends `RST_STREAM(CANCEL)`). Before, a cancelled call kept its transport
+/// stream open and the server kept streaming into it.
 fn spawn_reader_writer(
     reader_task: BoxFuture<'static, ConnectResult<()>>,
     writer_task: BoxFuture<'static, ConnectResult<()>>,
+    cancel: &CancelSignal,
 ) -> ConnectResult<()> {
-    valtron::send(valtron::from_future(reader_task))
+    valtron::send(valtron::from_future(until_cancelled(reader_task, cancel.clone())))
         .map_err(|e| ConnectError::internal(format!("failed to spawn reader task: {e}")))?;
-    valtron::send(valtron::from_future(writer_task))
+    valtron::send(valtron::from_future(until_cancelled(writer_task, cancel.clone())))
         .map_err(|e| ConnectError::internal(format!("failed to spawn writer task: {e}")))?;
     Ok(())
+}
+
+/// Run `task` until it ends or `cancel` fires; on cancel the task (and what it
+/// owns) is dropped.
+async fn until_cancelled(
+    task: BoxFuture<'static, ConnectResult<()>>,
+    cancel: CancelSignal,
+) -> ConnectResult<()> {
+    let cancelled = Box::pin(async move { cancel.cancelled().await });
+    match futures::future::select(task, cancelled).await {
+        futures::future::Either::Left((result, _)) => result,
+        futures::future::Either::Right(((), _task)) => {
+            Err(ConnectError::canceled("call canceled").into())
+        }
+    }
 }
 
 /// Optionally compress an already-marshaled frame.

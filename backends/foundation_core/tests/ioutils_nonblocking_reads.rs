@@ -324,15 +324,19 @@ fn read_exact_after_successful_peek_is_served_from_the_buffer() {
 }
 
 /// `peek` on a closed, drained stream must report end-of-stream rather than
-/// panicking. A peer that connects and immediately disconnects hits this.
+/// panicking — and as `EndOfStream`, not `Ok(0)`, which reads like "no bytes
+/// yet" and left peekers (the h2 server) waiting on a peer that had gone. A
+/// peer that connects and immediately disconnects hits this.
 #[test]
-fn peek_on_a_closed_empty_stream_reports_eof_without_panicking() {
+fn peek_on_a_closed_empty_stream_reports_end_of_stream() {
     let reader = Chunky::new(vec![]); // immediate EOF
     let mut stream = SharedByteBufferStream::rwrite(reader);
 
     let mut buf = [0u8; 24];
-    let n = stream.peek(&mut buf).expect("peek at EOF must not panic or error");
-    assert_eq!(n, 0, "no bytes are available on a closed, drained stream");
+    match stream.peek(&mut buf) {
+        Err(foundation_core::io::ioutils::PeekError::EndOfStream) => {}
+        other => panic!("expected EndOfStream, got {other:?}"),
+    }
 }
 
 // ── the h2 failure, reproduced ───────────────────────────────────────────────

@@ -4017,7 +4017,9 @@ where
 
                     if current_values.len() > 1 {
                         if let Some(chunked_index) =
-                            transfer_encodings.iter().position(|n| n == CHUNKED_VALUE)
+                            transfer_encodings
+                                .iter()
+                                .position(|n| n.eq_ignore_ascii_case(CHUNKED_VALUE))
                         {
                             tracing::trace!("Chunked header index: {}", chunked_index);
                             if chunked_index != (current_values.len() - 1) {
@@ -4571,7 +4573,9 @@ where
 
                     if current_values.len() > 1 {
                         if let Some(chunked_index) =
-                            transfer_encodings.iter().position(|n| n == CHUNKED_VALUE)
+                            transfer_encodings
+                                .iter()
+                                .position(|n| n.eq_ignore_ascii_case(CHUNKED_VALUE))
                         {
                             tracing::trace!("Chunked header index: {}", chunked_index);
                             if chunked_index != (current_values.len() - 1) {
