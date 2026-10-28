@@ -1,6 +1,7 @@
-# Hosts: native, Worker and web client
+# The Worker host and the web client
 
-_Part of [feature 07](./feature.md). Written in ASD-STE100 Simplified Technical English (STE).
+
+_Part of [feature 14](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** remote procedure call (RPC); Transmission Control Protocol
@@ -21,389 +22,9 @@ ASD-STE100. gRPC is the name of a Google RPC protocol over HTTP/2. gRPC-Web is i
 browsers. Connect is an RPC protocol that works over HTTP/1.1 and HTTP/2. D1 and R2 are
 names of Cloudflare products (a SQL database and an object store). Miniflare and wrangler are
 Cloudflare tools that run a Worker on a local machine. The
-[glossary in feature.md](./feature.md#2-glossary) explains each term.
+[glossary in feature.md](../../agent-rpc-architecture.md#2-glossary) explains each term.
 
-## 1. What this file covers
-
-A **host** is the program that runs the agent-rpc core on one platform. The core is the same
-on every platform. The host gives the core its side effects: time, randomness, network,
-storage and models ([env.md](./env.md)).
-
-| Host | Platform | Module | Build gate |
-|---|---|---|---|
-| Native host | Linux, macOS, Windows | `foundation_agent_rpc::host::native` | feature `native`, `not(target_family = "wasm")` |
-| Worker host | Cloudflare Workers | `foundation_agent_rpc::host::worker` | feature `worker`, `target_family = "wasm"` |
-| Instance Durable Object | Cloudflare Durable Objects | `foundation_agent_rpc::host::worker::object` | as the Worker host |
-| Web client | browsers | `foundation_agent_rpc::client::web` | feature `web-client`, `target_family = "wasm"` |
-| Native client | Linux, macOS, Windows | `foundation_agent_rpc::client::native` | feature `native` |
-| DST harness | tests only | the package `foundation_agent_rpc_dst` | feature `testing` |
-
-The DST harness has its own file:
-[deterministic-simulation-testing.md](./deterministic-simulation-testing.md).
-
-## 2. What each host gives the core
-
-The core has seams. A **seam** is a trait or a constructor argument where a host plugs in
-its own implementation. This table shows what each host plugs into each seam.
-
-| Seam | Native host | Worker host | Instance DO | Web client | DST harness |
-|---|---|---|---|---|---|
-| `Env` (time, entropy, IDs, timer) | `Env::system()` in the pool configuration | `Env::system()`, once per isolate | `Env::system()`, once per DO isolate | `Env::system()`, once per page | `SimRuntime` (seeded) |
-| valtron engine | multi-threaded pool | single-threaded engine that JS drives | as the Worker | as the Worker | single-threaded, fixed seed |
-| Server entry | `HttpServer` with TLS, `ConnectRpcServe` (HTTP/1.1) and `ConnectRpcServeH2` (HTTP/2) | `FetchServe` in `#[event(fetch)]` | `FetchServe` in `DurableObject::fetch` | none | `MemNetwork` |
-| Protocols served | Connect, gRPC, gRPC-Web | Connect, gRPC-Web | Connect (from the Worker only) | none | Connect |
-| Client transport | `H1Transport`, `H2Transport` | `DoStubTransport` (to the DO) | none | `FetchTransport` | `MemTransport` |
-| `ClientAuth` | `MtlsAuth`, optionally `AnyOf` with `SignedSecretAuth` | `AnyOf(CfMtlsAuth, SignedSecretAuth)`, optionally `JwtAuth` | `ForwardedPrincipalAuth` | sends a bearer secret | any provider, over memory stores |
-| `KeyStore` | `FsKeyStore` behind `EnvKeyStore` | `EnvKeyStore` or `DbKeyStore<KVWasmStorage>` (public keys only) | none | none | `MemoryKeyStore` |
-| `TrustStore` | `SqlTrustStore<TursoStorage>` | `SqlTrustStore<D1WasmStorage>` | none | none | `MemoryTrustStore` |
-| `ModelCatalog` | `LocalCatalog` | `RemoteCatalog` (checks requests, fills the index) | `RemoteCatalog` (runs the turns) | none | `ScriptedCatalog` |
-| `InstanceRegistry` | `LocalInstanceRegistry<InMemoryStores>` | `DurableObjectRegistry` | `LocalInstanceRegistry<DoStores>`, `max_instances = 1` | none | `LocalInstanceRegistry<InMemoryStores>` |
-| Enrollment | `EnrollmentService` with the CA | none | none | none | `EnrollmentService` with a test CA (native DST only) |
-
-`AgentRpcCore` takes these parts through its builder ([feature.md](./feature.md), section 6).
-The core never asks which host it runs on.
-
-## 3. Cargo features and `cfg` gates
-
-```toml
-# backends/foundation_agent_rpc/Cargo.toml (tasks T17, T21 and T22)
-[features]
-default = ["native", "candle"]
-# The native host and the native client: TCP and TLS listeners, files, the
-# multi-threaded valtron pool, the CA. Native targets only.
-native = [
-    "foundation_core/multi",
-    "foundation_ai/multi",
-    "foundation_http/multi",
-    "foundation_http/ssl",
-    "foundation_netio/multi",
-    "foundation_netio/ssl",
-    "foundation_auth/mtls",
-    "foundation_db/turso",
-]
-candle = ["native", "foundation_ai/candle"]
-candle-cuda = ["candle", "foundation_ai/candle-cuda"]
-gguf = ["native", "foundation_ai/llamacpp"]
-gguf-cuda = ["gguf", "foundation_ai/cuda"]
-gguf-vulkan = ["gguf", "foundation_ai/vulkan"]
-gguf-metal = ["gguf", "foundation_ai/metal"]
-# The Cloudflare Worker host and the instance Durable Object. wasm32 only.
-worker = [
-    "dep:worker",
-    "foundation_core/js-wasmbindgen",
-    "foundation_netio/wasm-fetch",
-    "foundation_db/wasm-bindgen-storage",
-    "foundation_db/workers-rs",
-]
-# The browser client. wasm32 only.
-web-client = ["foundation_core/js-wasmbindgen", "foundation_netio/wasm-fetch"]
-# Fakes for tests. Never in a release build.
-testing = [
-    "foundation_ai/testing",
-    "foundation_auth/testing",
-    "foundation_core/testing",
-    "foundation_compact/testing",
-]
-
-# All targets: no `multi`, no TLS listener, no files.
-[dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.6", default-features = false, features = ["std"] }
-foundation_compact = { path = "../foundation_compact", version = "0.2.2" }
-foundation_ai = { path = "../foundation_ai", version = "0.0.2", default-features = false }
-foundation_auth = { path = "../foundation_auth", default-features = false, features = ["secret"] }
-foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
-foundation_connectrpc = { path = "../foundation_connectrpc", version = "0.0.3" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false }
-
-[target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_http = { path = "../foundation_http", version = "0.0.3" }
-qrcode = { version = "0.14", default-features = false, features = ["svg"] }
-
-[target.'cfg(target_family = "wasm")'.dependencies]
-worker = { version = "0.8.7", optional = true }
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-js-sys = "0.3"
-web-sys = { version = "0.3", features = ["Request", "RequestInit", "Response", "ResponseInit", "Headers", "ReadableStream"] }
-```
-
-What the code does: the default build is the native host of today, with Candle. A Worker
-build turns the defaults off: `--no-default-features --features worker`. The valtron feature
-`multi` comes only with `native`, because a wasm target has no threads. The DST package uses
-`--no-default-features --features testing`, so it also has no `multi`.
-
-```rust
-// backends/foundation_agent_rpc/src/lib.rs (after)
-pub mod core;     // all targets: traits, the service, the registry, selection
-pub mod proto;    // all targets: generated messages and service stubs
-pub mod client;   // all targets: the transports differ per target
-
-pub mod host {
-    #[cfg(all(feature = "native", not(target_family = "wasm")))]
-    pub mod native;
-    #[cfg(all(feature = "worker", target_family = "wasm"))]
-    pub mod worker;
-}
-
-#[cfg(all(feature = "native", target_family = "wasm"))]
-compile_error!(
-    "feature `native` is for native targets; build a Worker with \
-     `--no-default-features --features worker`"
-);
-```
-
-What the code does: each host module compiles only on its target and with its feature. A
-wrong combination stops the build with a clear message, not with a long list of link errors.
-
-## 4. The native host
-
-### 4.1 Configuration
-
-```rust
-// foundation_agent_rpc/src/host/native/config.rs
-/// Everything a native host needs. `Default` gives the behavior of today.
-#[derive(Debug, Clone)]
-pub struct NativeHostConfig {
-    /// The agent listener, `host:port`. Port 0 picks a free port.
-    pub bind: String,
-    /// The enrollment listener. `None`: the host of `bind`, port 0 (as today).
-    pub bootstrap_bind: Option<String>,
-    /// Key files and the trust database. Default: `default_state_dir()` (as today).
-    pub state_dir: PathBuf,
-    pub models: Vec<ModelSource>,
-    /// Load every model at start, so the first `CreateInstance` does not
-    /// wait. Default true (as today).
-    pub preload: bool,
-    pub security: NativeSecurity,
-    /// The bootstrap payload version that `RunningServer::payload_with`
-    /// writes. Default `V1` (proto.md section 6.2).
-    pub payload_version: PayloadVersion,
-    /// The HTTP limits of `foundation_http` (`ServerConfig::defaults()`).
-    pub http: ServerConfig,
-    pub registry: RegistryConfig,
-    pub turns: TurnLimits,
-    pub enroll: EnrollConfig,
-    pub trust: TrustConfig,
-    pub ca: CaConfig,
-    pub server_identity: ServerIdentityConfig,
-    /// Workers in the valtron pool. Default 16: at least 8 (LEARNINGS 01 T6).
-    pub workers: usize,
-    /// How long shutdown waits for running turns. Default 30 s: the default
-    /// `terminationGracePeriodSeconds` of Kubernetes, the time that a process
-    /// gets after `SIGTERM` before `SIGKILL`.
-    pub shutdown_grace: Duration,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum NativeSecurity {
-    /// Enrollment and mTLS (the default, as today). With
-    /// `accept_access_secrets`, a call can also show a bearer secret with
-    /// purpose `access` (for example from a browser).
-    Mtls { accept_access_secrets: bool },
-    /// Development only: no TLS and no auth. The host refuses to start
-    /// unless `bind` is a loopback address.
-    InsecurePlaintext,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PayloadVersion {
-    V1,
-    V2,
-}
-```
-
-What the code does: it collects every limit and choice of the native host in one place. Each
-limit has a documented default (CLAUDE.md rule 8). The binary fills it from command-line
-flags and environment variables, as today.
-
-### 4.2 Start-up
-
-```rust
-// foundation_agent_rpc/src/host/native/mod.rs
-pub struct NativeHost;
-
-impl NativeHost {
-    /// Build every part, bind the listeners and serve. Call it on the
-    /// valtron pool (the binary uses `block_on_future` once, in `main`).
-    ///
-    /// # Errors
-    /// `Config` for a bad configuration; `Storage` when a store cannot open;
-    /// `ModelLoad` when `preload` is on and a model cannot load; `Transport`
-    /// when an address cannot be bound.
-    pub async fn start(config: NativeHostConfig, env: Env) -> AgentRpcResult<RunningServer> {
-        // 1. Keys: the legacy environment variable first, then the state directory.
-        let keys = security::native_key_store(&config)?;            // EnvKeyStore over FsKeyStore
-        let material = KeyMaterial::new(keys, security::protection_from_process_env()?, env.clone());
-
-        // 2. Trusted clients: one Turso file in the state directory (as today).
-        let db_url = config.state_dir.join("trusted-clients.db");
-        let db = TursoStorage::new(&db_url.to_string_lossy()).await.map_err(storage_error)?;
-        let trust = TrustedClients::open(Arc::new(SqlTrustStore::new(db)), env.clone(), config.trust.clone())
-            .await
-            .map_err(trust_error)?;
-
-        // 3. Models and instances.
-        let catalog = Arc::new(LocalCatalog::new(&config.models, Arc::new(BackgroundLoader))?);
-        if config.preload {
-            catalog.preload_all().await?;
-        }
-        let registry = Arc::new(LocalInstanceRegistry::new(
-            env.clone(),
-            catalog.clone(),
-            InMemoryStores,
-            config.registry.clone(),
-            config.turns.clone(),
-        ));
-
-        // 4. Security: CA, server identity, enrollment, client auth.
-        let security = security::NativeSecurityParts::build(&config, &material, &trust, &env).await?;
-
-        // 5. The core.
-        let core = AgentRpcCore::builder(env.clone())
-            .catalog(catalog)
-            .registry(registry)
-            .turn_limits(config.turns.clone())
-            .scope_policy(config.registry.scope_policy)
-            .enrollment(security.enrollment.clone())
-            .host_info(HostInfo::native(&config))
-            .build()?;
-
-        // 6. The listeners.
-        listener::serve(&config, &core, security, env).await
-    }
-}
-```
-
-What the code does: it builds the parts in the order of their needs. Each step awaits its
-storage. No step reads a global clock or global randomness: each part gets `env`. The
-legacy key files of today load unchanged ([auth.md](./auth.md), section 4.6).
-
-`BackgroundLoader` is the real `ModelLoader`. It runs each model load with
-`valtron::run_background_job`, because a load blocks for seconds. So a load never holds a
-valtron worker.
-
-### 4.3 Listeners and TLS
-
-The native host has two listeners, as today:
-
-| Listener | TLS | Client certificate | Router | Protocols |
-|---|---|---|---|---|
-| Agent listener (`bind`) | yes | required, from the CA, in the trust index | `core.router(auth)` | Connect and gRPC-Web over HTTP/1.1; Connect, gRPC and gRPC-Web over HTTP/2 |
-| Enrollment listener (`bootstrap_bind`) | yes | none | `bootstrap_router(enrollment)` | the same |
-
-```rust
-// foundation_agent_rpc/src/host/native/listener.rs
-pub(crate) async fn serve(
-    config: &NativeHostConfig,
-    core: &AgentRpcCore,
-    security: NativeSecurityParts,
-    env: Env,
-) -> AgentRpcResult<RunningServer> {
-    let shutdown = Arc::new(OnSignal::new());
-    let agent_listener = bind(&config.bind)?;
-    let bootstrap_listener = bind(&config.bootstrap_bind_or_default())?;
-
-    // rustls configurations from foundation_auth (task T10). The verifier
-    // reads the trust index only: no I/O inside the handshake.
-    let agent_tls = mtls::server_config_mutual(&security.identity, &security.ca, security.trust.index(), &env)
-        .map_err(pki_error)?;
-    let bootstrap_tls = mtls::server_config_server_auth(&security.identity, &env).map_err(pki_error)?;
-
-    let agent_app = routed_app(&AGENT_PROCEDURES, || core.router(Arc::clone(&security.client_auth)));
-    let enrollment = Arc::clone(&security.enrollment);
-    let bootstrap_app = routed_app(&[bootstrap_procedure::ENROLL], || bootstrap_router(Arc::clone(&enrollment)));
-
-    let threads = vec![
-        spawn_tls(agent_app, agent_listener, config.http.clone().with_tls(Arc::new(SSLAcceptor::with_config(agent_tls))), &shutdown)?,
-        spawn_tls(bootstrap_app, bootstrap_listener, ServerConfig::defaults().with_tls(Arc::new(SSLAcceptor::with_config(bootstrap_tls))), &shutdown)?,
-    ];
-    Ok(RunningServer::new(core.clone(), security, shutdown, threads, config.payload_version))
-}
-```
-
-What the code does: it binds both addresses, builds the two TLS configurations, and starts
-one serve thread per listener, as today. `routed_app` and `spawn_tls` stay as they are in
-`server.rs` today. Only their inputs change: the router comes from the core, and the auth
-provider comes from `security`.
-
-`HttpServer` runs each connection as a valtron task. The rustls handshake completes on the
-first read of `ProtocolDetectHandler`. After that read, task T4 copies the peer certificates
-into `ConnectionContext::tls` ([auth.md](./auth.md), section 7.4). So `MtlsAuth` finds the
-client certificate in `CallCredentials::connection`.
-
-`InsecurePlaintext` binds one plain listener and uses `InsecureNoAuth`. It refuses a
-non-loopback `bind` before it binds anything.
-
-### 4.4 Valtron on a native host
-
-- `main` builds `Env::system()` and starts the multi-threaded pool with it: `initialize_pool_with_config(seed, Some(workers), PoolConfig::default().with_env(env))` ([env.md](./env.md), section 7.1). The pool puts the `Env` into its root `Ctx`.
-- `main` calls `block_on_future(NativeHost::start(config, env))` once, then `server.wait_for_shutdown()`. These are the only two blocking calls. They are at the program boundary, as the valtron rules require.
-- Each HTTP/1.1 and HTTP/2 connection is a valtron task. RPC dispatch runs inside it. So `valtron::current_ctx()` works inside a handler.
-- The agent loop of each turn is a valtron task that `foundation_ai` starts. Its events reach the handler through `TurnStream::events()`, an async stream.
-- Model loads run on `run_background_job`. A load never blocks a valtron worker.
-
-### 4.5 One call from start to end
-
-This diagram shows one client on a native host: it connects with mTLS, creates an instance,
-streams one chat turn, and destroys the instance. Enrollment came before
-([auth.md](./auth.md), section 9.1).
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Client (native)
-    participant L as Agent listener (TLS)
-    participant V as TrustedClientVerifier
-    participant D as Connect dispatch
-    participant A as MtlsAuth
-    participant T as TrustedClients
-    participant R as LocalInstanceRegistry
-    participant M as Model (Candle or GGUF)
-    C->>L: TCP connect, TLS handshake with client certificate
-    L->>V: verify_client_cert (CA chain, then trust index, no I/O)
-    V-->>L: accepted
-    C->>D: CreateInstance (name, kind, device)
-    D->>A: authenticate (peer certificate from ConnectionContext)
-    A->>T: get client, then touch last-seen (await)
-    T-->>A: client is active
-    A-->>D: AuthInfo with Principal
-    D->>R: create (caller, spec)
-    R->>R: select the model, build the AgentSession (await)
-    R-->>C: InstanceInfo
-    C->>D: ChatStream (instance, prompt)
-    D->>A: authenticate (as above)
-    D->>R: start_turn sets the busy flag
-    R->>M: agent loop runs the model (valtron task)
-    loop each event
-        M-->>R: TurnEvent
-        R-->>C: TurnEvent frame (Connect server stream)
-    end
-    R-->>C: TurnDone, busy flag clears
-    C->>D: DestroyInstance
-    D->>R: destroy ends the session (await)
-    R-->>C: done
-```
-
-### 4.6 Where state lives and what is awaited
-
-| State | Where it lives | Who writes it | Awaited operations |
-|---|---|---|---|
-| Signing key, CA key, server identity | `state_dir/keys/*.json` (or the legacy PEM files) | `KeyMaterial` at start | `KeyStore::get`, `create_if_absent` |
-| Trusted clients, secret uses, revocations | `state_dir/trusted-clients.db` (Turso) | `TrustedClients` | `get`, `touch`, `spend_secret`, `record_enrollment` |
-| Trust index | memory (`TrustIndex`) | `TrustedClients` after each write | none: the verifier reads it with no I/O |
-| Loaded models | memory (`LocalCatalog` slots) | `BackgroundLoader` | `resolve` awaits a load once |
-| Instances and sessions | memory (`LocalInstanceRegistry`, `InMemoryStores`) | the registry | `AgentSession::build`, `end` |
-| Turn events | nowhere: each event goes out when the model makes it | `guarded_turn` | the next model event, raced with the idle timer |
-
-A restart loses the instances, as today. The keys, the CA and the trusted clients survive.
-
-### 4.7 Shutdown
-
-1. `SIGTERM` or `RunningServer::graceful_shutdown` fires the shutdown signal.
-2. The listeners stop accepting connections.
-3. The host waits up to `shutdown_grace` for running turns to end.
-4. The host aborts the turns that still run. Each client gets the terminal event `TurnFailed("server shutting down")`.
-5. The host ends each session (`AgentSession::end().await`) and stops the pool.
+_Split out of hosts.md (now in [feature 13](../13-native-host-and-dst/hosts.md)) on 2026-10-27. Sections 5 and 6 keep their numbers, so references stay valid. Sections 1 to 3 of [hosts.md](../13-native-host-and-dst/hosts.md) (what each host gives the core, Cargo features and `cfg` gates) apply here too._
 
 ## 5. The Worker host
 
@@ -414,7 +35,7 @@ A Worker host has four Cloudflare parts:
 | Part | Binding name | Use |
 |---|---|---|
 | The Worker | — | The public endpoint. It checks the caller, keeps the instance index and forwards calls to the DO. |
-| The Durable Object class `AgentInstance` | `AGENT_INSTANCES` | One DO for each instance. It holds the session ([registry-and-models.md](./registry-and-models.md), section 4). |
+| The Durable Object class `AgentInstance` | `AGENT_INSTANCES` | One DO for each instance. It holds the session ([registry-and-models.md](../12-agent-rpc-core/registry-and-models.md), section 4). |
 | A D1 database | `AGENT_RPC_DB` | The trust store and the instance index. |
 | A KV namespace (optional) | `AGENT_RPC_KEYS` | The public keys that verify bearer secrets. Operators change keys with no redeploy. |
 
@@ -462,7 +83,7 @@ key.
 #[derive(Debug, Clone)]
 pub struct WorkerHostConfig {
     /// The public base URL. It is the audience of bearer secrets and the
-    /// `base_url` of version 2 payloads. Var `AGENT_RPC_PUBLIC_URL`.
+    /// `url` of the bootstrap payload. Var `AGENT_RPC_PUBLIC_URL`.
     pub public_url: String,
     /// Remote models. Var `AGENT_RPC_MODELS` (JSON list of `ApiModelConfig`).
     pub models: Vec<ApiModelConfig>,
@@ -479,6 +100,21 @@ pub struct WorkerHostConfig {
     /// Largest request body that `FetchServe` reads. Default 4 MiB: the
     /// gRPC default maximum receive message size.
     pub max_request_bytes: usize,
+    /// `Some`: this Worker serves `BootstrapService` (Enroll, RefreshAccess)
+    /// on its own origin, so browsers and other clients can enroll with a
+    /// client key (auth.md section 9.1). The payload private key comes from
+    /// the Worker secret named here (PEM text or base64 PEM, auth.md 4.5).
+    /// `None` (default): verify-only; only operator-issued access secrets work.
+    pub enrollment: Option<WorkerEnrollment>,
+}
+
+#[derive(Debug, Clone)]
+pub struct WorkerEnrollment {
+    /// The name of the Worker secret that holds the payload private key.
+    /// Default `AGENT_RPC_SIGNING_KEY`. Set it with
+    /// `wrangler secret put AGENT_RPC_SIGNING_KEY < bootstrap-signing-key.pem`.
+    pub signing_key_secret: String,
+    pub enroll: EnrollConfig,
 }
 
 impl WorkerHostConfig {
@@ -512,7 +148,7 @@ impl WorkerHost {
         let trust = TrustedClients::open(Arc::new(trust_store), env.clone(), config.trust.clone())
             .await
             .map_err(trust_error)?;
-        let verifier = security::access_verifier(bindings, &config, &env).await?;   // EnvKeyStore or KV keys
+        let verifier = security::access_verifier(bindings, &config, &env).await?;   // AGENT_RPC_SECRET_PUBLIC_KEYS
         let mut providers: Vec<Arc<dyn ClientAuth>> = Vec::new();
         if config.cloudflare_mtls {
             providers.push(Arc::new(CfMtlsAuth::new(Arc::clone(&trust))));
@@ -571,7 +207,7 @@ What the code does:
 `cert_not_after`, `cert_serial`). It lives in the Worker host, because `foundation_auth`
 does not depend on the `worker` crate.
 
-The thin Worker entry is in `examples/cf-agent-rpc/src/lib.rs` ([env.md](./env.md),
+The thin Worker entry is in `examples/cf-agent-rpc/src/lib.rs` ([env.md](../08-env-and-side-effects/env.md),
 section 7.2). It builds `Env::system()` and the engine once per isolate. It then runs
 `with_ctx(root_ctx(), host.fetch(req))` for each request.
 
@@ -645,7 +281,7 @@ What the code does:
 2. The dispatch future owns its sink. The sink sends the head through a one-shot channel and the frames through a bounded channel.
 3. `drive_until_head` polls the dispatch and waits for the head. A unary call usually finishes here.
 4. `DispatchBody` is a stream. Each poll first polls the dispatch future, then takes the next frame from the channel. So the handler runs only when the runtime asks for more body. Nothing builds up in memory.
-5. When the client goes away, the runtime cancels the `ReadableStream`. That drops `DispatchBody`, which drops the dispatch future, the handler and the turn stream. `guarded_turn` then aborts the session ([registry-and-models.md](./registry-and-models.md), section 4.6).
+5. When the client goes away, the runtime cancels the `ReadableStream`. That drops `DispatchBody`, which drops the dispatch future, the handler and the turn stream. `guarded_turn` then aborts the session ([registry-and-models.md](../12-agent-rpc-core/registry-and-models.md), section 4.6).
 
 Changes in other crates that `FetchServe` needs (task T19, except where noted):
 
@@ -705,7 +341,7 @@ through with no buffering.
 ### 5.6 Inside the Durable Object
 
 The DO serves the normal `AgentService` for its one instance
-([registry-and-models.md](./registry-and-models.md), section 4.4).
+([registry-and-models.md](../12-agent-rpc-core/registry-and-models.md), section 4.4).
 
 ```rust
 // examples/cf-agent-rpc/src/lib.rs (task T21): the thin DO type.
@@ -806,14 +442,14 @@ is in D1 and the session is in its DO.
 
 ### 5.10 KV and R2
 
-- **KV** holds the public keys that verify bearer secrets (optional). `DbKeyStore<KVWasmStorage>` reads them through `KeyMaterial::verify_only`. KV is eventually consistent: a new key can take about 60 seconds to reach every location. That is acceptable for adding a key. To stop a key at once, revoke its secrets in D1 ([auth.md](./auth.md), section 9.4). KV never holds the trust store, because it has no atomic write.
+- **KV** is not used for keys in the proof of concept: the public keys are the var `AGENT_RPC_SECRET_PUBLIC_KEYS` ([auth.md](../11-foundation-auth/auth.md) section 4.5). Keys in KV come with the key store of [feature 15](../15-key-protection-at-rest/feature.md). KV never holds the trust store, because it has no atomic write.
 - **R2** holds the archive of each destroyed instance (owner decision 5). Section 5.12 describes it.
 
 ### 5.11 Model provider API keys
 
 An **API key** here is the secret that a remote model provider (OpenAI, OpenRouter, Anthropic,
 Workers AI) gives to its customers. The Worker sends it with each model request. Anyone with the
-key can use the account and spend its money. So it is a secret, like the KEK.
+key can use the account and spend its money. So it is a secret, like a private key.
 
 Owner decision 6: API keys are **Worker secrets** or **Secrets Store secrets**. They are never in
 `wrangler.toml`, never in a var, never in D1 or KV, and never in a log.
@@ -854,9 +490,9 @@ in a `Zeroizing` string, and fails with the secret's name if one is missing. `ap
    provider client. The key stays in the provider client and goes only into the
    `Authorization` header of the model request.
 
-The native host uses the same `SecretRef` idea with the native sources of
-[key-protection.md](./key-protection.md) section 3.4: a systemd credential, a secret file, or (last
-choice, with permission) an environment variable.
+The native host uses the same `SecretRef` idea with an environment variable or a secret file (a
+path in configuration, mode 0600). More native sources, such as systemd credentials, come with
+[feature 15](../15-key-protection-at-rest/key-protection.md).
 
 Rotation: put the new value with the same secret name and redeploy. Cloudflare starts new isolates
 with the new value. Revoke the old key at the provider after the deploy.
@@ -905,10 +541,9 @@ sequenceDiagram
 _The diagram shows the archive step. The DO deletes its storage only after R2 confirms the
 archive._
 
-Security: R2 encrypts every object at rest. The archive also holds conversation content, so the
-host seals it with the KEK when one is configured
-([key-protection.md](./key-protection.md)): each object gets its own data key, and the object
-metadata holds the wrapped data key.
+Security: R2 encrypts every object at rest. The proof of concept adds no encryption of its own.
+Envelope encryption of each archive object (its own data key, wrapped by a KEK) is task K4 of
+[feature 15](../15-key-protection-at-rest/feature.md).
 
 Configuration (`WorkerHostConfig::archive`):
 
@@ -916,7 +551,6 @@ Configuration (`WorkerHostConfig::archive`):
 |---|---|---|
 | `enabled` | `true` when the `AGENT_RPC_ARCHIVE` binding exists | owner decision 5 |
 | `part_size` | 8 MiB | above the R2 minimum part size of 5 MiB, and the default part size of the AWS command-line tool |
-| `seal_with_kek` | `true` when a KEK is configured | conversations are private data |
 
 Keep or delete archives with R2 lifecycle rules (for example, delete after 90 days). The native
 host has the same step with any `foundation_db` blob store (a directory or R2 over its REST API).
@@ -987,29 +621,50 @@ What the code does:
 
 ### 6.3 The client API
 
+A browser client enrolls with the payload, as every other client can (auth.md section 9.1). It
+makes a client key with WebCrypto, enrolls, checks the server proof, and then sends a short
+access secret on each call. It refreshes the access secret with its key before it expires.
+
 ```rust
 // foundation_agent_rpc/src/client/web.rs (cfg(target_family = "wasm"), feature "web-client", task T22)
 pub struct WebClient {
     agent: AgentServiceClient,
+    bootstrap: BootstrapServiceClient,
+    /// The client key and the current access secret.
+    session: Arc<WebSession>,
+}
+
+/// Where a page keeps its enrolled identity between visits. The default,
+/// `IndexedDbCredentials`, stores the non-extractable WebCrypto key and the
+/// client_id in IndexedDB, so a page reload does not enroll again.
+#[async_trait::async_trait(?Send)]
+pub trait WebCredentialStore {
+    async fn load(&self, url: &str) -> AgentRpcResult<Option<WebIdentity>>;
+    async fn save(&self, url: &str, identity: &WebIdentity) -> AgentRpcResult<()>;
 }
 
 impl WebClient {
-    /// Read a version 2 payload and make a client. The payload token is
-    /// the bearer secret.
+    /// Enroll with a payload whose token purpose is `Enroll`:
+    /// 1. decode; check the token signature, window and `aud == url`;
+    /// 2. make a non-extractable key (`crypto.subtle.generateKey`, Ed25519,
+    ///    or P-256 where the browser has no Ed25519) and a nonce;
+    /// 3. call `Enroll` with `client_key` and the nonce;
+    /// 4. check `server_proof` with the payload public key;
+    /// 5. save the identity; keep the access secret in memory.
     ///
     /// # Errors
     /// `Codec` for a bad payload; `Config` for a payload that a browser
-    /// cannot use (section 6.4).
-    pub fn from_payload(payload: &str) -> AgentRpcResult<Self> {
-        let payload = core::bootstrap::decode(payload)?;
-        check_browser_payload(&payload)?;
-        let transport: Arc<dyn Transport> = Arc::new(FetchTransport::new(GlobalFetcher, FetchTransportConfig::default()));
-        let options = ClientOptions::new()
-            .with_connect()
-            .with_header("authorization", format!("Bearer {}", payload.token));
-        let agent = AgentServiceClient::new(transport, &payload.base_url, options).map_err(client_error)?;
-        Ok(Self { agent })
-    }
+    /// cannot use (section 6.4); `Unauthenticated` for a used, revoked or
+    /// expired token, or a server proof that does not verify.
+    pub async fn enroll(payload: &str, client_name: &str, store: &dyn WebCredentialStore) -> AgentRpcResult<Self> { todo!("T22") }
+
+    /// Use an identity that `enroll` saved: call `RefreshAccess` for a new
+    /// access secret, signed with the stored key.
+    pub async fn resume(url: &str, store: &dyn WebCredentialStore) -> AgentRpcResult<Option<Self>> { todo!("T22") }
+
+    /// Use a payload whose token purpose is `Access` (operator-issued bearer):
+    /// no enrollment, the token is the bearer secret until it expires.
+    pub fn from_access_payload(payload: &str) -> AgentRpcResult<Self> { todo!("T22") }
 
     pub async fn capabilities(&self) -> AgentRpcResult<pb::GetCapabilitiesResponse> { todo!("T22") }
     pub async fn create_instance(&self, spec: InstanceSpec) -> AgentRpcResult<InstanceInfo> { todo!("T22") }
@@ -1020,9 +675,10 @@ impl WebClient {
 }
 ```
 
-What the code does: `from_payload` decodes the payload with the same core function as every
-other client. It checks the browser rules. It then makes the generated client over
-`FetchTransport` with the bearer header on every call.
+What the code does: every call goes through `FetchTransport` with
+`Authorization: Bearer <access secret>`. `WebSession` refreshes the access secret when less than
+a fifth of its window is left, and once more after an `UNAUTHENTICATED` reply, before it gives
+the error to the page.
 
 The example `examples/agent-rpc-web` (task T22) exports `WebClient` to JS with
 `wasm-bindgen`. A page can then call it from JS.
@@ -1031,11 +687,12 @@ The example `examples/agent-rpc-web` (task T22) exports `WebClient` to JS with
 
 | Payload | Browser client behavior |
 |---|---|
-| Version 1 | Refuse with `Config` ("a browser cannot enroll; ask for a version 2 payload"). Enrollment needs a client certificate and a pinned TLS channel. |
-| Version 2, `TLS_TRUST_SYSTEM_ROOTS` | Accept. The browser checks the certificate. |
-| Version 2, `TLS_TRUST_PINNED_SHA256` | Refuse with `Config`. A page has no API to pin a certificate. Accepting it would drop the pin without telling anyone. |
-| Version 2, `TLS_TRUST_PLAINTEXT` | Accept only for a loopback `base_url`, for development (the decode rule of proto.md section 6.1). |
-| `auth_modes` without `signed-secret` | Refuse with `Config`. The host does not accept bearer secrets. |
+| `BootstrapAccess::Enroll` (token purpose `Enroll`) | **Accept.** Enroll with a client key (section 6.3). The server proof, not a pinned channel, proves the server. |
+| `BootstrapAccess::Bearer` (token purpose `Access`) | Accept. The token is the bearer secret. |
+| `TlsTrust::SystemRoots` | Accept. The browser checks the certificate. |
+| `TlsTrust::PinnedSha256` | Refuse with `Config` ("this host has a certificate that only a pin trusts; a browser cannot open TLS to it; serve the host with a public certificate or behind the proxy"). This is a TLS limit of browsers, not an enrollment limit: the browser refuses the TLS connection before any call. |
+| `TlsTrust::Plaintext` | Accept. `decode` allows it only for a loopback `url`, for development (proto.md section 6.3). |
+| `auth_modes` without `signed-secret` | Refuse with `Config`. The host does not accept access secrets. |
 
 ### 6.5 CORS on the server
 
@@ -1075,7 +732,7 @@ blocks the page from the response.
 
 ### 6.7 One call from start to end
 
-This diagram shows a browser page that uses a version 2 payload with a Worker host.
+This diagram shows a browser page that enrolls with a Worker host and then streams a turn.
 
 ```mermaid
 sequenceDiagram
@@ -1084,11 +741,16 @@ sequenceDiagram
     participant B as WebClient (wasm)
     participant F as FetchTransport
     participant W as Worker host
-    U->>B: WebClient.from_payload (version 2 payload)
-    B->>B: decode, refuse pinned or version 1 payloads
-    U->>B: create_instance (name, kind API)
-    B->>F: unary call with the bearer header
+    U->>B: WebClient.enroll (payload, client name)
+    B->>B: decode; check token signature, window, aud = url; make key and nonce
+    B->>F: Enroll (token, client key, nonce)
     F->>W: CORS preflight (OPTIONS), then POST
+    W-->>F: client_id, access secret, server proof
+    F-->>B: EnrollResponse
+    B->>B: check server proof with the payload public key; save identity
+    U->>B: create_instance (name, kind API)
+    B->>F: unary call with the bearer header (access secret)
+    F->>W: POST
     W-->>F: InstanceInfo
     F-->>B: InstanceInfo
     U->>B: chat_stream (instance, prompt)
@@ -1104,50 +766,14 @@ sequenceDiagram
     F->>W: the runtime cancels the response, the DO aborts the turn
 ```
 
-## 7. The native client
-
-The native client of today (`client.rs`) keeps its behavior. It moves to
-`client::native` and uses the new parts:
-
-- A version 1 payload: dial the enrollment listener with the pinned fingerprint (`foundation_auth::mtls::client_config_pinned`), enroll with a new key and CSR, then dial the agent listener with mTLS (`client_config_mutual`).
-- A version 2 payload: dial `base_url` with the system roots (or the pin) and send the token as a bearer secret on each call.
-- The client key comes from `Env` entropy, so a DST run makes the same CSR each time ([env.md](./env.md), section 8).
-- The client checks the payload window before it dials, as today. The check uses `Env::wall_now()`.
-
-## 8. Configuration of the hosts
-
-Every limit and timeout of a host is a configuration field with a documented default
-(CLAUDE.md rule 8). The table lists the host fields. [feature.md](./feature.md), section 11,
-lists the fields of the core and of `foundation_auth`.
-
-| Field | Host | Default | Source of the default |
-|---|---|---|---|
-| `NativeHostConfig::workers` | native | 16 | LEARNINGS 01 T6: at least 8 workers |
-| `NativeHostConfig::shutdown_grace` | native | 30 s | Kubernetes `terminationGracePeriodSeconds` |
-| `NativeHostConfig::preload` | native | true | as today |
-| `NativeHostConfig::payload_version` | native | `V1` | as today |
-| `NativeHostConfig::http` | native | `ServerConfig::defaults()` | `foundation_http` (as today) |
-| `WorkerHostConfig::max_request_bytes` | Worker | 4 MiB | gRPC default maximum receive message size |
-| `WorkerHostConfig::instance_idle_ttl` | Worker | none | an instance lives until `DestroyInstance` (as on the native host) |
-| `WorkerHostConfig::cloudflare_mtls` | Worker | true | it has no effect until the zone has mTLS rules |
-| `FetchServeConfig::response_queue` | Worker, DO | 4 chunks | the pipe depth of `ClientOptions` today |
-| `FetchTransportConfig::max_request_bytes` | web, Worker | 4 MiB | gRPC default maximum send message size |
-| `CorsConfig::allowed_origins` | Worker, native | empty | closed by default |
-| `CorsConfig::max_age` | Worker, native | 7200 s | the CORS guide of Connect (connect-go) |
-
 ## 9. Tests
 
 All tests go in each crate's `tests/` directory (CLAUDE.md rule 7).
 
 | Test | Crate and file | What it proves |
 |---|---|---|
-| Native end to end | `foundation_agent_rpc/tests/native_e2e_tests.rs` | Enroll, mTLS, create, stream a turn, destroy, over real sockets (the `rpc_e2e_tests` of today, moved). |
-| Revocation on a live connection | `foundation_agent_rpc/tests/native_revocation_tests.rs` | After `revoke_client`, the next call on the same keep-alive connection fails with `UNAUTHENTICATED`. |
-| Peer certificate reported | `foundation_http/tests/tls_peer_info_tests.rs` | `ConnectionContext::tls` holds the client certificate after the handshake (task T4). |
-| Shutdown | `foundation_agent_rpc/tests/native_shutdown_tests.rs` | A running turn gets `TurnFailed("server shutting down")` after `shutdown_grace`; sessions end. |
 | `FetchServe` | `foundation_connectrpc/tests/wasm/fetch_serve_tests.rs` (`wasm-bindgen-test`, Node) | Unary, server stream, error status, deadline, a body over the limit, and cancel: dropping the body drops the handler. |
 | `FetchTransport` | `foundation_connectrpc/tests/wasm/fetch_transport_tests.rs` | Against a `FetchServe` in the same test through a `Fetcher` that calls it directly. |
 | Worker host | `foundation_toolings/tests/cf_examples.rs`, case `cf-agent-rpc` (Miniflare, as for the other `examples/cf-*`) | Bearer auth, a revoked secret, CORS preflight, create, stream, list, destroy; a forged `ewe-forwarded-principal` header has no effect; a DO restart keeps the history. |
 | Cloudflare mTLS | the same case, with a fake `request.cf.tlsClientAuth` (Miniflare lets a test set `cf`) | `CfMtlsAuth` accepts a registered fingerprint and refuses `FAILED:…`. |
 | Web client | `foundation_agent_rpc/tests/wasm/web_client_tests.rs` (`wasm-bindgen-test`, headless browser in CI) | The payload rules of section 6.4; a full turn against a Miniflare Worker. |
-| Feature gates | `ci/packages.toml` | The `foundation_agent_rpc` runs: `""`, `"gguf"`, and a wasm run with `--no-default-features --features worker`. |

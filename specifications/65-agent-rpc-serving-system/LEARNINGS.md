@@ -892,7 +892,6 @@ one_loaded_model` loads the tiny candle Llama once (`load_with` counter = 1),
 - **foundation_db migration 023 (`023_create_vectors.sql`) is in the directory but not in
   `MIGRATIONS`,** so it never runs. Nothing checked this. Task T25 adds a test that every file is
   planned.
-  \=======
 
 ## "Zero response" root cause (2026-10-24) — a failed turn streamed nothing
 
@@ -1056,3 +1055,42 @@ Two things the first pass got wrong, now fixed:
 Verified: `--no-default-features --features trace` (no_std) and
 `--features "std trace"` both check; the integration test passes. The message
 field prints unquoted (`fmt::Arguments`), while `&str` fields print quoted.
+
+## Spec review round 3 (2026-10-26): completeness, correctness, clarity
+
+The owner reviewed features 02, 03, 04 and feature 07's `proto.md` and `migrations.md` on PR #126
+(2026-10-25). What we learned:
+
+- **Every type needs four answers.** For each type, field and enum variant, say what it is, who
+  makes it, who reads it, and give an example. "`Artifact::Tool(String)`" with no words around
+  it is not a design.
+- **A reply type with only a `status` field hides the design.** `BackendAck { status }` covered
+  three calls and said nothing. Each call now has its own typed reply that carries what the
+  other side must do next (report interval, lease time, `REREGISTER`).
+- **Write the failure paths as a table, one row per case, with a test for each.** Missed
+  heartbeat, proxy restart, sidecar restart, app restart, redeploy at a new address, stale and
+  conflicting registrations, certificate expiry.
+- **Name the one place where a component authenticates, and why.** The first design gave the
+  sidecar "token → mTLS" with no reason, which read as if the sidecar took part in client TLS.
+  It does not. The proxy ends client TLS. The sidecar authenticates only on its link to the
+  proxy registration authority, because a registration changes where client traffic goes.
+- **Read the existing code before you design an extension.** `foundation_proxy` already has
+  `control.rs`, `health.rs` (with thresholds), `state.rs`, `persistence.rs` and
+  `passthrough.rs`. The first feature 03 did not mention them.
+- **A proxy that ends TLS cannot pass a client certificate.** So agent-rpc's mTLS does not work
+  through it. Clients behind the proxy use the signed-secret bearer auth of feature 07;
+  end-to-end mTLS needs SNI passthrough (feature 03, open question 3).
+- **Binaries go in `src/bin/<name>.rs`,** never `src/main.rs` next to `src/lib.rs`. The pattern
+  is `backends/foundation_testbed/src/bin/wasm-testbed.rs` with a `[[bin]]` entry.
+- **A protobuf message does not need a version field.** Field numbers already let old and new
+  readers work together. With one URL for every host, the client derives TLS trust from the
+  fingerprint and access from the token purpose. Reserve removed field numbers and names.
+- **Migrations belong to a database, in groups.** A shared group runs first, then specific
+  groups; each numbers from 1 with no gaps; record rows are keyed by group. Number ranges per
+  crate were a work-around for one flat list. Reference: `resources/Migration Management.md`.
+- **Do not fold discussion material into the spec.** `resources/` also holds Cloudflare, Durable
+  Object, D1 and NATS notes that the owner wants to discuss first.
+- **`async fn` in a trait is not object-safe.** For `Arc<dyn Trait>` with async methods, use
+  `#[async_trait::async_trait]`, as `foundation_db`'s storage traits do.
+- **A merge can leave a stray conflict marker** (`\=======` was at line 895 of this file). Search
+  for markers after each merge.

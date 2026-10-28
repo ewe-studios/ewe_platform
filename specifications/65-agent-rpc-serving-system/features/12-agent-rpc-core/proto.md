@@ -1,6 +1,6 @@
 # Wire contract changes (`agent.proto`)
 
-_Part of [feature 07](./feature.md). Written in ASD-STE100 Simplified Technical English (STE).
+_Part of [feature 12](./feature.md); the shared architecture is [agent-rpc-architecture.md](../../agent-rpc-architecture.md). Written in ASD-STE100 Simplified Technical English (STE).
 Code and identifiers stay as they are._
 
 **Abbreviations in this file.** remote procedure call (RPC); Protocol Buffers (protobuf);
@@ -13,7 +13,7 @@ processing unit (CPU); graphics processing unit (GPU); Compute Unified Device Ar
 GPT-Generated Unified Format (GGUF), the model file format of llama.cpp; Durable Object (DO); enumeration (enum). gRPC is the name of a Google RPC
 protocol over HTTP/2. gRPC-Web is its variant for browsers. Connect is an RPC protocol that
 works over HTTP/1.1 and HTTP/2. AeroSpace and Defence Industries Association of Europe (ASD), the owner of the
-STE standard ASD-STE100. The [glossary in feature.md](./feature.md#2-glossary) explains
+STE standard ASD-STE100. The [glossary in feature.md](../../agent-rpc-architecture.md#2-glossary) explains
 each term.
 
 ## 1. What this file covers
@@ -30,7 +30,7 @@ The changes add four things:
 1. A new remote procedure call (RPC), `GetCapabilities`. An RPC is a function that a client calls over the network.
 2. A model kind and a device on `CreateInstanceRequest`.
 3. Paging on `ListInstances`.
-4. Version 2 of `BootstrapPayload`, for hosts that a client reaches by a uniform resource locator (URL), for example a Cloudflare Worker.
+4. One address form for `BootstrapPayload`: a uniform resource locator (URL) for every host, native or Cloudflare Worker. The payload has no version field (owner decision, PR #126 review, 2026-10-25). Section 6 gives the reasons.
 
 ## 2. Compatibility rules
 
@@ -42,7 +42,7 @@ These rules keep old clients and old servers working.
 | Never change the number or the type of a field. | A changed number makes old bytes decode wrong. |
 | Every new enumeration (enum) starts with `..._UNSPECIFIED = 0`. | Zero is the value an old client sends. It must mean "use the old behavior". |
 | Prefix each enum value with the enum name, for example `MODEL_KIND_API`. | In protobuf, all enum values of a package share one name space. |
-| Keep `BootstrapPayload.version = 1` exactly as today. Add a new `version = 2`. | Clients that exist today must still read payloads from native hosts. |
+| `BootstrapPayload` removes `version`, `addr` and `bootstrap_addr`. Their numbers (1, 2, 3) and names are `reserved`. | The feature 01 payload was never released, so no deployed client reads it. `reserved` stops a later change from giving the old numbers a new meaning. |
 | A server answers an unknown enum value with `INVALID_ARGUMENT`. | `buffa` keeps unknown values as `EnumValue::Unknown(i32)`. The server must not guess. |
 
 Generated Rust names: `buffa` keeps the protobuf value names. So the Rust code uses
@@ -87,8 +87,12 @@ service AgentService {
 }
 
 service BootstrapService {
-  // Present a signed bootstrap secret and a CSR; receive a client certificate.
+  // Present a signed bootstrap secret and a credential (a client public key,
+  // or a CSR); receive a client_id, the credential, and a server proof.
+  // Any client can call it, a browser included (auth.md section 9.1).
   rpc Enroll(EnrollRequest) returns (EnrollResponse);
+  // NEW (07): a new access secret for a client-key client, signed with its key.
+  rpc RefreshAccess(RefreshAccessRequest) returns (RefreshAccessResponse);
 }
 
 // ---------------------------------------------------------------------------
@@ -307,59 +311,95 @@ message TurnDone {
 
 message EnrollRequest {
   // A signed bootstrap secret (base64url JSON, see auth.md), as carried by
-  // BootstrapPayload.token. Its purpose must be "enroll".
+  // BootstrapPayload.token. Its purpose must be "enroll" and its aud must be
+  // this host's url.
   string token = 1;
-  // Recorded as the certificate's common name.
+  // A display name for the client, recorded with it.
   string client_name = 2;
-  // PKCS#10 certificate signing request; the private key stays on the client.
-  string csr_pem = 3;
+  // The credential the client wants. Exactly one is set.
+  oneof credential {
+    // PKCS#10 certificate signing request; the private key stays on the
+    // client. The client then uses mTLS. Native hosts only.
+    string csr_pem = 3;
+    // NEW (07): a client public key; the private key stays on the client.
+    // The client then uses access secrets. Every host that enrolls.
+    ClientKey client_key = 4;
+  }
+  // NEW (07): 32 random bytes from the client. The server signs them in
+  // server_proof.
+  bytes nonce = 5;
+}
+
+// NEW (07): a client public key.
+message ClientKey {
+  // "ed25519" (raw 32 bytes) or "p256" (uncompressed SEC1, 65 bytes).
+  string alg = 1;
+  bytes public_key = 2;
 }
 
 message EnrollResponse {
+  // Set for the csr_pem credential.
   string client_cert_pem = 1;
-  // The CA that signs client and server certificates.
+  // The CA that signs client and server certificates. Set for csr_pem.
   string ca_cert_pem = 2;
+  // NEW (07): the ID of the enrolled client.
+  string client_id = 3;
+  // NEW (07): set for the client_key credential. A SignedSecret v2 with
+  // purpose access, aud = url, sub = client_id. Send it as a bearer credential.
+  string access_secret = 4;
+  // NEW (07): the server's signature, with the payload private key, over the
+  // nonce, the client credential and client_id (auth.md section 9.1.1).
+  bytes server_proof = 5;
 }
 
-// How a client checks the server certificate. NEW (07).
-enum TlsTrust {
-  // Version 1 meaning: pin tls_fingerprint_sha256.
-  TLS_TRUST_UNSPECIFIED = 0;
-  TLS_TRUST_PINNED_SHA256 = 1;
-  // Use the normal public certificate roots (for example a Cloudflare Worker).
-  TLS_TRUST_SYSTEM_ROOTS = 2;
-  // No TLS. Loopback development only.
-  TLS_TRUST_PLAINTEXT = 3;
+// NEW (07). Signed with the client private key over
+// "ewe.agent_rpc.refresh.v1" 0x00 client_id unix_ms nonce.
+message RefreshAccessRequest {
+  string client_id = 1;
+  uint64 unix_ms = 2;
+  bytes nonce = 3;
+  bytes signature = 4;
 }
 
+message RefreshAccessResponse {
+  string access_secret = 1;
+}
+
+// What an operator gives a client, as base64url text or a QR code.
+// CHANGED (07). There is no version field: protobuf field numbers already let
+// an old reader skip a field that it does not know, and let a new reader see
+// that an old field is absent. Section 6 of proto.md explains the choice.
 message BootstrapPayload {
-  // 1 = host:port endpoints (native hosts, unchanged).
-  // 2 = adds base_url, tls_trust and enroll_url (URL-based hosts). NEW (07)
-  uint32 version = 1;
-  // host:port of the AgentService listener.
-  string addr = 2;
-  // host:port of the BootstrapService listener. Empty in version 2 when the
-  // host has no enrollment.
-  string bootstrap_addr = 3;
+  // Removed in 07. Never reuse these numbers or names.
+  reserved 1, 2, 3;
+  reserved "version", "addr", "bootstrap_addr";
   // Lowercase hex SHA-256 of the server certificate (DER).
+  // Set: the client pins this certificate (a host with its own CA, such as
+  // the native host). Empty: the client checks the certificate against the
+  // system root certificates (a host with a public certificate, such as a
+  // Cloudflare Worker).
   string tls_fingerprint_sha256 = 4;
-  // The signed, time-boxed secret (see auth.md).
+  // The signed, time-boxed secret (see auth.md). It also carries the server
+  // public key. Its purpose says what the client does with it: Enroll = call
+  // Enroll at enroll_url (any client, a browser included); Access = send it
+  // as a bearer credential on each call to url.
   string token = 5;
   Capabilities capabilities = 6;
-  // NEW (07, version 2): the full RPC base URL, for example
-  // "https://agents.example.com/rpc".
-  string base_url = 7;
-  // NEW (07, version 2).
-  TlsTrust tls_trust = 8;
-  // NEW (07, version 2): the full URL of BootstrapService, when it exists.
-  string enroll_url = 9;
+  // NEW (07): the base URL of AgentService. One form for every host, for
+  // example "https://203.0.113.7:7443" or "https://agents.example.com/rpc".
+  string url = 7;
+  // NEW (07): the base URL of BootstrapService. Set only when the token
+  // purpose is Enroll. It can equal url (one listener, for example a Worker).
+  // The same tls_fingerprint_sha256 applies to it.
+  string enroll_url = 8;
 }
 
 message Capabilities {
   repeated string protocols = 1;
   repeated string models = 2;
-  // Version 1 field. Version 2 readers use auth_modes.
-  string auth_mode = 3;
+  // Removed in 07: the single auth_mode string. Use auth_modes.
+  reserved 3;
+  reserved "auth_mode";
   repeated ModelKind model_kinds = 4;   // NEW (07)
   repeated string auth_modes = 5;       // NEW (07)
 }
@@ -370,6 +410,9 @@ message Capabilities {
 | Message.field | Number | Change | Effect on old peers |
 |---|---|---|---|
 | `AgentService.GetCapabilities` | — | new RPC | An old server answers `UNIMPLEMENTED`. A new client then falls back to `Health`. |
+| `BootstrapService.RefreshAccess` | — | new RPC | Only clients that enrolled with a client key call it. |
+| `EnrollRequest.credential` (`csr_pem` in a oneof, new `client_key`), `.nonce` | 3, 4, 5 | changed, new | `csr_pem` keeps number 3, so a feature 01 request still decodes. Without a `nonce`, the server refuses (`INVALID_ARGUMENT`): feature 01 clients enroll again with a new build. |
+| `EnrollResponse.client_id`, `.access_secret`, `.server_proof` | 3, 4, 5 | new | An old client ignores them. |
 | `CreateInstanceRequest.kind` | 6 | new | An old server ignores it and uses `model` as today. |
 | `CreateInstanceRequest.device` | 7 | new | Same as above. |
 | `InstanceInfo.kind`, `.device` | 5, 6 | new | An old client ignores them. |
@@ -377,7 +420,9 @@ message Capabilities {
 | `ListInstancesRequest.page_size`, `.page_token` | 1, 2 | new | An old client sends zero and empty: it gets the first page. |
 | `ListInstancesResponse.next_page_token` | 2 | new | An old client reads only the first page. |
 | `Capabilities.model_kinds`, `.auth_modes` | 4, 5 | new | An old client ignores them. |
-| `BootstrapPayload.base_url`, `.tls_trust`, `.enroll_url` | 7, 8, 9 | new, version 2 only | An old client refuses `version = 2` (it says "unknown version"). This is correct: it cannot reach a URL-based host. |
+| `Capabilities.auth_mode` | 3 | removed, reserved | Replaced by `auth_modes`. |
+| `BootstrapPayload.version`, `.addr`, `.bootstrap_addr` | 1, 2, 3 | removed, reserved | A feature 01 build cannot read a new payload, and a new build refuses a feature 01 payload (it has no `url`). Feature 01 was never released, so no deployed client is affected. The operator issues a new payload. |
+| `BootstrapPayload.url`, `.enroll_url` | 7, 8 | new | See above. |
 
 ## 5. Model selection for `CreateInstance`
 
@@ -433,78 +478,143 @@ The last row is the behavior of today. So old clients see no change.
 "Connect code" is the status code of the Connect protocol. The same number goes into
 `grpc-status` for gRPC and gRPC-Web.
 
-## 6. `BootstrapPayload` version 1 and version 2
+## 6. `BootstrapPayload`: one address form, no version
 
 A bootstrap payload is one string. An operator gives it to a client. The client needs nothing
 else to connect. The string is base64url (unpadded) of the protobuf bytes.
 
-### 6.1 Validation rules (`core::bootstrap::decode`)
+### 6.1 Why there is no version field and no second address type
 
-| Field | Version 1 | Version 2 |
-|---|---|---|
-| `addr` | required | optional (for display; the client uses `base_url`) |
-| `bootstrap_addr` | required | must be empty (use `enroll_url`) |
-| `tls_fingerprint_sha256` | required | required when `tls_trust = PINNED_SHA256`, else empty |
-| `token` | required | required |
-| `base_url` | must be empty | required: `https://…`, or `http://…` only with `PLAINTEXT` and a loopback host |
-| `tls_trust` | must be `UNSPECIFIED` (it means pinned) | required, not `UNSPECIFIED` |
-| `enroll_url` | must be empty | optional: `https://…` |
+The owner asked (PR #126 review, 2026-10-25): why versions, and why not one URL type for hosted
+and one for serverless, when a Cloudflare Worker also has an address?
+
+- **No version field.** Protobuf already handles change. Each field has a number. An old reader
+  skips numbers that it does not know. A new reader sees that a field is absent. A version
+  field adds a second rule that can disagree with the fields. The earlier design used
+  `version = 2` only to say "use `base_url`, not `addr`". With one address form, nothing is left
+  for it to say.
+- **The address is signed.** An enrollment token carries `aud` = `url` inside its signature, and
+  the server proves that it holds the payload private key (auth.md section 9.1.1). So the payload
+  is the owner's tamper-proof package: address, secret, signature and server public key.
+- **One address type.** Every host has an address, and a URL can hold all of them:
+  `https://203.0.113.7:7443` for a native host, `https://agents.example.com/rpc` for a Worker.
+  The host kinds differ in two other facts, and the payload already carries each one:
+
+  | Fact | Native host | Worker | Where the payload says it |
+  |---|---|---|---|
+  | How the client checks the server certificate | pin the host's own certificate | system root certificates | `tls_fingerprint_sha256` set or empty |
+  | How the client gets access | enroll (client key or, for a native client, a CSR) | enroll with a client key, or a bearer token from the operator | the token's `purpose` (`Enroll` or `Access`), and `enroll_url` |
+
+  Two URL types would repeat these facts, and could disagree with them (for example a
+  "serverless" URL with a pinned fingerprint). So the payload has one `url`, and the client
+  derives the rest.
+
+### 6.2 What the client derives (`core::bootstrap::decode`)
+
+`decode` checks the wire message and returns a Rust value in which each case is a type:
+
+```rust
+// foundation_agent_rpc/src/core/bootstrap.rs (task T13)
+
+/// A checked bootstrap payload. Made by `decode`; read by the native client
+/// and the web client.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Bootstrap {
+    /// The AgentService base URL.
+    pub url: Url,
+    pub trust: TlsTrust,
+    pub access: BootstrapAccess,
+    pub capabilities: Capabilities,
+}
+
+/// How the client checks the server certificate. Derived, not on the wire.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TlsTrust {
+    /// `tls_fingerprint_sha256` was set: pin this SHA-256.
+    PinnedSha256([u8; 32]),
+    /// The fingerprint was empty and the URL is `https`: system roots.
+    SystemRoots,
+    /// The URL is `http` with a loopback host. Development only.
+    Plaintext,
+}
+
+/// How the client gets access. Derived from the token purpose.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BootstrapAccess {
+    /// Purpose `Enroll`: call `Enroll` at `enroll_url` with a client key (any
+    /// client) or a CSR (native, then mTLS). Check the server proof with
+    /// `token.public_key` (auth.md section 9.1).
+    Enroll { token: SignedSecret, enroll_url: Url },
+    /// Purpose `Access`: send the token as a bearer credential on each call.
+    Bearer { token: SignedSecret },
+}
+```
+
+### 6.3 Validation rules
+
+| Field | Rule |
+|---|---|
+| `url` | Required. `https://<host>[:port][/path]`, or `http://` only with a loopback host. An empty `url` gives the message "this payload has no url; payloads made before feature 07 are not accepted, issue a new one". |
+| `tls_fingerprint_sha256` | Empty, or 64 lowercase hex characters. Must be empty with an `http` URL. |
+| `token` | Required. Decodes as a `SignedSecret` with purpose `Enroll` or `Access`. Its signature is checked with its own `public_key`. For `Enroll`, its `aud` must equal `url`, so a changed address fails. |
+| `enroll_url` | Required when the purpose is `Enroll`. Must be empty when the purpose is `Access`. Same scheme rules as `url`. |
+| `capabilities` | Optional. |
 
 A decode error is `AgentRpcError::Codec`. It maps to `INVALID_ARGUMENT`.
 
-### 6.2 What each host writes
+### 6.4 What each host writes
 
-- The native host writes **version 1** by default. Nothing changes for clients of today.
-  Configuration `NativeHostConfig::payload_version` can select version 2.
-- The Worker host always writes **version 2**. It has no `host:port` listener and no pinned certificate.
+- The native host writes `url` and `enroll_url` from `NativeHostConfig::public_url` and
+  `public_enroll_url`. When they are not set, it uses `https://` and the bound address of each
+  listener, as today. It sets the fingerprint and issues an `Enroll` token. With
+  `NativeSecurity::Mtls { accept_access_secrets: true }`, the operator can also issue a payload
+  with an `Access` token and no `enroll_url`.
+- The Worker host writes its public URL and no fingerprint. With
+  `WorkerHostConfig::enrollment` set, it issues an `Enroll` token and sets `enroll_url` to the
+  same URL (the Worker serves `BootstrapService` on the same origin). Without it, the operator's
+  tool issues an `Access` token and `enroll_url` stays empty.
 
-A Worker fills the endpoint fields like this:
+A Worker fills the payload like this:
 
 ```rust
-// host::worker::bootstrap — the payload a Worker hands out (version 2).
+// host::worker::bootstrap — a verify-only Worker (no `enrollment` config).
 // `public_url` comes from the Worker configuration (var AGENT_RPC_PUBLIC_URL).
 // `token` is a SignedSecret with purpose = Access, issued by the operator's
-// tool that holds the private key (the Worker has only the public key).
+// tool that holds the private key. A Worker with `enrollment` set writes an
+// Enroll token instead, with enroll_url = url, and clients enroll with it.
 let payload = BootstrapPayload {
-    version: 2,
-    addr: "agents.example.com:443".into(),           // display only
-    bootstrap_addr: String::new(),                    // no enrollment listener
-    tls_fingerprint_sha256: String::new(),            // public certificate roots
+    url: "https://agents.example.com/rpc".into(),
+    enroll_url: String::new(),                        // no enrollment on a Worker
+    tls_fingerprint_sha256: String::new(),            // public certificate: system roots
     token: token.encode().to_string(),
     capabilities: Capabilities {
         protocols: vec!["connect".into(), "grpc-web".into()],
         models: vec!["llama-3.1-8b".into()],
-        auth_mode: String::new(),                     // version 1 field, unused
         model_kinds: vec![ModelKind::MODEL_KIND_API.into()],
         auth_modes: vec!["signed-secret".into()],
         ..Default::default()
     }
     .into(),
-    base_url: "https://agents.example.com/rpc".into(),
-    tls_trust: TlsTrust::TLS_TRUST_SYSTEM_ROOTS.into(),
-    enroll_url: String::new(),
     ..Default::default()
 };
 ```
 
-What the code does: it builds a version 2 payload. The client reads `base_url` and
-`tls_trust`. It ignores `addr`. It sends the token as a bearer credential on each call,
-because the Worker has no enrollment.
+What the code does: it gives a URL, no pin and a bearer token. The client derives
+`TlsTrust::SystemRoots` and `BootstrapAccess::Bearer`. With an `Enroll` token, the client derives
+`BootstrapAccess::Enroll` and enrolls with a client key (auth.md section 9.1).
 
-A native host fills the same message like this (version 1, as today):
+A native host fills the same message like this:
 
 ```rust
-// host::native::server::RunningServer::payload_with — unchanged shape.
+// host::native::server::RunningServer::payload_with
 let payload = BootstrapPayload {
-    version: 1,
-    addr: "203.0.113.7:7443".into(),
-    bootstrap_addr: "203.0.113.7:7444".into(),
+    url: "https://203.0.113.7:7443".into(),
+    enroll_url: "https://203.0.113.7:7444".into(),
     tls_fingerprint_sha256: identity.fingerprint_sha256().into(),
     token: token.encode().to_string(),               // SignedSecret, purpose = Enroll
     capabilities: Capabilities {
         protocols: vec!["connect".into(), "grpc".into(), "grpc-web".into()],
         models: vec!["tiny-llama".into()],
-        auth_mode: "mtls".into(),
         model_kinds: vec![ModelKind::MODEL_KIND_CANDLE.into()],
         auth_modes: vec!["mtls".into()],
         ..Default::default()
@@ -514,13 +624,13 @@ let payload = BootstrapPayload {
 };
 ```
 
-What the code does: it keeps every version 1 field. It also fills the two new
-`Capabilities` fields. Old clients ignore those two fields.
+What the code does: it gives two URLs, a pin and an enrollment token. The client derives
+`TlsTrust::PinnedSha256` and `BootstrapAccess::Enroll`.
 
 ## 7. Use of `AgentService` between a Worker and a Durable Object
 
 A Durable Object (DO) is a Cloudflare object with one name, one thread and its own storage.
-The Worker host runs one DO for each agent instance (see [hosts.md](./hosts.md)).
+The Worker host runs one DO for each agent instance (see [hosts.md](../13-native-host-and-dst/hosts.md)).
 
 The Worker does not need a second service definition to talk to the DO:
 
@@ -536,7 +646,7 @@ All tests go in `backends/foundation_agent_rpc/tests/` (CLAUDE.md rule 7).
 
 | Test file | What it proves |
 |---|---|
-| `tests/proto_compat_tests.rs` | A version 1 payload from the current code (a golden string kept in `tests/fixtures/payload_v1.txt`) still decodes. A version 2 payload round-trips. Each validation rule in section 6.1 has one failing case. |
+| `tests/proto_compat_tests.rs` | A native payload and a Worker payload round-trip and derive the expected `TlsTrust` and `BootstrapAccess`. A feature 01 payload (a golden string kept in `tests/fixtures/payload_f01.txt`) is refused with the "issue a new one" message. Each validation rule in section 6.3 has one failing case. |
 | `tests/capabilities_tests.rs` | `GetCapabilities` lists exactly the kinds and devices that the catalog reports. |
 | `tests/model_selection_tests.rs` | One test for each row of the table in section 5. Each test checks the code and the `ModelSelectionError` detail. |
 | `tests/list_paging_tests.rs` | Paging returns every instance once, in name order, with stable tokens. |
