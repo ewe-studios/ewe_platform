@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 0
-  uncompleted: 25
-  total: 25
+  uncompleted: 27
+  total: 27
   completion_percentage: 0%
 ---
 
@@ -146,12 +146,15 @@ done
 | 23 | [Vectors: fjall off the worker, sqlite-vec, TurboPuffer retry](./features/23-vectors/feature.md) | §17 (8) | 01, 17 | M |
 | 24 | [Last tokio runtimes: testbed JS runner and apps](./features/24-tokio-boundaries-apps/feature.md) | §18, §19, #137 | 08 | L |
 | 25 | [Hugging Face: async Hub client, streamed uploads, pagination](./features/25-huggingface/feature.md) | §20 (3) | 03, 05 | M |
+| 26 | [Native reactor tests compile and run on macOS](./features/26-native-reactor-test-portability/feature.md) | §13 macOS `pipe2`/`/proc` | — | S |
+| 27 | [`SleepIterator` returns `Done` for a reached deadline](./features/27-valtron-sleep-iterator/feature.md) | §4 zero-duration deadline | — | S |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
 
 Priority for 12–25: **18 (auth) first**, because E1 and E2 are security bugs. Then 17, 15, 21,
 22 and 16. Then the rest in number order, after their dependencies. One agent at a time.
+26 and 27 have no dependency and can run whenever no other agent is building.
 
 ```mermaid
 flowchart LR
@@ -180,6 +183,8 @@ flowchart LR
     F17 --> F23[23 vectors]
     F08 --> F24[24 tokio apps]
     F05 --> F25[25 huggingface]
+    F26[26 native reactor tests macOS]
+    F27[27 SleepIterator deadline]
 ```
 
 _The diagram shows which feature must finish before another starts._

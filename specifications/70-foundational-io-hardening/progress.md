@@ -2,6 +2,10 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-28: two new features added from bugs found during the feature 01 review. Feature 26
+  (native reactor tests on macOS, `libc::pipe2`/`/proc/self/fd` portability) and feature 27
+  (`SleepIterator` zero-duration deadline). Both are pending, size S, no dependency.
+
 - 2026-10-28: feature 01 review fixes landed on `fix/io-01-valtron-parking`. The two blocking
   findings (per-poll callback growth in `TaskStatus::from_stream`/`prime`; full-queue producer
   callback pile-up) and the minor finding (lock on every pop) are fixed via `WakeableStream::announce`,
