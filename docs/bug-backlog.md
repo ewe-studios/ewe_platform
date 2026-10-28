@@ -77,8 +77,9 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   condvar notify, so a thread blocked in `Reactor::wait_for_events` (the accept loop's
   shutdown wait, feature 05) cannot be woken by `turn_on`; it only sees the signal on its
   next poll. The accept loop bounds shutdown detection with `accept_shutdown_poll` (a
-  config). Fix: add a wake primitive to `OnSignal` (an eventfd/pipe write, or a
-  `LockSignal`-style condvar) so shutdown wakes a waiter at once.
+  config). Fix: add a dedicated wake-capable shutdown signal (an eventfd/pipe write, or a
+  `LockSignal`-style condvar) that a blocking waiter can wait on — a purpose-built type
+  rather than overloading `OnSignal`, which stays a passive probe-only atomic.
 
 - **Hard-coded valtron limits (rule 8):** `MAX_YIELD_DURATION`
   (`executors/local.rs`), `DEFAULT_YIELD_WAIT_TIME` (4 s) and `BACK_OFF_*`

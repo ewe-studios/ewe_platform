@@ -26,7 +26,7 @@ _What an agent learned that the next agent needs. Newest first._
   `wait_for_events(gen, accept_shutdown_poll)` — the only blocking primitive. A connection
   wakes it at once (a reactor event advances the generation); shutdown is detected within
   `accept_shutdown_poll` (10 ms default), a poll rather than a literal wake. Recorded as a
-  backlog entry: `OnSignal` needs a wake primitive.
+  backlog entry: add a purpose-built wake-capable shutdown signal (do not overload `OnSignal`).
 
 - 2026-10-28 (feature 04): `connect_completion` in `foundation_iogate`
   (`src/native/accept.rs:140`) was read and **not** reused. Two reasons. First, it calls the
