@@ -39,6 +39,7 @@ use std::collections::HashMap;
 use std::io;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::{Arc, Condvar, Mutex, OnceLock, RwLock};
+use std::task::Waker;
 use std::thread;
 use std::time::Duration;
 
@@ -53,6 +54,10 @@ struct Entry {
     ready: AtomicU8,
     #[allow(dead_code)]
     interest: Interest,
+    /// A `std::task::Waker` armed by [`Reactor::register_waker`]. The drain
+    /// thread wakes it after latching readiness, so a native-executor task
+    /// (tokio/smol) can park on the same edge the valtron task path uses.
+    waker: Mutex<Option<Waker>>,
 }
 
 impl std::fmt::Debug for Entry {
@@ -321,7 +326,7 @@ impl Reactor {
         self.registry.register_fd(fd, token, interest)?;
         self.entries.write().expect("entries lock poisoned").insert(
             token,
-            Entry { ready: AtomicU8::new(Ready::EMPTY.bits()), interest },
+            Entry { ready: AtomicU8::new(Ready::EMPTY.bits()), interest, waker: Mutex::new(None) },
         );
         Ok(())
     }
@@ -378,7 +383,7 @@ impl Reactor {
         let armed = self.poll.register_recv_fd(fd, token, interest)?;
         self.entries.write().expect("entries lock poisoned").insert(
             token,
-            Entry { ready: AtomicU8::new(Ready::EMPTY.bits()), interest },
+            Entry { ready: AtomicU8::new(Ready::EMPTY.bits()), interest, waker: Mutex::new(None) },
         );
         Ok(armed)
     }
@@ -455,6 +460,34 @@ impl Reactor {
     pub fn clear(&self, token: Token, ready: Ready) {
         if let Some(entry) = self.entries.read().expect("entries lock poisoned").get(&token) {
             entry.ready.fetch_and(!ready.bits(), Ordering::AcqRel);
+            // Clearing readiness also disarms any armed waker. The register-
+            // before-check protocol re-arms it on the next park, so a stale
+            // edge cannot re-wake a reader that has already drained the fd.
+            *entry.waker.lock().expect("waker lock poisoned") = None;
+        }
+    }
+
+    /// WHY: a native-executor task (tokio/smol) cannot park on the valtron
+    /// `EventReadiness` path; it parks by returning `Pending` and being woken
+    /// by the `std::task::Waker` it hands its executor. This is the reactor
+    /// side of that contract (Feature 29 / Feature 03).
+    ///
+    /// WHAT: store `waker` for `token` so the drain thread wakes it after the
+    /// next readiness edge. Returns whether `token` is still registered.
+    ///
+    /// HOW: an interior-mutable slot on the cache entry. Callers follow the
+    /// register-before-check protocol: register the waker, then read once more
+    /// before parking, and clear readiness (which disarms the waker) before
+    /// the next read so a stale edge does not re-wake forever.
+    ///
+    /// # Panics
+    /// Panics if the registration map lock or the waker slot is poisoned.
+    pub fn register_waker(&self, token: Token, waker: Waker) -> bool {
+        if let Some(entry) = self.entries.read().expect("entries lock poisoned").get(&token) {
+            *entry.waker.lock().expect("waker lock poisoned") = Some(waker);
+            true
+        } else {
+            false
         }
     }
 
@@ -650,6 +683,10 @@ fn drain_loop(
         match poll.poll(&mut events, Some(Duration::from_millis(DRAIN_TIMEOUT_MS))) {
             Ok(()) => {
                 let mut latched = 0usize;
+                // Wakers armed via `register_waker` are woken *after* the read
+                // lock drops, alongside the valtron resume, so a wake never
+                // re-enters the reactor while it holds the entry map lock.
+                let mut to_wake: Vec<Waker> = Vec::new();
                 {
                     // Read lock only: bits are latched with an atomic OR.
                     let entries = entries.read().expect("entries lock poisoned");
@@ -663,6 +700,9 @@ fn drain_loop(
 
                         if let Some(entry) = entries.get(&event.token()) {
                             entry.ready.fetch_or(ready.bits(), Ordering::AcqRel);
+                            if let Some(waker) = entry.waker.lock().expect("waker lock poisoned").as_ref() {
+                                to_wake.push(waker.clone());
+                            }
                         }
                         latched += 1;
                     }
@@ -677,6 +717,12 @@ fn drain_loop(
                         let mut gen = lock.lock().expect("events_gen lock poisoned");
                         *gen = gen.wrapping_add(1);
                         cvar.notify_all();
+                    }
+                    // Wake `std::task::Waker`-registered readers (native
+                    // executor tasks parked on `Pending`) before the valtron
+                    // tasks, so both paths observe the latched readiness.
+                    for waker in to_wake.drain(..) {
+                        waker.wake();
                     }
                     // Tasks parked on `Depends(reactor readiness)` are re-checked
                     // by their executor; wake idle executor threads now rather

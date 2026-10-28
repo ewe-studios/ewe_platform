@@ -89,6 +89,23 @@ impl FdReadiness {
     pub fn clear(&self) {
         self.readiness.clear(Ready::READABLE.union(Ready::WRITABLE));
     }
+
+    /// Arm `waker` so the reactor's drain thread wakes it on the next
+    /// readiness edge for this fd (Feature 29 / Feature 03).
+    ///
+    /// WHY: a native-executor task (tokio/smol) parks by returning `Pending`
+    /// from `Stream::poll_next`, so it needs a `std::task::Waker`, not the
+    /// valtron `EventReadiness` path.
+    ///
+    /// WHAT: stores the waker on the reactor entry. Returns whether the fd is
+    /// still registered (a dropped [`FdReadiness`] returns `false`).
+    ///
+    /// HOW: follow the register-before-check protocol — call [`FdReadiness::clear`]
+    /// first to disarm any stale edge, register the waker, then read once more
+    /// before parking. Clearing on the next read disarms the waker again.
+    pub fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        self.reactor.register_waker(self.token, waker.clone())
+    }
 }
 
 impl EventReadiness for FdReadiness {
