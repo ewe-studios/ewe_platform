@@ -180,3 +180,17 @@ fn connect_completion_dials_a_completion_backed_upstream() {
     assert_eq!(&got, b"from a completion upstream");
     server.join().ok();
 }
+
+/// The SEND_ZC relay entry point exists on Linux. It sat behind a `uring`
+/// feature the crate never declared, so it could not be compiled in at all;
+/// io_uring is a Linux target property here, not a feature.
+#[cfg(target_os = "linux")]
+#[test]
+fn provided_buffer_send_is_compiled_in_on_linux() {
+    let send: fn(
+        &mut foundation_iogate::CompletionSocket<TcpStream>,
+        foundation_nativeapis::native::fd::completion::ProvidedBuf,
+    ) -> std::io::Result<usize> =
+        foundation_iogate::CompletionSocket::<TcpStream>::write_from_provided_buf;
+    let _ = send;
+}

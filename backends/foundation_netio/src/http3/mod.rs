@@ -25,7 +25,7 @@ pub mod stream;
 pub mod types;
 pub mod varint;
 
-pub use connection::{H3Connection, H3Error, H3Request};
+pub use connection::{H3Connection, H3Error, H3Request, WtAccept};
 pub use frame::{Frame, FrameDecoder};
 pub use qpack::{decode_field_section, encode_field_section, QpackError};
 pub use types::{request_from_fields, response_to_fields, MalformedRequest};

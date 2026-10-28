@@ -21,7 +21,7 @@ use crate::valtron::{QueueReadiness, ShortCircuit, Stream, StreamIterator, Strea
 /// - `map_all_pending_and_done()` - Transform both
 /// - `filter_all_done()` - Filter Next values
 /// - `map_all_delayed()` - Transform Delayed durations
-/// - [`collect`](StreamIteratorExt::collect) - Collect all Next values (terminal)
+/// - [`collect_stream`](StreamIteratorExt::collect_stream) - Collect all Next values (terminal)
 /// - [`split_collector`](StreamIteratorExt::split_collector) - Split into observer + continuation
 /// - [`split_collect_one`](StreamIteratorExt::split_collect_one) - Split for first match
 ///
@@ -76,9 +76,20 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     /// This is a non-blocking collect operation. It passes through
     /// Pending, Delayed, and Init states unchanged, and only yields
     /// the collected `Vec<Done>` when the stream completes.
-    fn collect(self) -> Collect<Self>
+    fn collect_stream(self) -> Collect<Self>
     where
         Self::D: Clone;
+
+    /// The old name of [`collect_stream`](Self::collect_stream). It shares its
+    /// name with `Iterator::collect`, so a plain `.collect()` into a `Vec` on
+    /// any iterator of `Stream` items was ambiguous.
+    #[deprecated(note = "renamed to `collect_stream`; `collect` clashes with `Iterator::collect`")]
+    fn collect(self) -> Collect<Self>
+    where
+        Self::D: Clone,
+    {
+        self.collect_stream()
+    }
 
     /// Split the iterator into an observer branch and a continuation branch.
     ///
@@ -767,7 +778,7 @@ where
         }
     }
 
-    fn collect(self) -> Collect<Self>
+    fn collect_stream(self) -> Collect<Self>
     where
         Self::D: Clone,
     {

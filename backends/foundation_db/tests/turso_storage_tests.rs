@@ -13,7 +13,7 @@ async fn init_schema(storage: &TursoStorage) {
 }
 
 async fn query_rows(storage: &TursoStorage, sql: &str, params: &[DataValue]) -> Vec<SqlRow> {
-    storage.query_async(sql, params).await.unwrap().collect_all().await.unwrap()
+    storage.query(sql, params).await.unwrap().collect_all().await.unwrap()
 }
 
 #[valtron_test]
@@ -26,22 +26,22 @@ async fn test_turso_storage_basic() {
     init_schema(&storage).await;
 
     storage
-        .set_async("test_key", "test_value".to_string())
+        .set("test_key", "test_value".to_string())
         .await
         .unwrap();
 
-    let value: Option<String> = storage.get_async("test_key").await.unwrap();
+    let value: Option<String> = storage.get("test_key").await.unwrap();
     assert_eq!(value, Some("test_value".to_string()));
 
-    let exists: bool = storage.exists_async("test_key").await.unwrap();
+    let exists: bool = storage.exists("test_key").await.unwrap();
     assert!(exists);
 
-    let not_exists: bool = storage.exists_async("nonexistent").await.unwrap();
+    let not_exists: bool = storage.exists("nonexistent").await.unwrap();
     assert!(!not_exists);
 
-    storage.delete_async("test_key").await.unwrap();
+    storage.delete("test_key").await.unwrap();
 
-    let deleted: bool = storage.exists_async("test_key").await.unwrap();
+    let deleted: bool = storage.exists("test_key").await.unwrap();
     assert!(!deleted);
 }
 
@@ -56,9 +56,9 @@ async fn test_turso_storage_encryption() {
     init_schema(&storage).await;
 
     let secret_value = "sensitive_data_12345".to_string();
-    storage.set_async("secret_key", secret_value.clone()).await.unwrap();
+    storage.set("secret_key", secret_value.clone()).await.unwrap();
 
-    let value: Option<String> = storage.get_async("secret_key").await.unwrap();
+    let value: Option<String> = storage.get("secret_key").await.unwrap();
     assert_eq!(value, Some(secret_value.clone()));
 
     let raw_result = query_rows(&storage, "SELECT value FROM kv_store WHERE key = ?", &[DataValue::Text("secret_key".to_string())]).await;
@@ -86,12 +86,12 @@ async fn test_turso_storage_encryption_wrong_key() {
     init_schema(&storage1).await;
 
     let secret_value = "sensitive_data".to_string();
-    storage1.set_async("secret_key", secret_value.clone()).await.unwrap();
+    storage1.set("secret_key", secret_value.clone()).await.unwrap();
 
     let key2 = EncryptionKey::generate();
     let storage2 = open(url, Some(key2.clone())).await;
 
-    let result = storage2.get_async::<String>("secret_key").await;
+    let result = storage2.get::<String>("secret_key").await;
     assert!(
         result.is_err(),
         "Should fail with wrong key, got: {result:?}"
@@ -108,20 +108,20 @@ async fn test_turso_storage_list_keys() {
     init_schema(&storage).await;
 
     storage
-        .set_async("prefix:key1", "value1".to_string())
+        .set("prefix:key1", "value1".to_string())
         .await
         .unwrap();
     storage
-        .set_async("prefix:key2", "value2".to_string())
+        .set("prefix:key2", "value2".to_string())
         .await
         .unwrap();
     storage
-        .set_async("other:key3", "value3".to_string())
+        .set("other:key3", "value3".to_string())
         .await
         .unwrap();
 
     let keys: Vec<String> = storage
-        .list_keys_async(None)
+        .list_keys(None)
         .await
         .unwrap()
         .collect_all()
@@ -130,7 +130,7 @@ async fn test_turso_storage_list_keys() {
     assert_eq!(keys.len(), 3);
 
     let keys: Vec<String> = storage
-        .list_keys_async(Some("prefix:"))
+        .list_keys(Some("prefix:"))
         .await
         .unwrap()
         .collect_all()
@@ -187,7 +187,7 @@ async fn test_social_login_tables_functional() {
 
     // Insert a provider row (mirrors ProviderService::create's columns).
     storage
-        .execute_async(
+        .execute(
             "INSERT INTO upstream_providers \
              (id, name, provider_type, client_id, encryption_key_id, discovery_url, scopes, is_active, mapping_config, created_at, updated_at) \
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -217,7 +217,7 @@ async fn test_social_login_tables_functional() {
 
     // A user + a link referencing the provider.
     storage
-        .execute_async(
+        .execute(
             "INSERT INTO users (id, email, created_at, updated_at) VALUES (?, ?, ?, ?)",
             &[
                 DataValue::Text("user-1".into()),
@@ -229,7 +229,7 @@ async fn test_social_login_tables_functional() {
         .await
         .unwrap();
     storage
-        .execute_async(
+        .execute(
             "INSERT INTO user_provider_links \
              (id, user_id, provider_id, upstream_subject, upstream_email, created_at) \
              VALUES (?, ?, ?, ?, ?, ?)",
@@ -246,7 +246,7 @@ async fn test_social_login_tables_functional() {
         .unwrap();
 
     // The unique (provider_id, upstream_subject) index must reject a duplicate.
-    let dup = storage.execute_async(
+    let dup = storage.execute(
         "INSERT INTO user_provider_links \
          (id, user_id, provider_id, upstream_subject, created_at) \
          VALUES (?, ?, ?, ?, ?)",

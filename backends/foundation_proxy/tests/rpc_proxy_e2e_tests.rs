@@ -30,12 +30,9 @@ use foundation_http::native::server::HttpServer;
 use foundation_http::native::serve::H2Serve;
 use foundation_http::shared::serve::Serve;
 use foundation_http::shared::app::{HttpApp, ServerApp};
-use foundation_netio::http::{ClientRequestBuilder, NativeHttpClient};
 use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
-use foundation_netio::shared::client::SystemDnsResolver;
-use foundation_netio::shared::http::{
-    SendSafeBody, SimpleHeader, SimpleMethod, Status,
-};
+use foundation_netio::shared::http::{SimpleHeader, Status};
+use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
@@ -281,7 +278,7 @@ fn ctx() -> Ctx {
 /// A typed client over HTTP/1.1 speaking the Connect protocol.
 fn connect_h1_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
     let transport: Arc<dyn Transport> =
-        Arc::new(H1Transport::new(Arc::new(NativeHttpClient::from_system())));
+        Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
     let url = format!("http://{addr}{procedure}");
     Client::new(
         transport,
@@ -321,7 +318,7 @@ fn grpc_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
 /// A typed client over HTTP/1.1 speaking gRPC-Web.
 fn grpc_web_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
     let transport: Arc<dyn Transport> =
-        Arc::new(H1Transport::new(Arc::new(NativeHttpClient::from_system())));
+        Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
     let url = format!("http://{addr}{procedure}");
     Client::new(
         transport,
@@ -636,23 +633,16 @@ async fn grpc_web_text_unary_via_grpc_backend() {
     let body = base64::engine::general_purpose::STANDARD.encode(&frame);
 
     // Add the content-type as a *new* header, not via `.headers(..)` — that
-    // replaces the whole map and drops the `Host` header `ClientRequestBuilder::new`
-    // inserted, which the proxy router needs to match the service.
-    let client = NativeHttpClient::from_system();
-    let builder = ClientRequestBuilder::<SystemDnsResolver>::new(
-        SimpleMethod::POST,
-        &format!("http://{addr}{UNARY}"),
-    )
-    .expect("build text request")
-    .add_header(SimpleHeader::CONTENT_TYPE, "application/grpc-web-text+json")
-    .body(SendSafeBody::Bytes(body.into_bytes()));
-    let resp = client
-        .request(builder)
-        .expect("request")
-        .send_async()
-        .await
-        .expect("send");
-    let (status, resp_headers, resp_body, _pool, _conn) = resp.into_parts();
+    // replaces the whole map and drops the `Host` header the builder inserted,
+    // which the proxy router needs to match the service.
+    let client = HttpClientBuilder::new().build();
+    let request = PreparedRequestBuilder::post(&format!("http://{addr}{UNARY}"))
+        .expect("build text request")
+        .header(SimpleHeader::CONTENT_TYPE, "application/grpc-web-text+json")
+        .body_bytes(body.into_bytes())
+        .build();
+    let resp = client.send_async(request).await.expect("send");
+    let (status, resp_headers, resp_body) = resp.into_parts();
 
     proxy.shutdown_async().await;
     backend_shutdown.turn_on();

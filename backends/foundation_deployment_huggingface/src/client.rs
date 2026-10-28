@@ -30,15 +30,20 @@ use crate::types::{
     CreateRepoParams, DatasetInfo, DeleteRepoParams, ListDatasetsParams, ListModelsParams,
     ListSpacesParams, ModelInfo, MoveRepoParams, RepoType, RepoUrl, SpaceInfo, User,
 };
-use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::shared::client::{
-    body_reader, DnsResolver,
+use foundation_core::valtron::Stream;
+use foundation_netio::shared::client::body_reader::{collect_bytes_into, try_collect_bytes};
+use foundation_netio::shared::client::request::PreparedRequest;
+use foundation_netio::shared::http::{
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
 };
-use foundation_netio::http::{ClientRequestBuilder, RequestIntro};
-use foundation_netio::http::NativeHttpClient;
-use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, Status};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
+use serde::de::DeserializeOwned;
 use std::path::PathBuf;
 use std::sync::Arc;
+
+/// Default for [`HFClientBuilder::max_error_body`]: 64 KiB, the amount Go
+/// `net/http` drains from a response body it discards.
+pub const DEFAULT_MAX_ERROR_BODY: usize = 64 * 1024;
 
 /// Hugging Face Hub API client.
 ///
@@ -49,15 +54,18 @@ pub struct HFClient {
 }
 
 struct HFClientInner {
-    client: NativeHttpClient,
+    client: DynNetClient,
     endpoint: String,
     token: Option<String>,
+    max_error_body: usize,
 }
 
 /// Builder for `HFClient`.
 pub struct HFClientBuilder {
     endpoint: Option<String>,
     token: Option<String>,
+    client: Option<DynNetClient>,
+    max_error_body: usize,
 }
 
 impl Default for HFClientBuilder {
@@ -73,7 +81,29 @@ impl HFClientBuilder {
         Self {
             endpoint: None,
             token: None,
+            client: None,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
         }
+    }
+
+    /// Send the Hub requests through `client` (a shared client, or a test
+    /// client) instead of the default one. The default keeps the
+    /// `Authorization` header across the Hub's redirect to its CDN and sends
+    /// the Hub user agent on every request, redirects included; a client
+    /// given here should do the same.
+    #[must_use]
+    pub fn with_client(mut self, client: DynNetClient) -> Self {
+        self.client = Some(client);
+        self
+    }
+
+    /// Read at most `bytes` of an error answer (a non-2xx status) for the
+    /// error message; the rest is never read. Default
+    /// [`DEFAULT_MAX_ERROR_BODY`].
+    #[must_use]
+    pub fn max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     /// Set the API endpoint.
@@ -103,15 +133,22 @@ impl HFClientBuilder {
 
         let token = self.token.or_else(resolve_token);
 
-        // Configure client to preserve auth headers on redirects
-        // HuggingFace redirects to CDN (cas-bridge.xethub.hf.co) for file downloads
-        let client = NativeHttpClient::from_system().preserve_auth_on_redirect(true);
+        // Keep the auth header across redirects: the Hub redirects file
+        // downloads to its CDN (cas-bridge.xethub.hf.co). The user agent is a
+        // client default so redirected requests carry it too.
+        let client = self.client.unwrap_or_else(|| {
+            HttpClientBuilder::new()
+                .preserve_auth_on_redirect(true)
+                .default_header("User-Agent", HF_USER_AGENT)
+                .build()
+        });
 
         Ok(HFClient {
             inner: Arc::new(HFClientInner {
                 client,
                 endpoint,
                 token,
+                max_error_body: self.max_error_body,
             }),
         })
     }
@@ -204,21 +241,85 @@ impl HFClient {
         &self.inner.endpoint
     }
 
-    /// Get the token, if set.
-    pub(crate) fn token(&self) -> Option<&str> {
-        self.inner.token.as_deref()
-    }
-
     /// Check if implicit token is disabled.
     pub(crate) fn is_implicit_token_disabled() -> bool {
-        std::env::var(HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV)
-            .map(|v| v == "1" || v == "true")
-            .unwrap_or(false)
+        std::env::var(HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV).is_ok_and(|v| v == "1" || v == "true")
     }
 
-    /// Get a clone of the underlying `NativeHttpClient`.
-    pub(crate) fn simple_http(&self) -> NativeHttpClient {
-        self.inner.client.clone()
+    /// A request to `url` with the Hub user agent and, when `with_auth`, the
+    /// bearer token (unless implicit tokens are disabled).
+    pub(crate) fn request(
+        &self,
+        method: SimpleMethod,
+        url: &str,
+        with_auth: bool,
+    ) -> Result<PreparedRequestBuilder> {
+        let builder = PreparedRequestBuilder::new(method, url)
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
+        Ok(if with_auth {
+            self.apply_auth_headers(builder)
+        } else {
+            builder.header(SimpleHeader::USER_AGENT, HF_USER_AGENT)
+        })
+    }
+
+    /// Send `request`. A transport failure is an error; the status is
+    /// returned as is and the body is not read.
+    pub(crate) fn send_raw(&self, request: PreparedRequest) -> Result<(Status, SendSafeBody)> {
+        let response = self
+            .inner
+            .client
+            .send(request)
+            .map_err(|e| HuggingFaceError::Backend(format!("Request failed: {e}")))?;
+        let (status, _headers, body) = response.into_parts();
+        Ok((status, body))
+    }
+
+    /// Send `request` and return its body; an error unless the status is
+    /// 2xx. The body of an error answer is read only up to `max_error_body`.
+    pub(crate) fn send(&self, request: PreparedRequest, url: &str) -> Result<SendSafeBody> {
+        let (status, body) = self.send_raw(request)?;
+        if !is_success_status(&status) {
+            return Err(self.http_error(&status, url, body));
+        }
+        Ok(body)
+    }
+
+    /// Send `request` and parse its (small) JSON answer.
+    pub(crate) fn send_json<T: DeserializeOwned>(
+        &self,
+        request: PreparedRequest,
+        url: &str,
+    ) -> Result<T> {
+        let body = self.send(request, url)?;
+        let bytes = try_collect_bytes(body)
+            .map_err(|e| HuggingFaceError::Backend(format!("read body from {url}: {e}")))?;
+        serde_json::from_slice(&bytes).map_err(HuggingFaceError::Json)
+    }
+
+    /// The error for a non-2xx answer, with at most `max_error_body` bytes
+    /// of its body.
+    pub(crate) fn http_error(
+        &self,
+        status: &Status,
+        url: &str,
+        body: SendSafeBody,
+    ) -> HuggingFaceError {
+        let code = status_code(status);
+        let mut limited = LimitedWriter::new(self.inner.max_error_body);
+        // The writer refuses bytes past the limit, which ends the read early;
+        // that error is expected and what was read is kept.
+        let _ = collect_bytes_into(body, &mut limited);
+        let message = String::from_utf8_lossy(&limited.buf);
+        HuggingFaceError::Http {
+            status: code,
+            url: url.to_string(),
+            body: if message.is_empty() {
+                format!("HTTP {code}")
+            } else {
+                format!("HTTP {code} - {message}")
+            },
+        }
     }
 
     /// Build authentication headers.
@@ -231,12 +332,7 @@ impl HFClient {
         headers.insert(SimpleHeader::USER_AGENT, vec![HF_USER_AGENT.to_string()]);
 
         if let Some(ref token) = self.inner.token {
-            // Check if implicit token is disabled
-            let implicit_disabled = std::env::var(HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV)
-                .map(|v| v == "1" || v == "true")
-                .unwrap_or(false);
-
-            if !implicit_disabled {
+            if !Self::is_implicit_token_disabled() {
                 headers.insert(
                     SimpleHeader::AUTHORIZATION,
                     vec![format!("Bearer {}", token)],
@@ -251,10 +347,7 @@ impl HFClient {
     ///
     /// This adds headers individually to avoid replacing the Host header.
     #[must_use]
-    pub fn apply_auth_headers<T: DnsResolver + 'static>(
-        &self,
-        builder: ClientRequestBuilder<T>,
-    ) -> ClientRequestBuilder<T> {
+    pub fn apply_auth_headers(&self, builder: PreparedRequestBuilder) -> PreparedRequestBuilder {
         let builder = builder.header(SimpleHeader::USER_AGENT, HF_USER_AGENT);
 
         if let Some(ref token) = self.inner.token {
@@ -313,62 +406,17 @@ impl HFClient {
 
 /// Get authenticated user info.
 ///
-/// Blocks internally — acceptable for single-value ops where result is needed immediately.
+/// Blocks until the answer arrives (native client, sync `send`).
 ///
 /// # Errors
 ///
 /// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status,
 /// `HuggingFaceError::Json` if the response body cannot be deserialized into
-/// a `User`, or `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` if the
-/// underlying HTTP request or executor fails.
+/// a `User`, or `HuggingFaceError::Backend` if the HTTP request fails.
 pub fn whoami(client: &HFClient) -> Result<User> {
-    let http_client = client.inner.client.clone();
     let url = format!("{}{}", client.inner.endpoint, HF_API_WHOAMI);
-
-    let builder = http_client
-        .get(&url)
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .header(SimpleHeader::USER_AGENT, HF_USER_AGENT);
-
-    let builder = if let Some(ref token) = client.inner.token {
-        let implicit_disabled = std::env::var(HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV)
-            .map(|v| v == "1" || v == "true")
-            .unwrap_or(false);
-        if implicit_disabled {
-            builder
-        } else {
-            builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {token}"))
-        }
-    } else {
-        builder
-    };
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let body = body_reader::collect_string(stream);
-                let user: User = serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
-                Ok(user)
-            }
-            RequestIntro::Failed(e) => {
-                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
-            }
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    collect_one(stream).ok_or_else(|| HuggingFaceError::Backend("No result from whoami".into()))?
+    let request = client.request(SimpleMethod::GET, &url, true)?.build();
+    client.send_json(request, &url)
 }
 
 /// Check if token is valid.
@@ -384,61 +432,23 @@ pub fn auth_check(client: &HFClient) -> Result<()> {
 
 /// List models with pagination.
 ///
-/// Returns stream — caller composes and collects at boundary.
+/// The page is fetched before this returns; the iterator yields its entries.
 ///
 /// # Errors
 ///
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
-/// or `HuggingFaceError::Valtron` if the executor cannot be scheduled. Per-page
+///. Per-page
 /// errors (HTTP failures, JSON parse failures) surface as `Err` items inside
 /// the returned stream.
 pub fn list_models(
     client: &HFClient,
     params: &ListModelsParams,
 ) -> Result<impl Iterator<Item = Stream<Result<ModelInfo>, ()>> + Send + 'static> {
-    let http_client = client.inner.client.clone();
     let url = build_list_url(&client.inner.endpoint, HF_API_MODELS, params);
-
-    let builder = http_client
-        .get(&url)
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let body = body_reader::collect_string(stream);
-                let models: Vec<ModelInfo> =
-                    serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
-                Ok(models)
-            }
-            RequestIntro::Failed(e) => {
-                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
-            }
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    Ok(stream.flat_map_next(|result| match result {
-        Ok(models) => {
-            let v: Vec<_> = Iterator::collect(models.into_iter().map(Ok));
-            v.into_iter()
-        }
-        Err(e) => {
-            let v: Vec<_> = Iterator::collect(vec![Err(e)].into_iter());
-            v.into_iter()
-        }
-    }))
+    let request = client.request(SimpleMethod::GET, &url, false)?.build();
+    Ok(page_items(
+        client.send_json::<Vec<ModelInfo>>(request, &url),
+    ))
 }
 
 /// List datasets with pagination.
@@ -446,55 +456,17 @@ pub fn list_models(
 /// # Errors
 ///
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
-/// or `HuggingFaceError::Valtron` if the executor cannot be scheduled. Per-page
+///. Per-page
 /// errors surface as `Err` items inside the returned stream.
 pub fn list_datasets(
     client: &HFClient,
     params: &ListDatasetsParams,
 ) -> Result<impl Iterator<Item = Stream<Result<DatasetInfo>, ()>> + Send + 'static> {
-    let http_client = client.inner.client.clone();
     let url = build_list_url(&client.inner.endpoint, HF_API_DATASETS, params);
-
-    let builder = http_client
-        .get(&url)
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let body = body_reader::collect_string(stream);
-                let datasets: Vec<DatasetInfo> =
-                    serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
-                Ok(datasets)
-            }
-            RequestIntro::Failed(e) => {
-                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
-            }
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    Ok(stream.flat_map_next(|result| match result {
-        Ok(datasets) => {
-            let v: Vec<_> = Iterator::collect(datasets.into_iter().map(Ok));
-            v.into_iter()
-        }
-        Err(e) => {
-            let v: Vec<_> = Iterator::collect(vec![Err(e)].into_iter());
-            v.into_iter()
-        }
-    }))
+    let request = client.request(SimpleMethod::GET, &url, false)?.build();
+    Ok(page_items(
+        client.send_json::<Vec<DatasetInfo>>(request, &url),
+    ))
 }
 
 /// List spaces with pagination.
@@ -502,55 +474,17 @@ pub fn list_datasets(
 /// # Errors
 ///
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
-/// or `HuggingFaceError::Valtron` if the executor cannot be scheduled. Per-page
+///. Per-page
 /// errors surface as `Err` items inside the returned stream.
 pub fn list_spaces(
     client: &HFClient,
     params: &ListSpacesParams,
 ) -> Result<impl Iterator<Item = Stream<Result<SpaceInfo>, ()>> + Send + 'static> {
-    let http_client = client.inner.client.clone();
     let url = build_list_url(&client.inner.endpoint, HF_API_SPACES, params);
-
-    let builder = http_client
-        .get(&url)
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let body = body_reader::collect_string(stream);
-                let spaces: Vec<SpaceInfo> =
-                    serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
-                Ok(spaces)
-            }
-            RequestIntro::Failed(e) => {
-                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
-            }
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    Ok(stream.flat_map_next(|result| match result {
-        Ok(spaces) => {
-            let v: Vec<_> = Iterator::collect(spaces.into_iter().map(Ok));
-            v.into_iter()
-        }
-        Err(e) => {
-            let v: Vec<_> = Iterator::collect(vec![Err(e)].into_iter());
-            v.into_iter()
-        }
-    }))
+    let request = client.request(SimpleMethod::GET, &url, false)?.build();
+    Ok(page_items(
+        client.send_json::<Vec<SpaceInfo>>(request, &url),
+    ))
 }
 
 /// Create a repository.
@@ -560,10 +494,8 @@ pub fn list_spaces(
 /// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status
 /// (e.g., 409 if the repo already exists and `exist_ok` is `false`),
 /// `HuggingFaceError::Json` on malformed response bodies, or
-/// `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` for transport and
-/// executor failures.
+/// `HuggingFaceError::Backend` for transport failures.
 pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoUrl> {
-    let http_client = client.inner.client.clone();
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_CREATE);
 
     let body_json = serde_json::json!({
@@ -579,50 +511,12 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
         "spaceSdk": params.space_sdk,
     });
 
-    let builder = http_client.post(&url).map_err(
-        |e: foundation_netio::shared::http::HttpClientError| {
-            HuggingFaceError::Backend(e.to_string())
-        },
-    )?;
-
-    let builder = client.apply_auth_headers(builder);
-
-    let builder = builder.body_json(&body_json).map_err(
-        |e: foundation_netio::shared::http::HttpClientError| {
-            HuggingFaceError::Backend(e.to_string())
-        },
-    )?;
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
-            HuggingFaceError::Backend(e.to_string())
-        })?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let body = body_reader::collect_string(stream);
-                let repo_url: RepoUrl =
-                    serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
-                Ok(repo_url)
-            }
-            RequestIntro::Failed(e) => {
-                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
-            }
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    collect_one(stream)
-        .ok_or_else(|| HuggingFaceError::Backend("No result from create_repo".into()))?
+    let request = client
+        .request(SimpleMethod::POST, &url, true)?
+        .body_json(&body_json)
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .build();
+    client.send_json(request, &url)
 }
 
 /// Delete a repository.
@@ -631,10 +525,8 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
 ///
 /// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status
 /// (e.g., 404 when the repo does not exist and `missing_ok` is `false`), or
-/// `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` for transport and
-/// executor failures.
+/// `HuggingFaceError::Backend` for transport failures.
 pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
-    let http_client = client.inner.client.clone();
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_DELETE);
 
     let body_json = serde_json::json!({
@@ -648,48 +540,13 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
         "missingOk": params.missing_ok,
     });
 
-    let builder = http_client.delete(&url).map_err(
-        |e: foundation_netio::shared::http::HttpClientError| {
-            HuggingFaceError::Backend(e.to_string())
-        },
-    )?;
-
-    let builder = client.apply_auth_headers(builder);
-
-    let builder = builder.body_json(&body_json).map_err(
-        |e: foundation_netio::shared::http::HttpClientError| {
-            HuggingFaceError::Backend(e.to_string())
-        },
-    )?;
-
-    let task = builder
-        .build_send_request()
-        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
-            HuggingFaceError::Backend(e.to_string())
-        })?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let _ = body_reader::collect_string(stream);
-                Ok(())
-            }
-            RequestIntro::Failed(e) => {
-                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
-            }
-        })
-        .map_pending(|_| ());
-
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-    collect_one(stream)
-        .ok_or_else(|| HuggingFaceError::Backend("No result from delete_repo".into()))?
+    let request = client
+        .request(SimpleMethod::DELETE, &url, true)?
+        .body_json(&body_json)
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .build();
+    // The answer has no content we use; the body is dropped unread.
+    client.send(request, &url).map(drop)
 }
 
 /// Move/rename a repository.
@@ -698,10 +555,8 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
 ///
 /// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status,
 /// `HuggingFaceError::Json` on malformed response bodies, or
-/// `HuggingFaceError::Backend`/`HuggingFaceError::Valtron` for transport and
-/// executor failures.
+/// `HuggingFaceError::Backend` for transport failures.
 pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> {
-    let http_client = client.inner.client.clone();
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_MOVE);
 
     let body_json = serde_json::json!({
@@ -715,50 +570,55 @@ pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> 
         }),
     });
 
-    let builder = http_client.post(&url).map_err(
-        |e: foundation_netio::shared::http::HttpClientError| {
-            HuggingFaceError::Backend(e.to_string())
-        },
-    )?;
+    let request = client
+        .request(SimpleMethod::POST, &url, true)?
+        .body_json(&body_json)
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .build();
+    client.send_json(request, &url)
+}
 
-    let builder = client.apply_auth_headers(builder);
+/// One page of a listing as stream items: each entry, or the page's error.
+fn page_items<T>(page: Result<Vec<T>>) -> std::vec::IntoIter<Stream<Result<T>, ()>> {
+    let items: Vec<Stream<Result<T>, ()>> = match page {
+        Ok(entries) => entries.into_iter().map(|e| Stream::Next(Ok(e))).collect(),
+        Err(e) => vec![Stream::Next(Err(e))],
+    };
+    items.into_iter()
+}
 
-    let builder = builder.body_json(&body_json).map_err(
-        |e: foundation_netio::shared::http::HttpClientError| {
-            HuggingFaceError::Backend(e.to_string())
-        },
-    )?;
+/// A writer that keeps at most `limit` bytes and refuses the rest.
+struct LimitedWriter {
+    buf: Vec<u8>,
+    limit: usize,
+}
 
-    let task = builder
-        .build_send_request()
-        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
-            HuggingFaceError::Backend(e.to_string())
-        })?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let body = body_reader::collect_string(stream);
-                let repo_url: RepoUrl =
-                    serde_json::from_str(&body).map_err(HuggingFaceError::Json)?;
-                Ok(repo_url)
-            }
-            RequestIntro::Failed(e) => {
-                Err(HuggingFaceError::Backend(format!("Request failed: {e}")))
-            }
-        })
-        .map_pending(|_| ());
+impl LimitedWriter {
+    fn new(limit: usize) -> Self {
+        Self {
+            buf: Vec::new(),
+            limit,
+        }
+    }
+}
 
-    let stream = execute(task, None).map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+impl std::io::Write for LimitedWriter {
+    fn write(&mut self, data: &[u8]) -> std::io::Result<usize> {
+        let room = self.limit - self.buf.len();
+        if room == 0 {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::WriteZero,
+                "limit reached",
+            ));
+        }
+        let n = data.len().min(room);
+        self.buf.extend_from_slice(&data[..n]);
+        Ok(n)
+    }
 
-    collect_one(stream)
-        .ok_or_else(|| HuggingFaceError::Backend("No result from move_repo".into()))?
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
 }
 
 /// Build URL for listing operations.

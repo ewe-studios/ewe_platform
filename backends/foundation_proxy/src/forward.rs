@@ -38,6 +38,11 @@ use crate::passthrough::splice_bidirectional;
 use crate::runtime::BackendRuntime;
 
 /// The shared, pooled HTTP client type used for all upstream forwarding.
+///
+/// Native on purpose (group B of #140): the forwarders take the upstream
+/// connection out of the `FinalizedResponse` and decide themselves whether it
+/// goes back to the pool (only when the upstream keeps it alive). A
+/// `DynNetClient` hides the connection, so it cannot express that.
 pub type SharedHttpClient = NativeHttpClient<SystemDnsResolver>;
 
 /// Hop-by-hop headers (RFC 7230 §6.1) that a proxy must not forward. Compared

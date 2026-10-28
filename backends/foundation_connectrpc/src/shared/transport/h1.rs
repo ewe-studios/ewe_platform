@@ -103,7 +103,7 @@ impl Transport for H1Transport {
             .build();
 
         // F51: the client owns the pool, resolver, and config — the transport
-        // just asks for the task. No more reaching into SimpleHttpClient internals.
+        // just asks for the task; it never reaches into the client internals.
         let pump = self.client.open_exchange(prepared);
 
         // Peel the response head (or a *pre-head* failure) into an observer whose

@@ -3,7 +3,7 @@
 // WHAT: Ensure correct status transitions, header/semantic mutability, limit enforcement, and sensitive header stripping per sync-only project mandate
 
 use foundation_core::valtron;
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::http::HttpClientError;
 use foundation_testing::http::HttpResponse;
 use foundation_testing::TestHttpServer;
@@ -23,7 +23,7 @@ fn test_redirect_chain_resolves_successfully() {
         (307, "/final"),
         (200, "OK"),
     ]);
-    let client = SimpleHttpClient::from_system().max_redirects(6);
+    let client = NativeHttpClient::from_system().max_redirects(6);
 
     let url = server.url("/step1");
     let res = client
@@ -48,7 +48,7 @@ fn test_redirect_chain_limit_enforced() {
         (307, "/final"),
         (200, "OK"),
     ]);
-    let client = SimpleHttpClient::from_system().max_redirects(2);
+    let client = NativeHttpClient::from_system().max_redirects(2);
 
     let url = server.url("/step1");
     let res = client
@@ -74,7 +74,7 @@ fn test_post_without_redirect() {
     let server = TestHttpServer::http_chain(vec![(200, "OK")]);
 
     // Setup: Create a client with redirect enabled and POST method
-    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let client = NativeHttpClient::from_system().max_redirects(5);
 
     // Build a POST request
     let url = server.url("/step1");
@@ -108,7 +108,7 @@ fn test_redirect_as_final_response_chain() {
         (200, "Final destination reached!"), // Second request (after redirect): OK
     ]);
 
-    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let client = NativeHttpClient::from_system().max_redirects(5);
     let url = server.url("/redirect");
 
     let response = client
@@ -142,7 +142,7 @@ fn test_redirect_307_as_final_response() {
         (200, "307 redirect target"),
     ]);
 
-    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let client = NativeHttpClient::from_system().max_redirects(5);
     let url = server.url("/redirect");
 
     let response = client
@@ -175,7 +175,7 @@ fn test_too_many_redirects_as_final_response() {
         (302, "/redirect"), // Will keep returning redirect
     ]);
 
-    let client = SimpleHttpClient::from_system().max_redirects(3);
+    let client = NativeHttpClient::from_system().max_redirects(3);
     let url = server.url("/start");
 
     let result = client
@@ -239,7 +239,7 @@ fn test_redirect_after_100_continue() {
         }
     });
 
-    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let client = NativeHttpClient::from_system().max_redirects(5);
     let url = server.url("/redirect");
 
     let response = client
@@ -278,7 +278,7 @@ fn test_redirect_after_100_continue() {
 fn get_without_body_completes_successfully() {
     let _pool_guard = foundation_core::valtron::initialize_pool(48, None);
     let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"hello"));
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
     let res = client
         .get(&server.url("/test"))
         .unwrap()
@@ -301,7 +301,7 @@ fn get_without_body_completes_successfully() {
 fn post_with_empty_body_skips_100_continue() {
     let _pool_guard = foundation_core::valtron::initialize_pool(49, None);
     let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"ok"));
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
 
     // POST with no body (explicitly None, not even Content-Length: 0) —
     // the client must not send Expect: 100-continue.
@@ -321,7 +321,7 @@ fn post_with_empty_body_skips_100_continue() {
 fn post_with_body_still_works() {
     let _pool_guard = foundation_core::valtron::initialize_pool(50, None);
     let server = TestHttpServer::with_response(|_req| HttpResponse::ok(b"received"));
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
     let res = client
         .post(&server.url("/test"))
         .unwrap()
@@ -345,7 +345,7 @@ fn post_with_body_still_works() {
 fn redirect_chain_bodyless_requests_skip_writebody() {
     let _pool_guard = foundation_core::valtron::initialize_pool(51, None);
     let server = TestHttpServer::http_chain(vec![(302, "/step2"), (302, "/step3"), (200, "final")]);
-    let client = SimpleHttpClient::from_system().max_redirects(5);
+    let client = NativeHttpClient::from_system().max_redirects(5);
 
     let res = client
         .get(&server.url("/step1"))

@@ -99,17 +99,17 @@ fn kv_memory_store_set_get_hydrate_clear() {
         let sid = session_id();
 
         assert!(store
-            .get_async(&sid, MemoryTier::Working)
+            .get(&sid, MemoryTier::Working)
             .await
             .unwrap()
             .is_none());
-        assert!(store.hydrate_async(&sid).await.unwrap().working.is_none());
+        assert!(store.hydrate(&sid).await.unwrap().working.is_none());
 
         let rec = working_record("test fact");
-        store.set_async(&sid, &rec).await.unwrap();
+        store.set(&sid, &rec).await.unwrap();
 
         let got = store
-            .get_async(&sid, MemoryTier::Working)
+            .get(&sid, MemoryTier::Working)
             .await
             .unwrap()
             .unwrap();
@@ -125,28 +125,28 @@ fn kv_memory_store_set_get_hydrate_clear() {
             signature: None,
         };
         let non_mem = SessionRecord::Conversation { message: conv };
-        assert!(store.set_async(&sid, &non_mem).await.is_err());
+        assert!(store.set(&sid, &non_mem).await.is_err());
 
         store
-            .set_async(&sid, &observation_record("obs"))
+            .set(&sid, &observation_record("obs"))
             .await
             .unwrap();
-        let mem = store.hydrate_async(&sid).await.unwrap();
+        let mem = store.hydrate(&sid).await.unwrap();
         assert!(mem.working.is_some());
         assert!(mem.observation.is_some());
         assert!(mem.reflection.is_none());
 
         let updated = working_record("updated");
-        store.set_async(&sid, &updated).await.unwrap();
+        store.set(&sid, &updated).await.unwrap();
         let got = store
-            .get_async(&sid, MemoryTier::Working)
+            .get(&sid, MemoryTier::Working)
             .await
             .unwrap()
             .unwrap();
         assert_eq!(got, updated);
 
-        store.clear_async(&sid).await.unwrap();
-        assert!(store.hydrate_async(&sid).await.unwrap().working.is_none());
+        store.clear(&sid).await.unwrap();
+        assert!(store.hydrate(&sid).await.unwrap().working.is_none());
     })
 }
 

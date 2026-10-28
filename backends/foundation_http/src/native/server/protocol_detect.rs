@@ -100,6 +100,11 @@ impl TaskIterator for ProtocolDetectHandler {
             Ok(n) => n.min(buf.len()),
             // Nothing readable yet — the client has not spoken.
             Err(PeekError::IOError(ref e)) if e.kind() == std::io::ErrorKind::WouldBlock => 0,
+            // The client went away before saying anything.
+            Err(PeekError::EndOfStream) => {
+                tracing::trace!(client = %self.client_ip, "client closed before sending a request");
+                return None;
+            }
             Err(e) => {
                 tracing::debug!(client = %self.client_ip, err = %e, "protocol peek failed");
                 return None;

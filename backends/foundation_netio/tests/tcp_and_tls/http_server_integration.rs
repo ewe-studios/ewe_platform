@@ -11,7 +11,7 @@
 use foundation_testing::http::{HttpRequest, HttpResponse, TestHttpServer};
 
 // Note: Uncomment these when HTTP client public API is ready
-// use foundation_netio::http::SimpleHttpClient;
+// use foundation_netio::http::NativeHttpClient;
 
 // ========================================================================
 // Internal HTTP Server Tests
@@ -24,8 +24,8 @@ use foundation_testing::http::{HttpRequest, HttpResponse, TestHttpServer};
 fn test_http_client_get_request() {
     let server = TestHttpServer::start();
 
-    // TODO: Uncomment when SimpleHttpClient has execute() method
-    // let client = SimpleHttpClient::new();
+    // TODO: Uncomment when NativeHttpClient has execute() method
+    // let client = NativeHttpClient::new();
     // let response = client.get(&server.url("/test")).execute().unwrap();
     // assert_eq!(response.status(), 200);
     // assert_eq!(response.body_text().unwrap(), "OK");
@@ -49,8 +49,8 @@ fn test_http_client_redirects() {
         }
     });
 
-    // TODO: Uncomment when SimpleHttpClient has execute() method
-    // let client = SimpleHttpClient::new();
+    // TODO: Uncomment when NativeHttpClient has execute() method
+    // let client = NativeHttpClient::new();
     // let response = client.get(&server.url("/redirect")).execute().unwrap();
     // assert_eq!(response.status(), 200);
     // assert_eq!(response.body_text().unwrap(), "Redirected Successfully");
@@ -70,8 +70,8 @@ fn test_http_client_status_codes() {
         _ => HttpResponse::ok(b"OK"),
     });
 
-    // TODO: Uncomment when SimpleHttpClient has execute() method
-    // let client = SimpleHttpClient::new();
+    // TODO: Uncomment when NativeHttpClient has execute() method
+    // let client = NativeHttpClient::new();
     //
     // let response_404 = client.get(&server.url("/not-found")).execute().unwrap();
     // assert_eq!(response_404.status(), 404);
@@ -103,8 +103,8 @@ fn test_http_client_custom_headers() {
         HttpResponse::ok(b"Headers Received")
     });
 
-    // TODO: Uncomment when SimpleHttpClient has execute() API
-    // let client = SimpleHttpClient::new();
+    // TODO: Uncomment when NativeHttpClient has execute() API
+    // let client = NativeHttpClient::new();
     // let response = client
     //     .get(&server.url("/"))
     //     .header(SimpleHeader::USER_AGENT, "TestClient/1.0")
@@ -136,8 +136,8 @@ fn test_http_client_response_body() {
         _ => HttpResponse::ok(b"Default"),
     });
 
-    // TODO: Uncomment when SimpleHttpClient has execute() API
-    // let client = SimpleHttpClient::new();
+    // TODO: Uncomment when NativeHttpClient has execute() API
+    // let client = NativeHttpClient::new();
     //
     // let empty = client.get(&server.url("/empty")).execute().unwrap();
     // assert_eq!(empty.body_bytes().len(), 0);
@@ -162,13 +162,13 @@ fn test_http_client_concurrent_requests() {
 
     let server_url = server.base_url().to_string();
 
-    // TODO: Uncomment when SimpleHttpClient has execute() API
+    // TODO: Uncomment when NativeHttpClient has execute() API
     // use std::thread;
     // let handles: Vec<_> = (0..5)
     //     .map(|i| {
     //         let url = format!("{}/path{}", server_url, i);
     //         thread::spawn(move || {
-    //             let client = SimpleHttpClient::new();
+    //             let client = NativeHttpClient::new();
     //             let response = client.get(&url).execute().unwrap();
     //             assert_eq!(response.status(), 200);
     //             response.body_text().unwrap()

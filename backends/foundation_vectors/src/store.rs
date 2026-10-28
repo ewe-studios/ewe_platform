@@ -89,52 +89,49 @@ impl std::error::Error for VectorStoreError {}
 /// Every store obeys the same contract (the crate's `tests/contract` module
 /// checks it for each store):
 ///
-/// - `insert_async` rejects a vector of the wrong dimension
+/// - `insert` rejects a vector of the wrong dimension
 ///   ([`VectorStoreError::DimensionMismatch`]) and a zero vector
 ///   ([`VectorStoreError::ZeroVector`]). An insert with an existing id
 ///   replaces the entry.
-/// - `delete_async` of an id that is not in the namespace returns
+/// - `delete` of an id that is not in the namespace returns
 ///   [`VectorStoreError::NotFound`].
-/// - `search_async` returns at most `k` matches, best first (higher score
+/// - `search` returns at most `k` matches, best first (higher score
 ///   is closer). An unknown namespace gives no matches.
-/// - `get_async` of an unknown id or namespace returns `Ok(None)`.
-/// - `len_async` counts the entries of one namespace. A backend failure is
+/// - `get` of an unknown id or namespace returns `Ok(None)`.
+/// - `len` counts the entries of one namespace. A backend failure is
 ///   an error, never a count of 0.
 /// - Namespaces are isolated: one namespace never sees another's entries.
-///
-/// The method names keep the `_async` suffix for now. Spec 50 feature 05
-/// task T3 removes the suffix from every storage trait.
 #[async_trait::async_trait]
 pub trait VectorStore: Send + Sync {
-    async fn insert_async(
+    async fn insert(
         &self,
         namespace: &str,
         entry: VectorEntry,
     ) -> Result<(), VectorStoreError>;
 
-    async fn delete_async(
+    async fn delete(
         &self,
         namespace: &str,
         id: &str,
     ) -> Result<(), VectorStoreError>;
 
-    async fn search_async(
+    async fn search(
         &self,
         namespace: &str,
         query: &[f32],
         k: usize,
     ) -> Result<Vec<VectorMatch>, VectorStoreError>;
 
-    async fn get_async(
+    async fn get(
         &self,
         namespace: &str,
         id: &str,
     ) -> Result<Option<VectorEntry>, VectorStoreError>;
 
-    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError>;
+    async fn len(&self, namespace: &str) -> Result<usize, VectorStoreError>;
 
-    async fn is_empty_async(&self, namespace: &str) -> Result<bool, VectorStoreError> {
-        Ok(self.len_async(namespace).await? == 0)
+    async fn is_empty(&self, namespace: &str) -> Result<bool, VectorStoreError> {
+        Ok(self.len(namespace).await? == 0)
     }
 
     fn config(&self) -> &VectorStoreConfig;
@@ -183,7 +180,7 @@ fn poisoned<T>(_: std::sync::PoisonError<T>) -> VectorStoreError {
 
 #[async_trait::async_trait]
 impl VectorStore for InMemoryVectorStore {
-    async fn insert_async(
+    async fn insert(
         &self,
         namespace: &str,
         entry: VectorEntry,
@@ -197,7 +194,7 @@ impl VectorStore for InMemoryVectorStore {
         Ok(())
     }
 
-    async fn delete_async(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
+    async fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
         let mut ns_map = self.namespaces.write().map_err(poisoned)?;
         let entries = ns_map
             .get_mut(namespace)
@@ -208,7 +205,7 @@ impl VectorStore for InMemoryVectorStore {
         Ok(())
     }
 
-    async fn search_async(
+    async fn search(
         &self,
         namespace: &str,
         query: &[f32],
@@ -228,7 +225,7 @@ impl VectorStore for InMemoryVectorStore {
         Ok(flat_top_k(query, iter, k, self.config.metric))
     }
 
-    async fn get_async(
+    async fn get(
         &self,
         namespace: &str,
         id: &str,
@@ -240,7 +237,7 @@ impl VectorStore for InMemoryVectorStore {
         Ok(entries.get(id).cloned())
     }
 
-    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError> {
+    async fn len(&self, namespace: &str) -> Result<usize, VectorStoreError> {
         let ns_map = self.namespaces.read().map_err(poisoned)?;
         Ok(ns_map.get(namespace).map_or(0, HashMap::len))
     }

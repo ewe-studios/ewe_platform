@@ -33,7 +33,7 @@ async fn turso() -> (TursoStorage, tempfile::TempDir) {
 async fn seed(store: &TursoStorage, ns: &str, entities: Option<&str>) {
     let entities = entities.map_or(DataValue::Null, |e| DataValue::Text(e.to_string()));
     store
-        .execute_async(
+        .execute(
             "INSERT INTO cedar_policies (namespace, policy_text, schema_text, entities_json, version) VALUES (?, ?, ?, ?, ?)",
             &[
                 DataValue::Text(ns.to_string()),

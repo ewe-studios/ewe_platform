@@ -21,6 +21,7 @@ use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 
+#[cfg(not(target_family = "wasm"))]
 use foundation_nostd::comp::basic::Mutex;
 
 // ── WirePayload trait ───────────────────────────────────────────────────

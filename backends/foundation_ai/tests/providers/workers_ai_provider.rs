@@ -9,7 +9,6 @@
 //!   with a `[DONE]` sentinel.
 
 use std::net::SocketAddr;
-use std::sync::Arc;
 
 use foundation_ai::backends::workers_ai::{WorkersAiConfig, WorkersAiProvider};
 use foundation_ai::types::{
@@ -20,7 +19,6 @@ use foundation_ai::types::{
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream, StreamSpread};
 use foundation_netio::{DynNetClient, HttpClientBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_testing::http::HttpRequest;
 use foundation_testing::http::{
     HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,
@@ -64,7 +62,7 @@ fn setup_provider_and_model(base_url: &str) -> impl Model + use<'_> {
         .unwrap()
         .parse()
         .unwrap();
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(addr).build();
     let config = WorkersAiConfig::new()
         .with_account_id("test-account")
         .with_base_url(base_url)

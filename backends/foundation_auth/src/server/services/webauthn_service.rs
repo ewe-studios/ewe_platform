@@ -146,7 +146,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 .map_err(|e| StorageOpError::Query(format!("WebAuthn register start: {e}")))?;
 
             let session = uuid::Uuid::new_v4().to_string();
-            self.cache.set_async(&reg_key(&session), RegState {
+            self.cache.set(&reg_key(&session), RegState {
                 user_id: user_id.to_string(),
                 reg,
             }).await.map_err(|e| StorageOpError::Query(format!("cache set: {e}")))?;
@@ -173,13 +173,13 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 .ok_or_else(|| StorageOpError::Query("Missing session".into()))?;
 
             let state: RegState = self.cache
-                .get_async(&reg_key(session_id))
+                .get(&reg_key(session_id))
                 .await
                 .map_err(|e| StorageOpError::Query(format!("cache get: {e}")))?
                 .ok_or_else(|| StorageOpError::Query("Invalid or expired session".into()))?;
 
             // Consume the state (one-time use to prevent replay)
-            self.cache.delete_async(&reg_key(session_id))
+            self.cache.delete(&reg_key(session_id))
                 .await
                 .map_err(|e| StorageOpError::Query(format!("cache delete: {e}")))?;
 
@@ -217,7 +217,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 created_at: our_passkey.created_at,
                 last_used_at: our_passkey.last_used_at,
             };
-            self.store.as_ref().store_passkey_async(&stored)
+            self.store.as_ref().store_passkey(&stored)
                 .await
                 .map_err(|e| StorageOpError::Query(e))?;
 
@@ -250,7 +250,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 .map_err(|e| StorageOpError::Query(format!("WebAuthn auth start: {e}")))?;
 
             let session = uuid::Uuid::new_v4().to_string();
-            self.cache.set_async(&auth_key(&session), AuthState {
+            self.cache.set(&auth_key(&session), AuthState {
                 user_id: user_id.to_string(),
                 auth,
             }).await.map_err(|e| StorageOpError::Query(format!("cache set: {e}")))?;
@@ -277,13 +277,13 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 .ok_or_else(|| StorageOpError::Query("Missing session".into()))?;
 
             let state: AuthState = self.cache
-                .get_async(&auth_key(session_id))
+                .get(&auth_key(session_id))
                 .await
                 .map_err(|e| StorageOpError::Query(format!("cache get: {e}")))?
                 .ok_or_else(|| StorageOpError::Query("Invalid or expired session".into()))?;
 
             // Consume the state (one-time use to prevent replay)
-            self.cache.delete_async(&auth_key(session_id))
+            self.cache.delete(&auth_key(session_id))
                 .await
                 .map_err(|e| StorageOpError::Query(format!("cache delete: {e}")))?;
 
@@ -293,7 +293,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 .map_err(|e| StorageOpError::Query(format!("Parse response: {e}")))?;
 
             let cred_id = response.raw_id.clone();
-            let passkey = self.store.as_ref().find_passkey_by_credential_id_async(&cred_id)
+            let passkey = self.store.as_ref().find_passkey_by_credential_id(&cred_id)
                 .await
                 .map_err(|e| StorageOpError::Query(e.to_string()))?
                 .ok_or_else(|| StorageOpError::NotFound("Passkey not found".into()))?;
@@ -307,7 +307,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 .map_err(|e| StorageOpError::Query(format!("Verify authentication: {e}")))?;
 
             if auth_result.needs_update() {
-                self.store.as_ref().update_passkey_counter_async(&passkey.id, auth_result.counter())
+                self.store.as_ref().update_passkey_counter(&passkey.id, auth_result.counter())
                     .await
                     .map_err(|e| StorageOpError::Query(e))?;
             }
@@ -327,7 +327,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
     ) -> Result<WebAuthnAuthOptions, StorageOpError> {
         #[cfg(feature = "server-native")]
         {
-            let (user_id, _has_password) = self.store.as_ref().find_user_by_email_async(email)
+            let (user_id, _has_password) = self.store.as_ref().find_user_by_email(email)
                 .await
                 .map_err(|e| StorageOpError::Query(e.to_string()))?
                 .ok_or_else(|| StorageOpError::NotFound(format!("No user with email: {email}")))?;
@@ -353,13 +353,13 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
     }
 
     pub async fn delete_passkey(&self, passkey_id: &str) -> Result<(), StorageOpError> {
-        self.store.as_ref().delete_passkey_async(passkey_id)
+        self.store.as_ref().delete_passkey(passkey_id)
             .await
             .map_err(|e| StorageOpError::Query(e))
     }
 
     pub async fn rename_passkey(&self, passkey_id: &str, name: &str) -> Result<(), StorageOpError> {
-        self.store.as_ref().update_passkey_name_async(passkey_id, name)
+        self.store.as_ref().update_passkey_name(passkey_id, name)
             .await
             .map_err(|e| StorageOpError::Query(e))
     }
@@ -381,7 +381,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
     /// All of a user's passkeys. Bounded by how many passkeys one user
     /// registers, and needed whole (webauthn-rs takes a slice).
     async fn collect_passkeys(&self, user_id: &str) -> Result<Vec<StoredPasskey>, StorageOpError> {
-        let mut stream = self.store.as_ref().find_passkeys_by_user_async(user_id)
+        let mut stream = self.store.as_ref().find_passkeys_by_user(user_id)
             .await
             .map_err(|e| StorageOpError::Query(e.to_string()))?;
         let mut passkeys = Vec::new();

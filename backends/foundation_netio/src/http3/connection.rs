@@ -61,6 +61,8 @@ pub mod error_code {
     pub const H3_CLOSED_CRITICAL_STREAM: u64 = 0x0104;
     /// The first control frame was not SETTINGS.
     pub const H3_MISSING_SETTINGS: u64 = 0x010a;
+    /// The server did not process the request at all; the client may retry it.
+    pub const H3_REQUEST_REJECTED: u64 = 0x010b;
     /// The request or its response was cancelled.
     pub const H3_REQUEST_CANCELLED: u64 = 0x010c;
     /// A malformed request or response.
@@ -160,6 +162,36 @@ pub struct H3Connection<C: QuicConnection> {
     /// The peer's SETTINGS, once received.
     peer_settings: Option<Vec<(u64, u64)>>,
     max_field_section_size: u64,
+    /// The stream [`H3Connection::poll_accept_webtransport`] accepted and is
+    /// still reading or answering; kept across polls so it is never lost.
+    pending_accept: Option<PendingAccept<C::BidiStream>>,
+}
+
+/// A stream `poll_accept_webtransport` accepted but has not finished with.
+#[derive(Debug)]
+struct PendingAccept<S: QuicBidiStream> {
+    request: H3Request<S>,
+    /// The `200` HEADERS frame of a WebTransport CONNECT, while not yet fully
+    /// written.
+    response: Option<Bytes>,
+    /// The `200` is written; the FIN is still to be queued.
+    finishing: bool,
+}
+
+/// What [`H3Connection::poll_accept_webtransport`] accepted.
+#[derive(Debug)]
+pub enum WtAccept<S: QuicBidiStream> {
+    /// A WebTransport Extended CONNECT, answered with `200`: call
+    /// [`H3Connection::into_webtransport`].
+    Session,
+    /// An ordinary HTTP/3 request. Its HEADERS are already read (they are
+    /// `headers`); serve it from its body on.
+    Request {
+        /// The request stream, positioned after its HEADERS.
+        request: H3Request<S>,
+        /// The decoded request field section.
+        headers: Vec<(Bytes, Bytes)>,
+    },
 }
 
 impl<C: QuicConnection> H3Connection<C> {
@@ -187,6 +219,7 @@ impl<C: QuicConnection> H3Connection<C> {
             peer_control: None,
             peer_settings: None,
             max_field_section_size,
+            pending_accept: None,
         }
     }
 
@@ -333,50 +366,92 @@ impl<C: QuicConnection> H3Connection<C> {
     /// Poll for an incoming bidi stream and check if it's a WebTransport
     /// Extended CONNECT request (spec-55, F06 — server accept path).
     ///
-    /// Returns `Stream::Next(Ok(true))` when a WebTransport CONNECT is detected
-    /// and the 200 response has been sent. The caller should then call
-    /// [`Self::into_webtransport`] to consume this connection and get the session.
-    /// Returns `Stream::Next(Ok(false))` for regular HTTP/3 requests.
-    pub fn poll_accept_webtransport(
-        &mut self,
-    ) -> Stream<Result<bool, H3Error>, ()> {
-        // Accept a bidi stream and check if it's a WebTransport CONNECT.
-        match self.conn.accept_bidi() {
-            Stream::Next(Ok(stream)) => {
-                let mut req = H3Request::new(stream, self.max_field_section_size);
-                match req.poll_headers() {
-                        Stream::Next(Ok(headers)) => {
-                            let method = headers.iter().find(|(k, _)| k.as_ref() == b":method" as &[u8]);
-                            let protocol = headers.iter().find(|(k, _)| k.as_ref() == b":protocol" as &[u8]);
-                            let is_wt = method.map(|(_, v)| v.as_ref() == b"CONNECT" as &[u8]).unwrap_or(false)
-                                && protocol.map(|(_, v)| v.as_ref() == b"webtransport" as &[u8]).unwrap_or(false);
-                            if is_wt {
-                                // Send 200 response via HEADERS frame.
-                                let resp = crate::webtransport::session::WtAcceptor::<C>::build_connect_response_headers();
-                                let encoded = H3Request::<C::BidiStream>::encode_headers(&resp);
-                                let mut pending = encoded;
-                                match req.poll_send_headers(&mut pending) {
-                                    Stream::Next(Ok(())) => {}
-                                    Stream::Next(Err(e)) => return Stream::Next(Err(e)),
-                                    _ => return Stream::Pending(()),
-                                }
-                                match req.poll_finish() {
-                                    Stream::Next(Ok(())) => {}
-                                    Stream::Next(Err(e)) => return Stream::Next(Err(e)),
-                                    _ => return Stream::Pending(()),
-                                }
-                                return Stream::Next(Ok(true));
-                            }
-                            // Regular HTTP/3 request — caller handles it.
-                            return Stream::Next(Ok(false));
-                        }
-                        Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
-                        Stream::Pending(()) | Stream::Init | Stream::Ignore | Stream::Spread(_) | Stream::Delayed(_) | Stream::Wait => return Stream::Pending(()),
+    /// Returns `Stream::Next(Ok(WtAccept::Session))` once a WebTransport
+    /// CONNECT has been answered with `200`; the caller then calls
+    /// [`Self::into_webtransport`]. Returns `Stream::Next(Ok(WtAccept::Request
+    /// { .. }))` for an ordinary HTTP/3 request, with the HEADERS it has already
+    /// read. `Stream::Pending(())` while nothing has arrived, or while the
+    /// accepted stream's HEADERS or the `200` are not through yet: the stream is
+    /// kept and the next call carries on with it, so none is lost.
+    ///
+    /// # Errors
+    /// `Next(Err(..))` when the connection fails, or when the accepted stream is
+    /// malformed (it is reset and dropped; the connection stays usable).
+    pub fn poll_accept_webtransport(&mut self) -> Stream<Result<WtAccept<C::BidiStream>, H3Error>, ()> {
+        let pending = match self.pending_accept.as_mut() {
+            Some(pending) => pending,
+            None => match self.conn.accept_bidi() {
+                Stream::Next(Ok(stream)) => self.pending_accept.insert(PendingAccept {
+                    request: H3Request::new(stream, self.max_field_section_size),
+                    response: None,
+                    finishing: false,
+                }),
+                Stream::Next(Err(e)) => return Stream::Next(Err(e.into())),
+                _ => return Stream::Pending(()),
+            },
+        };
+
+        if pending.response.is_none() && !pending.finishing {
+            match pending.request.poll_headers() {
+                Stream::Next(Ok(headers)) => {
+                    let field = |name: &[u8]| {
+                        headers
+                            .iter()
+                            .find(|(k, _)| k.as_ref() == name)
+                            .map(|(_, v)| v.clone())
+                    };
+                    let is_wt = field(b":method").is_some_and(|v| v.as_ref() == b"CONNECT")
+                        && field(b":protocol").is_some_and(|v| v.as_ref() == b"webtransport");
+                    if !is_wt {
+                        let Some(pending) = self.pending_accept.take() else {
+                            return Stream::Pending(());
+                        };
+                        return Stream::Next(Ok(WtAccept::Request {
+                            request: pending.request,
+                            headers,
+                        }));
                     }
+                    let resp =
+                        crate::webtransport::session::WtAcceptor::<C>::build_connect_response_headers();
+                    pending.response = Some(H3Request::<C::BidiStream>::encode_headers(&resp));
+                }
+                Stream::Next(Err(e)) => return Stream::Next(Err(self.drop_pending_accept(e))),
+                _ => return Stream::Pending(()),
             }
-            Stream::Next(Err(e)) => Stream::Next(Err(e.into())),
+        }
+
+        if let Some(frame) = pending.response.as_mut() {
+            match pending.request.poll_send_headers(frame) {
+                Stream::Next(Ok(())) => {
+                    pending.response = None;
+                    pending.finishing = true;
+                }
+                Stream::Next(Err(e)) => return Stream::Next(Err(self.drop_pending_accept(e))),
+                _ => return Stream::Pending(()),
+            }
+        }
+
+        match pending.request.poll_finish() {
+            Stream::Next(Ok(())) => {
+                self.pending_accept = None;
+                Stream::Next(Ok(WtAccept::Session))
+            }
+            Stream::Next(Err(e)) => Stream::Next(Err(self.drop_pending_accept(e))),
             _ => Stream::Pending(()),
         }
+    }
+
+    /// The accepted stream failed: reset it (with the protocol's code when
+    /// there is one) and forget it, returning the error.
+    fn drop_pending_accept(&mut self, error: H3Error) -> H3Error {
+        if let Some(mut pending) = self.pending_accept.take() {
+            let code = match &error {
+                H3Error::Protocol { code, .. } => *code,
+                _ => error_code::H3_REQUEST_CANCELLED,
+            };
+            pending.request.reset(code);
+        }
+        error
     }
 
     /// Extract the underlying QUIC connection (for constructing a WtSession after

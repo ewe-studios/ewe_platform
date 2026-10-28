@@ -150,11 +150,11 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
     }
 
     async fn read_data(&self, path: &str) -> VfsResult<Option<Vec<u8>>> {
-        self.store.get_blob_async(&Self::data_key(path)).await.map_err(serr)
+        self.store.get_blob(&Self::data_key(path)).await.map_err(serr)
     }
 
     async fn get_meta(&self, path: &str) -> VfsResult<Option<VfsMetadata>> {
-        match self.store.get_blob_async(&Self::meta_key(path)).await.map_err(serr)? {
+        match self.store.get_blob(&Self::meta_key(path)).await.map_err(serr)? {
             Some(bytes) => serde_json::from_slice(&bytes).map(Some).map_err(|e| {
                 ErrorTrace::new(VfsError::Backend {
                     message: format!("meta deserialize: {e}"),
@@ -171,7 +171,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
             })
         })?;
         self.store
-            .put_blob_async(&Self::meta_key(path), &bytes)
+            .put_blob(&Self::meta_key(path), &bytes)
             .await
             .map_err(serr)
     }
@@ -179,7 +179,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
     /// Replace a file's content and bring its metadata (size, mtime) in line.
     async fn write_data(&self, path: &str, data: &[u8]) -> VfsResult<()> {
         self.store
-            .put_blob_async(&Self::data_key(path), data)
+            .put_blob(&Self::data_key(path), data)
             .await
             .map_err(serr)?;
         let mut meta = self
@@ -194,7 +194,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
     async fn whiteout(&self, path: &str) -> VfsResult<Option<u64>> {
         match self
             .store
-            .get_blob_async(&Self::whiteout_key(path))
+            .get_blob(&Self::whiteout_key(path))
             .await
             .map_err(serr)?
         {
@@ -228,28 +228,28 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
         }
         if self
             .store
-            .blob_exists_async(&Self::meta_key(path))
+            .blob_exists(&Self::meta_key(path))
             .await
             .map_err(serr)?
         {
             return Ok(true);
         }
         self.store
-            .blob_exists_async(&Self::data_key(path))
+            .blob_exists(&Self::data_key(path))
             .await
             .map_err(serr)
     }
 
     async fn create(&self, path: &str, mode: u32) -> VfsResult<BlobFile<S>> {
         self.store
-            .put_blob_async(&Self::data_key(path), &[])
+            .put_blob(&Self::data_key(path), &[])
             .await
             .map_err(serr)?;
         self.store_meta(path, &new_meta(path, 0, VfsFileType::Regular, mode))
             .await?;
         // A path created again is no longer whited out.
         self.store
-            .delete_blob_async(&Self::whiteout_key(path))
+            .delete_blob(&Self::whiteout_key(path))
             .await
             .map_err(serr)?;
         Ok(self.file(path, OpenMode::ReadWrite))
@@ -259,7 +259,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
         self.store_meta(path, &new_meta(path, 0, VfsFileType::Directory, 0o755))
             .await?;
         self.store
-            .delete_blob_async(&Self::whiteout_key(path))
+            .delete_blob(&Self::whiteout_key(path))
             .await
             .map_err(serr)
     }
@@ -292,7 +292,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
         }
         if let Some(data) = data {
             self.store
-                .put_blob_async(&Self::data_key(to), &data)
+                .put_blob(&Self::data_key(to), &data)
                 .await
                 .map_err(serr)?;
         }
@@ -300,18 +300,18 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
             self.store_meta(to, &meta).await?;
         }
         self.store
-            .delete_blob_async(&Self::data_key(from))
+            .delete_blob(&Self::data_key(from))
             .await
             .map_err(serr)?;
         self.store
-            .delete_blob_async(&Self::meta_key(from))
+            .delete_blob(&Self::meta_key(from))
             .await
             .map_err(serr)
     }
 
     async fn add_whiteout(&self, path: &str, version: u64) -> VfsResult<()> {
         self.store
-            .put_blob_async(&Self::whiteout_key(path), &version.to_le_bytes())
+            .put_blob(&Self::whiteout_key(path), &version.to_le_bytes())
             .await
             .map_err(serr)
     }
@@ -590,7 +590,7 @@ impl<S: BlobStore + 'static> AsyncDeltaStore for BlobDelta<S> {
 
     async fn remove_whiteout_async(&self, path: String) -> VfsResult<()> {
         self.store
-            .delete_blob_async(&Self::whiteout_key(&path))
+            .delete_blob(&Self::whiteout_key(&path))
             .await
             .map_err(serr)
     }

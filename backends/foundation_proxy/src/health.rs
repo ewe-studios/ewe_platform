@@ -37,9 +37,9 @@ use foundation_connectrpc::{
 };
 use futures_util::future::{select, Either};
 use futures_util::FutureExt;
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 use crate::config::{BackendProtocol, HealthCheckConfig};
-use crate::forward::SharedHttpClient;
 use crate::runtime::{BackendRuntime, ServiceRuntime};
 
 /// Consecutive-count health state machine (Decision 14 `HealthCheckConfig`).
@@ -122,14 +122,16 @@ impl HealthMonitor {
 /// A service without a `health_check` config spawns nothing — its backends stay
 /// at their initial healthy state.
 #[must_use]
-pub fn spawn_service_probes(
-    service: &Arc<ServiceRuntime>,
-    client: SharedHttpClient,
-    shutdown: Arc<OnSignal>,
-) -> HealthMonitor {
+pub fn spawn_service_probes(service: &Arc<ServiceRuntime>, shutdown: Arc<OnSignal>) -> HealthMonitor {
     let Some(config) = service.config().health_check.clone() else {
         return HealthMonitor { handles: Vec::new() };
     };
+    // One probe client per service, with the probe timeout for both the
+    // connect and the read; its threads share its pool.
+    let client = HttpClientBuilder::new()
+        .connect_timeout(config.timeout)
+        .read_timeout(config.timeout)
+        .build();
 
     let mut handles = Vec::new();
     for backend in service.backends() {
@@ -149,7 +151,7 @@ pub fn spawn_service_probes(
 fn probe_loop(
     backend: &Arc<BackendRuntime>,
     config: &HealthCheckConfig,
-    client: &SharedHttpClient,
+    client: &DynNetClient,
     shutdown: &Arc<OnSignal>,
 ) {
     let mut state = ProbeState::new(
@@ -184,7 +186,7 @@ fn probe_loop(
 fn probe_once(
     backend: &Arc<BackendRuntime>,
     config: &HealthCheckConfig,
-    client: &SharedHttpClient,
+    client: &DynNetClient,
 ) -> bool {
     match backend.protocol() {
         BackendProtocol::Tcp => probe_tcp(&backend.target().authority(), config.timeout),
@@ -198,7 +200,7 @@ fn probe_once(
         | BackendProtocol::Https
         | BackendProtocol::Connect
         | BackendProtocol::GrpcWeb => {
-            probe_http(backend.url(), &config.path, config.timeout, client)
+            probe_http(backend.url(), &config.path, client)
         }
     }
 }
@@ -227,20 +229,14 @@ fn probe_udp(authority: &str, timeout: Duration) -> bool {
     socket.recv_from(&mut buf).is_ok()
 }
 
-/// HTTP GET probe; success is any 2xx or 3xx response.
-fn probe_http(base_url: &str, path: &str, timeout: Duration, client: &SharedHttpClient) -> bool {
+/// HTTP GET probe; success is any 2xx or 3xx response. Only the status is
+/// used; the body is never read.
+fn probe_http(base_url: &str, path: &str, client: &DynNetClient) -> bool {
     let url = join_url(base_url, path);
-    let probe_client = client
-        .clone()
-        .connect_timeout(timeout)
-        .read_timeout(timeout);
-    let Ok(builder) = probe_client.get(&url) else {
+    let Ok(builder) = PreparedRequestBuilder::get(&url) else {
         return false;
     };
-    let Ok(request) = probe_client.request(builder) else {
-        return false;
-    };
-    match request.send() {
+    match client.send(builder.build()) {
         Ok(resp) => {
             let code = resp.get_status().into_usize();
             (200..400).contains(&code)

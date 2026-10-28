@@ -48,7 +48,7 @@ fn redirect_limit_triggers_too_many_redirects() {
     std::thread::sleep(std::time::Duration::from_millis(100));
 
     // Configure the HTTP client (system DNS resolver and zero redirects allowed)
-    let client = SimpleHttpClient::from_system().max_redirects(0);
+    let client = NativeHttpClient::from_system().max_redirects(0);
 
     let url = format!("http://127.0.0.1:{}/redirect", port);
 

@@ -9,206 +9,124 @@ How to use it:
 - When you fix one, delete its entry in the PR that fixes it and name the PR in the commit message.
 - Group entries by crate. Mark limits that are still hard-coded constants with **(rule 8)**.
 
-Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS async-first). Before that: 2026-10-21, on `ai/async-stores` (foundation_ai on the async store traits; in-memory stores async-only). Before that: 2026-10-21, on `db/async-stores` (foundation_db async-only stores); 2026-10-20, after PR #96 (spec 65 feature 06 T5 updates). In flight on branches:
-- `fix/connectrpc-cancel-and-limits`: connectrpc §1.
-- `fix/limits-and-core-sweep`: the Docker limits cleanup and the foundation_core leftovers.
-
+Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checked entry by entry against master `38398e928` (fixed entries removed, partly fixed ones rewritten; the table is in that branch's PR). Before that: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS async-first); 2026-10-21, on `ai/async-stores` and `db/async-stores`; 2026-10-20, after PR #96. In flight on branches:
+- `fix/foundational-backlog`: sections 1–5 (foundation_connectrpc, netio, http, core/valtron, nostd/wasm/iogate).
 ---
 
 ## 1. foundation_connectrpc
 
-- **Ctx is never cancelled on the server** *(in progress: `fix/connectrpc-cancel-and-limits`)*.
-  - h2 `run_streaming_h2` treats `H2IncomingFrame::Reset` as a clean end of body.
-  - Nothing on the server fires `ctx.cancel_signal()` on a peer reset, a client disconnect, or a missed deadline.
-- **Decompression bomb** *(in progress)*. Connect unary calls `c.decompress(&body, 0)`, where 0 means unlimited, in `shared/protocol/connect.rs`. Cap it at the read limit and return `ResourceExhausted` when it's exceeded.
-- **No default body limit** *(in progress)*.
-  - Server `read_max_bytes` defaults to 0 (unlimited). Pick a documented default (nginx 1 MiB, gRPC 4 MiB).
-  - Reject an envelope whose length prefix is over the limit before allocating for it.
-- **Client loses the response head and trailers on streams** *(in progress)*. Streaming `new_conn` drops them, so streaming clients never see the HTTP status or headers.
-- **gRPC over h3 sends no status.** `native/h3_serve.rs` `send_h3_response` drops `response.trailers`, and the streaming path sends no `grpc-status`.
 - **HTTP/1.1 RPC holds a worker for its whole life.**
-  - `foundation_http`'s `Serve` trait is synchronous, so a long-lived h1 stream occupies a valtron worker until it ends. Enough of them use up the pool.
+  - `foundation_http`'s `Serve` trait (`shared/serve/mod.rs:72`) is
+    synchronous, so a long-lived h1 stream occupies a valtron worker until it
+    ends. Enough of them use up the pool.
   - Needs an async or pending `Serve` contract.
-  - Observed in spec 65 F1/T6: one agent-rpc `Chat` over HTTP/1.1 with a
-    4-worker pool deadlocks (the call's worker sleeps in `poll(2)`, the client
-    tasks hold others, and the agent loop never gets one); 8 workers suffice.
-    `foundation_agent_rpc` documents the pool sizing until this is fixed.
-- **Transports with no pollable fd fail.** `native/conn_io.rs` readiness waits return `Unsupported` for WireGuard overlay, io_uring completion sockets and openssl/native-tls.
-  - With rustls, the fd is polled in the application's direction, so a TLS session that needs the opposite direction mid-stream waits until the timeout.
-- **Conformance coverage.** Add an 8-thread variant of the conformance suite (task #27).
-- **A streaming handler can't await its own cancellation.** `exchange_until_aborted`
-  (`shared/router/dispatch.rs`) drops `response_side` — which holds the handler
-  stream — before `run_streaming_h2` fires `cancel.cancel()` on
-  `Abort::PeerGone`/`Abort::BodyFailed`, so a handler's `ctx.cancelled().await`
-  never completes on a peer disconnect. Only `ctx.is_canceled()` (read from a
-  parked `Ctx`) is observable. Fire the cancel before dropping the handler, e.g.
-  cancel from a `Drop` guard on the handler future or restructure the select so
-  the handler is polled once more. Surfaced by spec 63 T13.
-- **The client's `cancel()` does not emit a wire-level reset.** `CancelSignal::cancel`
-  stops the local signal but keeps the H2 socket open, so the server keeps
-  streaming into a peer that has "cancelled" locally and never learns it was
-  aborted. A cancelled client call should send `RST_STREAM` (or half-close) so
-  the server observes the abort. Surfaced by spec 63 T13 — its e2e test drives a
-  raw `RST_STREAM` because the typed client cannot.
-
-- **No gRPC client over TLS.** `native/transport/h2.rs` `H2Transport` dials h2c
-  only (no TLS, no ALPN), so a gRPC client cannot reach a TLS/mTLS server (seen
-  in spec 65 F1: agent-rpc's mTLS listener is reachable over Connect/gRPC-Web
-  only). Likely fix: an `H2Transport::tls(connector)` that runs the rustls
-  handshake with ALPN `h2` before the h2 preface.
-- **`foundation_connectrpc_codegen` has 102 pedantic clippy warnings**
-  (`src/generator.rs`: 76 `format_push_string`, 19 `doc_markdown`, a 231-line
-  function, …). Likely fix: emit through `std::fmt::Write` (`writeln!`) and split
-  `generate_client` per section.
+- **Transports with no pollable fd fail.** `native/conn_io.rs` readiness waits
+  (`fd()`, `gone_now`, `ready_now`) return `Unsupported` for WireGuard
+  overlay, io_uring completion sockets and openssl/native-tls.
+  - With rustls, the fd is polled in the application's direction, so a TLS
+    session that needs the opposite direction mid-stream waits until the
+    timeout.
+- **Conformance coverage.** Every conformance test runs with `threads = 4`
+  (`tests/conformance_tests.rs`). Add an 8-thread variant (task #27).
 
 ## 2. foundation_netio
 
-- **QUIC streams register no waker.** Every H3 future must wake itself, so it busy-polls a worker while idle. `h3_serve.rs` works around this. The quinn driver should wake stream tasks when they become ready.
-- **`FramedRecv` buffers whole DATA frames.** It holds up to `DEFAULT_MAX_FRAME_SIZE` (16 MiB) before yielding. Stream within a frame, and make the size config **(rule 8)**.
-- **`H3Connection::poll_accept_webtransport` loses streams.** It drops the accepted stream if its headers aren't ready yet. It also drops a non-WebTransport request whose headers it has already read.
+- **QUIC streams register no waker.** Every H3 future must wake itself, so it
+  busy-polls a worker while idle. `foundation_connectrpc`'s `h3_serve.rs`
+  `map_h3` works around this. The quinn driver should wake stream tasks when
+  they become ready.
+- **`FramedRecv` buffers whole DATA frames.** *(Partly fixed:
+  `http3/stream.rs` `FramedRecv::with_max_frame_size` exists.)* What is left:
+  `H3Connection` / `H3Request` never expose it, so every connection uses
+  `DEFAULT_MAX_FRAME_SIZE` (16 MiB, `http3/frame.rs:233`) **(rule 8)**, and a
+  DATA frame is still buffered whole before it is yielded. Stream within a
+  frame, and put the cap on the connection config.
 - **`AsyncSendSafeBody` polls sync body iterators inline**
-  (`shared/client/body_reader.rs`). `poll_next` calls the inner iterator's
-  `next()`. Unless that iterator returns a "not ready" item (`Data::Retry`), a
-  read that waits for the socket waits inside `poll_next` and holds the worker.
-  Every async caller that reads a streamed body (the deployment API clients,
-  `TurboPufferVectorStore`) has this. Fix: give the body iterators a
+  (`shared/client/body_reader.rs` `poll_next`). `poll_next` calls the inner
+  iterator's `next()`. Unless that iterator returns a "not ready" item
+  (`Data::Retry`), a read that waits for the socket waits inside `poll_next`
+  and holds the worker; a `Retry` self-wakes and busy-polls. Every async caller
+  that reads a streamed body has this. Fix: give the body iterators a
   readiness-based async form that returns `Poll::Pending` and wakes on socket
   readiness.
-- **`SendSafeBodyBytesIterator` reports would-block inconsistently.** It returns `Err` for chunked bodies but `Ignore` for sized bodies, so its ~15 users can't tell "not ready" apart from bookkeeping items.
-- **`BatchReader` logs every `WouldBlock` at `error!`.**
-- **Case-sensitive `chunked` check.** The request reader's `transfer_encodings.iter().position(|n| n == CHUNKED_VALUE)` compares case-sensitively, unlike the lowercase set check just before it.
+- **`SendSafeBodyBytesIterator` reports would-block inconsistently.** It
+  returns `Ignore` for a sized body's `Data::Retry` but passes a chunked body's
+  `WouldBlock` through as `StreamError`, so its users can't tell "not ready"
+  apart from bookkeeping items or failures.
 - **Non-blocking work not done yet:**
-  - non-blocking connect and TLS handshake (task #23);
+  - non-blocking connect and TLS handshake (task #23):
+    `HttpClientConnection::connect` blocks in `TcpStream::connect_timeout`
+    (`native/connection.rs` `Connection::with_timeout`) and the TLS upgrade
+    handshakes in place;
   - a pushed request body should wait on pipe readiness (task #24);
   - the remaining transports (task #25).
-- **Unix-socket sends fail on macOS.** The request-intro / send path calls
-  `set_read_timeout_as`, which sets `SO_RCVTIMEO`; macOS rejects `SO_RCVTIMEO`
-  on a Unix domain socket with `EINVAL`, so `unix_socket_builder_send_reaches_server`
-  fails with `Invalid argument (os error 22)`. Skip the read timeout for unix
-  sockets, or treat `EINVAL` as "timeout unsupported" rather than failing the intro.
-- **`HttpClientConnection::connect` no longer fails eagerly.** The non-blocking H1
-  work made `connect` park on readiness, so it returns `Ok` before the TCP
-  handshake. `test_connection_with_mock_resolver` asserts an eager
-  `ConnectionFailed`/`ConnectionTimeout` and is now stale. Restore eager connect,
-  or update the test to the lazy contract.
 - **Ignored tests.**
-  - 14 network-dependent tests are ignored: `http_external_validation`, `tls_integration`, `http_server_integration`. Make them hermetic (task #31).
-  - 33 doctests are ignored (task #33).
-- **Wasm SSE parser errors still stall instead of terminating the stream.**
-  `wasm/client/stream.rs` `WasmSseIterator::next` now distinguishes `WouldBlock`
-  (a real "wait" signal, kept in `EventSourceError::ReadError(io::Error)`) from a
-  genuine read or parse error and logs the latter with `tracing::error!`. What is
-  left: a non-`WouldBlock` parse error (a malformed event) still returns
-  `Stream::Wait` rather than ending the stream, so a permanently malformed feed
-  stalls the consumer instead of failing. Surface it as
-  `Stream::Pending(SseProgress::Failed(msg))` then `None`, like a fetch failure.
-- **Wasm `send_sse_async` returns a non-parking stream.** It boxes via
-  `into_future_stream()` (`StreamAsFutureStream`, a raw lens whose `poll_next` is
-  `Poll::Ready(iter.next())`), so `Wait`/`Pending` are forwarded as items and the
-  stream busy-polls instead of parking. Fix in spec 65 feature
-  `06-wasm-async-streaming`: rename the raw lens to `into_pure_future_stream()` and
-  make `into_future_stream()` an await-friendly lens that parks on `Wait`/`Pending`
-  (with `impl WakeableStream for WasmSseIterator` — a `WakeRegistry` fired by its
-  `spawn_local` reader on each queue push). `send_sse_async` keeps the full-enum
-  item type, so it stays on `into_future_stream()` (now parking) rather than
-  switching to `into_next_stream()`. *(Fixed in spec 65 feature 06 T3.)*
+  - 17 network-dependent or never-finished tests are ignored:
+    `tcp_and_tls/http_external_validation.rs` (8),
+    `tcp_and_tls/http_server_integration.rs` (6),
+    `tcp_and_tls/tls_integration.rs` (3). Make them hermetic (task #31).
+  - 37 doc examples are `ignore`/`no_run` (task #33).
+- **A wasm SSE read error ends the stream as if it finished cleanly.**
+  `wasm/client/stream.rs` `spawn_stream_reader` sets `done` on a JS
+  `ReadableStream` read error, so the consumer sees a normal end. Fix: record
+  the error next to `done` and have `QueueSseEvents` end with
+  `Pending(SseProgress::Failed(..))`.
+- **`poll_accept_webtransport` finishes the CONNECT stream after the `200`**
+  (`http3/connection.rs`). In WebTransport over HTTP/3 the session lives as
+  long as its CONNECT stream; closing it (FIN) ends the session. Check
+  against the draft and keep the stream open, handing it to `WtSession`.
 
 ## 3. foundation_http
 
-- **h2 connection polls on a 10 ms timer** (the "47b gap" in its docs). `ConnectionHandler`'s idle path spins and delays instead of waiting for TCP readiness.
-- **Ignored write errors, and leftover body bytes on keep-alive.**
-  - The middleware-response and 404 paths ignore render and write errors (`let _ = …`).
-  - They also leave an unread request body on a kept-alive connection, so the leftover bytes are read as the next request. This was fixed for ConnectRPC in #96.
-- **`H3AcceptTask` problems:**
-  - ignores the result of `valtron::send(FutureTask)`;
-  - polls on a fixed 5 ms delay, which is not readiness-driven and is a hard-coded limit **(rule 8)**;
-  - drops a request whose first `poll_accept` errors.
+- **h2 connection polls on a 10 ms timer** (`native/server/h2_connection.rs`
+  `POLL_DELAY`, the "47b gap"). `ConnectionHandler`'s idle path delays instead
+  of waiting for TCP readiness.
+- **`H3AcceptTask` polls on a fixed 5 ms delay** (`native/server/h3_server.rs`),
+  which is not readiness-driven and is a hard-coded limit **(rule 8)**. It
+  should park until the QUIC driver has a connection or stream for it.
+- **The accept loop polls a non-blocking listener** (`native/server/mod.rs`,
+  `serve_with_listener`): on `WouldBlock` it sleeps `would_block_sleep` and
+  tries again, instead of waiting for the listener to be readable.
 
 ## 4. foundation_core / valtron
 
-- **`StreamIteratorExt::collect` shadows `Iterator::collect`.** Any iterator
-  whose items are `Stream<D, P>` gets two `collect` methods, so a plain
-  `.collect()` into a `Vec` is ambiguous (`streams/{sendable,non_sendable}.rs`).
-  Likely fix: rename the valtron one (e.g. `collect_stream`), keeping the old
-  name deprecated.
 - **A stream's first empty pull still blocks once.**
-  `NotifyQueueStreamIterator::next` stops blocking only after a consumer
-  registers a wake, so the first pull on an empty queue by `.values()` /
-  `TaskStatus::from_stream` still waits `max_spins` timed waits
-  (`executors/local.rs`). Likely fix: the async conversions register their
-  wake before the first pull.
-- **Cross-thread wakes don't wake an idle single-threaded executor.** The native idle wait is a `park_timeout` that nothing unparks, so tasks woken from another thread still poll at up to 100 ms.
-- **Hard-coded valtron limits (rule 8):** `MAX_YIELD_DURATION`, `DEFAULT_YIELD_WAIT_TIME` (4 s), `BACK_OFF_*`, and `ThreadedIterFuture`'s queue size of 16 and its 10 ms sleep.
-- **`ThreadedIterFuture` (multi) busy-polls.**
+  `NotifyQueueStreamIterator::next` (`executors/local.rs`) stops blocking only
+  after a consumer registers a wake, so the first pull on an empty queue by
+  `.values()` / `TaskStatus::from_stream` still waits `max_spins` timed waits.
+  Likely fix: the async conversions register their wake before the first pull.
+- **Hard-coded valtron limits (rule 8):** `MAX_YIELD_DURATION`
+  (`executors/local.rs`), `DEFAULT_YIELD_WAIT_TIME` (4 s) and `BACK_OFF_*`
+  (`executors/constants.rs`), and `ThreadedIterFuture::new`'s queue size of 16
+  and 10 ms back-pressure sleep (`executors/future_task.rs`; builder methods
+  exist, but the defaults are literals and undocumented).
+- **`ThreadedIterFuture` (multi) busy-polls** (`executors/future_task.rs`
+  `execute`).
   - It polls with a no-op waker plus `yield_now`.
   - It uses `thread::sleep` for backpressure.
   - It ignores the result of `let _ = worker_queue.push(Err(e))`.
-- **`BackgroundJobRegistry`:** the queue is unbounded (it needs a capacity setting), and `new` panics if it can't spawn a thread instead of returning an error.
-- **`local_executor` scenario tests only run under `multi`.** 14 of them collect `TaskStatus` values; rewrite them to run in both configurations.
-- **Misleading docs.** `send_any_task` / `send_typed_task` are documented as delivering to the global queue, but they differ from `any_task` / `typed_task` only in their trait bounds.
-- **`BytesPool` has no bounds.**
-  - It is unbounded and keeps returned buffers of any size, so it needs a capacity and a maximum buffer size **(rule 8)**.
-  - `acquire_with_capacity` counts both a hit and an allocation when the pooled buffer is too small.
+- **`BackgroundJobRegistry`** (`executors/background.rs`): the queue is
+  unbounded (it needs a capacity setting), and `new` panics if it can't spawn
+  a thread instead of returning an error.
+- **`BytesPool` has no bounds** (`io/buffer_pool.rs`).
+  - It is unbounded and keeps returned buffers of any size, so it needs a
+    capacity and a maximum buffer size **(rule 8)**.
+  - `acquire_with_capacity` counts both a hit and an allocation when the
+    pooled buffer is too small.
   - `PooledBuffer::owned` builds a throwaway pool for every buffer.
   - `PooledBuffer` has no `Debug`.
-- **`read_pooled_buffer` returns `None`** (the EOF signal) when `max_len == 0`.
-- **A readiness signal that never asks for a resume stalls on wasm.** Since spec 65
-  feature 06 T5 the JS wasm `run_until` hands control back to the event loop when
-  every task is parked on `TaskStatus::Depends` (instead of spinning), and relies
-  on the code that flips the signal to call `request_executor_resume()`
-  (`WakeSignal` does). `BoolSignal`, `QueueReadiness` and `QueueVacancyReadiness`
-  do not, so a wasm task parked on one whose producer is JS-side async work is
-  never re-run (on native the executor re-checks readiness itself). Fix: have
-  their producer side (`ConcurrentQueue` push wrappers, `BoolSignal::set`) call
-  `request_executor_resume()`, or replace them with wake-registry-backed signals.
-- **A blocking helper called from inside a task spins forever on wasm.**
-  `executors/local.rs`: while a task is being polled its slot still counts as
-  active (`has_active_tasks`), so a nested `run_until` (any sync "block on"
-  helper reached from a task's `next_status`, such as the old wasm
-  `HttpClient::send` via `block_on_collect`) never sees "nothing runnable" and
-  loops on `CanProgress(None)` without yielding to JS, freezing the isolate.
-  `block_on_collect` (`non_sendables.rs`/`sendables.rs`) has no wasm callers left
-  but still compiles there. Gate `block_on_collect`/`block_on_future` to
-  `not(target_family = "wasm")`, and make the nested-run case return instead of
-  spinning.
-- **Release coupling.** `foundation_macros` calls `foundation_core::valtron::initialize_current_thread`, so the two crates need a coordinated version bump when published.
-- **`sleep_async` as a `select` timeout under `block_on_future` can fail to fire.** When the pool is contended (e.g. during shutdown), the `SleepingTask` timer may never resolve, hanging the future raced against it. Surfaced by the proxy's gRPC health probe (§9), which works around it with an outer `recv_timeout`.
-- **`SharedByteBufferStream::peek` conflates EOF with `WouldBlock`.** The
-  `PeekableReadStream` impl (`io/ioutils/mod.rs`) maps `PeekState::EndOfFile`
-  (and `NoNext` / `EndOfBuffered`) to `Ok(0)` — the same result as "no bytes
-  yet" — so a peeker cannot tell a peer that closed the socket from one that is
-  just slow. `foundation_http`'s h2 server therefore parks forever on a
-  half-closed peer instead of detecting the disconnect. Spec 63 T13 works around
-  it by having the connectrpc client pump send an explicit `RST_STREAM(CANCEL)`;
-  the peeker itself should return a distinct EOF signal.
-
-- **A task that blocks its worker strands the tasks parked on that worker.**
-  Readiness-parked tasks (`Depends(QueueReadiness)`, e.g. every
-  `from_future` task waiting on a waker) are re-polled only by the worker that
-  parked them (every `READINESS_POLL_QUANTUM`); other workers never steal them.
-  So when that worker then runs something that blocks — connectrpc's HTTP/1.1
-  `ConnIo::block_on` sleeping in `poll(2)` for a whole call, or a model stream
-  that blocks — the parked tasks wait until it unblocks. Seen in spec 65 F1/T7:
-  a same-process connectrpc client's reader task stalled until the server call
-  hit its deadline (20–30 s) even though the server had sent the frame in 8 ms.
-  Likely fix: let idle workers steal readiness sleepers (or move them to a
-  shared sleeper set), and stop blocking workers in the h1 serve path (§1).
+- **Release coupling.** `foundation_macros` calls
+  `foundation_core::valtron::initialize_current_thread`, so the two crates
+  need a coordinated version bump when published.
+- **`BatchReader` logs every `WouldBlock` at `error!`**
+  (`io/readers/mod.rs`, the `WouldBlock`/`TimedOut` arm). It is the ordinary
+  "not ready" signal on a non-blocking socket.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
-- **`SpinWaiter`** (foundation_nostd, still used on wasm) rounds sub-millisecond waits down to zero, and its spin calibration is arbitrary.
-- **Unused import** at `foundation_wasm/src/capability.rs:24` on wasm32.
-- **Interval callbacks run under the registry lock.** `host_runtime.rs`
-  `internal_api::run_interval_callback` calls the callback while holding
-  `RECURRING_INTERVAL_CALLBACKS`, so a callback that registers or cancels an
-  interval re-locks that mutex (a std `Mutex` on wasm: panic or deadlock). The
-  schedule registry had the same bug and was fixed in spec 65 feature 06 T5 by
-  taking the callback out before running it; intervals recur, so clone the
-  `WrappedItem` (an `Rc`/`Arc`) out of the registry, drop the lock, then call.
-- **iogate's undeclared `uring` feature.**
-  - `native/completion_socket.rs` gates code on `feature = "uring"`, but `Cargo.toml` declares no such feature, so that code can never compile in.
-  - `ReadHalf`, `peer_addr` and others are dead as a result.
-  - Declare the feature or remove the code.
+- **`SpinWaiter`** (foundation_nostd `primitives/spin_waiter.rs`, still used on
+  wasm) rounds sub-millisecond waits down to zero, and its spin calibration is
+  arbitrary.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 
@@ -218,6 +136,13 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   - `upload_to_container` takes the whole tar as a `Vec<u8>`; it should stream.
   - `system_data_usage` returns untyped JSON. Route all seven through the generated functions, fixing the spec conversion where needed (rule 5).
 - **`send_json` has no body cap.** It reads a successful JSON body whole. Add `max_json_body` to `BodyLimits` **(rule 8)**.
+- **The `integration-tests` targets are never compiled in CI.**
+  `foundation_deployment_docker`'s CI runs are `""` and `docker`, so
+  `tests/deployable_tests.rs` (gated on `integration-tests`) rotted: it
+  still called the now-async `FileStateStore::init` synchronously until
+  #140's verification fixed it. Fix: a CI step that at least builds the
+  `docker,integration-tests` targets (`cargo test --no-run`), with the
+  daemon-backed runs kept manual.
 - **`LogFrameDecoder::decode` returns `None` for two cases:** "need more bytes" and "skipped an unknown frame type". Callers have to compare buffer lengths to tell them apart.
 
 ## 7. foundation_deployment_platform
@@ -244,9 +169,9 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
 ## 9. foundation_proxy
 
 - **gRPC health probe leaks a thread + H2 connection when its inner timeout hangs.**
-  - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer can fail to fire (see §4) and `H2Transport`'s pump parks on the socket read with no read timeout.
+  - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer could fail to fire (fixed on `fix/foundational-backlog`: `sleep_async` now runs on valtron's timer thread) and `H2Transport`'s pump parks on the socket read with no read timeout.
   - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
-  - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread.
+  - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread (the timer half of the cause is gone).
 - **Backend-state persistence can lose an update.** Each control-socket
   connection runs on its own thread, and `ProxyStateStore::save_backend_state`
   / `save_tls_cert` (`src/persistence.rs`) load the whole persisted state,
@@ -257,6 +182,30 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   (`tests/proxy_integration_tests.rs`, `docker_available()`). When the socket
   exists but no daemon listens on it, the `--ignored` runs fail instead of
   skipping. Fix: use a shared helper that pings the daemon (see §7).
+- **The ACME client does not follow RFC 8555's account flow** (`src/acme.rs`).
+  `create_account` returns the newAccount directory URL instead of the
+  account URL from the `Location` header (it only checks that the answer has
+  an `orders` field), and `provision` discards it, so `key_id` is never set
+  and every later request is signed with the `jwk` instead of the `kid`
+  (§6.2 requires the `kid` once the account exists). The nonce is fetched
+  fresh for every request instead of taken from each answer's
+  `Replay-Nonce`. `provision` waits for DNS with `std::thread::sleep(5s)`
+  inside an `async fn` (it blocks the executor; the 5 s is a constant, not a
+  setting). The mock CA in `tests/acme_provisioning_tests.rs` sends no
+  `Location`, so the tests miss all of this. Fix: return and use the account
+  URL as the `kid`, carry the nonce from each answer, wait with an async
+  sleep (or poll the challenge status) under a configured timeout, and make
+  the mock CA strict.
+- **The SSL redirect listener hard-codes its limits** (`src/server.rs`,
+  `ssl_redirect_loop`): a 4096-byte head buffer, a 2 s read timeout and a
+  10 ms accept poll are constants, and a head longer than one read is cut
+  (rule 8). Fix: fields on the redirect config with documented defaults.
+- **`tests/diag_client_tap.rs` is a "TEMPORARY diagnostic", not a test.**
+  It is `#[ignore]`d, only `eprintln!`s what the client sent and received, and
+  asserts nothing, so it can never fail. Fix: turn it into a real test of
+  `forward_http`'s outgoing request (assert the `Host`, `X-Forwarded-*` and
+  `Connection` headers the fake upstream receives and the 200 status) and run
+  it un-ignored, or delete it if `proxy_integration_tests.rs` already covers it.
 - **The `mut` on `h3_local_addr` warns without the `h3` feature**
   (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
   expression instead of assigning inside the `cfg` block.
@@ -311,6 +260,18 @@ Last refreshed: 2026-10-22, on `nativeapis/async-vfs` (spec 50 F05 T2, the VFS a
   record again on the next flush. Fix: make the writes idempotent (upsert on
   the document id for `append_with_id`, and give memory records a stable id),
   or clear the slot through a store acknowledgement.
+- **`MemoryCoordinator` keeps `_async` method names.** `record_async` and
+  `hydrate_async` (`src/agentic/memory_coordinator.rs`) are inherent, so spec
+  50 F05 T3 (storage trait methods) left them; next to `MemoryStore::hydrate`
+  the suffix now reads as a different operation. Fix: rename to `record` /
+  `hydrate` (no clash: `MemoryCoordinator` implements no store trait).
+- **The test targets need llama.cpp even without `llamacpp`.**
+  `infrastructure_llama_cpp` is an unconditional native dev-dependency
+  (`Cargo.toml`, for the `errors/llama.rs` conversion tests), so
+  `--no-default-features --features testing` still builds llama.cpp and fails
+  without the `tools/llama.cpp` submodule. Fix: drop the dev-dependency (a
+  dev-dependency cannot be optional) and reach the llama.cpp error types
+  through a `llamacpp`-gated re-export, with those tests gated on the feature.
 
 ## 11. foundation_db and its sync callers
 
@@ -354,6 +315,19 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `window_end`), which `CREATE TABLE IF NOT EXISTS` won't add to an existing
   old-shape table. Fix: a migration that rebuilds an old-shape table (rate
   limit rows are disposable), or drop it on detection.
+- **The wasm stores keep a second, inherent `*_async` API.** `D1WasmStorage`,
+  `KVWasmStorage` and `R2WasmStorage` (`src/wasm/wasm_storage/*.rs`) have
+  public inherent methods with the old trait names (`get_async`,
+  `query_async`, `put_blob_async`, ...). They return `!Send` futures, and
+  `D1WasmStorage::list_keys_async` / `KVWasmStorage::list_keys_async` return
+  a `Vec` instead of a stream. The trait impls, `StorageProvider`,
+  `WasmCredentialStore`, `foundation_auth`'s `CredentialStore for
+  D1WasmStorage` and `examples/cf-login-app` call these. Spec 50 F05 T3
+  dropped the suffix from the trait methods, so the two APIs no longer share
+  a name, but a caller can still pick either by accident. Fix: make the
+  inherent methods private helpers (as the native stores' `*_internal` ones
+  are) and route every caller through the traits (`list_keys` +
+  `collect_all` where a `Vec` is needed).
 - **No CI job builds the example workspaces** (`examples/cf-*`,
   `apps/answerme-agent`); `examples/cf-login-app`'s manifest had stopped
   loading unnoticed. Fix: an examples job (wasm32 for `cf-*`). The feature
@@ -387,13 +361,17 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   -p foundation_auth --no-default-features --features wasm` warns that
   `argon2`, `foundation_errstacks`, `pbkdf2`, `time` and `uuid` are unused
   there. Fix: make the native-only ones target-specific dependencies (or gate
-  them behind the features that use them).
+  them behind the features that use them). The same build warns that
+  `constant_time_eq` (`src/shared/password_hash.rs`) is never used on wasm32;
+  gate it with the native code that calls it.
 - **`foundation_db::wasm::{WasmCredentialStore, session}` duplicate
   `CredentialStorage`.** Their docs say they exist because the sync
   `CredentialStore` routed D1 through blocking calls; that trait is gone (spec
   50 F04), and `CredentialStorage` over a D1 `StorageProvider` already serves
-  `AsyncCredentialStore` on Workers. Fix: fold callers onto
-  `CredentialStorage` and delete the duplicates.
+  `CredentialStore` on Workers. Fix: fold callers onto
+  `CredentialStorage` and delete the duplicates. `wasm_credential_store.rs`
+  also has an inline `#[cfg(test)] mod tests` (against rule 7); deleting the
+  file removes it, otherwise move the tests to `tests/`.
 - **`NativeOAuth` and `PasswordAuthClient` read an empty body.**
   `src/native/oauth.rs` (`extract_body_text`, `error_body_text`) and
   `src/native/password_auth.rs` (`extract_body`) read the response through
@@ -422,7 +400,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   file, its metadata and its whiteout as separate blobs, and a blob store has
   no key listing: `list_async` and `list_whiteouts_async` return nothing and
   `reset_async` is unsupported. Fix: keep a per-directory index blob (or use
-  D1's key-value listing, `list_keys_async`, for the D1 delta).
+  D1's key-value listing, `list_keys`, for the D1 delta).
 - **A blob-delta write rewrites the whole file.** Each `write_at_async` reads
   the blob, splices the bytes in and writes it back, so a large file written
   in small pieces is O(n²). Fix: chunked storage (the unused
@@ -432,10 +410,10 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `DeltaBackend::D1` / `R2`. The overlay is async now, so the deltas plug in
   directly (`DynFs::from_async(OverlayFileSystem::new(base, d1_delta))`).
   Fix: build them from the shim config.
-- **`FjallDocumentStore` scans buffer their rows.** `scan_async`,
-  `scan_all_async` and `scan_from_async` collect the matching rows into a
+- **`FjallDocumentStore` scans buffer their rows.** `scan`,
+  `scan_all` and `scan_from` collect the matching rows into a
   `Vec` before streaming them (`src/shared/vfs/fjall_document_store.rs`);
-  `scan_all_async` is unbounded. Fix: walk the fjall index range lazily.
+  `scan_all` is unbounded. Fix: walk the fjall index range lazily.
 
 - **No delta store on the local Turso engine.** `TursoDelta` never compiled and was
   deleted in spec 50 F05 T2 (with its example, the `vfs-turso` feature and the
@@ -541,6 +519,13 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   exists. Fix: port it to the current async `Deployable` / `StateStore` and
   add it to the workspace (or delete it if superseded by the per-provider
   deployment crates).
+  Its HTTP client references were moved to `HttpClientBuilder` /
+  `ProviderClient::with_client` for #140, but the rest is still stale: it
+  imports `foundation_netio::simple_http`, `ProviderClient<S, R>` and
+  `foundation_deployment::providers::cloudflare` (now
+  `foundation_deployment_cloudflare`). `CloudflareWorker::deploy` also reads
+  the script from disk into `_script` and never uploads it, so a deploy would
+  push an empty module.
 - **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
 - **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
   compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target
@@ -564,6 +549,18 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
   task invoke the two binaries via `mise which`.
 
+- **Wasm runtime tests never run in CI.** `foundation_core`'s
+  `tests/valtron/wasm_js_yield_integration.rs` (and the other
+  `wasm_bindgen_test` suites) need `wasm-testbed` + Deno; the CI wasm step
+  only runs `cargo check --target wasm32` on the library, so these tests are
+  not even compiled there. Fix: a CI step that at least builds them
+  (`cargo check --tests --target wasm32-unknown-unknown`) and, where a
+  runner is available, runs them.
+- **`foundation_db` dead-code warnings in test builds**: `core/rate_limit.rs`
+  `CREATE_TABLE_SQL`, `RECORD_SQL`, `SELECT_SQL`, `sql_check`, `sql_record`,
+  `sql_reset` are unused in the feature set the connectrpc test builds pull
+  in. Fix: gate them on the features that use them.
+
 ## 17. foundation_vectors
 
 - **`FjallVectorStore` runs fjall inline in its async methods**
@@ -583,7 +580,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   follows the request and response types of the official Python client
   (`turbopuffer` 2.14.0), because the documentation site was not reachable.
   Two details are not proven against the live service: that `deleted_ids`
-  lists only ids that existed (`delete_async` reports `NotFound` from it), and
+  lists only ids that existed (`delete` reports `NotFound` from it), and
   that `include_attributes: ["vector"]` returns the vector. Fix: an opt-in
   test against a real namespace (API key from the environment).
 - **`TurboPufferVectorStore` does not retry HTTP 429.** `TurboPuffer` throttles
@@ -603,10 +600,9 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   candidate documents. Fix: take a text lookup (id → text) as an argument, or
   change `Reranker` to fetch the texts it needs.
 - **The SQL-backed stores scan a whole namespace per search**
-  (`SqlVectorStore::search_async`): memory is bounded (`TopK`), but time is
+  (`SqlVectorStore::search`): memory is bounded (`TopK`), but time is
   O(n·d) per query. Expected for the portable fallback; large namespaces
   should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
-
 
 ## 18. foundation_testbed
 
@@ -617,6 +613,33 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 ## 19. Apps (tokio and axum)
 
 - **The apps still use tokio and axum, not valtron and `foundation_http`.** This is `bin/platform` (and its templates `api-app`, `static-html-app`, `web-app`), `examples/devbinary`, `examples/web/wello`, `examples/todo`, `crates/channels` and `crates/domain`: tokio/axum servers and tokio tests. `crates/channels` also has inline `#[cfg(test)]` modules (`src/broadcast.rs`, `src/mspc.rs`, `src/executor.rs`), which go against rule 7. Tracked in [#137](https://github.com/ewe-studios/ewe_platform/issues/137).
+
+## 20. foundation_deployment_huggingface
+
+- **The Hub client API is sync.** `client::{whoami, list_*, create_repo, …}`
+  and `repository::*` (`src/client.rs`, `src/repository.rs`) block on the
+  native client's sync `HttpClient::send`, so they freeze a valtron worker
+  and cannot run on wasm. Fix: async functions over `send_async`
+  (`collect_bytes_async` for the downloads), with `.block()` at the callers
+  (`foundation_ai`'s candle/gguf providers, `foundation_testing`).
+- **Uploads are buffered whole.** `repo_create_commit` reads each added file
+  into memory (`std::fs::read`) and builds the whole multipart body before
+  sending it. Fix: a streamed multipart body (`SendSafeBody::Stream` over the
+  file chunks) with the length computed up front.
+- **`list_*` and `repo_list_tree` read one page only.** They ignore the Hub's
+  `Link: rel="next"` pagination header, so a listing stops at the first page
+  (the docs say "with pagination"). Fix: follow `Link` lazily as the stream
+  is pulled.
+
+## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
+
+- **`foundation_keychain`**: `rmpv` is an unused dependency on wasm32
+  (`Cargo.toml`; only native code uses it), and `src/server/signalr_do.rs:29`
+  imports `notifications::self` without using it, and binds `mut resp` at
+  line 74 that is never mutated. Fix: move `rmpv` to the native target
+  section, drop the `self` import and the `mut`.
+- **`foundation_deployment_cloudflare`**: `src/workers/durable_object.rs:24`
+  imports `worker::Error` without using it. Fix: drop it.
 
 ## Paused
 

@@ -305,7 +305,7 @@ async fn resume_sees_earlier_history() {
             _ => foundation_compact::ids::new_scru128_string(),
         };
         carried
-            .append_with_id_async(&id.to_string(), &id_str, record)
+            .append_with_id(&id.to_string(), &id_str, record)
             .await
             .expect("copy record");
     }

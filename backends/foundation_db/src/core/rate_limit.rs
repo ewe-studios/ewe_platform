@@ -2,7 +2,7 @@
 //!
 //! A key holds `(count, window_start)`. A window lasts `window_seconds`, a
 //! value the caller takes from its own configuration and passes to both
-//! `check_rate_limit_async` and `record_rate_limit_async`. Once
+//! `check_rate_limit` and `record_rate_limit`. Once
 //! `now - window_start >= window_seconds` the window has elapsed: a check
 //! allows the key again, and the next record starts a new window (count 1,
 //! `window_start = now`). Inside the window a record only increments the count
@@ -78,7 +78,7 @@ impl RateLimitEntry {
     }
 }
 
-/// `check_rate_limit_async` for any SQL store.
+/// `check_rate_limit` for any SQL store.
 ///
 /// # Errors
 ///
@@ -89,7 +89,7 @@ pub(crate) async fn sql_check<Q: QueryStore + ?Sized>(
     max_count: u32,
     window_seconds: u64,
 ) -> StorageResult<bool> {
-    store.execute_batch_async(CREATE_TABLE_SQL).await?;
+    store.execute_batch(CREATE_TABLE_SQL).await?;
     let now = unix_now_secs()?;
     match sql_entry(store, key).await? {
         Some(entry) => Ok(entry.allows(max_count, now, window_seconds)),
@@ -97,7 +97,7 @@ pub(crate) async fn sql_check<Q: QueryStore + ?Sized>(
     }
 }
 
-/// `record_rate_limit_async` for any SQL store: one upsert, then a read of
+/// `record_rate_limit` for any SQL store: one upsert, then a read of
 /// the resulting count.
 ///
 /// # Errors
@@ -108,13 +108,13 @@ pub(crate) async fn sql_record<Q: QueryStore + ?Sized>(
     key: &str,
     window_seconds: u64,
 ) -> StorageResult<u32> {
-    store.execute_batch_async(CREATE_TABLE_SQL).await?;
+    store.execute_batch(CREATE_TABLE_SQL).await?;
     let now = unix_now_secs()?;
     let cutoff = to_i64(window_cutoff(now, window_seconds))?;
     let window_end = to_i64(now.saturating_add(window_seconds))?;
     let now = to_i64(now)?;
     store
-        .execute_async(
+        .execute(
             RECORD_SQL,
             &[
                 DataValue::Text(key.to_string()),
@@ -133,21 +133,21 @@ pub(crate) async fn sql_record<Q: QueryStore + ?Sized>(
     Ok(entry.count)
 }
 
-/// `reset_rate_limit_async` for any SQL store.
+/// `reset_rate_limit` for any SQL store.
 ///
 /// # Errors
 ///
 /// Returns an error if the query fails.
 pub(crate) async fn sql_reset<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> StorageResult<()> {
-    store.execute_batch_async(CREATE_TABLE_SQL).await?;
+    store.execute_batch(CREATE_TABLE_SQL).await?;
     store
-        .execute_async("DELETE FROM rate_limits WHERE key = ?", &[DataValue::Text(key.to_string())])
+        .execute("DELETE FROM rate_limits WHERE key = ?", &[DataValue::Text(key.to_string())])
         .await?;
     Ok(())
 }
 
 async fn sql_entry<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> StorageResult<Option<RateLimitEntry>> {
-    let mut rows = store.query_async(SELECT_SQL, &[DataValue::Text(key.to_string())]).await?;
+    let mut rows = store.query(SELECT_SQL, &[DataValue::Text(key.to_string())]).await?;
     let Some(row) = rows.next().await else {
         return Ok(None);
     };

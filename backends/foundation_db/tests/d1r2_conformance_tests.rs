@@ -52,15 +52,15 @@ fn blob_key(collection: &str, doc_id: &str) -> String {
 fn append_orders_by_scru128_and_counts() {
     let (store, _blobs) = make_store();
     futures_lite::future::block_on(async {
-        let a = store.append_async("k", serde_json::json!({"n": 0})).await.unwrap();
-        let b = store.append_async("k", serde_json::json!({"n": 1})).await.unwrap();
-        let c = store.append_async("k", serde_json::json!({"n": 2})).await.unwrap();
+        let a = store.append("k", serde_json::json!({"n": 0})).await.unwrap();
+        let b = store.append("k", serde_json::json!({"n": 1})).await.unwrap();
+        let c = store.append("k", serde_json::json!({"n": 2})).await.unwrap();
         assert_eq!(a.id.len(), 25, "scru128 id");
         assert!(b.id > a.id && c.id > b.id, "appends produce ascending scru128 ids");
-        assert_eq!(store.count_async("k").await.unwrap(), 3);
+        assert_eq!(store.count("k").await.unwrap(), 3);
 
-        // scan_documents_async returns newest-first (DESC).
-        let docs = store.scan_documents_async("k", 10).await.unwrap();
+        // scan_documents returns newest-first (DESC).
+        let docs = store.scan_documents("k", 10).await.unwrap();
         let ids: Vec<&str> = docs.iter().map(|d| d.id.as_str()).collect();
         assert_eq!(ids, vec![c.id.as_str(), b.id.as_str(), a.id.as_str()]);
     });
@@ -70,12 +70,12 @@ fn append_orders_by_scru128_and_counts() {
 fn scan_from_is_inclusive_and_ascending() {
     let (store, _blobs) = make_store();
     futures_lite::future::block_on(async {
-        let _a = store.append_async("k", serde_json::json!({"n": 0})).await.unwrap();
-        let b = store.append_async("k", serde_json::json!({"n": 1})).await.unwrap();
-        let _c = store.append_async("k", serde_json::json!({"n": 2})).await.unwrap();
+        let _a = store.append("k", serde_json::json!({"n": 0})).await.unwrap();
+        let b = store.append("k", serde_json::json!({"n": 1})).await.unwrap();
+        let _c = store.append("k", serde_json::json!({"n": 2})).await.unwrap();
 
         let from_b: Vec<serde_json::Value> = store
-            .scan_from_async::<serde_json::Value>("k", &b.id, 0)
+            .scan_from::<serde_json::Value>("k", &b.id, 0)
             .await
             .unwrap()
             .map(Result::unwrap)
@@ -92,16 +92,16 @@ fn small_documents_stay_inline_no_offload() {
     let (store, blobs) = make_store();
     futures_lite::future::block_on(async {
         let doc = store
-            .append_async("k", serde_json::json!({"body": "x".repeat(16)}))
+            .append("k", serde_json::json!({"body": "x".repeat(16)}))
             .await
             .unwrap();
         // Below the 4 KB threshold → no blob written.
         assert!(
-            !blobs.blob_exists_async(&blob_key("k", &doc.id)).await.unwrap(),
+            !blobs.blob_exists(&blob_key("k", &doc.id)).await.unwrap(),
             "small doc must not offload to the blob store"
         );
         let back: Vec<serde_json::Value> = store
-            .scan_all_async::<serde_json::Value>("k")
+            .scan_all::<serde_json::Value>("k")
             .await
             .unwrap()
             .map(Result::unwrap)
@@ -118,21 +118,21 @@ fn large_documents_offload_and_read_through() {
     futures_lite::future::block_on(async {
         let body = "y".repeat(8192); // > 4 KB → offload
         let doc = store
-            .append_async("k", serde_json::json!({"tag": "big", "body": body.clone()}))
+            .append("k", serde_json::json!({"tag": "big", "body": body.clone()}))
             .await
             .unwrap();
 
         // The blob landed in the blob store under the expected key.
         let key = blob_key("k", &doc.id);
         assert!(
-            blobs.blob_exists_async(&key).await.unwrap(),
+            blobs.blob_exists(&key).await.unwrap(),
             "large doc must offload to the blob store"
         );
 
         // Transparent read-through: the full content comes back via scan despite
         // the SQL row holding only a placeholder.
         let back: Vec<serde_json::Value> = store
-            .scan_all_async::<serde_json::Value>("k")
+            .scan_all::<serde_json::Value>("k")
             .await
             .unwrap()
             .map(Result::unwrap)
@@ -148,18 +148,18 @@ fn large_documents_offload_and_read_through() {
 fn mixed_inline_and_offloaded_round_trip_in_order() {
     let (store, blobs) = make_store();
     futures_lite::future::block_on(async {
-        let small = store.append_async("k", serde_json::json!({"i": 0, "b": "s"})).await.unwrap();
+        let small = store.append("k", serde_json::json!({"i": 0, "b": "s"})).await.unwrap();
         let big = store
-            .append_async("k", serde_json::json!({"i": 1, "b": "L".repeat(5000)}))
+            .append("k", serde_json::json!({"i": 1, "b": "L".repeat(5000)}))
             .await
             .unwrap();
 
-        assert!(!blobs.blob_exists_async(&blob_key("k", &small.id)).await.unwrap());
-        assert!(blobs.blob_exists_async(&blob_key("k", &big.id)).await.unwrap());
+        assert!(!blobs.blob_exists(&blob_key("k", &small.id)).await.unwrap());
+        assert!(blobs.blob_exists(&blob_key("k", &big.id)).await.unwrap());
 
         // Ascending scan_from over both — inline + read-through interleave cleanly.
         let all: Vec<serde_json::Value> = store
-            .scan_from_async::<serde_json::Value>("k", &small.id, 0)
+            .scan_from::<serde_json::Value>("k", &small.id, 0)
             .await
             .unwrap()
             .map(Result::unwrap)
@@ -177,16 +177,16 @@ fn delete_removes_row_and_offloaded_blob() {
     let (store, blobs) = make_store();
     futures_lite::future::block_on(async {
         let doc = store
-            .append_async("k", serde_json::json!({"body": "z".repeat(8192)}))
+            .append("k", serde_json::json!({"body": "z".repeat(8192)}))
             .await
             .unwrap();
         let key = blob_key("k", &doc.id);
-        assert!(blobs.blob_exists_async(&key).await.unwrap());
+        assert!(blobs.blob_exists(&key).await.unwrap());
 
-        store.delete_async("k", &doc.id).await.unwrap();
-        assert_eq!(store.count_async("k").await.unwrap(), 0);
+        store.delete("k", &doc.id).await.unwrap();
+        assert_eq!(store.count("k").await.unwrap(), 0);
         assert!(
-            !blobs.blob_exists_async(&key).await.unwrap(),
+            !blobs.blob_exists(&key).await.unwrap(),
             "delete must remove the offloaded blob"
         );
     });
@@ -196,15 +196,15 @@ fn delete_removes_row_and_offloaded_blob() {
 fn delete_all_clears_collection_and_blobs() {
     let (store, blobs) = make_store();
     futures_lite::future::block_on(async {
-        let d0 = store.append_async("k", serde_json::json!({"b": "a".repeat(6000)})).await.unwrap();
-        let d1 = store.append_async("k", serde_json::json!({"b": "b".repeat(6000)})).await.unwrap();
-        store.append_async("other", serde_json::json!({"b": "keep"})).await.unwrap();
+        let d0 = store.append("k", serde_json::json!({"b": "a".repeat(6000)})).await.unwrap();
+        let d1 = store.append("k", serde_json::json!({"b": "b".repeat(6000)})).await.unwrap();
+        store.append("other", serde_json::json!({"b": "keep"})).await.unwrap();
 
-        let removed = store.delete_all_async("k").await.unwrap();
+        let removed = store.delete_all("k").await.unwrap();
         assert_eq!(removed, 2);
-        assert_eq!(store.count_async("k").await.unwrap(), 0);
-        assert_eq!(store.count_async("other").await.unwrap(), 1, "other collection untouched");
-        assert!(!blobs.blob_exists_async(&blob_key("k", &d0.id)).await.unwrap());
-        assert!(!blobs.blob_exists_async(&blob_key("k", &d1.id)).await.unwrap());
+        assert_eq!(store.count("k").await.unwrap(), 0);
+        assert_eq!(store.count("other").await.unwrap(), 1, "other collection untouched");
+        assert!(!blobs.blob_exists(&blob_key("k", &d0.id)).await.unwrap());
+        assert!(!blobs.blob_exists(&blob_key("k", &d1.id)).await.unwrap());
     });
 }

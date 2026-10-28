@@ -199,7 +199,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
             .map_err(|e| ProviderServiceError::Parse(e.to_string()))?;
 
         self.query_store
-            .execute_async(
+            .execute(
                 "INSERT INTO upstream_providers \
                  (id, name, provider_type, client_id, client_secret_ciphertext, encryption_key_id, \
                   authorization_url, token_url, userinfo_url, discovery_url, scopes, is_active, \
@@ -236,7 +236,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     pub async fn find_by_id(&self, id: &str) -> Result<Option<UpstreamProvider>> {
         let stream = self
             .query_store
-            .query_async(
+            .query(
                 "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
                  encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
                  scopes, is_active, mapping_config, created_at, updated_at \
@@ -258,7 +258,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     ///
     /// `Storage` on query failure, `Parse` if a row can't be decoded.
     pub async fn find_active(&self) -> Result<Vec<UpstreamProvider>> {
-        let stream = self.query_store.query_async(
+        let stream = self.query_store.query(
             "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
              encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
              scopes, is_active, mapping_config, created_at, updated_at \
@@ -274,7 +274,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     ///
     /// `Storage` on query failure, `Parse` if a row can't be decoded.
     pub async fn list_all(&self) -> Result<Vec<UpstreamProvider>> {
-        let stream = self.query_store.query_async(
+        let stream = self.query_store.query(
             "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
              encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
              scopes, is_active, mapping_config, created_at, updated_at \
@@ -347,7 +347,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
             .map_err(|e| ProviderServiceError::Parse(e.to_string()))?;
 
         self.query_store
-            .execute_async(
+            .execute(
                 "UPDATE upstream_providers SET name = ?, provider_type = ?, client_id = ?, \
                  authorization_url = ?, token_url = ?, userinfo_url = ?, discovery_url = ?, \
                  scopes = ?, is_active = ?, mapping_config = ?, updated_at = ? WHERE id = ?",
@@ -379,7 +379,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     /// `Storage` on failure.
     pub async fn delete(&self, id: &str) -> Result<()> {
         self.query_store
-            .execute_async(
+            .execute(
                 "DELETE FROM upstream_providers WHERE id = ?",
                 &[DataValue::Text(id.to_string())],
             )
@@ -401,7 +401,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
         }
         let ciphertext = self.crypto.encrypt(plaintext_secret.as_bytes())?;
         self.query_store
-            .execute_async(
+            .execute(
                 "UPDATE upstream_providers SET client_secret_ciphertext = ?, encryption_key_id = ?, \
                  updated_at = ? WHERE id = ?",
                 &[

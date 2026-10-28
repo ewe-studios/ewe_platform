@@ -13,11 +13,11 @@
 //!
 //! | Method | Request |
 //! |---|---|
-//! | `insert_async` | `POST /v2/namespaces/{ns}` with `upsert_rows` |
-//! | `delete_async` | `POST /v2/namespaces/{ns}` with `deletes` and `return_affected_ids` |
-//! | `search_async` | `POST /v2/namespaces/{ns}/query` with `rank_by: ["vector", "ANN", q]` |
-//! | `get_async` | `POST /v2/namespaces/{ns}/query` with `filters: ["id", "Eq", id]` |
-//! | `len_async` | `POST /v2/namespaces/{ns}/query` with `aggregate_by: {"count": ["Count"]}` |
+//! | `insert` | `POST /v2/namespaces/{ns}` with `upsert_rows` |
+//! | `delete` | `POST /v2/namespaces/{ns}` with `deletes` and `return_affected_ids` |
+//! | `search` | `POST /v2/namespaces/{ns}/query` with `rank_by: ["vector", "ANN", q]` |
+//! | `get` | `POST /v2/namespaces/{ns}/query` with `filters: ["id", "Eq", id]` |
+//! | `len` | `POST /v2/namespaces/{ns}/query` with `aggregate_by: {"count": ["Count"]}` |
 //!
 //! HOW: every request is built with [`PreparedRequestBuilder`] and goes
 //! through `HttpClient::send_async` on the [`DynNetClient`], so no method
@@ -352,7 +352,7 @@ struct UpsertRow<'a> {
 
 #[async_trait::async_trait]
 impl VectorStore for TurboPufferVectorStore {
-    async fn insert_async(
+    async fn insert(
         &self,
         namespace: &str,
         entry: VectorEntry,
@@ -372,7 +372,7 @@ impl VectorStore for TurboPufferVectorStore {
         }
     }
 
-    async fn delete_async(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
+    async fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
         let body = json!({ "deletes": [id], "return_affected_ids": true });
         let deleted = self
             .write(namespace, &body)
@@ -386,7 +386,7 @@ impl VectorStore for TurboPufferVectorStore {
         }
     }
 
-    async fn search_async(
+    async fn search(
         &self,
         namespace: &str,
         query: &[f32],
@@ -419,7 +419,7 @@ impl VectorStore for TurboPufferVectorStore {
             .collect()
     }
 
-    async fn get_async(
+    async fn get(
         &self,
         namespace: &str,
         id: &str,
@@ -451,7 +451,7 @@ impl VectorStore for TurboPufferVectorStore {
         }))
     }
 
-    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError> {
+    async fn len(&self, namespace: &str) -> Result<usize, VectorStoreError> {
         let body = json!({ "aggregate_by": { "count": ["Count"] } });
         let Some(resp) = self.query(namespace, &body).await? else {
             return Ok(0);

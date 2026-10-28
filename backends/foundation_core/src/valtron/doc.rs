@@ -885,177 +885,84 @@
 // | `sync_one(task)` | Execute + collect all results as `Result<Vec<T::Ready>>` |
 // | `sync_all(tasks)` | Execute all in parallel + collect all results |
 // 
-// ## simple_http + Valtron Integration
+// ## HTTP + Valtron Integration
 // 
-// When using `foundation_core::simple_http` with Valtron, follow the pattern from generated API clients:
+// HTTP callers hold a `foundation_netio::DynNetClient` (`Arc<dyn NetClient>`),
+// built with `HttpClientBuilder::new()…build()` (the native client on native
+// targets, the fetch client on wasm32) or injected through a `with_client`
+// constructor. Requests are built with `PreparedRequestBuilder`, never a
+// `PreparedRequest { .. }` literal. Reference:
+// `foundation_deployment_cloudflare/src/client.rs`.
 // 
-// ### Core Pattern: ClientRequestBuilder → SendRequestTask → StreamIterator
-// 
-// The correct pattern uses `ClientRequestBuilder`, `build_send_request()`, and `RequestIntro` handling:
+// ### Core Pattern: async all the way, valtron at the boundary
 // 
 // ```rust
-// use foundation_core::valtron::{execute, Stream};
-// use foundation_core::simple_http::client::SimpleHttpClient;
-// use foundation_core::simple_http::{RequestIntro, body_reader};
+// use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
+// use foundation_netio::shared::client::body_reader::{collect_bytes_async, AsyncSendSafeBody};
 // 
-// /// Single-value HTTP operation (blocking OK for auth/user info)
-// pub fn whoami(client: &SimpleHttpClient, token: &str) -> Result<User> {
-//     let client = client.clone();
-//     let token = token.to_string();
-//     let url = "https://huggingface.co/api/whoami-v2".to_string();
-//     
-//     // Start with ClientRequestBuilder
-//     let builder = client.get(&url)?
-//         .header("Authorization", format!("Bearer {}", token));
-//     
-//     // Build SendRequestTask and transform
-//     let task = builder
-//         .build_send_request()
-//         .map_err(|e| Error::RequestBuildFailed(e.to_string()))?
-//         .map_ready(|intro| match intro {
-//             RequestIntro::Success { stream, status } => {
-//                 let headers = status.headers().clone();
-//                 if !status.is_success() {
-//                     return Err(Error::HttpStatus {
-//                         code: status.as_u16(),
-//                         headers,
-//                     });
-//                 }
-//                 // Read body using body_reader helper
-//                 let body = body_reader::collect_string(stream);
-//                 // Parse JSON inside map_ready
-//                 let user: User = serde_json::from_str(&body)
-//                     .map_err(|e| Error::Json(e.to_string()))?;
-//                 Ok(user)
-//             }
-//             RequestIntro::Failed(e) => Err(Error::RequestSendFailed(e.to_string())),
-//         })
-//         .map_pending(|_| ());  // Discard progress info
-//     
-//     // Execute and collect single result
-//     let stream = execute(task, None)
-//         .map_err(|e| Error::Valtron(e.to_string()))?;
-//     
-//     // Use standard Iterator::find_map to extract first Next value
-//     stream.find_map(|s| match s {
-//         Stream::Next(result) => Some(result),
-//         _ => None,
-//     }).ok_or_else(|| Error::NoResult)
+// pub struct HubClient {
+//     http: DynNetClient,
+//     /// Most bytes of an error answer read for its message (default 64 KiB).
+//     max_error_body: usize,
 // }
-// ```
 // 
-// ### Multi-Value HTTP Operations (Return Stream)
+// impl HubClient {
+//     pub fn new() -> Self {
+//         Self::with_client(HttpClientBuilder::new().build())
+//     }
 // 
-// For listing endpoints, return a `StreamIterator` that yields individual items:
+//     pub fn with_client(http: DynNetClient) -> Self {
+//         Self { http, max_error_body: 64 * 1024 }
+//     }
 // 
-// ```rust
-// use foundation_core::valtron::{execute, Stream};
-// use foundation_core::simple_http::{RequestIntro, body_reader};
+//     pub async fn whoami(&self, token: &str) -> Result<User, Error> {
+//         let url = "https://huggingface.co/api/whoami-v2";
+//         let request = PreparedRequestBuilder::get(url)?
+//             .bearer_token(token)
+//             .build();
+//         let (status, _headers, body) = self.http.send_async(request).await?.into_parts();
 // 
-// pub type ApiStream<T> = Box<dyn Iterator<Item = Stream<Result<T, Error>, ()>> + Send>;
-// 
-// pub fn list_models(client: &SimpleHttpClient) -> Result<ApiStream<ModelInfo>> {
-//     let client = client.clone();
-//     let url = "https://huggingface.co/api/models".to_string();
-//     
-//     let builder = client.get(&url)?;
-//     
-//     let task = builder
-//         .build_send_request()
-//         .map_err(|e| Error::RequestBuildFailed(e.to_string()))?
-//         .map_ready(|intro| match intro {
-//             RequestIntro::Success { stream, status } => {
-//                 let headers = status.headers().clone();
-//                 if !status.is_success() {
-//                     return Err(Error::HttpStatus {
-//                         code: status.as_u16(),
-//                         headers,
-//                     });
-//                 }
-//                 let body = body_reader::collect_string(stream);
-//                 // Parse Vec<ModelInfo> from response
-//                 let models: Vec<ModelInfo> = serde_json::from_str(&body)
-//                     .map_err(|e| Error::Json(e.to_string()))?;
-//                 Ok(models)
-//             }
-//             RequestIntro::Failed(e) => Err(Error::RequestSendFailed(e.to_string())),
-//         })
-//         .map_pending(|_| ());
-//     
-//     let stream = execute(task, None)
-//         .map_err(|e| Error::Valtron(e.to_string()))?;
-//     
-//     // Expand Vec into individual stream items using flat_map_next
-//     Ok(Box::new(stream.flat_map_next(|result| {
-//         match result {
-//             Ok(models) => models.into_iter().map(|m| Stream::Next(Ok(m))).collect::<Vec<_>>().into_iter(),
-//             Err(e) => vec![Stream::Next(Err(e))].into_iter(),
+//         // Status first. On an error read at most a configured number of bytes
+//         // for the message (a limit on the client's config, never a const).
+//         let code: usize = status.into();
+//         if !(200..=299).contains(&code) {
+//             return Err(Error::Http { code, message: read_bounded(body, self.max_error_body).await });
 //         }
-//     })))
+//         // A small JSON answer needed for the next step may be read whole;
+//         // anything large is consumed as a stream.
+//         let bytes = collect_bytes_async(AsyncSendSafeBody::from(body)).await?;
+//         Ok(serde_json::from_slice(&bytes)?)
+//     }
 // }
+// 
+// // At a sync boundary (a test, `main`), drive the future with valtron:
+// // `valtron::execute(from_future(client.whoami(token)), None)` or `.block()`.
 // ```
 // 
-// ### Reference Implementation Pattern
+// ### Composing with valtron tasks
 // 
-// From `backends/foundation_deployment/src/providers/prisma_postgres/clients/mod.rs`:
-// 
-// ```rust
-// pub fn get_v1_compute_services_execute(
-//     builder: ClientRequestBuilder<SystemDnsResolver>,
-// ) -> Result<
-//     impl StreamIterator<D = Result<ApiResponse<T>, ApiError>, P = ApiPending> + Send + 'static,
-//     ApiError,
-// > {
-//     let task = builder
-//         .build_send_request()
-//         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-//         .map_ready(|intro| match intro {
-//             RequestIntro::Success { stream, intro, headers, .. } => {
-//                 let status_code: usize = intro.0.into();
-//                 if status_code < 200 || status_code >= 300 {
-//                     let body = body_reader::collect_string(stream);
-//                     return Err(ApiError::HttpStatus {
-//                         code: status_code as u16,
-//                         headers: headers.clone(),
-//                         body: Some(body),
-//                     });
-//                 }
-//                 let body = body_reader::collect_string(stream);
-//                 let parsed: T = serde_json::from_str(&body)
-//                     .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-//                 Ok(ApiResponse { status: status_code as u16, headers, body: parsed })
-//             }
-//             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-//         })
-//         .map_pending(|_| ApiPending::Sending);
-//     
-//     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-// }
-// ```
+// When a caller needs the exchange as a valtron `TaskIterator` (head, then body
+// chunks) instead of a future, ask the client for the task:
+// `self.http.open_exchange(request)` (or `PreparedRequestBuilder::send(client)`)
+// returns an `HttpExchangeClientTask` yielding `HttpExchange::{Head, BodyChunk,
+// Failed}`. Split it with `split_collect_until_map` / `split_collector_map` as
+// `foundation_connectrpc`'s `H1Transport` does; the task is not spawned until
+// the caller executes it.
 // 
 // ### Key Points
 // 
-// 1. **Start with `ClientRequestBuilder`** — `client.get(url)?` or `client.post(url)?`
-// 2. **Call `build_send_request()`** — Returns `SendRequestTask`
-// 3. **Transform with `map_ready()`** — Handle `RequestIntro::Success { stream, status }` and `RequestIntro::Failed(e)`
-// 4. **Check status code** — Return error if `!status.is_success()`
-// 5. **Read body with `body_reader::collect_string(stream)`** — Helper to consume response stream
-// 6. **Parse JSON inside `map_ready`** — Transform `String` body to your type
-// 7. **Apply `map_pending()`** — Usually `map_pending(|_| ())` to discard progress
-// 8. **Call `execute(task, None)`** — Returns `StreamIterator`
-// 9. **For single-value ops** — Use `.find_map()` or `collect_one()` to extract result
-// 10. **For multi-value ops** — Use `.flat_map_next()` to expand `Vec<T>` into stream items
+// 1. **Hold a `DynNetClient`**, built with `HttpClientBuilder` or injected; never
+//    name `NativeHttpClient` / `FetchHttpClient` outside `foundation_netio`
+//    unless a native-only setting needs it (a custom pool handover).
+// 2. **Build with `PreparedRequestBuilder`** (`get`/`post`/…, `header`,
+//    `bearer_token`, `body_json`, `body_bytes`).
+// 3. **`send_async` in async code**; the sync `send` only at a sync boundary on
+//    native (on wasm it errors: it cannot wait for `fetch`).
+// 4. **Check the status before the body**; bound the error-body read with a
+//    configured limit.
+// 5. **Stream large bodies** (`AsyncSendSafeBody`, `collect_bytes_into` to a
+//    file); read whole only small answers needed for the next step.
 // 
-// ### Pattern Comparison
-// 
-// | Old (Incorrect) | New (Correct) |
-// |-----------------|---------------|
-// | `from_future(async { client.execute(req) })` | `client.get(url)?.build_send_request()` |
-// | `response.body()?` | `RequestIntro::Success { stream, status }` |
-// | Manual status check after send | Status check inside `map_ready` |
-// | `SendSafeBody` parsing | `body_reader::collect_string(stream)` |
-// 
-// The new pattern aligns with how `SimpleHttpClient` is actually used in the codebase.
 // 
 // ## Decision Flowchart
 // 

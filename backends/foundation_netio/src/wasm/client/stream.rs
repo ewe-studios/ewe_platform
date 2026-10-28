@@ -24,11 +24,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 
-use crate::event_source::shared::sse::SseParser;
-use crate::event_source::{EventSourceError, ParseResult};
+use crate::event_source::ParseResult;
 use crate::shared::client::http_client::SseProgress;
-use crate::shared::client::queue_reader::QueueReader;
-use foundation_core::io::ioutils::SharedByteBufferStream;
+use crate::shared::client::queue_reader::QueueSseEvents;
 
 /// Spawn an async task that reads all chunks from a JS `ReadableStream`
 /// into the shared queue.
@@ -103,10 +101,7 @@ fn spawn_stream_reader(
 /// which pops chunks from the same queue. A separate `Arc<AtomicBool>`
 /// clone tracks whether the JS stream is fully consumed.
 pub struct WasmSseIterator {
-    parser: SseParser<QueueReader>,
-    done: Arc<AtomicBool>,
-    queue: Arc<ConcurrentQueue<Vec<u8>>>,
-    wake: Arc<WakeRegistry>,
+    events: QueueSseEvents,
     started: bool,
 }
 
@@ -118,15 +113,8 @@ impl WasmSseIterator {
 
         spawn_stream_reader(body, queue.clone(), done.clone(), wake.clone());
 
-        let reader = QueueReader::new(queue.clone(), done.clone());
-        let buffer = SharedByteBufferStream::ref_cell(reader);
-        let parser = SseParser::new(buffer);
-
         Self {
-            parser,
-            done,
-            queue,
-            wake,
+            events: QueueSseEvents::new(queue, done, wake),
             started: false,
         }
     }
@@ -138,13 +126,7 @@ unsafe impl Send for WasmSseIterator {}
 
 impl WakeableStream for WasmSseIterator {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
-        self.wake.register(cb);
-        // Register-then-check: if a chunk (or end of stream) is already waiting,
-        // no future push will fire the registry, so fire it now.
-        if !self.queue.is_empty() || self.done.load(Ordering::Acquire) {
-            self.wake.fire();
-        }
-        WakeResult::Successful
+        self.events.wake(cb)
     }
 }
 
@@ -156,34 +138,8 @@ impl Iterator for WasmSseIterator {
             self.started = true;
             return Some(Stream::Pending(SseProgress::Connecting));
         }
-
-        match self.parser.parse_next() {
-            Ok(Some(result)) => Some(Stream::Next(result)),
-            Ok(None) => {
-                if self.done.load(Ordering::Acquire) && self.queue.is_empty() {
-                    None
-                } else {
-                    Some(Stream::Wait)
-                }
-            }
-            Err(e) => {
-                // `WouldBlock` is the normal "no data yet" parking signal, not an
-                // error. Any other failure is a real read/parse error and must be
-                // visible in logs rather than silently swallowed as "wait".
-                let would_block = matches!(
-                    &e,
-                    EventSourceError::ReadError(err)
-                        if err.kind() == std::io::ErrorKind::WouldBlock
-                );
-                if !would_block {
-                    tracing::error!("SSE parse error: {e}");
-                }
-                if self.done.load(Ordering::Acquire) && self.queue.is_empty() {
-                    None
-                } else {
-                    Some(Stream::Wait)
-                }
-            }
-        }
+        // Parsing, parking and failing (a malformed feed ends the stream with
+        // `Pending(Failed)` then `None`) live in `QueueSseEvents`.
+        self.events.next()
     }
 }

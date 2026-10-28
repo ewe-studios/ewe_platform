@@ -1,8 +1,8 @@
 # Spec 50 Progress: Valtron Async Readiness
 
-_Updated: 2026-10-22 (F05 T2)_
+_Updated: 2026-10-27 (F05 T3)_
 
-## Status: storage layer async-only (#134 merged); F05 T1 (vector stores) merged (#136); F05 T2 (VFS) done on `nativeapis/async-vfs` (`TursoDelta` deleted; rebuild is #142); F05 T3–T4 and F02 open
+## Status: storage layer async-only (#134 merged); F05 T1 (vector stores) merged (#136); F05 T2 (VFS) merged (#152; `TursoDelta` deleted, rebuild is #142); F05 T3 (method suffixes) done on `db/drop-async-suffixes`; F05 T4 and F02 open
 
 ## The async-storage stream (overall plan and status)
 
@@ -229,9 +229,18 @@ Mechanical, names only. 129 files.
 | Bugs fixed | `..` paths in `NativeFs`; directory-handle root escape; sentinel leak in `DirectoryDelta` subdirectories; dangling layer pointers in `OverlayDirectory`; overlay `create_file` in a base-only directory; NFS `remove` / `rename` ignored the directory; absolute paths on remote directory handles; `ClientTransport` request/response race; `vfs-sqlite` did not compile. |
 | Checks | See `features/05-remaining-sync-twins/feature.md` section 6. |
 
+### Feature 05 task T3: drop the `_async` method suffixes (branch `db/drop-async-suffixes`)
+
+| Item | Detail |
+|---|---|
+| Renamed | Every method of `QueryStore`, `KeyValueStore`, `BlobStore`, `RateLimiterStore`, `DocumentStore`, `PasskeyStore`, `TosStore`, `AuthStore` (`foundation_db`), `VectorStore` (`foundation_vectors`), `CredentialStore` (`foundation_auth`) and `MemoryStore` (`foundation_ai`) lost `_async` (`get_async` → `get`, `query_async` → `query`, ...). |
+| Not renamed | The async VFS traits: they keep a sync twin with the plain names (decision 1), so the suffix still tells the two faces apart. Inherent `*_async` methods (the wasm stores' mirrors, `MemoryCoordinator`) are not trait methods; both are in the backlog. |
+| Clashes | `D1Store` / `LibsqlStore` implement `KeyValueStore` and `StateStore` (`get` / `set` / `delete`): a call with both in scope is a compile error, none exists. The wasm stores' inherent `*_async` mirrors no longer share a name with the trait methods; no call changed target. Full table: feature file section 7. |
+| Checks | Workspace, feature, wasm32 and `cf-login-app` builds: pass. See `features/05-remaining-sync-twins/feature.md` section 7. |
+
 ## Next
 
-1. Review and merge the F05 T2 pull request (`nativeapis/async-vfs`). `TursoDelta` rebuild: #142.
-2. Feature 05 task T3 (drop the `_async` method suffixes).
+1. Review and merge the F05 T3 pull request (`db/drop-async-suffixes`). `TursoDelta` rebuild: #142.
+2. F05 T4 (records) closes with T3; then mark F05 done.
 3. Then spec 65 feature 07 (agent-rpc), task T0.
 4. F02 (readiness-source seam) and the F01/F03 front matter.

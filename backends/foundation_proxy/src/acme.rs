@@ -12,17 +12,13 @@
 
 use std::sync::Arc;
 
-use bytes::Bytes;
-use foundation_netio::shared::client::body_reader::{collect_bytes_from_send_safe, collect_strings_from_send_safe};
-use foundation_netio::shared::http::{
-    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
-};
-use foundation_netio::shared::client::SystemDnsResolver;
-use foundation_netio::http::{ClientRequestBuilder, NativeHttpClient};
+use foundation_netio::shared::client::body_reader::{collect_bytes_async, AsyncSendSafeBody};
+use foundation_netio::shared::client::request::PreparedRequest;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders};
+use foundation_netio::{DynNetClient, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::config::ProxyError;
 
 // ── Constants ──────────────────────────────────────────────────────────
 
@@ -109,8 +105,10 @@ struct FinalizeRequest {
 
 /// Build a JWS Flattened JSON object for ACME API authentication.
 /// `url` is the ACME endpoint, `nonce` from Replay-Nonce header,
-/// `payload` is the base64url-encoded request body.
-fn build_jws(
+/// `payload` is the request body as JSON text (empty for POST-as-GET); this
+/// encodes it as base64url.
+#[must_use]
+pub fn build_jws(
     url: &str,
     nonce: &str,
     payload: &str,
@@ -151,16 +149,24 @@ fn build_jws(
     })
 }
 
-fn base64_url(input: &str) -> String {
+#[must_use]
+pub fn base64_url(input: &str) -> String {
     use base64::Engine;
     base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(input.as_bytes())
 }
 
 // ── ACME Client ─────────────────────────────────────────────────────────
 
+/// Default for [`AcmeClient::with_max_error_body`]: 64 KiB, the amount Go
+/// `net/http` drains from a response body it discards.
+pub const DEFAULT_MAX_ERROR_BODY: usize = 64 * 1024;
+
 /// ACME certificate provisioning client using the proxy's shared HTTP client.
 pub struct AcmeClient {
-    client: Arc<NativeHttpClient<SystemDnsResolver>>,
+    client: DynNetClient,
+    /// Most bytes of an error answer read for its message (see
+    /// [`Self::with_max_error_body`]).
+    max_error_body: usize,
     directory_url: String,
     key_id: Option<String>,
     jwk: Option<serde_json::Value>,
@@ -173,9 +179,10 @@ pub struct AcmeClient {
 
 impl AcmeClient {
     /// Create a client targeting Let's Encrypt production.
-    pub fn production(client: Arc<NativeHttpClient<SystemDnsResolver>>) -> Self {
+    pub fn production(client: DynNetClient) -> Self {
         Self {
             client,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
             directory_url: ACME_PRODUCTION.to_string(),
             key_id: None,
             jwk: None,
@@ -186,9 +193,10 @@ impl AcmeClient {
     }
 
     /// Create a client targeting Let's Encrypt staging (for testing).
-    pub fn staging(client: Arc<NativeHttpClient<SystemDnsResolver>>) -> Self {
+    pub fn staging(client: DynNetClient) -> Self {
         Self {
             client,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
             directory_url: ACME_STAGING.to_string(),
             key_id: None,
             jwk: None,
@@ -202,11 +210,12 @@ impl AcmeClient {
     /// ACME CA, or a local test server such as Pebble / the mock in the F15
     /// integration test).
     pub fn with_directory(
-        client: Arc<NativeHttpClient<SystemDnsResolver>>,
+        client: DynNetClient,
         directory_url: impl Into<String>,
     ) -> Self {
         Self {
             client,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
             directory_url: directory_url.into(),
             key_id: None,
             jwk: None,
@@ -262,7 +271,6 @@ impl AcmeClient {
         })
         .map_err(|e| format!("serialize account: {e}"))?;
 
-        let payload_b64 = base64_url(&payload);
         let jws = build_jws(&dir.new_account, &nonce, &payload, None, self.jwk.as_ref());
 
         let signed = self.sign_jws(&jws)?;
@@ -297,7 +305,6 @@ impl AcmeClient {
 
         let payload = serde_json::to_string(&NewOrderRequest { identifiers })
             .map_err(|e| format!("serialize order: {e}"))?;
-        let payload_b64 = base64_url(&payload);
         let jws = build_jws(
             &dir.new_order,
             &nonce,
@@ -363,7 +370,6 @@ impl AcmeClient {
         );
         let payload = serde_json::to_string(&FinalizeRequest { csr: csr_b64 })
             .map_err(|e| format!("serialize finalize: {e}"))?;
-        let payload_b64 = base64_url(&payload);
         let jws = build_jws(
             finalize_url,
             &nonce,
@@ -442,26 +448,19 @@ impl AcmeClient {
     }
 
     /// Post JSON and return raw bytes (for certificate download).
-    async fn post_json_raw(
-        &self,
-        url: &str,
-        body: &Value,
-    ) -> Result<Vec<u8>, String> {
-        let json = serde_json::to_vec(body).map_err(|e| format!("serialize: {e}"))?;
-        let mut headers = SimpleHeaders::new();
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/jose+json".to_string()]);
+    async fn post_json_raw(&self, url: &str, body: &Value) -> Result<Vec<u8>, String> {
+        let request = jose_post(url, body)?;
+        let (_, body) = self.send(url, request).await?;
+        read_all(url, body).await
+    }
 
-        let builder = ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::POST, url)
-            .map_err(|e| format!("build POST {url}: {e}"))?
-            .headers(headers)
-            .body(SendSafeBody::Bytes(json));
-
-        let request = self.client.request(builder)
-            .map_err(|e| format!("request {url}: {e}"))?;
-        let response = request.send()
-            .map_err(|e| format!("send {url}: {e}"))?;
-        let (_status, _headers, resp_body, _pool, _conn) = response.into_parts();
-        Ok(collect_bytes_from_send_safe(resp_body))
+    /// Read at most `bytes` of an error answer (a non-2xx status) for the
+    /// error message; the rest is never read. Default
+    /// [`DEFAULT_MAX_ERROR_BODY`].
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     /// Compute the DNS-01 TXT record value.
@@ -488,14 +487,10 @@ impl AcmeClient {
 
     async fn fetch_nonce(&self, new_nonce_url: &str) -> Result<String, String> {
         // RFC 8555 §7.2: HEAD to newNonce endpoint, nonce in Replay-Nonce header.
-        let builder = ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::HEAD, new_nonce_url)
-            .map_err(|e| format!("build HEAD {new_nonce_url}: {e}"))?;
-
-        let request = self.client.request(builder)
-            .map_err(|e| format!("request nonce {new_nonce_url}: {e}"))?;
-        let response = request.send()
-            .map_err(|e| format!("send nonce request: {e}"))?;
-        let (_status, headers, _body, _pool, _conn) = response.into_parts();
+        let request = PreparedRequestBuilder::head(new_nonce_url)
+            .map_err(|e| format!("build HEAD {new_nonce_url}: {e}"))?
+            .build();
+        let (headers, _body) = self.send(new_nonce_url, request).await?;
 
         let nonce_key = SimpleHeader::custom("replay-nonce");
         headers
@@ -511,37 +506,24 @@ impl AcmeClient {
     }
 
     async fn get_json(&self, url: &str) -> Result<Value, String> {
-        let builder = ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::GET, url)
-            .map_err(|e| format!("build GET {url}: {e}"))?;
-
-        let request = self.client.request(builder)
-            .map_err(|e| format!("request {url}: {e}"))?;
-        let response = request.send()
-            .map_err(|e| format!("send {url}: {e}"))?;
-        let (_status, _headers, body, _pool, _conn) = response.into_parts();
-        let text = collect_strings_from_send_safe(body)
-            .map_err(|e| format!("read body from {url}: {e}"))?;
-        serde_json::from_str(&text).map_err(|e| format!("parse JSON from {url}: {e}"))
+        let request = PreparedRequestBuilder::get(url)
+            .map_err(|e| format!("build GET {url}: {e}"))?
+            .build();
+        let (_, body) = self.send(url, request).await?;
+        let bytes = read_all(url, body).await?;
+        serde_json::from_slice(&bytes).map_err(|e| format!("parse JSON from {url}: {e}"))
     }
 
+    /// POST a JWS and parse the JSON answer. An empty answer (a POST that
+    /// only acknowledges, such as a challenge response) gives `{}`.
     async fn post_json(&self, url: &str, body: &Value, _expect_json: bool) -> Result<Value, String> {
-        let json = serde_json::to_vec(body).map_err(|e| format!("serialize: {e}"))?;
-        let mut headers = SimpleHeaders::new();
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/jose+json".to_string()]);
-
-        let builder = ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::POST, url)
-            .map_err(|e| format!("build POST {url}: {e}"))?
-            .headers(headers)
-            .body(SendSafeBody::Bytes(json));
-
-        let request = self.client.request(builder)
-            .map_err(|e| format!("request {url}: {e}"))?;
-        let response = request.send()
-            .map_err(|e| format!("send {url}: {e}"))?;
-        let (_status, _headers, resp_body, _pool, _conn) = response.into_parts();
-        let text = collect_strings_from_send_safe(resp_body)
-            .map_err(|e| format!("read body from {url}: {e}"))?;
-        Ok(serde_json::from_str(&text).unwrap_or_else(|_| serde_json::json!({})))
+        let request = jose_post(url, body)?;
+        let (_, body) = self.send(url, request).await?;
+        let bytes = read_all(url, body).await?;
+        if bytes.iter().all(u8::is_ascii_whitespace) {
+            return Ok(serde_json::json!({}));
+        }
+        serde_json::from_slice(&bytes).map_err(|e| format!("parse JSON from {url}: {e}"))
     }
 
     async fn post_json_typed<T: serde::de::DeserializeOwned>(
@@ -550,23 +532,31 @@ impl AcmeClient {
         body: &Value,
         _expect_json: bool,
     ) -> Result<T, String> {
-        let json = serde_json::to_vec(body).map_err(|e| format!("serialize: {e}"))?;
-        let mut headers = SimpleHeaders::new();
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/jose+json".to_string()]);
+        let request = jose_post(url, body)?;
+        let (_, body) = self.send(url, request).await?;
+        let bytes = read_all(url, body).await?;
+        serde_json::from_slice(&bytes).map_err(|e| format!("parse JSON from {url}: {e}"))
+    }
 
-        let builder = ClientRequestBuilder::<SystemDnsResolver>::new(SimpleMethod::POST, url)
-            .map_err(|e| format!("build POST {url}: {e}"))?
-            .headers(headers)
-            .body(SendSafeBody::Bytes(json));
-
-        let request = self.client.request(builder)
-            .map_err(|e| format!("request {url}: {e}"))?;
-        let response = request.send()
+    /// Send `request`; an error unless the status is 2xx. The body of an
+    /// error answer is read only up to `max_error_body`, for the message.
+    async fn send(
+        &self,
+        url: &str,
+        request: PreparedRequest,
+    ) -> Result<(SimpleHeaders, SendSafeBody), String> {
+        let response = self
+            .client
+            .send_async(request)
+            .await
             .map_err(|e| format!("send {url}: {e}"))?;
-        let (_status, _headers, resp_body, _pool, _conn) = response.into_parts();
-        let text = collect_strings_from_send_safe(resp_body)
-            .map_err(|e| format!("read body from {url}: {e}"))?;
-        serde_json::from_str(&text).map_err(|e| format!("parse JSON: {e}"))
+        let (status, headers, body) = response.into_parts();
+        let code: usize = status.into();
+        if !(200..=299).contains(&code) {
+            let message = read_bounded(body, self.max_error_body).await;
+            return Err(format!("HTTP {code} from {url}: {message}"));
+        }
+        Ok((headers, body))
     }
 
     async fn get_authorization_domain(&self, auth_url: &str) -> Result<String, String> {
@@ -591,75 +581,47 @@ impl AcmeClient {
 
 // ── Tests ──────────────────────────────────────────────────────────────
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn dns01_value_is_deterministic() {
-        let a = AcmeClient::dns01_value("tok1", "thumb1");
-        let b = AcmeClient::dns01_value("tok1", "thumb1");
-        assert_eq!(a, b);
-    }
+/// A `POST` of `body` as `application/jose+json` (RFC 8555 §6.2).
+fn jose_post(url: &str, body: &Value) -> Result<PreparedRequest, String> {
+    let json = serde_json::to_vec(body).map_err(|e| format!("serialize: {e}"))?;
+    Ok(PreparedRequestBuilder::post(url)
+        .map_err(|e| format!("build POST {url}: {e}"))?
+        .header(SimpleHeader::CONTENT_TYPE, "application/jose+json")
+        .body_bytes(json)
+        .build())
+}
 
-    #[test]
-    fn dns01_value_is_base64url() {
-        let val = AcmeClient::dns01_value("test-token", "thumb");
-        assert!(!val.contains('+'));
-        assert!(!val.contains('/'));
-        assert!(!val.contains('='));
-    }
+/// Read a 2xx body whole: ACME answers are small JSON documents or a PEM
+/// chain that the next step of the flow needs entire.
+async fn read_all(url: &str, body: SendSafeBody) -> Result<Vec<u8>, String> {
+    collect_bytes_async(AsyncSendSafeBody::from(body))
+        .await
+        .map_err(|e| format!("read body from {url}: {e}"))
+}
 
-    #[test]
-    fn dns01_different_inputs_yield_different_outputs() {
-        let a = AcmeClient::dns01_value("tok1", "thumb1");
-        let b = AcmeClient::dns01_value("tok2", "thumb1");
-        assert_ne!(a, b);
-    }
+/// Read at most `limit` bytes of an error body as lossy UTF-8.
+async fn read_bounded(body: SendSafeBody, limit: usize) -> String {
+    use futures_lite::StreamExt;
 
-    #[test]
-    fn base64_url_encodes_correctly() {
-        let encoded = base64_url("test");
-        assert!(!encoded.is_empty());
-        assert!(!encoded.contains('='));
-    }
-
-    #[test]
-    fn base64_url_no_padding() {
-        // Base64 URL-safe with no padding: every output should be padding-free
-        for input in &["a", "ab", "abc", "abcd", "abcde"] {
-            let encoded = base64_url(input);
-            assert!(!encoded.contains('='), "input '{input}' produced '{encoded}' with padding");
+    let mut stream = AsyncSendSafeBody::from(body);
+    let mut buf = Vec::new();
+    while let Some(next) = stream.next().await {
+        match next {
+            Ok(chunk) => {
+                let room = limit - buf.len();
+                if chunk.len() > room {
+                    buf.extend_from_slice(&chunk[..room]);
+                    buf.extend_from_slice(b" (truncated)");
+                    break;
+                }
+                buf.extend_from_slice(&chunk);
+            }
+            Err(e) => {
+                buf.extend_from_slice(format!(" (body read error: {e})").as_bytes());
+                break;
+            }
         }
     }
-
-    #[test]
-    fn build_jws_protected_payload() {
-        let jwk = serde_json::json!({"kty": "EC", "crv": "P-256"});
-        let jws = build_jws(
-            "https://acme.example.com/newAccount",
-            "abc123",
-            "eyJ0ZXN0IjogdHJ1ZX0",
-            None,
-            Some(&jwk),
-        );
-        let protected = jws["protected"].as_str().unwrap();
-        let payload = jws["payload"].as_str().unwrap();
-        let sig = jws["signature"].as_str().unwrap();
-        assert!(protected.len() > 0, "protected should be non-empty base64url");
-        assert!(payload.len() > 0, "payload should be non-empty base64url");
-        assert!(sig.is_empty(), "signature should be empty before signing");
-        assert!(!protected.contains('='), "base64url should not have padding");
-        assert!(!payload.contains('='), "base64url should not have padding");
-    }
-
-    #[test]
-    fn account_thumbprint_is_stable() {
-        let jwk = r#"{"kty":"EC","crv":"P-256","x":"test","y":"test"}"#;
-        let a = AcmeClient::account_thumbprint(jwk);
-        let b = AcmeClient::account_thumbprint(jwk);
-        assert_eq!(a, b);
-        assert!(!a.contains('='));
-        assert!(!a.contains('+'));
-    }
+    String::from_utf8_lossy(&buf).into_owned()
 }

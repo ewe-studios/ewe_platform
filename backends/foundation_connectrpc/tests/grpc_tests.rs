@@ -62,6 +62,11 @@ const UNARY: &str = "/t.Svc/Unary";
 const SERVER_STREAM: &str = "/t.Svc/ServerStream";
 const CLIENT_STREAM: &str = "/t.Svc/ClientStream";
 const BIDI: &str = "/t.Svc/Bidi";
+/// Sends one message, then nothing until the call is cancelled.
+const ENDLESS: &str = "/t.Svc/Endless";
+
+/// The server-side `Ctx` of the last `ENDLESS` call.
+static ENDLESS_CTX: std::sync::Mutex<Option<Ctx>> = std::sync::Mutex::new(None);
 
 fn codecs() -> ProcedureCodecs<Msg, Msg> {
     ProcedureCodecs::<Msg, Msg>::of((JsonCodec,))
@@ -104,6 +109,17 @@ fn build_router() -> Router {
         HandlerOptions::new(),
     );
 
+    router.server_stream(
+        ENDLESS,
+        codecs(),
+        |ctx: Ctx, _req: Request<Msg>| async move {
+            *ENDLESS_CTX.lock().unwrap() = Some(ctx);
+            let first: Vec<ConnectResult<Msg>> = vec![Ok(Msg::of("first"))];
+            Ok(futures::stream::iter(first).chain(futures::stream::pending()))
+        },
+        HandlerOptions::new(),
+    );
+
     router.bidi_stream(
         BIDI,
         codecs(),
@@ -125,6 +141,7 @@ fn start_h2_server() -> (String, Arc<OnSignal>) {
     app.route_any_h2(UNARY, rpc.clone());
     app.route_any_h2(SERVER_STREAM, rpc.clone());
     app.route_any_h2(CLIENT_STREAM, rpc.clone());
+    app.route_any_h2(ENDLESS, rpc.clone());
     app.route_any_h2(BIDI, rpc);
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
@@ -739,3 +756,44 @@ async fn grpc_error_trailers_readable_from_response() {
 
     shutdown.turn_on();
 }
+
+/// Cancelling a call's `Ctx` on the client tells the server: the client's
+/// stream tasks end, the transport resets the h2 stream, and the server
+/// cancels the handler's `Ctx`. Before, `cancel()` only stopped the local
+/// receiver and kept the stream open, so the server streamed on into a peer
+/// that had given up, until the caller dropped the stream.
+#[valtron_test]
+async fn client_cancel_resets_the_stream_on_the_server() {
+    let (addr, shutdown) = start_h2_server();
+    *ENDLESS_CTX.lock().unwrap() = None;
+
+    let client = grpc_client_for(&addr, ENDLESS);
+    let call = ctx();
+    let mut stream = client
+        .server_stream(call.clone(), Request::new(Msg::of("go")))
+        .await
+        .expect("open server stream");
+    let first = stream.receive().await.expect("receive").expect("one message");
+    assert_eq!(first.text, "first");
+
+    let server_ctx = ENDLESS_CTX
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("the handler ran");
+    assert!(!server_ctx.is_canceled());
+
+    // Cancel, but keep `stream` alive: the reset must come from the cancel.
+    call.cancel_signal().cancel();
+    let started = std::time::Instant::now();
+    while !server_ctx.is_canceled() {
+        assert!(
+            started.elapsed() < Duration::from_secs(5),
+            "the server never learned the client cancelled"
+        );
+        foundation_core::valtron::sleep_async(Duration::from_millis(10)).await;
+    }
+    drop(stream);
+    shutdown.turn_on();
+}
+

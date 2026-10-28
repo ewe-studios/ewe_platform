@@ -78,6 +78,55 @@ where
 
 const MAX_YIELD_DURATION: time::Duration = time::Duration::from_millis(100);
 
+#[cfg(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+))]
+std::thread_local! {
+    static RUN_UNTIL_DEPTH: core::cell::Cell<usize> = const { core::cell::Cell::new(0) };
+}
+
+/// Counts the live `run_until` frames on this thread (JS wasm), so a nested
+/// call — a sync helper reached from inside a task — can tell its callers'
+/// still-active slots from runnable work.
+#[cfg(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+))]
+struct RunUntilDepth {
+    outer: usize,
+}
+
+#[cfg(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+))]
+impl RunUntilDepth {
+    fn enter() -> Self {
+        let outer = RUN_UNTIL_DEPTH.with(|d| {
+            let outer = d.get();
+            d.set(outer + 1);
+            outer
+        });
+        Self { outer }
+    }
+
+    /// How many `run_until` frames enclose this one.
+    fn outer_frames(&self) -> usize {
+        self.outer
+    }
+}
+
+#[cfg(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+))]
+impl Drop for RunUntilDepth {
+    fn drop(&mut self) {
+        RUN_UNTIL_DEPTH.with(|d| d.set(self.outer));
+    }
+}
+
 /// Identifies a thread executor instance.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct ThreadId(Entry, String);
@@ -1970,6 +2019,18 @@ impl ReferencedExecutorState {
         self.inner.has_runnable_work()
     }
 
+    /// See [`ExecutorState::has_incoming_global_tasks`].
+    #[must_use]
+    pub fn has_incoming_global_tasks(&self) -> bool {
+        self.inner.has_incoming_global_tasks()
+    }
+
+    /// See [`ExecutorState::total_active_tasks`].
+    #[must_use]
+    pub fn total_active_tasks(&self) -> usize {
+        self.inner.total_active_tasks()
+    }
+
     #[must_use]
     pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
         self.inner.schedule_and_do_work(engine)
@@ -2639,6 +2700,20 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             && self.state.time_until_next_wakeup().is_none()
     }
 
+    /// JS: whether nothing can run but the `outer_frames` tasks that are
+    /// blocked inside a nested `run_until` (see [`RunUntilDepth`]).
+    #[cfg(all(
+        target_family = "wasm",
+        any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+    ))]
+    fn only_callers_remain(&self, outer_frames: usize) -> bool {
+        outer_frames > 0
+            && !self.state.has_inflight_task()
+            && !self.state.has_incoming_global_tasks()
+            && self.state.total_active_tasks() <= outer_frames
+            && self.state.time_until_next_wakeup().is_none()
+    }
+
     /// `run_until` provides a fine-grained of the executor which allows
     /// you to loop the executor until it reaches a giving [`ProgressIndicator`]
     /// state upon which you wish it to stop.
@@ -2650,6 +2725,15 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     where
         S: Fn(ProgressIndicator) -> bool,
     {
+        // How many `run_until` frames are live on this thread, this one
+        // included: more than one means we were called from inside a task
+        // (a sync "block on" helper), whose slot stays active while it is
+        // being polled.
+        #[cfg(all(
+            target_family = "wasm",
+            any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+        ))]
+        let _depth = RunUntilDepth::enter();
         loop {
             #[cfg(not(target_family = "wasm"))]
             crate::valtron::executors::idle_wake::checking();
@@ -2675,6 +2759,18 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
             ))]
             if self.parked_on_readiness_only() {
+                break;
+            }
+
+            // JS, nested: the only tasks left active are the ones whose
+            // `next_status` called into us. They cannot progress until we
+            // return, and nothing else will run while we hold the thread, so
+            // looping here would freeze the isolate. Return to the caller.
+            #[cfg(all(
+                target_family = "wasm",
+                any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+            ))]
+            if self.only_callers_remain(_depth.outer_frames()) {
                 break;
             }
 
@@ -2933,9 +3029,11 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
 // --- Access Methods run once
 
-/// `send_any_task` will unlike [`any_task`] deliver the provided
-/// task to the global queue instead of the local queue via the provided
-/// `ExecutionEngine`.
+/// A task builder like [`any_task`], for a task (and its values) that are
+/// `Send` — what the multi-threaded executor requires. Where the task is
+/// scheduled is chosen on the [`TaskSpawnConfig`] (`as_scheduled` for the
+/// local queue, `as_broadcast` for the global one, `as_lifted`, ...), not by
+/// this builder.
 #[must_use]
 pub fn send_any_task<Task>(
     engine: BoxedExecutionEngine,
@@ -2953,9 +3051,10 @@ where
     TaskSpawnConfig::new(engine)
 }
 
-/// `send_typed_task` will unlike `type_task` deliver the provided
-/// typed task to the global queue instead of the local queue via the provided
-/// `ExecutionEngine`.
+/// A task builder like `typed_task`, for a task, its values and its resolver
+/// that are `Send` — what the multi-threaded executor requires. Where the task
+/// is scheduled is chosen on the [`TaskSpawnConfig`] (`as_scheduled`,
+/// `as_broadcast`, `as_lifted`, ...), not by this builder.
 #[must_use]
 pub fn send_typed_task<Task, Resolver>(
     engine: BoxedExecutionEngine,

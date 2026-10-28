@@ -86,7 +86,7 @@ fn map_row(row: &SqlRow) -> AppResult<SendRow> {
 
 /// Insert a new send.
 pub async fn insert(db: &dyn QueryStore, row: &SendRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO sends \
          (uuid, user_uuid, atype, name, notes, data, akey, password, max_access_count, \
           access_count, disabled, hide_email, expiration_date, deletion_date, created_at, updated_at) \
@@ -118,7 +118,7 @@ pub async fn insert(db: &dyn QueryStore, row: &SendRow) -> AppResult<()> {
 /// All sends owned by a user.
 pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<SendRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {COLUMNS} FROM sends WHERE user_uuid = ? ORDER BY created_at"),
             &[DataValue::Text(user_uuid.to_string())],
         )
@@ -133,7 +133,7 @@ pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec
 /// A single send by uuid.
 pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<SendRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {COLUMNS} FROM sends WHERE uuid = ?"),
             &[DataValue::Text(uuid.to_string())],
         )
@@ -147,7 +147,7 @@ pub async fn find(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<SendRow>>
 
 /// Update the mutable fields of a send.
 pub async fn update(db: &dyn QueryStore, row: &SendRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "UPDATE sends SET name = ?, notes = ?, data = ?, akey = ?, password = ?, \
          max_access_count = ?, disabled = ?, hide_email = ?, expiration_date = ?, \
          deletion_date = ?, updated_at = ? WHERE uuid = ?",
@@ -177,7 +177,7 @@ pub async fn increment_access(
     uuid: &str,
     new_count: i64,
 ) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "UPDATE sends SET access_count = ? WHERE uuid = ?",
         &[DataValue::Integer(new_count), DataValue::Text(uuid.to_string())],
     )
@@ -188,7 +188,7 @@ pub async fn increment_access(
 
 /// Delete a send.
 pub async fn delete(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "DELETE FROM sends WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],
     )

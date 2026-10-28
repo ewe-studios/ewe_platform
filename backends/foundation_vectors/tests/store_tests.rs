@@ -37,8 +37,8 @@ async fn normalized_vectors_strategy() {
         sqrt_strategy: SqrtStrategy::NormalizedVectors,
     };
     let store = InMemoryVectorStore::new(config);
-    store.insert_async(NS, entry("a", vec![3.0, 4.0])).await.unwrap();
-    let got = store.get_async(NS, "a").await.unwrap().unwrap();
+    store.insert(NS, entry("a", vec![3.0, 4.0])).await.unwrap();
+    let got = store.get(NS, "a").await.unwrap().unwrap();
     let mag = got.vector.magnitude();
     assert!(
         (mag - 1.0).abs() < 1e-5,
@@ -49,17 +49,17 @@ async fn normalized_vectors_strategy() {
 #[valtron_test]
 async fn l2_search() {
     let store = InMemoryVectorStore::new(VectorStoreConfig::new(2, DistanceMetric::L2));
-    store.insert_async(NS, entry("near", vec![0.1, 0.0])).await.unwrap();
-    store.insert_async(NS, entry("far", vec![10.0, 10.0])).await.unwrap();
-    let results = store.search_async(NS, &[0.0, 0.0], 1).await.unwrap();
+    store.insert(NS, entry("near", vec![0.1, 0.0])).await.unwrap();
+    store.insert(NS, entry("far", vec![10.0, 10.0])).await.unwrap();
+    let results = store.search(NS, &[0.0, 0.0], 1).await.unwrap();
     assert_eq!(results[0].id, "near");
 }
 
 #[valtron_test]
 async fn dot_search() {
     let store = InMemoryVectorStore::new(VectorStoreConfig::new(2, DistanceMetric::Dot));
-    store.insert_async(NS, entry("high", vec![10.0, 10.0])).await.unwrap();
-    store.insert_async(NS, entry("low", vec![0.1, 0.1])).await.unwrap();
-    let results = store.search_async(NS, &[1.0, 1.0], 1).await.unwrap();
+    store.insert(NS, entry("high", vec![10.0, 10.0])).await.unwrap();
+    store.insert(NS, entry("low", vec![0.1, 0.1])).await.unwrap();
+    let results = store.search(NS, &[1.0, 1.0], 1).await.unwrap();
     assert_eq!(results[0].id, "high");
 }

@@ -46,7 +46,7 @@ fn map_org(row: &SqlRow) -> AppResult<OrgRow> {
 }
 
 pub async fn insert_org(db: &dyn QueryStore, row: &OrgRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO vault_organizations (uuid, name, billing_email, enabled, akey, created_at, updated_at) \
          VALUES (?, ?, ?, ?, ?, ?, ?)",
         &[
@@ -66,7 +66,7 @@ pub async fn insert_org(db: &dyn QueryStore, row: &OrgRow) -> AppResult<()> {
 
 pub async fn find_org(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<OrgRow>> {
     let rows = db
-        .query_async(
+        .query(
             "SELECT uuid, name, billing_email, enabled, akey, created_at, updated_at \
              FROM vault_organizations WHERE uuid = ?",
             &[DataValue::Text(uuid.to_string())],
@@ -85,7 +85,7 @@ pub async fn delete_org(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
         "DELETE FROM vault_org_memberships WHERE org_uuid = ?",
         "DELETE FROM vault_organizations WHERE uuid = ?",
     ] {
-        db.execute_async(sql, &[DataValue::Text(uuid.to_string())])
+        db.execute(sql, &[DataValue::Text(uuid.to_string())])
             .await
             .map_err(store_err)?;
     }
@@ -126,7 +126,7 @@ fn map_membership(row: &SqlRow) -> AppResult<MembershipRow> {
 }
 
 pub async fn insert_membership(db: &dyn QueryStore, row: &MembershipRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO vault_org_memberships \
          (uuid, org_uuid, user_uuid, email, atype, status, akey, created_at, updated_at) \
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -157,7 +157,7 @@ pub async fn find_membership_for_user(
     user_uuid: &str,
 ) -> AppResult<Option<MembershipRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {M_COLS} FROM vault_org_memberships WHERE org_uuid = ? AND user_uuid = ?"),
             &[
                 DataValue::Text(org_uuid.to_string()),
@@ -192,7 +192,7 @@ async fn query_memberships(
     value: &str,
 ) -> AppResult<Vec<MembershipRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {M_COLS} FROM vault_org_memberships {where_clause}"),
             &[DataValue::Text(value.to_string())],
         )
@@ -205,7 +205,7 @@ async fn query_memberships(
 }
 
 pub async fn update_membership(db: &dyn QueryStore, row: &MembershipRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "UPDATE vault_org_memberships SET user_uuid = ?, atype = ?, status = ?, akey = ?, updated_at = ? \
          WHERE uuid = ?",
         &[
@@ -223,7 +223,7 @@ pub async fn update_membership(db: &dyn QueryStore, row: &MembershipRow) -> AppR
 }
 
 pub async fn delete_membership(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "DELETE FROM vault_org_memberships WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],
     )
@@ -256,7 +256,7 @@ fn map_collection(row: &SqlRow) -> AppResult<CollectionRow> {
 }
 
 pub async fn insert_collection(db: &dyn QueryStore, row: &CollectionRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO vault_collections (uuid, org_uuid, name, created_at, updated_at) \
          VALUES (?, ?, ?, ?, ?)",
         &[
@@ -277,7 +277,7 @@ pub async fn find_collections_by_org(
     org_uuid: &str,
 ) -> AppResult<Vec<CollectionRow>> {
     let rows = db
-        .query_async(
+        .query(
             "SELECT uuid, org_uuid, name, created_at, updated_at FROM vault_collections \
              WHERE org_uuid = ? ORDER BY name",
             &[DataValue::Text(org_uuid.to_string())],
@@ -292,7 +292,7 @@ pub async fn find_collections_by_org(
 
 pub async fn find_collection(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<CollectionRow>> {
     let rows = db
-        .query_async(
+        .query(
             "SELECT uuid, org_uuid, name, created_at, updated_at FROM vault_collections WHERE uuid = ?",
             &[DataValue::Text(uuid.to_string())],
         )
@@ -305,7 +305,7 @@ pub async fn find_collection(db: &dyn QueryStore, uuid: &str) -> AppResult<Optio
 }
 
 pub async fn delete_collection(db: &dyn QueryStore, uuid: &str) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "DELETE FROM vault_collections WHERE uuid = ?",
         &[DataValue::Text(uuid.to_string())],
     )

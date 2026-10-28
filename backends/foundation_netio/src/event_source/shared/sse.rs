@@ -84,10 +84,14 @@ impl EventBuilder {
 /// WHAT: Parser wrapping a `Read`er, reading lines and yielding complete events.
 ///
 /// NOTE: Generic over any `Read` type wrapped in `SharedByteBufferStream`.
-/// Accumulation happens locally in `parse_next`, only `last_event_id` persists.
+/// The event being accumulated persists across `parse_next` calls, so a read
+/// that stops with `WouldBlock` mid-event (a non-blocking socket, the wasm
+/// queue) keeps the fields it has already read.
 pub struct SseParser<R: Read> {
     buffer: SharedByteBufferStream<R>,
     last_event_id: Option<String>,
+    /// Fields of the event not yet dispatched by a blank line.
+    builder: EventBuilder,
 }
 
 impl<R: Read> SseParser<R> {
@@ -103,6 +107,7 @@ impl<R: Read> SseParser<R> {
         Self {
             buffer,
             last_event_id: None,
+            builder: EventBuilder::new(),
         }
     }
 
@@ -132,6 +137,7 @@ impl<R: Read> SseParser<R> {
         Self {
             buffer: self.buffer.clone(),
             last_event_id: self.last_event_id.clone(),
+            builder: EventBuilder::new(),
         }
     }
 
@@ -145,14 +151,13 @@ impl<R: Read> SseParser<R> {
     /// - `Ok(None)` when EOF is reached with no more data.
     /// - `Err(EventSourceError)` on I/O read failure.
     ///
-    /// NOTE: Field lines accumulate locally; empty lines dispatch; comments return immediately.
+    /// NOTE: Field lines accumulate in the parser (so a `WouldBlock` mid-event
+    /// keeps them); empty lines dispatch; comments return immediately.
     ///
     /// # Errors
     ///
     /// Returns an error if the operation fails.
     pub fn parse_next(&mut self) -> Result<Option<ParseResult>, EventSourceError> {
-        let mut builder = EventBuilder::new();
-
         loop {
             let mut line = String::new();
 
@@ -162,7 +167,8 @@ impl<R: Read> SseParser<R> {
 
             if bytes_read == 0 {
                 // EOF - dispatch any accumulated data before returning
-                if let Some(event) = builder.build() {
+                if let Some(event) = self.builder.build() {
+                    self.builder.reset();
                     let parse_result = self.build_parse_result(event);
                     return Ok(Some(parse_result));
                 }
@@ -181,12 +187,12 @@ impl<R: Read> SseParser<R> {
 
             // Empty line - dispatch accumulated event
             if line.is_empty() {
-                if let Some(event) = builder.build() {
+                if let Some(event) = self.builder.build() {
+                    self.builder.reset();
                     let parse_result = self.build_parse_result(event);
-                    builder.reset();
                     return Ok(Some(parse_result));
                 }
-                builder.reset();
+                self.builder.reset();
                 continue;
             }
 
@@ -207,7 +213,7 @@ impl<R: Read> SseParser<R> {
                 // Strip leading space if present (optional per spec)
                 let value = value.strip_prefix(' ').unwrap_or(value);
 
-                builder.process_field(field, value);
+                self.builder.process_field(field, value);
             }
             // Lines without colon are ignored per spec
         }

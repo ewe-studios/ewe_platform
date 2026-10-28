@@ -313,7 +313,7 @@ fn entry(id: &str, v: [f32; 3]) -> VectorEntry {
 #[valtron_test]
 async fn insert_sends_v2_upsert_with_auth_and_metric() {
     let (mock, store) = make_store().await;
-    store.insert_async("ns1", entry("a", [1.0, 0.0, 0.0])).await.unwrap();
+    store.insert("ns1", entry("a", [1.0, 0.0, 0.0])).await.unwrap();
 
     let seen = mock.seen();
     assert_eq!(seen.len(), 1);
@@ -330,10 +330,10 @@ async fn insert_sends_v2_upsert_with_auth_and_metric() {
 #[valtron_test]
 async fn validation_errors_send_nothing() {
     let (mock, store) = make_store().await;
-    assert!(store.insert_async("ns", entry("a", [0.0, 0.0, 0.0])).await.is_err());
-    assert!(store.search_async("ns", &[1.0], 1).await.is_err());
+    assert!(store.insert("ns", entry("a", [0.0, 0.0, 0.0])).await.is_err());
+    assert!(store.search("ns", &[1.0], 1).await.is_err());
     assert!(matches!(
-        store.insert_async("bad/ns", entry("a", [1.0, 0.0, 0.0])).await.unwrap_err(),
+        store.insert("bad/ns", entry("a", [1.0, 0.0, 0.0])).await.unwrap_err(),
         VectorStoreError::Unsupported(_)
     ));
     assert!(mock.seen().is_empty(), "no HTTP on a validation failure");
@@ -342,10 +342,10 @@ async fn validation_errors_send_nothing() {
 #[valtron_test]
 async fn search_get_and_len_use_v2_queries() {
     let (mock, store) = make_store().await;
-    store.insert_async("ns", entry("a", [1.0, 0.0, 0.0])).await.unwrap();
-    store.search_async("ns", &[1.0, 0.0, 0.0], 2).await.unwrap();
-    store.get_async("ns", "a").await.unwrap();
-    store.len_async("ns").await.unwrap();
+    store.insert("ns", entry("a", [1.0, 0.0, 0.0])).await.unwrap();
+    store.search("ns", &[1.0, 0.0, 0.0], 2).await.unwrap();
+    store.get("ns", "a").await.unwrap();
+    store.len("ns").await.unwrap();
 
     let seen = mock.seen();
     let (search, get, len) = (&seen[1], &seen[2], &seen[3]);
@@ -361,9 +361,9 @@ async fn search_get_and_len_use_v2_queries() {
 async fn l2_uses_euclidean_squared_and_negative_scores() {
     let mock = start_mock();
     let store = store_for(&mock, DistanceMetric::L2);
-    store.insert_async("ns", entry("near", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert_async("ns", entry("far", [3.0, 0.0, 0.0])).await.unwrap();
-    let m = store.search_async("ns", &[0.0, 0.0, 1.0], 2).await.unwrap();
+    store.insert("ns", entry("near", [1.0, 0.0, 0.0])).await.unwrap();
+    store.insert("ns", entry("far", [3.0, 0.0, 0.0])).await.unwrap();
+    let m = store.search("ns", &[0.0, 0.0, 1.0], 2).await.unwrap();
     assert_eq!(m[0].id, "near");
     assert!((m[0].score - -2.0).abs() < 1e-5, "score {}", m[0].score);
     assert!((m[1].score - -10.0).abs() < 1e-5, "score {}", m[1].score);
@@ -402,7 +402,7 @@ async fn error_status_is_an_error_with_a_bounded_message() {
     let store = store.with_limits(TurboPufferLimits::default().with_max_error_body(10));
     mock.state.lock().unwrap().fail_with = Some((500, "x".repeat(1000)));
 
-    let err = store.len_async("ns").await.unwrap_err();
+    let err = store.len("ns").await.unwrap_err();
     let VectorStoreError::Backend(msg) = err else {
         panic!("expected a backend error, got {err:?}");
     };
@@ -416,7 +416,7 @@ async fn oversized_response_is_an_error() {
     let store = store.with_limits(TurboPufferLimits::default().with_max_response_body(8));
     // A write reply is longer than 8 bytes.
     let err = store
-        .insert_async("ns", entry("a", [1.0, 0.0, 0.0]))
+        .insert("ns", entry("a", [1.0, 0.0, 0.0]))
         .await
         .unwrap_err();
     assert!(

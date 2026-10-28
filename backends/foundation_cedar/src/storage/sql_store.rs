@@ -36,7 +36,7 @@ impl<'a> SqlPolicyStore<'a> {
     /// Returns [`CedarError`] if the statement fails.
     pub async fn ensure_table(&self) -> Result<(), CedarError> {
         self.store
-            .execute_batch_async(CREATE_TABLE_SQL)
+            .execute_batch(CREATE_TABLE_SQL)
             .await
             .map_err(|e| CedarError::PolicyParse(format!("SQL table creation failed: {e}")))
     }
@@ -44,7 +44,7 @@ impl<'a> SqlPolicyStore<'a> {
     async fn load_row(&self) -> Result<SqlRow, CedarError> {
         let mut stream = self
             .store
-            .query_async(
+            .query(
                 "SELECT policy_text, schema_text, entities_json, version FROM cedar_policies WHERE namespace = ?",
                 &[DataValue::Text(self.namespace.clone())],
             )

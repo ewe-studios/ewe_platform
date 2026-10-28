@@ -2,6 +2,7 @@
 #![cfg(feature = "quic")]
 
 mod connection_tests;
+mod webtransport_accept_tests;
 mod frame_tests;
 mod qpack_tests;
 mod types_tests;

@@ -40,8 +40,8 @@ pub async fn insert_then_get_round_trips(store: &dyn VectorStore) {
         vector: Vector::new(vec![1.0, 2.0, 3.0]),
         metadata: VectorMetadata { tags },
     };
-    store.insert_async(NS, e.clone()).await.unwrap();
-    let got = store.get_async(NS, "a").await.unwrap().expect("entry present");
+    store.insert(NS, e.clone()).await.unwrap();
+    let got = store.get(NS, "a").await.unwrap().expect("entry present");
     assert_eq!(got.id, "a");
     assert_eq!(got.vector.data, e.vector.data);
     assert_eq!(got.metadata, e.metadata);
@@ -49,12 +49,12 @@ pub async fn insert_then_get_round_trips(store: &dyn VectorStore) {
 
 /// An insert with an existing id replaces the entry.
 pub async fn insert_replaces_existing_id(store: &dyn VectorStore) {
-    store.insert_async(NS, entry("a", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert_async(NS, entry("a", [0.0, 1.0, 0.0])).await.unwrap();
-    assert_eq!(store.len_async(NS).await.unwrap(), 1);
-    let got = store.get_async(NS, "a").await.unwrap().unwrap();
+    store.insert(NS, entry("a", [1.0, 0.0, 0.0])).await.unwrap();
+    store.insert(NS, entry("a", [0.0, 1.0, 0.0])).await.unwrap();
+    assert_eq!(store.len(NS).await.unwrap(), 1);
+    let got = store.get(NS, "a").await.unwrap().unwrap();
     assert_eq!(got.vector.data, vec![0.0, 1.0, 0.0]);
-    let m = store.search_async(NS, &[0.0, 1.0, 0.0], 5).await.unwrap();
+    let m = store.search(NS, &[0.0, 1.0, 0.0], 5).await.unwrap();
     assert_eq!(ids(&m), vec!["a"]);
 }
 
@@ -66,81 +66,81 @@ pub async fn invalid_vectors_rejected(store: &dyn VectorStore) {
         metadata: VectorMetadata::default(),
     };
     assert!(matches!(
-        store.insert_async(NS, bad).await.unwrap_err(),
+        store.insert(NS, bad).await.unwrap_err(),
         VectorStoreError::DimensionMismatch { expected: 3, got: 2 }
     ));
     assert!(matches!(
-        store.insert_async(NS, entry("z", [0.0, 0.0, 0.0])).await.unwrap_err(),
+        store.insert(NS, entry("z", [0.0, 0.0, 0.0])).await.unwrap_err(),
         VectorStoreError::ZeroVector
     ));
     assert!(matches!(
-        store.search_async(NS, &[1.0], 1).await.unwrap_err(),
+        store.search(NS, &[1.0], 1).await.unwrap_err(),
         VectorStoreError::DimensionMismatch { expected: 3, got: 1 }
     ));
-    assert_eq!(store.len_async(NS).await.unwrap(), 0);
+    assert_eq!(store.len(NS).await.unwrap(), 0);
 }
 
 /// Search returns at most `k` matches, best first.
 pub async fn search_ranks_best_first(store: &dyn VectorStore) {
-    store.insert_async(NS, entry("x", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert_async(NS, entry("y", [0.0, 1.0, 0.0])).await.unwrap();
-    store.insert_async(NS, entry("z", [0.9, 0.1, 0.0])).await.unwrap();
+    store.insert(NS, entry("x", [1.0, 0.0, 0.0])).await.unwrap();
+    store.insert(NS, entry("y", [0.0, 1.0, 0.0])).await.unwrap();
+    store.insert(NS, entry("z", [0.9, 0.1, 0.0])).await.unwrap();
 
-    let m = store.search_async(NS, &[1.0, 0.0, 0.0], 2).await.unwrap();
+    let m = store.search(NS, &[1.0, 0.0, 0.0], 2).await.unwrap();
     assert_eq!(ids(&m), vec!["x", "z"]);
     assert!(m[0].score >= m[1].score);
     assert!((m[0].score - 1.0).abs() < 1e-4, "cosine score of an equal vector is 1");
 
-    let all = store.search_async(NS, &[1.0, 0.0, 0.0], 10).await.unwrap();
+    let all = store.search(NS, &[1.0, 0.0, 0.0], 10).await.unwrap();
     assert_eq!(ids(&all), vec!["x", "z", "y"]);
-    assert_eq!(store.search_async(NS, &[1.0, 0.0, 0.0], 0).await.unwrap(), Vec::new());
+    assert_eq!(store.search(NS, &[1.0, 0.0, 0.0], 0).await.unwrap(), Vec::new());
 }
 
 /// A namespace with no entries reads as empty, not as an error.
 pub async fn unknown_namespace_is_empty(store: &dyn VectorStore) {
     let ns = "never_written";
-    assert_eq!(store.search_async(ns, &[1.0, 0.0, 0.0], 5).await.unwrap(), Vec::new());
-    assert!(store.get_async(ns, "a").await.unwrap().is_none());
-    assert_eq!(store.len_async(ns).await.unwrap(), 0);
-    assert!(store.is_empty_async(ns).await.unwrap());
+    assert_eq!(store.search(ns, &[1.0, 0.0, 0.0], 5).await.unwrap(), Vec::new());
+    assert!(store.get(ns, "a").await.unwrap().is_none());
+    assert_eq!(store.len(ns).await.unwrap(), 0);
+    assert!(store.is_empty(ns).await.unwrap());
 }
 
 /// Delete removes the entry from get, search and len; deleting an unknown
 /// id is `NotFound`.
 pub async fn delete_removes_and_reports_missing(store: &dyn VectorStore) {
-    store.insert_async(NS, entry("a", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert_async(NS, entry("b", [0.0, 1.0, 0.0])).await.unwrap();
-    store.delete_async(NS, "a").await.unwrap();
+    store.insert(NS, entry("a", [1.0, 0.0, 0.0])).await.unwrap();
+    store.insert(NS, entry("b", [0.0, 1.0, 0.0])).await.unwrap();
+    store.delete(NS, "a").await.unwrap();
 
-    assert!(store.get_async(NS, "a").await.unwrap().is_none());
-    assert_eq!(store.len_async(NS).await.unwrap(), 1);
-    let m = store.search_async(NS, &[1.0, 0.0, 0.0], 5).await.unwrap();
+    assert!(store.get(NS, "a").await.unwrap().is_none());
+    assert_eq!(store.len(NS).await.unwrap(), 1);
+    let m = store.search(NS, &[1.0, 0.0, 0.0], 5).await.unwrap();
     assert_eq!(ids(&m), vec!["b"]);
 
     assert!(matches!(
-        store.delete_async(NS, "a").await.unwrap_err(),
+        store.delete(NS, "a").await.unwrap_err(),
         VectorStoreError::NotFound { .. }
     ));
     assert!(matches!(
-        store.delete_async("never_written", "a").await.unwrap_err(),
+        store.delete("never_written", "a").await.unwrap_err(),
         VectorStoreError::NotFound { .. }
     ));
 }
 
 /// One namespace never sees another's entries.
 pub async fn namespaces_are_isolated(store: &dyn VectorStore) {
-    store.insert_async("ns_a", entry("a1", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert_async("ns_b", entry("b1", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert_async("ns_b", entry("b2", [0.0, 1.0, 0.0])).await.unwrap();
+    store.insert("ns_a", entry("a1", [1.0, 0.0, 0.0])).await.unwrap();
+    store.insert("ns_b", entry("b1", [1.0, 0.0, 0.0])).await.unwrap();
+    store.insert("ns_b", entry("b2", [0.0, 1.0, 0.0])).await.unwrap();
 
-    assert_eq!(store.len_async("ns_a").await.unwrap(), 1);
-    assert_eq!(store.len_async("ns_b").await.unwrap(), 2);
-    let ma = store.search_async("ns_a", &[1.0, 0.0, 0.0], 10).await.unwrap();
+    assert_eq!(store.len("ns_a").await.unwrap(), 1);
+    assert_eq!(store.len("ns_b").await.unwrap(), 2);
+    let ma = store.search("ns_a", &[1.0, 0.0, 0.0], 10).await.unwrap();
     assert_eq!(ids(&ma), vec!["a1"]);
-    assert!(store.get_async("ns_a", "b1").await.unwrap().is_none());
-    assert!(store.get_async("ns_b", "a1").await.unwrap().is_none());
+    assert!(store.get("ns_a", "b1").await.unwrap().is_none());
+    assert!(store.get("ns_b", "a1").await.unwrap().is_none());
     assert!(matches!(
-        store.delete_async("ns_a", "b1").await.unwrap_err(),
+        store.delete("ns_a", "b1").await.unwrap_err(),
         VectorStoreError::NotFound { .. }
     ));
 }

@@ -195,7 +195,7 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
     /// Returns the store error when the memory tiers or the recent messages
     /// cannot be read (including a failed flush of the message buffer).
     pub async fn assemble(&self) -> StorageResult<AgentContext> {
-        let memory = self.memory_store.hydrate_async(&self.session_id).await?;
+        let memory = self.memory_store.hydrate(&self.session_id).await?;
         self.assemble_from_memory(&memory).await
     }
 
@@ -323,7 +323,7 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
         mode: SearchMode,
         k: usize,
     ) -> StorageResult<Vec<KnowledgeHit>> {
-        let memory = self.memory_store.hydrate_async(&self.session_id).await?;
+        let memory = self.memory_store.hydrate(&self.session_id).await?;
         self.search_from_memory(query, mode, k, &memory).await
     }
 

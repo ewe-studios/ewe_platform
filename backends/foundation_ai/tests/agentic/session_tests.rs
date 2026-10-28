@@ -249,7 +249,7 @@ async fn resume_continues_a_session_the_stores_hold() {
     // Earlier history for `id`, already in the document store.
     let doc = MemoryDocumentStore::new();
     let earlier = user_msg("from an earlier run");
-    doc.append_with_id_async(
+    doc.append_with_id(
         &id.to_string(),
         &earlier.id().to_string(),
         SessionRecord::Conversation { message: earlier },
@@ -279,7 +279,7 @@ async fn resume_looks_only_at_the_named_session() {
     let doc = MemoryDocumentStore::new();
     let other = SessionId::from_name("someone-else");
     let msg = user_msg("not yours");
-    doc.append_with_id_async(
+    doc.append_with_id(
         &other.to_string(),
         &msg.id().to_string(),
         SessionRecord::Conversation { message: msg },
@@ -553,32 +553,32 @@ mod failing_store {
 
     #[async_trait]
     impl DocumentStore for FailingDocStore {
-        async fn append_async<V: Serialize + Send + 'static>(
+        async fn append<V: Serialize + Send + 'static>(
             &self,
             key: &str,
             content: V,
         ) -> StorageResult<Document> {
             self.check()?;
-            self.inner.append_async(key, content).await
+            self.inner.append(key, content).await
         }
-        async fn append_with_id_async<V: Serialize + Send + 'static>(
+        async fn append_with_id<V: Serialize + Send + 'static>(
             &self,
             key: &str,
             doc_id: &str,
             content: V,
         ) -> StorageResult<Document> {
             self.check()?;
-            self.inner.append_with_id_async(key, doc_id, content).await
+            self.inner.append_with_id(key, doc_id, content).await
         }
-        async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(
+        async fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
             &self,
             key: &str,
             content: V,
         ) -> StorageResult<Document> {
             self.check()?;
-            self.inner.append_promotable_async(key, content).await
+            self.inner.append_promotable(key, content).await
         }
-        async fn append_promotable_with_id_async<
+        async fn append_promotable_with_id<
             V: Serialize + PromotableDocument + Send + 'static,
         >(
             &self,
@@ -588,55 +588,55 @@ mod failing_store {
         ) -> StorageResult<Document> {
             self.check()?;
             self.inner
-                .append_promotable_with_id_async(key, doc_id, content)
+                .append_promotable_with_id(key, doc_id, content)
                 .await
         }
-        async fn scan_documents_async(
+        async fn scan_documents(
             &self,
             key: &str,
             limit: usize,
         ) -> StorageResult<Vec<Document>> {
-            self.inner.scan_documents_async(key, limit).await
+            self.inner.scan_documents(key, limit).await
         }
-        async fn scan_documents_from_async(
+        async fn scan_documents_from(
             &self,
             key: &str,
             from_id: &str,
             limit: usize,
         ) -> StorageResult<Vec<Document>> {
             self.inner
-                .scan_documents_from_async(key, from_id, limit)
+                .scan_documents_from(key, from_id, limit)
                 .await
         }
-        async fn scan_async<V: DeserializeOwned + Send + 'static>(
+        async fn scan<V: DeserializeOwned + Send + 'static>(
             &self,
             key: &str,
             limit: usize,
         ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
-            self.inner.scan_async(key, limit).await
+            self.inner.scan(key, limit).await
         }
-        async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
+        async fn scan_all<V: DeserializeOwned + Send + 'static>(
             &self,
             key: &str,
         ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
-            self.inner.scan_all_async(key).await
+            self.inner.scan_all(key).await
         }
-        async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
+        async fn scan_from<V: DeserializeOwned + Send + 'static>(
             &self,
             key: &str,
             from_id: &str,
             limit: usize,
         ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
-            self.inner.scan_from_async(key, from_id, limit).await
+            self.inner.scan_from(key, from_id, limit).await
         }
-        async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
-            self.inner.delete_async(key, doc_id).await
+        async fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+            self.inner.delete(key, doc_id).await
         }
-        async fn delete_all_async(&self, key: &str) -> StorageResult<u64> {
-            self.inner.delete_all_async(key).await
+        async fn delete_all(&self, key: &str) -> StorageResult<u64> {
+            self.inner.delete_all(key).await
         }
-        async fn count_async(&self, key: &str) -> StorageResult<u64> {
-            self.inner.count_async(key).await
+        async fn count(&self, key: &str) -> StorageResult<u64> {
+            self.inner.count(key).await
         }
     }
 }

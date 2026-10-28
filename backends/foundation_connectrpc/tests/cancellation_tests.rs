@@ -216,6 +216,53 @@ fn h2_reset_cancels_the_handlers_ctx() {
     );
 }
 
+/// A streaming handler that awaits its own cancellation sees it complete: the
+/// call's cancel fires before the handler future is dropped, and the handler
+/// is polled once more. The cancel used to fire only after the handler was
+/// dropped, so code after `ctx.cancelled().await` never ran on a peer reset.
+#[test]
+fn h2_reset_lets_a_streaming_handler_observe_its_cancellation() {
+    let observed = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let entered = Slot::default();
+    let mut router = Router::new();
+    let (seen, slot) = (Arc::clone(&observed), entered.clone());
+    router.client_stream(
+        CLIENT_STREAM,
+        codecs(),
+        move |ctx: Ctx, _reqs: RequestStream<Msg>| {
+            let (seen, slot) = (Arc::clone(&seen), slot.clone());
+            async move {
+                slot.put(&ctx);
+                ctx.cancelled().await;
+                seen.store(true, std::sync::atomic::Ordering::SeqCst);
+                Err::<Response<Msg>, _>(ConnectError::canceled("cancelled").into())
+            }
+        },
+        HandlerOptions::new(),
+    );
+    let stream = open_h2(Arc::new(router.into_handler()), CLIENT_STREAM, &[STREAMING_JSON]);
+
+    stream
+        .body
+        .try_send(H2IncomingFrame::Data(json_envelope("a")))
+        .unwrap();
+    entered.wait_entered();
+    stream
+        .body
+        .try_send(H2IncomingFrame::Reset(ErrorCode::Cancel))
+        .unwrap();
+    stream.body.close();
+    stream
+        .done
+        .recv_timeout(Duration::from_secs(5))
+        .expect("dispatch ends once the stream is reset")
+        .expect("a reset stream has nothing to answer");
+    assert!(
+        observed.load(std::sync::atomic::Ordering::SeqCst),
+        "the handler's `ctx.cancelled().await` never completed"
+    );
+}
+
 /// A stream the connection drops after the request ended (its response pipe
 /// closes under the handler — a reset after `END_STREAM`, or the connection
 /// going away) cancels the call.

@@ -49,7 +49,7 @@ pub async fn find(
     identifier: &str,
 ) -> AppResult<Option<DeviceRow>> {
     let rows = db
-        .query_async(
+        .query(
             &format!("SELECT {COLUMNS} FROM vault_devices WHERE user_uuid = ? AND identifier = ?"),
             &[
                 DataValue::Text(user_uuid.to_string()),
@@ -75,7 +75,7 @@ pub async fn find_by_user_identifier(
 
 /// Insert a new device.
 pub async fn insert(db: &dyn QueryStore, row: &DeviceRow) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "INSERT INTO vault_devices \
          (uuid, user_uuid, identifier, name, atype, refresh_token, created_at, updated_at) \
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -105,7 +105,7 @@ pub async fn update_refresh_token(
     refresh_token: &str,
     updated_at: DateTime<Utc>,
 ) -> AppResult<()> {
-    db.execute_async(
+    db.execute(
         "UPDATE vault_devices SET refresh_token = ?, updated_at = ? WHERE uuid = ?",
         &[
             DataValue::Text(refresh_token.to_string()),

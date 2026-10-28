@@ -6,10 +6,10 @@
 //!
 //! WHAT: One submodule per vault entity, each exposing `async` functions over
 //! `&dyn QueryStore` plus a row struct. No custom storage traits — plain
-//! `execute_async`/`query_async` with `DataValue` params and `SqlRow` parsing,
+//! `execute`/`query` with `DataValue` params and `SqlRow` parsing,
 //! mirroring `foundation_auth::server::services`.
 //!
-//! HOW: `SCHEMA` is the initial DDL, applied via `execute_batch_async` by the
+//! HOW: `SCHEMA` is the initial DDL, applied via `execute_batch` by the
 //! server bootstrap (and by tests). Grown as entities are added.
 
 use chrono::{DateTime, Utc};
@@ -34,7 +34,7 @@ pub const SCHEMA: &str = include_str!("../../../migrations/0001_initial.sql");
 ///
 /// WHY: `execute_batch` is not reliably multi-statement across every
 /// `foundation_db` SQL backend, so we strip comment lines, split on `;`, and run
-/// each non-empty statement via `execute_async` (which every backend supports).
+/// each non-empty statement via `execute` (which every backend supports).
 /// DDL is idempotent (`CREATE TABLE IF NOT EXISTS`), so this doubles as the
 /// migration runner for the server backends.
 pub async fn apply_schema(db: &dyn QueryStore) -> AppResult<()> {
@@ -53,7 +53,7 @@ pub async fn apply_schema(db: &dyn QueryStore) -> AppResult<()> {
         if statement.is_empty() {
             continue;
         }
-        db.execute_async(statement, &[]).await.map_err(store_err)?;
+        db.execute(statement, &[]).await.map_err(store_err)?;
     }
     Ok(())
 }

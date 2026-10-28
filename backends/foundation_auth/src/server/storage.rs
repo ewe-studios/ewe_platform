@@ -60,7 +60,7 @@ async fn query_one(
     sql: &str,
     params: &[DataValue],
 ) -> Result<Option<SqlRow>, StorageOpError> {
-    let stream = store.query_async(sql, params).await.map_err(query_err)?;
+    let stream = store.query(sql, params).await.map_err(query_err)?;
     first_row(stream).await
 }
 
@@ -70,7 +70,7 @@ async fn execute(
     sql: &str,
     params: &[DataValue],
 ) -> Result<(), StorageOpError> {
-    store.execute_async(sql, params).await.map(|_| ()).map_err(query_err)
+    store.execute(sql, params).await.map(|_| ()).map_err(query_err)
 }
 
 // ─── OAuth clients, codes, tokens ────────────────────────────────────────────
@@ -473,7 +473,7 @@ pub async fn find_passkeys_by_user(
 ) -> Result<AsyncStorageItemStream<'static, StoredPasskey>, StorageOpError> {
     let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE user_id = ?";
     let stream = store
-        .query_async(sql, &[DataValue::Text(user_id.to_string())])
+        .query(sql, &[DataValue::Text(user_id.to_string())])
         .await
         .map_err(query_err)?;
     let mapped = stream.map(|row_res| {
@@ -701,12 +701,12 @@ fn op_to_storage_err(e: StorageOpError) -> StorageError {
 
 #[async_trait::async_trait]
 impl<KV: KeyValueStore> PasskeyStore for HandlerStorage<KV> {
-    async fn store_passkey_async(&self, passkey: &StoredPasskey) -> Result<(), String> {
+    async fn store_passkey(&self, passkey: &StoredPasskey) -> Result<(), String> {
         let our_pk = stored_to_passkey(passkey);
         store_passkey(self.query_store.as_ref(), &our_pk).await.map_err(map_storage_err)
     }
 
-    async fn find_passkeys_by_user_async<'a>(
+    async fn find_passkeys_by_user<'a>(
         &'a self,
         user_id: &'a str,
     ) -> StorageResult<AsyncStorageItemStream<'a, StoredPasskey>> {
@@ -715,14 +715,14 @@ impl<KV: KeyValueStore> PasskeyStore for HandlerStorage<KV> {
             .map_err(op_to_storage_err)
     }
 
-    async fn find_passkey_by_id_async<'a>(&'a self, passkey_id: &'a str) -> StorageResult<Option<StoredPasskey>> {
+    async fn find_passkey_by_id<'a>(&'a self, passkey_id: &'a str) -> StorageResult<Option<StoredPasskey>> {
         find_passkey_by_id(self.query_store.as_ref(), passkey_id)
             .await
             .map(|opt| opt.as_ref().map(passkey_to_stored))
             .map_err(op_to_storage_err)
     }
 
-    async fn find_passkey_by_credential_id_async<'a>(
+    async fn find_passkey_by_credential_id<'a>(
         &'a self,
         credential_id: &'a [u8],
     ) -> StorageResult<Option<StoredPasskey>> {
@@ -732,31 +732,31 @@ impl<KV: KeyValueStore> PasskeyStore for HandlerStorage<KV> {
             .map_err(op_to_storage_err)
     }
 
-    async fn update_passkey_counter_async(&self, passkey_id: &str, counter: u32) -> Result<(), String> {
+    async fn update_passkey_counter(&self, passkey_id: &str, counter: u32) -> Result<(), String> {
         update_passkey_counter(self.query_store.as_ref(), passkey_id, counter)
             .await
             .map_err(map_storage_err)
     }
 
-    async fn update_passkey_name_async(&self, passkey_id: &str, name: &str) -> Result<(), String> {
+    async fn update_passkey_name(&self, passkey_id: &str, name: &str) -> Result<(), String> {
         update_passkey_name(self.query_store.as_ref(), passkey_id, name)
             .await
             .map_err(map_storage_err)
     }
 
-    async fn delete_passkey_async(&self, passkey_id: &str) -> Result<(), String> {
+    async fn delete_passkey(&self, passkey_id: &str) -> Result<(), String> {
         delete_passkey(self.query_store.as_ref(), passkey_id).await.map_err(map_storage_err)
     }
 }
 
 #[async_trait::async_trait]
 impl<KV: KeyValueStore> TosStore for HandlerStorage<KV> {
-    async fn store_tos_acceptance_async(&self, acceptance: &StoredTosAcceptance) -> Result<(), String> {
+    async fn store_tos_acceptance(&self, acceptance: &StoredTosAcceptance) -> Result<(), String> {
         let our_ta = stored_to_tos(acceptance);
         store_tos_acceptance(self.query_store.as_ref(), &our_ta).await.map_err(map_storage_err)
     }
 
-    async fn find_tos_acceptance_async<'a>(
+    async fn find_tos_acceptance<'a>(
         &'a self,
         user_id: &'a str,
         tos_version: &'a str,
@@ -767,7 +767,7 @@ impl<KV: KeyValueStore> TosStore for HandlerStorage<KV> {
             .map_err(op_to_storage_err)
     }
 
-    async fn find_latest_tos_acceptance_async<'a>(
+    async fn find_latest_tos_acceptance<'a>(
         &'a self,
         user_id: &'a str,
     ) -> StorageResult<Option<StoredTosAcceptance>> {
@@ -780,7 +780,7 @@ impl<KV: KeyValueStore> TosStore for HandlerStorage<KV> {
 
 #[async_trait::async_trait]
 impl<KV: KeyValueStore> AuthStore for HandlerStorage<KV> {
-    async fn find_user_by_email_async(&self, email: &str) -> StorageResult<Option<(String, bool)>> {
+    async fn find_user_by_email(&self, email: &str) -> StorageResult<Option<(String, bool)>> {
         find_user_by_email(self.query_store.as_ref(), email)
             .await
             .map(|opt| {

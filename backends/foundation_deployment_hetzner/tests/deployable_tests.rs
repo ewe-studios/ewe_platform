@@ -123,8 +123,8 @@ fn json(status: u16, body: &str) -> HttpResponse {
 
 /// A `ProviderClient` whose state store is a fresh temp dir.
 ///
-/// The HTTP client here goes unused — `HetznerServer` carries its own, pointed at
-/// the mock — but the trait requires one.
+/// Its HTTP client (the default one) goes unused — `HetznerServer` carries its
+/// own, pointed at the mock.
 async fn provider_client(dir: &std::path::Path) -> ProviderClient<FileStateStore> {
     let store = FileStateStore::new(dir, "ewe-test", "dev");
     store.init().await.expect("init state store");

@@ -207,7 +207,7 @@ impl SqliteVecVectorStore {
 
 #[async_trait::async_trait]
 impl VectorStore for SqliteVecVectorStore {
-    async fn insert_async(
+    async fn insert(
         &self,
         namespace: &str,
         entry: VectorEntry,
@@ -234,7 +234,7 @@ impl VectorStore for SqliteVecVectorStore {
         tx.commit().await.map_err(be("commit"))
     }
 
-    async fn delete_async(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
+    async fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
         let table = table_name(namespace)?;
         if !self.table_exists(&table).await? {
             return Err(VectorStoreError::NotFound { id: id.to_string() });
@@ -253,7 +253,7 @@ impl VectorStore for SqliteVecVectorStore {
         Ok(())
     }
 
-    async fn search_async(
+    async fn search(
         &self,
         namespace: &str,
         query: &[f32],
@@ -288,7 +288,7 @@ impl VectorStore for SqliteVecVectorStore {
         Ok(matches)
     }
 
-    async fn get_async(
+    async fn get(
         &self,
         namespace: &str,
         id: &str,
@@ -321,7 +321,7 @@ impl VectorStore for SqliteVecVectorStore {
         }))
     }
 
-    async fn len_async(&self, namespace: &str) -> Result<usize, VectorStoreError> {
+    async fn len(&self, namespace: &str) -> Result<usize, VectorStoreError> {
         let table = table_name(namespace)?;
         if !self.table_exists(&table).await? {
             return Ok(0);

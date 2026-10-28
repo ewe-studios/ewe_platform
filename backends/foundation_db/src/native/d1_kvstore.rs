@@ -457,7 +457,7 @@ const D1_STATE_COLUMNS: &str =
 
 #[async_trait::async_trait]
 impl KeyValueStore for D1Store {
-    async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
         let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
         let rows = Self::extract_rows(&response);
@@ -471,7 +471,7 @@ impl KeyValueStore for D1Store {
         }
     }
 
-    async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+    async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         let json_value = serde_json::to_string(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
         let sql = format!(
             "INSERT INTO {} (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
@@ -483,19 +483,19 @@ impl KeyValueStore for D1Store {
         Ok(())
     }
 
-    async fn delete_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete(&self, key: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
         self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
         Ok(())
     }
 
-    async fn exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
         let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
         Ok(!Self::extract_rows(&response).is_empty())
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         let (sql, params) = match prefix {
             Some(p) => (
                 format!("SELECT key FROM {} WHERE key LIKE ? ORDER BY key", self.kv_table()),
@@ -520,7 +520,7 @@ impl KeyValueStore for D1Store {
 
 #[async_trait::async_trait]
 impl QueryStore for D1Store {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+    async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
             DataValue::Null => serde_json::Value::Null,
             DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
@@ -552,7 +552,7 @@ impl QueryStore for D1Store {
         )))
     }
 
-    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+    async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
         let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
             DataValue::Null => serde_json::Value::Null,
             DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
@@ -567,7 +567,7 @@ impl QueryStore for D1Store {
         Ok(affected)
     }
 
-    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
+    async fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_sql_async(sql, &[]).await?;
         Ok(())
     }
@@ -575,22 +575,22 @@ impl QueryStore for D1Store {
 
 #[async_trait::async_trait]
 impl RateLimiterStore for D1Store {
-    async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
+    async fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
         rate_limit::sql_check(self, key, max_count, window_seconds).await
     }
 
-    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
+    async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
         rate_limit::sql_record(self, key, window_seconds).await
     }
 
-    async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
+    async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         rate_limit::sql_reset(self, key).await
     }
 }
 
 #[async_trait::async_trait]
 impl BlobStore for D1Store {
-    async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = STANDARD.encode(data);
         let json_value = serde_json::json!({ "type": "blob", "encoding": "base64", "data": encoded }).to_string();
         let sql = format!(
@@ -603,7 +603,7 @@ impl BlobStore for D1Store {
         Ok(())
     }
 
-    async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
         let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
         let rows = Self::extract_rows(&response);
@@ -624,13 +624,13 @@ impl BlobStore for D1Store {
         }
     }
 
-    async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
         self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
         Ok(())
     }
 
-    async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
         let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
         Ok(!Self::extract_rows(&response).is_empty())

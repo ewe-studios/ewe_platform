@@ -260,13 +260,16 @@ fn peekable_peek_does_not_consume() {
 }
 
 #[test]
-fn peekable_peek_at_eof_returns_zero() {
+fn peekable_peek_at_eof_reports_end_of_stream() {
     let mut ptr = pointer(16, b"ab");
     let mut buf = [0u8; 2];
     assert_eq!(ptr.read(&mut buf).unwrap(), 2);
 
     let mut peeked = [0u8; 4];
-    assert_eq!(PeekableReadStream::peek(&mut ptr, &mut peeked).unwrap(), 0);
+    assert!(matches!(
+        PeekableReadStream::peek(&mut ptr, &mut peeked),
+        Err(foundation_core::io::ioutils::PeekError::EndOfStream)
+    ));
 }
 
 #[test]
@@ -333,4 +336,21 @@ fn shared_stream_read_exact_after_partial_read() {
     let mut tail = Vec::new();
     stream.read_to_end(&mut tail).unwrap();
     assert_eq!(tail, b"89");
+}
+
+/// The last line of a stream (no newline before EOF) is decoded like any
+/// other line. It used to be appended raw through `String::as_mut_vec`, so a
+/// non-UTF-8 tail produced an invalid `String` (undefined behaviour).
+#[test]
+fn read_line_keeps_a_non_utf8_last_line_valid() {
+    let mut ptr = pointer(16, b"ok\nab\xff");
+    let mut first = String::new();
+    ptr.read_line(&mut first).unwrap();
+    assert_eq!(first, "ok\n");
+
+    let mut last = String::new();
+    let n = ptr.read_line(&mut last).unwrap();
+    assert_eq!(n, 3);
+    assert!(std::str::from_utf8(last.as_bytes()).is_ok(), "{:?}", last.as_bytes());
+    assert_eq!(last, "ab\u{ff}");
 }

@@ -32,7 +32,6 @@ use foundation_ai::types::*;
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream, StreamSpread};
 use foundation_netio::{DynNetClient, HttpClientBuilder};
-use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_netio::shared::http::SimpleMethod;
 use foundation_testing::http::HttpRequest;
 use foundation_testing::http::{
@@ -114,7 +113,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
 
 fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
     let addr = server_addr(server);
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(addr).build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
@@ -357,7 +356,7 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
         .unwrap()
         .parse()
         .unwrap();
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(addr).build();
 
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
@@ -1720,7 +1719,7 @@ fn setup_responses_model(server: &TestHttpServer, max_retries: u32) -> impl Mode
     use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 
     let addr = server_addr(server);
-    let http_client: DynNetClient = HttpClientBuilder::new().build();
+    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(addr).build();
     let config = ResponsesConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)

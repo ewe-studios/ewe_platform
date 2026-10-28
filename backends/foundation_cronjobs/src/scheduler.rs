@@ -102,7 +102,7 @@ impl<QS: QueryStore + ?Sized + 'static> CronScheduler<QS> {
     ///
     /// Returns `StorageError` if the statement fails.
     pub async fn ensure_table(&self) -> Result<(), StorageError> {
-        self.query_store.execute_batch_async(CREATE_TABLE_SQL).await
+        self.query_store.execute_batch(CREATE_TABLE_SQL).await
     }
 
     /// Persist all job states.
@@ -114,7 +114,7 @@ impl<QS: QueryStore + ?Sized + 'static> CronScheduler<QS> {
         for job in &self.jobs {
             let r = JobRecord::from_job(job);
             self.query_store
-                .execute_async(
+                .execute(
                     "INSERT OR REPLACE INTO cron_jobs (id, cron_expr, last_run, last_status, error_count, next_run) \
                      VALUES (?, ?, ?, ?, ?, ?)",
                     &[
@@ -142,7 +142,7 @@ impl<QS: QueryStore + ?Sized + 'static> CronScheduler<QS> {
         for job in &mut self.jobs {
             let mut rows = self
                 .query_store
-                .query_async(
+                .query(
                     "SELECT last_run, last_status, error_count, next_run FROM cron_jobs WHERE id = ?",
                     &[DataValue::Text(job.config.id.clone())],
                 )

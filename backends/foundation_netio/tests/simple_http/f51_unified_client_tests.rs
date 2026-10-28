@@ -397,15 +397,3 @@ fn websocket_connector_accepts_valid_101() {
         other => panic!("expected Text(\"hi\") after a valid 101, got {other:?}"),
     }
 }
-
-// ============================================================================
-// Compatibility: SimpleHttpClient alias (Stage 2a)
-// ============================================================================
-
-#[test]
-#[allow(deprecated)]
-fn simple_http_client_alias_works() {
-    use foundation_netio::http::SimpleHttpClient;
-    let client = SimpleHttpClient::<SystemDnsResolver>::default();
-    assert_eq!(client.client_config().max_redirects, 5);
-}

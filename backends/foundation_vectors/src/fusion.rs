@@ -143,7 +143,7 @@ pub async fn hybrid_search(
     let fetch_n = k.saturating_mul(2);
 
     let vector_results = vector_store
-        .search_async(namespace, query_vector, fetch_n)
+        .search(namespace, query_vector, fetch_n)
         .await?;
     let keyword_results = bm25.search(query_text, fetch_n);
 

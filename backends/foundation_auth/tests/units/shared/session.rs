@@ -32,7 +32,7 @@ async fn test_revoke_single_session() {
 
     mgr.revoke_session(&session.id).await.unwrap();
 
-    let stored: Option<Session> = mgr.store().get_async(&session.id).await.unwrap();
+    let stored: Option<Session> = mgr.store().get(&session.id).await.unwrap();
     assert!(stored.is_some_and(|s| s.revoked));
 }
 

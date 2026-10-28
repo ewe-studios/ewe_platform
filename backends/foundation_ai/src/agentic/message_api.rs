@@ -203,18 +203,18 @@ impl<D: DocumentStore> MessageInner<D> {
         match record {
             SessionRecord::Conversation { message } => {
                 self.doc_store
-                    .append_with_id_async(&key, &message.id().to_string(), record.clone())
+                    .append_with_id(&key, &message.id().to_string(), record.clone())
                     .await?;
             }
             SessionRecord::WorkingMemory { .. }
             | SessionRecord::Observation { .. }
             | SessionRecord::Reflection { .. } => {
                 self.doc_store
-                    .append_promotable_async(&key, record.clone())
+                    .append_promotable(&key, record.clone())
                     .await?;
             }
             _ => {
-                self.doc_store.append_async(&key, record.clone()).await?;
+                self.doc_store.append(&key, record.clone()).await?;
             }
         }
         Ok(())
@@ -371,7 +371,7 @@ impl<D: DocumentStore> MessageApi<D> {
         let docs = self
             .inner
             .doc_store
-            .scan_documents_async(&self.inner.session_id.to_string(), n)
+            .scan_documents(&self.inner.session_id.to_string(), n)
             .await?;
         decode_records(docs)
     }
@@ -387,7 +387,7 @@ impl<D: DocumentStore> MessageApi<D> {
         let mut stream = SendWrapper::new(
             self.inner
                 .doc_store
-                .scan_all_async::<SessionRecord>(&self.inner.session_id.to_string())
+                .scan_all::<SessionRecord>(&self.inner.session_id.to_string())
                 .await?,
         );
         let mut records = Vec::new();
@@ -406,7 +406,7 @@ impl<D: DocumentStore> MessageApi<D> {
         let docs = self
             .inner
             .doc_store
-            .scan_documents_from_async(&self.inner.session_id.to_string(), from_id, n)
+            .scan_documents_from(&self.inner.session_id.to_string(), from_id, n)
             .await?;
         decode_records(docs)
     }
@@ -419,7 +419,7 @@ impl<D: DocumentStore> MessageApi<D> {
         self.inner.flush().await?;
         self.inner
             .doc_store
-            .delete_all_async(&self.inner.session_id.to_string())
+            .delete_all(&self.inner.session_id.to_string())
             .await
     }
 }

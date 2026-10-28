@@ -15,7 +15,7 @@ async fn open(url: &str) -> LibsqlStore {
 
 async fn keys(storage: &LibsqlStore, prefix: Option<&str>) -> Vec<String> {
     storage
-        .list_keys_async(prefix)
+        .list_keys(prefix)
         .await
         .unwrap()
         .map(Result::unwrap)
@@ -29,16 +29,16 @@ async fn test_libsql_storage_basic() {
     let db_path = temp_dir.path().join("test.db");
     let storage = open(db_path.to_str().unwrap()).await;
 
-    storage.set_async("test_key", "test_value".to_string()).await.unwrap();
+    storage.set("test_key", "test_value".to_string()).await.unwrap();
 
-    let value: Option<String> = storage.get_async("test_key").await.unwrap();
+    let value: Option<String> = storage.get("test_key").await.unwrap();
     assert_eq!(value, Some("test_value".to_string()));
 
-    assert!(storage.exists_async("test_key").await.unwrap());
-    assert!(!storage.exists_async("nonexistent").await.unwrap());
+    assert!(storage.exists("test_key").await.unwrap());
+    assert!(!storage.exists("nonexistent").await.unwrap());
 
-    storage.delete_async("test_key").await.unwrap();
-    assert!(!storage.exists_async("test_key").await.unwrap());
+    storage.delete("test_key").await.unwrap();
+    assert!(!storage.exists("test_key").await.unwrap());
 }
 
 #[valtron_test]
@@ -47,9 +47,9 @@ async fn test_libsql_storage_list_keys() {
     let db_path = temp_dir.path().join("test.db");
     let storage = open(db_path.to_str().unwrap()).await;
 
-    storage.set_async("prefix:key1", "value1".to_string()).await.unwrap();
-    storage.set_async("prefix:key2", "value2".to_string()).await.unwrap();
-    storage.set_async("other:key3", "value3".to_string()).await.unwrap();
+    storage.set("prefix:key1", "value1".to_string()).await.unwrap();
+    storage.set("prefix:key2", "value2".to_string()).await.unwrap();
+    storage.set("other:key3", "value3".to_string()).await.unwrap();
 
     assert_eq!(keys(&storage, None).await.len(), 3);
     assert_eq!(keys(&storage, Some("prefix:")).await, vec!["prefix:key1", "prefix:key2"]);

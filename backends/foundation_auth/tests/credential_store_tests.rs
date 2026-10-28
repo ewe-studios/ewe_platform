@@ -22,24 +22,24 @@ async fn sqlite_store_basic_roundtrip() {
     let (store, _dir) = sqlite_store().await;
 
     store
-        .set_async("test_key", "test_value").await
+        .set("test_key", "test_value").await
         .expect("Failed to set credential");
 
     let value: String = store
-        .get_async("test_key").await
+        .get("test_key").await
         .expect("Failed to get credential")
         .expect("Credential not found");
     assert_eq!(value, "test_value");
 
-    assert!(store.exists_async("test_key").await.expect("Failed to check existence"));
+    assert!(store.exists("test_key").await.expect("Failed to check existence"));
     assert!(!store
-        .exists_async("nonexistent").await
+        .exists("nonexistent").await
         .expect("Failed to check existence"));
 
     store
-        .delete_async("test_key").await
+        .delete("test_key").await
         .expect("Failed to delete credential");
-    assert!(!store.exists_async("test_key").await.expect("Failed to check existence"));
+    assert!(!store.exists("test_key").await.expect("Failed to check existence"));
 }
 
 #[valtron_test]
@@ -82,14 +82,14 @@ async fn sqlite_store_oauth_helpers() {
 async fn sqlite_store_list_keys_filters_by_prefix() {
     let (store, _dir) = sqlite_store().await;
 
-    store.set_async("oauth:provider1", "value1").await.unwrap();
-    store.set_async("oauth:provider2", "value2").await.unwrap();
-    store.set_async("jwt:token", "value3").await.unwrap();
+    store.set("oauth:provider1", "value1").await.unwrap();
+    store.set("oauth:provider2", "value2").await.unwrap();
+    store.set("jwt:token", "value3").await.unwrap();
 
-    let keys = store.list_keys_async(None).await.unwrap();
+    let keys = store.list_keys(None).await.unwrap();
     assert_eq!(keys.len(), 3);
 
-    let keys = store.list_keys_async(Some("oauth:")).await.unwrap();
+    let keys = store.list_keys(Some("oauth:")).await.unwrap();
     assert_eq!(keys.len(), 2);
     assert!(keys.contains(&"oauth:provider1".to_string()));
     assert!(keys.contains(&"oauth:provider2".to_string()));
@@ -114,7 +114,7 @@ async fn credential_storage_wraps_arbitrary_provider() {
         .await
         .expect("init turso provider");
     let store = CredentialStorage::new(provider);
-    store.set_async("k", "v").await.unwrap();
-    let got: String = store.get_async("k").await.unwrap().unwrap();
+    store.set("k", "v").await.unwrap();
+    let got: String = store.get("k").await.unwrap().unwrap();
     assert_eq!(got, "v");
 }

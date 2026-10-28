@@ -147,19 +147,19 @@ impl Drop for TestHttpsServer {
 
 /// Create a `SSLConnector` that trusts the embedded self-signed test certificate.
 ///
-/// Use this when building a `NativeHttpClient` that talks to `TestHttpsServer`:
+/// Use this when building a client that talks to `TestHttpsServer`:
 ///
 /// ```rust
 /// use std::net::SocketAddr;
 ///
-/// use foundation_netio::http::NativeHttpClient;
-/// use foundation_netio::shared::client::StaticSocketAddr;
+/// use foundation_netio::HttpClientBuilder;
 /// use foundation_testing::http::{test_tls_connector, TestHttpsServer};
 ///
 /// let server = TestHttpsServer::start();
-/// let dns = StaticSocketAddr::new(SocketAddr::from(([127, 0, 0, 1], server.port())));
-/// let client = NativeHttpClient::with_resolver(dns)
-///     .with_tls_connector(test_tls_connector());
+/// let client = HttpClientBuilder::new()
+///     .resolve_to(SocketAddr::from(([127, 0, 0, 1], server.port())))
+///     .with_tls_connector(test_tls_connector())
+///     .build();
 /// ```
 #[must_use]
 pub fn test_tls_connector() -> SSLConnector {
@@ -246,42 +246,4 @@ fn handle_tls_connection(
     tls_stream.flush()?;
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use foundation_netio::http::NativeHttpClient;
-    use foundation_netio::shared::client::StaticSocketAddr;
-    use std::net::SocketAddr;
-
-    #[test]
-    fn test_https_server_starts() {
-        let server = TestHttpsServer::start();
-        assert!(server.base_url().starts_with("https://127.0.0.1:"));
-    }
-
-    #[test]
-    fn test_https_roundtrip() {
-        let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
-
-        let server = TestHttpsServer::with_response(|_req| HttpResponse::ok(b"hello from TLS"));
-
-        let port = server.port();
-        let addr = SocketAddr::from(([127, 0, 0, 1], port));
-        let dns = StaticSocketAddr::new(addr);
-        let connector = test_tls_connector();
-
-        let client = NativeHttpClient::with_resolver(dns).with_tls_connector(connector);
-
-        let response = client
-            .get("https://localhost/test")
-            .unwrap()
-            .build_client()
-            .unwrap()
-            .send()
-            .expect("HTTPS request should succeed");
-
-        assert_eq!(response.get_status().into_usize(), 200);
-    }
 }
