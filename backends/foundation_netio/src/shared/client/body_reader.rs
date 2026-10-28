@@ -1830,6 +1830,10 @@ use core::pin::Pin;
 use core::task::{Context, Poll};
 use futures_core::Stream as FuturesStream;
 
+/// Registers `waker` to be woken when the body's connection becomes readable.
+/// Returns `false` when the transport cannot report readiness.
+pub type ReadWakeSource = Arc<dyn Fn(&core::task::Waker) -> bool + Send + Sync>;
+
 /// Async stream that reads body bytes from a `SendSafeBody`.
 ///
 /// - `Text` / `Bytes` → yields one chunk then ends.
@@ -1837,11 +1841,17 @@ use futures_core::Stream as FuturesStream;
 ///   chunk from the inner iterator.
 /// - `None` → yields nothing.
 ///
-/// Since the inner iterators are synchronous, each poll returns `Poll::Ready`.
-/// The wrapper implements `futures_core::Stream` so it integrates with
-/// `.collect().await`, `StreamExt`, etc.
+/// The inner iterators are synchronous, so a poll returns `Poll::Ready` when it
+/// has data, and parks when the socket has nothing yet. A body built from a real
+/// connection carries a [`ReadWakeSource`] (see [`AsyncSendSafeBody::with_read_wake`]).
+/// On a "nothing yet" item the source registers the waker, the iterator is pulled
+/// once more, and only then does the stream return `Poll::Pending`, so no wake is
+/// lost. Without a source the stream falls back to a self-wake and logs once at
+/// `debug`.
 pub struct AsyncSendSafeBody {
     inner: SendSafeBodyState,
+    read_wake: Option<ReadWakeSource>,
+    logged_no_source: bool,
 }
 
 enum SendSafeBodyState {
@@ -1852,6 +1862,50 @@ enum SendSafeBodyState {
     ChunkedStream(BoxedSendableIterator<ChunkedData, SendableBoxedError>),
     LineFeedStream(BoxedSendableIterator<LineFeed, SendableBoxedError>),
     SseStream(BoxedSendableIterator<crate::event_source::ParseResult, SendableBoxedError>),
+}
+
+/// What a "nothing yet" item should do after the waker is registered.
+enum WaitAction {
+    /// The waker is registered: pull the iterator once more before parking.
+    Repoll,
+    /// No usable source (or the second empty pull): park.
+    Park,
+}
+
+impl AsyncSendSafeBody {
+    /// Attach a readiness source so a "nothing yet" poll parks instead of
+    /// spinning.
+    #[must_use]
+    pub fn with_read_wake(mut self, source: ReadWakeSource) -> Self {
+        self.read_wake = Some(source);
+        self
+    }
+
+    /// Decide what to do after a "nothing yet" item.
+    ///
+    /// The first empty pull registers the waker (if a source is attached) and
+    /// asks for one repoll. A second empty pull parks. Without a source, or when
+    /// the source refuses, the stream self-wakes — the logged fallback.
+    fn wait_decision(&mut self, cx: &mut Context<'_>, already_repolled: &mut bool) -> WaitAction {
+        if *already_repolled {
+            return WaitAction::Park;
+        }
+        let registered = match &self.read_wake {
+            Some(source) => source(cx.waker()),
+            None => false,
+        };
+        if registered {
+            *already_repolled = true;
+            WaitAction::Repoll
+        } else {
+            if !self.logged_no_source {
+                tracing::debug!("body has no readiness source; polling");
+                self.logged_no_source = true;
+            }
+            cx.waker().wake_by_ref();
+            WaitAction::Park
+        }
+    }
 }
 
 impl From<SendSafeBody> for AsyncSendSafeBody {
@@ -1875,7 +1929,11 @@ impl From<SendSafeBody> for AsyncSendSafeBody {
             SendSafeBody::SseStream(Some(iter)) => SendSafeBodyState::SseStream(iter),
             SendSafeBody::SseStream(None) => SendSafeBodyState::Done,
         };
-        Self { inner }
+        Self {
+            inner,
+            read_wake: None,
+            logged_no_source: false,
+        }
     }
 }
 
@@ -1895,71 +1953,112 @@ impl FuturesStream for AsyncSendSafeBody {
             SendSafeBodyState::Text(bytes) => Poll::Ready(Some(Ok(bytes))),
             SendSafeBodyState::Bytes(bytes) => Poll::Ready(Some(Ok(bytes))),
             SendSafeBodyState::Stream(mut iter) => {
-                match iter.next() {
-                    Some(Ok(Data::Bytes(b))) => {
-                        this.inner = SendSafeBodyState::Stream(iter);
-                        Poll::Ready(Some(Ok(b)))
+                let mut repolled = false;
+                loop {
+                    match iter.next() {
+                        Some(Ok(Data::Bytes(b))) => {
+                            this.inner = SendSafeBodyState::Stream(iter);
+                            return Poll::Ready(Some(Ok(b)));
+                        }
+                        Some(Ok(Data::Retry)) => match this.wait_decision(cx, &mut repolled) {
+                            WaitAction::Repoll => continue,
+                            WaitAction::Park => {
+                                this.inner = SendSafeBodyState::Stream(iter);
+                                return Poll::Pending;
+                            }
+                        },
+                        Some(Err(e)) if is_would_block(&*e) => {
+                            match this.wait_decision(cx, &mut repolled) {
+                                WaitAction::Repoll => continue,
+                                WaitAction::Park => {
+                                    this.inner = SendSafeBodyState::Stream(iter);
+                                    return Poll::Pending;
+                                }
+                            }
+                        }
+                        Some(Err(e)) => return Poll::Ready(Some(Err(e))),
+                        None => return Poll::Ready(None),
                     }
-                    Some(Ok(Data::Retry)) => {
-                        this.inner = SendSafeBodyState::Stream(iter);
-                        // Retry means "no data yet but stream alive" — poll again immediately.
-                        cx.waker().wake_by_ref();
-                        Poll::Pending
-                    }
-                    Some(Err(e)) => Poll::Ready(Some(Err(e))),
-                    None => Poll::Ready(None),
                 }
             }
-            SendSafeBodyState::ChunkedStream(mut iter) => match iter.next() {
-                Some(Ok(ChunkedData::Data(b, _))) => {
-                    this.inner = SendSafeBodyState::ChunkedStream(iter);
-                    Poll::Ready(Some(Ok(b)))
+            SendSafeBodyState::ChunkedStream(mut iter) => {
+                let mut repolled = false;
+                loop {
+                    match iter.next() {
+                        Some(Ok(ChunkedData::Data(b, _))) => {
+                            this.inner = SendSafeBodyState::ChunkedStream(iter);
+                            return Poll::Ready(Some(Ok(b)));
+                        }
+                        // Bookkeeping items: consume in a loop, not a self-wake.
+                        Some(Ok(ChunkedData::Trailers(_))) | Some(Ok(ChunkedData::DataEnded)) => {
+                            continue;
+                        }
+                        Some(Err(e)) if is_would_block(&*e) => {
+                            match this.wait_decision(cx, &mut repolled) {
+                                WaitAction::Repoll => continue,
+                                WaitAction::Park => {
+                                    this.inner = SendSafeBodyState::ChunkedStream(iter);
+                                    return Poll::Pending;
+                                }
+                            }
+                        }
+                        Some(Err(e)) => return Poll::Ready(Some(Err(e))),
+                        None => return Poll::Ready(None),
+                    }
                 }
-                Some(Ok(ChunkedData::Trailers(_))) => {
-                    this.inner = SendSafeBodyState::ChunkedStream(iter);
-                    cx.waker().wake_by_ref();
-                    Poll::Pending
-                }
-                Some(Ok(ChunkedData::DataEnded)) => Poll::Ready(None),
-                Some(Err(e)) => Poll::Ready(Some(Err(e))),
-                None => Poll::Ready(None),
-            },
+            }
             SendSafeBodyState::LineFeedStream(mut iter) => {
-                match iter.next() {
-                    Some(Ok(LineFeed::Line(line))) => {
-                        this.inner = SendSafeBodyState::LineFeedStream(iter);
-                        let mut bytes = line.into_bytes();
-                        bytes.push(b'\n');
-                        Poll::Ready(Some(Ok(bytes)))
+                let mut repolled = false;
+                loop {
+                    match iter.next() {
+                        Some(Ok(LineFeed::Line(line))) => {
+                            this.inner = SendSafeBodyState::LineFeedStream(iter);
+                            let mut bytes = line.into_bytes();
+                            bytes.push(b'\n');
+                            return Poll::Ready(Some(Ok(bytes)));
+                        }
+                        Some(Ok(LineFeed::SKIP | LineFeed::END)) => continue,
+                        Some(Err(e)) if is_would_block(&*e) => {
+                            match this.wait_decision(cx, &mut repolled) {
+                                WaitAction::Repoll => continue,
+                                WaitAction::Park => {
+                                    this.inner = SendSafeBodyState::LineFeedStream(iter);
+                                    return Poll::Pending;
+                                }
+                            }
+                        }
+                        Some(Err(e)) => return Poll::Ready(Some(Err(e))),
+                        None => return Poll::Ready(None),
                     }
-                    Some(Ok(LineFeed::SKIP | LineFeed::END)) => {
-                        this.inner = SendSafeBodyState::LineFeedStream(iter);
-                        cx.waker().wake_by_ref();
-                        Poll::Pending
-                    }
-                    Some(Err(e)) => Poll::Ready(Some(Err(e))),
-                    None => Poll::Ready(None),
                 }
             }
-            SendSafeBodyState::SseStream(mut iter) => match iter.next() {
-                Some(Ok(pr)) => {
-                    this.inner = SendSafeBodyState::SseStream(iter);
-                    match pr.event {
-                        crate::event_source::Event::Message { data, .. } => {
-                            let mut bytes = data.into_bytes();
-                            bytes.push(b'\n');
-                            Poll::Ready(Some(Ok(bytes)))
+            SendSafeBodyState::SseStream(mut iter) => {
+                let mut repolled = false;
+                loop {
+                    match iter.next() {
+                        Some(Ok(pr)) => match pr.event {
+                            Event::Message { data, .. } => {
+                                this.inner = SendSafeBodyState::SseStream(iter);
+                                let mut bytes = data.into_bytes();
+                                bytes.push(b'\n');
+                                return Poll::Ready(Some(Ok(bytes)));
+                            }
+                            Event::Comment(_) | Event::Reconnect => continue,
+                        },
+                        Some(Err(e)) if is_would_block(&*e) => {
+                            match this.wait_decision(cx, &mut repolled) {
+                                WaitAction::Repoll => continue,
+                                WaitAction::Park => {
+                                    this.inner = SendSafeBodyState::SseStream(iter);
+                                    return Poll::Pending;
+                                }
+                            }
                         }
-                        crate::event_source::Event::Comment(_)
-                        | crate::event_source::Event::Reconnect => {
-                            cx.waker().wake_by_ref();
-                            Poll::Pending
-                        }
+                        Some(Err(e)) => return Poll::Ready(Some(Err(e))),
+                        None => return Poll::Ready(None),
                     }
                 }
-                Some(Err(e)) => Poll::Ready(Some(Err(e))),
-                None => Poll::Ready(None),
-            },
+            }
         }
     }
 }
