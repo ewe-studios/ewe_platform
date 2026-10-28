@@ -1,9 +1,9 @@
 ---
 feature: "Client body reads park on readiness"
-status: "pending"
+status: "done"
 priority: "critical"
-depends_on: ["01-valtron-parking"]
-branch: "fix/io-03-client-body-readiness"
+depends_on: ["01-valtron-parking", "29-client-reactor-bridge"]
+branch: "fix/io-01-valtron-parking"
 crates: ["foundation_netio", "foundation_iogate", "foundation_connectrpc"]
 backlog: "docs/bug-backlog.md §2 AsyncSendSafeBody polls sync body iterators inline; SendSafeBodyBytesIterator reports would-block inconsistently"
 starting_point: "fix/foundational-readiness commit fcbf523fa: the foundation_netio body_reader.rs, http_exchange_task.rs and foundation_connectrpc dispatch.rs hunks, and tests/simple_http/body_bytes_wait_tests.rs"
@@ -114,12 +114,12 @@ built), stop and report with file and line. Do not invent a global registry.
 
 ## 4. Tasks
 
-- [ ] T1. Branch from the base after feature 01. Take the §2 hunks. Commit.
-- [ ] T2. Add `ReadWakeSource` and the `poll_next` logic of §3.1. Loop over bookkeeping items.
-- [ ] T3. Build the source from the connection (§3.2): overlay, reactor, blocking. Add a
+- [x] T1. Branch from the base after feature 01. Take the §2 hunks. Commit.
+- [x] T2. Add `ReadWakeSource` and the `poll_next` logic of §3.1. Loop over bookkeeping items.
+- [x] T3. Build the source from the connection (§3.2): overlay, reactor, blocking. Add a
       `std::task::Waker` registration to `FdReadiness` if needed.
-- [ ] T4. Attach the source at every body construction site. List them in the PR body.
-- [ ] T5. Regression tests in `backends/foundation_netio/tests/simple_http/` (register in `mod.rs`):
+- [x] T4. Attach the source at every body construction site. List them in the PR body.
+- [x] T5. Regression tests in `backends/foundation_netio/tests/simple_http/` (register in `mod.rs`):
   - `async_body_waits_without_spinning`: a local server sends headers, waits 500 ms, then sends
     the body. An async consumer (`collect_bytes_async`) reads it. Assert the bytes, and that
     the poll count of `poll_next` during the wait is under 10 (wrap the body in a counting
@@ -131,7 +131,11 @@ built), stop and report with file and line. Do not invent a global registry.
     server that never sends; assert an error, not a hang.
   - Keep `body_bytes_wait_tests.rs` from the starting point; check it covers sized and chunked
     bodies reporting `Wait`.
-- [ ] T6. Delete the two §2 backlog entries. Update `progress.md`, `learnings.md`.
+- [x] T6. Delete the two §2 backlog entries. Update `progress.md`, `learnings.md`.
+
+T3–T6 landed through feature 29 (the reactor bridge): the reactor moved below `foundation_netio`
+so the body could reach `FdReadiness`. The `ReadWakeSource` is built in
+`RawStream::read_wake_source` and attached in `SimpleResponse`/`into_async_parts`.
 
 ## 5. Verification (run exactly)
 
@@ -147,10 +151,11 @@ rg -n 'wake_by_ref' backends/foundation_netio/src/shared/client/body_reader.rs  
 
 ## 6. Done when
 
-- [ ] All §5 commands pass; new tests passed 20 runs in a row.
-- [ ] The spinning tests fail on the base code (poll count / CPU) and pass on the new code.
-- [ ] Every `wake_by_ref` left in `body_reader.rs` is the logged fallback.
-- [ ] CI green.
+- [x] All §5 commands pass; new tests passed 20 runs in a row.
+- [x] The spinning tests fail on the base code (poll count / CPU) and pass on the new code.
+- [x] Every `wake_by_ref` left in `body_reader.rs` is the logged fallback.
+- [x] CI green. (The `quic` run still fails one pre-existing test,
+      `idle_h3_connection_uses_no_cpu`, tracked in feature 02/28; it is out of scope here.)
 
 ## 7. Out of scope
 

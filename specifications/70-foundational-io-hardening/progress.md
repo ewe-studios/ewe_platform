@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-28: feature 03 done on `fix/io-01-valtron-parking`. T1–T2 (the §2 hunks:
+  `SendSafeBodyBytesIterator` reports `Stream::Wait` for every body kind, and
+  `is_would_block`) landed earlier. T3–T6 landed through feature 29 (the reactor bridge):
+  `ReadWakeSource` is built from the connection and attached at every body construction site,
+  `poll_next` registers the waker then repolls once before parking, the async downstream
+  consumers use `into_async_parts`, and the regression tests pass 20 runs in a row. The one
+  `wake_by_ref` left in `body_reader.rs` is the logged fallback. The `quic` run still fails the
+  pre-existing `idle_h3_connection_uses_no_cpu` (feature 02/28); it is out of scope. PR: see
+  the PR.
+
 - 2026-10-28: feature 29 done on `fix/io-01-valtron-parking`. The I/O reactor moved into the
   new `foundation_reactor` crate below `foundation_netio`, so netio can reach `FdReadiness`
   with no crate cycle. `FdReadiness::register_waker(&Waker)` was added. `RawStream::read_wake_source()`
