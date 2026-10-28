@@ -31,10 +31,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
-- **QUIC streams register no waker.** Every H3 future must wake itself, so it
-  busy-polls a worker while idle. `foundation_connectrpc`'s `h3_serve.rs`
-  `map_h3` works around this. The quinn driver should wake stream tasks when
-  they become ready.
+- **QUIC driver falls back to a 1 ms poll.** `quic/quinn_driver.rs`
+  `QuicDriver::next_status` returns `Delayed(IDLE_POLL)` (1 ms) when it has no
+  `fd_readiness`. The `with_fd_readiness` hook exists but nothing calls it: the
+  H3 server (`foundation_http` `h3_server.rs` `serve_h3`) and the connectrpc H3
+  transport build the driver without one. Also, `EventReadiness` has no `clear`,
+  so the driver cannot clear edge-triggered readiness before `pump_recv`. Tracked
+  as feature 28.
 - **`FramedRecv` buffers whole DATA frames.** *(Partly fixed:
   `http3/stream.rs` `FramedRecv::with_max_frame_size` exists.)* What is left:
   `H3Connection` / `H3Request` never expose it, so every connection uses
@@ -78,12 +81,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 3. foundation_http
 
-- **h2 connection polls on a 10 ms timer** (`native/server/h2_connection.rs`
-  `POLL_DELAY`, the "47b gap"). `ConnectionHandler`'s idle path delays instead
-  of waiting for TCP readiness.
-- **`H3AcceptTask` polls on a fixed 5 ms delay** (`native/server/h3_server.rs`),
-  which is not readiness-driven and is a hard-coded limit **(rule 8)**. It
-  should park until the QUIC driver has a connection or stream for it.
 - **The accept loop polls a non-blocking listener** (`native/server/mod.rs`,
   `serve_with_listener`): on `WouldBlock` it sleeps `would_block_sleep` and
   tries again, instead of waiting for the listener to be readable.

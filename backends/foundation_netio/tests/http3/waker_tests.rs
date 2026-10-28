@@ -118,3 +118,76 @@ fn the_driver_wakes_accept_waiters_and_parked_requests() {
     let chunk = until!(sq, cq, inbound.poll_body());
     assert_eq!(chunk.as_deref(), Some(&b"wake"[..]));
 }
+
+/// Process CPU time (user + system) in nanoseconds, via `getrusage`.
+#[cfg(all(feature = "multi", unix))]
+fn process_cpu_ns() -> u128 {
+    unsafe {
+        let mut usage: libc::rusage = std::mem::zeroed();
+        let rc = libc::getrusage(libc::RUSAGE_SELF, &mut usage);
+        assert_eq!(rc, 0, "getrusage failed");
+        let user = usage.ru_utime.tv_sec as u128 * 1_000_000_000
+            + usage.ru_utime.tv_usec as u128 * 1_000;
+        let system = usage.ru_stime.tv_sec as u128 * 1_000_000_000
+            + usage.ru_stime.tv_usec as u128 * 1_000;
+        user + system
+    }
+}
+
+/// An idle HTTP/3 connection uses no CPU: the request futures park on the
+/// connection instead of busy-polling. The driver's own 1 ms idle poll is the
+/// only remaining cost, and it stays well under the 50 ms/s budget.
+#[cfg(all(feature = "multi", unix))]
+#[test]
+fn idle_h3_connection_uses_no_cpu() {
+    use foundation_core::valtron::{initialize_pool, send};
+
+    let _guard = initialize_pool(200, Some(4));
+
+    let server_cfg = server_config_from_pem(CERT_PEM, KEY_PEM).expect("server config");
+    let sq = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
+    let addr = sq.local_addr().expect("addr");
+    let accept_queue = sq.accept_queue();
+    send(sq).expect("spawn server driver");
+
+    let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
+    let (mut cq, client_conn) = QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+
+    // Drive the client by hand while the server driver runs on the pool.
+    let deadline = Instant::now() + BUDGET;
+    let server_conn = loop {
+        let _ = cq.next_status(Ctx::new());
+        if let Some(conn) = accept_queue.lock().unwrap().pop_front() {
+            break conn;
+        }
+        assert!(Instant::now() < deadline, "server never accepted");
+        std::thread::sleep(Duration::from_millis(1));
+    };
+
+    // Finish H3 setup on both sides so the connection is fully established and
+    // idle (no request stream open).
+    let mut server = H3Connection::new(server_conn);
+    let mut client = H3Connection::new(client_conn);
+    let setup_deadline = Instant::now() + BUDGET;
+    loop {
+        let _ = cq.next_status(Ctx::new());
+        let server_ready = matches!(server.poll_setup(), Stream::Next(Ok(())));
+        let client_ready = matches!(client.poll_setup(), Stream::Next(Ok(())));
+        if server_ready && client_ready {
+            break;
+        }
+        assert!(Instant::now() < setup_deadline, "h3 setup timed out");
+        std::thread::sleep(Duration::from_millis(1));
+    }
+
+    // Let it settle into its parked state, then measure a full idle second.
+    std::thread::sleep(Duration::from_millis(100));
+    let before = process_cpu_ns();
+    std::thread::sleep(Duration::from_secs(1));
+    let after = process_cpu_ns();
+    let cpu_ms = (after - before) / 1_000_000;
+    assert!(
+        cpu_ms < 50,
+        "idle h3 connection used {cpu_ms} ms of CPU in 1 s; it should park"
+    );
+}

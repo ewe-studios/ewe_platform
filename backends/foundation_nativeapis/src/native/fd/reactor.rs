@@ -326,6 +326,30 @@ impl Reactor {
         Ok(())
     }
 
+    /// WHY: a task parks on an fd for read readiness and only wants write
+    /// readiness while it has output queued to flush. Watching write readiness
+    /// all the time spins the drain thread — an idle socket is always writable,
+    /// so the selector reports it ready on every poll.
+    ///
+    /// WHAT: change the interest an already-registered fd is watched with.
+    ///
+    /// HOW: takes `reg_lock` to serialise selector mutation, re-registers the
+    /// fd, then records the new interest in the cache entry for observability.
+    ///
+    /// # Errors
+    /// Returns the selector's `io::Error` if re-registration fails.
+    ///
+    /// # Panics
+    /// Panics if the registration map lock is poisoned.
+    pub fn reregister(&self, fd: std::os::fd::RawFd, token: Token, interest: Interest) -> io::Result<()> {
+        let _guard = self.reg_lock.lock().expect("reg_lock poisoned");
+        self.registry.reregister_fd(fd, token, interest)?;
+        if let Some(entry) = self.entries.write().expect("entries lock poisoned").get_mut(&token) {
+            entry.interest = interest;
+        }
+        Ok(())
+    }
+
     /// WHY: [`Reactor::register`] is byte-transparent — the fd's bytes stay in
     /// the socket and the caller reads them. Completion mode is opted into here,
     /// per registration, so no existing `Poll` user has the kernel start

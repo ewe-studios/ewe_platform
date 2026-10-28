@@ -2,6 +2,26 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-28 (feature 02): an idle TCP socket is always writable. If an fd is registered with
+  both READABLE and WRITABLE, the kqueue `EVFILT_WRITE` filter fires forever and the reactor
+  drain thread busy-spins. `FdReadiness` therefore registers READABLE only, and callers turn
+  WRITABLE on only while they have output queued (`set_writable`). The h2 handler calls
+  `set_writable(conn.has_pending_writes())` in `park_or`.
+
+- 2026-10-28 (feature 02): the CPU test exposed a pre-existing valtron executor busy-spin. A
+  worker that hosts only a readiness-parked task (`Depends` with no deadline) returns
+  `ProgressIndicator::CanProgress(None)` from `schedule_and_do_work` every loop (empty processing
+  queue + a sleeping task). `LocalThreadExecutor::block_on` treated `CanProgress` as "keep going"
+  with no yield, so the worker spun at 100% CPU. The `run_until` loop already guards this
+  (`CanProgress` + `has_runnable_work()`), but `block_on` did not. Fix: in `block_on`'s
+  `CanProgress` arm, sleep `READINESS_POLL_QUANTUM` (1 ms) when `!has_runnable_work()` and
+  `number_of_sleepers() > 0`. The H3 driver did not hit this because it returns `Delayed(1 ms)`,
+  a `Timable` sleeper, which the executor reports as `SpinWait` (a real condvar sleep).
+
+- 2026-10-28 (feature 02): the `QuicDriver` already has `with_fd_readiness`, but nothing calls
+  it, and `EventReadiness` has no `clear`, so the driver cannot clear edge-triggered readiness
+  before `pump_recv`. Tracked as feature 28.
+
 Feature 01 (valtron parking) is on ewe-studios/ewe_platform#163. The two blocking findings and
 the minor finding from review are now fixed on `fix/io-01-valtron-parking`, each with a test:
 

@@ -82,7 +82,7 @@ struct ActiveConn {
 /// and on every connection, so it runs again when a connection is handshaked
 /// or one of them makes progress (SETTINGS, a new request stream, a close) —
 /// or when `shutdown` fires. No timer.
-struct H3AcceptTask {
+pub struct H3AcceptTask {
     accept_queue: Arc<Mutex<VecDeque<QuinnConnection>>>,
     accept_wakers: Arc<Mutex<Vec<Waker>>>,
     app: H3App,
@@ -96,7 +96,7 @@ struct H3AcceptTask {
 }
 
 impl H3AcceptTask {
-    fn new(
+    pub fn new(
         accept_queue: Arc<Mutex<VecDeque<QuinnConnection>>>,
         accept_wakers: Arc<Mutex<Vec<Waker>>>,
         app: H3App,

@@ -9,12 +9,14 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{initialize_pool, Stream};
+use foundation_core::valtron::{initialize_pool, Ctx, Stream, TaskIterator, TaskStatus};
 use foundation_netio::http3::{H3Connection, H3Request};
-use foundation_netio::quic::{client_config_trusting_pem, QuicDriver, QuinnBidiStream};
+use foundation_netio::quic::{
+    client_config_trusting_pem, server_config_from_pem, QuicDriver, QuinnBidiStream,
+};
 
 use foundation_http::native::serve::{BoxFuture, H3Serve};
-use foundation_http::native::server::serve_h3;
+use foundation_http::native::server::{serve_h3, H3AcceptTask};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_netio::netcap::ConnectionContext;
@@ -277,4 +279,27 @@ fn http3_server_rejects_a_request_it_has_no_handler_for() {
     );
 
     shutdown.turn_on();
+}
+
+/// The accept task parks between turns: with no connection arriving, it returns
+/// `Depends` (waiting on its waker or shutdown), never `Delayed` (a poll timer).
+/// The old fixed 5 ms delay made it wake 100 times in 500 ms.
+#[test]
+fn h3_accept_task_parks_until_a_connection_arrives() {
+    let cfg = server_config_from_pem(CERT, KEY).expect("server config");
+    let driver = QuicDriver::server("127.0.0.1:0".parse().unwrap(), cfg).expect("bind");
+    let accept_queue = driver.accept_queue();
+    let accept_wakers = driver.accept_wakers();
+
+    let app = Arc::new(HttpApp::new_h3_serve());
+    let shutdown = Arc::new(OnSignal::new());
+    let mut task = H3AcceptTask::new(accept_queue, accept_wakers, app, shutdown);
+
+    for _ in 0..5 {
+        let status = task.next_status(Ctx::new()).expect("accept task stays alive");
+        assert!(
+            matches!(status, TaskStatus::Depends(_)),
+            "an idle h3 accept task must park via Depends, not a timer"
+        );
+    }
 }

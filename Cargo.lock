@@ -5079,6 +5079,7 @@ dependencies = [
  "foundation_wireguard",
  "getrandom 0.2.17",
  "js-sys",
+ "libc",
  "ntest",
  "regex",
  "serde",
@@ -5097,6 +5098,7 @@ dependencies = [
 name = "foundation_iogate"
 version = "0.0.3"
 dependencies = [
+ "foundation_core",
  "foundation_nativeapis",
  "foundation_netio",
  "serial_test",

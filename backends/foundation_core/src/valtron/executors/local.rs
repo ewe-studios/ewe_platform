@@ -3031,7 +3031,18 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 }
 
                 match self.run_once() {
-                    ProgressIndicator::CanProgress(_) => {}
+                    ProgressIndicator::CanProgress(_) => {
+                        // The step reported progress, but when nothing is actually
+                        // runnable — only readiness-parked sleepers remain — sleep
+                        // the readiness quantum instead of busy-spinning until one
+                        // is woken. The reactor (or a bridged future's waker) calls
+                        // `request_executor_resume`, which interrupts this wait.
+                        if !self.state.has_runnable_work()
+                            && self.state.number_of_sleepers() > 0
+                        {
+                            self.yielder.yield_for(READINESS_POLL_QUANTUM);
+                        }
+                    }
                     ProgressIndicator::NoWork => {
                         // Also check kill signal when no work
                         if kill_signal.probe() {

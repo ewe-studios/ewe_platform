@@ -397,7 +397,15 @@ impl H2ConnectionHandler {
     /// `fallback` when the socket cannot be watched at all.
     fn park_or(&self, fallback: Duration, deadline: Option<Instant>) -> TaskStatus<(), ()> {
         let socket: Option<EventReadinessPtr> = match &self.parker.fd {
-            Some(fd) => Some(Arc::clone(fd) as EventReadinessPtr),
+            Some(fd) => {
+                // Watch WRITABLE only while output is queued to flush. An idle
+                // socket is always writable, so watching it constantly would
+                // make the reactor report the fd ready forever and spin the
+                // drain thread instead of parking.
+                let pw = self.conn.has_pending_writes();
+                let _ = fd.set_writable(pw);
+                Some(Arc::clone(fd) as EventReadinessPtr)
+            }
             None if self.overlay_waker => None,
             None => return TaskStatus::Delayed(fallback),
         };

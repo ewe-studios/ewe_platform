@@ -68,6 +68,8 @@ tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 serial_test = { version = "3" }
 ntest = { version = "0.9" }
 async-trait = "0.1"
+# `getrusage` for the parking CPU regression tests (utime+stime).
+libc = "0.2"
 
 [features]
 default = []

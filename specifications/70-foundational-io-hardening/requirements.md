@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 0
-  uncompleted: 27
-  total: 27
+  uncompleted: 28
+  total: 28
   completion_percentage: 0%
 ---
 
@@ -148,6 +148,7 @@ done
 | 25 | [Hugging Face: async Hub client, streamed uploads, pagination](./features/25-huggingface/feature.md) | §20 (3) | 03, 05 | M |
 | 26 | [Native reactor tests compile and run on macOS](./features/26-native-reactor-test-portability/feature.md) | §13 macOS `pipe2`/`/proc` | — | S |
 | 27 | [`SleepIterator` returns `Done` for a reached deadline](./features/27-valtron-sleep-iterator/feature.md) | §4 zero-duration deadline | — | S |
+| 28 | [QUIC driver parks on its UDP socket](./features/28-quic-driver-fd-readiness/feature.md) | §2 QUIC driver 1 ms poll | 02 | M |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -185,6 +186,7 @@ flowchart LR
     F05 --> F25[25 huggingface]
     F26[26 native reactor tests macOS]
     F27[27 SleepIterator deadline]
+    F02 --> F28[28 quic driver fd readiness]
 ```
 
 _The diagram shows which feature must finish before another starts._

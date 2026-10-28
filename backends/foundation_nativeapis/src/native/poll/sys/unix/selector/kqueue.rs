@@ -209,8 +209,48 @@ impl Selector {
 
     /// Re-register a raw file descriptor with new token and/or interest.
     pub fn reregister_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
-        // On kqueue, re-registering is the same as registering — it updates the existing entry.
+        // kqueue `EV_ADD` only adds or updates a filter; it never removes one.
+        // A dropped interest must be `EV_DELETE`d explicitly or the filter keeps
+        // firing — an idle socket is always writable, so a stale `EVFILT_WRITE`
+        // would busy-loop the drain thread. Delete each filter not in the new
+        // interest (a missing filter yields `ENOENT`, which is fine), then add
+        // the ones that are.
+        self.delete_filter(fd, libc::EVFILT_READ)?;
+        self.delete_filter(fd, libc::EVFILT_WRITE)?;
         self.register_fd(fd, token, interest)
+    }
+
+    /// Delete one kqueue filter, tolerating `ENOENT` (the filter is absent).
+    fn delete_filter(&self, fd: RawFd, filter: i16) -> io::Result<()> {
+        let mut event: libc::kevent = unsafe { std::mem::zeroed() };
+        unsafe {
+            ev_set(
+                &mut event,
+                fd as libc::uintptr_t,
+                filter,
+                libc::EV_DELETE,
+                0,
+                0,
+                std::ptr::null_mut(),
+            );
+        }
+        let r = unsafe {
+            libc::kevent(
+                self.kq.as_raw_fd(),
+                &event,
+                1,
+                std::ptr::null_mut(),
+                0,
+                std::ptr::null(),
+            )
+        };
+        if r < 0 {
+            let err = io::Error::last_os_error();
+            if err.raw_os_error() != Some(libc::ENOENT) {
+                return Err(err);
+            }
+        }
+        Ok(())
     }
 
     /// Deregister a raw file descriptor from the kqueue selector.

@@ -472,13 +472,18 @@ fn abort_call(req: &mut Req, cancel: &CancelSignal, error: &io::Error) -> io::Er
     )
 }
 
+/// Logged once per process when a backend cannot register a waker, so the
+/// self-wake fallback below does not flood the log on every not-ready poll.
+static SELF_WAKE_LOGGED: AtomicBool = AtomicBool::new(false);
+
 /// Map one H3 poll result onto `std::task::Poll`.
 ///
 /// A not-ready poll parks: the caller registered `cx`'s waker on the QUIC
 /// connection first (`parked`), and the endpoint driver wakes it when the
 /// connection makes progress. Only a backend that cannot wake (`!parked`)
 /// falls back to waking its own task, so valtron requeues it behind the
-/// driver rather than parking it on a wake that never comes.
+/// driver rather than parking it on a wake that never comes. That fallback
+/// logs once at `debug`, because a backend that cannot wake is a misconfig.
 fn map_h3<T>(
     cx: &Context<'_>,
     polled: VStream<Result<T, H3Error>, ()>,
@@ -489,6 +494,9 @@ fn map_h3<T>(
         VStream::Next(Err(e)) => Poll::Ready(Err(io::Error::other(e.to_string()))),
         _ => {
             if !parked {
+                if !SELF_WAKE_LOGGED.swap(true, Ordering::Relaxed) {
+                    tracing::debug!("h3 request backend cannot register a waker; self-waking");
+                }
                 cx.waker().wake_by_ref();
             }
             Poll::Pending
