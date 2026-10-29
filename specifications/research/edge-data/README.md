@@ -44,6 +44,7 @@ The notes use these positions as given. They do not argue with them.
 | authrim | `github.com/sgrastar/authrim`: `private/docs/implementation/tenant-d1-control-plane/README.md`, `packages/ar-lib-core/src/utils/region-sharding.ts` |
 | emdash | `github.com/emdash-cms/emdash`: `packages/cloudflare/src/db/` (`d1.ts`, `d1-session-guard.ts`, `coalescing-d1.ts`, `coalescing-do-sql.ts`, `do-sql-class.ts`) |
 | Cloudflare | `cloudflare/cloudflare-docs`: D1 limits, pricing and read replication; DO limits, pricing and "Rules of Durable Objects"; R2 limits, pricing and consistency |
+| DS | [`durable-streams`](https://github.com/durable-streams/durable-streams): `PROTOCOL.md`, `docs/concepts.md`, `docs/fork.md`, `docs/durable-state.md`, `docs/stream-db.md`, `docs/building-a-server.md`, `docs/deployment.md` |
 
 The project repositories and the Cloudflare documentation were read at their default branches on
 2026-10-27. The PDFs are browser print-outs: wide code blocks and diagrams are cut at the right
@@ -57,6 +58,7 @@ edge in the PDF itself, so some code lines are incomplete.
 | [read-scaling-and-replicas.md](./read-scaling-and-replicas.md) | D1 Sessions API and bookmarks, consistency classes for each query, coalescing, many named D1 databases, the shard in the ID, caching, what lunora and fokosdb do |
 | [change-logs.md](./change-logs.md) | CDC in the same transaction, commit-ordered sequences, retention and archive, epochs, the CQRS flush, the linear relay, core and delta tables, JetStream's layout, per-shard migrations |
 | [tiered-store.md](./tiered-store.md) | **Deep.** DO SQLite → D1 → R2: the tiers, demotion and promotion, the watermark rule, reads across tiers, crash windows for DST, costs, the mapping onto `foundation_db`, and `foundation_log` on R2 and S3 |
+| [durable-streams.md](./durable-streams.md) | **Deep.** Durable Streams: the resumable, offset-addressable log over HTTP. Offset-based resumption, idempotent producers and epoch fencing, live tail, fork without copy, the immutable prefix, and the mapping onto valtron, `foundation_log` and spec 65 |
 | [discarded.md](./discarded.md) | Ideas reviewed and thrown away, one line each |
 
 ## 5. Top insights
@@ -71,14 +73,20 @@ edge in the PDF itself, so some code lines are incomplete.
 8. **D1 is the most expensive tier per byte; row writes are the expensive operation.** R2 storage is 50 times cheaper than D1. Each tier hop costs row writes that batching does not remove ([tiered-store.md 7](./tiered-store.md#7-costs)).
 9. **Prune by terminal state, not by age.** Core tables stay in D1; only finished deltas move to R2 ([change-logs.md 2.8](./change-logs.md#28-core-tables-and-delta-tables)).
 10. **Coalesce the reads of one request into one `batch()`.** One round trip instead of 5 to 17 ([read-scaling-and-replicas.md 2.4](./read-scaling-and-replicas.md#24-coalescing-reads-into-one-batch)).
+11. **Make the cursor the state, not the connection.** A reader stores `Stream-Next-Offset` and resumes from it, so a drop mid-stream reconnects with no skip and no duplicate ([durable-streams.md 3.1](./durable-streams.md#31-offset-based-resumption-is-the-whole-client-contract)).
+12. **Fence a writer with an epoch, deduplicate with a sequence.** `(producer-id, epoch, seq)` gives exactly-once writes: a stale epoch is fenced, a retried sequence is acknowledged without a duplicate ([durable-streams.md 3.2](./durable-streams.md#32-exactly-once-writes-from-an-idempotent-producer)).
+13. **Branch history without copying it.** A fork shares the source prefix and owns only its tail; reads span the boundary transparently ([durable-streams.md 3.4](./durable-streams.md#34-fork-branch-a-stream-without-copying-the-prefix)).
 
 ## 6. Where the insights could apply
 
 | Crate or spec | Insights | Notes |
 |---|---|---|
 | `foundation_db` | 1, 2, 3, 6, 9, 10 | `DoSqlStore` (feature 07 task T20) is the hot tier. `D1WasmStorage` needs a session constraint. `QueryStore` needs a parameterised batch, and `BlobStore` needs streaming, range reads, conditional put and an ordered listing. The gaps are on the bug backlog, section 11. |
-| `foundation_log` (issue #155) | 1, 4, 5 | Key layout, fencing, acknowledgement levels, group commit as config, the recovery steps for objects |
+| `foundation_log` (issue #155) | 1, 4, 5, 11, 12 | Key layout, fencing, acknowledgement levels, group commit as config, the recovery steps for objects. Durable Streams adds the *reader* contract: an opaque, lexicographically sortable cursor, and a trimmed segment is a refusal, never a gap. |
+| `foundation_core` (valtron) | 11, 12, 13 | A `DurableStream` reader/writer and `DurableStreamStore` trait live in valtron, so every backend spreads the capability. This is spec 71. |
+| `foundation_http`, `foundation_netio`, `foundation_connectrpc` | 11, 13 | The six HTTP verbs, the cursor headers, the immutable-prefix caching and the live tail map onto the existing HTTP and RPC surfaces. |
 | Spec 65 feature 07 (`registry-and-models.md`, `hosts.md`) | 1, 3, 7 | The R2 history archive already follows insight 1. The D1 instance index is the "registry of DOs" pattern. `do_name` already puts the route in the name. |
+| Spec 65 streaming operations (`01-agent-rpc`, `05-cloudflare`) | 11, 12, 13 | The agent-rpc turn and progress streams become resumable and replayable; a forked conversation is a fork of the turn log; the Cloudflare SSE tail gains the cursor contract. |
 | `foundation_deployment_cloudflare` | 6, 7 | Create named D1 databases with `primary_location_hint` or `jurisdiction`, and turn on `read_replication`. The update body for `read_replication` is untyped (bug backlog, section 8). |
 | Migrations for each shard | — | One timeline for each database; a shared pipeline and a shard pipeline with separate tracking ([change-logs.md 3](./change-logs.md#3-per-shard-d1-migrations)) |
 | Each spec's DST layer | 1, 2, 4 | The crash windows in [tiered-store.md 5.1](./tiered-store.md#51-crash-windows-inputs-for-the-dst-layer) and the traps in [durable-objects-and-workers.md 2.6](./durable-objects-and-workers.md#26-traps-found-in-production-use) |
