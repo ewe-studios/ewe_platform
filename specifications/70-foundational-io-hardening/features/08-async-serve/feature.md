@@ -1,6 +1,6 @@
 ---
 feature: "Async Serve: long-lived HTTP/1.1 handlers stop holding a worker"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: ["05-push-body-and-accept"]
 branch: "fix/io-08-async-serve"
