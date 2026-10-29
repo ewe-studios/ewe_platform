@@ -17,3 +17,7 @@ mod rustls_opposite_direction;
 mod tcp_stream_wrapper;
 #[cfg(all(unix, feature = "ssl-rustls"))]
 mod rustls_connector;
+
+// Feature 10: HTTP client integration tests against the local `TestHttpServer`.
+#[cfg(unix)]
+mod http_server_integration;
