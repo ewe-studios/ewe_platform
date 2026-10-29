@@ -2,6 +2,25 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-29: feature 07 done on `fix/io-01-valtron-parking`. Three fixes, one commit each.
+  §1 (HTTP/3 DATA frames): `FrameDecoder` gained `State::Data { remaining }` and a configurable
+  `read_chunk` (default 16 KiB), so a large DATA frame streams chunk-by-chunk instead of buffering
+  whole; `H3Connection::max_frame_size`/`read_chunk` thread both onto `FramedRecv`/`H3Request`, and
+  a frame whose length exceeds the cap is refused with `H3_FRAME_ERROR` before any allocation
+  (`frame_over_configured_cap_is_rejected`). §2 (WebTransport lifetime): `poll_accept_webtransport`
+  no longer FINs the CONNECT stream after the 200; it hands the open stream to
+  `WtSession::new_with_connect`, whose `poll_connect` drains capsules then treats a FIN/reset as the
+  session end (draft-ietf-webtrans-http3 §5 "Session Termination"); `close` sends a
+  `CLOSE_WEBTRANSPORT_SESSION` capsule then FIN. Tests:
+  `webtransport_session_stays_open_after_accept`, `closing_connect_stream_ends_session`. §3 (wasm
+  SSE read error): `spawn_stream_reader` records the JS `ReadableStream` read error in a shared slot
+  beside `done`; `QueueSseEvents::end_or_fail` turns it into `Pending(SseProgress::Failed)` then
+  `None` instead of a clean end. Native test `queue_sse_events_surface_a_producer_read_error` and a
+  wasm-bindgen test `sse_read_error_surfaces_failed_not_a_clean_end`. A bug found and fixed along the
+  way: `foundation_reactor` was an unconditional netio dependency with no wasm32 poll backend, so the
+  wasm check failed; it is now gated `not(target_arch = "wasm32")` (used only by `native/raw_stream`).
+  PR: see the PR.
+
 - 2026-10-29: feature 06 done on `fix/io-01-valtron-parking`. `Connection` and `RawStream`
   gained `conn_readiness()` → a purpose-built `ConnReadiness` in netio: `Fd(fd,
   Option<Arc<dyn TlsInterest>>)` for kernel sockets and `Overlay(Box<dyn OverlayReadWrite>)`

@@ -2,6 +2,37 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-29 (feature 07): `foundation_reactor` (moved out of netio in feature 29) has no
+  `poll/event` backend for `wasm32-unknown-unknown` (`Event` is linux/kqueue/windows only), yet
+  netio declared it as an unconditional dependency. That broke the netio wasm gate
+  (`cargo check --target wasm32 --no-default-features --features wasm-fetch`), even though the only
+  use is `native/raw_stream.rs` (a `#[cfg(not(target_family = "wasm"))]` module). Fix: move the
+  dependency into `[target.'cfg(not(target_arch = "wasm32"))'.dependencies]`. Any netio dependency
+  used only by a `native` module must be target-gated the same way, or the wasm build fails first.
+
+- 2026-10-29 (feature 07): a wasm SSE read error and a clean end both set `done`, so the consumer
+  cannot tell them apart. The error must travel in a slot next to `done`
+  (`Arc<Mutex<Option<String>>>`), and `QueueSseEvents` must check that slot at every end path
+  (`Ok(None)` drained and `WouldBlock` drained), not just the parser-error arm. `end_or_fail` takes
+  the slot (`.take()`) so the `Failed` progress is emitted exactly once, then the `failed` flag makes
+  the next poll return `None`. A broken feed never recovers, so waiting on it would stall the
+  consumer forever.
+
+- 2026-10-29 (feature 07): a WebTransport-over-HTTP/3 session lives exactly as long as its CONNECT
+  stream (draft-ietf-webtrans-http3 §5 "Session Termination"): a FIN, a reset, or a
+  `CLOSE_WEBTRANSPORT_SESSION` capsule ends it. Accept must therefore keep the CONNECT stream open
+  after the 200 and hand it to `WtSession` (`WtAccept::Session { connect }`), not `poll_finish` it.
+  `WtSession::poll_connect` drains buffered capsules first, then reads; a clean FIN and a reset both
+  map to `Closed` → `Ok(true)`. `close` sends the close capsule and then FINs the stream.
+
+- 2026-10-29 (feature 07): the DATA-frame cap must apply on the length alone, before allocating the
+  payload. `FrameDecoder` reads the VarInt length, and if it exceeds `max_frame_size`, rejects with
+  `H3_FRAME_ERROR` (`0x0108`) rather than growing a buffer to that size. Streaming within a frame is
+  a `State::Data { remaining }` that yields `read_chunk`-sized pieces from `AccumulatingBuffer`
+  without buffering the whole frame; `has_partial()` must include `State::Data` so a paused read
+  is not lost.
+
+
 - 2026-10-29 (feature 06): `conn_io` blocks its own thread, so it cannot reuse
   `EventReadiness::is_ready`, which answers "ready now" without blocking. It got a
   purpose-built `ConnReadiness` (`foundation_netio::native::connection`):

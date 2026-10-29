@@ -46,12 +46,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   Fix: measure the polling thread's CPU with `CLOCK_THREAD_CPUTIME_ID`, as the
   body-reader test (`async_body_readiness_tests.rs`) now does. The driver's real
   1 ms idle poll is tracked as feature 28.
-- **`FramedRecv` buffers whole DATA frames.** *(Partly fixed:
-  `http3/stream.rs` `FramedRecv::with_max_frame_size` exists.)* What is left:
-  `H3Connection` / `H3Request` never expose it, so every connection uses
-  `DEFAULT_MAX_FRAME_SIZE` (16 MiB, `http3/frame.rs:233`) **(rule 8)**, and a
-  DATA frame is still buffered whole before it is yielded. Stream within a
-  frame, and put the cap on the connection config.
 - **DNS resolution blocks the HTTP client task.**
   `SystemDnsResolver::resolve` (`shared/client/dns.rs:130`) calls
   `to_socket_addrs()`, a blocking system call, inside the non-blocking connect
@@ -67,15 +61,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
     `tcp_and_tls/http_server_integration.rs` (6),
     `tcp_and_tls/tls_integration.rs` (3). Make them hermetic (task #31).
   - 37 doc examples are `ignore`/`no_run` (task #33).
-- **A wasm SSE read error ends the stream as if it finished cleanly.**
-  `wasm/client/stream.rs` `spawn_stream_reader` sets `done` on a JS
-  `ReadableStream` read error, so the consumer sees a normal end. Fix: record
-  the error next to `done` and have `QueueSseEvents` end with
-  `Pending(SseProgress::Failed(..))`.
-- **`poll_accept_webtransport` finishes the CONNECT stream after the `200`**
-  (`http3/connection.rs`). In WebTransport over HTTP/3 the session lives as
-  long as its CONNECT stream; closing it (FIN) ends the session. Check
-  against the draft and keep the stream open, handing it to `WtSession`.
 
 ## 3. foundation_http
 

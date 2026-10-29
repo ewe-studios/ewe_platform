@@ -80,11 +80,11 @@ tests): a `ReadableStream` that errors after one event; assert the consumer gets
 
 ## 4. Tasks
 
-- [ ] T1. Branch from the base after feature 02.
-- [ ] T2. §1 frame cap and streaming, with tests. Commit.
-- [ ] T3. §2 WebTransport lifetime, with tests. Commit.
-- [ ] T4. §3 wasm SSE error, with the test. Commit.
-- [ ] T5. Delete the three backlog entries. Update `progress.md`, `learnings.md`.
+- [x] T1. Branch from the base after feature 02.
+- [x] T2. §1 frame cap and streaming, with tests. Commit.
+- [x] T3. §2 WebTransport lifetime, with tests. Commit.
+- [x] T4. §3 wasm SSE error, with the test. Commit.
+- [x] T5. Delete the three backlog entries. Update `progress.md`, `learnings.md`.
 
 ## 5. Verification (run exactly)
 
@@ -98,9 +98,9 @@ cargo check --workspace --all-targets --profile dev
 
 ## 6. Done when
 
-- [ ] All §5 commands pass; new tests passed 20 runs in a row (native).
-- [ ] The draft section is quoted for §2.
-- [ ] CI green.
+- [x] All §5 commands pass; new tests passed 20 runs in a row (native).
+- [x] The draft section is quoted for §2.
+- [x] CI green.
 
 ## 7. Review checklist (main session)
 
