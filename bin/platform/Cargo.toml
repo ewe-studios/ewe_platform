@@ -46,7 +46,7 @@ serde_json = { version = "1.0.114" }
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
 # -- toml for Cargo.toml manipulation
-toml = { version = "0.8" }
+toml = { version = "0.9" }
 
 [features]
 debug_block = ["foundation_packager/debug_block"]

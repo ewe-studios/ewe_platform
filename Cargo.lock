@@ -4065,7 +4065,7 @@ dependencies = [
  "http 1.4.2",
  "serde_json",
  "tokio",
- "toml 0.8.23",
+ "toml 0.9.6",
  "tracing",
  "tracing-subscriber",
 ]
@@ -4861,7 +4861,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "sha2 0.10.9",
- "toml 0.8.23",
+ "toml 0.9.6",
  "tracing",
  "tracing-subscriber",
  "tracing-test",
@@ -5016,7 +5016,7 @@ dependencies = [
  "sha2 0.10.9",
  "ssh2",
  "tar",
- "toml 0.8.23",
+ "toml 0.9.6",
  "tracing",
  "tracing-subscriber",
  "which 7.0.3",
@@ -5331,7 +5331,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
- "toml 0.8.23",
+ "toml 0.9.6",
  "tracing",
  "tracing-test",
 ]
@@ -7529,7 +7529,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b0f83760fb341a774ed326568e19f5a863af4a952def8c39f9ab92fd95b88e5"
 dependencies = [
  "equivalent",
- "hashbrown 0.15.5",
+ "hashbrown 0.16.1",
  "serde",
  "serde_core",
 ]
