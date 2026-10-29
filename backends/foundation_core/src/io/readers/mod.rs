@@ -190,7 +190,13 @@ impl<R: Read> HintReadterator for BatchReader<R> {
             Err(e)
                 if e.kind() == io::ErrorKind::WouldBlock || e.kind() == io::ErrorKind::TimedOut =>
             {
-                tracing::error!("Timeout/WouldBlock error received: {:?}", &e);
+                // WouldBlock is normal back-pressure, not an error; TimedOut is a
+                // stall worth a debug line but still not an error.
+                if e.kind() == io::ErrorKind::WouldBlock {
+                    tracing::trace!("WouldBlock received: {:?}", &e);
+                } else {
+                    tracing::debug!("TimedOut received: {:?}", &e);
+                }
                 self.consecutive_retries += 1;
                 tracing::trace!(
                     "Checking consecutive errors (max={}): current={}",
