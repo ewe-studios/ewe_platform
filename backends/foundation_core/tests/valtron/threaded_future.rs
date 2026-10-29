@@ -357,7 +357,7 @@ fn threaded_iter_future_backpressure_parks_until_space() {
     let cpu_end = Arc::new(AtomicU64::new(0));
     let (begin, end) = (Arc::clone(&cpu_begin), Arc::clone(&cpu_end));
 
-    let threaded = ThreadedIterFuture::with_backpressure_sleep(
+    let threaded = ThreadedIterFuture::with_backpressure_wait(
         move || async move {
             Ok::<_, ()>(FiveItems { next: 0, cpu_start: 0, cpu_end: end, cpu_begin: begin })
         },
@@ -385,7 +385,7 @@ fn threaded_iter_future_backpressure_parks_until_space() {
 /// this test pins the delivery contract of `push_waiting`'s error path.
 #[valtron_test(seed = 42, threads = 4, timeout = 20_000)]
 fn threaded_iter_future_error_reaches_consumer_when_queue_full() {
-    let threaded = ThreadedIterFuture::with_backpressure_sleep(
+    let threaded = ThreadedIterFuture::with_backpressure_wait(
         || async { Err::<std::vec::IntoIter<Result<i32, &'static str>>, &'static str>("future failed") },
         2,
         None,

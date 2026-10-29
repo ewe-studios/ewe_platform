@@ -41,7 +41,8 @@ use crate::valtron::{
 };
 
 use crate::valtron::executors::constants::{
-    DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_NOTIFY_QUEUE_MAX_SPINS, DEFAULT_READINESS_WAIT,
+    DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_MAX_YIELD_DURATION,
+    DEFAULT_NOTIFY_QUEUE_MAX_SPINS, DEFAULT_READINESS_WAIT,
 };
 
 /// Task that wraps an iterator of plain values and yields items as `TaskStatus::Ready`.
@@ -75,8 +76,6 @@ where
         self.iter.next().map(TaskStatus::Ready)
     }
 }
-
-const MAX_YIELD_DURATION: time::Duration = time::Duration::from_millis(100);
 
 #[cfg(all(
     target_family = "wasm",
@@ -2577,13 +2576,22 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             yielder,
             kill_signal,
             no_work_yield,
-            max_yield_duration: time::Duration::from_millis(100),
+            max_yield_duration: DEFAULT_MAX_YIELD_DURATION,
             kill_signal_check_interval,
             state: ReferencedExecutorState::new(
                 rc::Rc::new(ExecutorState::new(state_owner, tasks, priority, rng, idler)),
                 activities,
             ),
         }
+    }
+
+    /// Set the longest this executor yields between steps, even when a sleeper's
+    /// deadline is further out (the idle re-check cap). Default
+    /// [`DEFAULT_MAX_YIELD_DURATION`].
+    #[must_use]
+    pub fn with_max_yield_duration(mut self, duration: time::Duration) -> Self {
+        self.max_yield_duration = duration;
+        self
     }
 
     /// Creates a new local executor which uses the provided
@@ -2884,7 +2892,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             // The step made progress and there is still work to run: go
             // straight to the next step. Yielding here (as this loop used to
             // after every step) stalled each step by up to
-            // MAX_YIELD_DURATION. `CanProgress(None)` is also what the engine
+            // `max_yield_duration`. `CanProgress(None)` is also what the engine
             // reports when only parked tasks remain, hence the runnable check.
             if matches!(response, ProgressIndicator::CanProgress(_))
                 && self.state.has_runnable_work()
@@ -2903,12 +2911,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
             // Use sleeper-aware yielding: sleep until the next sleeper wakes up
             // or fall back to the default yield duration if no sleepers exist.
-            // Cap at MAX_YIELD_DURATION to ensure threads periodically check for new work.
+            // Cap at `max_yield_duration` to ensure threads periodically check
+            // for new work.
             let yield_duration = self
                 .state
                 .time_until_next_wakeup()
                 .unwrap_or(self.no_work_yield)
-                .min(MAX_YIELD_DURATION);
+                .min(self.max_yield_duration);
             self.yielder.yield_for(yield_duration);
         }
     }

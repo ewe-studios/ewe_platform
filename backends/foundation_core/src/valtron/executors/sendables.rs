@@ -459,11 +459,12 @@ where
 {
     use crate::valtron::ThreadedIterFuture;
 
+    let defaults = crate::valtron::ThreadedIterFutureConfig::default();
     tracing::debug!("Executing as a multi-threaded future iterator");
-    let threaded = ThreadedIterFuture::with_backpressure_sleep(
+    let threaded = ThreadedIterFuture::with_backpressure_wait(
         future_fn,
-        queue_size.unwrap_or(16),
-        backpressure_sleep.or(Some(std::time::Duration::from_millis(10))),
+        queue_size.unwrap_or(defaults.queue_size),
+        backpressure_sleep.or(defaults.backpressure_wait),
     );
     threaded.execute()
 }

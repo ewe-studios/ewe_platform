@@ -63,7 +63,26 @@ pub const DEFAULT_READINESS_WAIT: std::time::Duration = std::time::Duration::fro
 /// it) and is unaffected by this constant.
 pub const DEFAULT_DELIVERY_CAPACITY: usize = 8;
 
-pub const BACK_OFF_JITER: f32 = 0.75;
-pub const BACK_OFF_THREAD_FACTOR: u32 = 6;
-pub const BACK_OFF_MIN_DURATION: time::Duration = time::Duration::from_millis(1); // 2 http
-pub const BACK_OFF_MAX_DURATION: time::Duration = time::Duration::from_millis(1000); // 1sec
+// ============================================================================
+// Rule 8 defaults (Limits are configuration, not constants)
+// ============================================================================
+//
+// Every value below is a *default*, referenced only by a config's `Default` impl
+// (or a builder default). The code path reads the config field, never this const.
+
+/// Default cap on how long a worker yields between steps (the idle re-check
+/// cap). Mirrors the old `MAX_YIELD_DURATION`. Pick: a worker must wake to check
+/// for new work at least every 100 ms.
+pub const DEFAULT_MAX_YIELD_DURATION: time::Duration = time::Duration::from_millis(100);
+
+/// Default jitter applied to the back-off factor (0.75 = ±25%).
+pub const DEFAULT_BACK_OFF_JITTER: f32 = 0.75;
+
+/// Default base factor for the exponential back-off of an idle worker.
+pub const DEFAULT_BACK_OFF_THREAD_FACTOR: u32 = 6;
+
+/// Default minimum back-off duration for an idle worker.
+pub const DEFAULT_BACK_OFF_MIN_DURATION: time::Duration = time::Duration::from_millis(1);
+
+/// Default maximum back-off duration for an idle worker.
+pub const DEFAULT_BACK_OFF_MAX_DURATION: time::Duration = time::Duration::from_millis(1000);
