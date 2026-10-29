@@ -23,6 +23,9 @@ base64 = "0.22"
 tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
 async-trait = "0.1"
+# The valtron waker→readiness bridge (`queue_waker`/`QueueReadiness`) names
+# `ConcurrentQueue` directly, so the async `Serve` continuation parks on it.
+concurrent-queue = { workspace = true }
 
 # The I/O gate: ServerIo + the completion-mode accept path (Feature 48). Native
 # only — there is no reactor on wasm. iogate brings foundation_nativeapis in

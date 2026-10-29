@@ -5068,6 +5068,7 @@ dependencies = [
  "async-trait",
  "base64 0.22.1",
  "bytes",
+ "concurrent-queue",
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",
