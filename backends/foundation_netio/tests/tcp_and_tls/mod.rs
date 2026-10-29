@@ -23,3 +23,6 @@ mod rustls_connector;
 mod http_server_integration;
 #[cfg(unix)]
 mod http_external_validation;
+// Feature 10: TLS backend integration tests against a local TLS server.
+#[cfg(all(unix, feature = "ssl-rustls"))]
+mod tls_integration;
