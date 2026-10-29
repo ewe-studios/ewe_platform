@@ -25,6 +25,69 @@ use concurrent_queue::ConcurrentQueue;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
+/// Limits on a [`BytesPool`]. Limits are configuration, not constants
+/// (CLAUDE.md rule 8).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BytesPoolConfig {
+    max_pooled_buffers: usize,
+    max_buffer_size: usize,
+}
+
+impl BytesPoolConfig {
+    /// Default for [`Self::max_pooled_buffers`]: 64 buffers. At 64 KiB each that
+    /// is at most 4 MiB of retained memory, enough for bursty concurrent readers
+    /// without holding an unbounded number of idle buffers.
+    pub const DEFAULT_MAX_POOLED_BUFFERS: usize = 64;
+
+    /// Default for [`Self::max_buffer_size`]: 64 KiB. This is the upper end of
+    /// Go's `bufio` default buffer range (4 KiB to 64 KiB); a single pooled read
+    /// buffer rarely needs more, and a larger allocation is not worth pooling.
+    pub const DEFAULT_MAX_BUFFER_SIZE: usize = 64 * 1024;
+
+    /// A config with the default limits.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            max_pooled_buffers: Self::DEFAULT_MAX_POOLED_BUFFERS,
+            max_buffer_size: Self::DEFAULT_MAX_BUFFER_SIZE,
+        }
+    }
+
+    /// The most buffers the pool keeps. A buffer returned past this count is
+    /// dropped (deallocated) instead of queued.
+    #[must_use]
+    pub fn with_max_pooled_buffers(mut self, count: usize) -> Self {
+        self.max_pooled_buffers = count;
+        self
+    }
+
+    /// The largest buffer the pool keeps. A returned buffer larger than this is
+    /// dropped instead of queued.
+    #[must_use]
+    pub fn with_max_buffer_size(mut self, bytes: usize) -> Self {
+        self.max_buffer_size = bytes;
+        self
+    }
+
+    /// The configured maximum number of pooled buffers.
+    #[must_use]
+    pub fn max_pooled_buffers(&self) -> usize {
+        self.max_pooled_buffers
+    }
+
+    /// The configured maximum buffer size in bytes.
+    #[must_use]
+    pub fn max_buffer_size(&self) -> usize {
+        self.max_buffer_size
+    }
+}
+
+impl Default for BytesPoolConfig {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// A pool of reusable `Vec<u8>` buffers.
 ///
 /// # Examples
@@ -43,7 +106,8 @@ use std::sync::Arc;
 /// ```
 pub struct BytesPool {
     pub(crate) queue: ConcurrentQueue<Vec<u8>>,
-    capacity: usize,
+    default_capacity: usize,
+    max_buffer_size: usize,
     stats: PoolStats,
 }
 
@@ -53,7 +117,7 @@ struct PoolStats {
 }
 
 impl BytesPool {
-    /// Create a new pool with pre-allocated buffers.
+    /// Create a new pool with pre-allocated buffers and the default limits.
     ///
     /// # Arguments
     ///
@@ -70,13 +134,28 @@ impl BytesPool {
     /// ```
     #[must_use]
     pub fn new(capacity: usize, prealloc: usize) -> Self {
-        let queue = ConcurrentQueue::unbounded();
+        Self::with_config(capacity, prealloc, BytesPoolConfig::default())
+    }
+
+    /// Create a new pool with explicit limits.
+    ///
+    /// # Arguments
+    ///
+    /// * `capacity` - Capacity of each buffer in bytes
+    /// * `prealloc` - Number of buffers to pre-allocate
+    /// * `config` - The pool limits
+    #[must_use]
+    pub fn with_config(capacity: usize, prealloc: usize, config: BytesPoolConfig) -> Self {
+        let queue = ConcurrentQueue::bounded(config.max_pooled_buffers);
+        // Pre-allocation is best-effort: past the queue bound the extra buffers
+        // are dropped rather than panicking.
         for _ in 0..prealloc {
             queue.push(Vec::with_capacity(capacity)).ok();
         }
         Self {
             queue,
-            capacity,
+            default_capacity: capacity,
+            max_buffer_size: config.max_buffer_size,
             stats: PoolStats {
                 allocations: AtomicUsize::new(0),
                 pool_hits: AtomicUsize::new(0),
@@ -105,17 +184,19 @@ impl BytesPool {
         if let Ok(mut buf) = self.queue.pop() {
             self.stats.pool_hits.fetch_add(1, Ordering::Relaxed);
             buf.clear();
-            PooledBuffer::new(buf, self.clone())
+            PooledBuffer::new(buf, Some(self.clone()))
         } else {
             self.stats.allocations.fetch_add(1, Ordering::Relaxed);
-            PooledBuffer::new(Vec::with_capacity(self.capacity), self.clone())
+            PooledBuffer::new(Vec::with_capacity(self.default_capacity), Some(self.clone()))
         }
     }
 
     /// Acquire a buffer with specific capacity (not pool default).
     ///
     /// If the pooled buffer has insufficient capacity, a new buffer is allocated
-    /// and the pooled buffer is returned to the queue.
+    /// and the pooled buffer is returned to the queue. A pooled buffer counts as
+    /// one hit only when it is used as-is; a too-small buffer counts as one
+    /// miss plus one allocation.
     ///
     /// Useful when you know the exact size needed.
     ///
@@ -131,20 +212,20 @@ impl BytesPool {
     #[must_use]
     pub fn acquire_with_capacity(self: &Arc<Self>, capacity: usize) -> PooledBuffer {
         if let Ok(mut buf) = self.queue.pop() {
-            self.stats.pool_hits.fetch_add(1, Ordering::Relaxed);
-            buf.clear();
-            // Ensure capacity is at least the requested amount
-            if buf.capacity() < capacity {
-                // Pooled buffer too small - return it to pool and allocate new one
+            if buf.capacity() >= capacity {
+                // Pooled buffer is large enough: use it as-is.
+                buf.clear();
+                self.stats.pool_hits.fetch_add(1, Ordering::Relaxed);
+                PooledBuffer::new(buf, Some(self.clone()))
+            } else {
+                // Pooled buffer too small: return it and allocate a larger one.
                 self.queue.push(buf).ok();
                 self.stats.allocations.fetch_add(1, Ordering::Relaxed);
-                PooledBuffer::new(Vec::with_capacity(capacity), self.clone())
-            } else {
-                PooledBuffer::new(buf, self.clone())
+                PooledBuffer::new(Vec::with_capacity(capacity), Some(self.clone()))
             }
         } else {
             self.stats.allocations.fetch_add(1, Ordering::Relaxed);
-            PooledBuffer::new(Vec::with_capacity(capacity), self.clone())
+            PooledBuffer::new(Vec::with_capacity(capacity), Some(self.clone()))
         }
     }
 
@@ -168,15 +249,27 @@ impl BytesPool {
         }
     }
 
-    /// Get the default buffer capacity.
+    /// Get the default buffer capacity in bytes.
     #[must_use]
     pub fn capacity(&self) -> usize {
-        self.capacity
+        self.default_capacity
+    }
+
+    /// The largest buffer the pool keeps (bytes).
+    #[must_use]
+    pub fn max_buffer_size(&self) -> usize {
+        self.max_buffer_size
+    }
+
+    /// The most buffers the pool keeps.
+    #[must_use]
+    pub fn max_pooled_buffers(&self) -> usize {
+        self.queue.capacity().unwrap_or(usize::MAX)
     }
 }
 
 /// Statistics snapshot for a `BytesPool`.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct PoolStatsSnapshot {
     /// Number of times a new buffer was allocated (pool miss)
     pub allocations: usize,
@@ -216,11 +309,11 @@ impl PoolStatsSnapshot {
 /// Implements `Deref<Target = Vec<u8>>` and `DerefMut` for transparent access.
 pub struct PooledBuffer {
     buffer: Vec<u8>,
-    pool: Arc<BytesPool>,
+    pool: Option<Arc<BytesPool>>,
 }
 
 impl PooledBuffer {
-    fn new(buffer: Vec<u8>, pool: Arc<BytesPool>) -> Self {
+    fn new(buffer: Vec<u8>, pool: Option<Arc<BytesPool>>) -> Self {
         Self { buffer, pool }
     }
 
@@ -230,18 +323,27 @@ impl PooledBuffer {
     /// Buffer is NOT returned to any pool on drop.
     #[must_use]
     pub fn owned(buffer: Vec<u8>) -> Self {
-        // Create a dummy pool with the buffer's capacity
-        let capacity = buffer.capacity();
-        Self {
-            buffer,
-            pool: Arc::new(BytesPool::new(capacity, 0)),
-        }
+        Self { buffer, pool: None }
     }
 
     /// Get the pool statistics associated with this buffer.
+    ///
+    /// An owned buffer has no pool, so it returns an empty snapshot.
     #[must_use]
     pub fn pool_stats(&self) -> PoolStatsSnapshot {
-        self.pool.stats()
+        match &self.pool {
+            Some(pool) => pool.stats(),
+            None => PoolStatsSnapshot::default(),
+        }
+    }
+}
+
+impl std::fmt::Debug for PooledBuffer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PooledBuffer")
+            .field("len", &self.buffer.len())
+            .field("capacity", &self.buffer.capacity())
+            .finish()
     }
 }
 
@@ -261,9 +363,16 @@ impl std::ops::DerefMut for PooledBuffer {
 
 impl Drop for PooledBuffer {
     fn drop(&mut self) {
-        // Return buffer to pool (ignore errors - queue might be dropped)
+        let Some(pool) = self.pool.take() else {
+            return;
+        };
+        // Return buffer to pool (ignore errors - queue might be dropped).
         self.buffer.clear();
-        self.pool.queue.push(std::mem::take(&mut self.buffer)).ok();
+        // Drop buffers over the size cap instead of pooling them.
+        if self.buffer.capacity() > pool.max_buffer_size {
+            return;
+        }
+        pool.queue.push(std::mem::take(&mut self.buffer)).ok();
     }
 }
 
