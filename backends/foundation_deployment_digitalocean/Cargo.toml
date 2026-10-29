@@ -4,7 +4,7 @@ version = "0.1.2"
 
 [dependencies]
 base85rs = "0.1"
-sha2 = "0.10"
+sha2 = "0.11"
 
 [dependencies.chrono]
 workspace = true
