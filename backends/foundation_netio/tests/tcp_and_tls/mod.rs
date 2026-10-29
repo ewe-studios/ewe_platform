@@ -21,3 +21,5 @@ mod rustls_connector;
 // Feature 10: HTTP client integration tests against the local `TestHttpServer`.
 #[cfg(unix)]
 mod http_server_integration;
+#[cfg(unix)]
+mod http_external_validation;

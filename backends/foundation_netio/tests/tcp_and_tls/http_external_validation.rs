@@ -1,128 +1,162 @@
-//! HTTP client external validation tests against real HTTP servers.
+//! HTTP client validation tests against a local server that mimics httpbin.
 //!
-//! WHY: Validates HTTP client works with real-world servers, not just our test server.
-//! Ensures HTTP implementation is compliant with actual server behavior.
+//! WHY: The original tests hit httpbin.org over the public internet. They now
+//! run against a local server, so CI needs no network access.
 //!
-//! WHAT: Integration tests against public HTTP test servers (httpbin.org).
+//! WHAT: GET echo, redirects, status codes, header echo, and HTTPS.
 //!
-//! HOW: Uses reqwest (existing dev-dependency) as reference client to verify
-//! httpbin.org is accessible, then tests our client against same endpoints.
-//!
-//! NOTE: These tests are #[ignore] by default (require network).
-//! Run with: cargo test -- --ignored
+//! HOW: A local `TestHttpServer` mimics the httpbin endpoints. The HTTPS test
+//! uses `TestHttpsServer` and a client that trusts the test certificate.
 
-// Note: Uncomment these when HTTP client public API is ready
-// use foundation_netio::http::NativeHttpClient;
+use std::net::SocketAddr;
 
-// ========================================================================
-// External HTTP Server Validation Tests
-// ========================================================================
-
+use foundation_core::valtron::initialize_pool;
 use foundation_netio::http::NativeHttpClient;
+use foundation_netio::shared::client::body_reader::collect_strings_from_send_safe;
+use foundation_netio::shared::http::SimpleHeader;
+use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
+use foundation_testing::http::{
+    test_tls_connector, HttpRequest, HttpResponse, TestHttpServer, TestHttpsServer,
+};
+use serial_test::serial;
 
-/// WHY: Verify HTTP client works with real external HTTP server
-/// WHAT: Tests basic GET request against httpbin.org
+// All valtron pool tests share one global serial lock. A test that builds a pool
+// must not run at the same time as another pool test.
+
+/// A GET against the local echo server returns the requested path in the body.
 #[test]
-#[ignore] // Run with: cargo test test_external_httpbin_get -- --ignored
-fn test_external_httpbin_get() {
+#[serial(valtron_pool)]
+fn test_local_get_echoes_path() {
+    let _pool_guard = initialize_pool(70, None);
+    let server = TestHttpServer::with_response(|req: &HttpRequest| {
+        HttpResponse::ok(format!(r#"{{"url": "{}"}}"#, req.path.url).as_bytes())
+    });
     let client = NativeHttpClient::from_system();
-    let response = client.get("http://httpbin.org/get").execute().unwrap();
-    assert_eq!(response.status(), 200);
-    assert!(response
-        .body_text()
+
+    let res = client
+        .get(&server.url("/get"))
         .unwrap()
-        .contains("\"url\": \"http://httpbin.org/get\""));
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+
+    assert_eq!(res.get_status().into_usize(), 200);
+    let body = collect_strings_from_send_safe(res.into_parts().2).unwrap();
+    assert!(body.contains("\"url\": \"/get\""), "body: {body}");
 }
 
-/// WHY: Verify HTTP client follows redirects with real server
-/// WHAT: Tests 302 redirect handling against httpbin.org
+/// A single redirect (httpbin `/redirect/1`) resolves to the target body.
 #[test]
-#[ignore] // Requires network
-fn test_external_httpbin_redirect() {
-    // TODO: Uncomment when NativeHttpClient has execute() method
-    // let client = NativeHttpClient::new();
-    // // httpbin.org/redirect/1 returns 302 to /get
-    // let response = client.get("http://httpbin.org/redirect/1").execute().unwrap();
-    // assert_eq!(response.status(), 200); // After following redirect
-    // assert!(response.body_text().unwrap().contains("/get"));
+#[serial(valtron_pool)]
+fn test_local_redirect() {
+    let _pool_guard = initialize_pool(71, None);
+    let server = TestHttpServer::with_response(|req: &HttpRequest| {
+        if req.path.url == "/redirect/1" {
+            HttpResponse::redirect("/get")
+        } else {
+            HttpResponse::ok(b"Redirected")
+        }
+    });
+    let client = NativeHttpClient::from_system().max_redirects(5);
+
+    let res = client
+        .get(&server.url("/redirect/1"))
+        .unwrap()
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
+
+    assert_eq!(res.get_status().into_usize(), 200);
+    let body = collect_strings_from_send_safe(res.into_parts().2).unwrap();
+    assert_eq!(body, "Redirected");
 }
 
-/// WHY: Verify HTTP client works with HTTPS and real certificates
-/// WHAT: Tests TLS handshake against real server
+/// The client completes an HTTPS request against a local TLS server.
 #[test]
-#[ignore] // Requires network
-fn test_external_httpbin_https() {
-    // TODO: Uncomment when NativeHttpClient has execute() method
-    // let client = NativeHttpClient::new();
-    // let response = client.get("https://httpbin.org/get").execute().unwrap();
-    // assert_eq!(response.status(), 200);
+#[serial(valtron_pool)]
+fn test_local_https_get() {
+    let _pool_guard = initialize_pool(72, Some(4));
+    let server = TestHttpsServer::with_response(|_req| HttpResponse::ok(b"hello from TLS"));
+
+    // `localhost` is the name on the test certificate; it resolves to the
+    // server's socket.
+    let client = HttpClientBuilder::new()
+        .resolve_to(SocketAddr::from(([127, 0, 0, 1], server.port())))
+        .with_tls_connector(test_tls_connector())
+        .build();
+
+    let request = PreparedRequestBuilder::get("https://localhost/get")
+        .unwrap()
+        .build();
+    let response = client
+        .send(request)
+        .expect("HTTPS request should succeed");
+
+    assert_eq!(response.get_status().into_usize(), 200);
 }
 
-/// WHY: Verify HTTP client handles various status codes correctly
-/// WHAT: Tests 404, 500, and other non-200 responses from real server
+/// The client returns the status codes from the `/status/N` endpoints.
 #[test]
-#[ignore] // Requires network
-fn test_external_httpbin_status_codes() {
-    // TODO: Uncomment when NativeHttpClient has execute() method
-    // let client = NativeHttpClient::new();
-    //
-    // let response_404 = client.get("http://httpbin.org/status/404").execute().unwrap();
-    // assert_eq!(response_404.status(), 404);
-    //
-    // let response_500 = client.get("http://httpbin.org/status/500").execute().unwrap();
-    // assert_eq!(response_500.status(), 500);
-    //
-    // let response_201 = client.get("http://httpbin.org/status/201").execute().unwrap();
-    // assert_eq!(response_201.status(), 201);
+#[serial(valtron_pool)]
+fn test_local_status_codes() {
+    let _pool_guard = initialize_pool(73, None);
+    let server = TestHttpServer::with_response(|req: &HttpRequest| match req.path.url.as_str() {
+        "/status/404" => HttpResponse::status(404, "Not Found"),
+        "/status/500" => HttpResponse::status(500, "Server Error"),
+        "/status/201" => HttpResponse::status(201, "Created"),
+        _ => HttpResponse::ok(b"OK"),
+    });
+    let client = NativeHttpClient::from_system();
+
+    let get_status = |path: &str| {
+        client
+            .get(&server.url(path))
+            .unwrap()
+            .build_client()
+            .unwrap()
+            .send()
+            .unwrap()
+            .get_status()
+            .into_usize()
+    };
+
+    assert_eq!(get_status("/status/404"), 404);
+    assert_eq!(get_status("/status/500"), 500);
+    assert_eq!(get_status("/status/201"), 201);
 }
 
-/// WHY: Verify HTTP client sends headers correctly to real server
-/// WHAT: Tests httpbin.org/headers echoes our headers back
+/// The `/headers` endpoint echoes the request header values back in the body.
 #[test]
-#[ignore] // Requires network
-fn test_external_httpbin_headers() {
-    // TODO: Uncomment when NativeHttpClient has execute() method and header support
-    // use foundation_netio::shared::http::SimpleHeader;
-    //
-    // let client = NativeHttpClient::new();
-    // let response = client
-    //     .get("http://httpbin.org/headers")
-    //     .header(SimpleHeader::USER_AGENT, "foundation-http/1.0")
-    //     .execute()
-    //     .unwrap();
-    //
-    // assert_eq!(response.status(), 200);
-    // let body = response.body_text().unwrap();
-    // assert!(body.contains("foundation-http/1.0"));
-}
+#[serial(valtron_pool)]
+fn test_local_header_echo() {
+    let _pool_guard = initialize_pool(74, None);
+    let server = TestHttpServer::with_response(|req: &HttpRequest| {
+        let mut echoed = String::new();
+        for values in req.headers.values() {
+            for value in values {
+                echoed.push_str(value);
+                echoed.push('\n');
+            }
+        }
+        HttpResponse::ok(echoed.as_bytes())
+    });
+    let client = NativeHttpClient::from_system();
 
-// ========================================================================
-// External Validation Setup Tests
-// ========================================================================
+    let res = client
+        .get(&server.url("/headers"))
+        .unwrap()
+        .header(SimpleHeader::USER_AGENT, "foundation-http/1.0")
+        .build_client()
+        .unwrap()
+        .send()
+        .unwrap();
 
-/// WHY: Verify httpbin.org is accessible before running real tests
-/// WHAT: Uses reqwest (existing dev-dep) to validate test server availability
-#[test]
-#[ignore] // Requires network
-fn test_httpbin_availability() {
-    // Use reqwest as reference to verify httpbin.org works
-    let response = reqwest::blocking::get("http://httpbin.org/get");
+    assert_eq!(res.get_status().into_usize(), 200);
+    let body = collect_strings_from_send_safe(res.into_parts().2).unwrap();
     assert!(
-        response.is_ok(),
-        "httpbin.org unavailable - external validation tests will fail"
+        body.contains("foundation-http/1.0"),
+        "header value not echoed: {body}"
     );
-    assert_eq!(response.unwrap().status(), 200);
-}
-
-/// WHY: Verify we can access HTTPS endpoints for TLS testing
-/// WHAT: Validates HTTPS connectivity to httpbin.org
-#[test]
-#[ignore] // Requires network
-fn test_httpbin_https_availability() {
-    let response = reqwest::blocking::get("https://httpbin.org/get");
-    assert!(
-        response.is_ok(),
-        "httpbin.org HTTPS unavailable - TLS validation tests will fail"
-    );
-    assert_eq!(response.unwrap().status(), 200);
 }
