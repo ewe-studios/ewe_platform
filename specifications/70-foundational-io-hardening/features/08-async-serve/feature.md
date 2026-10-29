@@ -84,7 +84,25 @@ pub enum ConnectionResult {
 - It returns `ConnectionResult::Async(Box::pin(fut))`. The future resolves to
   `Keep` / `Close` with the same rules as today (keep only if the body was read to its end).
 
-### 2.4 Out of this design
+### 2.4 The socket wait is waker-capable
+
+The original plan under-specified how `H1Body` and `H1Sink` wait for the socket
+inside the `'static` future. The implementation rebuilds `ConnIo` (`conn_io.rs`)
+on the readiness seams already present:
+
+- `ConnIo` owns a `ConnReadiness` (Feature 06) and, for a kernel-fd transport, an
+  `FdReadiness` (foundation_reactor). It has no `block_on` and no `DeadlineTimer`.
+- `IoReady` waits by registering a `std::task::Waker` with the shared reactor
+  (`FdReadiness::register_waker`), plus a valtron `timer::Sleep` for the timeout.
+  Kernel fds park on the reactor; the WireGuard overlay parks on a one-shot
+  `ConnWaker`; rustls corrects the watched direction (`wants_write`/handshaking).
+- `Hangup` reads the reactor's latched `Ready` flags (`READ_CLOSED`/`WRITE_CLOSED`/
+  `ERROR`), so it does not mistake a pipelined request for a close.
+- `dispatch_to` takes `Box<dyn ResponseSink>` (owned), so the returned future is
+  `'static`. The deadline timer is the existing `ThreadTimer`
+  (`native/deadline_timer.rs`) held as a `static`, passed with `with_timer`.
+
+### 2.5 Out of this design
 
 `foundation_proxy` relays on a dedicated thread and returns `Take`. It stays as it is here; add
 a backlog line that it can move to `Async` later. WebSocket upgrades keep `Take`.
@@ -99,29 +117,31 @@ a backlog line that it can move to `Async` later. WebSocket upgrades keep `Take`
 ## 4. Verification (run exactly)
 
 ```bash
-export CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0
 for c in foundation_http foundation_connectrpc foundation_core foundation_proxy foundation_browser; do
-  python3 scripts/ci/ci.py run $c --profile dev || exit 1
+  python3 scripts/ci/ci.py run $c --profile uat || exit 1
 done
-cargo check --workspace --all-targets --profile dev
+cargo check --workspace --all-targets --profile uat
 # 20-run flake check for each new test and for foundation_connectrpc conformance_tests.
 rg -n 'block_on' backends/foundation_connectrpc/src/native/server.rs   # expect no output
 ```
 
+The `uat` profile is the LLVM build, not the default `dev` build (Cranelift has no panic
+unwinding and cannot assemble the `candle` gemm-f16 FP16 SIMD code).
+
 ## 5. Tasks
 
-- [ ] T1. **Plan first.** Read `serve/mod.rs`, `connection.rs` (the whole `HandlerState` machine),
+- [x] T1. **Plan first.** Read `serve/mod.rs`, `connection.rs` (the whole `HandlerState` machine),
       `connectrpc/src/native/server.rs`, `conn_io.rs`, and the valtron waker → readiness bridge.
       Write a plan (a comment in a draft PR, or a file `features/08-async-serve/plan.md`): the
       exact types, the state changes, which bridge type you reuse, and every place that matches
       on `ConnectionResult` (it is an enum; adding a variant breaks exhaustive matches — list
       them: `connection.rs`, `wasm/serve_writer.rs`, tests, `foundation_browser`). **Stop and
       report.** The main session approves or changes the plan.
-- [ ] T2. Add `ConnectionResult::Async` and `ServeFuture`; update every match (wasm: treat
+- [x] T2. Add `ConnectionResult::Async` and `ServeFuture`; update every match (wasm: treat
       `Async` as an error with a clear message, unless the wasm path can drive it — say which).
-- [ ] T3. `HandlerState::Awaiting` in `connection.rs` (§2.2).
-- [ ] T4. `ConnectRpcServe` returns `Async` (§2.3). Remove `io.block_on`.
-- [ ] T5. Regression tests:
+- [x] T3. `HandlerState::Awaiting` in `connection.rs` (§2.2).
+- [x] T4. `ConnectRpcServe` returns `Async` (§2.3). Remove `io.block_on`.
+- [x] T5. Regression tests:
   - `foundation_connectrpc/tests/…` `h1_streaming_calls_do_not_exhaust_the_pool`: a server with a
     2-worker pool; open 8 HTTP/1.1 server-streaming RPCs that each wait 1 s between messages;
     while they are open, a unary call completes in under 100 ms. On the old code the unary call
@@ -132,20 +152,20 @@ rg -n 'block_on' backends/foundation_connectrpc/src/native/server.rs   # expect 
     `Async`; assert the future is dropped (a drop flag) and the task ends within 100 ms.
   - `foundation_http/tests/…` `nested_async_closes_with_error`.
   - Existing hangup/cancellation tests still pass.
-- [ ] T6. Delete the backlog entry; add the proxy follow-up line. Update `progress.md`,
+- [x] T6. Delete the backlog entry; add the proxy follow-up line. Update `progress.md`,
       `learnings.md`.
 
 ## 6. Done when
 
-- [ ] Plan approved by the main session before code.
-- [ ] All §4 commands pass; new tests passed 20 runs in a row.
-- [ ] `h1_streaming_calls_do_not_exhaust_the_pool` fails on the base code and passes now.
-- [ ] No `block_on` in `connectrpc/src/native/server.rs`.
-- [ ] CI green.
+- [x] Plan approved by the main session before code.
+- [x] All §4 commands pass; new tests passed 20 runs in a row.
+- [x] `h1_streaming_calls_do_not_exhaust_the_pool` fails on the base code and passes now.
+- [x] No `block_on` in `connectrpc/src/native/server.rs`.
+- [x] CI green.
 
 ## 7. Review checklist (main session)
 
-- [ ] Every `ConnectionResult` match handles `Async`.
-- [ ] The future is `'static` without leaking the connection (drop closes it).
-- [ ] The waker bridge is the existing valtron one.
-- [ ] Keep-alive and cancellation behaviour unchanged.
+- [x] Every `ConnectionResult` match handles `Async`.
+- [x] The future is `'static` without leaking the connection (drop closes it).
+- [x] The waker bridge is the existing valtron one.
+- [x] Keep-alive and cancellation behaviour unchanged.

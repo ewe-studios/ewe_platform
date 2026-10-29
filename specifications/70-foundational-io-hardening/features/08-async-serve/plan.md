@@ -255,32 +255,55 @@ The async future must own everything, so:
 - `H1Sink` owns a cloned `SharedByteBufferStream<RawStream>` and `Arc<ConnIo>`
   instead of `&mut conn` and `&ConnIo`.
 
-### 6.2 Make the wait futures own the driver
+### 6.2 The wait futures own the driver
 
-`IoReady`, `Sleep`, and `Hangup` today hold `&'a ConnIo`. Change all three to hold
-`Arc<ConnIo>`. `H1Body` stores an `IoReady` across polls, so this is required.
+`IoReady` and `Hangup` today hold `&'a ConnIo`. Change both to hold `Arc<ConnIo>`.
+`H1Body` stores an `IoReady` across polls, so this is required.
 
 Change the constructors to take `self: &Arc<Self>`:
 
 ```rust
 pub(crate) fn ready(self: &Arc<Self>, interest: IoInterest, timeout: Duration) -> IoReady;
-pub(crate) fn sleep_until(self: &Arc<Self>, deadline: Instant) -> Sleep;
 pub(crate) fn hangup(self: &Arc<Self>) -> Hangup;
 ```
 
-Each builds its future with `io: self.clone()`.
+Each builds its future with `io: self.clone()`. There is no `Sleep` future on
+`ConnIo`; the deadline uses valtron's `timer::Sleep` (see §6.4).
 
-### 6.3 The deadline timer
+### 6.3 The socket wait is waker-capable (refinement)
 
-Replace `impl DeadlineTimer for ConnIo` with `impl DeadlineTimer for Arc<ConnIo>`. Its
-`sleep_until` returns `Sleep { io: self.clone(), deadline }`. `serve` passes
-`hooks.with_timer(&io)`, where `io: Arc<ConnIo>`, so the timer is `'static`.
+The original plan left "how `H1Body`/`H1Sink` wait for the socket" open. The
+implementation rebuilds `ConnIo` on the readiness seams already present:
 
-### 6.4 Remove the blocking driver
+- `ConnIo` owns a `ConnReadiness` (Feature 06) and, for a kernel-fd transport, an
+  `FdReadiness` (foundation_reactor, registered for the raw fd in `ConnIo::new`).
+  It has no `block_on`.
+- `IoReady::poll` tries `ready_now`; if not ready it arms a `std::task::Waker` with
+  `register(cx.waker())` and then polls its `timer::Sleep`. Kernel fds arm
+  `FdReadiness::register_waker`; the WireGuard overlay arms a one-shot
+  `ConnWaker` (`Arc<dyn Fn() + Send + Sync>`); rustls corrects the watched direction
+  with `wants_write`/handshaking. The `Sleep` is created with
+  `timer::sleep_until(deadline)`.
+- `Hangup::poll` reads the reactor's latched flags with `FdReadiness::ready()` and
+  closes on `READ_CLOSED`/`WRITE_CLOSED`/`ERROR`, so a pipelined request is not
+  mistaken for a close. It arms the same waker on `Pending`.
+
+### 6.4 Remove the blocking driver and use the process timer
 
 `ConnIo::block_on` is used only by `ConnectRpcServe::serve`. After the change it is
 dead. Remove both the unix and the non-unix `block_on`, and the now-unused
 `impl Wake for WakeTx`. `WakeTx::notify` stays (the overlay waker still calls it).
+
+The deadline timer is the existing `ThreadTimer` (`native/deadline_timer.rs`), held
+as a `static` and passed with `with_timer`:
+
+```rust
+static SERVE_TIMER: ThreadTimer = ThreadTimer;
+```
+
+`serve` passes `hooks.with_timer(&SERVE_TIMER)`. This reuses `ThreadTimer` (which
+already implements `DeadlineTimer`) instead of adding `impl DeadlineTimer for
+Arc<ConnIo>` as the original plan proposed.
 
 ### 6.5 The new `serve`
 
@@ -313,14 +336,14 @@ impl Serve for ConnectRpcServe {
                 wait: None,
                 drained: drained.clone(),
             });
-            let mut sink = H1Sink {
+            let sink = H1Sink {
                 conn,
                 io: io.clone(),
                 timeout: timeouts.write,
             };
-            let hooks = CallHooks::new(cancel.clone()).with_timer(&io);
-            let dispatch = handler.dispatch_to(bag, req, body, &mut sink, hooks);
-            let hangup = async {
+            let hooks = CallHooks::new(cancel.clone()).with_timer(&SERVE_TIMER);
+            let dispatch = handler.dispatch_to(bag, req, body, Box::new(sink), hooks);
+            let hangup = Box::pin(async move {
                 match io.hangup().await {
                     Ok(()) => {}
                     Err(e) => {
@@ -328,7 +351,7 @@ impl Serve for ConnectRpcServe {
                         std::future::pending::<()>().await;
                     }
                 }
-            };
+            });
             match futures::future::select(dispatch, hangup).await {
                 futures::future::Either::Left((outcome, _)) => match outcome {
                     Ok(()) if drained.load(Ordering::Acquire) => ConnectionResult::Keep,
@@ -358,10 +381,13 @@ Notes:
 
 - The `async move` block owns `io`, `conn`, `bag`, `req`, `body`, `drained`,
   `cancel`, `handler`, and `timeouts`. All are `Send + 'static`. The `dispatch`
-  future borrows `&mut sink` and `&io`; the `hangup` future borrows `&io`. Those
-  borrows stay inside the block. The block is `Send + 'static`.
-- `dispatch` is `Pin<Box<dyn Future + Send>>` and `hangup` is `Unpin`; `select`
-  polls both by `&mut`. `pin!` where needed.
+  future owns `sink` (a `Box<dyn ResponseSink>`, see below); the `hangup` future
+  owns `Arc<ConnIo>`. The block is `Send + 'static`.
+- `dispatch_to` now takes `sink: Box<dyn ResponseSink>` (owned), so the returned
+  future is `'static`. The change is in
+  `foundation_connectrpc/src/shared/router/dispatch.rs`.
+- `dispatch` is `BoxFuture` (which is `Unpin`); the `hangup` async block is not, so
+  it is `Box::pin`-ed. `select` polls both by `&mut`.
 - Keep-alive, body-drain, and hangup rules are unchanged from today. They move from
   `io.block_on(select(...))` into `.await`.
 
@@ -387,17 +413,16 @@ Add a backlog line: it can move to `Async` later. WebSocket upgrades keep `Take`
   Open 8 HTTP/1.1 server-streaming RPCs. Each waits 1 s between messages. While they
   are open, a unary call completes in under 100 ms. On the old code the unary call
   waits until a stream ends or times out. Build the 2-worker pool with
-  `#[valtron_test(threads = 2)]` (or the matching `initialize_pool` form used by
-  `server_socket_tests.rs`).
+  `initialize_pool(71, Some(2))` (two task workers), as `server_socket_tests.rs`
+  does.
 
 ## 9. Verification (run exactly)
 
 ```bash
-export CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0
 for c in foundation_http foundation_connectrpc foundation_core foundation_proxy foundation_browser; do
-  python3 scripts/ci/ci.py run $c --profile dev || exit 1
+  python3 scripts/ci/ci.py run $c --profile uat || exit 1
 done
-cargo check --workspace --all-targets --profile dev
+cargo check --workspace --all-targets --profile uat
 # 20-run flake check for each new test and for foundation_connectrpc conformance_tests.
 rg -n 'block_on' backends/foundation_connectrpc/src/native/server.rs   # expect no output
 ```

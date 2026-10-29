@@ -2,6 +2,35 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-30 (feature 08): `H1Body`/`H1Sink` are polled inside the `ConnectionResult::Async`
+  future, which the connection task drives under a native executor (tokio/smol), not as a valtron
+  task. So their socket wait must register a `std::task::Waker` (`FdReadiness::register_waker` for a
+  kernel fd, a one-shot `ConnWaker` for the overlay), not valtron's `EventReadiness::is_ready`
+  (which only answers "ready now"). This is the same waker-capable seam feature 29 built for the
+  client body. `ConnIo` (connectrpc) was rebuilt on `ConnReadiness` + `FdReadiness`; `block_on` and
+  its `Wake`/wake-socket driver are gone.
+
+- 2026-10-30 (feature 08): a hangup watcher cannot treat `READABLE` as "the peer hung up": a
+  pipelined request also makes the fd readable. `FdReadiness::ready()` was added so the watcher can
+  read the reactor's latched `Ready` bits and close only on `READ_CLOSED`/`WRITE_CLOSED`/`ERROR`.
+  Without it, the `Async` future would cancel a live call as soon as the next pipelined request
+  arrived.
+
+- 2026-10-30 (feature 08): `dispatch_to` had to take `sink: Box<dyn ResponseSink>` (owned), not
+  `&mut sink`, so the future it returns is `'static`. A borrowed sink ties the future to the borrow
+  inside `serve`'s `async move` block and it cannot be boxed into `ServeFuture`. The handler owns
+  the sink and the `H1Sink` owns a cloned `SharedByteBufferStream` plus `Arc<ConnIo>`.
+
+- 2026-10-30 (feature 08): `futures::future::select` needs both sides `Unpin`. `BoxFuture`
+  (`Pin<Box<dyn Future>>`) is `Unpin`, but a plain `async move` block is not, so the `hangup` side
+  is `Box::pin`-ed. The deadline uses valtron's `timer::sleep_until` (`timer::Sleep`), a
+  process-wide timer thread that parks without holding a worker — essential to the
+  `h1_streaming_calls_do_not_exhaust_the_pool` test's correctness.
+
+- 2026-10-30 (feature 08): the repo's committed code is NOT `rustfmt`-clean (hand-aligned). Running
+  `cargo fmt -p <crate>` reformats ~140 untouched files. Format only the specific files changed
+  (`cargo fmt -- <files>`), or skip `fmt` and match the surrounding hand-alignment by eye.
+
 - 2026-10-29 (feature 07): `foundation_reactor` (moved out of netio in feature 29) has no
   `poll/event` backend for `wasm32-unknown-unknown` (`Event` is linux/kqueue/windows only), yet
   netio declared it as an unconditional dependency. That broke the netio wasm gate

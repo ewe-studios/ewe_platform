@@ -15,11 +15,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 1. foundation_connectrpc
 
-- **HTTP/1.1 RPC holds a worker for its whole life.**
-  - `foundation_http`'s `Serve` trait (`shared/serve/mod.rs:72`) is
-    synchronous, so a long-lived h1 stream occupies a valtron worker until it
-    ends. Enough of them use up the pool.
-  - Needs an async or pending `Serve` contract.
 - **Completion sockets and openssl/native-tls still report `Unsupported`.**
   Feature 06 made the WireGuard overlay and rustls report readiness through
   `conn_io` (`ConnReadiness`). What remains: the io_uring completion socket and
@@ -176,6 +171,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 9. foundation_proxy
 
+- **`forward_http` relays on a dedicated thread and returns `Take`.** Feature 08
+  made the h1 `Serve` handler able to return `ConnectionResult::Async`, so a
+  long-lived handler parks instead of holding a worker. The proxy still relays on
+  a throwaway thread and returns `Take`. It can move to `Async` later once its
+  relay future is `'static`.
 - **gRPC health probe leaks a thread + H2 connection when its inner timeout hangs.**
   - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer could fail to fire (fixed on `fix/foundational-backlog`: `sleep_async` now runs on valtron's timer thread) and `H2Transport`'s pump parks on the socket read with no read timeout.
   - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.

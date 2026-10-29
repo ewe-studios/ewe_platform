@@ -141,6 +141,10 @@ impl ConnectRpcHandler {
     /// RPC failure is rendered as a response; `Err` is only a failure of
     /// `sink` itself (e.g. the peer went away), and it cancels the call.
     ///
+    /// `sink` is owned so the returned future can be `'static` — the HTTP/1.1
+    /// connection owner moves its connection into the sink and parks on the
+    /// future while the call waits.
+    ///
     /// `hooks` carries the cancel signal the connection owner fires when the
     /// peer goes away, and the timer that enforces the call's deadline.
     pub fn dispatch_to<'a>(
@@ -148,11 +152,14 @@ impl ConnectRpcHandler {
         bag: Arc<ContextBag>,
         request: SimpleIncomingRequest,
         body: RequestBody<'a>,
-        sink: &'a mut dyn ResponseSink,
+        sink: Box<dyn ResponseSink>,
         hooks: CallHooks<'a>,
     ) -> BoxFuture<'a, io::Result<()>> {
         let router = self.router.clone();
-        Box::pin(dispatch_request(router, bag, request, body, sink, hooks))
+        Box::pin(async move {
+            let mut sink = sink;
+            dispatch_request(router, bag, request, body, &mut *sink, hooks).await
+        })
     }
 }
 

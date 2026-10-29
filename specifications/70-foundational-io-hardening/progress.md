@@ -2,6 +2,27 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-30: feature 08 done on `fix/io-01-valtron-parking`. `Serve` gained a fourth result,
+  `ConnectionResult::Async(ServeFuture)` (`ServeFuture = Pin<Box<dyn Future<Output =
+  ConnectionResult> + Send + 'static>>`), so a long-lived handler returns its continuation at once
+  and stops holding a worker. The connection handler (`connection.rs`) gained
+  `HandlerState::Awaiting`, which polls the future once per wake with `queue_waker(queue, 0)` and
+  parks on `AsyncReadiness` (the `FutureTask` wake bridge ORed with the shutdown signal); `Keep`/
+  `Take`/`Close` resolve to the same states as before, and an `Async`-inside-`Async` is a logged
+  programming error that closes. The wasm `serve_writer` path treats `Async` as a clear error.
+  `ConnectRpcServe::serve` now returns `Async(Box::pin(fut))` and has no `block_on`. The socket wait
+  was rebuilt on the readiness seams: `ConnIo` owns a `ConnReadiness` plus an `FdReadiness`
+  (kernel fd), `IoReady` parks a `std::task::Waker` (`FdReadiness::register_waker` or a one-shot
+  `ConnWaker`) plus a valtron `timer::Sleep` for the deadline, and `Hangup` reads the reactor's
+  latched `READ_CLOSED`/`WRITE_CLOSED`/`ERROR` flags so it does not mistake a pipelined request
+  for a close. The deadline timer is the existing `ThreadTimer` as a `static SERVE_TIMER`, and
+  `dispatch_to` now takes `Box<dyn ResponseSink>` (owned) so the future is `'static`. Regression
+  tests: `h1_streaming_calls_do_not_exhaust_the_pool` (8 server-streaming RPCs open on a 2-worker
+  pool; a unary call finishes under 100 ms) and `async_serve_tests` (`keep` serves the next
+  request, shutdown drops the future, nested `Async` closes). Both pass 20 runs in a row; the
+  connectrpc conformance tests stay green. Backlog §1 entry deleted and a §9 proxy follow-up line
+  added. PR: see the PR.
+
 - 2026-10-29: feature 07 done on `fix/io-01-valtron-parking`. Three fixes, one commit each.
   §1 (HTTP/3 DATA frames): `FrameDecoder` gained `State::Data { remaining }` and a configurable
   `read_chunk` (default 16 KiB), so a large DATA frame streams chunk-by-chunk instead of buffering

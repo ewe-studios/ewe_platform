@@ -90,6 +90,16 @@ impl FdReadiness {
         self.readiness.clear(Ready::READABLE.union(Ready::WRITABLE));
     }
 
+    /// The latched readiness flags for this fd (see [`Reactor::readiness`]).
+    ///
+    /// WHY: a hangup watcher must tell `READ_CLOSED`/`ERROR` (the peer shut the
+    /// connection) from plain `READABLE` (more data), so it does not mistake a
+    /// pipelined request for a close.
+    #[must_use]
+    pub fn ready(&self) -> Ready {
+        self.reactor.readiness(self.token)
+    }
+
     /// Arm `waker` so the reactor's drain thread wakes it on the next
     /// readiness edge for this fd (Feature 29 / Feature 03).
     ///

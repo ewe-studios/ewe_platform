@@ -44,8 +44,10 @@ foundation_http = { path = "../foundation_http", version = "0.0.3", default-feat
 foundation_auth = { path = "../foundation_auth", version = "0.0.4", optional = true, default-features = false, features = ["wasm"] }
 
 [target.'cfg(unix)'.dependencies]
-# `poll(2)` for the HTTP/1.1 server's connection driver (`native::conn_io`).
 libc = "0.2"
+# The shared reactor parks the HTTP/1.1 server's connection driver on socket
+# readiness (`FdReadiness`), replacing the old per-request `poll(2)`/`block_on`.
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
 
 [dev-dependencies]
 foundation_wireguard = { path = "../foundation_wireguard" }
@@ -125,6 +127,10 @@ required-features = ["rpc_multi"]
 
 [[test]]
 name = "cancellation_tests"
+required-features = ["rpc_multi"]
+
+[[test]]
+name = "h1_pool_parking_tests"
 required-features = ["rpc_multi"]
 
 [lints]
