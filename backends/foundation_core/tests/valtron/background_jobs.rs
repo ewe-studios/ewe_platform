@@ -44,7 +44,7 @@ fn test_split_thread_count_panics_below_3() {
 /// WHAT: Submit a job that signals a channel, verify it ran
 #[test]
 fn test_submit_and_execute_job() {
-    let registry = BackgroundJobRegistry::new(2);
+    let registry = BackgroundJobRegistry::new(2).expect("spawn workers");
 
     let (done_tx, done_rx) = mpsc::channel();
     registry
@@ -71,7 +71,7 @@ fn test_submit_and_execute_job() {
 fn test_panic_recovery() {
     // One worker: the job after the panic can only run if that same worker
     // survived the panic.
-    let registry = BackgroundJobRegistry::new(1);
+    let registry = BackgroundJobRegistry::new(1).expect("spawn workers");
 
     registry
         .submit(|| {
@@ -99,7 +99,7 @@ fn test_panic_recovery() {
 /// shutdown returns
 #[test]
 fn test_shutdown() {
-    let registry = BackgroundJobRegistry::new(2);
+    let registry = BackgroundJobRegistry::new(2).expect("spawn workers");
 
     let counter = Arc::new(AtomicUsize::new(0));
     for _ in 0..10 {
@@ -124,7 +124,7 @@ fn test_shutdown() {
 /// WHAT: Shut down registry, try to submit — should return Err
 #[test]
 fn test_submit_after_shutdown_fails() {
-    let registry = BackgroundJobRegistry::new(1);
+    let registry = BackgroundJobRegistry::new(1).expect("spawn workers");
 
     assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
 
@@ -146,7 +146,7 @@ fn registry_with_blocked_worker_config(
     config: BackgroundJobConfig,
     on_release: impl FnOnce() + Send + 'static,
 ) -> (Arc<BackgroundJobRegistry>, mpsc::Sender<()>) {
-    let registry = BackgroundJobRegistry::with_config(config);
+    let registry = BackgroundJobRegistry::with_config(config).expect("spawn workers");
     let (started_tx, started_rx) = mpsc::channel();
     let (release_tx, release_rx) = mpsc::channel::<()>();
     registry
@@ -258,7 +258,7 @@ fn test_submit_from_draining_job_is_rejected() {
 /// leaves a wide margin for a loaded machine.
 #[test]
 fn test_idle_worker_is_woken_by_submit() {
-    let registry = BackgroundJobRegistry::new(1);
+    let registry = BackgroundJobRegistry::new(1).expect("spawn workers");
 
     let start = Instant::now();
     for _ in 0..20 {
@@ -281,7 +281,7 @@ fn test_idle_worker_is_woken_by_submit() {
 /// WHAT: Shutdown of a pool whose workers are all idle returns promptly
 #[test]
 fn test_idle_shutdown_is_prompt() {
-    let registry = BackgroundJobRegistry::new(4);
+    let registry = BackgroundJobRegistry::new(4).expect("spawn workers");
     let start = Instant::now();
     assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
     let elapsed = start.elapsed();

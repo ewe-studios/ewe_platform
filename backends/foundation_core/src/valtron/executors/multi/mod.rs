@@ -424,7 +424,8 @@ pub fn initialize_pool_with_config(
     let bg_registry = BackgroundJobRegistry::with_config(
         BackgroundJobConfig::new(bg_threads)
             .with_shutdown_timeout(config.background_shutdown_timeout),
-    );
+    )
+    .expect("Failed to spawn background worker thread");
 
     let mut reg_guard = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
     *reg_guard = Some(registry.clone());
