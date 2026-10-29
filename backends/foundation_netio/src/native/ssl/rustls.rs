@@ -109,11 +109,11 @@ pub fn initialize_tls_provider() -> Option<CryptoProvider> {
 ///
 /// # Example
 ///
-/// ```no_run
+/// ```rust
 /// use foundation_netio::netcap::ssl::rustls::default_client_config;
 ///
 /// let config = default_client_config();
-/// // Use config with RustlsConnector
+/// assert!(std::sync::Arc::strong_count(&config) >= 1);
 /// ```
 #[must_use]
 pub fn default_client_config() -> Arc<ClientConfig> {
@@ -661,11 +661,11 @@ impl RustlsConnector {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ```rust
     /// use foundation_netio::netcap::ssl::rustls::RustlsConnector;
     ///
     /// let connector = RustlsConnector::new();
-    /// // connector is ready to establish TLS connections
+    /// let _ = connector.clone();
     /// ```
     #[must_use]
     pub fn new() -> Self {
@@ -681,15 +681,11 @@ impl RustlsConnector {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// use foundation_netio::netcap::ssl::rustls::RustlsConnector;
-    /// use std::sync::Arc;
+    /// ```rust
+    /// use foundation_netio::netcap::ssl::rustls::{default_client_config, RustlsConnector};
     ///
-    /// let config = rustls::ClientConfig::builder()
-    ///     .with_root_certificates(rustls::RootCertStore::empty())
-    ///     .with_no_client_auth();
-    ///
-    /// let connector = RustlsConnector::with_config(Arc::new(config));
+    /// let connector = RustlsConnector::with_config(default_client_config());
+    /// let _ = connector.clone();
     /// ```
     #[must_use]
     pub fn with_config(config: Arc<rustls::ClientConfig>) -> Self {

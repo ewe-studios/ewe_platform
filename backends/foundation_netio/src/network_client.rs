@@ -45,12 +45,14 @@ use crate::shared::http::{HttpClientError, SimpleHeader, SimpleHeaders};
 ///
 /// # Examples
 ///
-/// ```ignore
-/// let client = HttpClientBuilder::new()
+/// ```rust
+/// use foundation_netio::HttpClientBuilder;
+/// use std::time::Duration;
+///
+/// let _client = HttpClientBuilder::new()
 ///     .max_redirects(3)
 ///     .connect_timeout(Duration::from_secs(10))
 ///     .build();
-/// let response = client.send_async(req).await?;
 /// ```
 pub struct HttpClientBuilder {
     config: ClientConfig,

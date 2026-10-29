@@ -62,12 +62,17 @@ impl Default for SameSite {
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```rust
+/// use foundation_netio::shared::client::Cookie;
+///
 /// let cookie = Cookie::new("session", "abc123")
 ///     .domain("example.com")
 ///     .path("/")
 ///     .secure(true)
 ///     .http_only(true);
+///
+/// assert_eq!(cookie.name, "session");
+/// assert_eq!(cookie.value, "abc123");
 /// ```
 ///
 /// # Panics

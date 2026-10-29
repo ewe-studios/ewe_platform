@@ -1191,18 +1191,23 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     ///
     /// # Examples
     ///
-    /// ```ignore
-    /// // Direct connection (no proxy)
-    /// let conn = pool.create_connection_with_proxy(&url, None, timeout)?;
+    /// ```no_run
+    /// use foundation_netio::http::{ConnectionPool, HttpConnectionPool, Uri};
+    /// use foundation_netio::shared::client::{ProxyConfig, SystemDnsResolver};
+    /// use std::time::Duration;
     ///
-    /// // Through HTTP proxy
-    /// let proxy = ProxyConfig::parse("http://proxy.example.com:8080")?;
-    /// let conn = pool.create_connection_with_proxy(&url, Some(&proxy), timeout)?;
+    /// let pool = HttpConnectionPool::new(
+    ///     ConnectionPool::new(8, Duration::from_secs(30)),
+    ///     SystemDnsResolver,
+    /// );
+    /// let url = Uri::parse("http://example.com").unwrap();
     ///
-    /// // Proxy with NO_PROXY bypass
-    /// std::env::set_var("NO_PROXY", "localhost,.internal.com");
-    /// let conn = pool.create_connection_with_proxy(&url, Some(&proxy), timeout)?;
-    /// // Will bypass proxy for localhost and *.internal.com
+    /// // Direct connection (no proxy).
+    /// let _conn = pool.create_connection_with_proxy(&url, None, None);
+    ///
+    /// // Through an HTTP proxy.
+    /// let proxy = ProxyConfig::parse("http://proxy.example.com:8080").unwrap();
+    /// let _conn = pool.create_connection_with_proxy(&url, Some(&proxy), None);
     /// ```
     /// Establish an HTTP connection over a Unix domain socket.
     ///

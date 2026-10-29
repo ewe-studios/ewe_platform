@@ -27,15 +27,22 @@ use std::sync::{Arc, Mutex};
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// let progress = FetchPending::Connecting { source: "api.example.com" };
-/// println!("Progress: {}", progress); // "api.example.com: Connecting..."
+/// ```rust
+/// use foundation_netio::http::FetchPending;
 ///
-/// let failed = FetchPending::Failed {
+/// let progress: FetchPending<&str, String> = FetchPending::Connecting {
+///     source: "api.example.com",
+/// };
+/// assert_eq!(progress.to_string(), "api.example.com: Connecting...");
+///
+/// let failed: FetchPending<&str, String> = FetchPending::Failed {
 ///     source: "api.example.com",
 ///     error: "Connection refused".to_string(),
 /// };
-/// println!("Error: {}", failed); // "api.example.com: FAILED - Connection refused"
+/// assert_eq!(
+///     failed.to_string(),
+///     "api.example.com: FAILED - Connection refused"
+/// );
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FetchPending<S = &'static str, E = String> {
@@ -180,24 +187,16 @@ impl<T, E> FetchOutcome<T, E> {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// use foundation_netio::wire::simple_http::client::tasks::{FetchResult, FetchOutcome};
+/// ```rust
+/// use foundation_netio::http::FetchResult;
 ///
-/// let result = FetchResult {
-///     source: "api.example.com",
-///     outcome: FetchOutcome::Success(vec![/* models */]),
-/// };
+/// let ok: FetchResult<&str, Vec<i32>, String> =
+///     FetchResult::success("api.example.com", vec![1, 2, 3]);
+/// assert_eq!(ok.ok(), Some(vec![1, 2, 3]));
 ///
-/// // Log with appropriate level based on outcome
-/// result.log();
-///
-/// // Extract success value or error
-/// if let Some(models) = result.ok() {
-///     // Process successful result
-/// }
-/// if let Some(error) = result.err() {
-///     // Handle error
-/// }
+/// let failed: FetchResult<&str, Vec<i32>, String> =
+///     FetchResult::error("api.example.com", "Connection refused".to_string());
+/// assert_eq!(failed.err(), Some("Connection refused".to_string()));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FetchResult<S = &'static str, T = Vec<()>, E = String> {
@@ -239,9 +238,12 @@ impl<S: AsRef<str>, T, E: std::fmt::Display> FetchResult<S, T, E> {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// let result: FetchResult<&str, Vec<ModelEntry>, String> = /* ... */;
-    /// result.log(); // Logs "api.example.com: Success" or "api.example.com: Error - ..."
+    /// ```rust
+    /// use foundation_netio::http::FetchResult;
+    ///
+    /// let result: FetchResult<&str, Vec<i32>, String> =
+    ///     FetchResult::success("api.example.com", vec![1, 2, 3]);
+    /// result.log(); // Logs "api.example.com: Success".
     /// ```
     pub fn log(&self) {
         match &self.outcome {
@@ -299,23 +301,14 @@ impl<S: AsRef<str>, T, E: std::fmt::Display> std::fmt::Display for FetchResult<S
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// use std::sync::{Arc, Mutex};
-/// use foundation_netio::wire::simple_http::client::tasks::ErrorCollector;
+/// ```rust
+/// use foundation_netio::http::ErrorCollector;
 ///
-/// let errors = ErrorCollector::new();
-/// let errors_clone = errors.clone();
+/// let errors: ErrorCollector<&str, &str> = ErrorCollector::new();
+/// errors.record("api.example.com", "Connection refused");
 ///
-/// // In fetch task
-/// if fetch_failed {
-///     errors_clone.record("api.example.com", "Connection refused");
-/// }
-///
-/// // After execution
 /// let collected = errors.collect();
-/// for (source, error) in collected {
-///     tracing::warn!("{}: {}", source, error);
-/// }
+/// assert_eq!(collected, vec![("api.example.com", "Connection refused")]);
 /// ```
 #[derive(Clone, Default)]
 pub struct ErrorCollector<S = String, E = String> {

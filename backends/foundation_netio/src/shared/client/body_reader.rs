@@ -10,19 +10,23 @@
 //!
 //! # Example Usage
 //!
-//! ```rust,ignore
-//! // Strict error handling - caller decides what to do
-//! match collect_bytes_strict(stream) {
-//!     Ok(bytes) => process(bytes),
-//!     Err(BodyReaderError::NoBody) => handle_no_body(),
-//!     Err(BodyReaderError::StreamRead(e)) => handle_error(e),
+//! ```rust
+//! use foundation_netio::shared::client::body_reader::{collect_bytes, collect_bytes_strict};
+//! use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+//!
+//! fn body_stream(
+//!     body: SendSafeBody,
+//! ) -> Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> {
+//!     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(body))))
 //! }
 //!
-//! // Graceful degradation - errors logged, empty result on failure
-//! let bytes = collect_bytes(stream);
-//! if bytes.is_empty() {
-//!     // Check logs for error details
-//! }
+//! // Strict error handling - the caller decides what to do.
+//! let bytes = collect_bytes_strict(body_stream(SendSafeBody::Text("hello".into()))).unwrap();
+//! assert_eq!(bytes, b"hello".to_vec());
+//!
+//! // Graceful degradation - errors are logged and an empty result is returned.
+//! let bytes = collect_bytes(body_stream(SendSafeBody::Text("hello".into())));
+//! assert_eq!(bytes, b"hello".to_vec());
 //! ```
 
 use crate::event_source::shared::ParseResult;
@@ -167,14 +171,16 @@ pub enum ProcessStreamResult {
 ///
 /// # Examples
 ///
-/// ```rust,ignore,ignore
-/// // Strict error handling
-/// match collect_string_strict(stream) {
-///     Ok(body) => process(body),
-///     Err(StringBodyError::NoBody) => handle_no_body(),
-///     Err(StringBodyError::StreamRead(e)) => handle_error(e),
-///     Err(StringBodyError::InvalidUtf8(e)) => handle_utf8_error(e),
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_string_strict;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text("hello".into()),
+///     ))));
+///
+/// assert_eq!(collect_string_strict(stream).unwrap(), "hello");
 /// ```
 ///
 /// # Errors
@@ -292,12 +298,16 @@ pub fn collect_string_strict(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Simple usage - errors logged, empty string returned on failure
-/// let body = collect_string(stream);
-/// if body.is_empty() {
-///     // Check logs for error details
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_string;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text("hello".into()),
+///     ))));
+///
+/// assert_eq!(collect_string(stream), "hello");
 /// ```
 pub fn collect_string(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
@@ -429,13 +439,16 @@ pub fn drain_stream_iterator(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Strict error handling for binary data
-/// match collect_bytes_strict(stream) {
-///     Ok(bytes) => save_to_file(bytes),
-///     Err(BodyReaderError::NoBody) => handle_no_body(),
-///     Err(BodyReaderError::StreamRead(e)) => handle_error(e),
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_bytes_strict;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Bytes(b"hello".to_vec()),
+///     ))));
+///
+/// assert_eq!(collect_bytes_strict(stream).unwrap(), b"hello".to_vec());
 /// ```
 ///
 /// # Errors
@@ -548,12 +561,16 @@ pub fn collect_bytes_strict(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Simple usage - errors logged, empty vec returned on failure
-/// let bytes = collect_bytes(stream);
-/// if bytes.is_empty() {
-///     // Check logs for error details
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_bytes;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Bytes(b"hello".to_vec()),
+///     ))));
+///
+/// assert_eq!(collect_bytes(stream), b"hello".to_vec());
 /// ```
 pub fn collect_bytes(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
@@ -587,24 +604,16 @@ pub fn collect_bytes(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Download an image
-/// let task = SendRequestTask::new(request, 5, pool, config)
-///     .map_ready(|intro| {
-///         match intro {
-///             RequestIntro::Success { stream, .. } => {
-///                 collect_bytes_direct(stream)
-///             }
-///             RequestIntro::Failed(_) => Vec::new(),
-///         }
-///     });
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_bytes_direct;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
 ///
-/// let mut result_stream = execute(task, None)?;
-/// for item in result_stream {
-///     if let Stream::Next(image_bytes) = item {
-///         std::fs::write("download.png", &image_bytes)?;
-///     }
-/// }
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Bytes(b"image-bytes".to_vec()),
+///     ))));
+///
+/// assert_eq!(collect_bytes_direct(stream), b"image-bytes".to_vec());
 /// ```
 pub fn collect_bytes_direct(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
@@ -939,9 +948,12 @@ where
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// let response = client.get(url).send()?;
-/// let bytes = collect_bytes_from_send_safe(response.take_body());
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+/// use foundation_netio::shared::http::SendSafeBody;
+///
+/// let bytes = collect_bytes_from_send_safe(SendSafeBody::Text("hello".into()));
+/// assert_eq!(bytes, b"hello".to_vec());
 /// ```
 #[tracing::instrument]
 pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
@@ -992,9 +1004,12 @@ pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// let response = client.get(url).send()?;
-/// let bytes = collect_bytes_from_send_safe(response.take_body());
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_strings_from_send_safe;
+/// use foundation_netio::shared::http::SendSafeBody;
+///
+/// let text = collect_strings_from_send_safe(SendSafeBody::Text("hello".into())).unwrap();
+/// assert_eq!(text, "hello");
 /// ```
 ///
 /// # Errors
@@ -1031,12 +1046,14 @@ pub fn collect_strings_from_send_safe(body: SendSafeBody) -> Result<String, Stri
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Download directly to file
-/// let response = client.get(url).send()?;
-/// let (_, _, body, ..) = response.into_parts();
-/// let mut file = std::fs::File::create("download.bin")?;
-/// let bytes_written = collect_bytes_into(body, &mut file)?;
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_bytes_into;
+/// use foundation_netio::shared::http::SendSafeBody;
+///
+/// let mut out = Vec::new();
+/// let written = collect_bytes_into(SendSafeBody::Text("hello".into()), &mut out).unwrap();
+/// assert_eq!(written, 5);
+/// assert_eq!(out, b"hello".to_vec());
 /// ```
 ///
 /// # Errors
@@ -1118,13 +1135,17 @@ pub fn collect_bytes_into<W: std::io::Write>(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Strict error handling
-/// match parse_json_strict::<ApiResponse>(stream) {
-///     Ok(response) => process(response),
-///     Err(JsonParseError::BodyRead(e)) => handle_read_error(e),
-///     Err(JsonParseError::JsonParse(e)) => handle_parse_error(e),
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::parse_json_strict;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text(r#"{"hello": "world"}"#.into()),
+///     ))));
+///
+/// let value: serde_json::Value = parse_json_strict(stream).unwrap();
+/// assert_eq!(value["hello"], "world");
 /// ```
 ///
 /// # Errors
@@ -1160,13 +1181,17 @@ pub fn parse_json_strict<T: DeserializeOwned>(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Simple usage - errors logged, None returned on failure
-/// if let Some(response) = parse_json::<ApiResponse>(stream) {
-///     println!("Got {} items", response.items.len());
-/// } else {
-///     // Check logs for error details
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::parse_json;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text(r#"{"hello": "world"}"#.into()),
+///     ))));
+///
+/// let value: serde_json::Value = parse_json(stream).unwrap();
+/// assert_eq!(value["hello"], "world");
 /// ```
 pub fn parse_json<T: DeserializeOwned>(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
@@ -1196,27 +1221,32 @@ pub fn parse_json<T: DeserializeOwned>(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// use foundation_netio::wire::simple_http::client::body_reader::ResponseParser;
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::ResponseParser;
 ///
 /// #[derive(serde::Deserialize)]
 /// struct ApiResponse {
-///     data: Vec<Item>,
+///     data: Vec<String>,
 /// }
 ///
 /// impl ResponseParser for ApiResponse {
-///     type Output = Vec<Item>;
+///     type Output = Vec<String>;
 ///
 ///     fn parse(body: &str, source: &str) -> Self::Output {
 ///         match serde_json::from_str::<Self>(body) {
 ///             Ok(response) => response.data,
 ///             Err(e) => {
-///                 tracing::error!("Failed to parse {source}: {e}");
+///                 eprintln!("failed to parse {source}: {e}");
 ///                 Vec::new()
 ///             }
 ///         }
 ///     }
 /// }
+///
+/// assert_eq!(
+///     ApiResponse::parse(r#"{"data":["a","b"]}"#, "example"),
+///     vec!["a".to_string(), "b".to_string()]
+/// );
 /// ```
 pub trait ResponseParser: Sized {
     /// The output type after parsing.
@@ -1253,12 +1283,12 @@ pub trait ResponseParser: Sized {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// if let Some(data) = parse_json::<MyType>(&body, "api.example.com") {
-///     // Process parsed data
-/// } else {
-///     // Handle parse failure (already logged)
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::parse_json_str;
+///
+/// let data: serde_json::Value =
+///     parse_json_str(r#"{"hello": "world"}"#, "api.example.com").unwrap();
+/// assert_eq!(data["hello"], "world");
 /// ```
 pub fn parse_json_str<T: DeserializeOwned>(body: &str, source: &str) -> Option<T> {
     match serde_json::from_str::<T>(body) {
@@ -1292,12 +1322,20 @@ pub fn parse_json_str<T: DeserializeOwned>(body: &str, source: &str) -> Option<T
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// let config = parse_with_fallback(
-///     &body,
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::parse_with_fallback;
+///
+/// let value: serde_json::Value = parse_with_fallback(
+///     r#"{"hello": "world"}"#,
 ///     "config-api",
-///     || Config::default(),
+///     || serde_json::Value::Null,
 /// );
+/// assert_eq!(value["hello"], "world");
+///
+/// // A malformed body falls back to the default value.
+/// let value: serde_json::Value =
+///     parse_with_fallback("not-json", "config-api", || serde_json::Value::Null);
+/// assert!(value.is_null());
 /// ```
 pub fn parse_with_fallback<T, F>(body: &str, source: &str, fallback: F) -> T
 where
@@ -1340,17 +1378,23 @@ where
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Strict error handling
-/// match process_streaming_body_strict(stream, |chunk| {
-///     println!("Received {} bytes", chunk.len());
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::{
+///     process_streaming_body_strict, ProcessStreamResult,
+/// };
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text("hello".into()),
+///     ))));
+///
+/// let result = process_streaming_body_strict(stream, |chunk| {
+///     assert_eq!(chunk, b"hello");
 ///     true // Continue
-/// }) {
-///     Ok(ProcessStreamResult::Completed) => println!("Done"),
-///     Ok(ProcessStreamResult::StoppedByCallback) => println!("Stopped early"),
-///     Ok(ProcessStreamResult::NoBody) => println!("No body"),
-///     Err(BodyReaderError::StreamRead(e)) => handle_error(e),
-/// }
+/// })
+/// .unwrap();
+/// assert_eq!(result, ProcessStreamResult::Completed);
 /// ```
 ///
 /// # Errors
@@ -1500,16 +1544,19 @@ where
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Simple usage - errors logged, false returned on failure
-/// if process_streaming_body(stream, |chunk| {
-///     println!("Received {} bytes", chunk.len());
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::process_streaming_body;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text("hello".into()),
+///     ))));
+///
+/// assert!(process_streaming_body(stream, |chunk| {
+///     assert_eq!(chunk, b"hello");
 ///     true // Continue
-/// }) {
-///     println!("Processing complete");
-/// } else {
-///     // Check logs for error details
-/// }
+/// }));
 /// ```
 pub fn process_streaming_body<F>(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
