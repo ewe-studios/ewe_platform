@@ -3084,12 +3084,16 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         self.yielder.yield_for(duration);
                     }
                     ProgressIndicator::Wait => {
-                        // Queue empty, yield and re-check
+                        // A task said "re-poll me" (no deadline). Cap the wait
+                        // at `max_yield_duration` so the worker re-polls it and
+                        // looks for new work promptly, instead of sleeping the
+                        // full `no_work_yield` (seconds) between polls.
                         if kill_signal.probe() {
                             return;
                         }
 
-                        self.yielder.yield_for(self.no_work_yield);
+                        self.yielder
+                            .yield_for(self.no_work_yield.min(self.max_yield_duration));
                     }
                 }
             }
