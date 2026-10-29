@@ -2,6 +2,24 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-30: feature 09 done on `fix/io-01-valtron-parking`. Limits became
+  configuration (rule 8), one item each in its own commit. L1-L3 (valtron): the pool config
+  gained `max_yield_duration` (100 ms), `yield_wait_time` (4 s) and four back-off knobs;
+  `ThreadedIterFutureConfig` documents the queue size and the back-pressure park timeout. A
+  real fix in this feature: `block_on`'s multi-worker `Wait` arm re-polled at
+  `no_work_yield`, so `max_yield_duration` governed only `run_until` (single-threaded); it
+  now caps the re-poll at `min(no_work_yield, max_yield_duration)`. L4:
+  `BackgroundJobRegistry` takes a capacity (default 1024); a full queue returns an error and
+  `new` returns `Result`. L5-L8: `BytesPoolConfig` bounds `max_pooled_buffers` (64) and
+  `max_buffer_size` (64 KiB); `acquire_with_capacity` counts one outcome; `PooledBuffer::owned`
+  holds no pool; `Debug` shows length and capacity only. L9: `BatchReader` logs `WouldBlock`
+  at `trace`. L10: `SpinWaiter` keeps nanosecond precision with named defaults. L11: a
+  release-plz version group publishes the macros and core crates together. Six backlog
+  entries deleted; a new entry records the remaining hard-coded valtron limits that were out
+  of scope (`READINESS_POLL_QUANTUM`, `DEFAULT_OP_READ_TIME`, `DEFAULT_NOTIFY_QUEUE_*`,
+  `DEFAULT_READINESS_WAIT`, `DEFAULT_DELIVERY_CAPACITY`, `JS_WAIT_CHECK_INTERVAL`). PR: see
+  the PR.
+
 - 2026-10-30: feature 08 done on `fix/io-01-valtron-parking`. `Serve` gained a fourth result,
   `ConnectionResult::Async(ServeFuture)` (`ServeFuture = Pin<Box<dyn Future<Output =
   ConnectionResult> + Send + 'static>>`), so a long-lived handler returns its continuation at once

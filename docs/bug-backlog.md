@@ -81,11 +81,20 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `LockSignal`-style condvar) that a blocking waiter can wait on — a purpose-built type
   rather than overloading `OnSignal`, which stays a passive probe-only atomic.
 
-- **Hard-coded valtron limits (rule 8):** `MAX_YIELD_DURATION`
-  (`executors/local.rs`), `DEFAULT_YIELD_WAIT_TIME` (4 s) and `BACK_OFF_*`
-  (`executors/constants.rs`), and `ThreadedIterFuture::new`'s queue size of 16
-  and 10 ms back-pressure sleep (`executors/future_task.rs`; builder methods
-  exist, but the defaults are literals and undocumented).
+- **Remaining hard-coded valtron limits (rule 8).** Feature 09 moved the
+  yield, back-off, `ThreadedIterFuture` and pool limits onto configs. These are
+  still `const` in code paths: `READINESS_POLL_QUANTUM` (1 ms,
+  `executors/local.rs`), `DEFAULT_OP_READ_TIME` (100 ms,
+  `executors/multi/mod.rs:1541`), `DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT`
+  (`executors/future_task.rs:856`), `DEFAULT_NOTIFY_QUEUE_MAX_SPINS`
+  (`executors/local.rs:327`), `DEFAULT_READINESS_WAIT` (10 ms,
+  `executors/local.rs:913`) and `DEFAULT_DELIVERY_CAPACITY` (8,
+  `executors/builders/*.rs`), all defined in `executors/constants.rs`, plus
+  `JS_WAIT_CHECK_INTERVAL` (4 ms, `executors/wasm/*`, used from
+  `executors/local.rs`). `DEFAULT_PARK_DURATION` and `DEFAULT_WAIT_CYCLE` are
+  `unwrap_or` defaults for optional parameters (a `Some` overrides them), so
+  review those too. Fix: a field on the right config for each, with a
+  documented default.
 - **A single-thread `DrivenStreamIterator` cannot park an async consumer**
   (`executors/non_sendables.rs`, `wake`). The iterator drives the engine in
   `next`, and a parked task becomes runnable when a foreign thread flips its
@@ -97,22 +106,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   Likely fix: let `EventReadiness` sources register a wake (a `Send` callback;
   `WakeCallback` is not `Send` without `multi`), and have this `wake` register
   on the sleepers of the engine as well as on the queue.
-- **`BackgroundJobRegistry`** (`executors/background.rs`): the queue is
-  unbounded (it needs a capacity setting), and `new` panics if it can't spawn
-  a thread instead of returning an error.
-- **`BytesPool` has no bounds** (`io/buffer_pool.rs`).
-  - It is unbounded and keeps returned buffers of any size, so it needs a
-    capacity and a maximum buffer size **(rule 8)**.
-  - `acquire_with_capacity` counts both a hit and an allocation when the
-    pooled buffer is too small.
-  - `PooledBuffer::owned` builds a throwaway pool for every buffer.
-  - `PooledBuffer` has no `Debug`.
-- **Release coupling.** `foundation_macros` calls
-  `foundation_core::valtron::initialize_current_thread`, so the two crates
-  need a coordinated version bump when published.
-- **`BatchReader` logs every `WouldBlock` at `error!`**
-  (`io/readers/mod.rs`, the `WouldBlock`/`TimedOut` arm). It is the ordinary
-  "not ready" signal on a non-blocking socket.
 - **`SleepIterator` treats a reached zero-duration deadline as still pending.**
   `delayed_iterators.rs` `SleepIterator::next` matches
   `completed_at.checked_duration_since(now)` with `Some(diff) => Pending`, so
@@ -127,9 +120,7 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
-- **`SpinWaiter`** (foundation_nostd `primitives/spin_waiter.rs`, still used on
-  wasm) rounds sub-millisecond waits down to zero, and its spin calibration is
-  arbitrary.
+(no open entries)
 
 ## 6. foundation_deployment_docker / foundation_deployment
 

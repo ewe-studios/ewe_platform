@@ -2,6 +2,35 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-30 (feature 09): a config field read in only one place can look correct while
+  another code path ignores it. `max_yield_duration` capped the idle re-check in `run_until`
+  (the single-threaded executor) but `block_on`'s multi-worker `Wait` arm still slept
+  `no_work_yield`, so a pool built with a short `max_yield_duration` did not re-poll a `Wait`
+  task any faster under `multi`. Fix: `yield_for(no_work_yield.min(max_yield_duration))`. When
+  adding a config knob, grep every consumer of the old constant and wire each one.
+
+- 2026-10-30 (feature 09): tracing-subscriber 0.3.23 has no blanket `Layer` impl for
+  `Arc<L>` (only `Box<L>`). A log-capture test that reads captured lines after the fact must
+  put the `Arc<Mutex<Vec<..>>>` *inside* the layer struct and pass the layer by value into
+  `tracing_subscriber::registry().with(layer)`; keep a separate `Arc` clone for the
+  assertions. A `#[valtron_test]` already sets a global subscriber, so use the thread-local
+  `tracing::subscriber::with_default` to avoid the `#[traced_test]` "global default set"
+  panic.
+
+- 2026-10-30 (feature 09): the §3 `rg` check does not go green by itself. L1-L11 moved the
+  named constants onto configs, but the same pattern still returns hard-coded limits that
+  were never in scope: `READINESS_POLL_QUANTUM` (1 ms), `DEFAULT_OP_READ_TIME` (100 ms),
+  `DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT`, `DEFAULT_NOTIFY_QUEUE_MAX_SPINS`,
+  `DEFAULT_READINESS_WAIT` (10 ms), `DEFAULT_DELIVERY_CAPACITY` (8) and
+  `JS_WAIT_CHECK_INTERVAL` (4 ms). These are a new backlog entry and the seed for a follow-on
+  feature. `DEFAULT_PARK_DURATION`/`DEFAULT_WAIT_CYCLE` are `unwrap_or` defaults for optional
+  parameters, so they need review, not necessarily a config field.
+
+- 2026-10-30 (feature 09): `SpinWaiter` calibration is what makes the sub-millisecond test
+  slow, not the wait itself. `SpinWaiter::new(10_000_000)` (10 M spins/ms) made 100 × 500 µs
+  waits take ~5.6 s in the unoptimized `uat` profile; `SpinWaiter::embedded()` (1 M/ms) is
+  ~0.56 s and still ~11× above the 500 µs lower bound, so no custom calibration is needed.
+
 - 2026-10-30 (feature 08): `H1Body`/`H1Sink` are polled inside the `ConnectionResult::Async`
   future, which the connection task drives under a native executor (tokio/smol), not as a valtron
   task. So their socket wait must register a `std::task::Waker` (`FdReadiness::register_waker` for a
