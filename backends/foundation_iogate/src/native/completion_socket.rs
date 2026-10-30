@@ -217,8 +217,8 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         token: Token,
         peer: Option<SocketAddr>,
         _arm_completion: bool,
-        read_mode: ReadMode,
-        write_mode: WriteMode,
+        _read_mode: ReadMode,
+        _write_mode: WriteMode,
     ) -> io::Result<Self> {
         let _ = Interest::READABLE;
         let inner = RegisteredFd::new(inner, registry, token)?;
