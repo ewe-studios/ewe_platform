@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-30 (feature 28): a `TaskStatus::Depends` sleeper has no deadline of its own, so a task
+  parked purely on an fd readiness signal never wakes for timers. The QUIC driver must compose
+  the socket signal with a deadline signal — `AnyReadiness::either(fd, DeadlinePassed(next_timeout))`
+  — or loss detection, idle timeout and keep-alive silently stall on a lossy link. `next_timeout`
+  is the min `quinn_proto::Connection::poll_timeout()` across connections (which takes `&mut self`,
+  so the lock guard must be `mut`).
+
+- 2026-10-30 (feature 28): do not measure parking with process-wide `getrusage(RUSAGE_SELF)`; the
+  full ~1100-test `quic` run runs every test in one process, so a sibling's CPU contaminates a 1 s
+  idle window. Count `next_status` calls instead (`CountingDriver` wrapper): a parked driver stays
+  at ~0 polls/s, a 1 ms poller fires ~1000/s, so `count < 20` over 1 s is a deterministic, load-proof
+  assertion. Complement it with a direct `matches!(next_status(..), TaskStatus::Depends(_))` test.
+
 - 2026-10-30 (feature 10): `#[valtron_test]` emits its own `#[test]`, so two of them cannot
   sit on one function — the name would collide. Its `seed`/`threads`/`timeout` args are parsed
   as `syn::Expr` and emitted as `(#expr)`, so a `macro_rules!` macro can emit the `threads = 4`

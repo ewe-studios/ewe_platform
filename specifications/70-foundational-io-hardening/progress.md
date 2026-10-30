@@ -2,6 +2,25 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-30: feature 28 done on `fix/io-01-valtron-parking`. The idle H3 endpoint now parks on
+  the QUIC socket instead of polling at 1 ms. `EventReadiness` gained a default `clear()` and
+  `FdReadiness` overrides it (forwards to its existing inherent `clear`); `QuicDriver::next_status`
+  clears edge-triggered readiness before `pump_recv` (the H2 handler's clear-before-read order)
+  and, when a socket signal is present, returns `Depends(AnyReadiness::either(fd,
+  DeadlinePassed(next_timeout)))` instead of `Delayed(IDLE_POLL)`. The deadline composition is a
+  new correctness requirement the spec did not state: a `Depends` sleeper has no deadline, so
+  parking only on the fd would starve QUIC loss-detection/idle-timeout/keep-alive timers;
+  `next_timeout` is the earliest `poll_timeout()` across connections. `serve_h3` wraps the
+  driver's UDP socket in `FdReadiness` via `watch_driver_socket` (falls back to polling on
+  non-unix or if the reactor refuses). The flaky process-wide `getrusage(RUSAGE_SELF)` CPU
+  assertion is replaced with a deterministic poll count (`CountingDriver`): the idle driver
+  parks at ~0 `next_status` calls/s instead of ~1000, asserted over a 1 s idle window, plus a
+  direct `driver_parks_on_fd_readiness_not_delayed` test (no signal → `Delayed`, signal →
+  `Depends`). Verification: netio default + `quic` green (the `quic` run is 1108/1108), http,
+  connectrpc, iogate, core, reactor all green, `cargo check --workspace --all-targets` clean,
+  and the idle test passed 20 runs in a row. Two backlog entries deleted (the 1 ms poll and the
+  process-CPU measurement). PR: see the PR.
+
 - 2026-10-30: feature 10 done on `fix/io-01-valtron-parking`. The three ignored netio test
   files became hermetic: `http_external_validation.rs` (8) and `http_server_integration.rs`
   (6) drive the local `TestHttpServer` on loopback sockets, and `tls_integration.rs` (3) runs

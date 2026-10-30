@@ -1,6 +1,6 @@
 ---
 feature: "QUIC driver parks on its UDP socket"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: "02-h2-h3-server-readiness"
 branch: "fix/io-28-quic-driver-fd-readiness"
@@ -69,14 +69,24 @@ Two things block the wire-up today:
    and call `with_fd_readiness`. `QuicDriver::socket()` returns `Arc<UdpSocket>`; take its raw
    fd with `AsRawFd`. Register a `FdReadiness` (readable only, no writable) and pass
    `Arc::new(readiness)`.
+4. Compose the socket readiness with the next connection timer. A `Depends` sleeper has no
+   deadline of its own, so parking purely on `Depends(fd)` would starve QUIC timers (loss
+   detection, idle timeout, keep-alive). Mirror the H2 handler: return
+   `Depends(AnyReadiness::either(fd, DeadlinePassed(next_timeout)))`, where `next_timeout` is
+   the earliest `quinn_proto::Connection::poll_timeout()` across all connections (or `Depends(fd)`
+   alone when no connection has a pending timer). `DeadlinePassed` is a small `EventReadiness`
+   that is ready once an `Instant` has passed.
 
 ## 4. Tests
 
-- Extend `foundation_netio/tests/http3/waker_tests.rs` `idle_h3_connection_uses_no_cpu` (or add a
-  sibling) so the driver is built with `with_fd_readiness`, and assert the CPU stays under the
-  budget. Keep the old no-fd path working (it must still fall back to 1 ms).
+- Extend `foundation_netio/tests/http3/waker_tests.rs` `idle_h3_connection_uses_no_cpu` so the
+  driver is built with `with_fd_readiness`, and assert the idle driver polls a tiny number of
+  times over one second (`CountingDriver` counts `next_status` calls; a parked driver stays at
+  ~0, a 1 ms poller fires ~1000). This replaces the old process-wide `getrusage(RUSAGE_SELF)`
+  measurement, which flaked under a full parallel `quic` run.
 - Add a test that the driver parks on the fd: with `with_fd_readiness` attached and no traffic,
-  the driver returns `Depends`, not `Delayed`.
+  the driver returns `Depends`, not `Delayed` (`driver_parks_on_fd_readiness_not_delayed`), and
+  that without the signal it still returns `Delayed`.
 - Keep `h3_accept_task_parks_until_a_connection_arrives` and all feature 02 tests green.
 
 ## 5. Verification (run exactly)
@@ -96,14 +106,14 @@ done
 
 ## 6. Done when
 
-- [ ] The driver clears the socket readiness before each receive.
-- [ ] `serve_h3` injects `with_fd_readiness`; the driver returns `Depends`, not `Delayed`, when
+- [x] The driver clears the socket readiness before each receive.
+- [x] `serve_h3` injects `with_fd_readiness`; the driver returns `Depends`, not `Delayed`, when
       it has a signal.
-- [ ] The no-fd fallback (1 ms) still works and is still reachable for transports without a
+- [x] The no-fd fallback (1 ms) still works and is still reachable for transports without a
       pollable fd (feature 06).
-- [ ] The CPU test passes 20 runs in a row.
-- [ ] The backlog entry is deleted.
-- [ ] CI green.
+- [x] The CPU test passes 20 runs in a row.
+- [x] The backlog entry is deleted.
+- [x] CI green.
 
 ## 7. Out of scope
 

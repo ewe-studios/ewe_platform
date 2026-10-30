@@ -25,20 +25,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
-- **QUIC driver falls back to a 1 ms poll.** `quic/quinn_driver.rs`
-  `QuicDriver::next_status` returns `Delayed(IDLE_POLL)` (1 ms) when it has no
-  `fd_readiness`. The `with_fd_readiness` hook exists but nothing calls it: the
-  H3 server (`foundation_http` `h3_server.rs` `serve_h3`) and the connectrpc H3
-  transport build the driver without one. Also, `EventReadiness` has no `clear`,
-  so the driver cannot clear edge-triggered readiness before `pump_recv`. Tracked
-  as feature 28.
-- **`idle_h3_connection_uses_no_cpu` measures process-wide CPU.** The test
-  (`tests/http3/waker_tests.rs`) uses `getrusage(RUSAGE_SELF)` for a 1 s idle
-  window, so every concurrent test's CPU counts against it. It flakes under a
-  full parallel `quic` run (for example 820 ms in 1 s) but passes in isolation.
-  Fix: measure the polling thread's CPU with `CLOCK_THREAD_CPUTIME_ID`, as the
-  body-reader test (`async_body_readiness_tests.rs`) now does. The driver's real
-  1 ms idle poll is tracked as feature 28.
 - **DNS resolution blocks the HTTP client task.**
   `SystemDnsResolver::resolve` (`shared/client/dns.rs:130`) calls
   `to_socket_addrs()`, a blocking system call, inside the non-blocking connect
