@@ -13,11 +13,13 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 
-use foundation_core::valtron::{Ctx, Stream, TaskIterator};
+use foundation_core::valtron::{Ctx, Stream, TaskIterator, TaskStatus};
 use foundation_netio::http3::connection::{H3Connection, H3Request};
 use foundation_netio::quic::{
-    client_config_trusting_pem, server_config_from_pem, QuicDriver, QuinnBidiStream,
+    client_config_trusting_pem, server_config_from_pem, QuicDriver, QuicEvent, QuinnBidiStream,
 };
+#[cfg(unix)]
+use foundation_reactor::FdReadiness;
 
 const CERT_PEM: &[u8] = include_bytes!("../fixtures/quic_cert.pem");
 const KEY_PEM: &[u8] = include_bytes!("../fixtures/quic_key.pem");
@@ -31,6 +33,31 @@ struct CountingWaker(AtomicUsize);
 impl Wake for CountingWaker {
     fn wake(self: Arc<Self>) {
         self.0.fetch_add(1, Ordering::SeqCst);
+    }
+}
+
+/// Wraps a [`QuicDriver`] and counts every `next_status` call. The idle test
+/// asserts the count stays tiny, which proves the driver parks rather than
+/// polling at 1 ms — a deterministic proxy for CPU, with no process-wide clock.
+struct CountingDriver {
+    inner: QuicDriver,
+    polls: Arc<AtomicUsize>,
+}
+
+impl CountingDriver {
+    fn new(inner: QuicDriver) -> (Self, Arc<AtomicUsize>) {
+        let polls = Arc::new(AtomicUsize::new(0));
+        (Self { inner, polls: polls.clone() }, polls)
+    }
+}
+
+impl TaskIterator for CountingDriver {
+    type Ready = QuicEvent;
+    type Pending = ();
+
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<QuicEvent, ()>> {
+        self.polls.fetch_add(1, Ordering::SeqCst);
+        self.inner.next_status(ctx)
     }
 }
 
@@ -119,27 +146,14 @@ fn the_driver_wakes_accept_waiters_and_parked_requests() {
     assert_eq!(chunk.as_deref(), Some(&b"wake"[..]));
 }
 
-/// Process CPU time (user + system) in nanoseconds, via `getrusage`.
-#[cfg(all(feature = "multi", unix))]
-fn process_cpu_ns() -> u128 {
-    unsafe {
-        let mut usage: libc::rusage = std::mem::zeroed();
-        let rc = libc::getrusage(libc::RUSAGE_SELF, &mut usage);
-        assert_eq!(rc, 0, "getrusage failed");
-        let user = usage.ru_utime.tv_sec as u128 * 1_000_000_000
-            + usage.ru_utime.tv_usec as u128 * 1_000;
-        let system = usage.ru_stime.tv_sec as u128 * 1_000_000_000
-            + usage.ru_stime.tv_usec as u128 * 1_000;
-        user + system
-    }
-}
-
-/// An idle HTTP/3 connection uses no CPU: the request futures park on the
-/// connection instead of busy-polling. The driver's own 1 ms idle poll is the
-/// only remaining cost, and it stays well under the 50 ms/s budget.
+/// An idle HTTP/3 connection uses no CPU: the driver parks on its socket's fd
+/// instead of busy-polling at 1 ms. The poll count over one idle second is the
+/// deterministic proof — a polling driver calls `next_status` ~1000 times, a
+/// parked one stays at ~0.
 #[cfg(all(feature = "multi", unix))]
 #[test]
 fn idle_h3_connection_uses_no_cpu() {
+    use std::os::fd::AsRawFd;
     use foundation_core::valtron::{initialize_pool, send};
 
     let _guard = initialize_pool(200, Some(4));
@@ -148,7 +162,9 @@ fn idle_h3_connection_uses_no_cpu() {
     let sq = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
     let addr = sq.local_addr().expect("addr");
     let accept_queue = sq.accept_queue();
-    send(sq).expect("spawn server driver");
+    let fd = FdReadiness::register(sq.socket().as_raw_fd()).expect("register fd");
+    let (counting, polls) = CountingDriver::new(sq.with_fd_readiness(Arc::new(fd)));
+    send(counting).expect("spawn server driver");
 
     let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
     let (mut cq, client_conn) = QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
@@ -180,14 +196,48 @@ fn idle_h3_connection_uses_no_cpu() {
         std::thread::sleep(Duration::from_millis(1));
     }
 
-    // Let it settle into its parked state, then measure a full idle second.
+    // Let it settle into its parked state, then count polls over one idle
+    // second. A driver that parks on the socket stays at ~0; one that polls at
+    // 1 ms would fire ~1000 times.
     std::thread::sleep(Duration::from_millis(100));
-    let before = process_cpu_ns();
+    polls.store(0, Ordering::SeqCst);
     std::thread::sleep(Duration::from_secs(1));
-    let after = process_cpu_ns();
-    let cpu_ms = (after - before) / 1_000_000;
+    let count = polls.load(Ordering::SeqCst);
     assert!(
-        cpu_ms < 50,
-        "idle h3 connection used {cpu_ms} ms of CPU in 1 s; it should park"
+        count < 20,
+        "idle h3 driver polled {count} times in 1 s; it should park on the socket"
+    );
+}
+
+/// The driver parks on the fd when one is injected, and falls back to a 1 ms
+/// poll when it is not. The direct, deterministic form of the CPU test: with no
+/// traffic the idle driver returns `Depends`, never `Delayed`.
+#[cfg(unix)]
+#[test]
+fn driver_parks_on_fd_readiness_not_delayed() {
+    use std::os::fd::AsRawFd;
+
+    // No fd readiness: an idle server driver falls back to the 1 ms poll.
+    let mut no_fd = QuicDriver::server(
+        "127.0.0.1:0".parse().unwrap(),
+        server_config_from_pem(CERT_PEM, KEY_PEM).expect("server config"),
+    )
+    .expect("bind");
+    assert!(
+        matches!(no_fd.next_status(Ctx::new()), Some(TaskStatus::Delayed(_))),
+        "without fd readiness the idle driver should poll, not park"
+    );
+
+    // With fd readiness: it parks on the reactor.
+    let sq = QuicDriver::server(
+        "127.0.0.1:0".parse().unwrap(),
+        server_config_from_pem(CERT_PEM, KEY_PEM).expect("server config"),
+    )
+    .expect("bind");
+    let fd = FdReadiness::register(sq.socket().as_raw_fd()).expect("register fd");
+    let mut sq = sq.with_fd_readiness(Arc::new(fd));
+    assert!(
+        matches!(sq.next_status(Ctx::new()), Some(TaskStatus::Depends(_))),
+        "with fd readiness the idle driver should park, not poll"
     );
 }
