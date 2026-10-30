@@ -37,16 +37,7 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 3. foundation_http
 
-- **`Expect: 100-continue` body wait retries on a fixed delay, not readiness.**
-  The server's `WaitingForBody` state (`native/server/connection.rs`) retries
-  `probe()` on `TaskStatus::Delayed` (a few fixed 30 ms delays) and sends 408
-  after `ExpectContinueConfig` `max_attempts` (5), about 120 ms total. A body
-  that arrives through a transport with no pollable fd (the WireGuard overlay,
-  whose mesh delivers in up to 200 ms) can miss that window and get a 408 even
-  though the client is about to send the body. Fix: park `WaitingForBody` on the
-  connection's read wake source (the same `ReadWakeSource` the body reader uses)
-  instead of fixed delays. Exposed by the feature 06 overlay RPC test, which
-  works around it with `expect_continue(false)`.
+(no open entries)
 
 ## 4. foundation_core / valtron
 

@@ -17,8 +17,8 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_core::synca::{OnSignal, WaitGroupGuard};
 use foundation_core::valtron::{
-    queue_waker, BoolSignal, Ctx, EventReadiness, QueueReadiness, TaskIterator, TaskStatus,
-    WakeToken,
+    queue_waker, AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, QueueReadiness,
+    TaskIterator, TaskStatus, WakeToken,
 };
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::shared::http::{
@@ -48,6 +48,10 @@ enum HandlerState {
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
+        /// Absolute time after which a parked readiness wait gives up with 408.
+        /// `None` until the connection read waker is armed; a blocking transport
+        /// leaves it `None` and uses the `attempt` countdown instead.
+        deadline: Option<Instant>,
     },
     /// Run middleware chain, route, and dispatch to handler.
     Processing {
@@ -60,6 +64,15 @@ enum HandlerState {
         future: ServeFuture,
         should_close: bool,
     },
+}
+
+/// Ready once an instant has passed.
+struct DeadlinePassed(Instant);
+
+impl EventReadiness for DeadlinePassed {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        Instant::now() >= self.0
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -151,6 +164,13 @@ impl ConnectionHandler {
     fn idle_timeout(&self) -> Duration {
         let ctx = TimeoutContext::default().streaming();
         self.timeout_calculator.calculate_read_timeout(&ctx)
+    }
+
+    /// Total time to wait for the body after 100 Continue when the transport can
+    /// report readiness (the WireGuard overlay). A blocking transport uses the
+    /// `base_delay` / `max_attempts` polling scheme instead.
+    fn body_wait_timeout(&self) -> Duration {
+        self.timeout_calculator.config().expect_continue.body_timeout
     }
 
     fn is_transient_error(e: &HttpReaderError) -> bool {
@@ -476,6 +496,7 @@ impl ConnectionHandler {
                         req,
                         should_close,
                         attempt: 0,
+                        deadline: None,
                     });
                     let delay = self
                         .timeout_calculator
@@ -549,6 +570,7 @@ impl ConnectionHandler {
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
+        deadline: Option<Instant>,
     ) -> Option<TaskStatus<(), ()>> {
         let next_attempt = attempt + 1;
 
@@ -557,6 +579,11 @@ impl ConnectionHandler {
             attempt = attempt,
             "WaitingForBody: probing for body data"
         );
+
+        // Arm the read waker before probing, so a body that arrives while we
+        // look still wakes the parked task (the h2 handler arms first for the
+        // same reason). A blocking transport returns `None` and polls instead.
+        let armed = self.arm_body_waker();
 
         match self.conn.probe() {
             Ok(len) if len > 0 => {
@@ -569,14 +596,16 @@ impl ConnectionHandler {
                 self.state = Some(HandlerState::Processing { req, should_close });
                 Some(TaskStatus::Pending(()))
             }
-            Ok(_) => self.waiting_for_body_retry(req, should_close, attempt, next_attempt),
+            Ok(_) => {
+                self.waiting_for_body_retry(req, should_close, attempt, next_attempt, deadline, armed)
+            }
             Err(e) => {
                 let kind = e.kind();
                 if kind == std::io::ErrorKind::WouldBlock
                     || kind == std::io::ErrorKind::TimedOut
                     || kind == std::io::ErrorKind::Interrupted
                 {
-                    self.waiting_for_body_retry(req, should_close, attempt, next_attempt)
+                    self.waiting_for_body_retry(req, should_close, attempt, next_attempt, deadline, armed)
                 } else {
                     tracing::warn!(
                         client_ip = %self.client_ip,
@@ -591,18 +620,80 @@ impl ConnectionHandler {
         }
     }
 
+    /// Arm the connection's read waker, so a body that arrives while the handler
+    /// probes still wakes the parked task. Returns the signal to park on for a
+    /// transport that can report readiness (the WireGuard overlay), or `None`
+    /// for a blocking transport, whose caller falls back to fixed delays.
+    fn arm_body_waker(&self) -> Option<BoolSignal> {
+        let signal = BoolSignal::new(false);
+        let flag = signal.clone_inner();
+        let waker: foundation_netio::native::connection::ConnWaker =
+            Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+        let registered = self
+            .conn
+            .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()));
+        if registered {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                "WaitingForBody: armed the connection read waker"
+            );
+            Some(signal)
+        } else {
+            None
+        }
+    }
+
     fn waiting_for_body_retry(
         &mut self,
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
         next_attempt: usize,
+        deadline: Option<Instant>,
+        armed: Option<BoolSignal>,
     ) -> Option<TaskStatus<(), ()>> {
         tracing::trace!(
             client_ip = %self.client_ip,
             attempt = attempt,
-            "WaitingForBody: no data, computing next delay"
+            "WaitingForBody: no body data yet"
         );
+
+        // If a parked overlay wait already ran past its deadline, give up now.
+        if let Some(deadline) = deadline {
+            if Instant::now() >= deadline {
+                return self.send_408(attempt);
+            }
+        }
+
+        // A transport that can report readiness (the WireGuard overlay) parks on
+        // its read waker, bounded by `body_timeout`, instead of polling on fixed
+        // delays. Blocking transports fall through to the countdown below.
+        if let Some(signal) = armed {
+            let deadline =
+                deadline.unwrap_or_else(|| Instant::now() + self.body_wait_timeout());
+            if Instant::now() >= deadline {
+                return self.send_408(attempt);
+            }
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                attempt = attempt,
+                remaining_ms = deadline.saturating_duration_since(Instant::now()).as_millis(),
+                "WaitingForBody: no body yet; parking on the connection read waker"
+            );
+            self.state = Some(HandlerState::WaitingForBody {
+                req,
+                should_close,
+                attempt,
+                deadline: Some(deadline),
+            });
+            let readiness: EventReadinessPtr = Arc::new(AnyReadiness::either(
+                Arc::new(signal),
+                Arc::new(DeadlinePassed(deadline)),
+            ));
+            return Some(TaskStatus::Depends(readiness));
+        }
+
+        // Blocking transport: the fixed-delay countdown, 408 after max attempts.
         let prev = self.timeout_calculator.calculate_expect_continue_delay(
             &TimeoutContext::default(),
             attempt,
@@ -627,22 +718,28 @@ impl ConnectionHandler {
                 req,
                 should_close,
                 attempt: next_attempt,
+                deadline: None,
             });
             Some(TaskStatus::Delayed(delay))
         } else {
-            tracing::warn!(
-                client_ip = %self.client_ip,
-                attempt = attempt,
-                max_attempts = self.max_expect_attempts,
-                "WaitingForBody: max attempts reached, sending 408"
-            );
-            report_closing_write(respond::text(
-                &mut self.conn.clone(),
-                408,
-                "Request Timeout — body not received after 100 Continue",
-            ));
-            None
+            self.send_408(attempt)
         }
+    }
+
+    /// Send 408 Request Timeout: the body never arrived after 100 Continue.
+    fn send_408(&mut self, attempt: usize) -> Option<TaskStatus<(), ()>> {
+        tracing::warn!(
+            client_ip = %self.client_ip,
+            attempt = attempt,
+            max_attempts = self.max_expect_attempts,
+            "WaitingForBody: body never arrived, sending 408"
+        );
+        report_closing_write(respond::text(
+            &mut self.conn.clone(),
+            408,
+            "Request Timeout — body not received after 100 Continue",
+        ));
+        None
     }
 
     // ---- Processing state -------------------------------------------------
@@ -959,7 +1056,8 @@ impl TaskIterator for ConnectionHandler {
                 req,
                 should_close,
                 attempt,
-            } => self.handle_waiting_for_body(req, should_close, attempt),
+                deadline,
+            } => self.handle_waiting_for_body(req, should_close, attempt, deadline),
             HandlerState::Processing { req, should_close } => {
                 self.handle_processing(req, should_close)
             }

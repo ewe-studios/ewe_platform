@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-30 (bug-backlog §3): `WaitingForBody` must arm the connection's read waker **before**
+  probing, then park on `AnyReadiness::either(signal, DeadlinePassed(deadline))`. The order is the
+  fix for both halves of the old race: arming first means a body that lands while we probe still
+  wakes the parked task (the h2 handler's `arm_wakers`-before-read order), and the deadline keeps a
+  hung client from holding the connection forever (the overlay's 100 Continue + body round trip is
+  up to ~400 ms, longer than the old 50 ms × 5 ≈ 155 ms fixed-delay budget). The deadline is a new
+  config field, `ExpectContinueConfig.body_timeout` (3 s), not a constant (rule 8). A blocking
+  transport returns `false` from `register_read_waker`, so the arm is a cheap no-op and it keeps the
+  old `base_delay`/`max_attempts` countdown — the overlay path is deadline-driven (`deadline:
+  Option<Instant>` in the state), the blocking path is attempt-driven, and the two never mix. The
+  `overlay_connector_http_round_trip` test (spec-55 F11, `Expect: 100-continue` enabled) passed
+  20/20 after the fix.
+
 - 2026-10-30 (feature 28): a `TaskStatus::Depends` sleeper has no deadline of its own, so a task
   parked purely on an fd readiness signal never wakes for timers. The QUIC driver must compose
   the socket signal with a deadline signal — `AnyReadiness::either(fd, DeadlinePassed(next_timeout))`
@@ -158,7 +171,8 @@ _What an agent learned that the next agent needs. Newest first._
   ~120 ms, before the overlay's mesh delivers the body (up to 200 ms). This is out
   of feature 06's crate list, so the overlay RPC test sets `expect_continue(false)`
   and the race is tracked in the backlog. It is a real bug: `WaitingForBody` must
-  park on the read wake source, not fixed delays.
+  park on the read wake source, not fixed delays. Fixed 2026-10-30 on
+  `fix/io-01-valtron-parking` (see the bug-backlog §3 entry above).
 
 - 2026-10-28 (feature 05): dropping the pipe producer is a graceful end, not an error. The
   spec's `pushed_body_producer_drop_fails_the_request` assumed a dropped producer errors the

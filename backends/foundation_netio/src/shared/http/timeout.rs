@@ -28,7 +28,8 @@ use std::time::Duration;
 /// time to receive the response and start writing the body. This config
 /// controls how long and how many times the server delays before failing.
 ///
-/// WHAT: Base delay, max retry attempts, and per-attempt penalty reduction.
+/// WHAT: Base delay, max retry attempts, per-attempt penalty reduction, and the
+/// total body-wait window for a transport that parks on read readiness.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ExpectContinueConfig {
     /// Base delay after sending 100 Continue (default: 50ms).
@@ -40,6 +41,13 @@ pub struct ExpectContinueConfig {
     /// Amount subtracted from the delay on each retry (default: 10ms).
     /// Delay = `base_delay` - (attempt * `penalty_reduction`), clamped to min.
     pub penalty_reduction: Duration,
+
+    /// Total time the server waits for the body after it sends 100 Continue
+    /// (default: 3s). A transport that reports readiness (the WireGuard overlay)
+    /// parks on the connection read waker and sends 408 Request Timeout only when
+    /// this window ends with no body. A blocking transport keeps the
+    /// `base_delay` / `max_attempts` polling scheme instead.
+    pub body_timeout: Duration,
 }
 
 impl Default for ExpectContinueConfig {
@@ -48,6 +56,7 @@ impl Default for ExpectContinueConfig {
             base_delay: Duration::from_millis(50),
             max_attempts: 5,
             penalty_reduction: Duration::from_millis(10),
+            body_timeout: Duration::from_secs(3),
         }
     }
 }
@@ -122,6 +131,7 @@ impl Default for TimeoutConfig {
     /// | expect_continue.base_delay | 50ms | Initial pause after 100 Continue |
     /// | expect_continue.max_attempts | 5 | Retries before failing request |
     /// | expect_continue.penalty_reduction | 10ms | Per-attempt delay reduction |
+    /// | expect_continue.body_timeout | 3s | Readiness-wait window for the body |
     fn default() -> Self {
         Self {
             connect_timeout: Duration::from_secs(10),

@@ -2,6 +2,18 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-30: bug-backlog §3 fixed on `fix/io-01-valtron-parking`. The HTTP/1.1 server's
+  `WaitingForBody` state no longer retries `probe()` on fixed 30 ms delays and 408s at ~155 ms.
+  It now arms the connection's read waker before each probe and, for a transport that reports
+  readiness (the WireGuard overlay), parks on `AnyReadiness::either(read_signal,
+  DeadlinePassed(deadline))` — the body wakes it the moment it arrives, and a hung client still
+  gets 408 once the new `ExpectContinueConfig.body_timeout` (default 3 s) elapses. Blocking
+  transports keep the old `base_delay`/`max_attempts` countdown unchanged (their `register_read_waker`
+  returns `false`). The `overlay_connector_http_round_trip` test (spec-55 F11, `Expect: 100-continue`
+  enabled) now passes 20/20; the four server-side 100-continue integration tests stay green.
+  `foundation_http` CI green (both runs) and `foundation_netio` CI green. The backlog §3 entry is
+  deleted. PR: see the PR.
+
 - 2026-10-30: feature 28 done on `fix/io-01-valtron-parking`. The idle H3 endpoint now parks on
   the QUIC socket instead of polling at 1 ms. `EventReadiness` gained a default `clear()` and
   `FdReadiness` overrides it (forwards to its existing inherent `clear`); `QuicDriver::next_status`
