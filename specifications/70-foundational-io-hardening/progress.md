@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-30: feature 27 done on `fix/io-01-valtron-parking`. `SleepIterator::next` returned
+  `Pending(0 ns)` when its deadline equalled the current time, because
+  `Instant::checked_duration_since` gives `Some(Duration::ZERO)` at equality. The reached-deadline
+  classification is now a pure `pub fn remaining(completed_at, now) -> Option<Duration>` that returns
+  `Some(diff)` only for `diff > Duration::ZERO`, and `next` matches on it — a past, exactly-now or
+  overflowed deadline is `Done`. A new boundary test (`Some(now)`, `Some(now ± 1 ms)`, `None`) is
+  deterministic and no longer depends on `Instant::now` advancing. The flake test
+  `zero_duration_sleep_iterator_finishes_immediately` passed 20 runs in a row in both feature sets;
+  `foundation_core` CI green (716 + 753 tests). The backlog §4 `SleepIterator` entry is deleted.
+  PR: see the PR.
+
 - 2026-10-30: bug-backlog §3 fixed on `fix/io-01-valtron-parking`. The HTTP/1.1 server's
   `WaitingForBody` state no longer retries `probe()` on fixed 30 ms delays and 408s at ~155 ms.
   It now arms the connection's read waker before each probe and, for a transport that reports

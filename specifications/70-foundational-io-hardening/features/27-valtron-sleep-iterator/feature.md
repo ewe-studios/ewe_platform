@@ -1,6 +1,6 @@
 ---
 feature: "valtron SleepIterator returns Done for a reached deadline"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: "—"
 branch: "fix/io-27-valtron-sleep-iterator"
@@ -80,8 +80,8 @@ done
 
 ## Done when
 
-- [ ] `SleepIterator::next` returns `Done` for `completed_at == now`.
-- [ ] The boundary test passes. `zero_duration_sleep_iterator_finishes_immediately` passes
+- [x] `SleepIterator::next` returns `Done` for `completed_at == now`.
+- [x] The boundary test passes. `zero_duration_sleep_iterator_finishes_immediately` passes
       20 runs in a row in both feature sets.
-- [ ] The backlog entry is deleted.
-- [ ] CI green.
+- [x] The backlog entry is deleted.
+- [x] CI green.

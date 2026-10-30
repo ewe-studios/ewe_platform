@@ -2,6 +2,16 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-30 (feature 27): `SleepIterator::next` returned `Pending(0 ns)` when `completed_at == now`,
+  because `Instant::checked_duration_since` returns `Some(Duration::ZERO)` at equality, not `None`.
+  The `Some(diff) => Pending` arm then reported a reached deadline as still pending, which flaked
+  `zero_duration_sleep_iterator_finishes_immediately` under load. Fix: extract the classification
+  into a pure function `remaining(completed_at: Option<Instant>, now: Instant) -> Option<Duration>`
+  that returns `Some(diff)` only when `diff > Duration::ZERO` (past, exactly-now and overflow all
+  give `None` = done), and have `next` match on it. The pure function is `pub` so the boundary cases
+  are tested from `tests/` without `Instant::now` advancing (rule 7). The exact-boundary test
+  (`Some(now)`, `Some(now ± 1 ms)`, `None`) is deterministic. 20/20 in both feature sets; CI green.
+
 - 2026-10-30 (bug-backlog §3): `WaitingForBody` must arm the connection's read waker **before**
   probing, then park on `AnyReadiness::either(signal, DeadlinePassed(deadline))`. The order is the
   fix for both halves of the old race: arming first means a body that lands while we probe still
