@@ -18,7 +18,7 @@ use std::time::Duration;
 
 use futures::StreamExt;
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
@@ -106,7 +106,7 @@ fn build_router() -> Router {
 
 // ── Server ────────────────────────────────────────────────────────────────────
 
-fn start_server() -> (String, Arc<OnSignal>) {
+fn start_server() -> (String, Arc<ShutdownSignal>) {
     let rpc: Arc<dyn H2Serve> =
         Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
 
@@ -118,7 +118,7 @@ fn start_server() -> (String, Arc<OnSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
 
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());

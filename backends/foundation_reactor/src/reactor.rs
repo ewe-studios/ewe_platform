@@ -646,6 +646,30 @@ impl Reactor {
             .expect("events_gen lock poisoned");
         *gen
     }
+
+    /// Wake every thread parked in [`Reactor::wait_for_events`] without a real
+    /// fd event.
+    ///
+    /// WHY: a non-task thread (e.g. the accept loop) parks on this reactor's
+    /// generation condvar. Some external condition — a shutdown signal — can
+    /// change without any registered fd becoming ready, so the drain thread
+    /// never bumps the generation and the parked thread sleeps out its timeout.
+    ///
+    /// WHAT: simulate a synthetic event: advance the generation and notify all
+    /// waiters. A waiter's lost-wakeup guard then returns at once and it
+    /// re-checks its own condition.
+    ///
+    /// HOW: the same generation bump and `notify_all` the drain thread performs
+    /// when it latches readiness (see [`Reactor::wait_for_events`]).
+    ///
+    /// # Panics
+    /// Never panics (poisoned lock aside).
+    pub fn wake_waiters(&self) {
+        let (lock, cvar) = &*self.events_gen;
+        let mut gen = lock.lock().expect("events_gen lock poisoned");
+        *gen = gen.wrapping_add(1);
+        cvar.notify_all();
+    }
 }
 
 impl Drop for Reactor {

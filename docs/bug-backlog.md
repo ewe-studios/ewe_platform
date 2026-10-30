@@ -34,21 +34,22 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - **Non-blocking work not done yet:**
   - the remaining transports: the io_uring completion socket, openssl, and
     native-tls (task #25). The overlay and rustls landed in feature 06.
+- **`foundation_reactor` hard-codes the drain poll timeout (rule 8).**
+  `foundation_reactor/src/reactor.rs` has `const DRAIN_TIMEOUT_MS: u64 = 100`,
+  the selector poll timeout the drain thread uses. Fix: move it onto a reactor
+  config (a field with a builder and a documented default), as rule 8 requires.
 
 ## 3. foundation_http
 
-(no open entries)
+- **`http3_server_rejects_a_request_it_has_no_handler_for` is flaky.**
+  The test sends a request to a path with no H3 handler and waits for an
+  `H3_REQUEST_REJECTED` reset. The reset sometimes never arrives, so the test
+  times out after 5 s. It passes on re-runs. Likely cause: the unroutable
+  request is reset on a different turn than the accept task's own, and a
+  scheduling order can drop it. Fix: reset the request deterministically when
+  the accept task routes it, not on a spawned task's turn.
 
 ## 4. foundation_core / valtron
-
-- **`OnSignal` cannot wake a blocking waiter.** `foundation_core::synca::signals::OnSignal`
-  is an `AtomicUsize` with only `probe`/`turn_on`/`turn_off`. It has no fd write and no
-  condvar notify, so a thread blocked in `Reactor::wait_for_events` (the accept loop's
-  shutdown wait, feature 05) cannot be woken by `turn_on`; it only sees the signal on its
-  next poll. The accept loop bounds shutdown detection with `accept_shutdown_poll` (a
-  config). Fix: add a dedicated wake-capable shutdown signal (an eventfd/pipe write, or a
-  `LockSignal`-style condvar) that a blocking waiter can wait on — a purpose-built type
-  rather than overloading `OnSignal`, which stays a passive probe-only atomic.
 
 - **A single-thread `DrivenStreamIterator` cannot park an async consumer**
   (`executors/non_sendables.rs`, `wake`). The iterator drives the engine in

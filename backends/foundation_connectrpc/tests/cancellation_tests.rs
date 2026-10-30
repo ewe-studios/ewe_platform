@@ -17,7 +17,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{valtron_test, Pipe, PipeReceiver, PipeSender};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -356,11 +356,11 @@ fn h2_deadline_cancels_and_answers_deadline_exceeded() {
 
 // ── HTTP/1.1 ────────────────────────────────────────────────────────────────
 
-fn start_h1_server(slot: &Slot) -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_h1_server(slot: &Slot) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let serve: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(router(slot).into_handler()));
     let mut app = HttpApp::new_serve();
     app.router.add_route_any(UNARY, &serve);
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(

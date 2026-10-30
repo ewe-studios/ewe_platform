@@ -15,7 +15,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{initialize_pool, timer};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
@@ -131,11 +131,11 @@ impl Serve for NestedAsyncHandler {
 /// Start a server with `handler` on `GET /async`; returns its address, the
 /// shutdown signal, and a receiver that fires once `serve_with_listener` returns.
 fn start_server<H: ServeFactory + 'static>(
-) -> (std::net::SocketAddr, Arc<OnSignal>, std::sync::mpsc::Receiver<()>) {
+) -> (std::net::SocketAddr, Arc<ShutdownSignal>, std::sync::mpsc::Receiver<()>) {
     let mut app = HttpApp::new_serve();
     app.route::<H>(SimpleMethod::GET, "/async");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("local_addr");
     let config = ServerConfig::defaults()
@@ -166,7 +166,7 @@ fn read_until(stream: &mut TcpStream, needle: &str) -> String {
 }
 
 /// Stop the server started by [`start_server`] and wait for it to return.
-fn stop(shutdown: &Arc<OnSignal>, done_rx: &std::sync::mpsc::Receiver<()>) {
+fn stop(shutdown: &Arc<ShutdownSignal>, done_rx: &std::sync::mpsc::Receiver<()>) {
     shutdown.turn_on();
     let _ = done_rx.recv_timeout(Duration::from_secs(3));
 }

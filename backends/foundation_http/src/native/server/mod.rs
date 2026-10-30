@@ -9,8 +9,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::{OnSignal, WaitGroup};
-use foundation_iogate::ServerIo;
+use foundation_core::synca::WaitGroup;
+use foundation_iogate::{ServerIo, ShutdownSignal};
 #[cfg(unix)]
 use foundation_iogate::FdReadiness;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
@@ -176,9 +176,9 @@ pub struct ServerConfig {
     pub shutdown_grace: Duration,
     /// Upper bound on how long the idle accept loop stays asleep before it
     /// checks shutdown again (Feature 05). On unix the loop parks on listener
-    /// readiness and wakes at once on a new connection; this bound only paces
-    /// shutdown checks, because `OnSignal` is a passive atomic with no wake
-    /// primitive. Default: 10 ms.
+    /// readiness and wakes at once on a new connection. It also wakes at once on
+    /// shutdown (`ShutdownSignal` wakes the reactor); this bound is a safety net
+    /// only, for when the wake link could not be made. Default: 10 ms.
     pub accept_shutdown_poll: Duration,
     /// When set, every response carries an `Alt-Svc: h3=":<port>"` header
     /// telling clients that this origin also speaks HTTP/3 on `port` (F53 /
@@ -287,9 +287,9 @@ impl ServerConfig {
     }
 
     /// Set how long the idle accept loop may wait before it checks shutdown
-    /// again (Feature 05). On unix the loop wakes at once on a new connection;
-    /// this only bounds shutdown-detection latency, since `OnSignal` is a
-    /// passive atomic.
+    /// again (Feature 05). On unix the loop wakes at once on a new connection and
+    /// at once on shutdown; this bounds shutdown-detection latency only when the
+    /// shutdown wake link could not be made.
     #[must_use]
     pub fn with_accept_shutdown_poll(mut self, dur: Duration) -> Self {
         self.accept_shutdown_poll = dur;
@@ -479,7 +479,7 @@ impl HttpServer {
     ///
     /// Panics if the TCP listener cannot be set to non-blocking mode.
     #[tracing::instrument(skip(self, shutdown))]
-    pub fn serve(self, shutdown: &Arc<OnSignal>) {
+    pub fn serve(self, shutdown: &Arc<ShutdownSignal>) {
         let listener = match std::net::TcpListener::bind(&self.bind_addr) {
             Ok(l) => l,
             Err(e) => {
@@ -498,7 +498,7 @@ impl HttpServer {
     ///
     /// Panics if the TCP listener cannot be set to non-blocking mode.
     #[tracing::instrument(skip(self, listener, shutdown))]
-    pub fn serve_with_listener(self, listener: &std::net::TcpListener, shutdown: &Arc<OnSignal>) {
+    pub fn serve_with_listener(self, listener: &std::net::TcpListener, shutdown: &Arc<ShutdownSignal>) {
         tracing::info!("Listening on {}", self.bind_addr);
         listener
             .set_nonblocking(true)
@@ -529,7 +529,7 @@ impl HttpServer {
     pub fn serve_with_acceptor<A: foundation_netio::native::connection::Acceptor + ?Sized>(
         self,
         acceptor: &A,
-        shutdown: &Arc<OnSignal>,
+        shutdown: &Arc<ShutdownSignal>,
     ) {
         let addr = acceptor
             .local_addr()
@@ -560,7 +560,7 @@ impl HttpServer {
         feature = "ssl-native-tls",
     ))]
     #[tracing::instrument(skip(self, shutdown))]
-    pub fn serve_tls(self, shutdown: Arc<OnSignal>) {
+    pub fn serve_tls(self, shutdown: Arc<ShutdownSignal>) {
         let acceptor = match &self.config.tls_acceptor {
             Some(a) => a.clone(),
             None => {
@@ -616,7 +616,7 @@ impl HttpServer {
     pub fn serve_tls_with_listener(
         self,
         listener: &std::net::TcpListener,
-        shutdown: &Arc<OnSignal>,
+        shutdown: &Arc<ShutdownSignal>,
     ) {
         let acceptor = match &self.config.tls_acceptor {
             Some(a) => a.clone(),
@@ -682,7 +682,7 @@ impl HttpServer {
     fn serve_loop(
         self,
         acceptor: &(impl foundation_netio::native::connection::Acceptor + ?Sized),
-        shutdown: &Arc<OnSignal>,
+        shutdown: &Arc<ShutdownSignal>,
         wrap_stream: impl Fn(
                 foundation_netio::netcap::Connection,
                 std::net::SocketAddr,
@@ -716,6 +716,20 @@ impl HttpServer {
             },
             None => None,
         };
+
+        // Link the shutdown signal to the shared reactor so a turn-on wakes the
+        // parked accept loop at once (Feature 31). Best-effort: on failure the
+        // loop still sees shutdown within `accept_shutdown_poll`.
+        #[cfg(unix)]
+        if listener_readiness.is_some() {
+            if let Err(e) = shutdown.register_wake() {
+                tracing::warn!(
+                    error = %e,
+                    "could not link the shutdown signal to the reactor; \
+                     shutdown waits for accept_shutdown_poll"
+                );
+            }
+        }
 
         // Tracks connections currently owned by a valtron handler task. Each
         // handler holds a guard that decrements on completion, so the drain

@@ -15,7 +15,8 @@ use std::time::{Duration, Instant};
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
-use foundation_core::synca::{OnSignal, WaitGroupGuard};
+use foundation_core::synca::WaitGroupGuard;
+use foundation_iogate::ShutdownSignal;
 use foundation_core::valtron::{
     queue_waker, AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, QueueReadiness,
     TaskIterator, TaskStatus, WakeToken,
@@ -91,7 +92,7 @@ pub struct ConnectionHandler {
     /// handler stops taking *new* keep-alive requests at its idle checkpoint but
     /// lets an in-flight request finish (cooperative, task-decided drain —
     /// Decision 12 §10).
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     /// Decrements the server's active-connection `WaitGroup` when this handler
     /// task completes (on drop), so the drain phase can wait for in-flight
     /// connections to finish (Decision 12 §10).
@@ -122,7 +123,7 @@ impl ConnectionHandler {
         conn: SharedByteBufferStream<RawStream>,
         client_ip: String,
         connection: Arc<ConnectionContext>,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
         drain_guard: WaitGroupGuard,
         config: &super::KeepAliveConfig,
         alt_svc_h3_port: Option<u16>,
@@ -1029,7 +1030,7 @@ fn body_left_unread(req: &SimpleIncomingRequest) -> bool {
 /// `CancellableFutureTask`'s `CancelOrReadiness` (the future ORs a cancel flag).
 struct AsyncReadiness {
     future: QueueReadiness<WakeToken>,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
 }
 
 impl EventReadiness for AsyncReadiness {

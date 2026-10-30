@@ -12,7 +12,7 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{initialize_pool, Stream, BlockingFutureExt};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -59,7 +59,7 @@ impl Serve for BodyEchoHandler {
 }
 
 struct Backend {
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
 }
 impl Drop for Backend {
     fn drop(&mut self) {
@@ -73,7 +73,7 @@ fn start_backend() -> (u16, Backend) {
     let mut app = HttpApp::new_serve();
     app.route_any::<BodyEchoHandler>("/*");
     let server = HttpServer::with_config(app, &format!("127.0.0.1:{port}"), ServerConfig::defaults());
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let s = Arc::clone(&shutdown);
     std::thread::spawn(move || server.serve_with_listener(&listener, &s));
     (port, Backend { shutdown })

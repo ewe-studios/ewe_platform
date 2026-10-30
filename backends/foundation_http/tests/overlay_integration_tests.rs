@@ -11,7 +11,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::native::connection::Connector;
 use foundation_netio::netcap::RawStream;
@@ -109,7 +109,7 @@ fn overlay_connector_http_round_trip() {
     let server = HttpServer::with_config(app, &format!("{}:{}", b_ip, port),
         ServerConfig::defaults().with_keep_alive(KeepAliveConfig::disabled()));
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let s = shutdown.clone();
     let acc = acceptor.clone();
     std::thread::spawn(move || { server.serve_with_acceptor(&acc, &s); });

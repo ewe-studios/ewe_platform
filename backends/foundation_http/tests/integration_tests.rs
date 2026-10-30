@@ -15,7 +15,7 @@ use tracing_test::traced_test;
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::initialize_pool;
 use foundation_netio::event_source::SseEvent;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
@@ -181,8 +181,8 @@ impl RequestMiddleware for BlockMiddleware {
 /// Start an HttpServer in a background thread. Returns (addr, shutdown_signal).
 /// Binds the TcpListener before spawning the server thread so the port is
 /// guaranteed to be in use by the time this function returns.
-fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<OnSignal>) {
-    let shutdown = Arc::new(OnSignal::new());
+fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
+    let shutdown = Arc::new(ShutdownSignal::new());
 
     // Bind the listener first — the port is ours from this point on.
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");

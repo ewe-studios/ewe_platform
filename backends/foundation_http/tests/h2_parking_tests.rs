@@ -15,7 +15,8 @@ use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::{OnSignal, WaitGroup};
+use foundation_core::synca::WaitGroup;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{initialize_pool, Ctx, TaskIterator, TaskStatus};
 use foundation_http::native::server::H2ConnectionHandler;
 use foundation_http::shared::app::HttpApp;
@@ -44,7 +45,7 @@ fn an_idle_h2_connection_parks_on_its_socket() {
         H2Conn::new_server(stream),
         Arc::new(HttpApp::new_h2_serve()),
         Arc::new(ConnectionContext::default()),
-        Arc::new(OnSignal::new()),
+        Arc::new(ShutdownSignal::new()),
         waits.guard(),
     );
 
@@ -160,7 +161,7 @@ fn idle_h2_client() -> (TcpStream, H2Channel) {
         H2Conn::new_server(stream),
         Arc::new(HttpApp::new_h2_serve()),
         Arc::new(ConnectionContext::default()),
-        Arc::new(OnSignal::new()),
+        Arc::new(ShutdownSignal::new()),
         waits.guard(),
     );
     foundation_core::valtron::send(handler).expect("spawn h2 handler");

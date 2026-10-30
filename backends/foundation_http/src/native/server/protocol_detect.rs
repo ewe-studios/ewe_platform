@@ -22,7 +22,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::{PeekError, PeekableReadStream, SharedByteBufferStream};
-use foundation_core::synca::{OnSignal, WaitGroupGuard};
+use foundation_core::synca::WaitGroupGuard;
+use foundation_iogate::ShutdownSignal;
 use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_netio::http2::conn::H2Conn;
 use foundation_netio::http2::detect::{detect_protocol, DetectedProtocol, H2C_PREFACE_PEEK_LEN};
@@ -47,7 +48,7 @@ pub struct ProtocolDetectHandler {
     app: ServerApp,
     client_ip: String,
     connection: Arc<ConnectionContext>,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     /// Moved into whichever handler we spawn; `None` after hand-off.
     drain_guard: Option<WaitGroupGuard>,
     keep_alive: KeepAliveConfig,
@@ -63,7 +64,7 @@ impl ProtocolDetectHandler {
         app: ServerApp,
         client_ip: String,
         connection: Arc<ConnectionContext>,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
         drain_guard: WaitGroupGuard,
         keep_alive: KeepAliveConfig,
         alt_svc_h3_port: Option<u16>,

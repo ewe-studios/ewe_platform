@@ -24,7 +24,7 @@ use std::time::Duration;
 
 use base64::Engine as _;
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::HttpServer;
 use foundation_http::native::serve::H2Serve;
@@ -124,7 +124,7 @@ fn build_router() -> Router {
 
 /// Start a real `foundation_http` backend serving one connectrpc router over
 /// both HTTP/1.1 (Connect + gRPC-Web) and HTTP/2 (gRPC + Connect-over-H2).
-fn start_backend() -> (u16, Arc<OnSignal>) {
+fn start_backend() -> (u16, Arc<ShutdownSignal>) {
     // H1: Connect and gRPC-Web are HTTP/1.1-native.
     let h1: Arc<dyn Serve> = Arc::new(ConnectRpcServe::new(build_router().into_handler()));
     let mut h1_app = HttpApp::new_serve();
@@ -145,7 +145,7 @@ fn start_backend() -> (u16, Arc<OnSignal>) {
     let port = listener.local_addr().expect("backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::both(h1_app, h2_app), &addr);
     std::thread::spawn(move || {
@@ -175,7 +175,7 @@ fn build_tagged_router(tag: &str) -> Router {
 /// Start a backend serving **only native gRPC** (HTTP/2 `ConnectRpcServeH2`),
 /// with no HTTP/1.1 / gRPC-Web dispatch at all. Used by the D-leg tests to prove
 /// the proxy translates an inbound gRPC-Web request rather than forwarding it.
-fn start_backend_grpc_only() -> (u16, Arc<OnSignal>) {
+fn start_backend_grpc_only() -> (u16, Arc<ShutdownSignal>) {
     let h2: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
     let mut h2_app = HttpApp::new_h2_serve();
     h2_app.route_any_h2(UNARY, h2.clone());
@@ -187,7 +187,7 @@ fn start_backend_grpc_only() -> (u16, Arc<OnSignal>) {
     let port = listener.local_addr().expect("backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(h2_app), &addr);
     std::thread::spawn(move || {
@@ -199,7 +199,7 @@ fn start_backend_grpc_only() -> (u16, Arc<OnSignal>) {
 
 /// A native-gRPC-only backend (H2) whose unary responses carry `tag`, so a test
 /// can observe which of several backend instances answered.
-fn start_backend_grpc_only_tagged(tag: &str) -> (u16, Arc<OnSignal>) {
+fn start_backend_grpc_only_tagged(tag: &str) -> (u16, Arc<ShutdownSignal>) {
     let h2: Arc<dyn H2Serve> =
         Arc::new(ConnectRpcServeH2::new(build_tagged_router(tag).into_handler()));
     let mut h2_app = HttpApp::new_h2_serve();
@@ -209,7 +209,7 @@ fn start_backend_grpc_only_tagged(tag: &str) -> (u16, Arc<OnSignal>) {
     let port = listener.local_addr().expect("backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(h2_app), &addr);
     std::thread::spawn(move || {

@@ -2,6 +2,25 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-30: feature 31 done on `fix/io-01-valtron-parking`. The accept loop now wakes at
+  once on shutdown. `Reactor::wake_waiters()` (new) bumps `events_gen` and calls `notify_all`,
+  so a thread parked in `wait_for_events` returns without a real fd event. `ShutdownSignal`
+  (new, `foundation_reactor/src/shutdown_signal.rs`) is a cross-platform `AtomicBool` flag with
+  a unix-only `OnceLock<Arc<Reactor>>` wake link; `turn_on` sets the flag then wakes the linked
+  reactor on the false-to-true change, and `register_wake` links the shared reactor (best-effort).
+  It is re-exported through `foundation_reactor`, `foundation_iogate`, and `foundation_http`.
+  The http server's shutdown type changed from `OnSignal` to `ShutdownSignal`, which cascaded to
+  every `serve*`/`serve_h3` caller: `foundation_connectrpc`, `foundation_auth`,
+  `foundation_proxy` (src + tests, except `passthrough.rs` whose signals never reach `serve*`),
+  `foundation_keychain`, `foundation_deployment_docker`, and `foundation_testbed`.
+  `serve_loop` calls `shutdown.register_wake()` after the listener fd is registered;
+  `accept_shutdown_poll` is now a safety bound only (default unchanged at 10 ms). New
+  `foundation_reactor/tests/shutdown_signal/` (4 tests: flag semantics + a wake test that parks
+  a thread in `wait_for_events` and asserts `turn_on` returns it promptly). Verification:
+  reactor 4/4, http suite green, `cargo check --workspace --all-targets` clean. The §4
+  `OnSignal` backlog entry is deleted; a pre-existing flaky H3 test and the reactor
+  `DRAIN_TIMEOUT_MS` rule-8 const are recorded. PR: see the PR.
+
 - 2026-10-30: feature 30 done on `fix/io-01-valtron-parking`. The remaining valtron limits
   became configuration (rule 8), one field each: `readiness_poll_quantum` (R1, 1 ms) and
   `wait_check_interval` (R7, 4 ms) on `LocalThreadExecutor`; `op_read_time` (R2, 100 ms) on

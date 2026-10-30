@@ -25,7 +25,7 @@ use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{valtron_test, Ctx as VCtx, Stream as VStream, TaskIterator};
 use foundation_http::native::serve::H3Serve;
 use foundation_http::native::server::serve_h3;
@@ -603,11 +603,11 @@ fn peer_reset_mid_client_stream_cancels_the_call() {
 /// Serve the test router with `foundation_http`'s real HTTP/3 server — the
 /// QUIC driver and accept tasks on the valtron pool, `dispatch_h3` spawned as a
 /// `FutureTask` per request — and return its address and shutdown signal.
-fn start_h3_server(seen: &Arc<Seen>) -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_h3_server(seen: &Arc<Seen>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let rpc: Arc<dyn H3Serve> = Arc::new(ConnectRpcServeH3::new(router(seen, 0).into_handler()));
     let mut app = HttpApp::new_h3_serve();
     app.route_any_h3("/*", rpc);
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let addr = serve_h3(
         "127.0.0.1:0".parse().unwrap(),
         CERT_PEM,

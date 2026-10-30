@@ -15,7 +15,7 @@
 //! and writes them; `StaticFileHandler` serves a directory; [`StreamHandler`]
 //! upgrades the owned connection to SSE and registers it with the
 //! [`Broadcaster`]. Served via `serve_with_listener` on an ephemeral
-//! `TcpListener` on a background thread, stopped by an `OnSignal`.
+//! `TcpListener` on a background thread, stopped by a `ShutdownSignal`.
 
 use std::net::TcpListener;
 use std::path::PathBuf;
@@ -29,7 +29,7 @@ use foundation_http::native::server::ServerConfig;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
-use foundation_http::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{
@@ -183,7 +183,7 @@ pub struct TestServer {
     https: bool,
     page: Arc<PageState>,
     broadcaster: Broadcaster,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     handle: Option<JoinHandle<()>>,
 }
 
@@ -232,7 +232,7 @@ impl TestServer {
             app.router.add_route_any(&format!("{}/*", sm.mount.trim_end_matches('/')), &handler);
         }
 
-        let shutdown = Arc::new(OnSignal::new());
+        let shutdown = Arc::new(ShutdownSignal::new());
         let addr_str = addr.to_string();
         let handle = {
             let shutdown = shutdown.clone();

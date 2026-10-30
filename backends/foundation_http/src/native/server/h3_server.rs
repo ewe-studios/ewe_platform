@@ -22,7 +22,7 @@ use std::sync::{Arc, Mutex};
 use std::task::{Wake, Waker};
 use std::time::Duration;
 
-use foundation_core::synca::OnSignal;
+use foundation_iogate::ShutdownSignal;
 use foundation_core::valtron::{
     AnyReadiness, BoolSignal, Ctx, EventReadiness, FutureTask, Stream, TaskIterator, TaskStatus,
 };
@@ -52,7 +52,7 @@ pub fn serve_h3(
     cert_pem: &[u8],
     key_pem: &[u8],
     app: H3App,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
 ) -> io::Result<SocketAddr> {
     let cfg = server_config_from_pem(cert_pem, key_pem)?;
     let driver = QuicDriver::server(bind_addr, cfg)?;
@@ -117,7 +117,7 @@ pub struct H3AcceptTask {
     accept_wakers: Arc<Mutex<Vec<Waker>>>,
     app: H3App,
     conns: Vec<ActiveConn>,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     /// Set by `waker`; the task parks on it.
     woken: BoolSignal,
     /// One waker for the task's life, so `will_wake` dedupes its
@@ -130,7 +130,7 @@ impl H3AcceptTask {
         accept_queue: Arc<Mutex<VecDeque<QuinnConnection>>>,
         accept_wakers: Arc<Mutex<Vec<Waker>>>,
         app: H3App,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
     ) -> Self {
         let woken = BoolSignal::new(false);
         Self {
@@ -159,7 +159,7 @@ impl Wake for SignalWaker {
 }
 
 /// Ready once the server is shutting down.
-struct ShutdownRequested(Arc<OnSignal>);
+struct ShutdownRequested(Arc<ShutdownSignal>);
 
 impl EventReadiness for ShutdownRequested {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {

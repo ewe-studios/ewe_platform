@@ -8,7 +8,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{initialize_pool, Ctx, Stream, TaskIterator, TaskStatus};
 use foundation_netio::http3::{H3Connection, H3Request};
 use foundation_netio::quic::{
@@ -139,7 +139,7 @@ fn http3_server_echoes_a_request_over_quic() {
     // Start the H3 server with the echo handler.
     let mut app = HttpApp::new_h3_serve();
     app.route_any_h3("/*", Arc::new(EchoH3));
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_addr = serve_h3(
         "127.0.0.1:0".parse().unwrap(),
         CERT,
@@ -221,7 +221,7 @@ fn http3_server_rejects_a_request_it_has_no_handler_for() {
     let _guard = initialize_pool(78, Some(8));
 
     let app = HttpApp::new_h3_serve();
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_addr = serve_h3(
         "127.0.0.1:0".parse().unwrap(),
         CERT,
@@ -292,7 +292,7 @@ fn h3_accept_task_parks_until_a_connection_arrives() {
     let accept_wakers = driver.accept_wakers();
 
     let app = Arc::new(HttpApp::new_h3_serve());
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let mut task = H3AcceptTask::new(accept_queue, accept_wakers, app, shutdown);
 
     for _ in 0..5 {

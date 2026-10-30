@@ -28,7 +28,8 @@ use std::task::{Wake, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::{OnSignal, WaitGroupGuard};
+use foundation_core::synca::WaitGroupGuard;
+use foundation_iogate::ShutdownSignal;
 use foundation_core::valtron::{
     AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, FutureTask, Pipe, PipeReceiver, PipeSender,
     TaskIterator, TaskStatus, TryRecvError,
@@ -122,7 +123,7 @@ pub struct H2ConnectionHandler {
     conn: H2Conn,
     app: Arc<HttpApp<Arc<dyn H2Serve>>>,
     connection: Arc<ConnectionContext>,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     _drain_guard: WaitGroupGuard,
     idle_since: Option<Instant>,
     handshaked: bool,
@@ -215,7 +216,7 @@ impl EventReadiness for DeadlinePassed {
 }
 
 /// Ready once the server is shutting down.
-struct ShutdownRequested(Arc<OnSignal>);
+struct ShutdownRequested(Arc<ShutdownSignal>);
 
 impl EventReadiness for ShutdownRequested {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
@@ -229,7 +230,7 @@ impl H2ConnectionHandler {
         conn: H2Conn,
         app: Arc<HttpApp<Arc<dyn H2Serve>>>,
         connection: Arc<ConnectionContext>,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
         drain_guard: WaitGroupGuard,
     ) -> Self {
         Self {

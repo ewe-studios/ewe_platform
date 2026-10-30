@@ -34,7 +34,7 @@ use foundation_arrow::arrow_array::{Array, Int32Array, RecordBatch};
 use foundation_arrow::arrow_schema::{DataType, Field, Schema};
 use foundation_arrow::{ArrowSchema, FromArrow, IpcResult, ToArrow};
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -145,7 +145,7 @@ fn echo_serve() -> Arc<dyn Serve> {
     Arc::new(ConnectRpcServe::new(router.into_handler()))
 }
 
-fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
     let serve = echo_serve();
     for proc in ALL_PROCEDURES {
@@ -157,7 +157,7 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
     let server =
         HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
     std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
     while std::net::TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_err() {}

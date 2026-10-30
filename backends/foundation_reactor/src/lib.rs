@@ -30,6 +30,8 @@ pub mod reactor;
 #[cfg(unix)]
 pub mod fd_readiness;
 
+pub mod shutdown_signal;
+
 #[cfg(all(target_os = "linux", feature = "uring"))]
 pub mod send_pool;
 
@@ -46,6 +48,8 @@ pub use reactor::{AlreadyInitialised, Reactor, SharedReadiness};
 
 #[cfg(unix)]
 pub use fd_readiness::FdReadiness;
+
+pub use shutdown_signal::ShutdownSignal;
 
 #[cfg(unix)]
 pub use token::next_token;

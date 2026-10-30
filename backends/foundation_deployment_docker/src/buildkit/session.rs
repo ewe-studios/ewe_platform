@@ -27,7 +27,7 @@ use std::thread::JoinHandle;
 use foundation_connectrpc::{
     Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, ProcedureCodecs, Router, Transport,
 };
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron;
 use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::HttpServer;
@@ -615,7 +615,7 @@ impl FileSend for FileExportSink {
 pub struct SessionServer {
     /// The BuildKit session id — set `SolveRequest.Session` to this.
     pub id: String,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     _server: Option<JoinHandle<()>>,
     _pump_down: Option<JoinHandle<()>>,
     _pump_up: Option<JoinHandle<()>>,
@@ -742,7 +742,7 @@ impl SessionBuilder {
 
         let listener = TcpListener::bind("127.0.0.1:0")?;
         let local_addr = listener.local_addr()?;
-        let shutdown = Arc::new(OnSignal::new());
+        let shutdown = Arc::new(ShutdownSignal::new());
 
         let server_shutdown = shutdown.clone();
         let server = HttpServer::from_app(ServerApp::http2(app), &local_addr.to_string());

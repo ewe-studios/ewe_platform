@@ -3,13 +3,13 @@
 //! WHY: Browser tests need an HTTP server to serve the integration directory.
 //! WHAT: Wraps `foundation_http`'s `HttpServer` with `StaticFileHandler`.
 //! HOW: Creates an `HttpApp` with `StaticFileHandler` registered on `/*`,
-//!      starts the server on a thread, and provides shutdown via `OnSignal`.
+//!      starts the server on a thread, and provides shutdown via `ShutdownSignal`.
 
 use std::path::Path;
 use std::sync::Arc;
 use std::thread;
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_http::native::handlers::static_file::StaticFileHandler;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
@@ -20,7 +20,7 @@ use crate::wasm::error::{Result, ToTrace, WasmTestbedError};
 /// Running test server.
 pub struct TestServer {
     port: u16,
-    shutdown_signal: Arc<OnSignal>,
+    shutdown_signal: Arc<ShutdownSignal>,
     server_thread: Option<thread::JoinHandle<()>>,
 }
 
@@ -59,7 +59,7 @@ pub fn start_serving(integration_dir: &Path) -> Result<TestServer> {
     let port = portpicker::pick_unused_port()
         .ok_or_else(|| WasmTestbedError::NoPortAvailable.trace())?;
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_clone = shutdown.clone();
     let root = integration_dir.to_path_buf();
     let addr = format!("127.0.0.1:{port}");

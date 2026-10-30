@@ -3,8 +3,8 @@
 //! `serve_loop` used to `thread::sleep(would_block_sleep)` on every
 //! `WouldBlock`. It now registers the listener with the shared reactor and
 //! blocks in `FdReadiness::wait_for_events`, so a new connection wakes it at
-//! once and shutdown detection is bounded only by `accept_shutdown_poll`
-//! (`OnSignal` is a passive atomic with no wake primitive).
+//! once, and a shutdown wakes it at once too (`ShutdownSignal` wakes the
+//! reactor, Feature 31). `accept_shutdown_poll` is a safety net only.
 //!
 //! Each test configures `would_block_sleep` to 1 s where it must, so the old
 //! sleep loop would stall a connection or a shutdown for up to a second, while
@@ -18,7 +18,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::initialize_pool;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
@@ -58,11 +58,11 @@ impl Serve for EchoHandler {
 /// a receiver that fires once `serve_with_listener` returns.
 fn start_server(
     config: ServerConfig,
-) -> (std::net::SocketAddr, Arc<OnSignal>, std::sync::mpsc::Receiver<()>) {
+) -> (std::net::SocketAddr, Arc<ShutdownSignal>, std::sync::mpsc::Receiver<()>) {
     let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("local_addr");
     let bind_addr = format!("127.0.0.1:{}", addr.port());
@@ -102,7 +102,7 @@ fn process_cpu_ns() -> u128 {
 }
 
 /// Stop the server started by [`start_server`] and wait for it to return.
-fn stop(shutdown: &Arc<OnSignal>, done_rx: &std::sync::mpsc::Receiver<()>) {
+fn stop(shutdown: &Arc<ShutdownSignal>, done_rx: &std::sync::mpsc::Receiver<()>) {
     shutdown.turn_on();
     let _ = done_rx.recv_timeout(Duration::from_secs(3));
 }
@@ -135,8 +135,8 @@ fn accept_loop_idle_uses_no_cpu() {
 }
 
 /// Shutdown stops the loop at once. `would_block_sleep` is 1 s, so the old
-/// sleep loop could linger up to a second; the parked loop wakes on the next
-/// `accept_shutdown_poll` (10 ms) and exits well under 50 ms.
+/// sleep loop could linger up to a second; the parked loop wakes on the
+/// shutdown signal's reactor wake (Feature 31) and exits well under 50 ms.
 #[test]
 #[serial(accept_loop)]
 fn accept_loop_stops_at_once_on_shutdown() {

@@ -51,7 +51,7 @@ use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
 use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
 use bytes::{Buf, BufMut, Bytes};
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::initialize_pool;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::{HttpServer, ServerConfig};
@@ -258,7 +258,7 @@ fn unary_round_trip_over_real_socket() {
     let serve = echo_serve();
     app.router.add_route_any(PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -338,7 +338,7 @@ fn server_stream_over_real_socket() {
     let serve = list_serve();
     app.router.add_route_any(LIST_PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -477,7 +477,7 @@ async fn h1_client_transport_over_real_socket() {
     let serve = echo_serve();
     app.router.add_route_any(PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -588,7 +588,7 @@ async fn h1_client_server_stream_over_real_socket() {
     let serve = list_serve();
     app.router.add_route_any(LIST_PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -693,10 +693,10 @@ use foundation_netio::HttpClientBuilder;
 
 /// Start an `HttpServer` serving `serve` at `route`; returns its address and the
 /// shutdown switch.
-fn start_server(route: &str, serve: Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server(route: &str, serve: Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
     app.router.add_route_any(route, &serve);
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -1295,7 +1295,7 @@ fn keep_alive_connection_serves_unary_and_streams_in_turn() {
     let list = list_serve();
     app.router.add_route_any(PROCEDURE, &echo);
     app.router.add_route_any(LIST_PROCEDURE, &list);
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(

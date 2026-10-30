@@ -25,7 +25,7 @@ use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
 use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
 use bytes::{Buf, BufMut, Bytes};
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{initialize_pool, timer};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -138,12 +138,12 @@ fn pool_router() -> Router {
     router
 }
 
-fn start_server(serve: Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server(serve: Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
     app.router.add_route_any(STREAM_PROCEDURE, &serve);
     app.router.add_route_any(PING_PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(

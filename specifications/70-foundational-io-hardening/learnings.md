@@ -2,6 +2,30 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-30 (feature 31): changing the public `serve`/`serve_with_listener`/`serve_h3`
+  shutdown-parameter type is a whole-workspace change, not a single-crate one. The feature's R4
+  scoped it to `foundation_http` + `foundation_browser`, but the signature change cascaded to
+  ~30 files across `foundation_connectrpc`, `foundation_auth`, `foundation_proxy`,
+  `foundation_keychain`, `foundation_deployment_docker`, and `foundation_testbed`. The compiler
+  is the authoritative scope, not the spec's file list: fix the `E0308` `expected
+  &Arc<ShutdownSignal>, found &Arc<OnSignal>` errors one crate at a time, and do not rename
+  `OnSignal` where it never reaches `serve*` (proxy `passthrough.rs`, the valtron kill signal).
+
+- 2026-10-30 (feature 31): `ShutdownSignal` is `Send + Sync` even though it stores
+  `OnceLock<Arc<Reactor>>` and `Reactor` owns a `JoinHandle`. `Arc<Reactor>: Sync` is already
+  proven by the crate's `static REACTOR: OnceLock<Arc<Reactor>>` compiling, so the reactor wake
+  link does not break `Arc<ShutdownSignal>` sharing across the accept-loop threads.
+
+- 2026-10-30 (feature 31): a flat `tests/foo_tests.rs` next to `tests/mod.rs` is compiled twice,
+  because Cargo auto-discovers both as test targets. Put the test file in a subdirectory and
+  register it from `tests/mod.rs` (`mod foo;` → `tests/foo/mod.rs` → `mod foo_tests;`), matching
+  the `foundation_core` layout, so it runs once.
+
+- 2026-10-30 (feature 31): the wake test must not assume the drain thread is silent. With no fds
+  registered, the drain loop bumps `events_gen` only when `latched > 0`, so a reactor with no fds
+  stays at a stable generation and the parked thread is woken only by `turn_on`'s
+  `wake_waiters`.
+
 - 2026-10-30 (feature 30): a `pub(crate)` config field is not observable from an integration
   test, and a builder-only field (no getter) is not either. T4 then splits: a field with a
   public getter or a public field gets a round-trip test (build with a non-default value, read

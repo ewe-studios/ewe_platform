@@ -9,7 +9,7 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -138,7 +138,7 @@ async fn overlay_rpc_parks_and_completes() {
         &format!("{b_ip}:{port}"),
         ServerConfig::defaults(),
     );
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let s = shutdown.clone();
     let acc = acceptor.clone();
     std::thread::spawn(move || {

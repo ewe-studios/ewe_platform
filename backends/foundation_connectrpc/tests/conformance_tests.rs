@@ -23,7 +23,7 @@ use futures::StreamExt;
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
 use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::url::Uri;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::{HttpServer, ServerConfig};
@@ -113,7 +113,7 @@ const LIST_PROCEDURE: &str = "/test.ListService/Items";
 
 struct TestServer {
     addr: std::net::SocketAddr,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
 }
 
 /// Wait for the server to accept connections.
@@ -285,7 +285,7 @@ fn start_server(serve: Arc<dyn Serve>) -> TestServer {
     app.router.add_route_any(LIST_PROCEDURE, &serve);
     app.router.add_route_any("/test.EchoService/Echo", &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
