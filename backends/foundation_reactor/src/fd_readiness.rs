@@ -139,6 +139,10 @@ impl EventReadiness for FdReadiness {
     fn is_ready(&self, dur: Option<Duration>) -> bool {
         self.readiness.is_ready(dur)
     }
+
+    fn clear(&self) {
+        self.readiness.clear(Ready::READABLE.union(Ready::WRITABLE));
+    }
 }
 
 impl Drop for FdReadiness {

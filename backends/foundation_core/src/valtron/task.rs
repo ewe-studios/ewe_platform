@@ -37,6 +37,15 @@ pub trait EventReadiness {
     ///
     /// Returns `true` if ready, `false` otherwise.
     fn is_ready(&self, dur: Option<time::Duration>) -> bool;
+
+    /// Forget any latched readiness so the next edge is observed fresh.
+    ///
+    /// Defaults to a no-op: most signals (queues, atomics, deadlines) have
+    /// nothing to clear. An edge-triggered readiness source overrides this to
+    /// clear its latch before the next read, so an edge that arrives after a
+    /// `WouldBlock` still wakes the parked task (see
+    /// `foundation_reactor::FdReadiness`).
+    fn clear(&self) {}
 }
 
 /// The pointer type that [`State::Depends`] and [`TaskStatus::Depends`] carry.

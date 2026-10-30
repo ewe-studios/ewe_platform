@@ -26,6 +26,8 @@ use foundation_core::synca::OnSignal;
 use foundation_core::valtron::{
     AnyReadiness, BoolSignal, Ctx, EventReadiness, FutureTask, Stream, TaskIterator, TaskStatus,
 };
+#[cfg(unix)]
+use foundation_iogate::FdReadiness as SocketReadiness;
 use foundation_netio::http3::connection::error_code;
 use foundation_netio::http3::{H3Connection, H3Error};
 use foundation_netio::netcap::ConnectionContext;
@@ -55,6 +57,12 @@ pub fn serve_h3(
     let cfg = server_config_from_pem(cert_pem, key_pem)?;
     let driver = QuicDriver::server(bind_addr, cfg)?;
     let local = driver.local_addr()?;
+
+    // Watch the driver's UDP socket so an idle endpoint parks on the reactor
+    // instead of polling at 1 ms. A socket that cannot be watched (non-unix, or
+    // the reactor refused it) falls back to the driver's 1 ms poll.
+    let driver = watch_driver_socket(driver);
+
     let accept_queue = driver.accept_queue();
 
     // The driver is the endpoint pump: run it as its own task.
@@ -64,6 +72,28 @@ pub fn serve_h3(
     foundation_core::valtron::send(H3AcceptTask::new(accept_queue, accept_wakers, app, shutdown))
         .map_err(|e| io::Error::other(format!("spawn h3 accept task: {e}")))?;
     Ok(local)
+}
+
+/// Wrap the driver's UDP socket in fd readiness so it parks when idle. Returns
+/// the driver unchanged when the socket cannot be watched, which falls back to
+/// the driver's 1 ms poll.
+fn watch_driver_socket(driver: QuicDriver) -> QuicDriver {
+    #[cfg(unix)]
+    {
+        use std::os::fd::AsRawFd;
+        let fd = driver.socket().as_raw_fd();
+        match SocketReadiness::register(fd) {
+            Ok(readiness) => driver.with_fd_readiness(Arc::new(readiness)),
+            Err(e) => {
+                tracing::debug!(error = %e, "h3 server: cannot watch the QUIC socket; polling instead");
+                driver
+            }
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        driver
+    }
 }
 
 /// A live H3 connection being driven by the accept task.

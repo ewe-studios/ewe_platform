@@ -37,8 +37,8 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
-use foundation_core::valtron::{Ctx,
-    EventReadinessPtr, TaskIterator, TaskStatus,
+use foundation_core::valtron::{
+    AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, TaskIterator, TaskStatus,
 };
 use quinn_proto::{
     ClientConfig, ConnectionHandle, DatagramEvent, Endpoint, EndpointConfig, ServerConfig,
@@ -68,6 +68,18 @@ pub enum QuicEvent {
         /// Human-readable reason, for logs.
         reason: String,
     },
+}
+
+/// Ready once an [`Instant`] has passed. Mirrors the h2 handler's deadline
+/// signal so a driver parked on socket readiness still wakes for QUIC timers
+/// (loss detection, idle timeout, keep-alive) — a `Depends` sleeper has no
+/// deadline of its own, so the driver composes this with the socket signal.
+struct DeadlinePassed(Instant);
+
+impl EventReadiness for DeadlinePassed {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        Instant::now() >= self.0
+    }
 }
 
 /// Drives one `quinn_proto::Endpoint` and every connection it routes.
@@ -373,6 +385,16 @@ impl QuicDriver {
         worked
     }
 
+    /// The earliest connection timer deadline, if any. `None` when no connection
+    /// has a pending timer (or the driver has no connections). A parked driver
+    /// composes this with its socket readiness so timers still fire.
+    fn next_timeout(&self) -> Option<Instant> {
+        self.conns
+            .values()
+            .filter_map(|state| state.lock().ok().and_then(|mut g| g.conn.poll_timeout()))
+            .min()
+    }
+
     /// Process one event from each connection. Returns an event to surface, if any.
     fn pump_events(&mut self) -> Option<QuicEvent> {
         let mut surfaced = None;
@@ -471,6 +493,14 @@ impl TaskIterator for QuicDriver {
 
         let now = Instant::now();
 
+        // Clear edge-triggered readiness before reading, so a datagram that
+        // arrives after a `WouldBlock` re-latches and wakes us again — the same
+        // clear-before-read the h2 handler uses. Clearing after the read would
+        // erase that edge and leave the socket "ready" forever.
+        if let Some(fd) = &self.fd_readiness {
+            fd.clear();
+        }
+
         // Ordering matters: feed the state machine before asking it for output.
         let recv = self.pump_recv(now);
         let timers = self.pump_timeouts(now);
@@ -491,9 +521,19 @@ impl TaskIterator for QuicDriver {
             return None;
         }
 
-        match &self.fd_readiness {
-            Some(fd) => Some(TaskStatus::Depends(Arc::clone(fd))),
-            None => Some(TaskStatus::Delayed(self.idle)),
+        // Park on the socket when one is injected; without one, fall back to a
+        // short poll so QUIC timers still fire. A parked driver must also wake
+        // for the next connection timer, so the socket readiness is composed
+        // with a deadline signal, exactly as the h2 handler does.
+        let Some(fd) = &self.fd_readiness else {
+            return Some(TaskStatus::Delayed(self.idle));
+        };
+        match self.next_timeout() {
+            Some(deadline) => Some(TaskStatus::Depends(Arc::new(AnyReadiness::either(
+                Arc::clone(fd),
+                Arc::new(DeadlinePassed(deadline)),
+            )))),
+            None => Some(TaskStatus::Depends(Arc::clone(fd))),
         }
     }
 }
