@@ -91,6 +91,9 @@ pub struct Reactor {
     /// snapshots the count before reading its fds only sleeps if nothing has
     /// happened since.
     events_gen: Arc<(Mutex<u64>, Condvar)>,
+    /// Selector poll timeout for the drain thread (rule 8; see
+    /// [`ReactorConfig::drain_poll_timeout`]).
+    drain_poll_timeout: Duration,
 }
 
 impl std::fmt::Debug for Reactor {
@@ -98,6 +101,7 @@ impl std::fmt::Debug for Reactor {
         f.debug_struct("Reactor")
             .field("registered", &self.entries.read().map(|e| e.len()).unwrap_or(0))
             .field("shutdown", &self.shutdown.load(Ordering::Acquire))
+            .field("drain_poll_timeout", &self.drain_poll_timeout)
             .finish()
     }
 }
@@ -140,9 +144,46 @@ impl From<AlreadyInitialised> for io::Error {
     }
 }
 
-/// Poll timeout for the drain thread. Bounds shutdown latency only — a real
-/// event returns from `poll()` immediately.
-const DRAIN_TIMEOUT_MS: u64 = 100;
+/// Default selector poll timeout for the reactor drain thread (rule 8).
+///
+/// It bounds shutdown latency only: a real event returns from `poll()`
+/// immediately, and an idle drain thread checks the shutdown flag at least this
+/// often. Pick: 100 ms — the same idle wake-up bound valtron uses for its worker
+/// re-check (`DEFAULT_OP_READ_TIME`), so an idle reactor wakes ~10×/s and a
+/// shutdown is noticed within a tenth of a second. Referenced only by
+/// [`ReactorConfig::default`].
+pub const DEFAULT_DRAIN_POLL_TIMEOUT: Duration = Duration::from_millis(100);
+
+/// Configuration for the shared reactor (rule 8 — limits are configuration).
+///
+/// WHAT: `drain_poll_timeout` is the one knob the drain loop has: how long it
+/// blocks in `poll()` when no fd is ready. A real event still returns from
+/// `poll()` immediately, so the knob bounds shutdown latency and the idle
+/// wake-up rate, not readiness latency.
+#[derive(Debug, Clone, Copy)]
+pub struct ReactorConfig {
+    drain_poll_timeout: Duration,
+}
+
+impl Default for ReactorConfig {
+    fn default() -> Self {
+        Self { drain_poll_timeout: DEFAULT_DRAIN_POLL_TIMEOUT }
+    }
+}
+
+impl ReactorConfig {
+    /// Set the selector poll timeout for the drain thread. See
+    /// [`DEFAULT_DRAIN_POLL_TIMEOUT`].
+    pub fn with_drain_poll_timeout(mut self, timeout: Duration) -> Self {
+        self.drain_poll_timeout = timeout;
+        self
+    }
+
+    /// The configured drain poll timeout.
+    pub fn drain_poll_timeout(&self) -> Duration {
+        self.drain_poll_timeout
+    }
+}
 
 impl Reactor {
     /// WHY: every `FdRegistration` parks on this one instance instead of
@@ -168,7 +209,7 @@ impl Reactor {
         if let Some(reactor) = REACTOR.get() {
             return Ok(Arc::clone(reactor));
         }
-        Self::init_inner(BackendPreference::Auto)
+        Self::init_with_config(BackendPreference::Auto, ReactorConfig::default())
     }
 
     /// WHY: an operator must be able to demand a specific backend (F48 —
@@ -196,6 +237,30 @@ impl Reactor {
     /// # Panics
     /// Never panics.
     pub fn init(preference: BackendPreference) -> io::Result<Arc<Self>> {
+        Self::init_with_config(preference, ReactorConfig::default())
+    }
+
+    /// WHY: rule 8 — a caller that needs a non-default drain poll timeout (or a
+    /// future reactor knob) must be able to set it on the one shared instance.
+    ///
+    /// WHAT: initialise the shared reactor on `preference` with `config`. First
+    /// call wins; a later call returns the existing instance and ignores
+    /// `config`, exactly as [`Reactor::init`] ignores a later preference.
+    ///
+    /// HOW: holds the first-call-wins check (the backend-match test and the
+    /// existing-instance early return), then builds via [`Reactor::init_inner`].
+    ///
+    /// # Errors
+    /// - [`AlreadyInitialised`] if the reactor is already running on a
+    ///   *different* backend than requested.
+    /// - The probe's concrete failure or the selector's own `io::Error`.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn init_with_config(
+        preference: BackendPreference,
+        config: ReactorConfig,
+    ) -> io::Result<Arc<Self>> {
         if let Some(existing) = REACTOR.get() {
             let running = existing.backend();
             // If the running backend matches the preference, return it.
@@ -207,15 +272,15 @@ impl Reactor {
             tracing::debug!(
                 running = %running,
                 ?preference,
-                "reactor already initialised on a matching backend; returning existing instance"
+                "reactor already initialised on a matching backend; returning existing instance (config ignored)"
             );
             return Ok(Arc::clone(existing));
         }
-        Self::init_inner(preference)
+        Self::init_inner(preference, config)
     }
 
     /// Shared init body — builds the reactor and races to install it.
-    fn init_inner(preference: BackendPreference) -> io::Result<Arc<Self>> {
+    fn init_inner(preference: BackendPreference, config: ReactorConfig) -> io::Result<Arc<Self>> {
         let poll = Arc::new(Self::make_poll(preference)?);
         let registry = poll.registry();
         let shutdown = Arc::new(AtomicBool::new(false));
@@ -225,6 +290,7 @@ impl Reactor {
         // The drain thread polls the *same* selector registrations land in.
         // Handing it a second `Poll` instance here silently breaks every wake.
         let events_gen: Arc<(Mutex<u64>, Condvar)> = Arc::new((Mutex::new(0), Condvar::new()));
+        let drain_timeout = config.drain_poll_timeout();
 
         let drain_poll = Arc::clone(&poll);
         let drain_entries = Arc::clone(&entries);
@@ -234,7 +300,13 @@ impl Reactor {
         let drain = thread::Builder::new()
             .name("reactor-drain".into())
             .spawn(move || {
-                drain_loop(&drain_poll, &drain_entries, &drain_shutdown, &drain_events_gen);
+                drain_loop(
+                    &drain_poll,
+                    &drain_entries,
+                    &drain_shutdown,
+                    &drain_events_gen,
+                    drain_timeout,
+                );
             })?;
 
         let reactor = Arc::new(Reactor {
@@ -245,6 +317,7 @@ impl Reactor {
             _drain: drain,
             shutdown,
             events_gen,
+            drain_poll_timeout: drain_timeout,
         });
 
         match REACTOR.set(Arc::clone(&reactor)) {
@@ -305,6 +378,18 @@ impl Reactor {
     /// Never panics.
     pub fn backend(&self) -> Backend {
         self.poll.backend()
+    }
+
+    /// WHY: observability — a rule-8 config field must be inspectable, and an
+    /// operator or test needs to confirm the shared reactor actually holds the
+    /// value that was configured (not just that the config object held it).
+    ///
+    /// WHAT: the drain poll timeout the shared reactor was initialised with.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn drain_poll_timeout(&self) -> Duration {
+        self.drain_poll_timeout
     }
 
     /// WHY: one `epoll_ctl` per connection, into the shared selector.
@@ -700,11 +785,12 @@ fn drain_loop(
     entries: &Arc<RwLock<HashMap<Token, Entry>>>,
     shutdown: &AtomicBool,
     events_gen: &Arc<(Mutex<u64>, Condvar)>,
+    timeout: Duration,
 ) {
     let mut events = Events::with_capacity(1024);
     while !shutdown.load(Ordering::Acquire) {
         events.clear();
-        match poll.poll(&mut events, Some(Duration::from_millis(DRAIN_TIMEOUT_MS))) {
+        match poll.poll(&mut events, Some(timeout)) {
             Ok(()) => {
                 let mut latched = 0usize;
                 // Wakers armed via `register_waker` are woken *after* the read

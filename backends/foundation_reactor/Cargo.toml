@@ -12,6 +12,13 @@ keywords = ["io-uring", "epoll", "kqueue", "reactor", "readiness"]
 [lib]
 crate-type = ["rlib"]
 
+# The reactor drain-timeout config tests touch the process-global singleton, so
+# they live in their own test target (their own process). This mirrors how
+# foundation_nativeapis isolates its reactor tests.
+[[test]]
+name = "config"
+path = "tests/config/mod.rs"
+
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.6" }
 tracing = { workspace = true }

@@ -2,6 +2,22 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-30 (feature 32): a config value that must reach a **process-global singleton** cannot
+  be tested for round-trip inside the crate's shared `tests/mod.rs` binary. In that binary the
+  `shutdown_signal` wake test calls `Reactor::get()` and wins the first-call, so a later
+  `init_with_config(…, 250 ms)` returns the existing 100 ms instance and the assertion fails.
+  Fix: give the singleton-touching test its own test target (`[[test]] name = "config" path =
+  "tests/config/mod.rs"`), so it runs in its own process. This mirrors how
+  `foundation_nativeapis` isolates its reactor tests, and keeps the value-observing assertion
+  deterministic.
+
+- 2026-10-30 (feature 32): rule-8 fields on a `OnceLock` singleton need a new entry point, not a
+  signature change. The reactor's `get()`/`init()` are called across the workspace, so they keep
+  their signatures and delegate to a new `init_with_config(preference, config)`; `init_inner`
+  gains the config parameter. First-call-wins means a later `init_with_config` ignores its config
+  — the same semantics `init` already has for its backend preference, so the refactor is
+  behaviour-preserving.
+
 - 2026-10-30 (feature 31): changing the public `serve`/`serve_with_listener`/`serve_h3`
   shutdown-parameter type is a whole-workspace change, not a single-crate one. The feature's R4
   scoped it to `foundation_http` + `foundation_browser`, but the signature change cascaded to

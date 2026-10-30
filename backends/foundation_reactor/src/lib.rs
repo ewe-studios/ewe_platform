@@ -44,7 +44,9 @@ pub use poll::SourceFd;
 pub use ready::Ready;
 
 #[cfg(unix)]
-pub use reactor::{AlreadyInitialised, Reactor, SharedReadiness};
+pub use reactor::{
+    AlreadyInitialised, Reactor, ReactorConfig, SharedReadiness, DEFAULT_DRAIN_POLL_TIMEOUT,
+};
 
 #[cfg(unix)]
 pub use fd_readiness::FdReadiness;

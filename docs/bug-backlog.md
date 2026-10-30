@@ -34,10 +34,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - **Non-blocking work not done yet:**
   - the remaining transports: the io_uring completion socket, openssl, and
     native-tls (task #25). The overlay and rustls landed in feature 06.
-- **`foundation_reactor` hard-codes the drain poll timeout (rule 8).**
-  `foundation_reactor/src/reactor.rs` has `const DRAIN_TIMEOUT_MS: u64 = 100`,
-  the selector poll timeout the drain thread uses. Fix: move it onto a reactor
-  config (a field with a builder and a documented default), as rule 8 requires.
 
 ## 3. foundation_http
 

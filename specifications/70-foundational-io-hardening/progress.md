@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-30: feature 32 done on `fix/io-01-valtron-parking`. The reactor drain poll timeout
+  is configuration, not a constant (rule 8). `const DRAIN_TIMEOUT_MS` is gone; its value lives
+  in `pub const DEFAULT_DRAIN_POLL_TIMEOUT: Duration = 100 ms`, referenced only by
+  `ReactorConfig::default()`. New `ReactorConfig` holds `drain_poll_timeout` with a builder
+  (`with_drain_poll_timeout`), a getter, and a documented default. A new entry point
+  `Reactor::init_with_config(preference, config)` threads the config into `init_inner` and the
+  drain loop; `get()` and `init()` delegate to it with the default config, so their behaviour is
+  unchanged. The reactor stores `drain_poll_timeout` and exposes it via
+  `Reactor::drain_poll_timeout()`. Tests: a new `config` test target (its own process, so it
+  owns the process-global singleton) with default, builder round-trip, and
+  `init_with_config`-stores-the-value assertions. Verification: `foundation_reactor` CI green
+  (config 3/3, shutdown_signal 4/4, clippy + fmt clean). The §2 `DRAIN_TIMEOUT_MS` backlog entry
+  is deleted. PR: see the PR.
+
 - 2026-10-30: feature 31 done on `fix/io-01-valtron-parking`. The accept loop now wakes at
   once on shutdown. `Reactor::wake_waiters()` (new) bumps `events_gen` and calls `notify_all`,
   so a thread parked in `wait_for_events` returns without a real fd event. `ShutdownSignal`
