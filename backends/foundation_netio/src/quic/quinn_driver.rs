@@ -38,7 +38,7 @@ use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
 use foundation_core::valtron::{
-    AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, TaskIterator, TaskStatus,
+    AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, TaskIterator, TaskStatus,
 };
 use quinn_proto::{
     ClientConfig, ConnectionHandle, DatagramEvent, Endpoint, EndpointConfig, ServerConfig,
@@ -99,6 +99,9 @@ pub struct QuicDriver {
     /// Caller-injected fd readiness. When `Some`, an idle poll returns
     /// `TaskStatus::Depends(fd)` — parking on the reactor rather than spinning.
     fd_readiness: Option<EventReadinessPtr>,
+    /// A self-wake shared into every connection: a stream handle sets it after
+    /// queueing outgoing data, so a parked driver transmits that data at once.
+    driver_woken: BoolSignal,
     idle: Duration,
     /// A server driver keeps listening with no connections; a client driver ends.
     is_server: bool,
@@ -126,6 +129,7 @@ impl QuicDriver {
             scratch: Vec::with_capacity(MAX_DATAGRAM),
             tx_buf: Vec::with_capacity(MAX_DATAGRAM),
             fd_readiness: None,
+            driver_woken: BoolSignal::new(false),
             idle: IDLE_POLL,
             is_server,
             done: false,
@@ -273,6 +277,7 @@ impl QuicDriver {
             datagrams_supported: false,
             max_datagram_size: None,
             wakers: Vec::new(),
+            driver_wake: self.driver_woken.clone(),
         }));
         self.conns.insert(handle, Arc::clone(&state));
         state
@@ -501,6 +506,11 @@ impl TaskIterator for QuicDriver {
             fd.clear();
         }
 
+        // Clear the self-wake latch the same way. A stream handle sets it while
+        // we work; the pending transmit is re-discovered by `pump_transmit` on
+        // the next pass, so clearing it here can never lose data.
+        self.driver_woken.set(false);
+
         // Ordering matters: feed the state machine before asking it for output.
         let recv = self.pump_recv(now);
         let timers = self.pump_timeouts(now);
@@ -528,12 +538,18 @@ impl TaskIterator for QuicDriver {
         let Some(fd) = &self.fd_readiness else {
             return Some(TaskStatus::Delayed(self.idle));
         };
+        // Compose the socket edge, the next timer, and the stream-handle wake
+        // into one `Depends`: any of them may make the driver runnable.
+        let woken: EventReadinessPtr = Arc::new(self.driver_woken.clone());
         match self.next_timeout() {
-            Some(deadline) => Some(TaskStatus::Depends(Arc::new(AnyReadiness::either(
+            Some(deadline) => Some(TaskStatus::Depends(Arc::new(
+                AnyReadiness::either(Arc::clone(fd), Arc::new(DeadlinePassed(deadline)))
+                    .with(woken),
+            ))),
+            None => Some(TaskStatus::Depends(Arc::new(AnyReadiness::either(
                 Arc::clone(fd),
-                Arc::new(DeadlinePassed(deadline)),
+                woken,
             )))),
-            None => Some(TaskStatus::Depends(Arc::clone(fd))),
         }
     }
 }

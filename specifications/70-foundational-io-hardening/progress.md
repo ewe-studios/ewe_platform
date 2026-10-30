@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-30: feature 33 done on `fix/io-01-valtron-parking`. A stream handle that queued
+  outgoing data (a reset, write, finish, stop, close, a datagram, or a flow-control update)
+  did not wake the QUIC driver. The driver parked on socket readiness and the next timer
+  (feature 28); with no incoming packet and no pending timer, the queued data was never
+  transmitted. The flaky `http3_server_rejects_a_request_it_has_no_handler_for` test failed
+  about 15 times in 20 runs because its `H3_REQUEST_REJECTED` reset was queued but never sent.
+  Fix: the driver holds a `BoolSignal` self-wake and shares a clone into every `ConnState` as
+  `driver_wake`. The driver clears it before each pass and composes it into its `Depends`
+  readiness (socket edge, next timer, or the latch). Every queued-outgoing-data path calls
+  `ConnState::wake_driver()`. A new deterministic test
+  (`queued_reset_wakes_a_driver_parked_on_readiness`) parks a server driver on an injected
+  readiness, queues a reset, and asserts the parked readiness becomes ready. The H3 reject test
+  passes 20 runs in a row (was 15/20 fail); the QUIC suite is 8/8. The §3 flaky-test backlog
+  entry is deleted. PR: see the PR.
+
 - 2026-10-30: feature 32 done on `fix/io-01-valtron-parking`. The reactor drain poll timeout
   is configuration, not a constant (rule 8). `const DRAIN_TIMEOUT_MS` is gone; its value lives
   in `pub const DEFAULT_DRAIN_POLL_TIMEOUT: Duration = 100 ms`, referenced only by

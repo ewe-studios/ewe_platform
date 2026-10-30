@@ -2,6 +2,25 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-30 (feature 33): a sans-IO driver that parks on `Depends` must also be woken for
+  **outgoing** data, not only incoming. Feature 28 taught the QUIC driver to park on socket
+  read readiness + the next timer, but a stream handle that queues outgoing data (a reset,
+  write, finish, stop, close, a datagram, or `read`'s flow-control `finalize`) never woke the
+  driver. The result was a flaky integration test: the reset was queued but not transmitted
+  until an unrelated socket edge or timer. The fix is a shared `BoolSignal` latch, cleared
+  before each pass and composed into the `Depends`, set by every queued-outgoing-data path.
+  Key invariant: clearing the latch before the pass can never lose data, because
+  `pump_transmit` re-discovers pending transmits each pass and the loss-detection timer already
+  covers a transmit the congestion controller cannot send yet.
+
+- 2026-10-30 (feature 33): to test "a parked driver becomes runnable" deterministically, do not
+  re-step the driver. Capture the `TaskStatus::Depends(r)` it returns when idle, then assert
+  `r.is_ready(None)` flips after the triggering action. `r` is an `AnyReadiness` over the fd
+  edge, the deadline, and the self-wake latch, and each child reads a shared atomic, so the
+  assertion is free of timing. The manual `next_status()` stepping in the QUIC suite cannot
+  expose the bug on its own: re-stepping always re-polls, so the driver would transmit the
+  queued data anyway.
+
 - 2026-10-30 (feature 32): a config value that must reach a **process-global singleton** cannot
   be tested for round-trip inside the crate's shared `tests/mod.rs` binary. In that binary the
   `shutdown_signal` wake test calls `Reactor::get()` and wins the first-call, so a later

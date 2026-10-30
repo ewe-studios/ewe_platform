@@ -37,13 +37,7 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 3. foundation_http
 
-- **`http3_server_rejects_a_request_it_has_no_handler_for` is flaky.**
-  The test sends a request to a path with no H3 handler and waits for an
-  `H3_REQUEST_REJECTED` reset. The reset sometimes never arrives, so the test
-  times out after 5 s. It passes on re-runs. Likely cause: the unroutable
-  request is reset on a different turn than the accept task's own, and a
-  scheduling order can drop it. Fix: reset the request deterministically when
-  the accept task routes it, not on a spawned task's turn.
+(no open entries)
 
 ## 4. foundation_core / valtron
 
