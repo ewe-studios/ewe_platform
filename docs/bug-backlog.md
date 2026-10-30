@@ -50,20 +50,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `LockSignal`-style condvar) that a blocking waiter can wait on — a purpose-built type
   rather than overloading `OnSignal`, which stays a passive probe-only atomic.
 
-- **Remaining hard-coded valtron limits (rule 8).** Feature 09 moved the
-  yield, back-off, `ThreadedIterFuture` and pool limits onto configs. These are
-  still `const` in code paths: `READINESS_POLL_QUANTUM` (1 ms,
-  `executors/local.rs`), `DEFAULT_OP_READ_TIME` (100 ms,
-  `executors/multi/mod.rs:1541`), `DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT`
-  (`executors/future_task.rs:856`), `DEFAULT_NOTIFY_QUEUE_MAX_SPINS`
-  (`executors/local.rs:327`), `DEFAULT_READINESS_WAIT` (10 ms,
-  `executors/local.rs:913`) and `DEFAULT_DELIVERY_CAPACITY` (8,
-  `executors/builders/*.rs`), all defined in `executors/constants.rs`, plus
-  `JS_WAIT_CHECK_INTERVAL` (4 ms, `executors/wasm/*`, used from
-  `executors/local.rs`). `DEFAULT_PARK_DURATION` and `DEFAULT_WAIT_CYCLE` are
-  `unwrap_or` defaults for optional parameters (a `Some` overrides them), so
-  review those too. Fix: a field on the right config for each, with a
-  documented default.
 - **A single-thread `DrivenStreamIterator` cannot park an async consumer**
   (`executors/non_sendables.rs`, `wake`). The iterator drives the engine in
   `next`, and a parked task becomes runnable when a foreign thread flips its

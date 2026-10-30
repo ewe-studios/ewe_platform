@@ -75,6 +75,19 @@ pub const DEFAULT_DELIVERY_CAPACITY: usize = 8;
 /// for new work at least every 100 ms.
 pub const DEFAULT_MAX_YIELD_DURATION: time::Duration = time::Duration::from_millis(100);
 
+/// Default re-poll interval when a worker's only pending work is readiness-parked
+/// tasks. Their producers live on other threads and cannot interrupt the worker's
+/// sleep, so this quantum bounds cross-worker handoff latency. Mirrors the old
+/// `READINESS_POLL_QUANTUM`. Pick: 1 ms — nginx and Caddy re-poll their event
+/// queues on the same order of magnitude.
+pub const DEFAULT_READINESS_POLL_QUANTUM: time::Duration = time::Duration::from_millis(1);
+
+/// Default JS event-loop yield interval when the queue is empty and the executor
+/// hands control back to the browser. Mirrors the old `JS_WAIT_CHECK_INTERVAL`.
+/// Pick: 4 ms — browsers clamp `setTimeout(0)` to ~4 ms (and ~1 ms in a Cloudflare
+/// Worker), so 4 ms is the safe floor.
+pub const DEFAULT_WAIT_CHECK_INTERVAL: time::Duration = time::Duration::from_millis(4);
+
 /// Default jitter applied to the back-off factor (0.75 = ±25%).
 pub const DEFAULT_BACK_OFF_JITTER: f32 = 0.75;
 

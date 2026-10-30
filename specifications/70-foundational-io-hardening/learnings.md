@@ -2,6 +2,27 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-30 (feature 30): a `pub(crate)` config field is not observable from an integration
+  test, and a builder-only field (no getter) is not either. T4 then splits: a field with a
+  public getter or a public field gets a round-trip test (build with a non-default value, read
+  it back); a field without one gets a default-value assertion against the named `DEFAULT_*`
+  const and a comment saying why. R6 (`delivery_capacity`) is `pub(crate)` and is consumed by
+  the `sequenced` delivery terminal before the queue capacity is hidden; R1
+  (`readiness_poll_quantum`) and R7 (`wait_check_interval`) drive `block_on` internals with no
+  getter. None is cheaply observable, so all three assert the documented default.
+
+- 2026-10-30 (feature 30): a `self` in a `macro_rules!` argument resolves in the macro's
+  module scope, not the caller's, so passing `self.config.delivery_capacity` as a
+  `$capacity:expr` metavariable fails with "a macro invocation can only access identifiers it
+  receives from parameters". Write `self` inside the macro body and pass only a literal
+  (`$bounded:literal`) that chooses between the bounded and unbounded arms.
+
+- 2026-10-30 (feature 30): R8's "review" resolved to keep the consts, not move them. A config
+  field for `wait_cycle`/`park_duration` would be a second, redundant knob over the existing
+  optional parameter (a `Some` already overrides the default). Rule 8 is still met by routing
+  the `unwrap_or` fallback through `StreamConfig::default()` so the const is referenced only
+  by the config's `Default` impl, not by the code path.
+
 - 2026-10-30 (feature 27): `SleepIterator::next` returned `Pending(0 ns)` when `completed_at == now`,
   because `Instant::checked_duration_since` returns `Some(Duration::ZERO)` at equality, not `None`.
   The `Some(diff) => Pending` arm then reported a reached deadline as still pending, which flaked

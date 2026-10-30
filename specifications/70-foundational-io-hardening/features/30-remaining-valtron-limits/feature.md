@@ -1,6 +1,6 @@
 ---
 feature: "Remaining valtron limits become configuration (rule 8)"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: "09-limits-as-config"
 branch: "fix/io-30-remaining-valtron-limits"
@@ -39,19 +39,19 @@ the same default value and a doc comment that names its source.
 | R5 | `DEFAULT_READINESS_WAIT = 10 ms` | `executors/constants.rs:56`, used at `executors/local.rs:913` (`Sleepers::with_max_readiness_wait`) | A config field for the readiness-signal wait. Default 10 ms. |
 | R6 | `DEFAULT_DELIVERY_CAPACITY = 8` | `executors/constants.rs:64`, used at `executors/builders/non_sendable.rs:145,233,258` and `executors/builders/sendable.rs:145` | A config field for a `sequenced` task's delivery queue. Default 8. |
 | R7 | `JS_WAIT_CHECK_INTERVAL = 4 ms` | `executors/wasm/mod.rs:47` (and the two re-exports), used at `executors/local.rs:2886,2989` | A config field for the wasm yield check interval. Default 4 ms. |
-| R8 | `DEFAULT_PARK_DURATION = 1 ms`, `DEFAULT_WAIT_CYCLE = 300 µs` | `executors/constants.rs:21,25`, used as `wait_cycle.unwrap_or(..)` in `sendables.rs` and `non_sendables.rs` | Review. They are `unwrap_or` defaults for optional parameters, so a `Some` overrides them. Decide: keep as documented function-param defaults, or move them onto a config. Write the decision. |
+| R8 | `DEFAULT_PARK_DURATION = 1 ms`, `DEFAULT_WAIT_CYCLE = 300 µs` | `executors/constants.rs:21,25`, used as `wait_cycle.unwrap_or(..)` in `sendables.rs` and `non_sendables.rs` | **Decision (written): keep as documented function-param defaults.** They are `unwrap_or` defaults for optional `wait_cycle`/`park_duration` parameters, so a `Some` already overrides them; a config field would be a second, redundant knob. To satisfy rule 8, the `unwrap_or` fallback now reads `StreamConfig::default().wait_cycle` / `.park_duration` instead of the raw const, so the consts are referenced only by `StreamConfig`'s `Default` impl. Defaults unchanged (300 µs, 1 ms). |
 
 ## 3. Tasks
 
-- [ ] T1. Branch from the base.
-- [ ] T2. R1–R7: one config field each, default value unchanged, doc comment names its source.
+- [x] T1. Branch from the base.
+- [x] T2. R1–R7: one config field each, default value unchanged, doc comment names its source.
       One commit (or one commit per item if the diff is large).
-- [ ] T3. R8: the review and its written decision.
-- [ ] T4. Tests in `foundation_core/tests/valtron/`, registered in `mod.rs`. For each new
+- [x] T3. R8: the review and its written decision.
+- [x] T4. Tests in `foundation_core/tests/valtron/`, registered in `mod.rs`. For each new
       field: a test that builds the config with a non-default value and asserts the code path
       uses it (mirror `pool_config_overrides_yield_and_backoff`). If a path cannot be observed
       cheaply, test the default value and say why.
-- [ ] T5. Delete the §4 backlog entry. Update `progress.md`, `learnings.md`.
+- [x] T5. Delete the §4 backlog entry. Update `progress.md`, `learnings.md`.
 
 ## 4. Verification (run exactly)
 
@@ -65,11 +65,11 @@ rg -n 'const .*(Duration|_SIZE|_CAPACITY|_SPINS)' backends/foundation_core/src/v
 
 ## 5. Done when
 
-- [ ] All §4 commands pass; timing tests passed 20 runs in a row.
-- [ ] Every item R1–R8 is done or has a written reason.
-- [ ] No default value changed (no behaviour change).
-- [ ] Each new field's doc comment names its source.
-- [ ] CI green.
+- [x] All §4 commands pass; timing tests passed 20 runs in a row.
+- [x] Every item R1–R8 is done or has a written reason.
+- [x] No default value changed (no behaviour change).
+- [x] Each new field's doc comment names its source.
+- [x] CI green.
 
 ## 6. Review checklist (main session)
 

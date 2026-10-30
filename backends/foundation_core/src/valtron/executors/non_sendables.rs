@@ -10,7 +10,6 @@ use super::inline_action::InlineActionBehaviour;
 use std::sync::Arc;
 use crate::valtron::{FnMutReady, FnReady, OnNext, TaskReadyResolver, TaskSpawnConfig};
 
-use crate::valtron::DEFAULT_WAIT_CYCLE;
 #[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 use crate::valtron::collect_result;
 use crate::valtron::{
@@ -680,17 +679,17 @@ where
     T::Pending: 'static,
 {
     use super::single;
-    use crate::valtron::executors::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION};
+    use crate::valtron::executors::DEFAULT_MAX_TURNS;
 
     tracing::debug!("Executing as a single-threaded stream in no-wasm with multi=off");
 
     // Schedule task and get iterator with defaults
-    // Note: wait_cycle is not used directly; DEFAULT_PARK_DURATION is used for park_duration
+    // Note: wait_cycle is not used directly; the StreamConfig park_duration default is used.
     let iter = single::spawn()
         .with_task(task)
         .as_scheduled()
         .stream_with_config(
-            wait_cycle.unwrap_or(DEFAULT_PARK_DURATION),
+            wait_cycle.unwrap_or_else(|| StreamConfig::default().park_duration),
             DEFAULT_MAX_TURNS,
         )?;
 
@@ -776,7 +775,7 @@ where
     let iter = single::spawn()
         .with_task(task)
         .as_scheduled()
-        .recv(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
+        .recv(wait_cycle.unwrap_or_else(|| StreamConfig::default().wait_cycle))?;
 
     Ok(drive_receiver(iter))
 }

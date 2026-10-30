@@ -25,6 +25,7 @@
 use std::{any::Any, marker::PhantomData};
 
 use crate::synca::Entry;
+use crate::valtron::executors::DEFAULT_DELIVERY_CAPACITY;
 use crate::valtron::AnyResult;
 use crate::valtron::{
     BoxedExecutionEngine, BoxedPanicHandler, DoNext, ExecutorError, FnMutReady, FnReady, OnNext,
@@ -70,6 +71,11 @@ where
     pub(crate) parent: Option<Entry>,
     pub(crate) resolver: Option<Resolver>,
     pub(crate) panic_handler: Option<BoxedPanicHandler>,
+    /// Bound for a `sequenced` task's delivery queue. `Some` for a bounded
+    /// queue, `None` for unbounded. Default [`DEFAULT_DELIVERY_CAPACITY`]. Only
+    /// the `sequenced` verb (and `broadcast`'s `sequence` fallback) reads it;
+    /// `schedule`/`lift` deliveries are always unbounded.
+    pub(crate) delivery_capacity: Option<usize>,
     pub(crate) _marker: PhantomData<(Done, Pending)>,
 }
 
@@ -89,6 +95,7 @@ where
             parent: None,
             resolver: None,
             panic_handler: None,
+            delivery_capacity: Some(DEFAULT_DELIVERY_CAPACITY),
             _marker: PhantomData,
         }
     }
@@ -111,6 +118,14 @@ where
     #[must_use]
     pub fn maybe_parent(mut self, parent: Option<Entry>) -> Self {
         self.parent = parent;
+        self
+    }
+
+    /// Set the bound for a `sequenced` delivery queue. Default
+    /// [`DEFAULT_DELIVERY_CAPACITY`].
+    #[must_use]
+    pub fn with_delivery_capacity(mut self, capacity: usize) -> Self {
+        self.delivery_capacity = Some(capacity);
         self
     }
 

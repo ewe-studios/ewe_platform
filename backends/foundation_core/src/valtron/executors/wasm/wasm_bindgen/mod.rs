@@ -10,10 +10,6 @@ use std::time;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, JsValue};
 
-/// JS-specific timeout for "queue empty, check again soon" scenarios.
-/// 4ms: browser minimum (clamped), CF Workers fire ~1ms but 4ms is safe.
-pub const JS_WAIT_CHECK_INTERVAL: time::Duration = time::Duration::from_millis(4);
-
 /// Module-level checker used by both the executor's `run_until` and the
 /// setTimeout callback's re-invocation. Returns true when the executor
 /// should stop and yield back to JS.

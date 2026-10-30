@@ -20,7 +20,7 @@ use std::sync::Arc;
 use crate::valtron::{FnMutReady, FnReady, OnNext, TaskReadyResolver, TaskSpawnConfig};
 use core::sync::atomic::AtomicBool;
 
-use crate::valtron::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION, DEFAULT_WAIT_CYCLE};
+use crate::valtron::DEFAULT_MAX_TURNS;
 
 use super::inline_action::InlineActionBehaviour;
 use crate::valtron::executors::local::NotifyQueue;
@@ -261,7 +261,7 @@ where
     // Schedule task and get iterator
     let iter = multi::spawn()
         .with_task(task)
-        .schedule_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
+        .schedule_iter(wait_cycle.unwrap_or_else(|| StreamConfig::default().wait_cycle))?;
 
     Ok(drive_receiver(iter))
 }
@@ -343,9 +343,9 @@ where
     tracing::debug!("Executing as a multi-threaded stream in no-wasm");
 
     // Schedule task and get iterator with defaults
-    // Note: wait_cycle is not used directly; DEFAULT_PARK_DURATION is used for park_duration
+    // Note: wait_cycle is not used directly; the StreamConfig park_duration default is used.
     let iter = multi::spawn().with_task(task).stream_iter_with_config(
-        wait_cycle.unwrap_or(DEFAULT_PARK_DURATION),
+        wait_cycle.unwrap_or_else(|| StreamConfig::default().park_duration),
         DEFAULT_MAX_TURNS,
     )?;
 

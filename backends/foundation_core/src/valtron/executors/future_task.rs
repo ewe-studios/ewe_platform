@@ -724,6 +724,9 @@ pub struct ThreadedIterFutureConfig {
     /// timeout, not a sleep — Feature 01 made it the `park_timeout` argument).
     /// `None` parks until the consumer takes an item. Default 10 ms.
     pub backpressure_wait: Option<std::time::Duration>,
+    /// How long the consumer's `NotifyQueue` waits for an item before timing
+    /// out. Default [`DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT`].
+    pub notify_queue_wait_timeout: std::time::Duration,
 }
 
 #[cfg(feature = "multi")]
@@ -732,6 +735,7 @@ impl Default for ThreadedIterFutureConfig {
         Self {
             queue_size: 16,
             backpressure_wait: Some(std::time::Duration::from_millis(10)),
+            notify_queue_wait_timeout: DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT,
         }
     }
 }
@@ -793,6 +797,7 @@ where
             ThreadedIterFutureConfig {
                 queue_size: queue_size.max(2),
                 backpressure_wait,
+                ..ThreadedIterFutureConfig::default()
             },
         )
     }
@@ -814,6 +819,7 @@ where
         let queue = Arc::new(NotifyQueue::bounded(self.config.queue_size));
         let worker_queue = queue.clone();
         let backpressure_wait = self.config.backpressure_wait;
+        let notify_queue_wait_timeout = self.config.notify_queue_wait_timeout;
 
         super::run_background_job(move || {
             // The worker thread parks while the future is pending; the
@@ -853,7 +859,7 @@ where
         Ok(FutureIterator {
             iter: NotifyRecvIterator::from_notify_queue(
                 queue,
-                DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT,
+                notify_queue_wait_timeout,
             ),
         })
     }

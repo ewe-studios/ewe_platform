@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-30: feature 30 done on `fix/io-01-valtron-parking`. The remaining valtron limits
+  became configuration (rule 8), one field each: `readiness_poll_quantum` (R1, 1 ms) and
+  `wait_check_interval` (R7, 4 ms) on `LocalThreadExecutor`; `op_read_time` (R2, 100 ms) on
+  `PoolConfig`; `notify_queue_wait_timeout` (R3, 10 ms) on `ThreadedIterFutureConfig`;
+  `max_spins` (R4, 100 native / 1 wasm) on a new `NotifyQueueConfig`; `readiness_wait` (R5,
+  10 ms) on the executor state (via `Sleepers`); and `delivery_capacity` (R6, 8) on
+  `TaskSpawnConfig`. R8's `DEFAULT_PARK_DURATION` (1 ms) and `DEFAULT_WAIT_CYCLE` (300 µs)
+  stay as documented optional-parameter defaults, now read from `StreamConfig::default()` so
+  the consts are referenced only by that `Default` impl. New
+  `tests/valtron/limits_config_tests.rs` (8 tests) asserts the observable fields round-trip
+  through their builders and the non-observable ones match their documented defaults. The §4
+  backlog entry is deleted. PR: see the PR.
+
 - 2026-10-30: feature 27 done on `fix/io-01-valtron-parking`. `SleepIterator::next` returned
   `Pending(0 ns)` when its deadline equalled the current time, because
   `Instant::checked_duration_since` gives `Some(Duration::ZERO)` at equality. The reached-deadline

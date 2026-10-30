@@ -294,6 +294,9 @@ pub struct PoolConfig {
     /// Idle back-off wait when the worker queue is empty (no immediate work).
     /// Default [`DEFAULT_YIELD_WAIT_TIME`].
     pub yield_wait_time: std::time::Duration,
+    /// How long a worker waits for a message from the activity queue. Default
+    /// [`DEFAULT_OP_READ_TIME`].
+    pub op_read_time: std::time::Duration,
     /// Base factor for an idle worker's exponential back-off. Default
     /// [`DEFAULT_BACK_OFF_THREAD_FACTOR`].
     pub back_off_thread_factor: u32,
@@ -314,6 +317,7 @@ impl Default for PoolConfig {
             background_shutdown_timeout: BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT,
             max_yield_duration: DEFAULT_MAX_YIELD_DURATION,
             yield_wait_time: DEFAULT_YIELD_WAIT_TIME,
+            op_read_time: DEFAULT_OP_READ_TIME,
             back_off_thread_factor: DEFAULT_BACK_OFF_THREAD_FACTOR,
             back_off_jitter: DEFAULT_BACK_OFF_JITTER,
             back_off_min_duration: DEFAULT_BACK_OFF_MIN_DURATION,
@@ -341,6 +345,13 @@ impl PoolConfig {
     #[must_use]
     pub fn with_yield_wait_time(mut self, duration: std::time::Duration) -> Self {
         self.yield_wait_time = duration;
+        self
+    }
+
+    /// Set [`Self::op_read_time`].
+    #[must_use]
+    pub fn with_op_read_time(mut self, duration: std::time::Duration) -> Self {
+        self.op_read_time = duration;
         self
     }
 
@@ -1538,7 +1549,7 @@ impl ThreadRegistry {
             seed_from_rng,
             num_threads,
             PriorityOrder::Top,
-            DEFAULT_OP_READ_TIME,
+            config.op_read_time,
             config.yield_wait_time,
             config.max_yield_duration,
             None,
