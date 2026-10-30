@@ -22,8 +22,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   so `conn_io`'s `ready_now`/`gone_now` answer `Unsupported` instead of using a
   documented poll-interval fallback. Wire each to readiness, or give `conn_io` a
   poll fallback for them (task #25).
-- **Conformance coverage.** Every conformance test runs with `threads = 4`
-  (`tests/conformance_tests.rs`). Add an 8-thread variant (task #27).
 
 ## 2. foundation_netio
 
@@ -50,12 +48,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - **Non-blocking work not done yet:**
   - the remaining transports: the io_uring completion socket, openssl, and
     native-tls (task #25). The overlay and rustls landed in feature 06.
-- **Ignored tests.**
-  - 17 network-dependent or never-finished tests are ignored:
-    `tcp_and_tls/http_external_validation.rs` (8),
-    `tcp_and_tls/http_server_integration.rs` (6),
-    `tcp_and_tls/tls_integration.rs` (3). Make them hermetic (task #31).
-  - 37 doc examples are `ignore`/`no_run` (task #33).
 
 ## 3. foundation_http
 

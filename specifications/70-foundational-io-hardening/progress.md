@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-30: feature 10 done on `fix/io-01-valtron-parking`. The three ignored netio test
+  files became hermetic: `http_external_validation.rs` (8) and `http_server_integration.rs`
+  (6) drive the local `TestHttpServer` on loopback sockets, and `tls_integration.rs` (3) runs
+  a local TLS server with a test CA generated at start (`rcgen`). All 37 netio doc examples
+  now compile — `ignore` is gone and `no_run` stays only where the example opens a real
+  network connection (`cargo test --doc -p foundation_netio` passes 54/54). Every conformance
+  test gained an 8-thread twin through a small `macro_rules!` macro that emits the
+  `threads = 4` and `threads = 8` copies from one body (`seed + 1000`); the suite is 36/36.
+  The formerly-ignored tests and the 8-thread variants each passed 20 runs in a row.
+  Verification: netio default 1267/1267, connectrpc default and `h3` green, the `rg` checks
+  return 0; the netio `quic` run still fails only the pre-existing
+  `idle_h3_connection_uses_no_cpu` (feature 28, process-CPU measurement) — out of scope.
+  `unshare` is not available on macOS, so the no-network check could not run. Backlog entries
+  #27, #31 and #33 deleted. PR: see the PR.
+
 - 2026-10-30: feature 09 done on `fix/io-01-valtron-parking`. Limits became
   configuration (rule 8), one item each in its own commit. L1-L3 (valtron): the pool config
   gained `max_yield_duration` (100 ms), `yield_wait_time` (4 s) and four back-off knobs;

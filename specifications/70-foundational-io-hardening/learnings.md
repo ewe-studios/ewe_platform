@@ -2,6 +2,25 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-30 (feature 10): `#[valtron_test]` emits its own `#[test]`, so two of them cannot
+  sit on one function — the name would collide. Its `seed`/`threads`/`timeout` args are parsed
+  as `syn::Expr` and emitted as `(#expr)`, so a `macro_rules!` macro can emit the `threads = 4`
+  and `threads = 8` variants from one `$body:block` with `seed = $seed + 1000`. That is how the
+  8-thread conformance variants share a body without copying it.
+
+- 2026-10-30 (feature 10): doctests can use the crate's regular dependencies (the netio
+  examples call `serde_json::from_str` and `serde::Deserialize`), but a generic enum's default
+  type parameters do not apply to a variant written by its value path — `FetchPending::Connecting
+  { .. }` needs `FetchPending<&str, String>`. And `rustls::ClientConfig::builder()` panics without
+  a global default provider, so a doc example that builds a rustls config must use
+  `default_client_config()` (which uses `builder_with_provider`) instead.
+
+- 2026-10-30 (feature 10): the three formerly-ignored netio test files are hermetic now: they
+  bind loopback sockets and, for TLS, generate a CA and server cert at test start (`rcgen`) and
+  trust the CA in the client config. They live in the `tcp_and_tls` module of the combined
+  `tests/mod.rs` binary, so the 20-run flake check filters with `cargo test -p foundation_netio --
+  tcp_and_tls` (libtest matches the `tcp_and_tls::` path prefix).
+
 - 2026-10-30 (feature 09): a config field read in only one place can look correct while
   another code path ignores it. `max_yield_duration` capped the idle re-check in `run_until`
   (the single-threaded executor) but `block_on`'s multi-worker `Wait` arm still slept
