@@ -2,13 +2,15 @@
 
 use std::collections::VecDeque;
 
-use bytes::Bytes;
+use bytes::{Buf, Bytes};
 use foundation_core::valtron::Stream;
 
 #[cfg(feature = "quic")]
-use crate::quic::{QuicConnError, QuicConnection, QuicStreamError};
+use crate::quic::{
+    QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError,
+};
 
-use super::proto::{self, CapsuleType, WtProtocolError};
+use super::proto::{self, CapsuleDecoder, CapsuleType, WtProtocolError};
 
 // ── WtStreamError ──
 #[derive(Debug)]
@@ -42,6 +44,12 @@ pub struct WtSession<C: QuicConnection> {
     recv_datagrams: VecDeque<Bytes>,
     peer_close: Option<(u32, String)>,
     send_datagrams: VecDeque<Bytes>,
+    /// The CONNECT stream, once the session is established. Its close ends the
+    /// session (draft-ietf-webtrans-http3 §5). `None` on the connector path,
+    /// where the caller tracks the stream itself.
+    connect: Option<C::BidiStream>,
+    /// Decodes capsules the peer sends on the CONNECT stream.
+    capsules: CapsuleDecoder,
 }
 
 impl<C: QuicConnection> WtSession<C> {
@@ -53,6 +61,66 @@ impl<C: QuicConnection> WtSession<C> {
             recv_datagrams: VecDeque::new(),
             peer_close: None,
             send_datagrams: VecDeque::new(),
+            connect: None,
+            capsules: CapsuleDecoder::new(),
+        }
+    }
+
+    /// An accepted session holding its open CONNECT stream. The session lives as
+    /// long as that stream stays open (draft-ietf-webtrans-http3 §5).
+    pub fn new_with_connect(conn: C, connect: C::BidiStream, datagrams_enabled: bool) -> Self {
+        let mut session = Self::new(conn, datagrams_enabled);
+        session.connect = Some(connect);
+        session
+    }
+
+    /// Drive the CONNECT stream: process capsules and detect the session end.
+    ///
+    /// WHY: the session's lifetime is the CONNECT stream's. A FIN, a reset, or a
+    /// `CLOSE_WEBTRANSPORT_SESSION` capsule ends it (draft-ietf-webtrans-http3 §5).
+    ///
+    /// WHAT: `Next(Ok(true))` when the session has ended; `Next(Ok(false))` after
+    /// progress that did not end it; `Pending` when idle; `Err` on a transport or
+    /// capsule failure. A caller whose `poll_*` returned `Pending` parks rather
+    /// than re-polling.
+    ///
+    /// HOW: read the CONNECT stream, decode capsules, and reflect the result into
+    /// the session state.
+    pub fn poll_connect(&mut self) -> Stream<Result<bool, WtStreamError>, ()> {
+        loop {
+            // Drain any capsule already buffered.
+            match self.capsules.decode() {
+                Ok(Some(capsule)) => {
+                    let _ = self.on_capsule(capsule);
+                    if self.is_closed() {
+                        return Stream::Next(Ok(true));
+                    }
+                    continue;
+                }
+                Ok(None) => {}
+                Err(e) => return Stream::Next(Err(WtStreamError::Transport(e.to_string()))),
+            }
+
+            // Read the CONNECT stream.
+            let Some(connect) = self.connect.as_mut() else {
+                return Stream::Pending(());
+            };
+            match connect.read() {
+                Stream::Next(Ok(Some(bytes))) => {
+                    self.capsules.push(&bytes);
+                    continue;
+                }
+                // A clean FIN or a reset both end the session (draft §5).
+                Stream::Next(Ok(None)) => {
+                    self.state = WtSessionState::Closed;
+                    return Stream::Next(Ok(true));
+                }
+                Stream::Next(Err(_)) => {
+                    self.state = WtSessionState::Closed;
+                    return Stream::Next(Ok(true));
+                }
+                _ => return Stream::Pending(()),
+            }
         }
     }
 
@@ -125,7 +193,40 @@ impl<C: QuicConnection> WtSession<C> {
     }
 
     pub fn build_close_capsule(code: u32, reason: &str) -> Vec<u8> { proto::encode_close_session(code, reason) }
-    pub fn close(&mut self, code: u64, reason: &[u8]) { self.conn.close(code, reason); self.state = WtSessionState::Closed; }
+
+    /// Close the session: send a `CLOSE_WEBTRANSPORT_SESSION` capsule and then FIN
+    /// the CONNECT stream (draft-ietf-webtrans-http3 §5). Without a tracked CONNECT
+    /// stream, close the whole QUIC connection instead.
+    ///
+    /// `Pending` until the capsule and FIN are flushed.
+    pub fn close(&mut self, code: u32, reason: &str) -> Stream<Result<(), WtStreamError>, ()> {
+        self.state = WtSessionState::Closed;
+
+        let Some(connect) = self.connect.as_mut() else {
+            self.conn.close(code as u64, reason.as_bytes());
+            return Stream::Next(Ok(()));
+        };
+
+        let mut capsule = Bytes::from(Self::build_close_capsule(code, reason));
+        loop {
+            if !capsule.has_remaining() {
+                break;
+            }
+            match connect.send(&mut capsule) {
+                Stream::Next(Ok(_)) => {}
+                Stream::Next(Err(e)) => {
+                    return Stream::Next(Err(WtStreamError::Transport(e.to_string())))
+                }
+                _ => return Stream::Pending(()),
+            }
+        }
+
+        match connect.finish() {
+            Stream::Next(Ok(())) => Stream::Next(Ok(())),
+            Stream::Next(Err(e)) => Stream::Next(Err(WtStreamError::Transport(e.to_string()))),
+            _ => Stream::Pending(()),
+        }
+    }
 }
 
 // ── WtAcceptor<C: QuicConnection> ──

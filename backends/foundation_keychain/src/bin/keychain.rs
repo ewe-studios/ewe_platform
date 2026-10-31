@@ -8,7 +8,7 @@
 fn main() {
     use std::sync::Arc;
 
-    use foundation_core::synca::OnSignal;
+    use foundation_http::ShutdownSignal;
     use foundation_core::valtron::{block_on_future, initialize_pool, BlockingFutureExt};
     use foundation_db::core::storage_provider::QueryStore;
     use foundation_db::{StorageBackend, StorageProvider};
@@ -36,7 +36,7 @@ fn main() {
 
     let app = KeychainServer::new(KeychainContext::new(db)).http_app();
     let listener = std::net::TcpListener::bind(&addr).expect("bind listen address");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server = HttpServer::with_config(app, &addr, ServerConfig::defaults());
 
     println!("foundation_keychain serving the Bitwarden API on {addr} (db: {db_url})");

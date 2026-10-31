@@ -8,7 +8,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
@@ -23,7 +23,7 @@ use tempfile::TempDir;
 
 struct TestServer {
     addr: std::net::SocketAddr,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     _dir: TempDir,
 }
 
@@ -55,7 +55,7 @@ fn start_server() -> TestServer {
 
     let app = KeychainServer::new(KeychainContext::new(db)).http_app();
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let cfg = ServerConfig::defaults()

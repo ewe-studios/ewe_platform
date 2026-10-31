@@ -111,7 +111,7 @@ impl CorsConfig {
     }
 
     /// Check if the origin is allowed.
-    fn is_origin_allowed(&self, origin: &str) -> bool {
+    pub fn is_origin_allowed(&self, origin: &str) -> bool {
         self.allowed_origins.iter().any(|o| {
             o == "*" || o.eq_ignore_ascii_case(origin)
         })
@@ -251,31 +251,5 @@ impl RequestMiddleware for CorsMiddleware {
         // NOTE: A full implementation would wrap the response writing to inject
         // CORS headers. For now, we handle preflight and let the handler add headers.
         MiddlewareResult::Continue
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_cors_config_permissive() {
-        let config = CorsConfig::permissive();
-        assert!(config.is_origin_allowed("https://example.com"));
-        assert!(config.is_origin_allowed("*"));
-    }
-
-    #[test]
-    fn test_cors_config_restrictive() {
-        let config = CorsConfig::restrictive();
-        assert!(!config.is_origin_allowed("https://example.com"));
-    }
-
-    #[test]
-    fn test_cors_config_with_origin() {
-        let config = CorsConfig::restrictive()
-            .with_origin("https://example.com");
-        assert!(config.is_origin_allowed("https://example.com"));
-        assert!(!config.is_origin_allowed("https://other.com"));
     }
 }

@@ -17,7 +17,7 @@ use std::{
     time::{self},
 };
 
-use crate::valtron::{Ctx, Stream, DEFAULT_YIELD_WAIT_TIME};
+use crate::valtron::{Ctx, Stream};
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
 use foundation_compact::rng::ChaCha8Rng;
@@ -47,8 +47,9 @@ use crate::valtron::{ThreadActivity, ThreadId};
 
 use crate::valtron::{
     executors::constants::{
-        BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
-        DEFAULT_OP_READ_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+        DEFAULT_BACK_OFF_JITTER, DEFAULT_BACK_OFF_MAX_DURATION, DEFAULT_BACK_OFF_MIN_DURATION,
+        DEFAULT_BACK_OFF_THREAD_FACTOR, DEFAULT_MAX_YIELD_DURATION, DEFAULT_OP_READ_TIME,
+        DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
     ConsumingIter, DoNext, StreamConsumingIter,
 };
@@ -280,18 +281,47 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
 /// Tunables for the multi-threaded pool beyond its seed and thread count.
 ///
 /// WHY: Limits are configuration, not constants (CLAUDE.md rule 8).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PoolConfig {
     /// The longest `PoolGuard::shutdown` waits for queued background jobs
     /// before dropping the unstarted ones and detaching stuck workers. Default
     /// [`BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT`].
     pub background_shutdown_timeout: std::time::Duration,
+    /// Longest a task worker yields between steps, even when a sleeper's
+    /// deadline is further out. Capping it makes a worker wake to check for new
+    /// work at least this often. Default [`DEFAULT_MAX_YIELD_DURATION`].
+    pub max_yield_duration: std::time::Duration,
+    /// Idle back-off wait when the worker queue is empty (no immediate work).
+    /// Default [`DEFAULT_YIELD_WAIT_TIME`].
+    pub yield_wait_time: std::time::Duration,
+    /// How long a worker waits for a message from the activity queue. Default
+    /// [`DEFAULT_OP_READ_TIME`].
+    pub op_read_time: std::time::Duration,
+    /// Base factor for an idle worker's exponential back-off. Default
+    /// [`DEFAULT_BACK_OFF_THREAD_FACTOR`].
+    pub back_off_thread_factor: u32,
+    /// Jitter applied to the back-off (0.75 = ±25%). Default
+    /// [`DEFAULT_BACK_OFF_JITTER`].
+    pub back_off_jitter: f32,
+    /// Minimum back-off duration for an idle worker. Default
+    /// [`DEFAULT_BACK_OFF_MIN_DURATION`].
+    pub back_off_min_duration: std::time::Duration,
+    /// Maximum back-off duration for an idle worker. Default
+    /// [`DEFAULT_BACK_OFF_MAX_DURATION`].
+    pub back_off_max_duration: std::time::Duration,
 }
 
 impl Default for PoolConfig {
     fn default() -> Self {
         Self {
             background_shutdown_timeout: BackgroundJobConfig::DEFAULT_SHUTDOWN_TIMEOUT,
+            max_yield_duration: DEFAULT_MAX_YIELD_DURATION,
+            yield_wait_time: DEFAULT_YIELD_WAIT_TIME,
+            op_read_time: DEFAULT_OP_READ_TIME,
+            back_off_thread_factor: DEFAULT_BACK_OFF_THREAD_FACTOR,
+            back_off_jitter: DEFAULT_BACK_OFF_JITTER,
+            back_off_min_duration: DEFAULT_BACK_OFF_MIN_DURATION,
+            back_off_max_duration: DEFAULT_BACK_OFF_MAX_DURATION,
         }
     }
 }
@@ -301,6 +331,55 @@ impl PoolConfig {
     #[must_use]
     pub fn with_background_shutdown_timeout(mut self, timeout: std::time::Duration) -> Self {
         self.background_shutdown_timeout = timeout;
+        self
+    }
+
+    /// Set [`Self::max_yield_duration`].
+    #[must_use]
+    pub fn with_max_yield_duration(mut self, duration: std::time::Duration) -> Self {
+        self.max_yield_duration = duration;
+        self
+    }
+
+    /// Set [`Self::yield_wait_time`].
+    #[must_use]
+    pub fn with_yield_wait_time(mut self, duration: std::time::Duration) -> Self {
+        self.yield_wait_time = duration;
+        self
+    }
+
+    /// Set [`Self::op_read_time`].
+    #[must_use]
+    pub fn with_op_read_time(mut self, duration: std::time::Duration) -> Self {
+        self.op_read_time = duration;
+        self
+    }
+
+    /// Set [`Self::back_off_thread_factor`].
+    #[must_use]
+    pub fn with_back_off_thread_factor(mut self, factor: u32) -> Self {
+        self.back_off_thread_factor = factor;
+        self
+    }
+
+    /// Set [`Self::back_off_jitter`].
+    #[must_use]
+    pub fn with_back_off_jitter(mut self, jitter: f32) -> Self {
+        self.back_off_jitter = jitter;
+        self
+    }
+
+    /// Set [`Self::back_off_min_duration`].
+    #[must_use]
+    pub fn with_back_off_min_duration(mut self, duration: std::time::Duration) -> Self {
+        self.back_off_min_duration = duration;
+        self
+    }
+
+    /// Set [`Self::back_off_max_duration`].
+    #[must_use]
+    pub fn with_back_off_max_duration(mut self, duration: std::time::Duration) -> Self {
+        self.back_off_max_duration = duration;
         self
     }
 }
@@ -338,9 +417,10 @@ pub fn initialize_pool_with_config(
 
     let (task_threads, bg_threads) = split_thread_count(thread_num);
 
-    let registry = Arc::new(ThreadRegistry::with_seed_and_threads(
+    let registry = Arc::new(ThreadRegistry::with_config(
         seed_for_rng,
         task_threads,
+        &config,
     ));
 
     // Spawn task worker threads
@@ -355,7 +435,8 @@ pub fn initialize_pool_with_config(
     let bg_registry = BackgroundJobRegistry::with_config(
         BackgroundJobConfig::new(bg_threads)
             .with_shutdown_timeout(config.background_shutdown_timeout),
-    );
+    )
+    .expect("Failed to spawn background worker thread");
 
     let mut reg_guard = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
     *reg_guard = Some(registry.clone());
@@ -1337,6 +1418,7 @@ pub struct ThreadRegistry {
     priority: PriorityOrder,
     op_read_time: time::Duration,
     yield_wait_time: time::Duration,
+    max_yield_duration: time::Duration,
     thread_stack_size: Option<usize>,
     thread_max_idle_count: u32,
     thread_max_sleep_before_end: u32,
@@ -1370,6 +1452,7 @@ impl std::fmt::Debug for ThreadRegistry {
             .field("priority", &self.priority)
             .field("op_read_time", &self.op_read_time)
             .field("yield_wait_time", &self.yield_wait_time)
+            .field("max_yield_duration", &self.max_yield_duration)
             .field("thread_stack_size", &self.thread_stack_size)
             .field("thread_max_idle_count", &self.thread_max_idle_count)
             .field(
@@ -1396,6 +1479,7 @@ impl ThreadRegistry {
         priority: PriorityOrder,
         op_read_time: time::Duration,
         yield_wait: time::Duration,
+        max_yield_duration: time::Duration,
         thread_stack_size: Option<usize>,
         thread_max_idle_count: u32,
         thread_max_sleep_before_end: u32,
@@ -1436,6 +1520,7 @@ impl ThreadRegistry {
             priority,
             op_read_time,
             yield_wait_time: yield_wait,
+            max_yield_duration,
             thread_stack_size,
             thread_max_idle_count,
             thread_max_sleep_before_end,
@@ -1454,19 +1539,26 @@ impl ThreadRegistry {
     /// Create a `ThreadRegistry` with default configuration.
     #[must_use]
     pub fn with_seed_and_threads(seed_from_rng: u64, num_threads: usize) -> Self {
+        Self::with_config(seed_from_rng, num_threads, &PoolConfig::default())
+    }
+
+    /// Create a `ThreadRegistry` with the given [`PoolConfig`] tunables.
+    #[must_use]
+    pub fn with_config(seed_from_rng: u64, num_threads: usize, config: &PoolConfig) -> Self {
         Self::new(
             seed_from_rng,
             num_threads,
             PriorityOrder::Top,
-            DEFAULT_OP_READ_TIME,
-            DEFAULT_YIELD_WAIT_TIME,
+            config.op_read_time,
+            config.yield_wait_time,
+            config.max_yield_duration,
             None,
             MAX_ROUNDS_IDLE_COUNT,
             MAX_ROUNDS_WHEN_SLEEPING_ENDS,
-            BACK_OFF_THREAD_FACTOR,
-            BACK_OFF_JITER,
-            BACK_OFF_MIN_DURATION,
-            BACK_OFF_MAX_DURATION,
+            config.back_off_thread_factor,
+            config.back_off_jitter,
+            config.back_off_min_duration,
+            config.back_off_max_duration,
         )
     }
 
@@ -1715,6 +1807,7 @@ impl ThreadRegistry {
         let sender = self.activity_sender.clone();
 
         let thread_yield_wait_duration = self.yield_wait_time;
+        let thread_max_yield_duration = self.max_yield_duration;
         let thread_max_idle_count = self.thread_max_idle_count;
         let thread_max_sleep_before_end = self.thread_max_sleep_before_end;
         let thread_back_off_factor = self.thread_back_off_factor;
@@ -1770,7 +1863,8 @@ impl ThreadRegistry {
                     thread_yield_wait_duration,
                     Some(thread_kill_signal),
                     Some(sender.clone()),
-                );
+                )
+                .with_max_yield_duration(thread_max_yield_duration);
 
                 thread_executor.block_on();
 

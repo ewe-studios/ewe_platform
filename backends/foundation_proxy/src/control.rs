@@ -13,7 +13,7 @@
 //! - `pause <service> <url>` — set backend to Paused
 //! - `activate <service> <url>` — set backend to Active
 //! - `status` — aggregate counts: total, healthy, draining, paused
-//! - `reload` — trigger OnSignal for graceful reload
+//! - `reload` — trigger ShutdownSignal for graceful reload
 //! - `shutdown` — trigger the proxy shutdown signal
 //!
 //! HOW: Each connection reads one line of JSON, dispatches to the matching
@@ -26,7 +26,7 @@ use std::os::unix::net::{UnixListener, UnixStream};
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 // The control connections are OS threads that wait on the async dispatch.
 foundation_core::blocking_boundary! {
     use foundation_core::valtron::block_on_future;
@@ -70,7 +70,7 @@ impl ControlSocket {
     pub fn start(
         socket_path: String,
         state: Arc<ProxyState>,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
     ) -> Self {
         // Clean up stale socket file
         let _ = std::fs::remove_file(&socket_path);

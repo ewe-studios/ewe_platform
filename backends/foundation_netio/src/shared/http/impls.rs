@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use crate::netcap::ConnectionContext;
-use crate::shared::client::body_reader::AsyncSendSafeBody;
+use crate::shared::client::body_reader::{AsyncSendSafeBody, ReadWakeSource};
 use crate::shared::http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, SimpleRequestError, StringHandlingError,
@@ -313,6 +313,15 @@ impl core::fmt::Display for SimpleBody {
         }
     }
 }
+
+/// A readiness signal that stays `Send + Sync` in every feature set.
+///
+/// `EventReadinessPtr` (in `foundation_core`) drops its `Send`/`Sync` bounds
+/// when the `multi` feature is off, which would make `SendSafeBody` and
+/// `SimpleIncomingRequest` non-Send. This alias pins the Send bound so the
+/// pushable request body's pipe readiness can travel with the request without
+/// breaking Send-safety.
+pub type BodyReadiness = Arc<dyn foundation_core::valtron::EventReadiness + Send + Sync>;
 
 /// Send-safe body type for requests and other Send contexts.
 ///
@@ -1985,12 +1994,15 @@ pub struct RequestDescriptor {
     pub method: SimpleMethod,
 }
 
-#[derive(Debug)]
 pub struct SimpleIncomingRequest {
     pub proto: Proto,
     pub request_uri: Uri,
     pub request_url: SimpleUrl,
     pub body: Option<SendSafeBody>,
+    /// Readiness of a pushable request body's pipe (feature 05), so the writer
+    /// task can park on a push/close instead of polling. `None` for every other
+    /// body kind.
+    pub body_readiness: Option<BodyReadiness>,
     pub headers: SimpleHeaders,
     pub method: SimpleMethod,
     pub extensions: Option<ClientExtensions>,
@@ -2000,6 +2012,24 @@ pub struct SimpleIncomingRequest {
     /// requests (tests, wasm client rendering) — additive, no behavior change
     /// (Decision 12 §13 of spec 41-connectrpc).
     pub connection: Arc<ConnectionContext>,
+}
+
+impl core::fmt::Debug for SimpleIncomingRequest {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("SimpleIncomingRequest")
+            .field("proto", &self.proto)
+            .field("request_uri", &self.request_uri)
+            .field("request_url", &self.request_url)
+            .field("body", &self.body)
+            // The pipe readiness is an opaque trait object without `Debug`; show
+            // presence only.
+            .field("body_readiness", &self.body_readiness.is_some())
+            .field("headers", &self.headers)
+            .field("method", &self.method)
+            .field("extensions", &self.extensions)
+            .field("connection", &self.connection)
+            .finish()
+    }
 }
 
 impl SimpleIncomingRequest {
@@ -2026,6 +2056,7 @@ pub struct SimpleIncomingRequestBuilder {
     req_uri: Option<Uri>,
     url: Option<SimpleUrl>,
     body: Option<SendSafeBody>,
+    body_readiness: Option<BodyReadiness>,
     method: Option<SimpleMethod>,
     headers: Option<SimpleHeaders>,
     extensions: Option<ClientExtensions>,
@@ -2060,6 +2091,15 @@ impl SimpleIncomingRequestBuilder {
     #[must_use]
     pub fn with_some_body(mut self, body: Option<SendSafeBody>) -> Self {
         self.body = body;
+        self
+    }
+
+    /// Attaches the pushed body's pipe readiness source, so the writer can park
+    /// on `TaskStatus::Depends(readiness)` instead of a back-off timer when the
+    /// producer stalls. Only set for pushable request bodies.
+    #[must_use]
+    pub fn with_body_readiness(mut self, readiness: BodyReadiness) -> Self {
+        self.body_readiness = Some(readiness);
         self
     }
 
@@ -2227,6 +2267,7 @@ impl SimpleIncomingRequestBuilder {
 
         Ok(SimpleIncomingRequest {
             body: Some(body),
+            body_readiness: self.body_readiness,
             request_uri: req_uri,
             proto,
             request_url,
@@ -3230,7 +3271,7 @@ impl RenderHttp for Http11 {
     }
 }
 
-pub struct SimpleResponse<T>(Status, SimpleHeaders, T);
+pub struct SimpleResponse<T>(Status, SimpleHeaders, T, Option<ReadWakeSource>);
 
 impl<T> core::fmt::Display for SimpleResponse<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -3254,13 +3295,13 @@ impl<T> core::fmt::Debug for SimpleResponse<T> {
 impl SimpleResponse<()> {
     #[must_use]
     pub fn no_body(status: Status, headers: SimpleHeaders) -> Self {
-        Self(status, headers, ())
+        Self(status, headers, (), None)
     }
 }
 
 impl<T> SimpleResponse<T> {
     pub fn new(status: Status, headers: SimpleHeaders, body: T) -> Self {
-        Self(status, headers, body)
+        Self(status, headers, body, None)
     }
 
     pub fn get_status(&self) -> Status {
@@ -3291,6 +3332,40 @@ impl<T> SimpleResponse<T> {
 
     pub fn take_body(self) -> T {
         self.2
+    }
+}
+
+impl SimpleResponse<SendSafeBody> {
+    /// Build a response whose body already carries an optional readiness source
+    /// (Feature 29). The sync `into_parts`/`take_body` still return the plain
+    /// `SendSafeBody` and drop the source; async callers use
+    /// [`Self::into_async_parts`] or [`Self::take_async_body`].
+    #[must_use]
+    pub fn with_read_wake(
+        status: Status,
+        headers: SimpleHeaders,
+        body: SendSafeBody,
+        source: Option<ReadWakeSource>,
+    ) -> Self {
+        Self(status, headers, body, source)
+    }
+
+    /// Consume the response and convert the body to [`AsyncSendSafeBody`] with
+    /// the readiness source attached, so `poll_next` parks instead of spinning.
+    #[must_use]
+    pub fn into_async_parts(self) -> (Status, SimpleHeaders, AsyncSendSafeBody) {
+        let Self(status, headers, body, source) = self;
+        let mut async_body = AsyncSendSafeBody::from(body);
+        if let Some(source) = source {
+            async_body = async_body.with_read_wake(source);
+        }
+        (status, headers, async_body)
+    }
+
+    /// Consume the response and return only the async body with its source.
+    #[must_use]
+    pub fn take_async_body(self) -> AsyncSendSafeBody {
+        self.into_async_parts().2
     }
 }
 

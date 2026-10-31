@@ -20,8 +20,10 @@
 use std::collections::VecDeque;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
+use std::task::Waker;
 
 use bytes::Bytes;
+use foundation_core::valtron::BoolSignal;
 use quinn_proto::{ConnectionHandle, Dir};
 
 use super::traits::QuicConnError;
@@ -54,6 +56,16 @@ pub(crate) struct ConnState {
     pub(crate) datagrams_supported: bool,
     /// Maximum datagram size the peer can receive, if supported.
     pub(crate) max_datagram_size: Option<usize>,
+    /// Futures parked on this connection (a stream read, write, accept or
+    /// open that returned `Pending`). The driver wakes them all whenever the
+    /// connection makes progress — any `quinn_proto` event, or its loss — so
+    /// they need not re-poll themselves.
+    pub(crate) wakers: Vec<Waker>,
+    /// A self-wake the driver shares into this connection. A stream handle sets
+    /// it after queueing outgoing data (reset, write, finish, stop, close, or a
+    /// datagram), so a driver parked on socket readiness transmits it at once
+    /// instead of waiting for the next socket edge or timer.
+    pub(crate) driver_wake: BoolSignal,
 }
 
 impl ConnState {
@@ -71,12 +83,34 @@ impl ConnState {
         }
     }
 
+    /// Park `waker` until the connection next makes progress.
+    pub(crate) fn park(&mut self, waker: &Waker) {
+        if !self.wakers.iter().any(|w| w.will_wake(waker)) {
+            self.wakers.push(waker.clone());
+        }
+    }
+
+    /// Take every parked waker, to wake once the lock is released.
+    pub(crate) fn take_wakers(&mut self) -> Vec<Waker> {
+        std::mem::take(&mut self.wakers)
+    }
+
     /// Queue an inbound stream the driver accepted from `quinn_proto`.
     pub(crate) fn push_inbound(&mut self, dir: Dir, id: StreamId) {
         match dir {
             Dir::Bi => self.inbound_bidi.push_back(id),
             Dir::Uni => self.inbound_uni.push_back(id),
         }
+    }
+
+    /// Wake the driver: this connection has queued outgoing data to transmit.
+    ///
+    /// `set(true)` also asks the executor host to run again, so a driver parked
+    /// on `TaskStatus::Depends` is re-polled on native at once (and re-scheduled
+    /// on wasm). Safe to call under the connection lock: `resume_idle` takes a
+    /// different lock and never runs the driver inline.
+    pub(crate) fn wake_driver(&self) {
+        self.driver_wake.set(true);
     }
 }
 

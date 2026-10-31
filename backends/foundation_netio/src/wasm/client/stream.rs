@@ -16,7 +16,7 @@
 //! when the stream is fully consumed.
 
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{Stream, WakeCallback, WakeResult, WakeRegistry, WakeableStream};
@@ -32,13 +32,16 @@ use crate::shared::client::queue_reader::QueueSseEvents;
 /// into the shared queue.
 ///
 /// Each chunk is a `Uint8Array` pushed as `Vec<u8>`. When the stream
-/// ends or errors, `done` is set to `true`. Every readiness edge (a push
-/// or a transition to closed) fires `wake`, so a bridge parked on
+/// ends, `done` is set to `true`. A JS read error is recorded in `error`
+/// as well, so the consumer can surface `SseProgress::Failed` instead of
+/// mistaking it for a clean end. Every readiness edge (a push or a
+/// transition to closed) fires `wake`, so a bridge parked on
 /// `Stream::Wait` is re-polled as soon as there is more data.
 fn spawn_stream_reader(
     body: web_sys::ReadableStream,
     queue: Arc<ConcurrentQueue<Vec<u8>>>,
     done: Arc<AtomicBool>,
+    error: Arc<Mutex<Option<String>>>,
     wake: Arc<WakeRegistry>,
 ) {
     wasm_bindgen_futures::spawn_local(async move {
@@ -51,6 +54,9 @@ fn spawn_stream_reader(
                 Ok(val) => val,
                 Err(e) => {
                     tracing::error!("SSE ReadableStream read error: {e:?}");
+                    if let Ok(mut slot) = error.lock() {
+                        *slot = Some(format!("SSE ReadableStream read error: {e:?}"));
+                    }
                     done.store(true, Ordering::Release);
                     wake.fire();
                     break;
@@ -109,12 +115,13 @@ impl WasmSseIterator {
     pub fn new(body: web_sys::ReadableStream) -> Self {
         let queue = Arc::new(ConcurrentQueue::unbounded());
         let done = Arc::new(AtomicBool::new(false));
+        let error = Arc::new(Mutex::new(None));
         let wake = Arc::new(WakeRegistry::new());
 
-        spawn_stream_reader(body, queue.clone(), done.clone(), wake.clone());
+        spawn_stream_reader(body, queue.clone(), done.clone(), error.clone(), wake.clone());
 
         Self {
-            events: QueueSseEvents::new(queue, done, wake),
+            events: QueueSseEvents::new_with_error(queue, done, error, wake),
             started: false,
         }
     }

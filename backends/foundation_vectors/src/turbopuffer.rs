@@ -38,7 +38,7 @@
 use std::collections::HashMap;
 
 use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
+use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use futures_lite::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -218,7 +218,7 @@ impl TurboPufferVectorStore {
             .send_async(req)
             .await
             .map_err(|e| VectorStoreError::Backend(format!("HTTP error: {e}")))?;
-        let (status, _headers, body) = response.into_parts();
+        let (status, _headers, body) = response.into_async_parts();
         let status_code: usize = status.into();
         if status_code == 404 {
             return Ok(Reply::NotFound);
@@ -283,8 +283,7 @@ impl TurboPufferVectorStore {
 
 /// Read at most `limit` bytes of `body` as (lossy) UTF-8. The flag is true
 /// when the body had more bytes than `limit`; the rest is never read.
-async fn read_bounded(body: SendSafeBody, limit: usize) -> (String, bool) {
-    let mut body = AsyncSendSafeBody::from(body);
+async fn read_bounded(mut body: AsyncSendSafeBody, limit: usize) -> (String, bool) {
     let mut buf = Vec::new();
     let mut truncated = false;
     loop {

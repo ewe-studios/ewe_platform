@@ -53,18 +53,22 @@ Two commits on `fix/foundational-readiness` do most of this. Their messages desc
 
 ## 3. Tasks
 
-- [ ] T1. Create `fix/io-02-h2-h3-readiness` from the base, after feature 01 is merged (or stacked
+- [x] T1. Create `fix/io-02-h2-h3-readiness` from the base, after feature 01 is merged (or stacked
       on its branch). `git cherry-pick 31467ebd4 ed13119db`. Resolve conflicts with master.
-- [ ] T2. Review both commits line by line against §4 (correctness rules). Write each rule and
+- [x] T2. Review both commits line by line against §4 (correctness rules). Write each rule and
       where the code keeps it in the PR body. Fix what breaks a rule.
-- [ ] T3. List every remaining timer or self-wake in these files and either remove it or write
+- [x] T3. List every remaining timer or self-wake in these files and either remove it or write
       why it must stay (a comment in the code and a line in the PR body):
       `foundation_http/src/native/server/{h2_connection.rs,h3_server.rs}`,
       `foundation_connectrpc/src/native/h3_serve.rs`, `foundation_netio/src/quic/*.rs`,
       `foundation_netio/src/http3/connection.rs`. The idle deadline timer is allowed. A fallback
       self-wake is allowed only for a backend that cannot register a waker, and it must log once
       at `debug`.
-- [ ] T4. Regression tests. Add to the existing test files, registered in their `mod.rs`:
+  - Remaining timers, each justified: `h2_connection.rs` `POLL_DELAY` (10 ms) and
+    `HANDSHAKE_POLL_DELAY` (1 ms) are the fallback only for a socket that cannot be watched
+    (non-unix, or the overlay transport). `quinn_driver.rs` `IDLE_POLL` (1 ms) stays until
+    `with_fd_readiness` is wired up — tracked as feature 28.
+- [x] T4. Regression tests. Add to the existing test files, registered in their `mod.rs`:
   - `foundation_http/tests/h2_parking_tests.rs`: `idle_h2_connection_uses_no_cpu`. Open an HTTP/2
     connection, send one request, then stay idle 1 s. Assert the server process used under
     50 ms of CPU in that second (read `/proc/self/stat` utime+stime before and after, or
@@ -79,7 +83,7 @@ Two commits on `fix/foundational-readiness` do most of this. Their messages desc
     `partial_flush_resumes_without_resending` if the commit has no direct test of the
     `flush_write` fix (a writer that accepts 3 bytes, then `WouldBlock`, then the rest; assert the
     bytes on the wire equal the frames once).
-- [ ] T5. Delete the three backlog entries. Update `progress.md` and `learnings.md`.
+- [x] T5. Delete the three backlog entries. Update `progress.md` and `learnings.md`.
 
 ## 4. Correctness rules the code must keep
 

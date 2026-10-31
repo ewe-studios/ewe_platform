@@ -29,22 +29,12 @@ pub use wasm_bindgen::js_stream;
     feature = "js-wasmbindgen",
     not(feature = "js-foundation-wasm")
 ))]
-pub use wasm_bindgen::{request_resume, JSThreadYielder, JS_WAIT_CHECK_INTERVAL};
+pub use wasm_bindgen::{request_resume, JSThreadYielder};
 
 #[cfg(all(target_family = "wasm", feature = "js-foundation-wasm"))]
 mod foundation_wasm;
 #[cfg(all(target_family = "wasm", feature = "js-foundation-wasm"))]
-pub use foundation_wasm::{request_resume, JSThreadYielder, JS_WAIT_CHECK_INTERVAL};
-
-// The JS yield *path* in `local.rs` is feature-gated (not target-gated): on native
-// it runs against `NoThreadController` but still references `JS_WAIT_CHECK_INTERVAL`.
-// The wasm-only backends above own the constant on wasm targets; provide the same
-// value for native+feature builds so the shared path compiles.
-#[cfg(all(
-    not(target_family = "wasm"),
-    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
-))]
-pub const JS_WAIT_CHECK_INTERVAL: std::time::Duration = std::time::Duration::from_millis(4);
+pub use foundation_wasm::{request_resume, JSThreadYielder};
 
 // Re-export WaitStatus from foundation_nostd for executor use
 pub use foundation_nostd::primitives::cooperative_spin_waiter::WaitStatus;

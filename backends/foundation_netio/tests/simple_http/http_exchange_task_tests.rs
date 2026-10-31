@@ -60,6 +60,7 @@ fn request_to(method: SimpleMethod, url: &str) -> PreparedRequest {
         },
         body: body_stream,
         extensions: Extensions::new(),
+        body_readiness: None,
     }
 }
 

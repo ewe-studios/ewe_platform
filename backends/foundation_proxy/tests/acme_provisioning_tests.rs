@@ -13,7 +13,7 @@ use std::time::Duration;
 
 use base64::Engine;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{initialize_pool, BlockingFutureExt};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -186,7 +186,7 @@ impl Serve for MockAcmeHandler {
 }
 
 /// Start the mock ACME CA on an ephemeral port. Returns `(directory_url, shutdown)`.
-fn start_mock_acme() -> (String, Arc<OnSignal>) {
+fn start_mock_acme() -> (String, Arc<ShutdownSignal>) {
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind mock acme");
     let port = listener.local_addr().unwrap().port();
     let base = format!("http://127.0.0.1:{port}");
@@ -196,7 +196,7 @@ fn start_mock_acme() -> (String, Arc<OnSignal>) {
     app.route_any::<MockAcmeHandler>("/*");
 
     let server = HttpServer::with_config(app, &format!("127.0.0.1:{port}"), ServerConfig::defaults());
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let thread_shutdown = Arc::clone(&shutdown);
     std::thread::spawn(move || server.serve_with_listener(&listener, &thread_shutdown));
 

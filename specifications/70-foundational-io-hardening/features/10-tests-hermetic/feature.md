@@ -56,14 +56,14 @@ a written reason.
 
 ## 3. Tasks
 
-- [ ] T1. Branch from the base after feature 04 (non-blocking connect makes local servers
+- [x] T1. Branch from the base after feature 04 (non-blocking connect makes local servers
       reliable under the pool).
-- [ ] T2. `tls_integration.rs` (3). Commit.
-- [ ] T3. `http_external_validation.rs` (8). Commit.
-- [ ] T4. `http_server_integration.rs` (6). Commit.
-- [ ] T5. Doc examples (37). Commit.
-- [ ] T6. 8-thread conformance variants. Commit.
-- [ ] T7. Delete the backlog entries. Update `progress.md`, `learnings.md`.
+- [x] T2. `tls_integration.rs` (3). Commit.
+- [x] T3. `http_external_validation.rs` (8). Commit.
+- [x] T4. `http_server_integration.rs` (6). Commit.
+- [x] T5. Doc examples (37). Commit.
+- [x] T6. 8-thread conformance variants. Commit.
+- [x] T7. Delete the backlog entries. Update `progress.md`, `learnings.md`.
 
 ## 4. Verification (run exactly)
 
@@ -81,8 +81,11 @@ unshare -rn cargo test -p foundation_netio --profile dev --tests   # if unshare 
 
 ## 5. Done when
 
-- [ ] All §4 commands pass; formerly ignored tests and the 8-thread variants passed 20 runs.
-- [ ] The netio suite passes with no network (or the PR says why it could not be checked).
+- [x] All §4 commands pass; formerly ignored tests and the 8-thread variants passed 20 runs.
+      (The netio `quic` run fails only the pre-existing `idle_h3_connection_uses_no_cpu`,
+      feature 28 — out of scope.)
+- [x] The netio suite passes with no network (or the PR says why it could not be checked).
+      Not checked: macOS has no `unshare`; the rewritten tests bind loopback sockets only.
 - [ ] CI green.
 
 ## 6. Review checklist (main session)

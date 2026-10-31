@@ -11,7 +11,6 @@
 
 use std::io::Write;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
 
 use flate2::write::GzEncoder;
 use flate2::Compression;
@@ -203,10 +202,15 @@ fn compressed_streaming_envelope_over_the_limit_is_resource_exhausted() {
 
 /// An envelope whose length prefix claims 4 GiB is rejected from its 5-byte
 /// header, before any payload is waited for or buffered.
+///
+/// The two `contains` asserts are the deterministic proof. The reader checks the
+/// declared length against `read_max_bytes` on the header, then rejects with
+/// `resource_exhausted`. A regression that buffered or waited for the full 4 GiB
+/// payload would instead see the body end after 5 bytes and answer with a
+/// truncation error, never "exceeds read_max_bytes".
 #[test]
 fn oversized_envelope_prefix_is_rejected_from_its_header() {
     let handler = handler(limited);
-    let start = Instant::now();
     let response = dispatch(
         &handler,
         request(
@@ -218,7 +222,6 @@ fn oversized_envelope_prefix_is_rejected_from_its_header() {
     let body = body_text(&response);
     assert!(body.contains("resource_exhausted"), "body: {body}");
     assert!(body.contains("exceeds read_max_bytes"), "body: {body}");
-    assert!(start.elapsed() < Duration::from_secs(1));
 }
 
 /// `read_max_bytes` has a 4 MiB default, and it applies to a plain unary body.

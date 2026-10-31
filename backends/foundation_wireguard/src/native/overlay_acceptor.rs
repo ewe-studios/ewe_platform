@@ -109,6 +109,14 @@ impl OverlayReadWrite for OverlayConn {
     fn set_write_waker(&self, waker: ConnWaker) {
         self.stream.set_write_waker(waker);
     }
+
+    fn readable(&self) -> bool {
+        self.stream.readable()
+    }
+
+    fn writable(&self) -> bool {
+        self.stream.writable()
+    }
 }
 
 impl std::fmt::Debug for OverlayConn {

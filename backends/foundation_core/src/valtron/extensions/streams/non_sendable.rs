@@ -3937,6 +3937,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, R> WakeableStream for MapDone<I, R>
@@ -3947,6 +3951,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -3959,6 +3967,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, R> WakeableStream for MapPendingAndDone<I, R>
@@ -3968,6 +3980,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -3980,6 +3996,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I> WakeableStream for MapDelayed<I>
@@ -3991,6 +4011,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I> WakeableStream for MapCircuit<I>
@@ -4001,6 +4025,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -4014,6 +4042,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F> WakeableStream for SInspectState<I, F>
@@ -4025,6 +4057,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -4038,6 +4074,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F> WakeableStream for STakeWhileState<I, F>
@@ -4049,6 +4089,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -4062,6 +4106,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F> WakeableStream for SSkipWhileState<I, F>
@@ -4073,6 +4121,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -4086,6 +4138,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F> WakeableStream for SSkipState<I, F>
@@ -4098,6 +4154,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I> WakeableStream for SEnumerate<I>
@@ -4108,6 +4168,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -4121,6 +4185,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F, R> WakeableStream for SFindMap<I, F, R>
@@ -4132,6 +4200,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -4145,6 +4217,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F> WakeableStream for SAll<I, F>
@@ -4155,6 +4231,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -4167,6 +4247,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I> WakeableStream for SCount<I>
@@ -4177,6 +4261,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I> WakeableStream for SCountAll<I>
@@ -4186,6 +4274,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 

@@ -18,7 +18,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::initialize_pool;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
@@ -80,8 +80,8 @@ impl Serve for SlowHandler {
 
 /// Start a server with `config`; returns its address, the shutdown signal, and a
 /// receiver that fires once `serve_with_listener` returns (drain finished).
-fn start_server(app: HttpApp<Arc<dyn Serve>>, config: ServerConfig) -> (std::net::SocketAddr, Arc<OnSignal>, Receiver<()>) {
-    let shutdown = Arc::new(OnSignal::new());
+fn start_server(app: HttpApp<Arc<dyn Serve>>, config: ServerConfig) -> (std::net::SocketAddr, Arc<ShutdownSignal>, Receiver<()>) {
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("local_addr");
     let bind_addr = format!("127.0.0.1:{}", addr.port());

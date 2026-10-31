@@ -7,12 +7,10 @@
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::time::Duration;
-use foundation_compact::Instant;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn, NoThreadController},
-    Ctx, FnReady, ProcessController, TaskIterator, TaskStatus,
+    Ctx, FnReady, TaskIterator, TaskStatus,
 };
 
 /// Task that returns Ready a limited number of times then completes

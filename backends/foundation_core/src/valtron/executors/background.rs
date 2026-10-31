@@ -40,14 +40,24 @@ struct JobQueue {
 struct QueueState {
     jobs: VecDeque<BackgroundJob>,
     closed: bool,
+    capacity: usize,
+}
+
+/// Why a push failed.
+enum JobPushError {
+    /// The queue is closed; the job will never run.
+    Closed,
+    /// The queue is at its configured capacity.
+    Full,
 }
 
 impl JobQueue {
-    fn new() -> Self {
+    fn new(capacity: usize) -> Self {
         Self {
             state: Mutex::new(QueueState {
                 jobs: VecDeque::new(),
                 closed: false,
+                capacity,
             }),
             available: CondVar::new(),
         }
@@ -61,11 +71,14 @@ impl JobQueue {
         self.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
-    fn push(&self, job: BackgroundJob) -> Result<(), BackgroundJob> {
+    fn push(&self, job: BackgroundJob) -> Result<(), JobPushError> {
         {
             let mut state = self.lock();
             if state.closed {
-                return Err(job);
+                return Err(JobPushError::Closed);
+            }
+            if state.jobs.len() >= state.capacity {
+                return Err(JobPushError::Full);
             }
             state.jobs.push_back(job);
         }
@@ -120,6 +133,7 @@ fn run_job(job: BackgroundJob, runner: &str) {
 pub struct BackgroundJobConfig {
     num_threads: usize,
     shutdown_timeout: Duration,
+    capacity: usize,
 }
 
 impl BackgroundJobConfig {
@@ -129,12 +143,20 @@ impl BackgroundJobConfig {
     /// `DefaultTimeoutStopSec` is a laxer 90 s.)
     pub const DEFAULT_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(30);
 
-    /// A config for `num_threads` workers with the default shutdown timeout.
+    /// Default for [`Self::capacity`]: 1024 pending jobs. Large enough that a
+    /// healthy caller never hits it, small enough to bound memory under a
+    /// stalled worker (each queued job is a heap closure of tens of bytes, so
+    /// 1024 is on the order of tens of KiB).
+    pub const DEFAULT_CAPACITY: usize = 1024;
+
+    /// A config for `num_threads` workers with the default shutdown timeout and
+    /// queue capacity.
     #[must_use]
     pub fn new(num_threads: usize) -> Self {
         Self {
             num_threads,
             shutdown_timeout: Self::DEFAULT_SHUTDOWN_TIMEOUT,
+            capacity: Self::DEFAULT_CAPACITY,
         }
     }
 
@@ -144,6 +166,14 @@ impl BackgroundJobConfig {
     #[must_use]
     pub fn with_shutdown_timeout(mut self, timeout: Duration) -> Self {
         self.shutdown_timeout = timeout;
+        self
+    }
+
+    /// The bounded queue capacity. A `submit` that would exceed it returns an
+    /// error instead of buffering without limit.
+    #[must_use]
+    pub fn with_capacity(mut self, capacity: usize) -> Self {
+        self.capacity = capacity;
         self
     }
 
@@ -157,6 +187,12 @@ impl BackgroundJobConfig {
     #[must_use]
     pub fn shutdown_timeout(&self) -> Duration {
         self.shutdown_timeout
+    }
+
+    /// The configured queue capacity.
+    #[must_use]
+    pub fn capacity(&self) -> usize {
+        self.capacity
     }
 }
 
@@ -174,6 +210,13 @@ pub enum ShutdownOutcome {
         /// exit on their own once that job returns.
         busy_workers: usize,
     },
+}
+
+/// Why a [`BackgroundJobRegistry`] could not be created.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BackgroundJobError {
+    /// The operating system refused to spawn a worker thread.
+    SpawnFailed,
 }
 
 /// Fixed-size thread pool for executing blocking, fire-and-forget closures.
@@ -216,7 +259,7 @@ impl BackgroundJobRegistry {
     /// Create a new `BackgroundJobRegistry` and spawn worker threads.
     ///
     /// WHY: Initializes the background job pool with the given thread count
-    /// WHAT: Creates an unbounded job queue, spawns `num_threads` workers
+    /// WHAT: Creates a bounded job queue, spawns `num_threads` workers
     /// HOW: Each worker gets a `WaitGroupGuard` and blocks on the shared queue
     ///
     /// The registry's lifetime is its own: workers run until `shutdown()` (or
@@ -227,23 +270,31 @@ impl BackgroundJobRegistry {
     ///
     /// * `num_threads` - Number of worker threads to spawn (must be >= 1)
     ///
+    /// # Errors
+    ///
+    /// Returns [`BackgroundJobError::SpawnFailed`] if the OS refuses to spawn a
+    /// worker thread.
+    ///
     /// # Panics
     ///
-    /// Panics if `num_threads` is 0, or if the OS refuses to spawn a worker
-    /// thread.
+    /// Panics if `num_threads` is 0.
     #[must_use]
-    pub fn new(num_threads: usize) -> Arc<Self> {
+    pub fn new(num_threads: usize) -> Result<Arc<Self>, BackgroundJobError> {
         Self::with_config(BackgroundJobConfig::new(num_threads))
     }
 
     /// Create a registry from a [`BackgroundJobConfig`] and spawn its workers.
     ///
+    /// # Errors
+    ///
+    /// Returns [`BackgroundJobError::SpawnFailed`] if the OS refuses to spawn a
+    /// worker thread.
+    ///
     /// # Panics
     ///
-    /// Panics if `config.num_threads()` is 0, or if the OS refuses to spawn a
-    /// worker thread.
+    /// Panics if `config.num_threads()` is 0.
     #[must_use]
-    pub fn with_config(config: BackgroundJobConfig) -> Arc<Self> {
+    pub fn with_config(config: BackgroundJobConfig) -> Result<Arc<Self>, BackgroundJobError> {
         let num_threads = config.num_threads;
         assert!(
             num_threads >= 1,
@@ -251,28 +302,40 @@ impl BackgroundJobRegistry {
         );
 
         let registry = Arc::new(Self {
-            queue: Arc::new(JobQueue::new()),
+            queue: Arc::new(JobQueue::new(config.capacity)),
             waitgroup: WaitGroup::new(),
             thread_handles: Mutex::new(Vec::with_capacity(num_threads)),
             num_threads,
             shutdown_timeout: config.shutdown_timeout,
         });
 
-        let mut handles = Vec::with_capacity(num_threads);
+        let mut handles: Vec<JoinHandle<()>> = Vec::with_capacity(num_threads);
         for i in 0..num_threads {
             let queue = registry.queue.clone();
             let wg = registry.waitgroup.clone();
             wg.add(1);
 
-            let handle = thread::Builder::new()
+            let spawn = thread::Builder::new()
                 .name(format!("bg-worker-{i}"))
                 .spawn(move || {
                     let _guard = wg.guard();
                     tracing::debug!("Background worker {i} started");
                     Self::worker_loop(&queue, i);
                     tracing::debug!("Background worker {i} exiting");
-                })
-                .expect("Failed to spawn background worker thread");
+                });
+            let handle = match spawn {
+                Ok(handle) => handle,
+                Err(e) => {
+                    // Close the queue so any already-spawned workers drain and
+                    // exit, then join them before returning the error.
+                    registry.queue.close();
+                    for h in handles.drain(..) {
+                        let _ = h.join();
+                    }
+                    tracing::error!("BackgroundJobRegistry: failed to spawn worker {i}: {e}");
+                    return Err(BackgroundJobError::SpawnFailed);
+                }
+            };
             handles.push(handle);
         }
         *registry
@@ -280,7 +343,7 @@ impl BackgroundJobRegistry {
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner()) = handles;
 
-        registry
+        Ok(registry)
     }
 
     /// Worker thread main loop.
@@ -303,12 +366,17 @@ impl BackgroundJobRegistry {
     ///
     /// # Errors
     ///
-    /// Returns an error if the queue is closed (registry is shutting down).
-    /// The job is not run in that case.
+    /// Returns an error if the queue is closed (the registry is shutting down)
+    /// or full (at its configured capacity). The job is not run in that case.
     pub fn submit(&self, job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
-        self.queue
-            .push(Box::new(job))
-            .map_err(|_| "BackgroundJobRegistry: queue closed, cannot submit job".into())
+        self.queue.push(Box::new(job)).map_err(|e| match e {
+            JobPushError::Closed => {
+                "BackgroundJobRegistry: queue closed, cannot submit job".into()
+            }
+            JobPushError::Full => {
+                "BackgroundJobRegistry: queue full, cannot submit job".into()
+            }
+        })
     }
 
     /// Shut down the registry: stop intake, run the queued jobs, join workers —

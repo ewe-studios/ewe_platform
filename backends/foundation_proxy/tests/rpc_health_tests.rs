@@ -20,7 +20,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{valtron_test, sleep_async, PipeReceiver, PipeSender};
 use foundation_http::native::serve::{BoxFuture, H2Serve};
 use foundation_http::native::server::HttpServer;
@@ -142,7 +142,7 @@ impl H2Serve for HealthGatedBackend {
 }
 
 /// Start the health-gated backend and return its port and shutdown signal.
-fn start_health_gated_backend(serving: Arc<AtomicBool>) -> (u16, Arc<OnSignal>) {
+fn start_health_gated_backend(serving: Arc<AtomicBool>) -> (u16, Arc<ShutdownSignal>) {
     let backend = Arc::new(HealthGatedBackend {
         inner: Arc::new(ConnectRpcServeH2::new(build_router().into_handler())),
         serving,
@@ -156,7 +156,7 @@ fn start_health_gated_backend(serving: Arc<AtomicBool>) -> (u16, Arc<OnSignal>) 
     let port = listener.local_addr().expect("backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(h2_app), &addr);
     std::thread::spawn(move || {

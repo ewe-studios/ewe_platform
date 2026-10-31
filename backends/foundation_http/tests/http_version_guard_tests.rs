@@ -27,7 +27,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
@@ -67,8 +67,8 @@ impl Serve for EchoHandler {
 }
 
 /// Start a server routing `GET /echo`; returns its address and shutdown signal.
-fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
-    let shutdown = Arc::new(OnSignal::new());
+fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("local_addr");
     let bind_addr = format!("127.0.0.1:{}", addr.port());

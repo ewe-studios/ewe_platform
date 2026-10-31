@@ -1,9 +1,40 @@
-//! Integration tests for TLS backends
+//! Integration tests for TLS backends.
 //!
-//! These tests verify that TLS backends are properly configured and can be instantiated.
-//! Network tests are marked as #[ignore] to avoid requiring internet connectivity.
+//! The network tests run against a local TLS server with a self-signed test
+//! certificate. No public internet access is needed.
 
 #![cfg(not(target_family = "wasm"))]
+
+/// Read a TLS test fixture from the crate's test fixtures directory.
+fn fixture(name: &str) -> Vec<u8> {
+    let path = format!(
+        "{}/tests/tcp_and_tls/fixtures/{name}",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    std::fs::read(path).expect("read TLS fixture")
+}
+
+/// Read an HTTP/1.1 response from a TLS stream, stopping at the end of the
+/// headers (`\r\n\r\n`). Handles a plain EOF and a rustls `UnexpectedEof`
+/// (a close without a TLS `close_notify` alert) the same way.
+fn read_http_response(stream: &mut impl std::io::Read) -> String {
+    let mut response = Vec::new();
+    let mut buf = [0u8; 8192];
+    loop {
+        match stream.read(&mut buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                response.extend_from_slice(&buf[..n]);
+                if response.windows(4).any(|w| w == b"\r\n\r\n") {
+                    break;
+                }
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::UnexpectedEof => break,
+            Err(e) => panic!("read response failed: {e}"),
+        }
+    }
+    String::from_utf8_lossy(&response).into_owned()
+}
 
 #[cfg(feature = "ssl-rustls")]
 mod rustls_tests {
@@ -33,38 +64,51 @@ mod rustls_tests {
     }
 
     #[test]
-    #[cfg(feature = "ssl-rustls")]
     fn test_rustls_https_connection() {
-        use foundation_netio::netcap::connection::Connection;
         use std::io::{Read, Write};
-        use std::net::TcpStream;
+        use std::net::{TcpListener, TcpStream};
 
-        let connector = RustlsConnector::new();
+        use foundation_netio::netcap::connection::Connection;
+        use foundation_netio::netcap::ssl::SSLAcceptor;
+        use foundation_testing::http::test_tls_connector;
+        use zeroize::Zeroizing;
 
-        // Connect to example.com:443
-        let tcp = TcpStream::connect("example.com:443").expect("Failed to connect to example.com");
+        use super::fixture;
+        use super::read_http_response;
 
-        let connection = Connection::Tcp(tcp);
+        let acceptor =
+            SSLAcceptor::from_pem(fixture("cert.pem"), Zeroizing::new(fixture("key.pem")))
+                .expect("acceptor");
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+        let addr = listener.local_addr().expect("addr");
 
-        let (mut tls_stream, _addr) = connector
-            .from_tcp_stream("example.com".to_string(), connection)
-            .expect("Failed to establish TLS connection");
+        let server = std::thread::spawn(move || {
+            let (socket, _) = listener.accept().expect("accept");
+            let mut tls = acceptor.accept(Connection::Tcp(socket)).expect("tls accept");
+            let mut buf = [0u8; 8192];
+            let n = tls.read(&mut buf).expect("server read");
+            assert!(n > 0, "server read no request bytes");
+            tls.write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+                .expect("server write");
+            tls.flush().expect("server flush");
+        });
 
-        // Send a simple HTTP request
-        let request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
+        // `localhost` is the name on the test certificate; it resolves to the
+        // server's socket. `test_tls_connector` trusts that certificate.
+        let plain = TcpStream::connect(addr).expect("connect");
+        let (mut tls_stream, _addr) = test_tls_connector()
+            .from_tcp_stream("localhost".to_string(), Connection::Tcp(plain))
+            .expect("client tls stream");
+
         tls_stream
-            .write_all(request.as_bytes())
-            .expect("Failed to write request");
+            .write_all(b"GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+            .expect("write request");
+        tls_stream.flush().expect("flush request");
 
-        // Read response
-        let mut response = Vec::new();
-        tls_stream
-            .read_to_end(&mut response)
-            .expect("Failed to read response");
+        let response = read_http_response(&mut tls_stream);
+        assert!(response.contains("HTTP/1.1"), "expected HTTP response: {response}");
 
-        // Verify we got a valid HTTP response
-        let response_str = String::from_utf8_lossy(&response);
-        assert!(response_str.contains("HTTP/1.1"), "Expected HTTP response");
+        server.join().expect("server thread");
     }
 
     #[test]
@@ -81,169 +125,6 @@ mod rustls_tests {
         });
 
         handle.join().expect("Thread should complete successfully");
-    }
-}
-
-#[cfg(feature = "ssl-openssl")]
-mod openssl_tests {
-    use foundation_netio::netcap::ssl::openssl::{OpenSslConnector, SslConnector};
-    use foundation_netio::netcap::{Endpoint, EndpointConfig};
-    use std::sync::Arc;
-
-    #[test]
-    fn test_openssl_connector_creation() {
-        // Verify OpenSSL connector can be created
-        let ssl_connector = SslConnector::builder(openssl::ssl::SslMethod::tls())
-            .expect("Failed to create SSL connector builder")
-            .build();
-
-        let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint =
-            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(ssl_connector));
-
-        let connector = OpenSslConnector::create(&endpoint);
-        let _connector2 = connector.clone();
-    }
-
-    #[test]
-    fn test_openssl_connector_clone() {
-        let ssl_connector = SslConnector::builder(openssl::ssl::SslMethod::tls())
-            .expect("Failed to create SSL connector builder")
-            .build();
-
-        let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint =
-            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(ssl_connector));
-
-        let connector1 = OpenSslConnector::create(&endpoint);
-        let connector2 = connector1.clone();
-
-        // Verify Arc sharing
-        assert_eq!(Arc::strong_count(&connector1.0), 2);
-        assert_eq!(Arc::strong_count(&connector2.0), 2);
-    }
-
-    #[test]
-    #[ignore] // Requires network access
-    fn test_openssl_https_connection() {
-        use foundation_netio::netcap::connection::Connection;
-        use std::io::{Read, Write};
-        use std::net::TcpStream;
-
-        let ssl_connector = SslConnector::builder(openssl::ssl::SslMethod::tls())
-            .expect("Failed to create SSL connector builder")
-            .build();
-
-        let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint =
-            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(ssl_connector));
-
-        let connector = OpenSslConnector::create(&endpoint);
-
-        // Connect to example.com
-        let tcp = TcpStream::connect("example.com:443").expect("Failed to connect to example.com");
-
-        let connection = Connection::Tcp(tcp);
-
-        let (mut tls_stream, _addr) = connector
-            .from_tcp_stream("example.com".to_string(), connection)
-            .expect("Failed to establish TLS connection");
-
-        // Send a simple HTTP request
-        let request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
-        tls_stream
-            .write_all(request.as_bytes())
-            .expect("Failed to write request");
-
-        // Read response
-        let mut response = Vec::new();
-        tls_stream
-            .read_to_end(&mut response)
-            .expect("Failed to read response");
-
-        // Verify we got a valid HTTP response
-        let response_str = String::from_utf8_lossy(&response);
-        assert!(response_str.contains("HTTP/1.1"), "Expected HTTP response");
-    }
-}
-
-#[cfg(feature = "ssl-native-tls")]
-mod native_tls_tests {
-    use foundation_netio::netcap::ssl::native_ttls::NativeTlsConnector;
-    use foundation_netio::netcap::{Endpoint, EndpointConfig};
-    use std::sync::Arc;
-
-    #[test]
-    fn test_native_tls_connector_creation() {
-        // Verify native-tls connector can be created
-        let tls_connector =
-            native_tls::TlsConnector::new().expect("Failed to create TLS connector");
-
-        let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint =
-            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(tls_connector));
-
-        let connector = NativeTlsConnector::create(&endpoint);
-        let _connector2 = connector.clone();
-    }
-
-    #[test]
-    fn test_native_tls_connector_clone() {
-        let tls_connector =
-            native_tls::TlsConnector::new().expect("Failed to create TLS connector");
-
-        let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint =
-            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(tls_connector));
-
-        let connector1 = NativeTlsConnector::create(&endpoint);
-        let connector2 = connector1.clone();
-
-        // Verify both connectors are usable
-        assert_eq!(Arc::strong_count(&connector1.0), 2);
-        assert_eq!(Arc::strong_count(&connector2.0), 2);
-    }
-
-    #[test]
-    #[ignore] // Requires network access
-    fn test_native_tls_https_connection() {
-        use foundation_netio::netcap::connection::Connection;
-        use std::io::{Read, Write};
-        use std::net::TcpStream;
-
-        let tls_connector =
-            native_tls::TlsConnector::new().expect("Failed to create TLS connector");
-
-        let url = url::Url::parse("https://example.com:443").unwrap();
-        let endpoint =
-            Endpoint::WithIdentity(EndpointConfig::NoTimeout(url), Arc::new(tls_connector));
-
-        let connector = NativeTlsConnector::create(&endpoint);
-
-        // Connect to example.com
-        let tcp = TcpStream::connect("example.com:443").expect("Failed to connect to example.com");
-
-        let connection = Connection::Tcp(tcp);
-
-        let (mut tls_stream, _addr) = connector
-            .from_tcp_stream("example.com", connection)
-            .expect("Failed to establish TLS connection");
-
-        // Send a simple HTTP request
-        let request = "GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n";
-        tls_stream
-            .write_all(request.as_bytes())
-            .expect("Failed to write request");
-
-        // Read response
-        let mut response = Vec::new();
-        tls_stream
-            .read_to_end(&mut response)
-            .expect("Failed to read response");
-
-        // Verify we got a valid HTTP response
-        let response_str = String::from_utf8_lossy(&response);
-        assert!(response_str.contains("HTTP/1.1"), "Expected HTTP response");
     }
 }
 

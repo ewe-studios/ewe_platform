@@ -28,7 +28,7 @@ use foundation_connectrpc::buffa::bytes::{Buf, BufMut};
 use foundation_connectrpc::buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
 use foundation_connectrpc::buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -122,7 +122,7 @@ fn echo_serve() -> Arc<dyn Serve> {
 }
 
 /// Start the server on a free loopback port and return `(addr, shutdown)`.
-fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
     let serve = echo_serve();
     app.router.add_route_any(PROCEDURE, &serve);
@@ -133,7 +133,7 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
     let server =
         HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
     // The blocking accept loop runs on its own OS thread.
     std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));

@@ -8,6 +8,7 @@ authors.workspace = true
 repository.workspace = true
 description = "Macros for the foundations_jsnostd crate providing suitable support to simplify usage"
 keywords = ["foundations_macros"]
+readme = "README.md"
 
 [lib]
 proc-macro = true
@@ -34,7 +35,7 @@ flate2 = "1.1.5"
 uuid = { version = "1", default-features = false }
 
 # Compute hash
-sha2 = "0.11.0"
+sha2 = "0.10.8"
 
 # Encode hash & etag
 base85rs = "0.1"

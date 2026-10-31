@@ -18,7 +18,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::HttpServer;
 use foundation_http::native::serve::H2Serve;
@@ -144,7 +144,7 @@ fn build_cancel_router(slot: Slot) -> Router {
 }
 
 /// Start an HTTP/2-only backend (native gRPC) serving `router`.
-fn start_grpc_backend(router: Router) -> (u16, Arc<OnSignal>) {
+fn start_grpc_backend(router: Router) -> (u16, Arc<ShutdownSignal>) {
     let h2: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router.into_handler()));
     let mut h2_app = HttpApp::new_h2_serve();
     h2_app.route_any_h2(UNARY, h2.clone());
@@ -154,7 +154,7 @@ fn start_grpc_backend(router: Router) -> (u16, Arc<OnSignal>) {
     let port = listener.local_addr().expect("backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(h2_app), &addr);
     std::thread::spawn(move || {

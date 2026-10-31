@@ -24,7 +24,7 @@ use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{block_on_future, sleep_async};
 use foundation_netio::shared::http::{
@@ -122,7 +122,7 @@ impl HealthMonitor {
 /// A service without a `health_check` config spawns nothing — its backends stay
 /// at their initial healthy state.
 #[must_use]
-pub fn spawn_service_probes(service: &Arc<ServiceRuntime>, shutdown: Arc<OnSignal>) -> HealthMonitor {
+pub fn spawn_service_probes(service: &Arc<ServiceRuntime>, shutdown: Arc<ShutdownSignal>) -> HealthMonitor {
     let Some(config) = service.config().health_check.clone() else {
         return HealthMonitor { handles: Vec::new() };
     };
@@ -152,7 +152,7 @@ fn probe_loop(
     backend: &Arc<BackendRuntime>,
     config: &HealthCheckConfig,
     client: &DynNetClient,
-    shutdown: &Arc<OnSignal>,
+    shutdown: &Arc<ShutdownSignal>,
 ) {
     let mut state = ProbeState::new(
         config.healthy_threshold,
@@ -439,7 +439,7 @@ fn join_url(base_url: &str, path: &str) -> String {
 }
 
 /// Sleep `total` in short slices, returning `false` if shutdown fired.
-fn sleep_interruptible(total: Duration, shutdown: &Arc<OnSignal>) -> bool {
+fn sleep_interruptible(total: Duration, shutdown: &Arc<ShutdownSignal>) -> bool {
     let slice = Duration::from_millis(100);
     let start = Instant::now();
     while start.elapsed() < total {

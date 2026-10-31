@@ -322,10 +322,17 @@ fn test_connection_dns_failure() {
 /// IMPORTANCE: Enables testing without real network
 #[test]
 fn test_connection_with_mock_resolver() {
-    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
+    // Pick a free port and close it, so nothing listens. Hard-coding 8080
+    // collided with unrelated local services (the port is not ours to use).
+    let port = std::net::TcpListener::bind("127.0.0.1:0")
+        .expect("bind an ephemeral port")
+        .local_addr()
+        .expect("local addr")
+        .port();
+    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port);
     let resolver = MockDnsResolver::new().with_response("example.com", vec![addr]);
 
-    let url = Uri::parse("http://example.com:8080").unwrap();
+    let url = Uri::parse(&format!("http://example.com:{port}")).unwrap();
 
     // This will fail to connect since no server is running, but DNS should work
     let result =

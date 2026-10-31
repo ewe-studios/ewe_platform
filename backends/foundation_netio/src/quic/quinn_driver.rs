@@ -37,8 +37,8 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
-use foundation_core::valtron::{Ctx,
-    EventReadinessPtr, TaskIterator, TaskStatus,
+use foundation_core::valtron::{
+    AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, TaskIterator, TaskStatus,
 };
 use quinn_proto::{
     ClientConfig, ConnectionHandle, DatagramEvent, Endpoint, EndpointConfig, ServerConfig,
@@ -70,6 +70,18 @@ pub enum QuicEvent {
     },
 }
 
+/// Ready once an [`Instant`] has passed. Mirrors the h2 handler's deadline
+/// signal so a driver parked on socket readiness still wakes for QUIC timers
+/// (loss detection, idle timeout, keep-alive) — a `Depends` sleeper has no
+/// deadline of its own, so the driver composes this with the socket signal.
+struct DeadlinePassed(Instant);
+
+impl EventReadiness for DeadlinePassed {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        Instant::now() >= self.0
+    }
+}
+
 /// Drives one `quinn_proto::Endpoint` and every connection it routes.
 pub struct QuicDriver {
     endpoint: Endpoint,
@@ -78,6 +90,8 @@ pub struct QuicDriver {
     conns: HashMap<ConnectionHandle, SharedConn>,
     /// Connections that finished their handshake and have not been taken yet.
     accepted: Arc<Mutex<VecDeque<QuinnConnection>>>,
+    /// Woken when a connection lands in `accepted`.
+    accept_wakers: Arc<Mutex<Vec<std::task::Waker>>>,
     /// Scratch buffer for endpoint responses (retry, version negotiation).
     scratch: Vec<u8>,
     /// Scratch buffer for connection transmits.
@@ -85,6 +99,9 @@ pub struct QuicDriver {
     /// Caller-injected fd readiness. When `Some`, an idle poll returns
     /// `TaskStatus::Depends(fd)` — parking on the reactor rather than spinning.
     fd_readiness: Option<EventReadinessPtr>,
+    /// A self-wake shared into every connection: a stream handle sets it after
+    /// queueing outgoing data, so a parked driver transmits that data at once.
+    driver_woken: BoolSignal,
     idle: Duration,
     /// A server driver keeps listening with no connections; a client driver ends.
     is_server: bool,
@@ -108,9 +125,11 @@ impl QuicDriver {
             socket: Arc::new(socket),
             conns: HashMap::new(),
             accepted: Arc::new(Mutex::new(VecDeque::new())),
+            accept_wakers: Arc::new(Mutex::new(Vec::new())),
             scratch: Vec::with_capacity(MAX_DATAGRAM),
             tx_buf: Vec::with_capacity(MAX_DATAGRAM),
             fd_readiness: None,
+            driver_woken: BoolSignal::new(false),
             idle: IDLE_POLL,
             is_server,
             done: false,
@@ -210,6 +229,17 @@ impl QuicDriver {
         Arc::clone(&self.accepted)
     }
 
+    /// WHY: an accept loop should park until a connection is ready rather than
+    /// poll the accept queue on a timer.
+    ///
+    /// WHAT: a list the driver wakes (and empties) whenever a connection lands
+    /// in [`Self::accept_queue`]. Register before checking the queue, so a
+    /// connection queued in between still wakes you.
+    #[must_use]
+    pub fn accept_wakers(&self) -> Arc<Mutex<Vec<std::task::Waker>>> {
+        Arc::clone(&self.accept_wakers)
+    }
+
     /// WHY: an idle QUIC connection should cost nothing. Wrap the UDP socket's fd
     /// in `RegisteredFd`/`SharedReadiness` (Decision 14) and inject it here; idle
     /// polls then park on the reactor instead of spinning on `Delayed`.
@@ -246,6 +276,8 @@ impl QuicDriver {
             recv_datagrams: VecDeque::new(),
             datagrams_supported: false,
             max_datagram_size: None,
+            wakers: Vec::new(),
+            driver_wake: self.driver_woken.clone(),
         }));
         self.conns.insert(handle, Arc::clone(&state));
         state
@@ -358,17 +390,30 @@ impl QuicDriver {
         worked
     }
 
+    /// The earliest connection timer deadline, if any. `None` when no connection
+    /// has a pending timer (or the driver has no connections). A parked driver
+    /// composes this with its socket readiness so timers still fire.
+    fn next_timeout(&self) -> Option<Instant> {
+        self.conns
+            .values()
+            .filter_map(|state| state.lock().ok().and_then(|mut g| g.conn.poll_timeout()))
+            .min()
+    }
+
     /// Process one event from each connection. Returns an event to surface, if any.
     fn pump_events(&mut self) -> Option<QuicEvent> {
         let mut surfaced = None;
         let mut closed_handles = Vec::new();
 
+        let mut to_wake = Vec::new();
         for (handle, state) in &self.conns {
             let Ok(mut guard) = state.lock() else {
                 continue;
             };
 
+            let mut progressed = false;
             while let Some(event) = guard.conn.poll() {
+                progressed = true;
                 match event {
                     quinn_proto::Event::Connected => {
                         // For a server this is the accept point.
@@ -400,8 +445,25 @@ impl QuicDriver {
                         });
                     }
                     // Readable/Writable/Finished/Stopped/DatagramsUnblocked are
-                    // observed by the stream/datagram handles on their next call.
+                    // observed by the stream/datagram handles on their next call,
+                    // which the wake below triggers.
                     _ => {}
+                }
+            }
+            if progressed {
+                to_wake.extend(guard.take_wakers());
+            }
+        }
+
+        // Woken outside every connection lock: a woken future may run at once
+        // on another worker and take the lock itself.
+        for waker in to_wake {
+            waker.wake();
+        }
+        if let Ok(mut accept_wakers) = self.accept_wakers.lock() {
+            if !self.accepted.lock().map(|q| q.is_empty()).unwrap_or(true) {
+                for waker in accept_wakers.drain(..) {
+                    waker.wake();
                 }
             }
         }
@@ -436,6 +498,19 @@ impl TaskIterator for QuicDriver {
 
         let now = Instant::now();
 
+        // Clear edge-triggered readiness before reading, so a datagram that
+        // arrives after a `WouldBlock` re-latches and wakes us again — the same
+        // clear-before-read the h2 handler uses. Clearing after the read would
+        // erase that edge and leave the socket "ready" forever.
+        if let Some(fd) = &self.fd_readiness {
+            fd.clear();
+        }
+
+        // Clear the self-wake latch the same way. A stream handle sets it while
+        // we work; the pending transmit is re-discovered by `pump_transmit` on
+        // the next pass, so clearing it here can never lose data.
+        self.driver_woken.set(false);
+
         // Ordering matters: feed the state machine before asking it for output.
         let recv = self.pump_recv(now);
         let timers = self.pump_timeouts(now);
@@ -456,9 +531,25 @@ impl TaskIterator for QuicDriver {
             return None;
         }
 
-        match &self.fd_readiness {
-            Some(fd) => Some(TaskStatus::Depends(Arc::clone(fd))),
-            None => Some(TaskStatus::Delayed(self.idle)),
+        // Park on the socket when one is injected; without one, fall back to a
+        // short poll so QUIC timers still fire. A parked driver must also wake
+        // for the next connection timer, so the socket readiness is composed
+        // with a deadline signal, exactly as the h2 handler does.
+        let Some(fd) = &self.fd_readiness else {
+            return Some(TaskStatus::Delayed(self.idle));
+        };
+        // Compose the socket edge, the next timer, and the stream-handle wake
+        // into one `Depends`: any of them may make the driver runnable.
+        let woken: EventReadinessPtr = Arc::new(self.driver_woken.clone());
+        match self.next_timeout() {
+            Some(deadline) => Some(TaskStatus::Depends(Arc::new(
+                AnyReadiness::either(Arc::clone(fd), Arc::new(DeadlinePassed(deadline)))
+                    .with(woken),
+            ))),
+            None => Some(TaskStatus::Depends(Arc::new(AnyReadiness::either(
+                Arc::clone(fd),
+                woken,
+            )))),
         }
     }
 }

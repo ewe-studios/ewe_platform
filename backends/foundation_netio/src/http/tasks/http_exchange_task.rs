@@ -37,7 +37,7 @@ use crate::native::readiness::IoInterest;
 use crate::shared::client::body_reader::{SendSafeBodyBytesItem, SendSafeBodyBytesIterator};
 use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
 use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver};
-use crate::shared::http::{HttpClientError, IncomingResponseParts, SendSafeBody};
+use crate::shared::http::{HttpClientError, IncomingResponseParts};
 
 type ChildReceiver<R> = foundation_core::valtron::DrivenRecvIterator<SendRequestTask<R>>;
 
@@ -53,11 +53,6 @@ struct BodyStream {
     >,
     /// Active chunk iterator for the current body payload.
     chunk_iter: Option<SendSafeBodyBytesIterator>,
-    /// Whether the active payload is framed (chunked, line or SSE). Framed
-    /// iterators buffer each frame themselves, capped by the body extractor's
-    /// `FrameLimits`, and report a would-block as `HttpReaderError::WouldBlock`.
-    /// Raw bodies (`Content-Length` or read-to-EOF) report it as `Data::Retry`.
-    framed: bool,
     /// Whether the socket is non-blocking (parks on readiness) or blocking
     /// (the transport cannot report readiness; kernel read timeouts apply).
     nonblocking: bool,
@@ -189,7 +184,6 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
             conn: Some(conn),
             body_reader,
             chunk_iter: None,
-            framed: false,
             nonblocking,
             idle: IdleDeadline::new(self.body_idle_timeout),
         }));
@@ -275,11 +269,9 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                     body.idle.progress();
                     return TaskStatus::Ready(HttpExchange::BodyChunk(bytes));
                 }
-                Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e)))
-                    if body.nonblocking && is_would_block(&*e) =>
-                {
-                    // A framed iterator found its next frame incomplete and
-                    // consumed nothing: park and call it again when readable.
+                Some(Stream::Wait) if body.nonblocking => {
+                    // The socket has nothing yet (any body kind): park and
+                    // call again when readable.
                     return self.park_body();
                 }
                 Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
@@ -293,10 +285,6 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                     let conn = body.conn.take().map(|c| (c, body.nonblocking));
                     return self.fail(se, conn);
                 }
-                Some(Stream::Ignore) if body.nonblocking && !body.framed => {
-                    // A raw body's `Data::Retry`: the socket would block.
-                    return self.park_body();
-                }
                 Some(Stream::Ignore) => {
                     // A non-data item (chunk end marker, trailers, a skipped
                     // line) — re-poll for the next.
@@ -306,7 +294,6 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 None => {
                     // This payload exhausted — drop iterator, try next part.
                     body.chunk_iter = None;
-                    body.framed = false;
                     return TaskStatus::Pending(HttpExchangePending::Waiting);
                 }
                 Some(_) => return TaskStatus::Pending(HttpExchangePending::Waiting),
@@ -319,12 +306,6 @@ impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
                 IncomingResponseParts::SizedBody(payload)
                 | IncomingResponseParts::StreamedBody(payload),
             )) => {
-                body.framed = matches!(
-                    payload,
-                    SendSafeBody::ChunkedStream(_)
-                        | SendSafeBody::LineFeedStream(_)
-                        | SendSafeBody::SseStream(_)
-                );
                 body.chunk_iter = Some(SendSafeBodyBytesIterator::new(payload));
                 TaskStatus::Pending(HttpExchangePending::Waiting)
             }
@@ -378,12 +359,3 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
     }
 }
 
-/// Whether a body iterator's error is the non-blocking "frame not complete yet"
-/// signal rather than a failure.
-fn is_would_block(err: &(dyn std::error::Error + 'static)) -> bool {
-    if let Some(reader) = err.downcast_ref::<crate::shared::http::HttpReaderError>() {
-        return reader.is_would_block();
-    }
-    err.downcast_ref::<std::io::Error>()
-        .is_some_and(|io| io.kind() == std::io::ErrorKind::WouldBlock)
-}

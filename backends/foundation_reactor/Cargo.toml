@@ -1,0 +1,55 @@
+[package]
+name = "foundation_reactor"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Shared I/O readiness reactor: epoll/kqueue/io_uring selector plus the Waker-capable readiness layer"
+keywords = ["io-uring", "epoll", "kqueue", "reactor", "readiness"]
+
+[lib]
+crate-type = ["rlib"]
+
+# The reactor drain-timeout config tests touch the process-global singleton, so
+# they live in their own test target (their own process). This mirrors how
+# foundation_nativeapis isolates its reactor tests.
+[[test]]
+name = "config"
+path = "tests/config/mod.rs"
+
+[dependencies]
+foundation_core = { path = "../foundation_core", version = "0.0.6" }
+tracing = { workspace = true }
+
+# Unix-only: libc for epoll/kqueue/eventfd syscalls.
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+# Windows-only: IOCP selector.
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_Storage_FileSystem",
+    "Win32_System_Console",
+    "Win32_System_IO",
+    "Win32_System_Threading",
+    "Win32_Foundation",
+    "Win32_Networking_WinSock",
+    "Win32_System_Memory",
+    "Win32_System_Pipes",
+    "Win32_Security",
+]}
+
+# io_uring completion backend (Linux only).
+[target.'cfg(target_os = "linux")'.dependencies]
+io-uring = { version = "0.7", optional = true }
+
+[features]
+# io_uring readiness + completion selectors (Linux only).
+uring = ["dep:io-uring"]
+
+default = []
+
+[lints]
+workspace = true

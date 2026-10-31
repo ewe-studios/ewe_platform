@@ -112,7 +112,7 @@ fn bw_e2e_full_lifecycle(containers: ContainerGroup) {
     block_on_future(async move { apply_schema(sdb.as_ref()).await }).expect("schema");
     let srv = KeychainServer::new(KeychainContext::new(store)).http_app()
         .server_with_config(&addr.to_string(), foundation_http::native::server::ServerConfig::defaults());
-    let sh = Arc::new(foundation_core::synca::OnSignal::new());
+    let sh = Arc::new(foundation_http::ShutdownSignal::new());
     std::thread::spawn(move || { srv.serve_with_listener(&listener, &sh); });
     std::thread::sleep(Duration::from_millis(300));
 

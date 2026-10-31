@@ -21,7 +21,7 @@ use std::sync::Arc;
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_netio::http::HttpConnectionPool;
@@ -45,7 +45,7 @@ const DEFAULT_BIND: &str = "0.0.0.0:80";
 pub struct ProxyServer {
     config: ProxyConfig,
     local_addr: SocketAddr,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     server_thread: Option<JoinHandle<()>>,
     health: Vec<HealthMonitor>,
     state: Arc<ProxyState>,
@@ -162,7 +162,7 @@ impl ProxyServer {
             Arc::new(H2ProxyHandler::new(Arc::clone(&proxy_state)));
         h2_app.route_any_h2("/*", h2_handler);
 
-        let shutdown = Arc::new(OnSignal::new());
+        let shutdown = Arc::new(ShutdownSignal::new());
         let use_tls = !matches!(config.ssl.provider, SslProvider::None);
         let mut server_config = ServerConfig::defaults().with_io(config.io_mode);
 
@@ -381,7 +381,7 @@ impl Drop for ProxyServer {
 /// and closes the connection.  No buffering, no keep-alive, no full HTTP parse.
 const REDIRECT_PORT: &str = "0.0.0.0:80";
 
-fn ssl_redirect_loop(listener: TcpListener, shutdown: &Arc<OnSignal>) {
+fn ssl_redirect_loop(listener: TcpListener, shutdown: &Arc<ShutdownSignal>) {
     let _ = listener.set_nonblocking(true);
     tracing::info!(addr = ?listener.local_addr(), "SSL redirect listening");
 
@@ -452,7 +452,7 @@ fn spawn_h3_server(
     h3_addr: &str,
     cert_pair: &crate::tls::CertPair,
     proxy_state: Arc<ProxyState>,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
 ) -> Result<SocketAddr, ProxyError> {
     let addr: SocketAddr = h3_addr
         .parse()

@@ -43,3 +43,18 @@ publish_timeout = "60m"
 name = "ewe_platform"
 # Its tag also triggers release.yaml, which builds and attaches the binaries.
 git_release_enable = true
+
+# `foundation_macros` expands to code that references `foundation_core` symbols
+# (`valtron::initialize_pool`, `valtron::initialize_current_thread`,
+# `valtron::__private::block_on_future`, `DEFAULT_TEST_SHUTDOWN_GRACE`, ...). A
+# change to those symbols breaks the macro's output for every consumer, so the
+# two crates must ship in lockstep: give them one version_group so release-plz
+# bumps them together and to the same version. See the "Publishing" section of
+# each crate's README.
+[[package]]
+name = "foundation_macros"
+version_group = "valtron"
+
+[[package]]
+name = "foundation_core"
+version_group = "valtron"

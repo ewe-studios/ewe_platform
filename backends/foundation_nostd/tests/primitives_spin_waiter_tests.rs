@@ -156,3 +156,24 @@ use foundation_nostd::primitives::spin_waiter::*;
         // Should complete quickly (no actual spinning for very short durations)
         assert!(elapsed < Duration::from_millis(10));
     }
+
+    /// WHY: Feature 09 fixed `wait()` rounding sub-millisecond durations to zero.
+    /// A 500 µs request must wait at least 500 µs, not return immediately.
+    /// WHAT: 100 waits of 500 µs, each measured to be at least 500 µs.
+    #[test]
+    fn spin_waiter_waits_at_least_sub_millisecond() {
+        // The embedded default (1 M iterations per ms) turns 500 µs into about
+        // 500 000 spins. In the unoptimized test profile that is well over
+        // 500 µs, so the lower bound is comfortable without a custom calibration.
+        let waiter = SpinWaiter::embedded();
+
+        for _ in 0..100 {
+            let start = Instant::now();
+            waiter.wait(Duration::from_micros(500));
+            let elapsed = start.elapsed();
+            assert!(
+                elapsed >= Duration::from_micros(500),
+                "500 µs wait returned after {elapsed:?}"
+            );
+        }
+    }

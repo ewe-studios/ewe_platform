@@ -393,3 +393,76 @@ fn idle_driver_without_readiness_falls_back_to_delayed() {
          spin the executor"
     );
 }
+
+#[test]
+fn queued_reset_wakes_a_driver_parked_on_readiness() {
+    use foundation_core::valtron::EventReadiness;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc;
+
+    /// A readiness signal we control, standing in for `RegisteredFd`.
+    struct Never(AtomicBool);
+    impl EventReadiness for Never {
+        fn is_ready(&self, _dur: Option<Duration>) -> bool {
+            self.0.load(Ordering::Acquire)
+        }
+    }
+
+    let server_cfg = server_config_from_pem(CERT_PEM, KEY_PEM).expect("server config");
+    let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
+    let readiness = Arc::new(Never(AtomicBool::new(false)));
+
+    let mut server = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg)
+        .expect("bind server")
+        .with_fd_readiness(readiness);
+    let addr: SocketAddr = server.local_addr().expect("local addr");
+    let (mut client, mut client_conn) =
+        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+
+    let mut server_conn = drive_until(&mut server, &mut client, |s, _| s.take_accepted())
+        .expect("server never accepted the connection");
+
+    // Give the server a bidirectional stream, so it has a write half to reset.
+    let mut client_stream = drive_until(&mut server, &mut client, |_, _| {
+        match client_conn.open_bidi() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("open_bidi failed: {e}"),
+            _ => None,
+        }
+    })
+    .expect("open_bidi");
+    write_all(&mut server, &mut client, &mut client_stream, b"x");
+
+    let mut server_stream = drive_until(&mut server, &mut client, |_, _| {
+        match server_conn.accept_bidi() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("accept_bidi failed: {e}"),
+            _ => None,
+        }
+    })
+    .expect("accept_bidi");
+    let _ = read_chunk(&mut server, &mut client, &mut server_stream);
+
+    // Drain the server until it has no work and parks. Each `next_status` clears
+    // the self-wake latch, so the captured park is genuinely idle.
+    let parked = loop {
+        match server.next_status(Ctx::new()) {
+            Some(TaskStatus::Depends(r)) => break r,
+            Some(_) => continue,
+            None => panic!("server driver ended unexpectedly"),
+        }
+    };
+    assert!(
+        !parked.is_ready(None),
+        "an idle server must be parked, not runnable"
+    );
+
+    // Queue a reset. Before the fix this left the driver parked: the RESET_STREAM
+    // was queued but nothing woke the driver, so it was never transmitted.
+    server_stream.reset(42);
+
+    assert!(
+        parked.is_ready(None),
+        "a queued reset must make the parked driver runnable"
+    );
+}

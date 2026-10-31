@@ -134,6 +134,23 @@ impl<T> SleepIterator<T> {
     }
 }
 
+/// Classify a sleep deadline against `now`.
+///
+/// Returns the time left as `Some(diff)` only when `diff` is strictly positive.
+/// Returns `None` when the deadline is in the past, is exactly `now`, or overflowed
+/// (`completed_at` is `None`). `None` means the sleep is done.
+pub fn remaining(
+    completed_at: Option<std::time::Instant>,
+    now: std::time::Instant,
+) -> Option<std::time::Duration> {
+    let diff = completed_at?.checked_duration_since(now)?;
+    if diff > std::time::Duration::ZERO {
+        Some(diff)
+    } else {
+        None
+    }
+}
+
 impl<T> DelayedIterator for SleepIterator<T> {
     type Item = T;
 
@@ -141,12 +158,10 @@ impl<T> DelayedIterator for SleepIterator<T> {
         self.2.as_ref()?;
 
         let now = std::time::Instant::now();
-        let result = match self.0.checked_add(self.1) {
-            Some(completed_at) => match completed_at.checked_duration_since(now) {
-                Some(diff) => Delayed::Pending(self.0, self.1, diff),
-                _ => Delayed::Done(self.2.take().expect("item should not be taken yet")),
-            },
-            _ => Delayed::Done(self.2.take().expect("item should not be taken yet")),
+        let completed_at = self.0.checked_add(self.1);
+        let result = match remaining(completed_at, now) {
+            Some(diff) => Delayed::Pending(self.0, self.1, diff),
+            None => Delayed::Done(self.2.take().expect("item should not be taken yet")),
         };
 
         Some(result)

@@ -14,15 +14,16 @@
 //! foundation_http's `Serve`. [`ServeTimeouts`] bounds how long it waits on a
 //! stalled peer.
 //!
-//! HOW: `serve` runs the dispatch future to completion on the calling thread
-//! (it is self-contained — the streaming path joins its own tasks
-//! cooperatively, Decision 08 — so it needs no executor pool) through a
-//! [`ConnIo`] driver. The socket is non-blocking: the request body is read
-//! as an async [`RequestBody`] and the response is written through an
-//! [`H1Sink`]; both wait on the socket through the driver when it would block.
-//! Whole responses (unary, errors) carry a `Content-Length`; a stream sends its
-//! head once the first frame exists, then each frame as an HTTP/1.1 chunk as
-//! soon as it is produced, then the terminating chunk.
+//! HOW: `serve` returns `ConnectionResult::Async` at once. The returned future
+//! owns the connection, an [`ConnIo`](super::conn_io::ConnIo) driver, the
+//! request and the handler, and runs `select(dispatch, hangup)` — the connection
+//! task parks on it while the call waits, so no worker is held. The socket is
+//! non-blocking: the request body is read as an async [`RequestBody`] and the
+//! response is written through an [`H1Sink`]; both wait on the socket through
+//! the driver when it would block. Whole responses (unary, errors) carry a
+//! `Content-Length`; a stream sends its head once the first frame exists, then
+//! each frame as an HTTP/1.1 chunk as soon as it is produced, then the
+//! terminating chunk.
 //!
 //! The driver also watches the socket for the client going away and enforces
 //! the call's deadline: either cancels the call's `Ctx`. A client that closes
@@ -49,6 +50,7 @@ use foundation_netio::shared::http::{
 };
 
 use super::conn_io::{ConnIo, IoReady};
+use crate::native::deadline_timer::ThreadTimer;
 use crate::shared::context::CancelSignal;
 use crate::shared::router::dispatch::{BodyReader, BodyStep};
 use crate::shared::router::{CallHooks, ConnectRpcHandler, RequestBody, ResponseSink};
@@ -125,90 +127,103 @@ impl ConnectRpcServe {
     }
 }
 
+/// The deadline timer for the HTTP/1.1 server path: valtron's process-wide timer
+/// thread, so the call's deadline wakes the future without a thread sleeping.
+static SERVE_TIMER: ThreadTimer = ThreadTimer;
+
 impl Serve for ConnectRpcServe {
     fn serve(
         &self,
         bag: Arc<ContextBag>,
         mut req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let io = match ConnIo::new(&conn) {
-            Ok(io) => io,
+            Ok(io) => Arc::new(io),
             Err(e) => {
                 tracing::error!(error = %e, "could not set up the connection driver; closing");
                 return ConnectionResult::Close(None);
             }
         };
         let body = req.body.take();
-        let drained = AtomicBool::new(matches!(body, None | Some(SendSafeBody::None)));
-        let body: RequestBody<'_> = Box::pin(H1Body {
+        let drained = Arc::new(AtomicBool::new(matches!(
+            body,
+            None | Some(SendSafeBody::None)
+        )));
+        let body: RequestBody<'static> = Box::pin(H1Body {
             reader: BodyReader::new(body),
-            io: &io,
+            io: Arc::clone(&io),
             timeout: self.timeouts.body_read,
             wait: None,
-            drained: &drained,
+            drained: Arc::clone(&drained),
         });
-        let mut sink = H1Sink {
-            conn: &mut conn,
-            io: &io,
+        let sink = H1Sink {
+            conn,
+            io: Arc::clone(&io),
             timeout: self.timeouts.write,
         };
         let cancel = CancelSignal::new();
-        let hooks = CallHooks::new(cancel.clone()).with_timer(&io);
-        let dispatch = std::pin::pin!(self.handler.dispatch_to(bag, req, body, &mut sink, hooks));
-        // Watch for the client going away while the call runs: nothing else
-        // reads the socket once the body is in, so without this a handler
-        // waiting on something other than the peer never learns of it.
-        let hangup = std::pin::pin!(async {
-            match io.hangup().await {
-                Ok(()) => {}
-                Err(e) => {
-                    // This transport cannot report it; the call still ends
-                    // when a read or write on the connection fails.
-                    tracing::debug!(error = %e, "cannot watch the connection for a hangup");
-                    std::future::pending::<()>().await;
+        let hooks = CallHooks::new(cancel.clone()).with_timer(&SERVE_TIMER);
+        let handler = Arc::clone(&self.handler);
+
+        let fut = async move {
+            let dispatch = handler.dispatch_to(bag, req, body, Box::new(sink), hooks);
+            // Watch for the client going away while the call runs: nothing else
+            // reads the socket once the body is in, so without this a handler
+            // waiting on something other than the peer never learns of it.
+            let hangup = Box::pin(async move {
+                match io.hangup().await {
+                    Ok(()) => {}
+                    Err(e) => {
+                        // This transport cannot report it; the call still ends
+                        // when a read or write on the connection fails.
+                        tracing::debug!(error = %e, "cannot watch the connection for a hangup");
+                        std::future::pending::<()>().await;
+                    }
+                }
+            });
+            match select(dispatch, hangup).await {
+                Either::Left((outcome, _)) => match outcome {
+                    // The next request starts where this body ends, so the
+                    // connection can only be reused once the body was read to
+                    // its end.
+                    Ok(()) if drained.load(Ordering::Acquire) => ConnectionResult::Keep,
+                    Ok(()) => {
+                        tracing::debug!(
+                            "the request body was not read to its end; closing the connection"
+                        );
+                        ConnectionResult::Close(None)
+                    }
+                    Err(e) => {
+                        tracing::debug!(error = %e, "writing the response failed; closing the connection");
+                        ConnectionResult::Close(None)
+                    }
+                },
+                Either::Right(((), _dispatch)) => {
+                    tracing::debug!("the client closed the connection; cancelling the call");
+                    cancel.cancel();
+                    ConnectionResult::Close(None)
                 }
             }
-        });
-        let outcome = match io.block_on(select(dispatch, hangup)) {
-            Either::Left((outcome, _)) => outcome,
-            Either::Right(((), _dispatch)) => {
-                tracing::debug!("the client closed the connection; cancelling the call");
-                cancel.cancel();
-                return ConnectionResult::Close(None);
-            }
         };
-        match outcome {
-            // The next request starts where this body ends, so the connection
-            // can only be reused once the body was read to its end.
-            Ok(()) if drained.load(Ordering::Acquire) => ConnectionResult::Keep,
-            Ok(()) => {
-                tracing::debug!(
-                    "the request body was not read to its end; closing the connection"
-                );
-                ConnectionResult::Close(None)
-            }
-            Err(e) => {
-                tracing::debug!(error = %e, "writing the response failed; closing the connection");
-                ConnectionResult::Close(None)
-            }
-        }
+
+        ConnectionResult::Async(Box::pin(fut))
     }
 }
 
 /// The request body as it arrives on the connection: reads what is there and
 /// waits for the socket when nothing is.
-struct H1Body<'a> {
+struct H1Body {
     reader: BodyReader,
-    io: &'a ConnIo,
+    io: Arc<ConnIo>,
     timeout: Duration,
     /// The wait in progress after the body reported `WouldBlock`.
-    wait: Option<IoReady<'a>>,
+    wait: Option<IoReady>,
     /// Set once the body has been read to its end.
-    drained: &'a AtomicBool,
+    drained: Arc<AtomicBool>,
 }
 
-impl futures::Stream for H1Body<'_> {
+impl futures::Stream for H1Body {
     type Item = io::Result<Bytes>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
@@ -242,13 +257,13 @@ impl futures::Stream for H1Body<'_> {
 
 /// Writes a dispatched response to an HTTP/1.1 connection, waiting for the
 /// socket when the peer is slow to read.
-struct H1Sink<'a> {
-    conn: &'a mut SharedByteBufferStream<RawStream>,
-    io: &'a ConnIo,
+struct H1Sink {
+    conn: SharedByteBufferStream<RawStream>,
+    io: Arc<ConnIo>,
     timeout: Duration,
 }
 
-impl H1Sink<'_> {
+impl H1Sink {
     async fn write_all(&mut self, mut buf: &[u8]) -> io::Result<()> {
         while !buf.is_empty() {
             match self.conn.write(buf) {
@@ -261,7 +276,7 @@ impl H1Sink<'_> {
                 Ok(n) => buf = &buf[n..],
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    self.io.ready(IoInterest::Writable, self.timeout).await?;
+                    IoReady::new(self.io.clone(), IoInterest::Writable, self.timeout).await?;
                 }
                 Err(e) => return Err(e),
             }
@@ -275,7 +290,7 @@ impl H1Sink<'_> {
                 Ok(()) => return Ok(()),
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    self.io.ready(IoInterest::Writable, self.timeout).await?;
+                    IoReady::new(self.io.clone(), IoInterest::Writable, self.timeout).await?;
                 }
                 Err(e) => return Err(e),
             }
@@ -337,7 +352,7 @@ impl H1Sink<'_> {
     }
 }
 
-impl ResponseSink for H1Sink<'_> {
+impl ResponseSink for H1Sink {
     fn whole(&mut self, response: SimpleOutgoingResponse) -> BoxFuture<'_, io::Result<()>> {
         Box::pin(self.write_whole(response))
     }

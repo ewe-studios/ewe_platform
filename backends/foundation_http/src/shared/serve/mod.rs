@@ -8,6 +8,8 @@
 
 #[cfg(not(target_family = "wasm"))]
 use std::sync::Arc;
+use std::future::Future;
+use std::pin::Pin;
 
 use foundation_netio::shared::http::{
     Http11, RenderHttp, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
@@ -53,6 +55,10 @@ impl From<ServeError> for ErrorTrace<ServeError> {
 // ---------------------------------------------------------------------------
 // ConnectionResult
 
+/// A handler's async continuation. It owns everything it needs (`'static`) and
+/// resolves to what the connection does next.
+pub type ServeFuture = Pin<Box<dyn Future<Output = ConnectionResult> + Send + 'static>>;
+
 /// Three outcomes telling the worker what to do after a handler runs.
 pub enum ConnectionResult {
     /// Handler wrote a response; connection kept alive for next request.
@@ -62,6 +68,9 @@ pub enum ConnectionResult {
     Take,
     /// Close the connection, optionally carrying an error for logging.
     Close(Option<ErrorTrace<ServeError>>),
+    /// The handler continues asynchronously. The connection task parks on the
+    /// future and applies its result (Keep / Take / Close) when it completes.
+    Async(ServeFuture),
 }
 
 // ---------------------------------------------------------------------------

@@ -20,6 +20,9 @@ use super::wake::{WakeResult, WakeableStream};
 pub struct StreamCollectFuture<SI: StreamIterator> {
     inner: Option<SI>,
     collected: Vec<SI::D>,
+    /// Whether the async consumer has announced itself to the stream (see
+    /// [`prime`]).
+    primed: bool,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -27,6 +30,7 @@ impl<SI: StreamIterator> StreamCollectFuture<SI> {
     pub fn new(iter: SI) -> Self {
         Self {
             inner: Some(iter),
+            primed: false,
             collected: Vec::new(),
         }
     }
@@ -43,6 +47,10 @@ where
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.get_mut();
         let iter = this.inner.as_mut().expect("polled after completion");
+        if !this.primed {
+            this.primed = true;
+            prime(iter, cx);
+        }
 
         loop {
             match iter.next() {
@@ -112,11 +120,17 @@ where
 /// Drives a [`StreamIterator`] until the first `Next(D)`, returning the value and remaining iterator.
 pub struct StreamReadyFuture<SI: StreamIterator> {
     inner: Option<SI>,
+    /// Whether the async consumer has announced itself to the stream (see
+    /// [`prime`]).
+    primed: bool,
 }
 
 impl<SI: StreamIterator> StreamReadyFuture<SI> {
     pub fn new(iter: SI) -> Self {
-        Self { inner: Some(iter) }
+        Self {
+            inner: Some(iter),
+            primed: false,
+        }
     }
 }
 
@@ -129,6 +143,10 @@ where
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.get_mut();
         let iter = this.inner.as_mut().expect("polled after completion");
+        if !this.primed {
+            this.primed = true;
+            prime(iter, cx);
+        }
 
         loop {
             match iter.next() {
@@ -196,11 +214,17 @@ where
 /// Drives a [`StreamIterator`] until the first `Pending(P)`, returning the context and remaining iterator.
 pub struct StreamPendingFuture<SI: StreamIterator> {
     inner: Option<SI>,
+    /// Whether the async consumer has announced itself to the stream (see
+    /// [`prime`]).
+    primed: bool,
 }
 
 impl<SI: StreamIterator> StreamPendingFuture<SI> {
     pub fn new(iter: SI) -> Self {
-        Self { inner: Some(iter) }
+        Self {
+            inner: Some(iter),
+            primed: false,
+        }
     }
 }
 
@@ -213,6 +237,10 @@ where
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.get_mut();
         let iter = this.inner.as_mut().expect("polled after completion");
+        if !this.primed {
+            this.primed = true;
+            prime(iter, cx);
+        }
 
         loop {
             match iter.next() {
@@ -328,11 +356,17 @@ where
 /// `Ready(None)` permanently.
 pub struct StreamParkingFutureStream<SI: StreamIterator> {
     inner: Option<SI>,
+    /// Whether the async consumer has announced itself to the stream (see
+    /// [`prime`]).
+    primed: bool,
 }
 
 impl<SI: StreamIterator> StreamParkingFutureStream<SI> {
     pub fn new(iter: SI) -> Self {
-        Self { inner: Some(iter) }
+        Self {
+            inner: Some(iter),
+            primed: false,
+        }
     }
 }
 
@@ -349,6 +383,10 @@ where
             Some(iter) => iter,
             None => return Poll::Ready(None),
         };
+        if !this.primed {
+            this.primed = true;
+            prime(iter, cx);
+        }
 
         loop {
             match iter.next() {
@@ -421,6 +459,9 @@ pub struct StreamNextStream<SI: StreamIterator> {
     /// `Done` payloads peeled from a single `Spread` item, surfaced one per poll
     /// before pulling more work from the inner iterator.
     spread: Vec<SI::D>,
+    /// Whether the async consumer has announced itself to the stream (see
+    /// [`prime`]).
+    primed: bool,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -428,6 +469,7 @@ impl<SI: StreamIterator> StreamNextStream<SI> {
     pub fn new(iter: SI) -> Self {
         Self {
             inner: Some(iter),
+            primed: false,
             spread: Vec::new(),
         }
     }
@@ -453,6 +495,10 @@ where
             Some(iter) => iter,
             None => return Poll::Ready(None),
         };
+        if !this.primed {
+            this.primed = true;
+            prime(iter, cx);
+        }
 
         loop {
             match iter.next() {
@@ -515,4 +561,15 @@ where
             }
         }
     }
+}
+
+/// Tell `iter` that an async consumer is pulling it, before the first pull:
+/// announce it down any combinators. A queue-backed stream then answers an
+/// empty pull with `Wait` at once, instead of blocking the polling thread for a
+/// timed wait first (it only learned of the async consumer from the first
+/// `wake`, after that blocking pull). The real wake is registered when a pull
+/// comes back empty, as before. `announce` registers no callback, so calling it
+/// here cannot leak on repeated polls.
+fn prime<SI: WakeableStream>(iter: &mut SI, _cx: &Context<'_>) {
+    iter.announce();
 }

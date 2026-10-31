@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{initialize_pool, valtron_test, Pipe, PipeReceiver, PipeSender, BlockingFutureExt};
 use foundation_http::native::server::{HttpServer, ServerConfig};
@@ -67,7 +67,7 @@ impl Serve for BodyEchoHandler {
 
 /// Owns the backend server's shutdown signal; stops the accept loop on drop.
 struct EchoBackend {
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
 }
 
 impl Drop for EchoBackend {
@@ -87,7 +87,7 @@ fn start_echo_backend() -> (u16, EchoBackend) {
     app.route_any::<BodyEchoHandler>("/*");
     let server = HttpServer::with_config(app, &bind_addr, ServerConfig::defaults());
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let thread_shutdown = Arc::clone(&shutdown);
     thread::spawn(move || {
         server.serve_with_listener(&listener, &thread_shutdown);
@@ -274,7 +274,7 @@ impl H2Serve for H2EchoHandler {
 }
 
 /// Start a real `foundation_http` H2-only echo backend on an ephemeral port.
-fn start_h2_backend(send_trailers: bool) -> (u16, Arc<Mutex<Observed>>, Arc<OnSignal>) {
+fn start_h2_backend(send_trailers: bool) -> (u16, Arc<Mutex<Observed>>, Arc<ShutdownSignal>) {
     let observed = Arc::new(Mutex::new(Observed::default()));
     let handler: Arc<dyn H2Serve> = Arc::new(H2EchoHandler {
         observed: Arc::clone(&observed),
@@ -288,7 +288,7 @@ fn start_h2_backend(send_trailers: bool) -> (u16, Arc<Mutex<Observed>>, Arc<OnSi
     let port = listener.local_addr().expect("h2 backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(app), &addr);
     thread::spawn(move || {
@@ -369,7 +369,7 @@ impl H2Serve for StreamingHandler {
 /// Start an H2 backend that streams a two-frame response, holding the second
 /// frame until the returned `release` sender fires. Returns the backend port,
 /// its shutdown signal, and the release sender.
-fn start_streaming_backend() -> (u16, Arc<OnSignal>, PipeSender<()>) {
+fn start_streaming_backend() -> (u16, Arc<ShutdownSignal>, PipeSender<()>) {
     let (release_tx, release_rx) = Pipe::<()>::new();
     let handler: Arc<dyn H2Serve> = Arc::new(StreamingHandler { release: release_rx });
     let mut app = HttpApp::new_h2_serve();
@@ -379,7 +379,7 @@ fn start_streaming_backend() -> (u16, Arc<OnSignal>, PipeSender<()>) {
     let port = listener.local_addr().expect("streaming h2 backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(app), &addr);
     thread::spawn(move || {

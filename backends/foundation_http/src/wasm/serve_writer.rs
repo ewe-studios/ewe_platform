@@ -58,6 +58,11 @@ pub fn handle_request_with_bag(
                 reason: "handler closed connection".into(),
             }.into()
         })),
+        // The wasm path is synchronous: it cannot drive an async continuation.
+        ConnectionResult::Async(_) => Err(ServeError::InternalError {
+            status: 500,
+            reason: "a handler returned ConnectionResult::Async, which the synchronous wasm path cannot drive".into(),
+        }.into()),
     }
 }
 

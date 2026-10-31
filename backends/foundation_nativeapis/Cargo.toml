@@ -14,6 +14,7 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.6", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.2", optional = true }
@@ -330,8 +331,11 @@ watcher-linux = ["poll"]
 watcher-macos = ["poll"]
 watcher-windows = ["poll"]
 
-# io_uring layer (Linux only)
-uring = ["dep:io-uring"]
+# io_uring layer (Linux only). Forwards to the reactor's `uring` feature: the
+# uring send path here delegates to `Reactor::submit_send*`, and imports
+# `foundation_reactor::{send_pool, poll::sys::unix::selector::{bufring,
+# uring_completion}}`, all of which are gated behind that feature.
+uring = ["dep:io-uring", "foundation_reactor/uring"]
 
 # Interprocess message bus (adapted from ipmb)
 ipc = ["dep:bincode", "dep:foundation_macros", "dep:serde_bytes", "dep:uuid", "dep:once_cell"]

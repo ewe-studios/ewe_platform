@@ -35,8 +35,8 @@ use foundation_netio::shared::client::body_reader::{
 };
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{
-    pushable_request_body, Proto, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders,
-    SimpleIncomingRequest, SimpleMethod, SimpleUrl,
+    pushable_request_body_with_readiness, Proto, RequestDescriptor, SendSafeBody, SimpleHeader,
+    SimpleHeaders, SimpleIncomingRequest, SimpleMethod, SimpleUrl, DEFAULT_PUSHABLE_DEPTH,
 };
 
 use foundation_http::native::serve::{BoxFuture, H2Serve};
@@ -183,7 +183,8 @@ fn forward_upstream(
     // client pulls as it renders the request. A dedicated feeder thread keeps the
     // producer (this pipe) and the consumer (the client's request renderer)
     // running concurrently.
-    let (pushable, body_stream) = pushable_request_body();
+    let (pushable, body_stream, readiness) =
+        pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
     let feeder = std::thread::spawn(move || {
         loop {
             match body.try_recv() {
@@ -209,7 +210,7 @@ fn forward_upstream(
     });
 
     let builder = match ClientRequestBuilder::<SystemDnsResolver>::new(method, &url) {
-        Ok(b) => b.headers(headers).body(body_stream),
+        Ok(b) => b.headers(headers).body(body_stream).with_body_readiness(readiness),
         Err(e) => {
             tracing::warn!(%url, "H2 build upstream request failed: {e}");
             let _ = blocking_send(tx, h2_status(502, true));

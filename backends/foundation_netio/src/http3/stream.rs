@@ -85,7 +85,14 @@ impl<R: QuicRecvStream> FramedRecv<R> {
     /// Refuse frames larger than `max` bytes.
     #[must_use]
     pub fn with_max_frame_size(mut self, max: usize) -> Self {
-        self.decoder = FrameDecoder::new().with_max_frame_size(max);
+        self.decoder = std::mem::take(&mut self.decoder).with_max_frame_size(max);
+        self
+    }
+
+    /// Yield DATA payload in pieces of at most `read_chunk` bytes.
+    #[must_use]
+    pub fn with_read_chunk(mut self, read_chunk: usize) -> Self {
+        self.decoder = std::mem::take(&mut self.decoder).with_read_chunk(read_chunk);
         self
     }
 

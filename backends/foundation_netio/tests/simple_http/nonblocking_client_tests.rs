@@ -21,7 +21,7 @@
 
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{mpsc, Arc};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -36,7 +36,7 @@ use foundation_netio::http::{HttpConnectionPool, HttpExchangeTask};
 use foundation_netio::shared::client::request_task::HttpExchange;
 use foundation_netio::shared::client::{ClientConfig, PreparedRequest, SystemDnsResolver};
 use foundation_netio::shared::http::{
-    pushable_request_body_with_depth, Extensions, SendSafeBody, SimpleHeader, SimpleHeaders,
+    pushable_request_body_with_readiness, Extensions, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleMethod, Status,
 };
 use futures_lite::StreamExt;
@@ -217,6 +217,7 @@ fn post(url: &str, body: SendSafeBody, length: Option<usize>) -> PreparedRequest
         headers,
         body,
         extensions: Extensions::new(),
+        body_readiness: None,
     }
 }
 
@@ -230,6 +231,45 @@ fn exchange(
 
 /// Drain an exchange's output into (status, body).
 fn collect(task: HttpExchangeTask<SystemDnsResolver>) -> (Status, Vec<u8>) {
+    let mut status = None;
+    let mut body = Vec::new();
+    for item in valtron::execute(task, None).expect("execute") {
+        match item {
+            Stream::Next(HttpExchange::Head { status: s, .. }) => status = Some(s),
+            Stream::Next(HttpExchange::BodyChunk(b)) => body.extend_from_slice(&b),
+            Stream::Next(HttpExchange::Failed(e)) => panic!("exchange failed: {e}"),
+            _ => {}
+        }
+    }
+    (status.expect("a response head"), body)
+}
+
+/// A `TaskIterator` wrapper that counts every `next_status` poll.
+///
+/// WHY: feature 05 §T4 pins "the writer parks on pipe readiness" by counting
+/// polls. The writer (`GetHttpRequestRedirectTask`) is driven inline through
+/// `HttpExchangeTask`, so counting the exchange's polls is an upper bound on the
+/// writer's polls — if the whole exchange polls under 20 times across three
+/// 300 ms producer stalls, the writer did not back-off or spin.
+struct Counting<T> {
+    inner: T,
+    polls: Arc<AtomicUsize>,
+}
+
+impl<T: TaskIterator> TaskIterator for Counting<T> {
+    type Ready = T::Ready;
+    type Pending = T::Pending;
+
+    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        self.polls.fetch_add(1, Ordering::SeqCst);
+        self.inner.next_status(ctx)
+    }
+}
+
+/// Drain a poll-counting exchange into (status, body), like [`collect`].
+fn collect_counting(
+    task: Counting<HttpExchangeTask<SystemDnsResolver>>,
+) -> (Status, Vec<u8>) {
     let mut status = None;
     let mut body = Vec::new();
     for item in valtron::execute(task, None).expect("execute") {
@@ -486,7 +526,7 @@ fn slow_streaming_request_body_is_delivered() {
     let (addr, seen) = serve_tcp(1, Continue::Immediately, Reply::Whole("got it"));
     let url = format!("http://127.0.0.1:{}/stream", addr.port());
 
-    let (pushable, body) = pushable_request_body_with_depth(4);
+    let (pushable, body, readiness) = pushable_request_body_with_readiness(4);
     let producer = thread::spawn(move || {
         for part in ["first ", "second ", "third"] {
             thread::sleep(Duration::from_millis(60));
@@ -495,8 +535,10 @@ fn slow_streaming_request_body_is_delivered() {
         pushable.close();
     });
 
+    let mut request = post(&url, body, None);
+    request.body_readiness = Some(readiness);
     let (status, reply) = collect(exchange(
-        post(&url, body, None),
+        request,
         Arc::new(HttpConnectionPool::default()),
         ClientConfig::default(),
     ));
@@ -562,6 +604,98 @@ async fn async_caller_through_future_adapters() {
         "async-driven POST took {:?}",
         started.elapsed()
     );
+}
+
+/// Feature 05 §T4: a slow pushable producer must park the writer on pipe
+/// readiness, not back off or spin. The producer pushes one chunk every 300 ms,
+/// three times, then closes. The exchange's poll count stays under 20 (the old
+/// back-off polled roughly 10 times per 300 ms stall); the server receives the
+/// bytes in order and the request completes.
+#[valtron_test(seed = 29_008, threads = 4, timeout = 60_000)]
+fn pushed_body_waits_without_polling() {
+    let (addr, seen) = serve_tcp(1, Continue::Immediately, Reply::Whole("ok"));
+    let url = format!("http://127.0.0.1:{}/stream", addr.port());
+
+    let (pushable, body, readiness) = pushable_request_body_with_readiness(4);
+    let polls = Arc::new(AtomicUsize::new(0));
+
+    let producer = thread::spawn(move || {
+        for part in ["one", "two", "three"] {
+            thread::sleep(Duration::from_millis(300));
+            pushable.try_push(Bytes::from(part)).expect("push");
+        }
+        pushable.close();
+    });
+
+    let mut request = post(&url, body, None);
+    request.body_readiness = Some(readiness);
+    let task = exchange(
+        request,
+        Arc::new(HttpConnectionPool::default()),
+        ClientConfig::default(),
+    );
+    let (status, reply) = collect_counting(Counting {
+        inner: task,
+        polls: polls.clone(),
+    });
+
+    producer.join().expect("producer");
+
+    assert_eq!(status, Status::OK);
+    assert_eq!(reply, b"ok");
+    let s = seen
+        .recv_timeout(Duration::from_secs(5))
+        .expect("server report");
+    assert!(s.head.contains("transfer-encoding: chunked"));
+    let raw = String::from_utf8_lossy(&s.body);
+    let one = raw.find("one").expect("one chunk");
+    let two = raw.find("two").expect("two chunk");
+    let three = raw.find("three").expect("three chunk");
+    assert!(one < two && two < three, "chunks out of order: {raw:?}");
+    assert!(raw.ends_with("0\r\n\r\n"), "no chunked terminator: {raw:?}");
+    let polled = polls.load(Ordering::SeqCst);
+    assert!(
+        polled < 20,
+        "exchange polled {polled} times; the writer must park on pipe readiness, not back off"
+    );
+}
+
+/// Feature 05 §T4: a producer dropped without `close` ends the body cleanly.
+///
+/// Dropping the last `PipeSender` closes the pipe (EOF), so the renderer emits
+/// the chunked terminator and the request completes. The feature spec called
+/// this `pushed_body_producer_drop_fails_the_request`, but today's code ends the
+/// body instead of failing — drop and `close` are equivalent at the pipe layer —
+/// and we keep that behaviour.
+#[valtron_test(seed = 29_009, threads = 4, timeout = 60_000)]
+fn pushed_body_producer_drop_ends_the_body() {
+    let (addr, seen) = serve_tcp(1, Continue::Immediately, Reply::Whole("done"));
+    let url = format!("http://127.0.0.1:{}/drop", addr.port());
+
+    let (pushable, body, readiness) = pushable_request_body_with_readiness(4);
+    pushable.try_push(Bytes::from_static(b"head")).expect("push");
+    pushable.try_push(Bytes::from_static(b"tail")).expect("push");
+    drop(pushable); // no close()
+
+    let mut request = post(&url, body, None);
+    request.body_readiness = Some(readiness);
+    let (status, reply) = collect(exchange(
+        request,
+        Arc::new(HttpConnectionPool::default()),
+        ClientConfig::default(),
+    ));
+
+    assert_eq!(status, Status::OK);
+    assert_eq!(reply, b"done");
+    let s = seen
+        .recv_timeout(Duration::from_secs(5))
+        .expect("server report");
+    let raw = String::from_utf8_lossy(&s.body);
+    assert!(
+        raw.contains("head") && raw.contains("tail"),
+        "dropped-producer body incomplete: {raw:?}"
+    );
+    assert!(raw.ends_with("0\r\n\r\n"), "no chunked terminator: {raw:?}");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

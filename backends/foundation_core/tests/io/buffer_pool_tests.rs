@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use foundation_core::io::buffer_pool::{BytesPool, PooledBuffer};
+use foundation_core::io::buffer_pool::{BytesPool, BytesPoolConfig, PoolStatsSnapshot, PooledBuffer};
 
 #[test]
 /// WHY: Pool should reuse buffers to reduce allocations
@@ -156,4 +156,102 @@ fn test_acquire_with_capacity() {
 
     let buf = pool.acquire_with_capacity(4096);
     assert!(buf.capacity() >= 4096);
+}
+
+/// WHY: Feature 09 bounds pooled buffer size. A returned buffer larger than
+/// `max_buffer_size` must be dropped, not pooled, so a pool never retains one
+/// giant buffer.
+/// WHAT: Grow a pooled buffer past the cap and drop it; the pool stays empty.
+#[test]
+fn bytes_pool_drops_oversized_buffers() {
+    let config = BytesPoolConfig::new().with_max_buffer_size(128);
+    let pool = Arc::new(BytesPool::with_config(64, 1, config));
+
+    // Pre-allocated buffer is a hit; grow it past the 128-byte cap.
+    let mut buf = pool.acquire();
+    assert_eq!(pool.stats().pool_hits, 1);
+    buf.resize(256, 0);
+    drop(buf);
+
+    // The oversized buffer was dropped, so the pool is empty: the next acquire
+    // is an allocation, not a hit.
+    let _buf2 = pool.acquire();
+    let stats = pool.stats();
+    assert_eq!(stats.pool_hits, 1, "oversized buffer must not be pooled");
+    assert_eq!(stats.allocations, 1, "re-acquire after a drop is an allocation");
+}
+
+/// WHY: Feature 09 caps how many buffers a pool keeps. A buffer returned past
+/// `max_pooled_buffers` must be dropped, not queued.
+/// WHAT: Return 4 buffers into a pool capped at 2; only 2 come back as hits.
+#[test]
+fn bytes_pool_caps_pooled_count() {
+    let config = BytesPoolConfig::new().with_max_pooled_buffers(2);
+    let pool = Arc::new(BytesPool::with_config(64, 0, config));
+
+    // Allocate and return 4 buffers (all allocations; no pre-alloc).
+    let bufs: Vec<_> = (0..4).map(|_| pool.acquire()).collect();
+    drop(bufs);
+
+    // Acquire 4 more. Only the 2 buffers that fit the cap are hits.
+    let _b1 = pool.acquire();
+    let _b2 = pool.acquire();
+    let _b3 = pool.acquire();
+    let _b4 = pool.acquire();
+
+    let stats = pool.stats();
+    assert_eq!(stats.pool_hits, 2, "only 2 buffers may be pooled");
+    assert_eq!(stats.allocations, 6, "4 originals + 2 re-allocations");
+}
+
+/// WHY: Feature 09 fixes `acquire_with_capacity` double-counting a too-small
+/// pooled buffer as both a hit and an allocation. One acquire counts one
+/// outcome: a hit only when the pooled buffer is used as-is, otherwise a miss
+/// plus one allocation.
+#[test]
+fn bytes_pool_counts_one_outcome_per_acquire() {
+    // Too-small: the pooled buffer is returned and a larger one is allocated.
+    // This is one miss + one allocation, NOT a hit + an allocation.
+    let pool = Arc::new(BytesPool::with_config(64, 1, BytesPoolConfig::new()));
+    let buf = pool.acquire_with_capacity(4096);
+    assert!(buf.capacity() >= 4096);
+    let stats = pool.stats();
+    assert_eq!(stats.pool_hits, 0, "too-small buffer must not count as a hit");
+    assert_eq!(stats.allocations, 1, "too-small buffer is one allocation");
+
+    // Large-enough: the pooled buffer is used as-is. One hit, no allocation.
+    let pool = Arc::new(BytesPool::with_config(1024, 1, BytesPoolConfig::new()));
+    let buf = pool.acquire_with_capacity(256);
+    assert!(buf.capacity() >= 256);
+    let stats = pool.stats();
+    assert_eq!(stats.pool_hits, 1, "large-enough buffer is one hit");
+    assert_eq!(stats.allocations, 0, "a hit allocates nothing");
+}
+
+/// WHY: Feature 09 makes `PooledBuffer::owned` hold no pool. It must report an
+/// empty stats snapshot and return nothing on drop.
+#[test]
+fn owned_buffer_has_no_pool() {
+    let owned = PooledBuffer::owned(vec![1, 2, 3]);
+    let stats = owned.pool_stats();
+    assert_eq!(stats, PoolStatsSnapshot::default());
+    assert_eq!(stats.allocations, 0);
+    assert_eq!(stats.pool_hits, 0);
+}
+
+/// WHY: Feature 09 adds `Debug` to `PooledBuffer` that shows length and
+/// capacity, never the payload bytes (which may be a multi-GB body).
+#[test]
+fn pooled_buffer_debug_shows_len_and_capacity() {
+    let pool = Arc::new(BytesPool::new(1024, 1));
+    let mut buf = pool.acquire();
+    buf.extend_from_slice(b"hello");
+
+    let debug = format!("{buf:?}");
+    assert!(debug.contains("len: 5"), "debug shows length, got {debug}");
+    assert!(
+        debug.contains("capacity: 1024"),
+        "debug shows capacity, got {debug}"
+    );
+    assert!(!debug.contains("hello"), "debug must not dump bytes, got {debug}");
 }

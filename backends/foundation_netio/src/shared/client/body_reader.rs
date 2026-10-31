@@ -10,19 +10,23 @@
 //!
 //! # Example Usage
 //!
-//! ```rust,ignore
-//! // Strict error handling - caller decides what to do
-//! match collect_bytes_strict(stream) {
-//!     Ok(bytes) => process(bytes),
-//!     Err(BodyReaderError::NoBody) => handle_no_body(),
-//!     Err(BodyReaderError::StreamRead(e)) => handle_error(e),
+//! ```rust
+//! use foundation_netio::shared::client::body_reader::{collect_bytes, collect_bytes_strict};
+//! use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+//!
+//! fn body_stream(
+//!     body: SendSafeBody,
+//! ) -> Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> {
+//!     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(body))))
 //! }
 //!
-//! // Graceful degradation - errors logged, empty result on failure
-//! let bytes = collect_bytes(stream);
-//! if bytes.is_empty() {
-//!     // Check logs for error details
-//! }
+//! // Strict error handling - the caller decides what to do.
+//! let bytes = collect_bytes_strict(body_stream(SendSafeBody::Text("hello".into()))).unwrap();
+//! assert_eq!(bytes, b"hello".to_vec());
+//!
+//! // Graceful degradation - errors are logged and an empty result is returned.
+//! let bytes = collect_bytes(body_stream(SendSafeBody::Text("hello".into())));
+//! assert_eq!(bytes, b"hello".to_vec());
 //! ```
 
 use crate::event_source::shared::ParseResult;
@@ -167,14 +171,16 @@ pub enum ProcessStreamResult {
 ///
 /// # Examples
 ///
-/// ```rust,ignore,ignore
-/// // Strict error handling
-/// match collect_string_strict(stream) {
-///     Ok(body) => process(body),
-///     Err(StringBodyError::NoBody) => handle_no_body(),
-///     Err(StringBodyError::StreamRead(e)) => handle_error(e),
-///     Err(StringBodyError::InvalidUtf8(e)) => handle_utf8_error(e),
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_string_strict;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text("hello".into()),
+///     ))));
+///
+/// assert_eq!(collect_string_strict(stream).unwrap(), "hello");
 /// ```
 ///
 /// # Errors
@@ -292,12 +298,16 @@ pub fn collect_string_strict(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Simple usage - errors logged, empty string returned on failure
-/// let body = collect_string(stream);
-/// if body.is_empty() {
-///     // Check logs for error details
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_string;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text("hello".into()),
+///     ))));
+///
+/// assert_eq!(collect_string(stream), "hello");
 /// ```
 pub fn collect_string(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
@@ -429,13 +439,16 @@ pub fn drain_stream_iterator(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Strict error handling for binary data
-/// match collect_bytes_strict(stream) {
-///     Ok(bytes) => save_to_file(bytes),
-///     Err(BodyReaderError::NoBody) => handle_no_body(),
-///     Err(BodyReaderError::StreamRead(e)) => handle_error(e),
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_bytes_strict;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Bytes(b"hello".to_vec()),
+///     ))));
+///
+/// assert_eq!(collect_bytes_strict(stream).unwrap(), b"hello".to_vec());
 /// ```
 ///
 /// # Errors
@@ -548,12 +561,16 @@ pub fn collect_bytes_strict(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Simple usage - errors logged, empty vec returned on failure
-/// let bytes = collect_bytes(stream);
-/// if bytes.is_empty() {
-///     // Check logs for error details
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_bytes;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Bytes(b"hello".to_vec()),
+///     ))));
+///
+/// assert_eq!(collect_bytes(stream), b"hello".to_vec());
 /// ```
 pub fn collect_bytes(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
@@ -587,24 +604,16 @@ pub fn collect_bytes(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Download an image
-/// let task = SendRequestTask::new(request, 5, pool, config)
-///     .map_ready(|intro| {
-///         match intro {
-///             RequestIntro::Success { stream, .. } => {
-///                 collect_bytes_direct(stream)
-///             }
-///             RequestIntro::Failed(_) => Vec::new(),
-///         }
-///     });
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_bytes_direct;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
 ///
-/// let mut result_stream = execute(task, None)?;
-/// for item in result_stream {
-///     if let Stream::Next(image_bytes) = item {
-///         std::fs::write("download.png", &image_bytes)?;
-///     }
-/// }
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Bytes(b"image-bytes".to_vec()),
+///     ))));
+///
+/// assert_eq!(collect_bytes_direct(stream), b"image-bytes".to_vec());
 /// ```
 pub fn collect_bytes_direct(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
@@ -702,9 +711,9 @@ pub fn collect_bytes_direct(
 // ============================================================================
 
 /// Process a stream iterator, collecting bytes into a Vec.
-/// Used internally by `collect_bytes_from_send_safe` for Stream variant.
 /// Handles Data-exposing iterators by wrapping with `DataBytesIterator`.
-fn collect_from_stream<I>(iter: I) -> Vec<u8>
+#[must_use]
+pub fn collect_from_stream<I>(iter: I) -> Vec<u8>
 where
     I: Iterator<Item = Result<Data, BoxedError>>,
 {
@@ -722,8 +731,8 @@ where
 }
 
 /// Process a chunked stream iterator, collecting bytes into a Vec.
-/// Used internally by `collect_bytes_from_send_safe` for `ChunkedStream` variant.
-fn collect_from_chunked_stream<I>(iter: I) -> Vec<u8>
+#[must_use]
+pub fn collect_from_chunked_stream<I>(iter: I) -> Vec<u8>
 where
     I: Iterator<Item = Result<ChunkedData, BoxedError>>,
 {
@@ -747,8 +756,8 @@ where
 }
 
 /// Process a line-feed stream iterator, collecting bytes into a Vec.
-/// Used internally by `collect_bytes_from_send_safe` for `LineFeedStream` variant.
-fn collect_from_linefeed_stream<I>(iter: I) -> Vec<u8>
+#[must_use]
+pub fn collect_from_linefeed_stream<I>(iter: I) -> Vec<u8>
 where
     I: Iterator<Item = Result<LineFeed, BoxedError>>,
 {
@@ -835,7 +844,8 @@ where
 /// Process a stream iterator, writing bytes to a writer.
 /// Returns total bytes written or first error encountered.
 /// Handles Data-exposing iterators by wrapping with `DataBytesIterator`.
-fn write_from_stream<I, W>(
+#[must_use]
+pub fn write_from_stream<I, W>(
     iter: I,
     writer: &mut W,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>>
@@ -860,7 +870,8 @@ where
 
 /// Process a chunked stream iterator, writing bytes to a writer.
 /// Returns total bytes written or first error encountered.
-fn write_from_chunked_stream<I, W>(
+#[must_use]
+pub fn write_from_chunked_stream<I, W>(
     iter: I,
     writer: &mut W,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>>
@@ -889,7 +900,8 @@ where
 
 /// Process a line-feed stream iterator, writing bytes to a writer.
 /// Returns total bytes written or first error encountered.
-fn write_from_linefeed_stream<I, W>(
+#[must_use]
+pub fn write_from_linefeed_stream<I, W>(
     iter: I,
     writer: &mut W,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>>
@@ -939,9 +951,12 @@ where
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// let response = client.get(url).send()?;
-/// let bytes = collect_bytes_from_send_safe(response.take_body());
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+/// use foundation_netio::shared::http::SendSafeBody;
+///
+/// let bytes = collect_bytes_from_send_safe(SendSafeBody::Text("hello".into()));
+/// assert_eq!(bytes, b"hello".to_vec());
 /// ```
 #[tracing::instrument]
 pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
@@ -992,9 +1007,12 @@ pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// let response = client.get(url).send()?;
-/// let bytes = collect_bytes_from_send_safe(response.take_body());
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_strings_from_send_safe;
+/// use foundation_netio::shared::http::SendSafeBody;
+///
+/// let text = collect_strings_from_send_safe(SendSafeBody::Text("hello".into())).unwrap();
+/// assert_eq!(text, "hello");
 /// ```
 ///
 /// # Errors
@@ -1031,12 +1049,14 @@ pub fn collect_strings_from_send_safe(body: SendSafeBody) -> Result<String, Stri
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Download directly to file
-/// let response = client.get(url).send()?;
-/// let (_, _, body, ..) = response.into_parts();
-/// let mut file = std::fs::File::create("download.bin")?;
-/// let bytes_written = collect_bytes_into(body, &mut file)?;
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::collect_bytes_into;
+/// use foundation_netio::shared::http::SendSafeBody;
+///
+/// let mut out = Vec::new();
+/// let written = collect_bytes_into(SendSafeBody::Text("hello".into()), &mut out).unwrap();
+/// assert_eq!(written, 5);
+/// assert_eq!(out, b"hello".to_vec());
 /// ```
 ///
 /// # Errors
@@ -1118,13 +1138,17 @@ pub fn collect_bytes_into<W: std::io::Write>(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Strict error handling
-/// match parse_json_strict::<ApiResponse>(stream) {
-///     Ok(response) => process(response),
-///     Err(JsonParseError::BodyRead(e)) => handle_read_error(e),
-///     Err(JsonParseError::JsonParse(e)) => handle_parse_error(e),
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::parse_json_strict;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text(r#"{"hello": "world"}"#.into()),
+///     ))));
+///
+/// let value: serde_json::Value = parse_json_strict(stream).unwrap();
+/// assert_eq!(value["hello"], "world");
 /// ```
 ///
 /// # Errors
@@ -1160,13 +1184,17 @@ pub fn parse_json_strict<T: DeserializeOwned>(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Simple usage - errors logged, None returned on failure
-/// if let Some(response) = parse_json::<ApiResponse>(stream) {
-///     println!("Got {} items", response.items.len());
-/// } else {
-///     // Check logs for error details
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::parse_json;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text(r#"{"hello": "world"}"#.into()),
+///     ))));
+///
+/// let value: serde_json::Value = parse_json(stream).unwrap();
+/// assert_eq!(value["hello"], "world");
 /// ```
 pub fn parse_json<T: DeserializeOwned>(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
@@ -1196,27 +1224,32 @@ pub fn parse_json<T: DeserializeOwned>(
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// use foundation_netio::wire::simple_http::client::body_reader::ResponseParser;
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::ResponseParser;
 ///
 /// #[derive(serde::Deserialize)]
 /// struct ApiResponse {
-///     data: Vec<Item>,
+///     data: Vec<String>,
 /// }
 ///
 /// impl ResponseParser for ApiResponse {
-///     type Output = Vec<Item>;
+///     type Output = Vec<String>;
 ///
 ///     fn parse(body: &str, source: &str) -> Self::Output {
 ///         match serde_json::from_str::<Self>(body) {
 ///             Ok(response) => response.data,
 ///             Err(e) => {
-///                 tracing::error!("Failed to parse {source}: {e}");
+///                 eprintln!("failed to parse {source}: {e}");
 ///                 Vec::new()
 ///             }
 ///         }
 ///     }
 /// }
+///
+/// assert_eq!(
+///     ApiResponse::parse(r#"{"data":["a","b"]}"#, "example"),
+///     vec!["a".to_string(), "b".to_string()]
+/// );
 /// ```
 pub trait ResponseParser: Sized {
     /// The output type after parsing.
@@ -1253,12 +1286,12 @@ pub trait ResponseParser: Sized {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// if let Some(data) = parse_json::<MyType>(&body, "api.example.com") {
-///     // Process parsed data
-/// } else {
-///     // Handle parse failure (already logged)
-/// }
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::parse_json_str;
+///
+/// let data: serde_json::Value =
+///     parse_json_str(r#"{"hello": "world"}"#, "api.example.com").unwrap();
+/// assert_eq!(data["hello"], "world");
 /// ```
 pub fn parse_json_str<T: DeserializeOwned>(body: &str, source: &str) -> Option<T> {
     match serde_json::from_str::<T>(body) {
@@ -1292,12 +1325,20 @@ pub fn parse_json_str<T: DeserializeOwned>(body: &str, source: &str) -> Option<T
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// let config = parse_with_fallback(
-///     &body,
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::parse_with_fallback;
+///
+/// let value: serde_json::Value = parse_with_fallback(
+///     r#"{"hello": "world"}"#,
 ///     "config-api",
-///     || Config::default(),
+///     || serde_json::Value::Null,
 /// );
+/// assert_eq!(value["hello"], "world");
+///
+/// // A malformed body falls back to the default value.
+/// let value: serde_json::Value =
+///     parse_with_fallback("not-json", "config-api", || serde_json::Value::Null);
+/// assert!(value.is_null());
 /// ```
 pub fn parse_with_fallback<T, F>(body: &str, source: &str, fallback: F) -> T
 where
@@ -1340,17 +1381,23 @@ where
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Strict error handling
-/// match process_streaming_body_strict(stream, |chunk| {
-///     println!("Received {} bytes", chunk.len());
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::{
+///     process_streaming_body_strict, ProcessStreamResult,
+/// };
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text("hello".into()),
+///     ))));
+///
+/// let result = process_streaming_body_strict(stream, |chunk| {
+///     assert_eq!(chunk, b"hello");
 ///     true // Continue
-/// }) {
-///     Ok(ProcessStreamResult::Completed) => println!("Done"),
-///     Ok(ProcessStreamResult::StoppedByCallback) => println!("Stopped early"),
-///     Ok(ProcessStreamResult::NoBody) => println!("No body"),
-///     Err(BodyReaderError::StreamRead(e)) => handle_error(e),
-/// }
+/// })
+/// .unwrap();
+/// assert_eq!(result, ProcessStreamResult::Completed);
 /// ```
 ///
 /// # Errors
@@ -1500,16 +1547,19 @@ where
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// // Simple usage - errors logged, false returned on failure
-/// if process_streaming_body(stream, |chunk| {
-///     println!("Received {} bytes", chunk.len());
+/// ```rust
+/// use foundation_netio::shared::client::body_reader::process_streaming_body;
+/// use foundation_netio::shared::http::{HttpReaderError, IncomingResponseParts, SendSafeBody};
+///
+/// let stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send> =
+///     Box::new(std::iter::once(Ok(IncomingResponseParts::SizedBody(
+///         SendSafeBody::Text("hello".into()),
+///     ))));
+///
+/// assert!(process_streaming_body(stream, |chunk| {
+///     assert_eq!(chunk, b"hello");
 ///     true // Continue
-/// }) {
-///     println!("Processing complete");
-/// } else {
-///     // Check logs for error details
-/// }
+/// }));
 /// ```
 pub fn process_streaming_body<F>(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
@@ -1713,12 +1763,28 @@ pub enum SendSafeBodyBytesItem {
 /// pumps need a chunk-at-a-time iterator wrapping any `SendSafeBody` variant.
 ///
 /// WHAT: Wraps a `SendSafeBody` and yields `Stream<SendSafeBodyBytesItem, ()>`:
-/// `Next(Bytes)` per data chunk, `Next(Error)` for stream errors, `Ignore` for
-/// transient non-data items, `None` when exhausted. All six variants handled.
+/// `Next(Bytes)` per data chunk, `Next(Error)` for stream errors, `Wait` when
+/// the transport has nothing yet (a non-blocking socket's `WouldBlock`, for
+/// every body kind), `Ignore` for bookkeeping items (a chunk-end marker,
+/// trailers, a skipped line or SSE comment), `None` when exhausted. All six
+/// variants handled. (A sized body's "not ready" used to come out as `Ignore`
+/// and a framed body's as a `StreamError`, so callers could not tell waiting
+/// from bookkeeping or failure.)
 ///
 /// HOW: Takes ownership of the `SendSafeBody` — the body IS the state. On each
 /// `next()` call, matches the current variant and extracts the next chunk.
 pub struct SendSafeBodyBytesIterator(SendSafeBody);
+
+/// Whether a body-reading error means "nothing yet" (`WouldBlock`), not a
+/// failure: an `io::Error` of that kind, or a reader error that wraps one.
+#[must_use]
+pub fn is_would_block(err: &(dyn std::error::Error + 'static)) -> bool {
+    if let Some(reader) = err.downcast_ref::<crate::shared::http::HttpReaderError>() {
+        return reader.is_would_block();
+    }
+    err.downcast_ref::<std::io::Error>()
+        .is_some_and(|io| io.kind() == std::io::ErrorKind::WouldBlock)
+}
 
 impl SendSafeBodyBytesIterator {
     /// Wrap a `SendSafeBody`. Takes ownership — the body cannot be read again.
@@ -1755,7 +1821,8 @@ impl Iterator for SendSafeBodyBytesIterator {
             SendSafeBody::Stream(ref mut opt) => match opt {
                 Some(iter) => match iter.next() {
                     Some(Ok(Data::Bytes(bytes))) => Some(Stream::Next(item(Bytes::from(bytes)))),
-                    Some(Ok(Data::Retry)) => Some(Stream::Ignore),
+                    Some(Ok(Data::Retry)) => Some(Stream::Wait),
+                    Some(Err(e)) if is_would_block(&*e) => Some(Stream::Wait),
                     Some(Err(e)) => Some(Stream::Next(err_item(e))),
                     None => None,
                 },
@@ -1767,6 +1834,7 @@ impl Iterator for SendSafeBodyBytesIterator {
                         ChunkedData::Data(bytes, _) => Some(Stream::Next(item(Bytes::from(bytes)))),
                         ChunkedData::Trailers(_) | ChunkedData::DataEnded => Some(Stream::Ignore),
                     },
+                    Some(Err(e)) if is_would_block(&*e) => Some(Stream::Wait),
                     Some(Err(e)) => Some(Stream::Next(err_item(e))),
                     None => None,
                 },
@@ -1782,6 +1850,7 @@ impl Iterator for SendSafeBodyBytesIterator {
                         }
                         LineFeed::SKIP | LineFeed::END => Some(Stream::Ignore),
                     },
+                    Some(Err(e)) if is_would_block(&*e) => Some(Stream::Wait),
                     Some(Err(e)) => Some(Stream::Next(err_item(e))),
                     None => None,
                 },
@@ -1793,6 +1862,7 @@ impl Iterator for SendSafeBodyBytesIterator {
                         Event::Message { data, .. } => Some(Stream::Next(item(Bytes::from(data)))),
                         Event::Comment(_) | Event::Reconnect => Some(Stream::Ignore),
                     },
+                    Some(Err(e)) if is_would_block(&*e) => Some(Stream::Wait),
                     Some(Err(e)) => Some(Stream::Next(err_item(e))),
                     None => None,
                 },
@@ -1810,6 +1880,10 @@ use core::pin::Pin;
 use core::task::{Context, Poll};
 use futures_core::Stream as FuturesStream;
 
+/// Registers `waker` to be woken when the body's connection becomes readable.
+/// Returns `false` when the transport cannot report readiness.
+pub type ReadWakeSource = Arc<dyn Fn(&core::task::Waker) -> bool + Send + Sync>;
+
 /// Async stream that reads body bytes from a `SendSafeBody`.
 ///
 /// - `Text` / `Bytes` → yields one chunk then ends.
@@ -1817,11 +1891,17 @@ use futures_core::Stream as FuturesStream;
 ///   chunk from the inner iterator.
 /// - `None` → yields nothing.
 ///
-/// Since the inner iterators are synchronous, each poll returns `Poll::Ready`.
-/// The wrapper implements `futures_core::Stream` so it integrates with
-/// `.collect().await`, `StreamExt`, etc.
+/// The inner iterators are synchronous, so a poll returns `Poll::Ready` when it
+/// has data, and parks when the socket has nothing yet. A body built from a real
+/// connection carries a [`ReadWakeSource`] (see [`AsyncSendSafeBody::with_read_wake`]).
+/// On a "nothing yet" item the source registers the waker, the iterator is pulled
+/// once more, and only then does the stream return `Poll::Pending`, so no wake is
+/// lost. Without a source the stream falls back to a self-wake and logs once at
+/// `debug`.
 pub struct AsyncSendSafeBody {
     inner: SendSafeBodyState,
+    read_wake: Option<ReadWakeSource>,
+    logged_no_source: bool,
 }
 
 enum SendSafeBodyState {
@@ -1832,6 +1912,50 @@ enum SendSafeBodyState {
     ChunkedStream(BoxedSendableIterator<ChunkedData, SendableBoxedError>),
     LineFeedStream(BoxedSendableIterator<LineFeed, SendableBoxedError>),
     SseStream(BoxedSendableIterator<crate::event_source::ParseResult, SendableBoxedError>),
+}
+
+/// What a "nothing yet" item should do after the waker is registered.
+enum WaitAction {
+    /// The waker is registered: pull the iterator once more before parking.
+    Repoll,
+    /// No usable source (or the second empty pull): park.
+    Park,
+}
+
+impl AsyncSendSafeBody {
+    /// Attach a readiness source so a "nothing yet" poll parks instead of
+    /// spinning.
+    #[must_use]
+    pub fn with_read_wake(mut self, source: ReadWakeSource) -> Self {
+        self.read_wake = Some(source);
+        self
+    }
+
+    /// Decide what to do after a "nothing yet" item.
+    ///
+    /// The first empty pull registers the waker (if a source is attached) and
+    /// asks for one repoll. A second empty pull parks. Without a source, or when
+    /// the source refuses, the stream self-wakes — the logged fallback.
+    fn wait_decision(&mut self, cx: &mut Context<'_>, already_repolled: &mut bool) -> WaitAction {
+        if *already_repolled {
+            return WaitAction::Park;
+        }
+        let registered = match &self.read_wake {
+            Some(source) => source(cx.waker()),
+            None => false,
+        };
+        if registered {
+            *already_repolled = true;
+            WaitAction::Repoll
+        } else {
+            if !self.logged_no_source {
+                tracing::debug!("body has no readiness source; polling");
+                self.logged_no_source = true;
+            }
+            cx.waker().wake_by_ref();
+            WaitAction::Park
+        }
+    }
 }
 
 impl From<SendSafeBody> for AsyncSendSafeBody {
@@ -1855,7 +1979,11 @@ impl From<SendSafeBody> for AsyncSendSafeBody {
             SendSafeBody::SseStream(Some(iter)) => SendSafeBodyState::SseStream(iter),
             SendSafeBody::SseStream(None) => SendSafeBodyState::Done,
         };
-        Self { inner }
+        Self {
+            inner,
+            read_wake: None,
+            logged_no_source: false,
+        }
     }
 }
 
@@ -1875,71 +2003,112 @@ impl FuturesStream for AsyncSendSafeBody {
             SendSafeBodyState::Text(bytes) => Poll::Ready(Some(Ok(bytes))),
             SendSafeBodyState::Bytes(bytes) => Poll::Ready(Some(Ok(bytes))),
             SendSafeBodyState::Stream(mut iter) => {
-                match iter.next() {
-                    Some(Ok(Data::Bytes(b))) => {
-                        this.inner = SendSafeBodyState::Stream(iter);
-                        Poll::Ready(Some(Ok(b)))
+                let mut repolled = false;
+                loop {
+                    match iter.next() {
+                        Some(Ok(Data::Bytes(b))) => {
+                            this.inner = SendSafeBodyState::Stream(iter);
+                            return Poll::Ready(Some(Ok(b)));
+                        }
+                        Some(Ok(Data::Retry)) => match this.wait_decision(cx, &mut repolled) {
+                            WaitAction::Repoll => continue,
+                            WaitAction::Park => {
+                                this.inner = SendSafeBodyState::Stream(iter);
+                                return Poll::Pending;
+                            }
+                        },
+                        Some(Err(e)) if is_would_block(&*e) => {
+                            match this.wait_decision(cx, &mut repolled) {
+                                WaitAction::Repoll => continue,
+                                WaitAction::Park => {
+                                    this.inner = SendSafeBodyState::Stream(iter);
+                                    return Poll::Pending;
+                                }
+                            }
+                        }
+                        Some(Err(e)) => return Poll::Ready(Some(Err(e))),
+                        None => return Poll::Ready(None),
                     }
-                    Some(Ok(Data::Retry)) => {
-                        this.inner = SendSafeBodyState::Stream(iter);
-                        // Retry means "no data yet but stream alive" — poll again immediately.
-                        cx.waker().wake_by_ref();
-                        Poll::Pending
-                    }
-                    Some(Err(e)) => Poll::Ready(Some(Err(e))),
-                    None => Poll::Ready(None),
                 }
             }
-            SendSafeBodyState::ChunkedStream(mut iter) => match iter.next() {
-                Some(Ok(ChunkedData::Data(b, _))) => {
-                    this.inner = SendSafeBodyState::ChunkedStream(iter);
-                    Poll::Ready(Some(Ok(b)))
+            SendSafeBodyState::ChunkedStream(mut iter) => {
+                let mut repolled = false;
+                loop {
+                    match iter.next() {
+                        Some(Ok(ChunkedData::Data(b, _))) => {
+                            this.inner = SendSafeBodyState::ChunkedStream(iter);
+                            return Poll::Ready(Some(Ok(b)));
+                        }
+                        // Bookkeeping items: consume in a loop, not a self-wake.
+                        Some(Ok(ChunkedData::Trailers(_))) | Some(Ok(ChunkedData::DataEnded)) => {
+                            continue;
+                        }
+                        Some(Err(e)) if is_would_block(&*e) => {
+                            match this.wait_decision(cx, &mut repolled) {
+                                WaitAction::Repoll => continue,
+                                WaitAction::Park => {
+                                    this.inner = SendSafeBodyState::ChunkedStream(iter);
+                                    return Poll::Pending;
+                                }
+                            }
+                        }
+                        Some(Err(e)) => return Poll::Ready(Some(Err(e))),
+                        None => return Poll::Ready(None),
+                    }
                 }
-                Some(Ok(ChunkedData::Trailers(_))) => {
-                    this.inner = SendSafeBodyState::ChunkedStream(iter);
-                    cx.waker().wake_by_ref();
-                    Poll::Pending
-                }
-                Some(Ok(ChunkedData::DataEnded)) => Poll::Ready(None),
-                Some(Err(e)) => Poll::Ready(Some(Err(e))),
-                None => Poll::Ready(None),
-            },
+            }
             SendSafeBodyState::LineFeedStream(mut iter) => {
-                match iter.next() {
-                    Some(Ok(LineFeed::Line(line))) => {
-                        this.inner = SendSafeBodyState::LineFeedStream(iter);
-                        let mut bytes = line.into_bytes();
-                        bytes.push(b'\n');
-                        Poll::Ready(Some(Ok(bytes)))
+                let mut repolled = false;
+                loop {
+                    match iter.next() {
+                        Some(Ok(LineFeed::Line(line))) => {
+                            this.inner = SendSafeBodyState::LineFeedStream(iter);
+                            let mut bytes = line.into_bytes();
+                            bytes.push(b'\n');
+                            return Poll::Ready(Some(Ok(bytes)));
+                        }
+                        Some(Ok(LineFeed::SKIP | LineFeed::END)) => continue,
+                        Some(Err(e)) if is_would_block(&*e) => {
+                            match this.wait_decision(cx, &mut repolled) {
+                                WaitAction::Repoll => continue,
+                                WaitAction::Park => {
+                                    this.inner = SendSafeBodyState::LineFeedStream(iter);
+                                    return Poll::Pending;
+                                }
+                            }
+                        }
+                        Some(Err(e)) => return Poll::Ready(Some(Err(e))),
+                        None => return Poll::Ready(None),
                     }
-                    Some(Ok(LineFeed::SKIP | LineFeed::END)) => {
-                        this.inner = SendSafeBodyState::LineFeedStream(iter);
-                        cx.waker().wake_by_ref();
-                        Poll::Pending
-                    }
-                    Some(Err(e)) => Poll::Ready(Some(Err(e))),
-                    None => Poll::Ready(None),
                 }
             }
-            SendSafeBodyState::SseStream(mut iter) => match iter.next() {
-                Some(Ok(pr)) => {
-                    this.inner = SendSafeBodyState::SseStream(iter);
-                    match pr.event {
-                        crate::event_source::Event::Message { data, .. } => {
-                            let mut bytes = data.into_bytes();
-                            bytes.push(b'\n');
-                            Poll::Ready(Some(Ok(bytes)))
+            SendSafeBodyState::SseStream(mut iter) => {
+                let mut repolled = false;
+                loop {
+                    match iter.next() {
+                        Some(Ok(pr)) => match pr.event {
+                            Event::Message { data, .. } => {
+                                this.inner = SendSafeBodyState::SseStream(iter);
+                                let mut bytes = data.into_bytes();
+                                bytes.push(b'\n');
+                                return Poll::Ready(Some(Ok(bytes)));
+                            }
+                            Event::Comment(_) | Event::Reconnect => continue,
+                        },
+                        Some(Err(e)) if is_would_block(&*e) => {
+                            match this.wait_decision(cx, &mut repolled) {
+                                WaitAction::Repoll => continue,
+                                WaitAction::Park => {
+                                    this.inner = SendSafeBodyState::SseStream(iter);
+                                    return Poll::Pending;
+                                }
+                            }
                         }
-                        crate::event_source::Event::Comment(_)
-                        | crate::event_source::Event::Reconnect => {
-                            cx.waker().wake_by_ref();
-                            Poll::Pending
-                        }
+                        Some(Err(e)) => return Poll::Ready(Some(Err(e))),
+                        None => return Poll::Ready(None),
                     }
                 }
-                Some(Err(e)) => Poll::Ready(Some(Err(e))),
-                None => Poll::Ready(None),
-            },
+            }
         }
     }
 }
@@ -1966,1273 +2135,6 @@ pub async fn collect_bytes_async(mut body: AsyncSendSafeBody) -> Result<Vec<u8>,
 pub async fn collect_string_async(body: AsyncSendSafeBody) -> Result<String, SendableBoxedError> {
     let bytes = collect_bytes_async(body).await?;
     String::from_utf8(bytes).map_err(|e| Box::new(std::io::Error::other(e.to_string())) as SendableBoxedError)
-}
-
-// ============================================================================
-// Tests
-// ============================================================================
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
-    use serde::Deserialize;
-
-    #[test]
-    fn test_process_stream_result_debug() {
-        // Basic smoke test for the Result type
-        let result = ProcessStreamResult::Completed;
-        assert_eq!(result, ProcessStreamResult::Completed);
-    }
-
-    #[test]
-    fn test_parse_json_str() {
-        let json = r#"{"name": "test", "value": 42}"#;
-
-        #[derive(Deserialize, Debug, PartialEq)]
-        struct TestObj {
-            name: String,
-            value: i32,
-        }
-
-        let result: Option<TestObj> = parse_json_str(json, "test-source");
-        assert!(result.is_some());
-        let obj = result.unwrap();
-        assert_eq!(obj.name, "test");
-        assert_eq!(obj.value, 42);
-    }
-
-    #[test]
-    fn test_parse_json_str_invalid() {
-        let invalid_json = r#"{"name": "test", invalid}"#;
-
-        #[derive(Deserialize, Debug, PartialEq)]
-        struct TestObj {
-            name: String,
-            value: i32,
-        }
-
-        let result: Option<TestObj> = parse_json_str(invalid_json, "test-source");
-        assert!(result.is_none());
-    }
-
-    #[test]
-    fn test_parse_with_fallback_success() {
-        let json = r#"{"items": [1, 2, 3]}"#;
-
-        #[derive(Deserialize, Debug, PartialEq)]
-        struct TestResponse {
-            items: Vec<i32>,
-        }
-
-        let fallback_called = std::cell::RefCell::new(false);
-        let result = parse_with_fallback(json, "test-source", || {
-            *fallback_called.borrow_mut() = true;
-            TestResponse { items: vec![] }
-        });
-
-        assert!(!*fallback_called.borrow());
-        assert_eq!(result.items, vec![1, 2, 3]);
-    }
-
-    #[test]
-    fn test_parse_with_fallback_error() {
-        let invalid_json = r#"{"items": invalid}"#;
-
-        #[derive(Deserialize, Debug, PartialEq)]
-        struct TestResponse {
-            items: Vec<i32>,
-        }
-
-        let fallback_called = std::cell::RefCell::new(false);
-        let result = parse_with_fallback(invalid_json, "test-source", || {
-            *fallback_called.borrow_mut() = true;
-            TestResponse { items: vec![0] }
-        });
-
-        assert!(*fallback_called.borrow());
-        assert_eq!(result.items, vec![0]);
-    }
-
-    #[test]
-    fn test_response_parser_trait() {
-        #[derive(Deserialize, Debug, PartialEq)]
-        struct ApiResponse {
-            data: Vec<String>,
-        }
-
-        impl ResponseParser for ApiResponse {
-            type Output = Vec<String>;
-
-            fn parse(body: &str, _source: &str) -> Self::Output {
-                match serde_json::from_str::<Self>(body) {
-                    Ok(response) => response.data,
-                    Err(_) => Vec::new(),
-                }
-            }
-        }
-
-        let valid_json = r#"{"data": ["a", "b", "c"]}"#;
-        let result = ApiResponse::parse(valid_json, "test");
-        assert_eq!(result, vec!["a", "b", "c"]);
-
-        let invalid_json = r#"{"data": invalid}"#;
-        let result = ApiResponse::parse(invalid_json, "test");
-        assert_eq!(result, Vec::<String>::new());
-    }
-
-    // ========================================================================
-    // Tests for internal helper functions
-    // ========================================================================
-
-    /// Helper to create a BoxedError for testing
-    fn make_error(msg: &str) -> BoxedError {
-        msg.to_string().into()
-    }
-
-    /// Helper to create a SendableBoxedError for testing
-    fn make_sendable_error(msg: &str) -> SendableBoxedError {
-        msg.to_string().into()
-    }
-
-    #[test]
-    fn test_collect_from_stream_success() {
-        let data = vec![
-            Ok(Data::Bytes(b"hello".to_vec())),
-            Ok(Data::Bytes(b" ".to_vec())),
-            Ok(Data::Bytes(b"world".to_vec())),
-        ];
-        let result = collect_from_stream(data.into_iter());
-        assert_eq!(result, b"hello world".to_vec());
-    }
-
-    #[test]
-    fn test_collect_from_stream_error() {
-        let data: Vec<Result<Data, BoxedError>> = vec![
-            Ok(Data::Bytes(b"hello".to_vec())),
-            Err(make_error("stream error")),
-        ];
-        let result = collect_from_stream(data.into_iter());
-        // Should collect what it got before error
-        assert_eq!(result, b"hello".to_vec());
-    }
-
-    #[test]
-    fn test_collect_from_stream_empty() {
-        let data: Vec<Result<Data, BoxedError>> = vec![];
-        let result = collect_from_stream(data.into_iter());
-        assert!(result.is_empty());
-    }
-
-    #[test]
-    fn test_collect_from_chunked_stream_success() {
-        let data = vec![
-            Ok(ChunkedData::Data(b"chunk1".to_vec(), None)),
-            Ok(ChunkedData::Data(b"chunk2".to_vec(), None)),
-            Ok(ChunkedData::DataEnded),
-        ];
-        let result = collect_from_chunked_stream(data.into_iter());
-        assert_eq!(result, b"chunk1chunk2".to_vec());
-    }
-
-    #[test]
-    fn test_collect_from_chunked_stream_with_trailers() {
-        let data = vec![
-            Ok(ChunkedData::Data(b"data".to_vec(), None)),
-            Ok(ChunkedData::Trailers(vec![])),
-            Ok(ChunkedData::DataEnded),
-        ];
-        let result = collect_from_chunked_stream(data.into_iter());
-        assert_eq!(result, b"data".to_vec());
-    }
-
-    #[test]
-    fn test_collect_from_chunked_stream_error() {
-        let data: Vec<Result<ChunkedData, BoxedError>> = vec![
-            Ok(ChunkedData::Data(b"hello".to_vec(), None)),
-            Err(make_error("chunked error")),
-        ];
-        let result = collect_from_chunked_stream(data.into_iter());
-        assert_eq!(result, b"hello".to_vec());
-    }
-
-    #[test]
-    fn test_collect_from_linefeed_stream_success() {
-        let data = vec![
-            Ok(LineFeed::Line("line1".to_string())),
-            Ok(LineFeed::Line("line2".to_string())),
-            Ok(LineFeed::END),
-        ];
-        let result = collect_from_linefeed_stream(data.into_iter());
-        // Each line gets \n appended
-        assert_eq!(result, b"line1\nline2\n".to_vec());
-    }
-
-    #[test]
-    fn test_collect_from_linefeed_stream_with_skip() {
-        let data = vec![
-            Ok(LineFeed::Line("line1".to_string())),
-            Ok(LineFeed::SKIP),
-            Ok(LineFeed::Line("line2".to_string())),
-            Ok(LineFeed::END),
-        ];
-        let result = collect_from_linefeed_stream(data.into_iter());
-        assert_eq!(result, b"line1\nline2\n".to_vec());
-    }
-
-    #[test]
-    fn test_collect_from_linefeed_stream_error() {
-        let data: Vec<Result<LineFeed, BoxedError>> = vec![
-            Ok(LineFeed::Line("line1".to_string())),
-            Err(make_error("line error")),
-        ];
-        let result = collect_from_linefeed_stream(data.into_iter());
-        assert_eq!(result, b"line1\n".to_vec());
-    }
-
-    // ========================================================================
-    // Tests for write_* helper functions
-    // ========================================================================
-
-    #[test]
-    fn test_write_from_stream_success() {
-        let data = vec![
-            Ok(Data::Bytes(b"hello".to_vec())),
-            Ok(Data::Bytes(b" world".to_vec())),
-        ];
-        let mut output = Vec::new();
-        let result = write_from_stream(data.into_iter(), &mut output);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 11);
-        assert_eq!(output, b"hello world".to_vec());
-    }
-
-    #[test]
-    fn test_write_from_stream_error() {
-        let data: Vec<Result<Data, BoxedError>> = vec![
-            Ok(Data::Bytes(b"hello".to_vec())),
-            Err(make_error("write error")),
-        ];
-        let mut output = Vec::new();
-        let result = write_from_stream(data.into_iter(), &mut output);
-        assert!(result.is_err());
-        assert_eq!(output, b"hello".to_vec());
-    }
-
-    #[test]
-    fn test_write_from_chunked_stream_success() {
-        let data = vec![
-            Ok(ChunkedData::Data(b"chunk1".to_vec(), None)),
-            Ok(ChunkedData::Data(b"chunk2".to_vec(), None)),
-            Ok(ChunkedData::DataEnded),
-        ];
-        let mut output = Vec::new();
-        let result = write_from_chunked_stream(data.into_iter(), &mut output);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 12);
-        assert_eq!(output, b"chunk1chunk2".to_vec());
-    }
-
-    #[test]
-    fn test_write_from_linefeed_stream_success() {
-        let data = vec![
-            Ok(LineFeed::Line("line1".to_string())),
-            Ok(LineFeed::Line("line2".to_string())),
-            Ok(LineFeed::END),
-        ];
-        let mut output = Vec::new();
-        let result = write_from_linefeed_stream(data.into_iter(), &mut output);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 12);
-        assert_eq!(output, b"line1\nline2\n".to_vec());
-    }
-
-    // ========================================================================
-    // Tests for collect_bytes_from_send_safe
-    // ========================================================================
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_text() {
-        let body = SendSafeBody::Text("hello world".to_string());
-        let result = collect_bytes_from_send_safe(body);
-        assert_eq!(result, b"hello world".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_bytes() {
-        let body = SendSafeBody::Bytes(b"binary data".to_vec());
-        let result = collect_bytes_from_send_safe(body);
-        assert_eq!(result, b"binary data".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_none() {
-        let body = SendSafeBody::None;
-        let result = collect_bytes_from_send_safe(body);
-        assert!(result.is_empty());
-    }
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_stream() {
-        // Use SendableBoxedError which has Send + Sync for the iterator
-        let stream_data: Vec<Result<Data, SendableBoxedError>> = vec![
-            Ok(Data::Bytes(b"chunk1".to_vec())),
-            Ok(Data::Bytes(b"chunk2".to_vec())),
-        ];
-        // Cast to BoxedError iterator via Box<dyn Iterator + Send>
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> = Box::new(
-            stream_data
-                .into_iter()
-                .map(|r| r.map_err(|e| e as BoxedError)),
-        );
-        let body = SendSafeBody::Stream(Some(send_iter));
-        let result = collect_bytes_from_send_safe(body);
-        assert_eq!(result, b"chunk1chunk2".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_stream_none() {
-        let body = SendSafeBody::Stream(None);
-        let result = collect_bytes_from_send_safe(body);
-        assert!(result.is_empty());
-    }
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_chunked_stream() {
-        let stream_data: Vec<Result<ChunkedData, SendableBoxedError>> = vec![
-            Ok(ChunkedData::Data(b"data1".to_vec(), None)),
-            Ok(ChunkedData::Data(b"data2".to_vec(), None)),
-            Ok(ChunkedData::DataEnded),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send + Sync> = Box::new(
-            stream_data
-                .into_iter()
-                .map(|r| r.map_err(|e| e as BoxedError)),
-        );
-        let body = SendSafeBody::ChunkedStream(Some(send_iter));
-        let result = collect_bytes_from_send_safe(body);
-        assert_eq!(result, b"data1data2".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_chunked_stream_none() {
-        let body = SendSafeBody::ChunkedStream(None);
-        let result = collect_bytes_from_send_safe(body);
-        assert!(result.is_empty());
-    }
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_linefeed_stream() {
-        let stream_data: Vec<Result<LineFeed, SendableBoxedError>> = vec![
-            Ok(LineFeed::Line("line1".to_string())),
-            Ok(LineFeed::Line("line2".to_string())),
-            Ok(LineFeed::END),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send + Sync> = Box::new(
-            stream_data
-                .into_iter()
-                .map(|r| r.map_err(|e| e as BoxedError)),
-        );
-        let body = SendSafeBody::LineFeedStream(Some(send_iter));
-        let result = collect_bytes_from_send_safe(body);
-        assert_eq!(result, b"line1\nline2\n".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_linefeed_stream_none() {
-        let body = SendSafeBody::LineFeedStream(None);
-        let result = collect_bytes_from_send_safe(body);
-        assert!(result.is_empty());
-    }
-
-    // ========================================================================
-    // Tests for collect_bytes_into
-    // ========================================================================
-
-    #[test]
-    fn test_collect_bytes_into_text() {
-        let body = SendSafeBody::Text("hello".to_string());
-        let mut output = Vec::new();
-        let result = collect_bytes_into(body, &mut output);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 5);
-        assert_eq!(output, b"hello".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_into_bytes() {
-        let body = SendSafeBody::Bytes(b"binary".to_vec());
-        let mut output = Vec::new();
-        let result = collect_bytes_into(body, &mut output);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 6);
-        assert_eq!(output, b"binary".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_into_none() {
-        let body = SendSafeBody::None;
-        let mut output = Vec::new();
-        let result = collect_bytes_into(body, &mut output);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 0);
-        assert!(output.is_empty());
-    }
-
-    #[test]
-    fn test_collect_bytes_into_stream() {
-        let stream_data: Vec<Result<Data, SendableBoxedError>> = vec![
-            Ok(Data::Bytes(b"chunk1".to_vec())),
-            Ok(Data::Bytes(b"chunk2".to_vec())),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> = Box::new(
-            stream_data
-                .into_iter()
-                .map(|r| r.map_err(|e| e as BoxedError)),
-        );
-        let body = SendSafeBody::Stream(Some(send_iter));
-        let mut output = Vec::new();
-        let result = collect_bytes_into(body, &mut output);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 12);
-        assert_eq!(output, b"chunk1chunk2".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_into_chunked_stream() {
-        let stream_data: Vec<Result<ChunkedData, SendableBoxedError>> = vec![
-            Ok(ChunkedData::Data(b"data1".to_vec(), None)),
-            Ok(ChunkedData::Data(b"data2".to_vec(), None)),
-            Ok(ChunkedData::DataEnded),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send + Sync> = Box::new(
-            stream_data
-                .into_iter()
-                .map(|r| r.map_err(|e| e as BoxedError)),
-        );
-        let body = SendSafeBody::ChunkedStream(Some(send_iter));
-        let mut output = Vec::new();
-        let result = collect_bytes_into(body, &mut output);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 10);
-        assert_eq!(output, b"data1data2".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_into_linefeed_stream() {
-        let stream_data: Vec<Result<LineFeed, SendableBoxedError>> = vec![
-            Ok(LineFeed::Line("line1".to_string())),
-            Ok(LineFeed::Line("line2".to_string())),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send + Sync> = Box::new(
-            stream_data
-                .into_iter()
-                .map(|r| r.map_err(|e| e as BoxedError)),
-        );
-        let body = SendSafeBody::LineFeedStream(Some(send_iter));
-        let mut output = Vec::new();
-        let result = collect_bytes_into(body, &mut output);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), 12);
-        assert_eq!(output, b"line1\nline2\n".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_into_file() {
-        // Test writing to an actual file
-        let body = SendSafeBody::Bytes(b"file content".to_vec());
-        let temp_dir = std::env::temp_dir();
-        let test_file = temp_dir.join("test_collect_bytes_into.txt");
-
-        {
-            let mut file = std::fs::File::create(&test_file).unwrap();
-            let result = collect_bytes_into(body, &mut file);
-            assert!(result.is_ok());
-            assert_eq!(result.unwrap(), 12);
-        }
-
-        // Verify file contents
-        let contents = std::fs::read(&test_file).unwrap();
-        assert_eq!(contents, b"file content".to_vec());
-
-        // Cleanup
-        let _ = std::fs::remove_file(&test_file);
-    }
-
-    // ========================================================================
-    // Tests for ContentLengthEnforcingIterator
-    // ========================================================================
-
-    #[test]
-    fn test_content_length_enforcing_exact_match() {
-        let data: Vec<Result<Data, SendableBoxedError>> = vec![
-            Ok(Data::Bytes(b"hello".to_vec())),
-            Ok(Data::Bytes(b"world".to_vec())),
-        ];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut enforcing = ContentLengthEnforcingIterator::new(inner, 10);
-        // First chunk: "hello" (5 bytes)
-        match enforcing.next().unwrap().unwrap() {
-            Data::Bytes(b) => assert_eq!(&b, b"hello"),
-            _ => panic!("expected Bytes"),
-        }
-        // Second chunk: "world" (5 bytes)
-        match enforcing.next().unwrap().unwrap() {
-            Data::Bytes(b) => assert_eq!(&b, b"world"),
-            _ => panic!("expected Bytes"),
-        }
-        // Inner exhausted, bytes_read == expected → None
-        assert!(enforcing.next().is_none());
-    }
-
-    #[test]
-    fn test_content_length_enforcing_truncated() {
-        let data: Vec<Result<Data, SendableBoxedError>> = vec![Ok(Data::Bytes(b"short".to_vec()))];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut enforcing = ContentLengthEnforcingIterator::new(inner, 10);
-        match enforcing.next().unwrap().unwrap() {
-            Data::Bytes(b) => assert_eq!(&b, b"short"),
-            _ => panic!("expected Bytes"),
-        }
-        // Inner exhausted, bytes_read (5) != expected (10) → error
-        let result = enforcing.next();
-        assert!(result.is_some());
-        let err = result.unwrap().unwrap_err();
-        assert_eq!(
-            err.downcast_ref::<std::io::Error>().unwrap().kind(),
-            std::io::ErrorKind::UnexpectedEof
-        );
-    }
-
-    #[test]
-    fn test_content_length_enforcing_retry_passthrough() {
-        let data: Vec<Result<Data, SendableBoxedError>> = vec![
-            Ok(Data::Bytes(b"a".to_vec())),
-            Ok(Data::Retry),
-            Ok(Data::Bytes(b"b".to_vec())),
-        ];
-        // "a" (1 byte) + "b" (1 byte) = 2 bytes total; Retry doesn't count
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut enforcing = ContentLengthEnforcingIterator::new(inner, 2);
-        match enforcing.next().unwrap().unwrap() {
-            Data::Bytes(b) => assert_eq!(&b, b"a"),
-            _ => panic!("expected Bytes"),
-        }
-        assert!(matches!(enforcing.next().unwrap().unwrap(), Data::Retry));
-        match enforcing.next().unwrap().unwrap() {
-            Data::Bytes(b) => assert_eq!(&b, b"b"),
-            _ => panic!("expected Bytes"),
-        }
-        // Inner exhausted, bytes_read == expected (2) → None
-        assert!(enforcing.next().is_none());
-    }
-
-    #[test]
-    fn test_content_length_enforcing_error_passthrough() {
-        let data: Vec<Result<Data, SendableBoxedError>> = vec![
-            Ok(Data::Bytes(b"a".to_vec())),
-            Err(make_sendable_error("boom")),
-        ];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut enforcing = ContentLengthEnforcingIterator::new(inner, 10);
-        match enforcing.next().unwrap().unwrap() {
-            Data::Bytes(b) => assert_eq!(&b, b"a"),
-            _ => panic!("expected Bytes"),
-        }
-        let result = enforcing.next();
-        assert!(result.is_some());
-        assert_eq!(result.unwrap().unwrap_err().to_string(), "boom");
-    }
-
-    #[test]
-    fn test_content_length_enforcing_zero_expected_empty_body() {
-        let data: Vec<Result<Data, SendableBoxedError>> = vec![];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut enforcing = ContentLengthEnforcingIterator::new(inner, 0);
-        assert!(enforcing.next().is_none());
-    }
-
-    #[test]
-    fn test_content_length_enforcing_stops_after_exhaustion() {
-        let data: Vec<Result<Data, SendableBoxedError>> = vec![Ok(Data::Bytes(b"a".to_vec()))];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut enforcing = ContentLengthEnforcingIterator::new(inner, 5);
-        match enforcing.next().unwrap().unwrap() {
-            Data::Bytes(b) => assert_eq!(&b, b"a"),
-            _ => panic!("expected Bytes"),
-        }
-        // Should return error on inner None (bytes_read != expected)
-        assert!(enforcing.next().is_some_and(|r| r.is_err()));
-        // Should return None after error was consumed (inner is now None)
-        assert!(enforcing.next().is_none());
-    }
-
-    // ========================================================================
-    // Tests for try_collect_bytes
-    // ========================================================================
-
-    #[test]
-    fn test_try_collect_bytes_text() {
-        let body = SendSafeBody::Text("hello".to_string());
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), b"hello".to_vec());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_bytes() {
-        let body = SendSafeBody::Bytes(b"\x00\x01\x02".to_vec());
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), b"\x00\x01\x02".to_vec());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_none() {
-        let body = SendSafeBody::None;
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        assert!(result.unwrap().is_empty());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_stream_success() {
-        let data: Vec<Result<Data, SendableBoxedError>> = vec![
-            Ok(Data::Bytes(b"abc".to_vec())),
-            Ok(Data::Bytes(b"def".to_vec())),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let body = SendSafeBody::Stream(Some(send_iter));
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), b"abcdef".to_vec());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_stream_error_propagates() {
-        let data: Vec<Result<Data, SendableBoxedError>> = vec![
-            Ok(Data::Bytes(b"ab".to_vec())),
-            Err(make_sendable_error("stream failed")),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let body = SendSafeBody::Stream(Some(send_iter));
-        let result = try_collect_bytes(body);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "stream failed");
-    }
-
-    #[test]
-    fn test_try_collect_bytes_stream_none() {
-        let body = SendSafeBody::Stream(None);
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        assert!(result.unwrap().is_empty());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_chunked_stream_success() {
-        let data: Vec<Result<ChunkedData, SendableBoxedError>> = vec![
-            Ok(ChunkedData::Data(b"foo".to_vec(), None)),
-            Ok(ChunkedData::Data(b"bar".to_vec(), None)),
-            Ok(ChunkedData::DataEnded),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let body = SendSafeBody::ChunkedStream(Some(send_iter));
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), b"foobar".to_vec());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_chunked_stream_none() {
-        let body = SendSafeBody::ChunkedStream(None);
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        assert!(result.unwrap().is_empty());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_linefeed_stream_success() {
-        let data: Vec<Result<LineFeed, SendableBoxedError>> = vec![
-            Ok(LineFeed::Line("alpha".to_string())),
-            Ok(LineFeed::Line("beta".to_string())),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let body = SendSafeBody::LineFeedStream(Some(send_iter));
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), b"alpha\nbeta\n".to_vec());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_linefeed_stream_none() {
-        let body = SendSafeBody::LineFeedStream(None);
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        assert!(result.unwrap().is_empty());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_sse_stream_success() {
-        use crate::event_source::Event as SseEvent;
-        use crate::event_source::ParseResult;
-
-        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![
-            Ok(ParseResult::new(
-                SseEvent::Message {
-                    id: Some("1".to_string()),
-                    event_type: None,
-                    data: "event one".to_string(),
-                    retry: None,
-                },
-                Some("1".to_string()),
-            )),
-            Ok(ParseResult::new(
-                SseEvent::Message {
-                    id: None,
-                    event_type: Some("custom".to_string()),
-                    data: "event two".to_string(),
-                    retry: None,
-                },
-                Some("1".to_string()),
-            )),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
-            Box::new(data.into_iter());
-        let body = SendSafeBody::SseStream(Some(send_iter));
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        // Each message data followed by \n
-        assert_eq!(result.unwrap(), b"event one\nevent two\n".to_vec());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_sse_stream_skips_comments() {
-        use crate::event_source::Event as SseEvent;
-        use crate::event_source::ParseResult;
-
-        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![
-            Ok(ParseResult::new(
-                SseEvent::Message {
-                    id: None,
-                    event_type: None,
-                    data: "real data".to_string(),
-                    retry: None,
-                },
-                None,
-            )),
-            Ok(ParseResult::new(
-                SseEvent::Comment("keepalive".to_string()),
-                None,
-            )),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
-            Box::new(data.into_iter());
-        let body = SendSafeBody::SseStream(Some(send_iter));
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        // Only the message event data should appear
-        assert_eq!(result.unwrap(), b"real data\n".to_vec());
-    }
-
-    #[test]
-    fn test_try_collect_bytes_sse_stream_empty() {
-        let body = SendSafeBody::SseStream(None);
-        let result = try_collect_bytes(body);
-        assert!(result.is_ok());
-        assert!(result.unwrap().is_empty());
-    }
-
-    // ========================================================================
-    // Tests for try_collect_string
-    // ========================================================================
-
-    #[test]
-    fn test_try_collect_string_valid_utf8() {
-        let body = SendSafeBody::Text("hello world".to_string());
-        let result = try_collect_string(body);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "hello world");
-    }
-
-    #[test]
-    fn test_try_collect_string_invalid_utf8() {
-        // Invalid UTF-8: 0xFF is never valid in UTF-8
-        let body = SendSafeBody::Bytes(vec![0xFF, 0xFE]);
-        let result = try_collect_string(body);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_try_collect_string_sse_stream() {
-        use crate::event_source::Event as SseEvent;
-        use crate::event_source::ParseResult;
-
-        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![Ok(ParseResult::new(
-            SseEvent::Message {
-                id: None,
-                event_type: None,
-                data: "message".to_string(),
-                retry: None,
-            },
-            None,
-        ))];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
-            Box::new(data.into_iter());
-        let body = SendSafeBody::SseStream(Some(send_iter));
-        let result = try_collect_string(body);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "message\n");
-    }
-
-    // ========================================================================
-    // Tests for collect_strings_from_send_safe
-    // ========================================================================
-
-    #[test]
-    fn test_collect_strings_from_send_safe_text() {
-        let body = SendSafeBody::Text("unicode: \u{2764}".to_string());
-        let result = collect_strings_from_send_safe(body);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "unicode: \u{2764}");
-    }
-
-    #[test]
-    fn test_collect_strings_from_send_safe_invalid_utf8() {
-        let body = SendSafeBody::Bytes(vec![0xC0, 0x80]);
-        let result = collect_strings_from_send_safe(body);
-        assert!(result.is_err());
-    }
-
-    // ========================================================================
-    // Tests for try_collect_bytes with enforcement integration
-    // ========================================================================
-
-    #[test]
-    fn test_try_collect_bytes_propagates_content_length_enforcement() {
-        // Simulate a LimitedBatchStreamReader that returns fewer bytes than expected
-        let data: Vec<Result<Data, SendableBoxedError>> =
-            vec![Ok(Data::Bytes(b"partial".to_vec()))];
-        let inner: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let enforcing = ContentLengthEnforcingIterator::new(inner, 100);
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
-            Box::new(enforcing);
-        let body = SendSafeBody::Stream(Some(send_iter));
-        let result = try_collect_bytes(body);
-        assert!(result.is_err());
-        let err = result.unwrap_err();
-        assert_eq!(
-            err.downcast_ref::<std::io::Error>().unwrap().kind(),
-            std::io::ErrorKind::UnexpectedEof
-        );
-        assert!(err.to_string().contains("expected 100 bytes"));
-        assert!(err.to_string().contains("got 7"));
-    }
-
-    // ========================================================================
-    // Tests for SSE stream handling in collection functions
-    // ========================================================================
-
-    #[allow(dead_code)]
-    fn make_sse_parse_result_vec(
-        events: Vec<Result<crate::event_source::ParseResult, SendableBoxedError>>,
-    ) -> Vec<Result<crate::event_source::ParseResult, SendableBoxedError>> {
-        events
-    }
-
-    fn make_sse_stream(
-        data: Vec<Result<crate::event_source::ParseResult, SendableBoxedError>>,
-    ) -> SendSafeBody {
-        let send_iter: Box<
-            dyn Iterator<Item = Result<crate::event_source::ParseResult, SendableBoxedError>>
-                + Send
-                + Sync,
-        > = Box::new(data.into_iter());
-        SendSafeBody::SseStream(Some(send_iter))
-    }
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_sse_stream() {
-        use crate::event_source::Event as SseEvent;
-        use crate::event_source::ParseResult;
-
-        let body = make_sse_stream(vec![
-            Ok(ParseResult::new(
-                SseEvent::Message {
-                    id: Some("1".to_string()),
-                    event_type: None,
-                    data: "event one".to_string(),
-                    retry: None,
-                },
-                Some("1".to_string()),
-            )),
-            Ok(ParseResult::new(
-                SseEvent::Message {
-                    id: Some("2".to_string()),
-                    event_type: None,
-                    data: "event two".to_string(),
-                    retry: None,
-                },
-                Some("2".to_string()),
-            )),
-        ]);
-        let result = collect_bytes_from_send_safe(body);
-        // Each event data followed by \n
-        assert_eq!(result, b"event one\nevent two\n".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_from_send_safe_sse_skips_comments() {
-        use crate::event_source::Event as SseEvent;
-        use crate::event_source::ParseResult;
-
-        let body = make_sse_stream(vec![
-            Ok(ParseResult::new(
-                SseEvent::Message {
-                    id: None,
-                    event_type: None,
-                    data: "real".to_string(),
-                    retry: None,
-                },
-                None,
-            )),
-            Ok(ParseResult::new(
-                SseEvent::Comment("keepalive".to_string()),
-                None,
-            )),
-        ]);
-        let result = collect_bytes_from_send_safe(body);
-        assert_eq!(result, b"real\n".to_vec());
-    }
-
-    #[test]
-    fn test_collect_bytes_into_sse_stream() {
-        use crate::event_source::Event as SseEvent;
-        use crate::event_source::ParseResult;
-
-        let body = make_sse_stream(vec![Ok(ParseResult::new(
-            SseEvent::Message {
-                id: None,
-                event_type: None,
-                data: "sse data".to_string(),
-                retry: None,
-            },
-            None,
-        ))]);
-        let mut output = Vec::new();
-        let result = collect_bytes_into(body, &mut output);
-        assert!(result.is_ok());
-        assert_eq!(output, b"sse data\n".to_vec());
-    }
-
-    #[test]
-    fn test_collect_string_strict_sse_stream() {
-        use crate::event_source::Event as SseEvent;
-        use crate::event_source::ParseResult;
-
-        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![Ok(ParseResult::new(
-            SseEvent::Message {
-                id: None,
-                event_type: None,
-                data: "sse message".to_string(),
-                retry: None,
-            },
-            None,
-        ))];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
-            Box::new(data.into_iter());
-        let stream: Box<
-            dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send,
-        > = Box::new(std::iter::once(Ok(IncomingResponseParts::StreamedBody(
-            SendSafeBody::SseStream(Some(send_iter)),
-        ))));
-        let result = collect_string_strict(stream);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "sse message\n");
-    }
-
-    #[test]
-    fn test_collect_bytes_strict_sse_stream() {
-        use crate::event_source::Event as SseEvent;
-        use crate::event_source::ParseResult;
-
-        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![Ok(ParseResult::new(
-            SseEvent::Message {
-                id: None,
-                event_type: None,
-                data: "bytes".to_string(),
-                retry: None,
-            },
-            None,
-        ))];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
-            Box::new(data.into_iter());
-        let stream: Box<
-            dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send,
-        > = Box::new(std::iter::once(Ok(IncomingResponseParts::StreamedBody(
-            SendSafeBody::SseStream(Some(send_iter)),
-        ))));
-        let result = collect_bytes_strict(stream);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), b"bytes\n".to_vec());
-    }
-
-    // ========================================================================
-    // Tests for SendSafeBodyBytesIterator
-    // ========================================================================
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_bytes() {
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Bytes(b"hello".to_vec()));
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"hello"
-        ));
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_bytes_empty() {
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Bytes(vec![]));
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_text() {
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Text("world".into()));
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"world"
-        ));
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_text_empty() {
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Text(String::new()));
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_none() {
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::None);
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_stream_data_chunks() {
-        let data: Vec<Result<Data, SendableBoxedError>> = vec![
-            Ok(Data::Bytes(b"a".to_vec())),
-            Ok(Data::Retry),
-            Ok(Data::Bytes(b"b".to_vec())),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Stream(Some(send_iter)));
-
-        // Chunk "a"
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"a"
-        ));
-        // Retry → Ignore
-        assert!(matches!(iter.next(), Some(Stream::Ignore)));
-        // Chunk "b"
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"b"
-        ));
-        // Exhausted
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_stream_error() {
-        let data: Vec<Result<Data, SendableBoxedError>> = vec![
-            Ok(Data::Bytes(b"ok".to_vec())),
-            Err(make_sendable_error("boom")),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<Data, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Stream(Some(send_iter)));
-
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"ok"
-        ));
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(ref e))) if e.to_string() == "boom"
-        ));
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_stream_none() {
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Stream(None));
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_chunked_stream() {
-        let data: Vec<Result<ChunkedData, SendableBoxedError>> = vec![
-            Ok(ChunkedData::Data(b"x".to_vec(), None)),
-            Ok(ChunkedData::Trailers(vec![])),
-            Ok(ChunkedData::DataEnded),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::ChunkedStream(Some(send_iter)));
-
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"x"
-        ));
-        assert!(matches!(iter.next(), Some(Stream::Ignore))); // Trailers
-        assert!(matches!(iter.next(), Some(Stream::Ignore))); // DataEnded
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_chunked_stream_error() {
-        let data: Vec<Result<ChunkedData, SendableBoxedError>> = vec![
-            Ok(ChunkedData::Data(b"ok".to_vec(), None)),
-            Err(make_sendable_error("fail")),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::ChunkedStream(Some(send_iter)));
-
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"ok"
-        ));
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(ref e))) if e.to_string() == "fail"
-        ));
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_linefeed_stream() {
-        let data: Vec<Result<LineFeed, SendableBoxedError>> = vec![
-            Ok(LineFeed::Line("hello".into())),
-            Ok(LineFeed::SKIP),
-            Ok(LineFeed::END),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut iter =
-            SendSafeBodyBytesIterator::new(SendSafeBody::LineFeedStream(Some(send_iter)));
-
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"hello\n"
-        ));
-        assert!(matches!(iter.next(), Some(Stream::Ignore))); // SKIP
-        assert!(matches!(iter.next(), Some(Stream::Ignore))); // END
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_linefeed_stream_error() {
-        let data: Vec<Result<LineFeed, SendableBoxedError>> = vec![
-            Ok(LineFeed::Line("a".into())),
-            Err(make_sendable_error("fail")),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send + Sync> =
-            Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
-        let mut iter =
-            SendSafeBodyBytesIterator::new(SendSafeBody::LineFeedStream(Some(send_iter)));
-
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"a\n"
-        ));
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(ref e))) if e.to_string() == "fail"
-        ));
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_sse_stream() {
-        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![
-            Ok(ParseResult::new(
-                Event::Message {
-                    id: None,
-                    event_type: None,
-                    data: "payload".to_string(),
-                    retry: None,
-                },
-                None,
-            )),
-            Ok(ParseResult::new(Event::Comment("ignore".to_string()), None)),
-            Ok(ParseResult::new(Event::Reconnect, None)),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
-            Box::new(data.into_iter());
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::SseStream(Some(send_iter)));
-
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"payload"
-        ));
-        assert!(matches!(iter.next(), Some(Stream::Ignore))); // Comment
-        assert!(matches!(iter.next(), Some(Stream::Ignore))); // Reconnect
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_sse_stream_error() {
-        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![
-            Ok(ParseResult::new(
-                Event::Message {
-                    id: None,
-                    event_type: None,
-                    data: "msg".to_string(),
-                    retry: None,
-                },
-                None,
-            )),
-            Err(make_sendable_error("fail")),
-        ];
-        let send_iter: Box<dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send + Sync> =
-            Box::new(data.into_iter());
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::SseStream(Some(send_iter)));
-
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"msg"
-        ));
-        assert!(matches!(
-            iter.next(),
-            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(ref e))) if e.to_string() == "fail"
-        ));
-        assert!(iter.next().is_none());
-    }
-
-    #[test]
-    fn test_send_safe_body_bytes_iterator_exhaust_is_idempotent() {
-        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Bytes(b"once".to_vec()));
-        assert!(iter.next().is_some()); // chunk
-        assert!(iter.next().is_none()); // exhausted
-        assert!(iter.next().is_none()); // idempotent
-        assert!(iter.next().is_none()); // still idempotent
-    }
 }
 
 // ============================================================================

@@ -9,7 +9,7 @@
 use std::{sync::Arc, time};
 
 use crate::synca::Entry;
-use crate::valtron::executors::{DEFAULT_DELIVERY_CAPACITY, DEFAULT_MAX_TURNS};
+use crate::valtron::executors::DEFAULT_MAX_TURNS;
 use crate::valtron::AnyResult;
 use crate::valtron::{
     BoxedExecutionEngine, ConsumingIter, ExecutorError, NotifyQueue,
@@ -90,7 +90,7 @@ where
 /// Emit the uniform `recv`/`stream`/`stream_with_config` terminals for a local
 /// verb builder (schedule/lift/sequence).
 macro_rules! delivery_terminals {
-    ($builder:ident, $capacity:expr, $recv:expr, $stream:expr) => {
+    ($builder:ident, $bounded:literal, $recv:expr, $stream:expr) => {
         impl<Done, Pending, Resolver, Task> $builder<Done, Pending, Resolver, Task>
         where
             Done: 'static,
@@ -104,7 +104,8 @@ macro_rules! delivery_terminals {
                 wait: time::Duration,
             ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError>
             {
-                recv_via(self.config, wait, $capacity, $recv)
+                let capacity = if $bounded { self.config.delivery_capacity } else { None };
+                recv_via(self.config, wait, capacity, $recv)
             }
 
             /// Receive produced `Stream` values via a `NotifyQueueStreamIterator`
@@ -122,7 +123,8 @@ macro_rules! delivery_terminals {
                 wait: time::Duration,
                 max_turns: usize,
             ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
-                stream_via(self.config, wait, max_turns, $capacity, $stream)
+                let capacity = if $bounded { self.config.delivery_capacity } else { None };
+                stream_via(self.config, wait, max_turns, capacity, $stream)
             }
         }
     };
@@ -130,19 +132,19 @@ macro_rules! delivery_terminals {
 
 delivery_terminals!(
     ScheduleBuilder,
-    None,
+    false,
     |e: &BoxedExecutionEngine, it, _parent| e.schedule(it.into()),
     |e: &BoxedExecutionEngine, it, _parent| e.schedule(it.into())
 );
 delivery_terminals!(
     LiftBuilder,
-    None,
+    false,
     |e: &BoxedExecutionEngine, it, parent| e.lift(it.into(), parent),
     |e: &BoxedExecutionEngine, it, parent| e.lift(it.into(), parent)
 );
 delivery_terminals!(
     SequenceBuilder,
-    Some(DEFAULT_DELIVERY_CAPACITY),
+    true,
     |e: &BoxedExecutionEngine, it, parent: Option<Entry>| e.sequenced(
         it.into(),
         parent.ok_or(ExecutorError::ParentMustBeSupplied)?
@@ -230,7 +232,7 @@ where
     ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
         let fallback = self.fallback;
         let capacity = match fallback {
-            LocalFallback::Sequence => Some(DEFAULT_DELIVERY_CAPACITY),
+            LocalFallback::Sequence => self.config.delivery_capacity,
             LocalFallback::Lift => None,
         };
         recv_via(self.config, wait, capacity, move |e, it, parent| match fallback {
@@ -255,7 +257,7 @@ where
     ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
         let fallback = self.fallback;
         let capacity = match fallback {
-            LocalFallback::Sequence => Some(DEFAULT_DELIVERY_CAPACITY),
+            LocalFallback::Sequence => self.config.delivery_capacity,
             LocalFallback::Lift => None,
         };
         stream_via(self.config, wait, max_turns, capacity, move |e, it, parent| {

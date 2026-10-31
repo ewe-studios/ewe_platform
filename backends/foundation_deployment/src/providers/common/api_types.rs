@@ -7,9 +7,9 @@
 //!
 //! HOW: Re-export these from each provider's `shared` module for convenience.
 
-use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+use foundation_netio::shared::client::body_reader::{collect_bytes_async, AsyncSendSafeBody};
 use foundation_netio::shared::client::PreparedRequest;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeaders};
+use foundation_netio::shared::http::SimpleHeaders;
 use foundation_netio::DynNetClient;
 use serde::{Deserialize, Serialize};
 
@@ -169,7 +169,9 @@ where
 {
     let client = client.into();
     let (status, headers, body) = send_checked(&client, request).await?;
-    let bytes = collect_bytes_from_send_safe(body);
+    let bytes = collect_bytes_async(body)
+        .await
+        .map_err(|e| ApiError::RequestSendFailed(format!("reading the response body: {e}")))?;
     let parsed: T =
         serde_json::from_slice(&bytes).map_err(|e| ApiError::ParseFailed(e.to_string()))?;
     Ok(ApiResponse {
@@ -249,7 +251,7 @@ pub async fn send_bytes(
 pub async fn send_checked(
     client: &ApiClient,
     request: PreparedRequest,
-) -> Result<(u16, SimpleHeaders, SendSafeBody), ApiError> {
+) -> Result<(u16, SimpleHeaders, AsyncSendSafeBody), ApiError> {
     let response = client
         .http
         .send_async(request)
@@ -259,7 +261,7 @@ pub async fn send_checked(
     let status = u16::try_from(status)
         .map_err(|_| ApiError::RequestSendFailed(format!("invalid HTTP status {status}")))?;
     let headers = response.get_headers_ref().clone();
-    let body = response.take_body();
+    let body = response.take_async_body();
     if !(200..300).contains(&status) {
         let body = read_error_body(body, client.limits.max_error_body).await;
         return Err(ApiError::HttpStatus {

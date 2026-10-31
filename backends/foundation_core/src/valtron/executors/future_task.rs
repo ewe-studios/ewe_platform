@@ -48,7 +48,7 @@ use crate::valtron::EventReadinessPtr;
 ///
 /// WHY: Valtron executor drives polling loop, no actual waking needed
 /// WHAT: Returns a Waker that does nothing when `wake()` is called
-#[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg(all(any(feature = "std", feature = "alloc"), not(feature = "multi")))]
 fn create_noop_waker() -> Waker {
     const VTABLE: RawWakerVTable = RawWakerVTable::new(
         |_| RAW_WAKER, // clone
@@ -667,6 +667,79 @@ impl<T, E> Iterator for FutureIterator<T, E> {
     }
 }
 
+/// Unparks the thread that owns it — the waker of a future polled on a
+/// background worker thread.
+#[cfg(feature = "multi")]
+struct ThreadUnpark(std::thread::Thread);
+
+#[cfg(feature = "multi")]
+impl std::task::Wake for ThreadUnpark {
+    fn wake(self: Arc<Self>) {
+        self.0.unpark();
+    }
+
+    fn wake_by_ref(self: &Arc<Self>) {
+        self.0.unpark();
+    }
+}
+
+/// Push `value`, waiting while the queue is full: the thread parks until the
+/// consumer takes an item (or the queue closes), checking again at least every
+/// `max_wait` when one is set. Returns `false` once the queue is closed — the
+/// consumer is gone.
+#[cfg(feature = "multi")]
+fn push_waiting<T>(
+    queue: &NotifyQueue<T>,
+    mut value: T,
+    max_wait: Option<std::time::Duration>,
+) -> bool {
+    loop {
+        match queue.push(value) {
+            Ok(()) => return true,
+            Err(PushError::Closed(_)) => return false,
+            Err(PushError::Full(v)) => {
+                value = v;
+                let thread = std::thread::current();
+                queue.register_space_wake(Box::new(move || thread.unpark()));
+                match max_wait {
+                    Some(wait) => std::thread::park_timeout(wait),
+                    None => std::thread::park(),
+                }
+            }
+        }
+    }
+}
+
+/// Tunables for [`ThreadedIterFuture`] (multi-threaded mode only).
+///
+/// WHY: Limits are configuration, not constants (CLAUDE.md rule 8).
+#[cfg(feature = "multi")]
+#[derive(Debug, Clone, Copy)]
+pub struct ThreadedIterFutureConfig {
+    /// Capacity of the bounded queue between the worker and the consumer. A
+    /// small bound makes the worker park on vacancy when it outruns the
+    /// consumer instead of buffering without limit. Default 16.
+    pub queue_size: usize,
+    /// How long the worker parks on a full queue before re-checking (a park
+    /// timeout, not a sleep — Feature 01 made it the `park_timeout` argument).
+    /// `None` parks until the consumer takes an item. Default 10 ms.
+    pub backpressure_wait: Option<std::time::Duration>,
+    /// How long the consumer's `NotifyQueue` waits for an item before timing
+    /// out. Default [`DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT`].
+    pub notify_queue_wait_timeout: std::time::Duration,
+}
+
+#[cfg(feature = "multi")]
+impl Default for ThreadedIterFutureConfig {
+    fn default() -> Self {
+        Self {
+            queue_size: 16,
+            backpressure_wait: Some(std::time::Duration::from_millis(10)),
+            notify_queue_wait_timeout: DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT,
+        }
+    }
+}
+
 /// A future executor that runs !Send operations on a background worker thread.
 ///
 /// In multi-threaded mode, this submits work to the BackgroundJobRegistry.
@@ -681,8 +754,7 @@ where
     E: Send + 'static,
 {
     future_fn: F,
-    queue_size: usize,
-    backpressure_sleep: Option<std::time::Duration>,
+    config: ThreadedIterFutureConfig,
     _phantom: PhantomData<(Fut, I, T, E)>,
 }
 
@@ -695,22 +767,47 @@ where
     T: Send + 'static,
     E: Send + 'static,
 {
-    /// Create a new ThreadedIterFuture with default settings.
+    /// Create a new ThreadedIterFuture with the default
+    /// [`ThreadedIterFutureConfig`].
     pub fn new(future_fn: F) -> Self {
-        Self {
-            future_fn,
-            queue_size: 16,
-            backpressure_sleep: Some(std::time::Duration::from_millis(10)),
-            _phantom: PhantomData,
-        }
+        Self::with_config(future_fn, ThreadedIterFutureConfig::default())
     }
 
-    /// Create a new ThreadedIterFuture with custom queue size.
+    /// Create a new ThreadedIterFuture with custom queue size and the default
+    /// back-pressure park timeout.
     pub fn with_queue_size(future_fn: F, queue_size: usize) -> Self {
+        Self::with_config(
+            future_fn,
+            ThreadedIterFutureConfig {
+                queue_size: queue_size.max(2),
+                ..ThreadedIterFutureConfig::default()
+            },
+        )
+    }
+
+    /// Create a new ThreadedIterFuture with custom queue size and back-pressure
+    /// park timeout.
+    pub fn with_backpressure_wait(
+        future_fn: F,
+        queue_size: usize,
+        backpressure_wait: Option<std::time::Duration>,
+    ) -> Self {
+        Self::with_config(
+            future_fn,
+            ThreadedIterFutureConfig {
+                queue_size: queue_size.max(2),
+                backpressure_wait,
+                ..ThreadedIterFutureConfig::default()
+            },
+        )
+    }
+
+    /// Create a new ThreadedIterFuture with an explicit
+    /// [`ThreadedIterFutureConfig`].
+    pub fn with_config(future_fn: F, config: ThreadedIterFutureConfig) -> Self {
         Self {
             future_fn,
-            queue_size: queue_size.max(2),
-            backpressure_sleep: Some(std::time::Duration::from_millis(10)),
+            config,
             _phantom: PhantomData,
         }
     }
@@ -719,12 +816,17 @@ where
     pub fn execute(
         self,
     ) -> crate::valtron::GenericResult<impl Iterator<Item = ThreadedValue<T, E>>> {
-        let queue = Arc::new(NotifyQueue::bounded(self.queue_size));
+        let queue = Arc::new(NotifyQueue::bounded(self.config.queue_size));
         let worker_queue = queue.clone();
-        let backpressure_sleep = self.backpressure_sleep;
+        let backpressure_wait = self.config.backpressure_wait;
+        let notify_queue_wait_timeout = self.config.notify_queue_wait_timeout;
 
         super::run_background_job(move || {
-            let waker = create_noop_waker();
+            // The worker thread parks while the future is pending; the
+            // future's waker unparks it. (It used to poll with a no-op waker
+            // and a yield loop, spinning a whole thread.)
+            let thread = std::thread::current();
+            let waker = Waker::from(Arc::new(ThreadUnpark(thread.clone())));
             let mut cx = Context::from_waker(&waker);
             let mut future = Box::pin((self.future_fn)());
 
@@ -733,30 +835,20 @@ where
                 match future.as_mut().poll(&mut cx) {
                     Poll::Ready(Ok(iter)) => break Some(iter),
                     Poll::Ready(Err(e)) => {
-                        let _ = worker_queue.push(ThreadedValue::Value(Err(e)));
+                        if !push_waiting(&worker_queue, ThreadedValue::Value(Err(e)), backpressure_wait) {
+                            tracing::debug!("ThreadedIterFuture: consumer gone; dropping the error");
+                        }
                         break None;
                     }
-                    Poll::Pending => std::thread::yield_now(),
+                    Poll::Pending => std::thread::park(),
                 }
             };
 
             // Stream iterator results through the channel
             if let Some(iter) = iterator {
                 for result in iter {
-                    let mut value = ThreadedValue::Value(result);
-                    loop {
-                        match worker_queue.push(value) {
-                            Ok(()) => break,
-                            Err(PushError::Full(v)) => {
-                                value = v;
-                                if let Some(sleep_dur) = backpressure_sleep {
-                                    std::thread::sleep(sleep_dur);
-                                } else {
-                                    std::hint::spin_loop();
-                                }
-                            }
-                            Err(PushError::Closed(_)) => return,
-                        }
+                    if !push_waiting(&worker_queue, ThreadedValue::Value(result), backpressure_wait) {
+                        return;
                     }
                 }
             }
@@ -767,23 +859,9 @@ where
         Ok(FutureIterator {
             iter: NotifyRecvIterator::from_notify_queue(
                 queue,
-                DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT,
+                notify_queue_wait_timeout,
             ),
         })
-    }
-
-    /// Create a new ThreadedIterFuture with custom queue size and backpressure sleep.
-    pub fn with_backpressure_sleep(
-        future_fn: F,
-        queue_size: usize,
-        backpressure_sleep: Option<std::time::Duration>,
-    ) -> Self {
-        Self {
-            future_fn,
-            queue_size: queue_size.max(2),
-            backpressure_sleep,
-            _phantom: PhantomData,
-        }
     }
 }
 

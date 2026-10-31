@@ -32,4 +32,4 @@ pub use foundation_core::io::ioutils::SharedByteBufferStream;
 #[cfg(not(target_family = "wasm"))]
 pub use foundation_netio::netcap::RawStream;
 #[cfg(not(target_family = "wasm"))]
-pub use foundation_core::synca::OnSignal;
+pub use foundation_iogate::ShutdownSignal;

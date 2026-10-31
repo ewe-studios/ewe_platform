@@ -23,7 +23,7 @@ use futures::StreamExt;
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
 use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::url::Uri;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::{HttpServer, ServerConfig};
@@ -113,7 +113,7 @@ const LIST_PROCEDURE: &str = "/test.ListService/Items";
 
 struct TestServer {
     addr: std::net::SocketAddr,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
 }
 
 /// Wait for the server to accept connections.
@@ -285,7 +285,7 @@ fn start_server(serve: Arc<dyn Serve>) -> TestServer {
     app.router.add_route_any(LIST_PROCEDURE, &serve);
     app.router.add_route_any("/test.EchoService/Echo", &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -404,980 +404,1068 @@ fn build_request_descriptor(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 8-thread conformance variants
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Emit each conformance test twice: `threads = 4` with seed `S`, and
+/// `threads = 8` with seed `S + 1000`. The body is written once here.
+macro_rules! conformance_test {
+    ($four:ident, $eight:ident, $seed:expr, $body:block) => {
+        #[valtron_test(seed = $seed, threads = 4, timeout = 60_000)]
+        async fn $four() $body
+
+        #[valtron_test(seed = $seed + 1000, threads = 8, timeout = 60_000)]
+        async fn $eight() $body
+    };
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 1: Connect — Unary POST Proto Success
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Connect unary via proto codec is the most basic RPC shape.
-/// WHAT: POST a proto-encoded message, verify 200 + matching echo + content-type.
-#[valtron_test(seed = 28101, threads = 4, timeout = 60_000)]
-async fn connect_unary_post_proto_success() {
-    let (transport, server) = connect_transport();
+// WHY: Connect unary via proto codec is the most basic RPC shape.
+// WHAT: POST a proto-encoded message, verify 200 + matching echo + content-type.
+conformance_test!(
+    connect_unary_post_proto_success,
+    connect_unary_post_proto_success_8_threads,
+    28101,
+    {
+        let (transport, server) = connect_transport();
 
-    let msg = TestMsg { id: 42, name: "proto-unary".into() };
-    let body = proto_bytes(&msg);
+        let msg = TestMsg { id: 42, name: "proto-unary".into() };
+        let body = proto_bytes(&msg);
 
-    let desc = build_request_descriptor(
-        server.addr,
-        ECHO_PROCEDURE,
-        "application/proto",
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            ECHO_PROCEDURE,
+            "application/proto",
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(body)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream.send_body.close();
 
-    let (status, headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK, "unary proto POST returns 200");
+        assert_eq!(status, Status::OK, "unary proto POST returns 200");
 
-    let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert_eq!(ct, "application/proto", "content-type is proto");
+        let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(ct, "application/proto", "content-type is proto");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        }
+
+        let echoed: TestMsg = ProtoCodec
+            .unmarshal(Bytes::from(body_bytes))
+            .expect("decode proto response");
+        assert_eq!(echoed, msg, "echoed message matches request");
     }
-
-    let echoed: TestMsg = ProtoCodec
-        .unmarshal(Bytes::from(body_bytes))
-        .expect("decode proto response");
-    assert_eq!(echoed, msg, "echoed message matches request");
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 2: Connect — Unary POST JSON Success
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: JSON codec is the second mandatory codec (Connect spec).
-/// WHAT: POST a JSON-encoded message, verify 200 + matching echo + content-type.
-#[valtron_test(seed = 28102, threads = 4, timeout = 60_000)]
-async fn connect_unary_post_json_success() {
-    let (transport, server) = connect_transport();
+// WHY: JSON codec is the second mandatory codec (Connect spec).
+// WHAT: POST a JSON-encoded message, verify 200 + matching echo + content-type.
+conformance_test!(
+    connect_unary_post_json_success,
+    connect_unary_post_json_success_8_threads,
+    28102,
+    {
+        let (transport, server) = connect_transport();
 
-    let msg = TestMsg { id: 99, name: "json-unary".into() };
-    let body = json_bytes(&msg);
+        let msg = TestMsg { id: 99, name: "json-unary".into() };
+        let body = json_bytes(&msg);
 
-    let desc = build_request_descriptor(
-        server.addr,
-        ECHO_PROCEDURE,
-        "application/json",
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            ECHO_PROCEDURE,
+            "application/json",
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(body)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream.send_body.close();
 
-    let (status, headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK, "unary json POST returns 200");
+        assert_eq!(status, Status::OK, "unary json POST returns 200");
 
-    let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert_eq!(ct, "application/json", "content-type is json");
+        let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(ct, "application/json", "content-type is json");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        }
+
+        let echoed: TestMsg = JsonCodec
+            .unmarshal(Bytes::from(body_bytes))
+            .expect("decode json response");
+        assert_eq!(echoed, msg, "echoed message matches request");
     }
-
-    let echoed: TestMsg = JsonCodec
-        .unmarshal(Bytes::from(body_bytes))
-        .expect("decode json response");
-    assert_eq!(echoed, msg, "echoed message matches request");
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 3: Connect — Unary Error
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Handler errors must be rendered correctly per Connect spec.
-/// WHAT: Handler returns permission_denied, verify HTTP 403 + JSON error body.
-#[valtron_test(seed = 28103, threads = 4, timeout = 60_000)]
-async fn connect_unary_error() {
-    let serve = error_serve();
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: Handler errors must be rendered correctly per Connect spec.
+// WHAT: Handler returns permission_denied, verify HTTP 403 + JSON error body.
+conformance_test!(
+    connect_unary_error,
+    connect_unary_error_8_threads,
+    28103,
+    {
+        let serve = error_serve();
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let msg = TestMsg { id: 1, name: "error".into() };
-    let body = json_bytes(&msg);
+        let msg = TestMsg { id: 1, name: "error".into() };
+        let body = json_bytes(&msg);
 
-    let desc = build_request_descriptor(
-        server.addr,
-        ECHO_PROCEDURE,
-        "application/json",
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            ECHO_PROCEDURE,
+            "application/json",
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(body)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream.send_body.close();
 
-    let (status, headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    // permission_denied → 403
-    assert_eq!(status, Status::Forbidden, "permission_denied maps to 403");
+        // permission_denied → 403
+        assert_eq!(status, Status::Forbidden, "permission_denied maps to 403");
 
-    // Error body is JSON.
-    let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert_eq!(ct, "application/json", "error content-type is json");
+        // Error body is JSON.
+        let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(ct, "application/json", "error content-type is json");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        }
+
+        let err_body: serde_json::Value =
+            serde_json::from_slice(&body_bytes).expect("valid json error body");
+        assert_eq!(err_body["code"], "permission_denied");
+        assert_eq!(err_body["message"], "not allowed");
+
+        server.shutdown.turn_on();
     }
-
-    let err_body: serde_json::Value =
-        serde_json::from_slice(&body_bytes).expect("valid json error body");
-    assert_eq!(err_body["code"], "permission_denied");
-    assert_eq!(err_body["message"], "not allowed");
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 4: Connect — Unary GET Success
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Connect GET for NoSideEffects endpoints serves idempotent RPCs.
-/// WHAT: GET with message in query params, verify 200 + correct echo.
-#[valtron_test(seed = 28104, threads = 4, timeout = 60_000)]
-async fn connect_unary_get_success() {
-    use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-    use base64::Engine as _;
+// WHY: Connect GET for NoSideEffects endpoints serves idempotent RPCs.
+// WHAT: GET with message in query params, verify 200 + correct echo.
+conformance_test!(
+    connect_unary_get_success,
+    connect_unary_get_success_8_threads,
+    28104,
+    {
+        use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+        use base64::Engine as _;
 
-    let serve = echo_serve(); // NoSideEffects
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+        let serve = echo_serve(); // NoSideEffects
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let msg = TestMsg { id: 77, name: "get-test".into() };
-    let json_body = json_bytes(&msg);
-    let encoded_msg = URL_SAFE_NO_PAD.encode(&json_body);
+        let msg = TestMsg { id: 77, name: "get-test".into() };
+        let json_body = json_bytes(&msg);
+        let encoded_msg = URL_SAFE_NO_PAD.encode(&json_body);
 
-    let query = format!(
-        "connect=v1&encoding=json&base64=1&message={}",
-        encoded_msg
-    );
-    let url = format!(
-        "http://127.0.0.1:{}{}?{}",
-        server.addr.port(),
-        ECHO_PROCEDURE,
-        query
-    );
-    let uri = Uri::parse(&url).expect("valid URI");
+        let query = format!(
+            "connect=v1&encoding=json&base64=1&message={}",
+            encoded_msg
+        );
+        let url = format!(
+            "http://127.0.0.1:{}{}?{}",
+            server.addr.port(),
+            ECHO_PROCEDURE,
+            query
+        );
+        let uri = Uri::parse(&url).expect("valid URI");
 
-    let desc = RequestDescriptor {
-        proto: Proto::HTTP11,
-        request_url: SimpleUrl::url_only(url),
-        request_uri: uri,
-        headers: SimpleHeaders::new(),
-        method: SimpleMethod::GET,
-    };
+        let desc = RequestDescriptor {
+            proto: Proto::HTTP11,
+            request_url: SimpleUrl::url_only(url),
+            request_uri: uri,
+            headers: SimpleHeaders::new(),
+            method: SimpleMethod::GET,
+        };
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.close(); // no body for GET
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.close(); // no body for GET
 
-    let (status, headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK, "unary GET returns 200");
+        assert_eq!(status, Status::OK, "unary GET returns 200");
 
-    let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert_eq!(ct, "application/json", "content-type is json for json encoding");
+        let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(ct, "application/json", "content-type is json for json encoding");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        }
+
+        let echoed: TestMsg = JsonCodec
+            .unmarshal(Bytes::from(body_bytes))
+            .expect("decode json response");
+        assert_eq!(echoed, msg, "GET echo matches request");
+
+        server.shutdown.turn_on();
     }
-
-    let echoed: TestMsg = JsonCodec
-        .unmarshal(Bytes::from(body_bytes))
-        .expect("decode json response");
-    assert_eq!(echoed, msg, "GET echo matches request");
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 5: Connect — Unary Unknown Path 404
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Unregistered paths must return 404.
-/// WHAT: POST to an unregistered path.
-#[valtron_test(seed = 28105, threads = 4, timeout = 60_000)]
-async fn connect_unary_unknown_path_404() {
-    let (transport, server) = connect_transport();
+// WHY: Unregistered paths must return 404.
+// WHAT: POST to an unregistered path.
+conformance_test!(
+    connect_unary_unknown_path_404,
+    connect_unary_unknown_path_404_8_threads,
+    28105,
+    {
+        let (transport, server) = connect_transport();
 
-    let msg = TestMsg { id: 0, name: "".into() };
-    let body = json_bytes(&msg);
+        let msg = TestMsg { id: 0, name: "".into() };
+        let body = json_bytes(&msg);
 
-    // Use a non-existent procedure path.
-    let desc = build_request_descriptor(
-        server.addr,
-        "/test.Nonexistent/Missing",
-        "application/json",
-        SimpleMethod::POST,
-    );
+        // Use a non-existent procedure path.
+        let desc = build_request_descriptor(
+            server.addr,
+            "/test.Nonexistent/Missing",
+            "application/json",
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(body)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream.send_body.close();
 
-    let (status, _headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, _headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::NotFound, "unregistered path returns 404");
+        assert_eq!(status, Status::NotFound, "unregistered path returns 404");
 
-    // Drain body.
-    while let Some(chunk) = stream.recv_body.next().await {
-        drop(chunk);
+        // Drain body.
+        while let Some(chunk) = stream.recv_body.next().await {
+            drop(chunk);
+        }
     }
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 6: Connect — Unary Wrong Method 405
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Wrong HTTP method must return 405 with Allow header.
-/// WHAT: GET to a POST-only endpoint.
-#[valtron_test(seed = 28106, threads = 4, timeout = 60_000)]
-async fn connect_unary_wrong_method_405() {
-    let serve = echo_post_only_serve(); // NoSideEffects NOT set
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: Wrong HTTP method must return 405 with Allow header.
+// WHAT: GET to a POST-only endpoint.
+conformance_test!(
+    connect_unary_wrong_method_405,
+    connect_unary_wrong_method_405_8_threads,
+    28106,
+    {
+        let serve = echo_post_only_serve(); // NoSideEffects NOT set
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let desc = build_request_descriptor(
-        server.addr,
-        ECHO_PROCEDURE,
-        "application/json",
-        SimpleMethod::GET,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            ECHO_PROCEDURE,
+            "application/json",
+            SimpleMethod::GET,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.close(); // GET has no body
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.close(); // GET has no body
 
-    let (status, headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::MethodNotAllowed, "GET to POST-only returns 405");
+        assert_eq!(status, Status::MethodNotAllowed, "GET to POST-only returns 405");
 
-    let allow = headers.get(&SimpleHeader::from("allow".to_string()))
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert!(allow.contains("POST"), "Allow header contains POST: {allow}");
+        let allow = headers.get(&SimpleHeader::from("allow".to_string()))
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert!(allow.contains("POST"), "Allow header contains POST: {allow}");
 
-    // Drain body.
-    while let Some(chunk) = stream.recv_body.next().await {
-        drop(chunk);
+        // Drain body.
+        while let Some(chunk) = stream.recv_body.next().await {
+            drop(chunk);
+        }
+
+        server.shutdown.turn_on();
     }
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 7: Connect — Server Streaming Success
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Server-streaming is a fundamental Connect streaming pattern.
-/// WHAT: Send one request, receive multiple response frames with EndStream.
-#[valtron_test(seed = 28107, threads = 4, timeout = 60_000)]
-async fn connect_server_stream_success() {
-    let serve = list_serve();
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: Server-streaming is a fundamental Connect streaming pattern.
+// WHAT: Send one request, receive multiple response frames with EndStream.
+conformance_test!(
+    connect_server_stream_success,
+    connect_server_stream_success_8_threads,
+    28107,
+    {
+        let serve = list_serve();
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let msg = TestMsg { id: 10, name: "seed".into() };
-    let json = json_bytes(&msg);
-    let envelope = connect_envelope(&json);
+        let msg = TestMsg { id: 10, name: "seed".into() };
+        let json = json_bytes(&msg);
+        let envelope = connect_envelope(&json);
 
-    let desc = build_request_descriptor(
-        server.addr,
-        LIST_PROCEDURE,
-        &streaming_content_type("json"),
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            LIST_PROCEDURE,
+            &streaming_content_type("json"),
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream.send_body.close();
 
-    let (status, headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK, "server-stream returns 200");
+        assert_eq!(status, Status::OK, "server-stream returns 200");
 
-    let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert_eq!(ct, "application/connect+json", "streaming content-type");
+        let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(ct, "application/connect+json", "streaming content-type");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        }
+
+        let (messages, saw_end_stream) = parse_connect_envelope_stream(&body_bytes);
+        assert_eq!(messages.len(), 3, "three server-stream items");
+        assert!(saw_end_stream, "EndStream frame present");
+
+        for (i, msg_data) in messages.iter().enumerate() {
+            let item: TestMsg = JsonCodec
+                .unmarshal(Bytes::from(msg_data.clone()))
+                .expect("decode item");
+            assert_eq!(item.id, 10 + i as i32, "item {i} id");
+            assert_eq!(item.name, format!("item-{i}"), "item {i} name");
+        }
+
+        server.shutdown.turn_on();
     }
-
-    let (messages, saw_end_stream) = parse_connect_envelope_stream(&body_bytes);
-    assert_eq!(messages.len(), 3, "three server-stream items");
-    assert!(saw_end_stream, "EndStream frame present");
-
-    for (i, msg_data) in messages.iter().enumerate() {
-        let item: TestMsg = JsonCodec
-            .unmarshal(Bytes::from(msg_data.clone()))
-            .expect("decode item");
-        assert_eq!(item.id, 10 + i as i32, "item {i} id");
-        assert_eq!(item.name, format!("item-{i}"), "item {i} name");
-    }
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 8: Connect — Client Streaming Success
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Client-streaming lets callers send multiple request messages.
-/// WHAT: Send two messages, get a single response with count.
-#[valtron_test(seed = 28108, threads = 4, timeout = 60_000)]
-async fn connect_client_stream_success() {
-    let serve = client_stream_echo_serve();
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: Client-streaming lets callers send multiple request messages.
+// WHAT: Send two messages, get a single response with count.
+conformance_test!(
+    connect_client_stream_success,
+    connect_client_stream_success_8_threads,
+    28108,
+    {
+        let serve = client_stream_echo_serve();
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let desc = build_request_descriptor(
-        server.addr,
-        ECHO_PROCEDURE,
-        &streaming_content_type("json"),
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            ECHO_PROCEDURE,
+            &streaming_content_type("json"),
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
+        let mut stream = transport.open(desc).expect("open transport");
 
-    // Send two messages.
-    let msg1 = TestMsg { id: 1, name: "first".into() };
-    let msg2 = TestMsg { id: 2, name: "second".into() };
-    let enc1 = connect_envelope(&json_bytes(&msg1));
-    let enc2 = connect_envelope(&json_bytes(&msg2));
+        // Send two messages.
+        let msg1 = TestMsg { id: 1, name: "first".into() };
+        let msg2 = TestMsg { id: 2, name: "second".into() };
+        let enc1 = connect_envelope(&json_bytes(&msg1));
+        let enc2 = connect_envelope(&json_bytes(&msg2));
 
-    stream.send_body.try_send(Bytes::from(enc1)).expect("send msg1");
-    stream.send_body.try_send(Bytes::from(enc2)).expect("send msg2");
-    stream.send_body.close();
+        stream.send_body.try_send(Bytes::from(enc1)).expect("send msg1");
+        stream.send_body.try_send(Bytes::from(enc2)).expect("send msg2");
+        stream.send_body.close();
 
-    let (status, _headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, _headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK, "client-stream returns 200");
+        assert_eq!(status, Status::OK, "client-stream returns 200");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        }
+
+        // Client streaming returns a single message (the count + last name).
+        // The response is a single Connect envelope.
+        let (messages, saw_end) = parse_connect_envelope_stream(&body_bytes);
+        assert_eq!(messages.len(), 1, "one response message");
+        assert!(saw_end, "EndStream present");
+
+        let result: TestMsg = JsonCodec
+            .unmarshal(Bytes::from(messages[0].clone()))
+            .expect("decode response");
+        assert_eq!(result.id, 2, "count = 2 messages received");
+        assert_eq!(result.name, "second", "last message name");
+
+        server.shutdown.turn_on();
     }
-
-    // Client streaming returns a single message (the count + last name).
-    // The response is a single Connect envelope.
-    let (messages, saw_end) = parse_connect_envelope_stream(&body_bytes);
-    assert_eq!(messages.len(), 1, "one response message");
-    assert!(saw_end, "EndStream present");
-
-    let result: TestMsg = JsonCodec
-        .unmarshal(Bytes::from(messages[0].clone()))
-        .expect("decode response");
-    assert_eq!(result.id, 2, "count = 2 messages received");
-    assert_eq!(result.name, "second", "last message name");
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 9: Connect — Server Streaming Error
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Streaming errors must be reported via EndStream frame.
-/// WHAT: Handler sends first frame then fails; verify error in EndStream.
-#[valtron_test(seed = 28109, threads = 4, timeout = 60_000)]
-async fn connect_server_stream_error() {
-    let serve = error_stream_serve();
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: Streaming errors must be reported via EndStream frame.
+// WHAT: Handler sends first frame then fails; verify error in EndStream.
+conformance_test!(
+    connect_server_stream_error,
+    connect_server_stream_error_8_threads,
+    28109,
+    {
+        let serve = error_stream_serve();
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let msg = TestMsg { id: 1, name: "trigger".into() };
-    let envelope = connect_envelope(&json_bytes(&msg));
+        let msg = TestMsg { id: 1, name: "trigger".into() };
+        let envelope = connect_envelope(&json_bytes(&msg));
 
-    let desc = build_request_descriptor(
-        server.addr,
-        LIST_PROCEDURE,
-        &streaming_content_type("json"),
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            LIST_PROCEDURE,
+            &streaming_content_type("json"),
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream.send_body.close();
 
-    let (status, _headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, _headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK, "streaming error returns 200 (error rides payload)");
+        assert_eq!(status, Status::OK, "streaming error returns 200 (error rides payload)");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        }
+
+        // First frame is a data frame, second is the EndStream error frame.
+        let (messages, saw_end) = parse_connect_envelope_stream(&body_bytes);
+        assert_eq!(messages.len(), 1, "one data frame before error");
+        assert!(saw_end, "EndStream error frame present");
+
+        let first: TestMsg = JsonCodec
+            .unmarshal(Bytes::from(messages[0].clone()))
+            .expect("decode first item");
+        assert_eq!(first.name, "first");
+
+        server.shutdown.turn_on();
     }
-
-    // First frame is a data frame, second is the EndStream error frame.
-    let (messages, saw_end) = parse_connect_envelope_stream(&body_bytes);
-    assert_eq!(messages.len(), 1, "one data frame before error");
-    assert!(saw_end, "EndStream error frame present");
-
-    let first: TestMsg = JsonCodec
-        .unmarshal(Bytes::from(messages[0].clone()))
-        .expect("decode first item");
-    assert_eq!(first.name, "first");
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 10: gRPC-Web — Unary Proto Success
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: gRPC-Web unary is how browsers call RPCs.
-/// WHAT: Send gRPC-Web enveloped proto request, verify grpc-status trailer.
-#[valtron_test(seed = 28110, threads = 4, timeout = 60_000)]
-async fn grpc_web_unary_proto_success() {
-    let (transport, server) = connect_transport();
+// WHY: gRPC-Web unary is how browsers call RPCs.
+// WHAT: Send gRPC-Web enveloped proto request, verify grpc-status trailer.
+conformance_test!(
+    grpc_web_unary_proto_success,
+    grpc_web_unary_proto_success_8_threads,
+    28110,
+    {
+        let (transport, server) = connect_transport();
 
-    let msg = TestMsg { id: 55, name: "grpc-web".into() };
-    let proto = proto_bytes(&msg);
-    let envelope = grpc_envelope(&proto);
+        let msg = TestMsg { id: 55, name: "grpc-web".into() };
+        let proto = proto_bytes(&msg);
+        let envelope = grpc_envelope(&proto);
 
-    let desc = build_request_descriptor(
-        server.addr,
-        ECHO_PROCEDURE,
-        &grpc_web_content_type("proto", false),
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            ECHO_PROCEDURE,
+            &grpc_web_content_type("proto", false),
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream.send_body.close();
 
-    let (status, _headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, _headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    // gRPC-Web always returns 200; status rides the trailer frame.
-    assert_eq!(status, Status::OK, "grpc-web returns 200");
+        // gRPC-Web always returns 200; status rides the trailer frame.
+        assert_eq!(status, Status::OK, "grpc-web returns 200");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        }
+
+        let (messages, trailers) = parse_grpc_web_body(&body_bytes);
+        assert_eq!(messages.len(), 1, "one data frame in grpc-web response");
+
+        let echoed: TestMsg = ProtoCodec
+            .unmarshal(Bytes::from(messages[0].clone()))
+            .expect("decode proto response");
+        assert_eq!(echoed, msg, "grpc-web echo matches");
+
+        // Verify grpc-status=0 in trailers.
+        let grpc_status = trailers
+            .get(&SimpleHeader::from(grpc_web_consts::TRAILER_STATUS.to_string()))
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(grpc_status, "0", "grpc-status is 0 (success)");
     }
-
-    let (messages, trailers) = parse_grpc_web_body(&body_bytes);
-    assert_eq!(messages.len(), 1, "one data frame in grpc-web response");
-
-    let echoed: TestMsg = ProtoCodec
-        .unmarshal(Bytes::from(messages[0].clone()))
-        .expect("decode proto response");
-    assert_eq!(echoed, msg, "grpc-web echo matches");
-
-    // Verify grpc-status=0 in trailers.
-    let grpc_status = trailers
-        .get(&SimpleHeader::from(grpc_web_consts::TRAILER_STATUS.to_string()))
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert_eq!(grpc_status, "0", "grpc-status is 0 (success)");
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 11: gRPC-Web — Unary Error
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: gRPC-Web errors must carry grpc-status + grpc-message in trailers.
-/// WHAT: Handler returns error, verify grpc-status + grpc-message in body.
-#[valtron_test(seed = 28111, threads = 4, timeout = 60_000)]
-async fn grpc_web_unary_error() {
-    let serve = error_serve(); // returns permission_denied
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: gRPC-Web errors must carry grpc-status + grpc-message in trailers.
+// WHAT: Handler returns error, verify grpc-status + grpc-message in body.
+conformance_test!(
+    grpc_web_unary_error,
+    grpc_web_unary_error_8_threads,
+    28111,
+    {
+        let serve = error_serve(); // returns permission_denied
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let msg = TestMsg { id: 1, name: "grpc-error".into() };
-    let proto = proto_bytes(&msg);
-    let envelope = grpc_envelope(&proto);
+        let msg = TestMsg { id: 1, name: "grpc-error".into() };
+        let proto = proto_bytes(&msg);
+        let envelope = grpc_envelope(&proto);
 
-    let desc = build_request_descriptor(
-        server.addr,
-        ECHO_PROCEDURE,
-        &grpc_web_content_type("proto", false),
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            ECHO_PROCEDURE,
+            &grpc_web_content_type("proto", false),
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream.send_body.close();
 
-    let (status, _headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, _headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK, "grpc-web error returns 200 (error rides trailers)");
+        assert_eq!(status, Status::OK, "grpc-web error returns 200 (error rides trailers)");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        }
+
+        let (_messages, trailers) = parse_grpc_web_body(&body_bytes);
+
+        // permission_denied → grpc-status=7
+        let grpc_status = trailers
+            .get(&SimpleHeader::from(grpc_web_consts::TRAILER_STATUS.to_string()))
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(grpc_status, "7", "grpc-status is 7 (PermissionDenied)");
+
+        // grpc-message should contain the error message
+        let grpc_message = trailers
+            .get(&SimpleHeader::from(grpc_web_consts::TRAILER_MESSAGE.to_string()))
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(grpc_message, "not allowed", "grpc-message is 'not allowed'");
+
+        server.shutdown.turn_on();
     }
-
-    let (_messages, trailers) = parse_grpc_web_body(&body_bytes);
-
-    // permission_denied → grpc-status=7
-    let grpc_status = trailers
-        .get(&SimpleHeader::from(grpc_web_consts::TRAILER_STATUS.to_string()))
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert_eq!(grpc_status, "7", "grpc-status is 7 (PermissionDenied)");
-
-    // grpc-message should contain the error message
-    let grpc_message = trailers
-        .get(&SimpleHeader::from(grpc_web_consts::TRAILER_MESSAGE.to_string()))
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert_eq!(grpc_message, "not allowed", "grpc-message is 'not allowed'");
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 12: gRPC-Web — Server Stream Success
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: gRPC-Web server-streaming with 0x80 trailer frame.
-/// WHAT: Enveloped frames with trailer, verify all items + grpc-status.
-#[valtron_test(seed = 28112, threads = 4, timeout = 60_000)]
-async fn grpc_web_server_stream_success() {
-    let serve = list_serve(); // 3 items
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: gRPC-Web server-streaming with 0x80 trailer frame.
+// WHAT: Enveloped frames with trailer, verify all items + grpc-status.
+conformance_test!(
+    grpc_web_server_stream_success,
+    grpc_web_server_stream_success_8_threads,
+    28112,
+    {
+        let serve = list_serve(); // 3 items
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let msg = TestMsg { id: 20, name: "stream".into() };
-    let json = json_bytes(&msg);
-    let envelope = grpc_envelope(&json); // gRPC envelope for request
+        let msg = TestMsg { id: 20, name: "stream".into() };
+        let json = json_bytes(&msg);
+        let envelope = grpc_envelope(&json); // gRPC envelope for request
 
-    let desc = build_request_descriptor(
-        server.addr,
-        LIST_PROCEDURE,
-        &grpc_web_content_type("json", false),
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            LIST_PROCEDURE,
+            &grpc_web_content_type("json", false),
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream.send_body.close();
 
-    let (status, _headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, _headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK, "grpc-web streaming returns 200");
+        assert_eq!(status, Status::OK, "grpc-web streaming returns 200");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        }
+
+        let (messages, trailers) = parse_grpc_web_body(&body_bytes);
+        assert_eq!(messages.len(), 3, "three grpc-web stream items");
+
+        for (i, msg_data) in messages.iter().enumerate() {
+            let item: TestMsg = JsonCodec
+                .unmarshal(Bytes::from(msg_data.clone()))
+                .expect("decode item");
+            assert_eq!(item.id, 20 + i as i32, "item {i} id");
+            assert_eq!(item.name, format!("item-{i}"), "item {i} name");
+        }
+
+        // Verify grpc-status=0 in trailer frame.
+        let grpc_status = trailers
+            .get(&SimpleHeader::from(grpc_web_consts::TRAILER_STATUS.to_string()))
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(grpc_status, "0", "grpc-status is 0 (success)");
+
+        server.shutdown.turn_on();
     }
-
-    let (messages, trailers) = parse_grpc_web_body(&body_bytes);
-    assert_eq!(messages.len(), 3, "three grpc-web stream items");
-
-    for (i, msg_data) in messages.iter().enumerate() {
-        let item: TestMsg = JsonCodec
-            .unmarshal(Bytes::from(msg_data.clone()))
-            .expect("decode item");
-        assert_eq!(item.id, 20 + i as i32, "item {i} id");
-        assert_eq!(item.name, format!("item-{i}"), "item {i} name");
-    }
-
-    // Verify grpc-status=0 in trailer frame.
-    let grpc_status = trailers
-        .get(&SimpleHeader::from(grpc_web_consts::TRAILER_STATUS.to_string()))
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert_eq!(grpc_status, "0", "grpc-status is 0 (success)");
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 13: Request Headers Reach Handler
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Custom request headers must be visible to the handler.
-/// WHAT: Send custom x-custom-* headers, verify they echo back.
-#[valtron_test(seed = 28113, threads = 4, timeout = 60_000)]
-async fn request_headers_reach_handler() {
-    let serve = echo_with_header_serve();
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: Custom request headers must be visible to the handler.
+// WHAT: Send custom x-custom-* headers, verify they echo back.
+conformance_test!(
+    request_headers_reach_handler,
+    request_headers_reach_handler_8_threads,
+    28113,
+    {
+        let serve = echo_with_header_serve();
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let msg = TestMsg { id: 1, name: "headers".into() };
-    let body = json_bytes(&msg);
+        let msg = TestMsg { id: 1, name: "headers".into() };
+        let body = json_bytes(&msg);
 
-    let url = format!("http://127.0.0.1:{}{}", server.addr.port(), ECHO_PROCEDURE);
-    let uri = Uri::parse(&url).expect("valid URI");
-    let mut headers = SimpleHeaders::new();
-    headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/json".to_string()]);
-    headers.insert(
-        SimpleHeader::from("x-custom-foo".to_string()),
-        vec!["bar".to_string()],
-    );
-    headers.insert(
-        SimpleHeader::from("x-custom-baz".to_string()),
-        vec!["qux".to_string()],
-    );
+        let url = format!("http://127.0.0.1:{}{}", server.addr.port(), ECHO_PROCEDURE);
+        let uri = Uri::parse(&url).expect("valid URI");
+        let mut headers = SimpleHeaders::new();
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/json".to_string()]);
+        headers.insert(
+            SimpleHeader::from("x-custom-foo".to_string()),
+            vec!["bar".to_string()],
+        );
+        headers.insert(
+            SimpleHeader::from("x-custom-baz".to_string()),
+            vec!["qux".to_string()],
+        );
 
-    let desc = RequestDescriptor {
-        proto: Proto::HTTP11,
-        request_url: SimpleUrl::url_only(url),
-        request_uri: uri,
-        headers,
-        method: SimpleMethod::POST,
-    };
+        let desc = RequestDescriptor {
+            proto: Proto::HTTP11,
+            request_url: SimpleUrl::url_only(url),
+            request_uri: uri,
+            headers,
+            method: SimpleMethod::POST,
+        };
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(body)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream.send_body.close();
 
-    let (status, response_headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, response_headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK);
+        assert_eq!(status, Status::OK);
 
-    // Verify custom headers were echoed back from the handler.
-    let foo_val = response_headers
-        .get(&SimpleHeader::from("x-custom-foo".to_string()))
-        .and_then(|v| v.first())
-        .cloned();
-    assert_eq!(foo_val.as_deref(), Some("bar"), "x-custom-foo echoed back");
+        // Verify custom headers were echoed back from the handler.
+        let foo_val = response_headers
+            .get(&SimpleHeader::from("x-custom-foo".to_string()))
+            .and_then(|v| v.first())
+            .cloned();
+        assert_eq!(foo_val.as_deref(), Some("bar"), "x-custom-foo echoed back");
 
-    let baz_val = response_headers
-        .get(&SimpleHeader::from("x-custom-baz".to_string()))
-        .and_then(|v| v.first())
-        .cloned();
-    assert_eq!(baz_val.as_deref(), Some("qux"), "x-custom-baz echoed back");
+        let baz_val = response_headers
+            .get(&SimpleHeader::from("x-custom-baz".to_string()))
+            .and_then(|v| v.first())
+            .cloned();
+        assert_eq!(baz_val.as_deref(), Some("qux"), "x-custom-baz echoed back");
 
-    // Drain body.
-    while let Some(chunk) = stream.recv_body.next().await {
-        drop(chunk);
+        // Drain body.
+        while let Some(chunk) = stream.recv_body.next().await {
+            drop(chunk);
+        }
+
+        server.shutdown.turn_on();
     }
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 14: Response Headers Reach Client
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Headers set by the handler must be visible to the client.
-/// WHAT: Verify custom response header from handler is present.
-#[valtron_test(seed = 28114, threads = 4, timeout = 60_000)]
-async fn response_headers_reach_client() {
-    let serve = echo_with_trailer_serve();
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: Headers set by the handler must be visible to the client.
+// WHAT: Verify custom response header from handler is present.
+conformance_test!(
+    response_headers_reach_client,
+    response_headers_reach_client_8_threads,
+    28114,
+    {
+        let serve = echo_with_trailer_serve();
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let msg = TestMsg { id: 1, name: "resp-headers".into() };
-    let body = json_bytes(&msg);
+        let msg = TestMsg { id: 1, name: "resp-headers".into() };
+        let body = json_bytes(&msg);
 
-    let desc = build_request_descriptor(
-        server.addr,
-        ECHO_PROCEDURE,
-        "application/json",
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            ECHO_PROCEDURE,
+            "application/json",
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(body)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream.send_body.close();
 
-    let (status, response_headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, response_headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK);
+        assert_eq!(status, Status::OK);
 
-    // Verify custom response header from handler.
-    let val = response_headers
-        .get(&SimpleHeader::from("x-response-custom".to_string()))
-        .and_then(|v| v.first())
-        .cloned();
-    assert_eq!(val.as_deref(), Some("header-value"), "response custom header present");
+        // Verify custom response header from handler.
+        let val = response_headers
+            .get(&SimpleHeader::from("x-response-custom".to_string()))
+            .and_then(|v| v.first())
+            .cloned();
+        assert_eq!(val.as_deref(), Some("header-value"), "response custom header present");
 
-    // Drain body.
-    while let Some(chunk) = stream.recv_body.next().await {
-        drop(chunk);
+        // Drain body.
+        while let Some(chunk) = stream.recv_body.next().await {
+            drop(chunk);
+        }
+
+        server.shutdown.turn_on();
     }
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 15: Response Trailers Reach Client
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Trailers set by the handler must be visible to the client (via Trailer-
-/// prefixed headers for Connect unary).
-/// WHAT: Verify custom trailer from handler is present as trailer-* header.
-#[valtron_test(seed = 28115, threads = 4, timeout = 60_000)]
-async fn response_trailers_reach_client() {
-    let serve = echo_with_trailer_serve();
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: Trailers set by the handler must be visible to the client (via Trailer-
+// prefixed headers for Connect unary).
+// WHAT: Verify custom trailer from handler is present as trailer-* header.
+conformance_test!(
+    response_trailers_reach_client,
+    response_trailers_reach_client_8_threads,
+    28115,
+    {
+        let serve = echo_with_trailer_serve();
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let msg = TestMsg { id: 1, name: "trailers".into() };
-    let body = json_bytes(&msg);
+        let msg = TestMsg { id: 1, name: "trailers".into() };
+        let body = json_bytes(&msg);
 
-    let desc = build_request_descriptor(
-        server.addr,
-        ECHO_PROCEDURE,
-        "application/json",
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            ECHO_PROCEDURE,
+            "application/json",
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(body)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream.send_body.close();
 
-    let (status, response_headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, response_headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(status, Status::OK);
+        assert_eq!(status, Status::OK);
 
-    // For Connect unary, trailers are rendered as Trailer-* prefixed headers.
-    let trailer_val = response_headers
-        .get(&SimpleHeader::from("trailer-x-trailer-custom".to_string()))
-        .and_then(|v| v.first())
-        .cloned();
-    assert_eq!(
-        trailer_val.as_deref(),
-        Some("trailer-value"),
-        "trailer rendered as Trailer-* header"
-    );
+        // For Connect unary, trailers are rendered as Trailer-* prefixed headers.
+        let trailer_val = response_headers
+            .get(&SimpleHeader::from("trailer-x-trailer-custom".to_string()))
+            .and_then(|v| v.first())
+            .cloned();
+        assert_eq!(
+            trailer_val.as_deref(),
+            Some("trailer-value"),
+            "trailer rendered as Trailer-* header"
+        );
 
-    // Drain body.
-    while let Some(chunk) = stream.recv_body.next().await {
-        drop(chunk);
+        // Drain body.
+        while let Some(chunk) = stream.recv_body.next().await {
+            drop(chunk);
+        }
+
+        server.shutdown.turn_on();
     }
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 16: Error Code to HTTP Status
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Each Connect error code must map to the correct HTTP status (Decision 03).
-/// WHAT: Verify the Code::http_status() mapping for all codes.
-#[valtron_test(seed = 28116, threads = 4, timeout = 60_000)]
-async fn error_code_to_http_status() {
-    // Test code → HTTP status mappings (Decision 03 table).
-    let cases: Vec<(Code, u16, &str)> = vec![
-        (Code::Canceled, 499, "canceled"),
-        (Code::Unknown, 500, "unknown"),
-        (Code::InvalidArgument, 400, "invalid_argument"),
-        (Code::DeadlineExceeded, 504, "deadline_exceeded"),
-        (Code::NotFound, 404, "not_found"),
-        (Code::AlreadyExists, 409, "already_exists"),
-        (Code::PermissionDenied, 403, "permission_denied"),
-        (Code::ResourceExhausted, 429, "resource_exhausted"),
-        (Code::FailedPrecondition, 400, "failed_precondition"),
-        (Code::Aborted, 409, "aborted"),
-        (Code::OutOfRange, 400, "out_of_range"),
-        (Code::Unimplemented, 501, "unimplemented"),
-        (Code::Internal, 500, "internal"),
-        (Code::Unavailable, 503, "unavailable"),
-        (Code::DataLoss, 500, "data_loss"),
-        (Code::Unauthenticated, 401, "unauthenticated"),
-    ];
+// WHY: Each Connect error code must map to the correct HTTP status (Decision 03).
+// WHAT: Verify the Code::http_status() mapping for all codes.
+conformance_test!(
+    error_code_to_http_status,
+    error_code_to_http_status_8_threads,
+    28116,
+    {
+        // Test code → HTTP status mappings (Decision 03 table).
+        let cases: Vec<(Code, u16, &str)> = vec![
+            (Code::Canceled, 499, "canceled"),
+            (Code::Unknown, 500, "unknown"),
+            (Code::InvalidArgument, 400, "invalid_argument"),
+            (Code::DeadlineExceeded, 504, "deadline_exceeded"),
+            (Code::NotFound, 404, "not_found"),
+            (Code::AlreadyExists, 409, "already_exists"),
+            (Code::PermissionDenied, 403, "permission_denied"),
+            (Code::ResourceExhausted, 429, "resource_exhausted"),
+            (Code::FailedPrecondition, 400, "failed_precondition"),
+            (Code::Aborted, 409, "aborted"),
+            (Code::OutOfRange, 400, "out_of_range"),
+            (Code::Unimplemented, 501, "unimplemented"),
+            (Code::Internal, 500, "internal"),
+            (Code::Unavailable, 503, "unavailable"),
+            (Code::DataLoss, 500, "data_loss"),
+            (Code::Unauthenticated, 401, "unauthenticated"),
+        ];
 
-    for (code, expected_http, name) in &cases {
-        let http = code.http_status();
-        assert_eq!(
-            http, *expected_http,
-            "Code::{} maps to HTTP {expected_http}, got {http}",
-            name,
-        );
-    }
+        for (code, expected_http, name) in &cases {
+            let http = code.http_status();
+            assert_eq!(
+                http, *expected_http,
+                "Code::{} maps to HTTP {expected_http}, got {http}",
+                name,
+            );
+        }
 
-    // Also verify the reverse: http_status → code_name strings as JSON.
-    for (code, _expected_http, name) in &cases {
-        let err: foundation_errstacks::ErrorTrace<ConnectError> =
-            ConnectError::new(*code, "test").into();
-        let body = foundation_connectrpc::shared::protocol::connect::unary_error_body(&err).expect("error body");
-        let parsed: serde_json::Value =
-            serde_json::from_slice(&body).expect("valid json");
-        assert_eq!(parsed["code"], *name, "error body has correct code name");
+        // Also verify the reverse: http_status → code_name strings as JSON.
+        for (code, _expected_http, name) in &cases {
+            let err: foundation_errstacks::ErrorTrace<ConnectError> =
+                ConnectError::new(*code, "test").into();
+            let body = foundation_connectrpc::shared::protocol::connect::unary_error_body(&err).expect("error body");
+            let parsed: serde_json::Value =
+                serde_json::from_slice(&body).expect("valid json");
+            assert_eq!(parsed["code"], *name, "error body has correct code name");
+        }
     }
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 17: Error EndStream
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Streaming EndStreamResponse must carry the error correctly.
-/// WHAT: Handler returns error, verify EndStream frame with error details.
-#[valtron_test(seed = 28117, threads = 4, timeout = 60_000)]
-async fn error_end_stream() {
-    let serve = error_stream_serve();
-    let server = start_server(serve);
-    let transport = H1Transport::new(HttpClientBuilder::new().build());
+// WHY: Streaming EndStreamResponse must carry the error correctly.
+// WHAT: Handler returns error, verify EndStream frame with error details.
+conformance_test!(
+    error_end_stream,
+    error_end_stream_8_threads,
+    28117,
+    {
+        let serve = error_stream_serve();
+        let server = start_server(serve);
+        let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-    let msg = TestMsg { id: 1, name: "endstream".into() };
-    let envelope = connect_envelope(&json_bytes(&msg));
+        let msg = TestMsg { id: 1, name: "endstream".into() };
+        let envelope = connect_envelope(&json_bytes(&msg));
 
-    let desc = build_request_descriptor(
-        server.addr,
-        LIST_PROCEDURE,
-        &streaming_content_type("json"),
-        SimpleMethod::POST,
-    );
+        let desc = build_request_descriptor(
+            server.addr,
+            LIST_PROCEDURE,
+            &streaming_content_type("json"),
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
+        let mut stream = transport.open(desc).expect("open transport");
 
-    stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
 
-    stream.send_body.close();
+        stream.send_body.close();
 
-    let (status, _headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, _headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
 
-    assert_eq!(status, Status::OK, "error EndStream returns 200 (error rides payload)");
+        assert_eq!(status, Status::OK, "error EndStream returns 200 (error rides payload)");
 
-    let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.next().await {
-        let chunk = chunk.expect("body chunk");
-        body_bytes.extend_from_slice(&chunk);
-    }
-
-    // Parse the stream: first data frame, then EndStream error frame.
-    let mut pos = 0;
-    let mut data_frames = 0;
-    let mut saw_error = false;
-    while pos + 5 <= body_bytes.len() {
-        let flags = body_bytes[pos];
-        let len = u32::from_be_bytes([
-            body_bytes[pos + 1],
-            body_bytes[pos + 2],
-            body_bytes[pos + 3],
-            body_bytes[pos + 4],
-        ]) as usize;
-        let start = pos + 5;
-        let stop = (start + len).min(body_bytes.len());
-        let payload = &body_bytes[start..stop];
-        if flags & FLAG_END_STREAM != 0 {
-            saw_error = true;
-            // The EndStream payload is JSON with nested error field:
-            // {"error":{"code":"internal",...},"metadata":{...}}
-            if !payload.is_empty() {
-                let json: serde_json::Value =
-                    serde_json::from_slice(payload).expect("valid EndStream JSON");
-                let code_str = json["error"]["code"].as_str().unwrap_or("unknown");
-                assert_eq!(code_str, "internal", "EndStream error code is 'internal'");
-            }
-        } else {
-            data_frames += 1;
+        let mut body_bytes = Vec::new();
+        while let Some(chunk) = stream.recv_body.next().await {
+            let chunk = chunk.expect("body chunk");
+            body_bytes.extend_from_slice(&chunk);
         }
-        pos = stop;
+
+        // Parse the stream: first data frame, then EndStream error frame.
+        let mut pos = 0;
+        let mut data_frames = 0;
+        let mut saw_error = false;
+        while pos + 5 <= body_bytes.len() {
+            let flags = body_bytes[pos];
+            let len = u32::from_be_bytes([
+                body_bytes[pos + 1],
+                body_bytes[pos + 2],
+                body_bytes[pos + 3],
+                body_bytes[pos + 4],
+            ]) as usize;
+            let start = pos + 5;
+            let stop = (start + len).min(body_bytes.len());
+            let payload = &body_bytes[start..stop];
+            if flags & FLAG_END_STREAM != 0 {
+                saw_error = true;
+                // The EndStream payload is JSON with nested error field:
+                // {"error":{"code":"internal",...},"metadata":{...}}
+                if !payload.is_empty() {
+                    let json: serde_json::Value =
+                        serde_json::from_slice(payload).expect("valid EndStream JSON");
+                    let code_str = json["error"]["code"].as_str().unwrap_or("unknown");
+                    assert_eq!(code_str, "internal", "EndStream error code is 'internal'");
+                }
+            } else {
+                data_frames += 1;
+            }
+            pos = stop;
+        }
+
+
+        assert!(data_frames >= 1, "at least one data frame before EndStream");
+        assert!(saw_error, "EndStream error frame present");
+
+        server.shutdown.turn_on();
     }
-
-
-    assert!(data_frames >= 1, "at least one data frame before EndStream");
-    assert!(saw_error, "EndStream error frame present");
-
-    server.shutdown.turn_on();
-}
+);
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 18: Unsupported Codec 415
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// WHY: Unknown codecs must return 415 with Accept-Post listing supported codecs.
-/// WHAT: POST with application/xml (unsupported), verify 415 + Accept-Post.
-#[valtron_test(seed = 28118, threads = 4, timeout = 60_000)]
-async fn unsupported_codec_415() {
-    let (transport, server) = connect_transport();
+// WHY: Unknown codecs must return 415 with Accept-Post listing supported codecs.
+// WHAT: POST with application/xml (unsupported), verify 415 + Accept-Post.
+conformance_test!(
+    unsupported_codec_415,
+    unsupported_codec_415_8_threads,
+    28118,
+    {
+        let (transport, server) = connect_transport();
 
-    let msg = TestMsg { id: 0, name: "".into() };
-    let body = json_bytes(&msg);
+        let msg = TestMsg { id: 0, name: "".into() };
+        let body = json_bytes(&msg);
 
-    // application/xml is not a recognized codec — it parses as a Connect
-    // content type with codec name "xml", which is not registered.
-    let desc = build_request_descriptor(
-        server.addr,
-        ECHO_PROCEDURE,
-        "application/xml",
-        SimpleMethod::POST,
-    );
+        // application/xml is not a recognized codec — it parses as a Connect
+        // content type with codec name "xml", which is not registered.
+        let desc = build_request_descriptor(
+            server.addr,
+            ECHO_PROCEDURE,
+            "application/xml",
+            SimpleMethod::POST,
+        );
 
-    let mut stream = transport.open(desc).expect("open transport");
-    stream.send_body.try_send(Bytes::from(body)).expect("send body");
-    stream.send_body.close();
+        let mut stream = transport.open(desc).expect("open transport");
+        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream.send_body.close();
 
-    let (status, headers) = stream.head.next().await
-        .expect("response head")
-        .expect("head ok");
+        let (status, headers) = stream.head.next().await
+            .expect("response head")
+            .expect("head ok");
 
-    assert_eq!(
-        status,
-        Status::UnsupportedMediaType,
-        "unsupported codec returns 415"
-    );
+        assert_eq!(
+            status,
+            Status::UnsupportedMediaType,
+            "unsupported codec returns 415"
+        );
 
-    // Accept-Post header lists supported codecs.
-    let accept = headers
-        .get(&SimpleHeader::from("accept-post".to_string()))
-        .and_then(|v| v.first())
-        .cloned()
-        .unwrap_or_default();
-    assert!(
-        accept.contains("application/proto") || accept.contains("application/json"),
-        "Accept-Post lists supported codecs: {accept}"
-    );
+        // Accept-Post header lists supported codecs.
+        let accept = headers
+            .get(&SimpleHeader::from("accept-post".to_string()))
+            .and_then(|v| v.first())
+            .cloned()
+            .unwrap_or_default();
+        assert!(
+            accept.contains("application/proto") || accept.contains("application/json"),
+            "Accept-Post lists supported codecs: {accept}"
+        );
 
-    // Drain body.
-    while let Some(chunk) = stream.recv_body.next().await {
-        drop(chunk);
+        // Drain body.
+        while let Some(chunk) = stream.recv_body.next().await {
+            drop(chunk);
+        }
     }
-}
+);

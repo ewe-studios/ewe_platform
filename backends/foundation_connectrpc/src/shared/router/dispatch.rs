@@ -141,6 +141,10 @@ impl ConnectRpcHandler {
     /// RPC failure is rendered as a response; `Err` is only a failure of
     /// `sink` itself (e.g. the peer went away), and it cancels the call.
     ///
+    /// `sink` is owned so the returned future can be `'static` — the HTTP/1.1
+    /// connection owner moves its connection into the sink and parks on the
+    /// future while the call waits.
+    ///
     /// `hooks` carries the cancel signal the connection owner fires when the
     /// peer goes away, and the timer that enforces the call's deadline.
     pub fn dispatch_to<'a>(
@@ -148,11 +152,14 @@ impl ConnectRpcHandler {
         bag: Arc<ContextBag>,
         request: SimpleIncomingRequest,
         body: RequestBody<'a>,
-        sink: &'a mut dyn ResponseSink,
+        sink: Box<dyn ResponseSink>,
         hooks: CallHooks<'a>,
     ) -> BoxFuture<'a, io::Result<()>> {
         let router = self.router.clone();
-        Box::pin(dispatch_request(router, bag, request, body, sink, hooks))
+        Box::pin(async move {
+            let mut sink = sink;
+            dispatch_request(router, bag, request, body, &mut *sink, hooks).await
+        })
     }
 }
 
@@ -271,10 +278,9 @@ pub(crate) enum BodyStep {
 
 /// Reads a `SendSafeBody` one non-blocking step at a time.
 ///
-/// WHY: `SendSafeBodyBytesIterator` reports "not ready yet" (a non-blocking
-/// socket's `WouldBlock`) as a stream error for chunked bodies and folds it
-/// into `Ignore` for sized ones, next to bookkeeping items like the last chunk.
-/// A reader that must wait for the socket has to tell those apart.
+/// WHY: a reader that waits on the socket needs one answer per step — a
+/// chunk, the end, a failure, or "would block" — while the body iterators
+/// interleave bookkeeping items (the last chunk, trailers) with the data.
 pub(crate) struct BodyReader {
     body: SendSafeBody,
 }
@@ -1292,6 +1298,7 @@ pub(crate) fn request_from_header(header: &SimpleIncomingRequestHeader) -> Simpl
         request_uri: header.uri.clone(),
         request_url: header.url.clone(),
         body: None,
+        body_readiness: None,
         headers: header.headers.clone(),
         method: header.method.clone(),
         extensions: None,
@@ -1355,6 +1362,14 @@ async fn send_whole_response(
                 Some(Stream::Next(SendSafeBodyBytesItem::Chunk(b))) => return Ok(Some(b)),
                 Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
                     return Err(io::Error::other(e.to_string()));
+                }
+                // The body's transport has nothing yet: this writer cannot wait
+                // for it, so report it rather than spin.
+                Some(Stream::Wait) => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::WouldBlock,
+                        "response body not ready",
+                    ));
                 }
                 None => return Ok(None),
                 _ => {} // Ignore, Init, etc — skip.

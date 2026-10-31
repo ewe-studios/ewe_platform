@@ -29,7 +29,7 @@ use std::time::Duration;
 use bytes::Bytes;
 use futures::StreamExt;
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
@@ -134,7 +134,7 @@ fn build_router() -> Router {
 
 /// Start an HTTP/2 server with Connect and gRPC handlers both wired.
 /// The router's protocol-agnostic dispatch picks gRPC based on `Content-Type`.
-fn start_h2_server() -> (String, Arc<OnSignal>) {
+fn start_h2_server() -> (String, Arc<ShutdownSignal>) {
     let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
 
     let mut app = HttpApp::new_h2_serve();
@@ -146,7 +146,7 @@ fn start_h2_server() -> (String, Arc<OnSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
 
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
@@ -511,7 +511,7 @@ async fn grpc_handler_error_returns_http_200() {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
     thread::spawn(move || {
@@ -725,7 +725,7 @@ async fn grpc_error_trailers_readable_from_response() {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
     std::thread::spawn(move || {

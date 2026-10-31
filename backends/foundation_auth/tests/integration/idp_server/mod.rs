@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::{IdpConfig, IdpServer};
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_db::{MemoryStorage, QueryStore};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
@@ -29,10 +29,10 @@ fn start_idp(
     config: IdpConfig,
 ) -> (
     std::net::SocketAddr,
-    Arc<OnSignal>,
+    Arc<ShutdownSignal>,
     std::thread::JoinHandle<()>,
 ) {
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 
@@ -59,10 +59,10 @@ fn start_idp_with_prefix(
     prefix: &str,
 ) -> (
     std::net::SocketAddr,
-    Arc<OnSignal>,
+    Arc<ShutdownSignal>,
     std::thread::JoinHandle<()>,
 ) {
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 

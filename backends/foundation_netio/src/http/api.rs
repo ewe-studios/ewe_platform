@@ -239,23 +239,18 @@ impl<T, R: DnsResolver + 'static> Drop for FinalizedResponse<T, R> {
 ///
 /// # Examples
 ///
-/// ```ignore
-/// // Progressive reading
-/// let mut request = client.get("http://example.com")?;
-/// let (intro, headers) = request.introduction()?;
-/// let body = request.body()?;
+/// ```no_run
+/// use foundation_netio::http::NativeHttpClient;
 ///
-/// // One-shot execution
-/// let response = client.get("http://example.com")?.send()?;
-///
-/// // Streaming parts
-/// for part in client.get("http://example.com")?.parts() {
-///     match part? {
-///         IncomingResponseParts::Intro(status, proto, reason) => { /* ... */ }
-///         IncomingResponseParts::Headers(headers) => { /* ... */ }
-///         // ...
-///     }
-/// }
+/// let client = NativeHttpClient::from_system();
+/// let response = client
+///     .get("http://example.com")
+///     .unwrap()
+///     .build_client()
+///     .unwrap()
+///     .send()
+///     .unwrap();
+/// assert_eq!(response.get_status().into_usize(), 200);
 /// ```
 pub struct ClientRequest<R: DnsResolver + 'static> {
     /// Client configuration (timeouts, redirects, etc.)
@@ -341,8 +336,18 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     ///
     /// # Examples
     ///
-    /// ```ignore
-    /// let response = client.get("http://example.com")?.send()?;
+    /// ```no_run
+    /// use foundation_netio::http::NativeHttpClient;
+    /// use foundation_netio::shared::http::Status;
+    ///
+    /// let client = NativeHttpClient::from_system();
+    /// let response = client
+    ///     .get("http://example.com")
+    ///     .unwrap()
+    ///     .build_client()
+    ///     .unwrap()
+    ///     .send()
+    ///     .unwrap();
     /// assert_eq!(response.get_status(), Status::OK);
     /// ```
     #[tracing::instrument(skip(self))]

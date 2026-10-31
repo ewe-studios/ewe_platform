@@ -27,15 +27,22 @@ use std::sync::{Arc, Mutex};
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// let progress = FetchPending::Connecting { source: "api.example.com" };
-/// println!("Progress: {}", progress); // "api.example.com: Connecting..."
+/// ```rust
+/// use foundation_netio::http::FetchPending;
 ///
-/// let failed = FetchPending::Failed {
+/// let progress: FetchPending<&str, String> = FetchPending::Connecting {
+///     source: "api.example.com",
+/// };
+/// assert_eq!(progress.to_string(), "api.example.com: Connecting...");
+///
+/// let failed: FetchPending<&str, String> = FetchPending::Failed {
 ///     source: "api.example.com",
 ///     error: "Connection refused".to_string(),
 /// };
-/// println!("Error: {}", failed); // "api.example.com: FAILED - Connection refused"
+/// assert_eq!(
+///     failed.to_string(),
+///     "api.example.com: FAILED - Connection refused"
+/// );
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FetchPending<S = &'static str, E = String> {
@@ -180,24 +187,16 @@ impl<T, E> FetchOutcome<T, E> {
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// use foundation_netio::wire::simple_http::client::tasks::{FetchResult, FetchOutcome};
+/// ```rust
+/// use foundation_netio::http::FetchResult;
 ///
-/// let result = FetchResult {
-///     source: "api.example.com",
-///     outcome: FetchOutcome::Success(vec![/* models */]),
-/// };
+/// let ok: FetchResult<&str, Vec<i32>, String> =
+///     FetchResult::success("api.example.com", vec![1, 2, 3]);
+/// assert_eq!(ok.ok(), Some(vec![1, 2, 3]));
 ///
-/// // Log with appropriate level based on outcome
-/// result.log();
-///
-/// // Extract success value or error
-/// if let Some(models) = result.ok() {
-///     // Process successful result
-/// }
-/// if let Some(error) = result.err() {
-///     // Handle error
-/// }
+/// let failed: FetchResult<&str, Vec<i32>, String> =
+///     FetchResult::error("api.example.com", "Connection refused".to_string());
+/// assert_eq!(failed.err(), Some("Connection refused".to_string()));
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FetchResult<S = &'static str, T = Vec<()>, E = String> {
@@ -239,9 +238,12 @@ impl<S: AsRef<str>, T, E: std::fmt::Display> FetchResult<S, T, E> {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
-    /// let result: FetchResult<&str, Vec<ModelEntry>, String> = /* ... */;
-    /// result.log(); // Logs "api.example.com: Success" or "api.example.com: Error - ..."
+    /// ```rust
+    /// use foundation_netio::http::FetchResult;
+    ///
+    /// let result: FetchResult<&str, Vec<i32>, String> =
+    ///     FetchResult::success("api.example.com", vec![1, 2, 3]);
+    /// result.log(); // Logs "api.example.com: Success".
     /// ```
     pub fn log(&self) {
         match &self.outcome {
@@ -299,23 +301,14 @@ impl<S: AsRef<str>, T, E: std::fmt::Display> std::fmt::Display for FetchResult<S
 ///
 /// # Examples
 ///
-/// ```rust,ignore
-/// use std::sync::{Arc, Mutex};
-/// use foundation_netio::wire::simple_http::client::tasks::ErrorCollector;
+/// ```rust
+/// use foundation_netio::http::ErrorCollector;
 ///
-/// let errors = ErrorCollector::new();
-/// let errors_clone = errors.clone();
+/// let errors: ErrorCollector<&str, &str> = ErrorCollector::new();
+/// errors.record("api.example.com", "Connection refused");
 ///
-/// // In fetch task
-/// if fetch_failed {
-///     errors_clone.record("api.example.com", "Connection refused");
-/// }
-///
-/// // After execution
 /// let collected = errors.collect();
-/// for (source, error) in collected {
-///     tracing::warn!("{}: {}", source, error);
-/// }
+/// assert_eq!(collected, vec![("api.example.com", "Connection refused")]);
 /// ```
 #[derive(Clone, Default)]
 pub struct ErrorCollector<S = String, E = String> {
@@ -492,198 +485,5 @@ impl Iterator for IncomingResponseMapper {
                 Err(err) => Some(Err(HttpClientError::ReaderError(err))),
             },
         }
-    }
-}
-
-// ============================================================================
-// Tests
-// ============================================================================
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::http::HttpRequestPending;
-
-    #[test]
-    fn test_fetch_pending_display() {
-        // Test Connecting state
-        let connecting: FetchPending<&str> = FetchPending::connecting("api.example.com");
-        assert_eq!(format!("{connecting}"), "api.example.com: Connecting...");
-
-        // Test AwaitingResponse state
-        let awaiting: FetchPending<&str> = FetchPending::awaiting_response("api.example.com");
-        assert_eq!(
-            format!("{awaiting}"),
-            "api.example.com: Awaiting response..."
-        );
-
-        // Test Failed state
-        let failed = FetchPending::failed("api.example.com", "Connection refused".to_string());
-        assert_eq!(
-            format!("{failed}"),
-            "api.example.com: FAILED - Connection refused"
-        );
-
-        // Test Completed state
-        let completed: FetchPending<&str> = FetchPending::completed("api.example.com");
-        assert_eq!(format!("{completed}"), "api.example.com: Completed");
-    }
-
-    #[test]
-    fn test_fetch_pending_constructors() {
-        let connecting: FetchPending<&str> = FetchPending::connecting("test");
-        assert!(matches!(
-            connecting,
-            FetchPending::Connecting { source: "test" }
-        ));
-
-        let awaiting: FetchPending<&str> = FetchPending::awaiting_response("test");
-        assert!(matches!(
-            awaiting,
-            FetchPending::AwaitingResponse { source: "test" }
-        ));
-
-        let failed: FetchPending<&str, &str> = FetchPending::failed("test", "error");
-        assert!(matches!(
-            failed,
-            FetchPending::Failed {
-                source: "test",
-                error: "error"
-            }
-        ));
-
-        let completed: FetchPending<&str> = FetchPending::completed("test");
-        assert!(matches!(
-            completed,
-            FetchPending::Completed { source: "test" }
-        ));
-    }
-
-    #[test]
-    fn test_fetch_pending_from_http_request() {
-        let pending_stream: FetchPending<&str> =
-            FetchPending::from_http_request(HttpRequestPending::WaitingForStream, "test");
-        assert!(matches!(pending_stream, FetchPending::Connecting { .. }));
-
-        let pending_intro: FetchPending<&str> =
-            FetchPending::from_http_request(HttpRequestPending::WaitingIntroAndHeaders, "test");
-        assert!(matches!(
-            pending_intro,
-            FetchPending::AwaitingResponse { .. }
-        ));
-    }
-
-    #[test]
-    fn test_fetch_pending_generic_source() {
-        // Test with String source
-        let string_source: FetchPending<String> = FetchPending::connecting("api".to_string());
-        assert_eq!(format!("{string_source}"), "api: Connecting...");
-
-        // Test with custom error type
-        let custom_error: FetchPending<&str, &'static str> = FetchPending::failed("api", "err");
-        assert_eq!(format!("{custom_error}"), "api: FAILED - err");
-    }
-
-    #[test]
-    fn test_fetch_outcome_basic() {
-        let success: FetchOutcome<i32, &str> = FetchOutcome::success(42);
-        assert_eq!(success.clone().ok(), Some(42));
-        assert_eq!(success.clone().err(), None);
-
-        let error: FetchOutcome<i32, &str> = FetchOutcome::error("failed");
-        assert_eq!(error.clone().ok(), None);
-        assert_eq!(error.clone().err(), Some("failed"));
-    }
-
-    #[test]
-    fn test_fetch_outcome_map() {
-        let success: FetchOutcome<i32, &str> = FetchOutcome::success(42);
-        let mapped = success.map(|x| x * 2);
-        assert_eq!(mapped.clone().ok(), Some(84));
-
-        let error: FetchOutcome<i32, &str> = FetchOutcome::error("failed");
-        let mapped_error = error.map(|x| x * 2);
-        assert_eq!(mapped_error.clone().err(), Some("failed"));
-    }
-
-    #[test]
-    fn test_fetch_result_constructors() {
-        let success: FetchResult<&str, Vec<i32>, String> =
-            FetchResult::success("api1", vec![1, 2, 3]);
-        assert_eq!(success.source, "api1");
-        assert!(matches!(success.outcome, FetchOutcome::Success(_)));
-        assert_eq!(success.clone().ok(), Some(vec![1, 2, 3]));
-
-        let error: FetchResult<&str, Vec<i32>, &str> =
-            FetchResult::error("api2", "connection failed");
-        assert_eq!(error.source, "api2");
-        assert!(matches!(error.outcome, FetchOutcome::Error(_)));
-        assert_eq!(error.clone().err(), Some("connection failed"));
-    }
-
-    #[test]
-    fn test_fetch_result_new() {
-        let result: FetchResult<&str, i32, String> =
-            FetchResult::new("api", FetchOutcome::<i32, String>::success(100));
-        assert_eq!(result.source, "api");
-        assert_eq!(result.clone().ok(), Some(100));
-    }
-
-    #[test]
-    fn test_fetch_result_map() {
-        let result: FetchResult<&str, Vec<i32>, String> =
-            FetchResult::success("api", vec![1, 2, 3]);
-        let mapped = result.map(|v: Vec<i32>| v.len());
-        assert_eq!(mapped.source, "api");
-        assert_eq!(mapped.ok(), Some(3));
-
-        let error_result: FetchResult<&str, Vec<i32>, &str> = FetchResult::error("api", "failed");
-        let mapped_error = error_result.map(|v: Vec<i32>| v.len());
-        assert_eq!(mapped_error.err(), Some("failed"));
-    }
-
-    #[test]
-    fn test_fetch_result_display() {
-        let success: FetchResult<&str, i32, &str> = FetchResult::success("api", 42);
-        assert_eq!(format!("{success}"), "api: Success");
-
-        let error: FetchResult<&str, i32, &str> = FetchResult::error("api", "timeout");
-        assert_eq!(format!("{error}"), "api: Error - timeout");
-    }
-
-    #[test]
-    fn test_error_collector_basic() {
-        let collector: ErrorCollector<String, String> = ErrorCollector::new();
-        assert!(!collector.has_errors());
-        assert_eq!(collector.count(), 0);
-
-        collector.record("api1".to_string(), "error1".to_string());
-        assert!(collector.has_errors());
-        assert_eq!(collector.count(), 1);
-
-        collector.record("api2".to_string(), "error2".to_string());
-        assert_eq!(collector.count(), 2);
-    }
-
-    #[test]
-    fn test_error_collector_collect() {
-        let collector: ErrorCollector<String, String> = ErrorCollector::new();
-        collector.record("api1".to_string(), "error1".to_string());
-        collector.record("api2".to_string(), "error2".to_string());
-
-        let errors = collector.collect();
-        assert_eq!(errors.len(), 2);
-        assert_eq!(errors[0], ("api1".to_string(), "error1".to_string()));
-        assert_eq!(errors[1], ("api2".to_string(), "error2".to_string()));
-    }
-
-    #[test]
-    fn test_error_collector_clone() {
-        let collector = ErrorCollector::new();
-        let clone = collector.clone();
-
-        clone.record("api", "error");
-        assert_eq!(collector.count(), 1);
-        assert_eq!(clone.count(), 1);
     }
 }

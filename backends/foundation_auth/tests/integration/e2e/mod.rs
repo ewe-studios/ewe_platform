@@ -12,7 +12,7 @@ use std::time::Duration;
 use foundation_auth::server::config::IdpConfig;
 use foundation_auth::server::idp_server::IdpServer;
 use foundation_auth::server::storage::HandlerStorage;
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_db::{MemoryStorage, QueryStore};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
@@ -29,7 +29,7 @@ use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 struct TestIdpServer {
     addr: std::net::SocketAddr,
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     _db_dir: tempfile::TempDir,
 }
 
@@ -48,7 +48,7 @@ impl TestIdpServer {
         let idp = IdpServer::new(config, storage);
         let app = idp.http_app();
 
-        let shutdown = Arc::new(OnSignal::new());
+        let shutdown = Arc::new(ShutdownSignal::new());
         let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
         let addr = listener.local_addr().expect("local_addr failed");
 
@@ -571,7 +571,7 @@ fn e2e_issuer_trailing_slash_normalized() {
     let idp = IdpServer::new(config, storage);
     let app = idp.http_app();
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 
@@ -659,7 +659,7 @@ fn e2e_custom_prefix_routes_work() {
     app.ctx.store(storage);
     IdpServer::<MemoryStorage>::register_routes(&mut app, "/auth/v1");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 

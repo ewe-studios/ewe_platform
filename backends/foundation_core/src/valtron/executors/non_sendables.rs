@@ -10,7 +10,6 @@ use super::inline_action::InlineActionBehaviour;
 use std::sync::Arc;
 use crate::valtron::{FnMutReady, FnReady, OnNext, TaskReadyResolver, TaskSpawnConfig};
 
-use crate::valtron::DEFAULT_WAIT_CYCLE;
 #[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 use crate::valtron::collect_result;
 use crate::valtron::{
@@ -680,17 +679,17 @@ where
     T::Pending: 'static,
 {
     use super::single;
-    use crate::valtron::executors::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION};
+    use crate::valtron::executors::DEFAULT_MAX_TURNS;
 
     tracing::debug!("Executing as a single-threaded stream in no-wasm with multi=off");
 
     // Schedule task and get iterator with defaults
-    // Note: wait_cycle is not used directly; DEFAULT_PARK_DURATION is used for park_duration
+    // Note: wait_cycle is not used directly; the StreamConfig park_duration default is used.
     let iter = single::spawn()
         .with_task(task)
         .as_scheduled()
         .stream_with_config(
-            wait_cycle.unwrap_or(DEFAULT_PARK_DURATION),
+            wait_cycle.unwrap_or_else(|| StreamConfig::default().park_duration),
             DEFAULT_MAX_TURNS,
         )?;
 
@@ -776,7 +775,7 @@ where
     let iter = single::spawn()
         .with_task(task)
         .as_scheduled()
-        .recv(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
+        .recv(wait_cycle.unwrap_or_else(|| StreamConfig::default().wait_cycle))?;
 
     Ok(drive_receiver(iter))
 }
@@ -1256,10 +1255,24 @@ where
     T::Pending: 'static,
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
-        // Forward to the waking terminal held inside. If the inner has been
-        // taken out (exhausted), there is nothing left to register against.
-        match self.0.as_mut() {
-            Some(inner) => inner.wake(cb),
+        // Register on the queue only. Do NOT forward to the inner
+        // `NotifyQueueStreamIterator::wake`: that also switches the inner to its
+        // non-blocking "async consumer" mode, which answers an empty pull with
+        // `Wait` and relies on a producer thread pushing to fire the wake.
+        // Here the producer is the engine this very iterator drives in `next`,
+        // and a parked task becomes runnable when a foreign thread flips its
+        // readiness signal (`WakeSignal`, a future's waker, a socket), which
+        // pushes nothing and fires nothing. With the non-blocking mode the
+        // consumer would park on a wake that no one fires and `next` would never
+        // drive the engine again (smol/tokio `into_collect_future` hung).
+        // Keeping the inner blocking preserves "block only when nothing here can
+        // run" in `next`: the one real boundary of a thread that is its own
+        // executor.
+        match self.0.as_ref() {
+            Some(inner) => {
+                inner.chan().register_wake(cb);
+                WakeResult::Successful
+            }
             None => {
                 let _ = cb;
                 WakeResult::NotSupported

@@ -88,20 +88,3 @@ impl RequestMiddleware for BodyLimitMiddleware {
         MiddlewareResult::Continue
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_body_limit_middleware_new() {
-        let mw = BodyLimitMiddleware::new(1024);
-        assert_eq!(mw.max_bytes, 1024);
-    }
-
-    #[test]
-    fn test_body_limit_middleware_with_message() {
-        let mw = BodyLimitMiddleware::new(1024).with_message("Custom error");
-        assert_eq!(mw.error_message, "Custom error");
-    }
-}

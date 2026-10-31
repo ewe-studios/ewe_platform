@@ -48,6 +48,7 @@ fn get_request(url: &str) -> PreparedRequest {
         headers,
         body: SendSafeBody::None,
         extensions: Extensions::new(),
+        body_readiness: None,
     }
 }
 

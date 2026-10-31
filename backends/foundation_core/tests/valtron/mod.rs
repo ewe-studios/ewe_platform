@@ -69,3 +69,6 @@ mod multi_allocatable_threads;
 mod single_executor;
 mod task_status;
 mod wrappers;
+#[cfg(feature = "multi")]
+mod pool_config_tests;
+mod limits_config_tests;

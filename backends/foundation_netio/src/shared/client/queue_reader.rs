@@ -20,7 +20,7 @@
 
 use std::io::{Cursor, Read};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use concurrent_queue::ConcurrentQueue;
 
@@ -90,6 +90,9 @@ pub struct QueueSseEvents<R: Read = QueueReader> {
     done: Arc<AtomicBool>,
     queue: Arc<ConcurrentQueue<Vec<u8>>>,
     wake: Arc<foundation_core::valtron::WakeRegistry>,
+    /// A producer-recorded fatal read error. When set, the stream ends with
+    /// `SseProgress::Failed` rather than a clean end, matching a fetch failure.
+    error: Arc<Mutex<Option<String>>>,
     failed: bool,
 }
 
@@ -105,6 +108,20 @@ impl QueueSseEvents {
         let reader = QueueReader::new(queue.clone(), done.clone());
         Self::over_reader(reader, queue, done, wake)
     }
+
+    /// As [`Self::new`], but with a shared slot the producer records a fatal
+    /// read error into. When that slot is set, the stream ends with
+    /// `SseProgress::Failed` instead of a clean end.
+    #[must_use]
+    pub fn new_with_error(
+        queue: Arc<ConcurrentQueue<Vec<u8>>>,
+        done: Arc<AtomicBool>,
+        error: Arc<Mutex<Option<String>>>,
+        wake: Arc<foundation_core::valtron::WakeRegistry>,
+    ) -> Self {
+        let reader = QueueReader::new(queue.clone(), done.clone());
+        Self::over_reader_with_error(reader, queue, done, error, wake)
+    }
 }
 
 impl<R: Read> QueueSseEvents<R> {
@@ -117,18 +134,50 @@ impl<R: Read> QueueSseEvents<R> {
         done: Arc<AtomicBool>,
         wake: Arc<foundation_core::valtron::WakeRegistry>,
     ) -> Self {
+        Self::over_reader_with_error(reader, queue, done, Arc::new(Mutex::new(None)), wake)
+    }
+
+    fn over_reader_with_error(
+        reader: R,
+        queue: Arc<ConcurrentQueue<Vec<u8>>>,
+        done: Arc<AtomicBool>,
+        error: Arc<Mutex<Option<String>>>,
+        wake: Arc<foundation_core::valtron::WakeRegistry>,
+    ) -> Self {
         let buffer = foundation_core::io::ioutils::SharedByteBufferStream::ref_cell(reader);
         Self {
             parser: crate::event_source::SseParser::new(buffer),
             done,
             queue,
             wake,
+            error,
             failed: false,
         }
     }
 
     fn drained(&self) -> bool {
         self.done.load(Ordering::Acquire) && self.queue.is_empty()
+    }
+
+    /// End-of-stream: a producer-recorded error is a failure, otherwise a clean
+    /// end. Sets `failed` so the next call returns `None`.
+    fn end_or_fail(&mut self) -> Option<foundation_core::valtron::Stream<
+        crate::event_source::ParseResult,
+        crate::shared::client::http_client::SseProgress,
+    >> {
+        let recorded = self
+            .error
+            .lock()
+            .ok()
+            .and_then(|mut slot| slot.take());
+        if let Some(message) = recorded {
+            self.failed = true;
+            Some(foundation_core::valtron::Stream::Pending(
+                crate::shared::client::http_client::SseProgress::Failed(message),
+            ))
+        } else {
+            None
+        }
     }
 }
 
@@ -147,14 +196,14 @@ impl<R: Read> Iterator for QueueSseEvents<R> {
         }
         match self.parser.parse_next() {
             Ok(Some(result)) => Some(Stream::Next(result)),
-            Ok(None) if self.drained() => None,
+            Ok(None) if self.drained() => self.end_or_fail(),
             Ok(None) => Some(Stream::Wait),
             // `WouldBlock` is the "no data yet" parking signal, not an error.
             Err(EventSourceError::ReadError(err))
                 if err.kind() == std::io::ErrorKind::WouldBlock =>
             {
                 if self.drained() {
-                    None
+                    self.end_or_fail()
                 } else {
                     Some(Stream::Wait)
                 }

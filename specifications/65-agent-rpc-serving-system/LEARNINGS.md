@@ -3,6 +3,24 @@
 _No implementation yet — this file is seeded at spec creation and updated after
 each milestone/task. See `.agents/skills/specifications-management/skill.md`._
 
+## Durable Streams input (2026-10-30)
+
+The [Durable Streams research note](../research/edge-data/durable-streams.md) and
+[spec 71](../71-durable-streams-in-valtron) give a contract for this spec's
+streaming operations. The key takeaways:
+
+- **The cursor is the state, not the connection.** A turn or progress stream
+  should carry a resume cursor (`Stream-Next-Offset` in the source protocol), so
+  a client reconnects and continues with no skip and no duplicate.
+- **`Stream::Wait` + `WakeableStream` is already the long-poll tail.** The
+  durable-streams live mode and valtron's parking primitives are the same shape;
+  spec 71 names the bridge.
+- **Fork = branch a conversation without copying it.** A forked `AgentSession`
+  is a fork of the turn log, sharing the prefix and owning only the tail.
+- **The mechanism lives in valtron, not here.** `01-agent-rpc` and `05-cloudflare`
+  consume the `DurableStream` reader/writer and `DurableStreamStore` trait that
+  spec 71 builds. No new feature is added to this spec for it.
+
 ## Key finding (creation)
 
 This system is **four single-mission components composed by a manifest and one

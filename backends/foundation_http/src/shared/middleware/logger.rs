@@ -140,6 +140,12 @@ impl LoggerMiddleware {
         Self::new(LoggerConfig::new().with_level(LogLevel::Debug))
     }
 
+    /// Get the configured log level.
+    #[must_use]
+    pub fn level(&self) -> LogLevel {
+        self.config.level
+    }
+
     /// Extract client IP from request extensions.
     fn extract_client_ip(req: &SimpleIncomingRequest) -> Option<String> {
         req.extensions
@@ -213,32 +219,5 @@ impl RequestMiddleware for LoggerMiddleware {
         // This is a simplified implementation that logs request arrival only.
 
         MiddlewareResult::Continue
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_logger_config_default() {
-        let config = LoggerConfig::default();
-        assert_eq!(config.level, LogLevel::Info);
-        assert!(config.include_client_ip);
-        assert!(!config.include_headers);
-        assert!(config.include_query);
-        assert!(config.log_response_time);
-    }
-
-    #[test]
-    fn test_logger_middleware_info() {
-        let mw = LoggerMiddleware::info();
-        assert_eq!(mw.config.level, LogLevel::Info);
-    }
-
-    #[test]
-    fn test_logger_middleware_debug() {
-        let mw = LoggerMiddleware::debug();
-        assert_eq!(mw.config.level, LogLevel::Debug);
     }
 }

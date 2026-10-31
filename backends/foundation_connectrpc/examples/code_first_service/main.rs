@@ -21,7 +21,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -81,7 +81,7 @@ impl GreetService for Greeter {
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
 
-fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     // Server registration: the generated `register_greet_service` installs every
     // procedure onto the router.
     let mut router = Router::new();
@@ -97,7 +97,7 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
     let server =
         HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
     std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
     while std::net::TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_err() {}

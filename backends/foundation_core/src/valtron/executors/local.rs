@@ -41,7 +41,9 @@ use crate::valtron::{
 };
 
 use crate::valtron::executors::constants::{
-    DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_NOTIFY_QUEUE_MAX_SPINS, DEFAULT_READINESS_WAIT,
+    DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_MAX_YIELD_DURATION,
+    DEFAULT_NOTIFY_QUEUE_MAX_SPINS, DEFAULT_READINESS_POLL_QUANTUM, DEFAULT_READINESS_WAIT,
+    DEFAULT_WAIT_CHECK_INTERVAL,
 };
 
 /// Task that wraps an iterator of plain values and yields items as `TaskStatus::Ready`.
@@ -75,8 +77,6 @@ where
         self.iter.next().map(TaskStatus::Ready)
     }
 }
-
-const MAX_YIELD_DURATION: time::Duration = time::Duration::from_millis(100);
 
 #[cfg(all(
     target_family = "wasm",
@@ -283,6 +283,31 @@ pub enum NotificationItem<T> {
     None,
 }
 
+/// Configuration for [`NotifyQueue`].
+#[derive(Debug, Clone, Copy)]
+pub struct NotifyQueueConfig {
+    /// Maximum CondVar wait retries before yielding back to the executor.
+    /// Default [`DEFAULT_NOTIFY_QUEUE_MAX_SPINS`].
+    pub max_spins: usize,
+}
+
+impl Default for NotifyQueueConfig {
+    fn default() -> Self {
+        Self {
+            max_spins: DEFAULT_NOTIFY_QUEUE_MAX_SPINS,
+        }
+    }
+}
+
+impl NotifyQueueConfig {
+    /// Set [`Self::max_spins`].
+    #[must_use]
+    pub fn with_max_spins(mut self, max_spins: usize) -> Self {
+        self.max_spins = max_spins;
+        self
+    }
+}
+
 /// When `push()` is called, it notifies one waiting consumer via CondVar.
 /// Consumers use `wait_for_item()` to block efficiently until an item is available.
 ///
@@ -300,6 +325,9 @@ pub struct NotifyQueue<T> {
     /// One-shot stream-wake callbacks, fired on `push` and on `close`. Shared
     /// across clones so a consumer's registration is visible to any producer.
     wake: Arc<WakeRegistry>,
+    /// One-shot callbacks for a producer waiting on a full queue, fired when
+    /// an item is taken through this queue and on `close`.
+    space: Arc<WakeRegistry>,
 }
 
 impl<T> Clone for NotifyQueue<T> {
@@ -310,6 +338,7 @@ impl<T> Clone for NotifyQueue<T> {
             mutex: self.mutex.clone(),
             max_spins: AtomicUsize::new(self.max_spins.load(Ordering::Relaxed)),
             wake: self.wake.clone(),
+            space: self.space.clone(),
         }
     }
 }
@@ -317,23 +346,35 @@ impl<T> Clone for NotifyQueue<T> {
 impl<T> NotifyQueue<T> {
     /// Creates a new NotifyQueue with an unbounded ConcurrentQueue.
     pub fn unbounded() -> Self {
+        Self::unbounded_with_config(NotifyQueueConfig::default())
+    }
+
+    /// Creates a new unbounded NotifyQueue with the given [`NotifyQueueConfig`].
+    pub fn unbounded_with_config(config: NotifyQueueConfig) -> Self {
         Self {
             queue: Arc::new(ConcurrentQueue::unbounded()),
             condvar: Arc::new(foundation_nostd::comp::condvar_comp::CondVar::new()),
             mutex: Arc::new(foundation_nostd::comp::condvar_comp::Mutex::new(false)),
-            max_spins: AtomicUsize::new(DEFAULT_NOTIFY_QUEUE_MAX_SPINS),
+            max_spins: AtomicUsize::new(config.max_spins),
             wake: Arc::new(WakeRegistry::new()),
+            space: Arc::new(WakeRegistry::new()),
         }
     }
 
     /// Creates a new NotifyQueue with a bounded ConcurrentQueue.
     pub fn bounded(capacity: usize) -> Self {
+        Self::bounded_with_config(capacity, NotifyQueueConfig::default())
+    }
+
+    /// Creates a new bounded NotifyQueue with the given [`NotifyQueueConfig`].
+    pub fn bounded_with_config(capacity: usize, config: NotifyQueueConfig) -> Self {
         Self {
             queue: Arc::new(ConcurrentQueue::bounded(capacity)),
             condvar: Arc::new(foundation_nostd::comp::condvar_comp::CondVar::new()),
             mutex: Arc::new(foundation_nostd::comp::condvar_comp::Mutex::new(false)),
-            max_spins: AtomicUsize::new(DEFAULT_NOTIFY_QUEUE_MAX_SPINS),
+            max_spins: AtomicUsize::new(config.max_spins),
             wake: Arc::new(WakeRegistry::new()),
+            space: Arc::new(WakeRegistry::new()),
         }
     }
 
@@ -357,9 +398,31 @@ impl<T> NotifyQueue<T> {
         Ok(())
     }
 
-    /// Pops an item from the queue without waiting.
+    /// Pops an item from the queue without waiting. Taking an item wakes a
+    /// producer waiting for space ([`Self::register_space_wake`]) — but only
+    /// when a producer actually waits, so a pop with no waiting producer stays
+    /// lock-free on the wake side.
     pub fn pop(&self) -> Result<T, PopError> {
-        self.queue.pop()
+        let item = self.queue.pop()?;
+        if self.space.has_waiters() {
+            self.space.fire();
+        }
+        Ok(item)
+    }
+
+    /// Registers a one-shot callback for a producer whose `push` found the
+    /// queue full: it fires when an item is taken through this queue or the
+    /// queue closes — at once if there is already space or it is closed.
+    /// Items taken straight from [`Self::queue`] do not fire it.
+    ///
+    /// The callback replaces any earlier space wake rather than joining it: a
+    /// single producer re-registers on each retry of a full push, so keeping
+    /// only the latest stops stale callbacks from piling up during a stall.
+    pub fn register_space_wake(&self, cb: WakeCallback) {
+        self.space.replace(cb);
+        if !self.queue.is_full() || self.queue.is_closed() {
+            self.space.fire();
+        }
     }
 
     /// Waits for an item, blocking efficiently via CondVar.
@@ -368,7 +431,7 @@ impl<T> NotifyQueue<T> {
     /// or `None` (Option) if queue is closed — iteration should end.
     pub fn wait_for_item(&self, timeout: time::Duration) -> Option<NotificationItem<T>> {
         // First try non-blocking pop
-        match self.queue.pop() {
+        match self.pop() {
             Ok(item) => return Some(NotificationItem::Ready(item)),
             Err(PopError::Closed) => return None,
             Err(PopError::Empty) => {}
@@ -385,7 +448,7 @@ impl<T> NotifyQueue<T> {
             }
 
             // Check queue after acquiring lock
-            match self.queue.pop() {
+            match self.pop() {
                 Ok(item) => {
                     *guard = false;
                     return Some(NotificationItem::Ready(item));
@@ -403,7 +466,7 @@ impl<T> NotifyQueue<T> {
             spins += 1;
 
             // Check if item available after waking up
-            match self.queue.pop() {
+            match self.pop() {
                 Ok(item) => {
                     *guard = false;
                     return Some(NotificationItem::Ready(item));
@@ -442,6 +505,8 @@ impl<T> NotifyQueue<T> {
             // Wake a consumer parked on an empty-but-open queue so it observes the
             // close. No-op if the queue was already closed (nothing new to observe).
             self.wake.fire();
+            // And a producer waiting for space, which will now see `Closed`.
+            self.space.fire();
         }
         closed
     }
@@ -477,6 +542,18 @@ impl<T> NotifyQueue<T> {
     /// `Arc<ConcurrentQueue<T>>` — not a borrow.
     pub fn queue_arc(&self) -> Arc<ConcurrentQueue<T>> {
         self.queue.clone()
+    }
+
+    /// Number of registered consumer wakes ([`Self::register_wake`]) not yet
+    /// fired. Tests use it to pin that repeated registrations do not grow.
+    pub fn pending_wakes(&self) -> usize {
+        self.wake.pending_len()
+    }
+
+    /// Number of registered producer space wakes ([`Self::register_space_wake`])
+    /// not yet fired. Tests use it to pin that repeated registrations do not grow.
+    pub fn pending_space_wakes(&self) -> usize {
+        self.space.pending_len()
     }
 }
 
@@ -717,6 +794,10 @@ where
         self.chan.register_wake(cb);
         WakeResult::Successful
     }
+
+    fn announce(&mut self) {
+        self.woken_consumer = true;
+    }
 }
 
 #[cfg(not(feature = "multi"))]
@@ -729,6 +810,10 @@ where
         self.woken_consumer = true;
         self.chan.register_wake(cb);
         WakeResult::Successful
+    }
+
+    fn announce(&mut self) {
+        self.woken_consumer = true;
     }
 }
 
@@ -823,13 +908,6 @@ pub struct ExecutorState {
 
 static DEQUEUE_CAPACITY: usize = 10;
 
-/// How often a worker re-polls when its only pending work is READINESS-parked
-/// tasks (pipe waits). Their producers live on other threads and cannot
-/// interrupt this worker's sleep, so the quantum bounds cross-worker handoff
-/// latency. Timed sleepers are unaffected (the worker sleeps exactly to the
-/// nearest deadline).
-const READINESS_POLL_QUANTUM: time::Duration = time::Duration::from_millis(1);
-
 /// Maximum consecutive `State::Depends(true)` violations before panic.
 ///
 /// "Parked on an already-ready signal" also occurs benignly: a pipe consumer
@@ -850,6 +928,7 @@ impl ExecutorState {
         wakeup_priority: PriorityOrder,
         rng: ChaCha8Rng,
         idler: IdleMan,
+        readiness_wait: time::Duration,
     ) -> Self {
         Self {
             state_owner,
@@ -861,7 +940,7 @@ impl ExecutorState {
             task_graph: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             packed_tasks: rc::Rc::new(cell::RefCell::new(HashMap::new())),
             local_tasks: rc::Rc::new(cell::RefCell::new(EntryList::new())),
-            sleepers: Sleepers::with_max_readiness_wait(DEFAULT_READINESS_WAIT),
+            sleepers: Sleepers::with_max_readiness_wait(readiness_wait),
             processing: rc::Rc::new(cell::RefCell::new(VecDeque::with_capacity(
                 DEQUEUE_CAPACITY,
             ))),
@@ -1051,6 +1130,20 @@ impl ExecutorState {
     #[must_use]
     pub fn number_of_sleepers(&self) -> usize {
         self.sleepers.count()
+    }
+
+    /// The maximum wait a readiness check may block before the executor gives
+    /// up and re-polls (the readiness-signal wait). See [`DEFAULT_READINESS_WAIT`].
+    #[inline]
+    #[must_use]
+    pub fn readiness_wait(&self) -> time::Duration {
+        self.sleepers.max_readiness_wait()
+    }
+
+    /// Set the readiness-signal wait on this state's sleepers.
+    #[inline]
+    pub fn set_readiness_wait(&mut self, dur: time::Duration) {
+        self.sleepers.set_max_readiness_wait(dur);
     }
 
     /// How many tasks currently have a streak of `Depends` on an already-ready
@@ -1985,6 +2078,25 @@ impl ReferencedExecutorState {
         self.inner.number_of_sleepers()
     }
 
+    /// See [`ExecutorState::readiness_wait`].
+    #[inline]
+    #[must_use]
+    pub fn readiness_wait(&self) -> time::Duration {
+        self.inner.readiness_wait()
+    }
+
+    /// See [`ExecutorState::set_readiness_wait`].
+    ///
+    /// # Panics
+    /// Panics if the underlying [`ExecutorState`] is shared (the executor was
+    /// cloned). Builders run on a fresh executor before it is shared.
+    #[inline]
+    pub fn set_readiness_wait(&mut self, dur: time::Duration) {
+        rc::Rc::get_mut(&mut self.inner)
+            .expect("cannot set readiness wait on a shared executor state")
+            .set_readiness_wait(dur);
+    }
+
     /// See [`ExecutorState::number_of_depends_true_violations`].
     #[inline]
     #[must_use]
@@ -2482,6 +2594,12 @@ pub struct LocalThreadExecutor<T: ProcessController + Clone> {
     /// Maximum duration to yield even when sleeper deadline is longer.
     /// Ensures threads periodically wake to check for new work.
     max_yield_duration: time::Duration,
+    /// Re-poll interval when only readiness-parked tasks remain (see
+    /// [`DEFAULT_READINESS_POLL_QUANTUM`]).
+    readiness_poll_quantum: time::Duration,
+    /// JS event-loop yield interval for an empty queue (see
+    /// [`DEFAULT_WAIT_CHECK_INTERVAL`]).
+    wait_check_interval: time::Duration,
     yielder: T,
 
     /// Feature 04: How often to check kill signal in block_on() inner loop.
@@ -2499,6 +2617,8 @@ impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
             yielder: self.yielder.clone(),
             no_work_yield: self.no_work_yield,
             max_yield_duration: self.max_yield_duration,
+            readiness_poll_quantum: self.readiness_poll_quantum,
+            wait_check_interval: self.wait_check_interval,
             kill_signal: self.kill_signal.clone(),
             kill_signal_check_interval: self.kill_signal_check_interval,
         }
@@ -2527,13 +2647,61 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             yielder,
             kill_signal,
             no_work_yield,
-            max_yield_duration: time::Duration::from_millis(100),
+            max_yield_duration: DEFAULT_MAX_YIELD_DURATION,
+            readiness_poll_quantum: DEFAULT_READINESS_POLL_QUANTUM,
+            wait_check_interval: DEFAULT_WAIT_CHECK_INTERVAL,
             kill_signal_check_interval,
             state: ReferencedExecutorState::new(
-                rc::Rc::new(ExecutorState::new(state_owner, tasks, priority, rng, idler)),
+                rc::Rc::new(ExecutorState::new(
+                    state_owner,
+                    tasks,
+                    priority,
+                    rng,
+                    idler,
+                    DEFAULT_READINESS_WAIT,
+                )),
                 activities,
             ),
         }
+    }
+
+    /// Set the longest this executor yields between steps, even when a sleeper's
+    /// deadline is further out (the idle re-check cap). Default
+    /// [`DEFAULT_MAX_YIELD_DURATION`].
+    #[must_use]
+    pub fn with_max_yield_duration(mut self, duration: time::Duration) -> Self {
+        self.max_yield_duration = duration;
+        self
+    }
+
+    /// Set the re-poll interval when only readiness-parked tasks remain (the
+    /// busy-spin guard). Default [`DEFAULT_READINESS_POLL_QUANTUM`].
+    #[must_use]
+    pub fn with_readiness_poll_quantum(mut self, duration: time::Duration) -> Self {
+        self.readiness_poll_quantum = duration;
+        self
+    }
+
+    /// Set the maximum wait a readiness check may block before the executor
+    /// re-polls (the readiness-signal wait). Default [`DEFAULT_READINESS_WAIT`].
+    #[must_use]
+    pub fn with_readiness_wait(mut self, duration: time::Duration) -> Self {
+        self.state.set_readiness_wait(duration);
+        self
+    }
+
+    /// The current readiness-signal wait (see [`Self::with_readiness_wait`]).
+    #[must_use]
+    pub fn readiness_wait(&self) -> time::Duration {
+        self.state.readiness_wait()
+    }
+
+    /// Set the JS event-loop yield interval for an empty queue. Default
+    /// [`DEFAULT_WAIT_CHECK_INTERVAL`].
+    #[must_use]
+    pub fn with_wait_check_interval(mut self, duration: time::Duration) -> Self {
+        self.wait_check_interval = duration;
+        self
     }
 
     /// Creates a new local executor which uses the provided
@@ -2825,7 +2993,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             if matches!(&response, ProgressIndicator::Wait) {
                 let signal = self
                     .yielder
-                    .yield_for(crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL);
+                    .yield_for(self.wait_check_interval);
                 if self.yielder.should_stop(&signal) {
                     break;
                 }
@@ -2834,7 +3002,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             // The step made progress and there is still work to run: go
             // straight to the next step. Yielding here (as this loop used to
             // after every step) stalled each step by up to
-            // MAX_YIELD_DURATION. `CanProgress(None)` is also what the engine
+            // `max_yield_duration`. `CanProgress(None)` is also what the engine
             // reports when only parked tasks remain, hence the runnable check.
             if matches!(response, ProgressIndicator::CanProgress(_))
                 && self.state.has_runnable_work()
@@ -2853,12 +3021,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
             // Use sleeper-aware yielding: sleep until the next sleeper wakes up
             // or fall back to the default yield duration if no sleepers exist.
-            // Cap at MAX_YIELD_DURATION to ensure threads periodically check for new work.
+            // Cap at `max_yield_duration` to ensure threads periodically check
+            // for new work.
             let yield_duration = self
                 .state
                 .time_until_next_wakeup()
                 .unwrap_or(self.no_work_yield)
-                .min(MAX_YIELD_DURATION);
+                .min(self.max_yield_duration);
             self.yielder.yield_for(yield_duration);
         }
     }
@@ -2927,7 +3096,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         {
                             let signal = self
                                 .yielder
-                                .yield_for(crate::valtron::wasm::JS_WAIT_CHECK_INTERVAL);
+                                .yield_for(self.wait_check_interval);
                             if self.yielder.should_stop(&signal) {
                                 break 'main_loop; // JS event loop will check for new tasks
                             }
@@ -2981,7 +3150,18 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 }
 
                 match self.run_once() {
-                    ProgressIndicator::CanProgress(_) => {}
+                    ProgressIndicator::CanProgress(_) => {
+                        // The step reported progress, but when nothing is actually
+                        // runnable — only readiness-parked sleepers remain — sleep
+                        // the readiness quantum instead of busy-spinning until one
+                        // is woken. The reactor (or a bridged future's waker) calls
+                        // `request_executor_resume`, which interrupts this wait.
+                        if !self.state.has_runnable_work()
+                            && self.state.number_of_sleepers() > 0
+                        {
+                            self.yielder.yield_for(self.readiness_poll_quantum);
+                        }
+                    }
                     ProgressIndicator::NoWork => {
                         // Also check kill signal when no work
                         if kill_signal.probe() {
@@ -2998,7 +3178,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         let yield_duration =
                             self.state.time_until_next_wakeup().unwrap_or_else(|| {
                                 if self.state.number_of_sleepers() > 0 {
-                                    READINESS_POLL_QUANTUM
+                                    self.readiness_poll_quantum
                                 } else {
                                     self.no_work_yield
                                 }
@@ -3014,12 +3194,16 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         self.yielder.yield_for(duration);
                     }
                     ProgressIndicator::Wait => {
-                        // Queue empty, yield and re-check
+                        // A task said "re-poll me" (no deadline). Cap the wait
+                        // at `max_yield_duration` so the worker re-polls it and
+                        // looks for new work promptly, instead of sleeping the
+                        // full `no_work_yield` (seconds) between polls.
                         if kill_signal.probe() {
                             return;
                         }
 
-                        self.yielder.yield_for(self.no_work_yield);
+                        self.yielder
+                            .yield_for(self.no_work_yield.min(self.max_yield_duration));
                     }
                 }
             }

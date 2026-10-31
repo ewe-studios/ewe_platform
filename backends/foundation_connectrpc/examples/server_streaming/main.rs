@@ -21,7 +21,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
@@ -72,7 +72,7 @@ fn count_serve() -> Arc<dyn Serve> {
     Arc::new(ConnectRpcServe::new(router.into_handler()))
 }
 
-fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
     let serve = count_serve();
     app.router.add_route_any(PROCEDURE, &serve);
@@ -82,7 +82,7 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
     let server =
         HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
     std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
     while std::net::TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_err() {}

@@ -9,12 +9,18 @@
 //! thread for other work — enabling true HTTP/1.1 keep-alive multiplexing.
 
 use std::sync::Arc;
+use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
+use concurrent_queue::ConcurrentQueue;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
-use foundation_core::synca::{OnSignal, WaitGroupGuard};
-use foundation_core::valtron::{Ctx, BoolSignal, TaskIterator, TaskStatus};
+use foundation_core::synca::WaitGroupGuard;
+use foundation_iogate::ShutdownSignal;
+use foundation_core::valtron::{
+    queue_waker, AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, QueueReadiness,
+    TaskIterator, TaskStatus, WakeToken,
+};
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::shared::http::{
     HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
@@ -23,7 +29,7 @@ use foundation_netio::shared::http::{
 use foundation_errstacks::ErrorTrace;
 
 use crate::native::reader::read_next_request;
-use crate::shared::serve::{respond, ConnectionResult, Serve, ServeError};
+use crate::shared::serve::{respond, ConnectionResult, Serve, ServeError, ServeFuture};
 
 // ---------------------------------------------------------------------------
 // HandlerState
@@ -43,12 +49,31 @@ enum HandlerState {
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
+        /// Absolute time after which a parked readiness wait gives up with 408.
+        /// `None` until the connection read waker is armed; a blocking transport
+        /// leaves it `None` and uses the `attempt` countdown instead.
+        deadline: Option<Instant>,
     },
     /// Run middleware chain, route, and dispatch to handler.
     Processing {
         req: SimpleIncomingRequest,
         should_close: bool,
     },
+    /// A handler returned `ConnectionResult::Async`. The future is polled once per
+    /// `next_status` and parked on the bridge until it resolves or the server drains.
+    Awaiting {
+        future: ServeFuture,
+        should_close: bool,
+    },
+}
+
+/// Ready once an instant has passed.
+struct DeadlinePassed(Instant);
+
+impl EventReadiness for DeadlinePassed {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        Instant::now() >= self.0
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -67,7 +92,7 @@ pub struct ConnectionHandler {
     /// handler stops taking *new* keep-alive requests at its idle checkpoint but
     /// lets an in-flight request finish (cooperative, task-decided drain —
     /// Decision 12 §10).
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
     /// Decrements the server's active-connection `WaitGroup` when this handler
     /// task completes (on drop), so the drain phase can wait for in-flight
     /// connections to finish (Decision 12 §10).
@@ -80,6 +105,10 @@ pub struct ConnectionHandler {
     max_delay_cycles: u32,
     /// When set, every response carries `Alt-Svc: h3=":<port>"` (F53).
     alt_svc_h3_port: Option<u16>,
+    /// The wake queue backing an `Awaiting` future's waker. One connection has at
+    /// most one `Awaiting` at a time, so one unbounded queue is enough. It is
+    /// drained before each poll (the `FutureTask` bridge pattern).
+    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
     state: Option<HandlerState>,
     idle_poll_count: u32,
     idle_since: Option<Instant>,
@@ -94,7 +123,7 @@ impl ConnectionHandler {
         conn: SharedByteBufferStream<RawStream>,
         client_ip: String,
         connection: Arc<ConnectionContext>,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
         drain_guard: WaitGroupGuard,
         config: &super::KeepAliveConfig,
         alt_svc_h3_port: Option<u16>,
@@ -118,6 +147,7 @@ impl ConnectionHandler {
             escalation_threshold: config.escalation_threshold,
             max_delay_cycles: config.max_delay_cycles,
             alt_svc_h3_port,
+            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
             state: Some(HandlerState::Idle),
             idle_poll_count: 0,
             idle_since: None,
@@ -135,6 +165,13 @@ impl ConnectionHandler {
     fn idle_timeout(&self) -> Duration {
         let ctx = TimeoutContext::default().streaming();
         self.timeout_calculator.calculate_read_timeout(&ctx)
+    }
+
+    /// Total time to wait for the body after 100 Continue when the transport can
+    /// report readiness (the WireGuard overlay). A blocking transport uses the
+    /// `base_delay` / `max_attempts` polling scheme instead.
+    fn body_wait_timeout(&self) -> Duration {
+        self.timeout_calculator.config().expect_continue.body_timeout
     }
 
     fn is_transient_error(e: &HttpReaderError) -> bool {
@@ -460,6 +497,7 @@ impl ConnectionHandler {
                         req,
                         should_close,
                         attempt: 0,
+                        deadline: None,
                     });
                     let delay = self
                         .timeout_calculator
@@ -533,6 +571,7 @@ impl ConnectionHandler {
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
+        deadline: Option<Instant>,
     ) -> Option<TaskStatus<(), ()>> {
         let next_attempt = attempt + 1;
 
@@ -541,6 +580,11 @@ impl ConnectionHandler {
             attempt = attempt,
             "WaitingForBody: probing for body data"
         );
+
+        // Arm the read waker before probing, so a body that arrives while we
+        // look still wakes the parked task (the h2 handler arms first for the
+        // same reason). A blocking transport returns `None` and polls instead.
+        let armed = self.arm_body_waker();
 
         match self.conn.probe() {
             Ok(len) if len > 0 => {
@@ -553,14 +597,16 @@ impl ConnectionHandler {
                 self.state = Some(HandlerState::Processing { req, should_close });
                 Some(TaskStatus::Pending(()))
             }
-            Ok(_) => self.waiting_for_body_retry(req, should_close, attempt, next_attempt),
+            Ok(_) => {
+                self.waiting_for_body_retry(req, should_close, attempt, next_attempt, deadline, armed)
+            }
             Err(e) => {
                 let kind = e.kind();
                 if kind == std::io::ErrorKind::WouldBlock
                     || kind == std::io::ErrorKind::TimedOut
                     || kind == std::io::ErrorKind::Interrupted
                 {
-                    self.waiting_for_body_retry(req, should_close, attempt, next_attempt)
+                    self.waiting_for_body_retry(req, should_close, attempt, next_attempt, deadline, armed)
                 } else {
                     tracing::warn!(
                         client_ip = %self.client_ip,
@@ -575,18 +621,80 @@ impl ConnectionHandler {
         }
     }
 
+    /// Arm the connection's read waker, so a body that arrives while the handler
+    /// probes still wakes the parked task. Returns the signal to park on for a
+    /// transport that can report readiness (the WireGuard overlay), or `None`
+    /// for a blocking transport, whose caller falls back to fixed delays.
+    fn arm_body_waker(&self) -> Option<BoolSignal> {
+        let signal = BoolSignal::new(false);
+        let flag = signal.clone_inner();
+        let waker: foundation_netio::native::connection::ConnWaker =
+            Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+        let registered = self
+            .conn
+            .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()));
+        if registered {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                "WaitingForBody: armed the connection read waker"
+            );
+            Some(signal)
+        } else {
+            None
+        }
+    }
+
     fn waiting_for_body_retry(
         &mut self,
         req: SimpleIncomingRequest,
         should_close: bool,
         attempt: usize,
         next_attempt: usize,
+        deadline: Option<Instant>,
+        armed: Option<BoolSignal>,
     ) -> Option<TaskStatus<(), ()>> {
         tracing::trace!(
             client_ip = %self.client_ip,
             attempt = attempt,
-            "WaitingForBody: no data, computing next delay"
+            "WaitingForBody: no body data yet"
         );
+
+        // If a parked overlay wait already ran past its deadline, give up now.
+        if let Some(deadline) = deadline {
+            if Instant::now() >= deadline {
+                return self.send_408(attempt);
+            }
+        }
+
+        // A transport that can report readiness (the WireGuard overlay) parks on
+        // its read waker, bounded by `body_timeout`, instead of polling on fixed
+        // delays. Blocking transports fall through to the countdown below.
+        if let Some(signal) = armed {
+            let deadline =
+                deadline.unwrap_or_else(|| Instant::now() + self.body_wait_timeout());
+            if Instant::now() >= deadline {
+                return self.send_408(attempt);
+            }
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                attempt = attempt,
+                remaining_ms = deadline.saturating_duration_since(Instant::now()).as_millis(),
+                "WaitingForBody: no body yet; parking on the connection read waker"
+            );
+            self.state = Some(HandlerState::WaitingForBody {
+                req,
+                should_close,
+                attempt,
+                deadline: Some(deadline),
+            });
+            let readiness: EventReadinessPtr = Arc::new(AnyReadiness::either(
+                Arc::new(signal),
+                Arc::new(DeadlinePassed(deadline)),
+            ));
+            return Some(TaskStatus::Depends(readiness));
+        }
+
+        // Blocking transport: the fixed-delay countdown, 408 after max attempts.
         let prev = self.timeout_calculator.calculate_expect_continue_delay(
             &TimeoutContext::default(),
             attempt,
@@ -611,22 +719,28 @@ impl ConnectionHandler {
                 req,
                 should_close,
                 attempt: next_attempt,
+                deadline: None,
             });
             Some(TaskStatus::Delayed(delay))
         } else {
-            tracing::warn!(
-                client_ip = %self.client_ip,
-                attempt = attempt,
-                max_attempts = self.max_expect_attempts,
-                "WaitingForBody: max attempts reached, sending 408"
-            );
-            report_closing_write(respond::text(
-                &mut self.conn.clone(),
-                408,
-                "Request Timeout — body not received after 100 Continue",
-            ));
-            None
+            self.send_408(attempt)
         }
+    }
+
+    /// Send 408 Request Timeout: the body never arrived after 100 Continue.
+    fn send_408(&mut self, attempt: usize) -> Option<TaskStatus<(), ()>> {
+        tracing::warn!(
+            client_ip = %self.client_ip,
+            attempt = attempt,
+            max_attempts = self.max_expect_attempts,
+            "WaitingForBody: body never arrived, sending 408"
+        );
+        report_closing_write(respond::text(
+            &mut self.conn.clone(),
+            408,
+            "Request Timeout — body not received after 100 Continue",
+        ));
+        None
     }
 
     // ---- Processing state -------------------------------------------------
@@ -781,6 +895,11 @@ impl ConnectionHandler {
                     self.state = Some(HandlerState::Idle);
                     Some(TaskStatus::Pending(()))
                 }
+                ConnectionResult::Async(future) => {
+                    tracing::trace!(client_ip = %self.client_ip, "Processing: handler returned Async; parking on its future");
+                    self.state = Some(HandlerState::Awaiting { future, should_close });
+                    Some(TaskStatus::Pending(()))
+                }
             }
         } else {
             tracing::trace!(
@@ -804,6 +923,79 @@ impl ConnectionHandler {
             }
             self.state = Some(HandlerState::Idle);
             Some(TaskStatus::Pending(()))
+        }
+    }
+
+    // ---- Awaiting state ---------------------------------------------------
+
+    /// Poll an `Async` handler future once, parking on the wake bridge if it is
+    /// still pending. Returns `None` to close the connection (drain, hangup, or
+    /// a handler error).
+    fn handle_awaiting(
+        &mut self,
+        mut future: ServeFuture,
+        should_close: bool,
+    ) -> Option<TaskStatus<(), ()>> {
+        // Shutdown first: drop the future and close. Dropping `future` here runs
+        // the handler's drop flags (the shutdown test checks this).
+        if self.shutdown.probe() {
+            tracing::trace!(client_ip = %self.client_ip, "Awaiting: server draining, dropping the handler future");
+            return None;
+        }
+
+        // Drain stale tokens before polling (the FutureTask bridge pattern).
+        while self.wake_queue.pop().is_ok() {}
+
+        let waker = queue_waker(self.wake_queue.clone(), 0);
+        let mut cx = Context::from_waker(&waker);
+        match future.as_mut().poll(&mut cx) {
+            Poll::Ready(result) => self.apply_async_result(result, should_close),
+            Poll::Pending => {
+                self.state = Some(HandlerState::Awaiting { future, should_close });
+                if self.wake_queue.is_empty() {
+                    Some(TaskStatus::Depends(Arc::new(AsyncReadiness {
+                        future: QueueReadiness::new(self.wake_queue.clone()),
+                        shutdown: self.shutdown.clone(),
+                    })))
+                } else {
+                    // A self-wake during poll: requeue without parking.
+                    Some(TaskStatus::Ignore)
+                }
+            }
+        }
+    }
+
+    /// Apply the resolved `ConnectionResult` of an `Async` future.
+    fn apply_async_result(
+        &mut self,
+        result: ConnectionResult,
+        should_close: bool,
+    ) -> Option<TaskStatus<(), ()>> {
+        match result {
+            ConnectionResult::Keep => {
+                if should_close {
+                    tracing::trace!(client_ip = %self.client_ip, "Awaiting: handler kept connection but Connection: close; closing");
+                    return None;
+                }
+                tracing::trace!(client_ip = %self.client_ip, "Awaiting: handler kept connection, returning to Idle");
+                self.state = Some(HandlerState::Idle);
+                Some(TaskStatus::Pending(()))
+            }
+            ConnectionResult::Take => {
+                tracing::trace!(client_ip = %self.client_ip, "Awaiting: handler took connection");
+                None
+            }
+            ConnectionResult::Close(err) => {
+                if let Some(e) = &err {
+                    tracing::error!(client_ip = %self.client_ip, err = ?e, "Connection closed with error");
+                }
+                None
+            }
+            ConnectionResult::Async(_) => {
+                // An Async whose future resolves to Async again is a programming error.
+                tracing::error!(client_ip = %self.client_ip, "Awaiting: a handler returned Async from an Async future; closing");
+                None
+            }
         }
     }
 }
@@ -833,6 +1025,20 @@ fn body_left_unread(req: &SimpleIncomingRequest) -> bool {
 // ---------------------------------------------------------------------------
 // TaskIterator implementation
 
+/// Readiness for a parked `Awaiting` task: ready when the handler future's waker
+/// has pushed a token, or when the server is draining. Mirrors
+/// `CancellableFutureTask`'s `CancelOrReadiness` (the future ORs a cancel flag).
+struct AsyncReadiness {
+    future: QueueReadiness<WakeToken>,
+    shutdown: Arc<ShutdownSignal>,
+}
+
+impl EventReadiness for AsyncReadiness {
+    fn is_ready(&self, dur: Option<Duration>) -> bool {
+        self.shutdown.probe() || self.future.is_ready(dur)
+    }
+}
+
 impl TaskIterator for ConnectionHandler {
     type Ready = ();
     type Pending = ();
@@ -851,9 +1057,13 @@ impl TaskIterator for ConnectionHandler {
                 req,
                 should_close,
                 attempt,
-            } => self.handle_waiting_for_body(req, should_close, attempt),
+                deadline,
+            } => self.handle_waiting_for_body(req, should_close, attempt, deadline),
             HandlerState::Processing { req, should_close } => {
                 self.handle_processing(req, should_close)
+            }
+            HandlerState::Awaiting { future, should_close } => {
+                self.handle_awaiting(future, should_close)
             }
         }
     }
