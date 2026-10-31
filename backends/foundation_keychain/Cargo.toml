@@ -21,7 +21,7 @@ base32 = "0.5"
 # Bitwarden client-side password hash (PBKDF2-SHA256) — used by the login
 # flow to verify raw master passwords sent by `bw login`.
 pbkdf2 = "0.12"
-sha2 = "0.11"
+sha2 = "0.10"
 uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 rmpv = "1"

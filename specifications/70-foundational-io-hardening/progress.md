@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-31: fixed the second native build error on `fix/io-01-valtron-parking`. The
+  `pull/163/merge` brought master's incomplete Dependabot bump of `sha2` (0.10 to 0.11).
+  `foundation_auth` then used `sha2` 0.11 (`digest` 0.11.3) beside `hmac` 0.12, `pbkdf2` 0.12,
+  and `argon2` 0.5 (`digest` 0.10.7). The `CoreProxy` trait moved between these `digest`
+  versions, so the build failed with `Sha256: CoreProxy not satisfied`. Fix: revert `sha2` to
+  0.10 in the 13 touched crates. Keep `sha2` 0.11.0 in the lock for `rust-embed-utils` (via
+  `rust-embed` then `age` in `foundation_keychain`). Verification: `foundation_auth`,
+  `foundation_keychain`, and `foundation_connectrpc` compile with the revert. PR: see the PR.
+
 - 2026-10-31: the `ci:linux` task now enforces each package's timeout and captures test output.
   `scripts/ci/ci.py` `run_package` passes the package's `timeout-minutes` as one hard deadline
   to each command, so a looping step stops instead of running forever, matching the GitHub job

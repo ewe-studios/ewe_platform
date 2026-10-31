@@ -2,6 +2,16 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-31 (CI fix): a version bump must move the whole RustCrypto set together. The
+  `pull/163/merge` inherited master's incomplete Dependabot bump of `sha2` from 0.10 to 0.11.
+  `sha2` 0.11 uses `digest` 0.11.3; `hmac` 0.12, `pbkdf2` 0.12, and `argon2` 0.5 still use
+  `digest` 0.10.7. The `CoreProxy` trait moved between these `digest` versions. The build then
+  failed with `Sha256: hmac::digest::core_api::CoreProxy not satisfied`. Fix: revert `sha2` to
+  0.10 in the 13 crates the bump touched. Keep `sha2` 0.11.0 in the lock: `rust-embed-utils`
+  0.12 needs `^0.11`, reached through `rust-embed` 0.11 and then `age` 0.10 in
+  `foundation_keychain`. When a Dependabot bump moves one RustCrypto crate, check
+  `sha2`/`hmac`/`pbkdf2`/`argon2` together.
+
 - 2026-10-31 (CI driver): a local run had no kill switch. `ci.py run` called `subprocess.run`
   with no timeout, so a step that looped (a hung test or a deadlocked build) never returned;
   only GitHub's job-level `timeout-minutes` stopped it. Fix: `run_package` computes one
