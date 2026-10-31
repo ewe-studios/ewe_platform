@@ -13,6 +13,7 @@ use bytes::Bytes;
 use foundation_netio::shared::http::{Proto, SimpleHeaders};
 
 use foundation_connectrpc::shared::context::{CancelSignal, Peer, Spec, StreamType};
+use foundation_connectrpc::shared::transport::wasm::WASM_FETCH_CAPABILITIES;
 use foundation_connectrpc::shared::transport::{
     check_compatible, requirements, ClientConn, Frame, HandlerConn, PipeClientConn,
     PipeHandlerConn, ProtocolKind, TransportCapabilities,
@@ -142,6 +143,15 @@ fn capability_matrix_wasm_fetch() {
     assert!(ok(ProtocolKind::GrpcWeb, StreamType::ServerStream, &FETCH));
     assert!(!ok(ProtocolKind::Connect, StreamType::ClientStream, &FETCH));
     assert!(!ok(ProtocolKind::Connect, StreamType::BidiStream, &FETCH));
+}
+
+#[test]
+fn wasm_fetch_capabilities_are_correct() {
+    let caps = WASM_FETCH_CAPABILITIES;
+    assert!(!caps.request_streaming);
+    assert!(!caps.full_duplex);
+    assert!(!caps.h2_trailers);
+    assert!(!caps.multiplexed);
 }
 
 // ── client end-of-stream semantics ────────────────────────────────────────────
