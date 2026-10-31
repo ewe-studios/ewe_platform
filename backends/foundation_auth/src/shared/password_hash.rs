@@ -180,6 +180,9 @@ impl Pbkdf2Key {
 }
 
 /// Constant-time byte comparison to prevent timing attacks.
+///
+/// Used by the native argon2/pbkdf2 verifiers and the wasm-pbkdf2 verifier.
+#[cfg(any(not(target_family = "wasm"), feature = "wasm-pbkdf2"))]
 fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     if a.len() != b.len() { return false; }
     let mut diff = 0u8;
