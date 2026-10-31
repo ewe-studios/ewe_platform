@@ -41,7 +41,7 @@ fn client_secret() -> AuthCredential {
 
 fn oauth() -> AuthCredential {
     AuthCredential::OAuth(OAuthCredential {
-        expires: 0.0,
+        expires: 0,
         access_token: ConfidentialText::new("sk-oauth".into()),
         refresh_token: None,
     })

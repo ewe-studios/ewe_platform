@@ -20,7 +20,7 @@ pub struct AuthContext {
     pub ip_address: Option<String>,
     /// User agent string.
     pub user_agent: Option<String>,
-    /// Principal identifier (from JWT sub, session user_id).
+    /// Principal identifier (from JWT sub, session `user_id`).
     pub sub: Option<String>,
     /// RBAC roles from the credential.
     pub roles: Vec<String>,
@@ -120,8 +120,8 @@ pub fn extract_session_token(cookies: &[&str], cookie_name: &str) -> Option<Stri
 /// Per RFC 9110, the scheme matching is case-insensitive.
 #[must_use]
 pub fn extract_bearer_token(auth_header: Option<&str>) -> Option<String> {
-    let header = auth_header?;
     const PREFIX: &[u8] = b"Bearer ";
+    let header = auth_header?;
     let bytes = header.as_bytes();
     if bytes.len() >= PREFIX.len() && bytes[..PREFIX.len()].eq_ignore_ascii_case(PREFIX) {
         header.get(PREFIX.len()..).map(String::from)

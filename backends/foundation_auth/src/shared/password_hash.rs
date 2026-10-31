@@ -1,7 +1,7 @@
 //! Password hashing — PBKDF2-HMAC-SHA256 and Argon2id.
 //!
 //! WHY: Bitwarden clients support two KDF types: PBKDF2 (type 0) and Argon2id (type 1).
-//! The server must verify passwords hashed by either KDF. WebCrypto (WASM) only supports PBKDF2.
+//! The server must verify passwords hashed by either KDF. `WebCrypto` (WASM) only supports PBKDF2.
 //!
 //! WHAT: `PasswordHasher` trait with `pbkdf2` and `argon2id` implementations,
 //! plus a `PasswordVerifier` that dispatches based on KDF type.
@@ -25,7 +25,7 @@ pub const KDF_TYPE_ARGON2ID: i32 = 1;
 // ===========================================================================
 
 /// Default PBKDF2 iterations for server-side re-hash of client-derived hash.
-/// Bitwarden's upstream default is 600,000, but WebCrypto rejects counts
+/// Bitwarden's upstream default is 600,000, but `WebCrypto` rejects counts
 /// above 100,000. The client-side KDF runs at whatever iteration count the
 /// client chose — this value is only for the server-side re-hash.
 pub const PBKDF2_SERVER_ITERATIONS: u32 = 100_000;
@@ -33,6 +33,7 @@ pub const PBKDF2_SERVER_ITERATIONS: u32 = 100_000;
 /// Derive a key using PBKDF2-HMAC-SHA256.
 /// Native: sync via `pbkdf2` crate. WASM: async via Web Crypto.
 #[cfg(not(target_family = "wasm"))]
+#[must_use]
 pub fn pbkdf2_derive(password: &[u8], salt: &[u8], iterations: u32, key_len: u32) -> Pbkdf2Key {
     use pbkdf2::pbkdf2_hmac;
     use sha2::Sha256;
@@ -45,6 +46,7 @@ pub fn pbkdf2_derive(password: &[u8], salt: &[u8], iterations: u32, key_len: u32
 }
 
 #[cfg(not(target_family = "wasm"))]
+#[must_use]
 pub fn pbkdf2_verify(password: &[u8], salt: &[u8], expected: &[u8], iterations: u32, key_len: u32) -> bool {
     let computed = pbkdf2_derive(password, salt, iterations, key_len);
     constant_time_eq(&computed.0, expected)
@@ -119,12 +121,20 @@ pub struct Argon2idKey(Zeroizing<Vec<u8>>);
 
 #[cfg(not(target_family = "wasm"))]
 impl Argon2idKey {
+    #[must_use]
     pub fn as_bytes(&self) -> &[u8] { &self.0 }
+    #[must_use]
     pub fn into_bytes(self) -> Vec<u8> { (*self.0).clone() }
 }
 
 /// Derive a key using Argon2id (native only).
+///
+/// # Panics
+///
+/// Panics on invalid Argon2id parameters (`expect("argon2 params")`).
+/// Panics if the Argon2id hash step fails (`expect("argon2 derive")`).
 #[cfg(not(target_family = "wasm"))]
+#[must_use]
 pub fn argon2id_derive(
     password: &[u8],
     salt: &[u8],
@@ -146,6 +156,7 @@ pub fn argon2id_derive(
 
 /// Verify a password against an Argon2id hash (native only).
 #[cfg(not(target_family = "wasm"))]
+#[must_use]
 pub fn argon2id_verify(
     password: &[u8],
     salt: &[u8],
@@ -167,7 +178,9 @@ pub fn argon2id_verify(
 pub struct PasswordKey(Zeroizing<Vec<u8>>);
 
 impl PasswordKey {
+    #[must_use]
     pub fn as_bytes(&self) -> &[u8] { &self.0 }
+    #[must_use]
     pub fn into_bytes(self) -> Vec<u8> { (*self.0).clone() }
 }
 
@@ -175,7 +188,9 @@ impl PasswordKey {
 pub struct Pbkdf2Key(Zeroizing<Vec<u8>>);
 
 impl Pbkdf2Key {
+    #[must_use]
     pub fn as_bytes(&self) -> &[u8] { &self.0 }
+    #[must_use]
     pub fn into_bytes(self) -> Vec<u8> { (*self.0).clone() }
 }
 
@@ -220,6 +235,7 @@ impl core::error::Error for CryptoError {}
 /// then hashes that master key with PBKDF2 (1 iteration for server-side).
 /// This function verifies the server-side hash.
 #[cfg(not(target_family = "wasm"))]
+#[must_use]
 pub fn verify_password(
     kdf_type: i32,
     password_hash: &[u8],

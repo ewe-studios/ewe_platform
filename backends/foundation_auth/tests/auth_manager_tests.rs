@@ -49,12 +49,9 @@ async fn store_expired_oauth_token(store: &CredentialStorage, with_refresh: bool
     store.store_oauth_token("default", &token).await.unwrap();
 }
 
-// `OAuthCredential::expires` is an `f64` of Unix seconds; those are far below
-// 2^52, so the cast is exact.
-#[allow(clippy::cast_precision_loss)]
 fn oauth_credential(expires_in_secs: i64) -> AuthCredential {
     AuthCredential::OAuth(OAuthCredential {
-        expires: (chrono::Utc::now().timestamp() + expires_in_secs) as f64,
+        expires: chrono::Utc::now().timestamp() + expires_in_secs,
         access_token: ConfidentialText::new("oauth_access".to_string()),
         refresh_token: Some(ConfidentialText::new("oauth_refresh".to_string())),
     })

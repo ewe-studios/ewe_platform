@@ -315,26 +315,13 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `Webauthn` (issuer URL / origin). The field is dead in both the
   `server-native` and the non-`server-native` variants. Fix: drop the field and
   use the `config` argument locally in `new()`.
-- **`NativeOAuth` and `PasswordAuthClient` read an empty body.**
-  `src/native/oauth.rs` (`extract_body_text`, `error_body_text`) and
-  `src/native/password_auth.rs` (`extract_body`) read the response through
-  `get_body_ref()`. The client gives a lazy `SendSafeBody::Stream`, which
-  these helpers read as an empty string, so a token or login answer fails to
-  parse and an error answer has no message. Fix: take the body and read it as
-  a stream (status first; an error body only up to a configured limit), as the
-  `shared` clients do.
-- **The `shared` HTTP clients read bodies synchronously and whole.**
+- **The five `shared` auth clients cap the error body at a hard-coded constant.**
   `discovery`, `jwks`, `introspection`, `userinfo` and `upstream_client`
-  (`src/shared/`) call the sync `try_collect_bytes` inside `async fn`s (a
-  blocking read on the executor; on wasm it cannot wait for `fetch`), and
-  read an error body whole before they use the status. Fix: read with
-  `collect_bytes_async` (`AsyncSendSafeBody`), check the status first, and
-  read an error body only up to a limit on a config (64 KiB, as
-  `foundation_deployment`'s `BodyLimits`).
-- **`NativeOAuth` keeps sync twins** (`exchange_code`, `client_credentials`,
-  `refresh_token`) next to the `*_async` methods (`src/native/oauth.rs`),
-  against the async-only API rule. Fix: keep only the async methods (as the
-  wasm client now does) and let callers `.block()`.
+  (`src/shared/`) call `read_error_text(.., DEFAULT_MAX_ERROR_BODY)`. Only the
+  native OAuth client's cap is configurable (`OAuthConfig::max_error_body`);
+  these five have no config field, so their 64 KiB cap cannot be changed. Fix:
+  add a `max_error_body` field to each client's config (or builder) to match
+  `foundation_deployment`'s `BodyLimits::max_error_body`.
 
 ## 13. foundation_nativeapis
 
@@ -588,6 +575,17 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   section, drop the `self` import and the `mut`.
 - **`foundation_deployment_cloudflare`**: `src/workers/durable_object.rs:24`
   imports `worker::Error` without using it. Fix: drop it.
+
+## 22. foundation_keychain
+
+- **`poll_ready` single-polls a handler future with a noop waker.**
+  `src/server/native.rs` `poll_ready` (called from `Serve::serve`) drives the
+  async `provisioning_route` and `route` handlers by one `poll` with a noop
+  waker, and panics on `Poll::Pending`. It works only while the handlers finish
+  without yielding. Any real async I/O (a Turso query that is not ready, a
+  channel wait) panics at runtime. Fix: return `ConnectionResult::Async`
+  wrapping `async move { … route(..).await … }`, and delete `poll_ready` and
+  `noop_waker`, so the executor polls with a real waker.
 
 ## Paused
 

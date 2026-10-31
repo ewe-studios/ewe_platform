@@ -168,6 +168,16 @@ impl<S> SessionManager<S> {
 
 impl<S: CredentialStore> SessionManager<S> {
     /// Create a new session for a user (async).
+    ///
+    /// # Errors
+    ///
+    /// Returns `SessionError::Storage` if the session cannot be stored.
+    /// Returns `SessionError::Serialization` if the session data cannot be serialized.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the signer lock is poisoned. The `expect("signer lock")` call
+    /// fails then.
     pub async fn create_session(
         &self,
         user_id: &str,
@@ -205,6 +215,16 @@ impl<S: CredentialStore> SessionManager<S> {
     }
 
     /// Get and validate a session by token (async).
+    ///
+    /// # Errors
+    ///
+    /// Returns `SessionError::Storage` if the store fails.
+    /// Returns `SessionError::InvalidToken` if the token signature is invalid.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the signer lock is poisoned. The `expect("signer lock")` call
+    /// fails then.
     pub async fn get_session(
         &self,
         token: &str,
@@ -265,6 +285,10 @@ impl<S: CredentialStore> SessionManager<S> {
     }
 
     /// Revoke a single session (async).
+    ///
+    /// # Errors
+    ///
+    /// Returns `SessionError::Storage` if the store fails.
     pub async fn revoke_session(
         &self,
         session_id: &str,
@@ -290,6 +314,10 @@ impl<S: CredentialStore> SessionManager<S> {
     }
 
     /// Revoke all sessions for a user (async).
+    ///
+    /// # Errors
+    ///
+    /// Returns `SessionError::Storage` if the store fails.
     pub async fn revoke_all_sessions(
         &self,
         user_id: &str,
@@ -366,6 +394,13 @@ impl TokenSigner {
     }
 
     /// Sign a raw session token, returning `"{token}.{base64(signature)}"`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the HMAC key setup fails. The
+    /// `expect("HMAC can take key of any size")` call fails then. This cannot
+    /// happen because HMAC accepts a key of any size.
+    #[must_use]
     pub fn sign(&self, token: &str) -> String {
         let mut mac = HmacSha256::new_from_slice(&self.key).expect("HMAC can take key of any size");
         mac.update(token.as_bytes());
@@ -381,6 +416,12 @@ impl TokenSigner {
     /// # Errors
     ///
     /// Returns [`SessionError::InvalidToken`] if the signature is not valid base64.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the HMAC key setup fails. The
+    /// `expect("HMAC can take key of any size")` call fails then. This cannot
+    /// happen because HMAC accepts a key of any size.
     pub fn verify(&self, signed: &str, plain: &str) -> Result<bool, SessionError> {
         let parts: Vec<&str> = signed.split('.').collect();
         if parts.len() != 2 {

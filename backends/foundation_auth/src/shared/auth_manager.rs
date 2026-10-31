@@ -139,7 +139,7 @@ impl From<JwksError> for AuthManagerError {
 }
 
 impl AuthManager {
-    /// Create a new AuthManager.
+    /// Create a new `AuthManager`.
     #[must_use]
     pub fn new(store: CredentialStorage, config: AuthManagerConfig) -> Self {
         let jwt_manager =
@@ -190,10 +190,14 @@ impl AuthManager {
         let token_result = self.store.get_oauth_token("default").await;
         match token_result {
             Ok(Some(oauth_token)) => {
-                let expires_at = oauth_token
-                    .expires_in
-                    .map(|exp| chrono::Utc::now().timestamp() + exp as i64)
-                    .unwrap_or_else(|| chrono::Utc::now().timestamp() + 3600);
+                let expires_at = oauth_token.expires_in.map_or_else(
+                    || chrono::Utc::now().timestamp() + 3600,
+                    |exp| {
+                        chrono::Utc::now()
+                            .timestamp()
+                            .saturating_add(i64::try_from(exp).unwrap_or(i64::MAX))
+                    },
+                );
 
                 let jwt_token = JwtToken::from_parts(
                     oauth_token.access_token.clone(),
@@ -216,7 +220,7 @@ impl AuthManager {
                         access_token: ConfidentialText::new(oauth_token.access_token),
                         refresh_token: oauth_token.refresh_token.map(ConfidentialText::new),
                         token_type: oauth_token.token_type,
-                        expires_at: expires_at as f64,
+                        expires_at,
                         scope: oauth_token.scope,
                     }));
                 }
@@ -260,38 +264,35 @@ impl AuthManager {
         self.state_machine
             .transition_to(AuthEvent::AuthenticateStarted)?;
 
-        match credential {
-            AuthCredential::OAuth(oauth) => {
-                let token = AuthToken::OAuth {
-                    access_token: oauth.access_token.clone(),
-                    refresh_token: oauth.refresh_token.clone(),
-                    token_type: "Bearer".to_string(),
-                    expires_at: oauth.expires,
-                    scope: None,
-                };
-                self.persist_token(&token).await?;
+        if let AuthCredential::OAuth(oauth) = credential {
+            let token = AuthToken::OAuth {
+                access_token: oauth.access_token.clone(),
+                refresh_token: oauth.refresh_token.clone(),
+                token_type: "Bearer".to_string(),
+                expires_at: oauth.expires,
+                scope: None,
+            };
+            self.persist_token(&token).await?;
 
-                // Build JwtToken for lifecycle tracking
-                let jwt_token = JwtToken::from_parts(
-                    oauth.access_token.get(),
-                    oauth.refresh_token.as_ref().map(|rt| rt.get()),
-                    oauth.expires as i64,
-                    None,
-                    None,
-                    None,
-                );
-                self.jwt_manager.set_token(jwt_token);
+            // Build JwtToken for lifecycle tracking
+            let jwt_token = JwtToken::from_parts(
+                oauth.access_token.get(),
+                oauth.refresh_token.as_ref().map(ConfidentialText::get),
+                oauth.expires,
+                None,
+                None,
+                None,
+            );
+            self.jwt_manager.set_token(jwt_token);
 
-                self.state_machine
-                    .transition_to(AuthEvent::AuthenticateCompleted)?;
-                Ok(token)
-            }
-            _ => {
-                let _ = self.state_machine.transition_to(AuthEvent::RefreshFailed);
-                Err(AuthManagerError::Authentication(
-                    AuthenticationErrors::InvalidCredentials,
-                ))
-            }
+            self.state_machine
+                .transition_to(AuthEvent::AuthenticateCompleted)?;
+            Ok(token)
+        } else {
+            let _ = self.state_machine.transition_to(AuthEvent::RefreshFailed);
+            Err(AuthManagerError::Authentication(
+                AuthenticationErrors::InvalidCredentials,
+            ))
         }
     }
 
@@ -314,7 +315,7 @@ impl AuthManager {
                         access_token: ConfidentialText::new(token.access_token()),
                         refresh_token: token.refresh_token().map(ConfidentialText::new),
                         token_type: "Bearer".to_string(),
-                        expires_at: token.expires_at as f64,
+                        expires_at: token.expires_at,
                         scope: token.scope.clone(),
                     });
                 }
@@ -345,7 +346,7 @@ impl AuthManager {
         let Some(refresh_token) = self
             .jwt_manager
             .get_token()
-            .and_then(|t| t.refresh_token())
+            .and_then(JwtToken::refresh_token)
         else {
             return Err(AuthManagerError::NoRefreshToken);
         };
@@ -467,9 +468,10 @@ impl AuthManager {
                     access_token: access_token.get(),
                     token_type: "Bearer".to_string(),
                     expires_in: Some(
-                        (*expires_at as i64 - chrono::Utc::now().timestamp()).max(0) as u64,
+                        u64::try_from((*expires_at - chrono::Utc::now().timestamp()).max(0))
+                            .unwrap_or(0),
                     ),
-                    refresh_token: refresh_token.as_ref().map(|rt| rt.get()),
+                    refresh_token: refresh_token.as_ref().map(ConfidentialText::get),
                     scope: scope.clone(),
                     id_token: None,
                 };
@@ -485,7 +487,8 @@ impl AuthManager {
             access_token: token.access_token(),
             token_type: "Bearer".to_string(),
             expires_in: Some(
-                (token.expires_at - chrono::Utc::now().timestamp()).max(0) as u64,
+                u64::try_from((token.expires_at - chrono::Utc::now().timestamp()).max(0))
+                    .unwrap_or(0),
             ),
             refresh_token: token.refresh_token(),
             scope: token.scope.clone(),

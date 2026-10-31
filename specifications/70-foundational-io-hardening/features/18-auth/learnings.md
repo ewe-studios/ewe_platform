@@ -14,6 +14,13 @@
 - **E7.** `constant_time_eq` in `password_hash.rs` is not only used by the
   native verifiers. The wasm `pbkdf2_verify` (`wasm-pbkdf2`) also calls it, so
   the correct gate is `any(not(wasm), wasm-pbkdf2)`, not `not(wasm)` alone.
+- **E9/E10.** The native clients read the body through `get_body_ref()`, which
+  is empty for a lazy `SendSafeBody::Stream`. The shared clients used the sync
+  `try_collect_bytes` inside `async fn`, and read an error body whole before
+  the status. The fix is one shared pair of helpers in `src/shared/body.rs`:
+  `read_body_text` (whole body, for a 2xx/parse path) and `read_error_text`
+  (bounded, 64 KiB, for an error body). Both helpers take the async body
+  (`AsyncSendSafeBody`), so `poll_next` parks the task while data arrives.
 
 ## Dead ends
 
@@ -29,3 +36,10 @@
   export overlapping symbols, so the linker prints `duplicate symbol` warnings.
   The link succeeds. This is inherent to `webauthn-rs` 0.5 using both crypto
   stacks, not a defect this entry can fix.
+- **`expires_at`/`expires` were `f64`.** The five clippy casts in
+  `auth_manager.rs` (223, 281, 318, 471×2) all came from this one type choice.
+  The fields are now `i64`; the casts are gone, along with the `#[allow]` on
+  `AuthToken::is_expired`.
+- **`OAuthConfig::max_error_body` was added but dead.** The error-body cap in
+  `native/oauth.rs` used the constant, not the field. It is now wired from the
+  config; the five `shared` clients still use the constant (backlog).

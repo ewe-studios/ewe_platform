@@ -1,15 +1,16 @@
 //! Password Authentication Client (native).
 //!
-//! Implements username/password login against an IdP endpoint using
+//! Implements username/password login against an `IdP` endpoint using
 //! the platform network client (`DynNetClient`). Supports MFA challenge flow.
 
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
+use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 
 use crate::ConfidentialText;
+use crate::shared::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
 
-/// MFA type supported by the IdP.
+/// MFA type supported by the `IdP`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MfaType {
     /// TOTP one-time password.
@@ -37,10 +38,10 @@ pub struct LoginRequest<'a> {
     pub password: &'a str,
 }
 
-/// Login response from IdP.
+/// Login response from `IdP`.
 #[derive(Debug, Deserialize)]
 pub struct LoginResponse {
-    /// Authentication status string from the IdP.
+    /// Authentication status string from the `IdP`.
     pub status: String,
     /// Session ID (present on authentication success).
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -161,7 +162,7 @@ impl PasswordAuthClient {
             .map_err(|e| PasswordAuthError::ParseError(e.to_string()))?;
 
         let resp = self.post_json(&url, &body_str).await?;
-        parse_login_response(resp).await
+        parse_login_response(&resp)
     }
 
     /// Internal: execute the login request.
@@ -174,7 +175,7 @@ impl PasswordAuthClient {
             .map_err(|e| PasswordAuthError::ParseError(e.to_string()))?;
 
         let resp = self.post_json(&url, &body).await?;
-        parse_login_response(resp).await
+        parse_login_response(&resp)
     }
 
     /// POST JSON body and return response.
@@ -201,29 +202,33 @@ impl PasswordAuthClient {
         }
 
         if status == 401 {
-            let body = extract_body(resp.get_body_ref());
+            let body = read_body_text(resp.take_async_body())
+                .await
+                .map_err(PasswordAuthError::ConnectionFailed)?;
             // Return the body as JSON — parse_login_response will handle it
             return serde_json::from_str(&body)
                 .map_err(|e| PasswordAuthError::ParseError(e.to_string()));
         }
 
         if !(200..=299).contains(&status) {
-            let body = extract_body(resp.get_body_ref());
+            let body = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
             return Err(PasswordAuthError::ServerError {
-                status: status as u16,
+                status: u16::try_from(status).unwrap_or(0),
                 message: body,
             });
         }
 
-        let body = extract_body(resp.get_body_ref());
+        let body = read_body_text(resp.take_async_body())
+            .await
+            .map_err(PasswordAuthError::ConnectionFailed)?;
         serde_json::from_str(&body)
             .map_err(|e| PasswordAuthError::ParseError(e.to_string()))
     }
 }
 
-/// Parse the raw JSON response into a LoginResult.
-async fn parse_login_response(
-    value: serde_json::Value,
+/// Parse the raw JSON response into a `LoginResult`.
+fn parse_login_response(
+    value: &serde_json::Value,
 ) -> Result<LoginResult, PasswordAuthError> {
     let status = value
         .get("status")
@@ -238,7 +243,7 @@ async fn parse_login_response(
                 .and_then(|v| v.as_str())
                 .unwrap_or_default()
                 .to_string(),
-            mfa_required: value.get("mfa_required").and_then(|v| v.as_bool()).unwrap_or(false),
+            mfa_required: value.get("mfa_required").and_then(serde_json::Value::as_bool).unwrap_or(false),
         }),
         "mfa_required" => {
             let challenge_id = value
@@ -249,8 +254,7 @@ async fn parse_login_response(
             let mfa_type = value
                 .get("type")
                 .and_then(|v| v.as_str())
-                .map(MfaType::from_str)
-                .unwrap_or(MfaType::Totp);
+                .map_or(MfaType::Totp, MfaType::from_str);
             Ok(LoginResult::MfaRequired {
                 challenge_id,
                 mfa_type,
@@ -259,9 +263,9 @@ async fn parse_login_response(
         "invalid_credentials" | "" => Ok(LoginResult::InvalidCredentials {
             attempts_remaining: value
                 .get("attempts_remaining")
-                .and_then(|v| v.as_u64())
-                .map(|n| n as u32),
-            locked: value.get("locked").and_then(|v| v.as_bool()).unwrap_or(false),
+                .and_then(serde_json::Value::as_u64)
+                .and_then(|n| u32::try_from(n).ok()),
+            locked: value.get("locked").and_then(serde_json::Value::as_bool).unwrap_or(false),
         }),
         other => Err(PasswordAuthError::ParseError(format!(
             "unknown login status: {other}"
@@ -269,18 +273,10 @@ async fn parse_login_response(
     }
 }
 
-fn extract_body(body: &SendSafeBody) -> String {
-    match body {
-        SendSafeBody::Text(t) => t.clone(),
-        SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-        _ => String::new(),
-    }
-}
-
 /// Password authentication errors.
 #[derive(Debug)]
 pub enum PasswordAuthError {
-    /// Connection to the IdP failed.
+    /// Connection to the `IdP` failed.
     ConnectionFailed(String),
     /// Server returned an error status.
     ServerError { status: u16, message: String },

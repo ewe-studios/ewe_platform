@@ -9,7 +9,7 @@ use foundation_auth::shared::types::ConfidentialText;
 
 #[test]
 fn test_require_auth_with_valid_token() {
-    let future = chrono::Utc::now().timestamp() as f64 + 3600.0;
+    let future = chrono::Utc::now().timestamp() + 3600;
     let ctx =
         AuthContext::new("/api/data".to_string(), None, None).with_token(AuthToken::OAuth {
             access_token: ConfidentialText::new("tok".to_string()),
@@ -27,7 +27,7 @@ fn test_require_auth_with_valid_token() {
 
 #[test]
 fn test_require_auth_expired_token() {
-    let past = chrono::Utc::now().timestamp() as f64 - 3600.0;
+    let past = chrono::Utc::now().timestamp() - 3600;
     let ctx =
         AuthContext::new("/api/data".to_string(), None, None).with_token(AuthToken::OAuth {
             access_token: ConfidentialText::new("tok".to_string()),
@@ -48,7 +48,7 @@ fn test_require_auth_no_token() {
 
 #[test]
 fn test_optional_auth_strips_expired_token() {
-    let past = chrono::Utc::now().timestamp() as f64 - 3600.0;
+    let past = chrono::Utc::now().timestamp() - 3600;
     let ctx =
         AuthContext::new("/api/data".to_string(), None, None).with_token(AuthToken::OAuth {
             access_token: ConfidentialText::new("tok".to_string()),

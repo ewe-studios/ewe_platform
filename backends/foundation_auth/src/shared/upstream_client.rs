@@ -21,10 +21,10 @@
 //! 3. `exchange_code()` — exchanges the auth code for tokens at the token endpoint
 //! 4. `fetch_userinfo()` — fetches the standardized profile from userinfo
 
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleResponse};
+use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
+use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
 use super::discovery::{DiscoveryClient, DiscoveryError, OidcDiscovery};
 use super::oauth::{OAuthConfig, OAuthError, OAuthManager, PkceChallenge, TokenResponse};
 use super::oauth_token::OAuthToken;
@@ -74,7 +74,7 @@ impl From<OAuthError> for UpstreamClientError {
     }
 }
 
-/// OIDC / OAuth2 upstream authentication client.
+/// OIDC / `OAuth2` upstream authentication client.
 ///
 /// Works for any provider that supports the standard OIDC/OAuth2 protocol.
 /// The client is configured from an [`UpstreamProvider`] — it either discovers
@@ -273,7 +273,7 @@ impl UpstreamOidcClient {
 
     /// Exchange an authorization code for tokens at the provider's token endpoint.
     ///
-    /// Runs the OAuth2 `authorization_code` grant over the shared
+    /// Runs the `OAuth2` `authorization_code` grant over the shared
     /// client ([`DynNetClient`]), so it works identically on native and wasm.
     /// The `client_secret` (decrypted by the caller from
     /// [`UpstreamProvider::client_secret_ciphertext`]) is sent only when
@@ -388,7 +388,7 @@ impl UpstreamProfile {
                 .map(String::from),
             email_verified: json
                 .get(&mapping.email_verified_field)
-                .and_then(|v| v.as_bool())
+                .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false),
             name: json
                 .get(&mapping.name_field)
@@ -405,6 +405,7 @@ impl UpstreamProfile {
     }
 
     /// Extract a profile from an OIDC ID token claims set.
+    #[must_use]
     pub fn from_id_token(
         claims: &serde_json::Value,
         mapping: &super::provider::ProviderMapping,
@@ -447,14 +448,15 @@ async fn http_post_form(
         .map_err(|e| UpstreamClientError::TokenExchange(e.to_string()))?;
 
     let status: usize = resp.get_status().into();
-    let text = collect_body_text(resp)
-        .map_err(|e| UpstreamClientError::TokenExchange(format!("read token response: {e}")))?;
     if !(200..300).contains(&status) {
+        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
         return Err(UpstreamClientError::TokenExchange(format!(
             "HTTP {status}: {text}"
         )));
     }
-    Ok(text)
+    read_body_text(resp.take_async_body())
+        .await
+        .map_err(|e| UpstreamClientError::TokenExchange(format!("read token response: {e}")))
 }
 
 /// GET a URL with a Bearer access token and return the response text.
@@ -475,23 +477,15 @@ async fn http_get_with_bearer(
         .map_err(|e| UpstreamClientError::Userinfo(e.to_string()))?;
 
     let status: usize = resp.get_status().into();
-    let text = collect_body_text(resp)
-        .map_err(|e| UpstreamClientError::Userinfo(format!("read userinfo response: {e}")))?;
     if status == 401 {
+        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
         return Err(UpstreamClientError::Userinfo(format!("unauthorized: {text}")));
     }
     if !(200..300).contains(&status) {
+        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
         return Err(UpstreamClientError::Userinfo(format!("HTTP {status}: {text}")));
     }
-    Ok(text)
-}
-
-/// Drain a response body to a UTF-8 string (lossy for raw bytes).
-///
-/// The client returns bodies as a lazy [`SendSafeBody::Stream`], so
-/// `get_body_ref()` would observe an empty body — the stream must be collected
-/// via [`try_collect_bytes`].
-fn collect_body_text(resp: SimpleResponse<SendSafeBody>) -> Result<String, String> {
-    let bytes = try_collect_bytes(resp.take_body()).map_err(|e| e.to_string())?;
-    Ok(String::from_utf8_lossy(&bytes).to_string())
+    read_body_text(resp.take_async_body())
+        .await
+        .map_err(|e| UpstreamClientError::Userinfo(format!("read userinfo response: {e}")))
 }

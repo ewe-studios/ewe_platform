@@ -7,14 +7,14 @@
 //! ## Caching Strategy
 //! The discovery document is static configuration metadata. It is cached
 //! in-memory for the lifetime of the `DiscoveryClient`. No TTL, no disk
-//! persistence, no foundation_db involvement. Use `refresh()` to force
+//! persistence, no `foundation_db` involvement. Use `refresh()` to force
 //! re-fetch or `clear_cache()` to drop the cached entry.
 
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 
+use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
 use super::oauth::OAuthConfig;
 
 /// OIDC discovery document.
@@ -26,7 +26,7 @@ pub struct OidcDiscovery {
     pub authorization_endpoint: String,
     /// Token endpoint URL.
     pub token_endpoint: String,
-    /// UserInfo endpoint URL.
+    /// `UserInfo` endpoint URL.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub userinfo_endpoint: Option<String>,
     /// JWKS URI.
@@ -56,7 +56,7 @@ pub struct OidcDiscovery {
     /// Supported ID token encryption algorithms.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id_token_encryption_alg_values_supported: Option<Vec<String>>,
-    /// Supported UserInfo signing algorithms.
+    /// Supported `UserInfo` signing algorithms.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub userinfo_signing_alg_values_supported: Option<Vec<String>>,
     /// Supported token endpoint auth methods.
@@ -98,7 +98,7 @@ pub struct OidcDiscovery {
 }
 
 impl OidcDiscovery {
-    /// Build an OAuthConfig from this discovery document.
+    /// Build an `OAuthConfig` from this discovery document.
     #[must_use]
     pub fn to_oauth_config(&self, client_id: &str, redirect_uri: &str) -> OAuthConfig {
         let mut builder = OAuthConfig::builder()
@@ -119,7 +119,7 @@ impl OidcDiscovery {
             let scopes: Vec<String> = defaults
                 .iter()
                 .filter(|s| supported.iter().any(|x| x == *s))
-                .map(|s| s.to_string())
+                .map(ToString::to_string)
                 .collect();
             if !scopes.is_empty() {
                 builder = builder.scopes(scopes);
@@ -138,7 +138,7 @@ impl OidcDiscovery {
         builder.build()
     }
 
-    /// Get the JWKS URL, preferring jwks_uri over issuer + "/jwks".
+    /// Get the JWKS URL, preferring `jwks_uri` over issuer + "/jwks".
     #[must_use]
     pub fn jwks_url(&self) -> String {
         self.jwks_uri
@@ -183,6 +183,10 @@ impl DiscoveryClient {
     /// # Errors
     ///
     /// Returns `DiscoveryError` if the fetch or parse fails.
+    ///
+    /// # Panics
+    ///
+    /// Does not panic. The `unwrap` runs only after the cache is checked.
     pub async fn get(&mut self, issuer_url: &str) -> Result<&OidcDiscovery, DiscoveryError> {
         if let Some((cached_url, _)) = &self.cached {
             if cached_url == issuer_url {
@@ -197,6 +201,10 @@ impl DiscoveryClient {
     /// # Errors
     ///
     /// Returns `DiscoveryError` if the fetch or parse fails.
+    ///
+    /// # Panics
+    ///
+    /// Does not panic. The `unwrap` runs only after the cache is set.
     pub async fn fetch(&mut self, issuer_url: &str) -> Result<&OidcDiscovery, DiscoveryError> {
         let url = build_well_known_url(issuer_url);
         let discovery = do_fetch(&self.http, &url).await?;
@@ -308,13 +316,12 @@ async fn fetch_discovery(client: &DynNetClient, url: &str) -> Result<String, Dis
         .map_err(|e| DiscoveryError::FetchFailed(e.to_string()))?;
 
     let status: usize = resp.get_status().into();
-    // Response bodies arrive as a lazy `SendSafeBody::Stream`, so they must be
-    // drained with `try_collect_bytes` (`get_body_ref` would observe them empty).
-    let body = try_collect_bytes(resp.take_body())
-        .map(|b| String::from_utf8_lossy(&b).to_string())
-        .map_err(|e| DiscoveryError::FetchFailed(format!("read body: {e}")))?;
     if !(200..300).contains(&status) {
-        return Err(DiscoveryError::FetchFailed(format!("HTTP {status}: {body}")));
+        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        return Err(DiscoveryError::FetchFailed(format!("HTTP {status}: {text}")));
     }
+    let body = read_body_text(resp.take_async_body())
+        .await
+        .map_err(|e| DiscoveryError::FetchFailed(format!("read body: {e}")))?;
     Ok(body)
 }

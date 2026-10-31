@@ -35,8 +35,8 @@ Verified 2026-10-31 against the current tree (`fix/io-01-valtron-parking`). Resu
 | E6 | done | `openssl/vendored` on `server-native`; links here |
 | E7 | done | `argon2`/`pbkdf2` native-only, `time` removed, `uuid`/`foundation_errstacks` feature-gated; `constant_time_eq` gated to its callers; wasm check clean |
 | E8 | done | `WasmCredentialStore` and `wasm_credential_store.rs` deleted; `foundation_auth`, `foundation_db`, `cf-login-app` wasm builds pass |
-| E9 | open | `native/oauth.rs:197,204,225,232` and `native/password_auth.rs:204,211,218` read `get_body_ref()`, empty for a `Stream` body |
-| E10 | narrowed | `shared/{discovery,jwks,introspection,userinfo,upstream_client}.rs` already use `try_collect_bytes(resp.take_body())` — the empty-body symptom is fixed. Remaining: it is the sync drain inside `async fn`, and the error body is uncapped |
+| E9 | done | `native/oauth.rs` and `native/password_auth.rs` read `take_async_body()` through `read_body_text`/`read_error_text`, status-first; the cap is wired from `OAuthConfig::max_error_body` |
+| E10 | done | the five `shared` clients use `collect_bytes_async` via `read_body_text`/`read_error_text`, status-first, error body capped at 64 KiB |
 | E11 | done | `native/oauth.rs` has only `*_async` methods; no sync twins remain |
 
 E11 is removed from scope. E2, E8 and E10 are reduced as noted below.
@@ -136,9 +136,9 @@ cargo check --workspace --all-targets --profile dev
 
 ## Done when
 
-- [ ] T0 table; every open entry fixed; backlog entries deleted.
-- [ ] E1 and E2 tests fail on the base code and pass now (shown in the PR body).
-- [ ] `server-native` tests link and pass. CI green (native and wasm).
+- [x] T0 table; every open entry fixed; backlog entries deleted.
+- [x] E1 and E2 tests fail on the base code and pass now (shown in the PR body).
+- [x] `server-native` tests link and pass. CI green (native and wasm).
 
 ## Review checklist (main session)
 

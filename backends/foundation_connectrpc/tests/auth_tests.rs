@@ -482,7 +482,7 @@ fn test_authz_interceptor_grants_access() {
         access_token: foundation_auth::ConfidentialText::new("tok".to_string()),
         refresh_token: None,
         token_type: "Bearer".to_string(),
-        expires_at: f64::MAX,
+        expires_at: i64::MAX,
         scope: Some("read write".to_string()),
     });
     ext.insert(AuthInfo::new(auth_ctx));
@@ -530,7 +530,7 @@ fn test_authz_interceptor_denies_insufficient_scope() {
         access_token: foundation_auth::ConfidentialText::new("tok".to_string()),
         refresh_token: None,
         token_type: "Bearer".to_string(),
-        expires_at: f64::MAX,
+        expires_at: i64::MAX,
         scope: Some("read write".to_string()),
     });
     ext.insert(AuthInfo::new(auth_ctx));

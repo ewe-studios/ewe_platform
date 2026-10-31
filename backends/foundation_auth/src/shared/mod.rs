@@ -3,6 +3,7 @@
 // Feature 08: Auth Manager.
 pub mod auth_manager;
 pub mod auth_state;
+pub mod body;              // Shared cap on error-body reads.
 pub mod auth_session;       // Feature 04: Upstream auth session store
 pub mod auth_token;
 pub mod credential_store;

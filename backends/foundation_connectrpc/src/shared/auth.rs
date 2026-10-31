@@ -299,7 +299,7 @@ impl AuthFunc for JwtAuthenticator {
 
                     let auth_token = AuthToken::Jwt {
                         token: ConfidentialText::new(token),
-                        expires_at: claims.exp.timestamp() as f64,
+                        expires_at: claims.exp.timestamp(),
                         issuer: Some(claims.iss.clone()),
                         audience: Some(claims.aud.clone()),
                     };

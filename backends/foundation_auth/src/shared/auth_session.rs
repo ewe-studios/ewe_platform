@@ -69,7 +69,8 @@ impl UpstreamAuthSession {
         let now = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
             .unwrap_or_default()
-            .as_millis() as u64;
+            .as_millis();
+        let now = u64::try_from(now).unwrap_or_default();
         Self {
             state,
             provider_id,
@@ -90,7 +91,7 @@ impl UpstreamAuthSession {
             .duration_since(SystemTime::UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs();
-        (now as u64) > self.created_at / 1000 + self.ttl_seconds
+        now > self.created_at / 1000 + self.ttl_seconds
     }
 }
 
@@ -152,6 +153,10 @@ pub trait UpstreamAuthSessionStore: Send + Sync {
     fn take(&self, state: &str) -> Result<UpstreamAuthSession, AuthSessionError>;
 
     /// Remove a session without consuming it (cleanup).
+    ///
+    /// # Errors
+    ///
+    /// Returns `AuthSessionError::Storage` if the storage back end fails.
     fn delete(&self, state: &str) -> Result<(), AuthSessionError>;
 }
 
@@ -167,7 +172,7 @@ pub const DEFAULT_AUTH_SESSION_TTL_SECS: u64 = 600;
 // ---------------------------------------------------------------------------
 
 pub mod memory {
-    use super::*;
+    use super::{AuthSessionError, UpstreamAuthSession, UpstreamAuthSessionStore};
     use std::collections::HashMap;
     use std::sync::Mutex;
 

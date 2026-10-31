@@ -17,7 +17,7 @@ use crate::ConfidentialText;
 /// Supported JWT signature algorithms.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum JwtAlgorithm {
-    /// EdDSA (Ed25519)
+    /// `EdDSA` (Ed25519)
     EdDSA,
     /// RS256 (RSA with SHA-256)
     RS256,
@@ -163,7 +163,7 @@ impl JwtVerifier {
         Ok(Self { config, public_key })
     }
 
-    /// Build VerificationOptions from the config.
+    /// Build `VerificationOptions` from the config.
     fn build_options(&self) -> jwt_simple::prelude::VerificationOptions {
         let mut opts = jwt_simple::prelude::VerificationOptions::default();
 
@@ -265,11 +265,13 @@ impl JwtSigningKey {
         let duration = claims
             .get("exp")
             .and_then(serde_json::Value::as_u64)
-            .map(|exp| {
-                let now = jwt_simple::prelude::Clock::now_since_epoch().as_secs();
-                Duration::from_secs(exp.saturating_sub(now).max(1))
-            })
-            .unwrap_or_else(|| Duration::from_secs(3600));
+            .map_or_else(
+                || Duration::from_secs(3600),
+                |exp| {
+                    let now = jwt_simple::prelude::Clock::now_since_epoch().as_secs();
+                    Duration::from_secs(exp.saturating_sub(now).max(1))
+                },
+            );
 
         // Application (custom) claims = everything except the registered claims
         // jwt-simple manages itself — otherwise those keys would appear twice in
@@ -370,7 +372,7 @@ fn decode_header_algorithm(token: &str) -> Result<String, JwtError> {
     }
     let payload = base64_decode(parts[0])?;
     let header: serde_json::Value =
-        serde_json::from_slice(&payload).map_err(|e| JwtError::Json(e))?;
+        serde_json::from_slice(&payload).map_err(JwtError::Json)?;
     header
         .get("alg")
         .and_then(|v| v.as_str())
@@ -378,7 +380,7 @@ fn decode_header_algorithm(token: &str) -> Result<String, JwtError> {
         .ok_or_else(|| JwtError::AlgorithmNotAllowed("missing alg in header".into()))
 }
 
-/// Convert jwt-simple JWTClaims to our VerifiedClaims.
+/// Convert jwt-simple `JWTClaims` to our `VerifiedClaims`.
 fn to_verified_claims(
     claims: &jwt_simple::prelude::JWTClaims<serde_json::Value>,
 ) -> Result<VerifiedClaims, JwtError> {
@@ -389,7 +391,7 @@ fn to_verified_claims(
 
     // Build custom claims map, stripping standard claims
     let raw: serde_json::Value =
-        serde_json::to_value(claims).map_err(|e| JwtError::Json(e))?;
+        serde_json::to_value(claims).map_err(JwtError::Json)?;
 
     // Extract scope before consuming raw
     let scope = raw
@@ -409,8 +411,9 @@ fn to_verified_claims(
     };
 
     let unix_ts_to_datetime = |ts: Option<jwt_simple::prelude::UnixTimeStamp>| {
-        ts.map(|t| DateTime::from_timestamp(t.as_secs() as i64, 0))
-            .flatten()
+        ts.and_then(|t| {
+            DateTime::from_timestamp(i64::try_from(t.as_secs()).unwrap_or(i64::MAX), 0)
+        })
     };
 
     Ok(VerifiedClaims {

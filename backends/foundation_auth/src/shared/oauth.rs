@@ -31,6 +31,15 @@ pub struct OAuthConfig {
     /// OIDC nonce parameter (binds ID token to specific auth request).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nonce: Option<String>,
+    /// Most of a non-2xx response body read for its error message; the rest is
+    /// never read. Default 64 KiB.
+    #[serde(default = "default_max_error_body")]
+    pub max_error_body: usize,
+}
+
+/// Default cap on an error body read for its message (64 KiB).
+fn default_max_error_body() -> usize {
+    crate::shared::body::DEFAULT_MAX_ERROR_BODY
 }
 
 impl Default for OAuthConfig {
@@ -46,6 +55,7 @@ impl Default for OAuthConfig {
             response_type: "code".to_string(),
             grant_type: "authorization_code".to_string(),
             nonce: None,
+            max_error_body: crate::shared::body::DEFAULT_MAX_ERROR_BODY,
         }
     }
 }
@@ -150,6 +160,13 @@ impl OAuthConfigBuilder {
     #[must_use]
     pub fn nonce(mut self, nonce: String) -> Self {
         self.config.nonce = Some(nonce);
+        self
+    }
+
+    /// Cap an error body read for its message at `bytes`.
+    #[must_use]
+    pub fn max_error_body(mut self, bytes: usize) -> Self {
+        self.config.max_error_body = bytes;
         self
     }
 

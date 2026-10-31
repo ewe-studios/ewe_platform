@@ -23,20 +23,29 @@
 - **E8 — `WasmCredentialStore` removed.** `wasm_credential_store.rs` and its
   re-export are deleted. The wasm builds of `foundation_auth`,
   `foundation_db`, and `examples/cf-login-app` pass.
+- **E9 — streamed body read (native).** `native/oauth.rs` and
+  `native/password_auth.rs` take the async body, check the status first, and
+  read an error body only up to 64 KiB. They use the shared
+  `crate::shared::body` helpers. The cap is wired from
+  `OAuthConfig::max_error_body`.
+- **E10 — async body read (shared).** The five `shared` clients
+  (`discovery`, `jwks`, `introspection`, `userinfo`, `upstream_client`) use
+  `collect_bytes_async` (`AsyncSendSafeBody`), check the status first, and cap
+  the error body at 64 KiB. The shared helpers live in `src/shared/body.rs`.
 
-## In progress
+## Landed (tests and clippy)
 
-- **E9 — `NativeOAuth` / `PasswordAuthClient` empty body.** These two native
-  clients still read the response through `get_body_ref()`, which is empty for a
-  lazy `SendSafeBody::Stream`.
-- **E10 — `shared` clients sync drain.** The five `shared` clients
-  (`discovery`, `jwks`, `introspection`, `userinfo`, `upstream_client`) still
-  drain the body with the sync `try_collect_bytes` inside `async fn`, and read an
-  error body whole before the status.
+- **E9/E10 tests.** 13 tests in `backends/foundation_auth/tests/integration/body_streaming/`
+  (one success parse per client, an over-cap error body is cut, the two native
+  cases, and a ticker that keeps ticking while the server delays). The full
+  `foundation_auth` suite passes (219 tests).
+- **`foundation_auth` clippy pass.** All 107 lib warnings fixed. The last five
+  were one root cause: the `expires`/`expires_at` timestamp fields were `f64`.
+  They are now `i64` (Unix seconds); the casts are gone and the `#[allow]` on
+  `AuthToken::is_expired` is removed. `foundation_connectrpc` and
+  `foundation_ai` call sites were updated to the new type.
 
 ## Next
 
-1. Fix E9 (streamed body read, status first, bounded error body).
-2. Fix E10 (async drain, status first, bounded error body).
-3. Add the tests named in each entry.
-4. Update this file and `learnings.md`.
+1. Run the Linux Docker CI check (`scripts/ci/linux.sh foundation_auth` and
+   `foundation_netio`) after the commit.

@@ -5,6 +5,7 @@ use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 type HttpResponse = SimpleResponse<SendSafeBody>;
 
+use crate::shared::body::{read_body_text, read_error_text};
 use crate::shared::oauth::{OAuthConfig, OAuthError, OAuthManager, TokenResponse};
 use crate::shared::oauth_token::OAuthToken;
 
@@ -76,7 +77,7 @@ impl NativeOAuth {
         let body = body_parts.join("&");
 
         let resp = do_post_async(&self.http, &self.inner.config.token_url, &body).await?;
-        parse_token_response(resp).await
+        parse_token_response(resp, self.inner.config.max_error_body).await
     }
 
     /// Client-credentials flow for service-to-service authentication.
@@ -116,7 +117,7 @@ impl NativeOAuth {
         let body = body_parts.join("&");
 
         let resp = do_post_async(&self.http, &self.inner.config.token_url, &body).await?;
-        parse_token_response(resp).await
+        parse_token_response(resp, self.inner.config.max_error_body).await
     }
 
     /// Refresh an access token with a refresh token.
@@ -143,7 +144,7 @@ impl NativeOAuth {
         let body = body_parts.join("&");
 
         let resp = do_post_async(&self.http, &self.inner.config.token_url, &body).await?;
-        parse_refresh_response(resp, refresh_token).await
+        parse_refresh_response(resp, refresh_token, self.inner.config.max_error_body).await
     }
 }
 
@@ -170,38 +171,23 @@ async fn do_post_async(
     Ok(response)
 }
 
-/// Extract body text from a response.
-fn extract_body_text(body: &SendSafeBody) -> Result<String, OAuthError> {
-    match body {
-        SendSafeBody::Text(t) => Ok(t.clone()),
-        SendSafeBody::Bytes(b) => {
-            String::from_utf8(b.clone()).map_err(|e| OAuthError::TokenParseError(e.to_string()))
-        }
-        _ => Ok(String::new()),
-    }
-}
-
-/// Get error body text or empty string.
-fn error_body_text(body: &SendSafeBody) -> String {
-    match body {
-        SendSafeBody::Text(t) => t.clone(),
-        SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
-        _ => String::new(),
-    }
-}
-
-/// Parse a successful token response into OAuthToken.
-async fn parse_token_response(resp: HttpResponse) -> Result<OAuthToken, OAuthError> {
+/// Parse a successful token response into `OAuthToken`.
+async fn parse_token_response(
+    resp: HttpResponse,
+    max_error_body: usize,
+) -> Result<OAuthToken, OAuthError> {
     let status: usize = resp.get_status().into();
     if !(200..=299).contains(&status) {
-        let body = error_body_text(resp.get_body_ref());
+        let body = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(OAuthError::TokenEndpointError {
-            status: status as u16,
+            status: u16::try_from(status).unwrap_or(0),
             message: body,
         });
     }
 
-    let body_text = extract_body_text(resp.get_body_ref())?;
+    let body_text = read_body_text(resp.take_async_body())
+        .await
+        .map_err(OAuthError::TokenRequestFailed)?;
     let token_response: TokenResponse = serde_json::from_str(&body_text)
         .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 
@@ -219,17 +205,20 @@ async fn parse_token_response(resp: HttpResponse) -> Result<OAuthToken, OAuthErr
 async fn parse_refresh_response(
     resp: HttpResponse,
     old_refresh: &str,
+    max_error_body: usize,
 ) -> Result<OAuthToken, OAuthError> {
     let status: usize = resp.get_status().into();
     if !(200..=299).contains(&status) {
-        let body = error_body_text(resp.get_body_ref());
+        let body = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(OAuthError::TokenEndpointError {
-            status: status as u16,
+            status: u16::try_from(status).unwrap_or(0),
             message: body,
         });
     }
 
-    let body_text = extract_body_text(resp.get_body_ref())?;
+    let body_text = read_body_text(resp.take_async_body())
+        .await
+        .map_err(OAuthError::TokenRequestFailed)?;
     let token_response: TokenResponse = serde_json::from_str(&body_text)
         .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 

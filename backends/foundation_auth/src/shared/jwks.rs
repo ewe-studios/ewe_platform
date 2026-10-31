@@ -14,7 +14,7 @@
 use std::time::{Duration, Instant};
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,7 @@ pub struct Jwk {
     pub key_id: String,
     /// Key type: "OKP", "RSA", "EC".
     pub key_type: String,
-    /// Algorithm: "EdDSA", "RS256", "ES256".
+    /// Algorithm: `"EdDSA"`, `"RS256"`, `"ES256"`.
     pub algorithm: String,
     /// Usage: "sig".
     pub use_: String,
@@ -95,10 +95,10 @@ impl Jwk {
                     .map_err(|e| JwksError::KeyParseError(e.to_string()))?)
             }
             (kty, alg) => {
-                if !matches!(kty, "OKP" | "RSA" | "EC") {
-                    Err(JwksError::UnsupportedKeyType(kty.into()))
-                } else {
+                if matches!(kty, "OKP" | "RSA" | "EC") {
                     Err(JwksError::UnsupportedAlgorithm(alg.into()))
+                } else {
+                    Err(JwksError::UnsupportedKeyType(kty.into()))
                 }
             }
         }
@@ -164,16 +164,16 @@ impl Jwks {
                 curve: raw_key.crv,
                 x: raw_key.x.map(|b64| base64url_decode(&b64))
                     .transpose()
-                    .map_err(|e| JwksError::JwksParseError(e))?,
+                    .map_err(JwksError::JwksParseError)?,
                 y: raw_key.y.map(|b64| base64url_decode(&b64))
                     .transpose()
-                    .map_err(|e| JwksError::JwksParseError(e))?,
+                    .map_err(JwksError::JwksParseError)?,
                 modulus: raw_key.n.map(|b64| base64url_decode(&b64))
                     .transpose()
-                    .map_err(|e| JwksError::JwksParseError(e))?,
+                    .map_err(JwksError::JwksParseError)?,
                 exponent: raw_key.e.map(|b64| base64url_decode(&b64))
                     .transpose()
-                    .map_err(|e| JwksError::JwksParseError(e))?,
+                    .map_err(JwksError::JwksParseError)?,
                 pem: None,
             };
             keys.push(jwk);
@@ -279,6 +279,10 @@ impl JwksManager {
     ///
     /// Returns `JwksError::JwksFetchFailed` if the HTTP request fails, or
     /// `JwksParseError` if the response cannot be parsed.
+    ///
+    /// # Panics
+    ///
+    /// Does not panic. The `unwrap` runs only after the cache is set.
     pub async fn fetch(&mut self) -> Result<&Jwks, JwksError> {
         let json = fetch_jwks(&self.http, &self.jwks_url).await?;
         let mut jwks = Jwks::from_json(&json)?;
@@ -295,6 +299,10 @@ impl JwksManager {
     /// # Errors
     ///
     /// Returns `JwksError` on fetch or parse failure.
+    ///
+    /// # Panics
+    ///
+    /// Does not panic. The `unwrap` runs only after the cache is checked.
     pub async fn get(&mut self) -> Result<&Jwks, JwksError> {
         if self.is_cache_valid() {
             return Ok(&self.cached_jwks.as_ref().unwrap().0);
@@ -382,7 +390,7 @@ impl JwksManager {
     }
 }
 
-/// Convert an algorithm string to JwtAlgorithm.
+/// Convert an algorithm string to `JwtAlgorithm`.
 fn algorithm_str_to_jwt_algorithm(alg: &str) -> Result<super::jwt::JwtAlgorithm, JwksError> {
     match alg {
         "EdDSA" => Ok(super::jwt::JwtAlgorithm::EdDSA),
@@ -426,7 +434,7 @@ pub enum JwksError {
     MissingKeyData(String),
     /// Failed to parse key material.
     KeyParseError(String),
-    /// Wraps a JwtError from verifier creation.
+    /// Wraps a `JwtError` from verifier creation.
     Jwt(JwtError),
 }
 
@@ -471,13 +479,12 @@ async fn fetch_jwks(client: &DynNetClient, url: &str) -> Result<String, JwksErro
         .map_err(|e| JwksError::JwksFetchFailed(e.to_string()))?;
 
     let status: usize = resp.get_status().into();
-    // Response bodies arrive as a lazy `SendSafeBody::Stream`, so they must be
-    // drained with `try_collect_bytes` (`get_body_ref` would observe them empty).
-    let body = try_collect_bytes(resp.take_body())
-        .map(|b| String::from_utf8_lossy(&b).to_string())
-        .map_err(|e| JwksError::JwksFetchFailed(format!("read body: {e}")))?;
     if !(200..300).contains(&status) {
-        return Err(JwksError::JwksFetchFailed(format!("HTTP {status}: {body}")));
+        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        return Err(JwksError::JwksFetchFailed(format!("HTTP {status}: {text}")));
     }
+    let body = read_body_text(resp.take_async_body())
+        .await
+        .map_err(|e| JwksError::JwksFetchFailed(format!("read body: {e}")))?;
     Ok(body)
 }
