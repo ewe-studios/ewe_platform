@@ -432,6 +432,12 @@ TARGET_TEST="${TARGET_TEST:-tests_callfunction}"
 mise run build:test-directory TEST_DIRECTORY="./tests/integrations/${TARGET_TEST}" TEST_PACKAGE="${TARGET_TEST}"
 """
 
+[tasks."ci:linux"]
+description = "Run the full CI pipeline (fmt, build, clippy, test, wasm) inside the Linux CI image, mounting the repo so it uses the latest code. Usage: mise run ci:linux -- <package> (default: all packages)."
+run = """
+bash "${PROJECT_ROOT}/scripts/ci/linux.sh" "${1:-${PACKAGE:-all}}"
+"""
+
 [tasks.clean]
 description = "Clean all build artifacts"
 run = """
