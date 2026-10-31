@@ -1,7 +1,6 @@
 /// Shell stubs for unsupported platforms.
 /// Used when no os-poll feature is enabled.
 
-use super::super::event::Event;
 use super::super::super::Events;
 use crate::poll::{Interest, Registry, Token};
 

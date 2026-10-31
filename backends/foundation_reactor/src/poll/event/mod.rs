@@ -33,6 +33,11 @@ pub(crate) mod windows;
 #[cfg(target_os = "windows")]
 pub use windows::Event;
 
+#[cfg(not(any(unix, target_os = "windows")))]
+mod shell;
+#[cfg(not(any(unix, target_os = "windows")))]
+pub use shell::Event;
+
 pub mod source;
 pub use source::Source;
 
