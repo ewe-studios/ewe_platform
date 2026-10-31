@@ -1,8 +1,9 @@
 //! Shared session tests.
 
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{Duration, Utc};
 use foundation_auth::shared::credential_store::CredentialStorage;
-use foundation_auth::shared::session::{Session, SessionConfig, SessionManager};
+use foundation_auth::shared::session::{Session, SessionConfig, SessionManager, TokenSigner};
 use foundation_auth::CredentialStore;
 use foundation_core::valtron::valtron_test;
 
@@ -80,4 +81,37 @@ fn test_signing_key_too_short() {
     let store = CredentialStorage::memory();
     let result = SessionManager::new(store, SessionConfig::default(), b"short");
     assert!(result.is_err());
+}
+
+#[test]
+fn token_signer_rejects_modified_tag() {
+    let signer = TokenSigner::new(&[0xAB; 32]).expect("signer");
+    let signed = signer.sign("plain-token");
+
+    // Flip one bit in the decoded signature, then re-encode it.
+    let mut parts = signed.split('.');
+    let plain = parts.next().expect("plain part");
+    let sig = parts.next().expect("signature part");
+    let mut decoded = URL_SAFE_NO_PAD.decode(sig).expect("decode signature");
+    decoded[0] ^= 0xFF;
+    let tampered = format!("{plain}.{}", URL_SAFE_NO_PAD.encode(&decoded));
+
+    assert!(!signer.verify(&tampered, "plain-token").expect("verify"));
+}
+
+#[test]
+fn token_signer_rejects_truncated_tag() {
+    let signer = TokenSigner::new(&[0xAB; 32]).expect("signer");
+    let signed = signer.sign("plain-token");
+
+    // Drop one byte from the decoded signature, then re-encode it, so the tag
+    // is valid base64 but one byte short of the expected 32.
+    let mut parts = signed.split('.');
+    let plain = parts.next().expect("plain part");
+    let sig = parts.next().expect("signature part");
+    let mut decoded = URL_SAFE_NO_PAD.decode(sig).expect("decode signature");
+    decoded.truncate(decoded.len() - 1);
+    let truncated = format!("{plain}.{}", URL_SAFE_NO_PAD.encode(&decoded));
+
+    assert!(!signer.verify(&truncated, "plain-token").expect("verify"));
 }

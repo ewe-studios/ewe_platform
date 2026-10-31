@@ -346,12 +346,17 @@ impl<S: CredentialStore> SessionManager<S> {
 }
 
 /// HMAC-SHA256 token signer for session tokens.
-struct TokenSigner {
+pub struct TokenSigner {
     key: Zeroizing<Vec<u8>>,
 }
 
 impl TokenSigner {
-    fn new(key: &[u8]) -> Result<Self, SessionError> {
+    /// Create a signer from a raw key of at least 32 bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError::InvalidSigningKey`] if the key is shorter than 32 bytes.
+    pub fn new(key: &[u8]) -> Result<Self, SessionError> {
         if key.len() < 32 {
             return Err(SessionError::InvalidSigningKey);
         }
@@ -360,14 +365,23 @@ impl TokenSigner {
         })
     }
 
-    fn sign(&self, token: &str) -> String {
+    /// Sign a raw session token, returning `"{token}.{base64(signature)}"`.
+    pub fn sign(&self, token: &str) -> String {
         let mut mac = HmacSha256::new_from_slice(&self.key).expect("HMAC can take key of any size");
         mac.update(token.as_bytes());
         let result = mac.finalize().into_bytes();
         format!("{token}.{}", URL_SAFE_NO_PAD.encode(result))
     }
 
-    fn verify(&self, signed: &str, plain: &str) -> Result<bool, SessionError> {
+    /// Verify a signed token against its plain text.
+    ///
+    /// The tag comparison runs in constant time through [`Mac::verify_slice`],
+    /// which also compares the lengths first, so a truncated tag is rejected.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError::InvalidToken`] if the signature is not valid base64.
+    pub fn verify(&self, signed: &str, plain: &str) -> Result<bool, SessionError> {
         let parts: Vec<&str> = signed.split('.').collect();
         if parts.len() != 2 {
             return Ok(false);
@@ -375,13 +389,12 @@ impl TokenSigner {
 
         let mut mac = HmacSha256::new_from_slice(&self.key).expect("HMAC can take key of any size");
         mac.update(plain.as_bytes());
-        let expected = mac.finalize().into_bytes();
 
         let actual = URL_SAFE_NO_PAD
             .decode(parts[1])
             .map_err(|_| SessionError::InvalidToken)?;
 
-        Ok(expected.len() == actual.len() && expected.iter().zip(&actual).all(|(a, b)| a == b))
+        Ok(mac.verify_slice(&actual).is_ok())
     }
 }
 
