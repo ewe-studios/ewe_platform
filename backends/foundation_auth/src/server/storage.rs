@@ -44,6 +44,14 @@ fn parse_err(e: StorageError) -> StorageOpError {
     StorageOpError::Parse(e.to_string())
 }
 
+/// Convert a stored `INTEGER` column (i64) to a `u32`, returning a
+/// [`StorageOpError::Parse`] on a negative value or a value over `u32::MAX`.
+#[must_use]
+pub fn int_to_u32(value: i64, column: &str) -> Result<u32, StorageOpError> {
+    u32::try_from(value)
+        .map_err(|_| StorageOpError::Parse(format!("{column} out of u32 range: {value}")))
+}
+
 /// Pull the first row from a query stream. Stops after one row instead of
 /// draining the stream.
 async fn first_row(mut stream: AsyncQueryStream) -> Result<Option<SqlRow>, StorageOpError> {
@@ -273,7 +281,7 @@ fn parse_device_code_row(row: &SqlRow) -> Result<DeviceCode, StorageOpError> {
         client_id: row.get_by_name("client_id").map_err(parse_err)?,
         scope: row.get_by_name("scope").map_err(parse_err)?,
         expires_at: row.get_by_name("expires_at").map_err(parse_err)?,
-        interval: row.get_by_name::<i64>("interval_secs").map_err(parse_err)? as u32,
+        interval: int_to_u32(row.get_by_name::<i64>("interval_secs").map_err(parse_err)?, "interval_secs")?,
         user_id: if user_id.is_empty() { None } else { Some(user_id) },
         created_at: row.get_by_name("created_at").map_err(parse_err)?,
     })
@@ -436,7 +444,7 @@ fn parse_user_row(row: &SqlRow) -> Result<User, StorageOpError> {
         } else {
             Some(serde_json::from_str(&metadata).map_err(|e| StorageOpError::Parse(format!("user metadata: {e}")))?)
         },
-        failed_login_attempts: failed_login_attempts as u32,
+        failed_login_attempts: int_to_u32(failed_login_attempts, "failed_login_attempts")?,
         locked_until: if locked_until_val == 0 { None } else { Some(locked_until_val) },
         deleted_at: if deleted_at_val == 0 { None } else { Some(deleted_at_val) },
     })
@@ -556,7 +564,7 @@ fn parse_passkey_row(row: &SqlRow) -> Result<Passkey, StorageOpError> {
         name: row.get_by_name("name").map_err(parse_err)?,
         credential_id,
         credential_public_key,
-        counter: row.get_by_name::<i64>("counter").map_err(parse_err)? as u32,
+        counter: int_to_u32(row.get_by_name::<i64>("counter").map_err(parse_err)?, "counter")?,
         created_at: row.get_by_name("created_at").map_err(parse_err)?,
         last_used_at: if last_used_at_val == 0 { None } else { Some(last_used_at_val) },
     })

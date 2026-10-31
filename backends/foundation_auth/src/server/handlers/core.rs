@@ -663,9 +663,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
         // Check if user already exists
         if storage::find_user_by_email(self.storage.query_store.as_ref(), &email).await?.is_some() {
-            return Ok(HandlerResponse::ok(serde_json::json!({
-                "error": "user_exists",
-            })));
+            return Err(IdpError::Conflict("user_exists".into()));
         }
 
         // Hash password
@@ -1444,9 +1442,13 @@ fn extract_body_text(body: &Option<SendSafeBody>) -> String {
     }
 }
 
-fn header_name_eq(header: &foundation_netio::shared::http::SimpleHeader, name: &str) -> bool {
-    // SimpleHeader is an enum — match on the variant name
-    format!("{:?}", header).eq_ignore_ascii_case(name)
+/// Compare a header against `name`, case-insensitively, using the header's
+/// canonical name rather than its `Debug` form.
+#[must_use]
+pub fn header_name_eq(header: &foundation_netio::shared::http::SimpleHeader, name: &str) -> bool {
+    // `Display` renders known variants as canonical lowercase (hyphens), and
+    // `Custom` as its exact value; both compare correctly case-insensitively.
+    header.to_string().eq_ignore_ascii_case(name)
 }
 
 fn parse_form_urlencoded(body: &str) -> std::collections::HashMap<String, String> {
