@@ -310,41 +310,11 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 12. foundation_auth
 
-- **`PowService` checks leading zero bits against a byte count.**
-  `verify_solution` (`src/server/services/pow_service.rs`) compares
-  `count_leading_zero_bytes(&hash)` — which counts *bits* — with
-  `difficulty / 8`, so a difficulty of 22 bits only needs 2 zero bits. Its
-  `solve_validity_secs` field is never read either. Fix: compare bits with
-  `difficulty`, rename the helper, and either enforce the solve window or
-  drop the field (update the tests, which solve at difficulty 8).
-- **`register` answers a duplicate email with `200 {"error": "user_exists"}`**
-  (`src/server/handlers/core.rs`); spec 48 F03 says `409`. Fix: return
-  `IdpError::Conflict`.
-- **`header_name_eq` compares header names through `Debug` formatting**
-  (`src/server/handlers/core.rs`), so it depends on `SimpleHeader`'s `Debug`
-  output. Fix: compare with the header's canonical name.
-- **IdP integer columns are cast with `as`** (`interval_secs`, `counter`,
-  `failed_login_attempts` in `src/server/storage.rs`): a negative or oversized
-  value wraps silently. Fix: `u32::try_from` and report a `Parse` error.
-- **`--features server-native` tests don't link here.** `webauthn-rs` needs
-  OpenSSL 3 symbols (`EVP_Q_digest`, `OPENSSL_sk_*`) that the build host
-  doesn't provide. Fix: vendor OpenSSL (`openssl/vendored`) or document the
-  system dependency.
-- **Unused dependencies on wasm.** `cargo check --target wasm32-unknown-unknown
-  -p foundation_auth --no-default-features --features wasm` warns that
-  `argon2`, `foundation_errstacks`, `pbkdf2`, `time` and `uuid` are unused
-  there. Fix: make the native-only ones target-specific dependencies (or gate
-  them behind the features that use them). The same build warns that
-  `constant_time_eq` (`src/shared/password_hash.rs`) is never used on wasm32;
-  gate it with the native code that calls it.
-- **`foundation_db::wasm::{WasmCredentialStore, session}` duplicate
-  `CredentialStorage`.** Their docs say they exist because the sync
-  `CredentialStore` routed D1 through blocking calls; that trait is gone (spec
-  50 F04), and `CredentialStorage` over a D1 `StorageProvider` already serves
-  `CredentialStore` on Workers. Fix: fold callers onto
-  `CredentialStorage` and delete the duplicates. `wasm_credential_store.rs`
-  also has an inline `#[cfg(test)] mod tests` (against rule 7); deleting the
-  file removes it, otherwise move the tests to `tests/`.
+- **`WebAuthnService.config` is never read.** `src/server/services/webauthn_service.rs`
+  stores `config: Arc<IdpConfig>` but only uses it in `new()` to build the
+  `Webauthn` (issuer URL / origin). The field is dead in both the
+  `server-native` and the non-`server-native` variants. Fix: drop the field and
+  use the `config` argument locally in `new()`.
 - **`NativeOAuth` and `PasswordAuthClient` read an empty body.**
   `src/native/oauth.rs` (`extract_body_text`, `error_body_text`) and
   `src/native/password_auth.rs` (`extract_body`) read the response through
