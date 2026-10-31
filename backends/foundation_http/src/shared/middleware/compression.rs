@@ -29,7 +29,7 @@ pub enum CompressionAlgorithm {
 
 impl CompressionAlgorithm {
     /// Parse from Accept-Encoding header value.
-    fn from_str(s: &str) -> Option<Self> {
+    pub fn from_str(s: &str) -> Option<Self> {
         match s.trim().to_lowercase().as_str() {
             "gzip" => Some(CompressionAlgorithm::Gzip),
             "br" => Some(CompressionAlgorithm::Brotli),
@@ -165,7 +165,7 @@ impl CompressionMiddleware {
     }
 
     /// Parse Accept-Encoding header and select best algorithm.
-    fn select_algorithm(&self, accept_encoding: &str) -> Option<CompressionAlgorithm> {
+    pub fn select_algorithm(&self, accept_encoding: &str) -> Option<CompressionAlgorithm> {
         // Parse qvalues: gzip;q=0.8, br;q=1.0, *;q=0
         let mut candidates: Vec<(CompressionAlgorithm, f32)> = Vec::new();
 
@@ -275,54 +275,5 @@ impl RequestMiddleware for CompressionMiddleware {
 
         // Always continue — compression happens at response time
         MiddlewareResult::Continue
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_compression_algorithm_from_str() {
-        assert_eq!(CompressionAlgorithm::from_str("gzip"), Some(CompressionAlgorithm::Gzip));
-        assert_eq!(CompressionAlgorithm::from_str("GZIP"), Some(CompressionAlgorithm::Gzip));
-        assert_eq!(CompressionAlgorithm::from_str("br"), Some(CompressionAlgorithm::Brotli));
-        assert_eq!(CompressionAlgorithm::from_str("deflate"), Some(CompressionAlgorithm::Deflate));
-        assert_eq!(CompressionAlgorithm::from_str("identity"), Some(CompressionAlgorithm::Identity));
-        assert_eq!(CompressionAlgorithm::from_str("unknown"), None);
-    }
-
-    #[test]
-    fn test_compression_config_default() {
-        let config = CompressionConfig::default();
-        assert_eq!(config.min_size, 1024);
-        assert_eq!(config.max_size, 10_485_760);
-        assert_eq!(config.level, 6);
-        assert!(!config.mime_types.is_empty());
-    }
-
-    #[test]
-    fn test_compression_select_algorithm() {
-        let mw = CompressionMiddleware::default();
-
-        // Prefer brotli
-        let alg = mw.select_algorithm("gzip, br");
-        assert_eq!(alg, Some(CompressionAlgorithm::Brotli));
-
-        // Only gzip
-        let alg = mw.select_algorithm("gzip");
-        assert_eq!(alg, Some(CompressionAlgorithm::Gzip));
-
-        // With qvalues
-        let alg = mw.select_algorithm("gzip;q=0.5, br;q=1.0");
-        assert_eq!(alg, Some(CompressionAlgorithm::Brotli));
-
-        // Identity only
-        let alg = mw.select_algorithm("identity");
-        assert_eq!(alg, Some(CompressionAlgorithm::Identity));
-
-        // Identity;q=0 means no compression
-        let alg = mw.select_algorithm("identity;q=0");
-        assert_eq!(alg, None);
     }
 }

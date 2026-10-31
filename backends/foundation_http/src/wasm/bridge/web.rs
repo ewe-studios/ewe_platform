@@ -181,11 +181,4 @@ impl WasmHttpAppSingleton {
     pub fn is_initialized() -> bool {
         STATE.lock().unwrap().upgrade().is_some()
     }
-
-    /// Force-reset the singleton state. cfg-gated to `#[cfg(test)]`.
-    #[cfg(test)]
-    pub fn reset() {
-        let mut weak = STATE.lock().unwrap();
-        *weak = Weak::new();
-    }
 }
