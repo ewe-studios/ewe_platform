@@ -12,12 +12,6 @@ pub mod wasm_storage;
 #[cfg(feature = "wasm-bindgen-storage")]
 pub use wasm_storage::*;
 
-#[cfg(feature = "wasm-bindgen-storage")]
-pub mod wasm_credential_store;
-
-#[cfg(feature = "wasm-bindgen-storage")]
-pub use wasm_credential_store::WasmCredentialStore;
-
 /// Not activated for review only.
 // #[cfg(feature = "wasm-bindgen-storage")]
 // pub mod session;
