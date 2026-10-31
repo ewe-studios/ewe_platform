@@ -42,6 +42,7 @@ windows-sys = { version = "0.59", features = [
 ]}
 
 # io_uring completion backend (Linux only).
+[target.'cfg(target_os = "linux")'.dependencies]
 io-uring = { version = "0.7", optional = true }
 
 [features]
