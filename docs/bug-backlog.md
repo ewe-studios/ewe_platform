@@ -56,6 +56,14 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   Likely fix: let `EventReadiness` sources register a wake (a `Send` callback;
   `WakeCallback` is not `Send` without `multi`), and have this `wake` register
   on the sleepers of the engine as well as on the queue.
+- **`#[valtron_test]` generated tests hit the recursion-depth limit**
+  (`foundation_macros/src/lib.rs`, `valtron_test`). Every test crate that uses
+  the macro warns `recursion_depth_exceeding_limit` (Rust issue #159228) while
+  the compiler resolves the `Send`/`Sync` auto traits through the deeply nested
+  async body. The warning is `future_incompatible`: it will become a hard error
+  in a future Rust release, and would then break all 149 `#[valtron_test]`
+  files across 17 crates at once. Likely fix: emit `#![recursion_limit = "256"]`
+  from the macro, or flatten the generated future chain.
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
 (no open entries)
