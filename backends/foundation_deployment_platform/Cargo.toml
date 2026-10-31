@@ -52,7 +52,7 @@ image = { version = "0.25", optional = true }
 libc = { version = "0.2", optional = true }
 toml = { version = "0.8", optional = true }
 fs2 = { version = "0.4", optional = true }
-sha2 = { version = "0.10", optional = true }
+sha2 = { version = "0.11", optional = true }
 whoami = { version = "2", optional = true }
 which = { version = "7", optional = true }
 base64 = "0.22"
