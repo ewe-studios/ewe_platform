@@ -24,6 +24,7 @@ import os
 import shlex
 import subprocess
 import sys
+import time
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -280,8 +281,9 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
     if s.test != "off":
         for run in s.runs:
             cmd = ["cargo", "test", "--profile", profile, "-p", name, "--no-fail-fast", *feature_flags(run)]
-            if s.test_args:
-                cmd += ["--", *s.test_args]
+            # `--nocapture` prints every test's output, so a failing or hanging
+            # test leaves its own trace instead of a bare "FAILED" line.
+            cmd += ["--", "--nocapture", *s.test_args]
             plan["test"].append(cmd)
     if s.wasm != "off":
         # A wasm32 compile gate: no `--all-targets`/profile (wasm has no test
@@ -315,12 +317,31 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
     if s.env:
         print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(s.env.items())), flush=True)
     failures: list[str] = []
+    # One hard deadline for the whole package. GitHub gives the same job
+    # `timeout-minutes`; a local run had no kill switch, so a step that looped
+    # (a hung test, a deadlocked build) never returned. Each command borrows
+    # the time still left, and a command that overruns is fatal for the package.
+    deadline = time.monotonic() + s.timeout_minutes * 60
     for step in steps:
         mode = getattr(s, step)
         for cmd in plan[step]:
             line = shlex.join(cmd)
             print(f"::group::{step}: {line}" if IN_GITHUB else f"$ {line}", flush=True)
-            code = subprocess.run(cmd, cwd=ROOT, env=env).returncode
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                if IN_GITHUB:
+                    print("::endgroup::", flush=True)
+                failures.append(line)
+                annotate("error", f"{name}: `{line}` timed out after {s.timeout_minutes} minutes")
+                return 1
+            try:
+                code = subprocess.run(cmd, cwd=ROOT, env=env, timeout=remaining).returncode
+            except subprocess.TimeoutExpired:
+                if IN_GITHUB:
+                    print("::endgroup::", flush=True)
+                failures.append(line)
+                annotate("error", f"{name}: `{line}` timed out after {s.timeout_minutes} minutes")
+                return 1
             if IN_GITHUB:
                 print("::endgroup::", flush=True)
             if code == 0:
