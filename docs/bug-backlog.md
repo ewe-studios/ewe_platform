@@ -38,6 +38,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - **Non-blocking work not done yet:**
   - the remaining transports: the io_uring completion socket, openssl, and
     native-tls (task #25). The overlay and rustls landed in feature 06.
+- **`thiserror` is unused** (Cargo.toml line 42). Nothing in the crate uses it
+  (netio uses `derive_more` for errors). The Linux CI build flags it as an
+  unused dependency. Fix: remove it. (`rustls-pemfile` is also flagged unused,
+  but that is a false positive: it is optional and used by the `quic` and
+  `ssl-rustls` features in `quic/quinn_driver.rs`.)
 
 ## 3. foundation_http
 
@@ -448,6 +453,12 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 - **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
   - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.
+- **`cargo fmt --check` diverges between local and CI.** The Linux CI image's
+  `rustfmt` reformats whole crates differently (64 files in foundation_auth,
+  91 in foundation_netio). CI treats fmt as report-only, so scripts still exit
+  0, but the repo is not fmt-clean under the CI toolchain. Fix: pin one rustfmt
+  version (a `rust-toolchain.toml` with the rustfmt component) and format the
+  repo with it.
 - **`crates/ewe_deployables` doesn't build.** It isn't a workspace member, so
   nothing compiles it, and it still implements an older `Deployable` shape
   (sync `TaskIterator`s, sync `store(&client).get_typed(..)`), which no longer
