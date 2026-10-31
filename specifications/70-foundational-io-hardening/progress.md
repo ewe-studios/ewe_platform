@@ -2,6 +2,11 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-31: the `ci:linux` task now enforces each package's timeout and captures test output.
+  `scripts/ci/ci.py` `run_package` passes the package's `timeout-minutes` as one hard deadline
+  to each command, so a looping step stops instead of running forever, matching the GitHub job
+  timeout. `cargo test` gets `--nocapture` so a failure leaves its own trace. PR: see the PR.
+
 - 2026-10-31: CI green restored on `fix/io-01-valtron-parking`. The feature 11 PR had 12
   failing CI jobs. Three latent build bugs and one flaky test caused them. `foundation_nativeapis`
   `uring` did not forward `foundation_reactor/uring`, so its uring send path failed to compile

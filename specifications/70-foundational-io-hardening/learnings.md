@@ -2,6 +2,14 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-31 (CI driver): a local run had no kill switch. `ci.py run` called `subprocess.run`
+  with no timeout, so a step that looped (a hung test or a deadlocked build) never returned;
+  only GitHub's job-level `timeout-minutes` stopped it. Fix: `run_package` computes one
+  deadline from the package's `timeout-minutes` and passes the time still left to each command;
+  `TimeoutExpired`, or a spent deadline, is fatal for the package. Also pass `--nocapture` to
+  every `cargo test`, so a failing or hanging test leaves its own output trace instead of a
+  bare `FAILED` line.
+
 - 2026-10-31 (CI fix): a crate feature that enables `dep:<crate>` and also calls into that
   crate's feature-gated API must forward the crate's feature too. `foundation_nativeapis`
   `uring` enabled only `dep:io-uring`; its send path calls `Reactor::submit_send*` and imports
