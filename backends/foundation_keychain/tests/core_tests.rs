@@ -9,8 +9,8 @@ use foundation_keychain::core::models::cipher::{
     CipherCreateRequest, CipherType, CipherUpdateRequest,
 };
 use foundation_keychain::core::models::folder::{Folder, FolderCreateRequest};
-use foundation_keychain::core::models::org::{Organization, OrganizationCreateRequest};
-use foundation_keychain::core::models::send::{Send, SendCreateRequest, SendType};
+use foundation_keychain::core::models::org::OrganizationCreateRequest;
+use foundation_keychain::core::models::send::{SendCreateRequest, SendType};
 use foundation_keychain::core::models::user::{
     KdfType, PreloginResponse, RegisterRequest, UpdateProfileRequest,
 };
