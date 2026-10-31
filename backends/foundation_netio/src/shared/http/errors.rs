@@ -354,7 +354,7 @@ pub enum HttpReaderError {
     /// `io::ErrorKind::WouldBlock`, NOT a failure. The reader keeps its state so the
     /// next `next()` resumes; the driving task should park (`TaskStatus::Depends`)
     /// on the connection's read/write waker and retry when unparked. Emitted only by
-    /// non-blocking transports (the WireGuard overlay); blocking `TcpStream` reads
+    /// non-blocking transports (the `WireGuard` overlay); blocking `TcpStream` reads
     /// never surface it. See F11 "Non-blocking transport integration".
     #[from(ignore)]
     WouldBlock,

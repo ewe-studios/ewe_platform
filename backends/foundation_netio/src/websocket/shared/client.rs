@@ -265,7 +265,6 @@ impl WebSocketClient {
     }
 
     /// Consume the client, returning the inner stream and delivery handle.
-    #[must_use]
     pub fn into_parts(self) -> (BoxedWebSocketStream, MessageDelivery) {
         (self.inner, self.delivery)
     }

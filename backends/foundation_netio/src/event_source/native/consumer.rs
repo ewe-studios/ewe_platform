@@ -102,10 +102,14 @@ impl<R: DnsResolver + Send + 'static> Iterator for SseStream<R> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next() {
             Some(Stream::Next(parse_result)) => Some(Ok(SseStreamEvent::Event(parse_result.event))),
-            Some(Stream::Pending(_)) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Delayed(_)) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Init | Stream::Ignore | Stream::Wait) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Spread(_)) => Some(Ok(SseStreamEvent::Skip)),
+            Some(
+                Stream::Pending(_)
+                    | Stream::Delayed(_)
+                    | Stream::Init
+                    | Stream::Ignore
+                    | Stream::Wait
+                    | Stream::Spread(_),
+            ) => Some(Ok(SseStreamEvent::Skip)),
             None => None,
         }
     }
@@ -144,10 +148,14 @@ impl<R: DnsResolver + Clone + Send + 'static> Iterator for ReconnectingSseStream
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next() {
             Some(Stream::Next(parse_result)) => Some(Ok(SseStreamEvent::Event(parse_result.event))),
-            Some(Stream::Pending(_)) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Delayed(_)) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Init | Stream::Ignore | Stream::Wait) => Some(Ok(SseStreamEvent::Skip)),
-            Some(Stream::Spread(_)) => Some(Ok(SseStreamEvent::Skip)),
+            Some(
+                Stream::Pending(_)
+                    | Stream::Delayed(_)
+                    | Stream::Init
+                    | Stream::Ignore
+                    | Stream::Wait
+                    | Stream::Spread(_),
+            ) => Some(Ok(SseStreamEvent::Skip)),
             None => None,
         }
     }

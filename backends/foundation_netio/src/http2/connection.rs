@@ -605,6 +605,11 @@ impl<S: Read + Write> H2Connection<S> {
         Ok(())
     }
 
+    /// Handle an incoming SETTINGS frame.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`io::Error`] for an invalid stream or malformed frame.
     pub fn handle_settings(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         if head.stream_id != 0 {
             return Err(io::Error::new(
@@ -652,6 +657,11 @@ impl<S: Read + Write> H2Connection<S> {
         Ok(())
     }
 
+    /// Handle an incoming `WINDOW_UPDATE` frame.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`io::Error`] for a malformed frame.
     pub fn handle_window_update(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         let wu = WindowUpdateFrame::parse(&head, payload).map_err(proto_err)?;
 
@@ -674,6 +684,11 @@ impl<S: Read + Write> H2Connection<S> {
         self.write_buf.put_slice(&buf);
     }
 
+    /// Handle an incoming PING frame.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`io::Error`] for an invalid stream or malformed frame.
     pub fn handle_ping(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         if head.stream_id != 0 {
             return Err(io::Error::new(
@@ -999,12 +1014,8 @@ impl<S: Read + Write> H2Connection<S> {
                     self.goaway_received = true;
                     return Ok(None);
                 }
-                Kind::Reset => {
-                    /* pass through */
-                    return Ok(None);
-                }
-                Kind::Headers => {
-                    /* unexpected — pass through */
+                Kind::Reset | Kind::Headers => {
+                    // pass through
                     return Ok(None);
                 }
                 _ => {}
@@ -1019,6 +1030,10 @@ impl<S: Read + Write> H2Connection<S> {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics if internal pending-response state is inconsistent.
     pub fn recv_response(&mut self) -> io::Result<Option<(u32, H2Request)>> {
         // A response is HEADERS followed by zero or more DATA frames, ended by
         // END_STREAM. Accumulate the body across frames so the caller receives the
@@ -1066,7 +1081,6 @@ impl<S: Read + Write> H2Connection<S> {
                     self.goaway_received = true;
                     return Ok(None);
                 }
-                Kind::Reset => { /* ignore for client */ }
                 _ => {} // ignore other frames on client
             }
             self.flush_write()?;

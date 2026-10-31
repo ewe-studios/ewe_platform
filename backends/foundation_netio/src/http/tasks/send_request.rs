@@ -266,16 +266,13 @@ where
                     ))),
                     Some(TaskStatus::Init) => Some(TaskStatus::Init),
                     Some(TaskStatus::Delayed(dur)) => Some(TaskStatus::Delayed(dur)),
-                    Some(TaskStatus::Pending(_)) => {
+                    Some(TaskStatus::Pending(_) | TaskStatus::Spread(_)) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
                     Some(TaskStatus::Spawn(action)) => Some(TaskStatus::Spawn(Box::new(action))),
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
                     Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
-                    Some(TaskStatus::Spread(_)) => {
-                        Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
-                    }
                     Some(TaskStatus::Ready(item)) => {
                         match item {
                             HttpRequestRedirectResponse::Done(
@@ -557,16 +554,13 @@ where
                     ))),
                     Some(TaskStatus::Init) => Some(TaskStatus::Init),
                     Some(TaskStatus::Delayed(dur)) => Some(TaskStatus::Delayed(dur)),
-                    Some(TaskStatus::Pending(())) => {
+                    Some(TaskStatus::Pending(()) | TaskStatus::Spread(_)) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
                     Some(TaskStatus::Spawn(action)) => Some(TaskStatus::Spawn(Box::new(action))),
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
                     Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
-                    Some(TaskStatus::Spread(_)) => {
-                        Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
-                    }
                     Some(TaskStatus::Ready(item)) => {
                         // do one last check for a redirect as final response
                         self.0 = Some(SendRequestState::CheckRedirect(Box::new(Some(item))));

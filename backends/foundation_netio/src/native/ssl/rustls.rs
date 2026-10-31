@@ -749,7 +749,7 @@ impl RustlsConnector {
             Endpoint::WithIdentity(_, identity) => {
                 Self(identity.clone())
             }
-            _ => unreachable!("You generally won't call this method with Endpoint::NoIdentity since its left to you to generate")
+            Endpoint::WithDefault(_) => unreachable!("You generally won't call this method with Endpoint::WithDefault since its left to you to generate")
         }
     }
 
@@ -803,17 +803,11 @@ impl RustlsConnector {
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
 
         let plain_stream = match endpoint {
-            Endpoint::WithDefault(config) => match config {
+            Endpoint::WithDefault(config) | Endpoint::WithIdentity(config, _) => match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
                     TcpStream::connect_timeout(&host_socket_addr, *timeout)
                 }
-                _ => TcpStream::connect(host_socket_addr),
-            },
-            Endpoint::WithIdentity(config, _) => match config {
-                EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
-                }
-                _ => TcpStream::connect(host_socket_addr),
+                EndpointConfig::NoTimeout(_) => TcpStream::connect(host_socket_addr),
             },
         }?;
 

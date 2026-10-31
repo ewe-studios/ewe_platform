@@ -414,12 +414,9 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             }
         }
 
-        let target_host = match descriptor.request_uri.host_str() {
-            Some(host) => host.to_string(),
-            None => {
-                tracing::error!("Missing host in request URI");
-                return self.fail(HttpClientError::InvalidUrl("Missing host".to_string()));
-            }
+        let Some(target_host) = descriptor.request_uri.host_str() else {
+            tracing::error!("Missing host in request URI");
+            return self.fail(HttpClientError::InvalidUrl("Missing host".to_string()));
         };
         let target_port = descriptor.request_uri.port_or_default();
         let use_tls = descriptor.request_uri.scheme().is_https()
@@ -636,27 +633,27 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     #[cfg(unix)]
     fn connecting(&mut self, mut st: Box<Connecting<R>>) -> Step {
         loop {
-            let pending = match st.current.take() {
-                Some(pending) => pending,
-                None => {
-                    let Some(addr) = st.addrs.next() else {
-                        let error = st.last_error.take().map(HttpClientError::IoError).unwrap_or_else(
-                            || {
-                                HttpClientError::ConnectionFailed(format!(
-                                    "Failed to connect to {}:{}",
-                                    st.exchange.host, st.exchange.port
-                                ))
-                            },
-                        );
-                        return self.fail(error);
-                    };
-                    match PendingConnect::start(addr) {
-                        Ok(pending) => pending,
-                        Err(err) => {
-                            // Immediate failure (no route, refused): try the next.
-                            st.last_error = Some(err);
-                            continue;
-                        }
+            let pending = if let Some(pending) = st.current.take() {
+                pending
+            } else {
+                let Some(addr) = st.addrs.next() else {
+                    let error = st.last_error.take().map_or_else(
+                        || {
+                            HttpClientError::ConnectionFailed(format!(
+                                "Failed to connect to {}:{}",
+                                st.exchange.host, st.exchange.port
+                            ))
+                        },
+                        HttpClientError::IoError,
+                    );
+                    return self.fail(error);
+                };
+                match PendingConnect::start(addr) {
+                    Ok(pending) => pending,
+                    Err(err) => {
+                        // Immediate failure (no route, refused): try the next.
+                        st.last_error = Some(err);
+                        continue;
                     }
                 }
             };

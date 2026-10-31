@@ -261,7 +261,7 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         self
     }
 
-    /// Route requests over a custom transport connector (WireGuard overlay, SSH
+    /// Route requests over a custom transport connector (`WireGuard` overlay, SSH
     /// `docker system dial-stdio`) instead of dialing DNS+TCP.
     #[must_use]
     pub fn with_connector(

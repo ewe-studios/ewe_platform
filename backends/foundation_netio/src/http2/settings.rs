@@ -173,7 +173,7 @@ impl SettingsStore {
     /// `SETTINGS_ENABLE_PUSH` is a client→server control (RFC 7540 §6.5.2): it is
     /// how a client tells the server whether it will accept server push. A server
     /// advertising it (especially with value 1) is meaningless and is rejected by
-    /// strict peers such as grpc-go (which BuildKit's session client uses), which
+    /// strict peers such as grpc-go (which `BuildKit`'s session client uses), which
     /// tear the connection down. Real servers (nginx, grpc-go, …) never send it.
     #[must_use]
     pub fn to_frame_server(&self) -> SettingsFrame {

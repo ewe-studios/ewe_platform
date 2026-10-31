@@ -67,7 +67,7 @@ pub struct ClientConfig {
     pub headers_to_pass_on_redirect: Option<Vec<SimpleHeader>>,
     pub headers_to_add: Option<SimpleHeaders>,
     /// Connect via a Unix domain socket instead of TCP (Docker daemon,
-    /// BuildKitd). When set, connection routing bypasses DNS/proxy and dials
+    /// `BuildKitd`). When set, connection routing bypasses DNS/proxy and dials
     /// this socket path. `None` (default) uses the normal TCP/TLS path.
     #[cfg(unix)]
     pub unix_socket: Option<std::path::PathBuf>,

@@ -396,7 +396,7 @@ impl HttpClientBuilder {
 
     /// Route requests over a Unix domain socket instead of TCP.
     ///
-    /// WHY: The Docker daemon and BuildKitd expose HTTP over a Unix socket
+    /// WHY: The Docker daemon and `BuildKitd` expose HTTP over a Unix socket
     /// (`/var/run/docker.sock`, `/run/buildkit/buildkitd.sock`) — no DNS, no
     /// TLS, authenticated by file permissions.
     ///

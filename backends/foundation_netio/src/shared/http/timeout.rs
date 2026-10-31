@@ -43,7 +43,7 @@ pub struct ExpectContinueConfig {
     pub penalty_reduction: Duration,
 
     /// Total time the server waits for the body after it sends 100 Continue
-    /// (default: 3s). A transport that reports readiness (the WireGuard overlay)
+    /// (default: 3s). A transport that reports readiness (the `WireGuard` overlay)
     /// parks on the connection read waker and sends 408 Request Timeout only when
     /// this window ends with no body. A blocking transport keeps the
     /// `base_delay` / `max_attempts` polling scheme instead.

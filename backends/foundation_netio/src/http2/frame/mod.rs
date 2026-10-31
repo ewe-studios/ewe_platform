@@ -50,7 +50,6 @@ impl Kind {
     #[must_use]
     pub fn from_byte(byte: u8) -> Self {
         match byte {
-            0 => Self::Data,
             1 => Self::Headers,
             2 => Self::Priority,
             3 => Self::Reset,
@@ -60,7 +59,8 @@ impl Kind {
             7 => Self::GoAway,
             8 => Self::WindowUpdate,
             9 => Self::Continuation,
-            _ => Self::Data, // Unknown types treated as DATA per spec (but flagged by validator)
+            // 0 (DATA) and unknown types are DATA per spec (flagged by validator).
+            _ => Self::Data,
         }
     }
 }
@@ -161,6 +161,10 @@ impl DataFrame {
     ///
     /// # Errors
     /// Returns an error string on malformed input.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         let mut data = payload;
         let mut pad_len = None;
@@ -259,6 +263,10 @@ impl HeadersFrame {
     }
 
     /// Parse a HEADERS frame from header + payload buffer.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string on malformed input.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         let mut data = payload;
         let mut pad_len = None;
@@ -424,7 +432,6 @@ impl ErrorCode {
     pub fn from_u32(code: u32) -> Self {
         match code {
             0 => Self::NoError,
-            1 => Self::ProtocolError,
             2 => Self::InternalError,
             3 => Self::FlowControlError,
             4 => Self::SettingsTimeout,
@@ -550,6 +557,10 @@ impl SettingsFrame {
 
     /// Parse a SETTINGS frame from header + payload.
     /// Each setting is 6 bytes: 2-byte id + 4-byte value.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string on malformed input.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         if head.flag & settings_flags::ACK != 0 {
             if !payload.is_empty() {
@@ -719,6 +730,10 @@ impl PingFrame {
     }
 
     /// Parse a PING frame (always 8 bytes).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string on malformed input.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         if payload.len() != 8 {
             return Err("PING: payload != 8 bytes");
@@ -768,6 +783,10 @@ impl GoAwayFrame {
     }
 
     /// Parse a GOAWAY frame (8+ bytes: 4-byte last stream + 4-byte error + debug).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string on malformed input.
     pub fn parse(_head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         if payload.len() < 8 {
             return Err("GOAWAY: payload < 8 bytes");
@@ -872,6 +891,10 @@ impl ContinuationFrame {
     }
 
     /// Parse a CONTINUATION frame.
+    ///
+    /// # Errors
+    ///
+    /// This function does not return an error.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         Ok(Self {
             stream_id: head.stream_id,

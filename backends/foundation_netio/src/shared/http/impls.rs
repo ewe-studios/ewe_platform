@@ -456,7 +456,6 @@ impl core::fmt::Debug for SendSafeBody {
 impl From<SendSafeBody> for SimpleBody {
     fn from(value: SendSafeBody) -> Self {
         match value {
-            SendSafeBody::None => Self::None,
             SendSafeBody::Text(s) => Self::Text(s),
             SendSafeBody::Bytes(b) => Self::Bytes(b),
             SendSafeBody::Stream(iter) => {
@@ -473,9 +472,9 @@ impl From<SendSafeBody> for SimpleBody {
             SendSafeBody::LineFeedStream(iter) => {
                 Self::LineFeedStream(iter.map(|i| i as LineFeedVecIterator<BoxedError>))
             }
-            // SseStream cannot be converted to SimpleBody as it requires special handling
-            // In this case, we return SimpleBody::None as SSE streams should be handled separately
-            SendSafeBody::SseStream(_) => Self::None,
+            // SseStream cannot be converted to SimpleBody as it requires special handling.
+            // In this case, we return SimpleBody::None as SSE streams should be handled separately.
+            SendSafeBody::None | SendSafeBody::SseStream(_) => Self::None,
         }
     }
 }
@@ -670,7 +669,7 @@ pub type SimpleHeaders = BTreeMap<SimpleHeader, Vec<String>>;
 /// A logging-safe view of [`SimpleHeaders`] with sensitive values redacted.
 ///
 /// WHY: request/response header logging previously wrote every header value
-/// with `{:?}`, so a `Bearer <token>` in `Authorization` (HuggingFace, OpenAI,
+/// with `{:?}`, so a `Bearer <token>` in `Authorization` (`HuggingFace`, `OpenAI`,
 /// Anthropic, …) — or a `Cookie` / `X-Api-Key` — landed in plaintext wherever
 /// that tracing was enabled. Credentials must never reach logs. `Debug` on this
 /// wrapper renders the same map but replaces the values of sensitive headers
@@ -1888,9 +1887,8 @@ impl SimpleOutgoingResponseBuilder {
     /// # Errors
     /// Returns an error if the status is not set or if building fails.
     pub fn build(self) -> SimpleResponseResult<SimpleOutgoingResponse> {
-        let status = match self.status {
-            Some(inner) => inner,
-            None => return Err(SimpleResponseError::StatusIsRequired),
+        let Some(status) = self.status else {
+            return Err(SimpleResponseError::StatusIsRequired);
         };
 
         let mut headers = self.headers.unwrap_or_default();
@@ -1898,14 +1896,6 @@ impl SimpleOutgoingResponseBuilder {
         let body = self.body.unwrap_or(SendSafeBody::None);
 
         match &body {
-            SendSafeBody::None => {
-                // Absent body → DO NOT auto-add `Content-Length`. A streaming
-                // response (SSE, long-poll, chunked) is delimited by its framing or
-                // by connection close, not a declared length; a `Content-Length: 0`
-                // makes clients treat the body as complete and ignore everything
-                // streamed afterwards. An explicit `Content-Length` (e.g. from
-                // `empty()`) set on the headers is preserved untouched.
-            }
             SendSafeBody::Bytes(inner) => {
                 let content_length = inner
                     .len()
@@ -1937,7 +1927,14 @@ impl SimpleOutgoingResponseBuilder {
             SendSafeBody::ChunkedStream(_) => {
                 ensure_chunked_transfer_encoding(&mut headers);
             }
-            SendSafeBody::Stream(_)
+            // Absent body → DO NOT auto-add `Content-Length`. A streaming
+            // response (SSE, long-poll, chunked) is delimited by its framing or
+            // by connection close, not a declared length; a `Content-Length: 0`
+            // makes clients treat the body as complete and ignore everything
+            // streamed afterwards. An explicit `Content-Length` (e.g. from
+            // `empty()`) set on the headers is preserved untouched.
+            SendSafeBody::None
+            | SendSafeBody::Stream(_)
             | SendSafeBody::LineFeedStream(_)
             | SendSafeBody::SseStream(_) => {}
         }
@@ -2210,9 +2207,8 @@ impl SimpleIncomingRequestBuilder {
     /// # Errors
     /// Returns an error if the URL is not provided or if building fails.
     pub fn build(self) -> SimpleRequestResult<SimpleIncomingRequest> {
-        let request_url = match self.url {
-            Some(inner) => inner,
-            None => return Err(SimpleRequestError::NoURLProvided),
+        let Some(request_url) = self.url else {
+            return Err(SimpleRequestError::NoURLProvided);
         };
 
         let req_uri = if let Some(uri) = self.req_uri {
@@ -2227,14 +2223,6 @@ impl SimpleIncomingRequestBuilder {
         let body = self.body.unwrap_or(SendSafeBody::None);
 
         match &body {
-            SendSafeBody::None => {
-                // Absent body → DO NOT auto-add `Content-Length: 0`. A bodyless
-                // request (e.g. a GET, or a WebSocket upgrade) must not declare a
-                // body; strict servers (Firefox's WebDriver BiDi, the `websockets`
-                // lib) reject a GET carrying `Content-Length` as "unsupported
-                // request body" (Chromium's CDP tolerates it). An explicitly-set
-                // `Content-Length` is preserved.
-            }
             SendSafeBody::Bytes(inner) => {
                 let content_length = inner
                     .len()
@@ -2260,9 +2248,16 @@ impl SimpleIncomingRequestBuilder {
             | SendSafeBody::LineFeedStream(_) => {
                 ensure_chunked_transfer_encoding(&mut headers);
             }
+            // Absent body → DO NOT auto-add `Content-Length: 0`. A bodyless
+            // request (e.g. a GET, or a WebSocket upgrade) must not declare a
+            // body; strict servers (Firefox's WebDriver BiDi, the `websockets`
+            // lib) reject a GET carrying `Content-Length` as "unsupported
+            // request body" (Chromium's CDP tolerates it). An explicitly-set
+            // `Content-Length` is preserved.
+            //
             // SSE is a response-only body; the request renderer emits no
             // framing for it, so no Transfer-Encoding is declared.
-            SendSafeBody::SseStream(_) => {}
+            SendSafeBody::None | SendSafeBody::SseStream(_) => {}
         }
 
         Ok(SimpleIncomingRequest {
@@ -4788,6 +4783,11 @@ impl LineFeed {
         Self::stream_line_feeds(reader)
     }
 
+    /// Parses line feeds from a stream pointer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`LineFeedError`] if parsing fails.
     pub fn stream_line_feeds<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<Self, LineFeedError> {
@@ -5040,6 +5040,11 @@ impl ChunkState {
         Self::try_new(chunk_size_octet, chunk_extension).expect("should parse octet string")
     }
 
+    /// Creates a chunk from a size octet string and optional extensions.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ChunkStateError`] if the size octet string is not valid.
     pub fn try_new(
         chunk_size_octet: String,
         chunk_extension: Option<Extensions>,
@@ -5080,6 +5085,11 @@ impl ChunkState {
         Self::get_http_chunk_header_length_from_pointer(reader)
     }
 
+    /// Parses an HTTP trailer chunk from a stream pointer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ChunkStateError`] if parsing fails.
     pub fn parse_http_trailer_from_pointer<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<Option<Self>, ChunkStateError> {
@@ -5199,12 +5209,8 @@ impl ChunkState {
         while pointer.do_once_mut(|acc| {
             if let Ok(content) = acc.nextby2(1) {
                 match content {
-                    b"\r" => {
-                        let _ = acc.unforward();
-                        return false;
-                    }
                     // incase they use newline instead, http spec not respected
-                    b"\n" => {
+                    b"\r" | b"\n" => {
                         let _ = acc.unforward();
                         return false;
                     }
@@ -5294,9 +5300,7 @@ impl ChunkState {
             while let Ok(content) = acc.nextby2(1) {
                 let b = content[0];
                 match b {
-                    b'0'..=b'9' => continue,
-                    b'a'..=b'f' => continue,
-                    b'A'..=b'F' => continue,
+                    b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => {}
                     b' ' | b'\r' | b'\n' | b';' => {
                         let _ = acc.unforward();
                         chunk_size_octet = Some(acc.consume()?);
@@ -5414,7 +5418,7 @@ impl ChunkState {
                     let _ = acc.unforward();
                     break;
                 }
-                _ => continue,
+                _ => {}
             }
         }
 
@@ -5502,7 +5506,7 @@ impl ChunkState {
                     let _ = acc.unforward();
                     break;
                 }
-                _ => continue,
+                _ => {}
             }
         }
 
@@ -5525,9 +5529,9 @@ impl ChunkState {
                     String::from_utf8(value),
                 ) {
                     (Ok(key_string), Ok(value_string)) => Ok((key_string, Some(value_string))),
-                    (Ok(_), Err(err)) => Err(ChunkStateError::InvalidOctetBytes(err)),
-                    (Err(err), Ok(_)) => Err(ChunkStateError::InvalidOctetBytes(err)),
-                    (Err(err), Err(_)) => Err(ChunkStateError::InvalidOctetBytes(err)),
+                    (Ok(_), Err(err)) | (Err(err), Ok(_) | Err(_)) => {
+                        Err(ChunkStateError::InvalidOctetBytes(err))
+                    }
                 }
             }
             (Some(key), None) => match String::from_utf8(key) {
@@ -6340,6 +6344,11 @@ pub mod http_streams {
 }
 
 pub trait SimpleServer {
+    /// Handles an incoming request.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if handling the request fails.
     fn handle(&self, req: SimpleIncomingRequest) -> Result<SimpleOutgoingResponse, BoxedError>;
 }
 
@@ -6555,8 +6564,7 @@ impl ServiceAction {
                 (false, None)
             }
             (Some(_), None) => (false, None),
-            (None, Some(_)) => (matched_url, extracted_params),
-            (None, None) => (matched_url, extracted_params),
+            (None, Some(_) | None) => (matched_url, extracted_params),
         }
     }
 }
@@ -6630,9 +6638,8 @@ impl ServiceActionBuilder {
     /// # Errors
     /// Returns an error if the route is not provided or if building fails.
     pub fn build(self) -> SimpleHttpResult<ServiceAction> {
-        let route = match self.route {
-            Some(inner) => inner,
-            None => return Err(SimpleHttpError::NoRouteProvided),
+        let Some(route) = self.route else {
+            return Err(SimpleHttpError::NoRouteProvided);
         };
 
         let method = match self.method {
@@ -6640,9 +6647,8 @@ impl ServiceActionBuilder {
             None => SimpleMethod::GET,
         };
 
-        let body = match self.body {
-            Some(inner) => inner,
-            None => return Err(SimpleHttpError::NoBodyProvided),
+        let Some(body) = self.body else {
+            return Err(SimpleHttpError::NoBodyProvided);
         };
 
         Ok(ServiceAction {

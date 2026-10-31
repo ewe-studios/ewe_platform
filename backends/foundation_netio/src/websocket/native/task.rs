@@ -294,9 +294,9 @@ where
     /// # Errors
     ///
     /// Returns [`WebSocketError`] if the URL is invalid.
-    #[instrument(skip(pool, extra_headers, outbound_rx, _url), err, fields(url = %_url))]
+    #[instrument(skip(pool, extra_headers, outbound_rx, url), err, fields(url = %url))]
     pub fn connect_with_pool_and_delivery(
-        _url: String,
+        url: String,
         pool: Arc<HttpConnectionPool<R>>,
         subprotocols: Option<String>,
         extra_headers: SimpleHeaders,
@@ -304,7 +304,7 @@ where
         read_timeout: Duration,
         sleep_between: Duration,
     ) -> Result<Self, WebSocketError> {
-        let url_str = _url;
+        let url_str = url;
         info!(url = %url_str, "Connecting to WebSocket endpoint with pool and delivery queue");
 
         let uri = Uri::parse(&url_str).map_err(|e| {

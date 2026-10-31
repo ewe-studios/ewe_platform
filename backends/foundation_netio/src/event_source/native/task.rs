@@ -634,7 +634,7 @@ where
                     Some(Ok(parse_result)) => {
                         // Track last event ID from ParseResult
                         if parse_result.last_known_id.is_some() {
-                            self.last_event_id = parse_result.last_known_id.clone();
+                            self.last_event_id.clone_from(&parse_result.last_known_id);
                         }
                         // Reset activity timestamp on successful event
                         self.state = Some(EventSourceState::Reading {
@@ -690,7 +690,7 @@ where
                     Some(Ok(parse_result)) => {
                         // Track last event ID from ParseResult
                         if parse_result.last_known_id.is_some() {
-                            self.last_event_id = parse_result.last_known_id.clone();
+                            self.last_event_id.clone_from(&parse_result.last_known_id);
                         }
                         // Reset activity timestamp on successful event
                         self.state = Some(EventSourceState::ReadingStream {

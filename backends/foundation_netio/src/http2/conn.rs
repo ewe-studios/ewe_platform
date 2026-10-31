@@ -243,7 +243,7 @@ impl H2Conn {
     }
 
     /// The socket's fd, to watch it for readiness; `-1` for a transport with
-    /// no kernel fd (the WireGuard overlay).
+    /// no kernel fd (the `WireGuard` overlay).
     #[cfg(unix)]
     #[must_use]
     pub fn raw_fd(&self) -> std::os::unix::io::RawFd {

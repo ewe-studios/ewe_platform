@@ -231,8 +231,8 @@ impl WebSocketConnection {
     /// Returns [`WebSocketError`] if the close frame cannot be sent.
     pub fn close(&mut self, code: u16, reason: &str) -> Result<(), WebSocketError> {
         match self.state {
-            ConnectionState::Closed => return Ok(()),
-            ConnectionState::Closing {
+            ConnectionState::Closed
+            | ConnectionState::Closing {
                 close_sent: true, ..
             } => return Ok(()),
             _ => {}

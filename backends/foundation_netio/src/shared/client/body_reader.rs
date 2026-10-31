@@ -244,7 +244,7 @@ pub fn collect_string_strict(
                             for line_result in iter {
                                 match line_result {
                                     Ok(LineFeed::Line(line)) => lines.push(line),
-                                    Ok(LineFeed::SKIP | LineFeed::END) => continue,
+                                    Ok(LineFeed::SKIP | LineFeed::END) => {},
                                     Err(e) => {
                                         return Err(StringBodyError::StreamIteratorError(
                                             e.to_string().into_boxed_str(),
@@ -271,7 +271,7 @@ pub fn collect_string_strict(
                 IncomingResponseParts::Intro(_, _, _)
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => continue,
+            ) => {},
             Ok(IncomingResponseParts::NoBody) => return Err(StringBodyError::NoBody),
             // Stream error
             Err(e) => return Err(StringBodyError::StreamRead(e)),
@@ -335,13 +335,12 @@ pub fn collect_string(
 /// Returns an error if the operation fails.
 pub fn drain_stream_iterator_from_send_safe(body: SendSafeBody) -> Result<(), BodyReaderError> {
     match body {
-        SendSafeBody::Text(_) => Ok(()),
-        SendSafeBody::Bytes(_) => Ok(()),
+        SendSafeBody::Text(_) | SendSafeBody::Bytes(_) | SendSafeBody::None => Ok(()),
         SendSafeBody::Stream(mut opt_iter) => {
             if let Some(iter) = opt_iter.take() {
                 for chunk_result in DataBytesIterator::new(iter) {
                     match chunk_result {
-                        Ok(_) => continue,
+                        Ok(_) => {},
                         Err(e) => {
                             return Err(BodyReaderError::StreamIteratorError(
                                 e.to_string().into_boxed_str(),
@@ -356,7 +355,7 @@ pub fn drain_stream_iterator_from_send_safe(body: SendSafeBody) -> Result<(), Bo
             if let Some(iter) = opt_iter.take() {
                 for chunk_result in iter {
                     match chunk_result {
-                        Ok(_) => continue,
+                        Ok(_) => {},
                         Err(e) => {
                             return Err(BodyReaderError::StreamIteratorError(
                                 e.to_string().into_boxed_str(),
@@ -371,7 +370,7 @@ pub fn drain_stream_iterator_from_send_safe(body: SendSafeBody) -> Result<(), Bo
             if let Some(iter) = opt_iter.take() {
                 for line_result in iter {
                     match line_result {
-                        Ok(_) => continue,
+                        Ok(_) => {},
                         Err(e) => {
                             return Err(BodyReaderError::StreamIteratorError(
                                 e.to_string().into_boxed_str(),
@@ -391,7 +390,6 @@ pub fn drain_stream_iterator_from_send_safe(body: SendSafeBody) -> Result<(), Bo
                 Err(BodyReaderError::NoBody)
             }
         }
-        SendSafeBody::None => Ok(()),
     }
 }
 
@@ -412,7 +410,7 @@ pub fn drain_stream_iterator(
                 | IncomingResponseParts::NoBody
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => continue,
+            ) => {},
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
     }
@@ -510,7 +508,7 @@ pub fn collect_bytes_strict(
                                     Ok(LineFeed::Line(line)) => {
                                         bytes.extend_from_slice(line.as_bytes());
                                     }
-                                    Ok(LineFeed::SKIP | LineFeed::END) => continue,
+                                    Ok(LineFeed::SKIP | LineFeed::END) => {},
                                     Err(e) => {
                                         return Err(BodyReaderError::StreamIteratorError(
                                             e.to_string().into_boxed_str(),
@@ -535,7 +533,7 @@ pub fn collect_bytes_strict(
                 IncomingResponseParts::Intro(_, _, _)
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => continue,
+            ) => {},
             Ok(IncomingResponseParts::NoBody) => return Err(BodyReaderError::NoBody),
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
@@ -669,7 +667,7 @@ pub fn collect_bytes_direct(
                                     bytes.extend_from_slice(line.as_bytes());
                                     bytes.push(b'\n');
                                 }
-                                Ok(LineFeed::SKIP | LineFeed::END) => continue,
+                                Ok(LineFeed::SKIP | LineFeed::END) => {},
                                 Err(e) => {
                                     tracing::warn!("Line stream error: {e}");
                                     break;
@@ -694,7 +692,7 @@ pub fn collect_bytes_direct(
                 IncomingResponseParts::Intro(_, _, _)
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => continue,
+            ) => {},
             Ok(IncomingResponseParts::NoBody) => return Vec::new(),
             Err(e) => {
                 tracing::warn!("Error reading stream for byte collection: {e}");
@@ -768,7 +766,7 @@ where
                 bytes.extend_from_slice(line.as_bytes());
                 bytes.push(b'\n');
             }
-            Ok(LineFeed::SKIP | LineFeed::END) => continue,
+            Ok(LineFeed::SKIP | LineFeed::END) => {},
             Err(e) => {
                 tracing::warn!("Line stream error: {e}");
                 break;
@@ -784,7 +782,7 @@ where
 {
     for result in iter {
         match result {
-            Ok(_) => continue,
+            Ok(_) => {},
             Err(e) => {
                 tracing::warn!("SSE stream error: {e}");
                 return Err(e);
@@ -808,7 +806,7 @@ where
                     bytes.extend_from_slice(data.as_bytes());
                     bytes.push(b'\n');
                 }
-                Event::Comment(_) | Event::Reconnect => continue,
+                Event::Comment(_) | Event::Reconnect => {},
             },
             Err(e) => {
                 tracing::warn!("SSE stream error: {e}");
@@ -834,7 +832,7 @@ where
                     bytes.extend_from_slice(data.as_bytes());
                     bytes.push(b'\n');
                 }
-                Event::Comment(_) | Event::Reconnect => continue,
+                Event::Comment(_) | Event::Reconnect => {},
             }
         }
     }
@@ -844,7 +842,10 @@ where
 /// Process a stream iterator, writing bytes to a writer.
 /// Returns total bytes written or first error encountered.
 /// Handles Data-exposing iterators by wrapping with `DataBytesIterator`.
-#[must_use]
+///
+/// # Errors
+///
+/// Returns an error if the writer fails or a stream item is an error.
 pub fn write_from_stream<I, W>(
     iter: I,
     writer: &mut W,
@@ -870,7 +871,10 @@ where
 
 /// Process a chunked stream iterator, writing bytes to a writer.
 /// Returns total bytes written or first error encountered.
-#[must_use]
+///
+/// # Errors
+///
+/// Returns an error if the writer fails or a stream item is an error.
 pub fn write_from_chunked_stream<I, W>(
     iter: I,
     writer: &mut W,
@@ -900,7 +904,10 @@ where
 
 /// Process a line-feed stream iterator, writing bytes to a writer.
 /// Returns total bytes written or first error encountered.
-#[must_use]
+///
+/// # Errors
+///
+/// Returns an error if the writer fails or a stream item is an error.
 pub fn write_from_linefeed_stream<I, W>(
     iter: I,
     writer: &mut W,
@@ -918,7 +925,7 @@ where
                 writer.write_all(b"\n")?;
                 total_bytes += 1;
             }
-            Ok(LineFeed::SKIP | LineFeed::END) => continue,
+            Ok(LineFeed::SKIP | LineFeed::END) => {},
             Err(e) => {
                 return Err(format!("Line stream error during write: {e}").into());
             }
@@ -1479,7 +1486,7 @@ where
                                             return Ok(ProcessStreamResult::StoppedByCallback);
                                         }
                                     }
-                                    Ok(LineFeed::SKIP | LineFeed::END) => continue,
+                                    Ok(LineFeed::SKIP | LineFeed::END) => {},
                                     Err(e) => {
                                         return Err(BodyReaderError::StreamIteratorError(
                                             e.to_string().into_boxed_str(),
@@ -1500,7 +1507,7 @@ where
                                                 return Ok(ProcessStreamResult::StoppedByCallback);
                                             }
                                         }
-                                        Event::Comment(_) | Event::Reconnect => continue,
+                                        Event::Comment(_) | Event::Reconnect => {},
                                     },
                                     Err(e) => {
                                         return Err(BodyReaderError::StreamIteratorError(
@@ -1519,7 +1526,7 @@ where
                 IncomingResponseParts::Intro(_, _, _)
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => continue,
+            ) => {},
             Ok(IncomingResponseParts::NoBody) => return Ok(ProcessStreamResult::NoBody),
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
@@ -1963,21 +1970,21 @@ impl From<SendSafeBody> for AsyncSendSafeBody {
         let inner = match body {
             SendSafeBody::Text(t) => SendSafeBodyState::Text(t.into_bytes()),
             SendSafeBody::Bytes(b) => SendSafeBodyState::Bytes(b),
-            SendSafeBody::None => SendSafeBodyState::Done,
+            SendSafeBody::None
+            | SendSafeBody::Stream(None)
+            | SendSafeBody::ChunkedStream(None)
+            | SendSafeBody::LineFeedStream(None)
+            | SendSafeBody::SseStream(None) => SendSafeBodyState::Done,
             SendSafeBody::Stream(Some(iter)) => {
                 SendSafeBodyState::Stream(Box::new(iter.map(|r| r.map_err(map_err))))
             }
-            SendSafeBody::Stream(None) => SendSafeBodyState::Done,
             SendSafeBody::ChunkedStream(Some(iter)) => {
                 SendSafeBodyState::ChunkedStream(Box::new(iter.map(|r| r.map_err(map_err))))
             }
-            SendSafeBody::ChunkedStream(None) => SendSafeBodyState::Done,
             SendSafeBody::LineFeedStream(Some(iter)) => {
                 SendSafeBodyState::LineFeedStream(Box::new(iter.map(|r| r.map_err(map_err))))
             }
-            SendSafeBody::LineFeedStream(None) => SendSafeBodyState::Done,
             SendSafeBody::SseStream(Some(iter)) => SendSafeBodyState::SseStream(iter),
-            SendSafeBody::SseStream(None) => SendSafeBodyState::Done,
         };
         Self {
             inner,
@@ -2000,8 +2007,9 @@ impl FuturesStream for AsyncSendSafeBody {
 
         match std::mem::replace(&mut this.inner, SendSafeBodyState::Done) {
             SendSafeBodyState::Done => Poll::Ready(None),
-            SendSafeBodyState::Text(bytes) => Poll::Ready(Some(Ok(bytes))),
-            SendSafeBodyState::Bytes(bytes) => Poll::Ready(Some(Ok(bytes))),
+            SendSafeBodyState::Text(bytes) | SendSafeBodyState::Bytes(bytes) => {
+                Poll::Ready(Some(Ok(bytes)))
+            }
             SendSafeBodyState::Stream(mut iter) => {
                 let mut repolled = false;
                 loop {
@@ -2011,7 +2019,7 @@ impl FuturesStream for AsyncSendSafeBody {
                             return Poll::Ready(Some(Ok(b)));
                         }
                         Some(Ok(Data::Retry)) => match this.wait_decision(cx, &mut repolled) {
-                            WaitAction::Repoll => continue,
+                            WaitAction::Repoll => {},
                             WaitAction::Park => {
                                 this.inner = SendSafeBodyState::Stream(iter);
                                 return Poll::Pending;
@@ -2019,7 +2027,7 @@ impl FuturesStream for AsyncSendSafeBody {
                         },
                         Some(Err(e)) if is_would_block(&*e) => {
                             match this.wait_decision(cx, &mut repolled) {
-                                WaitAction::Repoll => continue,
+                                WaitAction::Repoll => {},
                                 WaitAction::Park => {
                                     this.inner = SendSafeBodyState::Stream(iter);
                                     return Poll::Pending;
@@ -2040,12 +2048,10 @@ impl FuturesStream for AsyncSendSafeBody {
                             return Poll::Ready(Some(Ok(b)));
                         }
                         // Bookkeeping items: consume in a loop, not a self-wake.
-                        Some(Ok(ChunkedData::Trailers(_))) | Some(Ok(ChunkedData::DataEnded)) => {
-                            continue;
-                        }
+                        Some(Ok(ChunkedData::Trailers(_) | ChunkedData::DataEnded)) => {}
                         Some(Err(e)) if is_would_block(&*e) => {
                             match this.wait_decision(cx, &mut repolled) {
-                                WaitAction::Repoll => continue,
+                                WaitAction::Repoll => {},
                                 WaitAction::Park => {
                                     this.inner = SendSafeBodyState::ChunkedStream(iter);
                                     return Poll::Pending;
@@ -2067,10 +2073,10 @@ impl FuturesStream for AsyncSendSafeBody {
                             bytes.push(b'\n');
                             return Poll::Ready(Some(Ok(bytes)));
                         }
-                        Some(Ok(LineFeed::SKIP | LineFeed::END)) => continue,
+                        Some(Ok(LineFeed::SKIP | LineFeed::END)) => {},
                         Some(Err(e)) if is_would_block(&*e) => {
                             match this.wait_decision(cx, &mut repolled) {
-                                WaitAction::Repoll => continue,
+                                WaitAction::Repoll => {},
                                 WaitAction::Park => {
                                     this.inner = SendSafeBodyState::LineFeedStream(iter);
                                     return Poll::Pending;
@@ -2093,11 +2099,11 @@ impl FuturesStream for AsyncSendSafeBody {
                                 bytes.push(b'\n');
                                 return Poll::Ready(Some(Ok(bytes)));
                             }
-                            Event::Comment(_) | Event::Reconnect => continue,
+                            Event::Comment(_) | Event::Reconnect => {},
                         },
                         Some(Err(e)) if is_would_block(&*e) => {
                             match this.wait_decision(cx, &mut repolled) {
-                                WaitAction::Repoll => continue,
+                                WaitAction::Repoll => {},
                                 WaitAction::Park => {
                                     this.inner = SendSafeBodyState::SseStream(iter);
                                     return Poll::Pending;
@@ -2119,22 +2125,44 @@ impl FuturesStream for AsyncSendSafeBody {
 ///
 /// Returns an error if the operation fails.
 pub async fn collect_bytes_async(mut body: AsyncSendSafeBody) -> Result<Vec<u8>, SendableBoxedError> {
-    use core::future::poll_fn;
+    use futures_lite::StreamExt;
     let mut all = Vec::new();
-    loop {
-        let chunk = poll_fn(|cx| Pin::new(&mut body).poll_next(cx)).await;
+    while let Some(chunk) = body.next().await {
         match chunk {
-            Some(Ok(bytes)) => all.extend(bytes),
-            Some(Err(e)) => return Err(e),
-            None => break,
+            Ok(bytes) => all.extend(bytes),
+            Err(e) => return Err(e),
         }
     }
     Ok(all)
 }
 
+/// Collect all body bytes from an `AsyncSendSafeBody` as a UTF-8 string.
+///
+/// # Errors
+///
+/// Returns an error if the stream fails or the bytes are not valid UTF-8.
 pub async fn collect_string_async(body: AsyncSendSafeBody) -> Result<String, SendableBoxedError> {
     let bytes = collect_bytes_async(body).await?;
-    String::from_utf8(bytes).map_err(|e| Box::new(std::io::Error::other(e.to_string())) as SendableBoxedError)
+    String::from_utf8(bytes)
+        .map_err(|e| Box::new(std::io::Error::other(e.to_string())) as SendableBoxedError)
+}
+
+/// Collect at most `limit` bytes of an `AsyncSendSafeBody` in async context;
+/// the rest is never read. A body that fails part-way yields the bytes that
+/// arrived before the error.
+pub async fn collect_bytes_bounded(mut body: AsyncSendSafeBody, limit: usize) -> Vec<u8> {
+    use futures_lite::StreamExt;
+    let mut buf = Vec::new();
+    while buf.len() < limit {
+        match body.next().await {
+            Some(Ok(bytes)) => {
+                let room = limit - buf.len();
+                buf.extend_from_slice(&bytes[..bytes.len().min(room)]);
+            }
+            Some(Err(_)) | None => break,
+        }
+    }
+    buf
 }
 
 // ============================================================================

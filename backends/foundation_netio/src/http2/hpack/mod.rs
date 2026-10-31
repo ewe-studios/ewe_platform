@@ -141,6 +141,12 @@ impl DynamicTable {
         self.entries.len()
     }
 
+    /// True when the table has no entries.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
     /// Current total size in bytes.
     #[must_use]
     pub fn size(&self) -> usize {
@@ -363,9 +369,8 @@ fn decode_string_literal(buf: &[u8]) -> Result<Option<(Bytes, usize)>, &'static 
     }
     let huffman = buf[0] & 0x80 != 0;
     let len_result = decode_int(buf, 7)?;
-    let (len, consumed) = match len_result {
-        Some(v) => v,
-        None => return Ok(None),
+    let Some((len, consumed)) = len_result else {
+        return Ok(None);
     };
 
     let total_needed = consumed + len;
@@ -488,9 +493,8 @@ fn decode_one(table: &DynamicTable, buf: &[u8]) -> Result<(DecodeAction, usize),
     // ── Indexed Header Field (RFC 7541 §6.1) ──────────────────────────
     // 1xxx_xxxx
     if first & 0x80 != 0 {
-        let (idx, consumed) = match decode_int(buf, 7)? {
-            Some(v) => v,
-            None => return Ok((DecodeAction::NeedMore, 0)),
+        let Some((idx, consumed)) = decode_int(buf, 7)? else {
+            return Ok((DecodeAction::NeedMore, 0));
         };
         let (name, value) = lookup(table, idx)?;
         return Ok((
@@ -512,9 +516,8 @@ fn decode_one(table: &DynamicTable, buf: &[u8]) -> Result<(DecodeAction, usize),
     // ── Dynamic Table Size Update (§6.3) ──────────────────────────────
     // 001x_xxxx
     if first & 0xE0 == 0x20 {
-        let (new_max, consumed) = match decode_int(buf, 5)? {
-            Some(v) => v,
-            None => return Ok((DecodeAction::NeedMore, 0)),
+        let Some((new_max, consumed)) = decode_int(buf, 5)? else {
+            return Ok((DecodeAction::NeedMore, 0));
         };
         return Ok((DecodeAction::TableSizeUpdate(new_max), consumed));
     }
@@ -535,15 +538,13 @@ fn decode_literal_indexed(
     prefix: u8,
 ) -> Result<(DecodeAction, usize), &'static str> {
     let name_info = decode_literal_name(table, buf, prefix, buf[0])?;
-    let (name, offset) = match name_info {
-        Some(v) => v,
-        None => return Ok((DecodeAction::NeedMore, 0)),
+    let Some((name, offset)) = name_info else {
+        return Ok((DecodeAction::NeedMore, 0));
     };
 
     let val_result = decode_string_literal(&buf[offset..])?;
-    let (value, val_consumed) = match val_result {
-        Some(v) => v,
-        None => return Ok((DecodeAction::NeedMore, 0)),
+    let Some((value, val_consumed)) = val_result else {
+        return Ok((DecodeAction::NeedMore, 0));
     };
 
     Ok((DecodeAction::Emit(name, value, true), offset + val_consumed))
@@ -556,15 +557,13 @@ fn decode_literal_no_index(
     prefix: u8,
 ) -> Result<(DecodeAction, usize), &'static str> {
     let name_info = decode_literal_name(table, buf, prefix, buf[0])?;
-    let (name, offset) = match name_info {
-        Some(v) => v,
-        None => return Ok((DecodeAction::NeedMore, 0)),
+    let Some((name, offset)) = name_info else {
+        return Ok((DecodeAction::NeedMore, 0));
     };
 
     let val_result = decode_string_literal(&buf[offset..])?;
-    let (value, val_consumed) = match val_result {
-        Some(v) => v,
-        None => return Ok((DecodeAction::NeedMore, 0)),
+    let Some((value, val_consumed)) = val_result else {
+        return Ok((DecodeAction::NeedMore, 0));
     };
 
     Ok((
@@ -585,9 +584,8 @@ fn decode_literal_name(
 
     if name_index > 0 {
         let result = decode_int(buf, prefix)?;
-        let (idx, consumed) = match result {
-            Some(v) => v,
-            None => return Ok(None),
+        let Some((idx, consumed)) = result else {
+            return Ok(None);
         };
         let (n, _) = lookup(table, idx)?;
         Ok(Some((Bytes::copy_from_slice(n), consumed)))

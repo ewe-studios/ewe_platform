@@ -101,7 +101,6 @@ impl Window {
     }
 
     /// Add `other` to this window, returning the new [`Window`] or an error on overflow.
-    #[must_use]
     ///
     /// # Errors
     ///
@@ -115,6 +114,12 @@ impl Window {
     #[must_use]
     pub fn raw(self) -> i32 {
         self.0
+    }
+}
+
+impl Default for Window {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -290,5 +295,11 @@ impl FlowControl {
         self.window_size.decrease_by(sz)?;
         self.available.decrease_by(sz)?;
         Ok(())
+    }
+}
+
+impl Default for FlowControl {
+    fn default() -> Self {
+        Self::new()
     }
 }
