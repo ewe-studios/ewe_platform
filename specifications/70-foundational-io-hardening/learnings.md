@@ -2,6 +2,35 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-31 (CI fix): a crate feature that enables `dep:<crate>` and also calls into that
+  crate's feature-gated API must forward the crate's feature too. `foundation_nativeapis`
+  `uring` enabled only `dep:io-uring`; its send path calls `Reactor::submit_send*` and imports
+  `foundation_reactor::{send_pool, poll::sys::unix::selector::{bufring, uring_completion}}`,
+  all gated behind `foundation_reactor/uring`. Symptom on Linux: "no method named submit_send"
+  plus unresolved `bufring`/`uring_completion`/`send_pool`. Fix: `uring =
+  ["dep:io-uring", "foundation_reactor/uring"]`.
+
+- 2026-10-31 (CI fix): an optional platform dependency must sit in the right target section.
+  `foundation_reactor`'s `io-uring = { version = "0.7", optional = true }` sat inside
+  `[target.'cfg(target_os = "windows")'.dependencies]`, so `dep:io-uring` in `uring` enabled
+  nothing on Linux. Symptom: "unresolved import io_uring" (9 errors) on Linux. Fix: move it to
+  `[target.'cfg(target_os = "linux")'.dependencies]`.
+
+- 2026-10-31 (CI fix): a platform-gated `Event` type must exist for every target a crate
+  declares. `poll::event::Event` had no variant for `not(unix, windows)` targets; the shell
+  selector (`poll::sys::shell`) imports `Event` and `Events` references it, so the wasm
+  `cargo check` failed with "unresolved import". Fix: add a neutral shell `Event` gated
+  `#[cfg(not(any(unix, target_os = "windows")))]`, and drop the now-unused `use
+  super::super::event::Event;` from the shell selector.
+
+- 2026-10-31 (CI fix): do not assert wall-clock time on a fast in-memory path. The connectrpc
+  `oversized_envelope_prefix_is_rejected_from_its_header` test asserted `elapsed < 1s`. The
+  reader checks the declared length against `read_max_bytes` on the 5-byte header before the
+  completeness check, so the rejection is deterministic; the `contains("resource_exhausted")`
+  and `contains("exceeds read_max_bytes")` asserts already pin it (a buffering or truncation
+  regression would answer differently). The wall-clock assert flaked under parallel-test CPU
+  contention (emulated amd64). Assert the observable outcome, not the elapsed time.
+
 - 2026-10-31 (feature 11): "test counts must not drop" means the runnable count, not the
   source-function count. `foundation_netio/src/native/tls_verification.rs` was never wired in
   (`native/mod.rs` has `// pub mod tls_verification;` commented out), so its five

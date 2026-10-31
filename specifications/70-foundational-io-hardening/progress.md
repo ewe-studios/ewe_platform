@@ -2,6 +2,18 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-31: CI green restored on `fix/io-01-valtron-parking`. The feature 11 PR had 12
+  failing CI jobs. Three latent build bugs and one flaky test caused them. `foundation_nativeapis`
+  `uring` did not forward `foundation_reactor/uring`, so its uring send path failed to compile
+  on Linux. `foundation_reactor`'s `io-uring` dependency sat in the Windows target section, so
+  `dep:io-uring` enabled nothing on Linux. `poll::event::Event` had no shell variant for wasm.
+  The connectrpc oversized-envelope test asserted a 1 s wall clock that flaked under parallel
+  test contention. Fixes: forward the reactor feature; move the dependency to the Linux target
+  section; add a shell `Event`; assert the observable outcome instead of elapsed time. Also
+  added a `ci:linux` mise task (`scripts/ci/linux.sh`) that mounts the repo into the CI image
+  and reuses a per-platform cargo target volume. Verification: the full pipeline (fmt, build,
+  clippy, test, wasm) is green for the failing crates. PR: see the PR.
+
 - 2026-10-31: feature 11 done on `fix/io-01-valtron-parking`. Every `#[cfg(test)]` block in
   the three crate source trees is gone (rule 7). foundation_netio moved its tests per area
   (http/tasks, native, shared, event_source, websocket, wasm). foundation_http moved the five
