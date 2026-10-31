@@ -1,5 +1,5 @@
 //! Model metadata lookups shared by the HTTP providers (OpenAI-compatible,
-//! OpenAI Responses, Anthropic).
+//! `OpenAI` Responses, Anthropic).
 //!
 //! WHY: every HTTP provider can ask its vendor for a model's metadata
 //! (`GET models/{name}`), and every one of them must do it without blocking

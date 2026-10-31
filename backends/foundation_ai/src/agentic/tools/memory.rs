@@ -134,7 +134,7 @@ impl MemoryTool {
         let mut replaced = false;
         for f in &mut facts {
             if f.fact == old {
-                f.fact = new.clone();
+                f.fact.clone_from(&new);
                 f.asserted_at = SystemTime::now();
                 replaced = true;
             }

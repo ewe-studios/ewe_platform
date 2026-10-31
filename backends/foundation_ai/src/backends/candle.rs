@@ -6,6 +6,7 @@
 
 use foundation_compact::SystemTime;
 use std::collections::HashMap;
+use std::fmt::Write as _;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -522,7 +523,7 @@ fn detect_architecture(config_path: &std::path::Path) -> Option<String> {
         .and_then(|a| a.as_array())
         .and_then(|a| a.first())
         .and_then(|v| v.as_str())
-        .map(|s| s.to_lowercase())
+        .map(str::to_lowercase)
 }
 
 fn build_candle_model(
@@ -641,7 +642,7 @@ fn eos_from_config_json(config_path: &std::path::Path) -> Option<u32> {
     let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
     match json.get("eos_token_id")? {
         serde_json::Value::Number(n) => n.as_u64().map(|v| v as u32),
-        serde_json::Value::Array(a) => a.first().and_then(|v| v.as_u64()).map(|v| v as u32),
+        serde_json::Value::Array(a) => a.first().and_then(serde_json::Value::as_u64).map(|v| v as u32),
         _ => None,
     }
 }
@@ -1179,12 +1180,11 @@ impl Iterator for CandleStream {
                 // Reborrow so `processor` (mut) and `all_tokens` (shared) are
                 // disjoint field borrows rather than two borrows of the guard.
                 let st = &mut *state;
-                match sample_next(&mut st.processor, &logits, &params, &st.all_tokens) {
-                    Ok(t) => t,
-                    Err(_) => {
-                        st.finished = true;
-                        return Some(Stream::Pending(ModelState::Finished));
-                    }
+                if let Ok(t) = sample_next(&mut st.processor, &logits, &params, &st.all_tokens) {
+                    t
+                } else {
+                    st.finished = true;
+                    return Some(Stream::Pending(ModelState::Finished));
                 }
             };
 
@@ -1258,7 +1258,7 @@ fn forward(
 }
 
 /// Convert an interaction to the `[{role, content}]` list HF chat templates
-/// expect, folding system_prompt + soul + tool definitions into a leading
+/// expect, folding `system_prompt` + soul + tool definitions into a leading
 /// system message.
 fn messages_as_json(interaction: &ModelInteraction) -> Vec<serde_json::Value> {
     let mut out = Vec::new();
@@ -1280,7 +1280,7 @@ fn messages_as_json(interaction: &ModelInteraction) -> Vec<serde_json::Value> {
         }
         system.push_str("Available tools:\n");
         for t in &tools {
-            system.push_str(&format!("- {}({})\n", t.name(), t.arg_summary()));
+            let _ = writeln!(system, "- {}({})", t.name(), t.arg_summary());
         }
     }
     if !system.is_empty() {

@@ -1,9 +1,9 @@
-//! Build script — generates BuildKit gRPC message types from vendored protos.
+//! Build script — generates `BuildKit` gRPC message types from vendored protos.
 //!
 //! WHY: The `buildkit` feature talks to buildkitd over gRPC (via our
-//! `foundation_connectrpc`). Its request/response messages (SolveRequest,
-//! StatusResponse, InfoResponse, the LLB `Op` DAG, …) are defined by the
-//! upstream BuildKit `.proto` files. We generate `buffa::Message` Rust types
+//! `foundation_connectrpc`). Its request/response messages (`SolveRequest`,
+//! `StatusResponse`, `InfoResponse`, the LLB `Op` DAG, …) are defined by the
+//! upstream `BuildKit` `.proto` files. We generate `buffa::Message` Rust types
 //! from them so `ProcedureCodecs::defaults()` (proto + json) accepts them — the
 //! same `buffa` runtime `foundation_connectrpc`'s `ProtoCodec` already uses.
 //!

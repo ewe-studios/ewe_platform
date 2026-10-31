@@ -1233,7 +1233,7 @@ impl AnthropicStream {
                 // as an SSE `error` event. Surface it as a model error so the
                 // loop ends the turn with a `FailedAction`, instead of silently
                 // ignoring the event and ending with empty text.
-                let message = parse_anthropic_error(data).unwrap_or_else(|| data.to_string());
+                let message = parse_anthropic_error(data).unwrap_or_else(|| data.clone());
                 tracing::warn!(%message, "Anthropic stream returned an error event");
                 self.partial_then_error(message)
             }

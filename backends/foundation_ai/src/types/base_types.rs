@@ -1245,9 +1245,9 @@ pub struct ToolDefinition {
 ///
 /// Returned by [`Tool::function_spec`]. Providers map the four fields to their
 /// wire format:
-/// - **OpenAI Chat**: `function.name/description/parameters` + `strict: true`
+/// - **`OpenAI` Chat**: `function.name/description/parameters` + `strict: true`
 ///   when `returns` is present.
-/// - **OpenAI Responses**: `ResponseTool.name/description/parameters/strict`.
+/// - **`OpenAI` Responses**: `ResponseTool.name/description/parameters/strict`.
 /// - **Anthropic**: `name/description/input_schema` (no output-schema slot —
 ///   `returns` is ignored).
 /// - **Text-based** (llama.cpp / Candle): `name/description/parameters` +

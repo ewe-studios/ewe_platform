@@ -906,6 +906,7 @@ impl ToolCallManager {
         &self,
         request: &ToolCallRequest,
     ) -> Result<ToolCallResult, ToolError> {
+        use futures_lite::FutureExt;
         if request.name == SHED_TOOL_NAME {
             return self.run_shed(&request.arguments).await;
         }
@@ -922,7 +923,6 @@ impl ToolCallManager {
         // Contain a panicking tool at the boundary: a buggy tool must not take
         // down the agent (or wedge the driving valtron task). A panic becomes a
         // ToolError::Execution the loop handles like any other tool failure.
-        use futures_lite::FutureExt;
         let name = request.name.clone();
         match std::panic::AssertUnwindSafe(tool.execute(request.arguments.clone()))
             .catch_unwind()

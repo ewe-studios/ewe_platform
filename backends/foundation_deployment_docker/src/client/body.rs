@@ -30,11 +30,11 @@
 
 use core::pin::Pin;
 use core::task::{Context, Poll};
-use std::future::poll_fn;
 
 use bytes::Bytes;
 use foundation_deployment::providers::common::{ByteStream, JsonLinesStream};
 use futures_lite::Stream as FuturesStream;
+use futures_lite::StreamExt;
 use serde::de::DeserializeOwned;
 
 use crate::error::DockerError;
@@ -110,7 +110,7 @@ impl<T: ProgressItem> ProgressStream<T> {
     /// ([`DockerError::JsonParse`]) or a failed read
     /// ([`DockerError::Transport`]); the stream ends after it.
     pub async fn next(&mut self) -> Option<Result<T, DockerError>> {
-        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+        StreamExt::next(self).await
     }
 
     /// Read the stream to its end, discarding the items: the operation has
@@ -213,7 +213,7 @@ impl EventStream {
     /// A malformed event ([`DockerError::JsonParse`]) or a failed read
     /// ([`DockerError::Transport`]); the stream ends after it.
     pub async fn next(&mut self) -> Option<Result<EventMessage, DockerError>> {
-        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+        StreamExt::next(self).await
     }
 }
 
@@ -266,7 +266,7 @@ impl StatsStream {
     /// A malformed sample ([`DockerError::JsonParse`]) or a failed read
     /// ([`DockerError::Transport`]); the stream ends after it.
     pub async fn next(&mut self) -> Option<Result<ContainerStatsResponse, DockerError>> {
-        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+        StreamExt::next(self).await
     }
 }
 
@@ -308,7 +308,7 @@ impl ByteBody {
     ///
     /// [`DockerError::Transport`] if reading fails; the stream ends after it.
     pub async fn next(&mut self) -> Option<Result<Bytes, DockerError>> {
-        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+        StreamExt::next(self).await
     }
 
     /// Read the rest of the body, discarding it; returns its length.
@@ -376,7 +376,7 @@ impl LogStream {
     ///
     /// See [`LogStream`]; the stream ends after an error.
     pub async fn next(&mut self) -> Option<Result<LogOutput, DockerError>> {
-        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+        StreamExt::next(self).await
     }
 
     /// Read the stream to its end, appending stdout and stderr (lossy UTF-8)

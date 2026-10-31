@@ -22,7 +22,6 @@
 //! turn. `Err` from the session methods means the turn never started.
 
 use std::collections::VecDeque;
-use std::future::poll_fn;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -30,6 +29,7 @@ use foundation_core::valtron::{DrivenStreamIterator, Stream, StreamIteratorExt, 
 use foundation_db::traits::DocumentStore;
 use foundation_errstacks::{ErrorTrace, StructuredErrorTrace};
 use futures_lite::Stream as AsyncStream;
+use futures_lite::StreamExt;
 
 use crate::agentic::agent_loop::{join_text_chunks, AgentLoop};
 use crate::agentic::errors::AgenticError;
@@ -86,7 +86,7 @@ where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static,
 {
-    poll_fn(|cx| AsyncStream::poll_next(Pin::new(&mut **items), cx)).await
+    (**items).next().await
 }
 
 // ---------------------------------------------------------------------------

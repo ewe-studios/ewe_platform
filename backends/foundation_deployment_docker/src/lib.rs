@@ -1,7 +1,7 @@
 //! Docker Engine API v1.53 client — bollard-free, over `DynNetClient` + valtron.
 //!
 //! WHY: Spec 53 proved bollard is intertwined with tokio (transport, streaming
-//! decoders, BuildKit gRPC). This crate talks to the Docker daemon via our own
+//! decoders, `BuildKit` gRPC). This crate talks to the Docker daemon via our own
 //! cross-platform HTTP surface (`foundation_netio::DynNetClient` +
 //! `PreparedRequestBuilder`) over a Unix socket, driven by valtron async tasks.
 //!

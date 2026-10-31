@@ -456,7 +456,7 @@ impl LlamaModels {
                 context: inner.context.clone(),
                 sampler: None,
                 spec: inner.spec.clone(),
-                pricing: inner.pricing.clone(),
+                pricing: inner.pricing,
                 cumulative_cost: CostAccumulator::new(),
                 config: inner.config.clone(),
                 mtp_model: Arc::clone(&inner.mtp_model),
@@ -923,7 +923,7 @@ impl Iterator for LlamaCppStream {
             inner.finished = true;
             return Some(stream_error("sampler missing — cannot sample next token"));
         };
-        let next_token = sampler.sample(&ctx, 0);
+        let next_token = sampler.sample(ctx, 0);
         tracing::trace!("stream_next: generated next token: {:?}", &next_token);
 
         // Check for end of sequence
@@ -1050,10 +1050,7 @@ fn build_stream_assistant(input_tokens: usize, output_tokens: usize, piece: Stri
 /// finishes the stream gracefully (spec-51 G5).
 #[allow(clippy::cast_sign_loss)]
 fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, ModelState>> {
-    let need_begin = match inner.mtp.as_ref() {
-        Some(m) => !m.started,
-        None => return None,
-    };
+    let need_begin = !inner.mtp.as_ref()?.started;
 
     tracing::trace!("mtp_stream_next: need_begin: {:?}", need_begin);
 

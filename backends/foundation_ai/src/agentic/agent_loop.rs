@@ -1482,7 +1482,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                     completed: idx + 1,
                 })
             }
-            Some(TaskStatus::Pending(_)) => {
+            Some(TaskStatus::Pending(())) => {
                 self.state = AgentLoopState::InnerExecuting {
                     calls,
                     results,

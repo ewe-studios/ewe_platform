@@ -587,15 +587,14 @@ impl WorkersAiStream {
             ));
         }
 
-        let chunk: WorkersAiStreamChunk = match serde_json::from_str(data) {
-            Ok(chunk) => chunk,
-            Err(_) => {
-                tracing::warn!(data = %data, "Failed to parse Workers AI SSE chunk");
-                // Surface the bad chunk as a model error, not an empty assistant
-                // message, so the loop ends the turn with a `FailedAction`.
-                // Emit the partial text first, then the failure, in one `Spread`.
-                return self.partial_then_error(format!("Failed to parse SSE chunk: {data}"));
-            }
+        let chunk: WorkersAiStreamChunk = if let Ok(chunk) = serde_json::from_str(data) {
+            chunk
+        } else {
+            tracing::warn!(data = %data, "Failed to parse Workers AI SSE chunk");
+            // Surface the bad chunk as a model error, not an empty assistant
+            // message, so the loop ends the turn with a `FailedAction`.
+            // Emit the partial text first, then the failure, in one `Spread`.
+            return self.partial_then_error(format!("Failed to parse SSE chunk: {data}"));
         };
 
         match chunk.response {

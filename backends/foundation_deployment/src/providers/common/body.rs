@@ -25,7 +25,6 @@
 //! bounded by its configured line limit ([`BodyLimits::max_json_line`]).
 //! Dropping a stream drops the body, which closes the connection.
 
-use core::future::poll_fn;
 use core::marker::PhantomData;
 use core::pin::Pin;
 use core::task::{Context, Poll};
@@ -35,6 +34,7 @@ use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 use foundation_netio::PreparedRequestBuilder;
 use futures_core::Stream as FuturesStream;
+use futures_lite::StreamExt;
 use serde::de::DeserializeOwned;
 
 use super::api_types::ApiError;
@@ -107,7 +107,7 @@ pub async fn read_bounded<B: Into<AsyncSendSafeBody>>(body: B, limit: usize) -> 
     let mut body = body.into();
     let mut buf = Vec::new();
     while buf.len() < limit {
-        match poll_fn(|cx| Pin::new(&mut body).poll_next(cx)).await {
+        match body.next().await {
             Some(Ok(chunk)) => {
                 let room = limit - buf.len();
                 buf.extend_from_slice(&chunk[..chunk.len().min(room)]);
@@ -194,7 +194,7 @@ impl ByteStream {
     /// [`ApiError::RequestSendFailed`] if reading the body fails; the stream
     /// ends after it.
     pub async fn next(&mut self) -> Option<Result<Bytes, ApiError>> {
-        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+        StreamExt::next(self).await
     }
 
     /// Read the rest of the body, discarding it, and return how many bytes
@@ -287,7 +287,7 @@ impl<T: DeserializeOwned> JsonLinesStream<T> {
     ///
     /// See [`JsonLinesStream`]; the stream ends after an error.
     pub async fn next(&mut self) -> Option<Result<T, ApiError>> {
-        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+        StreamExt::next(self).await
     }
 
     /// Take the next complete line out of the buffer, if one has arrived.

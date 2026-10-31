@@ -176,6 +176,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     }
 
     /// Borrow the underlying cache (e.g. for direct `get` of a single tier).
+    #[must_use]
     pub fn memory(&self) -> &M {
         &self.memory
     }

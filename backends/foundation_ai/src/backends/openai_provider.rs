@@ -1451,7 +1451,7 @@ pub struct OpenAIFunction {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<serde_json::Value>,
     /// When `true`, the model uses structured output for this function call
-    /// (the `returns` schema from `ToolDefinition`). OpenAI Chat Completions
+    /// (the `returns` schema from `ToolDefinition`). `OpenAI` Chat Completions
     /// only — other providers ignore this field.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,
