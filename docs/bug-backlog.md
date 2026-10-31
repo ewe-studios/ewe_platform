@@ -89,12 +89,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `docker,integration-tests` targets (`cargo test --no-run`), with the
   daemon-backed runs kept manual.
 - **`LogFrameDecoder::decode` returns `None` for two cases:** "need more bytes" and "skipped an unknown frame type". Callers have to compare buffer lengths to tell them apart.
-- **The `buildkit` feature does not compile.** `cargo check --all-features`
-  fails: `buffa::saturate_size` and `EncodeSink` are not found (generated
-  buildkit session code), and `OverlayReadWrite` in `client/ssh.rs` is missing
-  `readable`/`writable`. This is a `buffa`/buildkit version drift, pre-existing
-  and unrelated to the dependency cleanup. Fix: regenerate the buildkit views
-  against the current `buffa` and update the `ssh.rs` overlay impl.
 
 ## 7. foundation_deployment_platform
 

@@ -76,6 +76,16 @@ impl OverlayReadWrite for SshOverlay {
     fn set_read_waker(&self, _waker: ConnWaker) {}
     fn set_write_waker(&self, _waker: ConnWaker) {}
 
+    /// A blocking channel never returns `WouldBlock` — a read or write blocks
+    /// instead — so it is always ready for both directions.
+    fn readable(&self) -> bool {
+        true
+    }
+
+    fn writable(&self) -> bool {
+        true
+    }
+
     /// `docker system dial-stdio` is a one-shot bridge to the remote socket — the
     /// channel must never be pooled and reused for a later request.
     fn should_pool(&self) -> bool {

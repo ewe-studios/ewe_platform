@@ -48,8 +48,8 @@ use std::time::Duration;
 use futures::StreamExt;
 
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
-use bytes::{Buf, BufMut, Bytes};
+use buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache};
+use bytes::{Buf, Bytes};
 
 use foundation_http::ShutdownSignal;
 use foundation_core::valtron::initialize_pool;
@@ -81,9 +81,12 @@ impl DefaultInstance for TestMsg {
 
 impl Message for TestMsg {
     fn compute_size(&self, _c: &mut SizeCache) -> u32 {
-        0
+        let mut size = 0usize;
+        size += 1 + buffa::types::int32_encoded_len(self.id);
+        size += 1 + buffa::types::string_encoded_len(&self.name);
+        size as u32
     }
-    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl BufMut) {
+    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl EncodeSink) {
         Tag::new(1, WireType::Varint).encode(buf);
         encode_varint(self.id as u64, buf);
         Tag::new(2, WireType::LengthDelimited).encode(buf);

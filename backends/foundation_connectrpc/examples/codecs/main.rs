@@ -26,9 +26,9 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_connectrpc::buffa::bytes::{Buf, BufMut};
+use foundation_connectrpc::buffa::bytes::Buf;
 use foundation_connectrpc::buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use foundation_connectrpc::buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
+use foundation_connectrpc::buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache};
 
 use foundation_arrow::arrow_array::{Array, Int32Array, RecordBatch};
 use foundation_arrow::arrow_schema::{DataType, Field, Schema};
@@ -73,9 +73,9 @@ impl DefaultInstance for Sample {
 }
 impl Message for Sample {
     fn compute_size(&self, _c: &mut SizeCache) -> u32 {
-        0
+        (1 + foundation_connectrpc::buffa::types::int32_encoded_len(self.value)) as u32
     }
-    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl BufMut) {
+    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl EncodeSink) {
         Tag::new(1, WireType::Varint).encode(buf);
         encode_varint(self.value as u64, buf);
     }

@@ -24,9 +24,9 @@ use std::time::Duration;
 
 // buffa (and its `bytes` re-export) reached through foundation_connectrpc — no
 // direct buffa/bytes dependency needed in a consumer crate.
-use foundation_connectrpc::buffa::bytes::{Buf, BufMut};
+use foundation_connectrpc::buffa::bytes::Buf;
 use foundation_connectrpc::buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use foundation_connectrpc::buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
+use foundation_connectrpc::buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache};
 
 use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron;
@@ -68,9 +68,12 @@ impl DefaultInstance for EchoMessage {
 
 impl Message for EchoMessage {
     fn compute_size(&self, _c: &mut SizeCache) -> u32 {
-        0
+        let mut size = 0usize;
+        size += 1 + foundation_connectrpc::buffa::types::int32_encoded_len(self.id);
+        size += 1 + foundation_connectrpc::buffa::types::string_encoded_len(&self.text);
+        size as u32
     }
-    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl BufMut) {
+    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl EncodeSink) {
         Tag::new(1, WireType::Varint).encode(buf);
         encode_varint(self.id as u64, buf);
         Tag::new(2, WireType::LengthDelimited).encode(buf);
