@@ -393,6 +393,14 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   against the async-only API rule. Fix: keep only the async methods (as the
   wasm client now does) and let callers `.block()`.
 
+- **`TokenSigner::verify` compares HMAC tags in non-constant time**
+  (`src/shared/session.rs:384`). It uses
+  `expected.iter().zip(&actual).all(|(a, b)| a == b)`, which stops at the first
+  different byte, so the time leaks how many bytes match. It also has one key
+  and no key id, so keys cannot rotate. Found during spec 69 research. Fix: use
+  `Mac::verify_slice` (constant time) from the `hmac` crate; add a key id when
+  the shared state-token signer (spec 69) lands.
+
 ## 13. foundation_nativeapis
 
 - **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
