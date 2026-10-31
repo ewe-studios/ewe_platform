@@ -149,7 +149,7 @@ jobs:
 
       - name: Log in to the registry
         if: needs.images.outputs.registry-username != ''
-        uses: docker/login-action@v4.6.0
+        uses: docker/login-action@v4.7.0
         with:
           username: ${{ needs.images.outputs.registry-username }}
           password: ${{ secrets[inputs.registry-password-secret] }}

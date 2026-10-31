@@ -1637,7 +1637,7 @@ dependencies = [
  "byteorder",
  "candle-core",
  "candle-nn",
- "fancy-regex",
+ "fancy-regex 0.18.0",
  "num-traits",
  "rand 0.9.5",
  "rayon",
@@ -1848,9 +1848,9 @@ dependencies = [
 
 [[package]]
 name = "cfg-if"
-version = "1.0.4"
+version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
+checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
 name = "cfg_aliases"
@@ -4142,6 +4142,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "fancy-regex"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20ed7f62ce0ae0da1a8b93c3c7104ab7e0760a74491e097c701fff966e945390"
+dependencies = [
+ "bit-set",
+ "regex-automata",
+ "regex-syntax",
+]
+
+[[package]]
 name = "fast-srgb8"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4588,7 +4599,7 @@ dependencies = [
  "serde_cbor",
  "serde_json",
  "serial_test",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "tempfile",
  "time",
  "tracing",
@@ -4684,7 +4695,7 @@ dependencies = [
  "foundation_openapi",
  "serde",
  "serde_json",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "syn 2.0.119",
  "tempfile",
  "toml 0.9.6",
@@ -4832,7 +4843,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "tempfile",
  "tracing",
  "tracing-test",
@@ -4862,7 +4873,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "toml 0.8.23",
  "tracing",
  "tracing-subscriber",
@@ -4887,7 +4898,7 @@ dependencies = [
  "js-sys",
  "serde",
  "serde_json",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "tracing",
  "urlencoding",
  "wasm-bindgen",
@@ -4910,7 +4921,7 @@ dependencies = [
  "foundation_testing",
  "serde",
  "serde_json",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "tracing",
 ]
 
@@ -4940,7 +4951,7 @@ dependencies = [
  "prost-types 0.12.6",
  "serde",
  "serde_json",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "tar",
  "tracing",
  "tracing-test",
@@ -4962,7 +4973,7 @@ dependencies = [
  "foundation_testing",
  "serde",
  "serde_json",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "tracing",
 ]
 
@@ -4982,7 +4993,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "tracing",
  "tracing-test",
  "urlencoding",
@@ -5015,7 +5026,7 @@ dependencies = [
  "portpicker",
  "serde",
  "serde_json",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "ssh2",
  "tar",
  "toml 0.8.23",
@@ -5114,7 +5125,7 @@ name = "foundation_jsonschema"
 version = "0.0.3"
 dependencies = [
  "derive_more",
- "fancy-regex",
+ "fancy-regex 0.20.0",
  "foundation_errstacks",
  "itoa",
  "libm",
@@ -5150,7 +5161,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_repr",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "ssh-key",
  "tempfile",
  "thiserror 2.0.19",
@@ -5190,7 +5201,7 @@ dependencies = [
  "quote",
  "serde",
  "serde_json",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "syn 2.0.119",
  "synstructure 0.13.2",
  "trybuild",
@@ -5390,7 +5401,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
- "sha2 0.10.9",
+ "sha2 0.11.0",
  "toml 0.9.6",
  "tracing",
  "tracing-test",
@@ -7548,7 +7559,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b0f83760fb341a774ed326568e19f5a863af4a952def8c39f9ab92fd95b88e5"
 dependencies = [
  "equivalent",
- "hashbrown 0.15.5",
+ "hashbrown 0.16.1",
  "serde",
  "serde_core",
 ]
@@ -8117,9 +8128,9 @@ dependencies = [
 
 [[package]]
 name = "lazy_static"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+checksum = "20870f649af7073d53e38067b2a84312175d56ea15217e1b15bc83506ec50afb"
 dependencies = [
  "spin",
 ]
