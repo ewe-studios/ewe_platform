@@ -1,4 +1,4 @@
-//! Tests extracted from simple_http/shared/load_tracker.rs
+//! Tests extracted from `simple_http/shared/load_tracker.rs`
 mod tests {
     use foundation_netio::shared::http::load_tracker::*;
     use std::thread;

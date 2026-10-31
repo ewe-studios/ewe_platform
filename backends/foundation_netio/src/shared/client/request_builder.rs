@@ -406,7 +406,7 @@ impl PreparedRequestBuilder {
     ///
     /// This function does not panic (see [`PreparedRequestBuilder::build`]).
     #[must_use]
-    pub fn send(self, client: DynNetClient) -> HttpExchangeClientTask {
+    pub fn send(self, client: &DynNetClient) -> HttpExchangeClientTask {
         client.open_exchange(self.build())
     }
 

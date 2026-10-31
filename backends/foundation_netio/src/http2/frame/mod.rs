@@ -201,7 +201,10 @@ impl DataFrame {
             flag: self.flags,
             stream_id: self.stream_id,
         };
-        head.encode(payload_len as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = payload_len as u32;
+        head.encode(payload_len_u32, dst);
         if let Some(pl) = self.pad_len {
             dst.put_u8(pl);
         }
@@ -319,9 +322,10 @@ impl HeadersFrame {
     /// Returns an error if the operation fails.
     pub fn encode(&self, dst: &mut BytesMut) {
         let mut payload_len = self.header_block.len();
-        let pad = self.pad_len.unwrap_or(0) as usize;
+        // `pad_len` is a `u8`; keep `pad` as `u8` to avoid a lossy round-trip.
+        let pad = self.pad_len.unwrap_or(0);
         if pad > 0 {
-            payload_len += 1 + pad;
+            payload_len += 1 + usize::from(pad);
         }
         if self.priority.is_some() {
             payload_len += 5;
@@ -332,10 +336,13 @@ impl HeadersFrame {
             flag: self.flags,
             stream_id: self.stream_id,
         };
-        head.encode(payload_len as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = payload_len as u32;
+        head.encode(payload_len_u32, dst);
 
         if pad > 0 {
-            dst.put_u8(pad as u8);
+            dst.put_u8(pad);
         }
         if let Some(ref pri) = self.priority {
             let dep = if pri.exclusive {
@@ -348,7 +355,7 @@ impl HeadersFrame {
         }
         dst.put_slice(&self.header_block);
         if pad > 0 {
-            dst.put_bytes(0, pad);
+            dst.put_bytes(0, usize::from(pad));
         }
     }
 }
@@ -598,7 +605,10 @@ impl SettingsFrame {
             flag: self.flags,
             stream_id: 0,
         };
-        head.encode(payload_len as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = payload_len as u32;
+        head.encode(payload_len_u32, dst);
         for s in &self.settings {
             dst.put_u16(s.id as u16);
             dst.put_u32(s.value);
@@ -667,9 +677,10 @@ impl PushPromiseFrame {
     /// Encode this `PUSH_PROMISE` frame into `dst`.
     pub fn encode(&self, dst: &mut BytesMut) {
         let mut payload_len = 4 + self.header_block.len();
-        let pad = self.pad_len.unwrap_or(0) as usize;
+        // `pad_len` is a `u8`; keep `pad` as `u8` to avoid a lossy round-trip.
+        let pad = self.pad_len.unwrap_or(0);
         if pad > 0 {
-            payload_len += 1 + pad;
+            payload_len += 1 + usize::from(pad);
         }
 
         let head = Head {
@@ -677,14 +688,17 @@ impl PushPromiseFrame {
             flag: self.flags,
             stream_id: self.stream_id,
         };
-        head.encode(payload_len as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = payload_len as u32;
+        head.encode(payload_len_u32, dst);
         if pad > 0 {
-            dst.put_u8(pad as u8);
+            dst.put_u8(pad);
         }
         dst.put_u32(self.promised_stream_id);
         dst.put_slice(&self.header_block);
         if pad > 0 {
-            dst.put_bytes(0, pad);
+            dst.put_bytes(0, usize::from(pad));
         }
     }
 }
@@ -813,7 +827,10 @@ impl GoAwayFrame {
             flag: 0,
             stream_id: 0,
         };
-        head.encode(payload_len as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = payload_len as u32;
+        head.encode(payload_len_u32, dst);
         dst.put_u32(self.last_stream_id);
         dst.put_u32(self.error_code as u32);
         dst.put_slice(&self.debug_data);
@@ -910,7 +927,10 @@ impl ContinuationFrame {
             flag: self.flags,
             stream_id: self.stream_id,
         };
-        head.encode(self.header_block.len() as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = self.header_block.len() as u32;
+        head.encode(payload_len_u32, dst);
         dst.put_slice(&self.header_block);
     }
 }

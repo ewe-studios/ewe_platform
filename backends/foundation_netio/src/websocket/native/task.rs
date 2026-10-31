@@ -533,10 +533,12 @@ where
                                 trace!(?status, "Received response status");
                                 if status != Status::SwitchingProtocols {
                                     error!(?status, "Upgrade failed - not 101 Switching Protocols");
+                                    // HTTP status codes never exceed 599, so
+                                    // usize -> u16 is lossless.
+                                    #[allow(clippy::cast_possible_truncation)]
+                                    let code = status.into_usize() as u16;
                                     self.state = Some(WebSocketState::Closed(Some(
-                                        WebSocketError::UpgradeFailed(
-                                            status.into_usize() as u16
-                                        ),
+                                        WebSocketError::UpgradeFailed(code),
                                     )));
                                     return None;
                                 }

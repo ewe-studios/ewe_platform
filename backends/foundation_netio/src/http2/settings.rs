@@ -217,37 +217,37 @@ impl SettingsStore {
     #[must_use]
     pub fn to_frame_non_default(&self) -> SettingsFrame {
         let mut settings = Vec::new();
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::HeaderTableSize,
             self.header_table_size,
             DEFAULT_HEADER_TABLE_SIZE,
         );
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::EnablePush,
             self.enable_push,
             DEFAULT_ENABLE_PUSH,
         );
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::MaxConcurrentStreams,
             self.max_concurrent_streams,
             DEFAULT_MAX_CONCURRENT_STREAMS,
         );
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::InitialWindowSize,
             self.initial_window_size,
             DEFAULT_INITIAL_WINDOW_SIZE,
         );
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::MaxFrameSize,
             self.max_frame_size,
             DEFAULT_MAX_FRAME_SIZE,
         );
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::MaxHeaderListSize,
             self.max_header_list_size,
@@ -256,7 +256,7 @@ impl SettingsStore {
         SettingsFrame::new(settings)
     }
 
-    fn push_if_non_default(&self, v: &mut Vec<Setting>, id: SettingId, value: u32, default: u32) {
+    fn push_if_non_default(v: &mut Vec<Setting>, id: SettingId, value: u32, default: u32) {
         if value != default {
             v.push(Setting { id, value });
         }

@@ -66,7 +66,11 @@ impl Window {
         if self.0 < 0 {
             0
         } else {
-            self.0 as WindowSize
+            // The branch checks the value is non-negative, so the cast cannot lose a sign.
+            #[allow(clippy::cast_sign_loss)]
+            {
+                self.0 as WindowSize
+            }
         }
     }
 
@@ -77,7 +81,11 @@ impl Window {
     #[must_use]
     pub fn checked_size(self) -> WindowSize {
         assert!(self.0 >= 0, "negative Window");
-        self.0 as WindowSize
+        // The assert guarantees a non-negative value, so the cast cannot lose a sign.
+        #[allow(clippy::cast_sign_loss)]
+        {
+            self.0 as WindowSize
+        }
     }
 
     /// Decrease the window by `other`, returning an error on underflow.
@@ -86,7 +94,10 @@ impl Window {
     ///
     /// Returns an error if the operation fails.
     pub fn decrease_by(&mut self, other: WindowSize) -> Result<(), FlowControlError> {
-        self.0 = self.0.checked_sub(other as i32).ok_or(FlowControlError)?;
+        // `WindowSize` is a u31, so it fits a positive `i32`.
+        #[allow(clippy::cast_possible_wrap)]
+        let other_i32 = other as i32;
+        self.0 = self.0.checked_sub(other_i32).ok_or(FlowControlError)?;
         Ok(())
     }
 
@@ -106,7 +117,10 @@ impl Window {
     ///
     /// Returns an error if the operation fails.
     pub fn checked_add(self, other: WindowSize) -> Result<Self, FlowControlError> {
-        let v = self.0.checked_add(other as i32).ok_or(FlowControlError)?;
+        // `WindowSize` is a u31, so it fits a positive `i32`.
+        #[allow(clippy::cast_possible_wrap)]
+        let other_i32 = other as i32;
+        let v = self.0.checked_add(other_i32).ok_or(FlowControlError)?;
         Ok(Self(v))
     }
 
@@ -134,7 +148,10 @@ impl PartialEq<usize> for Window {
         if self.0 < 0 {
             false
         } else {
-            (self.0 as usize).eq(other)
+            // The sign check guarantees a non-negative value, so the cast cannot lose a sign.
+            #[allow(clippy::cast_sign_loss)]
+            let v = self.0 as usize;
+            v.eq(other)
         }
     }
 }
@@ -144,7 +161,10 @@ impl PartialOrd<usize> for Window {
         if self.0 < 0 {
             Some(std::cmp::Ordering::Less)
         } else {
-            (self.0 as usize).partial_cmp(other)
+            // The sign check guarantees a non-negative value, so the cast cannot lose a sign.
+            #[allow(clippy::cast_sign_loss)]
+            let v = self.0 as usize;
+            v.partial_cmp(other)
         }
     }
 }
@@ -235,7 +255,11 @@ impl FlowControl {
         if unclaimed < threshold {
             None
         } else {
-            Some(unclaimed as WindowSize)
+            // `unclaimed` is positive here (available > window_size), so the cast
+            // cannot lose a sign.
+            #[allow(clippy::cast_sign_loss)]
+            let size = unclaimed as WindowSize;
+            Some(size)
         }
     }
 
@@ -244,8 +268,14 @@ impl FlowControl {
     /// # Errors
     /// [`FlowControlError`] on overflow or if the result exceeds [`MAX_WINDOW_SIZE`].
     pub fn inc_window(&mut self, sz: WindowSize) -> Result<(), FlowControlError> {
-        let (val, overflow) = self.window_size.0.overflowing_add(sz as i32);
-        if overflow || val > MAX_WINDOW_SIZE as i32 {
+        // `WindowSize` is a u31, so it fits a positive `i32`.
+        #[allow(clippy::cast_possible_wrap)]
+        let sz_i32 = sz as i32;
+        let (val, overflow) = self.window_size.0.overflowing_add(sz_i32);
+        // `MAX_WINDOW_SIZE` is 2^31-1, which is exactly `i32::MAX`.
+        #[allow(clippy::cast_possible_wrap)]
+        let max_window = MAX_WINDOW_SIZE as i32;
+        if overflow || val > max_window {
             return Err(FlowControlError);
         }
         self.window_size = Window(val);
@@ -287,8 +317,11 @@ impl FlowControl {
         if sz == 0 {
             return Ok(());
         }
+        // `WindowSize` is a u31, so it fits a positive `i32`.
+        #[allow(clippy::cast_possible_wrap)]
+        let sz_i32 = sz as i32;
         assert!(
-            self.window_size.0 >= sz as i32,
+            self.window_size.0 >= sz_i32,
             "send_data({sz}) exceeds window_size {}",
             self.window_size
         );

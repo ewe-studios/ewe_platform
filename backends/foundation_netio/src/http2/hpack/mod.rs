@@ -336,6 +336,8 @@ pub fn encode_int(value: usize, prefix_bits: u8, dst: &mut BytesMut) {
     // the first byte's prefix; we only emit continuation.
     // For simplicity, we write all the continuation bytes to dst directly.
     loop {
+        // `remaining % 128` is 0..=127, so it always fits a `u8`.
+        #[allow(clippy::cast_possible_truncation)]
         let cont = (remaining % 128) as u8;
         remaining /= 128;
         if remaining > 0 {
@@ -662,9 +664,15 @@ impl Encoder {
             // Indexed Header Field: 1xxx_xxxx
             let prefix_max = int_prefix_max(7);
             if idx <= prefix_max {
-                dst.put_u8(0x80 | idx as u8);
+                // `idx <= prefix_max` (7 bits, so <= 127), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let idx_u8 = idx as u8;
+                dst.put_u8(0x80 | idx_u8);
             } else {
-                dst.put_u8(0x80 | prefix_max as u8);
+                // `prefix_max` is 127 (7-bit prefix), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let prefix_max_u8 = prefix_max as u8;
+                dst.put_u8(0x80 | prefix_max_u8);
                 encode_int(idx, 7, dst);
             }
             return;
@@ -677,9 +685,15 @@ impl Encoder {
             // Literal Header Field with Incremental Indexing: 01xx_xxxx
             let prefix_max = int_prefix_max(6);
             if idx <= prefix_max {
-                dst.put_u8(0x40 | idx as u8);
+                // `idx <= prefix_max` (6 bits, so <= 63), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let idx_u8 = idx as u8;
+                dst.put_u8(0x40 | idx_u8);
             } else {
-                dst.put_u8(0x40 | prefix_max as u8);
+                // `prefix_max` is 63 (6-bit prefix), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let prefix_max_u8 = prefix_max as u8;
+                dst.put_u8(0x40 | prefix_max_u8);
                 encode_int(idx, 6, dst);
             }
         } else {
@@ -704,9 +718,15 @@ impl Encoder {
         if let Some(idx) = name_idx {
             let prefix_max = int_prefix_max(4);
             if idx <= prefix_max {
-                dst.put_u8(idx as u8);
+                // `idx <= prefix_max` (4 bits, so <= 15), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let idx_u8 = idx as u8;
+                dst.put_u8(idx_u8);
             } else {
-                dst.put_u8(prefix_max as u8);
+                // `prefix_max` is 15 (4-bit prefix), so it fits a `u8`.
+                #[allow(clippy::cast_possible_truncation)]
+                let prefix_max_u8 = prefix_max as u8;
+                dst.put_u8(prefix_max_u8);
                 encode_int(idx, 4, dst);
             }
         } else {
@@ -722,9 +742,15 @@ impl Encoder {
         // 001x_xxxx
         let prefix_max = int_prefix_max(5);
         if new_max <= prefix_max {
-            dst.put_u8(0x20 | new_max as u8);
+            // `new_max <= prefix_max` (5 bits, so <= 31), so it fits a `u8`.
+            #[allow(clippy::cast_possible_truncation)]
+            let new_max_u8 = new_max as u8;
+            dst.put_u8(0x20 | new_max_u8);
         } else {
-            dst.put_u8(0x20 | prefix_max as u8);
+            // `prefix_max` is 31 (5-bit prefix), so it fits a `u8`.
+            #[allow(clippy::cast_possible_truncation)]
+            let prefix_max_u8 = prefix_max as u8;
+            dst.put_u8(0x20 | prefix_max_u8);
             encode_int(new_max, 5, dst);
         }
         self.table.set_max_size(new_max);
@@ -747,9 +773,15 @@ pub fn encode_string_literal(data: &[u8], dst: &mut BytesMut) {
     let prefix_max = int_prefix_max(7);
 
     if len < prefix_max {
-        dst.put_u8(0x80 | len as u8); // Huffman flag set
+        // `len < prefix_max` (7 bits, so <= 126), so it fits a `u8`.
+        #[allow(clippy::cast_possible_truncation)]
+        let len_u8 = len as u8;
+        dst.put_u8(0x80 | len_u8); // Huffman flag set
     } else {
-        dst.put_u8(0x80 | prefix_max as u8);
+        // `prefix_max` is 127 (7-bit prefix), so it fits a `u8`.
+        #[allow(clippy::cast_possible_truncation)]
+        let prefix_max_u8 = prefix_max as u8;
+        dst.put_u8(0x80 | prefix_max_u8);
         encode_int(len, 7, dst);
     }
     dst.put_slice(&encoded);

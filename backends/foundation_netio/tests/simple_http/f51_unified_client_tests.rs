@@ -259,7 +259,7 @@ fn open_exchange_yields_head_then_body() {
             Some(Stream::Next(HttpExchange::Failed(e))) => {
                 panic!("unexpected Failed: {e}");
             }
-            Some(_) => continue,
+            Some(_) => {},
             None => break,
         }
     }
@@ -289,7 +289,7 @@ fn open_exchange_reports_failure() {
                 break;
             }
             None => break,
-            _ => continue,
+            _ => {},
         }
     }
     assert!(saw_failed, "should have seen Failed for dead server");
@@ -309,8 +309,8 @@ fn http_exchange_client_task_smoke() {
 
 #[test]
 fn websocket_connector_trait_bound() {
-    fn _require_ws<T: WebSocketConnector>(_: &T) {}
-    _require_ws(&system_client());
+    fn require_ws<T: WebSocketConnector>(_: &T) {}
+    require_ws(&system_client());
 }
 
 /// Poll a client's message stream up to `max_polls` times, returning the first
@@ -323,7 +323,7 @@ fn poll_for_message(
     for _ in 0..max_polls {
         match client.messages().next() {
             Some(Ok(WebSocketEvent::Message(m))) => return Some(m),
-            Some(Ok(WebSocketEvent::Skip)) => continue,
+            Some(Ok(WebSocketEvent::Skip)) => {},
             Some(Err(_)) | None => return None,
         }
     }
@@ -367,7 +367,7 @@ fn websocket_connector_accepts_valid_101() {
             let client_key = key_line
                 .split(':')
                 .nth(1)
-                .map(|s| s.trim())
+                .map(str::trim)
                 .expect("key value");
             let accept = compute_accept_key(client_key);
 

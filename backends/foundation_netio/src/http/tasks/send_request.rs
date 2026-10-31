@@ -717,13 +717,17 @@ where
                                                 tracing::debug!("CheckRedirect: creating new request task for: {:?} with new request: {:?}", &parsed_uri_string, &newly_built_request);
 
                                                 tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask[2] task for sendrequest.");
+                                                // The redirect cap is a u8, so the
+                                                // remaining-redirect count fits u8.
+                                                #[allow(clippy::cast_possible_truncation)]
+                                                let remaining_redirects = self.4 as u8;
                                                 let (get_stream_action, get_stream_receiver) = inlined_task(
                                                         foundation_core::valtron::InlineActionBehaviour::LiftWithParent,
                                                         GetHttpRequestRedirectTask::new(
                                                             newly_built_request,
                                                             self.2.clone(),
                                                             self.1.clone(),
-                                                            self.4 as u8,
+                                                            remaining_redirects,
                                                         ),
                                                         self.1.inline_processing_timeout,
                                                     );

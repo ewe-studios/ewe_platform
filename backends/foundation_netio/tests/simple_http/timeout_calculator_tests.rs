@@ -65,7 +65,9 @@ fn test_bounds_clamping() {
 
     // Huge body (36GB+) gets max timeout (60s)
     // sqrt(36M KB) * 10ms = 6000 * 10ms = 60s, clamped to max
-    let ctx = TimeoutContext::with_size((36u64 * 1024 * 1024 * 1024) as usize);
+    let ctx = TimeoutContext::with_size(
+        usize::try_from(36u64 * 1024 * 1024 * 1024).expect("36 GiB fits in usize on test hosts"),
+    );
     let timeout = calc.calculate_read_timeout(&ctx);
     assert_eq!(timeout, Duration::from_secs(60));
 }
@@ -106,7 +108,9 @@ fn test_total_timeout() {
     // Huge body (75GB+) gets clamped to max_read_timeout (60s)
     // sqrt(75M KB) * 10ms = 8660 * 10ms = 86.6s per read, clamped to 60s
     // With 4 attempts: 60s * 4 = 240s
-    let ctx = TimeoutContext::with_size((75u64 * 1024 * 1024 * 1024) as usize);
+    let ctx = TimeoutContext::with_size(
+        usize::try_from(75u64 * 1024 * 1024 * 1024).expect("75 GiB fits in usize on test hosts"),
+    );
     let timeout = calc.calculate_total_timeout(&ctx);
     assert_eq!(timeout, Duration::from_secs(240));
 }
@@ -127,7 +131,9 @@ fn test_custom_config() {
 
     // Huge body (9GB+) uses custom max (30s)
     // sqrt(9M KB) * 10ms = 3000 * 10ms = 30s, clamped to max
-    let ctx = TimeoutContext::with_size((9u64 * 1024 * 1024 * 1024) as usize);
+    let ctx = TimeoutContext::with_size(
+        usize::try_from(9u64 * 1024 * 1024 * 1024).expect("9 GiB fits in usize on test hosts"),
+    );
     let timeout = calc.calculate_read_timeout(&ctx);
     assert_eq!(timeout, Duration::from_secs(30));
 }

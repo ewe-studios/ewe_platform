@@ -352,6 +352,8 @@ where
     type Ready = ParseResult;
     type Pending = EventSourceProgress;
 
+    // Long by design: one match over every event-source state.
+    #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 

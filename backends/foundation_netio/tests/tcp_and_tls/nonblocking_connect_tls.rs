@@ -253,7 +253,7 @@ mod tls {
         stream.flush().expect("flush reply");
     }
 
-    /// A slow server stalls 500 ms before answering the ClientHello. The client
+    /// A slow server stalls 500 ms before answering the `ClientHello`. The client
     /// must park (not hold a worker) and still finish the handshake.
     #[valtron_test(seed = 30_003, threads = 4, timeout = 60_000)]
     fn tls_handshake_waits_on_slow_server() {

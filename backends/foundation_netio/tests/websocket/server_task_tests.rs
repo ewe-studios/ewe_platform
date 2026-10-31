@@ -28,6 +28,8 @@ fn tcp_pair() -> (std::net::TcpStream, std::net::TcpStream) {
 /// Encoded wire bytes for a masked text frame.
 fn text_frame(payload: &[u8]) -> Vec<u8> {
     let mut wire = vec![0x81u8];
+    // Test payloads are < 128 bytes, so the 7-bit length byte is lossless.
+    #[allow(clippy::cast_possible_truncation)]
     wire.push(0x80 | (payload.len() as u8));
     let mask: [u8; 4] = [0x01, 0x02, 0x03, 0x04];
     wire.extend_from_slice(&mask);
@@ -40,6 +42,8 @@ fn text_frame(payload: &[u8]) -> Vec<u8> {
 /// Encoded wire bytes for a masked ping frame.
 fn ping_frame(payload: &[u8]) -> Vec<u8> {
     let mut wire = vec![0x89u8];
+    // Test payloads are < 128 bytes, so the 7-bit length byte is lossless.
+    #[allow(clippy::cast_possible_truncation)]
     wire.push(0x80 | (payload.len() as u8));
     let mask: [u8; 4] = [0x0A, 0x0B, 0x0C, 0x0D];
     wire.extend_from_slice(&mask);
@@ -53,6 +57,8 @@ fn ping_frame(payload: &[u8]) -> Vec<u8> {
 fn close_frame(code: u16) -> Vec<u8> {
     let payload = code.to_be_bytes().to_vec();
     let mut wire = vec![0x88u8];
+    // Close payload is always 2 bytes, so the 7-bit length byte is lossless.
+    #[allow(clippy::cast_possible_truncation)]
     wire.push(0x80 | (payload.len() as u8));
     let mask: [u8; 4] = [0x01, 0x00, 0x00, 0x00];
     wire.extend_from_slice(&mask);
@@ -81,7 +87,6 @@ fn drain(task: &mut WebSocketServerTask) -> Vec<WebSocketMessage> {
                 msgs.push(m);
                 progressed = true;
             }
-            Some(TaskStatus::Pending(())) => progressed = true,
             Some(TaskStatus::Delayed(d)) => {
                 if progressed {
                     break;
@@ -94,7 +99,7 @@ fn drain(task: &mut WebSocketServerTask) -> Vec<WebSocketMessage> {
                 }
                 std::thread::sleep(Duration::from_millis(1));
             }
-            // Init / Wait / Ignore / Spawn / Spread — not produced by this task;
+            // Pending / Init / Wait / Ignore / Spawn / Spread — no message here;
             // treat as progress so the loop still terminates.
             Some(_) => progressed = true,
             None => break,
@@ -132,7 +137,7 @@ fn ping_triggers_pong_output() {
     // Ping → no `Ready` message (control frame handled internally, pong written
     // straight to the stream). The task stays alive, not drained.
     let msgs = drain(&mut task);
-    assert!(msgs.is_empty());
+    assert_eq!(msgs, [] as [foundation_netio::websocket::WebSocketMessage; 0]);
 }
 
 #[test]
@@ -146,7 +151,7 @@ fn close_frame_drains_task() {
     let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), tx, None);
 
     let msgs = drain(&mut task);
-    assert!(msgs.is_empty());
+    assert_eq!(msgs, [] as [foundation_netio::websocket::WebSocketMessage; 0]);
     assert!(task.next_status(Ctx::new()).is_none(), "task ends after close");
 }
 
@@ -163,6 +168,6 @@ fn unmasked_frame_triggers_close_and_drain() {
 
     // No messages — violation sends close and drains.
     let msgs = drain(&mut task);
-    assert!(msgs.is_empty());
+    assert_eq!(msgs, [] as [foundation_netio::websocket::WebSocketMessage; 0]);
     assert!(task.next_status(Ctx::new()).is_none());
 }

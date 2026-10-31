@@ -30,11 +30,11 @@ use super::frame::{apply_mask, Opcode, WebSocketFrame};
 #[derive(Debug)]
 enum HeaderPhase {
     /// Reading the 2 base header bytes into `base_hdr[pos..]`.
-    Base { pos: u8 },
+    Base { pos: usize },
     /// Reading a 2- or 8-byte extended payload length.
-    ExtLen { need: u8, buf: [u8; 8], pos: u8 },
+    ExtLen { need: usize, buf: [u8; 8], pos: usize },
     /// Reading the 4-byte mask key.
-    Mask { buf: [u8; 4], pos: u8 },
+    Mask { buf: [u8; 4], pos: usize },
     /// Header complete. `payload_len` bytes of payload expected.
     Payload,
 }
@@ -131,13 +131,14 @@ impl Default for WebSocketFrameDecoder {
 impl IncrementalDecoder for WebSocketFrameDecoder {
     type Frame = WebSocketFrame;
 
+    // Long by design: decodes header, lengths and mask in one pass.
+    #[allow(clippy::too_many_lines)]
     fn step(&mut self, src: &mut impl Read) -> Result<DecodeStep<Self::Frame>, DecodeError> {
         self.buffer.fill_from(src)?;
 
         loop {
             match self.phase {
                 HeaderPhase::Base { pos } => {
-                    let pos = pos as usize;
                     let need = 2 - pos;
                     let view = self.buffer.view();
                     if view.len() < need {
@@ -145,7 +146,7 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                         self.base_hdr[pos..pos + n].copy_from_slice(&view[..n]);
                         self.buffer.advance(n);
                         self.phase = HeaderPhase::Base {
-                            pos: (pos + n) as u8,
+                            pos: pos + n,
                         };
                         return Ok(DecodeStep::Pending);
                     }
@@ -178,8 +179,6 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                     };
                 }
                 HeaderPhase::ExtLen { need, mut buf, pos } => {
-                    let need = need as usize;
-                    let pos = pos as usize;
                     let bytes_needed = need - pos;
                     let view = self.buffer.view();
                     if view.len() < bytes_needed {
@@ -187,9 +186,9 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                         buf[pos..pos + n].copy_from_slice(&view[..n]);
                         self.buffer.advance(n);
                         self.phase = HeaderPhase::ExtLen {
-                            need: need as u8,
+                            need,
                             buf,
-                            pos: (pos + n) as u8,
+                            pos: pos + n,
                         };
                         return Ok(DecodeStep::Pending);
                     }
@@ -213,7 +212,6 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                     };
                 }
                 HeaderPhase::Mask { mut buf, pos } => {
-                    let pos = pos as usize;
                     let need = 4 - pos;
                     let view = self.buffer.view();
                     if view.len() < need {
@@ -222,7 +220,7 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                         self.buffer.advance(n);
                         self.phase = HeaderPhase::Mask {
                             buf,
-                            pos: (pos + n) as u8,
+                            pos: pos + n,
                         };
                         return Ok(DecodeStep::Pending);
                     }

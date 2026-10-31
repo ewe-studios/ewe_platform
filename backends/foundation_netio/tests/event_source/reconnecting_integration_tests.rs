@@ -149,7 +149,7 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
 ///
 /// This previously asserted the opposite — that the body is dropped on
 /// reconnect, because it was `take()`n. That codified a bug rather than a
-/// contract: the task keeps POSTing (the method is deliberately preserved), so
+/// contract: the task keeps `POSTing` (the method is deliberately preserved), so
 /// a bodyless reconnect sends `POST` with no payload. A real SSE-over-POST
 /// vendor answers that with `400 "JSON parsing failed"`, which the task counts
 /// as a connection error and retries, so every attempt fails identically and
@@ -165,10 +165,12 @@ fn test_reconnecting_task_initial_connection_sends_post_with_body() {
 #[test]
 #[serial(valtron_pool)]
 fn test_reconnecting_task_replays_headers_and_body_on_reconnect() {
+    // (method, body, auth, host, accept)
+    type RequestCapture = (String, String, String, String, String);
+
     #[derive(Clone, Default)]
     struct CapturedRequests {
-        // (method, body, auth, host, accept)
-        requests: Arc<std::sync::Mutex<Vec<(String, String, String, String, String)>>>,
+        requests: Arc<std::sync::Mutex<Vec<RequestCapture>>>,
     }
 
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);

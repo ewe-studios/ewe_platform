@@ -127,6 +127,9 @@ impl ClientStats {
         if self.total_duration.as_secs_f64() == 0.0 {
             return 0.0;
         }
+        // Rate math: byte counts above 2^52 lose sub-KB precision, which is
+        // irrelevant for client classification.
+        #[allow(clippy::cast_precision_loss)]
         let rate = self.total_bytes as f64 / self.total_duration.as_secs_f64();
         rate / 1024.0
     }
@@ -193,6 +196,9 @@ impl ClientClassifier {
             return;
         }
 
+        // Rate math: byte counts above 2^52 lose sub-KB precision, which is
+        // irrelevant for client classification.
+        #[allow(clippy::cast_precision_loss)]
         let rate_kbps = (bytes as f64 / duration.as_secs_f64()) / 1024.0;
         let classification = self.classify_rate(rate_kbps);
 

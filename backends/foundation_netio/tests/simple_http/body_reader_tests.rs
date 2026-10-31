@@ -18,12 +18,12 @@ use foundation_netio::shared::http::{
 };
 use serde::Deserialize;
 
-/// Helper to create a BoxedError for testing
+/// Helper to create a `BoxedError` for testing
 fn make_error(msg: &str) -> BoxedError {
     msg.to_string().into()
 }
 
-/// Helper to create a SendableBoxedError for testing
+/// Helper to create a `SendableBoxedError` for testing
 fn make_sendable_error(msg: &str) -> SendableBoxedError {
     msg.to_string().into()
 }
@@ -46,13 +46,13 @@ fn test_process_stream_result_debug() {
 
 #[test]
 fn test_parse_json_str() {
-    let json = r#"{"name": "test", "value": 42}"#;
-
     #[derive(Deserialize, Debug, PartialEq)]
     struct TestObj {
         name: String,
         value: i32,
     }
+
+    let json = r#"{"name": "test", "value": 42}"#;
 
     let result: Option<TestObj> = parse_json_str(json, "test-source");
     assert!(result.is_some());
@@ -63,13 +63,13 @@ fn test_parse_json_str() {
 
 #[test]
 fn test_parse_json_str_invalid() {
-    let invalid_json = r#"{"name": "test", invalid}"#;
-
     #[derive(Deserialize, Debug, PartialEq)]
     struct TestObj {
         name: String,
         value: i32,
     }
+
+    let invalid_json = r#"{"name": "test", invalid}"#;
 
     let result: Option<TestObj> = parse_json_str(invalid_json, "test-source");
     assert!(result.is_none());
@@ -77,12 +77,12 @@ fn test_parse_json_str_invalid() {
 
 #[test]
 fn test_parse_with_fallback_success() {
-    let json = r#"{"items": [1, 2, 3]}"#;
-
     #[derive(Deserialize, Debug, PartialEq)]
     struct TestResponse {
         items: Vec<i32>,
     }
+
+    let json = r#"{"items": [1, 2, 3]}"#;
 
     let fallback_called = std::cell::RefCell::new(false);
     let result = parse_with_fallback(json, "test-source", || {
@@ -96,12 +96,12 @@ fn test_parse_with_fallback_success() {
 
 #[test]
 fn test_parse_with_fallback_error() {
-    let invalid_json = r#"{"items": invalid}"#;
-
     #[derive(Deserialize, Debug, PartialEq)]
     struct TestResponse {
         items: Vec<i32>,
     }
+
+    let invalid_json = r#"{"items": invalid}"#;
 
     let fallback_called = std::cell::RefCell::new(false);
     let result = parse_with_fallback(invalid_json, "test-source", || {
@@ -166,7 +166,7 @@ fn test_collect_from_stream_error() {
 fn test_collect_from_stream_empty() {
     let data: Vec<Result<Data, BoxedError>> = vec![];
     let result = collect_from_stream(data.into_iter());
-    assert!(result.is_empty());
+    assert_eq!(result, [] as [u8; 0]);
 }
 
 #[test]
@@ -306,7 +306,7 @@ fn test_collect_bytes_from_send_safe_bytes() {
 fn test_collect_bytes_from_send_safe_none() {
     let body = SendSafeBody::None;
     let result = collect_bytes_from_send_safe(body);
-    assert!(result.is_empty());
+    assert_eq!(result, [] as [u8; 0]);
 }
 
 #[test]
@@ -331,7 +331,7 @@ fn test_collect_bytes_from_send_safe_stream() {
 fn test_collect_bytes_from_send_safe_stream_none() {
     let body = SendSafeBody::Stream(None);
     let result = collect_bytes_from_send_safe(body);
-    assert!(result.is_empty());
+    assert_eq!(result, [] as [u8; 0]);
 }
 
 #[test]
@@ -355,7 +355,7 @@ fn test_collect_bytes_from_send_safe_chunked_stream() {
 fn test_collect_bytes_from_send_safe_chunked_stream_none() {
     let body = SendSafeBody::ChunkedStream(None);
     let result = collect_bytes_from_send_safe(body);
-    assert!(result.is_empty());
+    assert_eq!(result, [] as [u8; 0]);
 }
 
 #[test]
@@ -379,7 +379,7 @@ fn test_collect_bytes_from_send_safe_linefeed_stream() {
 fn test_collect_bytes_from_send_safe_linefeed_stream_none() {
     let body = SendSafeBody::LineFeedStream(None);
     let result = collect_bytes_from_send_safe(body);
-    assert!(result.is_empty());
+    assert_eq!(result, [] as [u8; 0]);
 }
 
 #[test]
@@ -409,7 +409,7 @@ fn test_collect_bytes_into_none() {
     let result = collect_bytes_into(body, &mut output);
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), 0);
-    assert!(output.is_empty());
+    assert_eq!(output, [] as [u8; 0]);
 }
 
 #[test]
@@ -504,12 +504,12 @@ fn test_content_length_enforcing_exact_match() {
     // First chunk: "hello" (5 bytes)
     match enforcing.next().unwrap().unwrap() {
         Data::Bytes(b) => assert_eq!(&b, b"hello"),
-        _ => panic!("expected Bytes"),
+        Data::Retry => panic!("expected Bytes"),
     }
     // Second chunk: "world" (5 bytes)
     match enforcing.next().unwrap().unwrap() {
         Data::Bytes(b) => assert_eq!(&b, b"world"),
-        _ => panic!("expected Bytes"),
+        Data::Retry => panic!("expected Bytes"),
     }
     // Inner exhausted, bytes_read == expected → None
     assert!(enforcing.next().is_none());
@@ -523,7 +523,7 @@ fn test_content_length_enforcing_truncated() {
     let mut enforcing = ContentLengthEnforcingIterator::new(inner, 10);
     match enforcing.next().unwrap().unwrap() {
         Data::Bytes(b) => assert_eq!(&b, b"short"),
-        _ => panic!("expected Bytes"),
+        Data::Retry => panic!("expected Bytes"),
     }
     // Inner exhausted, bytes_read (5) != expected (10) → error
     let result = enforcing.next();
@@ -548,12 +548,12 @@ fn test_content_length_enforcing_retry_passthrough() {
     let mut enforcing = ContentLengthEnforcingIterator::new(inner, 2);
     match enforcing.next().unwrap().unwrap() {
         Data::Bytes(b) => assert_eq!(&b, b"a"),
-        _ => panic!("expected Bytes"),
+        Data::Retry => panic!("expected Bytes"),
     }
     assert!(matches!(enforcing.next().unwrap().unwrap(), Data::Retry));
     match enforcing.next().unwrap().unwrap() {
         Data::Bytes(b) => assert_eq!(&b, b"b"),
-        _ => panic!("expected Bytes"),
+        Data::Retry => panic!("expected Bytes"),
     }
     // Inner exhausted, bytes_read == expected (2) → None
     assert!(enforcing.next().is_none());
@@ -570,7 +570,7 @@ fn test_content_length_enforcing_error_passthrough() {
     let mut enforcing = ContentLengthEnforcingIterator::new(inner, 10);
     match enforcing.next().unwrap().unwrap() {
         Data::Bytes(b) => assert_eq!(&b, b"a"),
-        _ => panic!("expected Bytes"),
+        Data::Retry => panic!("expected Bytes"),
     }
     let result = enforcing.next();
     assert!(result.is_some());
@@ -594,7 +594,7 @@ fn test_content_length_enforcing_stops_after_exhaustion() {
     let mut enforcing = ContentLengthEnforcingIterator::new(inner, 5);
     match enforcing.next().unwrap().unwrap() {
         Data::Bytes(b) => assert_eq!(&b, b"a"),
-        _ => panic!("expected Bytes"),
+        Data::Retry => panic!("expected Bytes"),
     }
     // Should return error on inner None (bytes_read != expected)
     assert!(enforcing.next().is_some_and(|r| r.is_err()));
@@ -623,7 +623,7 @@ fn test_try_collect_bytes_none() {
     let body = SendSafeBody::None;
     let result = try_collect_bytes(body);
     assert!(result.is_ok());
-    assert!(result.unwrap().is_empty());
+    assert_eq!(result.unwrap(), [] as [u8; 0]);
 }
 
 #[test]
@@ -659,7 +659,7 @@ fn test_try_collect_bytes_stream_none() {
     let body = SendSafeBody::Stream(None);
     let result = try_collect_bytes(body);
     assert!(result.is_ok());
-    assert!(result.unwrap().is_empty());
+    assert_eq!(result.unwrap(), [] as [u8; 0]);
 }
 
 #[test]
@@ -682,7 +682,7 @@ fn test_try_collect_bytes_chunked_stream_none() {
     let body = SendSafeBody::ChunkedStream(None);
     let result = try_collect_bytes(body);
     assert!(result.is_ok());
-    assert!(result.unwrap().is_empty());
+    assert_eq!(result.unwrap(), [] as [u8; 0]);
 }
 
 #[test]
@@ -704,7 +704,7 @@ fn test_try_collect_bytes_linefeed_stream_none() {
     let body = SendSafeBody::LineFeedStream(None);
     let result = try_collect_bytes(body);
     assert!(result.is_ok());
-    assert!(result.unwrap().is_empty());
+    assert_eq!(result.unwrap(), [] as [u8; 0]);
 }
 
 #[test]
@@ -769,7 +769,7 @@ fn test_try_collect_bytes_sse_stream_empty() {
     let body = SendSafeBody::SseStream(None);
     let result = try_collect_bytes(body);
     assert!(result.is_ok());
-    assert!(result.unwrap().is_empty());
+    assert_eq!(result.unwrap(), [] as [u8; 0]);
 }
 
 #[test]

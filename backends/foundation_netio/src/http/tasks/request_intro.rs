@@ -202,6 +202,8 @@ impl TaskIterator for GetRequestIntroTask {
     type Pending = ();
     type Ready = RequestIntro;
 
+    // Long by design: one match over every request-intro state.
+    #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         match self.state.take()? {
             GetRequestIntroState::Init(inner) => match inner {

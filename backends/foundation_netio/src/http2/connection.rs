@@ -114,6 +114,9 @@ struct StreamEntry {
 ///
 /// Owns the socket, frame I/O buffering, HPACK contexts, and per-stream state.
 /// Both server and client layers compose with this.
+// The six flags are independent protocol-phase markers, not a finite state the
+// type system can collapse; keep them as plain booleans.
+#[allow(clippy::struct_excessive_bools)]
 pub struct H2Connection<S: Read + Write> {
     socket: S,
     write_buf: BytesMut,
@@ -419,8 +422,12 @@ impl<S: Read + Write> H2Connection<S> {
     }
 
     /// Queue a frame for writing (call `flush_write` to send).
-    fn queue_frame(&mut self, head: &Head, payload: &[u8]) {
-        head.encode(payload.len() as u32, &mut self.write_buf);
+    fn queue_frame(&mut self, head: Head, payload: &[u8]) {
+        // The payload is an already-encoded frame, bounded by the frame size
+        // limit, so its length fits the frame header's `u32` length field.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len = payload.len() as u32;
+        head.encode(payload_len, &mut self.write_buf);
         self.write_buf.put_slice(payload);
     }
 
@@ -571,6 +578,8 @@ impl<S: Read + Write> H2Connection<S> {
         let end_stream = df.flags & data_flags::END_STREAM != 0;
 
         // Update flow control: credit the peer's window
+        // A DATA payload is bounded by the frame size limit, so it fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
         let increment = payload.len() as WindowSize;
         if let Some(entry) = self.streams.get_mut(&head.stream_id) {
             entry.flow.assign_capacity(increment).ok();
@@ -585,7 +594,7 @@ impl<S: Read + Write> H2Connection<S> {
             let mut buf = BytesMut::new();
             wu.encode(&mut buf);
             self.queue_frame(
-                &Head {
+                Head {
                     kind: Kind::WindowUpdate,
                     flag: 0,
                     stream_id: 0,
@@ -647,7 +656,7 @@ impl<S: Read + Write> H2Connection<S> {
         let mut buf = BytesMut::new();
         ack.encode(&mut buf);
         self.queue_frame(
-            &Head {
+            Head {
                 kind: Kind::Settings,
                 flag: settings_flags::ACK,
                 stream_id: 0,
@@ -666,9 +675,11 @@ impl<S: Read + Write> H2Connection<S> {
         let wu = WindowUpdateFrame::parse(&head, payload).map_err(proto_err)?;
 
         if head.stream_id == 0 {
-            self.remote_conn_window = self
-                .remote_conn_window
-                .saturating_add(wu.size_increment as i32);
+            // WINDOW_UPDATE increments clear bit 31 (RFC 7540 §6.9), so the
+            // value fits a positive `i32`; the cast keeps the current behaviour.
+            #[allow(clippy::cast_possible_wrap)]
+            let increment = wu.size_increment as i32;
+            self.remote_conn_window = self.remote_conn_window.saturating_add(increment);
         } else if let Some(entry) = self.streams.get_mut(&head.stream_id) {
             entry.flow.inc_window(wu.size_increment).ok();
         }
@@ -706,7 +717,7 @@ impl<S: Read + Write> H2Connection<S> {
         let mut buf = BytesMut::new();
         ack.encode(&mut buf);
         self.queue_frame(
-            &Head {
+            Head {
                 kind: Kind::Ping,
                 flag: ping_flags::ACK,
                 stream_id: 0,
@@ -738,6 +749,8 @@ impl<S: Read + Write> H2Connection<S> {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
+    // Public API: callers hand over an owned `H2Response`; the body borrows it.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn send_response(&mut self, stream_id: u32, response: H2Response) -> io::Result<()> {
         // Build HPACK-encoded response HEADERS
         let mut header_block = BytesMut::new();
@@ -809,7 +822,7 @@ impl<S: Read + Write> H2Connection<S> {
         let mut buf = BytesMut::new();
         gf.encode(&mut buf);
         self.queue_frame(
-            &Head {
+            Head {
                 kind: Kind::GoAway,
                 flag: 0,
                 stream_id: 0,
@@ -828,7 +841,7 @@ impl<S: Read + Write> H2Connection<S> {
         let mut buf = BytesMut::new();
         rf.encode(&mut buf);
         self.queue_frame(
-            &Head {
+            Head {
                 kind: Kind::Reset,
                 flag: 0,
                 stream_id,
@@ -842,6 +855,8 @@ impl<S: Read + Write> H2Connection<S> {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
+    // Public API: callers hand over an owned `H2Request`; the body borrows it.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn send_request(&mut self, request: H2Request) -> io::Result<u32> {
         let stream_id = self
             .alloc_stream_id()

@@ -1,10 +1,10 @@
-//! Integration tests for ReconnectingEventSourceTask with real TCP connections.
+//! Integration tests for `ReconnectingEventSourceTask` with real TCP connections.
 //!
 //! WHY: Reconnection logic must be verified against real SSE streams
 //! to confirm Last-Event-ID tracking, backoff behavior, and event delivery
 //! across reconnection cycles.
 //!
-//! HOW: Uses TestHttpServer with SSE-formatted responses.
+//! HOW: Uses `TestHttpServer` with SSE-formatted responses.
 
 use foundation_core::valtron::{Ctx, TaskIterator};
 use foundation_core::valtron::TaskStatus;
@@ -15,7 +15,7 @@ use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
-/// Parse the SocketAddr from a TestHttpServer's base_url.
+/// Parse the `SocketAddr` from a `TestHttpServer`'s `base_url`.
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
         .base_url()
@@ -39,7 +39,7 @@ fn sse_response(body: &[u8]) -> HttpResponse {
     }
 }
 
-/// WHY: ReconnectingEventSourceTask should receive events from a real server.
+/// WHY: `ReconnectingEventSourceTask` should receive events from a real server.
 /// WHAT: Verify events are delivered through the reconnecting wrapper.
 #[test]
 fn test_reconnecting_task_receives_events() {
@@ -78,7 +78,7 @@ fn test_reconnecting_task_receives_events() {
     assert!(got_event, "Should have received the event");
 }
 
-/// WHY: ReconnectingEventSourceTask should track Last-Event-ID from events.
+/// WHY: `ReconnectingEventSourceTask` should track Last-Event-ID from events.
 /// WHAT: Verify events with id field update internal tracking.
 #[test]
 fn test_reconnecting_task_tracks_event_id() {
@@ -116,7 +116,7 @@ fn test_reconnecting_task_tracks_event_id() {
     assert_eq!(event_ids, vec!["42", "43"]);
 }
 
-/// WHY: ReconnectingEventSourceTask should handle connection refused with reconnection.
+/// WHY: `ReconnectingEventSourceTask` should handle connection refused with reconnection.
 /// WHAT: Verify task attempts reconnection and eventually exhausts.
 #[test]
 fn test_reconnecting_task_connection_refused_retries() {
@@ -150,7 +150,7 @@ fn test_reconnecting_task_connection_refused_retries() {
     );
 }
 
-/// WHY: ReconnectingEventSourceTask should deliver multiple events.
+/// WHY: `ReconnectingEventSourceTask` should deliver multiple events.
 /// WHAT: Verify all events in a multi-event stream are received.
 #[test]
 fn test_reconnecting_task_multiple_events() {
@@ -188,7 +188,7 @@ fn test_reconnecting_task_multiple_events() {
     assert_eq!(data_values, vec!["first", "second", "third"]);
 }
 
-/// WHY: ReconnectingEventSourceTask should pass through comments.
+/// WHY: `ReconnectingEventSourceTask` should pass through comments.
 /// WHAT: Verify Comment events are delivered through the reconnecting wrapper.
 #[test]
 fn test_reconnecting_task_passes_comments() {
@@ -238,10 +238,10 @@ fn test_reconnecting_task_passes_comments() {
     assert!(saw_message, "Should have received message after comment");
 }
 
-/// WHY: ReconnectingEventSourceTask should NOT retry on legitimate server EOF.
+/// WHY: `ReconnectingEventSourceTask` should NOT retry on legitimate server EOF.
 /// WHAT: Verify task exhausts immediately when server closes connection normally.
 ///
-/// This tests the fix where ReconnectingEventSourceTask checks close_reason()
+/// This tests the fix where `ReconnectingEventSourceTask` checks `close_reason()`
 /// and only retries on errors, not on legitimate EOF.
 #[test]
 fn test_reconnecting_task_eof_does_not_retry() {
@@ -288,7 +288,7 @@ fn test_reconnecting_task_eof_does_not_retry() {
     );
 }
 
-/// WHY: ReconnectingEventSourceTask should retry on connection errors.
+/// WHY: `ReconnectingEventSourceTask` should retry on connection errors.
 /// WHAT: Verify task attempts reconnection with backoff when connection fails.
 ///
 /// This tests that errors (not EOF) trigger the reconnection logic.
@@ -325,8 +325,8 @@ fn test_reconnecting_task_error_triggers_retry() {
     );
 }
 
-/// WHY: ReconnectingEventSourceTask should track close reason after exhaustion.
-/// WHAT: Verify close_reason() returns Eof for legitimate server close.
+/// WHY: `ReconnectingEventSourceTask` should track close reason after exhaustion.
+/// WHAT: Verify `close_reason()` returns Eof for legitimate server close.
 #[test]
 fn test_reconnecting_task_close_reason_eof() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
@@ -351,8 +351,8 @@ fn test_reconnecting_task_close_reason_eof() {
     // This test confirms the task exhausts cleanly on EOF
 }
 
-/// WHY: ReconnectingEventSourceTask should respect max_reconnect_duration.
-/// WHAT: Verify task configuration accepts and stores max_reconnect_duration.
+/// WHY: `ReconnectingEventSourceTask` should respect `max_reconnect_duration`.
+/// WHAT: Verify task configuration accepts and stores `max_reconnect_duration`.
 ///
 /// Note: Actual duration enforcement happens in production with real timing.
 /// This test verifies the builder method works and task exhausts eventually.
@@ -391,7 +391,7 @@ fn test_reconnecting_task_max_reconnect_duration() {
     );
 }
 
-/// WHY: ReconnectingEventSourceTask should handle server retry field.
+/// WHY: `ReconnectingEventSourceTask` should handle server retry field.
 /// WHAT: Verify server-specified retry duration is respected.
 #[test]
 fn test_reconnecting_task_respects_server_retry() {
@@ -428,7 +428,7 @@ fn test_reconnecting_task_respects_server_retry() {
     assert_eq!(received_data, vec!["hello"]);
 }
 
-/// WHY: `with_body` on ReconnectingEventSourceTask should use POST.
+/// WHY: `with_body` on `ReconnectingEventSourceTask` should use POST.
 /// WHAT: Verify the server receives a POST request with the body on first connection.
 #[test]
 fn test_reconnecting_task_with_body_uses_post() {
@@ -507,7 +507,7 @@ fn test_reconnecting_task_with_body_uses_post() {
     );
 }
 
-/// WHY: Without `with_body`, ReconnectingEventSourceTask default method should be GET.
+/// WHY: Without `with_body`, `ReconnectingEventSourceTask` default method should be GET.
 /// WHAT: Verify the server receives a GET request when no body is set.
 #[test]
 fn test_reconnecting_task_default_method_is_get() {

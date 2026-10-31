@@ -110,6 +110,8 @@ fn decode_literal_indexed_name() {
     let mut buf = BytesMut::new();
     buf.put_u8(0x41);
     let value = b"example.com";
+    // Fixed 11-byte literal, so the one-byte length prefix is lossless.
+    #[allow(clippy::cast_possible_truncation)]
     buf.put_u8(value.len() as u8);
     buf.put_slice(value);
     let mut dec = Decoder::new();
@@ -176,7 +178,7 @@ fn rfc7541_c2_second_request() {
     enc.encode_header(b":scheme", b"http", &mut dst1);
     enc.encode_header(b":path", b"/", &mut dst1);
     enc.encode_header(b":authority", b"www.example.com", &mut dst1);
-    assert!(enc.table().len() > 0);
+    assert!(!enc.table().is_empty());
 }
 
 #[test]

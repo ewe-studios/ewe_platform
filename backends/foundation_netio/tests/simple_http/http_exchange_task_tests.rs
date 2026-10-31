@@ -20,6 +20,12 @@ use foundation_netio::shared::http::{
     DEFAULT_PUSHABLE_DEPTH,
 };
 
+/// Sender/receiver pair for a `(Status, SimpleHeaders)` pipe.
+type HeadPipe = (
+    foundation_core::valtron::PipeSender<(Status, SimpleHeaders)>,
+    foundation_core::valtron::PipeReceiver<(Status, SimpleHeaders)>,
+);
+
 /// Raw TCP server that reads an HTTP/1.1 request and responds with `status + body`.
 /// Returns the listening address so clients can connect.
 fn raw_http_serve(status: u16, body: &'static str) -> std::net::SocketAddr {
@@ -43,7 +49,7 @@ fn raw_http_serve(status: u16, body: &'static str) -> std::net::SocketAddr {
     addr
 }
 
-/// Build a PreparedRequest for a given URL + method.
+/// Build a `PreparedRequest` for a given URL + method.
 fn request_to(method: SimpleMethod, url: &str) -> PreparedRequest {
     let (pushable, body_stream) = pushable_request_body_with_depth(DEFAULT_PUSHABLE_DEPTH);
     let _sender = pushable.into_sender();
@@ -90,7 +96,7 @@ fn yields_head_then_body_then_exhausts() {
     let mut saw_head = false;
     let mut body_bytes = Vec::new();
 
-    while let Some(item) = stream.next() {
+    for item in stream {
         match item {
             Stream::Next(HttpExchange::Head { status, .. }) => {
                 assert_eq!(status, Status::OK);
@@ -100,7 +106,7 @@ fn yields_head_then_body_then_exhausts() {
                 body_bytes.extend_from_slice(&b);
             }
             Stream::Next(HttpExchange::Failed(e)) => panic!("unexpected Failed: {e}"),
-            _ => continue,
+            _ => {},
         }
     }
 
@@ -124,7 +130,7 @@ fn yields_failed_for_connection_refused() {
     let mut stream = valtron::execute(task, None).expect("execute");
 
     let mut saw_failed = false;
-    while let Some(item) = stream.next() {
+    for item in stream {
         if let Stream::Next(HttpExchange::Failed(_)) = item {
             saw_failed = true;
             break;
@@ -143,10 +149,7 @@ fn map_ready_into_pipes() {
     let url = format!("http://127.0.0.1:{}/test", addr.port());
     let (pool, config) = default_pool_and_config();
 
-    let (head_tx, head_rx): (
-        foundation_core::valtron::PipeSender<(Status, SimpleHeaders)>,
-        foundation_core::valtron::PipeReceiver<(Status, SimpleHeaders)>,
-    ) = foundation_core::valtron::Pipe::with_depth(1);
+    let (head_tx, head_rx): HeadPipe = foundation_core::valtron::Pipe::with_depth(1);
     let (recv_tx, recv_body): (
         foundation_core::valtron::PipeSender<Bytes>,
         foundation_core::valtron::PipeReceiver<Bytes>,
@@ -181,17 +184,14 @@ fn map_ready_into_pipes() {
 
     // Verify body pipe.
     let mut body = Vec::new();
-    loop {
-        match recv_body.try_recv() {
-            Ok(b) => body.extend_from_slice(&b),
-            Err(TryRecvError::Closed | TryRecvError::Empty) => break,
-        }
+    while let Ok(b) = recv_body.try_recv() {
+        body.extend_from_slice(&b);
     }
     assert!(!body.is_empty(), "should have received body bytes");
     assert_eq!(String::from_utf8_lossy(&body), "piped response body");
 }
 
-/// Test: `map_ready` closure runs on Head + BodyChunk, pipes receive data.
+/// Test: `map_ready` closure runs on Head + `BodyChunk`, pipes receive data.
 #[test]
 fn map_ready_receives_both_head_and_body() {
     use foundation_core::valtron::TryRecvError;
@@ -207,10 +207,7 @@ fn map_ready_receives_both_head_and_body() {
     let gh = got_head.clone();
     let gb = got_body.clone();
 
-    let (head_tx, head_rx): (
-        foundation_core::valtron::PipeSender<(Status, SimpleHeaders)>,
-        foundation_core::valtron::PipeReceiver<(Status, SimpleHeaders)>,
-    ) = foundation_core::valtron::Pipe::with_depth(1);
+    let (head_tx, head_rx): HeadPipe = foundation_core::valtron::Pipe::with_depth(1);
     let (recv_tx, recv_body): (
         foundation_core::valtron::PipeSender<Bytes>,
         foundation_core::valtron::PipeReceiver<Bytes>,
@@ -263,7 +260,7 @@ fn test_connection_returned_to_pool_after_exchange() {
     let (pool, config) = default_pool_and_config();
 
     let host = "127.0.0.1";
-    let port = addr.port() as u16;
+    let port = addr.port();
     assert_eq!(
         pool.connection_count(host, port),
         0,

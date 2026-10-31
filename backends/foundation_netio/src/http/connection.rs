@@ -330,6 +330,9 @@ impl HttpClientConnection {
     /// (`TaskStatus::Depends`) and failing. Registers on the same underlying
     /// `RawStream` the reader reads from (clones share it via `Arc`).
     #[must_use]
+    // Public API: `ConnWaker` is handed over by value by callers; changing to a
+    // reference would break the crate's public API surface.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn register_read_waker(
         &self,
         waker: crate::native::connection::ConnWaker,
@@ -866,6 +869,9 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// - CONNECT request send failures
     /// - Non-200 proxy responses
     /// - Invalid proxy responses
+    // Long by design: performs the full CONNECT handshake and parses the proxy
+    // response in one place.
+    #[allow(clippy::too_many_lines)]
     pub fn connect_via_http_proxy(
         &self,
         proxy: &crate::shared::client::ProxyConfig,
@@ -978,7 +984,10 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         let status_code = match intro_response {
             IncomingResponseParts::Intro(status, _proto, _text) => {
                 let code: usize = status.into();
-                code as u16
+                // HTTP status codes never exceed 599, so usize -> u16 is lossless.
+                #[allow(clippy::cast_possible_truncation)]
+                let code_u16 = code as u16;
+                code_u16
             }
             _ => {
                 return Err(HttpClientError::ProxyTunnelFailed {
@@ -1115,7 +1124,10 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         let status_code = match intro_response {
             IncomingResponseParts::Intro(status, _proto, _text) => {
                 let code: usize = status.into();
-                code as u16
+                // HTTP status codes never exceed 599, so usize -> u16 is lossless.
+                #[allow(clippy::cast_possible_truncation)]
+                let code_u16 = code as u16;
+                code_u16
             }
             _ => {
                 return Err(HttpClientError::ProxyTunnelFailed {

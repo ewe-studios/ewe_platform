@@ -40,7 +40,7 @@ fn two_frames_in_one_read() {
 
     let f1 = match dec.step(&mut cursor.clone()).expect("step") {
         DecodeStep::Frame(f) => f,
-        other => panic!("expected Frame, got {other:?}"),
+        DecodeStep::Pending => panic!("expected Frame, got Pending"),
     };
     assert_eq!(f1.payload, b"Hi");
 
@@ -54,13 +54,13 @@ fn two_frames_in_one_read() {
 
     let f1 = match dec.step(&mut cursor).expect("step") {
         DecodeStep::Frame(f) => f,
-        other => panic!("expected Frame, got {other:?}"),
+        DecodeStep::Pending => panic!("expected Frame, got Pending"),
     };
     assert_eq!(f1.payload, b"Hi");
 
     let f2 = match dec.step(&mut cursor).expect("step") {
         DecodeStep::Frame(f) => f,
-        other => panic!("expected Frame, got {other:?}"),
+        DecodeStep::Pending => panic!("expected Frame, got Pending"),
     };
     assert_eq!(f2.payload, b"Yo");
 }
@@ -80,7 +80,7 @@ fn masked_frame_decodes() {
     let mut dec = WebSocketFrameDecoder::new();
     let frame = match dec.step(&mut cursor).expect("step") {
         DecodeStep::Frame(f) => f,
-        other => panic!("expected Frame, got {other:?}"),
+        DecodeStep::Pending => panic!("expected Frame, got Pending"),
     };
     assert_eq!(frame.payload, b"Hello");
     assert!(frame.mask.is_some());
@@ -99,7 +99,7 @@ fn extended_length_16bit() {
     let mut dec = WebSocketFrameDecoder::new();
     let frame = match dec.step(&mut cursor).expect("step") {
         DecodeStep::Frame(f) => f,
-        other => panic!("expected Frame, got {other:?}"),
+        DecodeStep::Pending => panic!("expected Frame, got Pending"),
     };
     assert_eq!(frame.opcode, Opcode::Binary);
     assert_eq!(frame.payload.len(), 256);
@@ -120,7 +120,7 @@ fn extended_length_64bit() {
     let frame = loop {
         match dec.step(&mut cursor).expect("step") {
             DecodeStep::Frame(f) => break f,
-            DecodeStep::Pending => continue,
+            DecodeStep::Pending => {},
         }
     };
     assert_eq!(frame.payload.len(), 70000);
@@ -135,14 +135,14 @@ fn close_frame_decodes() {
     let mut dec = WebSocketFrameDecoder::new();
     let frame = match dec.step(&mut cursor).expect("step") {
         DecodeStep::Frame(f) => f,
-        other => panic!("expected Frame, got {other:?}"),
+        DecodeStep::Pending => panic!("expected Frame, got Pending"),
     };
     assert_eq!(frame.opcode, Opcode::Close);
     assert!(frame.fin);
     assert_eq!(frame.payload, vec![0x03, 0xE8]);
 }
 
-/// has_partial reports true mid-frame.
+/// `has_partial` reports true mid-frame.
 #[test]
 fn has_partial_mid_frame() {
     let mut dec = WebSocketFrameDecoder::new();
@@ -159,7 +159,7 @@ fn has_partial_mid_frame() {
     assert!(!dec.has_partial());
 }
 
-/// Blocking decode wrapper produces same result as one-shot decode().
+/// Blocking decode wrapper produces same result as one-shot `decode()`.
 #[test]
 fn blocking_wrapper_matches_decode() {
     let wire: Vec<u8> = vec![0x81, 0x05, b'H', b'e', b'l', b'l', b'o'];

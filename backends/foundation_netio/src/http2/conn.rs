@@ -254,6 +254,9 @@ impl H2Conn {
     /// Register a callback fired when the transport becomes readable, for a
     /// transport with its own readiness (the overlay). `false` if it has none.
     #[must_use]
+    // Public API: `ConnWaker` is handed over by value by callers (including
+    // foundation_http); changing to a reference would break that crate.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn register_read_waker(&self, waker: crate::native::connection::ConnWaker) -> bool {
         self.stream.with_inner_ref(|raw| raw.register_read_waker(waker.clone()))
     }

@@ -63,7 +63,7 @@ fn test_service_action_match_url_with_headers() {
     let _ = headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/json".into()]);
 
     let (matched_url, params) =
-        resource.extract_match("/service/endpoint/v1", SimpleMethod::GET, Some(headers));
+        resource.extract_match("/service/endpoint/v1", &SimpleMethod::GET, Some(headers));
 
     assert!(matched_url);
     assert!(params.is_none());
@@ -79,7 +79,7 @@ fn test_service_action_match_url_only() {
         .expect("should generate service action");
 
     let (matched_url, params) =
-        resource.extract_match("/service/endpoint/v1", SimpleMethod::GET, None);
+        resource.extract_match("/service/endpoint/v1", &SimpleMethod::GET, None);
 
     assert!(matched_url);
     assert!(params.is_none());

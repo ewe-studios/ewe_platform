@@ -44,6 +44,8 @@ impl QueueReader {
 
 impl Read for QueueReader {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        // Cursor position never exceeds the Vec len (usize), so u64 -> usize is lossless.
+        #[allow(clippy::cast_possible_truncation)]
         let remaining = self.current.get_ref().len() - self.current.position() as usize;
         if remaining > 0 {
             return self.current.read(buf);

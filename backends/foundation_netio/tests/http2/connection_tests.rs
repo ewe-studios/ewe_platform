@@ -1,4 +1,4 @@
-//! Tests for `http2::connection` — H2Connection, StreamId, pseudo-header
+//! Tests for `http2::connection` — `H2Connection`, `StreamId`, pseudo-header
 //! mapping, connection preface (Feature 29/30).
 
 use bytes::Bytes;

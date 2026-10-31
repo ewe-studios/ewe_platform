@@ -36,12 +36,12 @@ fn test_text_message_echo() {
     // Receive echoed message via iterator
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Skip => {},
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                 assert_eq!(text, "Hello, WebSocket!");
                 break;
             }
-            WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
+            WebSocketEvent::Message(other) => panic!("expected Text message, got: {other:?}"),
         }
     }
 }
@@ -73,12 +73,12 @@ fn test_binary_message_echo() {
     // Receive echoed message
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Skip => {},
             WebSocketEvent::Message(WebSocketMessage::Binary(data)) => {
                 assert_eq!(data, binary_data);
                 break;
             }
-            WebSocketEvent::Message(other) => panic!("expected Binary message, got: {:?}", other),
+            WebSocketEvent::Message(other) => panic!("expected Binary message, got: {other:?}"),
         }
     }
 }
@@ -119,17 +119,16 @@ fn test_multiple_messages_sequence() {
             match event.expect("should receive event") {
                 WebSocketEvent::Skip => {
                     tracing::info!("Got skip signal");
-                    continue;
                 }
                 WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                     assert_eq!(&text, msg);
                     break;
                 }
-                WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
+                WebSocketEvent::Message(other) => panic!("expected Text message, got: {other:?}"),
             }
         }
     }
-    println!("Finished, no more work")
+    println!("Finished, no more work");
 }
 
 /// Test ping/pong exchange.
@@ -159,12 +158,12 @@ fn test_ping_pong_exchange() {
     // Receive pong response
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Skip => {},
             WebSocketEvent::Message(WebSocketMessage::Pong(data)) => {
                 assert_eq!(data, ping_data);
                 break;
             }
-            WebSocketEvent::Message(other) => panic!("expected Pong message, got: {:?}", other),
+            WebSocketEvent::Message(other) => panic!("expected Pong message, got: {other:?}"),
         }
     }
 }
@@ -193,13 +192,13 @@ fn test_client_initiated_close() {
     // Server echoes close frame back, we should receive it
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Skip => {},
             WebSocketEvent::Message(WebSocketMessage::Close(code, reason)) => {
                 assert_eq!(code, 1000);
                 assert_eq!(reason, "goodbye");
                 break;
             }
-            WebSocketEvent::Message(other) => panic!("expected Close message, got: {:?}", other),
+            WebSocketEvent::Message(other) => panic!("expected Close message, got: {other:?}"),
         }
     }
 }
@@ -231,13 +230,13 @@ fn test_large_message_echo() {
     // Receive echoed message
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Skip => {},
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                 assert_eq!(text, large_text);
                 assert_eq!(text.len(), 500);
                 break;
             }
-            WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
+            WebSocketEvent::Message(other) => panic!("expected Text message, got: {other:?}"),
         }
     }
 }
@@ -269,13 +268,13 @@ fn test_very_large_message_echo() {
     // Receive echoed message
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Skip => {},
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                 assert_eq!(text, large_text);
                 assert_eq!(text.len(), 70_000);
                 break;
             }
-            WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
+            WebSocketEvent::Message(other) => panic!("expected Text message, got: {other:?}"),
         }
     }
 }
@@ -313,12 +312,12 @@ fn test_utf8_text_messages() {
 
         for event in client.messages() {
             match event.expect("should receive event") {
-                WebSocketEvent::Skip => continue,
+                WebSocketEvent::Skip => {},
                 WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                     assert_eq!(&text, msg, "UTF-8 message should echo correctly");
                     break;
                 }
-                WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
+                WebSocketEvent::Message(other) => panic!("expected Text message, got: {other:?}"),
             }
         }
     }
@@ -363,7 +362,7 @@ fn test_message_iterator() {
         }
 
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Skip => {},
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                 tracing::info!("Received text: {}", text);
                 received.push(text);
@@ -372,7 +371,7 @@ fn test_message_iterator() {
                     break;
                 }
             }
-            WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
+            WebSocketEvent::Message(other) => panic!("expected Text message, got: {other:?}"),
         }
     }
 

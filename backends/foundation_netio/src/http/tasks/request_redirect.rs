@@ -1338,6 +1338,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
     type Pending = HttpOperationState;
     type Ready = HttpRequestRedirectResponse;
 
+    // Long by design: one match over every redirect state.
+    #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
         trace_span.in_scope(|| match self.0.take()? {

@@ -611,6 +611,9 @@ impl RustlsAcceptor {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
+    // Public API: callers in other crates pass the PEM bytes by value; changing
+    // to slices would break the crate's public API surface.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn from_pem(
         certificates: Vec<u8>,
         private_key: Zeroizing<Vec<u8>>,

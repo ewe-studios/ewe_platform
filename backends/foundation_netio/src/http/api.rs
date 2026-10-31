@@ -70,6 +70,16 @@ pub struct FinalizedResponse<T, R: DnsResolver + 'static>(
     Option<HttpClientConnection>,
 );
 
+/// The parts returned by [`FinalizedResponse::into_parts`]: status, headers,
+/// body, connection pool and connection.
+pub type FinalizedResponseParts<T, R> = (
+    Status,
+    SimpleHeaders,
+    T,
+    Option<Arc<HttpConnectionPool<R>>>,
+    Option<HttpClientConnection>,
+);
+
 impl<T, R: DnsResolver + 'static> core::fmt::Display for FinalizedResponse<T, R> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match &self.0 {
@@ -180,13 +190,7 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     /// This function does not panic.
     pub fn into_parts(
         mut self,
-    ) -> (
-        Status,
-        SimpleHeaders,
-        T,
-        Option<Arc<HttpConnectionPool<R>>>,
-        Option<HttpClientConnection>,
-    ) {
+    ) -> FinalizedResponseParts<T, R> {
         let response = self.0.take().expect("response already taken");
         let status = response.get_status();
         let headers = response.get_headers_ref().clone();

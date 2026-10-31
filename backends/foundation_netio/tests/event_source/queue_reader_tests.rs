@@ -158,7 +158,7 @@ fn queue_sse_events_fail_a_broken_feed_instead_of_waiting() {
         QueueSseEvents::over_reader(Broken, queue, done, Arc::new(WakeRegistry::new()));
 
     match events.next() {
-        Some(Stream::Pending(SseProgress::Failed(msg))) => assert!(!msg.is_empty()),
+        Some(Stream::Pending(SseProgress::Failed(msg))) => assert_ne!(msg, ""),
         other => panic!("expected Pending(Failed), got {other:?}"),
     }
     assert!(events.next().is_none(), "a failed stream ends");

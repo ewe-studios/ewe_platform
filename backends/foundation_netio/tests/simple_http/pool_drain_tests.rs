@@ -62,7 +62,7 @@ fn test_pool_204_then_get_succeeds() {
     });
 
     let addr = server_addr(&server);
-    let base_url = format!("http://{}", addr);
+    let base_url = format!("http://{addr}");
 
     let client = NativeHttpClient::from_system();
 
@@ -121,7 +121,7 @@ fn test_pool_sequential_head_requests() {
     .blocking_read(Some(std::time::Duration::from_secs(5)));
 
     let addr = server_addr(&server);
-    let base_url = format!("http://{}", addr);
+    let base_url = format!("http://{addr}");
 
     tracing::trace!("[TEST] Creating http client");
     let client = NativeHttpClient::from_system();
@@ -187,7 +187,7 @@ fn test_pool_put_head_delete_head_sequence() {
     .blocking_read(Some(std::time::Duration::from_secs(5)));
 
     let addr = server_addr(&server);
-    let base_url = format!("http://{}", addr);
+    let base_url = format!("http://{addr}");
 
     tracing::trace!("[TEST] Creating http client");
     let client = NativeHttpClient::from_system();

@@ -1410,6 +1410,7 @@ where
 /// # Errors
 ///
 /// Returns an error if the operation fails.
+#[allow(clippy::too_many_lines)] // streaming-body state machine is naturally long
 pub fn process_streaming_body_strict<F>(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
     mut processor: F,
@@ -1976,13 +1977,13 @@ impl From<SendSafeBody> for AsyncSendSafeBody {
             | SendSafeBody::LineFeedStream(None)
             | SendSafeBody::SseStream(None) => SendSafeBodyState::Done,
             SendSafeBody::Stream(Some(iter)) => {
-                SendSafeBodyState::Stream(Box::new(iter.map(|r| r.map_err(map_err))))
+                SendSafeBodyState::Stream(Box::new(iter.map(|r| r.map_err(|e| map_err(&e)))))
             }
             SendSafeBody::ChunkedStream(Some(iter)) => {
-                SendSafeBodyState::ChunkedStream(Box::new(iter.map(|r| r.map_err(map_err))))
+                SendSafeBodyState::ChunkedStream(Box::new(iter.map(|r| r.map_err(|e| map_err(&e)))))
             }
             SendSafeBody::LineFeedStream(Some(iter)) => {
-                SendSafeBodyState::LineFeedStream(Box::new(iter.map(|r| r.map_err(map_err))))
+                SendSafeBodyState::LineFeedStream(Box::new(iter.map(|r| r.map_err(|e| map_err(&e)))))
             }
             SendSafeBody::SseStream(Some(iter)) => SendSafeBodyState::SseStream(iter),
         };
@@ -1994,13 +1995,14 @@ impl From<SendSafeBody> for AsyncSendSafeBody {
     }
 }
 
-fn map_err(e: BoxedError) -> SendableBoxedError {
+fn map_err(e: &BoxedError) -> SendableBoxedError {
     Box::new(std::io::Error::other(e.to_string()))
 }
 
 impl FuturesStream for AsyncSendSafeBody {
     type Item = Result<Vec<u8>, SendableBoxedError>;
 
+    #[allow(clippy::too_many_lines)] // one poll_next drives every body state
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         // SAFETY: we never move out of self, and the inner state is not self-referential.
         let this = unsafe { self.get_unchecked_mut() };
@@ -2242,7 +2244,7 @@ pub type ExchangeContinuation = Box<
 /// This function does not panic.
 #[must_use]
 pub fn split_exchange(
-    client: DynNetClient,
+    client: &DynNetClient,
     builder: PreparedRequestBuilder,
 ) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
     let pump = builder.send(client);
@@ -2293,7 +2295,7 @@ pub fn split_exchange(
 ///
 /// This function does not panic.
 pub fn send_and_split(
-    client: DynNetClient,
+    client: &DynNetClient,
     builder: PreparedRequestBuilder,
 ) -> Result<(ExchangeHeadObserver, ExchangeBodyObserver), HttpClientError> {
     let (head, body, task) = split_exchange(client, builder);
@@ -2327,7 +2329,7 @@ pub fn send_and_split(
 ///
 /// This function does not panic.
 pub fn collect_exchange(
-    client: DynNetClient,
+    client: &DynNetClient,
     builder: PreparedRequestBuilder,
 ) -> Result<SimpleResponse<SendSafeBody>, ExchangeError> {
     let (head, mut body) =

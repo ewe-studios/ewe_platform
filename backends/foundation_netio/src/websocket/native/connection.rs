@@ -368,7 +368,7 @@ impl From<ReconnectingWebSocketProgress> for WsPending {
 /// Either a single-shot or reconnecting WS task — unified [`TaskIterator`].
 pub enum WsTask<R: DnsResolver + Clone + Send + 'static> {
     Single(WebSocketTask<R>),
-    Reconnecting(ReconnectingWebSocketTask<R>),
+    Reconnecting(Box<ReconnectingWebSocketTask<R>>),
 }
 
 impl<R> TaskIterator for WsTask<R>
@@ -608,7 +608,10 @@ impl WebSocketClient {
                 sleep_timeout,
             )?),
             Reconnect::Yes => {
-                WsTask::Reconnecting(ReconnectingWebSocketTask::connect(resolver, &url_str)?)
+                WsTask::Reconnecting(Box::new(ReconnectingWebSocketTask::connect(
+                    resolver,
+                    &url_str,
+                )?))
             }
         };
 

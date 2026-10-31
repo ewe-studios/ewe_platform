@@ -237,6 +237,8 @@ impl From<InvalidUri> for HttpClientError {
 }
 
 impl core::fmt::Display for HttpClientError {
+    // One arm per error variant, so the Display impl is as long as the enum.
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::FailedWith(err) => {

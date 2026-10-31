@@ -144,12 +144,8 @@ mod feature_tests {
 
     #[test]
     fn test_feature_mutual_exclusivity_documented() {
-        // This test documents that feature conflicts are checked at compile time
-        // The actual checks are in src/netcap/ssl/mod.rs via compile_error! macros
-        assert!(
-            true,
-            "Feature conflicts are enforced via compile_error! in mod.rs"
-        );
+        // This test documents that feature conflicts are checked at compile time.
+        // The actual checks are in src/netcap/ssl/mod.rs via compile_error! macros.
     }
 
     #[test]

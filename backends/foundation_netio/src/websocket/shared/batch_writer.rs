@@ -186,6 +186,9 @@ where
     ///
     /// # Panics
     /// Never panics.
+    // Public API: callers hand the frame over for queuing; by-value matches
+    // that ownership-transfer contract.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn queue_frame(&mut self, frame: WebSocketFrame) -> Result<(), WebSocketError> {
         let encoded = frame.encode();
         let encoded_len = encoded.len();
@@ -293,6 +296,9 @@ where
     ///
     /// # Panics
     /// Never panics.
+    // Public API: callers hand the frame over for writing; by-value matches
+    // that ownership-transfer contract.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn write_immediate(&mut self, frame: WebSocketFrame) -> Result<(), WebSocketError> {
         // Flush any existing batch first to maintain ordering
         self.flush()?;
@@ -414,6 +420,9 @@ impl BatchWriterStats {
     /// # Panics
     /// Never panics.
     #[must_use]
+    // Averages are approximate stats; sub-unit precision above 2^52 is
+    // irrelevant, so the usize -> f64 cast is fine.
+    #[allow(clippy::cast_precision_loss)]
     pub fn avg_batch_size(&self) -> f64 {
         if self.flushes == 0 {
             0.0
@@ -427,6 +436,9 @@ impl BatchWriterStats {
     /// # Panics
     /// Never panics.
     #[must_use]
+    // Averages are approximate stats; sub-unit precision above 2^52 is
+    // irrelevant, so the usize -> f64 cast is fine.
+    #[allow(clippy::cast_precision_loss)]
     pub fn flush_efficiency(&self) -> f64 {
         if self.flushes == 0 {
             0.0

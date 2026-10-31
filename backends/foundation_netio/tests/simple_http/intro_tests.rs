@@ -74,7 +74,7 @@ fn test_response_intro_debug_and_clone_if_available() {
     };
 
     // Debug formatting (if implemented) should not panic when invoked.
-    let _ = format!("{:?}", &intro);
+    let _ = format!("{intro:?}");
 
     // Try cloning if supported (compile-time check)
     let _clone_possible = std::panic::catch_unwind(|| {

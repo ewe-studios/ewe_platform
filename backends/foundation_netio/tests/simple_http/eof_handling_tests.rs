@@ -81,8 +81,7 @@ fn test_request_reader_eof_immediately() {
 
     assert!(
         result.is_none(),
-        "Expected None on EOF, got {:?} - this would cause an infinite loop",
-        result
+        "Expected None on EOF, got {result:?} - this would cause an infinite loop"
     );
 }
 
@@ -118,8 +117,7 @@ fn test_request_reader_one_request_then_eof() {
 
     assert!(
         next_result.is_none(),
-        "Expected None after request completes and EOF reached, got {:?}",
-        next_result
+        "Expected None after request completes and EOF reached, got {next_result:?}"
     );
 }
 
@@ -143,9 +141,7 @@ fn test_request_reader_partial_then_eof() {
 
     for result in &mut request_reader {
         count += 1;
-        if count > max_iterations {
-            panic!("Possible infinite loop - got {} iterations", count);
-        }
+        assert!(count <= max_iterations, "Possible infinite loop - got {count} iterations");
 
         // We should at least get the Intro part before EOF
         if let Ok(IncomingRequestParts::Intro(_, _, _)) = result {
@@ -177,8 +173,7 @@ fn test_response_reader_eof_immediately() {
 
     assert!(
         result.is_none(),
-        "Expected None on EOF, got {:?} - this would cause an infinite loop",
-        result
+        "Expected None on EOF, got {result:?} - this would cause an infinite loop"
     );
 }
 
@@ -214,8 +209,7 @@ fn test_response_reader_one_response_then_eof() {
 
     assert!(
         next_result.is_none(),
-        "Expected None after response completes and EOF reached, got {:?}",
-        next_result
+        "Expected None after response completes and EOF reached, got {next_result:?}"
     );
 }
 
@@ -238,9 +232,7 @@ fn test_response_reader_partial_then_eof() {
 
     for result in &mut response_reader {
         count += 1;
-        if count > max_iterations {
-            panic!("Possible infinite loop - got {} iterations", count);
-        }
+        assert!(count <= max_iterations, "Possible infinite loop - got {count} iterations");
 
         // We should at least get the Intro part before EOF
         if let Ok(IncomingResponseParts::Intro(_, _, _)) = result {
@@ -329,7 +321,6 @@ fn test_keepalive_then_eof() {
 
     assert!(
         next_result.is_none(),
-        "Expected None after keep-alive then EOF, got {:?}",
-        next_result
+        "Expected None after keep-alive then EOF, got {next_result:?}"
     );
 }

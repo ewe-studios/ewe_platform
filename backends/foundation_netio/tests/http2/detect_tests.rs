@@ -136,7 +136,7 @@ fn detect_method_length_boundary() {
     assert_eq!(detect_protocol(past_limit), DetectedProtocol::Unsupported);
 }
 
-/// Real methods, including the long WebDAV ones, must survive the guard.
+/// Real methods, including the long `WebDAV` ones, must survive the guard.
 #[test]
 fn detect_accepts_registered_and_webdav_methods() {
     for method in [
