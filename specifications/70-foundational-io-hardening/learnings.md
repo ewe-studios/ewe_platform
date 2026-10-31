@@ -2,6 +2,28 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-10-31 (feature 11): "test counts must not drop" means the runnable count, not the
+  source-function count. `foundation_netio/src/native/tls_verification.rs` was never wired in
+  (`native/mod.rs` has `// pub mod tls_verification;` commented out), so its five
+  `#[cfg(test)]` tests were never compiled or run. Moving them would have been pointless; the
+  right action is to remove them and record the dead module. When you compare counts before
+  and after, count only tests that actually compiled and ran under the crate's CI feature set.
+
+- 2026-10-31 (feature 11): a test that only asserts a private field (auth `config.*`,
+  body-limit `max_bytes`/`error_message`, logger `config.level`) should be rewritten to assert
+  public behaviour, not to expose the field. Rewrite through `RequestMiddleware::handle` and
+  check the `MiddlewareResult` with `matches!` (the enum has no `Debug`, and `SendSafeBody`
+  has no `PartialEq`). Add a real accessor (`LoggerMiddleware::level`) only when the value is
+  a genuine part of the API. The private base64 helper's edge cases are covered indirectly by
+  a valid-token test and an invalid-token test through `handle`.
+
+- 2026-10-31 (feature 11): `foundation_http` has a flat `tests/` directory and no wasm-bindgen
+  test target. Its wasm-gated types (`CfConn`) are plain `#[test]` code, not
+  `#[wasm_bindgen_test]`. Move them to `tests/cf_conn_tests.rs` gated by
+  `#![cfg(feature = "wasm-bindgen-http")]`. Under default features the binary compiles to zero
+  tests, and the CI wasm step is a `cargo check --features wasm` compile-only gate, so those
+  tests still never run natively — the same behaviour as before the move.
+
 - 2026-10-30 (feature 33): a sans-IO driver that parks on `Depends` must also be woken for
   **outgoing** data, not only incoming. Feature 28 taught the QUIC driver to park on socket
   read readiness + the next timer, but a stream handle that queues outgoing data (a reset,

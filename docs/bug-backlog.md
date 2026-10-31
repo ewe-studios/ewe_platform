@@ -25,6 +25,10 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
+- **`tls_verification.rs` is dead code.** The module is never declared
+  (`native/mod.rs` has `// pub mod tls_verification;` commented out), so its types are not
+  compiled and its former inline tests were dead too. Fix: wire the module in if TLS
+  certificate verification is still wanted, or delete the file and the commented-out line.
 - **DNS resolution blocks the HTTP client task.**
   `SystemDnsResolver::resolve` (`shared/client/dns.rs:130`) calls
   `to_socket_addrs()`, a blocking system call, inside the non-blocking connect

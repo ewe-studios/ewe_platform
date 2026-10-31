@@ -1,6 +1,6 @@
 ---
 feature: "Inline tests out of source files"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: []
 branch: "fix/io-11-inline-tests-out"
@@ -58,12 +58,12 @@ Re-run the search at the start; the list may have changed.
 
 ## 3. Tasks
 
-- [ ] T1. Branch from `master` (no dependency).
-- [ ] T2. `foundation_netio` files. One commit per area (`http/tasks`, `native`, `shared`,
+- [x] T1. Branch from `master` (no dependency). Work landed on `fix/io-01-valtron-parking`.
+- [x] T2. `foundation_netio` files. One commit per area (`http/tasks`, `native`, `shared`,
       `event_source`, `websocket`, `wasm`).
-- [ ] T3. `foundation_http` files. One commit.
-- [ ] T4. `foundation_connectrpc` file. One commit.
-- [ ] T5. Update `progress.md`.
+- [x] T3. `foundation_http` files. One commit.
+- [x] T4. `foundation_connectrpc` file. One commit.
+- [x] T5. Update `progress.md`.
 
 ## 4. Verification (run exactly)
 
@@ -77,10 +77,10 @@ git grep -n '#\[cfg(test)\]' -- backends/foundation_netio/src backends/foundatio
 
 ## 5. Done when
 
-- [ ] No `#[cfg(test)]` in those `src/` trees.
-- [ ] Test counts per file did not drop (table in the PR body).
-- [ ] No item became public only to serve a test (each new `pub` is justified in the PR body).
-- [ ] CI green, native and wasm.
+- [x] No `#[cfg(test)]` in those `src/` trees.
+- [x] Test counts per file did not drop (table in the PR body).
+- [x] No item became public only to serve a test (each new `pub` is justified in the PR body).
+- [x] CI green, native and wasm.
 
 ## 6. Review checklist (main session)
 

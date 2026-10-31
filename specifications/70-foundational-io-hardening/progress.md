@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-10-31: feature 11 done on `fix/io-01-valtron-parking`. Every `#[cfg(test)]` block in
+  the three crate source trees is gone (rule 7). foundation_netio moved its tests per area
+  (http/tasks, native, shared, event_source, websocket, wasm). foundation_http moved the five
+  middleware suites and the `CfConn` wasm suite. foundation_connectrpc moved the wasm-fetch
+  capabilities test into `transport_tests.rs`. Test counts did not drop. Four items became
+  public with docs because they are real API (`CompressionAlgorithm::from_str`,
+  `CompressionMiddleware::select_algorithm`, `CorsConfig::is_origin_allowed`,
+  `LoggerMiddleware::level`); the auth and body-limit tests that used private fields or the
+  private base64 helper were rewritten through the public `handle()` behaviour. The
+  `tls_verification.rs` module is dead code (never declared in `native/mod.rs`), so its five
+  former tests never compiled and are removed, not moved. Verification:
+  `git grep '#[cfg(test)]'` over the three `src/` trees returns nothing, and the native plus
+  wasm CI gates for the three crates are green. PR: see the PR.
+
 - 2026-10-30: feature 33 done on `fix/io-01-valtron-parking`. A stream handle that queued
   outgoing data (a reset, write, finish, stop, close, a datagram, or a flow-control update)
   did not wake the QUIC driver. The driver parked on socket readiness and the next timer
