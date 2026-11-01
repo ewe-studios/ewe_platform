@@ -2,6 +2,18 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (backlog §10 wasm32 Send fix, foundation_ai): valtron re-exports
+  `sleep_async` from `non_sendables` or `sendables` based on foundation_core's
+  `multi` feature. On wasm32 `multi` is off (single-threaded), so `sleep_async`
+  is `non_sendables::sleep_async`; its `timer.into_ready_future().await` future
+  holds the single-threaded executor and is `!Send`. Awaiting it inside an
+  `#[async_trait]` method on a `Send + Sync` trait makes the boxed future
+  `!Send`, so the wasm32 `--no-default-features` check fails with three `Send`
+  errors. The fix wraps the sleep future in `foundation_compact::SendWrapper`,
+  which has a wasm-only `unsafe impl Send` (one thread, so the assertion is
+  vacuously true) plus a `Future` impl. On native the same wrapper auto-derives
+  `Send` from the inner future, so the code is unchanged there.
+
 - 2026-11-02 (feature 16 E8, foundation_ai): `append_with_id` /
   `append_promotable_with_id` idempotency is keyed on `(collection key, doc_id)`.
   The `doc_id` must be STABLE across a retry: mint it once in the record

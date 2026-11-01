@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §10 (foundation_ai) fixed on
+  `fix/io-20-vfs-process-ipc`. The wasm32 `--no-default-features` check failed
+  with three `Send` errors because the cloud providers awaited valtron's
+  non-Send `sleep_async` inside their async-trait futures. Each provider now
+  wraps the sleep future in `foundation_compact::SendWrapper`. The backlog
+  entry is removed, and a flaky
+  `openai_provider::test_provider_streaming_tool_calls` is recorded. Commit
+  04febe2cf.
+
 - 2026-11-02: feature 16 E8 (foundation_ai) done on
   `fix/io-20-vfs-process-ipc`. Memory records (WorkingMemory, Observation,
   Reflection) now write through `append_promotable_with_id` with the record's
