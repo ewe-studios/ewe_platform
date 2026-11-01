@@ -1,6 +1,6 @@
 [package]
 name = "foundation_core"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -25,7 +25,7 @@ crate-type = ["rlib"]
 foundation_compact = { path = "../foundation_compact", version = "0.2.2", default-features = false }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
-foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
 
 # -- Workspace dependencies
 # Only the `js-foundation-wasm` JS-yield backend (wasm targets) uses it, so it is

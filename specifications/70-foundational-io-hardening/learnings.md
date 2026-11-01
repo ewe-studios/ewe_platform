@@ -2,6 +2,31 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (publish fix): a version bump must move every consumer, not just the
+  changed crate. `cargo package` resolves a `path = ".."` + `version = "0.0.6"`
+  dependency to crates.io `^0.0.6` (`>=0.0.6, <0.0.7`), not to the local tree. So
+  when `foundation_core` 0.0.6 was published before `request_executor_resume` and
+  `EventReadiness::clear` existed, `foundation_reactor` 0.0.1 (which uses both)
+  failed its publish tarball verification with E0425/E0407. The published 0.0.6 is
+  a floor, and `^0.0.6` excludes the fixed 0.0.7. Fix: bump `foundation_core` and
+  `foundation_macros` to 0.0.7 and bump every inline and table-format dependency on
+  them to `0.0.7` in the same change (43 manifests plus the lock). Do not bump
+  `foundation_nostd` (its own 0.0.6 is unrelated) or the cloud-provider crates'
+  own 0.1.x versions. A `release-plz` `release-pr` failure that looks like a
+  manifest parse problem is often the root manifest's nightly-only
+  `cargo-features = ["codegen-backend"]` (see the next entry).
+
+- 2026-11-01 (release-plz fix): the `release-pr` step failed because the root
+  `Cargo.toml` carried `cargo-features = ["codegen-backend"]`, a nightly-only
+  directive that stable Cargo 1.98.0 refuses to parse. release-plz runs `cargo
+  package --list` on stable, so it could not read `edition.workspace = true` and
+  failed. The `codegen-backend` choice lives in `mise.toml` `[env]`
+  (`CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift`, `_UAT_`=llvm,
+  `CARGO_UNSTABLE_CODEGEN_BACKEND=true`), not in the manifest; the manifest line is
+  redundant and wrong. Already fixed on master by `df86d7e6d`. A release that fails
+  only in `release-pr` (not `publish`) usually points at a root-manifest
+  `cargo-features`, not the crate being released.
+
 - 2026-11-01 (recursion fix): the `recursion_depth_exceeding_limit` warning on
   `#[valtron_test]` tests is not a macro problem. It is the `turso` crate's deep
   async chain (`Connection::execute`, `maybe_handle_dangling_tx`,

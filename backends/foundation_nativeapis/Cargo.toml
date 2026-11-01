@@ -13,7 +13,7 @@ keywords = ["io-uring", "epoll", "kqueue", "file-watcher", "ipc"]
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_core = { path = "../foundation_core", version = "0.0.7" }
 foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.6", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
@@ -25,7 +25,7 @@ io-uring = { version = "0.7", optional = true }
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
-foundation_macros = { path = "../foundation_macros", version = "0.0.6", optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.7", optional = true }
 cfg-if = "1"
 once_cell = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
@@ -79,7 +79,7 @@ windows-sys = { version = "0.59", features = [
 
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["multi"] }
 
 [dev-dependencies]
 foundation_arrow = { path = "../foundation_arrow" }

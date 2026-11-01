@@ -507,7 +507,7 @@ impl DataPlane for NetStack {
             handle,
             local,
             peer: addr,
-            owner: Arc::new(OverlayStreamOwner {
+            _owner: Arc::new(OverlayStreamOwner {
                 inner: Arc::clone(&self.inner),
                 handle,
             }),
@@ -661,7 +661,7 @@ impl OverlayListener {
                 handle,
                 local: self.local,
                 peer,
-                owner: Arc::new(OverlayStreamOwner {
+                _owner: Arc::new(OverlayStreamOwner {
                     inner: Arc::clone(&self.inner),
                     handle,
                 }),
@@ -712,9 +712,11 @@ pub struct OverlayStream {
     handle: SocketHandle,
     local: SocketAddr,
     peer: SocketAddr,
-    /// Shared owner of the smoltcp socket. `Clone` shares it, so a clone does
-    /// not remove the socket while another clone still uses it.
-    owner: Arc<OverlayStreamOwner>,
+    /// Shared owner of the smoltcp socket, held only for its drop side effect:
+    /// the socket is removed exactly once, on the last drop. `Clone` shares it,
+    /// so a clone does not remove the socket while another clone still uses it.
+    /// The leading underscore marks the field as unread on purpose.
+    _owner: Arc<OverlayStreamOwner>,
 }
 
 /// The single owner of an [`OverlayStream`]'s smoltcp socket. Clones of the

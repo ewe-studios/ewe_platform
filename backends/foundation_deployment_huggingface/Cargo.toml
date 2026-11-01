@@ -23,8 +23,8 @@ walkdir = "2.5"
 derive_more = {workspace = true }
 chrono = {workspace = true }
 tracing = { workspace = true }
-foundation_core = { path = "../foundation_core", version = "0.0.6" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
+foundation_core = { path = "../foundation_core", version = "0.0.7" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.4" }
 
 [dev-dependencies]

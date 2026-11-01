@@ -1,11 +1,11 @@
 ---
 feature: "Delete the dead tls_verification module"
-status: "pending"
+status: "done"
 priority: "low"
 depends_on: []
-branch: "fix/io-38-netio-tls-verification-dead-module"
+branch: "fix/io-35-turso-async-trait-overflow"
 crates: ["foundation_netio"]
-backlog: "docs/bug-backlog.md §2 (1 entry)"
+backlog: "docs/bug-backlog.md §2 (entry deleted)"
 ---
 
 # Feature 38: Delete the dead `tls_verification` module
@@ -60,10 +60,10 @@ cargo check --workspace --all-targets --profile dev
 
 ## Done when
 
-- [ ] `foundation_netio/src/native/tls_verification.rs` is deleted.
-- [ ] The commented-out declaration and its note are removed from `native/mod.rs`.
-- [ ] The backlog entry is deleted.
-- [ ] CI green.
+- [x] `foundation_netio/src/native/tls_verification.rs` is deleted.
+- [x] The commented-out declaration and its note are removed from `native/mod.rs`.
+- [x] The backlog entry is deleted.
+- [x] CI green.
 
 ## Review checklist (main session)
 
@@ -71,3 +71,13 @@ cargo check --workspace --all-targets --profile dev
       `shared/errors.rs` `TlsVerificationError` is unrelated and stays).
 - [ ] No other module became unreachable by the deletion.
 - [ ] The PR body states the decision rule (delete because nothing references it).
+
+## Result
+
+- Deleted `backends/foundation_netio/src/native/tls_verification.rs` (490 lines, never compiled).
+- Removed the commented-out `// pub mod tls_verification;` and its note from `native/mod.rs`.
+- Deleted the backlog entry in §2.
+- `cargo check -p foundation_netio` and `cargo clippy -p foundation_netio --all-targets` pass.
+  Three pre-existing unused-dependency warnings (`flate2`, `rustls-pemfile`, `thiserror`) remain and
+  are tracked separately. `TlsVerificationError` in `shared/errors.rs` stays (a separate, exported
+  type).

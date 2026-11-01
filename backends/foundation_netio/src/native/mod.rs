@@ -11,5 +11,3 @@ pub mod ssl;
 #[cfg(all(feature = "quic", not(target_family = "wasm")))]
 pub mod quic_listener;
 
-// Dead code: tls_verification was never wired in.
-// pub mod tls_verification;

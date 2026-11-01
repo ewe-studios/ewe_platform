@@ -31,7 +31,7 @@ thiserror = { workspace = true }
 # (SSH key provisioning deps are native-only — see the native target section below.)
 
 # Foundation deps
-foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_core = { path = "../foundation_core", version = "0.0.7" }
 foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
 # Cross-platform HTTP client (`HttpClientBuilder`) for the icon proxy etc.
 # `default-features = false`; the right backend comes from the target (multi on

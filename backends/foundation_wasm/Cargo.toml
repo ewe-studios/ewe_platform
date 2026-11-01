@@ -56,5 +56,5 @@ workspace = true
 
 [dev-dependencies]
 # `tests/wasi_host.rs` uses `#[wasm_test]`; the library itself does not.
-foundation_macros = { path = "../foundation_macros", version = "0.0.6" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
 tempfile = "3.10"

@@ -73,7 +73,7 @@ wasm-embedded-js = [
 [dependencies]
 # Shared across features.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
-foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["multi"] }
 foundation_compact = { path = "../foundation_compact", version = "0.2.2", optional = true }
 which = { version = "7", optional = true }
 base64 = "0.22"
@@ -88,7 +88,7 @@ foundation_codegen = { path = "../foundation_codegen", version = "0.1.2", option
 foundation_wasm_ui = { path = "../foundation_wasm_ui", version = "0.1.1", optional = true, features = ["embedded-js"] }
 foundation_http = { path = "../foundation_http", version = "0.0.3", optional = true }
 foundation_browser = { path = "../foundation_browser", version = "0.0.3", optional = true }
-foundation_macros = { path = "../foundation_macros", version = "0.0.6", optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.7", optional = true }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.6", optional = true }
 portpicker = { workspace = true, optional = true }
 tempfile = { version = "3", optional = true }

@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: features 38 and 40 done, and the publish fix landed, on
+  `fix/io-35-turso-async-trait-overflow`. Feature 38 deleted the dead
+  `foundation_netio/src/native/tls_verification.rs` module (490 lines, never declared)
+  and the commented-out `// pub mod tls_verification;` in `native/mod.rs`. Feature 40
+  renamed `OverlayStream.owner` to `_owner` (option 1) in `netstack.rs`; the
+  `Arc<OverlayStreamOwner>` still keeps the smoltcp socket alive until the last drop.
+  The publish fix bumped `foundation_core` and `foundation_macros` to 0.0.7 and every
+  consumer dependency to `0.0.7` (43 manifests plus the lock), so `foundation_reactor`
+  0.0.1 no longer fails tarball verification on the stale published `foundation_core`
+  0.0.6 (E0425/E0407). The `release-plz release-pr` failure was a root-manifest
+  `cargo-features = ["codegen-backend"]` already fixed on master by `df86d7e6d`.
+  Verification: `cargo check` and `clippy` clean for the touched crates; the netstack
+  dataplane tests pass 7/7. A pre-existing `tests/fd/registration.rs` edge-triggered
+  failure is tracked in the backlog §13 and is unrelated. PR: see the PR.
+
 - 2026-11-01: feature 35 done (with feature 34) on
   `fix/io-35-turso-async-trait-overflow`. The `recursion_depth_exceeding_limit`
   warning came from the `turso` crate's deep async chain, not from the

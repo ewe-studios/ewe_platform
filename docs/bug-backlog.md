@@ -25,10 +25,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
-- **`tls_verification.rs` is dead code.** The module is never declared
-  (`native/mod.rs` has `// pub mod tls_verification;` commented out), so its types are not
-  compiled and its former inline tests were dead too. Fix: wire the module in if TLS
-  certificate verification is still wanted, or delete the file and the commented-out line.
 - **DNS resolution blocks the HTTP client task.**
   `SystemDnsResolver::resolve` (`shared/client/dns.rs:130`) calls
   `to_socket_addrs()`, a blocking system call, inside the non-blocking connect
@@ -316,10 +312,12 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **`OverlayStream.owner` is never read.** `src/dataplane/netstack.rs:717` holds an
-  `Arc<OverlayStreamOwner>` only for its drop side effect (remove the smoltcp socket on the
-  last drop). Dead-code analysis ignores the derived `Clone` use, so the field warns. Fix:
-  rename the field `_owner`, or add a justified `#[allow(dead_code)]`.
+- **`tests/fd/registration.rs::registered_fd_edge_triggered` fails the edge-triggered contract.**
+  Line 249 writes 5 bytes, reads 2, then polls again with no new write and expects 0 events; it
+  gets 1 readable event for the 3 unread bytes. The readiness backend reports readable as level
+  state instead of only on a new write, so the edge-triggered promise is not kept. Pre-existing on
+  master (wired in b91e25bc9) and unrelated to the version bump and features 38/40. Likely fix:
+  clear the per-fd edge after the first readable report and re-report only on a new write.
 - **The shared-reactor tests use Linux-only calls.** `tests/reactor_shared_selector_tests.rs`
   calls `libc::pipe2` (not present in `libc` on macOS) and reads `/proc/self/fd` (Linux only),
   so `cargo check --workspace --all-targets` fails on macOS. The `Reactor` itself has a kqueue
@@ -496,6 +494,21 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `CREATE_TABLE_SQL`, `RECORD_SQL`, `SELECT_SQL`, `sql_check`, `sql_record`,
   `sql_reset` are unused in the feature set the connectrpc test builds pull
   in. Fix: gate them on the features that use them.
+- **`foundation_reactor` publish fails tarball verification: `foundation_core` is stale on crates.io.**
+  `foundation_reactor` 0.0.1 (a new crate) depends on `foundation_core` 0.0.6, but its source uses
+  `foundation_core::valtron::request_executor_resume` (`reactor.rs:840`) and
+  `EventReadiness::clear` (`fd_readiness.rs:143`) that were added to the local tree after 0.0.6 was
+  published. `release-plz release` verifies the tarball against the published 0.0.6, so it fails with
+  E0425/E0407. Fix: bump `foundation_core` (and its `version_group` partner `foundation_macros`) to
+  0.0.7 and update the dependents, so 0.0.7 publishes before `foundation_reactor`.
+- **`release-plz release-pr` fails: the workspace root set the nightly-only `codegen-backend`.**
+  `release-plz` runs `cargo package --list` (on the stable release toolchain from
+  `ci/release-rust-toolchain`) in a temp copy of the repo. To package `foundation_ui_traits` it must
+  resolve `edition.workspace = true`, so it parses the workspace root `Cargo.toml`; the root's
+  `cargo-features = ["codegen-backend"]` is nightly-only, so stable Cargo refuses to load it
+  (`feature codegen-backend is required`) and the bump never computes. Fixed by df86d7e6d
+  ("CI(release): build releases on stable"), which dropped the codegen-backend feature and switched
+  the release pipeline to the stable toolchain.
 
 ## 17. foundation_vectors
 
