@@ -438,13 +438,13 @@ impl std::fmt::Debug for FnTool {
 #[async_trait]
 impl ToolImpl for FnTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: self.name.clone(),
             category: self.category.clone(),
             description: self.description.clone(),
             arguments: self.arguments.clone(),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {

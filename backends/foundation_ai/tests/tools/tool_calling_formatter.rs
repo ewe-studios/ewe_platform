@@ -22,13 +22,13 @@ fn make_tool(name: &str, description: &str) -> Tool {
     let opts: ValidationOptions = scheme::object()
         .required("query", scheme::string().min_len(1))
         .build();
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: name.to_string(),
         category: "search".into(),
         description: description.to_string(),
         arguments: Args::new(opts),
         returns: None,
-    })
+    }))
 }
 
 // ============================================================================
@@ -577,13 +577,13 @@ fn make_tool_with_returns(name: &str, description: &str, returns_schema: serde_j
         .required("query", scheme::string().min_len(1))
         .build();
     let returns_opts = ValidationOptions::with_schema(returns_schema);
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: name.to_string(),
         category: "search".into(),
         description: description.to_string(),
         arguments: Args::new(opts),
         returns: Some(Args::new(returns_opts)),
-    })
+    }))
 }
 
 #[test]

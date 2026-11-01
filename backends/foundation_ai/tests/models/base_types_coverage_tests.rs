@@ -321,7 +321,7 @@ fn schema_opts(json: serde_json::Value) -> foundation_jsonschema::ValidationOpti
 }
 
 fn single(name: &str, props: serde_json::Value) -> Tool {
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: name.into(),
         category: "test".into(),
         description: "d".into(),
@@ -329,7 +329,7 @@ fn single(name: &str, props: serde_json::Value) -> Tool {
             serde_json::json!({"type": "object", "properties": props}),
         )),
         returns: None,
-    })
+    }))
 }
 
 fn multi(name: &str, cmds: &[&str]) -> Tool {

@@ -1276,7 +1276,7 @@ pub struct ToolFunctionSpec {
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum Tool {
     /// A leaf capability (e.g. `read`, `bash`).
-    SingleCommand(ToolDefinition),
+    SingleCommand(Box<ToolDefinition>),
     /// A capability exposing several commands under one logical tool.
     MultiCommands(String, Vec<ToolDefinition>),
 }
@@ -1302,7 +1302,7 @@ impl Tool {
     /// commands for `MultiCommands`. Convenience for providers rendering commands.
     pub fn definitions(&self) -> impl Iterator<Item = &ToolDefinition> {
         match self {
-            Tool::SingleCommand(d) => std::slice::from_ref(d).iter(),
+            Tool::SingleCommand(d) => std::slice::from_ref(d.as_ref()).iter(),
             Tool::MultiCommands(_, v) => v.iter(),
         }
     }
@@ -1450,14 +1450,14 @@ pub struct ToolDeclarations {
 impl Default for ToolDeclarations {
     fn default() -> Self {
         Self {
-            shed: Some(Tool::SingleCommand(ToolDefinition {
+            shed: Some(Tool::SingleCommand(Box::new(ToolDefinition {
                 name: "shed".into(),
                 category: "shed".into(),
                 description: "Query the tool registry for available tools by category or search."
                     .into(),
                 arguments: Args::empty(),
                 returns: None,
-            })),
+            }))),
             tools: Vec::new(),
         }
     }

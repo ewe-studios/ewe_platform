@@ -1472,13 +1472,13 @@ fn build_chat_request_covers_tool_and_format_branches() {
         },
     };
 
-    let read_tool = Tool::SingleCommand(ToolDefinition {
+    let read_tool = Tool::SingleCommand(Box::new(ToolDefinition {
         name: "read".to_string(),
         category: "test".into(),
         description: "read a file".to_string(),
         arguments: foundation_ai::types::Args::empty(),
         returns: None,
-    });
+    }));
 
     let interaction = ModelInteraction {
         system_prompt: None,

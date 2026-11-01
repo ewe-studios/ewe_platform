@@ -22,13 +22,13 @@ struct EchoTool;
 #[async_trait]
 impl ToolImpl for EchoTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "echo".into(),
             description: "Echoes input".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
         returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -56,13 +56,13 @@ struct FailingTool {
 #[async_trait]
 impl ToolImpl for FailingTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "fail".into(),
             description: "Always fails".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
         returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -374,13 +374,13 @@ struct FlakyTool {
 #[async_trait]
 impl ToolImpl for FlakyTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "flaky".into(),
             description: "Fails then succeeds".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
         returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -458,13 +458,13 @@ struct PanicTool;
 #[async_trait]
 impl ToolImpl for PanicTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "boom".into(),
             description: "Panics".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
         returns: None,
-        })
+        }))
     }
     async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         panic!("intentional tool panic");
@@ -493,7 +493,7 @@ struct StrictTool;
 #[async_trait]
 impl ToolImpl for StrictTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "strict".into(),
             description: "Requires a 'path' argument".into(),
             arguments: Args::from_value(serde_json::json!({
@@ -503,7 +503,7 @@ impl ToolImpl for StrictTool {
             })),
             category: "read".into(),
         returns: None,
-        })
+        }))
     }
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
         if !arguments.contains_key("path") {

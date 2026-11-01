@@ -2,6 +2,18 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §10 clippy-warnings (foundation_ai) fixed on
+  `fix/io-20-vfs-process-ipc`. Eight clippy lints are cleared: one
+  `needless_pass_by_value` (agent_loop), one `wrong_self_convention` (turn),
+  one `arc_with_non_send_sync` (llamacpp), two `cast_possible_truncation`
+  (candle), one `must_use_candidate` (testing), and two `large_enum_variant`.
+  The two large variants are boxed: `Tool::SingleCommand(Box<ToolDefinition>)`
+  and the candle Llama cache (`Box<candle_llama::Cache>`). Boxing `Tool` is a
+  breaking API change, so `foundation_ai` bumps 0.0.4 -> 0.0.5 and its two
+  versioned consumers (`ewe_platform`, `answerme-agent`) follow. The backlog
+  entry is removed. A new issue is recorded: `cargo test` with candle fails to
+  assemble `gemm-f16` on Apple Silicon without the `fullfp16` target feature.
+
 - 2026-11-02: bug-backlog §10 flaky-test fix (foundation_ai) done on
   `fix/io-20-vfs-process-ipc`. `openai_provider::test_provider_streaming_tool_calls`
   flaked when the mock SSE response stayed open. The SSE client then hit its

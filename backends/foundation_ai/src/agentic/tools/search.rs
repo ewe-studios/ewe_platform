@@ -169,7 +169,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> From<ContextProvider<
 #[async_trait]
 impl ToolImpl for SearchContextTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "search_context".into(),
             description: "Search your knowledge — semantic recall over prior messages, \
                           distilled memory (observations/reflections), and the code-graph. \
@@ -193,7 +193,7 @@ impl ToolImpl for SearchContextTool {
             ),
             category: "search".into(),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -282,7 +282,7 @@ impl SearchFileTool {
 #[async_trait]
 impl ToolImpl for SearchFileTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "search_file".into(),
             description: "Search files: grep file content, find by path pattern, \
                           multi-file grep. NOT for memory recall — use search_context."
@@ -309,7 +309,7 @@ impl ToolImpl for SearchFileTool {
             ),
             category: "search_files".into(),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {

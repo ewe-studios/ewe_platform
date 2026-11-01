@@ -31,7 +31,7 @@ struct GreetTool;
 #[async_trait]
 impl ToolImpl for GreetTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "greet".into(),
             category: "custom".into(),
             description: "Greet someone by name.".into(),
@@ -45,7 +45,7 @@ impl ToolImpl for GreetTool {
                     .build(),
             ),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {

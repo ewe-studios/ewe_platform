@@ -215,7 +215,7 @@ struct NamedTool {
 #[async_trait::async_trait]
 impl ToolImpl for NamedTool {
     fn definition(&self) -> foundation_ai::types::Tool {
-        foundation_ai::types::Tool::SingleCommand(sample_def(self.name, self.description, "test"))
+        foundation_ai::types::Tool::SingleCommand(Box::new(sample_def(self.name, self.description, "test")))
     }
 
     async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {

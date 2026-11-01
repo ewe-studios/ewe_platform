@@ -615,7 +615,7 @@ fn build_llama_model(
     })?;
     let inner = CandleModelInner::Llama {
         model,
-        cache,
+        cache: Box::new(cache),
         config: llama_config,
         dtype,
         device: device.clone(),
@@ -641,8 +641,8 @@ fn eos_from_config_json(config_path: &std::path::Path) -> Option<u32> {
     let raw = std::fs::read_to_string(config_path).ok()?;
     let json: serde_json::Value = serde_json::from_str(&raw).ok()?;
     match json.get("eos_token_id")? {
-        serde_json::Value::Number(n) => n.as_u64().map(|v| v as u32),
-        serde_json::Value::Array(a) => a.first().and_then(serde_json::Value::as_u64).map(|v| v as u32),
+        serde_json::Value::Number(n) => n.as_u64().and_then(|v| u32::try_from(v).ok()),
+        serde_json::Value::Array(a) => a.first().and_then(serde_json::Value::as_u64).and_then(|v| u32::try_from(v).ok()),
         _ => None,
     }
 }
@@ -710,7 +710,7 @@ fn build_gemma2_model(
 enum CandleModelInner {
     Llama {
         model: candle_llama::Llama,
-        cache: candle_llama::Cache,
+        cache: Box<candle_llama::Cache>,
         config: candle_llama::Config,
         dtype: DType,
         device: Device,
@@ -737,7 +737,7 @@ impl CandleModelInner {
                 device,
                 ..
             } => {
-                *cache = candle_llama::Cache::new(false, *dtype, config, device)?;
+                **cache = candle_llama::Cache::new(false, *dtype, config, device)?;
                 Ok(())
             }
             CandleModelInner::Gemma2(m) => {

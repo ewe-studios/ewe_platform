@@ -1339,7 +1339,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
 
     fn transition_inner_executing(
         &mut self,
-        ctx: Ctx,
+        ctx: &Ctx,
     ) -> TaskStatus<SessionRecord, AgentProgress> {
         let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
@@ -1446,7 +1446,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
             let signal = Arc::new(AtomicBool::new(false));
             cancel_signals.push(Arc::clone(&signal));
             let task = CancellableFutureTask::new(fut, signal);
-            active = Some(drive_iterator(task, ctx.clone()));
+            active = Some(drive_iterator(task, Ctx::clone(ctx)));
         }
 
         // Poll the driven iterator.
@@ -1670,7 +1670,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
             AgentLoopState::InnerAssembling { .. } => Some(self.transition_inner_assembling(ctx)),
             AgentLoopState::InnerGenerate { .. } => Some(self.transition_inner_generate()),
             AgentLoopState::InnerToolCalls { .. } => Some(self.transition_inner_tool_calls()),
-            AgentLoopState::InnerExecuting { .. } => Some(self.transition_inner_executing(ctx)),
+            AgentLoopState::InnerExecuting { .. } => Some(self.transition_inner_executing(&ctx)),
             AgentLoopState::InnerEmitResults { .. } => Some(self.transition_inner_emit_results()),
             AgentLoopState::OutputProcessing => Some(self.transition_output_processing()),
             AgentLoopState::Flushing { .. } => self.transition_flushing(ctx),

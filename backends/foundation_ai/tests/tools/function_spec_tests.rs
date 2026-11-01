@@ -12,23 +12,23 @@ fn make_opts() -> ValidationOptions {
 }
 
 fn make_tool() -> Tool {
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: "search".into(),
         category: "search".into(),
         description: "Search the web".into(),
         arguments: Args::new(make_opts()),
         returns: None,
-    })
+    }))
 }
 
 fn make_tool_with_returns(schema: serde_json::Value) -> Tool {
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: "search".into(),
         category: "search".into(),
         description: "Search the web".into(),
         arguments: Args::new(make_opts()),
         returns: Some(Args::new(ValidationOptions::with_schema(schema))),
-    })
+    }))
 }
 
 #[test]

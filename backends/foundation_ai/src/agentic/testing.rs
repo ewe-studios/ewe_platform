@@ -158,6 +158,7 @@ impl MockModelProvider {
     }
 
     /// Number of generate/stream calls so far.
+    #[must_use]
     pub fn call_count(&self) -> usize {
         self.inner.call_count.load(Ordering::Relaxed)
     }
@@ -615,13 +616,13 @@ impl MockTool {
 #[async_trait]
 impl ToolImpl for MockTool {
     fn definition(&self) -> crate::types::Tool {
-        crate::types::Tool::SingleCommand(ToolDefinition {
+        crate::types::Tool::SingleCommand(Box::new(ToolDefinition {
             name: self.name.clone(),
             category: self.category.clone(),
             description: self.description.clone(),
             arguments: crate::types::Args::from_value(serde_json::json!({})),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(

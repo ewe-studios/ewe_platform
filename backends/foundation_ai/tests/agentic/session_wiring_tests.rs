@@ -122,7 +122,7 @@ impl RecordingTool {
 #[async_trait]
 impl ToolImpl for RecordingTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "greet".into(),
             category: "custom".into(),
             description: "Greet someone by name.".into(),
@@ -132,7 +132,7 @@ impl ToolImpl for RecordingTool {
                     .build(),
             ),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {

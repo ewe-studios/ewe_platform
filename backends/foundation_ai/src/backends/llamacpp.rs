@@ -448,6 +448,7 @@ impl LlamaModels {
     /// and every stream builds its own `llama_context` (and its own KV cache and
     /// sampler) from the shared weights, which is what makes concurrent agents
     /// safe.
+    #[allow(clippy::arc_with_non_send_sync)]
     fn share_weights(&self) -> Self {
         let inner = self.inner.lock().expect("model inner poisoned");
         Self {

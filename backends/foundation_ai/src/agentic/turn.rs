@@ -659,7 +659,7 @@ where
     M: MemoryStore + 'static,
 {
     /// The [`TurnTextEvent`] `event` maps to, if any.
-    fn from_event(&mut self, event: TurnEvent) -> Option<TurnTextEvent> {
+    fn map_event(&mut self, event: TurnEvent) -> Option<TurnTextEvent> {
         match event {
             TurnEvent::Text(chunk) => {
                 let new = if !self.shown.is_empty() && chunk.starts_with(self.shown.as_str()) {
@@ -700,7 +700,7 @@ where
         loop {
             match Pin::new(&mut this.events).poll_next(cx) {
                 Poll::Ready(Some(event)) => {
-                    if let Some(text) = this.from_event(event) {
+                    if let Some(text) = this.map_event(event) {
                         return Poll::Ready(Some(text));
                     }
                 }

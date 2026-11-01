@@ -66,7 +66,7 @@ pub fn shed_definition() -> Tool {
         "required": ["description"]
     });
 
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: SHED_TOOL_NAME.into(),
         description: "Find the tools available for a task. Describe what you need; \
                       every tool returned can be called from then on. Call a tool only \
@@ -77,7 +77,7 @@ pub fn shed_definition() -> Tool {
         )),
         category: "discovery".into(),
         returns: None,
-    })
+    }))
 }
 
 // ---------------------------------------------------------------------------
@@ -151,7 +151,7 @@ impl ToolDiscovery {
     /// # Errors
     /// [`ToolError::Execution`] if embedding or the vector insert fails.
     pub async fn index(&self, def: &ToolDefinition) -> Result<(), ToolError> {
-        self.index_tool(&Tool::SingleCommand(def.clone())).await
+        self.index_tool(&Tool::SingleCommand(Box::new(def.clone()))).await
     }
 
     /// Index a registered tool (single or multi command) under its name.

@@ -209,13 +209,13 @@ fn text_formatter_parses_all_json_arg_types() {
 #[test]
 fn text_formatter_format_tools_and_instructions() {
     let formatter = TextBasedFormatter;
-    let tools = vec![Tool::SingleCommand(ToolDefinition {
+    let tools = vec![Tool::SingleCommand(Box::new(ToolDefinition {
         name: "ping".to_string(),
         category: "test".into(),
         description: "pong".to_string(),
         arguments: foundation_ai::types::Args::empty(),
         returns: None,
-    })];
+    }))];
     let formatted = formatter.format_tools(&tools).unwrap();
     let arr = formatted.as_array().expect("array of tool schemas");
     assert_eq!(arr.len(), 1);
