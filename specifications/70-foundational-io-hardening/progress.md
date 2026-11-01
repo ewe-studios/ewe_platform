@@ -21,7 +21,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   before the build ran.
 
 - 2026-11-01: feature 17 (foundation_db) PR 2 of 2 (E7–E12) done on
-  `fix/io-20-vfs-process-ipc` (not committed). E7 moves the auth-table cleanup
+  `fix/io-20-vfs-process-ipc` (committed as `28f951edf`). E7 moves the auth-table cleanup
   to Unix milliseconds (migration 026 converts legacy whole-second rows with an
   idempotent `< 10000000000` guard; `rate_limits` stays in seconds;
   `run_full_cleanup` reads both clocks). E8 makes the SQL rate-limit record one
@@ -38,10 +38,8 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   Verification: `cargo test -p foundation_db --profile uat` green (all targets);
   both wasm32 gates (`--features wasm` and `--features wasm-bindgen-storage`)
   clean; `rg` for public `*_async` in `src/wasm` is empty; `ci.py plan` lists
-  `examples`. The six-crate CI block and the workspace check are still to run:
-  the local disk filled (ENOSPC) during the first crate's wasm step, so the
-  block and the workspace check could not complete. Space must be freed (the
-  `target/` LLVM artefacts) before they can run.
+  `examples`. The six-crate CI block and the workspace check are green (dev
+  profile) after the disk was freed; the Linux CI gate is the remaining check.
 
 - 2026-11-01: bug-backlog §13 (kqueue waker) fixed on
   `fix/io-20-vfs-process-ipc`. The macOS kqueue waker (`EVFILT_USER`) returned

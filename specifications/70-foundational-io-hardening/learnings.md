@@ -14,11 +14,13 @@ _What an agent learned that the next agent needs. Newest first._
   `thread::spawn` closure — clone the `Arc` first. `ErrorTrace` exposes its
   context with `current_context()`, not `as_error()`.
 
-- 2026-11-01 (feature 17 PR 2, verification): the six-crate CI block and the
-  workspace check are not yet run: the local disk filled (ENOSPC) during
-  `foundation_db`'s wasm step, so `cargo` could not create the `target/` build
-  directories. The crate-level results that did run are green. Free space in
-  `target/` (regenerated LLVM artefacts) before re-running the block.
+- 2026-11-01 (feature 17 PR 2, verification): the six-crate CI block
+  (`foundation_db`, `foundation_auth`, `foundation_deployment_cloudflare`,
+  `foundation_nativeapis`, `foundation_vectors`, `foundation_cedar`) and the
+  workspace check are green in the dev profile after the disk was freed. The
+  only warning is a pre-existing unused `urlencoding` dependency in
+  `foundation_deployment_cloudflare` (recorded in backlog §6). Committed as
+  `28f951edf`; the Linux CI gate is the remaining check.
 
 - 2026-11-01 (feature 17 PR 2, foundation_db): a migration that rebuilds a table
   cannot be tested by creating the old shape and then running the whole
