@@ -365,7 +365,7 @@ impl Selector {
     /// Wake the poll selector by triggering the EVFILT_USER event.
     pub fn wake(&self, _token: Token) -> io::Result<()> {
         let waker_token = self.waker_token.lock().unwrap();
-        if waker_token.is_some() {
+        if let Some(wt) = *waker_token {
             let mut event: libc::kevent = unsafe { std::mem::zeroed() };
             unsafe {
                 ev_set(
@@ -375,7 +375,7 @@ impl Selector {
                     0,
                     libc::NOTE_TRIGGER,
                     0,
-                    std::ptr::null_mut(),
+                    wt.0 as *mut libc::c_void,
                 );
             }
 

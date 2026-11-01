@@ -2,6 +2,16 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (bug-backlog §13, foundation_reactor): the macOS kqueue waker fix.
+  `filt_usertrigger` in XNU copies the `NOTE_TRIGGER` kevent's `udata` onto the
+  knote (`kn->kn_udata = kev->udata`), so the returned event's `udata` is the
+  trigger's, not the one stored by `EV_ADD`. `register_waker` stored the token as
+  the `EV_ADD` `udata`, but `wake` triggered with a null `udata`, so the event
+  came back with `Token(0)`. Fix: in `wake`, pass the stored token
+  (`waker_token.0 as *mut c_void`) as the trigger `udata`. Verified by the 12
+  tests in `foundation_nativeapis --test poll` (dev profile), including the two
+  previously failing `waker_wakes_*` tests.
+
 - 2026-11-01 (version bump, workspace): commit `a896ff0bb` bumped `foundation_db`
   to 0.0.5 but missed three consumers (`foundation_deployment_docker`,
   `foundation_deployment_hetzner`, `foundation_deployment_digitalocean`). They

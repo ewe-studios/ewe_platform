@@ -231,13 +231,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **The macOS kqueue waker returns `Token(0)`, not the registered token.** `Waker`
-  registers an `EVFILT_USER` note with `udata = token` (see `register_waker`), but
-  `wake` triggers it with `udata = null`, and the note comes back with `udata = 0`.
-  `Event::token()` then reads `Token(0)`, so `waker_wakes_from_another_thread` and
-  `waker_wakes_from_multiple_threads` fail on macOS. Linux epoll uses a different
-  waker and is not affected. Fix: pass the token in the `NOTE_TRIGGER` event's
-  `udata`, or map the waker's `ident` back to the stored `waker_token`.
 - **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
   (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
   file, its metadata and its whiteout as separate blobs, and a blob store has

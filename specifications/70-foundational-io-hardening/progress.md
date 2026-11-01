@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: bug-backlog §13 (kqueue waker) fixed on
+  `fix/io-20-vfs-process-ipc`. The macOS kqueue waker (`EVFILT_USER`) returned
+  `Token(0)` because `wake` triggered `NOTE_TRIGGER` with a null `udata` while
+  `register_waker` stored the token as the `EV_ADD` `udata`; XNU copies the
+  trigger's `udata` onto the knote. Fix: `wake` now passes the stored token as
+  the trigger `udata`. The two failing tests (`waker_wakes_from_another_thread`,
+  `waker_wakes_from_multiple_threads`) now pass; the full `poll` target is 12/12
+  green (dev profile). The backlog §13 entry is removed.
+
 - 2026-11-01: version-bump reconciliation. Commit `a896ff0bb` (foundation_db
   0.0.4 to 0.0.5) missed three consumers that pin `version = "0.0.4"` on the
   line after `path` in a multi-line `[dependencies.foundation_db]` table:
