@@ -216,16 +216,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **The `fuse_vfs` test fails to compile in the Linux CI `vfs-fuse` run.**
-  `tests/fuse_vfs/mod.rs:1` imports `native::vfs::fuse::{flags_to_open_mode,
-  vfs_error_to_errno, FuseMount, FuseMountOptions, ROOT_INO}` (gated
-  `all(target_os = "linux", feature = "vfs-fuse")`). The `fuse` module
-  (`src/native/vfs/fuse.rs`) exists and exports all of those items, and `fuser`
-  0.15 is pure Rust with default features (no fuse3 pkg-config needed), so the
-  exact error is not yet pinned — an earlier run showed an unresolved import and
-  missing `MemoryFs` methods. Fix: reproduce the Linux `vfs-fuse` build to get
-  the current error, then align the test with the module API (or the reverse).
-  Seen in the six-crate Linux CI block, not on macOS.
 - **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
   (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
   file, its metadata and its whiteout as separate blobs, and a blob store has
