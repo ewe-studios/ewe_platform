@@ -127,14 +127,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 10. foundation_ai
 
-- **A cancelled flush can write a record twice.** A record stays in
-  `MessageApi`'s `retry` slot until its write returns, so a flush future
-  dropped after the store accepted the write but before it returned writes the
-  record again on the next flush. Feature 16 E6 landed the async flush seam and
-  the flush guard that wakes waiters on a drop; the remaining fix is an
-  idempotent write in `foundation_db` (upsert on the document id for
-  `append_with_id`, and a stable id for memory records). Blocked on
-  `foundation_db`, which feature 17 owns.
 - **The `agentic_tests` target warns `recursion_depth_exceeding_limit`.**
   The `TursoStorage` test in `tests/agentic/session_mock_tests.rs` drives a deep
   `Send` auto-trait resolution inside an `async_trait` future, so the compiler

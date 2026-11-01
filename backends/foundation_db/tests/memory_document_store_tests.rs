@@ -82,6 +82,45 @@ fn append_with_id_uses_caller_id() {
 }
 
 #[test]
+fn append_with_id_is_idempotent() {
+    block_on(async {
+        let store = MemoryDocumentStore::new();
+        let id = new_scru128_string();
+        let first = store
+            .append_with_id("k", &id, serde_json::json!({"x": 1}))
+            .await
+            .unwrap();
+        assert_eq!(first.id, id, "the stable caller id is kept");
+        let second = store
+            .append_with_id("k", &id, serde_json::json!({"x": 1}))
+            .await
+            .unwrap();
+        assert_eq!(second.id, id);
+        assert_eq!(store.count("k").await.unwrap(), 1, "re-append must not duplicate");
+        let got = values(store.scan_from::<serde_json::Value>("k", &id, 0).await.unwrap()).await;
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0]["x"], 1);
+    });
+}
+
+#[test]
+fn append_promotable_with_id_is_idempotent() {
+    block_on(async {
+        let store = MemoryDocumentStore::new();
+        let id = new_scru128_string();
+        let note = Note { kind: "observation".into(), text: "saw a cat".into() };
+        let first = store.append_promotable_with_id("k", &id, note).await.unwrap();
+        assert_eq!(first.id, id);
+        let again = store
+            .append_promotable_with_id("k", &id, Note { kind: "observation".into(), text: "saw a cat".into() })
+            .await
+            .unwrap();
+        assert_eq!(again.id, id);
+        assert_eq!(store.count("k").await.unwrap(), 1, "re-append must not duplicate");
+    });
+}
+
+#[test]
 fn append_promotable_round_trips_columns() {
     block_on(async {
         let store = MemoryDocumentStore::new();

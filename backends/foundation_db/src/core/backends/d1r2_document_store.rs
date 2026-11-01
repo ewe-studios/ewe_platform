@@ -149,7 +149,8 @@ impl<Q: QueryStore, B: BlobStore> D1R2DocumentStore<Q, B> {
         let sql = format!(
             "INSERT INTO {} \
              (collection_key, doc_id, content, metadata, title, summary, record_type, r2_key) \
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?) \
+             ON CONFLICT(collection_key, doc_id) DO NOTHING",
             self.table
         );
         self.query_store.execute(&sql, &params).await?;

@@ -39,12 +39,15 @@ pub(crate) mod sql {
         }
     }
 
-    /// `INSERT` with all promoted columns.
+    /// `INSERT` with all promoted columns, idempotent on `(collection_key, doc_id)`
+    /// (F16 E7). The unique index from migration 020 makes a re-append of the same
+    /// id a no-op; fresh-id appends never hit the conflict path.
     pub fn insert_sql(table: &str) -> String {
         format!(
             "INSERT INTO {table} \
              (collection_key, doc_id, content, metadata, title, summary, record_type) \
-             VALUES (?, ?, ?, ?, ?, ?, ?)"
+             VALUES (?, ?, ?, ?, ?, ?, ?) \
+             ON CONFLICT(collection_key, doc_id) DO NOTHING"
         )
     }
 

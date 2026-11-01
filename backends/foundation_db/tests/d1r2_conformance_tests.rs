@@ -16,6 +16,7 @@
 
 use std::sync::Mutex;
 
+use foundation_compact::ids::new_scru128_string;
 use foundation_db::traits::{BlobStore, DocumentStore};
 use foundation_db::{D1R2DocumentStore, MemoryStorage, StorageError, TursoStorage};
 use futures_lite::StreamExt;
@@ -46,6 +47,60 @@ fn make_store() -> (D1R2DocumentStore<TursoStorage, MemoryStorage>, MemoryStorag
 
 fn blob_key(collection: &str, doc_id: &str) -> String {
     format!("doc/{collection}/{doc_id}")
+}
+
+#[test]
+fn append_with_id_is_idempotent() {
+    let (store, _blobs) = make_store();
+    futures_lite::future::block_on(async {
+        let id = new_scru128_string();
+        let first = store
+            .append_with_id("k", &id, serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
+        assert_eq!(first.id, id);
+        let second = store
+            .append_with_id("k", &id, serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
+        assert_eq!(second.id, id);
+        assert_eq!(store.count("k").await.unwrap(), 1, "re-append must not duplicate");
+        let docs = store.scan_documents("k", 10).await.unwrap();
+        assert_eq!(docs.len(), 1);
+        assert_eq!(docs[0].id, id);
+    });
+}
+
+#[test]
+fn append_with_id_is_idempotent_for_offloaded_documents() {
+    let (store, blobs) = make_store();
+    futures_lite::future::block_on(async {
+        let id = new_scru128_string();
+        let body = "y".repeat(8192); // > 4 KB → offloaded to the blob store
+        let doc = store
+            .append_with_id("k", &id, serde_json::json!({"body": body.clone()}))
+            .await
+            .unwrap();
+        assert!(
+            blobs.blob_exists(&blob_key("k", &doc.id)).await.unwrap(),
+            "large doc must offload"
+        );
+
+        store
+            .append_with_id("k", &id, serde_json::json!({"body": body}))
+            .await
+            .unwrap();
+        assert_eq!(store.count("k").await.unwrap(), 1, "re-append must not duplicate");
+        let back: Vec<serde_json::Value> = store
+            .scan_all::<serde_json::Value>("k")
+            .await
+            .unwrap()
+            .map(Result::unwrap)
+            .collect()
+            .await;
+        assert_eq!(back.len(), 1);
+        assert_eq!(back[0]["body"].as_str().unwrap().len(), 8192);
+    });
 }
 
 #[test]

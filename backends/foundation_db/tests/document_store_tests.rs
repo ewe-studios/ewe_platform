@@ -5,6 +5,7 @@
 //! end-to-end, not just against the in-memory backend.
 
 use foundation_core::valtron::valtron_test;
+use foundation_compact::ids::new_scru128_string;
 use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_db::{MigrationRunner, SqlDocumentStore, TursoStorage, MIGRATIONS};
 use tempfile::TempDir;
@@ -73,6 +74,26 @@ async fn plain_append_leaves_promoted_columns_null() {
     assert_eq!(docs[0].record_type, None);
     assert_eq!(docs[0].title, None);
     assert_eq!(docs[0].summary, None);
+}
+
+#[valtron_test]
+async fn append_with_id_is_idempotent_over_sqlite() {
+    let (_dir, store) = make_store().await;
+    let id = new_scru128_string();
+    let first = store
+        .append_with_id("k", &id, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    assert_eq!(first.id, id);
+    let second = store
+        .append_with_id("k", &id, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    assert_eq!(second.id, id);
+    assert_eq!(store.count("k").await.unwrap(), 1, "re-append must not duplicate");
+    let docs = store.scan_documents("k", 10).await.unwrap();
+    assert_eq!(docs.len(), 1);
+    assert_eq!(docs[0].id, id);
 }
 
 #[valtron_test]

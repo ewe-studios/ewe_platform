@@ -591,6 +591,11 @@ pub trait DocumentStore: Send + Sync {
     ) -> StorageResult<Document>;
 
     /// Append a document with a caller-supplied scru128 `doc_id` (OD-06-5).
+    ///
+    /// Idempotent (F16 E7): appending the same `doc_id` in the same collection
+    /// again is a no-op. The existing document is kept and no duplicate row is
+    /// created. This lets a caller retry a write whose future was dropped after
+    /// the store accepted it, without writing the record twice.
     async fn append_with_id<V: Serialize + Send + 'static>(
         &self,
         key: &str,
@@ -607,6 +612,9 @@ pub trait DocumentStore: Send + Sync {
     ) -> StorageResult<Document>;
 
     /// Like [`append_promotable`](Self::append_promotable) with a caller-supplied `doc_id`.
+    ///
+    /// Idempotent like [`append_with_id`](Self::append_with_id): re-appending
+    /// the same `doc_id` in the same collection is a no-op (F16 E7).
     async fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,
