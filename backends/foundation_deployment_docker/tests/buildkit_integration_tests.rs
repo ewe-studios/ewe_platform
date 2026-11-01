@@ -1,4 +1,4 @@
-//! End-to-end BuildKit tests against a real `buildkitd` over gRPC/HTTP2.
+//! End-to-end `BuildKit` tests against a real `buildkitd` over gRPC/HTTP2.
 //!
 //! WHY: Proves the buffa-generated Control message types + `foundation_connectrpc`
 //! gRPC client actually speak to a live buildkitd — not just round-trip in

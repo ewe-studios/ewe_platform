@@ -1,6 +1,6 @@
-//! Type-level tests for the generated BuildKit gRPC message types.
+//! Type-level tests for the generated `BuildKit` gRPC message types.
 //!
-//! WHY: The BuildKit client drives `foundation_connectrpc::Client<Req, Res>`
+//! WHY: The `BuildKit` client drives `foundation_connectrpc::Client<Req, Res>`
 //! with `ProcedureCodecs::defaults()`, whose bound is `buffa::Message +
 //! Serialize + DeserializeOwned`. These tests prove the buffa-generated Control
 //! message types satisfy that bound and round-trip on both the proto wire and
