@@ -233,6 +233,14 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `ClientTransport::request` (`:211`) and the daemon loop (`:308`), plus
   `src/ipc/platform/linux.rs`. Fix in flight (agent `ae766dfd302c57ff4`). Any
   timeout or buffer bound must be a config field, not a hard-coded `const` (rule 8).
+- **The `fuse_vfs` test fails to compile in the Linux CI `vfs-fuse` run.**
+  `tests/fuse_vfs/mod.rs:1` imports `native::vfs::fuse` (gated
+  `all(target_os = "linux", feature = "vfs-fuse")`) and calls the `MemoryFs`
+  VFS helper methods, but the `vfs-fuse` CI run's feature set leaves the `fuse`
+  module or the `VfsFileSystem` trait methods out of scope. Errors: unresolved
+  import `...::vfs::fuse`; no method `write_file`/`mkdir_all`/`join`. Fix: align
+  the run's features (or the test's `required-features`) so both the fuse module
+  and the VFS traits resolve. Seen in the six-crate Linux CI block, not on macOS.
 - **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
   (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
   file, its metadata and its whiteout as separate blobs, and a blob store has
