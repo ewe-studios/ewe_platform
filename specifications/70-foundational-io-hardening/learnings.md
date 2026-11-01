@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (backlog §13 fuse_vfs fix, foundation_nativeapis): `fuser` 0.15
+  (resolved 0.15.1) declares `default = ["libfuse"]` and `libfuse =
+  ["pkg-config"]`. A bare workspace dependency `fuser = "0.15"` pulls in
+  libfuse, whose build script probes for a system fuse3 via pkg-config and
+  panics when it is absent. The pure-Rust mount implementation is the
+  non-default path: set `default-features = false` on the WORKSPACE dependency.
+  A member-level `default-features = false` on a `fuser = { workspace = true,
+  optional = true }` dependency did not take effect (seen with `cargo tree -e
+  features`); the override must sit on the workspace dependency itself.
+  `fuser`'s public API (MountOption, Session, BackgroundSession, Filesystem,
+  the Reply* types) is not feature-gated and compiles the same in pure-Rust
+  mode, so only the one workspace line changed.
+
 - 2026-11-01 (feature 13 E1, foundation_deployment_platform): a mock daemon can
   serve a `follow=true` log stream with a plain `Content-Length` response. The
   client reads exactly the declared bytes and then ends the stream, so the mock

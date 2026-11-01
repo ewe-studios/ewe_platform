@@ -2,6 +2,23 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §13 (`vfs_search` panic) fixed on
+  `fix/io-20-vfs-process-ipc`. `detect_tool()` used `Command::status().is_ok()`
+  to pick `rg` or `grep`. On the Linux CI nightly toolchain a missing binary
+  returns `Ok(127)`, not an error, so the probe picked `rg` though it was
+  absent, and the search returned zero matches. The new `probe_tool()` helper
+  checks `status.success()`. The `cli_search_streams_results` test passes 15/15
+  on macOS and in the Linux CI image. The backlog entry is removed. Commit
+  51320ad9a.
+
+- 2026-11-02: bug-backlog §13 (`fuse_vfs` compile) fixed on
+  `fix/io-20-vfs-process-ipc`. `fuser` 0.15 default features include `libfuse`,
+  which probes for a system fuse3 via pkg-config and panics in its build script
+  when it is absent. The fix disables `fuser` default features on the workspace
+  dependency so it uses the pure-Rust mount implementation. The `fuse_vfs` test
+  passes 21/21 in the Linux image (3 mount tests skip without /dev/fuse). The
+  backlog entry is removed. Commit d98c9f12a.
+
 - 2026-11-01: feature 13 (foundation_deployment_platform) E1 done on
   `fix/io-20-vfs-process-ipc`. E1 rewrites `wait_for_stdout` to follow the log
   stream once (`follow=true`, stdout only, stderr=false), match a message
