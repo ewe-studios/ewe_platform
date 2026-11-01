@@ -312,6 +312,34 @@ impl Poll {
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
         self.selector.poll(events, timeout)
     }
+
+    /// Re-arm the read edge for `fd` after the caller drained it.
+    ///
+    /// A no-op except on kqueue (macOS/BSD). There the kernel reports
+    /// `EVFILT_READ` level-triggered for pipes despite `EV_CLEAR`, so the
+    /// selector tracks the read edge in software and a drained fd must be
+    /// re-armed to receive the next edge.
+    pub(crate) fn rearm_readable(&self, fd: sys::RawFd) {
+        #[cfg(any(
+            target_os = "macos",
+            target_os = "ios",
+            target_os = "freebsd",
+            target_os = "netbsd",
+            target_os = "openbsd",
+            target_os = "dragonfly",
+        ))]
+        self.selector.rearm_readable(fd);
+
+        #[cfg(not(any(
+            target_os = "macos",
+            target_os = "ios",
+            target_os = "freebsd",
+            target_os = "netbsd",
+            target_os = "openbsd",
+            target_os = "dragonfly",
+        )))]
+        let _ = fd;
+    }
 }
 
 /// Registration handle — used to add, modify, and remove source interests.

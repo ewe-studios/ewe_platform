@@ -51,6 +51,9 @@ use crate::poll::{Backend, BackendPreference, Events, Interest, Poll, Registry, 
 /// `ready` is atomic so the drain thread can OR bits in, and consumers can mask
 /// bits out, while both hold only a *read* lock on the entry map.
 struct Entry {
+    /// The registered fd, kept so [`Reactor::clear`] can re-arm the selector's
+    /// read edge (a kqueue-only concern; see [`Poll::rearm_readable`]).
+    fd: std::os::fd::RawFd,
     ready: AtomicU8,
     #[allow(dead_code)]
     interest: Interest,
@@ -411,7 +414,7 @@ impl Reactor {
         self.registry.register_fd(fd, token, interest)?;
         self.entries.write().expect("entries lock poisoned").insert(
             token,
-            Entry { ready: AtomicU8::new(Ready::EMPTY.bits()), interest, waker: Mutex::new(None) },
+            Entry { fd, ready: AtomicU8::new(Ready::EMPTY.bits()), interest, waker: Mutex::new(None) },
         );
         Ok(())
     }
@@ -468,7 +471,7 @@ impl Reactor {
         let armed = self.poll.register_recv_fd(fd, token, interest)?;
         self.entries.write().expect("entries lock poisoned").insert(
             token,
-            Entry { ready: AtomicU8::new(Ready::EMPTY.bits()), interest, waker: Mutex::new(None) },
+            Entry { fd, ready: AtomicU8::new(Ready::EMPTY.bits()), interest, waker: Mutex::new(None) },
         );
         Ok(armed)
     }
@@ -543,12 +546,23 @@ impl Reactor {
     /// # Panics
     /// Panics if the registration map lock is poisoned.
     pub fn clear(&self, token: Token, ready: Ready) {
-        if let Some(entry) = self.entries.read().expect("entries lock poisoned").get(&token) {
+        let fd = {
+            let entries = self.entries.read().expect("entries lock poisoned");
+            let Some(entry) = entries.get(&token) else {
+                return;
+            };
             entry.ready.fetch_and(!ready.bits(), Ordering::AcqRel);
             // Clearing readiness also disarms any armed waker. The register-
             // before-check protocol re-arms it on the next park, so a stale
             // edge cannot re-wake a reader that has already drained the fd.
             *entry.waker.lock().expect("waker lock poisoned") = None;
+            entry.fd
+        };
+        // A consumer that cleared READABLE has drained the fd, so re-arm its
+        // read edge for the next arrival. A no-op on backends that re-arm
+        // themselves (epoll/io_uring).
+        if ready.is_readable() {
+            self.poll.rearm_readable(fd);
         }
     }
 

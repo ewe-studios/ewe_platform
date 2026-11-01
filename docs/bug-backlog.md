@@ -297,12 +297,13 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **`tests/fd/registration.rs::registered_fd_edge_triggered` fails the edge-triggered contract.**
-  Line 249 writes 5 bytes, reads 2, then polls again with no new write and expects 0 events; it
-  gets 1 readable event for the 3 unread bytes. The readiness backend reports readable as level
-  state instead of only on a new write, so the edge-triggered promise is not kept. Pre-existing on
-  master (wired in b91e25bc9) and unrelated to the version bump and features 38/40. Likely fix:
-  clear the per-fd edge after the first readable report and re-report only on a new write.
+- **The macOS kqueue waker returns `Token(0)`, not the registered token.** `Waker`
+  registers an `EVFILT_USER` note with `udata = token` (see `register_waker`), but
+  `wake` triggers it with `udata = null`, and the note comes back with `udata = 0`.
+  `Event::token()` then reads `Token(0)`, so `waker_wakes_from_another_thread` and
+  `waker_wakes_from_multiple_threads` fail on macOS. Linux epoll uses a different
+  waker and is not affected. Fix: pass the token in the `NOTE_TRIGGER` event's
+  `udata`, or map the waker's `ident` back to the stored `waker_token`.
 - **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
   (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
   file, its metadata and its whiteout as separate blobs, and a blob store has
