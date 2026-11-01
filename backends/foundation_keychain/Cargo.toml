@@ -45,6 +45,9 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.4", default-feat
 
 # WASM — Cloudflare Workers
 [target.'cfg(target_family = "wasm")'.dependencies]
+# On wasm32, uuid needs a randomness source: the `js` feature uses WebCrypto
+# `getRandomValues` (a no-op on native, where `v4` uses the OS RNG).
+uuid = { version = "1", features = ["v4", "js"] }
 # `workers-rs` enables `From<worker::D1Database>` so the Workers `fetch` handler can
 # build a D1-backed StorageProvider from the env binding.
 foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false, features = ["wasm-bindgen-storage", "workers-rs"] }

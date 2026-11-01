@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: fixed the `foundation_keychain` wasm CI failure on
+  `fix/io-35-turso-async-trait-overflow`. `uuid` 1.20 fails
+  `cargo check --target wasm32-unknown-unknown` with a `compile_error!` when no
+  wasm randomness source is enabled. Added
+  `uuid = { version = "1", features = ["v4", "js"] }` to the keychain wasm target
+  section (matching `foundation_http`), so WebCrypto `getRandomValues` provides the
+  wasm RNG. The wasm check now passes; the remaining signalr/durable_object unused
+  imports are already tracked in backlog §21. PR: see the PR.
+
 - 2026-11-01: features 38 and 40 done, and the publish fix landed, on
   `fix/io-35-turso-async-trait-overflow`. Feature 38 deleted the dead
   `foundation_netio/src/native/tls_verification.rs` module (490 lines, never declared)

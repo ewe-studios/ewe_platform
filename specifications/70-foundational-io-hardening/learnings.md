@@ -2,6 +2,18 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (wasm fix): `uuid` 1.20 added a `compile_error!` on
+  `wasm32-unknown-unknown` when no randomness source is enabled (`js`,
+  `rng-getrandom`, or `rng-rand`). Of those three, only `js` works on wasm:
+  uuid target-gates its `getrandom` and `rand` dependencies to non-wasm, so the
+  other two features resolve to nothing there. `js` uses WebCrypto
+  `getRandomValues` and is a no-op on native (its `wasm-bindgen`/`js-sys` deps
+  are target-gated). The fix matches `foundation_http`: declare
+  `uuid = { version = "1", features = ["v4", "js"] }` in the crate's
+  `[target.'cfg(target_family = "wasm")'.dependencies]` section, which merges
+  with the `[dependencies]` `v4` declaration. A crate that builds for wasm and
+  calls `Uuid::new_v4` needs this, or the wasm `cargo check` fails.
+
 - 2026-11-01 (publish fix): a version bump must move every consumer, not just the
   changed crate. `cargo package` resolves a `path = ".."` + `version = "0.0.6"`
   dependency to crates.io `^0.0.6` (`>=0.0.6, <0.0.7`), not to the local tree. So
