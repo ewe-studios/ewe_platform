@@ -2,6 +2,18 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (recursion fix): the `recursion_depth_exceeding_limit` warning on
+  `#[valtron_test]` tests is not a macro problem. It is the `turso` crate's deep
+  async chain (`Connection::execute`, `maybe_handle_dangling_tx`,
+  `Statement::execute`) overflowing the default 128 limit when `Send` is resolved.
+  The macro only forces the `Send` check (its `timeout` path spawns a
+  `std::thread`). The fix is `#![recursion_limit = "256"]` in the turso-backed
+  crates (`foundation_db` lib and the three test files in `foundation_db` and
+  `foundation_auth`), not a macro change. `recursion_limit` is per-crate, so each
+  integration-test binary that overflows needs its own attribute. Check the true
+  scope before trusting a spec: run `cargo check --workspace --all-targets` and
+  grep the warning, instead of the crate the spec names.
+
 - 2026-10-31 (CI fix): a version bump must move the whole RustCrypto set together. The
   `pull/163/merge` inherited master's incomplete Dependabot bump of `sha2` from 0.10 to 0.11.
   `sha2` 0.11 uses `digest` 0.11.3; `hmac` 0.12, `pbkdf2` 0.12, and `argon2` 0.5 still use

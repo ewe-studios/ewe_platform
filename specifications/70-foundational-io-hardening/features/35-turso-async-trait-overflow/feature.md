@@ -1,11 +1,11 @@
 ---
 feature: "TursoStorage::set async-trait impl overflows the trait resolver"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: []
 branch: "fix/io-35-turso-async-trait-overflow"
-crates: ["foundation_db"]
-backlog: "docs/bug-backlog.md §11 (1 entry)"
+crates: ["foundation_db", "foundation_auth"]
+backlog: "docs/bug-backlog.md §11 (1 entry); §4 valtron_test recursion (same root cause, resolved together)"
 ---
 
 # Feature 35: `TursoStorage::set` async-trait resolver overflow
@@ -67,10 +67,29 @@ cargo check --workspace --all-targets --profile dev
 
 ## Done when
 
-- [ ] The overflow warning is gone for `foundation_db --tests`.
-- [ ] `test_turso_storage_basic` (and the rest of the turso suite) passes.
-- [ ] The backlog entry is deleted.
-- [ ] CI green.
+- [x] The overflow warning is gone for `foundation_db --tests`.
+- [x] `test_turso_storage_basic` (and the rest of the turso suite) passes.
+- [x] The backlog entry is deleted.
+- [x] CI green.
+
+## Result
+
+- **Option chosen:** 1 — raise the recursion limit. `#![recursion_limit = "256"]`
+  was added to `foundation_db/src/lib.rs`. The depth is in the external `turso`
+  crate's async chain (`Connection::execute`, `maybe_handle_dangling_tx`,
+  `Statement::execute`), so it cannot be flattened here; option 2 (split the
+  generic method) would leave the same chain unreachable in the tests.
+- **Same root cause, wider than the spec said.** The `#[valtron_test]` bodies in
+  `foundation_db/tests/turso_storage_tests.rs`, `foundation_auth/tests/credential_store_tests.rs`
+  and `foundation_auth/tests/auth_manager_tests.rs` also overflowed the default
+  limit (they force `Send` through the same turso chain). The same
+  `#![recursion_limit = "256"]` was added to those three test files. This closes
+  feature 34 (`valtron_test` recursion) at the same time — its "149 files across
+  17 crates" premise was wrong; the recursion is confined to turso-backed stores.
+- **Verification.** `cargo check -p foundation_db --tests` and
+  `cargo check -p foundation_auth --tests` are warning-free (no
+  `recursion_depth_exceeding_limit`). The foundation_db CI gate (fmt, build,
+  clippy, test, wasm) is green; all tests pass.
 
 ## Review checklist (main session)
 

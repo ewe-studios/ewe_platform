@@ -2,6 +2,12 @@
 //! `src/shared/auth_manager.rs`). They use only the public API and the
 //! in-memory credential store.
 
+// The `#[valtron_test]` bodies build an `AuthManager` over a `TursoStorage`
+// and await its methods, forcing a `Send` check through the `turso` crate's
+// deep async chain. That overflows the default recursion limit (128); raise it
+// here (the depth is in the external `turso` dependency).
+#![recursion_limit = "256"]
+
 use foundation_auth::shared::auth_manager::{AuthManager, AuthManagerConfig, AuthManagerError};
 use foundation_auth::shared::auth_state::AuthState;
 use foundation_auth::shared::credential_store::{CredentialStorage, OAuthTokenStore};

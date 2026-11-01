@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: feature 35 done (with feature 34) on
+  `fix/io-35-turso-async-trait-overflow`. The `recursion_depth_exceeding_limit`
+  warning came from the `turso` crate's deep async chain, not from the
+  `#[valtron_test]` macro. `TursoStorage::set` (async-trait) overflows the
+  `CoerceUnsized`/`Send` check, and `#[valtron_test]` bodies in the turso-backed
+  test files force `Send` through the same chain. Fix: `#![recursion_limit = "256"]`
+  in `foundation_db/src/lib.rs` and the three test files
+  (`foundation_db/tests/turso_storage_tests.rs`,
+  `foundation_auth/tests/credential_store_tests.rs`,
+  `foundation_auth/tests/auth_manager_tests.rs`). Feature 34's "149 files across 17
+  crates" premise was wrong — the warning is confined to turso-backed stores, so
+  no macro change is needed. Verification: `cargo check -p foundation_db --tests`
+  and `-p foundation_auth --tests` are warning-free; the foundation_db CI gate is
+  green and all tests pass. PR: see the PR.
+
 - 2026-10-31: fixed the second native build error on `fix/io-01-valtron-parking`. The
   `pull/163/merge` brought master's incomplete Dependabot bump of `sha2` (0.10 to 0.11).
   `foundation_auth` then used `sha2` 0.11 (`digest` 0.11.3) beside `hmac` 0.12, `pbkdf2` 0.12,

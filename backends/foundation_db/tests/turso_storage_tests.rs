@@ -1,5 +1,11 @@
 //! Turso storage backend integration tests.
 
+// A `#[valtron_test]` body that awaits `TursoStorage::migrate`/`set` forces a
+// `Send` check through the `turso` crate's deeply nested async chain, which
+// overflows the default recursion limit (128). Raise it for this test crate
+// (the depth is in the external `turso` dependency).
+#![recursion_limit = "256"]
+
 use foundation_core::valtron::valtron_test;
 use foundation_db::{KeyValueStore, QueryStore, DataValue, EncryptionKey, SqlRow, TursoStorage};
 use tempfile::TempDir;

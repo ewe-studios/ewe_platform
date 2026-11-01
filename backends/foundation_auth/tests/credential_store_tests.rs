@@ -1,5 +1,11 @@
 //! `CredentialStorage` tests — Turso backend, async (`#[valtron_test]`).
 
+// The `#[valtron_test]` bodies build a `TursoStorage` and await its methods,
+// forcing a `Send` check through the `turso` crate's deep async chain. That
+// overflows the default recursion limit (128); raise it here (the depth is in
+// the external `turso` dependency).
+#![recursion_limit = "256"]
+
 use foundation_auth::shared::credential_store::{
     CredentialStore, CredentialStorage, OAuthTokenStore, StoredCredential,
 };

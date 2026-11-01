@@ -16,6 +16,13 @@
 //! - In-Memory - Ephemeral storage for development/testing
 //! - JSON File - Simple JSON-on-disk key-value store (native only)
 
+// The `turso` crate's async methods nest past the default trait-solver
+// recursion limit (128). `TursoStorage::set` (an `async_trait` impl) resolves
+// `Send`/`CoerceUnsized` through that chain and overflows it (issue #159228,
+// `recursion_depth_exceeding_limit`). Raise the limit instead of flattening the
+// chain: the depth is in the external `turso` dependency, not here.
+#![recursion_limit = "256"]
+
 // Shared — always compiled
 pub mod core;
 
