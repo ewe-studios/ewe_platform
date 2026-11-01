@@ -182,7 +182,7 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
 /// wait for SSH to become reachable, then call `bootstrap_windows_ssh_phase`.
 ///
 /// # Errors
-/// Returns an error if a WinRM bootstrap step fails.
+/// Returns an error if a `WinRM` bootstrap step fails.
 pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
     logger::step(logger, "install OpenSSH Server", || {
         install_openssh_server(winrm, progress)
@@ -350,7 +350,7 @@ fn set_autologin(winrm: &WinRM) -> Result<bool> {
 /// Reboot the Windows VM and wait for `WinRM` to come back.
 ///
 /// # Errors
-/// Returns an error if WinRM does not return within the timeout.
+/// Returns an error if `WinRM` does not return within the timeout.
 pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
     logger.message("rebooting VM for autologin to take effect...");
 

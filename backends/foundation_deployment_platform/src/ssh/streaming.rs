@@ -92,14 +92,14 @@ pub fn exec_streaming_session(session: &VmSession, cmd: &str) -> Result<i32> {
 
     // Print stdout lines
     std::thread::spawn(move || {
-        for line in stdout_reader.lines().map_while(|line| line.ok()) {
+        for line in stdout_reader.lines().map_while(std::result::Result::ok) {
             println!("{line}");
         }
     });
 
     // Print stderr lines
     std::thread::spawn(move || {
-        for line in stderr_reader.lines().map_while(|line| line.ok()) {
+        for line in stderr_reader.lines().map_while(std::result::Result::ok) {
             eprintln!("{line}");
         }
     });

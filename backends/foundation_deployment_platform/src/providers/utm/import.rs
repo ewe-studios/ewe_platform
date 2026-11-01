@@ -271,10 +271,12 @@ fn extract_box(box_path: &Path, profile: &VmProfile) -> Result<PathBuf> {
     let size = compressed_size.len();
     // size in bytes to f64 for display; precision loss is acceptable.
     #[allow(clippy::cast_precision_loss)]
-    eprintln!(
-        "  Extracting box ({:.1} GB compressed → ~{:.0} GB on disk)...",
+    let (size_gb, size_on_disk_gb) = (
         size as f64 / 1_073_741_824.0,
         size as f64 / 1_073_741_824.0 * 2.5,
+    );
+    eprintln!(
+        "  Extracting box ({size_gb:.1} GB compressed → ~{size_on_disk_gb:.0} GB on disk)...",
     );
 
     let pb = indicatif::ProgressBar::new(size);

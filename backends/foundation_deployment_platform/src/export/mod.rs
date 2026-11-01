@@ -112,10 +112,11 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
         let (orig, comp, ratio) = size_comparison(&disk_path, &current_file)?;
         // size in bytes to f64 for display; precision loss is acceptable.
         #[allow(clippy::cast_precision_loss)]
-        println!("  qemu-img size: {:.2} GB -> {:.2} GB ({:.1}%)",
+        let (orig_gb, comp_gb) = (
             orig as f64 / 1_073_741_824.0,
             comp as f64 / 1_073_741_824.0,
-            ratio);
+        );
+        println!("  qemu-img size: {orig_gb:.2} GB -> {comp_gb:.2} GB ({ratio:.1}%)");
     }
 
     // Apply post-factum compression if requested
@@ -133,10 +134,11 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
         let (orig, comp, ratio) = size_comparison(&disk_path, &current_file)?;
         // size in bytes to f64 for display; precision loss is acceptable.
         #[allow(clippy::cast_precision_loss)]
-        println!("  Final size: {:.2} GB -> {:.2} GB ({:.1}%)",
+        let (orig_gb, comp_gb) = (
             orig as f64 / 1_073_741_824.0,
             comp as f64 / 1_073_741_824.0,
-            ratio);
+        );
+        println!("  Final size: {orig_gb:.2} GB -> {comp_gb:.2} GB ({ratio:.1}%)");
     }
 
     // Rename final result to output path

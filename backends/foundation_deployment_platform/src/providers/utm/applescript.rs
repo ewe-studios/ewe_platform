@@ -75,7 +75,7 @@ fn find_emulated_nic(uuid: &str) -> Result<u32> {
 /// - `extra_forwards`: Additional (`guest_port`, `host_port`) pairs
 ///
 /// # Errors
-/// Returns an error if the NIC cannot be found. Returns an error if the AppleScript fails.
+/// Returns an error if the NIC cannot be found. Returns an error if the `AppleScript` fails.
 pub fn configure_port_forwards(
     uuid: &str,
     ssh_port: u16,
@@ -126,7 +126,7 @@ pub fn configure_port_forwards(
 /// `AppleScript` API — not direct property assignment.
 ///
 /// # Errors
-/// Returns an error if the AppleScript fails.
+/// Returns an error if the `AppleScript` fails.
 pub fn configure_resources(uuid: &str, memory_mib: u32, cpu_cores: u32) -> Result<()> {
     let script = format!(
         r#"
@@ -152,7 +152,7 @@ pub fn configure_resources(uuid: &str, memory_mib: u32, cpu_cores: u32) -> Resul
 /// - `bundle_path`: Absolute path to the .utm bundle directory
 ///
 /// # Errors
-/// Returns an error if the VM list cannot be read. Returns an error if the AppleScript
+/// Returns an error if the VM list cannot be read. Returns an error if the `AppleScript`
 /// fails. Returns an error if no new VM appears within 30 seconds.
 pub fn import_bundle(bundle_path: &str) -> Result<String> {
     // Snapshot existing VM UUIDs so we can find the newly imported one
@@ -210,7 +210,7 @@ pub fn verify_imported_bundle(display_name: &str) -> bool {
 /// - `readonly`: If true, guest has read-only access
 ///
 /// # Errors
-/// Returns an error if the AppleScript fails.
+/// Returns an error if the `AppleScript` fails.
 pub fn configure_shared_directory(uuid: &str, host_path: &str, mount_tag: &str, readonly: bool) -> Result<()> {
     let read_only_str = if readonly { "true" } else { "false" };
     let script = format!(

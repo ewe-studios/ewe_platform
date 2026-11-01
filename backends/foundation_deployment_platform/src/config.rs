@@ -237,7 +237,7 @@ pub struct UserMountConfig {
     /// Host path to mount (default: ".")
     #[serde(default)]
     pub host_path: Option<String>,
-    /// Guest mount point (e.g. "<C:/Users/vagrant/project>" on Windows, "/mnt/project" on Linux)
+    /// Guest mount point (e.g. `C:/Users/vagrant/project` on Windows, `/mnt/project` on Linux)
     #[serde(default)]
     pub guest_path: Option<String>,
     #[serde(default)]

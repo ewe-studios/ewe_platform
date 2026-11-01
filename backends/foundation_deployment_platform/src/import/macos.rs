@@ -255,8 +255,10 @@ fn download_ipsw(ipsw: &IpswInfo, dest: &Path) -> Result<()> {
         });
     }
 
-    #[allow(clippy::cast_precision_loss)] // size in bytes to f64 for display; precision loss is acceptable.
-    println!("  IPSW downloaded: {:.1} MB", meta.len() as f64 / 1_048_576.0);
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    let size_mb = meta.len() as f64 / 1_048_576.0;
+    println!("  IPSW downloaded: {size_mb:.1} MB");
     Ok(())
 }
 
@@ -314,8 +316,10 @@ fn extract_basesystem(ipsw_path: &Path, dest: &Path) -> Result<()> {
         message: format!("stat BaseSystem.dmg: {e}"),
     })?;
 
-    #[allow(clippy::cast_precision_loss)] // size in bytes to f64 for display; precision loss is acceptable.
-    println!("  BaseSystem.dmg extracted: {:.1} MB", meta.len() as f64 / 1_048_576.0);
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    let size_mb = meta.len() as f64 / 1_048_576.0;
+    println!("  BaseSystem.dmg extracted: {size_mb:.1} MB");
     Ok(())
 }
 
@@ -351,8 +355,10 @@ fn convert_dmg_to_qcow2(dmg_path: &Path, dest: &Path) -> Result<()> {
         message: format!("stat qcow2: {e}"),
     })?;
 
-    #[allow(clippy::cast_precision_loss)] // size in bytes to f64 for display; precision loss is acceptable.
-    println!("  BaseSystem.qcow2 created: {:.1} MB", meta.len() as f64 / 1_048_576.0);
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    let size_mb = meta.len() as f64 / 1_048_576.0;
+    println!("  BaseSystem.qcow2 created: {size_mb:.1} MB");
     Ok(())
 }
 
@@ -543,8 +549,10 @@ fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
         message: format!("stat EFI qcow2: {e}"),
     })?;
 
-    #[allow(clippy::cast_precision_loss)] // size in bytes to f64 for display; precision loss is acceptable.
-    println!("  OpenCore EFI disk created: {:.1} MB", meta.len() as f64 / 1_048_576.0);
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    let size_mb = meta.len() as f64 / 1_048_576.0;
+    println!("  OpenCore EFI disk created: {size_mb:.1} MB");
     Ok(())
 }
 
