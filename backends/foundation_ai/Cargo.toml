@@ -24,7 +24,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.7" }
 # pulled in by llamacpp/candle features via the native target gate below
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", features = ["to_structured"] }
 foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.3" }
-foundation_compact = { path = "../foundation_compact", version = "0.2.2", features = ["serde"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.3", features = ["serde"] }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.3" }
 # DocumentStore / KeyValueStore traits + StorageResult for the agentic memory
 # stores (F07). default-features=false → just the core traits + in-memory backends

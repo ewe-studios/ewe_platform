@@ -22,7 +22,7 @@ crate-type = ["rlib"]
 # foundation_compact's vendored entropy — NOT upstream rand/getrandom — so wasm
 # builds never drag getrandom's wasm-bindgen backend into the OWNED path
 # (decision 031 / feature 14). std is followed from this crate's `std` feature.
-foundation_compact = { path = "../foundation_compact", version = "0.2.2", default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.3", default-features = false }
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
 foundation_macros = { path = "../foundation_macros", version = "0.0.7" }

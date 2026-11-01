@@ -74,7 +74,7 @@ wasm-embedded-js = [
 # Shared across features.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["multi"] }
-foundation_compact = { path = "../foundation_compact", version = "0.2.2", optional = true }
+foundation_compact = { path = "../foundation_compact", version = "0.2.3", optional = true }
 which = { version = "7", optional = true }
 base64 = "0.22"
 tracing = "0.1"

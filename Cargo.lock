@@ -4688,7 +4688,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "cfg-if",
  "chacha20poly1305",

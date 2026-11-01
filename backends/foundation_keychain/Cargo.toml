@@ -30,7 +30,7 @@ thiserror = { workspace = true }
 # (SSH key provisioning deps are native-only — see the native target section below.)
 
 # Foundation deps
-foundation_compact = { path = "../foundation_compact", version = "0.2.2" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.3" }
 foundation_core = { path = "../foundation_core", version = "0.0.7" }
 foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
 # Cross-platform HTTP client (`HttpClientBuilder`) for the icon proxy etc.

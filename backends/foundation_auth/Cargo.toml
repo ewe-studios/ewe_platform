@@ -15,7 +15,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-fe
 foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
 foundation_http = { path = "../foundation_http", version = "0.0.3", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
-foundation_compact = { path = "../foundation_compact", version = "0.2.2" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.3" }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
