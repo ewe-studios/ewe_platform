@@ -19,7 +19,7 @@ pub mod nfs;
 #[cfg(feature = "vfs-nfs")]
 pub use nfs::VfsNfs;
 
-#[cfg(feature = "vfs-preload")]
+#[cfg(all(target_os = "linux", feature = "vfs-preload"))]
 pub mod shim;
 
 #[cfg(feature = "vfs-sqlite")]

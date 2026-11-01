@@ -25,12 +25,13 @@ pub use shim_exports::*;
 mod shim_exports {
     use std::ffi::CStr;
     use std::os::raw::{c_char, c_int, c_void};
-    use std::sync::Arc;
 
     use once_cell::sync::Lazy;
     use tracing;
 
     use foundation_core::valtron::PoolGuard;
+    #[cfg(feature = "vfs-sqlite")]
+    use foundation_core::valtron::initialize_pool;
 
     use crate::native::vfs::native_fs::NativeFs;
     use crate::shared::vfs::dynfs::DynFs;
@@ -177,31 +178,51 @@ mod shim_exports {
     }
 
     // ── open / openat ──
+    //
+    // libc's `open` and `openat` are variadic, so the exported entry points
+    // live in `vfs_shim.c` (built by build.rs). Those C shims read the optional
+    // mode and forward to these non-variadic Rust handlers, which decide
+    // whether the path is virtual or must reach the real libc call.
 
-    #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn open(pathname: *const c_char, flags: c_int, mode: libc::mode_t) -> c_int {
+    fn open_common(
+        pathname: *const c_char,
+        flags: c_int,
+        mode: libc::mode_t,
+        real: unsafe fn(*const c_char, c_int, libc::mode_t) -> c_int,
+    ) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
             if path_matches_prefix(path) {
                 return handle_virtual_open(path, flags, mode);
             }
         }
-        unsafe { super::real::open(pathname, flags, mode) }
-    }
-
-    /// `open64` is a distinct symbol from `open`; delegating to our `open`
-    /// left `real::open64` unresolved and unused.
-    #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn open64(pathname: *const c_char, flags: c_int, mode: libc::mode_t) -> c_int {
-        if let Some(path) = unsafe { c_path_to_str(pathname) } {
-            if path_matches_prefix(path) {
-                return handle_virtual_open(path, flags, mode);
-            }
-        }
-        unsafe { super::real::open64(pathname, flags, mode) }
+        unsafe { real(pathname, flags, mode) }
     }
 
     #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn openat(dirfd: c_int, pathname: *const c_char, flags: c_int, mode: libc::mode_t) -> c_int {
+    pub unsafe extern "C" fn foundation_vfs_open(
+        pathname: *const c_char,
+        flags: c_int,
+        mode: libc::mode_t,
+    ) -> c_int {
+        open_common(pathname, flags, mode, super::real::open)
+    }
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn foundation_vfs_open64(
+        pathname: *const c_char,
+        flags: c_int,
+        mode: libc::mode_t,
+    ) -> c_int {
+        open_common(pathname, flags, mode, super::real::open64)
+    }
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn foundation_vfs_openat(
+        dirfd: c_int,
+        pathname: *const c_char,
+        flags: c_int,
+        mode: libc::mode_t,
+    ) -> c_int {
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
             if dirfd == libc::AT_FDCWD || path.starts_with('/') {
                 if path_matches_prefix(path) {
@@ -212,9 +233,36 @@ mod shim_exports {
         unsafe { super::real::openat(dirfd, pathname, flags, mode) }
     }
 
-    #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn __openat64_time64(dirfd: c_int, pathname: *const c_char, flags: c_int, mode: libc::mode_t) -> c_int {
-        openat(dirfd, pathname, flags, mode)
+    /// Keeps the C shim's entry points in the cdylib.
+    ///
+    /// Nothing in Rust calls `open`/`openat` by name, so without these
+    /// references the linker drops the `vfs_shim.c` object from the static
+    /// archive and the `.so` exports nothing to interpose. Storing the
+    /// addresses in a `#[used]` static forces the object in; the declarations
+    /// are placeholder prototypes, so only the symbol names matter.
+    mod c_shim {
+        use std::os::raw::{c_char, c_int};
+
+        extern "C" {
+            // `open` is a runtime symbol the standard-library linter knows; its
+            // declaration must match libc's variadic signature exactly. The
+            // other three are not runtime symbols and keep their own shapes.
+            fn open(path: *const c_char, flags: c_int, ...) -> c_int;
+            fn open64(path: *const c_char, flags: c_int, ...) -> c_int;
+            fn openat(dirfd: c_int, path: *const c_char, flags: c_int, ...) -> c_int;
+            fn __openat64_time64(dirfd: c_int, path: *const c_char, flags: c_int, ...) -> c_int;
+        }
+
+        #[used]
+        static KEEP_OPEN: unsafe extern "C" fn(*const c_char, c_int, ...) -> c_int = open;
+        #[used]
+        static KEEP_OPEN64: unsafe extern "C" fn(*const c_char, c_int, ...) -> c_int = open64;
+        #[used]
+        static KEEP_OPENAT: unsafe extern "C" fn(c_int, *const c_char, c_int, ...) -> c_int =
+            openat;
+        #[used]
+        static KEEP_OPENAT64_TIME64: unsafe extern "C" fn(c_int, *const c_char, c_int, ...) -> c_int =
+            __openat64_time64;
     }
 
     // ── close ──
