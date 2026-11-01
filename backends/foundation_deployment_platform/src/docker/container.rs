@@ -427,14 +427,11 @@ impl ContainerHandle {
             .exec_inspect(&exec.id)
             .await
             .map_err(|e| docker_err(classify_docker_client_err("exec_inspect", e)))?;
-        out.exit_code = info
-            .get("ExitCode")
-            .and_then(serde_json::Value::as_i64)
-            .ok_or_else(|| {
-                docker_err(DockerError::InvalidConfig(format!(
-                    "exec {cmd:?}: the daemon reported no ExitCode: {info}"
-                )))
-            })?;
+        out.exit_code = info.exit_code.ok_or_else(|| {
+            docker_err(DockerError::InvalidConfig(format!(
+                "exec {cmd:?}: the daemon reported no ExitCode: {info:?}"
+            )))
+        })?;
 
         Ok(out)
     }

@@ -43,7 +43,7 @@ use crate::generated::events::EventMessage;
 use crate::generated::push::PushImageInfo;
 use crate::generated::stats::ContainerStatsResponse;
 use crate::generated::shared::{BuildInfo, ErrorDetail};
-use crate::streaming::decoder::{LogFrameDecoder, LogOutput};
+use crate::streaming::decoder::{DecodeOutcome, LogFrameDecoder, LogOutput};
 
 // ── progress ────────────────────────────────────────────────────────────
 
@@ -440,16 +440,18 @@ impl FuturesStream for LogStream {
                     )))));
                 }
             }
-            let before = this.decoder.buffered_len();
-            if let Some(frame) = this.decoder.decode() {
-                this.decoder.compact();
-                return Poll::Ready(Some(Ok(frame)));
-            }
-            // A frame of an unknown stream type is skipped (decode moved past
-            // it): look for the next frame before reading more.
-            if this.decoder.buffered_len() < before {
-                this.decoder.compact();
-                continue;
+            match this.decoder.decode() {
+                DecodeOutcome::Frame(frame) => {
+                    this.decoder.compact();
+                    return Poll::Ready(Some(Ok(frame)));
+                }
+                // An unknown stream type was skipped: look for the next frame
+                // before reading more.
+                DecodeOutcome::Skipped => {
+                    this.decoder.compact();
+                    continue;
+                }
+                DecodeOutcome::NeedMore => {}
             }
             match Pin::new(&mut this.bytes).poll_next(cx) {
                 Poll::Pending => return Poll::Pending,

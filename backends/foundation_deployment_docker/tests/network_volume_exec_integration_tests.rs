@@ -127,7 +127,7 @@ async fn exec_inspect() {
         .expect("exec inspect");
 
     assert!(
-        inspected.get("ID").is_some(),
+        inspected.id.is_some(),
         "exec inspect response should contain an ID field"
     );
 

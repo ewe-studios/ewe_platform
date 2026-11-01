@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: feature 12 (Docker client and foundation_deployment) done on
+  `fix/io-20-vfs-process-ipc`. E1 routes the seven hand-written client methods
+  through the generated request/response types, streams the upload tar, caps
+  error bodies, and returns typed `system_data_usage`. E2 adds `max_json_body`
+  to `BodyLimits`. E3 adds a CI run that builds the `docker,integration-tests`
+  targets. E4 makes `LogFrameDecoder` return an enum so "need more bytes" and
+  "skipped" are distinct. The docker crate's version bumps 0.1.3 to 0.1.4 and
+  its consumer `foundation_deployment_platform` follows. Four fixed backlog §6
+  entries are removed; one new test-infra entry (SUN_LEN) is added.
+
 - 2026-11-01: feature 20 (foundation_nativeapis process side) done on
   `fix/io-20-vfs-process-ipc` (commit 869572cd4). E5 makes the IPC client
   receive on an async future; the join and poll timeouts move to

@@ -2,23 +2,22 @@
 //!
 //! WHY: Ergonomic wrappers over the generated exec functions. `exec_start`'s
 //! answer is the command's output stream, returned unread as a [`LogStream`];
-//! `exec_inspect` is still built by hand (its generated function discards the
-//! response body).
+//! `exec_inspect` returns the generated [`ExecInspectResponse`].
 //!
 //! WHAT: `exec_create`, `exec_start`, `exec_inspect`, `exec_resize`.
 //!
 //! HOW: Functions take `&DockerClient` + params, construct the args struct,
-//! call the generated async fn (or build a manual request where the generated
-//! fn discards the body), and map errors to `DockerError`.
+//! call the generated async fn, and map errors to `DockerError`.
 
 use foundation_netio::PreparedRequestBuilder;
 
 use crate::client::body::LogStream;
 use crate::error::DockerError;
 use crate::generated::exec::{container_exec_request, ContainerExecArgs, ContainerExecRequest};
-use crate::generated::start::{exec_start_request, ExecStartArgs, ExecStartRequest};
+use crate::generated::json::{exec_inspect_request, ExecInspectArgs, ExecInspectResponse};
 use crate::generated::resize::{exec_resize_request, ExecResizeArgs};
 use crate::generated::shared::IDResponse;
+use crate::generated::start::{exec_start_request, ExecStartArgs, ExecStartRequest};
 
 /// A closure type for the (empty) `builder_mod` argument — no request mutation.
 type NoMod = fn(&mut PreparedRequestBuilder);
@@ -86,43 +85,26 @@ pub async fn exec_start(
 /// Inspect an exec instance (`GET /exec/{id}/json`).
 ///
 /// WHY: Returns metadata about an exec instance (running, exit code, etc.).
-/// The generated `exec_inspect_request` returns `ApiResponse<()>` and discards
-/// the response body, so we build the request manually.
 ///
-/// WHAT: Returns the parsed JSON body as a [`serde_json::Value`].
+/// WHAT: Calls the generated `exec_inspect_request` and returns the generated
+/// [`ExecInspectResponse`].
 ///
-/// HOW: Manual `PreparedRequestBuilder::get` + `send_async` + JSON parse.
+/// HOW: `ExecInspectArgs { id }`.
 ///
 /// # Errors
 ///
-/// Returns [`DockerError`] on transport failure, non-2xx status, or JSON parse
-/// failure.
+/// Returns [`DockerError`] on transport failure, non-2xx status, or a body
+/// that is not an `ExecInspectResponse`.
 pub async fn exec_inspect(
     client: &super::DockerClient,
     id: &str,
-) -> Result<serde_json::Value, DockerError> {
-    let endpoint_url = format!("{}/exec/{}/json", client.api_url().await?, id);
-    let builder = PreparedRequestBuilder::get(&endpoint_url)
-        .map_err(|e| DockerError::Transport(e.to_string()))?;
-    let response = client
-        .http()
-        .send_async(builder.build())
-        .await
-        .map_err(|e| DockerError::Transport(e.to_string()))?;
-    let status: usize = response.get_status().into();
-    if status < 200 || status >= 300 {
-        return Err(DockerError::Api {
-            status: status as u16,
-            message: format!("exec_inspect failed with status {status}"),
-        });
-    }
-    let body_bytes =
-        foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(
-            response.take_body(),
-        );
-    let parsed: serde_json::Value = serde_json::from_slice(&body_bytes)
-        .map_err(|e| DockerError::JsonParse(format!("exec_inspect: {e}")))?;
-    Ok(parsed)
+) -> Result<ExecInspectResponse, DockerError> {
+    let args = ExecInspectArgs {
+        id: id.to_string(),
+    };
+    let response =
+        exec_inspect_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
+    Ok(response.body)
 }
 
 /// Resize the TTY of an exec instance (`POST /exec/{id}/resize`).

@@ -67,6 +67,24 @@ pub struct LogFrameDecoder {
     cursor: usize,
 }
 
+/// What one [`LogFrameDecoder::decode`] call made of the buffered bytes.
+///
+/// WHY: `decode` used to return `None` for two different things — not enough
+/// bytes yet, and a frame of an unknown stream type that was skipped. A caller
+/// must tell them apart: after a skip there may be a next frame to decode
+/// without feeding more, after [`NeedMore`](DecodeOutcome::NeedMore) there is
+/// not.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DecodeOutcome {
+    /// Not enough bytes for the next full frame; feed more and call again.
+    NeedMore,
+    /// A frame with an unknown stream type was skipped; its payload is
+    /// discarded. Call again for the next frame.
+    Skipped,
+    /// A complete frame.
+    Frame(LogOutput),
+}
+
 impl LogFrameDecoder {
     /// Create a new decoder with an empty buffer.
     #[must_use]
@@ -86,21 +104,23 @@ impl LogFrameDecoder {
 
     /// Try to decode the next complete frame.
     ///
-    /// Returns `None` when there isn't enough data for a full frame (header +
-    /// payload). The remaining bytes are kept for the next `feed()` + `decode()`
-    /// cycle.
+    /// [`DecodeOutcome::NeedMore`] when there is not enough data for a full
+    /// frame (header + payload); the remaining bytes are kept for the next
+    /// `feed()` + `decode()` cycle. [`DecodeOutcome::Skipped`] when the header
+    /// names an unknown stream type; the cursor moves past that frame's
+    /// payload. [`DecodeOutcome::Frame`] for a decoded frame.
     ///
     /// # Panics
     ///
-    /// Never panics — malformed frames (exhausted stream mid-payload) safely
-    /// return `None`.
+    /// Never panics — a malformed stream (exhausted mid-payload) safely
+    /// returns [`DecodeOutcome::NeedMore`].
     #[must_use]
-    pub fn decode(&mut self) -> Option<LogOutput> {
+    pub fn decode(&mut self) -> DecodeOutcome {
         const HEADER_SIZE: usize = 8;
 
         // Need at least a header
         if self.buffer.len() - self.cursor < HEADER_SIZE {
-            return None;
+            return DecodeOutcome::NeedMore;
         }
 
         let header = &self.buffer[self.cursor..self.cursor + HEADER_SIZE];
@@ -110,7 +130,7 @@ impl LogFrameDecoder {
 
         // Need the full payload
         if self.buffer.len() - self.cursor < HEADER_SIZE + length {
-            return None;
+            return DecodeOutcome::NeedMore;
         }
 
         let payload_start = self.cursor + HEADER_SIZE;
@@ -118,14 +138,14 @@ impl LogFrameDecoder {
         self.cursor = payload_start + length;
 
         match stream_type {
-            0 => Some(LogOutput::StdIn { message: payload }),
-            1 => Some(LogOutput::StdOut { message: payload }),
-            2 => Some(LogOutput::StdErr { message: payload }),
-            3 => Some(LogOutput::Console { message: payload }),
+            0 => DecodeOutcome::Frame(LogOutput::StdIn { message: payload }),
+            1 => DecodeOutcome::Frame(LogOutput::StdOut { message: payload }),
+            2 => DecodeOutcome::Frame(LogOutput::StdErr { message: payload }),
+            3 => DecodeOutcome::Frame(LogOutput::Console { message: payload }),
             _ => {
                 // Unknown stream type — skip (shouldn't happen with well-formed
                 // Docker output, but don't panic on malformed data).
-                None
+                DecodeOutcome::Skipped
             }
         }
     }

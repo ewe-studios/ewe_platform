@@ -51,7 +51,7 @@ async fn info_over_mutual_tls() {
     assert!(client.base_url().starts_with("https://"), "TLS base_url must be https");
 
     let info = client.system_info().await.expect("Info over mTLS");
-    assert!(!info.is_null(), "SystemInfo should be valid JSON");
+    assert!(info.containers.is_some(), "SystemInfo should be valid JSON");
     eprintln!("TLS INFO OK — {}", client.base_url());
 }
 
@@ -84,6 +84,6 @@ async fn info_over_tls_insecure() {
     let Some((host, tls)) = tls_target(false) else { return };
     let client = DockerClient::connect_tls(&host, tls).expect("connect_tls insecure");
     let info = client.system_info().await.expect("Info over insecure TLS");
-    assert!(!info.is_null());
+    assert!(info.containers.is_some());
     eprintln!("TLS INSECURE INFO OK");
 }

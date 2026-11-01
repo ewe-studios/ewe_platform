@@ -213,7 +213,7 @@ async fn first_request_negotiates_with_an_older_daemon() {
 
     let client = DockerClient::connect_unix(&socket);
     let info = client.system_info().await.expect("info against a 1.47 daemon");
-    assert_eq!(info["Containers"], 0);
+    assert_eq!(info.containers, Some(0));
     assert_eq!(client.api_version(), "1.47");
 
     // A clone shares the negotiated version: no second /version round trip.

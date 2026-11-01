@@ -16,7 +16,7 @@
 //!
 //! plus [`read_error_body`], which reads at most a given number of bytes of a
 //! non-2xx body, [`with_raw_body`], which attaches a non-JSON request body,
-//! and [`BodyLimits`], the configurable caps on both.
+//! and [`BodyLimits`], the configurable caps on the three.
 //!
 //! HOW: Both streams sit on netio's [`AsyncSendSafeBody`] and implement
 //! [`futures_core::Stream`]; each also has an inherent `next().await`, so a
@@ -44,7 +44,7 @@ use super::api_types::ApiError;
 /// None of these limits how long a streamed body may be: a [`ByteStream`] or
 /// a [`JsonLinesStream`] reads as far as it is asked to. They cap only what
 /// has to be held whole — an error body read for its message, one line of a
-/// JSON-lines body.
+/// JSON-lines body, one JSON success body.
 ///
 /// The generated API clients read their responses under the limits of the
 /// [`ApiClient`](super::ApiClient) they are given; a bare `DynNetClient` gets
@@ -70,6 +70,15 @@ pub struct BodyLimits {
     /// body (`FrameLimits::max_line`). A progress or event line is a few
     /// hundred bytes and a stats sample a few kilobytes.
     pub max_json_line: usize,
+    /// The largest JSON success body [`send_json`](super::send_json) reads
+    /// before it is an error. Over this, the body is not read past the cap.
+    ///
+    /// Default 1 MiB: nginx's `client_max_body_size` default, the same bound
+    /// nginx puts on a client request body by default. A JSON response — an
+    /// inspect document, a resource listing — is normally far smaller; a
+    /// larger one is likely broken or hostile, and refusing it before it is
+    /// buffered whole keeps memory bounded.
+    pub max_json_body: usize,
 }
 
 impl Default for BodyLimits {
@@ -77,6 +86,7 @@ impl Default for BodyLimits {
         Self {
             max_error_body: 64 * 1024,
             max_json_line: 1024 * 1024,
+            max_json_body: 1024 * 1024,
         }
     }
 }
@@ -93,6 +103,13 @@ impl BodyLimits {
     #[must_use]
     pub fn with_max_json_line(mut self, bytes: usize) -> Self {
         self.max_json_line = bytes;
+        self
+    }
+
+    /// Read at most `bytes` of a JSON success body.
+    #[must_use]
+    pub fn with_max_json_body(mut self, bytes: usize) -> Self {
+        self.max_json_body = bytes;
         self
     }
 }

@@ -21,7 +21,7 @@ async fn client() -> DockerClient {
 // ── Read-only: prove transport + serde work against real dockerd ──────
 
 #[valtron_test] async fn ping()     { client().await.system_ping().await.expect("ping"); }
-#[valtron_test] async fn info()     { let i = client().await.system_info().await.expect("info"); assert!(!i.is_null(), "SystemInfo should be valid JSON"); }
+#[valtron_test] async fn info()     { let i = client().await.system_info().await.expect("info"); assert!(i.containers.is_some(), "SystemInfo should report a container count"); }
 #[valtron_test] async fn df()       { let _ = client().await.system_data_usage(None).await.expect("df"); }
 #[valtron_test] async fn net_list() { let _ = client().await.network_list(None).await.expect("net list"); }
 #[valtron_test] async fn vol_list() { let _ = client().await.volume_list(None).await.expect("vol list"); }

@@ -2,6 +2,14 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (feature 12, foundation_deployment_docker): moving the seven client
+  methods onto the generated request/response types changes their public return
+  type from JSON to typed structs, so it is a breaking change that needs the
+  version bump and the one consumer's `version` update in the same change (rule
+  12). The mock-daemon Unix socket under the deep `target/uat` directory exceeds
+  macOS `SUN_LEN` (104 bytes), so `docker_restart_container_defaults` fails
+  there; it is test infrastructure, recorded in backlog §6.
+
 - 2026-11-01 (feature 20, foundation_nativeapis): `foundation_shell` is a
   nushell stub (only `add`), not a process helper. The CLI searcher therefore
   uses a small in-crate runner: a `BackgroundJobRegistry` offload worker runs

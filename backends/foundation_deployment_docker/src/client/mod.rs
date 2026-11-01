@@ -21,7 +21,9 @@ use crate::error::DockerError;
 use crate::generated::auth::AuthResponse;
 use crate::generated::containers::{container_delete_request, ContainerDeleteArgs};
 use crate::generated::create::{container_create_request, ContainerCreateArgs, ContainerCreateResponse};
-use crate::generated::json::{container_inspect_request, ContainerInspectArgs, ContainerInspectResponse};
+use crate::generated::df::SystemDataUsageResponse;
+use crate::generated::info::SystemInfo;
+use crate::generated::json::{container_inspect_request, ContainerInspectArgs, ContainerInspectResponse, ExecInspectResponse};
 use crate::generated::pause::{container_pause_request, ContainerPauseArgs};
 use crate::generated::shared::{ApiError, IDResponse};
 use crate::generated::start::{container_start_request, ContainerStartArgs};
@@ -881,7 +883,7 @@ impl DockerClient {
     /// Inspect an exec instance (`GET /exec/{id}/json`).
     ///
     /// Delegates to [`exec::exec_inspect`].
-    pub async fn exec_inspect(&self, id: &str) -> Result<serde_json::Value, DockerError> {
+    pub async fn exec_inspect(&self, id: &str) -> Result<ExecInspectResponse, DockerError> {
         exec::exec_inspect(self, id).await
     }
 
@@ -897,10 +899,7 @@ impl DockerClient {
     /// Get system information (`GET /info`).
     ///
     /// Delegates to [`system::system_info`].
-    ///
-    /// Returns `serde_json::Value` because Docker's `LocalNodeState` is a raw
-    /// string (`"inactive"`) that the generated `SystemInfo` struct can't parse.
-    pub async fn system_info(&self) -> Result<serde_json::Value, DockerError> {
+    pub async fn system_info(&self) -> Result<SystemInfo, DockerError> {
         system::system_info(self).await
     }
 
@@ -926,7 +925,7 @@ impl DockerClient {
     /// Get data usage information (`GET /system/df`).
     ///
     /// Delegates to [`system::system_data_usage`].
-    pub async fn system_data_usage(&self, types: Option<&str>) -> Result<serde_json::Value, DockerError> {
+    pub async fn system_data_usage(&self, types: Option<&str>) -> Result<SystemDataUsageResponse, DockerError> {
         system::system_data_usage(self, types).await
     }
 

@@ -48,20 +48,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 6. foundation_deployment_docker / foundation_deployment
 
-- **Seven client methods build requests by hand.**
-  - The methods: `upload_to_container`, `get_container_archive_info`, `exec_inspect`, `system_info`, `system_ping`, `system_data_usage`, `network_inspect`.
-  - They read success bodies whole with no cap, throw away error bodies, ignore `DockerLimits`, and carry stale docs.
-  - `upload_to_container` takes the whole tar as a `Vec<u8>`; it should stream.
-  - `system_data_usage` returns untyped JSON. Route all seven through the generated functions, fixing the spec conversion where needed (rule 5).
-- **`send_json` has no body cap.** It reads a successful JSON body whole. Add `max_json_body` to `BodyLimits` **(rule 8)**.
-- **The `integration-tests` targets are never compiled in CI.**
-  `foundation_deployment_docker`'s CI runs are `""` and `docker`, so
-  `tests/deployable_tests.rs` (gated on `integration-tests`) rotted: it
-  still called the now-async `FileStateStore::init` synchronously until
-  #140's verification fixed it. Fix: a CI step that at least builds the
-  `docker,integration-tests` targets (`cargo test --no-run`), with the
-  daemon-backed runs kept manual.
-- **`LogFrameDecoder::decode` returns `None` for two cases:** "need more bytes" and "skipped an unknown frame type". Callers have to compare buffer lengths to tell them apart.
+- **`docker_restart_container_defaults` fails on macOS under the `uat` profile.**
+  The mock Docker daemon binds a Unix socket under `target/uat`'s deep directory;
+  the path is longer than `SUN_LEN` (104 bytes), so the bind fails. This is test
+  infrastructure, not feature 12's code. Fix: bind the mock socket in a short
+  path, such as a per-test temp directory.
 
 ## 7. foundation_deployment_platform
 

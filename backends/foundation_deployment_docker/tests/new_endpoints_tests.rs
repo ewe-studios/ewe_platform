@@ -15,6 +15,7 @@ mod common;
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::client::body::ByteBody;
 use foundation_deployment_docker::DockerClient;
+use foundation_netio::shared::http::SendSafeBody;
 
 /// Collect a small archive (one file) whole — fine in a test.
 async fn read_all(mut body: ByteBody) -> Vec<u8> {
@@ -65,7 +66,7 @@ async fn upload_and_download_archive_round_trips() {
     .await;
     assert!(!tar.is_empty(), "downloaded tar should be non-empty");
 
-    c.upload_to_container(&id, "/tmp", tar.clone(), Some(false), Some(false))
+    c.upload_to_container(&id, "/tmp", SendSafeBody::Bytes(tar.clone()), Some(false), Some(false))
         .await
         .expect("upload tar into /tmp");
 

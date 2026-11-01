@@ -54,7 +54,7 @@ async fn info_over_ssh() {
     );
 
     let info = client.system_info().await.expect("Info over SSH");
-    assert!(!info.is_null(), "SystemInfo should be valid JSON");
+    assert!(info.containers.is_some(), "SystemInfo should be valid JSON");
     eprintln!("SSH INFO OK — {}", client.base_url());
 }
 

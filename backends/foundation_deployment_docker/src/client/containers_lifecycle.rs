@@ -20,12 +20,14 @@
 //! [`StatsStream`] (one stats sample per line; a single sample is the first
 //! line of a `stream=false` answer).
 
-use foundation_netio::shared::http::SimpleHeader;
-use foundation_netio::PreparedRequestBuilder;
+use foundation_netio::shared::http::SendSafeBody;
 
 use crate::client::body::{ByteBody, LogStream, StatsStream};
 use crate::error::DockerError;
-use crate::generated::archive::{container_archive_request, ContainerArchiveArgs};
+use crate::generated::archive::{
+    container_archive_info_request, container_archive_request, put_container_archive_request,
+    ContainerArchiveArgs, ContainerArchiveInfoArgs, PutContainerArchiveArgs,
+};
 use crate::generated::attach::{container_attach_request, ContainerAttachArgs};
 use crate::generated::export::{container_export_request, ContainerExportArgs};
 use crate::generated::logs::{container_logs_request, ContainerLogsArgs};
@@ -519,16 +521,16 @@ impl DockerClient {
     /// /containers/{id}/archive`).
     ///
     /// WHY: Matches bollard's `upload_to_container` — the inverse of
-    /// [`Self::container_archive`]. The generated `put_container_archive`
-    /// function only wires query parameters (it never sets the request body),
-    /// so we build the request directly to attach the raw tar bytes with the
-    /// `application/x-tar` content type Docker requires.
+    /// [`Self::container_archive`].
     ///
-    /// WHAT: `tar` is a raw (optionally gzip/bzip2/xz-compressed) tar stream.
-    /// `path` is the destination directory inside the container. When
+    /// WHAT: `tar` is a raw (optionally gzip/bzip2/xz-compressed) tar body
+    /// stream. `path` is the destination directory inside the container. When
     /// `no_overwrite_dir_non_dir` is set, Docker refuses to replace a
     /// directory with a non-directory (and vice-versa); `copy_uidgid` copies
     /// the archive's UID/GID instead of remapping to the container user.
+    ///
+    /// HOW: Calls the generated `put_container_archive_request`, which sends
+    /// the body as `application/x-tar` without buffering it whole.
     ///
     /// # Errors
     ///
@@ -537,32 +539,18 @@ impl DockerClient {
         &self,
         id: &str,
         path: &str,
-        tar: Vec<u8>,
+        tar: SendSafeBody,
         no_overwrite_dir_non_dir: Option<bool>,
         copy_uidgid: Option<bool>,
     ) -> Result<(), DockerError> {
-        let endpoint_url = format!("{}/containers/{id}/archive", self.api_url().await?);
-
-        let mut builder = PreparedRequestBuilder::put(&endpoint_url)
-            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-        builder = builder.query("path", Some(path));
-        builder = builder.query(
-            "noOverwriteDirNonDir",
-            no_overwrite_dir_non_dir.map(|v| v.to_string()).as_deref(),
-        );
-        builder = builder.query("copyUIDGID", copy_uidgid.map(|v| v.to_string()).as_deref());
-        builder = builder.header(SimpleHeader::custom("Content-Type"), "application/x-tar");
-        builder = builder.body_bytes(tar);
-
-        let response = self.http().send_async(builder.build()).await
-            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
-
-        let status: usize = response.get_status().into();
-        let headers = response.get_headers_ref().clone();
-        if status < 200 || status >= 300 {
-            return Err(ApiError::HttpStatus { code: status as u16, headers, body: None }.into());
-        }
+        let args = PutContainerArchiveArgs {
+            id: id.to_string(),
+            path: Some(path.to_string()),
+            no_overwrite_dir_non_dir: no_overwrite_dir_non_dir.map(|v| v.to_string()),
+            copy_uidgid: copy_uidgid.map(|v| v.to_string()),
+        };
+        put_container_archive_request(self.api(), &args, &self.api_url().await?, tar, None::<NoMod>)
+            .await?;
         Ok(())
     }
 
@@ -580,6 +568,9 @@ impl DockerClient {
     /// if the path does not exist. Callers decode it into a `FileInfo`
     /// (`name`, `size`, `mode`, `mtime`, `linkTarget`).
     ///
+    /// HOW: Calls the generated `container_archive_info_request` and reads the
+    /// stat header from its response.
+    ///
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure, non-2xx status, or a
@@ -589,32 +580,32 @@ impl DockerClient {
         id: &str,
         path: &str,
     ) -> Result<String, DockerError> {
-        let endpoint_url = format!("{}/containers/{id}/archive", self.api_url().await?);
-
-        let mut builder = PreparedRequestBuilder::head(&endpoint_url)
-            .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-        builder = builder.query("path", Some(path));
-
-        let response = self.http().send_async(builder.build()).await
-            .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
-
-        let status: usize = response.get_status().into();
-        let headers = response.get_headers_ref().clone();
-        if status < 200 || status >= 300 {
-            return Err(ApiError::HttpStatus { code: status as u16, headers, body: None }.into());
-        }
+        let args = ContainerArchiveInfoArgs {
+            id: id.to_string(),
+            path: Some(path.to_string()),
+        };
+        let response = container_archive_info_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<NoMod>,
+        )
+        .await?;
         // Docker returns the stat blob in `X-Docker-Container-Path-Stat`.
         // HTTP header names are case-insensitive and the transport preserves
         // the daemon's original casing, so scan case-insensitively rather than
         // assuming an exact key.
-        let stat = headers
+        response
+            .headers
             .iter()
             .find(|(k, _)| k.to_string().eq_ignore_ascii_case("x-docker-container-path-stat"))
             .and_then(|(_, v)| v.first())
-            .cloned();
-        stat.ok_or_else(|| {
-            ApiError::RequestSendFailed("missing X-Docker-Container-Path-Stat header".to_string())
+            .cloned()
+            .ok_or_else(|| {
+                ApiError::RequestSendFailed(
+                    "missing X-Docker-Container-Path-Stat header".to_string(),
+                )
                 .into()
-        })
+            })
     }
 }

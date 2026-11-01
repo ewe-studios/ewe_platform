@@ -70,6 +70,7 @@ impl EndpointExtractor {
                 ("PUT", &path_item.put),
                 ("PATCH", &path_item.patch),
                 ("DELETE", &path_item.delete),
+                ("HEAD", &path_item.head),
             ];
 
             for (method_name, operation_opt) in methods {

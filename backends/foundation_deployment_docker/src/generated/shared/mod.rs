@@ -371,7 +371,7 @@ pub struct DeviceRequestShape {
     pub options: Option<serde_json::Value>,
 }
 
-/// A shape 6 generated types share.
+/// A shape 7 generated types share.
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmptyArgs {}
 
@@ -480,6 +480,15 @@ pub struct IdObject {
     /// `ID` property.
     #[serde(rename = "ID")]
     pub id: Option<String>,
+}
+
+/// A shape 2 generated types share.
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct IdPathArgs {
+    /// Path parameter: `id`.
+    pub id: String,
+    /// Query parameter: `path`.
+    pub path: Option<String>,
 }
 
 /// A shape 2 generated types share.
