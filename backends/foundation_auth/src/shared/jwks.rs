@@ -250,6 +250,7 @@ pub struct JwksManager {
     jwks_url: String,
     cached_jwks: Option<(Jwks, Instant)>,
     cache_ttl: Duration,
+    max_error_body: usize,
 }
 
 impl JwksManager {
@@ -270,7 +271,15 @@ impl JwksManager {
             jwks_url,
             cached_jwks: None,
             cache_ttl: cache_ttl.unwrap_or(Duration::from_secs(3600)),
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
         }
+    }
+
+    /// Cap an error body read for its message at `bytes`. Default 64 KiB.
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     /// Fetch JWKS from the URL, replacing cache.
@@ -284,7 +293,7 @@ impl JwksManager {
     ///
     /// Does not panic. The `unwrap` runs only after the cache is set.
     pub async fn fetch(&mut self) -> Result<&Jwks, JwksError> {
-        let json = fetch_jwks(&self.http, &self.jwks_url).await?;
+        let json = fetch_jwks(&self.http, &self.jwks_url, self.max_error_body).await?;
         let mut jwks = Jwks::from_json(&json)?;
         // If the URL contains an issuer hint, store it
         if let Some(issuer) = extract_issuer_from_url(&self.jwks_url) {
@@ -467,7 +476,11 @@ impl From<JwtError> for JwksError {
 // HTTP fetch — over the platform network client, `DynNetClient` (native + wasm).
 // ===========================================================================
 
-async fn fetch_jwks(client: &DynNetClient, url: &str) -> Result<String, JwksError> {
+async fn fetch_jwks(
+    client: &DynNetClient,
+    url: &str,
+    max_error_body: usize,
+) -> Result<String, JwksError> {
     let req = PreparedRequestBuilder::get(url)
         .map_err(|e| JwksError::JwksFetchFailed(format!("invalid URL: {e}")))?
         .header(SimpleHeader::ACCEPT, "application/json")
@@ -480,7 +493,7 @@ async fn fetch_jwks(client: &DynNetClient, url: &str) -> Result<String, JwksErro
 
     let status: usize = resp.get_status().into();
     if !(200..300).contains(&status) {
-        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(JwksError::JwksFetchFailed(format!("HTTP {status}: {text}")));
     }
     let body = read_body_text(resp.take_async_body())

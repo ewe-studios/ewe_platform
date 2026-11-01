@@ -91,6 +91,7 @@ pub struct UpstreamOidcClient {
     discovery: Option<OidcDiscovery>,
     /// Redirect URI for the authorization code flow.
     redirect_uri: String,
+    max_error_body: usize,
 }
 
 impl UpstreamOidcClient {
@@ -121,7 +122,15 @@ impl UpstreamOidcClient {
             oauth: OAuthManager::new(OAuthConfig::default()),
             discovery: None,
             redirect_uri,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
         }
+    }
+
+    /// Cap an error body read for its message at `bytes`. Default 64 KiB.
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     /// Build from a provider using explicit endpoints (no discovery).
@@ -309,7 +318,8 @@ impl UpstreamOidcClient {
         }
 
         let body = encode_form(&form);
-        let response = http_post_form(&self.http, &config.token_url, &body).await?;
+        let response =
+            http_post_form(&self.http, &config.token_url, &body, self.max_error_body).await?;
         let token: TokenResponse = serde_json::from_str(&response)
             .map_err(|e| UpstreamClientError::TokenExchange(format!("parse token response: {e}")))?;
 
@@ -342,7 +352,8 @@ impl UpstreamOidcClient {
             .userinfo_endpoint()
             .ok_or(UpstreamClientError::NoEndpoints)?;
 
-        let response = http_get_with_bearer(&self.http, &url, access_token).await?;
+        let response = http_get_with_bearer(&self.http, &url, access_token, self.max_error_body)
+            .await?;
         let json: serde_json::Value = serde_json::from_str(&response)
             .map_err(|e| UpstreamClientError::Userinfo(format!("parse userinfo response: {e}")))?;
 
@@ -434,6 +445,7 @@ async fn http_post_form(
     client: &DynNetClient,
     url: &str,
     body: &str,
+    max_error_body: usize,
 ) -> Result<String, UpstreamClientError> {
     let req = PreparedRequestBuilder::post(url)
         .map_err(|e| UpstreamClientError::TokenExchange(format!("invalid token URL: {e}")))?
@@ -449,7 +461,7 @@ async fn http_post_form(
 
     let status: usize = resp.get_status().into();
     if !(200..300).contains(&status) {
-        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(UpstreamClientError::TokenExchange(format!(
             "HTTP {status}: {text}"
         )));
@@ -464,6 +476,7 @@ async fn http_get_with_bearer(
     client: &DynNetClient,
     url: &str,
     access_token: &str,
+    max_error_body: usize,
 ) -> Result<String, UpstreamClientError> {
     let req = PreparedRequestBuilder::get(url)
         .map_err(|e| UpstreamClientError::Userinfo(format!("invalid userinfo URL: {e}")))?
@@ -478,11 +491,11 @@ async fn http_get_with_bearer(
 
     let status: usize = resp.get_status().into();
     if status == 401 {
-        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(UpstreamClientError::Userinfo(format!("unauthorized: {text}")));
     }
     if !(200..300).contains(&status) {
-        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(UpstreamClientError::Userinfo(format!("HTTP {status}: {text}")));
     }
     read_body_text(resp.take_async_body())

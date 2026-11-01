@@ -17,8 +17,6 @@ use super::super::storage::StorageOpError;
 #[cfg(feature = "server-native")]
 use webauthn_rs::prelude::*;
 #[cfg(feature = "server-native")]
-use base64::engine::Engine;
-#[cfg(feature = "server-native")]
 use webauthn_rs::prelude::{PublicKeyCredential, RegisterPublicKeyCredential};
 
 // ─── Public request/response types (always compiled) ─────────────────────────
@@ -100,7 +98,6 @@ fn auth_key(session: &str) -> String {
 /// state. The cache key is scoped by session and consumed (deleted) on finish.
 #[cfg(feature = "server-native")]
 pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
-    config: Arc<IdpConfig>,
     store: Arc<S>,
     cache: KV,
     webauthn: webauthn_rs::Webauthn,
@@ -108,7 +105,6 @@ pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
 
 #[cfg(not(feature = "server-native"))]
 pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
-    config: Arc<IdpConfig>,
     store: Arc<S>,
     _cache: std::marker::PhantomData<KV>,
 }
@@ -124,12 +120,13 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 .expect("Invalid WebAuthn builder config")
                 .build()
                 .expect("Invalid WebAuthn config");
-            Self { config, store, cache, webauthn }
+            Self { store, cache, webauthn }
         }
         #[cfg(not(feature = "server-native"))]
         {
             drop(cache);
-            Self { config, store, _cache: std::marker::PhantomData }
+            let _ = config;
+            Self { store, _cache: std::marker::PhantomData }
         }
     }
 
@@ -297,10 +294,6 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 .await
                 .map_err(|e| StorageOpError::Query(e.to_string()))?
                 .ok_or_else(|| StorageOpError::NotFound("Passkey not found".into()))?;
-
-            let wa_passkey: webauthn_rs::prelude::Passkey =
-                serde_cbor::from_slice(&passkey.credential_public_key)
-                    .map_err(|e| StorageOpError::Parse(format!("Deserialize passkey: {e}")))?;
 
             let auth_result = self.webauthn
                 .finish_passkey_authentication(&response, &state.auth)

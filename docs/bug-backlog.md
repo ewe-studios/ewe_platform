@@ -127,6 +127,14 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 10. foundation_ai
 
+- **The `fullfp16` target feature is unstable in rustc.** `.cargo/config.toml`
+  sets `-C target-feature=+fullfp16` for `aarch64-apple-darwin` (the gemm-f16
+  candle fix). Clippy/rustc warns the feature name is "unknown and unstable",
+  will become a hard error in a future release, and suggests `fp16`. Fix: use
+  the stable feature name — verify that `fp16` still enables full half-precision
+  arithmetic (`vfmaq_laneq_f16`) on Apple Silicon — or gate the flag behind the
+  rustc version that accepts it.
+
 ## 11. foundation_db and its sync callers
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
@@ -169,18 +177,14 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 12. foundation_auth
 
-- **`WebAuthnService.config` is never read.** `src/server/services/webauthn_service.rs`
-  stores `config: Arc<IdpConfig>` but only uses it in `new()` to build the
-  `Webauthn` (issuer URL / origin). The field is dead in both the
-  `server-native` and the non-`server-native` variants. Fix: drop the field and
-  use the `config` argument locally in `new()`.
-- **The five `shared` auth clients cap the error body at a hard-coded constant.**
-  `discovery`, `jwks`, `introspection`, `userinfo` and `upstream_client`
-  (`src/shared/`) call `read_error_text(.., DEFAULT_MAX_ERROR_BODY)`. Only the
-  native OAuth client's cap is configurable (`OAuthConfig::max_error_body`);
-  these five have no config field, so their 64 KiB cap cannot be changed. Fix:
-  add a `max_error_body` field to each client's config (or builder) to match
-  `foundation_deployment`'s `BodyLimits::max_error_body`.
+- **The `server`/`server-native` feature tree has over 200 clippy warnings.**
+  `cargo clippy -p foundation_auth --features server-native` reports 212 lints
+  across `src/server/` (`config.rs`, `handlers/*`, `services/*`): redundant
+  closures, missing `#[must_use]`, docs missing backticks, `too_many_lines`,
+  and more. The CI clippy step runs default features only (`runs[0] = ""`), so
+  none of these are enforced. Fix: a dedicated clippy-cleanup pass over the
+  server tree, then extend the CI clippy run to `server-test` so the debt
+  stays cleared.
 
 ## 13. foundation_nativeapis
 

@@ -92,6 +92,7 @@ impl UserInfo {
 /// `UserInfo` client — fetches user profile from OIDC provider.
 pub struct UserInfoClient {
     http: DynNetClient,
+    max_error_body: usize,
 }
 
 impl Default for UserInfoClient {
@@ -112,7 +113,17 @@ impl UserInfoClient {
     /// test client).
     #[must_use]
     pub fn with_client(http: DynNetClient) -> Self {
-        Self { http }
+        Self {
+            http,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
+        }
+    }
+
+    /// Cap an error body read for its message at `bytes`. Default 64 KiB.
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     /// Fetch user profile using the given access token.
@@ -126,7 +137,8 @@ impl UserInfoClient {
         userinfo_url: &str,
         access_token: &str,
     ) -> Result<UserInfo, UserInfoError> {
-        let body = fetch_userinfo(&self.http, userinfo_url, access_token).await?;
+        let body = fetch_userinfo(&self.http, userinfo_url, access_token, self.max_error_body)
+            .await?;
         let info: UserInfo = serde_json::from_str(&body)
             .map_err(|e| UserInfoError::ParseError(e.to_string()))?;
         info.validate()?;
@@ -171,6 +183,7 @@ async fn fetch_userinfo(
     client: &DynNetClient,
     url: &str,
     access_token: &str,
+    max_error_body: usize,
 ) -> Result<String, UserInfoError> {
     let req = PreparedRequestBuilder::get(url)
         .map_err(|e| UserInfoError::FetchFailed(format!("invalid URL: {e}")))?
@@ -185,11 +198,11 @@ async fn fetch_userinfo(
 
     let status: usize = resp.get_status().into();
     if status == 401 {
-        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(UserInfoError::Unauthorized(text));
     }
     if !(200..300).contains(&status) {
-        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(UserInfoError::FetchFailed(format!("HTTP {status}: {text}")));
     }
     let body = read_body_text(resp.take_async_body())

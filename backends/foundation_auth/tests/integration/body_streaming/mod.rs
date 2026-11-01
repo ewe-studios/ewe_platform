@@ -319,6 +319,164 @@ fn upstream_token_exchange_error_body_is_capped() {
 }
 
 // ===========================================================================
+// Configurable cap tests: `with_max_error_body` overrides the 64 KiB default.
+// Each client threads its configured cap into the shared `read_error_text`
+// limit, so a caller that owns a smaller upstream error page can cut it lower.
+// ===========================================================================
+
+/// A cap smaller than the default, so a passing test proves the setter took
+/// effect rather than merely falling back to the default.
+const CUSTOM_CAP: usize = 128;
+
+#[valtron_test]
+fn discovery_error_body_uses_configured_cap() {
+    let body = oversized_body();
+    let original = body.clone();
+    let server = TestHttpServer::with_response(move |_req| {
+        error_response(500, "Internal Server Error", &body)
+    })
+    .close_after_response(true);
+
+    let url = server.url("/.well-known/openid-configuration");
+    let client = DiscoveryClient::with_client(HttpClientBuilder::new().build())
+        .with_max_error_body(CUSTOM_CAP);
+
+    let err = drive(async move { client.fetch_from_url(&url).await })
+        .expect_err("a 500 is an error");
+
+    let text = match err {
+        DiscoveryError::FetchFailed(msg) => msg
+            .strip_prefix(HTTP_500_PREFIX)
+            .expect("the message carries the HTTP prefix")
+            .to_string(),
+        other => panic!("unexpected discovery error: {other:?}"),
+    };
+    assert!(text.len() <= CUSTOM_CAP);
+    assert!(text.len() < DEFAULT_MAX_ERROR_BODY);
+    assert!(original.starts_with(text.as_bytes()));
+}
+
+#[valtron_test]
+fn jwks_error_body_uses_configured_cap() {
+    let body = oversized_body();
+    let original = body.clone();
+    let server = TestHttpServer::with_response(move |_req| {
+        error_response(500, "Internal Server Error", &body)
+    })
+    .close_after_response(true);
+
+    let jwks_url = server.url("/jwks");
+    let mut manager = JwksManager::with_client(
+        HttpClientBuilder::new().build(),
+        jwks_url,
+        None,
+    )
+    .with_max_error_body(CUSTOM_CAP);
+
+    let err = drive(async move { manager.fetch().await.map(|_| ()) })
+        .expect_err("a 500 is an error");
+
+    let text = match err {
+        JwksError::JwksFetchFailed(msg) => msg
+            .strip_prefix(HTTP_500_PREFIX)
+            .expect("the message carries the HTTP prefix")
+            .to_string(),
+        other => panic!("unexpected jwks error: {other:?}"),
+    };
+    assert!(text.len() <= CUSTOM_CAP);
+    assert!(text.len() < DEFAULT_MAX_ERROR_BODY);
+    assert!(original.starts_with(text.as_bytes()));
+}
+
+#[valtron_test]
+fn introspection_error_body_uses_configured_cap() {
+    let body = oversized_body();
+    let original = body.clone();
+    let server = TestHttpServer::with_response(move |_req| {
+        error_response(401, "Unauthorized", &body)
+    })
+    .close_after_response(true);
+
+    let url = server.url("/introspect");
+    let client = IntrospectionClient::with_client(HttpClientBuilder::new().build())
+        .with_max_error_body(CUSTOM_CAP);
+
+    let err = drive(async move {
+        client
+            .introspect(&url, "tok", "client", "secret")
+            .await
+    })
+    .expect_err("a 401 is an error");
+
+    // A 401 carries the raw body with no HTTP prefix.
+    let text = match err {
+        IntrospectionError::Unauthorized(msg) => msg,
+        other => panic!("unexpected introspection error: {other:?}"),
+    };
+    assert!(text.len() <= CUSTOM_CAP);
+    assert!(text.len() < DEFAULT_MAX_ERROR_BODY);
+    assert!(original.starts_with(text.as_bytes()));
+}
+
+#[valtron_test]
+fn userinfo_error_body_uses_configured_cap() {
+    let body = oversized_body();
+    let original = body.clone();
+    let server = TestHttpServer::with_response(move |_req| {
+        error_response(500, "Internal Server Error", &body)
+    })
+    .close_after_response(true);
+
+    let url = server.url("/userinfo");
+    let client = UserInfoClient::with_client(HttpClientBuilder::new().build())
+        .with_max_error_body(CUSTOM_CAP);
+
+    let err = drive(async move { client.fetch(&url, "tok").await })
+        .expect_err("a 500 is an error");
+
+    let text = match err {
+        UserInfoError::FetchFailed(msg) => msg
+            .strip_prefix(HTTP_500_PREFIX)
+            .expect("the message carries the HTTP prefix")
+            .to_string(),
+        other => panic!("unexpected userinfo error: {other:?}"),
+    };
+    assert!(text.len() <= CUSTOM_CAP);
+    assert!(text.len() < DEFAULT_MAX_ERROR_BODY);
+    assert!(original.starts_with(text.as_bytes()));
+}
+
+#[valtron_test]
+fn upstream_token_exchange_error_body_uses_configured_cap() {
+    let body = oversized_body();
+    let original = body.clone();
+    let server = TestHttpServer::with_response(move |_req| {
+        error_response(500, "Internal Server Error", &body)
+    })
+    .close_after_response(true);
+
+    let mut provider = test_provider();
+    provider.token_url = Some(server.url("/token"));
+    let mut client = UpstreamOidcClient::new(provider, "https://app.example/callback".into())
+        .with_max_error_body(CUSTOM_CAP);
+    client.configure().expect("configure");
+
+    let err = drive(async move { client.exchange_code("code", None, None).await })
+        .expect_err("a 500 is an error");
+
+    let text = match err {
+        UpstreamClientError::TokenExchange(msg) => msg
+            .strip_prefix(HTTP_500_PREFIX)
+            .expect("the message carries the HTTP prefix")
+            .to_string(),
+        other => panic!("unexpected upstream error: {other:?}"),
+    };
+    assert!(text.len() <= CUSTOM_CAP);
+    assert!(text.len() < DEFAULT_MAX_ERROR_BODY);
+    assert!(original.starts_with(text.as_bytes()));
+}
+
+// ===========================================================================
 // Native-only tests: E9 token parsing, password error message, and parking.
 // ===========================================================================
 

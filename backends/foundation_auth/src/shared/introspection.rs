@@ -71,6 +71,7 @@ impl IntrospectionResult {
 /// Token introspection client.
 pub struct IntrospectionClient {
     http: DynNetClient,
+    max_error_body: usize,
 }
 
 impl Default for IntrospectionClient {
@@ -91,7 +92,17 @@ impl IntrospectionClient {
     /// test client).
     #[must_use]
     pub fn with_client(http: DynNetClient) -> Self {
-        Self { http }
+        Self {
+            http,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
+        }
+    }
+
+    /// Cap an error body read for its message at `bytes`. Default 64 KiB.
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     /// Introspect a token at the given endpoint.
@@ -111,7 +122,15 @@ impl IntrospectionClient {
         client_secret: &str,
     ) -> Result<IntrospectionResult, IntrospectionError> {
         let body =
-            do_introspect(&self.http, introspection_url, token, client_id, client_secret).await?;
+            do_introspect(
+                &self.http,
+                introspection_url,
+                token,
+                client_id,
+                client_secret,
+                self.max_error_body,
+            )
+            .await?;
         serde_json::from_str(&body)
             .map_err(|e| IntrospectionError::ParseError(e.to_string()))
     }
@@ -166,6 +185,7 @@ async fn do_introspect(
     token: &str,
     client_id: &str,
     client_secret: &str,
+    max_error_body: usize,
 ) -> Result<String, IntrospectionError> {
     let body_text = format!("token={}", urlencoding::encode(token));
     let req = PreparedRequestBuilder::post(url)
@@ -182,11 +202,11 @@ async fn do_introspect(
 
     let status: usize = resp.get_status().into();
     if status == 401 {
-        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(IntrospectionError::Unauthorized(text));
     }
     if !(200..300).contains(&status) {
-        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(IntrospectionError::ServerError {
             status: u16::try_from(status).unwrap_or(0),
             message: text,

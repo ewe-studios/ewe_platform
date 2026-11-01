@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §12 (foundation_auth) fixed on
+  `fix/io-20-vfs-process-ipc`. Two entries are cleared. First, the dead
+  `WebAuthnService.config` field is dropped from both the `server-native` and
+  the non-`server-native` variants; the `config` argument is used only locally
+  in `new()`. Second, the five `shared` clients (`discovery`, `jwks`,
+  `introspection`, `userinfo`, `upstream_client`) each gain a `max_error_body`
+  field and a `with_max_error_body` setter that threads the cap into
+  `read_error_text`. The new public setter bumps `foundation_auth` 0.0.4 ->
+  0.0.5 and its four versioned consumers follow. Five `body_streaming` tests
+  assert a client with `with_max_error_body(128)` cuts a 128 KiB error body at
+  128 bytes. Two more `server-native` warnings are cleared in the same file: a
+  dead `base64::engine::Engine` import and an unused `wa_passkey`
+  deserialization. The backlog entries are removed, and a new entry records
+  the 200+ clippy warnings in the `server`/`server-native` feature tree.
+
 - 2026-11-02: bug-backlog §10 gemm-f16 fullfp16 (foundation_ai) fixed on
   `fix/io-20-vfs-process-ipc`. `cargo test` with candle failed to assemble
   `gemm-f16` on Apple Silicon because `aarch64-apple-darwin` does not enable

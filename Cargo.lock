@@ -4554,7 +4554,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_auth"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "argon2",
  "async-trait",

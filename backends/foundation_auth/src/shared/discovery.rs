@@ -154,6 +154,7 @@ impl OidcDiscovery {
 pub struct DiscoveryClient {
     http: DynNetClient,
     cached: Option<(String, OidcDiscovery)>, // (issuer_url, discovery)
+    max_error_body: usize,
 }
 
 impl Default for DiscoveryClient {
@@ -175,7 +176,18 @@ impl DiscoveryClient {
     /// requests through `http` (a shared client, or a test client).
     #[must_use]
     pub fn with_client(http: DynNetClient) -> Self {
-        Self { http, cached: None }
+        Self {
+            http,
+            cached: None,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
+        }
+    }
+
+    /// Cap an error body read for its message at `bytes`. Default 64 KiB.
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     /// Get the cached discovery document, fetching if not cached.
@@ -207,7 +219,7 @@ impl DiscoveryClient {
     /// Does not panic. The `unwrap` runs only after the cache is set.
     pub async fn fetch(&mut self, issuer_url: &str) -> Result<&OidcDiscovery, DiscoveryError> {
         let url = build_well_known_url(issuer_url);
-        let discovery = do_fetch(&self.http, &url).await?;
+        let discovery = do_fetch(&self.http, &url, self.max_error_body).await?;
         self.cached = Some((issuer_url.to_string(), discovery));
         Ok(&self.cached.as_ref().unwrap().1)
     }
@@ -218,7 +230,7 @@ impl DiscoveryClient {
     ///
     /// Returns `DiscoveryError` if the fetch or parse fails.
     pub async fn fetch_from_url(&self, url: &str) -> Result<OidcDiscovery, DiscoveryError> {
-        do_fetch(&self.http, url).await
+        do_fetch(&self.http, url, self.max_error_body).await
     }
 
     /// Clear the cached discovery document.
@@ -245,8 +257,12 @@ fn build_well_known_url(issuer: &str) -> String {
 }
 
 /// Fetch and parse a discovery document from a URL.
-async fn do_fetch(client: &DynNetClient, url: &str) -> Result<OidcDiscovery, DiscoveryError> {
-    let json = fetch_discovery(client, url).await?;
+async fn do_fetch(
+    client: &DynNetClient,
+    url: &str,
+    max_error_body: usize,
+) -> Result<OidcDiscovery, DiscoveryError> {
+    let json = fetch_discovery(client, url, max_error_body).await?;
     serde_json::from_str(&json)
         .map_err(|e| DiscoveryError::ParseError(e.to_string()))
 }
@@ -304,7 +320,11 @@ impl std::error::Error for DiscoveryError {}
 // HTTP fetch — over the platform network client, `DynNetClient` (native + wasm).
 // ===========================================================================
 
-async fn fetch_discovery(client: &DynNetClient, url: &str) -> Result<String, DiscoveryError> {
+async fn fetch_discovery(
+    client: &DynNetClient,
+    url: &str,
+    max_error_body: usize,
+) -> Result<String, DiscoveryError> {
     let req = PreparedRequestBuilder::get(url)
         .map_err(|e| DiscoveryError::FetchFailed(format!("invalid URL: {e}")))?
         .header(SimpleHeader::ACCEPT, "application/json")
@@ -317,7 +337,7 @@ async fn fetch_discovery(client: &DynNetClient, url: &str) -> Result<String, Dis
 
     let status: usize = resp.get_status().into();
     if !(200..300).contains(&status) {
-        let text = read_error_text(resp.take_async_body(), DEFAULT_MAX_ERROR_BODY).await;
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(DiscoveryError::FetchFailed(format!("HTTP {status}: {text}")));
     }
     let body = read_body_text(resp.take_async_body())
