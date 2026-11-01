@@ -1,9 +1,14 @@
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use foundation_core::valtron::valtron_test;
+use futures_lite::future::{yield_now, zip};
 
 use foundation_nativeapis::{
-    InCodeVfsSearcher, MemoryFs, VfsFileSystem, VfsSearchKind, VfsSearcher,
+    CliSearcher, InCodeVfsSearcher, MemoryFs, SearchConfig, VfsFileSystem, VfsSearchKind,
+    VfsSearcher,
 };
 
 fn make_fs() -> Arc<MemoryFs> {
@@ -172,4 +177,103 @@ async fn empty_fs_find_returns_empty() {
         .search("anything", VfsSearchKind::Find, &["/".into()]).await
         .unwrap();
     assert!(matches.is_empty());
+}
+
+// ── E7: native search limits and CLI process streaming ──
+
+/// The search limits live on a config with documented defaults.
+#[test]
+fn search_limits_come_from_config() {
+    let default = SearchConfig::new();
+    assert_eq!(default.max_matches_per_file(), 50);
+    assert_eq!(default.page_limit(), 200);
+    assert_eq!(default.time_budget(), Duration::from_secs(5));
+    assert_eq!(default.scan_timeout(), Duration::from_secs(30));
+
+    let configured = SearchConfig::new()
+        .with_max_matches_per_file(7)
+        .with_page_limit(13)
+        .with_time_budget(Duration::from_millis(1_200))
+        .with_scan_timeout(Duration::from_secs(9));
+    assert_eq!(configured.max_matches_per_file(), 7);
+    assert_eq!(configured.page_limit(), 13);
+    assert_eq!(configured.time_budget(), Duration::from_millis(1_200));
+    assert_eq!(configured.scan_timeout(), Duration::from_secs(9));
+}
+
+struct TempDir(PathBuf);
+
+impl TempDir {
+    fn new(name: &str) -> Self {
+        let path = std::env::temp_dir().join(format!(
+            "vfs_search_test_{name}_{}_{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = std::fs::remove_dir_all(&path);
+        std::fs::create_dir_all(&path).expect("create temp dir");
+        Self(path)
+    }
+
+    fn path(&self) -> &std::path::Path {
+        &self.0
+    }
+}
+
+impl Drop for TempDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+/// The CLI searcher streams the child's stdout off the valtron worker: a
+/// ticker keeps ticking while `rg`/`grep` runs.
+#[valtron_test]
+async fn cli_search_streams_results() {
+    let Some(searcher) = CliSearcher::detect() else {
+        // Neither rg nor grep is installed; nothing to exercise.
+        return;
+    };
+
+    let tmp = TempDir::new("cli_search");
+    std::fs::write(tmp.path().join("a.txt"), "hello world\n").unwrap();
+    std::fs::write(tmp.path().join("b.txt"), "hello there\n").unwrap();
+
+    let ticks = Arc::new(AtomicUsize::new(0));
+    let done = Arc::new(AtomicBool::new(false));
+    let ticker = {
+        let (ticks, done) = (Arc::clone(&ticks), Arc::clone(&done));
+        async move {
+            while !done.load(Ordering::SeqCst) {
+                ticks.fetch_add(1, Ordering::SeqCst);
+                yield_now().await;
+            }
+        }
+    };
+    let search = {
+        let done = Arc::clone(&done);
+        async move {
+            let result = searcher
+                .search(
+                    "hello",
+                    VfsSearchKind::Grep,
+                    &[tmp.path().to_string_lossy().into_owned()],
+                )
+                .await;
+            done.store(true, Ordering::SeqCst);
+            result
+        }
+    };
+
+    let (result, ()) = zip(search, ticker).await;
+    let matches = result.expect("CLI grep succeeded");
+    assert_eq!(matches.len(), 2, "one match per file");
+    assert!(
+        ticks.load(Ordering::SeqCst) > 0,
+        "the ticker must tick while the CLI search runs, saw {}",
+        ticks.load(Ordering::SeqCst)
+    );
 }

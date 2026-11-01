@@ -45,7 +45,9 @@ pub use fuse::{FuseMount, FuseMountOptions};
     feature = "vfs-ipc",
     any(target_os = "linux", target_os = "macos", target_os = "windows")
 ))]
-pub use ipc_bus::{run_daemon_loop, ClientTransport, DaemonTransport, VFS_BUS_IDENTIFIER};
+pub use ipc_bus::{
+    run_daemon_loop, ClientTransport, DaemonTransport, VfsIpcConfig, VFS_BUS_IDENTIFIER,
+};
 
 #[cfg(feature = "vfs-sqlite")]
 pub use libsql_delta::LibsqlDelta;

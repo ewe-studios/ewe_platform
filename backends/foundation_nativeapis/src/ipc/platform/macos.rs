@@ -4,7 +4,7 @@
 
 use std::{
     ffi::CString, io, mem, os::unix::prelude::{AsRawFd, FromRawFd, OwnedFd},
-    ptr, slice, sync::{mpsc, Arc, Mutex, Once, mpsc::{Receiver, Sender, TryRecvError}},
+    ptr, slice, sync::{mpsc, Arc, Once, mpsc::{Receiver, Sender, TryRecvError}},
     time::{Duration, Instant},
 };
 use foundation_core::type_uuid::TypeUuid;
@@ -12,7 +12,7 @@ use foundation_core::type_uuid::TypeUuid;
 use crate::ipc::{
     decode, version::version, version::Version,
     EndpointID, Error, Label, LabelOp, Message, MessageBox,
-    Selector, SelectorMode, MemoryRegion, util::Align4,
+    Selector, MemoryRegion, util::Align4,
 };
 
 // MACH_PORT_TYPE_DEAD_NAME = 1 << (4 + 16)
@@ -221,9 +221,6 @@ impl RemoteLock<'_> {
     }
 }
 
-/// The local (read) end — the mach port we listen on.
-pub struct Local(pub(crate) MachPort);
-
 /// Bootstrap port cache.
 static mut BOOTSTRAP_PORT_ROOT: mach_sys::mach_port_t = 0;
 static INIT: Once = Once::new();
@@ -233,8 +230,8 @@ unsafe fn init() {
         let mut up = 0;
         let mut r = mach_sys::task_get_special_port(
             mach_sys::mach_task_self(),
-            mach_sys::TASK_BOOTSTRAP_PORT,
-            &mut BOOTSTRAP_PORT_ROOT,
+            mach_sys::TASK_BOOTSTRAP_PORT as i32,
+            ptr::addr_of_mut!(BOOTSTRAP_PORT_ROOT),
         );
         assert_eq!(r, mach_sys::BOOTSTRAP_SUCCESS);
 
@@ -347,7 +344,7 @@ impl MachPort {
                 mach_sys::mach_task_self(),
                 local,
                 local,
-                mach_sys::MACH_MSG_TYPE_COPY_SEND,
+                mach_sys::MACH_MSG_TYPE_MAKE_SEND as mach_sys::mach_msg_type_name_t,
             );
             assert_eq!(r, mach_sys::KERN_SUCCESS);
 
@@ -493,13 +490,6 @@ impl EncodedMessage {
         }
     }
 
-    pub fn from_local(pipe: &mut Pipe) -> Result<Self, Error> {
-        match pipe.read() {
-            Some(mach_msg) => Self::new(mach_msg),
-            None => Err(Error::Disconnect),
-        }
-    }
-
     fn new(mut mach_msg: Vec<u8>) -> Result<Self, Error> {
         unsafe {
             let base_ptr = mach_msg.as_mut_ptr() as *mut BaseMessage;
@@ -513,9 +503,9 @@ impl EncodedMessage {
 
             let version_ptr = descriptor_ptr as *mut u32;
             let [magic, major, minor, patch]: [u8; 4] = u32::to_ne_bytes(*version_ptr);
-            let remote_version = Version((major, minor, patch));
+            let remote_version = Version::from_parts(major, minor, patch);
             if magic != 0xFF {
-                return Err(Error::VersionMismatch(Version((0, 0, 0)), None));
+                return Err(Error::VersionMismatch(Version::new(), None));
             }
             if !version().compatible(remote_version) {
                 return Err(Error::VersionMismatch(remote_version, None));
@@ -635,20 +625,24 @@ impl<T: MessageBox> Message<T> {
 pub(crate) struct IoHub {
     local: Option<Pipe>,
     bus_receiver: Option<Receiver<EncodedMessage>>,
-    waker: usize,
     im: Arc<IoMultiplexing>,
     in_buffer: Vec<libc::kevent>,
 }
 
+// The only non-Send member is `in_buffer`, a private scratch buffer for
+// `kevent()` results. The kernel fills it through `&mut self`; it is never
+// shared. Mach ports, the mpsc receiver and the kqueue fd are all thread-safe.
+unsafe impl Send for IoHub {}
+
 impl IoHub {
     fn for_bus_controller(local: MachPort, bus_receiver: Receiver<EncodedMessage>, im: Arc<IoMultiplexing>) -> Self {
         im.register_mach_port(&local);
-        Self { local: Some(Pipe::new(local)), bus_receiver: Some(bus_receiver), waker: im.waker, im, in_buffer: Vec::with_capacity(2) }
+        Self { local: Some(Pipe::new(local)), bus_receiver: Some(bus_receiver), im, in_buffer: Vec::with_capacity(2) }
     }
 
     fn for_endpoint(local: MachPort, im: Arc<IoMultiplexing>) -> Self {
         im.register_mach_port(&local);
-        Self { local: Some(Pipe::new(local)), bus_receiver: None, waker: im.waker, im, in_buffer: Vec::with_capacity(2) }
+        Self { local: Some(Pipe::new(local)), bus_receiver: None, im, in_buffer: Vec::with_capacity(2) }
     }
 
     pub fn recv(&mut self, timeout: Option<Duration>, remote: Option<&Remote>) -> Result<EncodedMessage, Error> {
@@ -689,7 +683,7 @@ impl IoHub {
             }
 
             if let Some(local) = &mut self.local {
-                if self.in_buffer.drain(..).any(|i| i.ident == local.port.as_raw() as _) {
+                if self.in_buffer.drain(..).any(|i| i.ident == local.port.as_raw() as usize) {
                     local.status = PipeStatus::Readable;
                 }
             }

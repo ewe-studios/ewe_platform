@@ -49,7 +49,7 @@ pub use search::{
 };
 
 #[cfg(all(feature = "vfs-search", not(target_family = "wasm")))]
-pub use search::{CliSearcher, native_vfs_searcher};
+pub use search::{CliSearcher, SearchConfig, native_vfs_searcher};
 
 
 #[cfg(feature = "vfs-fjall")]

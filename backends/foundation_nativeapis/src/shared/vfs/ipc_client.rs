@@ -12,19 +12,19 @@ use super::async_traits::{
     AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
 };
 use super::error::{VfsError, VfsResult};
-use super::ipc_messages::{VfsRequest, VfsResponse};
+use super::ipc_messages::{VfsRequestBody, VfsResponseBody};
 use super::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
 
 /// Carries VFS requests to a daemon.
 #[async_trait]
 pub trait VfsTransport: Send + Sync {
     /// Sends `req` and waits for its response.
-    async fn request(&self, req: VfsRequest) -> VfsResponse;
+    async fn request(&self, req: VfsRequestBody) -> VfsResponseBody;
 
     /// Sends a request whose response the caller does not need (`CloseFile`,
     /// `CloseDir`), without a wait. The remote handles call this from `Drop`,
     /// where they cannot await.
-    fn release(&self, req: VfsRequest);
+    fn release(&self, req: VfsRequestBody);
 }
 
 fn unexpected() -> ErrorTrace<VfsError> {
@@ -33,31 +33,34 @@ fn unexpected() -> ErrorTrace<VfsError> {
     })
 }
 
-/// Sends `req` and turns a `VfsResponse::Error` into an `Err`.
-async fn call(transport: &dyn VfsTransport, req: VfsRequest) -> VfsResult<VfsResponse> {
+/// Sends `req` and turns a `VfsResponseBody::Error` into an `Err`.
+async fn call(transport: &dyn VfsTransport, req: VfsRequestBody) -> VfsResult<VfsResponseBody> {
     match transport.request(req).await {
-        VfsResponse::Error(message) => Err(ErrorTrace::new(VfsError::Backend { message })),
+        VfsResponseBody::Error(message) => Err(ErrorTrace::new(VfsError::Backend { message })),
         resp => Ok(resp),
     }
 }
 
-async fn call_ok(transport: &dyn VfsTransport, req: VfsRequest) -> VfsResult<()> {
+async fn call_ok(transport: &dyn VfsTransport, req: VfsRequestBody) -> VfsResult<()> {
     match call(transport, req).await? {
-        VfsResponse::Ok => Ok(()),
+        VfsResponseBody::Ok => Ok(()),
         _ => Err(unexpected()),
     }
 }
 
-async fn call_metadata(transport: &dyn VfsTransport, req: VfsRequest) -> VfsResult<VfsMetadata> {
+async fn call_metadata(
+    transport: &dyn VfsTransport,
+    req: VfsRequestBody,
+) -> VfsResult<VfsMetadata> {
     match call(transport, req).await? {
-        VfsResponse::Metadata(m) => Ok(m.into()),
+        VfsResponseBody::Metadata(m) => Ok(m.into()),
         _ => Err(unexpected()),
     }
 }
 
-async fn call_handle(transport: &dyn VfsTransport, req: VfsRequest) -> VfsResult<u64> {
+async fn call_handle(transport: &dyn VfsTransport, req: VfsRequestBody) -> VfsResult<u64> {
     match call(transport, req).await? {
-        VfsResponse::FileHandle(h) | VfsResponse::DirHandle(h) => Ok(h),
+        VfsResponseBody::FileHandle(h) | VfsResponseBody::DirHandle(h) => Ok(h),
         _ => Err(unexpected()),
     }
 }
@@ -79,8 +82,8 @@ impl VfsClient {
     /// Connects a client. It asks the daemon for its capabilities once; when
     /// the daemon does not answer them, the client uses the defaults.
     pub async fn new(transport: Arc<dyn VfsTransport>) -> Self {
-        let capabilities = match transport.request(VfsRequest::Capabilities).await {
-            VfsResponse::Capabilities(c) => c.into(),
+        let capabilities = match transport.request(VfsRequestBody::Capabilities).await {
+            VfsResponseBody::Capabilities(c) => c.into(),
             _ => VfsCapabilities::default(),
         };
         Self {
@@ -108,41 +111,41 @@ impl AsyncVfsFileSystem for VfsClient {
     }
 
     async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
-        call_metadata(&*self.transport, VfsRequest::Stat { path }).await
+        call_metadata(&*self.transport, VfsRequestBody::Stat { path }).await
     }
 
     async fn exists_async(&self, path: String) -> VfsResult<bool> {
-        match call(&*self.transport, VfsRequest::Exists { path }).await? {
-            VfsResponse::Exists(b) => Ok(b),
+        match call(&*self.transport, VfsRequestBody::Exists { path }).await? {
+            VfsResponseBody::Exists(b) => Ok(b),
             _ => Err(unexpected()),
         }
     }
 
     async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> {
-        call_ok(&*self.transport, VfsRequest::Chmod { path, mode }).await
+        call_ok(&*self.transport, VfsRequestBody::Chmod { path, mode }).await
     }
 
     async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> {
-        call_ok(&*self.transport, VfsRequest::Symlink { target, link }).await
+        call_ok(&*self.transport, VfsRequestBody::Symlink { target, link }).await
     }
 
     async fn readlink_async(&self, path: String) -> VfsResult<String> {
-        match call(&*self.transport, VfsRequest::ReadLink { path }).await? {
-            VfsResponse::Path(s) => Ok(s),
+        match call(&*self.transport, VfsRequestBody::ReadLink { path }).await? {
+            VfsResponseBody::Path(s) => Ok(s),
             _ => Err(unexpected()),
         }
     }
 
     async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
-        call_ok(&*self.transport, VfsRequest::Rename { from, to }).await
+        call_ok(&*self.transport, VfsRequestBody::Rename { from, to }).await
     }
 
     async fn remove_async(&self, path: String) -> VfsResult<()> {
-        call_ok(&*self.transport, VfsRequest::Remove { path }).await
+        call_ok(&*self.transport, VfsRequestBody::Remove { path }).await
     }
 
     async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<RemoteFile> {
-        let req = VfsRequest::Open {
+        let req = VfsRequestBody::Open {
             path,
             mode: mode.into(),
             seekable: false,
@@ -155,7 +158,7 @@ impl AsyncVfsFileSystem for VfsClient {
         path: String,
         mode: OpenMode,
     ) -> VfsResult<RemoteSeekableFile> {
-        let req = VfsRequest::Open {
+        let req = VfsRequestBody::Open {
             path,
             mode: mode.into(),
             seekable: true,
@@ -165,7 +168,7 @@ impl AsyncVfsFileSystem for VfsClient {
     }
 
     async fn open_directory_async(&self, path: String) -> VfsResult<RemoteDirectory> {
-        let req = VfsRequest::OpenDir { path: path.clone() };
+        let req = VfsRequestBody::OpenDir { path: path.clone() };
         let handle = call_handle(&*self.transport, req).await?;
         Ok(RemoteDirectory {
             handle,
@@ -175,41 +178,41 @@ impl AsyncVfsFileSystem for VfsClient {
     }
 
     async fn create_async(&self, path: String, mode: u32) -> VfsResult<RemoteFile> {
-        let req = VfsRequest::Create { path, mode };
+        let req = VfsRequestBody::Create { path, mode };
         Ok(self.file(call_handle(&*self.transport, req).await?))
     }
 
     async fn mkdir_async(&self, path: String) -> VfsResult<()> {
-        call_ok(&*self.transport, VfsRequest::Mkdir { path }).await
+        call_ok(&*self.transport, VfsRequestBody::Mkdir { path }).await
     }
 
     async fn inode_async(&self, path: String) -> VfsResult<u64> {
-        match call(&*self.transport, VfsRequest::Inode { path }).await? {
-            VfsResponse::Inode(ino) => Ok(ino),
+        match call(&*self.transport, VfsRequestBody::Inode { path }).await? {
+            VfsResponseBody::Inode(ino) => Ok(ino),
             _ => Err(unexpected()),
         }
     }
 
     async fn path_by_inode_async(&self, ino: u64) -> VfsResult<String> {
-        match call(&*self.transport, VfsRequest::PathByInode { ino }).await? {
-            VfsResponse::Path(p) => Ok(p),
+        match call(&*self.transport, VfsRequestBody::PathByInode { ino }).await? {
+            VfsResponseBody::Path(p) => Ok(p),
             _ => Err(unexpected()),
         }
     }
 
     async fn stat_by_inode_async(&self, ino: u64) -> VfsResult<VfsMetadata> {
-        call_metadata(&*self.transport, VfsRequest::StatByInode { ino }).await
+        call_metadata(&*self.transport, VfsRequestBody::StatByInode { ino }).await
     }
 
     async fn read_file_async(&self, path: String) -> VfsResult<Vec<u8>> {
-        match call(&*self.transport, VfsRequest::ReadFile { path }).await? {
-            VfsResponse::Data(d) => Ok(d),
+        match call(&*self.transport, VfsRequestBody::ReadFile { path }).await? {
+            VfsResponseBody::Data(d) => Ok(d),
             _ => Err(unexpected()),
         }
     }
 
     async fn write_file_async(&self, path: String, data: Vec<u8>) -> VfsResult<()> {
-        call_ok(&*self.transport, VfsRequest::WriteFile { path, data }).await
+        call_ok(&*self.transport, VfsRequestBody::WriteFile { path, data }).await
     }
 }
 
@@ -221,22 +224,17 @@ async fn remote_read_at(
     len: usize,
     offset: u64,
 ) -> VfsResult<Vec<u8>> {
-    let size = u32::try_from(len).map_err(|_| {
-        ErrorTrace::new(VfsError::Backend {
-            message: format!("read of {len} bytes is larger than one IPC request allows"),
-        })
-    })?;
     match call(
         transport,
-        VfsRequest::ReadAt {
+        VfsRequestBody::ReadAt {
             handle,
             offset,
-            size,
+            size: len as u64,
         },
     )
     .await?
     {
-        VfsResponse::Data(data) => Ok(data),
+        VfsResponseBody::Data(data) => Ok(data),
         _ => Err(unexpected()),
     }
 }
@@ -249,7 +247,7 @@ async fn remote_write_at(
 ) -> VfsResult<usize> {
     match call(
         transport,
-        VfsRequest::WriteAt {
+        VfsRequestBody::WriteAt {
             handle,
             data,
             offset,
@@ -257,14 +255,14 @@ async fn remote_write_at(
     )
     .await?
     {
-        VfsResponse::BytesTransferred(n) => Ok(n),
+        VfsResponseBody::BytesTransferred(n) => Ok(n),
         _ => Err(unexpected()),
     }
 }
 
 async fn remote_size(transport: &dyn VfsTransport, handle: u64) -> VfsResult<u64> {
-    match call(transport, VfsRequest::FileSize { handle }).await? {
-        VfsResponse::Size(s) => Ok(s),
+    match call(transport, VfsRequestBody::FileSize { handle }).await? {
+        VfsResponseBody::Size(s) => Ok(s),
         _ => Err(unexpected()),
     }
 }
@@ -297,7 +295,7 @@ impl AsyncVfsFile for RemoteFile {
     async fn sync_data_async(&self) -> VfsResult<()> {
         call_ok(
             &*self.transport,
-            VfsRequest::SyncData {
+            VfsRequestBody::SyncData {
                 handle: self.handle,
             },
         )
@@ -309,7 +307,7 @@ impl AsyncVfsFile for RemoteFile {
     }
 
     async fn truncate_async(&self, size: u64) -> VfsResult<()> {
-        let req = VfsRequest::Truncate {
+        let req = VfsRequestBody::Truncate {
             handle: self.handle,
             size,
         };
@@ -319,7 +317,7 @@ impl AsyncVfsFile for RemoteFile {
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
         call_metadata(
             &*self.transport,
-            VfsRequest::FileMetadata {
+            VfsRequestBody::FileMetadata {
                 handle: self.handle,
             },
         )
@@ -329,7 +327,7 @@ impl AsyncVfsFile for RemoteFile {
 
 impl Drop for RemoteFile {
     fn drop(&mut self) {
-        self.transport.release(VfsRequest::CloseFile {
+        self.transport.release(VfsRequestBody::CloseFile {
             handle: self.handle,
         });
     }
@@ -405,12 +403,12 @@ impl AsyncSeekableVfsFile for RemoteSeekableFile {
     }
 
     async fn seek_async(&mut self, pos: SeekFrom) -> VfsResult<u64> {
-        let req = VfsRequest::Seek {
+        let req = VfsRequestBody::Seek {
             handle: self.file.handle,
             pos: pos.into(),
         };
         match call(&*self.file.transport, req).await? {
-            VfsResponse::Position(p) => {
+            VfsResponseBody::Position(p) => {
                 self.position.store(p, Ordering::Relaxed);
                 Ok(p)
             }
@@ -486,7 +484,7 @@ impl AsyncVfsDirectory for RemoteDirectory {
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
         call_metadata(
             &*self.transport,
-            VfsRequest::DirMetadata {
+            VfsRequestBody::DirMetadata {
                 handle: self.handle,
             },
         )
@@ -496,30 +494,30 @@ impl AsyncVfsDirectory for RemoteDirectory {
     async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
         match call(
             &*self.transport,
-            VfsRequest::DirList {
+            VfsRequestBody::DirList {
                 handle: self.handle,
             },
         )
         .await?
         {
-            VfsResponse::DirEntries(entries) => Ok(entries.into_iter().map(Into::into).collect()),
+            VfsResponseBody::DirEntries(entries) => Ok(entries.into_iter().map(Into::into).collect()),
             _ => Err(unexpected()),
         }
     }
 
     async fn get_entry_async(&self, name: String) -> VfsResult<Option<VfsDirEntry>> {
-        let req = VfsRequest::DirGetEntry {
+        let req = VfsRequestBody::DirGetEntry {
             handle: self.handle,
             name,
         };
         match call(&*self.transport, req).await? {
-            VfsResponse::DirEntry(e) => Ok(e.map(Into::into)),
+            VfsResponseBody::DirEntry(e) => Ok(e.map(Into::into)),
             _ => Err(unexpected()),
         }
     }
 
     async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<RemoteFile> {
-        let req = VfsRequest::DirCreateFile {
+        let req = VfsRequestBody::DirCreateFile {
             handle: self.handle,
             name,
             mode,
@@ -529,7 +527,7 @@ impl AsyncVfsDirectory for RemoteDirectory {
 
     async fn create_dir_async(&self, name: String) -> VfsResult<RemoteDirBox> {
         let path = self.resolve_path(&name);
-        let req = VfsRequest::DirCreateDir {
+        let req = VfsRequestBody::DirCreateDir {
             handle: self.handle,
             name,
         };
@@ -537,7 +535,7 @@ impl AsyncVfsDirectory for RemoteDirectory {
     }
 
     async fn remove_entry_async(&self, name: String) -> VfsResult<()> {
-        let req = VfsRequest::DirRemoveEntry {
+        let req = VfsRequestBody::DirRemoveEntry {
             handle: self.handle,
             name,
         };
@@ -545,7 +543,7 @@ impl AsyncVfsDirectory for RemoteDirectory {
     }
 
     async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> {
-        let req = VfsRequest::Rename {
+        let req = VfsRequestBody::Rename {
             from: self.resolve_path(&old_name),
             to: self.resolve_path(&new_name),
         };
@@ -553,7 +551,7 @@ impl AsyncVfsDirectory for RemoteDirectory {
     }
 
     async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<RemoteFile> {
-        let req = VfsRequest::Open {
+        let req = VfsRequestBody::Open {
             path: self.resolve_path(&path),
             mode: mode.into(),
             seekable: false,
@@ -566,7 +564,7 @@ impl AsyncVfsDirectory for RemoteDirectory {
         path: String,
         mode: OpenMode,
     ) -> VfsResult<RemoteSeekableFile> {
-        let req = VfsRequest::Open {
+        let req = VfsRequestBody::Open {
             path: self.resolve_path(&path),
             mode: mode.into(),
             seekable: true,
@@ -577,23 +575,23 @@ impl AsyncVfsDirectory for RemoteDirectory {
 
     async fn open_directory_async(&self, path: String) -> VfsResult<RemoteDirBox> {
         let full = self.resolve_path(&path);
-        let req = VfsRequest::OpenDir { path: full.clone() };
+        let req = VfsRequestBody::OpenDir { path: full.clone() };
         Ok(self.dir(call_handle(&*self.transport, req).await?, full))
     }
 
     async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
-        let req = VfsRequest::Stat {
+        let req = VfsRequestBody::Stat {
             path: self.resolve_path(&path),
         };
         call_metadata(&*self.transport, req).await
     }
 
     async fn exists_async(&self, path: String) -> VfsResult<bool> {
-        let req = VfsRequest::Exists {
+        let req = VfsRequestBody::Exists {
             path: self.resolve_path(&path),
         };
         match call(&*self.transport, req).await? {
-            VfsResponse::Exists(b) => Ok(b),
+            VfsResponseBody::Exists(b) => Ok(b),
             _ => Err(unexpected()),
         }
     }
@@ -601,7 +599,7 @@ impl AsyncVfsDirectory for RemoteDirectory {
 
 impl Drop for RemoteDirectory {
     fn drop(&mut self) {
-        self.transport.release(VfsRequest::CloseDir {
+        self.transport.release(VfsRequestBody::CloseDir {
             handle: self.handle,
         });
     }
@@ -622,11 +620,11 @@ impl<F: AsyncVfsFileSystem + 'static> DirectTransport<F> {
 
 #[async_trait]
 impl<F: AsyncVfsFileSystem + 'static> VfsTransport for DirectTransport<F> {
-    async fn request(&self, req: VfsRequest) -> VfsResponse {
+    async fn request(&self, req: VfsRequestBody) -> VfsResponseBody {
         self.daemon.dispatch(req).await
     }
 
-    fn release(&self, req: VfsRequest) {
+    fn release(&self, req: VfsRequestBody) {
         // A close of an unknown handle has no caller to report to.
         let _ = self.daemon.release(req);
     }

@@ -272,43 +272,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   shim's `turso` backend). A Turso cloud database still works through
   `LibsqlDelta` with `TursoRemoteConfig`. Fix: rebuild it on the `turso` crate as
   an async-only store; tracked in ewe-studios/ewe_platform#142.
-- **The `LD_PRELOAD` shim does not compile.** With `vfs-preload`,
-  `src/native/vfs/shim/mod.rs` defines `open` with a fixed argument list, and
-  the current compiler refuses it ("invalid definition of the runtime `open`
-  symbol"): libc's `open` is variadic. The `DeltaBackend::Sqlite` arm also
-  calls `initialize_pool` without an import. Fix: declare `open` / `openat`
-  as variadic (`c_variadic`) or export them from a small C file, and import
-  `initialize_pool`.
-- **The FUSE adapter cannot build in CI.** `vfs-fuse` needs the system
-  `libfuse` (`fuse.pc`); the build script of `fuser` panics without it, so
-  `FuseMount` is never compiled here. Fix: install `libfuse-dev` in the CI
-  image and add a `vfs-fuse` run, or use `fuser` without `libfuse`.
-- **CI does not build most VFS features.** `ci/packages.toml` runs
-  `foundation_nativeapis` with `""` and `vfs-native,vfs-d1,vfs-r2` only.
-  `vfs-sqlite`, `vfs-ipc`, `vfs-nfs`, `vfs-fjall`, `vfs-search-fff` and
-  `vfs-ptrace` are not built, which is how `vfs-sqlite` stopped compiling
-  (fixed in F05 T2). Fix: add a run with
-  `vfs-native,vfs-search-fff,vfs-sqlite,vfs-ipc,vfs-fjall,vfs-nfs,vfs-ptrace,vfs-d1,vfs-r2,vfs-arrow`.
-- **`NativeFs` and `DirectoryDelta` block for each system call.** They
-  implement the async traits, but call `std::fs` inline: each call blocks the
-  valtron worker for one system call. Fix: an async file API (the crate's
-  `uring` layer on Linux, or a bounded offload thread elsewhere).
-- **The IPC bus is sync.** `ClientTransport::request`
-  (`src/native/vfs/ipc_bus.rs`) waits on the bus receive on the calling
-  thread, and `run_daemon_loop` is a thread that waits for each dispatch
-  through `exec_async`. The join timeout (30 s) and the receive poll (1 s)
-  are constants **(rule 8)**. Fix: an async receive on the bus, and the two
-  timeouts in a transport config.
-- **The VFS IPC protocol has no request ids.** Responses are matched to
-  requests by order only, so `ClientTransport` holds one lock across a send
-  and its receive, and counts released (closed) handles to skip their
-  responses. `ReadAt` sizes are `u32`. Fix: a request id in `VfsRequest` and
-  `VfsResponse`.
-- **The CLI and fff searchers block.** `CliSearcher` waits for the `rg` /
-  `grep` process on the calling thread; `FffSearcher::new` waits up to 30 s
-  for its scan, and the grep limits (50 per file, 200 per page, 5 s budget)
-  are constants **(rule 8)** (`src/shared/vfs/search.rs`). Fix: an async
-  process wait, and a `SearchConfig` for the limits.
 - **`InodeFs` / `InodeDelta` ignore their path.** `src/shared/vfs/fjall_fs/`
   keeps everything in memory; `InodeFs::open(path)` and `open_with_config`
   ignore the path and the config, and the `FjallFs` / `FjallDelta` aliases
@@ -331,8 +294,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   (`src/shared/vfs/exec_async.rs`) uses `collect_one` when a future is
   pending, without `blocking_boundary!`, so on JS-hosted wasm it would spin.
   Fix: gate `SyncFs` and `exec_async` with `blocking_boundary!`.
-- **ptrace warnings.** `src/native/vfs/ptrace/` has unused imports, unused
-  constants and an unreachable statement after `execvp`. Fix: remove them.
 
 ## 15. foundation_cedar
 
