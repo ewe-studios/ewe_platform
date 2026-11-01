@@ -127,6 +127,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 10. foundation_ai
 
+- **Seventeen candle-backend tests panic on the Linux CI.** The
+  `scripts/ci/linux.sh foundation_ai` run fails 17 candle tests that panic in
+  `gemm-f32-0.19.0/src/gemm.rs:3:5`. `gemm-f32` is candle's fallback GEMM
+  path. The link fix revealed this; the build stopped at link before. Fix:
+  investigate why `gemm-f32` panics in the CI image.
+- **The wasm32 `--no-default-features` check fails with three `Send` errors.**
+  `src/backends/anthropic_messages_provider.rs`, `openai_provider.rs` and
+  `openai_responses_provider.rs` produce futures that are not `Send` on wasm32.
+  The cloud providers are not part of llama.cpp or candle. Fix: make the three
+  provider futures `Send` on wasm32, or gate the check.
 - **The `agentic_tests` target warns `recursion_depth_exceeding_limit`.**
   The `TursoStorage` test in `tests/agentic/session_mock_tests.rs` drives a deep
   `Send` auto-trait resolution inside an `async_trait` future, so the compiler
