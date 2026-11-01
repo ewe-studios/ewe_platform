@@ -2,14 +2,43 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
-- 2026-11-01: fixed the `foundation_keychain` wasm CI failure on
-  `fix/io-35-turso-async-trait-overflow`. `uuid` 1.20 fails
-  `cargo check --target wasm32-unknown-unknown` with a `compile_error!` when no
-  wasm randomness source is enabled. Added
-  `uuid = { version = "1", features = ["v4", "js"] }` to the keychain wasm target
-  section (matching `foundation_http`), so WebCrypto `getRandomValues` provides the
-  wasm RNG. The wasm check now passes; the remaining signalr/durable_object unused
-  imports are already tracked in backlog §21. PR: see the PR.
+- 2026-11-01: feature 37 done on `fix/io-35-turso-async-trait-overflow`. A
+  transport with `conn_readiness() == None` (the completion socket) now falls
+  back instead of spinning. `IoReady` sleeps one poll-fallback interval and
+  returns `Ok`; `Hangup` re-polls `gone_now` each interval and returns `Ok` only
+  on close/error. The raw-fd probe uses `poll(2)` with
+  `POLLHUP`/`POLLERR`/`POLLNVAL` (plus `POLLRDHUP` on Linux). The interval is a
+  config field (`ServeTimeouts::poll_fallback_interval`, default 10 ms from
+  `POLL_DELAY`), never a constant. Tests: `tests/conn_io_fallback_tests.rs`
+  (2 tests). Verification: `cargo test -p foundation_connectrpc --profile uat`
+  green. PR: see the PR.
+
+- 2026-11-01: feature 36 done on `fix/io-35-turso-async-trait-overflow`.
+  `DnsResolver::resolve` became async via `#[async_trait]`; the request task
+  awaits it in a new `Resolving` state instead of blocking a valtron worker.
+  `SystemDnsResolver` offloads `to_socket_addrs()` to the valtron background
+  boundary (`run_background_job` + `Pipe`). The DNS deadline is a config field
+  (`dns_timeout`, default 30 s from nginx `resolver_timeout`). A first-pass
+  regression — the sync connect path routed `SystemDnsResolver` through
+  `run_background_job`, which panics when the pool is uninitialized — was fixed
+  by adding a synchronous `DnsResolver::resolve_blocking` seam (default
+  park/unpark, overridden pool-free by `SystemDnsResolver`, `CachingDnsResolver`,
+  and `Arc<T>`). Tests: `tests/simple_http/dns_async_tests.rs` (3 tests).
+  Verification: `cargo test -p foundation_netio --profile uat` green. PR: see
+  the PR.
+
+- 2026-11-01: moved UUID generation into `foundation_compact` on
+  `fix/io-35-turso-async-trait-overflow`. The earlier keychain wasm fix added
+  `uuid = { version = "1", features = ["v4", "js"] }` to the keychain, which is a
+  second entropy path that bypasses rule 11 (one injected entropy seam). The
+  corrected fix makes `foundation_compact` depend on
+  `uuid = { version = "1", default-features = false }` and expose
+  `foundation_compact::uuid::new_v4()`, which fills 16 bytes with
+  `foundation_compact::entropy::fill` and calls `Builder::from_random_bytes`
+  (a `const fn`, no feature). `foundation_keychain` now uses
+  `foundation_compact::uuid::{self, Uuid}` through `core::crypto::new_uuid_v4()`
+  and no longer depends on `uuid` directly. Verification: native + wasm
+  `cargo check` pass, keychain `cargo test --profile uat` green. PR: see the PR.
 
 - 2026-11-01: features 38 and 40 done, and the publish fix landed, on
   `fix/io-35-turso-async-trait-overflow`. Feature 38 deleted the dead

@@ -1,9 +1,9 @@
 ---
 feature: "DNS resolution no longer blocks the HTTP client task"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: ["04-nonblocking-connect-tls"]
-branch: "fix/io-36-netio-async-dns"
+branch: "fix/io-35-turso-async-trait-overflow"
 crates: ["foundation_netio"]
 backlog: "docs/bug-backlog.md §2 (1 entry)"
 ---
@@ -96,3 +96,61 @@ cargo check --workspace --all-targets --profile dev
 - [ ] The DNS timeout default names a source in its doc comment.
 - [ ] No `to_socket_addrs()` (or other blocking lookup) remains on the valtron worker.
 - [ ] wasm is unaffected (`NoopDnsResolver` and the browser path still work).
+
+## Result
+
+Landed on `fix/io-35-turso-async-trait-overflow`.
+
+**Object safety.** `DnsResolver::resolve` is async through `#[async_trait]`
+(`async-trait` 0.1.88, already a dependency). This keeps the trait object-safe:
+`BoxedDnsResolver = Arc<dyn DnsResolver>` still works, and the `Arc<T>` blanket
+impl uses `?Sized` so a boxed resolver delegates through `as_ref()`. The crate
+re-exports the macro (`foundation_netio::shared::client::async_trait`) so tests
+and downstream resolvers use the same bridge.
+
+**Sync/async boundary.** The trait gains a synchronous `resolve_blocking` method
+(next to the async `resolve`). Its default drives the boxed future on the current
+thread with a `std::thread::Thread::unpark` waker (valtron's `block_on_future`
+needs a `'static` future and the resolver future borrows the resolver, so it
+cannot be used). `SystemDnsResolver` and `CachingDnsResolver` override it to run
+`to_socket_addrs()` inline, because the blocking boundary already owns a plain
+thread and must not touch the valtron background registry (whose pool may be
+uninitialized there — submitting would panic). A free `resolve_blocking`
+helper delegates to the trait method so call sites stay unchanged. The request
+task instead uses the async `HttpConnectionPool::resolve_host` future, polled by
+the new `Resolving` state in `request_redirect.rs`.
+
+**Offload.** `SystemDnsResolver` runs `to_socket_addrs()` on valtron's
+background job registry (`run_background_job`) and returns the result through a
+`Pipe`, awaited as a future. This path is `#[cfg(not(target_family = "wasm"))]`;
+wasm keeps `lookup_blocking` inline (the wasm `DefaultResolver` is
+`NoopDnsResolver` and the browser owns resolution). The submit error is
+stringified before the await so the future stays `Send`.
+
+**Timeout.** `TimeoutConfig` gains `dns_timeout` (default 30 s, matching nginx's
+`resolver_timeout` default), exposed as `ClientConfig::dns_timeout()` and
+`ClientConfig::with_dns_timeout(..)`. The `Resolving` state enforces it with
+`io_or_deadline`, failing with `HttpClientError::ConnectionTimeout`.
+
+**Tests.** Three new tests in
+`foundation_netio/tests/simple_http/dns_async_tests.rs` (registered in
+`mod.rs`): `dns_mock_resolver_resolves_async`, `dns_slow_resolver_does_not_block_the_worker`
+(a four-lookup saturation plus a ticker canary), and
+`dns_resolution_timeout_is_enforced`. Existing resolver tests were updated to
+`resolve_blocking`; the six tests that resolve through the system resolver were
+moved to `#[valtron_test]`.
+
+**Gates (run exactly, `--profile uat`).**
+
+```bash
+cargo check -p foundation_netio --profile uat
+cargo clippy -p foundation_netio --profile uat --all-targets --no-deps
+cargo test -p foundation_netio --profile uat
+cargo check --workspace --all-targets --profile uat
+```
+
+All four pass. `foundation_netio` produces no rustc or clippy warnings from this
+change. The only warnings are pre-existing manifest "unused dependency" notices
+in `foundation_netio` (`flate2`, `rustls-pemfile`, `thiserror`) and other crates,
+left alone.
+

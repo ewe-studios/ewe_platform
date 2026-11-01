@@ -15,25 +15,10 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 1. foundation_connectrpc
 
-- **Completion sockets and openssl/native-tls still report `Unsupported`.**
-  Feature 06 made the WireGuard overlay and rustls report readiness through
-  `conn_io` (`ConnReadiness`). What remains: the io_uring completion socket and
-  the openssl/native-tls backends return `None` from `Connection::conn_readiness`,
-  so `conn_io`'s `ready_now`/`gone_now` answer `Unsupported` instead of using a
-  documented poll-interval fallback. Wire each to readiness, or give `conn_io` a
-  poll fallback for them (task #25).
+(no open entries)
 
 ## 2. foundation_netio
 
-- **DNS resolution blocks the HTTP client task.**
-  `SystemDnsResolver::resolve` (`shared/client/dns.rs:130`) calls
-  `to_socket_addrs()`, a blocking system call, inside the non-blocking connect
-  path (`HttpConnectionPool::resolve_host`). A slow resolver holds a worker for
-  the whole lookup. Fix: resolve through an async DNS seam, or offload the
-  lookup to a blocking boundary with a configured timeout.
-- **Non-blocking work not done yet:**
-  - the remaining transports: the io_uring completion socket, openssl, and
-    native-tls (task #25). The overlay and rustls landed in feature 06.
 - **`thiserror` is unused** (Cargo.toml line 42). Nothing in the crate uses it
   (netio uses `derive_more` for errors). The Linux CI build flags it as an
   unused dependency. Fix: remove it. (`rustls-pemfile` is also flagged unused,

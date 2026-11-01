@@ -2,17 +2,64 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
-- 2026-11-01 (wasm fix): `uuid` 1.20 added a `compile_error!` on
+- 2026-11-01 (feature 36): `DnsResolver::resolve` became async via `#[async_trait]`
+  (the crate re-exports the macro). The `Arc<T>` blanket impl compiles with
+  `T: DnsResolver + ?Sized`, so `Arc<dyn DnsResolver>` still works. The trait also
+  gains a sync `resolve_blocking` (default = poll the boxed future with a
+  `std::thread::Thread::unpark` waker and `park` on `Pending`); valtron's
+  `block_on_future` cannot be used because it needs a `'static` future and
+  `resolver.resolve(..)` borrows the resolver. Critical: `SystemDnsResolver` and
+  `CachingDnsResolver` must override `resolve_blocking` to run `to_socket_addrs()`
+  inline — routing the sync path through the async offload calls
+  `run_background_job`, which panics ("Background job pool not initialized") on a
+  plain thread with no pool. Offloading `to_socket_addrs()` uses
+  `run_background_job` + `Pipe`;
+  the submit result is `AnyResult<(), Box<dyn Error>>` whose error is not `Send`,
+  so stringify it (`.map_err(|e| e.to_string())`) before the pipe `await` or the
+  async fn future stops being `Send` (E0310/E0277). The request task polls the
+  lookup through a new `Resolving` state that drains a `ConcurrentQueue<WakeToken>`
+  with `queue_waker(..)`, parks on `io_or_deadline(QueueReadiness, deadline)`, and
+  fails with `HttpClientError::ConnectionTimeout` at the configured
+  `dns_timeout` (default 30 s, nginx `resolver_timeout`). Gate the offload with
+  `#[cfg(not(target_family = "wasm"))]`; wasm keeps the blocking lookup inline
+  because its `DefaultResolver` is `NoopDnsResolver` and the browser resolves.
+
+- 2026-11-01 (feature 37): a transport with `conn_readiness() == None` needs two
+  fallback shapes. `IoReady` (wait to read or write) must sleep one poll-fallback
+  interval, then return `Ok`; the caller retries its syscall. Re-polling
+  `ready_now` forever never completes, because it always answers "not ready yet"
+  for such a transport. `Hangup` (wait for the peer to close) must re-poll
+  `gone_now` every interval and return `Ok` only on close/error. The raw-fd
+  `poll(2)` probe uses `POLLHUP`/`POLLERR`/`POLLNVAL`, plus `POLLRDHUP` on Linux.
+  Do not poll the completion socket's fd for *readiness*: `is_kernel_read()` is
+  true, so the kernel already moved the data into the inbox; the fd only still
+  tells close/error. The interval is a config field (rule 8), default 10 ms from
+  `POLL_DELAY` in `transport/h2.rs`; the wake is a valtron timer, never a spin.
+
+- 2026-11-01 (uuid via foundation_compact): do not give a consumer crate the
+  `uuid` crate's `js`/`v4`/`getrandom` features. Those bring a second entropy
+  path that bypasses rule 11 (one injected entropy seam). `uuid` 1.x offers
+  `Builder::from_random_bytes([u8; 16])` + `into_uuid()`, a `const fn` that only
+  sets the version-4 and RFC 4122 variant bits and needs no feature. So
+  `foundation_compact` depends on `uuid = { version = "1", default-features = false }`
+  and exposes `foundation_compact::uuid::new_v4()` which fills 16 bytes with
+  `foundation_compact::entropy::fill` (native OS RNG / wasm
+  `crypto.getRandomValues`) and then calls the builder. Consumers (for example
+  `foundation_keychain`) use `foundation_compact::uuid::{self, Uuid}` and never
+  depend on `uuid` directly. Inside `foundation_compact/src/uuid.rs`, write the
+  crate path as `::uuid::Builder` (leading `::`) so the extern prelude resolves
+  the crate, not the module of the same name.
+
+- 2026-11-01 (wasm fix, superseded): `uuid` 1.20 added a `compile_error!` on
   `wasm32-unknown-unknown` when no randomness source is enabled (`js`,
   `rng-getrandom`, or `rng-rand`). Of those three, only `js` works on wasm:
   uuid target-gates its `getrandom` and `rand` dependencies to non-wasm, so the
   other two features resolve to nothing there. `js` uses WebCrypto
   `getRandomValues` and is a no-op on native (its `wasm-bindgen`/`js-sys` deps
-  are target-gated). The fix matches `foundation_http`: declare
-  `uuid = { version = "1", features = ["v4", "js"] }` in the crate's
-  `[target.'cfg(target_family = "wasm")'.dependencies]` section, which merges
-  with the `[dependencies]` `v4` declaration. A crate that builds for wasm and
-  calls `Uuid::new_v4` needs this, or the wasm `cargo check` fails.
+  are target-gated). The earlier fix — declaring `uuid = { version = "1",
+  features = ["v4", "js"] }` in a consumer crate — is now replaced by the
+  `foundation_compact` uuid module above. Do not restore the consumer-level
+  `js` feature.
 
 - 2026-11-01 (publish fix): a version bump must move every consumer, not just the
   changed crate. `cargo package` resolves a `path = ".."` + `version = "0.0.6"`
