@@ -98,6 +98,7 @@ all-providers = ["vms", "docker"]
 
 [dev-dependencies]
 tracing-subscriber = "0.3"
+foundation_wireguard = { path = "../foundation_wireguard", version = "0.0.3", default-features = false }
 
 [[bin]]
 name = "testbed"
