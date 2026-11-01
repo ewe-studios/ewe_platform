@@ -19,14 +19,20 @@ use foundation_ai::types::{
 };
 use foundation_core::valtron;
 
+// These helpers are used only by the network-gated tests below, so they are
+// gated the same way: without `external-service-tests` they would be dead code
+// and `cargo check --all-targets` reports each as a dead-code warning.
+#[cfg(feature = "external-service-tests")]
 fn init_valtron() -> valtron::PoolGuard {
     valtron::initialize_pool(42, Some(4))
 }
 
+#[cfg(feature = "external-service-tests")]
 fn get_token() -> Option<String> {
     std::env::var("HF_TOKEN").ok()
 }
 
+#[cfg(feature = "external-service-tests")]
 fn get_project_root() -> std::path::PathBuf {
     let manifest_dir =
         std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR should be set");
@@ -37,6 +43,7 @@ fn get_project_root() -> std::path::PathBuf {
         .to_path_buf()
 }
 
+#[cfg(feature = "external-service-tests")]
 fn get_artefacts_dir(project_root: &std::path::Path) -> std::path::PathBuf {
     project_root.join("artefacts").join("models")
 }

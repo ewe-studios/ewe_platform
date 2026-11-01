@@ -94,9 +94,13 @@ optional = true
 version = "2.0"
 optional = true
 
-# Candle with Metal — Apple only.
+# Candle with Metal — Apple only. Optional so it is only pulled in with the
+# `candle` feature; otherwise on Apple `--no-default-features` still compiles
+# it and the `unused_crate_dependencies` lint reports it as unused. The implicit
+# `candle-core` feature (from the optional entries above) enables this on Apple,
+# where it also activates the `metal` backend.
 [target.'cfg(target_vendor = "apple")'.dependencies]
-candle-core = { version = "0.11", features = ["metal"] }
+candle-core = { version = "0.11", optional = true, features = ["metal"] }
 
 [dev-dependencies]
 foundation_testing = { path = "../foundation_testing", features = ["huggingface"] }

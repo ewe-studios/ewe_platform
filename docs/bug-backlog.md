@@ -127,18 +127,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 10. foundation_ai
 
-- **Four dead helpers in the candle test target.**
-  `tests/candle/huggingface_candle_provider.rs` defines `init_valtron`,
-  `get_token`, `get_project_root` and `get_artefacts_dir`; none is used, so
-  `cargo check --all-targets` reports four dead-code warnings. Fix: delete them
-  or wire them to the tests that need them.
-- **`candle-core` is an unused dependency on Apple without the `candle`
-  feature.** The manifest lists `candle-core` twice: once optional (behind the
-  `candle` feature) and once in the Apple-only target dependency with `metal`,
-  which is not optional. On Apple, `--no-default-features` still pulls it in,
-  and Cargo reports `unused dependency candle-core`. Fix: make the Apple target
-  entry optional and add it to the `candle` feature, or drop the duplicate and
-  put `metal` on the optional entry.
 - **Seven pre-existing lib clippy warnings.** `cargo clippy --no-deps` reports
   seven in the library: `needless_pass_by_value`
   (`src/agentic/agent_loop.rs:1342`), `wrong_self_convention`
