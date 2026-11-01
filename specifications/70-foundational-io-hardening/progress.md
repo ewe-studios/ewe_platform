@@ -2,8 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
-- 2026-11-01: feature 21 done on `fix/io-35-turso-async-trait-overflow` (working
-  tree, not committed). `foundation_cronjobs` parses each `cron_expr` with
+- 2026-11-01: feature 24 (tokio boundaries and apps) done on
+  `fix/io-35-turso-async-trait-overflow`. Removed tokio and axum from `bin/platform`,
+  its templates, the examples and the `ewe_channels` and `ewe_domain` crates. The
+  platform binary now uses `#[valtron(seed = 100)]`. Inline tests moved to `tests/`.
+  The `deno_core` tokio boundary in `foundation_testbed` is documented. New backlog
+  entries record the remaining channels, domain, todo and template debt. Issue #137
+  can close after the Linux CI gate. Commit c18df9490.
+
+- 2026-11-01: feature 21 done on `fix/io-35-turso-async-trait-overflow` (commit
+  95838a4a8). `foundation_cronjobs` parses each `cron_expr` with
   `saffron` (five-field Quartz), rejects an invalid expression at `register`
   with a typed error, computes the real next fire, and runs one valtron task per
   job: park on `TaskStatus::Delayed` until the next fire, run the job, record
@@ -16,7 +24,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   0.0.4. Verification: `cargo check` clean for both crates, clippy adds no new
   warnings (24 pre-existing cedar `pedantic` warnings recorded in backlog §15),
   cronjobs 13 tests green, cedar 17 (default) / 25 (`db`) tests green, timing
-  tests stable over 20 runs. PR: see the PR.
+  tests stable over 20 runs. Commit 95838a4a8.
 
 - 2026-11-01: bug-backlog §13 #1 (kqueue edge-triggered read) fixed on
   `fix/io-35-turso-async-trait-overflow`. The macOS kqueue selector now records the
