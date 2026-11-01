@@ -15,6 +15,7 @@ use crate::types::base_types::ModelParams;
 /// # Parameters
 ///
 /// * `params` - The model parameters containing sampling configuration
+/// * `n_vocab` - The model vocabulary size, used to bound the repetition penalty
 ///
 /// # Returns
 ///
@@ -29,7 +30,7 @@ use crate::types::base_types::ModelParams;
 /// 4. Penalties - applies repetition penalties
 /// 5. Dist - samples from the distribution
 #[must_use]
-pub fn build_sampler_chain(params: &ModelParams) -> LlamaSampler {
+pub fn build_sampler_chain(params: &ModelParams, n_vocab: i32) -> LlamaSampler {
     let mut samplers: Vec<LlamaSampler> = Vec::new();
 
     // Temperature sampling (always apply if > 0)
@@ -54,6 +55,7 @@ pub fn build_sampler_chain(params: &ModelParams) -> LlamaSampler {
     if (params.repeat_penalty - 1.0).abs() > f32::EPSILON {
         // penalty_last_n of 64 means we look at last 64 tokens for repetition
         samplers.push(LlamaSampler::penalties(
+            n_vocab,               // model vocabulary size
             64,                    // penalty_last_n
             params.repeat_penalty, // penalty_repeat
             0.0,                   // penalty_freq (not exposed in ModelParams)

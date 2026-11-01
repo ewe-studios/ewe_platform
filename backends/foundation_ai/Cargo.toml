@@ -1,6 +1,6 @@
 [package]
 name = "foundation_ai"
-version = "0.0.3"
+version = "0.0.4"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -65,7 +65,7 @@ foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.4", 
 
 # llamacpp — target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
 [target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]
-infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.3", optional = true }
+infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.4", optional = true }
 
 # Candle ML framework (optional, behind feature flags)
 [dependencies.candle-core]

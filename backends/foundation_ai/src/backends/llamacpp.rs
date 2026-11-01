@@ -589,7 +589,7 @@ impl Model for LlamaModels {
         let mut ctx = model
             .new_context(&backend, ctx_params)
             .map_err(Into::<GenerationError>::into)?;
-        let mut sampler = build_sampler_chain(&params);
+        let mut sampler = build_sampler_chain(&params, model.n_vocab());
         generate_text(&model, &mut ctx, &mut sampler, &prompt, templated, &params, &spec)
     }
 
@@ -684,7 +684,8 @@ impl LlamaCppStream {
 
         // Build sampler from params
         let params = specs.unwrap_or_default();
-        let sampler = build_sampler_chain(&params);
+        let n_vocab = model.inner.lock().unwrap().model.n_vocab();
+        let sampler = build_sampler_chain(&params, n_vocab);
 
         // Get max_tokens from params
         #[allow(
