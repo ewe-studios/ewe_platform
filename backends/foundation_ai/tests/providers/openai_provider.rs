@@ -68,6 +68,9 @@ fn sse_response(body: &[u8]) -> HttpResponse {
             ("Content-Type".to_string(), "text/event-stream".to_string()),
             ("Cache-Control".to_string(), "no-cache".to_string()),
             ("Content-Length".to_string(), body.len().to_string()),
+            // Close after the body. The SSE client then sees EOF and does not
+            // reconnect and replay the deltas.
+            ("Connection".to_string(), "close".to_string()),
         ],
         body: body.to_vec(),
     }

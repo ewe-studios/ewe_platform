@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §10 flaky-test fix (foundation_ai) done on
+  `fix/io-20-vfs-process-ipc`. `openai_provider::test_provider_streaming_tool_calls`
+  flaked when the mock SSE response stayed open. The SSE client then hit its
+  100 ms idle timeout, reconnected, and replayed tool-call deltas. The replayed
+  deltas corrupted the accumulated arguments JSON. The fix adds
+  `Connection: close` to the shared `sse_response` test helper. The mock now
+  closes after the body, and the client sees EOF instead of reconnecting. The
+  test passes 25/25 in a loop. The backlog entry is removed.
+
 - 2026-11-02: bug-backlog §10 `recursion_depth_exceeding_limit`
   (foundation_ai) fixed on `fix/io-20-vfs-process-ipc`. The `agentic_tests`
   and `foundation_ai_tests` test crates both warned on the deep `Send`

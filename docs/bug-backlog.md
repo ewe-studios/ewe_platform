@@ -127,16 +127,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 10. foundation_ai
 
-- **`openai_provider::test_provider_streaming_tool_calls` is flaky.** On a full
-  `cargo test -p foundation_ai --features testing --profile uat` run the mock
-  SSE server hit an idle timeout (`Idle timeout exceeded elapsed_secs=3
-  timeout_secs=0`), reconnected, and replayed a chunk. The tool-call delta
-  accumulator then saw `{"location"{"location": "Paris"}` (a duplicated
-  `{"location"` delta), the arguments JSON failed to parse, and the test
-  panicked at `tests/providers/openai_provider.rs:263` ("Should have
-  arguments"). The test passes in isolation. Fix: make the mock SSE response
-  immune to the reconnect (end the stream cleanly, or set a retry/close policy
-  so a reconnect does not replay deltas).
 - **Four dead helpers in the candle test target.**
   `tests/candle/huggingface_candle_provider.rs` defines `init_valtron`,
   `get_token`, `get_project_root` and `get_artefacts_dir`; none is used, so

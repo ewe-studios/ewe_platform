@@ -2,6 +2,17 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (backlog §10 flaky-test fix, foundation_ai): the
+  `TestHttpServer`-based SSE mock (`sse_response`) sent no `Connection: close`,
+  so the mock kept the HTTP/1.1 connection open after the response. The SSE
+  client reads a `text/event-stream` body as a line-feed stream until EOF; it
+  ignores `Content-Length`. With no EOF the client parked after the buffered
+  events, the 100 ms idle timeout fired, and the reconnecting SSE task replayed
+  the tool-call deltas. The duplicated deltas made the accumulated arguments
+  JSON invalid. Fix: set `Connection: close` on the mock response so the client
+  sees EOF and never reconnects. The `json_response` helper already sets the
+  same header.
+
 - 2026-11-02 (backlog §10 candle-gemm fix, foundation_ai): the candle CPU
   matrix multiply path uses the pure-Rust `gemm` crate (gemm-common 0.19.0)
   when candle-core has no MKL and no Apple Accelerate. `init_gemm_fn` and
