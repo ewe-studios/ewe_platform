@@ -32,7 +32,7 @@ thiserror = { workspace = true }
 # Foundation deps
 foundation_compact = { path = "../foundation_compact", version = "0.2.3" }
 foundation_core = { path = "../foundation_core", version = "0.0.7" }
-foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.5", default-features = false }
 # Cross-platform HTTP client (`HttpClientBuilder`) for the icon proxy etc.
 # `default-features = false`; the right backend comes from the target (multi on
 # native via foundation_db/turso, wasm-fetch on wasm — see per-target sections).
@@ -47,7 +47,7 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.4", default-feat
 [target.'cfg(target_family = "wasm")'.dependencies]
 # `workers-rs` enables `From<worker::D1Database>` so the Workers `fetch` handler can
 # build a D1-backed StorageProvider from the env binding.
-foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false, features = ["wasm-bindgen-storage", "workers-rs"] }
+foundation_db = { path = "../foundation_db", version = "0.0.5", default-features = false, features = ["wasm-bindgen-storage", "workers-rs"] }
 # worker-rs: `#[event(fetch)]` entry point + Request/Response/Env/D1.
 worker = { version = "0.8.3", features = ["d1"] }
 # Needed by the #[durable_object] / #[wasm_bindgen] proc macros for DO structs.
@@ -71,7 +71,7 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false }
 foundation_auth = { path = "../foundation_auth", version = "0.0.4", default-features = false, features = ["server", "turso"] }
 # Native SQL backend (Turso/SQLite). wasm uses D1 via wasm-bindgen-storage (above).
-foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false, features = ["turso"] }
+foundation_db = { path = "../foundation_db", version = "0.0.5", default-features = false, features = ["turso"] }
 # Feature 009 — SSH key provisioning (Argon2id app secrets are native-only).
 # `getrandom` gives ssh-key its own rand_core 0.6 `OsRng` (rand 0.9 implements
 # rand_core 0.9, which ssh-key 0.6's `CryptoRngCore` bound does not accept).

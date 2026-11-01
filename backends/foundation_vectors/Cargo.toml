@@ -16,7 +16,7 @@ libm = "0.2"
 async-trait = "0.1"
 petgraph = { version = "0.8", optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["std"], optional = true }
-foundation_db = { path = "../foundation_db", version = "0.0.4", optional = true }
+foundation_db = { path = "../foundation_db", version = "0.0.5", optional = true }
 futures-lite = { version = "2", optional = true }
 
 # foundation_netio (the `turbopuffer` HTTP client) is target-gated, as in

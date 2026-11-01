@@ -10,7 +10,7 @@ description = "Cron job scheduling with valtron executor and foundation_db persi
 keywords.workspace = true
 
 [dependencies]
-foundation_db = { path = "../foundation_db", version = "0.0.4" }
+foundation_db = { path = "../foundation_db", version = "0.0.5" }
 foundation_core = { path = "../foundation_core", version = "0.0.7" }
 async-trait = "0.1"
 futures-lite = "2"
