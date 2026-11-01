@@ -23,7 +23,7 @@
 
 use foundation_core::valtron::initialize_pool;
 use foundation_deployment_platform::docker::{
-    ContainerConfig, ContainerHandle, DockerClient, DockerError, DockerFileConfig,
+    ContainerConfig, ContainerHandle, DockerClient, DockerFileConfig,
 };
 
 fn docker_available() -> bool {
