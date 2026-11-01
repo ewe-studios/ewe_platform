@@ -31,6 +31,9 @@ tools/depot_tools/
 *.pdb
 
 /target
+# Standalone library crates under crates/ opt out of the root workspace and
+# generate their own Cargo.lock when built directly; a library lock is not committed.
+crates/*/Cargo.lock
 **/*.rs.bk
 pkg/
 wasm-pack.log
