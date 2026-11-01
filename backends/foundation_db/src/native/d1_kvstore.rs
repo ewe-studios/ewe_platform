@@ -12,6 +12,7 @@
 //!   - `D1Store::new_state()` — `StateStore` (table: `{project}_{stage}_resources`)
 
 use base64::{engine::general_purpose::STANDARD, Engine};
+use foundation_cloudflare_types::D1QueryDatabaseResponse;
 use foundation_netio::shared::client::body_reader::collect_string_async;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::shared::http::{SimpleHeader, Status};
@@ -56,6 +57,20 @@ fn state_create_indexes_sql(table_name: &str) -> String {
 
 fn escape_like(s: &str) -> String {
     s.replace('%', "\\%").replace('_', "\\_")
+}
+
+/// Convert one [`DataValue`] into the JSON parameter shape the D1 REST API
+/// expects.
+fn data_value_to_json(value: &DataValue) -> serde_json::Value {
+    match value {
+        DataValue::Null => serde_json::Value::Null,
+        DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
+        DataValue::Real(f) => {
+            serde_json::Number::from_f64(*f).map_or(serde_json::Value::Null, serde_json::Value::Number)
+        }
+        DataValue::Text(s) => serde_json::Value::String(s.clone()),
+        DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
+    }
 }
 
 // ---- State mode row parsing ----
@@ -235,7 +250,7 @@ impl D1Store {
 
     /// Run a SQL statement through the D1 HTTP API (`send_async`, no
     /// blocking) and return the parsed JSON response.
-    async fn execute_sql_async(&self, sql: &str, params: &[serde_json::Value]) -> Result<serde_json::Value, StorageError> {
+    async fn execute_sql_async(&self, sql: &str, params: &[serde_json::Value]) -> Result<D1QueryDatabaseResponse, StorageError> {
         let body = serde_json::json!({ "sql": sql, "params": params });
         let response = self
             .client
@@ -259,15 +274,15 @@ impl D1Store {
             .await
             .map_err(|e| StorageError::Backend(format!("D1 body read failed: {e}")))?;
 
-        serde_json::from_str(&text)
+        serde_json::from_str::<D1QueryDatabaseResponse>(&text)
             .map_err(|e| StorageError::Serialization(format!("D1 response parse failed: {e}")))
     }
 
-    fn extract_rows(response: &serde_json::Value) -> Vec<serde_json::Value> {
+    fn extract_rows(response: &D1QueryDatabaseResponse) -> Vec<serde_json::Value> {
         response
-            .pointer("/result/0/results")
-            .and_then(serde_json::Value::as_array)
-            .cloned()
+            .result
+            .first()
+            .and_then(|statement| statement.results.clone())
             .unwrap_or_default()
     }
 
@@ -287,11 +302,11 @@ impl D1Store {
 
     /// The D1 API returns a query's rows in one JSON body; stream them,
     /// decoding each row as it is pulled.
-    fn state_rows(response: &serde_json::Value) -> StateStoreStream<ResourceState> {
+    fn state_rows(response: &D1QueryDatabaseResponse) -> StateStoreStream<ResourceState> {
         Box::pin(stream::iter(Self::extract_rows(response)).map(|row| parse_d1_row(&row)))
     }
 
-    fn id_rows(response: &serde_json::Value) -> StateStoreStream<String> {
+    fn id_rows(response: &D1QueryDatabaseResponse) -> StateStoreStream<String> {
         Box::pin(stream::iter(Self::extract_rows(response)).map(|row| {
             row.get("id")
                 .and_then(serde_json::Value::as_str)
@@ -300,7 +315,7 @@ impl D1Store {
         }))
     }
 
-    fn count_row(response: &serde_json::Value) -> StorageResult<usize> {
+    fn count_row(response: &D1QueryDatabaseResponse) -> StorageResult<usize> {
         let rows = Self::extract_rows(response);
         let Some(row) = rows.first() else {
             return Ok(0);
@@ -381,8 +396,9 @@ impl StateStore for D1Store {
         self.state_query(&sql, &[]).await
     }
 
-    async fn set(&self, _resource_id: &str, state: &ResourceState) -> StorageResult<()> {
-        let params = state_to_params(state)?;
+    async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
+        let state = state.with_id(resource_id);
+        let params = state_to_params(&state)?;
         self.execute_sql_async(&state_upsert_sql(self.state_table()), &params).await?;
         Ok(())
     }
@@ -440,10 +456,12 @@ impl StateStore for D1Store {
             .execute_sql_async(&sql, &[serde_json::Value::String(escape_like(prefix))])
             .await?;
         let n = response
-            .pointer("/result/0/meta/rows_written")
-            .and_then(serde_json::Value::as_u64)
+            .result
+            .first()
+            .and_then(|statement| statement.meta.as_ref())
+            .and_then(|meta| meta.rows_written)
             .ok_or_else(|| StorageError::SqlConversion("missing rows_written".to_string()))?;
-        usize::try_from(n).map_err(|e| StorageError::SqlConversion(format!("rows_written: {e}")))
+        usize::try_from(n.unsigned_abs()).map_err(|e| StorageError::SqlConversion(format!("rows_written: {e}")))
     }
 }
 
@@ -561,14 +579,42 @@ impl QueryStore for D1Store {
             DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
         }).collect();
         let response = self.execute_sql_async(sql, &json_params).await?;
-        let affected = response.pointer("/result/0/meta/changes")
-            .and_then(serde_json::Value::as_i64)
+        let affected = response
+            .result
+            .first()
+            .and_then(|statement| statement.meta.as_ref())
+            .and_then(|meta| meta.changes)
             .map_or(0, i64::unsigned_abs);
         Ok(affected)
     }
 
     async fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_sql_async(sql, &[]).await?;
+        Ok(())
+    }
+
+    async fn execute_batch_statements(
+        &self,
+        statements: &[(String, Vec<DataValue>)],
+    ) -> StorageResult<()> {
+        // D1 runs all statements in one `/query` call; params bind positionally
+        // across the joined SQL. Any failed statement fails the whole batch.
+        let mut sql_parts = Vec::with_capacity(statements.len());
+        let mut all_params: Vec<serde_json::Value> = Vec::new();
+        for (sql, params) in statements {
+            sql_parts.push(sql.trim().trim_end_matches(';').to_string());
+            all_params.extend(params.iter().map(data_value_to_json));
+        }
+        let combined_sql = sql_parts.join("; ");
+        let response = self.execute_sql_async(&combined_sql, &all_params).await?;
+        let any_failed = !response.success
+            || !response.errors.is_empty()
+            || response.result.iter().any(|stmt| stmt.success != Some(true));
+        if any_failed {
+            return Err(StorageError::Backend(
+                "D1 batch: one or more statements failed".to_string(),
+            ));
+        }
         Ok(())
     }
 }

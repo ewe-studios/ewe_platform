@@ -207,28 +207,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 ## 11. foundation_db and its sync callers
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
-- **`StateStore::set` ignores its `resource_id`.** Every backend (file,
-  libsql, D1, R2) keys the write by `state.id`, so `set("a", &state_b)` writes
-  `b` (`src/core/state/*.rs`, `src/native/{libsql_store,d1_kvstore,r2_blobstore}.rs`).
-  `NamespacedStore` now rewrites `state.id` itself (fixed in F04 T8). Fix:
-  drop the parameter, or key by it and set `state.id` from it in one place.
-- **`R2Store` parses the R2 REST JSON by hand** (`src/native/r2_blobstore.rs`).
-  The generated Cloudflare types live in `foundation_deployment_cloudflare`,
-  which depends on `foundation_db`, so they can't be used here (rule 5). Fix:
-  move the generated R2 types to a crate both can depend on. Related:
-  `worker-stub.js` has no object-listing endpoint, so the R2 listing is only
-  tested against the in-process mock in `tests/r2_state_store_tests.rs`, not
-  against the wrangler stub.
-- **R2 state listings hold every matching ID before streaming.** The listing
-  pages through R2's cursor, sorts the IDs, then fetches each state lazily;
-  the ID list itself is in memory. Fine for deployment state; a store with
-  very many resources would want a cursor-driven stream (R2 already returns
-  keys in order).
-- **D1's state `init` sends several statements in one `/query` call**
-  (`src/native/d1_kvstore.rs`). It (and libsql's) was missing the `;` after
-  `CREATE TABLE`, so `init` always failed; fixed in F04 T8 and covered for
-  libsql by `tests/libsql_state_store_tests.rs`, but the D1 path is only
-  exercised by the wrangler integration tests (`CF_INTEGRATION_TEST=1`).
 - **Auth tables mix timestamp units.** The `created_at` defaults in the core
   migrations are milliseconds (`strftime('%s','now') * 1000`), while
   `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
@@ -265,20 +243,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   runs that had rotted (foundation_db `libsql`, foundation_nativeapis
   `vfs-native,vfs-d1,vfs-r2`, foundation_vectors `sql-store`, foundation_auth
   `server-test`) are in `ci/packages.toml` since F04 T12.
-- **`BlobStore` moves whole objects in memory** (`src/core/storage_provider.rs`).
-  `get_blob_async` returns `Vec<u8>` and `put_blob_async` takes `&[u8]`, so every
-  R2 or file object is read and written whole (rule 4). The trait also has no
-  range read, no conditional put (`If-None-Match` / `If-Match`) and no ordered
-  listing from a start key, which an append log or a tiered store on R2 needs
-  (see `specifications/research/edge-data/tiered-store.md`, issue #155). Fix:
-  stream bodies in and out (a body stream for put, a stream for get), and add
-  range get, conditional put and `list_after` with their own tests.
-- **`QueryStore::execute_batch_async` takes one raw SQL string with no bound
-  parameters** (`src/core/storage_provider.rs`). D1 `batch()` of prepared
-  statements is the only atomic multi-statement write on D1, so a flush of many
-  rows from a Durable Object to D1 cannot be done safely through the trait.
-  Fix: add a batch of `(sql, params)` statements that maps to D1 `batch()` and
-  to one transaction on libsql and Turso.
 
 ## 12. foundation_auth
 

@@ -673,8 +673,9 @@ impl StateStore for LibsqlStore {
         Ok(libsql_rows(Arc::clone(&self.conn), sql, Vec::new(), parse_state_row))
     }
 
-    async fn set(&self, _resource_id: &str, state: &ResourceState) -> StorageResult<()> {
-        let params = state_to_params(state)?;
+    async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
+        let state = state.with_id(resource_id);
+        let params = state_to_params(&state)?;
         self.conn
             .execute(&state_upsert_sql(self.state_table()), params)
             .await
@@ -800,6 +801,28 @@ impl QueryStore for LibsqlStore {
     }
     async fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_batch_async_internal(sql).await
+    }
+
+    async fn execute_batch_statements(
+        &self,
+        statements: &[(String, Vec<DataValue>)],
+    ) -> StorageResult<()> {
+        let conn = Arc::clone(&self.conn);
+        conn.execute_batch("BEGIN")
+            .await
+            .map(|_| ())
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        for (sql, params) in statements {
+            let params = Self::to_libsql_params(params);
+            if let Err(e) = conn.execute(sql, params).await {
+                let _ = conn.execute_batch("ROLLBACK").await;
+                return Err(StorageError::Backend(e.to_string()));
+            }
+        }
+        conn.execute_batch("COMMIT")
+            .await
+            .map(|_| ())
+            .map_err(|e| StorageError::Backend(e.to_string()))
     }
 }
 

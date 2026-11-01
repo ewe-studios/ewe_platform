@@ -141,12 +141,10 @@ impl<S: StateStore> StateStore for NamespacedStore<S> {
     }
 
     async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
-        // Backends key a write by `state.id`, so the namespaced key has to be
-        // the state's id too, or the write lands outside the namespace.
-        let full_key = self.full_key(resource_id);
-        let mut state = state.clone();
-        state.id.clone_from(&full_key);
-        self.inner.set(&full_key, &state).await
+        // The inner store keys a write by `resource_id` and sets the stored
+        // state's id from it, so passing the full namespaced key keeps the
+        // write inside the namespace.
+        self.inner.set(&self.full_key(resource_id), state).await
     }
 
     async fn delete(&self, resource_id: &str) -> StorageResult<()> {

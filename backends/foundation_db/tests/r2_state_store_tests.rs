@@ -9,6 +9,7 @@
 use std::collections::BTreeMap;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -24,6 +25,7 @@ use serde_json::json;
 const PAGE: usize = 2;
 
 type Objects = Arc<Mutex<BTreeMap<String, Vec<u8>>>>;
+type ListRequests = Arc<AtomicUsize>;
 
 fn percent_decode(s: &str) -> String {
     let bytes = s.as_bytes();
@@ -52,7 +54,7 @@ fn respond(stream: &mut TcpStream, status: &str, body: &[u8]) {
     stream.flush().unwrap();
 }
 
-fn handle(mut stream: TcpStream, objects: &Objects) {
+fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests) {
     let mut reader = BufReader::new(stream.try_clone().unwrap());
     let mut request_line = String::new();
     if reader.read_line(&mut request_line).unwrap() == 0 {
@@ -93,6 +95,7 @@ fn handle(mut stream: TcpStream, objects: &Objects) {
     let mut objects = objects.lock().unwrap();
     match (method.as_str(), object_path) {
         ("GET", "") => {
+            list_requests.fetch_add(1, Ordering::SeqCst);
             let params: BTreeMap<&str, String> = query
                 .split('&')
                 .filter_map(|kv| kv.split_once('='))
@@ -105,6 +108,8 @@ fn handle(mut stream: TcpStream, objects: &Objects) {
             let truncated = start + PAGE < keys.len();
             let reply = json!({
                 "success": true,
+                "errors": [],
+                "messages": [],
                 "result": page,
                 "result_info": {
                     "is_truncated": truncated,
@@ -132,19 +137,28 @@ fn handle(mut stream: TcpStream, objects: &Objects) {
 /// Start the mock and return a state-mode store pointed at it, plus the
 /// object map so tests can see what landed in the bucket.
 fn mock_store() -> (R2Store, Objects) {
+    let (store, objects, _list_requests) = mock_store_with_counter();
+    (store, objects)
+}
+
+/// Like [`mock_store`], but also returns a counter of object-listing requests.
+fn mock_store_with_counter() -> (R2Store, Objects, ListRequests) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let base = format!("http://{}", listener.local_addr().unwrap());
     let objects: Objects = Arc::default();
     let served = Arc::clone(&objects);
+    let list_requests: ListRequests = Arc::default();
+    let served_requests = Arc::clone(&list_requests);
     thread::spawn(move || {
         for stream in listener.incoming() {
             let Ok(stream) = stream else { break };
             let served = Arc::clone(&served);
-            thread::spawn(move || handle(stream, &served));
+            let served_requests = Arc::clone(&served_requests);
+            thread::spawn(move || handle(stream, &served, &served_requests));
         }
     });
     let store = R2Store::new_state_with_base_url("token", "acct", "bucket", "proj", "dev", &base);
-    (store, objects)
+    (store, objects, list_requests)
 }
 
 fn state(id: &str, kind: &str) -> ResourceState {
@@ -193,6 +207,18 @@ async fn set_writes_json_under_project_stage_key() {
     let got = store.get("ns/x").await.unwrap().unwrap();
     assert_eq!(got.id, "ns/x");
     assert_eq!(got.kind, "worker");
+}
+
+#[valtron_test]
+async fn set_uses_resource_id() {
+    let (store, _objects) = mock_store();
+
+    // The caller labels the state "b" but writes it under "a".
+    let state_with_id_b = state("b", "worker");
+    store.set("a", &state_with_id_b).await.unwrap();
+
+    assert_eq!(store.get("a").await.unwrap().unwrap().id, "a");
+    assert!(store.get("b").await.unwrap().is_none());
 }
 
 #[valtron_test]
@@ -249,4 +275,25 @@ async fn find_by_kind_filters() {
     let created = collect(store.find_by_status(&StateStatus::Created.to_string()).await.unwrap()).await;
     assert_eq!(created.len(), 5);
     assert!(collect(store.find_by_provider("other").await.unwrap()).await.is_empty());
+}
+
+#[valtron_test]
+async fn r2_state_listing_streams_pages() {
+    let (store, _objects, list_requests) = mock_store_with_counter();
+    store.init().await.unwrap();
+    for id in ["a", "b", "c", "d", "e"] {
+        store.set(id, &state(id, "worker")).await.unwrap();
+    }
+
+    let mut stream = store.list().await.unwrap();
+
+    // Pull the first id: only the first page (2 keys) has been requested.
+    let first = stream.next().await.unwrap().unwrap();
+    assert_eq!(first, "a");
+    assert_eq!(list_requests.load(Ordering::SeqCst), 1);
+
+    // The remaining ids come from pages 2 and 3, fetched lazily.
+    let rest = collect(stream).await;
+    assert_eq!(rest, vec!["b", "c", "d", "e"]);
+    assert_eq!(list_requests.load(Ordering::SeqCst), 3);
 }

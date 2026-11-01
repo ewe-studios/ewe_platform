@@ -53,6 +53,7 @@ worker = { version = "0.8.3", optional = true, default-features = false, feature
 # valtron's Send-required path.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["standard", "std", "ssl", "compression", "wire-native", "multi"] }
+foundation_cloudflare_types = { path = "../foundation_cloudflare_types", version = "0.1.0" }
 async-stream = "0.3"
 
 # Native-only storage backends — excluded on wasm32 to avoid

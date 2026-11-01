@@ -6,9 +6,14 @@
 
 mod common;
 
+use chrono::Utc;
 use common::make_r2_store;
 use foundation_core::valtron::valtron_test;
+use foundation_db::core::state::traits::StateStoreStream;
+use foundation_db::state::{ResourceState, StateStatus, StateStore};
 use foundation_db::{BlobStore, R2Store};
+use futures_lite::StreamExt;
+use serde_json::json;
 
 fn store() -> Option<R2Store> {
     let store = make_r2_store();
@@ -78,4 +83,64 @@ async fn test_r2_blobstore_delete_nonexistent() {
     let Some(storage) = store() else { return };
     // Deleting a missing key is not an error.
     storage.delete_blob(&key("test_del_none")).await.unwrap();
+}
+
+// ── R2 object listing (state mode) against the worker stub ──────────
+
+fn state(id: &str) -> ResourceState {
+    let now = Utc::now();
+    ResourceState {
+        id: id.to_string(),
+        kind: "worker".to_string(),
+        provider: "test".to_string(),
+        status: StateStatus::Created,
+        environment: None,
+        config_hash: String::new(),
+        output: json!({ "id": id }),
+        config_snapshot: json!(null),
+        created_at: now,
+        updated_at: now,
+    }
+}
+
+async fn collect<T>(stream: StateStoreStream<T>) -> Vec<T> {
+    stream.map(Result::unwrap).collect().await
+}
+
+/// A state-mode R2 store pointed at the worker stub, or `None` to skip.
+fn state_store(stage: &str) -> Option<R2Store> {
+    if !common::is_local_cf_available() {
+        println!("Skipping R2 listing test - miniflare not available");
+        return None;
+    }
+    let bucket =
+        std::env::var(common::ENV_R2_BUCKET).unwrap_or_else(|_| "test-bucket".to_string());
+    Some(R2Store::new_state_with_base_url(
+        "test-token",
+        "test-account",
+        &bucket,
+        "proj",
+        stage,
+        &common::local_cf_api_base(),
+    ))
+}
+
+#[valtron_test]
+async fn r2_listing_against_worker_stub() {
+    let stage = key("listing");
+    let Some(store) = state_store(&stage) else { return };
+    store.init().await.unwrap();
+
+    for id in ["a", "b", "c"] {
+        store.set(id, &state(id)).await.unwrap();
+    }
+
+    // The listing must page through the worker stub's object list and return
+    // every id we wrote, sorted and decoded.
+    let ids = collect(store.list().await.unwrap()).await;
+    assert_eq!(ids, vec!["a", "b", "c"]);
+
+    for id in ["a", "b", "c"] {
+        store.delete(id).await.unwrap();
+    }
 }

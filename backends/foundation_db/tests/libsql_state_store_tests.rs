@@ -118,6 +118,21 @@ async fn find_by_kind_and_provider() {
 }
 
 #[valtron_test]
+async fn set_uses_resource_id() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("state.db").to_string_lossy().into_owned();
+    let store = LibsqlStore::new_state(&path, "my-proj", "dev").await.unwrap();
+    store.init().await.unwrap();
+
+    // The caller labels the state "b" but writes it under "a".
+    let state_with_id_b = state("b", "worker", StateStatus::Created);
+    store.set("a", &state_with_id_b).await.unwrap();
+
+    assert_eq!(store.get("a").await.unwrap().unwrap().id, "a");
+    assert!(store.get("b").await.unwrap().is_none());
+}
+
+#[valtron_test]
 async fn delete_removes_and_missing_is_ok() {
     let (store, _dir) = seeded().await;
 

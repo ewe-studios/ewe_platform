@@ -70,7 +70,10 @@ pub trait StateStore: Send + Sync {
     /// Returns an error if the query can't start.
     async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>>;
 
-    /// Create or update a resource's state.
+    /// Create or update a resource's state, keyed by `resource_id`.
+    ///
+    /// The stored state's `id` is set to `resource_id`, whatever `state.id`
+    /// holds.
     ///
     /// # Errors
     ///

@@ -2,6 +2,22 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: feature 17 (foundation_db) PR 1 of 2 (E1–E6) done on
+  `fix/io-20-vfs-process-ipc`. E1 makes `StateStore::set` key by `resource_id`
+  (the stored state's `id` is set from it, whatever `state.id` holds). E2 moves
+  the Cloudflare D1/R2 wire types into a new leaf crate
+  `foundation_cloudflare_types` and uses them in `R2Store` (rule 5: the old
+  `foundation_deployment_cloudflare` types had a cyclic dependency). E3 makes R2
+  state listings a cursor-driven page stream (no sort; R2 returns keys in
+  order). E4 streams blob get/put and adds range get, conditional put
+  (`if_none_match`/`if_match` returning `PreconditionFailed`) and ordered
+  `list_after`. E5 adds `QueryStore::execute_batch_statements` (D1 `batch()`,
+  one transaction on libsql and Turso). E6 adds a mock-D1 `init` test.
+  Verification: `cargo test -p foundation_db --profile uat` green; clippy clean
+  on both crates. E7–E12 stay open for PR 2. The foundation_db 0.0.4→0.0.5
+  version bump is deferred until feature 20 lands (it edits
+  foundation_nativeapis).
+
 - 2026-11-01: feature 24 (tokio boundaries and apps) done on
   `fix/io-35-turso-async-trait-overflow`. Removed tokio and axum from `bin/platform`,
   its templates, the examples and the `ewe_channels` and `ewe_domain` crates. The

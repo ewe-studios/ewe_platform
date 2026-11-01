@@ -122,10 +122,11 @@ impl StateStore for FileStateStore {
         Ok(Box::pin(futures_lite::stream::iter(files).map(|path| Self::read_state(&path))))
     }
 
-    async fn set(&self, _resource_id: &str, state: &ResourceState) -> StorageResult<()> {
+    async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
         std::fs::create_dir_all(&self.root_dir)?;
+        let state = state.with_id(resource_id);
         let path = self.resource_path(&state.id);
-        let content = serde_json::to_string_pretty(state)
+        let content = serde_json::to_string_pretty(&state)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         std::fs::write(&path, content)?;
         Ok(())

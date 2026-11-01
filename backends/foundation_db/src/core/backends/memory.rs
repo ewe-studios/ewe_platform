@@ -14,8 +14,8 @@ use super::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit::RateLimitEntry;
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
-    RateLimiterStore, DataValue,
+    BlobListStream, BlobPutCondition, BlobStore, KeyValueStore, AsyncListStream, QueryStore,
+    AsyncQueryStream, RateLimiterStore, DataValue, content_etag,
 };
 
 /// In-memory storage with zeroizing support for sensitive data.
@@ -122,6 +122,59 @@ impl BlobStore for MemoryStorage {
         let data = self.data.lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         Ok(data.contains_key(key))
+    }
+
+    async fn blob_etag(&self, key: &str) -> StorageResult<Option<String>> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(data.get(key).map(|z| content_etag(z)))
+    }
+
+    async fn put_blob_conditionally(
+        &self,
+        key: &str,
+        data: &[u8],
+        condition: BlobPutCondition,
+    ) -> StorageResult<()> {
+        let mut storage = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        match &condition {
+            BlobPutCondition::IfNoneMatch => {
+                if storage.contains_key(key) {
+                    return Err(StorageError::PreconditionFailed(key.to_string()));
+                }
+            }
+            BlobPutCondition::IfMatch(expected) => {
+                let current = storage.get(key).map(|z| content_etag(z));
+                if current.as_deref() != Some(expected.as_str()) {
+                    return Err(StorageError::PreconditionFailed(key.to_string()));
+                }
+            }
+        }
+        storage.insert(key.to_string(), Zeroizing::new(data.to_vec()));
+        Ok(())
+    }
+
+    async fn list_blobs_after(
+        &self,
+        prefix: &str,
+        start_after: Option<&str>,
+        limit: Option<usize>,
+    ) -> StorageResult<BlobListStream> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        let mut keys: Vec<String> = data.keys()
+            .filter(|k| k.starts_with(prefix))
+            .filter(|k| start_after.is_none_or(|s| k.as_str() > s))
+            .cloned()
+            .collect();
+        keys.sort();
+        if let Some(limit) = limit {
+            keys.truncate(limit);
+        }
+        Ok(Box::pin(futures_lite::stream::iter(
+            keys.into_iter().map(Ok),
+        )))
     }
 }
 

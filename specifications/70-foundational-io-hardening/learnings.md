@@ -2,6 +2,24 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (feature 17, foundation_db): the Cloudflare R2 object-listing
+  endpoint is absent from the vendored OpenAPI spec that generates
+  `foundation_deployment_cloudflare`'s types, so the R2 listing types cannot be
+  generated with the rest. They are defined by hand in the new leaf crate
+  `foundation_cloudflare_types` (`R2ObjectInfo`, `R2ListObjectsResultInfo`,
+  `R2ListObjectsResponse`) to the shape the R2 REST API returns. The D1 `/query`
+  types there (`D1QueryResultResponse`, `D1QueryMeta`,
+  `D1QueryDatabaseResponse`) match the generated output exactly, so a later
+  generator run can replace them without a wire change. The leaf crate has no
+  dependency on `foundation_db` or `foundation_deployment`, so both storage
+  crates can depend on it (rule 5).
+
+- 2026-11-01 (feature 17, foundation_db): R2 returns object keys in
+  lexicographic order, so the cursor-driven listing stream (`list_after`) needs
+  no sort and can page by the last key of the previous page. Streaming page by
+  page keeps a large R2 bucket's listing from being read whole into memory
+  (rule 4).
+
 - 2026-11-01 (feature 21, foundation_cronjobs): the `cron` crate was rejected
   and `saffron` 0.1 was chosen. `saffron` parses a five-field Quartz expression
   (minute, hour, day of month, month, day of week). That matches the existing

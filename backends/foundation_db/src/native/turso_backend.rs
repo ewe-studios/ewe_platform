@@ -503,6 +503,26 @@ impl QueryStore for TursoStorage {
     async fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_batch_async_internal(sql).await
     }
+
+    async fn execute_batch_statements(
+        &self,
+        statements: &[(String, Vec<DataValue>)],
+    ) -> StorageResult<()> {
+        let conn = Arc::clone(&self.conn);
+        conn.execute_batch("BEGIN")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        for (sql, params) in statements {
+            let params = Self::to_turso_params(params);
+            if let Err(e) = conn.execute(sql, params).await {
+                let _ = conn.execute_batch("ROLLBACK").await;
+                return Err(StorageError::Backend(e.to_string()));
+            }
+        }
+        conn.execute_batch("COMMIT")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))
+    }
 }
 
 #[async_trait::async_trait]
