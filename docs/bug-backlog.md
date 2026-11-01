@@ -527,15 +527,26 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   O(n·d) per query. Expected for the portable fallback; large namespaces
   should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
 
-## 18. foundation_testbed
+## 18. ewe_channels (crates/channels)
 
-- **The embedded JavaScript runner uses a tokio runtime** (`src/wasm/embedded_js.rs`, `tokio_runtime()`, and the optional `tokio` dependency behind `wasm-embedded-js` in `Cargo.toml`). The event loop and timers of `deno_core` (`reactor_tokio.rs`) need a tokio runtime, and `deno_websocket` uses tokio for its TCP connection. This is the only tokio runtime in `backends` outside the cross-runtime tests of valtron. The project rule is "valtron always". Options:
-  - keep it as a documented third-party boundary: a current-thread runtime, local to this module and behind the feature flag;
-  - or drive the event loop of `deno_core` another way (poll `JsRuntime::poll_event_loop` from a valtron task with a valtron timer), if `deno_core` lets us replace its reactor.
+- **`ArcWake::wake_by_ref` prints a debug line** (`src/executor.rs`):
+  `println!("Sent wake action")` fires on every task wake. Fix: delete the
+  `println!` (use `tracing::debug!` if a trace is wanted).
+- **`DEFAULT_TASK_PENDING_CAPACITY` is a hard-coded limit** (`src/executor.rs`,
+  `const DEFAULT_TASK_PENDING_CAPACITY: usize = 10`). Limits are configuration,
+  not constants (rule 8). Fix: add a capacity field to the executor config with
+  a documented default.
+- **`ReceiveChannel::is_closed` reports `Ok(false)` while its receive side is
+  open, even after every sender has dropped** (`src/mspc.rs`). It checks only
+  whether this receive side was closed, not the underlying channel. Fix: reflect
+  `async_channel::Receiver::is_closed`, or rename the method to match its meaning.
 
-## 19. Apps (tokio and axum)
+## 19. ewe_domain (crates/domain)
 
-- **The apps still use tokio and axum, not valtron and `foundation_http`.** This is `bin/platform` (and its templates `api-app`, `static-html-app`, `web-app`), `examples/devbinary`, `examples/web/wello`, `examples/todo`, `crates/channels` and `crates/domain`: tokio/axum servers and tokio tests. `crates/channels` also has inline `#[cfg(test)]` modules (`src/broadcast.rs`, `src/mspc.rs`, `src/executor.rs`), which go against rule 7. Tracked in [#137](https://github.com/ewe-studios/ewe_platform/issues/137).
+- **`DEFAULT_SUBSCRIBER_START_CAPACITY` is a hard-coded limit**
+  (`src/servicer.rs`, `const DEFAULT_SUBSCRIBER_START_CAPACITY: usize = 10`).
+  Limits are configuration, not constants (rule 8). Fix: move it to a config
+  field with a documented default.
 
 ## 20. foundation_deployment_huggingface
 
@@ -574,6 +585,27 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   channel wait) panics at runtime. Fix: return `ConnectionResult::Async`
   wrapping `async move { … route(..).await … }`, and delete `poll_ready` and
   `noop_waker`, so the executor polls with a real waker.
+
+## 23. examples/todo
+
+- **`src/lib.rs` holds only a dead `fn main`.** A library has no `main`
+  entry point, so the function is never called and the crate publishes
+  nothing. The example is a stub. Fix: delete `fn main` and add a real
+  public item, or remove the example.
+- **Ten dependencies are unused** (`Cargo.toml`): `anyhow`,
+  `console_error_panic_hook`, `serde`, `serde_json`, `serde_with`,
+  `thiserror`, `tracing`, `tracing-subscriber`, `wasm-bindgen-futures` and
+  `web-sys`. The stub `src/lib.rs` uses none of them. Fix: add code that
+  uses them, or remove them.
+
+## 24. bin/platform templates (web-app)
+
+- **`web-app` scaffolding is dead code and produces warnings in the generated
+  project.** `src/app.rs` (`pub struct App {}`), `src/config.rs` (`DevServer`,
+  `AppServer`, `ServerConfig`) and the private re-exports in `src/lib.rs`
+  (`use app::*; use config::*;`) are never used by the app or dev binaries.
+  Fix: deserialize the config into `ServerConfig` in the dev binary and wire
+  `App` into the app binary, or delete the unused scaffolding.
 
 ## Paused
 

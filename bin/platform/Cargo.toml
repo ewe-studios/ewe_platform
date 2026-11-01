@@ -32,9 +32,6 @@ tracing = { workspace = true }
 # cli
 clap = { version = "4.5.54", features = ["derive"] }
 
-# -- tokio
-tokio = { version = "1.36", features = ["full"], default-features = true }
-
 # -- http
 bytes = { version = "1.6.1" }
 http = { version = "1.1" }

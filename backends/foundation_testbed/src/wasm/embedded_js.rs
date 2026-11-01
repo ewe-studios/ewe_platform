@@ -18,6 +18,34 @@
 //! `deno_runtime` bootstrap normally does that). So [`build_runtime`] runs a tiny
 //! bootstrap that loads those scripts via `Deno.core.loadExtScript` and assigns the
 //! classes onto `globalThis`.
+//!
+//! # The tokio boundary (documented third-party boundary, not a valtron port)
+//!
+//! This module keeps a **current-thread tokio runtime** local to itself, behind
+//! the `wasm-embedded-js` feature flag. It is the one tokio runtime outside
+//! valtron's own cross-runtime tests, and it must stay. Research against
+//! `deno_core` 0.404 shows why:
+//!
+//! - `JsRuntime::poll_event_loop(&mut self, cx, options)` is a plain poll method:
+//!   it registers its waker on the caller's `Context` and returns
+//!   `Poll<Result<(), CoreError>>`. So it *can* be polled from a valtron task.
+//! - But the timer and I/O backend under it is not pollable by valtron.
+//!   `deno_core` 0.404 splits the reactor behind a `Reactor` trait
+//!   (`reactor.rs`), whose `DefaultReactor` type alias is hard-coded to
+//!   `reactor_tokio::TokioReactor` (`reactor.rs: pub type DefaultReactor =
+//!   crate::reactor_tokio::TokioReactor;`). `jsrealm.rs` then binds
+//!   `UserTimer<DefaultReactor>` with no `RuntimeOptions` field to swap it.
+//! - `TokioReactor` timers are `tokio::time::sleep_until` / `Instant::now()`
+//!   (`reactor_tokio.rs`), which panic outside a tokio runtime. `uv_compat.rs`
+//!   drives TCP with tokio's `poll_accept` / `try_read` / `try_write`, and
+//!   `deno_websocket` (kept: `embedded_js_tests.rs` exercises the WebSocket
+//!   global) dials real TCP through tokio's net driver.
+//!
+//! So the JS timers cannot run on valtron's clock and the event loop cannot
+//! drain without a tokio runtime context. `deno_core` offers no seam to
+//! replace the reactor without patching the third-party crate. This is a
+//! third-party boundary by design: the runtime never leaves this module, is a
+//! current-thread runtime, and is gated behind `wasm-embedded-js`.
 
 use std::cell::RefCell;
 use std::path::Path;
