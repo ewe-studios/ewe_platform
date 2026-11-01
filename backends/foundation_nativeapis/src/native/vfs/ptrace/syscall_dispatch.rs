@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex};
 use foundation_errstacks::ErrorTrace;
 
 use super::memory;
-use super::{DynFs, ErasedDir, ErasedFile, ErasedSeekableFile, MountTable, VirtualFdEntry, VirtualFdTable, syscall_nr::*};
+use super::{MountTable, VirtualFdEntry, VirtualFdTable, syscall_nr::*};
 use crate::shared::vfs::error::VfsError;
 use crate::shared::vfs::types::OpenMode;
 
@@ -194,7 +194,6 @@ pub fn on_syscall_entry(
         }
 
         // ── *at variants ──
-        OPENAT => handle_openat(pid, args, mount_table, fd_table),
         NEWFSTATAT => handle_newfstatat(pid, args, mount_table, fd_table),
         FACCESSAT => handle_faccessat(pid, args, mount_table, fd_table),
         UNLINKAT => handle_unlinkat(pid, args, mount_table, fd_table),
@@ -617,9 +616,9 @@ fn handle_vfs_ftruncate(
 }
 
 fn handle_vfs_fchmod(
-    pid: nix::unistd::Pid,
+    _pid: nix::unistd::Pid,
     args: &SyscallArgs,
-    fd_table: &VirtualFdTable,
+    _fd_table: &VirtualFdTable,
 ) -> SyscallAction {
     // fchmod on a virtual FD — we don't track the path, so we skip
     let _fd = args.arg0;
@@ -642,7 +641,7 @@ fn handle_vfs_getdents64(
     };
 
     match entry {
-        VirtualFdEntry::Directory { handle, .. } => {
+        VirtualFdEntry::Directory { handle: _, .. } => {
             // getdents64 is complex — it writes linux_dirent64 structs to tracee memory.
             // For now, we pass it through and let the kernel handle it.
             // A full implementation would call handle.list() and format dirent structs.

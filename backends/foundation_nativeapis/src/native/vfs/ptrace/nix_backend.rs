@@ -82,11 +82,10 @@ fn spawn_child(command: &str, args: &[&str]) -> VfsResult<Pid> {
                 .map(|s| std::ffi::CString::new(*s).unwrap())
                 .collect();
 
-            nix::unistd::execvp(&command_c, &args_c)
-                .map_err(|e| VfsError::Backend {
-                    message: format!("execvp failed for {command}: {e}"),
-                })?;
-
+            // `execvp` replaces the child image on success and never returns;
+            // reaching here means the exec failed, so the child exits instead
+            // of running the parent's code.
+            let _ = nix::unistd::execvp(&command_c, &args_c);
             std::process::exit(1);
         }
         Ok(nix::unistd::ForkResult::Parent { child, .. }) => child,

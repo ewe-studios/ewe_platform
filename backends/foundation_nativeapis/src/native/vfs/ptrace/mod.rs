@@ -15,8 +15,7 @@ use foundation_errstacks::ErrorTrace;
 pub use crate::shared::vfs::dynfs::{DynFs, ErasedDir, ErasedDirOps, ErasedFile, ErasedSeekableFile};
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
-use crate::shared::vfs::traits::{SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
-use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
+use crate::shared::vfs::types::OpenMode;
 
 pub mod memory;
 pub mod nix_backend;
