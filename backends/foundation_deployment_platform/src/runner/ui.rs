@@ -48,7 +48,7 @@ Start-Sleep -Milliseconds 100
 /// Type via xdotool on Linux.
 fn type_linux(session: &mut VmSession, text: &str) -> Result<()> {
     // Escape special characters for xdotool
-    let escaped = text.replace("\\", "\\\\").replace("'", "\\'");
+    let escaped = text.replace('\\', "\\\\").replace('\'', "\\'");
     crate::ssh::exec(
         session,
         &format!("DISPLAY=:99 xdotool type --delay 50 '{escaped}'"),
@@ -56,19 +56,19 @@ fn type_linux(session: &mut VmSession, text: &str) -> Result<()> {
     Ok(())
 }
 
-/// Type via PowerShell SendKeys on Windows.
+/// Type via PowerShell `SendKeys` on Windows.
 fn type_windows(session: &mut VmSession, text: &str) -> Result<()> {
     // PowerShell SendKeys uses special chars: + ^ % ~
     let escaped = text
-        .replace("+", "{{+}}")
-        .replace("^", "{{^}}")
-        .replace("%", "{{%}}")
-        .replace("~", "{{~}}");
+        .replace('+', "{{+}}")
+        .replace('^', "{{^}}")
+        .replace('%', "{{%}}")
+        .replace('~', "{{~}}");
     let script = format!(
-        r#"
+        r"
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.SendKeys]::SendWait('{escaped}')
-"#
+"
     );
     crate::ssh::exec(session, &script)?;
     Ok(())

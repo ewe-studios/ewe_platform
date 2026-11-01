@@ -27,7 +27,7 @@ use tracing::debug;
 pub struct QemuVm {
     /// The QEMU child process (None if adopted from existing state).
     process: Option<Child>,
-    /// Monitor socket for QEMU commands (savevm, loadvm, system_powerdown).
+    /// Monitor socket for QEMU commands (savevm, loadvm, `system_powerdown`).
     monitor: UnixStream,
     /// The profile this VM was launched with.
     pub profile: VmProfile,
@@ -61,6 +61,7 @@ pub struct QemuConfig {
 }
 
 impl QemuConfig {
+    #[must_use]
     pub fn new(profile: VmProfile, display_mode: DisplayMode) -> Self {
         Self {
             profile,
@@ -74,6 +75,7 @@ impl QemuConfig {
     }
 
     /// Add extra QEMU arguments (for advanced use cases).
+    #[must_use]
     pub fn with_extra_arg(mut self, arg: String) -> Self {
         self.extra_args.push(arg);
         self
@@ -82,6 +84,7 @@ impl QemuConfig {
     /// Set the host directory to mount into the guest via 9p.
     /// `guest_path` is where it will be mounted inside the VM.
     /// `readonly` controls whether the guest has write access.
+    #[must_use]
     pub fn with_project_mount(
         mut self,
         host_path: std::path::PathBuf,
@@ -95,6 +98,7 @@ impl QemuConfig {
     }
 
     /// Get the configured guest mount path for this VM.
+    #[must_use]
     pub fn project_mount_guest_path(&self) -> Option<&str> {
         self.project_mount_guest_path.as_deref()
     }
@@ -102,6 +106,7 @@ impl QemuConfig {
     /// Attach an ISO as a CD-ROM drive in the guest.
     ///
     /// Used for Windows guests to attach the virtio-win driver ISO.
+    #[must_use]
     pub fn with_cdrom(mut self, path: std::path::PathBuf) -> Self {
         self.cdrom_path = Some(path);
         self
@@ -124,11 +129,11 @@ impl QemuConfig {
         let resolved = net::allocate_ports(&self.profile)?;
 
         // Build monitor socket path
-        let monitor_dir_path = monitor_dir(&self.profile.name);
+        let monitor_dir_path = monitor_dir(self.profile.name);
         std::fs::create_dir_all(&monitor_dir_path).ok();
         let monitor_path = monitor_dir_path.join(format!("{}.monitor", self.profile.name));
         let _ = std::fs::remove_file(&monitor_path); // clean stale socket
-        eprintln!("DEBUG: monitor_path = {:?}", monitor_path);
+        eprintln!("DEBUG: monitor_path = {monitor_path:?}");
 
         // Build disk path — goes through full resolution chain (env → cache → stores → Vagrant)
         let disk_path = crate::import::ensure_image(&self.profile)?;
@@ -155,12 +160,12 @@ impl QemuConfig {
         let mut cmd = Command::new(&qemu_bin);
         let (display_args, has_native_window) = if config.display_mode == DisplayMode::Headful {
             let backend = display::detect_backend();
-            let vnc_offset = (resolved.vnc_port - 5900) as u32;
+            let vnc_offset = u32::from(resolved.vnc_port - 5900);
             let args = backend.qemu_args(vnc_offset);
             let has_native = matches!(backend, display::DisplayBackend::Spice | display::DisplayBackend::Gtk);
             (args, has_native)
         } else {
-            let vnc_offset = (resolved.vnc_port - 5900) as u32;
+            let vnc_offset = u32::from(resolved.vnc_port - 5900);
             (display::DisplayBackend::Vnc.qemu_args(vnc_offset), false)
         };
         let actual_disk = macos_boot_disk.as_ref().unwrap_or(&disk_path);
@@ -195,7 +200,7 @@ impl QemuConfig {
         cmd.args(&config.extra_args);
 
         // Capture QEMU stderr to the VM work directory: .testbed/[vm-name]/qemu.log
-        let work_dir = crate::config::work_dir(&config.profile.name);
+        let work_dir = crate::config::work_dir(config.profile.name);
         let _ = std::fs::create_dir_all(&work_dir);
         let qemu_log = work_dir.join("qemu.log");
         let qemu_log_file = std::fs::OpenOptions::new()
@@ -229,7 +234,7 @@ impl QemuConfig {
             if Instant::now() > deadline {
                 process.kill().ok();
                 return Err(TestbedError::QemuExited {
-                    code: process.try_wait().ok().flatten().map(|s| s.code().unwrap_or(-1)).unwrap_or(-1),
+                    code: process.try_wait().ok().flatten().map_or(-1, |s| s.code().unwrap_or(-1)),
                 });
             }
             match UnixStream::connect(&monitor_path) {
@@ -301,6 +306,7 @@ impl QemuVm {
     }
 
     /// Get the PID of the QEMU process.
+    #[must_use]
     pub fn pid(&self) -> u32 {
         self.pid
     }
@@ -346,7 +352,7 @@ impl QemuVm {
         }
 
         // Clean up monitor socket
-        let monitor_path = monitor_dir(&self.profile.name).join(format!("{}.monitor", self.profile.name));
+        let monitor_path = monitor_dir(self.profile.name).join(format!("{}.monitor", self.profile.name));
         let _ = std::fs::remove_file(&monitor_path);
 
         Ok(())
@@ -526,6 +532,7 @@ pub fn refresh_network(
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /// Build the full QEMU command-line argument list.
+#[must_use]
 pub fn build_qemu_args(
     profile: &VmProfile,
     disk_path: &std::path::Path,
@@ -727,8 +734,7 @@ fn kvm_available() -> bool {
     let path = std::path::Path::new("/dev/kvm");
     path.exists()
         && std::fs::metadata(path)
-            .map(|m| !m.permissions().readonly()) // best-effort check
-            .unwrap_or(false)
+            .is_ok_and(|m| !m.permissions().readonly())
 }
 
 /// Find `qemu-system-x86_64` on PATH, trying common locations.

@@ -37,6 +37,7 @@ pub fn allocate_port(start: u16) -> Result<u16> {
 }
 
 /// Check if a TCP port is free on 127.0.0.1.
+#[must_use]
 pub fn is_port_free(port: u16) -> bool {
     TcpListener::bind(("127.0.0.1", port)).is_ok()
 }

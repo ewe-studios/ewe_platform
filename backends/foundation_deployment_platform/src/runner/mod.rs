@@ -95,7 +95,7 @@ fn run_linux(session: &mut VmSession, binary: &str) -> Result<()> {
 ///
 /// Uses a Scheduled Task with `/RU vagrant /IT` so GUI apps (Tauri, etc.)
 /// actually appear on screen. Falls back to headless Start-Process if
-/// WinRM is not available.
+/// `WinRM` is not available.
 fn run_windows(session: &mut VmSession, winrm: Option<&WinRM>, binary: &str) -> Result<()> {
     // Try interactive launch first (GUI apps work)
     if let Some(winrm) = winrm {
@@ -104,7 +104,7 @@ fn run_windows(session: &mut VmSession, winrm: Option<&WinRM>, binary: &str) -> 
     }
 
     // Fallback: headless (no GUI, but won't crash)
-    let escaped = binary.replace("'", "''");
+    let escaped = binary.replace('\'', "''");
     let script = format!(
         r#"
 $run_dir = "$env:USERPROFILE\.testbed-run"

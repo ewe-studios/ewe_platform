@@ -94,14 +94,14 @@ pub fn parse_disk_info(json: &str) -> Result<DiskInfo> {
 
     let virtual_size = parsed
         .get("virtual-size")
-        .and_then(|v| v.as_u64())
+        .and_then(serde_json::Value::as_u64)
         .ok_or_else(|| TestbedError::Qcow2Error {
             message: "virtual-size missing from qemu-img info".to_string(),
         })?;
 
     let actual_size = parsed
         .get("actual-size")
-        .and_then(|v| v.as_u64())
+        .and_then(serde_json::Value::as_u64)
         .unwrap_or(0);
 
     let format = parsed
@@ -118,10 +118,12 @@ pub fn parse_disk_info(json: &str) -> Result<DiskInfo> {
 }
 
 impl DiskInfo {
+    #[must_use]
     pub fn virtual_size_gb(&self) -> f64 {
         self.virtual_size_bytes as f64 / 1_073_741_824.0
     }
 
+    #[must_use]
     pub fn actual_size_mb(&self) -> f64 {
         self.actual_size_bytes as f64 / 1_048_576.0
     }

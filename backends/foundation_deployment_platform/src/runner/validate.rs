@@ -48,7 +48,7 @@ pub fn validate(
     let golden_rgba = golden_img.to_rgba8();
     let actual_rgba = actual_resized.to_rgba8();
 
-    let total_pixels = (gw as u64) * (gh as u64);
+    let total_pixels = u64::from(gw) * u64::from(gh);
     let mut matching_pixels: u64 = 0;
     let mut diff_img = if diff_output.is_some() {
         Some(image::RgbaImage::new(gw, gh))
@@ -64,7 +64,7 @@ pub fn validate(
 
             // Simple threshold-based comparison (allow 16/255 per channel drift)
             let matches = gp.0.iter().zip(ap.0.iter()).all(|(g, a)| {
-                (*g as i16 - *a as i16).abs() < 16
+                (i16::from(*g) - i16::from(*a)).abs() < 16
             });
 
             if matches {
@@ -72,10 +72,8 @@ pub fn validate(
                 if let Some(ref mut diff) = diff_img {
                     diff.put_pixel(x, y, image::Rgba([0, 255, 0, 255])); // green = match
                 }
-            } else {
-                if let Some(ref mut diff) = diff_img {
-                    diff.put_pixel(x, y, image::Rgba([255, 0, 0, 255])); // red = mismatch
-                }
+            } else if let Some(ref mut diff) = diff_img {
+                diff.put_pixel(x, y, image::Rgba([255, 0, 0, 255])); // red = mismatch
             }
         }
     }

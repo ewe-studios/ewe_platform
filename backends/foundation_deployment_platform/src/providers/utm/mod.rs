@@ -2,7 +2,7 @@
 //!
 //! Full implementation using:
 //! - `utmctl` CLI for VM lifecycle (list, start, stop, delete)
-//! - AppleScript via `osascript` for network config, resource config, bundle import
+//! - `AppleScript` via `osascript` for network config, resource config, bundle import
 //! - Vagrant Cloud UTM registry API client for image downloads
 //! - `.utm` bundle config.plist generation and modification
 
@@ -26,6 +26,7 @@ pub struct UtmProvider {
 }
 
 impl UtmProvider {
+    #[must_use]
     pub fn new() -> Self {
         UtmProvider { display: DisplayMode::Headless }
     }

@@ -47,13 +47,11 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
     // Step 1: Determine output path
     let export_dir = opts
         .out
-        .as_ref()
-        .map(|p| p.parent().unwrap_or(Path::new(".")).to_path_buf())
-        .unwrap_or_else(|| {
+        .as_ref().map_or_else(|| {
             let dir = PathBuf::from(".build/export");
             let _ = std::fs::create_dir_all(&dir);
             dir
-        });
+        }, |p| p.parent().unwrap_or(Path::new(".")).to_path_buf());
 
     let output_name = opts
         .out
@@ -89,9 +87,7 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
 
     // Step 5: Copy disk image to a staging location for processing
     let disk_path = profile.image_cache_path();
-    let staging = output_name.parent()
-        .map(|p| p.join(format!(".export-staging-{}-{}.qcow2", profile.name, std::process::id())))
-        .unwrap_or_else(|| output_name.with_extension("staging"));
+    let staging = output_name.parent().map_or_else(|| output_name.with_extension("staging"), |p| p.join(format!(".export-staging-{}-{}.qcow2", profile.name, std::process::id())));
     println!("  Copying disk image...");
     std::fs::copy(&disk_path, &staging).map_err(|e| TestbedError::Qcow2Error {
         message: format!("copying disk image: {e}"),
@@ -120,10 +116,10 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
         let final_compressed = current_file.with_extension(format!("qcow2{}", opts.compression.extension()));
         println!("  Applying {} compression...", opts.compression.extension().trim_start_matches('.'));
         compress_qcow2_with(&current_file, &final_compressed, opts.compression)?;
-        if current_file != staging {
-            let _ = std::fs::remove_file(&current_file);
-        } else {
+        if current_file == staging {
             let _ = std::fs::remove_file(&staging);
+        } else {
+            let _ = std::fs::remove_file(&current_file);
         }
         current_file = final_compressed;
 
@@ -166,7 +162,7 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
     if let Some(ref store_name) = opts.store {
         let store = resolve_store(store_name)?;
         let manifest_path = output_name.with_extension("qcow2.manifest.json");
-        println!("  Uploading to store '{}'...", store_name);
+        println!("  Uploading to store '{store_name}'...");
         upload_to_store(&store, &output_name, &manifest_path)?;
     }
 

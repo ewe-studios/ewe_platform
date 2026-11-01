@@ -21,6 +21,7 @@ pub struct HostHealth {
 }
 
 impl HostHealth {
+    #[must_use]
     pub fn is_healthy(&self) -> bool {
         self.checks.iter().all(|c| c.ok)
     }
@@ -31,7 +32,7 @@ impl HostHealth {
             let status = if c.ok { "OK" } else { "FAIL" };
             println!("  [{status}] {} — {}", c.name, c.message);
             if let Some(s) = c.suggestion {
-                println!("         Suggestion: {}", s);
+                println!("         Suggestion: {s}");
             }
         }
 
@@ -43,6 +44,7 @@ impl HostHealth {
 }
 
 /// Run all host-level health checks.
+#[must_use]
 pub fn check_host() -> HostHealth {
     let mut checks = Vec::new();
 
@@ -143,8 +145,7 @@ pub fn check_host() -> HostHealth {
     let disk_target = if cache_dir.exists() {
         cache_dir
     } else {
-        cache_dir.ancestors().find(|p| p.exists()).map(|p| p.to_path_buf())
-            .unwrap_or_else(|| std::path::PathBuf::from("/"))
+        cache_dir.ancestors().find(|p| p.exists()).map_or_else(|| std::path::PathBuf::from("/"), std::path::Path::to_path_buf)
     };
     let disk_msg = match fs2::available_space(&disk_target) {
         Ok(bytes) => {
@@ -154,7 +155,7 @@ pub fn check_host() -> HostHealth {
                 name: "disk_space",
                 ok,
                 message: format!("{:.1} GB available on {}", gb, disk_target.display()),
-                suggestion: if !ok { Some("free up disk space or expand partition") } else { None },
+                suggestion: if ok { None } else { Some("free up disk space or expand partition") },
             }
         }
         Err(_) => Check {
@@ -183,6 +184,7 @@ pub fn check_host() -> HostHealth {
 }
 
 /// Run VM-level health checks for a specific profile.
+#[must_use]
 pub fn check_vm(profile: &VmProfile) -> HostHealth {
     let mut checks = Vec::new();
 
@@ -271,12 +273,14 @@ pub fn check_vm(profile: &VmProfile) -> HostHealth {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /// Check if KVM is available.
+#[must_use]
 pub fn kvm_available() -> bool {
     let path = std::path::Path::new("/dev/kvm");
-    path.exists() && std::fs::metadata(path).map(|m| !m.permissions().readonly()).unwrap_or(false)
+    path.exists() && std::fs::metadata(path).is_ok_and(|m| !m.permissions().readonly())
 }
 
 /// Find the user's SSH public key (ed25519 preferred).
+#[must_use]
 pub fn find_ssh_key() -> Option<std::path::PathBuf> {
     let home = dirs::home_dir()?;
     let ssh_dir = home.join(".ssh");

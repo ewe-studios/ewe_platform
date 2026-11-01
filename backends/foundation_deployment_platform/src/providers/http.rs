@@ -1,7 +1,7 @@
 //! Shared HTTP utilities over the platform network client (`DynNetClient`).
 //!
 //! WHY: Both QEMU and UTM providers need HTTP downloads. This module centralizes
-//! the logic using `foundation_netio`'s `HttpClientBuilder` and body_reader
+//! the logic using `foundation_netio`'s `HttpClientBuilder` and `body_reader`
 //! utilities instead of shelling out to curl.
 //!
 //! WHAT: Two primitives — `http_get()` for text responses (APIs), and
@@ -42,7 +42,7 @@ pub fn http_get(url: &str, read_timeout_secs: u64) -> Result<String> {
 /// `read_timeout_secs` controls per-read timeout. Streaming writes directly to
 /// disk — the full body is NOT loaded into memory.
 ///
-/// Validates the downloaded file meets MIN_IMAGE_SIZE.
+/// Validates the downloaded file meets `MIN_IMAGE_SIZE`.
 pub fn http_download(url: &str, dest: &Path, _progress_label: &str, read_timeout_secs: u64) -> Result<()> {
     let resp = get(url, read_timeout_secs)?;
 

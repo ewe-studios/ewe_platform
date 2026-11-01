@@ -1,4 +1,4 @@
-//! Elevated (SYSTEM) command execution via WinRM scheduled tasks.
+//! Elevated (SYSTEM) command execution via `WinRM` scheduled tasks.
 //!
 //! Runs PowerShell scripts as SYSTEM with highest privileges by creating
 //! a scheduled task, triggering it, and polling for completion via sentinel.
@@ -56,11 +56,11 @@ pub fn run_interactive(
 
     // Create scheduled task: run as user, interactive (IT flag)
     let create_task = format!(
-        r#"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File {script_path}'
+        r"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File {script_path}'
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 $principal = New-ScheduledTaskPrincipal -UserId '{user}' -LogonType Interactive
-Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null"#
+Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null"
     );
     winrm.run_ps(&create_task).map_err(|e| TestbedError::BootstrapFailed {
         step: "create interactive task".to_string(),
@@ -123,7 +123,7 @@ pub fn run_elevated(
 
     // Build script: run user code, heartbeat every 3s, full transcript, capture errors, write sentinel
     let script_with_sentinel = format!(
-        r#"$ErrorActionPreference = 'Continue'
+        r"$ErrorActionPreference = 'Continue'
 $Error.Clear()
 
 # Full transcript: capture all stdout/stderr from this script
@@ -148,7 +148,7 @@ if ($Error.Count -gt 0) {{
 }}
 Stop-Job $heartbeatJob; Remove-Job $heartbeatJob
 Stop-Transcript | Out-Null
-Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"#
+Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"
     );
 
     // Write script to disk in chunks to stay under WinRM's command-line size limits.
@@ -237,11 +237,11 @@ Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"#
     let task_name = format!("FoundationTestbedBootstrap_{sentinel_id}");
     trace!("run_elevated: creating scheduled task '{}'", task_name);
     let create_task = format!(
-        r#"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File {script_path}'
+        r"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File {script_path}'
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -DontStopOnIdleEnd
 $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
-Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null"#
+Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null"
     );
     winrm.run_ps(&create_task).map_err(|e| TestbedError::BootstrapFailed {
         step: "create scheduled task".to_string(),
@@ -296,8 +296,8 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
         }
 
         // Poll bootstrap-step-error.log for new content
-        if poll_count % 3 == 0 {
-            if let Ok(elog) = winrm.run_ps_quiet(&format!(
+        if poll_count.is_multiple_of(3)
+            && let Ok(elog) = winrm.run_ps_quiet(&format!(
                 "if (Test-Path '{error_log}') {{ [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes('{error_log}')) }} else {{ '' }}"
             ))
                 && !elog.stdout.trim().is_empty()
@@ -324,7 +324,6 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                     }
                 }
             }
-        }
 
         // Check sentinel — use contains() to handle CLIXML wrapper output
         let sentinel = winrm.run_ps_quiet(
@@ -333,7 +332,7 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
         if let Ok(result) = sentinel
             && result.stdout.contains("DONE")
         {
-            debug!("run_elevated: script completed after {:?}", Instant::now() - (deadline - Duration::from_secs(timeout_secs)));
+            debug!("run_elevated: script completed after {:?}", deadline.checked_sub(Duration::from_secs(timeout_secs)).unwrap().elapsed());
             // Check for errors — fail if error log exists and has content
             // Use file size check to avoid CLIXML wrapper issues
             let err_check = winrm.run_ps_quiet(
@@ -349,9 +348,7 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                 );
                 let error_content = if let Ok(ref cb) = content_b64 {
                     // Extract base64 from possible CLIXML wrapper
-                    let b64 = cb.stdout.lines()
-                        .filter(|l| !l.contains("<") && !l.contains(">") && l.trim().len() > 10)
-                        .next()
+                    let b64 = cb.stdout.lines().find(|l| !l.contains('<') && !l.contains('>') && l.trim().len() > 10)
                         .unwrap_or("");
                     if let Ok(bytes) = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64.trim()) {
                         String::from_utf8_lossy(&bytes).trim().chars().take(1000).collect::<String>()
@@ -394,7 +391,7 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
         }
 
         // Report progress every 15 seconds (3 polls)
-        if poll_count % 3 == 0 {
+        if poll_count.is_multiple_of(3) {
             let hb_age = last_heartbeat.elapsed().as_secs();
             let msg = if hb_age < 15 {
                 format!("♥ alive ({hb_age}s since heartbeat)")

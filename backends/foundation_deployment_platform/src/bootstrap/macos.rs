@@ -120,7 +120,7 @@ fn install_cargo_binstall(session: &mut VmSession) -> Result<()> {
     }
     let arch = crate::ssh::exec(session, "uname -m").unwrap_or_default();
     let target = if arch.trim() == "arm64" { "aarch64-apple-darwin" } else { "x86_64-apple-darwin" };
-    let script = INSTALL_CARGO_BINSTALL_SH.replace("{{TARGET}}", &target);
+    let script = INSTALL_CARGO_BINSTALL_SH.replace("{{TARGET}}", target);
     crate::ssh::exec(session, &script)?;
     Ok(())
 }

@@ -28,6 +28,7 @@ const LINUX_MARKER: &str = "/home/vagrant/.testbed-bootstrapped";
 const MACOS_MARKER: &str = "/Users/vagrant/.testbed-bootstrapped";
 
 /// Check if a profile's VM has already been bootstrapped.
+#[must_use]
 pub fn is_bootstrapped(profile: &VmProfile) -> bool {
     match profile.os {
         GuestOs::Windows => {
@@ -77,7 +78,7 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
 /// Log file is written to `$PWD/.testbed/<vm-name>/bootstrap.log`.
 ///
 /// For Windows, this handles the two-phase flow automatically:
-/// 1. WinRM phase — installs OpenSSH, configures keys/autologin
+/// 1. `WinRM` phase — installs OpenSSH, configures keys/autologin
 /// 2. Waits for SSH to become available
 /// 3. SSH phase — installs mise, build tools, runtimes
 ///

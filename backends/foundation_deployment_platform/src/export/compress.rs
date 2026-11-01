@@ -25,6 +25,7 @@ pub enum Compression {
 
 impl Compression {
     /// File extension suffix for this compression type.
+    #[must_use]
     pub fn extension(&self) -> &'static str {
         match self {
             Compression::None => "",
@@ -72,6 +73,7 @@ pub fn decompress(src: &Path, dest: &Path) -> Result<()> {
 }
 
 /// Check if a path looks like a compressed qcow2 archive.
+#[must_use]
 pub fn is_compressed(path: &Path) -> bool {
     let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
     name.ends_with(".qcow2.gz") || name.ends_with(".qcow2.xz")
@@ -95,13 +97,11 @@ pub fn ensure_decompressed(image_path: &Path) -> Result<PathBuf> {
     // Strip compression extension to get the qcow2 name
     let qcow2_name = image_path
         .file_name()
-        .and_then(|n| n.to_str())
-        .map(|n| {
+        .and_then(|n| n.to_str()).map_or_else(|| "image.qcow2".to_string(), |n| {
             n.trim_end_matches(".gz")
                 .trim_end_matches(".xz")
                 .to_string()
-        })
-        .unwrap_or_else(|| "image.qcow2".to_string());
+        });
 
     let dest = cache_dir.join(&qcow2_name);
 

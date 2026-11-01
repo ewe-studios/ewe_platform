@@ -43,9 +43,7 @@ impl ExportManifest {
 
         let sha256 = compute_sha256(image_path)?;
         let image_file = image_path
-            .file_name()
-            .map(|n| n.to_string_lossy().to_string())
-            .unwrap_or_else(|| "export.qcow2".to_string());
+            .file_name().map_or_else(|| "export.qcow2".to_string(), |n| n.to_string_lossy().to_string());
 
         let arch = std::env::consts::ARCH.to_string();
         let os_str = match profile.os {
@@ -88,6 +86,7 @@ impl ExportManifest {
     }
 
     /// Display a summary of installed tools for import feedback.
+    #[must_use]
     pub fn tools_summary(&self) -> String {
         if self.installed_tools.is_empty() {
             return "no tools detected".to_string();
@@ -126,8 +125,6 @@ fn get_git_commit() -> String {
         .args(["rev-parse", "--short", "HEAD"])
         .output()
         .ok()
-        .and_then(|out| String::from_utf8(out.stdout).ok())
-        .map(|s| s.trim().to_string())
-        .unwrap_or_else(|| "unknown".to_string())
+        .and_then(|out| String::from_utf8(out.stdout).ok()).map_or_else(|| "unknown".to_string(), |s| s.trim().to_string())
 }
 

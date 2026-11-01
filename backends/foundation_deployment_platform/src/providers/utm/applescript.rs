@@ -1,7 +1,7 @@
-//! AppleScript wrapper for UTM configuration via `osascript`.
+//! `AppleScript` wrapper for UTM configuration via `osascript`.
 //!
 //! UTM doesn't expose a CLI for network/resource config or bundle import.
-//! We use AppleScript to drive UTM's internal configuration:
+//! We use `AppleScript` to drive UTM's internal configuration:
 //! - Network: discover emulated NICs, configure port forwards
 //! - Resources: set CPU, memory via `update configuration`
 //! - Bundle import: `import new virtual machine from POSIX file`
@@ -10,7 +10,7 @@ use std::process::Command;
 
 use crate::config::{Result, TestbedError};
 
-/// Run an AppleScript snippet via `osascript`.
+/// Run an `AppleScript` snippet via `osascript`.
 fn run_applescript(script: &str) -> Result<String> {
     let output = Command::new("osascript")
         .arg("-e")
@@ -72,7 +72,7 @@ fn find_emulated_nic(uuid: &str) -> Result<u32> {
 /// Arguments:
 /// - `uuid`: UTM VM UUID
 /// - `ssh_port`: Host port to forward to guest :22
-/// - `extra_forwards`: Additional (guest_port, host_port) pairs
+/// - `extra_forwards`: Additional (`guest_port`, `host_port`) pairs
 pub fn configure_port_forwards(
     uuid: &str,
     ssh_port: u16,
@@ -119,7 +119,7 @@ pub fn configure_port_forwards(
 /// Configure CPU and memory resources for a UTM VM.
 ///
 /// Uses `update configuration` pattern which is the correct UTM
-/// AppleScript API — not direct property assignment.
+/// `AppleScript` API — not direct property assignment.
 pub fn configure_resources(uuid: &str, memory_mib: u32, cpu_cores: u32) -> Result<()> {
     let script = format!(
         r#"
@@ -138,7 +138,7 @@ pub fn configure_resources(uuid: &str, memory_mib: u32, cpu_cores: u32) -> Resul
 
 /// Import a .utm bundle into UTM.app.
 ///
-/// Uses the correct AppleScript API: `import new virtual machine from POSIX file`.
+/// Uses the correct `AppleScript` API: `import new virtual machine from POSIX file`.
 /// Returns the UUID of the imported VM.
 ///
 /// Arguments:
@@ -152,8 +152,7 @@ pub fn import_bundle(bundle_path: &str) -> Result<String> {
 
     // Import via correct AppleScript API
     let script = format!(
-        r#"tell application "UTM" to import new virtual machine from POSIX file "{}""#,
-        bundle_path
+        r#"tell application "UTM" to import new virtual machine from POSIX file "{bundle_path}""#
     );
     run_applescript(&script)?;
 
@@ -177,14 +176,14 @@ pub fn import_bundle(bundle_path: &str) -> Result<String> {
 ///
 /// After import, UTM stores bundles at:
 /// `~/Library/Containers/com.utmapp.UTM/Data/Documents/{display_name}.utm`
+#[must_use]
 pub fn verify_imported_bundle(display_name: &str) -> bool {
     dirs::home_dir()
-        .map(|home| {
+        .is_some_and(|home| {
             home.join("Library/Containers/com.utmapp.UTM/Data/Documents")
                 .join(format!("{display_name}.utm"))
                 .exists()
         })
-        .unwrap_or(false)
 }
 
 /// Configure a shared directory for a UTM VM.

@@ -41,10 +41,12 @@ pub enum ToolStatus {
 }
 
 impl ToolStatus {
+    #[must_use]
     pub fn is_available(&self) -> bool {
         !matches!(self, ToolStatus::Missing { .. })
     }
 
+    #[must_use]
     pub fn version(&self) -> Option<&str> {
         match self {
             ToolStatus::AlreadyPresent { version } | ToolStatus::Installed { version } => Some(version),
@@ -77,15 +79,12 @@ pub fn ensure_host_prerequisites() -> Result<HostPrerequisites> {
 
 /// Check mise on PATH and version. Install if missing.
 fn ensure_mise() -> Result<ToolStatus> {
-    match check_tool_version("mise", MISE_MIN_VERSION) {
-        Ok(version) => Ok(ToolStatus::AlreadyPresent { version }),
-        Err(_) => {
-            eprintln!("  Installing mise...");
-            install::install_mise()?;
-            match check_tool_version("mise", MISE_MIN_VERSION) {
-                Ok(version) => Ok(ToolStatus::Installed { version }),
-                Err(e) => Ok(ToolStatus::Missing { error: format!("{e}") }),
-            }
+    if let Ok(version) = check_tool_version("mise", MISE_MIN_VERSION) { Ok(ToolStatus::AlreadyPresent { version }) } else {
+        eprintln!("  Installing mise...");
+        install::install_mise()?;
+        match check_tool_version("mise", MISE_MIN_VERSION) {
+            Ok(version) => Ok(ToolStatus::Installed { version }),
+            Err(e) => Ok(ToolStatus::Missing { error: format!("{e}") }),
         }
     }
 }
@@ -178,6 +177,7 @@ fn write_host_mise_config() -> Result<()> {
 }
 
 /// Path to the user's global mise config: `~/.config/mise/config.toml`.
+#[must_use]
 pub fn host_mise_config_path() -> PathBuf {
     if let Some(home) = dirs::home_dir() {
         return home.join(".config").join("mise").join("config.toml");
@@ -186,6 +186,7 @@ pub fn host_mise_config_path() -> PathBuf {
 }
 
 /// Check if all host prerequisites are met (quick check, no installs).
+#[must_use]
 pub fn check_host_prerequisites() -> HostPrerequisites {
     let mise = check_tool_present("mise").map_or_else(
         |e| ToolStatus::Missing { error: format!("{e}") },

@@ -13,6 +13,7 @@ pub mod logs;
 pub mod multiarch;
 
 /// Build target triple for the given guest OS.
+#[must_use]
 pub fn target_triple(os: GuestOs) -> &'static str {
     match os {
         GuestOs::Windows => "x86_64-pc-windows-msvc",
@@ -22,6 +23,7 @@ pub fn target_triple(os: GuestOs) -> &'static str {
 }
 
 /// Get the guest mount path for the project directory.
+#[must_use]
 pub fn guest_project_path(os: GuestOs) -> &'static str {
     match os {
         GuestOs::Windows => "C:\\Users\\vagrant\\project",
@@ -101,12 +103,11 @@ fn verify_mount(session: &mut VmSession, os: GuestOs) -> Result<()> {
     let check_cmd = match os {
         GuestOs::Windows => {
             format!(
-                "if (Test-Path '{}') {{ 'MOUNT_OK' }} else {{ 'MOUNT_MISSING' }}",
-                guest_path
+                "if (Test-Path '{guest_path}') {{ 'MOUNT_OK' }} else {{ 'MOUNT_MISSING' }}"
             )
         }
         GuestOs::Linux | GuestOs::MacOS => {
-            format!("[ -d '{}' ] && echo 'MOUNT_OK' || echo 'MOUNT_MISSING'", guest_path)
+            format!("[ -d '{guest_path}' ] && echo 'MOUNT_OK' || echo 'MOUNT_MISSING'")
         }
     };
 
@@ -126,12 +127,11 @@ fn verify_mount(session: &mut VmSession, os: GuestOs) -> Result<()> {
     let project_check = match os {
         GuestOs::Windows => {
             format!(
-                "if (Test-Path '{}\\Cargo.toml') {{ 'PROJECT_OK' }} else {{ 'NO_PROJECT' }}",
-                guest_path
+                "if (Test-Path '{guest_path}\\Cargo.toml') {{ 'PROJECT_OK' }} else {{ 'NO_PROJECT' }}"
             )
         }
         GuestOs::Linux | GuestOs::MacOS => {
-            format!("[ -f '{}/Cargo.toml' ] && echo 'PROJECT_OK' || echo 'NO_PROJECT'", guest_path)
+            format!("[ -f '{guest_path}/Cargo.toml' ] && echo 'PROJECT_OK' || echo 'NO_PROJECT'")
         }
     };
 
@@ -140,8 +140,7 @@ fn verify_mount(session: &mut VmSession, os: GuestOs) -> Result<()> {
         return Err(TestbedError::BootstrapFailed {
             step: "verify_mount".to_string(),
             message: format!(
-                "no Cargo.toml found in mounted project at {}. Is the project mounted correctly?",
-                guest_path
+                "no Cargo.toml found in mounted project at {guest_path}. Is the project mounted correctly?"
             ),
         });
     }
@@ -167,13 +166,11 @@ fn install_project_tools(session: &mut VmSession, os: GuestOs) -> Result<()> {
     let install_cmd = match os {
         GuestOs::Windows => {
             format!(
-                "{} cd '{}'; mise install",
-                env_prefix,
-                guest_path
+                "{env_prefix} cd '{guest_path}'; mise install"
             )
         }
         GuestOs::Linux | GuestOs::MacOS => {
-            format!("{} && cd '{}' && mise install", env_prefix, guest_path)
+            format!("{env_prefix} && cd '{guest_path}' && mise install")
         }
     };
 
@@ -191,46 +188,43 @@ fn run_build(session: &mut VmSession, profile: &VmProfile) -> Result<i32> {
         GuestOs::Windows => {
             format!(
                 r#"
-$env:TESTBED_PROJECT_DIR = '{}';
-$env:TESTBED_TARGET = '{}';
+$env:TESTBED_PROJECT_DIR = '{guest_path}';
+$env:TESTBED_TARGET = '{target}';
 $env:TESTBED_LOG = "$env:USERPROFILE\.testbed-build\build.log";
 $env:RUSTC_WRAPPER = "sccache";
 $env:CARGO_INCREMENTAL = "0";
 New-Item -Path "$env:USERPROFILE\.testbed-build" -ItemType Directory -Force | Out-Null;
-cd '{}';
-cargo tauri build --target {} 2>&1 | Tee-Object -FilePath "$env:USERPROFILE\.testbed-build\build.log"
-"#,
-                guest_path, target, guest_path, target
+cd '{guest_path}';
+cargo tauri build --target {target} 2>&1 | Tee-Object -FilePath "$env:USERPROFILE\.testbed-build\build.log"
+"#
             )
         }
         GuestOs::MacOS => {
             format!(
                 r#"
-export TESTBED_PROJECT_DIR='{}';
-export TESTBED_TARGET='{}';
+export TESTBED_PROJECT_DIR='{guest_path}';
+export TESTBED_TARGET='{target}';
 export TESTBED_LOG="$HOME/.testbed-build/build.log";
 export RUSTC_WRAPPER="sccache";
 export CARGO_INCREMENTAL="0";
 mkdir -p ~/.testbed-build;
-cd '{}';
-cargo tauri build --target {} 2>&1 | tee ~/.testbed-build/build.log
-"#,
-                guest_path, target, guest_path, target
+cd '{guest_path}';
+cargo tauri build --target {target} 2>&1 | tee ~/.testbed-build/build.log
+"#
             )
         }
         GuestOs::Linux => {
             format!(
                 r#"
-export TESTBED_PROJECT_DIR='{}';
-export TESTBED_TARGET='{}';
+export TESTBED_PROJECT_DIR='{guest_path}';
+export TESTBED_TARGET='{target}';
 export TESTBED_LOG="$HOME/.testbed-build/build.log";
 export RUSTC_WRAPPER="sccache";
 export CARGO_INCREMENTAL="0";
 mkdir -p ~/.testbed-build;
-cd '{}';
-cargo tauri build --target {} 2>&1 | tee ~/.testbed-build/build.log
-"#,
-                guest_path, target, guest_path, target
+cd '{guest_path}';
+cargo tauri build --target {target} 2>&1 | tee ~/.testbed-build/build.log
+"#
             )
         }
     };
@@ -256,12 +250,11 @@ fn retrieve_artifacts(session: &mut VmSession, profile: &VmProfile) -> Result<Pa
     };
 
     // The bundle dir is at target/{target}/release/bundle relative to project
-    let bundle_dir = format!("{}/target/{}/release/bundle", guest_path, target);
+    let bundle_dir = format!("{guest_path}/target/{target}/release/bundle");
 
     // Tar the bundle dir on VM
     crate::ssh::exec(session, &format!(
-        "cd ~ && tar czf /tmp/artifacts.tar.gz -C {} . 2>/dev/null || true",
-        bundle_dir
+        "cd ~ && tar czf /tmp/artifacts.tar.gz -C {bundle_dir} . 2>/dev/null || true"
     ))?;
 
     // SCP back to host

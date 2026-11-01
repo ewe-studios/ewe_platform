@@ -29,7 +29,7 @@ pub struct VmState {
     pub monitor_socket: String,
     /// Resolved SSH port.
     pub ssh_port: u16,
-    /// Resolved WinRM port.
+    /// Resolved `WinRM` port.
     pub winrm_port: Option<u16>,
     /// Resolved RDP port.
     pub rdp_port: Option<u16>,
@@ -94,6 +94,7 @@ pub fn load(name: &str) -> Result<VmState> {
 }
 
 /// Check if a VM has a state file.
+#[must_use]
 pub fn exists(name: &str) -> bool {
     state_path(name).exists()
 }
@@ -111,7 +112,7 @@ pub fn delete(name: &str) -> Result<()> {
 
 /// List all known VMs.
 ///
-/// Returns (profile_name, state) for each state file.
+/// Returns (`profile_name`, state) for each state file.
 pub fn list() -> Result<Vec<(String, VmState)>> {
     let dir = state_dir();
     if !dir.exists() {
@@ -137,6 +138,7 @@ pub fn list() -> Result<Vec<(String, VmState)>> {
 }
 
 /// Check if a VM is currently running (has a live PID).
+#[must_use]
 pub fn is_running(name: &str) -> bool {
     if let Ok(state) = load(name)
         && let Some(pid) = state.pid {
@@ -145,7 +147,8 @@ pub fn is_running(name: &str) -> bool {
     false
 }
 
-/// Build a VmState from runtime info.
+/// Build a `VmState` from runtime info.
+#[must_use]
 pub fn from_runtime(
     profile_name: &str,
     disk_path: &std::path::Path,
@@ -176,7 +179,8 @@ pub fn from_runtime(
     }
 }
 
-/// Build a VmState from QEMU runtime info (legacy, prefer from_runtime).
+/// Build a `VmState` from QEMU runtime info (legacy, prefer `from_runtime`).
+#[must_use]
 pub fn from_qemu(
     profile_name: &str,
     disk_path: &std::path::Path,
@@ -215,11 +219,13 @@ fn state_path(name: &str) -> PathBuf {
 }
 
 /// State directory path.
+#[must_use]
 pub fn state_dir() -> PathBuf {
     crate::config::state_dir()
 }
 
 /// Check if a process is alive via kill(pid, 0).
+#[must_use]
 pub fn is_process_alive(pid: u32) -> bool {
     #[cfg(unix)]
     {

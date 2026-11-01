@@ -45,6 +45,7 @@ pub struct LogOpts {
 }
 
 /// Get the log file path on the VM.
+#[must_use]
 pub fn log_path(profile: &VmProfile, kind: LogKind) -> String {
     match (profile.os, kind) {
         (GuestOs::Linux, LogKind::Build) => "/home/vagrant/.testbed-build/build.log".to_string(),

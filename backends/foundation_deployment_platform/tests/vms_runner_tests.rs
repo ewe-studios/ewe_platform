@@ -64,7 +64,7 @@ fn test_push_uses_upload_for_files() {
     // Verify the path resolution logic
     let local = PathBuf::from("/tmp/test.txt");
     let remote = "/tmp/test.txt";
-    assert_eq!(local.is_file(), false); // doesn't exist
+    assert!(!local.is_file()); // doesn't exist
     assert_eq!(remote, "/tmp/test.txt");
 }
 
@@ -72,7 +72,7 @@ fn test_push_uses_upload_for_files() {
 #[test]
 fn test_linux_type_escape() {
     let text = "hello 'world'";
-    let escaped = text.replace("\\", "\\\\").replace("'", "\\'");
+    let escaped = text.replace('\\', "\\\\").replace('\'', "\\'");
     assert_eq!(escaped, "hello \\'world\\'");
 }
 
@@ -80,10 +80,10 @@ fn test_linux_type_escape() {
 fn test_windows_type_escape() {
     let text = "hello+world^test%foo";
     let escaped = text
-        .replace("+", "{{+}}")
-        .replace("^", "{{^}}")
-        .replace("%", "{{%}}")
-        .replace("~", "{{~}}");
+        .replace('+', "{{+}}")
+        .replace('^', "{{^}}")
+        .replace('%', "{{%}}")
+        .replace('~', "{{~}}");
     assert_eq!(escaped, "hello{{+}}world{{^}}test{{%}}foo");
 }
 

@@ -1,4 +1,4 @@
-//! macOS image creation — native IPSW download + BaseSystem extraction.
+//! macOS image creation — native IPSW download + `BaseSystem` extraction.
 //!
 //! Creates bootable macOS qcow2 images on Linux without requiring
 //! quickget/quickemu dependencies. Uses QEMU's built-in DMG reader
@@ -10,17 +10,17 @@
 //! 3. Extract `BaseSystem.dmg` from the IPSW
 //! 4. Convert DMG → qcow2 via `qemu-img convert`
 //! 5. Create empty data disk for user space (resizable)
-//! 6. Generate OpenCore EFI config and EFI disk image
+//! 6. Generate `OpenCore` EFI config and EFI disk image
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::config::{Result, TestbedError};
 
-/// OpenCore release version to download from GitHub.
+/// `OpenCore` release version to download from GitHub.
 const OPENCORE_VERSION: &str = "1.0.3";
 
-/// OpenCore EFI disk filename.
+/// `OpenCore` EFI disk filename.
 pub const OPENCORE_EFI_FILENAME: &str = "opencore.qcow2";
 
 /// Minimum IPSW size (500 MB).
@@ -37,7 +37,7 @@ pub struct IpswInfo {
 
 /// Ensure a macOS image is available in the cache for the given profile.
 ///
-/// Creates both the BaseSystem qcow2 (boot disk) and the OpenCore EFI
+/// Creates both the `BaseSystem` qcow2 (boot disk) and the `OpenCore` EFI
 /// disk if they don't already exist.
 pub fn ensure_macos_image(profile_name: &str) -> Result<PathBuf> {
     let base_dir = crate::config::image_cache_dir();
@@ -111,7 +111,7 @@ pub fn ensure_macos_image(profile_name: &str) -> Result<PathBuf> {
 
 /// Query api.ipsw.me for available macOS IPSWs.
 ///
-/// Returns the latest macOS version available for iMacPro1,1 (x86_64).
+/// Returns the latest macOS version available for iMacPro1,1 (`x86_64`).
 pub fn find_ipsw(model: Option<&str>) -> Result<IpswInfo> {
     let device_id = model.unwrap_or("MacBookPro16,1"); // x86_64 Intel Mac
 
@@ -282,8 +282,7 @@ fn extract_basesystem(ipsw_path: &Path, dest: &Path) -> Result<()> {
                 ipsw_path.parent().unwrap().to_str().unwrap(),
             ])
             .status()
-            .map(|s| s.success())
-            .unwrap_or(false)
+            .is_ok_and(|s| s.success())
     };
 
     if !extracted {
@@ -374,9 +373,9 @@ fn create_data_disk(dest: &Path, size_gb: u32) -> Result<()> {
     Ok(())
 }
 
-/// Create an OpenCore EFI disk image.
+/// Create an `OpenCore` EFI disk image.
 ///
-/// Downloads OpenCore from GitHub releases, generates config.plist,
+/// Downloads `OpenCore` from GitHub releases, generates config.plist,
 /// and creates a FAT32 disk image with the EFI files.
 fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
     let efi_stage = macos_dir.join("opencore-stage");
@@ -579,7 +578,7 @@ fn populate_fat_image(fat_img: &Path, efi_dir: &Path) -> Result<()> {
             let _ = Command::new("umount").arg(&mount_point).status();
             let _ = std::fs::remove_dir(&mount_point);
 
-            if cp_status.map(|s| s.success()).unwrap_or(false) {
+            if cp_status.is_ok_and(|s| s.success()) {
                 return Ok(());
             }
         }
@@ -589,9 +588,10 @@ fn populate_fat_image(fat_img: &Path, efi_dir: &Path) -> Result<()> {
     })
 }
 
-/// Generate an OpenCore config.plist for QEMU macOS boot.
+/// Generate an `OpenCore` config.plist for QEMU macOS boot.
 ///
 /// Uses MacPro7,1 SMBIOS, standard boot args for QEMU compatibility.
+#[must_use]
 pub fn generate_config_plist() -> String {
     r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

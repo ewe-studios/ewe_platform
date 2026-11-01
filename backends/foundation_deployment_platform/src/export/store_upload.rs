@@ -110,9 +110,7 @@ fn upload_http(store: &ImageStore, image_path: &Path, _manifest_path: &Path) -> 
 }
 
 fn store_destination(store: &ImageStore, path: &Path) -> String {
-    let filename = path.file_name()
-        .map(|n| n.to_string_lossy().to_string())
-        .unwrap_or_else(|| "export.qcow2".to_string());
+    let filename = path.file_name().map_or_else(|| "export.qcow2".to_string(), |n| n.to_string_lossy().to_string());
 
     if let Some(ref prefix) = store.key_prefix {
         format!("{prefix}/{filename}")

@@ -83,19 +83,15 @@ pub fn exec_streaming_session(session: &VmSession, cmd: &str) -> Result<i32> {
 
     // Print stdout lines
     std::thread::spawn(move || {
-        for line in stdout_reader.lines() {
-            if let Ok(line) = line {
-                println!("{line}");
-            }
+        for line in stdout_reader.lines().flatten() {
+            println!("{line}");
         }
     });
 
     // Print stderr lines
     std::thread::spawn(move || {
-        for line in stderr_reader.lines() {
-            if let Ok(line) = line {
-                eprintln!("{line}");
-            }
+        for line in stderr_reader.lines().flatten() {
+            eprintln!("{line}");
         }
     });
 

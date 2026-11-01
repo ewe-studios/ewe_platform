@@ -28,13 +28,13 @@ fn detect_home_dir(session: &mut VmSession) -> Result<String> {
 
 /// Replace hardcoded /home/vagrant paths with the detected home directory.
 fn adapt_script(script: &str, home_dir: &str) -> String {
-    script.replace("/home/vagrant/", &format!("{}/", home_dir))
+    script.replace("/home/vagrant/", &format!("{home_dir}/"))
 }
 
 pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
     // Detect home directory first
     let home_dir = detect_home_dir(session)?;
-    logger.message(&format!("Detected home directory: {}", home_dir));
+    logger.message(&format!("Detected home directory: {home_dir}"));
 
     logger::step(logger, "install system deps", || {
         let script = adapt_script(INSTALL_SYSTEM_DEPS_SH, &home_dir);
@@ -88,7 +88,7 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
         }
         let arch = crate::ssh::exec(session, "uname -m").unwrap_or_default();
         let target = if arch.trim() == "aarch64" { "aarch64-unknown-linux-musl" } else { "x86_64-unknown-linux-musl" };
-        let script = adapt_script(INSTALL_CARGO_BINSTALL_SH, &home_dir).replace("{{TARGET}}", &target);
+        let script = adapt_script(INSTALL_CARGO_BINSTALL_SH, &home_dir).replace("{{TARGET}}", target);
         crate::ssh::exec(session, &script)?;
         Ok(())
     })?;
@@ -152,7 +152,7 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
             crate::ssh::upload(session, &temp_path, "/tmp/install_gnome.sh")
                 .map_err(|e| crate::config::TestbedError::BootstrapFailed {
                     step: "upload gnome install script".to_string(),
-                    message: format!("{:?}", e),
+                    message: format!("{e:?}"),
                 })?;
             // Use streaming exec to see real-time output
             let exit_code = crate::ssh::streaming::exec_streaming_session(
@@ -162,7 +162,7 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
             if exit_code != 0 {
                 return Err(crate::config::TestbedError::BootstrapFailed {
                     step: "install gnome".to_string(),
-                    message: format!("GNOME install script exited with code {}", exit_code),
+                    message: format!("GNOME install script exited with code {exit_code}"),
                 });
             }
             logger.message("  GNOME desktop environment installed");
@@ -179,7 +179,7 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
             crate::ssh::upload(session, &temp_path, "/tmp/install_gui.sh")
                 .map_err(|e| crate::config::TestbedError::BootstrapFailed {
                     step: "upload gui install script".to_string(),
-                    message: format!("{:?}", e),
+                    message: format!("{e:?}"),
                 })?;
             // Use streaming exec to see real-time output
             let exit_code = crate::ssh::streaming::exec_streaming_session(
@@ -189,7 +189,7 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
             if exit_code != 0 {
                 return Err(crate::config::TestbedError::BootstrapFailed {
                     step: "install gui".to_string(),
-                    message: format!("GUI install script exited with code {}", exit_code),
+                    message: format!("GUI install script exited with code {exit_code}"),
                 });
             }
             logger.message("  GUI environment installed");
@@ -209,7 +209,7 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
                 ("start_dm.sh", START_DISPLAY_MANAGER_SH, "LightDM")
             };
 
-            logger.message(&format!("  Starting display manager ({})...", dm_name));
+            logger.message(&format!("  Starting display manager ({dm_name})..."));
             // Write script locally and upload via SCP (now with key auth)
             let temp_path = std::env::temp_dir().join(script_name);
             let script = adapt_script(script_content, &home_dir);
@@ -218,24 +218,24 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
                     step: "write display manager script".to_string(),
                     message: e.to_string(),
                 })?;
-            crate::ssh::upload(session, &temp_path, &format!("/tmp/{}", script_name))
+            crate::ssh::upload(session, &temp_path, &format!("/tmp/{script_name}"))
                 .map_err(|e| crate::config::TestbedError::BootstrapFailed {
                     step: "upload display manager script".to_string(),
-                    message: format!("{:?}", e),
+                    message: format!("{e:?}"),
                 })?;
             // Use streaming exec to see real-time output
             match crate::ssh::streaming::exec_streaming_session(
                 session,
-                &format!("chmod +x /tmp/{} && sudo /tmp/{}", script_name, script_name)
+                &format!("chmod +x /tmp/{script_name} && sudo /tmp/{script_name}")
             ) {
                 Ok(exit_code) => {
                     if exit_code != 0 {
-                        logger.message(&format!("  Warning: Display manager script exited with code {}", exit_code));
+                        logger.message(&format!("  Warning: Display manager script exited with code {exit_code}"));
                         logger.message(&format!("  You can start it manually later with: sudo systemctl start {}", dm_name.to_lowercase()));
                     }
                 }
                 Err(e) => {
-                    logger.message(&format!("  Warning: Could not start display manager: {}", e));
+                    logger.message(&format!("  Warning: Could not start display manager: {e}"));
                     logger.message(&format!("  You can start it manually later with: sudo systemctl start {}", dm_name.to_lowercase()));
                 }
             }

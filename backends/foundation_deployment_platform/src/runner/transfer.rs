@@ -1,6 +1,6 @@
 //! File transfer between host and VM via SCP.
 //!
-//! Wraps ssh::upload and ssh::download with path resolution.
+//! Wraps `ssh::upload` and `ssh::download` with path resolution.
 
 use std::path::Path;
 

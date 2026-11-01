@@ -90,7 +90,7 @@ fn test_manifest_tools_summary() {
         created_at: "2026-05-03T00:00:00Z".to_string(),
         created_by: "testhost".to_string(),
         git_commit: "abc1234".to_string(),
-        notes: "".to_string(),
+        notes: String::new(),
     };
 
     let summary = manifest.tools_summary();

@@ -46,7 +46,7 @@ pub struct VmProfile {
     pub ssh_port: u16,
     /// Host port forwarded to guest RDP (:3389), if applicable.
     pub rdp_port: Option<u16>,
-    /// Host port forwarded to guest WinRM (:5985), if applicable.
+    /// Host port forwarded to guest `WinRM` (:5985), if applicable.
     pub winrm_port: Option<u16>,
     /// VNC display port (VNC server runs on 5900 + offset).
     pub vnc_port: u16,
@@ -68,6 +68,7 @@ pub struct VmProfile {
 
 impl VmProfile {
     /// Resolve the cache path for this profile's disk image.
+    #[must_use]
     pub fn image_cache_path(&self) -> std::path::PathBuf {
         image_cache_dir().join(self.image_name)
     }
@@ -183,12 +184,13 @@ pub fn get_profile(name: &str) -> Result<&'static VmProfile> {
             let available: Vec<&str> = PROFILES.iter().map(|p| p.name).collect();
             TestbedError::UnknownProfile {
                 name: name.to_string(),
-                available: available.iter().map(|s| s.to_string()).collect(),
+                available: available.iter().map(std::string::ToString::to_string).collect(),
             }
         })
 }
 
 /// List all default profiles.
+#[must_use]
 pub fn list_profiles() -> &'static [VmProfile] {
     PROFILES
 }
@@ -232,7 +234,7 @@ pub struct UserMountConfig {
     /// Host path to mount (default: ".")
     #[serde(default)]
     pub host_path: Option<String>,
-    /// Guest mount point (e.g. "C:/Users/vagrant/project" on Windows, "/mnt/project" on Linux)
+    /// Guest mount point (e.g. "<<<<<C:/Users/vagrant/project>>>>>" on Windows, "/mnt/project" on Linux)
     #[serde(default)]
     pub guest_path: Option<String>,
     #[serde(default)]
@@ -250,6 +252,7 @@ pub enum MountMethod {
 }
 
 impl MountMethod {
+    #[must_use]
     pub fn parse(s: &str) -> Option<Self> {
         match s.to_lowercase().as_str() {
             "smb" => Some(MountMethod::SMB),
@@ -292,6 +295,7 @@ pub struct UserProfileEntry {
 /// Load user config from `testbed.toml` in the current working directory.
 ///
 /// Returns None if the file doesn't exist or can't be parsed.
+#[must_use]
 pub fn load_user_config() -> Option<UserConfig> {
     let config_path = user_config_path();
     if !config_path.exists() {
@@ -375,6 +379,7 @@ fn apply_user_override(profile: &mut VmProfile, override_: &UserVmProfile) {
 /// Returns `Some((host_path, guest_path, readonly, methods))` if mount is configured,
 /// or `None` if no mount should be set up.
 /// `methods` is a list of mount methods to try in order (e.g. `["smb", "virtiofs"]`).
+#[must_use]
 pub fn get_mount_for_profile(
     profile_name: &str,
     default_host_path: &str,
@@ -405,6 +410,7 @@ pub fn get_mount_for_profile(
 }
 
 /// Path to the user config file: `./testbed.toml`.
+#[must_use]
 pub fn user_config_path() -> std::path::PathBuf {
     std::path::PathBuf::from("testbed.toml")
 }
@@ -440,6 +446,7 @@ pub struct ImageStore {
 }
 
 /// Load image stores from `testbed.toml`'s `[[image_stores]]` section.
+#[must_use]
 pub fn load_image_stores() -> Vec<ImageStore> {
     let Some(config) = load_user_config() else {
         return Vec::new();
@@ -467,6 +474,7 @@ pub fn load_image_stores() -> Vec<ImageStore> {
 }
 
 /// Look up an image store by name.
+#[must_use]
 pub fn get_image_store(name: &str) -> Option<ImageStore> {
     load_image_stores()
         .into_iter()
@@ -476,6 +484,7 @@ pub fn get_image_store(name: &str) -> Option<ImageStore> {
 // ── Directories ──────────────────────────────────────────────────────────────
 
 /// Base cache directory: `~/.cache/foundation_testbed/`
+#[must_use]
 pub fn cache_dir() -> std::path::PathBuf {
     dirs::cache_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("/tmp"))
@@ -483,17 +492,20 @@ pub fn cache_dir() -> std::path::PathBuf {
 }
 
 /// Image cache: `~/.cache/foundation_testbed/images/`
+#[must_use]
 pub fn image_cache_dir() -> std::path::PathBuf {
     cache_dir().join("images")
 }
 
 /// State directory: `~/.cache/foundation_testbed/state/`
+#[must_use]
 pub fn state_dir() -> std::path::PathBuf {
     cache_dir().join("state")
 }
 
 /// Monitor socket directory for a VM: `$PWD/.testbed/[vm-name]/state/` or from `testbed.toml` `[[vms]].state_directory`.
 /// Per-VM sockets and ephemeral state.
+#[must_use]
 pub fn monitor_dir(profile_name: &str) -> std::path::PathBuf {
     // Check if user config specifies a custom state directory for this VM
     if let Some(config) = load_user_config() {
@@ -508,6 +520,7 @@ pub fn monitor_dir(profile_name: &str) -> std::path::PathBuf {
 }
 
 /// Find workspace root by searching for the directory containing Cargo.toml with [workspace]
+#[must_use]
 pub fn workspace_root() -> std::path::PathBuf {
     let current = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
     let mut path = current.clone();
@@ -541,25 +554,27 @@ pub fn workspace_root() -> std::path::PathBuf {
 }
 
 /// VM work directory: `$WORKSPACE_ROOT/.testbed/[vm-name]/` — per-VM logs and artifacts.
+#[must_use]
 pub fn work_dir(profile_name: &str) -> std::path::PathBuf {
     workspace_root().join(".testbed").join(profile_name)
 }
 
 /// Per-VM logs directory: `$PWD/.testbed/[vm-name]/logs/`.
+#[must_use]
 pub fn vm_logs_dir(profile_name: &str) -> std::path::PathBuf {
     work_dir(profile_name).join("logs")
 }
 
 /// Per-VM artifacts directory: `$PWD/.testbed/[vm-name]/artifacts/`.
+#[must_use]
 pub fn vm_artifacts_dir(profile_name: &str) -> std::path::PathBuf {
     work_dir(profile_name).join("artifacts")
 }
 
 /// Home-based artifacts directory: `$HOME/.testbed/[vm-name]/artifacts/`.
+#[must_use]
 pub fn home_artifacts_dir(profile_name: &str) -> std::path::PathBuf {
-    dirs::home_dir()
-        .map(|h| h.join(".testbed").join(profile_name).join("artifacts"))
-        .unwrap_or_else(|| std::path::PathBuf::from("/tmp/.testbed").join(profile_name).join("artifacts"))
+    dirs::home_dir().map_or_else(|| std::path::PathBuf::from("/tmp/.testbed").join(profile_name).join("artifacts"), |h| h.join(".testbed").join(profile_name).join("artifacts"))
 }
 
 /// Resolve an artifact by checking in order:
@@ -663,16 +678,18 @@ pub fn copy_embedded_scripts(profile_name: &str) -> Result<()> {
 }
 
 /// Per-VM scripts directory: `$PWD/.testbed/[vm-name]/scripts/`.
+#[must_use]
 pub fn vm_scripts_dir(profile_name: &str) -> std::path::PathBuf {
     work_dir(profile_name).join("scripts")
 }
 
 /// Per-VM state directory: `$PWD/.testbed/[vm-name]/state/`.
+#[must_use]
 pub fn vm_state_dir(profile_name: &str) -> std::path::PathBuf {
     work_dir(profile_name).join("state")
 }
 
-/// Ensure all foundation_testbed cache directories exist.
+/// Ensure all `foundation_testbed` cache directories exist.
 pub fn ensure_dirs() -> std::io::Result<()> {
     std::fs::create_dir_all(cache_dir())?;
     std::fs::create_dir_all(image_cache_dir())?;

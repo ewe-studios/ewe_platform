@@ -53,6 +53,7 @@ pub fn check_utm_version() -> Result<Option<String>> {
 }
 
 /// Check UTM.app version, return it if installed.
+#[must_use]
 pub fn installed_utm_version() -> Option<String> {
     let plist = "/Applications/UTM.app/Contents/Info.plist";
     let out = Command::new("/usr/libexec/PlistBuddy")
@@ -72,9 +73,7 @@ pub fn ensure_utm() -> Result<Vec<String>> {
     // Check utmctl exists
     if !std::path::Path::new(UTMCTL).exists() {
         return Err(TestbedError::Qcow2Error {
-            message: format!(
-                "UTM not installed at /Applications/UTM.app. Install via: brew install --cask utm"
-            ),
+            message: "UTM not installed at /Applications/UTM.app. Install via: brew install --cask utm".to_string(),
         });
     }
 
@@ -103,8 +102,7 @@ pub fn ensure_utm() -> Result<Vec<String>> {
             if Command::new(UTMCTL)
                 .arg("list")
                 .output()
-                .map(|o| o.status.success())
-                .unwrap_or(false)
+                .is_ok_and(|o| o.status.success())
             {
                 eprintln!("  UTM ready");
                 break;
@@ -304,6 +302,7 @@ pub fn wait_for_vm(uuid: &str, timeout_secs: u64) -> Result<bool> {
 }
 
 /// Compare two semantic versions. Returns true if `actual` < `min`.
+#[must_use]
 pub fn version_is_older(actual: &str, min: &str) -> bool {
     let parse = |v: &str| -> (u32, u32, u32) {
         let mut parts = v.split('.').map(|s| s.parse::<u32>().unwrap_or(0));

@@ -14,7 +14,7 @@ fn test_parse_shell_id() {
 
 #[test]
 fn test_parse_command_id() {
-    let response = r#"<rsp:CommandResponse><rsp:CommandId>cmd-789</rsp:CommandId></rsp:CommandResponse>"#;
+    let response = r"<rsp:CommandResponse><rsp:CommandId>cmd-789</rsp:CommandId></rsp:CommandResponse>";
     assert_eq!(parse_command_id(response).as_deref(), Some("cmd-789"));
 }
 
@@ -37,8 +37,8 @@ fn test_auth_header_value() {
 fn test_parse_receive_response_empty() {
     let response = "<rsp:ReceiveResponse></rsp:ReceiveResponse>";
     let (stdout, stderr, done, code) = parse_receive_response(response);
-    assert!(stdout.is_empty());
-    assert!(stderr.is_empty());
+    assert_eq!(stdout, "");
+    assert_eq!(stderr, "");
     assert!(!done);
     assert_eq!(code, 0);
 }

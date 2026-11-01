@@ -1,4 +1,4 @@
-//! Windows bootstrap via WinRM + SSH — step-by-step idempotent.
+//! Windows bootstrap via `WinRM` + SSH — step-by-step idempotent.
 //!
 //! Each step checks concrete artifacts before running. If bootstrap fails
 //! mid-way, re-running picks up where it left off.
@@ -52,7 +52,7 @@ const INTERACTIVE_LAUNCH_PS1: &str = include_str!("../../scripts/windows/interac
 const SCREENSHOT_WINDOWS_PS1: &str = include_str!("../../scripts/windows/screenshot_windows.ps1");
 const SETUP_SMB_MOUNT_PS1: &str = include_str!("../../scripts/windows/setup_smb_mount.ps1");
 
-/// Result from running PowerShell — mirrors WinRM's `CmdResult`.
+/// Result from running PowerShell — mirrors `WinRM`'s `CmdResult`.
 struct PsResult {
     stdout: String,
     #[allow(dead_code)]
@@ -61,12 +61,12 @@ struct PsResult {
     exit_code: i32,
 }
 
-/// Run PowerShell over SSH, falling back to WinRM if SSH fails.
+/// Run PowerShell over SSH, falling back to `WinRM` if SSH fails.
 ///
 /// Tries `ssh::exec_ps_windows` first (proper UTF-16LE + Base64 encoding
 /// with CLIXML stripping). If SSH fails for any reason, falls back to
 /// `winrm.run_ps_quiet`. This allows the bootstrap SSH phase to be
-/// resilient — WinRM is available as a safety net.
+/// resilient — `WinRM` is available as a safety net.
 fn ssh_ps(session: &mut VmSession, winrm: &WinRM, script: &str) -> Result<PsResult> {
     if let Ok((stdout, exit_code)) = crate::ssh::exec_ps_windows(session, script) {
         return Ok(PsResult { stdout, stderr: String::new(), exit_code });
@@ -289,7 +289,7 @@ fn install_openssh_server(winrm: &WinRM, progress: ProgressCallback<'_>) -> Resu
     Ok(())
 }
 
-/// Set up SSH key authorization on Windows (both user + admin paths) via WinRM.
+/// Set up SSH key authorization on Windows (both user + admin paths) via `WinRM`.
 fn setup_ssh_keys(winrm: &WinRM) -> Result<()> {
     let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("/home/darkvoid"));
     let key_names = ["id_ed25519.pub", "id_rsa.pub", "id_ecdsa.pub"];
@@ -316,7 +316,7 @@ fn setup_ssh_keys(winrm: &WinRM) -> Result<()> {
     Ok(())
 }
 
-/// Set LocalAccountTokenFilterPolicy registry key.
+/// Set `LocalAccountTokenFilterPolicy` registry key.
 fn set_local_account_token_filter(winrm: &WinRM) -> Result<()> {
     elevated::run_elevated(winrm, SET_LOCAL_ACCOUNT_TOKEN_FILTER_PS1, 30, None)?;
     Ok(())
@@ -329,7 +329,7 @@ fn set_autologin(winrm: &WinRM) -> Result<bool> {
     let check = winrm.run_ps_quiet(
         "Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon' -Name AutoAdminLogon -ErrorAction SilentlyContinue | Select-Object -ExpandProperty AutoAdminLogon",
     )?;
-    if check.stdout.contains("1") {
+    if check.stdout.contains('1') {
         return Ok(false);
     }
 
@@ -337,7 +337,7 @@ fn set_autologin(winrm: &WinRM) -> Result<bool> {
     Ok(true)
 }
 
-/// Reboot the Windows VM and wait for WinRM to come back.
+/// Reboot the Windows VM and wait for `WinRM` to come back.
 pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
     logger.message("rebooting VM for autologin to take effect...");
 
@@ -405,9 +405,7 @@ fn install_cargo_binstall(session: &mut VmSession, winrm: &WinRM) -> Result<()> 
 
 /// Download a file to `$HOME/.testbed/` if not already cached, return the local path.
 fn cache_or_download(filename: &str, url: &str) -> Result<PathBuf> {
-    let cache_dir = dirs::home_dir()
-        .map(|h| h.join(".testbed/windows"))
-        .unwrap_or_else(|| PathBuf::from("/tmp/.testbed/windows"));
+    let cache_dir = dirs::home_dir().map_or_else(|| PathBuf::from("/tmp/.testbed/windows"), |h| h.join(".testbed/windows"));
     std::fs::create_dir_all(&cache_dir).map_err(|e| TestbedError::BootstrapFailed {
         step: format!("create cache dir {cache_dir:?}"),
         message: e.to_string(),
@@ -449,7 +447,7 @@ fn cache_or_download(filename: &str, url: &str) -> Result<PathBuf> {
     Ok(dest)
 }
 
-/// Persist mise's cargo_binstall = true setting.
+/// Persist mise's `cargo_binstall` = true setting.
 fn configure_mise_cargo_binstall(session: &mut VmSession) -> Result<()> {
     crate::ssh::exec_ps_windows(session, CONFIGURE_MISE_CARGO_BINSTALL_PS1)?;
     Ok(())
@@ -457,24 +455,24 @@ fn configure_mise_cargo_binstall(session: &mut VmSession) -> Result<()> {
 
 /// Install VS Build Tools with C++ workload.
 fn install_vs_build_tools(session: &mut VmSession, winrm: &WinRM, progress: ProgressCallback<'_>, force: bool) -> Result<()> {
-    if !force {
+    if force {
+        debug!("--force-vsbuild-install: skipping precheck, running installer");
+    } else {
         let vc_check = ssh_ps(session, winrm, CHECK_VS_BUILD_TOOLS_PS1)?;
         if vc_check.stdout.contains("present") {
             debug!("VS Build Tools already installed — link.exe and SDK verified");
             return Ok(());
         }
-    } else {
-        debug!("--force-vsbuild-install: skipping precheck, running installer");
     }
 
     elevated::run_elevated(winrm, INSTALL_VS_BUILD_TOOLS_PS1, 2000, progress)?;
     Ok(())
 }
 
-/// Install WebView2 Runtime (required by Tauri).
+/// Install `WebView2` Runtime (required by Tauri).
 ///
-/// Includes retry logic with WinRM reconnection — after long-running operations
-/// (like project mount setup), WinRM may become temporarily unavailable.
+/// Includes retry logic with `WinRM` reconnection — after long-running operations
+/// (like project mount setup), `WinRM` may become temporarily unavailable.
 fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM) -> Result<()> {
     // Retry loop: check if already installed
     let mut last_error = None;
@@ -502,14 +500,14 @@ fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM)
         tracing::info!("WinRM unreachable, attempting recovery via SSH...");
 
         // Try to restart WinRM service via SSH PowerShell
-        let restart_script = r#"
+        let restart_script = r"
             try {
                 Restart-Service -Name 'WinRM' -Force -ErrorAction Stop
                 Start-Sleep -Seconds 3
                 $svc = Get-Service -Name 'WinRM'
                 if ($svc.Status -eq 'Running') { 'RESTARTED' } else { 'FAILED' }
             } catch { 'FAILED: ' + $_.Exception.Message }
-        "#;
+        ";
 
         match crate::ssh::exec_ps_windows(session, restart_script) {
             Ok((output, _)) => {
@@ -542,7 +540,7 @@ fn install_webview2(profile: &VmProfile, session: &mut VmSession, winrm: &WinRM)
                         .map(|_| ())
                         .map_err(|e| TestbedError::BootstrapFailed {
                             step: "install WebView2 Runtime".to_string(),
-                            message: format!("All WinRM and SSH attempts failed: {}", e),
+                            message: format!("All WinRM and SSH attempts failed: {e}"),
                         });
                 }
             }
@@ -584,7 +582,7 @@ pub fn debloat_windows(winrm: &WinRM) -> Result<()> {
 /// Set up the project mount for Windows guests.
 ///
 /// Registers a persistent Windows Scheduled Task that auto-mounts virtiofs
-/// on every boot (runs as 'vagrant' in the interactive session so WinFsp
+/// on every boot (runs as 'vagrant' in the interactive session so `WinFsp`
 /// can create a user-visible mount at `C:\Users\vagrant\project`).
 /// Then starts the task immediately and waits for the mount to appear.
 fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]) -> Result<()> {
@@ -675,10 +673,10 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
     Ok(())
 }
 
-/// Install WinFsp — userspace filesystem framework required by virtiofs.exe.
+/// Install `WinFsp` — userspace filesystem framework required by virtiofs.exe.
 ///
-/// virtiofs.exe on Windows uses WinFsp to mount the host filesystem. Without
-/// WinFsp, the VirtIO-FS service fails with "failed to load WinFsp DLL".
+/// virtiofs.exe on Windows uses `WinFsp` to mount the host filesystem. Without
+/// `WinFsp`, the VirtIO-FS service fails with "failed to load `WinFsp` DLL".
 fn install_winfsp(winrm: &WinRM) -> Result<()> {
     // Check if already installed
     let check = winrm.run_ps_quiet(
@@ -712,7 +710,7 @@ fn install_virtio_drivers(session: &mut VmSession, winrm: &WinRM) -> Result<()> 
     Ok(())
 }
 
-/// Configure rustup default-host to x86_64 on ARM64 Windows hosts.
+/// Configure rustup default-host to `x86_64` on ARM64 Windows hosts.
 fn configure_rustup_arm64(session: &mut VmSession) -> Result<()> {
     let (arch, _) = crate::ssh::exec_ps_windows(session, "$env:PROCESSOR_ARCHITECTURE")?;
     if !arch.contains("ARM64") {
@@ -753,7 +751,7 @@ pub fn clean_windows(winrm: &WinRM, deep: bool) -> crate::config::Result<()> {
     Ok(())
 }
 
-/// Aggressive cleanup — CompactOS, hibernation, VSS, event logs.
+/// Aggressive cleanup — `CompactOS`, hibernation, VSS, event logs.
 pub fn aggressive_clean(winrm: &WinRM) -> crate::config::Result<()> {
     for (_name, script) in [
         ("CompactOS", CLEAN_COMPACTOS_PS1),

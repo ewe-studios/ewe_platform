@@ -118,6 +118,7 @@ pub fn list(vm: &mut QemuVm) -> Result<Vec<SnapshotInfo>> {
 }
 
 /// Parse a human-readable size string like "432MB" or "1.2GB" into bytes.
+#[must_use]
 pub fn parse_size_string(s: &str) -> u64 {
     let s = s.to_uppercase();
     if let Some(num) = s.strip_suffix("MB") {

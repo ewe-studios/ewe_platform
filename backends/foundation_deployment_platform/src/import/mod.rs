@@ -46,7 +46,7 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
         if !path.exists() {
             return Err(TestbedError::DownloadFailed {
                 status: 0,
-                url: format!("TESTBED_IMAGE_{} points to non-existent file: {}", env_key, image_path),
+                url: format!("TESTBED_IMAGE_{env_key} points to non-existent file: {image_path}"),
             });
         }
         let meta = std::fs::metadata(&path).map_err(|e| TestbedError::Qcow2Error {
@@ -204,6 +204,7 @@ pub fn download_from_url(url: &str, dest: &Path) -> Result<()> {
 }
 
 /// Check if a profile's image is already cached.
+#[must_use]
 pub fn is_cached(profile: &VmProfile) -> bool {
     // Check env var override first
     let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
@@ -301,8 +302,7 @@ fn is_vagrant_box(path: &Path) -> bool {
     std::process::Command::new("tar")
         .args(["-tf", path.to_str().unwrap()])
         .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
+        .is_ok_and(|o| o.status.success())
 }
 
 /// Extract the qcow2 disk image from a vagrant box archive.
@@ -367,7 +367,7 @@ fn extract_qcow2_from_box(box_path: &Path, dest: &Path) -> Result<()> {
 
 /// Resolve the image URL for a profile.
 ///
-/// Priority: profile.prebaked_url → Vagrant Cloud lookup → error.
+/// Priority: `profile.prebaked_url` → Vagrant Cloud lookup → error.
 fn resolve_image_url(profile: &VmProfile) -> Result<String> {
     if let Some(url) = profile.prebaked_url {
         return Ok(url.to_string());
@@ -432,9 +432,9 @@ fn ensure_macos_from_store_or_fallback(profile: &VmProfile) -> Result<PathBuf> {
     macos::ensure_macos_image(profile.name)
 }
 
-/// Resolve a macOS tarball URL from image stores or prebaked_url.
+/// Resolve a macOS tarball URL from image stores or `prebaked_url`.
 ///
-/// Priority: image stores (testbed.toml) → profile prebaked_url → None (triggers IPSW fallback).
+/// Priority: image stores (testbed.toml) → profile `prebaked_url` → None (triggers IPSW fallback).
 fn resolve_macos_tarball_url(profile: &VmProfile) -> Option<String> {
     // 1. Check configured image stores first (testbed.toml)
     let stores = crate::config::load_image_stores();
@@ -582,7 +582,7 @@ fn libvirt_download_url(metadata: &VagrantBoxMetadata) -> Option<String> {
 
 /// Query Vagrant Cloud for a libvirt download URL.
 ///
-/// Vagrant Cloud API: GET /api/v2/box/{username}/{box_name}
+/// Vagrant Cloud API: GET /`api/v2/box/{username}/{box_name`}
 async fn query_vagrant_cloud(image_name: &'static str) -> Result<Option<String>> {
     let Some(box_name) = vagrant_box_name(image_name) else {
         return Ok(None);
@@ -675,7 +675,7 @@ const MIN_VIRTIO_ISO_SIZE: u64 = 500 * 1_048_576;
 /// Ensure the virtio-win driver ISO is available.
 ///
 /// Checks multiple locations in order:
-/// 1. EweStore local store (primary): `/home/darkvoid/EweStore/Testbed/virtio-win-0.1.262.iso`
+/// 1. `EweStore` local store (primary): `/home/darkvoid/EweStore/Testbed/virtio-win-0.1.262.iso`
 /// 2. Local cache: `~/.cache/foundation_testbed/images/virtio-win.iso`
 /// 3. Download from Fedora Project URL (fallback)
 ///

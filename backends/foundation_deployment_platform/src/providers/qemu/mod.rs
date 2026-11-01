@@ -11,6 +11,7 @@ pub struct QemuProvider {
 }
 
 impl QemuProvider {
+    #[must_use]
     pub fn new() -> Self {
         QemuProvider { display: DisplayMode::Headless }
     }
@@ -65,7 +66,7 @@ impl QemuProvider {
     }
 
     fn is_vm_running(handle: &VmHandle) -> bool {
-        handle.pid().map_or(false, |pid| unsafe { libc::kill(pid, 0) == 0 })
+        handle.pid().is_some_and(|pid| unsafe { libc::kill(pid, 0) == 0 })
     }
 }
 

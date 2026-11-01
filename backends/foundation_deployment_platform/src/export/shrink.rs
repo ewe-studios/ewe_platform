@@ -43,14 +43,14 @@ fn linux_shrink(session: &mut VmSession) -> Result<()> {
 
 fn windows_shrink(session: &mut VmSession) -> Result<()> {
     // Use PowerShell Optimize-Volume for TRIM/Defrag
-    let script = r#"Optimize-Volume -DriveLetter C -Trim -Verbose"#;
+    let script = r"Optimize-Volume -DriveLetter C -Trim -Verbose";
     let (output, _) = crate::ssh::exec_ps_windows(session, script).map_err(|e| TestbedError::Qcow2Error {
         message: format!("Windows trim failed: {e}"),
     })?;
     let _ = output;
 
     // Use sdelete if available, otherwise skip zero-fill
-    let script = r#"if (Get-Command sdelete64 -ErrorAction SilentlyContinue) { sdelete64.exe -accepteula -z C:\ } else { Write-Host 'sdelete not installed, skipping zero-fill' }"#;
+    let script = r"if (Get-Command sdelete64 -ErrorAction SilentlyContinue) { sdelete64.exe -accepteula -z C:\ } else { Write-Host 'sdelete not installed, skipping zero-fill' }";
     let (output, _) = crate::ssh::exec_ps_windows(session, script).map_err(|e| TestbedError::Qcow2Error {
         message: format!("Windows zero-fill failed: {e}"),
     })?;
@@ -76,7 +76,7 @@ pub fn compress_qcow2(src: &Path, dest: &Path) -> Result<()> {
 
     if !status.success() {
         return Err(TestbedError::Qcow2Error {
-            message: format!("qemu-img convert failed (exit {})", status),
+            message: format!("qemu-img convert failed (exit {status})"),
         });
     }
 

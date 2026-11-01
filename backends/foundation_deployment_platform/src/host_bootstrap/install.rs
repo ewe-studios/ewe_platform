@@ -70,13 +70,13 @@ pub fn install_pitchfork() -> Result<()> {
             message: format!("mise install pitchfork: {e}"),
         })?;
 
-    if !status.success() {
+    if status.success() {
+        Ok(())
+    } else {
         // pitchfork may not be available in mise's registry yet
         // Fall back to cargo install
         eprintln!("  pitchfork not available via mise, trying cargo install...");
         install_pitchfork_cargo()
-    } else {
-        Ok(())
     }
 }
 

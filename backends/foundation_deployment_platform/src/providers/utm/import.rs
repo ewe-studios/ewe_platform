@@ -5,7 +5,7 @@
 //! - Downloading from prebaked URLs or Vagrant Cloud UTM registry
 //! - Extracting `.utm` bundles
 //! - Rewriting config.plist Name key to match the profile (per-profile copy)
-//! - Importing the bundle into UTM.app via AppleScript
+//! - Importing the bundle into UTM.app via `AppleScript`
 //! - Verifying the bundle was placed on disk by UTM
 
 use std::path::{Path, PathBuf};
@@ -85,14 +85,12 @@ fn find_existing_bundle_by_name(name: &str) -> Option<PathBuf> {
     for entry in std::fs::read_dir(&cache).ok()? {
         let entry = entry.ok()?;
         let path = entry.path();
-        if path.is_dir() && bundle::is_utm_bundle(&path) {
-            if super::utmctl::get_vm_name(&path)
-                .map(|n| n == name)
-                .unwrap_or(false)
+        if path.is_dir() && bundle::is_utm_bundle(&path)
+            && super::utmctl::get_vm_name(&path)
+                .is_ok_and(|n| n == name)
             {
                 return Some(path);
             }
-        }
     }
     None
 }
@@ -307,7 +305,7 @@ fn find_utm_bundle(dir: &Path) -> Result<PathBuf> {
             message: format!("reading cache entry: {e}"),
         })?;
         let path = entry.path();
-        if path.is_dir() && path.extension().map(|e| e == "utm").unwrap_or(false) {
+        if path.is_dir() && path.extension().is_some_and(|e| e == "utm") {
             return Ok(path);
         }
         if path.is_dir() {

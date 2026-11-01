@@ -124,10 +124,10 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
 }
 
 /// Check if a cached image exists and is valid (non-empty).
+#[must_use]
 pub fn is_cached(dest: &Path) -> bool {
     dest.exists()
         && std::fs::metadata(dest)
-            .map(|m| m.len() > 0)
-            .unwrap_or(false)
+            .is_ok_and(|m| m.len() > 0)
 }
 

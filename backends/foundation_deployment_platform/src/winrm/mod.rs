@@ -1,4 +1,4 @@
-//! WinRM SOAP client for Windows guest VMs.
+//! `WinRM` SOAP client for Windows guest VMs.
 //!
 //! Pure Rust implementation — no Python/pywinrm dependency.
 //! HTTP Basic auth over plain HTTP (localhost only, port 5985).
@@ -14,7 +14,7 @@ use crate::config::{Result, TestbedError, VmProfile};
 
 pub mod elevated;
 
-/// Result of a WinRM command execution.
+/// Result of a `WinRM` command execution.
 #[derive(Debug, Clone)]
 pub struct CmdResult {
     pub stdout: String,
@@ -22,7 +22,7 @@ pub struct CmdResult {
     pub exit_code: i32,
 }
 
-/// WinRM client for a specific host/port/credentials.
+/// `WinRM` client for a specific host/port/credentials.
 pub struct WinRM {
     host: String,
     port: u16,
@@ -31,7 +31,8 @@ pub struct WinRM {
 }
 
 impl WinRM {
-    /// Create a new WinRM client.
+    /// Create a new `WinRM` client.
+    #[must_use]
     pub fn new(host: &str, port: u16, user: &str, pass: &str) -> Self {
         Self {
             host: host.to_string(),
@@ -51,22 +52,23 @@ impl WinRM {
         Ok(Self::new("127.0.0.1", winrm_port, profile.user, profile.pass))
     }
 
-    /// Check if WinRM is reachable and can create a shell (real probe).
+    /// Check if `WinRM` is reachable and can create a shell (real probe).
     ///
-    /// Creates and immediately deletes a WinRM shell to verify the full
+    /// Creates and immediately deletes a `WinRM` shell to verify the full
     /// SOAP pipeline works, not just that the TCP port is open.
+    #[must_use]
     pub fn ping(&self) -> bool {
         self.shell_create().and_then(|shell_id| {
             self.shell_delete(&shell_id, None)
         }).is_ok()
     }
 
-    /// Run a PowerShell script via WinRM shell.
+    /// Run a PowerShell script via `WinRM` shell.
     ///
     /// Encodes script as UTF-16LE + Base64 for `powershell -EncodedCommand`.
     pub fn run_ps(&self, script: &str) -> Result<CmdResult> {
         // Encode script as UTF-16LE + Base64
-        let utf16le: Vec<u8> = script.encode_utf16().flat_map(|c| c.to_le_bytes()).collect();
+        let utf16le: Vec<u8> = script.encode_utf16().flat_map(u16::to_le_bytes).collect();
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
 
         let ps_command = format!("powershell -EncodedCommand {encoded}");
@@ -85,7 +87,7 @@ impl WinRM {
 
     // ── WinRM SOAP protocol ──────────────────────────────────────────────
 
-    /// Create a WinRM shell.
+    /// Create a `WinRM` shell.
     fn shell_create(&self) -> Result<String> {
         let msg_id = uuid_simple();
         let body = format!(
@@ -171,12 +173,12 @@ impl WinRM {
         })
     }
 
-    /// Run a quick WinRM command (sentinel/heartbeat checks).
+    /// Run a quick `WinRM` command (sentinel/heartbeat checks).
     ///
-    /// Uses a 15-second receive timeout to avoid blocking when WinRM is transiently
+    /// Uses a 15-second receive timeout to avoid blocking when `WinRM` is transiently
     /// unavailable during long elevated operations like OpenSSH install.
     pub fn run_ps_quiet(&self, script: &str) -> Result<CmdResult> {
-        let utf16le: Vec<u8> = script.encode_utf16().flat_map(|c| c.to_le_bytes()).collect();
+        let utf16le: Vec<u8> = script.encode_utf16().flat_map(u16::to_le_bytes).collect();
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
         let ps_command = format!("powershell -EncodedCommand {encoded}");
 
@@ -191,7 +193,7 @@ impl WinRM {
         result
     }
 
-    /// Delete a WinRM shell.
+    /// Delete a `WinRM` shell.
     fn shell_delete(&self, shell_id: &str, command_id: Option<&str>) -> Result<()> {
         let msg_id = uuid_simple();
         let command_selector = command_id
@@ -258,6 +260,7 @@ impl WinRM {
     }
 
     /// Base64-encoded Basic auth value.
+    #[must_use]
     pub fn auth_header_value(&self) -> String {
         let creds = format!("{}:{}", self.user, self.pass);
         base64::Engine::encode(&base64::engine::general_purpose::STANDARD, creds.as_bytes())
@@ -266,7 +269,8 @@ impl WinRM {
 
 // ── Response parsing ─────────────────────────────────────────────────────────
 
-/// Extract ShellId from a SOAP response.
+/// Extract `ShellId` from a SOAP response.
+#[must_use]
 pub fn parse_shell_id(response: &str) -> Option<String> {
     // Look for <Selector Name="ShellId">VALUE</Selector>
     let start = response.find(r#"Name="ShellId">"#)?;
@@ -275,7 +279,8 @@ pub fn parse_shell_id(response: &str) -> Option<String> {
     Some(rest[..end].to_string())
 }
 
-/// Extract CommandId from a SOAP response.
+/// Extract `CommandId` from a SOAP response.
+#[must_use]
 pub fn parse_command_id(response: &str) -> Option<String> {
     // Look for <rsp:CommandId>VALUE</rsp:CommandId>
     let start = response.find("<rsp:CommandId>")?;
@@ -284,7 +289,8 @@ pub fn parse_command_id(response: &str) -> Option<String> {
     Some(rest[..end].to_string())
 }
 
-/// Parse a WinRM Receive response for stdout, stderr, completion, and exit code.
+/// Parse a `WinRM` Receive response for stdout, stderr, completion, and exit code.
+#[must_use]
 pub fn parse_receive_response(response: &str) -> (String, String, bool, i32) {
     let mut stdout = String::new();
     let mut stderr = String::new();
@@ -333,9 +339,9 @@ fn extract_streams(response: &str) -> Vec<(String, bool)> {
         // Find the Name attribute to determine if this is stderr
         let block = &response[block_start..];
         let is_stderr = block.starts_with(r#"Name="stderr""#)
-            || block.starts_with(r#"Name='stderr'"#);
+            || block.starts_with(r"Name='stderr'");
 
-        if let Some(data_start) = block.find(">") {
+        if let Some(data_start) = block.find('>') {
             let content = &block[data_start + 1..];
             if let Some(data_end) = content.find("</rsp:Stream>") {
                 results.push((content[..data_end].to_string(), is_stderr));
@@ -348,11 +354,12 @@ fn extract_streams(response: &str) -> Vec<(String, bool)> {
     results
 }
 
-/// Generate a unique message ID for WinRM request correlation.
+/// Generate a unique message ID for `WinRM` request correlation.
 #[allow(dead_code)]
+#[must_use]
 pub fn generate_message_id() -> String {
     let uuid = uuid_simple();
-    format!("uuid:{}", uuid)
+    format!("uuid:{uuid}")
 }
 
 /// Simple UUID generation without external dependency.

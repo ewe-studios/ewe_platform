@@ -46,7 +46,7 @@ pub fn connect(profile: &VmProfile) -> Result<VmSession> {
 
 /// Connect to a VM's SSH server given just a port and user.
 ///
-/// Used by the script runner which doesn't have a full VmProfile.
+/// Used by the script runner which doesn't have a full `VmProfile`.
 pub fn connect_from_port(port: u16, user: &str, os: GuestOs) -> Result<VmSession> {
     connect_raw(port, user, os)
 }
@@ -130,7 +130,7 @@ pub fn exec(session: &mut VmSession, cmd: &str) -> Result<String> {
     Ok(output)
 }
 
-/// Execute a command and return (stdout, exit_code).
+/// Execute a command and return (stdout, `exit_code`).
 ///
 /// Uses `bash -c` (Linux) or `cmd /c` (Windows) for guest command execution.
 pub fn exec_with_exit(session: &mut VmSession, cmd: &str) -> Result<(String, i32)> {
@@ -179,7 +179,7 @@ pub fn exec_ps_windows(session: &mut VmSession, script: &str) -> Result<(String,
     // Encode script as UTF-16LE + Base64 for -EncodedCommand
     let utf16le: Vec<u8> = script
         .encode_utf16()
-        .flat_map(|c| c.to_le_bytes())
+        .flat_map(u16::to_le_bytes)
         .collect();
     let encoded =
         base64::engine::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
@@ -199,8 +199,8 @@ pub fn exec_ps_windows(session: &mut VmSession, script: &str) -> Result<(String,
 
 /// Upload a file to the guest via `scp` CLI with key-based auth.
 ///
-/// Uses the same key files as `authenticate_raw`: ~/.ssh/id_ed25519, ~/.ssh/id_rsa,
-/// ~/.ssh/id_ecdsa, or the Vagrant insecure key.
+/// Uses the same key files as `authenticate_raw`: ~/.`ssh/id_ed25519`, ~/.`ssh/id_rsa`,
+/// ~/.`ssh/id_ecdsa`, or the Vagrant insecure key.
 pub fn upload(session: &mut VmSession, local: &Path, remote: &str) -> Result<()> {
     let key_path = find_ssh_key().ok_or_else(|| TestbedError::SshFailed {
         port: session.port,
@@ -370,6 +370,7 @@ pub fn shell(profile: &VmProfile) -> Result<()> {
 ///
 /// Linux: `bash -c "..."`
 /// Windows: `cmd /c "..."`
+#[must_use]
 pub fn wrap_command(cmd: &str, os: GuestOs) -> String {
     match os {
         GuestOs::Linux | GuestOs::MacOS => wrap_command_bash(cmd),
@@ -378,11 +379,13 @@ pub fn wrap_command(cmd: &str, os: GuestOs) -> String {
 }
 
 /// For Windows guests that haven't been bootstrapped yet, use cmd.
+#[must_use]
 pub fn wrap_command_cmd(cmd: &str) -> String {
     format!("cmd /c {cmd:?}")
 }
 
 /// For Linux guests that haven't been bootstrapped yet, use bash.
+#[must_use]
 pub fn wrap_command_bash(cmd: &str) -> String {
     format!("bash -c {cmd:?}")
 }

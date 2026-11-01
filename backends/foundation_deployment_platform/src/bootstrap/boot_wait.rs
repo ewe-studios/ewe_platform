@@ -1,6 +1,6 @@
 //! Wait for VM services to become available after launch.
 //!
-//! Polls SSH (port 2222 etc.) and WinRM (port 5985) with timeout and
+//! Polls SSH (port 2222 etc.) and `WinRM` (port 5985) with timeout and
 //! progress indication.
 
 use std::thread;
@@ -36,9 +36,9 @@ pub fn wait_for_ssh(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
     })
 }
 
-/// Wait for WinRM to become available on a Windows VM.
+/// Wait for `WinRM` to become available on a Windows VM.
 ///
-/// Polls the forwarded WinRM port with a TCP connect. Returns when
+/// Polls the forwarded `WinRM` port with a TCP connect. Returns when
 /// connection succeeds or timeout is reached.
 pub fn wait_for_winrm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
     let port = profile.winrm_port.ok_or_else(|| {
@@ -63,7 +63,7 @@ pub fn wait_for_winrm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
 
 /// Wait for the appropriate services based on profile OS.
 ///
-/// For Windows: waits for both SSH and WinRM.
+/// For Windows: waits for both SSH and `WinRM`.
 /// For Linux: waits for SSH only.
 pub fn wait_for_vm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
     wait_for_ssh(profile, timeout_secs)?;

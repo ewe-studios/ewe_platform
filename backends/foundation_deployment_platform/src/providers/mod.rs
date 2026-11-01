@@ -51,9 +51,11 @@ pub struct VmHandle {
 
 #[cfg(feature = "vms")]
 impl VmHandle {
+    #[must_use]
     pub fn is_qemu(&self) -> bool {
         self.provider_id == ProviderId::Qemu
     }
+    #[must_use]
     pub fn pid(&self) -> Option<i32> {
         if self.is_qemu() {
             self.internal_id.parse::<i32>().ok()

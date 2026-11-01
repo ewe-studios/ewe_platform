@@ -1,7 +1,7 @@
 //! UTM VM state — delegates to the global state module.
 //!
 //! WHY: Both QEMU and UTM providers share a single state file format
-//! (VmState) with provider_id/provider_internal_id fields.
+//! (`VmState`) with `provider_id/provider_internal_id` fields.
 
 use crate::config::Result;
 use crate::state;
@@ -10,6 +10,7 @@ use crate::state;
 pub use crate::state::{load, delete, list};
 
 /// Check if a UTM VM has state.
+#[must_use]
 pub fn exists(name: &str) -> bool {
     state::exists(name)
 }

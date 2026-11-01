@@ -52,7 +52,7 @@ fn capture_windows(session: &mut VmSession, winrm: Option<&WinRM>, _vm_path: &st
     }
 
     // Fallback: headless (may return blank pixels on some systems)
-    crate::ssh::exec(session, r#"
+    crate::ssh::exec(session, r"
 Add-Type -AssemblyName System.Windows.Forms
 $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
 $bmp = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
@@ -61,7 +61,7 @@ $graphics.CopyFromScreen(0, 0, 0, 0, $bmp.Size)
 $bmp.Save('/tmp/testbed-screenshot.png', [System.Drawing.Imaging.ImageFormat]::Png)
 $graphics.Dispose()
 $bmp.Dispose()
-"#)?;
+")?;
     Ok(())
 }
 

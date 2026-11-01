@@ -16,7 +16,7 @@ const NAME_KEY: &str = "Name";
 /// Plist key path for UTM version.
 const UTM_VERSION_KEY: &str = "UTMVersion";
 
-/// Run PlistBuddy to read a value from a plist.
+/// Run `PlistBuddy` to read a value from a plist.
 fn plist_get(plist_path: &Path, key: &str) -> Result<String> {
     let output = std::process::Command::new("/usr/libexec/PlistBuddy")
         .args(["-c", &format!("Print :{key}"), plist_path.to_str().unwrap()])
@@ -37,7 +37,7 @@ fn plist_get(plist_path: &Path, key: &str) -> Result<String> {
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
-/// Run PlistBuddy to set a value in a plist.
+/// Run `PlistBuddy` to set a value in a plist.
 fn plist_set(plist_path: &Path, key: &str, value: &str) -> Result<()> {
     let output = std::process::Command::new("/usr/libexec/PlistBuddy")
         .args([
@@ -81,11 +81,13 @@ pub fn get_utm_version(bundle_path: &Path) -> Result<String> {
 }
 
 /// Get the path to config.plist inside a .utm bundle.
+#[must_use]
 pub fn config_plist_path(bundle_path: &Path) -> PathBuf {
     bundle_path.join("config.plist")
 }
 
 /// Check if a path looks like a valid .utm bundle.
+#[must_use]
 pub fn is_utm_bundle(path: &Path) -> bool {
     path.is_dir()
         && path.extension().and_then(|e| e.to_str()) == Some("utm")
@@ -104,9 +106,10 @@ pub fn set_memory_mb(bundle_path: &Path, mb: u32) -> Result<()> {
     plist_set(&plist, "MemorySize", &mb.to_string())
 }
 
-/// Quote a string value for PlistBuddy Set command.
+/// Quote a string value for `PlistBuddy` Set command.
 ///
-/// PlistBuddy expects string values in the format `"value"` (with quotes).
+/// `PlistBuddy` expects string values in the format `"value"` (with quotes).
+#[must_use]
 pub fn quoted_plist_string(s: &str) -> String {
     let escaped = s.replace('\\', "\\\\").replace('"', "\\\"");
     format!("\"{escaped}\"")
@@ -114,7 +117,7 @@ pub fn quoted_plist_string(s: &str) -> String {
 
 /// Apply profile resource settings to a .utm bundle's config.plist.
 ///
-/// Sets VM name, CPU cores, and memory based on the VmProfile.
+/// Sets VM name, CPU cores, and memory based on the `VmProfile`.
 pub fn apply_profile(bundle_path: &Path, profile: &VmProfile) -> Result<()> {
     set_vm_name(bundle_path, profile.name)?;
 

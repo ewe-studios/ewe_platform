@@ -29,7 +29,7 @@ fn test_build_qemu_args_headless() {
     let disk = std::path::PathBuf::from("/tmp/test.qcow2");
     let display_args = display::DisplayBackend::Vnc.qemu_args(0);
 
-    let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
+    let args = build_qemu_args(profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
 
     // KVM acceleration is used exactly when the host exposes a usable /dev/kvm.
     assert_eq!(
@@ -56,7 +56,7 @@ fn test_build_qemu_args_headful() {
     let disk = std::path::PathBuf::from("/tmp/test.qcow2");
     let display_args = display::DisplayBackend::Vnc.qemu_args(2);
 
-    let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
+    let args = build_qemu_args(profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
 
     assert!(args.iter().any(|a| a.contains("vnc=:2")));
     assert!(args.iter().any(|a| a.contains("usb-tablet")));
@@ -76,7 +76,7 @@ fn test_build_qemu_args_with_mount() {
     let display_args = display::DisplayBackend::Vnc.qemu_args(2);
     let project_mount = std::path::PathBuf::from("/home/user/project");
 
-    let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, Some(&project_mount), false, None, None);
+    let args = build_qemu_args(profile, &disk, &ports, &monitor, display_args, false, Some(&project_mount), false, None, None);
 
     assert!(args.iter().any(|a| a.contains("-virtfs")));
     assert!(args.iter().any(|a| a.contains("path=/home/user/project")));
@@ -97,7 +97,7 @@ fn test_build_qemu_args_with_cdrom() {
     let display_args = display::DisplayBackend::Vnc.qemu_args(0);
     let cdrom = std::path::PathBuf::from("/tmp/virtio-win.iso");
 
-    let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, Some(&cdrom), None);
+    let args = build_qemu_args(profile, &disk, &ports, &monitor, display_args, false, None, false, Some(&cdrom), None);
 
     assert!(args.iter().any(|a| a.contains("media=cdrom")));
     assert!(args.iter().any(|a| a.contains("/tmp/virtio-win.iso")));
@@ -108,7 +108,7 @@ fn test_all_profiles_parseable() {
     let profiles = list_profiles();
     assert!(!profiles.is_empty());
     for p in profiles {
-        assert!(!p.name.is_empty());
+        assert_ne!(p.name, "");
         assert!(p.memory_mib > 0);
         assert!(p.cpu_cores > 0);
         assert!(p.disk_gb > 0);

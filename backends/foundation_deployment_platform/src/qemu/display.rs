@@ -16,6 +16,7 @@ pub enum DisplayBackend {
 
 impl DisplayBackend {
     /// QEMU `-display` arguments for this backend.
+    #[must_use]
     pub fn qemu_args(&self, vnc_offset: u32) -> Vec<String> {
         match self {
             DisplayBackend::Spice => vec!["-display".to_string(), "spice-app".to_string()],
@@ -32,6 +33,7 @@ impl DisplayBackend {
 ///
 /// Runs `qemu-system-x86_64 -display help` and checks which backends
 /// are compiled in. Returns Spice if available, then Gtk, then Vnc.
+#[must_use]
 pub fn detect_backend() -> DisplayBackend {
     // Check spice first (best experience)
     if has_display_backend("spice-app") {
@@ -60,6 +62,7 @@ fn has_display_backend(name: &str) -> bool {
 
 /// Find an available viewer for the given backend.
 /// Returns (command, args) or None if no viewer found.
+#[must_use]
 pub fn find_viewer(backend: DisplayBackend, vnc_port: u16) -> Option<(&'static str, Vec<String>)> {
     match backend {
         DisplayBackend::Spice => {
@@ -92,6 +95,7 @@ pub fn find_viewer(backend: DisplayBackend, vnc_port: u16) -> Option<(&'static s
 
 /// Launch a viewer for headful mode (non-blocking).
 /// Returns the viewer name that was launched, or None if none available.
+#[must_use]
 pub fn launch_viewer(backend: DisplayBackend, vnc_port: u16) -> Option<String> {
     if backend != DisplayBackend::Vnc {
         // Spice/Gtk open their own windows natively
@@ -103,12 +107,13 @@ pub fn launch_viewer(backend: DisplayBackend, vnc_port: u16) -> Option<String> {
 }
 
 /// Get a human-readable description of the display mode and connection info.
+#[must_use]
 pub fn connection_info(mode: DisplayMode, backend: DisplayBackend, vnc_port: u16) -> String {
     match mode {
         DisplayMode::Headless => {
             match backend {
                 DisplayBackend::Vnc => format!("VNC server on 127.0.0.1:{vnc_port}"),
-                _ => format!("{:?} display on 127.0.0.1:{vnc_port}", backend),
+                _ => format!("{backend:?} display on 127.0.0.1:{vnc_port}"),
             }
         }
         DisplayMode::Headful => {
@@ -117,8 +122,7 @@ pub fn connection_info(mode: DisplayMode, backend: DisplayBackend, vnc_port: u16
                 DisplayBackend::Gtk => "GTK window will open automatically".to_string(),
                 DisplayBackend::Vnc => {
                     let viewer = find_viewer(backend, vnc_port)
-                        .map(|(name, _)| name)
-                        .unwrap_or("none");
+                        .map_or("none", |(name, _)| name);
                     format!("Launching {viewer} for VNC on 127.0.0.1:{vnc_port}")
                 }
             }
