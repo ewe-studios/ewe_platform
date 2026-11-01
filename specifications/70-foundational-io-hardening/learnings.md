@@ -233,13 +233,23 @@ _What an agent learned that the next agent needs. Newest first._
   `ModelProviderErrors`. The same root cause was hidden in the pre-existing E1
   test; it is a correctness bug, not a test-only one.
 
-- 2026-11-01 (feature 16, foundation_ai): `tests/agentic/mod.rs` is both the
+- 2026-11-01 (feature 16, foundation_ai): `tests/agentic/mod.rs` was both the
   `agentic_tests` crate root and a `mod agentic` submodule of `tests/mod.rs`
   (the `foundation_ai_tests` crate). A crate-level attribute such as
-  `#![recursion_limit = "256"]` therefore fixes one crate and adds an
-  `unused_attributes` warning in the other. The `recursion_depth_exceeding_limit`
-  warning in `session_mock_tests.rs` stays recorded in the backlog until the two
-  roots are split.
+  `#![recursion_limit = "256"]` therefore fixed one crate and added an
+  `unused_attributes` warning in the other.
+
+- 2026-11-02 (feature 16, foundation_ai): the `recursion_depth_exceeding_limit`
+  warning in `session_mock_tests.rs` is fixed by splitting the two crate roots.
+  `tests/agentic_tests.rs` is now the `agentic_tests` crate root. It holds
+  `#![recursion_limit = "256"]` and loads the shared module tree with
+  `#[path = "agentic/mod.rs"] mod agentic;`, so the existing module files keep
+  their paths. `tests/mod.rs` (the `foundation_ai_tests` crate root, not
+  shared) gains the same inner attribute. `tests/agentic/mod.rs` stays the
+  shared `mod agentic` list with no inner attribute, so neither crate warns
+  `unused_attributes`. The Cargo `[[test]] agentic_tests` path now points at
+  `tests/agentic_tests.rs`. Both test crates check without the warning and the
+  329 tests pass.
 
 - 2026-11-01 (feature 16, foundation_ai): the dev profile uses the Cranelift
   codegen backend (`CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift` via mise), and

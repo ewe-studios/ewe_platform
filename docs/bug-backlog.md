@@ -137,16 +137,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   arguments"). The test passes in isolation. Fix: make the mock SSE response
   immune to the reconnect (end the stream cleanly, or set a retry/close policy
   so a reconnect does not replay deltas).
-- **The `agentic_tests` target warns `recursion_depth_exceeding_limit`.**
-  The `TursoStorage` test in `tests/agentic/session_mock_tests.rs` drives a deep
-  `Send` auto-trait resolution inside an `async_trait` future, so the compiler
-  warns it will become a hard error. The usual fix, a `#![recursion_limit]`
-  attribute, cannot go in `tests/agentic/mod.rs` cleanly: that file is both the
-  `agentic_tests` crate root and a `mod agentic` submodule of `tests/mod.rs`
-  (the `foundation_ai_tests` crate), so the attribute fixes one crate and adds
-  an `unused_attributes` warning in the other. Fix: split the two crate roots
-  into separate attribute files, or add a manual `Send` impl for the
-  intermediate type.
 - **Four dead helpers in the candle test target.**
   `tests/candle/huggingface_candle_provider.rs` defines `init_valtron`,
   `get_token`, `get_project_root` and `get_artefacts_dir`; none is used, so

@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §10 `recursion_depth_exceeding_limit`
+  (foundation_ai) fixed on `fix/io-20-vfs-process-ipc`. The `agentic_tests`
+  and `foundation_ai_tests` test crates both warned on the deep `Send`
+  auto-trait resolution in `tests/agentic/session_mock_tests.rs`
+  (`build_and_run_a_turn_on_sql_backed_stores`). The two crate roots are now
+  split: `tests/agentic_tests.rs` is the `agentic_tests` crate root with
+  `#![recursion_limit = "256"]` and loads the shared module tree via
+  `#[path = "agentic/mod.rs"] mod agentic;`; `tests/mod.rs` (the unique
+  `foundation_ai_tests` root) gains the same inner attribute.
+  `tests/agentic/mod.rs` keeps no inner attribute, so neither crate warns
+  `unused_attributes`. The Cargo `[[test]] agentic_tests` path now points at
+  the new root. Both crates check clean of the warning, and the `agentic_tests`
+  suite still passes 329/329. The backlog entry is removed.
+
 - 2026-11-02: bug-backlog §10 candle-gemm (foundation_ai) fixed on
   `fix/io-20-vfs-process-ipc`. Seventeen candle tests panicked in `gemm-f32`
   on the Linux CI. gemm-common picked the `fma` kernel on `fma` alone, but

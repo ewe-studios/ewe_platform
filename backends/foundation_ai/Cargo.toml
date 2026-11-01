@@ -114,7 +114,7 @@ required-features = ["llamacpp", "candle", "testing"]
 
 [[test]]
 name = "agentic_tests"
-path = "tests/agentic/mod.rs"
+path = "tests/agentic_tests.rs"
 # `testing` too, so the target is all-or-nothing. It used to be gated per-module
 # inside mod.rs, which meant a run without `testing` reported "188 passed" while
 # silently skipping 44 — a suite that looks green while omitting the half that
