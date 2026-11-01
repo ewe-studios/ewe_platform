@@ -19,11 +19,7 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
-- **`thiserror` is unused** (Cargo.toml line 42). Nothing in the crate uses it
-  (netio uses `derive_more` for errors). The Linux CI build flags it as an
-  unused dependency. Fix: remove it. (`rustls-pemfile` is also flagged unused,
-  but that is a false positive: it is optional and used by the `quic` and
-  `ssl-rustls` features in `quic/quinn_driver.rs`.)
+(no open entries)
 
 ## 3. foundation_http
 

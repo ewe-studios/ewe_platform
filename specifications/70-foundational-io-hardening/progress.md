@@ -2,6 +2,14 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §2 (foundation_netio) fixed on
+  `fix/io-20-vfs-process-ipc`. The unused `thiserror` dependency is removed from
+  `foundation_netio/Cargo.toml`. Nothing in the crate uses it; netio builds
+  errors with `derive_more`. The two remaining manifest warnings (`flate2`,
+  `rustls-pemfile`) are false positives: both are optional and used under their
+  features. The default test suite passes (1270 tests), clippy is clean, and
+  the wasm-fetch check passes. The backlog entry is removed.
+
 - 2026-11-02: bug-backlog §12 (foundation_auth) fixed on
   `fix/io-20-vfs-process-ipc`. Two entries are cleared. First, the dead
   `WebAuthnService.config` field is dropped from both the `server-native` and

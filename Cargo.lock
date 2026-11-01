@@ -5284,7 +5284,6 @@ dependencies = [
  "sha1",
  "smol",
  "socket2 0.6.5",
- "thiserror 2.0.19",
  "toml 0.9.6",
  "toml_datetime 0.7.1",
  "tracing",
