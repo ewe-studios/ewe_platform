@@ -56,4 +56,4 @@ cargo check --workspace --all-targets --profile dev
 - [x] `cargo check --workspace --all-targets` passes on macOS.
 - [x] The four portable reactor tests pass on macOS. The Linux-only one runs in CI.
 - [x] The backlog entry is deleted.
-- [ ] CI green (the `foundation_nativeapis` Linux gate is queued).
+- [x] CI green (the `foundation_nativeapis` Linux gate passed).
