@@ -1,6 +1,6 @@
 ---
 feature: "foundation_cronjobs runs jobs on their cron expression; foundation_cedar loads policies in one query and builds warning-free"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: ["01-valtron-parking"]
 branch: "fix/io-21-cronjobs-cedar"
@@ -63,8 +63,22 @@ python3 scripts/ci/ci.py run foundation_cedar --profile dev
 cargo check --workspace --all-targets --profile dev
 ```
 
+## Finalization notes
+
+- Rule 11 (side effects injected, never global): the first draft read the clock
+  from `Ctx` and silently fell back to the real `UtcClock` when the entry was
+  absent. Fixed by constructor injection — `SharedCronClock` is threaded through
+  `JobRunTask::new` / `CronJob::into_run_task` / `CronScheduler::into_run_tasks`
+  and stored in `JobRunState`; `job_transition` reads `now` from it. No `Ctx`
+  clock read remains.
+- Rule 12 (version bump on new public API): `foundation_cronjobs` gained
+  `JobRunTask`, `into_run_task`/`into_run_tasks`; `foundation_cedar` gained
+  `PolicyStore::load_all`. Both bumped `0.0.3` to `0.0.4` (no workspace
+  consumers).
+
 ## Done when
 
-- [ ] T0 table; every open entry fixed; backlog entries deleted.
-- [ ] Scheduler tests use a simulated clock and are deterministic (20 runs).
+- [x] T0 table; every open entry fixed; backlog entries deleted (§14 removed; §15
+      feature-21 entries removed, the pre-existing clippy `pedantic` entry kept).
+- [x] Scheduler tests use a simulated clock and are deterministic (20 runs).
 - [ ] Crate docs describe only what exists. CI green.

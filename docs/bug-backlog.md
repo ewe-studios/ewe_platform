@@ -391,32 +391,25 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 - **ptrace warnings.** `src/native/vfs/ptrace/` has unused imports, unused
   constants and an unreachable statement after `execvp`. Fix: remove them.
 
-## 14. foundation_cronjobs
-
-- **`CronJob::next_fire` ignores the cron expression.** It always returns five
-  minutes from now (`src/scheduler.rs`, marked TODO), so every job runs on the
-  same fixed interval. Fix: parse `cron_expr` with a cron crate (`cron` or
-  `saffron`) and compute the real next fire time; reject an invalid
-  expression at `register`.
-- **`CronScheduler` never runs a job.** The crate docs (`src/lib.rs`)
-  describe tasks parked on `Delayed` until each fire time, execution, result
-  recording and missed-job catch-up (`MissedJobPolicy`); none of it exists —
-  the scheduler only registers jobs and saves/loads their state. Fix:
-  implement the run loop (one valtron task per job) and the missed-job
-  policy, or cut the docs down to what exists.
-
 ## 15. foundation_cedar
 
-- **`SqlPolicyStore` reads its row once per field.** `load_from_store` calls
-  `load_schema`, `load_policies` and `load_entities`, and each runs the same
-  `SELECT` (`src/storage/sql_store.rs`). Fix: a `load_all` on `PolicyStore`
-  (default: the three calls) that the SQL store overrides with one query.
-- **`derive_more` is an unused dependency** (`cargo` warns). Fix: drop it
-  from `Cargo.toml`.
-- **`unreachable call` warnings in `src/core/request.rs`.** The three
-  `EntityId::from_str(id).map_err(..)` calls map an error type that can't
-  occur (`Infallible`), so the compiler warns on each `map_err`. Fix: drop the
-  `map_err` (or use `EntityId::new`) so the build is warning-free.
+- **Pre-existing clippy `pedantic` warnings (24).** `cargo clippy --no-deps`
+  still reports 24 warnings in this crate. The library has 18: nine
+  `missing_errors_doc` (`engine.rs`, `entity_provider.rs`, `policy_set.rs`,
+  `request.rs`), four `must_use` (`engine.rs`, `request.rs`), two
+  `redundant_closure_for_method_calls` (`engine.rs`, `response.rs`), two
+  `manual Debug does not include all fields` (`file_store.rs`, `traits.rs`)
+  and one `struct_field_names` (`file_store.rs`). The test targets have six
+  more: three `unnecessary hashes around raw string literal` and three
+  `assert!`-on-non-empty (`tests/engine.rs`, `tests/file_store.rs`,
+  `tests/resolver.rs`, `tests/traits.rs`). None are on feature-21 code.
+  Fix: add the missing doc sections, drop the redundant `#[must_use]`, complete
+  the Debug impls, and clean the test helpers, then delete this entry.
+- **Future-incompat `recursion_depth_exceeding_limit` in the `sql_store` test
+  (`--features db`).** The `turso::Builder::build()` async fn drives deep `Send`
+  auto-trait resolution, so the compiler warns it will become a hard error.
+  Fix: add `#![recursion_limit = "256"]` to the `sql_store` test target, or a
+  manual `Send` impl for the intermediate types.
 
 ## 16. Workspace / process
 

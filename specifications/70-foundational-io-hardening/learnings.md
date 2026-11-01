@@ -2,6 +2,43 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (feature 21, foundation_cronjobs): the `cron` crate was rejected
+  and `saffron` 0.1 was chosen. `saffron` parses a five-field Quartz expression
+  (minute, hour, day of month, month, day of week). That matches the existing
+  `cron_expr` values such as `* * * * *`. The `cron` crate needs six or seven
+  fields with seconds first, so it would break every saved expression. In
+  `saffron`, the day of week is Quartz too: 1 is Sunday and 7 is Saturday. So
+  `1-5` is Sunday to Thursday, not Monday to Friday. Monday to Friday is `2-6`.
+
+- 2026-11-01 (feature 21, foundation_cronjobs): cron matching needs wall-clock
+  calendar fields (weekday, month, leap day). Valtron's `Clock` is monotonic
+  only and has no calendar. The crate adds a `CronClock` trait, a `UtcClock`
+  default and a `SharedCronClock`. The clock is injected by constructor
+  (threaded through `JobRunTask::new` / `into_run_task` / `into_run_tasks` and
+  stored in `JobRunState`), never read from `Ctx` — a missing clock is a caller
+  error, not a silent `UtcClock` fallback (rule 11). The `#[task]` macro
+  generates a braced struct that hides its state, so the crate writes a manual
+  `AsyncStateTask` wrapper (`JobRunTask`). That wrapper keeps its state in an
+  `Arc<Mutex<JobRunState>>` and exposes `snapshot()`.
+  `saffron::Cron::next_after` returns the next fire strictly after the input,
+  at whole minutes.
+
+- 2026-11-01 (feature 21, foundation_cronjobs): `TursoStorage::new` inside an
+  async test triggers a `recursion_depth_exceeding_limit` warning from the
+  `async_trait` Send-check. The fix used in `foundation_db/src/lib.rs`
+  (`#![recursion_limit = "256"]`) is also needed at the top of the test crate
+  (`tests/scheduler_tests.rs`), because each test target has its own recursion
+  limit.
+
+- 2026-11-01 (feature 21, foundation_cedar): `EntityId::new(id)` is infallible
+  in `cedar-policy` 4.11. The old `EntityId::from_str(id).map_err(..)` mapped
+  an error type that cannot occur (`Infallible`), which caused the rustc
+  `unreachable call` warnings; `new` removes them. A `PolicyBundle` struct plus
+  a `PolicyStore::load_all` default method lets `SqlPolicyStore` read its row
+  once (four columns in one `SELECT`) instead of once per field. Clippy still
+  reports 24 pre-existing `pedantic` warnings in untouched cedar library and
+  test files; they are recorded in `docs/bug-backlog.md` §15.
+
 - 2026-11-01 (bug-backlog §13): macOS kqueue reports `EVFILT_READ`
   level-triggered for pipes despite `EV_CLEAR`. A C probe confirmed it: byte
   counts 5, 3 and 9 all fire, and re-registering with fresh `EV_CLEAR` does not

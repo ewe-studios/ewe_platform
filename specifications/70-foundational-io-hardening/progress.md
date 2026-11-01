@@ -2,6 +2,22 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: feature 21 done on `fix/io-35-turso-async-trait-overflow` (working
+  tree, not committed). `foundation_cronjobs` parses each `cron_expr` with
+  `saffron` (five-field Quartz), rejects an invalid expression at `register`
+  with a typed error, computes the real next fire, and runs one valtron task per
+  job: park on `TaskStatus::Delayed` until the next fire, run the job, record
+  the result, apply the missed-job policy (catch up once, skip, or run all). The
+  wall clock is a `SharedCronClock` injected by constructor (rule 11); the crate
+  bumped to 0.0.4. `foundation_cedar` gained `PolicyStore::load_all` plus
+  `PolicyBundle` so `SqlPolicyStore` reads its row in one query, dropped the
+  unused `derive_more`, and replaced the infallible
+  `EntityId::from_str(..).map_err(..)` with `EntityId::new(..)`; bumped to
+  0.0.4. Verification: `cargo check` clean for both crates, clippy adds no new
+  warnings (24 pre-existing cedar `pedantic` warnings recorded in backlog §15),
+  cronjobs 13 tests green, cedar 17 (default) / 25 (`db`) tests green, timing
+  tests stable over 20 runs. PR: see the PR.
+
 - 2026-11-01: bug-backlog §13 #1 (kqueue edge-triggered read) fixed on
   `fix/io-35-turso-async-trait-overflow`. The macOS kqueue selector now records the
   byte count per fd and delivers a readable event only when the count grows; a

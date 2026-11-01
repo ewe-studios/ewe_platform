@@ -37,7 +37,7 @@ impl CedarRequestBuilder {
     pub fn principal_str(mut self, type_name: &str, id: &str) -> Result<Self, CedarError> {
         let tn = EntityTypeName::from_str(type_name)
             .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
-        let eid = EntityId::from_str(id).map_err(|e| CedarError::RequestBuild(e.to_string()))?;
+        let eid = EntityId::new(id);
         self.principal = Some(EntityUid::from_type_name_and_id(tn, eid));
         Ok(self)
     }
@@ -52,7 +52,7 @@ impl CedarRequestBuilder {
     pub fn action_str(mut self, type_name: &str, id: &str) -> Result<Self, CedarError> {
         let tn = EntityTypeName::from_str(type_name)
             .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
-        let eid = EntityId::from_str(id).map_err(|e| CedarError::RequestBuild(e.to_string()))?;
+        let eid = EntityId::new(id);
         self.action = Some(EntityUid::from_type_name_and_id(tn, eid));
         Ok(self)
     }
@@ -67,7 +67,7 @@ impl CedarRequestBuilder {
     pub fn resource_str(mut self, type_name: &str, id: &str) -> Result<Self, CedarError> {
         let tn = EntityTypeName::from_str(type_name)
             .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
-        let eid = EntityId::from_str(id).map_err(|e| CedarError::RequestBuild(e.to_string()))?;
+        let eid = EntityId::new(id);
         self.resource = Some(EntityUid::from_type_name_and_id(tn, eid));
         Ok(self)
     }
