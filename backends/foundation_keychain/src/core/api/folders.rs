@@ -13,9 +13,9 @@
 //! responsible for auth extraction, JSON (de)serialization, and notifications.
 
 use chrono::Utc;
-use uuid::Uuid;
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::models::folder::{Folder, FolderCreateRequest, FolderUpdateRequest};
 use crate::core::store::folders as store;
@@ -63,7 +63,7 @@ pub async fn create(
     let name = validated_name(&req.name)?;
     let now = Utc::now();
     let row = FolderRow {
-        uuid: Uuid::new_v4().to_string(),
+        uuid: crypto::new_uuid_v4()?.to_string(),
         user_uuid: user_uuid.to_string(),
         name,
         created_at: now,

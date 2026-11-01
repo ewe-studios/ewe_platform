@@ -22,7 +22,6 @@ base32 = "0.5"
 # flow to verify raw master passwords sent by `bw login`.
 pbkdf2 = "0.12"
 sha2 = "0.10"
-uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 rmp-serde = "1"
 tracing = { workspace = true }
@@ -31,6 +30,7 @@ thiserror = { workspace = true }
 # (SSH key provisioning deps are native-only — see the native target section below.)
 
 # Foundation deps
+foundation_compact = { path = "../foundation_compact", version = "0.2.2" }
 foundation_core = { path = "../foundation_core", version = "0.0.7" }
 foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false }
 # Cross-platform HTTP client (`HttpClientBuilder`) for the icon proxy etc.
@@ -45,9 +45,6 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.4", default-feat
 
 # WASM — Cloudflare Workers
 [target.'cfg(target_family = "wasm")'.dependencies]
-# On wasm32, uuid needs a randomness source: the `js` feature uses WebCrypto
-# `getRandomValues` (a no-op on native, where `v4` uses the OS RNG).
-uuid = { version = "1", features = ["v4", "js"] }
 # `workers-rs` enables `From<worker::D1Database>` so the Workers `fetch` handler can
 # build a D1-backed StorageProvider from the env binding.
 foundation_db = { path = "../foundation_db", version = "0.0.4", default-features = false, features = ["wasm-bindgen-storage", "workers-rs"] }

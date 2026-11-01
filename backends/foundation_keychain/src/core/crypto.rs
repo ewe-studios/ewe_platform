@@ -14,8 +14,10 @@
 //! derivation is recomputed and compared in constant time.
 
 use foundation_auth::shared::password_hash::pbkdf2_derive;
+use foundation_compact::entropy;
+use foundation_compact::uuid::{self, Uuid};
 
-use crate::core::error::AppResult;
+use crate::core::error::{AppError, AppResult};
 
 /// Derived-key length (bytes) for the server-side password verifier.
 pub const KEY_LEN: u32 = 32;
@@ -74,10 +76,34 @@ pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     diff == 0
 }
 
-/// A fresh 16-byte random salt (UUID v4 bytes — cross-platform `getrandom`).
-#[must_use]
-pub fn random_salt() -> Vec<u8> {
-    uuid::Uuid::new_v4().as_bytes().to_vec()
+/// `len` random bytes from the platform entropy source (rule 11).
+///
+/// # Errors
+///
+/// Returns `AppError::Internal` if the platform entropy source is unavailable.
+pub fn random_bytes(len: usize) -> AppResult<Vec<u8>> {
+    let mut bytes = vec![0u8; len];
+    entropy::fill(&mut bytes)
+        .map_err(|e| AppError::Internal(format!("entropy source unavailable: {e}")))?;
+    Ok(bytes)
+}
+
+/// A fresh random version-4 UUID from the `foundation_compact` entropy seam.
+///
+/// # Errors
+///
+/// Returns `AppError::Internal` if the platform entropy source is unavailable.
+pub fn new_uuid_v4() -> AppResult<Uuid> {
+    uuid::new_v4().map_err(|e| AppError::Internal(format!("entropy source unavailable: {e}")))
+}
+
+/// A fresh 16-byte random salt from the platform entropy source.
+///
+/// # Errors
+///
+/// Returns `AppError::Internal` if the platform entropy source is unavailable.
+pub fn random_salt() -> AppResult<Vec<u8>> {
+    random_bytes(16)
 }
 
 /// Compute the Bitwarden client-side master password hash from a raw password.
@@ -111,19 +137,17 @@ pub async fn derive_client_hash(
     Ok(Some(base64::engine::general_purpose::STANDARD.encode(&lh)))
 }
 
-/// A fresh 32-byte random key (base64-encoded string).
+/// A fresh 32-byte random key (base64-encoded string) from the platform
+/// entropy source.
 ///
 /// Used as a placeholder `akey` when no client-provided key is sent at
 /// registration — ensures `Key` in the login response is always non-null
 /// so the `bw` CLI doesn't refuse to proceed.
-#[must_use]
-pub fn random_key() -> String {
+///
+/// # Errors
+///
+/// Returns `AppError::Internal` if the platform entropy source is unavailable.
+pub fn random_key() -> AppResult<String> {
     use base64::Engine;
-    // Two UUID v4 values give us 32 random bytes.
-    let a = uuid::Uuid::new_v4();
-    let b = uuid::Uuid::new_v4();
-    let mut bytes = [0u8; 32];
-    bytes[..16].copy_from_slice(a.as_bytes());
-    bytes[16..].copy_from_slice(b.as_bytes());
-    base64::engine::general_purpose::STANDARD.encode(bytes)
+    Ok(base64::engine::general_purpose::STANDARD.encode(random_bytes(32)?))
 }

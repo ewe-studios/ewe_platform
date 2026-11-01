@@ -8,13 +8,13 @@ use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use foundation_auth::shared::password_hash::{
     argon2id_derive, argon2id_verify, ARGON2ID_ITERATIONS, ARGON2ID_MEMORY_KB, ARGON2ID_PARALLELISM,
 };
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::provisioning::store::{self, AppRow};
 
@@ -46,12 +46,6 @@ pub struct AppResponse {
     pub created_at: String,
 }
 
-fn random_secret_value() -> String {
-    let mut bytes = Uuid::new_v4().as_bytes().to_vec();
-    bytes.extend_from_slice(Uuid::new_v4().as_bytes());
-    STANDARD.encode(&bytes)
-}
-
 fn hash_secret(secret: &str, salt: &[u8]) -> String {
     let key = argon2id_derive(
         secret.as_bytes(),
@@ -72,10 +66,10 @@ pub async fn register(
     if req.name.trim().is_empty() {
         return Err(AppError::BadRequest("app name is required".into()));
     }
-    let uuid = Uuid::new_v4().to_string();
+    let uuid = crypto::new_uuid_v4()?.to_string();
     // Secret embeds the uuid so it resolves the app on later calls.
-    let secret = format!("{uuid}.{}", random_secret_value());
-    let salt = Uuid::new_v4().as_bytes().to_vec();
+    let secret = format!("{uuid}.{}", crypto::random_key()?);
+    let salt = crypto::random_salt()?;
     let now = Utc::now();
 
     let row = AppRow {

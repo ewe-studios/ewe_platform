@@ -17,7 +17,6 @@
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use chrono::Utc;
-use uuid::Uuid;
 
 use crate::core::context::KeychainContext;
 use crate::core::crypto;
@@ -104,7 +103,7 @@ pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<
         return Err(AppError::Conflict("email already registered".into()));
     }
 
-    let salt = crypto::random_salt();
+    let salt = crypto::random_salt()?;
     let hash = crypto::derive_password_hash(
         req.master_password_hash.as_bytes(),
         &salt,
@@ -115,13 +114,13 @@ pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<
     let now = Utc::now();
     let kdf = req.kdf.unwrap_or(KdfType::Pbkdf2Sha256);
     let row = UserRow {
-        uuid: Uuid::new_v4().to_string(),
+        uuid: crypto::new_uuid_v4()?.to_string(),
         email,
         name: req.name,
         password_hash: STANDARD.encode(&hash),
         salt: STANDARD.encode(&salt),
         password_iterations: i64::from(crypto::SERVER_ITERATIONS),
-        security_stamp: Uuid::new_v4().to_string(),
+        security_stamp: crypto::new_uuid_v4()?.to_string(),
         akey: req.key,
         client_kdf_type: kdf as i64,
         client_kdf_iter: i64::from(req.kdf_iterations.unwrap_or(DEFAULT_KDF_ITERATIONS)),

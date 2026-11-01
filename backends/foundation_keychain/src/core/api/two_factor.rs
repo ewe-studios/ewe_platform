@@ -16,11 +16,11 @@
 use base32::Alphabet;
 use chrono::Utc;
 use serde::Serialize;
-use uuid::Uuid;
 
 use foundation_auth::shared::two_factor::TOTPSecret;
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::store::two_factor as store;
 use crate::core::store::two_factor::TwoFactorRow;
@@ -47,11 +47,8 @@ pub struct EnableAuthenticatorResponse {
     pub recovery_code: String,
 }
 
-fn new_secret_base32() -> String {
-    // 256-bit random secret from two UUID v4s (cross-platform getrandom).
-    let mut bytes = Uuid::new_v4().as_bytes().to_vec();
-    bytes.extend_from_slice(Uuid::new_v4().as_bytes());
-    base32::encode(ALPHABET, &bytes)
+fn new_secret_base32() -> AppResult<String> {
+    Ok(base32::encode(ALPHABET, &crypto::random_bytes(32)?))
 }
 
 fn totp_from_base32(secret: &str) -> AppResult<TOTPSecret> {
@@ -76,7 +73,7 @@ pub async fn get_authenticator(
     let now = Utc::now();
     let row = TwoFactorRow {
         user_uuid: user_uuid.to_string(),
-        secret: new_secret_base32(),
+        secret: new_secret_base32()?,
         enabled: false,
         recovery_code: None,
         created_at: now,
@@ -104,7 +101,7 @@ pub async fn enable_authenticator(
         return Err(AppError::BadRequest("invalid verification code".into()));
     }
 
-    let recovery_code = Uuid::new_v4().to_string().replace('-', "");
+    let recovery_code = crypto::new_uuid_v4()?.to_string().replace('-', "");
     row.enabled = true;
     row.recovery_code = Some(recovery_code.clone());
     row.updated_at = Utc::now();

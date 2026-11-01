@@ -12,9 +12,9 @@
 //! deleted state) lives in columns and is overlaid onto the [`Cipher`] on read.
 
 use chrono::Utc;
-use uuid::Uuid;
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::models::cipher::{Cipher, CipherCreateRequest, CipherRepromptType, CipherUpdateRequest};
 use crate::core::store::ciphers as store;
@@ -68,7 +68,7 @@ pub async fn create(
         return Err(AppError::BadRequest("cipher name is required".into()));
     }
     let now = Utc::now();
-    let uuid = Uuid::new_v4().to_string();
+    let uuid = crypto::new_uuid_v4()?.to_string();
     let cipher = Cipher {
         id: uuid.clone(),
         organization_id: req.organization_id.clone(),

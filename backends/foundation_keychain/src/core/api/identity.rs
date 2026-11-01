@@ -13,7 +13,6 @@
 //! [`crate::core::store::devices`].
 
 use chrono::Utc;
-use uuid::Uuid;
 
 use base64::Engine;
 use crate::core::api::accounts::verify_user_password;
@@ -54,10 +53,10 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
         .master_password_hash
         .as_deref()
         .ok_or_else(|| invalid_grant("missing password"))?;
-    let device_identifier = req
-        .device_identifier
-        .clone()
-        .unwrap_or_else(|| Uuid::new_v4().to_string());
+    let device_identifier = match req.device_identifier.clone() {
+        Some(id) => id,
+        None => crypto::new_uuid_v4()?.to_string(),
+    };
 
     let user = users::find_by_email(ctx.db(), &email)
         .await?
@@ -106,7 +105,7 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
             devices::insert(
                 ctx.db(),
                 &DeviceRow {
-                    uuid: Uuid::new_v4().to_string(),
+                    uuid: crypto::new_uuid_v4()?.to_string(),
                     user_uuid: user.uuid.clone(),
                     identifier: device_identifier.clone(),
                     name: req.device_name.clone(),

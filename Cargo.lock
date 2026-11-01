@@ -4703,6 +4703,7 @@ dependencies = [
  "serde_test",
  "tracing",
  "tracing-subscriber",
+ "uuid",
  "wasm-bindgen",
  "zeroize",
 ]
@@ -5127,6 +5128,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "foundation_auth",
+ "foundation_compact",
  "foundation_core",
  "foundation_db",
  "foundation_deployment_cloudflare",
@@ -5147,7 +5149,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tracing-test",
- "uuid",
  "wasm-bindgen",
  "worker",
 ]
