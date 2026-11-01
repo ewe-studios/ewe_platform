@@ -14,6 +14,10 @@ const SET_NUSHELL_DEFAULT_SHELL_SH: &str = include_str!("../../scripts/macos/set
 const SETUP_SSH_KEYS_SH: &str = include_str!("../../scripts/macos/setup_ssh_keys.sh");
 const SETUP_PROJECT_MOUNT_SH: &str = include_str!("../../scripts/macos/setup_project_mount.sh");
 
+/// Bootstrap a macOS VM with development tools over SSH.
+///
+/// # Errors
+/// Returns an error if a bootstrap step fails.
 pub fn bootstrap_macos(_profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
     logger::step(logger, "enable remote login", || enable_remote_login(session))?;
     logger::step(logger, "authorise host SSH key", || setup_ssh_keys(session))?;

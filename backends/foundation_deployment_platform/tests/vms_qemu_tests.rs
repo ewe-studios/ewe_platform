@@ -135,8 +135,8 @@ fn test_qemu_img_not_found_error() {
     let err = find_qemu_img();
     // Should either find qemu-img or return the right error type
     match err {
-        Ok(_) => {} // qemu-img is installed, fine
-        Err(TestbedError::QemuImgNotFound { .. }) => {} // expected error
+        // qemu-img is installed, or the expected error type; both are fine.
+        Ok(_) | Err(TestbedError::QemuImgNotFound { .. }) => {}
         Err(e) => panic!("unexpected error variant: {e}"),
     }
 }

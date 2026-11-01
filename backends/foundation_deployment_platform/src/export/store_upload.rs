@@ -6,6 +6,9 @@ use std::process::Command;
 use crate::config::{ImageStore, Result, StoreType, TestbedError};
 
 /// Upload an exported image and its manifest to a store.
+///
+/// # Errors
+/// Returns an error if the upload fails.
 pub fn upload_to_store(store: &ImageStore, image_path: &Path, manifest_path: &Path) -> Result<()> {
     match store.store_type {
         StoreType::R2 => upload_rclone(store, image_path, manifest_path),

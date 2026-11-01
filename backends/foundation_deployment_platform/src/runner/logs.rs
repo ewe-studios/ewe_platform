@@ -58,6 +58,10 @@ pub fn log_path(profile: &VmProfile, kind: LogKind) -> String {
 }
 
 /// Retrieve logs from the VM according to options.
+///
+/// # Errors
+///
+/// Returns an error if the log cannot be retrieved from the VM.
 pub fn get_logs(profile: &VmProfile, session: &mut VmSession, opts: &LogOpts) -> Result<String> {
     let path = log_path(profile, opts.kind);
 

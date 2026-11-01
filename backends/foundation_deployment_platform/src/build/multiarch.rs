@@ -16,6 +16,9 @@ pub const CROSS_DEPS: &[&str] = &[
 ///
 /// This should be called before `build_in_vm` when targeting
 /// `x86_64-unknown-linux-gnu` from an ARM64 VM.
+///
+/// # Errors
+/// Returns an error if a multiarch setup command fails.
 pub fn setup_multiarch(session: &mut VmSession) -> Result<()> {
     // Step 1: Enable multiarch
     crate::ssh::exec(session, "dpkg --add-architecture amd64")?;

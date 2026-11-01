@@ -39,6 +39,9 @@ pub fn guest_project_path(os: GuestOs) -> &'static str {
 /// 3. Tool installation (mise install)
 /// 4. Build (cargo tauri build)
 /// 5. Artifact retrieval (tar + scp back)
+///
+/// # Errors
+/// Returns an error if the build fails or an artifact step fails.
 pub fn build_in_vm(
     profile: &VmProfile,
     session: &mut VmSession,
@@ -199,21 +202,7 @@ cargo tauri build --target {target} 2>&1 | Tee-Object -FilePath "$env:USERPROFIL
 "#
             )
         }
-        GuestOs::MacOS => {
-            format!(
-                r#"
-export TESTBED_PROJECT_DIR='{guest_path}';
-export TESTBED_TARGET='{target}';
-export TESTBED_LOG="$HOME/.testbed-build/build.log";
-export RUSTC_WRAPPER="sccache";
-export CARGO_INCREMENTAL="0";
-mkdir -p ~/.testbed-build;
-cd '{guest_path}';
-cargo tauri build --target {target} 2>&1 | tee ~/.testbed-build/build.log
-"#
-            )
-        }
-        GuestOs::Linux => {
+        GuestOs::MacOS | GuestOs::Linux => {
             format!(
                 r#"
 export TESTBED_PROJECT_DIR='{guest_path}';
@@ -244,8 +233,7 @@ fn retrieve_artifacts(session: &mut VmSession, profile: &VmProfile) -> Result<Pa
     };
     let arch = match target {
         "x86_64-pc-windows-msvc" => "x86_64",
-        "aarch64-unknown-linux-gnu" => "arm64",
-        "aarch64-apple-darwin" => "arm64",
+        "aarch64-unknown-linux-gnu" | "aarch64-apple-darwin" => "arm64",
         _ => "unknown",
     };
 
@@ -262,7 +250,7 @@ fn retrieve_artifacts(session: &mut VmSession, profile: &VmProfile) -> Result<Pa
         .unwrap_or_else(|| PathBuf::from("/home/darkvoid"))
         .join(format!(".build/{platform}/{arch}"));
     std::fs::create_dir_all(&host_artifact_dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating {host_artifact_dir:?}: {e}"),
+        message: format!("creating {}: {e}", host_artifact_dir.display()),
     })?;
 
     let local_tar = std::env::temp_dir().join("testbed-artifacts.tar.gz");

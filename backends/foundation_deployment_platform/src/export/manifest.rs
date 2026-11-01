@@ -29,6 +29,10 @@ pub struct ExportManifest {
 
 impl ExportManifest {
     /// Build a manifest from a profile, exported image path, and optional tool versions.
+    ///
+    /// # Errors
+    /// Returns an error if the image metadata cannot be read. Returns an error if the
+    /// SHA256 cannot be computed.
     pub fn new(
         profile: &VmProfile,
         image_path: &Path,
@@ -74,6 +78,10 @@ impl ExportManifest {
     }
 
     /// Write the manifest to `<image_path>.manifest.json` (sibling file).
+    ///
+    /// # Errors
+    /// Returns an error if the manifest cannot be serialized. Returns an error if the
+    /// manifest cannot be written.
     pub fn write_to(&self, image_path: &Path) -> Result<()> {
         let manifest_path = image_path.with_extension("qcow2.manifest.json");
         let json = serde_json::to_string_pretty(self).map_err(|e| TestbedError::Qcow2Error {
@@ -103,20 +111,19 @@ impl ExportManifest {
 
 fn compute_sha256(path: &Path) -> Result<String> {
     use std::io::Read;
+    use sha2::Digest;
     let mut file = std::fs::File::open(path).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening image for SHA256: {e}"),
     })?;
     let mut hasher = sha2::Sha256::new();
-    let mut buf = [0u8; 65536];
+    let mut buf = vec![0u8; 65536];
     loop {
         let n = file.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading image for SHA256: {e}"),
         })?;
         if n == 0 { break; }
-        use sha2::Digest;
         hasher.update(&buf[..n]);
     }
-    use sha2::Digest;
     Ok(format!("{:x}", hasher.finalize()))
 }
 

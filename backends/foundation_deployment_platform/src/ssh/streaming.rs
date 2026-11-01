@@ -14,6 +14,9 @@ use crate::ssh::VmSession;
 ///
 /// Spawns `ssh` CLI subprocess. Returns the exit code.
 /// Commands are wrapped in `nu -c "..."` for nushell consistency.
+///
+/// # Errors
+/// Returns an error if the ssh command cannot be spawned or waited on.
 pub fn exec_streaming(profile: &VmProfile, cmd: &str) -> Result<i32> {
     let wrapped = format!("nu -c {cmd:?}");
 
@@ -47,6 +50,12 @@ pub fn exec_streaming(profile: &VmProfile, cmd: &str) -> Result<i32> {
 ///
 /// Spawns `ssh` CLI subprocess. Streams stdout/stderr to terminal in real-time.
 /// Uses the session's port and user for the connection.
+///
+/// # Panics
+/// Panics if the piped stdout or stderr is missing, which cannot happen because both are set to piped.
+///
+/// # Errors
+/// Returns an error if no SSH key is found or the ssh command fails.
 pub fn exec_streaming_session(session: &VmSession, cmd: &str) -> Result<i32> {
     let key_path = find_ssh_key().ok_or_else(|| TestbedError::SshFailed {
         port: session.port,
@@ -83,14 +92,14 @@ pub fn exec_streaming_session(session: &VmSession, cmd: &str) -> Result<i32> {
 
     // Print stdout lines
     std::thread::spawn(move || {
-        for line in stdout_reader.lines().flatten() {
+        for line in stdout_reader.lines().map_while(|line| line.ok()) {
             println!("{line}");
         }
     });
 
     // Print stderr lines
     std::thread::spawn(move || {
-        for line in stderr_reader.lines().flatten() {
+        for line in stderr_reader.lines().map_while(|line| line.ok()) {
             eprintln!("{line}");
         }
     });

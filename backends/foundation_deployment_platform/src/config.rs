@@ -176,6 +176,9 @@ const PROFILES: &[VmProfile] = &[
 ];
 
 /// Look up a profile by name.
+///
+/// # Errors
+/// Returns an error if the profile name is unknown.
 pub fn get_profile(name: &str) -> Result<&'static VmProfile> {
     PROFILES
         .iter()
@@ -234,12 +237,12 @@ pub struct UserMountConfig {
     /// Host path to mount (default: ".")
     #[serde(default)]
     pub host_path: Option<String>,
-    /// Guest mount point (e.g. "<<<<<C:/Users/vagrant/project>>>>>" on Windows, "/mnt/project" on Linux)
+    /// Guest mount point (e.g. "<C:/Users/vagrant/project>" on Windows, "/mnt/project" on Linux)
     #[serde(default)]
     pub guest_path: Option<String>,
     #[serde(default)]
     pub readonly: Option<bool>,
-    /// Mount methods to try, in order. Default: ["smb", "virtiofs"] for Windows, ["9p"] for Linux.
+    /// Mount methods to try, in order. Default: [`smb`, `virtiofs`] for Windows, [`9p`] for Linux.
     #[serde(default)]
     pub methods: Option<Vec<String>>,
 }
@@ -306,6 +309,9 @@ pub fn load_user_config() -> Option<UserConfig> {
 }
 
 /// Resolve a profile, applying any user config overrides.
+///
+/// # Errors
+/// Returns an error if the profile name is unknown.
 pub fn get_profile_with_config(name: &str) -> Result<VmProfile> {
     let base = get_profile(name)?;
     let mut profile = base.clone();
@@ -459,8 +465,8 @@ pub fn load_image_stores() -> Vec<ImageStore> {
                 "r2" => StoreType::R2,
                 "s3" => StoreType::S3,
                 "local" => StoreType::Local,
-                "http" | "https" => StoreType::Http,
-                "vagrant" => StoreType::Http, // treat as http for now
+                // treat as http for now
+                "http" | "https" | "vagrant" => StoreType::Http,
                 _ => return None,
             };
             Some(ImageStore {
@@ -540,7 +546,7 @@ pub fn workspace_root() -> std::path::PathBuf {
     }
 
     // Fallback: check for .testbed directory in parent
-    path = current.clone();
+    path.clone_from(&current);
     loop {
         if path.join(".testbed").exists() {
             return path;
@@ -624,6 +630,9 @@ pub fn resolve_artifact(profile_name: &str, filename: &str) -> Option<std::path:
 /// generated temp file. The caller can drop the path without worrying about
 /// cleanup — temp files are written to the state directory and overwritten
 /// on next run.
+///
+/// # Errors
+/// Returns an error if the embedded script cannot be written.
 pub fn resolve_script_or_embed(
     profile_name: &str,
     filename: &str,
@@ -652,10 +661,13 @@ pub fn resolve_script_or_embed(
 ///
 /// Called during `ensure_dirs()` or bootstrap init so users can edit scripts
 /// in the project-local directory without touching the source tree.
+///
+/// # Errors
+/// Returns an error if a scripts directory or script file cannot be created.
 pub fn copy_embedded_scripts(profile_name: &str) -> Result<()> {
     let dest = vm_scripts_dir(profile_name);
     std::fs::create_dir_all(&dest).map_err(|e| TestbedError::BootstrapFailed {
-        step: format!("create scripts dir {dest:?}"),
+        step: format!("create scripts dir {}", dest.display()),
         message: e.to_string(),
     })?;
 
@@ -690,6 +702,9 @@ pub fn vm_state_dir(profile_name: &str) -> std::path::PathBuf {
 }
 
 /// Ensure all `foundation_testbed` cache directories exist.
+///
+/// # Errors
+/// Returns an error if a cache directory cannot be created.
 pub fn ensure_dirs() -> std::io::Result<()> {
     std::fs::create_dir_all(cache_dir())?;
     std::fs::create_dir_all(image_cache_dir())?;

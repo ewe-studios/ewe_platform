@@ -104,6 +104,8 @@ fn test_size_ratio_calculation() {
     // Just verify the math works with dummy values
     let orig = 4_000_000_000u64;
     let comp = 800_000_000u64;
+    // file sizes to f64 for a ratio; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
     let expected_ratio = (comp as f64 / orig as f64) * 100.0;
     assert!((expected_ratio - 20.0).abs() < 0.1);
 }

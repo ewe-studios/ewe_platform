@@ -46,7 +46,7 @@ fn test_capture_uses_correct_paths() {
     // Verify the function would use the right VM path
     let path = "/tmp/testbed-screenshot.png";
     assert!(path.starts_with("/tmp/"));
-    assert!(path.ends_with(".png"));
+    assert!(std::path::Path::new(path).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("png")));
 }
 
 // From runner/transfer.rs

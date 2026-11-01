@@ -28,6 +28,10 @@ pub type ProgressCallback<'a> = Option<&'a dyn Fn(&str)>;
 ///
 /// Does NOT wait for completion or use a sentinel — it just fires the task
 /// and returns. The task runs in the user's session.
+///
+/// # Errors
+///
+/// Returns an error if a `WinRM` command fails.
 pub fn run_interactive(
     winrm: &WinRM,
     ps_code: &str,
@@ -93,12 +97,24 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
 /// is reported every ~15 seconds so callers know the script is still alive.
 ///
 /// Returns `Err` if the script does not complete within the timeout.
+///
+/// # Errors
+///
+/// Returns an error if a `WinRM` command fails, if the script writes fail, or
+/// if the script times out or completes with errors.
+///
+/// # Panics
+///
+/// Panics if the deadline is shorter than the timeout. This cannot happen because
+/// the deadline starts at the current time plus the timeout.
+#[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
 pub fn run_elevated(
     winrm: &WinRM,
     ps_code: &str,
     timeout_secs: u64,
     progress: ProgressCallback<'_>,
 ) -> Result<()> {
+    const CHUNK_SIZE: usize = 1500;
     // Unique sentinel per invocation — avoids false positives from previous runs
     let sentinel_id = format!(
         "{}",
@@ -156,9 +172,7 @@ Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"
     // cmd.exe has an 8191 character command-line limit.
     // Each chunk's command is: powershell -EncodedCommand <base64(UTF16LE(cmd))>
     // For a 2000-byte chunk: cmd ≈ 2100 chars → UTF16LE = 4200 → b64 = 5600 → total ≈ 5625 < 8191.
-    const CHUNK_SIZE: usize = 1500;
     debug!("run_elevated: writing script ({} bytes) to VM", script_with_sentinel.len());
-
     let script_bytes = script_with_sentinel.as_bytes();
     let chunks: Vec<_> = script_bytes.chunks(CHUNK_SIZE).collect();
     let chunk_files: Vec<_> = chunks.iter().enumerate().map(|(i, _)| {
@@ -280,7 +294,10 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                 let transcript_text = String::from_utf8_lossy(&bytes).to_string();
                 let current_size = transcript_text.len() as u64;
                 if current_size > last_transcript_size {
-                    let new_content = &transcript_text[last_transcript_size as usize..];
+                    // Byte offset fits in usize; the string length bounds it.
+                    #[allow(clippy::cast_possible_truncation)]
+                    let start = last_transcript_size as usize;
+                    let new_content = &transcript_text[start..];
                     for line in new_content.lines() {
                         let trimmed = line.trim();
                         if !trimmed.is_empty() {
@@ -310,7 +327,10 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                     let current_size = log_text.len() as u64;
                     if current_size > last_error_log_size {
                         // New error content appeared — report it
-                        let new_content = &log_text[last_error_log_size as usize..];
+                        // Byte offset fits in usize; the string length bounds it.
+                        #[allow(clippy::cast_possible_truncation)]
+                        let start = last_error_log_size as usize;
+                        let new_content = &log_text[start..];
                         for line in new_content.lines() {
                             let trimmed = line.trim();
                             if !trimmed.is_empty() {

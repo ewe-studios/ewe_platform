@@ -24,6 +24,9 @@ pub struct VmEntry {
 }
 
 /// Check if UTM is installed and meets the minimum version.
+///
+/// # Errors
+/// Returns an error if the version cannot be read.
 pub fn check_utm_version() -> Result<Option<String>> {
     let plist_path = "/Applications/UTM.app/Contents/Info.plist";
     if !std::path::Path::new(plist_path).exists() {
@@ -67,6 +70,9 @@ pub fn installed_utm_version() -> Option<String> {
 }
 
 /// Check that UTM.app is responsive (try listing VMs).
+///
+/// # Errors
+/// Returns an error if UTM is not installed. Returns an error if utmctl cannot run.
 pub fn ensure_utm() -> Result<Vec<String>> {
     let mut warnings = Vec::new();
 
@@ -133,6 +139,9 @@ pub fn ensure_utm() -> Result<Vec<String>> {
 }
 
 /// List all VMs known to UTM.
+///
+/// # Errors
+/// Returns an error if utmctl list fails.
 pub fn list_vms() -> Result<Vec<VmEntry>> {
     let output = Command::new(UTMCTL)
         .args(["list"])
@@ -169,12 +178,21 @@ pub fn list_vms() -> Result<Vec<VmEntry>> {
 }
 
 /// Find a VM by name.
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read.
 pub fn find_vm_by_name(name: &str) -> Result<Option<VmEntry>> {
     let vms = list_vms()?;
     Ok(vms.into_iter().find(|vm| vm.name == name))
 }
 
 /// Read the Name from a .utm bundle's config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be read.
+///
+/// # Panics
+/// Panics if the plist path is not valid UTF-8.
 pub fn get_vm_name(bundle_path: &std::path::Path) -> Result<String> {
     let plist = bundle_path.join("config.plist");
     let output = Command::new("/usr/libexec/PlistBuddy")
@@ -197,6 +215,10 @@ pub fn get_vm_name(bundle_path: &std::path::Path) -> Result<String> {
 }
 
 /// Start a VM by name, with retry logic (up to 3 attempts).
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read. Returns an error if the start fails
+/// after 3 attempts.
 pub fn start_vm(name: &str) -> Result<()> {
     // Already running?
     if let Some(e) = list_vms()?.into_iter().find(|e| e.name == name) {
@@ -227,6 +249,9 @@ pub fn start_vm(name: &str) -> Result<()> {
 }
 
 /// Stop a VM by name. No-op if not running.
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read. Returns an error if the stop fails.
 pub fn stop_vm(name: &str) -> Result<()> {
     let running = list_vms()?
         .into_iter()
@@ -256,6 +281,9 @@ pub fn stop_vm(name: &str) -> Result<()> {
 }
 
 /// Delete a VM by UUID (used for orphan cleanup).
+///
+/// # Errors
+/// Returns an error if the delete fails.
 pub fn delete_vm(uuid: &str) -> Result<()> {
     let output = Command::new(UTMCTL)
         .args(["delete", uuid])
@@ -277,6 +305,9 @@ pub fn delete_vm(uuid: &str) -> Result<()> {
 }
 
 /// Check if a VM is running.
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read.
 pub fn is_vm_running(name: &str) -> Result<bool> {
     if let Some(vm) = find_vm_by_name(name)? {
         Ok(vm.status == "started")
@@ -286,6 +317,9 @@ pub fn is_vm_running(name: &str) -> Result<bool> {
 }
 
 /// Wait for a VM UUID to appear in `utmctl list` after import.
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read.
 pub fn wait_for_vm(uuid: &str, timeout_secs: u64) -> Result<bool> {
     let start = Instant::now();
     loop {

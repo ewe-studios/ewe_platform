@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §7 (foundation_deployment_platform) `vms` clippy
+  warnings zeroed on `fix/io-20-vfs-process-ipc`. After the first-pass
+  `cargo clippy --fix` (commit `abbe0c039`, 625 to 307), three subagents fixed
+  the remaining 285 code warnings in disjoint file groups (edit-only), and the
+  main session fixed the 3 manifest `unused_crate_dependencies` warnings:
+  `clap` moved from the `vms` feature to `cli`, `portpicker` removed,
+  `foundation_sshkit` moved to dev-dependencies. `cargo clippy --profile uat
+  --all-targets --features vms --no-deps` and the default-feature clippy both
+  report zero warnings; 137 non-Docker tests pass. The §7 entry is reduced to
+  one remaining item: extend the CI clippy run to the `vms` feature.
+
 - 2026-11-02: bug-backlog §7 (foundation_deployment_platform) cleaned on
   `fix/io-20-vfs-process-ipc`. The three stale entries are removed: the
   `docker/wireguard.rs` inline tests already moved to `tests/wireguard_tests.rs`,

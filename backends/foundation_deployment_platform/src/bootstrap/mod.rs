@@ -83,6 +83,9 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
 /// 3. SSH phase — installs mise, build tools, runtimes
 ///
 /// For Linux/macOS, runs SSH-only bootstrap directly.
+///
+/// # Errors
+/// Returns an error if a bootstrap step fails or the VM does not become bootstrapped.
 pub fn bootstrap(profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
     if is_bootstrapped(profile) {
         logger.message("already bootstrapped, skipping");

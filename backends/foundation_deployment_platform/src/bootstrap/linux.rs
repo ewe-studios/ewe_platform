@@ -31,6 +31,11 @@ fn adapt_script(script: &str, home_dir: &str) -> String {
     script.replace("/home/vagrant/", &format!("{home_dir}/"))
 }
 
+/// Bootstrap a Linux VM with development tools over SSH.
+///
+/// # Errors
+/// Returns an error if a bootstrap step fails.
+#[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
 pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
     // Detect home directory first
     let home_dir = detect_home_dir(session)?;

@@ -14,6 +14,10 @@ use crate::winrm::WinRM;
 /// On Linux, captures from Xvfb display :99.
 /// On Windows, captures the primary monitor via interactive Scheduled Task
 /// (so `Graphics.CopyFromScreen` sees the real desktop, not a blank session 0).
+///
+/// # Errors
+///
+/// Returns an error if the capture, download, or cleanup fails.
 pub fn capture(profile: &VmProfile, session: &mut VmSession, winrm: Option<&WinRM>, output: &Path) -> Result<()> {
     let vm_path = "/tmp/testbed-screenshot.png";
 
@@ -44,9 +48,9 @@ fn capture_linux(session: &mut VmSession, vm_path: &str) -> Result<()> {
 ///
 /// Uses `bootstrap::windows::screenshot_windows` which runs the screenshot
 /// script in a `/RU vagrant /IT` task so `CopyFromScreen` gets real pixels.
-fn capture_windows(session: &mut VmSession, winrm: Option<&WinRM>, _vm_path: &str) -> Result<()> {
+fn capture_windows(session: &mut VmSession, winrm: Option<&WinRM>, vm_path: &str) -> Result<()> {
     if let Some(winrm) = winrm {
-        let output = Path::new(_vm_path);
+        let output = Path::new(vm_path);
         crate::bootstrap::windows::screenshot_windows(winrm, session, output)?;
         return Ok(());
     }

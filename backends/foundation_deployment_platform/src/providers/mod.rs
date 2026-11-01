@@ -69,29 +69,61 @@ impl VmHandle {
 pub trait VmProvider: Send + Sync {
     fn name(&self) -> &'static str;
     fn id(&self) -> ProviderId;
+    /// Start a VM from a profile.
+    ///
+    /// # Errors
+    /// Returns an error when the backend cannot start the VM.
     fn launch(&self, profile: &VmProfile, mode: DisplayMode) -> Result<VmHandle>;
+    /// Stop a running VM.
+    ///
+    /// # Errors
+    /// Returns an error when the backend cannot stop the VM.
     fn stop(&self, handle: &VmHandle) -> Result<()>;
     fn is_running(&self, handle: &VmHandle) -> bool;
+    /// Resolve the network ports of a running VM.
+    ///
+    /// # Errors
+    /// Returns an error when the backend cannot resolve the ports.
     fn resolved_ports(&self, handle: &VmHandle) -> Result<ResolvedPorts>;
+    /// Send a command to the VM monitor.
+    ///
+    /// # Errors
+    /// Returns an error when the backend has no monitor.
     fn monitor_command(&self, handle: &VmHandle, cmd: &str) -> Result<String>;
+    /// Ensure the VM disk image exists.
+    ///
+    /// # Errors
+    /// Returns an error when the image cannot be prepared.
     fn ensure_image(&self, profile: &VmProfile) -> Result<PathBuf>;
     fn host_health(&self) -> HostHealth;
 }
 
 #[cfg(feature = "vms")]
 #[cfg(target_os = "linux")]
+/// Return the default provider for the current platform.
+///
+/// # Errors
+/// Returns an error if the platform has no supported provider.
 pub fn default_provider() -> Result<Box<dyn VmProvider>> {
     Ok(Box::new(qemu::QemuProvider::new()))
 }
 
 #[cfg(feature = "vms")]
 #[cfg(target_os = "macos")]
+/// Return the default provider for the current platform.
+///
+/// # Errors
+/// Returns an error if the platform has no supported provider.
 pub fn default_provider() -> Result<Box<dyn VmProvider>> {
     Ok(Box::new(utm::UtmProvider::new()))
 }
 
 #[cfg(feature = "vms")]
 #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+/// Return the default provider for the current platform.
+///
+/// # Errors
+/// Returns an error if the platform has no supported provider.
 pub fn default_provider() -> Result<Box<dyn VmProvider>> {
     Err(crate::config::TestbedError::Qcow2Error {
         message: "testbed only supports Linux (QEMU) and macOS (UTM)".to_string(),

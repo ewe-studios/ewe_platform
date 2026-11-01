@@ -23,6 +23,10 @@ pub struct SnapshotInfo {
 /// Create a named snapshot of the running VM.
 ///
 /// Equivalent to `(qemu) savevm <name>`.
+///
+/// # Errors
+///
+/// Returns an error if the monitor command fails or if QEMU reports an error.
 pub fn save(vm: &mut QemuVm, name: &str) -> Result<()> {
     let output = vm.monitor_command(&format!("savevm {name}"))?;
     // QEMU returns an error string on failure; empty or "OK" means success
@@ -39,6 +43,10 @@ pub fn save(vm: &mut QemuVm, name: &str) -> Result<()> {
 ///
 /// Equivalent to `(qemu) loadvm <name>`. This implicitly pauses the VM
 /// and restores CPU/memory/device state.
+///
+/// # Errors
+///
+/// Returns an error if the monitor command fails or if QEMU reports an error.
 pub fn load(vm: &mut QemuVm, name: &str) -> Result<()> {
     let output = vm.monitor_command(&format!("loadvm {name}"))?;
     if output.to_lowercase().contains("error") {
@@ -54,6 +62,10 @@ pub fn load(vm: &mut QemuVm, name: &str) -> Result<()> {
 ///
 /// Equivalent to `(qemu) delvm <name>`. Frees the space used by the
 /// snapshot within the qcow2 file.
+///
+/// # Errors
+///
+/// Returns an error if the monitor command fails or if QEMU reports an error.
 pub fn delete(vm: &mut QemuVm, name: &str) -> Result<()> {
     let output = vm.monitor_command(&format!("delvm {name}"))?;
     if output.to_lowercase().contains("error") {
@@ -69,6 +81,10 @@ pub fn delete(vm: &mut QemuVm, name: &str) -> Result<()> {
 ///
 /// Equivalent to `(qemu) info snapshots`. Parses the text output
 /// into structured `SnapshotInfo` entries.
+///
+/// # Errors
+///
+/// Returns an error if the monitor command fails.
 pub fn list(vm: &mut QemuVm) -> Result<Vec<SnapshotInfo>> {
     let output = vm.monitor_command("info snapshots")?;
 
@@ -121,14 +137,18 @@ pub fn list(vm: &mut QemuVm) -> Result<Vec<SnapshotInfo>> {
 #[must_use]
 pub fn parse_size_string(s: &str) -> u64 {
     let s = s.to_uppercase();
-    if let Some(num) = s.strip_suffix("MB") {
-        (num.parse::<f64>().unwrap_or(0.0) * 1_048_576.0) as u64
-    } else if let Some(num) = s.strip_suffix("GB") {
-        (num.parse::<f64>().unwrap_or(0.0) * 1_073_741_824.0) as u64
-    } else if let Some(num) = s.strip_suffix("KB") {
-        (num.parse::<f64>().unwrap_or(0.0) * 1_024.0) as u64
-    } else {
-        s.parse::<u64>().unwrap_or(0)
+    // size in bytes from f64; values are bounded, and precision loss is acceptable.
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    {
+        if let Some(num) = s.strip_suffix("MB") {
+            (num.parse::<f64>().unwrap_or(0.0) * 1_048_576.0) as u64
+        } else if let Some(num) = s.strip_suffix("GB") {
+            (num.parse::<f64>().unwrap_or(0.0) * 1_073_741_824.0) as u64
+        } else if let Some(num) = s.strip_suffix("KB") {
+            (num.parse::<f64>().unwrap_or(0.0) * 1_024.0) as u64
+        } else {
+            s.parse::<u64>().unwrap_or(0)
+        }
     }
 }
 

@@ -24,11 +24,13 @@ pub const ERROR_PATTERNS: &[&str] = &[
 ///
 /// Returns a formatted string with all matching error lines and 2 lines
 /// of context before each match.
+///
+/// # Errors
+/// Returns an error if log error extraction fails.
 pub fn dump_build_log_errors(session: &mut VmSession) -> Result<String> {
     // Read the build log
-    let log_content = match crate::ssh::exec(session, "cat ~/.testbed-build/build.log 2>/dev/null || echo 'NO_LOG'") {
-        Ok(output) => output,
-        Err(_) => return Ok("No build log available".to_string()),
+    let Ok(log_content) = crate::ssh::exec(session, "cat ~/.testbed-build/build.log 2>/dev/null || echo 'NO_LOG'") else {
+        return Ok("No build log available".to_string());
     };
 
     if log_content.trim() == "NO_LOG" {
@@ -39,6 +41,9 @@ pub fn dump_build_log_errors(session: &mut VmSession) -> Result<String> {
 }
 
 /// Extract error lines from log content.
+///
+/// # Errors
+/// This function does not return an error.
 pub fn extract_errors(log: &str) -> Result<String> {
     let lines: Vec<&str> = log.lines().collect();
     let mut errors = Vec::new();

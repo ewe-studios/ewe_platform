@@ -11,6 +11,7 @@ pub mod mount;
 pub mod net;
 pub mod snapshot;
 
+use std::fmt::Write as _;
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::process::{Child, Command, Stdio};
@@ -117,6 +118,18 @@ impl QemuConfig {
     /// This spawns `qemu-system-x86_64` and connects to the monitor socket.
     /// The guest OS boot is **not** waited for here — use the bootstrap
     /// module to wait for SSH/WinRM after launch.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if directories cannot be created, if the QEMU binary
+    /// cannot be found, if ports cannot be allocated, if the disk image cannot
+    /// be prepared, if QEMU cannot be spawned, or if the monitor socket does not
+    /// appear in time.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the macOS boot disk path has no parent directory.
+    #[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
     pub fn launch(self) -> Result<QemuVm> {
         ensure_dirs().map_err(|e| TestbedError::Qcow2Error {
             message: format!("failed to create cache dirs: {e}"),
@@ -133,7 +146,7 @@ impl QemuConfig {
         std::fs::create_dir_all(&monitor_dir_path).ok();
         let monitor_path = monitor_dir_path.join(format!("{}.monitor", self.profile.name));
         let _ = std::fs::remove_file(&monitor_path); // clean stale socket
-        eprintln!("DEBUG: monitor_path = {monitor_path:?}");
+        eprintln!("DEBUG: monitor_path = {}", monitor_path.display());
 
         // Build disk path — goes through full resolution chain (env → cache → stores → Vagrant)
         let disk_path = crate::import::ensure_image(&self.profile)?;
@@ -273,6 +286,10 @@ impl QemuVm {
     ///
     /// Used by CLI commands (snapshot, stop) that need to communicate with
     /// a VM that was started in a previous process.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the monitor socket cannot be connected.
     pub fn adopt_running(
         profile: VmProfile,
         disk_path: std::path::PathBuf,
@@ -281,7 +298,7 @@ impl QemuVm {
         resolved_ports: ResolvedPorts,
     ) -> Result<Self> {
         let monitor = UnixStream::connect(monitor_path).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("connecting to monitor socket {monitor_path:?}: {e}"),
+            message: format!("connecting to monitor socket {}: {e}", monitor_path.display()),
         })?;
         monitor.set_nonblocking(true).ok();
 
@@ -316,6 +333,10 @@ impl QemuVm {
     /// Sends `system_powerdown` via the QEMU monitor, then waits up to
     /// 30 seconds for the process to exit. Falls back to `kill()` if
     /// the guest doesn't respond.
+    ///
+    /// # Errors
+    ///
+    /// Never returns an error; the `Result` type is kept for a uniform API.
     pub fn shutdown(&mut self) -> Result<()> {
         if !self.is_running() {
             return Ok(()); // already exited
@@ -337,7 +358,10 @@ impl QemuVm {
             let _ = child.kill();
         } else {
             // Adopted VM — send SIGTERM via libc
-            unsafe { libc::kill(self.pid as i32, libc::SIGTERM) };
+            #[allow(clippy::cast_possible_wrap)] // PID fits in i32 on supported Unix targets.
+            {
+                unsafe { libc::kill(self.pid as i32, libc::SIGTERM) };
+            }
             // Wait briefly
             for _ in 0..30 {
                 thread::sleep(Duration::from_millis(500));
@@ -345,7 +369,10 @@ impl QemuVm {
                     return Ok(());
                 }
             }
-            unsafe { libc::kill(self.pid as i32, libc::SIGKILL) };
+            #[allow(clippy::cast_possible_wrap)] // PID fits in i32 on supported Unix targets.
+            {
+                unsafe { libc::kill(self.pid as i32, libc::SIGKILL) };
+            }
         }
         if let Some(ref mut child) = self.process {
             child.wait().ok();
@@ -362,6 +389,11 @@ impl QemuVm {
     ///
     /// The monitor socket is a simple text protocol: write a command
     /// followed by `\n`, read the response until `(qemu)` prompt.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the command cannot be written, if the socket cannot
+    /// be flushed, if reading fails, or if the response times out.
     pub fn monitor_command(&mut self, cmd: &str) -> Result<String> {
         // The socket is non-blocking for reads, so we need to handle
         // WouldBlock errors. Write the command first.
@@ -399,7 +431,6 @@ impl QemuVm {
                 }
                 Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                     thread::sleep(Duration::from_millis(50));
-                    continue;
                 }
                 Err(e) => {
                     return Err(TestbedError::MonitorFailed {
@@ -414,6 +445,10 @@ impl QemuVm {
 
     /// Wait for the process to exit, returning the exit code.
     /// Only works for VMs we launched (not adopted ones).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if waiting for the QEMU process fails.
     pub fn wait(self) -> Result<Option<i32>> {
         let Some(mut child) = self.process else {
             return Ok(None); // Adopted VM — no child to wait on
@@ -431,6 +466,11 @@ impl QemuVm {
 /// 2. Copies the disk into the image cache under a unique name
 /// 3. Creates a state file with `bootstrapped: false`
 /// 4. Returns the resolved profile + disk path so the caller can launch
+///
+/// # Errors
+///
+/// Returns an error if the disk file is missing or empty, if the copy fails,
+/// or if the state file cannot be saved.
 pub fn adopt(
     profile: &VmProfile,
     disk_path: &std::path::Path,
@@ -482,6 +522,11 @@ pub fn adopt(
 /// 3. Reallocates ports (checks for conflicts)
 /// 4. Relaunches the VM with fresh port forwarding
 /// 5. Waits for SSH/WinRM to become reachable
+///
+/// # Errors
+///
+/// Returns an error if the VM cannot be stopped, relaunched, or if the new
+/// state cannot be saved.
 pub fn refresh_network(
     profile: &VmProfile,
     display_mode: DisplayMode,
@@ -533,6 +578,7 @@ pub fn refresh_network(
 
 /// Build the full QEMU command-line argument list.
 #[must_use]
+#[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
 pub fn build_qemu_args(
     profile: &VmProfile,
     disk_path: &std::path::Path,
@@ -682,17 +728,17 @@ pub fn build_qemu_args(
 
     // Network (user-mode with port forwarding)
     let mut netdev = "user,id=net".to_string();
-    netdev.push_str(&format!(",hostfwd=tcp:127.0.0.1:{}-:22", ports.ssh_port));
+    let _ = write!(netdev, ",hostfwd=tcp:127.0.0.1:{}-:22", ports.ssh_port);
     if let Some(p) = ports.winrm_port {
-        netdev.push_str(&format!(",hostfwd=tcp:127.0.0.1:{p}-:5985"));
+        let _ = write!(netdev, ",hostfwd=tcp:127.0.0.1:{p}-:5985");
     }
     if let Some(p) = ports.rdp_port {
-        netdev.push_str(&format!(",hostfwd=tcp:127.0.0.1:{p}-:3389"));
+        let _ = write!(netdev, ",hostfwd=tcp:127.0.0.1:{p}-:3389");
     }
     // Enable built-in SMB server for Windows guests with project mount
     if profile.os == GuestOs::Windows && project_mount.is_some() {
         if let Some(host_path) = project_mount {
-            netdev.push_str(&format!(",smb={}", host_path.display()));
+            let _ = write!(netdev, ",smb={}", host_path.display());
         }
     }
     args.push("-netdev".to_string());

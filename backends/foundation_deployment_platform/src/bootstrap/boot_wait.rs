@@ -14,6 +14,9 @@ use crate::config::{GuestOs, Result, TestbedError, VmProfile};
 ///
 /// Polls the forwarded SSH port with a TCP connect. Returns when
 /// connection succeeds or timeout is reached.
+///
+/// # Errors
+/// Returns an error if the SSH port does not respond before the timeout.
 pub fn wait_for_ssh(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
     let port = profile.ssh_port;
     let deadline = Instant::now() + Duration::from_secs(timeout_secs);
@@ -40,6 +43,9 @@ pub fn wait_for_ssh(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
 ///
 /// Polls the forwarded `WinRM` port with a TCP connect. Returns when
 /// connection succeeds or timeout is reached.
+///
+/// # Errors
+/// Returns an error if no WinRM port is set or the port does not respond before the timeout.
 pub fn wait_for_winrm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
     let port = profile.winrm_port.ok_or_else(|| {
         TestbedError::WinrmNotReachable { port: 0 }
@@ -65,6 +71,9 @@ pub fn wait_for_winrm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
 ///
 /// For Windows: waits for both SSH and `WinRM`.
 /// For Linux: waits for SSH only.
+///
+/// # Errors
+/// Returns an error if SSH or WinRM does not become ready.
 pub fn wait_for_vm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
     wait_for_ssh(profile, timeout_secs)?;
     if profile.os == GuestOs::Windows {

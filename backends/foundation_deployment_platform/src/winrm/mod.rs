@@ -43,6 +43,10 @@ impl WinRM {
     }
 
     /// Create from a VM profile.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the profile has no `WinRM` port.
     pub fn from_profile(profile: &VmProfile) -> Result<Self> {
         let winrm_port = profile.winrm_port.ok_or_else(|| {
             TestbedError::WinrmNotReachable {
@@ -58,14 +62,18 @@ impl WinRM {
     /// SOAP pipeline works, not just that the TCP port is open.
     #[must_use]
     pub fn ping(&self) -> bool {
-        self.shell_create().and_then(|shell_id| {
-            self.shell_delete(&shell_id, None)
+        self.shell_create().map(|shell_id| {
+            self.shell_delete(&shell_id, None);
         }).is_ok()
     }
 
     /// Run a PowerShell script via `WinRM` shell.
     ///
     /// Encodes script as UTF-16LE + Base64 for `powershell -EncodedCommand`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a `WinRM` shell operation fails.
     pub fn run_ps(&self, script: &str) -> Result<CmdResult> {
         // Encode script as UTF-16LE + Base64
         let utf16le: Vec<u8> = script.encode_utf16().flat_map(u16::to_le_bytes).collect();
@@ -80,7 +88,7 @@ impl WinRM {
         debug!("run_ps: receiving output (unlimited wait)");
         let result = self.shell_receive(&shell_id, &command_id, 0)?;
         debug!("run_ps: command complete, exit_code={}", result.exit_code);
-        self.shell_delete(&shell_id, Some(&command_id)).ok();
+        self.shell_delete(&shell_id, Some(&command_id));
 
         Ok(result)
     }
@@ -130,8 +138,7 @@ impl WinRM {
         };
 
         // Poll for output — supports long-running commands (up to 1800s)
-        let mut iteration = 0;
-        for _ in 0..3600 {
+        for (iteration, _) in (0..3600).enumerate() {
             // 1800s total at 500ms intervals
             if let Some(dl) = deadline
                 && std::time::Instant::now() > dl
@@ -162,7 +169,6 @@ impl WinRM {
                 break;
             }
 
-            iteration += 1;
             std::thread::sleep(std::time::Duration::from_millis(500));
         }
 
@@ -177,6 +183,10 @@ impl WinRM {
     ///
     /// Uses a 15-second receive timeout to avoid blocking when `WinRM` is transiently
     /// unavailable during long elevated operations like OpenSSH install.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a `WinRM` shell operation fails.
     pub fn run_ps_quiet(&self, script: &str) -> Result<CmdResult> {
         let utf16le: Vec<u8> = script.encode_utf16().flat_map(u16::to_le_bytes).collect();
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
@@ -189,12 +199,12 @@ impl WinRM {
         trace!("run_ps_quiet: command exec done, receiving with 15s timeout");
         let result = self.shell_receive(&shell_id, &command_id, 15);
         trace!("run_ps_quiet: receive result: {:?}", result.as_ref().map(|r| &r.stdout));
-        self.shell_delete(&shell_id, Some(&command_id)).ok();
+        self.shell_delete(&shell_id, Some(&command_id));
         result
     }
 
     /// Delete a `WinRM` shell.
-    fn shell_delete(&self, shell_id: &str, command_id: Option<&str>) -> Result<()> {
+    fn shell_delete(&self, shell_id: &str, command_id: Option<&str>) {
         let msg_id = uuid_simple();
         let command_selector = command_id
             .map(|id| format!("<rsp:Signal CommandId=\"{id}\"><w:Code>0</w:Code></rsp:Signal>"))
@@ -206,7 +216,6 @@ impl WinRM {
         );
 
         let _ = self.send_soap("http://schemas.xmlsoap.org/ws/2004/09/transfer/Delete", &body);
-        Ok(())
     }
 
     /// Send a SOAP request and return the response body.
@@ -370,6 +379,6 @@ fn uuid_simple() -> String {
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos();
-    format!("{:016x}{:016x}", now, now.wrapping_mul(0x6C62272E07BB0142))
+    format!("{:016x}{:016x}", now, now.wrapping_mul(0x6C62_272E_07BB_0142))
 }
 

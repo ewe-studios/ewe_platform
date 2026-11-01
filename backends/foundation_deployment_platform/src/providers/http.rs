@@ -28,6 +28,10 @@ const MIN_IMAGE_SIZE: u64 = 50 * 1_048_576;
 ///
 /// `read_timeout_secs` controls the per-read timeout — for small API responses,
 /// 5s is plenty. For slower endpoints, caller can increase.
+///
+/// # Errors
+/// Returns an error if the request fails. Returns an error if the response body cannot
+/// be decoded.
 pub fn http_get(url: &str, read_timeout_secs: u64) -> Result<String> {
     let resp = get(url, read_timeout_secs)?;
 
@@ -43,17 +47,21 @@ pub fn http_get(url: &str, read_timeout_secs: u64) -> Result<String> {
 /// disk — the full body is NOT loaded into memory.
 ///
 /// Validates the downloaded file meets `MIN_IMAGE_SIZE`.
+///
+/// # Errors
+/// Returns an error if the request fails. Returns an error if the download cannot be
+/// written. Returns an error if the downloaded file is too small.
 pub fn http_download(url: &str, dest: &Path, _progress_label: &str, read_timeout_secs: u64) -> Result<()> {
     let resp = get(url, read_timeout_secs)?;
 
     let tmp = dest.with_extension("downloading");
     let mut file = std::fs::File::create(&tmp).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating {tmp:?}: {e}"),
+        message: format!("creating {}: {e}", tmp.display()),
     })?;
 
     let (_, _, body) = resp.into_parts();
     let written = collect_bytes_into(body, &mut file).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("writing download to {tmp:?}: {e}"),
+        message: format!("writing download to {}: {e}", tmp.display()),
     })?;
 
     if written < MIN_IMAGE_SIZE {

@@ -59,6 +59,9 @@ impl ToolStatus {
 ///
 /// Idempotent — skips installation if the tool is already present
 /// and meets minimum version.
+///
+/// # Errors
+/// Returns an error if a prerequisite check or install fails.
 pub fn ensure_host_prerequisites() -> Result<HostPrerequisites> {
     let mut state = HostPrerequisites::default();
 

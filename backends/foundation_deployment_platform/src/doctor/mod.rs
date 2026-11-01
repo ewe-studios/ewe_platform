@@ -45,6 +45,7 @@ impl HostHealth {
 
 /// Run all host-level health checks.
 #[must_use]
+#[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
 pub fn check_host() -> HostHealth {
     let mut checks = Vec::new();
 
@@ -132,10 +133,9 @@ pub fn check_host() -> HostHealth {
     checks.push(Check {
         name: "ssh_key",
         ok: has_key,
-        message: if has_key {
-            format!("found: {}", ssh_key.unwrap().display())
-        } else {
-            "no SSH key found".to_string()
+        message: match &ssh_key {
+            Some(key) => format!("found: {}", key.display()),
+            None => "no SSH key found".to_string(),
         },
         suggestion: Some("run: ssh-keygen -t ed25519"),
     });
@@ -149,6 +149,7 @@ pub fn check_host() -> HostHealth {
     };
     let disk_msg = match fs2::available_space(&disk_target) {
         Ok(bytes) => {
+            #[allow(clippy::cast_precision_loss)] // size in bytes to f64 for display; precision loss is acceptable.
             let gb = bytes as f64 / 1_073_741_824.0;
             let ok = gb > 10.0;
             Check {

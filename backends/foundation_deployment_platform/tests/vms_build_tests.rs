@@ -32,13 +32,13 @@ fn test_cross_compile_env_contains_expected_vars() {
 
 #[test]
 fn test_cross_deps_not_empty() {
-    assert!(!CROSS_DEPS.is_empty());
+    assert_ne!(CROSS_DEPS, [] as [&str; 0]);
 }
 
 // From build/logs.rs
 #[test]
 fn test_extract_errors_finds_rust_error() {
-    let log = r#"Compiling my-app v0.1.0
+    let log = r"Compiling my-app v0.1.0
    Compiling dependency v1.0.0
 error[E0308]: mismatched types
    --> src/main.rs:10:5
@@ -47,7 +47,7 @@ error[E0308]: mismatched types
     |         ^   ------ expected due to this
     |         |
     |         expected `String`, found integer
-"#;
+";
     let result = extract_errors(log).unwrap();
     assert!(result.contains("E0308"));
     assert!(result.contains("mismatched types"));

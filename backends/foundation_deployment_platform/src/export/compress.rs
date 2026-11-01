@@ -40,6 +40,9 @@ impl Compression {
 /// Reads `src` and writes a compressed archive to `dest`.
 /// The dest path should include the compression extension
 /// (e.g., `output.qcow2.xz` for xz compression).
+///
+/// # Errors
+/// Returns an error if the copy fails. Returns an error if the compression fails.
 pub fn compress_qcow2_with(src: &Path, dest: &Path, algo: Compression) -> Result<()> {
     match algo {
         Compression::None => {
@@ -57,6 +60,9 @@ pub fn compress_qcow2_with(src: &Path, dest: &Path, algo: Compression) -> Result
 ///
 /// Auto-detects compression from the source file extension.
 /// If the source is not compressed, copies it as-is.
+///
+/// # Errors
+/// Returns an error if the decompression fails. Returns an error if the copy fails.
 pub fn decompress(src: &Path, dest: &Path) -> Result<()> {
     let ext = src.extension().and_then(|e| e.to_str()).unwrap_or("");
     match ext {
@@ -83,6 +89,10 @@ pub fn is_compressed(path: &Path) -> bool {
 ///
 /// Returns the path to the actual qcow2 (decompressing if needed).
 /// If the image is compressed, decompresses it to the cache directory.
+///
+/// # Errors
+/// Returns an error if the cache directory cannot be created. Returns an error if the
+/// image cannot be decompressed or moved.
 pub fn ensure_decompressed(image_path: &Path) -> Result<PathBuf> {
     if !is_compressed(image_path) {
         return Ok(image_path.to_path_buf());
@@ -126,6 +136,11 @@ pub fn ensure_decompressed(image_path: &Path) -> Result<PathBuf> {
 
 // ── Gzip compression (Rust-native via flate2) ────────────────────────────────
 
+/// Compress a file with gzip.
+///
+/// # Errors
+/// Returns an error if the source cannot be read. Returns an error if the destination
+/// cannot be written.
 pub fn compress_gzip(src: &Path, dest: &Path) -> Result<()> {
     let src_file = File::open(src).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening source: {e}"),
@@ -140,7 +155,7 @@ pub fn compress_gzip(src: &Path, dest: &Path) -> Result<()> {
         flate2::Compression::best(),
     );
 
-    let mut buf = [0u8; 65536];
+    let mut buf = vec![0u8; 65536];
     loop {
         let n = reader.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading source: {e}"),
@@ -158,6 +173,11 @@ pub fn compress_gzip(src: &Path, dest: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Decompress a gzip file.
+///
+/// # Errors
+/// Returns an error if the source cannot be read. Returns an error if the destination
+/// cannot be written.
 pub fn decompress_gzip(src: &Path, dest: &Path) -> Result<()> {
     let src_file = File::open(src).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening source: {e}"),
@@ -169,7 +189,7 @@ pub fn decompress_gzip(src: &Path, dest: &Path) -> Result<()> {
     let mut decoder = flate2::read::GzDecoder::new(BufReader::new(src_file));
     let mut writer = BufWriter::new(dest_file);
 
-    let mut buf = [0u8; 65536];
+    let mut buf = vec![0u8; 65536];
     loop {
         let n = decoder.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading compressed data: {e}"),
@@ -189,6 +209,11 @@ pub fn decompress_gzip(src: &Path, dest: &Path) -> Result<()> {
 
 // ── XZ compression (Rust-native via xz2) ─────────────────────────────────────
 
+/// Compress a file with xz.
+///
+/// # Errors
+/// Returns an error if the source cannot be read. Returns an error if the destination
+/// cannot be written.
 pub fn compress_xz(src: &Path, dest: &Path) -> Result<()> {
     let src_file = File::open(src).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening source: {e}"),
@@ -204,7 +229,7 @@ pub fn compress_xz(src: &Path, dest: &Path) -> Result<()> {
         9,
     );
 
-    let mut buf = [0u8; 65536];
+    let mut buf = vec![0u8; 65536];
     loop {
         let n = reader.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading source: {e}"),
@@ -222,6 +247,11 @@ pub fn compress_xz(src: &Path, dest: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Decompress an xz file.
+///
+/// # Errors
+/// Returns an error if the source cannot be read. Returns an error if the destination
+/// cannot be written.
 pub fn decompress_xz(src: &Path, dest: &Path) -> Result<()> {
     let src_file = File::open(src).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening source: {e}"),
@@ -233,7 +263,7 @@ pub fn decompress_xz(src: &Path, dest: &Path) -> Result<()> {
     let mut decoder = xz2::read::XzDecoder::new(BufReader::new(src_file));
     let mut writer = BufWriter::new(dest_file);
 
-    let mut buf = [0u8; 65536];
+    let mut buf = vec![0u8; 65536];
     loop {
         let n = decoder.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading compressed data: {e}"),
@@ -253,6 +283,13 @@ pub fn decompress_xz(src: &Path, dest: &Path) -> Result<()> {
 
 /// Apply system-level compression as a fallback (if Rust-native fails).
 /// Uses `xz` or `gzip` from the system PATH.
+///
+/// # Errors
+/// Returns an error if the copy fails. Returns an error if the destination cannot be
+/// created. Returns an error if the compression command fails.
+///
+/// # Panics
+/// Panics if the source path is not valid UTF-8.
 #[allow(dead_code)]
 pub fn compress_system(src: &Path, dest: &Path, algo: Compression) -> Result<()> {
     let (cmd, args) = match algo {

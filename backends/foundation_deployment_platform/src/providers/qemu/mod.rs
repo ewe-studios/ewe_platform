@@ -50,19 +50,18 @@ impl QemuProvider {
         })
     }
 
-    fn stop_vm(handle: &VmHandle) -> Result<()> {
+    fn stop_vm(handle: &VmHandle) {
         run_shutdown_scripts(handle);
         if let Some(pid) = handle.pid() {
             unsafe { libc::kill(pid, libc::SIGTERM) };
             for _ in 0..20 {
                 std::thread::sleep(std::time::Duration::from_millis(500));
                 if unsafe { libc::kill(pid, 0) } != 0 {
-                    return Ok(());
+                    return;
                 }
             }
             unsafe { libc::kill(pid, libc::SIGKILL) };
         }
-        Ok(())
     }
 
     fn is_vm_running(handle: &VmHandle) -> bool {
@@ -91,7 +90,8 @@ impl Provider for QemuProvider {
     }
 
     fn stop(&self, handle: &VmHandle) -> Result<()> {
-        Self::stop_vm(handle)
+        Self::stop_vm(handle);
+        Ok(())
     }
 
     fn is_running(&self, handle: &VmHandle) -> bool {
@@ -137,6 +137,9 @@ impl VmProvider for QemuProvider {
 // ── Public API ──────────────────────────────────────────────────────────
 
 /// Run startup scripts after the VM is booted and bootstrapped.
+///
+/// # Errors
+/// Returns an error if the startup scripts fail.
 pub fn run_startup_scripts_for(handle: &VmHandle) -> Result<()> {
     crate::init::run_startup_scripts(
         handle.profile.name,

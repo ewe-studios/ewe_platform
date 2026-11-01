@@ -17,6 +17,15 @@ use crate::config::{Result, TestbedError};
 /// atomically renames to `dest` on success. If a `.partial` file already
 /// exists, resume is attempted via HTTP Range. If the server doesn't support
 /// 206 Partial Content, the `.partial` is deleted and a fresh download starts.
+///
+/// # Errors
+///
+/// Returns an error if curl cannot be spawned, if the download fails, or if the
+/// partial file is smaller than the minimum expected size.
+///
+/// # Panics
+///
+/// Panics if the partial file path is not valid UTF-8.
 pub fn download(url: &str, dest: &Path) -> Result<()> {
     let partial = dest.with_extension(dest.extension().map_or_else(
         || "partial".to_string(),
@@ -32,7 +41,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
     let start_byte = if partial.exists() {
         let metadata = std::fs::metadata(&partial).map_err(|e| TestbedError::DownloadFailed {
             status: 0,
-            url: format!("stat {partial:?}: {e}"),
+            url: format!("stat {}: {e}", partial.display()),
         })?;
         Some(metadata.len())
     } else {
@@ -80,7 +89,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
             return download(url, dest); // retry fresh
         }
         return Err(TestbedError::DownloadFailed {
-            status: code as u16,
+            status: u16::try_from(code).unwrap_or(u16::MAX),
             url: url.to_string(),
         });
     }
@@ -88,7 +97,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
     // Validate download size — reject files < 100 MB as likely failed downloads
     let meta = std::fs::metadata(&partial).map_err(|e| TestbedError::DownloadFailed {
         status: 0,
-        url: format!("stat {partial:?}: {e}"),
+        url: format!("stat {}: {e}", partial.display()),
     })?;
     if meta.len() < 100 * 1024 * 1024 {
         let _ = std::fs::remove_file(&partial);
@@ -104,7 +113,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
     // Atomic rename: partial → dest
     std::fs::rename(&partial, dest).map_err(|e| TestbedError::DownloadFailed {
         status: 0,
-        url: format!("rename {partial:?} → {dest:?}: {e}"),
+        url: format!("rename {} → {}: {e}", partial.display(), dest.display()),
     })?;
 
     // Show completion

@@ -42,6 +42,11 @@ pub struct VmState {
 }
 
 /// Save VM state to disk.
+///
+/// # Errors
+///
+/// Returns an error if the state cannot be serialized, if the directory cannot
+/// be created, or if the file cannot be written.
 pub fn save(state: &VmState) -> Result<()> {
     let path = state_path(&state.profile_name);
     let json = serde_json::to_string_pretty(state).map_err(|e| TestbedError::Qcow2Error {
@@ -52,11 +57,11 @@ pub fn save(state: &VmState) -> Result<()> {
     // on a fresh machine; don't rely on a launch path having created it.
     let dir = state_dir();
     std::fs::create_dir_all(&dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating state directory {dir:?}: {e}"),
+        message: format!("creating state directory {}: {e}", dir.display()),
     })?;
 
     std::fs::write(&path, json).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("writing state to {path:?}: {e}"),
+        message: format!("writing state to {}: {e}", path.display()),
     })?;
 
     Ok(())
@@ -66,6 +71,11 @@ pub fn save(state: &VmState) -> Result<()> {
 ///
 /// Performs stale PID detection: if the process is gone, marks the VM
 /// as stopped (sets PID to None) and saves the cleaned state.
+///
+/// # Errors
+///
+/// Returns an error if the state file does not exist, cannot be read, or cannot
+/// be parsed, or if the cleaned state cannot be saved.
 pub fn load(name: &str) -> Result<VmState> {
     let path = state_path(name);
     if !path.exists() {
@@ -75,7 +85,7 @@ pub fn load(name: &str) -> Result<VmState> {
     }
 
     let json = std::fs::read_to_string(&path).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("reading state from {path:?}: {e}"),
+        message: format!("reading state from {}: {e}", path.display()),
     })?;
 
     let mut state: VmState = serde_json::from_str(&json).map_err(|e| TestbedError::Qcow2Error {
@@ -100,11 +110,15 @@ pub fn exists(name: &str) -> bool {
 }
 
 /// Delete VM state file.
+///
+/// # Errors
+///
+/// Returns an error if the state file cannot be removed.
 pub fn delete(name: &str) -> Result<()> {
     let path = state_path(name);
     if path.exists() {
         std::fs::remove_file(&path).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("deleting state {path:?}: {e}"),
+            message: format!("deleting state {}: {e}", path.display()),
         })?;
     }
     Ok(())
@@ -113,6 +127,10 @@ pub fn delete(name: &str) -> Result<()> {
 /// List all known VMs.
 ///
 /// Returns (`profile_name`, state) for each state file.
+///
+/// # Errors
+///
+/// Returns an error if the state directory cannot be read.
 pub fn list() -> Result<Vec<(String, VmState)>> {
     let dir = state_dir();
     if !dir.exists() {
@@ -121,7 +139,7 @@ pub fn list() -> Result<Vec<(String, VmState)>> {
 
     let mut vms = Vec::new();
     for entry in std::fs::read_dir(&dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("reading state dir {dir:?}: {e}"),
+        message: format!("reading state dir {}: {e}", dir.display()),
     })? {
         let entry = entry.map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading state entry: {e}"),
@@ -228,6 +246,7 @@ pub fn state_dir() -> PathBuf {
 #[must_use]
 pub fn is_process_alive(pid: u32) -> bool {
     #[cfg(unix)]
+    #[allow(clippy::cast_possible_wrap)] // PID fits in i32 on supported Unix targets.
     {
         unsafe { libc::kill(pid as i32, 0) == 0 }
     }

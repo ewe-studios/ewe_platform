@@ -19,6 +19,12 @@ use super::bundle;
 /// Ensure a UTM VM bundle is available and imported into UTM.
 ///
 /// Returns the path to the extracted `.utm` bundle on disk.
+///
+/// # Errors
+/// Returns an error if the bundle cannot be downloaded, extracted, or imported.
+///
+/// # Panics
+/// Panics if the prepared bundle path is not valid UTF-8.
 pub fn ensure_utm_bundle(profile: &VmProfile) -> Result<PathBuf> {
     // Already imported under our profile name? Reuse it.
     if super::utmctl::list_vms()?
@@ -168,7 +174,7 @@ fn rewrite_plist_name(plist_path: &Path, new_name: &str) -> Result<()> {
 fn utm_cache_dir() -> Result<PathBuf> {
     let dir = crate::config::image_cache_dir().join("utm");
     std::fs::create_dir_all(&dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating UTM cache dir {dir:?}: {e}"),
+        message: format!("creating UTM cache dir {}: {e}", dir.display()),
     })?;
     Ok(dir)
 }
@@ -256,13 +262,15 @@ fn extract_box(box_path: &Path, profile: &VmProfile) -> Result<PathBuf> {
         let _ = std::fs::remove_dir_all(&dest_dir);
     }
     std::fs::create_dir_all(&dest_dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating extraction dir {dest_dir:?}: {e}"),
+        message: format!("creating extraction dir {}: {e}", dest_dir.display()),
     })?;
 
     let compressed_size = std::fs::metadata(box_path).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("stat {box_path:?}: {e}"),
+        message: format!("stat {}: {e}", box_path.display()),
     })?;
     let size = compressed_size.len();
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
     eprintln!(
         "  Extracting box ({:.1} GB compressed → ~{:.0} GB on disk)...",
         size as f64 / 1_073_741_824.0,
@@ -282,7 +290,7 @@ fn extract_box(box_path: &Path, profile: &VmProfile) -> Result<PathBuf> {
     pb.enable_steady_tick(Duration::from_secs(5));
 
     let file = std::fs::File::open(box_path).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("opening {box_path:?}: {e}"),
+        message: format!("opening {}: {e}", box_path.display()),
     })?;
     let tracked = pb.wrap_read(file);
     let gz = flate2::read::GzDecoder::new(tracked);
@@ -299,7 +307,7 @@ fn extract_box(box_path: &Path, profile: &VmProfile) -> Result<PathBuf> {
 
 fn find_utm_bundle(dir: &Path) -> Result<PathBuf> {
     for entry in std::fs::read_dir(dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("reading {dir:?}: {e}"),
+        message: format!("reading {}: {e}", dir.display()),
     })? {
         let entry = entry.map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading cache entry: {e}"),

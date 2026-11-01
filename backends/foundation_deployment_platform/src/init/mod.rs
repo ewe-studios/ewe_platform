@@ -6,12 +6,16 @@
 //! - `<vm>/logs/`, `<vm>/artifacts/`, `<vm>/state/` — per-VM directories
 //! - `scripts/<vm>/startup/` and `shutdown/` — built-in defaults
 
+use std::fmt::Write as _;
 use std::fs;
 use std::path::Path;
 
 use crate::config::{GuestOs, Result, TestbedError};
 
 /// Run `testbed init`: scaffold `$PWD/.testbed/` + `testbed.toml` in project root.
+///
+/// # Errors
+/// Returns an error if a directory, file, or script cannot be created.
 pub fn init(project_root: &Path, vm_names: &[String]) -> Result<()> {
     let testbed_dir = project_root.join(".testbed");
     let toml_path = project_root.join("testbed.toml");
@@ -88,12 +92,13 @@ pub fn generate_testbed_toml(vm_names: &[String]) -> String {
 
     for name in vm_names {
         let guest_path = guest_mount_path(name);
-        out.push_str(&format!(
+        let _ = writeln!(
+            out,
             "[[vms]]\n\
              name = \"{name}\"\n\
              profile = \"{name}\"\n\
-             mount = {{ host_path = \".\", guest_path = \"{guest_path}\", readonly = false }}\n\n",
-        ));
+             mount = {{ host_path = \".\", guest_path = \"{guest_path}\", readonly = false }}\n",
+        );
     }
 
     // Include macOS VM if not already listed
@@ -138,14 +143,15 @@ pub fn generate_testbed_toml(vm_names: &[String]) -> String {
         .unwrap_or_default()
         .to_string_lossy()
         .into_owned();
-    out.push_str(&format!(
+    let _ = writeln!(
+        out,
         "# Local image store — user home directory\n\
          [[image_stores]]\n\
          name = \"local\"\n\
          type = \"local\"\n\
          destination = \"{local_store}\"\n\
-         key_prefix = \"\"\n\n",
-    ));
+         key_prefix = \"\"\n",
+    );
 
 
     out
@@ -181,7 +187,7 @@ fn generate_scripts(testbed_dir: &Path, vm_name: &str) -> Result<()> {
     if is_windows {
         let startup = scripts_dir.join("startup");
         fs::create_dir_all(&startup).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("creating {startup:?}: {e}"),
+            message: format!("creating {}: {e}", startup.display()),
         })?;
         fs::write(
             startup.join("00-defender.ps1"),
@@ -193,7 +199,7 @@ fn generate_scripts(testbed_dir: &Path, vm_name: &str) -> Result<()> {
     } else {
         let startup = scripts_dir.join("startup");
         fs::create_dir_all(&startup).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("creating {startup:?}: {e}"),
+            message: format!("creating {}: {e}", startup.display()),
         })?;
         fs::write(
             startup.join("00-mount.sh"),
@@ -234,12 +240,18 @@ fi
 ///
 /// Scripts in `$PWD/.testbed/scripts/<vm>/startup/` are sorted by filename
 /// and executed sequentially. If a script fails, execution stops.
+///
+/// # Errors
+/// Returns an error if a startup script fails.
 pub fn run_startup_scripts(vm_name: &str, os: GuestOs, ssh_port: u16, user: &str) -> Result<()> {
     let scripts_dir = Path::new(".testbed").join("scripts").join(vm_name).join("startup");
     run_scripts_dir(&scripts_dir, os, ssh_port, user)
 }
 
 /// Execute shutdown scripts for a VM in numbered order.
+///
+/// # Errors
+/// Returns an error if a shutdown script fails.
 pub fn run_shutdown_scripts(vm_name: &str, os: GuestOs, ssh_port: u16, user: &str) -> Result<()> {
     let scripts_dir = Path::new(".testbed").join("scripts").join(vm_name).join("shutdown");
     run_scripts_dir(&scripts_dir, os, ssh_port, user)
@@ -254,7 +266,7 @@ fn run_scripts_dir(dir: &Path, os: GuestOs, ssh_port: u16, user: &str) -> Result
     let mut entries: Vec<_> = fs::read_dir(dir)
         .map_err(|e| TestbedError::SshFailed {
             port: ssh_port,
-            source: anyhow::anyhow!("reading {dir:?}: {e}"),
+            source: anyhow::anyhow!("reading {}: {e}", dir.display()),
         })?
         .filter_map(std::result::Result::ok)
         .filter(|e| e.path().extension().is_some())

@@ -16,6 +16,9 @@ use crate::config::{GuestOs, Result, TestbedError};
 /// Since the project is mounted, artifacts are already on the host.
 /// This function creates a structured view under `.testbed/artifacts/`
 /// using symlinks (instant, no copy).
+///
+/// # Errors
+/// Returns an error if a directory cannot be created or a symlink cannot be made.
 pub fn mirror_artifacts(
     project_dir: &Path,
     target_triple: &str,
@@ -59,6 +62,9 @@ pub fn mirror_artifacts(
 }
 
 /// Scan a build directory for artifact files (executables, shared libs).
+///
+/// # Errors
+/// Returns an error if the build directory cannot be read.
 pub fn scan_artifacts(dir: &Path, os: GuestOs) -> Result<Vec<PathBuf>> {
     let mut artifacts = Vec::new();
 

@@ -32,6 +32,9 @@ const COMPRESSED_EXTENSIONS: &[&str] = &["qcow2.gz", "qcow2.xz"];
 ///
 /// The environment variable must point to a valid file (qcow2 or compressed
 /// qcow2). It is used as-is — no download, no extraction, no copy.
+///
+/// # Errors
+/// Returns an error if the image cannot be resolved or downloaded.
 pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
     // macOS uses a different layout (directory with BaseSystem.qcow2 + opencore.qcow2 + data disk)
     // Try image stores / prebaked tarball first, then fall back to native IPSW creation.
@@ -95,7 +98,7 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
         let _ = std::fs::remove_file(&temp_dest);
     } else {
         std::fs::rename(&temp_dest, &dest).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("moving downloaded image to {dest:?}: {e}"),
+            message: format!("moving downloaded image to {}: {e}", dest.display()),
         })?;
     }
 
@@ -151,10 +154,7 @@ fn try_download_from_store(profile: &VmProfile, dest: &Path) -> Result<Option<Pa
 /// Only works for Http and Local store types.
 fn store_download_url_direct(store: &crate::config::ImageStore, filename: &str) -> Option<String> {
     match store.store_type {
-        crate::config::StoreType::Http => {
-            Some(format!("{}/{}", store.destination.trim_end_matches('/'), filename))
-        }
-        crate::config::StoreType::Local => {
+        crate::config::StoreType::Http | crate::config::StoreType::Local => {
             Some(format!("{}/{}", store.destination.trim_end_matches('/'), filename))
         }
         crate::config::StoreType::R2 | crate::config::StoreType::S3 => {
@@ -190,13 +190,13 @@ fn find_cached_image(dest: &std::path::Path) -> Option<std::path::PathBuf> {
 /// Check if a file looks like a compressed qcow2 archive (by extension + magic).
 fn is_compressed_qcow2(path: &std::path::Path) -> bool {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
-    match ext {
-        "gz" | "xz" => true,
-        _ => false,
-    }
+    matches!(ext, "gz" | "xz")
 }
 
 /// Download an image from a specific URL.
+///
+/// # Errors
+/// Returns an error if the download or validation fails.
 pub fn download_from_url(url: &str, dest: &Path) -> Result<()> {
     download::download(url, dest)?;
     validate_image(dest)?;
@@ -227,6 +227,9 @@ pub fn is_cached(profile: &VmProfile) -> bool {
 }
 
 /// Remove a cached image for a profile.
+///
+/// # Errors
+/// Returns an error if a cached image file cannot be removed.
 pub fn evict(profile: &VmProfile) -> Result<()> {
     // Don't evict env-var override images — the file is user-managed
     let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
@@ -238,7 +241,7 @@ pub fn evict(profile: &VmProfile) -> Result<()> {
         let macos_dir = crate::config::image_cache_dir().join(format!("macos-{}", profile.name));
         if macos_dir.exists() {
             std::fs::remove_dir_all(&macos_dir).map_err(|e| TestbedError::Qcow2Error {
-                message: format!("removing {macos_dir:?}: {e}"),
+                message: format!("removing {}: {e}", macos_dir.display()),
             })?;
         }
         Ok(())
@@ -248,7 +251,7 @@ pub fn evict(profile: &VmProfile) -> Result<()> {
         let mut removed = false;
         if dest.exists() {
             std::fs::remove_file(&dest).map_err(|e| TestbedError::Qcow2Error {
-                message: format!("removing {dest:?}: {e}"),
+                message: format!("removing {}: {e}", dest.display()),
             })?;
             removed = true;
         }
@@ -256,7 +259,7 @@ pub fn evict(profile: &VmProfile) -> Result<()> {
             let compressed = dest.with_extension(ext);
             if compressed.exists() {
                 std::fs::remove_file(&compressed).map_err(|e| TestbedError::Qcow2Error {
-                    message: format!("removing {compressed:?}: {e}"),
+                    message: format!("removing {}: {e}", compressed.display()),
                 })?;
                 removed = true;
             }
@@ -269,6 +272,9 @@ pub fn evict(profile: &VmProfile) -> Result<()> {
 }
 
 /// Get the size of a cached image.
+///
+/// # Errors
+/// Returns an error if the cached image metadata cannot be read.
 pub fn cached_size(profile: &VmProfile) -> Result<u64> {
     // Check env var override first
     let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
@@ -281,7 +287,7 @@ pub fn cached_size(profile: &VmProfile) -> Result<u64> {
 
     let dest = profile.image_cache_path();
     let metadata = std::fs::metadata(&dest).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("stat {dest:?}: {e}"),
+        message: format!("stat {}: {e}", dest.display()),
     })?;
     Ok(metadata.len())
 }
@@ -329,7 +335,10 @@ fn extract_qcow2_from_box(box_path: &Path, dest: &Path) -> Result<()> {
     let entries: String = String::from_utf8_lossy(&output.stdout).to_string();
     let disk_entry = entries.lines().find(|name| {
         let n = name.trim();
-        n == "box.img" || n == "box_0.img" || n.ends_with(".qcow2") || n.ends_with(".img")
+        n == "box.img"
+            || n == "box_0.img"
+            || Path::new(n).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("qcow2"))
+            || Path::new(n).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("img"))
     }).ok_or_else(|| TestbedError::Qcow2Error {
         message: "no disk image found in vagrant box (expected box.img, box_0.img, *.qcow2, or *.img)".to_string(),
     })?;
@@ -337,7 +346,7 @@ fn extract_qcow2_from_box(box_path: &Path, dest: &Path) -> Result<()> {
     // Extract the specific file to a temp location
     let temp_extract = dest.with_extension("extracting");
     let out_file = std::fs::File::create(&temp_extract).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating {temp_extract:?}: {e}"),
+        message: format!("creating {}: {e}", temp_extract.display()),
     })?;
 
     let status = std::process::Command::new("tar")
@@ -357,7 +366,7 @@ fn extract_qcow2_from_box(box_path: &Path, dest: &Path) -> Result<()> {
 
     // Move to final destination
     std::fs::rename(&temp_extract, dest).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("moving extracted disk to {dest:?}: {e}"),
+        message: format!("moving extracted disk to {}: {e}", dest.display()),
     })?;
 
     Ok(())
@@ -605,6 +614,9 @@ async fn query_vagrant_cloud(image_name: &'static str) -> Result<Option<String>>
 /// (`ClientConfig::max_body_size`). A response larger than the cap is rejected
 /// by the transport before the body is collected. The body is read as a stream
 /// (`collect_bytes_async`), never buffered whole by hand.
+///
+/// # Errors
+/// Returns an error if the request, response, or metadata parse fails.
 pub async fn vagrant_cloud_lookup(
     client: &DynNetClient,
     api_url: &str,
@@ -648,16 +660,20 @@ pub async fn vagrant_cloud_lookup(
 // ── Validation ──────────────────────────────────────────────────────────────
 
 /// Validate that a downloaded image looks legitimate.
+///
+/// # Errors
+/// Returns an error if the image metadata cannot be read or the image is too small.
 pub fn validate_image(path: &Path) -> Result<()> {
     let metadata = std::fs::metadata(path).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("stat {path:?}: {e}"),
+        message: format!("stat {}: {e}", path.display()),
     })?;
 
     let size = metadata.len();
     if size < MIN_IMAGE_SIZE {
         return Err(TestbedError::Qcow2Error {
             message: format!(
-                "image at {path:?} is only {} bytes (< {} MB minimum) — likely a failed download",
+                "image at {} is only {} bytes (< {} MB minimum) — likely a failed download",
+                path.display(),
                 size,
                 MIN_IMAGE_SIZE / 1_048_576
             ),
@@ -682,6 +698,12 @@ const MIN_VIRTIO_ISO_SIZE: u64 = 500 * 1_048_576;
 /// Returns the path to the ISO file. The ISO is attached as a CD-ROM
 /// drive to Windows VMs during QEMU launch, allowing driver installation
 /// via `pnputil` during bootstrap.
+///
+/// # Panics
+/// Panics if the cache path has no parent, which cannot happen because the path is under the image cache directory.
+///
+/// # Errors
+/// Returns an error if the virtio ISO cannot be downloaded or validated.
 pub fn ensure_virtio_iso() -> Result<PathBuf> {
     let cache_path = crate::config::image_cache_dir().join("virtio-win.iso");
 

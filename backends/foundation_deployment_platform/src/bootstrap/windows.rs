@@ -84,6 +84,9 @@ fn ssh_ps(session: &mut VmSession, winrm: &WinRM, script: &str) -> Result<PsResu
 ///
 /// Phase 1 (WinRM): install OpenSSH, setup keys, autologin.
 /// Phase 2 (SSH): install mise, build tools, runtimes.
+///
+/// # Errors
+/// Returns an error if a bootstrap step fails.
 pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>, force_vsbuild: bool) -> Result<()> {
     // Phase 1: WinRM-only steps (no SSH required)
     logger::step(logger, "install OpenSSH Server", || {
@@ -92,7 +95,8 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
 
     // Phase 2: SSH key authorization (now via WinRM)
     logger::step(logger, "authorise host SSH key", || {
-        setup_ssh_keys(winrm)
+        setup_ssh_keys(winrm);
+        Ok(())
     })?;
 
     // Phase 3: LocalAccountTokenFilterPolicy
@@ -176,13 +180,17 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
 ///
 /// Runs before SSH is available. After this completes, callers should
 /// wait for SSH to become reachable, then call `bootstrap_windows_ssh_phase`.
+///
+/// # Errors
+/// Returns an error if a WinRM bootstrap step fails.
 pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
     logger::step(logger, "install OpenSSH Server", || {
         install_openssh_server(winrm, progress)
     })?;
 
     logger::step(logger, "authorise host SSH key", || {
-        setup_ssh_keys(winrm)
+        setup_ssh_keys(winrm);
+        Ok(())
     })?;
 
     logger::step(logger, "set LocalAccountTokenFilterPolicy", || {
@@ -210,6 +218,9 @@ pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM, logger:
 /// Phase 2: SSH-required bootstrap (installs dev tools).
 ///
 /// Call after `bootstrap_windows_winrm_phase` and waiting for SSH.
+///
+/// # Errors
+/// Returns an error if an SSH bootstrap step fails.
 pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>, force_vsbuild: bool) -> Result<()> {
     logger::step(logger, "install mise", || {
         install_mise(session)
@@ -290,7 +301,7 @@ fn install_openssh_server(winrm: &WinRM, progress: ProgressCallback<'_>) -> Resu
 }
 
 /// Set up SSH key authorization on Windows (both user + admin paths) via `WinRM`.
-fn setup_ssh_keys(winrm: &WinRM) -> Result<()> {
+fn setup_ssh_keys(winrm: &WinRM) {
     let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("/home/darkvoid"));
     let key_names = ["id_ed25519.pub", "id_rsa.pub", "id_ecdsa.pub"];
     let mut pub_key = String::new();
@@ -304,7 +315,7 @@ fn setup_ssh_keys(winrm: &WinRM) -> Result<()> {
     }
 
     if pub_key.is_empty() {
-        return Ok(());
+        return;
     }
 
     let script = SETUP_SSH_KEYS_PS1.replace("{{KEY}}", &pub_key);
@@ -313,7 +324,6 @@ fn setup_ssh_keys(winrm: &WinRM) -> Result<()> {
     if let Err(e) = result {
         warn!("[bootstrap] SSH key setup via WinRM had issues: {e:?}");
     }
-    Ok(())
 }
 
 /// Set `LocalAccountTokenFilterPolicy` registry key.
@@ -338,6 +348,9 @@ fn set_autologin(winrm: &WinRM) -> Result<bool> {
 }
 
 /// Reboot the Windows VM and wait for `WinRM` to come back.
+///
+/// # Errors
+/// Returns an error if WinRM does not return within the timeout.
 pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
     logger.message("rebooting VM for autologin to take effect...");
 
@@ -407,7 +420,7 @@ fn install_cargo_binstall(session: &mut VmSession, winrm: &WinRM) -> Result<()> 
 fn cache_or_download(filename: &str, url: &str) -> Result<PathBuf> {
     let cache_dir = dirs::home_dir().map_or_else(|| PathBuf::from("/tmp/.testbed/windows"), |h| h.join(".testbed/windows"));
     std::fs::create_dir_all(&cache_dir).map_err(|e| TestbedError::BootstrapFailed {
-        step: format!("create cache dir {cache_dir:?}"),
+        step: format!("create cache dir {}", cache_dir.display()),
         message: e.to_string(),
     })?;
 
@@ -557,6 +570,9 @@ fn set_defender_exclusions(session: &mut VmSession) -> Result<()> {
 }
 
 /// Remove pre-installed bloatware packages from Windows.
+///
+/// # Errors
+/// Returns an error if the elevated cleanup script fails.
 pub fn debloat_windows(winrm: &WinRM) -> Result<()> {
     const DEBLOAT_PREFIXES: &[&str] = &[
         "Microsoft.BingWeather", "Microsoft.GetHelp", "Microsoft.Getstarted",
@@ -742,6 +758,9 @@ fn write_bootstrap_marker(session: &mut VmSession) -> Result<()> {
 }
 
 /// Clean transient files from the Windows guest.
+///
+/// # Errors
+/// Returns an error if the cleanup script fails.
 pub fn clean_windows(winrm: &WinRM, deep: bool) -> crate::config::Result<()> {
     let deep_block = if deep { CLEAN_DEEP_PS1 } else { "" };
     let script = CLEAN_MAIN_PS1
@@ -752,6 +771,9 @@ pub fn clean_windows(winrm: &WinRM, deep: bool) -> crate::config::Result<()> {
 }
 
 /// Aggressive cleanup — `CompactOS`, hibernation, VSS, event logs.
+///
+/// # Errors
+/// Returns an error if a cleanup script fails.
 pub fn aggressive_clean(winrm: &WinRM) -> crate::config::Result<()> {
     for (_name, script) in [
         ("CompactOS", CLEAN_COMPACTOS_PS1),
@@ -769,6 +791,9 @@ pub fn aggressive_clean(winrm: &WinRM) -> crate::config::Result<()> {
 ///
 /// Uses `/RU vagrant /IT` so GUI apps actually appear on screen (unlike
 /// headless SSH/WinRM execution where Win32 GUI windows are silently exited).
+///
+/// # Errors
+/// Returns an error if the interactive launch fails.
 pub fn run_interactive_windows(winrm: &WinRM, bin_path: &str, args: &[String]) -> Result<()> {
     let arglist = if args.is_empty() {
         String::new()
@@ -787,6 +812,9 @@ pub fn run_interactive_windows(winrm: &WinRM, bin_path: &str, args: &[String]) -
 ///
 /// Runs in a Scheduled Task with `/RU vagrant /IT` so `Graphics.CopyFromScreen`
 /// sees the real desktop. The PNG is written to a VM path, then SCP'd back.
+///
+/// # Errors
+/// Returns an error if the screenshot or download fails.
 pub fn screenshot_windows(winrm: &WinRM, session: &mut VmSession, output: &std::path::Path) -> Result<()> {
     let vm_path = "$env:USERPROFILE\\.testbed-screenshot.png";
     let script = SCREENSHOT_WINDOWS_PS1.replace("__OUTPUT_PATH__", vm_path);

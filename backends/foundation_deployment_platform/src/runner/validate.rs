@@ -22,6 +22,11 @@ pub struct ValidationResult {
 ///
 /// Returns a `ValidationResult` with match percentage and pass/fail.
 /// If the match is below tolerance, generates a diff image.
+///
+/// # Errors
+///
+/// Returns an error if an image cannot be loaded or if the diff image cannot
+/// be saved.
 pub fn validate(
     actual: &Path,
     golden: &Path,
@@ -31,12 +36,12 @@ pub fn validate(
     // Load images
     let golden_img = image::open(golden).map_err(|e| {
         crate::config::TestbedError::Qcow2Error {
-            message: format!("loading golden image {golden:?}: {e}"),
+            message: format!("loading golden image {}: {e}", golden.display()),
         }
     })?;
     let actual_img = image::open(actual).map_err(|e| {
         crate::config::TestbedError::Qcow2Error {
-            message: format!("loading actual image {actual:?}: {e}"),
+            message: format!("loading actual image {}: {e}", actual.display()),
         }
     })?;
 
@@ -78,6 +83,8 @@ pub fn validate(
         }
     }
 
+    // pixel counts to f64 for a percentage; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
     let match_pct = (matching_pixels as f64 / total_pixels as f64) * 100.0;
     let passed = match_pct >= tolerance;
 
@@ -88,7 +95,7 @@ pub fn validate(
         let path_str = out_path.to_string_lossy().to_string();
         diff.save(out_path).map_err(|e| {
             crate::config::TestbedError::Qcow2Error {
-                message: format!("saving diff image {out_path:?}: {e}"),
+                message: format!("saving diff image {}: {e}", out_path.display()),
             }
         })?;
         Some(path_str)

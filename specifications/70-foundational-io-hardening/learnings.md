@@ -2,6 +2,17 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (backlog §7 `vms` clippy, foundation_deployment_platform): three
+  concrete gotchas from the manual pass. (1) `lines_filter_map_ok`'s
+  `map_while(Result::ok)` suggestion breaks when a local `type Result<T> = ...`
+  alias shadows `std::result::Result`; write `.map_while(|l| l.ok())` instead.
+  (2) `assert_is_empty`'s `assert_ne!(x, [])` suggestion does not compile for
+  `&[T]` (the empty-array element type cannot be inferred); use
+  `assert_ne!(x, [] as [T; 0])`. (3) `format_push_string`/`format_collect` need
+  `use std::fmt::Write as _;` for `write!`. Also: moving a test-only optional
+  dependency to `[dev-dependencies]` clears `unused_crate_dependencies` without
+  any new default-feature warning.
+
 - 2026-11-02 (backlog §7 clippy cleanup, foundation_deployment_platform): CI's
   clippy and build steps run only `runs[0]` of `ci/packages.toml`. For
   `foundation_deployment_platform` that is the default feature set, so the

@@ -41,6 +41,11 @@ pub struct ExportOptions {
 }
 
 /// Export a VM to a local file or upload to a store.
+///
+/// # Errors
+/// Returns an error if the profile is not found. Returns an error if any export step fails.
+// Long function; refactor is tracked separately.
+#[allow(clippy::too_many_lines)]
 pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
     let profile = get_profile(name).cloned()?;
 
@@ -82,7 +87,7 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
     let was_running = is_running;
     if is_running {
         println!("  Stopping VM...");
-        stop_vm(&profile, &vm_state)?;
+        stop_vm(&profile, vm_state.as_ref())?;
     }
 
     // Step 5: Copy disk image to a staging location for processing
@@ -105,6 +110,8 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
         current_file = qemu_compressed;
 
         let (orig, comp, ratio) = size_comparison(&disk_path, &current_file)?;
+        // size in bytes to f64 for display; precision loss is acceptable.
+        #[allow(clippy::cast_precision_loss)]
         println!("  qemu-img size: {:.2} GB -> {:.2} GB ({:.1}%)",
             orig as f64 / 1_073_741_824.0,
             comp as f64 / 1_073_741_824.0,
@@ -124,6 +131,8 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
         current_file = final_compressed;
 
         let (orig, comp, ratio) = size_comparison(&disk_path, &current_file)?;
+        // size in bytes to f64 for display; precision loss is acceptable.
+        #[allow(clippy::cast_precision_loss)]
         println!("  Final size: {:.2} GB -> {:.2} GB ({:.1}%)",
             orig as f64 / 1_073_741_824.0,
             comp as f64 / 1_073_741_824.0,
@@ -132,13 +141,13 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
 
     // Rename final result to output path
     std::fs::rename(&current_file, &output_name).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("moving export to {output_name:?}: {e}"),
+        message: format!("moving export to {}: {e}", output_name.display()),
     })?;
 
     // Step 7: Detect installed tools if VM was running
     let installed_tools = if was_running {
         let mut session = ssh::connect(&profile).ok();
-        session.as_mut().and_then(|s| detect_installed_tools(s, profile.os).ok())
+        session.as_mut().map(|s| detect_installed_tools(s, profile.os))
             .unwrap_or_default()
     } else {
         std::collections::HashMap::new()
@@ -181,7 +190,12 @@ pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
     Ok(output_name)
 }
 
-fn stop_vm(profile: &VmProfile, vm_state: &Option<state::VmState>) -> Result<()> {
+// PID fits in i32 on supported Unix targets.
+#[allow(clippy::cast_possible_wrap)]
+fn stop_vm(profile: &VmProfile, vm_state: Option<&state::VmState>) -> Result<()> {
+    use std::io::{Read, Write};
+    use std::os::unix::net::UnixStream;
+
     let Some(s) = vm_state else {
         return Err(TestbedError::VmNotRunning { name: profile.name.to_string() });
     };
@@ -193,9 +207,6 @@ fn stop_vm(profile: &VmProfile, vm_state: &Option<state::VmState>) -> Result<()>
         }
         return Ok(());
     }
-
-    use std::io::{Read, Write};
-    use std::os::unix::net::UnixStream;
 
     if let Ok(mut stream) = UnixStream::connect(&s.monitor_socket) {
         let _ = stream.write_all(b"system_powerdown\n");
@@ -231,7 +242,7 @@ fn resolve_store(name: &str) -> Result<ImageStore> {
 fn detect_installed_tools(
     session: &mut ssh::VmSession,
     os: crate::config::GuestOs,
-) -> Result<std::collections::HashMap<String, String>> {
+) -> std::collections::HashMap<String, String> {
     let mut tools = std::collections::HashMap::new();
 
     match os {
@@ -273,5 +284,5 @@ fn detect_installed_tools(
         }
     }
 
-    Ok(tools)
+    tools
 }

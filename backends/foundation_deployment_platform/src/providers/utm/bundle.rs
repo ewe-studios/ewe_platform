@@ -63,18 +63,27 @@ fn plist_set(plist_path: &Path, key: &str, value: &str) -> Result<()> {
 }
 
 /// Read the VM name from a .utm bundle's config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be read.
 pub fn get_vm_name(bundle_path: &Path) -> Result<String> {
     let plist = config_plist_path(bundle_path);
     plist_get(&plist, NAME_KEY)
 }
 
 /// Set the VM name in a .utm bundle's config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be set.
 pub fn set_vm_name(bundle_path: &Path, name: &str) -> Result<()> {
     let plist = config_plist_path(bundle_path);
     plist_set(&plist, NAME_KEY, &quoted_plist_string(name))
 }
 
 /// Read the UTM version from a .utm bundle's config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be read.
 pub fn get_utm_version(bundle_path: &Path) -> Result<String> {
     let plist = config_plist_path(bundle_path);
     plist_get(&plist, UTM_VERSION_KEY)
@@ -95,12 +104,18 @@ pub fn is_utm_bundle(path: &Path) -> bool {
 }
 
 /// Configure CPU cores in the config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be set.
 pub fn set_cpu_cores(bundle_path: &Path, cores: u32) -> Result<()> {
     let plist = config_plist_path(bundle_path);
     plist_set(&plist, "CPUCount", &cores.to_string())
 }
 
 /// Configure memory (RAM) in the config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be set.
 pub fn set_memory_mb(bundle_path: &Path, mb: u32) -> Result<()> {
     let plist = config_plist_path(bundle_path);
     plist_set(&plist, "MemorySize", &mb.to_string())
@@ -118,6 +133,9 @@ pub fn quoted_plist_string(s: &str) -> String {
 /// Apply profile resource settings to a .utm bundle's config.plist.
 ///
 /// Sets VM name, CPU cores, and memory based on the `VmProfile`.
+///
+/// # Errors
+/// Returns an error if the plist values cannot be set.
 pub fn apply_profile(bundle_path: &Path, profile: &VmProfile) -> Result<()> {
     set_vm_name(bundle_path, profile.name)?;
 

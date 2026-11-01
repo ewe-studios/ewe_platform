@@ -73,6 +73,9 @@ fn find_emulated_nic(uuid: &str) -> Result<u32> {
 /// - `uuid`: UTM VM UUID
 /// - `ssh_port`: Host port to forward to guest :22
 /// - `extra_forwards`: Additional (`guest_port`, `host_port`) pairs
+///
+/// # Errors
+/// Returns an error if the NIC cannot be found. Returns an error if the AppleScript fails.
 pub fn configure_port_forwards(
     uuid: &str,
     ssh_port: u16,
@@ -90,10 +93,11 @@ pub fn configure_port_forwards(
         ));
     }
 
-    let set_rules: String = rules
-        .iter()
-        .map(|r| format!("\n      {r}\n      copy newPortForward to the end of portForwards"))
-        .collect();
+    let set_rules = rules.iter().fold(String::new(), |mut acc, r| {
+        use std::fmt::Write as _;
+        let _ = write!(acc, "\n      {r}\n      copy newPortForward to the end of portForwards");
+        acc
+    });
 
     let script = format!(
         r#"
@@ -120,6 +124,9 @@ pub fn configure_port_forwards(
 ///
 /// Uses `update configuration` pattern which is the correct UTM
 /// `AppleScript` API — not direct property assignment.
+///
+/// # Errors
+/// Returns an error if the AppleScript fails.
 pub fn configure_resources(uuid: &str, memory_mib: u32, cpu_cores: u32) -> Result<()> {
     let script = format!(
         r#"
@@ -143,6 +150,10 @@ pub fn configure_resources(uuid: &str, memory_mib: u32, cpu_cores: u32) -> Resul
 ///
 /// Arguments:
 /// - `bundle_path`: Absolute path to the .utm bundle directory
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read. Returns an error if the AppleScript
+/// fails. Returns an error if no new VM appears within 30 seconds.
 pub fn import_bundle(bundle_path: &str) -> Result<String> {
     // Snapshot existing VM UUIDs so we can find the newly imported one
     let before: std::collections::HashSet<String> = super::utmctl::list_vms()?
@@ -197,6 +208,9 @@ pub fn verify_imported_bundle(display_name: &str) -> bool {
 /// - `host_path`: Absolute path on the host
 /// - `mount_tag`: Tag name used to identify the mount inside the guest
 /// - `readonly`: If true, guest has read-only access
+///
+/// # Errors
+/// Returns an error if the AppleScript fails.
 pub fn configure_shared_directory(uuid: &str, host_path: &str, mount_tag: &str, readonly: bool) -> Result<()> {
     let read_only_str = if readonly { "true" } else { "false" };
     let script = format!(

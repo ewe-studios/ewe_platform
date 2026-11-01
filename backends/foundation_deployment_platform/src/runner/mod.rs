@@ -27,6 +27,10 @@ pub struct RunResult {
 ///
 /// Sets up Xvfb + openbox on Linux, or Start-Process on Windows.
 /// Redirects output to ~/.testbed-run/run.log.
+///
+/// # Errors
+///
+/// Returns an error if the binary cannot be detected or launched.
 pub fn run_in_vm(
     profile: &VmProfile,
     session: &mut VmSession,
@@ -40,8 +44,7 @@ pub fn run_in_vm(
     };
 
     match profile.os {
-        GuestOs::Linux => run_linux(session, &binary)?,
-        GuestOs::MacOS => run_linux(session, &binary)?,
+        GuestOs::Linux | GuestOs::MacOS => run_linux(session, &binary)?,
         GuestOs::Windows => run_windows(session, winrm, &binary)?,
     }
 

@@ -216,6 +216,9 @@ fn wait_for_vm_started(name: &str, timeout_secs: u64) -> Result<utmctl::VmEntry>
 }
 
 /// Run startup scripts after the VM is booted and bootstrapped.
+///
+/// # Errors
+/// Returns an error if the startup scripts fail.
 pub fn run_startup_scripts_for(handle: &VmHandle) -> Result<()> {
     crate::init::run_startup_scripts(
         handle.profile.name,

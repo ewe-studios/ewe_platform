@@ -16,6 +16,9 @@ pub fn exists(name: &str) -> bool {
 }
 
 /// Build a UTM VM state entry (saves immediately).
+///
+/// # Errors
+/// Returns an error if the state cannot be saved.
 pub fn save_from_runtime(
     profile_name: &str,
     bundle_path: &str,

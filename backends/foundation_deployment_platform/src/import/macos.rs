@@ -39,6 +39,9 @@ pub struct IpswInfo {
 ///
 /// Creates both the `BaseSystem` qcow2 (boot disk) and the `OpenCore` EFI
 /// disk if they don't already exist.
+///
+/// # Errors
+/// Returns an error if a macOS image step fails.
 pub fn ensure_macos_image(profile_name: &str) -> Result<PathBuf> {
     let base_dir = crate::config::image_cache_dir();
     std::fs::create_dir_all(&base_dir).map_err(|e| TestbedError::Qcow2Error {
@@ -112,6 +115,9 @@ pub fn ensure_macos_image(profile_name: &str) -> Result<PathBuf> {
 /// Query api.ipsw.me for available macOS IPSWs.
 ///
 /// Returns the latest macOS version available for iMacPro1,1 (`x86_64`).
+///
+/// # Errors
+/// Returns an error if no macOS IPSW is found.
 pub fn find_ipsw(model: Option<&str>) -> Result<IpswInfo> {
     let device_id = model.unwrap_or("MacBookPro16,1"); // x86_64 Intel Mac
 
@@ -220,7 +226,7 @@ fn download_ipsw(ipsw: &IpswInfo, dest: &Path) -> Result<()> {
             "600", // 10 minutes for large IPSW
             "-o",
             dest.to_str().ok_or_else(|| TestbedError::Qcow2Error {
-                message: format!("invalid IPSW destination path: {dest:?}"),
+                message: format!("invalid IPSW destination path: {}", dest.display()),
             })?,
             &ipsw.url,
         ])
@@ -249,6 +255,7 @@ fn download_ipsw(ipsw: &IpswInfo, dest: &Path) -> Result<()> {
         });
     }
 
+    #[allow(clippy::cast_precision_loss)] // size in bytes to f64 for display; precision loss is acceptable.
     println!("  IPSW downloaded: {:.1} MB", meta.len() as f64 / 1_048_576.0);
     Ok(())
 }
@@ -307,6 +314,7 @@ fn extract_basesystem(ipsw_path: &Path, dest: &Path) -> Result<()> {
         message: format!("stat BaseSystem.dmg: {e}"),
     })?;
 
+    #[allow(clippy::cast_precision_loss)] // size in bytes to f64 for display; precision loss is acceptable.
     println!("  BaseSystem.dmg extracted: {:.1} MB", meta.len() as f64 / 1_048_576.0);
     Ok(())
 }
@@ -322,10 +330,10 @@ fn convert_dmg_to_qcow2(dmg_path: &Path, dest: &Path) -> Result<()> {
             "qcow2",
             "-c", // compress for smaller
             dmg_path.to_str().ok_or_else(|| TestbedError::Qcow2Error {
-                message: format!("invalid DMG path: {dmg_path:?}"),
+                message: format!("invalid DMG path: {}", dmg_path.display()),
             })?,
             dest.to_str().ok_or_else(|| TestbedError::Qcow2Error {
-                message: format!("invalid qcow2 destination: {dest:?}"),
+                message: format!("invalid qcow2 destination: {}", dest.display()),
             })?,
         ])
         .status()
@@ -343,6 +351,7 @@ fn convert_dmg_to_qcow2(dmg_path: &Path, dest: &Path) -> Result<()> {
         message: format!("stat qcow2: {e}"),
     })?;
 
+    #[allow(clippy::cast_precision_loss)] // size in bytes to f64 for display; precision loss is acceptable.
     println!("  BaseSystem.qcow2 created: {:.1} MB", meta.len() as f64 / 1_048_576.0);
     Ok(())
 }
@@ -355,7 +364,7 @@ fn create_data_disk(dest: &Path, size_gb: u32) -> Result<()> {
             "-f",
             "qcow2",
             dest.to_str().ok_or_else(|| TestbedError::Qcow2Error {
-                message: format!("invalid data disk path: {dest:?}"),
+                message: format!("invalid data disk path: {}", dest.display()),
             })?,
             &format!("{size_gb}G"),
         ])
@@ -534,6 +543,7 @@ fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
         message: format!("stat EFI qcow2: {e}"),
     })?;
 
+    #[allow(clippy::cast_precision_loss)] // size in bytes to f64 for display; precision loss is acceptable.
     println!("  OpenCore EFI disk created: {:.1} MB", meta.len() as f64 / 1_048_576.0);
     Ok(())
 }
@@ -592,6 +602,7 @@ fn populate_fat_image(fat_img: &Path, efi_dir: &Path) -> Result<()> {
 ///
 /// Uses MacPro7,1 SMBIOS, standard boot args for QEMU compatibility.
 #[must_use]
+#[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
 pub fn generate_config_plist() -> String {
     r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

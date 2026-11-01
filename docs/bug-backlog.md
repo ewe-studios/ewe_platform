@@ -66,21 +66,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 7. foundation_deployment_platform
 
-- **The `vms` feature tree has ~625 clippy warnings.** `cargo clippy -p
-  foundation_deployment_platform --all-targets --features vms` reports them in
-  the `vms`-gated modules (`bootstrap/`, `qemu/`, `winrm/`, `import/`,
-  `export/`, `ssh/`, `state/`, `build/`, `init/`, `doctor/`, `runner/`,
-  `providers/utm` and `providers/qemu`, and the `vms_*` test files). Dominant
-  lints: missing `# Errors` docs (140), docs missing backticks (96), missing
-  `#[must_use]` (92), `format!`-argument lints (74), missing `# Panics` docs
-  (24), `u64`→`f64` precision casts (19), single-char `String` patterns (17),
-  unnecessary raw-string hashes (12), and misc. The CI clippy and build steps
-  run default features only (`runs[0] = ""`); `vms` compiles only under
-  `cargo test --features vms`, which does not lint, so none of these fail CI.
-  Fix: run `cargo clippy --profile uat -p foundation_deployment_platform
-  --all-targets --features vms --fix` first (most format/backtick/cast lints
-  are machine-applicable), add the `# Errors`/`# Panics` docs and `#[must_use]`
-  attributes by hand, then extend the CI clippy run to the `vms` feature.
+- **CI does not lint the `vms` feature tree.** The CI clippy and build steps run
+  default features only (`runs[0] = ""`); `vms` compiles only under
+  `cargo test --features vms`, which does not lint. The `vms` tree is now at
+  zero clippy warnings (cleaned 2026-11-02), but nothing keeps it there.
+  Fix: extend the CI clippy run to the `vms` feature so this debt stays zero.
 
 ## 8. foundation_openapi / foundation_codegentools
 

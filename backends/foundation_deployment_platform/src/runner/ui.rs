@@ -7,6 +7,10 @@ use crate::config::{GuestOs, Result, VmProfile};
 use crate::ssh::VmSession;
 
 /// Send a mouse click at the given coordinates.
+///
+/// # Errors
+///
+/// Returns an error if the click command fails.
 pub fn click(session: &mut VmSession, profile: &VmProfile, x: u32, y: u32) -> Result<()> {
     match profile.os {
         GuestOs::Linux | GuestOs::MacOS => click_linux(session, x, y),
@@ -15,6 +19,10 @@ pub fn click(session: &mut VmSession, profile: &VmProfile, x: u32, y: u32) -> Re
 }
 
 /// Type text into the active window.
+///
+/// # Errors
+///
+/// Returns an error if the typing command fails.
 pub fn r#type(session: &mut VmSession, profile: &VmProfile, text: &str) -> Result<()> {
     match profile.os {
         GuestOs::Linux | GuestOs::MacOS => type_linux(session, text),
