@@ -53,6 +53,7 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   the path is longer than `SUN_LEN` (104 bytes), so the bind fails. This is test
   infrastructure, not feature 12's code. Fix: bind the mock socket in a short
   path, such as a per-test temp directory.
+- **`foundation_deployment_cloudflare` has an unused `urlencoding` dependency.** It appears only in `Cargo.toml`, never in source or tests. Fix: remove the line.
 
 ## 7. foundation_deployment_platform
 
@@ -230,12 +231,14 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **`ipc_concurrent_requests` may be flaky under heavy concurrent load.**
-  `tests/ipc_vfs/mod.rs` drives 16 concurrent `read_file_async` requests and
-  passed in the main Linux CI run, but a second CI session sharing the same
-  target volume hung on it. Unconfirmed as a code bug — likely a
-  shared-target-volume artifact. Fix if it recurs: bound the response match
-  with a timeout (feature 20 E6).
+- **`ipc_concurrent_requests` hangs on Linux — a real IPC transport concurrency race.**
+  `tests/ipc_vfs/mod.rs:460` drives 16 concurrent `read_file_async` requests
+  through one `DaemonTransport`, awaited with `zip_all`. It passes on macOS and
+  hangs on Linux (one request never completes). The suspect points are the
+  reader thread `try_send` (`src/native/vfs/ipc_bus.rs:140`),
+  `ClientTransport::request` (`:211`) and the daemon loop (`:308`), plus
+  `src/ipc/platform/linux.rs`. Fix in flight (agent `ae766dfd302c57ff4`). Any
+  timeout or buffer bound must be a config field, not a hard-coded `const` (rule 8).
 - **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
   (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
   file, its metadata and its whiteout as separate blobs, and a blob store has
