@@ -25,10 +25,7 @@ use foundation_core::valtron::initialize_pool;
 use foundation_deployment_platform::docker::{
     ContainerConfig, ContainerHandle, DockerClient, DockerFileConfig,
 };
-
-fn docker_available() -> bool {
-    std::path::Path::new("/var/run/docker.sock").exists()
-}
+use foundation_deployment_platform::testing::docker_available;
 
 /// Unique-ish tag so parallel runs never collide on a daemon-global image name.
 fn tag(name: &str) -> String {
@@ -44,11 +41,12 @@ async fn remove_image(t: &str) {
 #[test]
 #[ignore = "requires Docker daemon running"]
 fn builds_an_inline_dockerfile_into_a_runnable_image() {
+    // A valtron pool must be live before the docker_available ping.
+    let _pool = initialize_pool(54, Some(4));
     if !docker_available() {
         eprintln!("SKIP: Docker not available");
         return;
     }
-    let _pool = initialize_pool(54, Some(4));
 
     foundation_core::valtron::block_on_future(async {
         let t = tag("inline");
@@ -96,11 +94,12 @@ fn builds_an_inline_dockerfile_into_a_runnable_image() {
 #[test]
 #[ignore = "requires Docker daemon running"]
 fn build_context_files_are_uploaded_and_build_args_apply() {
+    // A valtron pool must be live before the docker_available ping.
+    let _pool = initialize_pool(54, Some(4));
     if !docker_available() {
         eprintln!("SKIP: Docker not available");
         return;
     }
-    let _pool = initialize_pool(54, Some(4));
 
     // A context on disk, with a file the Dockerfile COPYs.
     let dir = std::env::temp_dir().join(format!("ewe-f04-ctx-{}", std::process::id()));
@@ -153,11 +152,12 @@ fn build_context_files_are_uploaded_and_build_args_apply() {
 #[test]
 #[ignore = "requires Docker daemon running"]
 fn a_failing_dockerfile_is_reported_as_an_error() {
+    // A valtron pool must be live before the docker_available ping.
+    let _pool = initialize_pool(54, Some(4));
     if !docker_available() {
         eprintln!("SKIP: Docker not available");
         return;
     }
-    let _pool = initialize_pool(54, Some(4));
 
     foundation_core::valtron::block_on_future(async {
         let t = tag("failing");

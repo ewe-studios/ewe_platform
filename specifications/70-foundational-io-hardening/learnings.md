@@ -14,6 +14,15 @@ _What an agent learned that the next agent needs. Newest first._
   `thread::spawn` closure — clone the `Arc` first. `ErrorTrace` exposes its
   context with `current_context()`, not `as_error()`.
 
+- 2026-11-01 (feature 13 E2, foundation_deployment_platform):
+  `DockerClient::connect_with_defaults()` over a Unix socket is infallible and
+  lazy: it returns Ok even when `/var/run/docker.sock` is missing, because the
+  dial happens on the first request. A daemon-availability check must therefore
+  ping the daemon (`negotiate_version()`), not just connect. A sync
+  `#[valtron_test]` fn body runs on the test thread (not a pool worker), so a
+  sync `docker_available()` that wraps `block_on_future` is safe there and in a
+  plain `#[test]`, as long as the pool is initialized before the ping.
+
 - 2026-11-01 (feature 17 PR 2, verification): the six-crate CI block
   (`foundation_db`, `foundation_auth`, `foundation_deployment_cloudflare`,
   `foundation_nativeapis`, `foundation_vectors`, `foundation_cedar`) and the

@@ -20,6 +20,24 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   (ENOSPC); the 45 GiB `target/uat` LLVM cache was deleted to free space
   before the build ran.
 
+- 2026-11-01: feature 13 (foundation_deployment_platform) E2 done on
+  `fix/io-20-vfs-process-ipc`. E2 adds one shared Docker-daemon helper:
+  `foundation_deployment_platform::testing::docker_available()`. It connects
+  with `DockerClient::connect_with_defaults()` and pings the daemon with
+  `negotiate_version()`. The helper is gated on the `docker` feature. Six
+  duplicated `/var/run/docker.sock` file checks in the platform tests are
+  replaced with the helper, and `docker_container_macro_supports_async_functions`
+  skips (prints SKIP and returns) when no daemon answers. The proxy test
+  (`foundation_proxy/tests/proxy_integration_tests.rs`) uses the same helper.
+  The platform crate is bumped 0.1.2→0.1.3 and `foundation_testbed` pins
+  0.1.3. Bug-backlog §7 Docker-gated-tests and
+  `docker_container_macro_supports_async_functions` entries and the §9 proxy
+  Docker-gated entry are removed. Verification: `cargo check -p
+  foundation_deployment_platform --all-targets --profile dev` and
+  `--features vms` clean (three pre-existing unused-dependency warnings stay:
+  clap, foundation_sshkit, portpicker); clippy clean; the proxy test target
+  compiles; the skip path was proven with a dead `DOCKER_HOST`.
+
 - 2026-11-01: feature 17 (foundation_db) PR 2 of 2 (E7–E12) done on
   `fix/io-20-vfs-process-ipc` (committed as `28f951edf`). E7 moves the auth-table cleanup
   to Unix milliseconds (migration 026 converts legacy whole-second rows with an

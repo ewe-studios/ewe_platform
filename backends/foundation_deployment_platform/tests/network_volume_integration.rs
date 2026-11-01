@@ -30,14 +30,11 @@ use foundation_core::valtron::initialize_pool;
 use foundation_deployment_platform::docker::{
     ContainerConfig, ContainerHandle, DockerClient, NetworkHandle, WaitFor,
 };
+use foundation_deployment_platform::testing::docker_available;
 
 /// Unique-ish suffix so parallel runs never collide on a global Docker name.
 fn unique(prefix: &str) -> String {
     format!("{prefix}-{}", std::process::id())
-}
-
-fn docker_available() -> bool {
-    std::path::Path::new("/var/run/docker.sock").exists()
 }
 
 fn client() -> DockerClient {
@@ -66,11 +63,12 @@ async fn run_script(network: Option<&str>, script: &str) -> String {
 #[test]
 #[ignore = "requires Docker daemon running"]
 fn network_dns_resolves_container_name_and_alias() {
+    // A valtron pool must be live before the docker_available ping.
+    let _pool = initialize_pool(54, Some(4));
     if !docker_available() {
         eprintln!("SKIP: Docker not available");
         return;
     }
-    let _pool = initialize_pool(54, Some(4));
 
     foundation_core::valtron::block_on_future(async {
         let docker = client();
@@ -136,11 +134,12 @@ fn network_dns_resolves_container_name_and_alias() {
 #[test]
 #[ignore = "requires Docker daemon running"]
 fn network_connect_attaches_running_container_with_alias() {
+    // A valtron pool must be live before the docker_available ping.
+    let _pool = initialize_pool(54, Some(4));
     if !docker_available() {
         eprintln!("SKIP: Docker not available");
         return;
     }
-    let _pool = initialize_pool(54, Some(4));
 
     foundation_core::valtron::block_on_future(async {
         let docker = client();
@@ -178,11 +177,12 @@ fn network_connect_attaches_running_container_with_alias() {
 #[test]
 #[ignore = "requires Docker daemon running"]
 fn bind_mount_is_readable_and_read_only_is_enforced() {
+    // A valtron pool must be live before the docker_available ping.
+    let _pool = initialize_pool(54, Some(4));
     if !docker_available() {
         eprintln!("SKIP: Docker not available");
         return;
     }
-    let _pool = initialize_pool(54, Some(4));
 
     // A host dir with a known file.
     let dir: PathBuf = std::env::temp_dir().join(unique("ewe-f03-bind"));
@@ -243,11 +243,12 @@ fn bind_mount_is_readable_and_read_only_is_enforced() {
 #[test]
 #[ignore = "requires Docker daemon running"]
 fn named_volume_persists_data_across_containers() {
+    // A valtron pool must be live before the docker_available ping.
+    let _pool = initialize_pool(54, Some(4));
     if !docker_available() {
         eprintln!("SKIP: Docker not available");
         return;
     }
-    let _pool = initialize_pool(54, Some(4));
 
     foundation_core::valtron::block_on_future(async {
         let vol = unique("ewe-f03-vol");

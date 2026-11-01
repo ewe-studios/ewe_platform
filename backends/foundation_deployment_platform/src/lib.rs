@@ -50,6 +50,11 @@ pub mod doctor;
 
 pub mod docker;
 
+/// Shared test helpers for Docker-gated integration tests (needs the Docker
+/// endpoints, so it is gated on the `docker` feature like the client itself).
+#[cfg(feature = "docker")]
+pub mod testing;
+
 // ── VM infrastructure (moved from foundation_testbed, gated on vms) ───────
 
 #[cfg(feature = "vms")]
