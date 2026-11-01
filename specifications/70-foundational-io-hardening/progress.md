@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: bug-backlog §13 #1 (kqueue edge-triggered read) fixed on
+  `fix/io-35-turso-async-trait-overflow`. The macOS kqueue selector now records the
+  byte count per fd and delivers a readable event only when the count grows; a
+  drained fd re-arms on `reactor.clear`. Verification: `registered_fd_edge_triggered`
+  passes, the four shared-reactor tests pass, `foundation_reactor` tests are green,
+  and clippy adds no new warnings. Commit 0e43720a7. A macOS waker bug
+  (`Token(0)` from `EVFILT_USER`) was found and recorded in backlog §13. The
+  `fd` CI run was added to `ci/packages.toml`. Linux CI gate queued.
+
 - 2026-11-01: feature 26 done on `fix/io-35-turso-async-trait-overflow`. The
   `foundation_nativeapis` shared-reactor tests now compile and run on macOS. The
   nonblocking pipe was already portable (`pipe` + `fcntl` on macOS, `pipe2` on Linux). The

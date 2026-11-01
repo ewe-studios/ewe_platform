@@ -2,6 +2,21 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (bug-backlog §13): macOS kqueue reports `EVFILT_READ`
+  level-triggered for pipes despite `EV_CLEAR`. A C probe confirmed it: byte
+  counts 5, 3 and 9 all fire, and re-registering with fresh `EV_CLEAR` does not
+  help. The `data` field is the bytes available, which is reliable. So the
+  selector tracks the read edge in software: it delivers a readable event once per
+  edge and suppresses it while `data` has not grown. A drained fd must re-arm
+  (`rearm_readable`, wired to `reactor.clear`), or a drain-then-refill of the same
+  or fewer bytes is lost — the kernel cannot see the read.
+
+- 2026-11-01 (bug-backlog §13): the macOS kqueue waker (`EVFILT_USER`) returns
+  `udata = 0` after `NOTE_TRIGGER` with a null `udata`, so `Event::token()` reads
+  `Token(0)`, not the registered token. Linux epoll uses a different waker, so
+  this is macOS-only. `waker_wakes_from_another_thread` and
+  `waker_wakes_from_multiple_threads` fail locally for this reason.
+
 - 2026-11-01 (feature 26): `reactor_shared_selector_tests.rs` is gated
   `#![cfg(all(unix, feature = "fd"))]`, and `fd` is not a default feature of
   `foundation_nativeapis`, so `cargo test -p foundation_nativeapis` does not run
