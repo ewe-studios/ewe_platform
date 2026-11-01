@@ -2,6 +2,67 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (feature 13 E1, foundation_deployment_platform): a mock daemon can
+  serve a `follow=true` log stream with a plain `Content-Length` response. The
+  client reads exactly the declared bytes and then ends the stream, so the mock
+  does not need to hold the connection open. `LogFrameDecoder` yields a frame as
+  soon as its 8-byte header and payload are complete, so two frames written in
+  one `write_all` still arrive as two `LogOutput::StdOut` items.
+  `futures_lite::future::race` needs both futures to share one output type; a
+  local enum (`FrameOrTimeout`) unifies `frames.next()` and the timeout. A `Fn`
+  handler passed to `mock_socket::serve` cannot move an `Arc` into an inner
+  `thread::spawn` closure — clone the `Arc` first. `ErrorTrace` exposes its
+  context with `current_context()`, not `as_error()`.
+
+- 2026-11-01 (feature 17 PR 2, verification): the six-crate CI block and the
+  workspace check are not yet run: the local disk filled (ENOSPC) during
+  `foundation_db`'s wasm step, so `cargo` could not create the `target/` build
+  directories. The crate-level results that did run are green. Free space in
+  `target/` (regenerated LLVM artefacts) before re-running the block.
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): a migration that rebuilds a table
+  cannot be tested by creating the old shape and then running the whole
+  migration set. The old `rate_limits` shape has no `window_end`, so migration
+  014's `CREATE INDEX ... ON rate_limits(window_end)` fails on it before the
+  rebuild migration runs. The test marks every migration except 027 as already
+  applied in `_migrations`, then runs the runner, so only 027 runs
+  (DROP + CREATE + CREATE INDEX against the new shape).
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): auth tables store timestamps in
+  Unix milliseconds (the IdP already writes milliseconds; `created_at` defaults
+  are already milliseconds). Migration 026 converts legacy whole-second values
+  with `UPDATE ... WHERE col > 0 AND col < 10000000000`, which is idempotent and
+  leaves real millisecond values alone. `rate_limits` stays in seconds, so
+  `run_full_cleanup` reads both clocks (`unix_now_millis` and `unix_now_secs`).
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): a fixed-window rate-limit record
+  is atomic in one SQLite statement with `INSERT ... ON CONFLICT(key) DO UPDATE
+  ... RETURNING count`. The `RETURNING` row is read once from the query stream,
+  not buffered (rule 4). Workers KV has no atomic read-modify-write, so its
+  `RateLimiterStore` stays as an explicitly best-effort option with a doc
+  warning; the exact path is D1 (or a Durable Object).
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): `futures_util::future::join_all`
+  (0.3) accepts non-`Unpin` async-trait futures (`impl<F: Future> Future for
+  JoinAll<F>` has no `F: Unpin` bound). It drives the 50 concurrent
+  `record_rate_limit` calls in the E8 test over the local Turso store, which
+  serialises writes the way D1 does.
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): wasm stores kept a second
+  inherent `*_async` API alongside the traits. E10 makes those inherent methods
+  private, removes the unused valtron helper path in `d1_wasm.rs`, and routes
+  `storage_provider`, `foundation_auth`, `wasm/session.rs` and the
+  `cf-login-app` example through the trait methods. The gate
+  `rg -n 'pub (async )?fn \w+_async' backends/foundation_db/src/wasm` is now
+  empty.
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): the `examples/cf-*` directories
+  are self-contained wasm32 workspaces excluded from the main workspace, so
+  `cargo metadata` never lists them. The CI `examples` job is a synthetic
+  package: `ci.py load_workspace` adds it after the metadata loop, and
+  `commands()` special-cases its name to build each `examples/cf-*/Cargo.toml`
+  for `wasm32-unknown-unknown` plus the native `answerme-agent`.
+
 - 2026-11-01 (bug-backlog §13, foundation_reactor): the macOS kqueue waker fix.
   `filt_usertrigger` in XNU copies the `NOTE_TRIGGER` kevent's `udata` onto the
   knote (`kn->kn_udata = kev->udata`), so the returned event's `udata` is the

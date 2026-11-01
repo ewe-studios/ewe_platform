@@ -2,6 +2,47 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: feature 13 (foundation_deployment_platform) E1 done on
+  `fix/io-20-vfs-process-ipc`. E1 rewrites `wait_for_stdout` to follow the log
+  stream once (`follow=true`, stdout only, stderr=false), match a message
+  across frame boundaries with a rolling buffer sized `message.len() +
+  client.limits().max_log_frame`, and race the next frame against the
+  remaining timeout with `futures_lite::future::race`. Only stdout bytes
+  count; an empty message returns at once. The function is now `pub` and is
+  re-exported from the `docker` module. New mock-daemon tests
+  (`tests/wait_for_stdout_tests.rs`):
+  `wait_for_stdout_matches_across_frames`,
+  `wait_for_stdout_ignores_stderr`, `wait_for_stdout_reads_each_byte_once`.
+  Verification: `cargo test -p foundation_deployment_platform --test
+  wait_for_stdout_tests --profile dev` green (3/3); `cargo clippy -p
+  foundation_deployment_platform --all-targets --profile dev` clean. The
+  bug-backlog §7 `wait_for_stdout` entry is removed. The local disk was full
+  (ENOSPC); the 45 GiB `target/uat` LLVM cache was deleted to free space
+  before the build ran.
+
+- 2026-11-01: feature 17 (foundation_db) PR 2 of 2 (E7–E12) done on
+  `fix/io-20-vfs-process-ipc` (not committed). E7 moves the auth-table cleanup
+  to Unix milliseconds (migration 026 converts legacy whole-second rows with an
+  idempotent `< 10000000000` guard; `rate_limits` stays in seconds;
+  `run_full_cleanup` reads both clocks). E8 makes the SQL rate-limit record one
+  atomic `INSERT ... ON CONFLICT ... RETURNING count` statement and keeps
+  Workers KV as a documented best-effort path only. E9 adds migration 027 to
+  rebuild the old-shape `rate_limits` table. E10 makes the wasm stores'
+  inherent `*_async` methods private and routes every caller through the
+  traits. E11 adds the synthetic `examples` CI job (wasm32 builds of the
+  `examples/cf-*` workspaces plus the native `answerme-agent`). E12
+  feature-gates the rate-limit SQL constants and helpers behind
+  `turso|d1|libsql|wasm-bindgen-storage`. New tests:
+  `cleanup_deletes_expired_rows_by_documented_unit`,
+  `old_rate_limit_table_is_rebuilt`, `rate_limit_counts_concurrent_hits`.
+  Verification: `cargo test -p foundation_db --profile uat` green (all targets);
+  both wasm32 gates (`--features wasm` and `--features wasm-bindgen-storage`)
+  clean; `rg` for public `*_async` in `src/wasm` is empty; `ci.py plan` lists
+  `examples`. The six-crate CI block and the workspace check are still to run:
+  the local disk filled (ENOSPC) during the first crate's wasm step, so the
+  block and the workspace check could not complete. Space must be freed (the
+  `target/` LLVM artefacts) before they can run.
+
 - 2026-11-01: bug-backlog §13 (kqueue waker) fixed on
   `fix/io-20-vfs-process-ipc`. The macOS kqueue waker (`EVFILT_USER`) returned
   `Token(0)` because `wake` triggered `NOTE_TRIGGER` with a null `udata` while

@@ -220,51 +220,97 @@ fn udp_probe(addr: SocketAddr) -> bool {
     socket.recv_from(&mut buf).is_ok()
 }
 
-/// Scan container stdout logs for a message. Polls via
-/// [`DockerClient::container_logs`] (follow=false), reading the frames as they
-/// stream — no real-time following needed for a readiness check.
-async fn wait_for_stdout(
+/// What one [`wait_for_stdout`] loop iteration resolved to: the next log frame
+/// (or the stream's end), or the remaining timeout firing first.
+enum FrameOrTimeout {
+    /// The next frame from the log stream; `None` is the stream's end.
+    Frame(Option<Result<LogOutput, foundation_deployment_docker::DockerError>>),
+    /// No frame arrived before the remaining timeout elapsed.
+    TimedOut,
+}
+
+/// Scan container stdout logs for a message, following the live log stream.
+///
+/// One [`DockerClient::container_logs`] call with `follow=true` and
+/// `stderr=false` reads the stream once; the loop races each frame against the
+/// remaining timeout. The message may span frame boundaries: a rolling buffer
+/// of `message.len() + client.limits().max_log_frame` bytes keeps the tail of
+/// the stream so a match split across frames is still found. Only
+/// [`LogOutput::StdOut`] bytes count; `StdErr`, `StdIn` and `Console` frames
+/// are ignored (stderr is not requested, but the stream is checked anyway).
+pub async fn wait_for_stdout(
     client: &DockerClient,
     container_id: &str,
     message: &str,
     timeout: Duration,
 ) -> DockerResult<()> {
+    if message.is_empty() {
+        return Ok(());
+    }
+
     let start = Instant::now();
+    let options = ContainerLogsOptions {
+        follow: true,
+        stdout: true,
+        stderr: false,
+        ..ContainerLogsOptions::default()
+    };
+    let mut frames = client
+        .container_logs(container_id, &options)
+        .await
+        .map_err(|e| docker_err(classify_docker_client_err("container_logs", e)))?;
+
+    let needle = message.as_bytes();
+    // A match that straddles frames needs the last `message.len() - 1` bytes of
+    // the previous content plus the new frame. Keeping one whole frame extra
+    // (`max_log_frame`) is comfortably more, and byte-safe: the buffer holds
+    // raw bytes, never decoded text, so rolling the front can never split a
+    // UTF-8 character.
+    let cap = needle.len() + client.limits().max_log_frame;
+    let mut buf: Vec<u8> = Vec::new();
 
     loop {
-        let mut frames = client
-            .container_logs(container_id, &ContainerLogsOptions::default())
-            .await
-            .map_err(|e| {
-                docker_err(classify_docker_client_err("container_logs", e))
-            })?;
+        let remaining = timeout.saturating_sub(start.elapsed());
+        // `race` polls both futures in place; whichever resolves first wins and
+        // the other is dropped, so a slow stream cannot overrun the timeout.
+        let outcome = futures_lite::future::race(
+            async { FrameOrTimeout::Frame(frames.next().await) },
+            async {
+                sleep_async(remaining).await;
+                FrameOrTimeout::TimedOut
+            },
+        )
+        .await;
 
-        // Frame by frame as the log streams; stop reading as soon as the
-        // message shows up.
-        while let Some(frame) = frames.next().await {
-            let frame = frame
-                .map_err(|e| docker_err(classify_docker_client_err("container_logs", e)))?;
-            let text = match frame {
-                LogOutput::StdOut { message: msg }
-                | LogOutput::StdErr { message: msg } => {
-                    String::from_utf8_lossy(&msg).to_string()
+        match outcome {
+            FrameOrTimeout::TimedOut => {
+                return Err(docker_err(DockerError::WaitTimeout {
+                    strategy: format!("Stdout(\"{message}\")"),
+                    elapsed: start.elapsed(),
+                }));
+            }
+            FrameOrTimeout::Frame(None) => {
+                // The stream ended (the container stopped) without the message.
+                return Err(docker_err(DockerError::WaitTimeout {
+                    strategy: format!("Stdout(\"{message}\")"),
+                    elapsed: start.elapsed(),
+                }));
+            }
+            FrameOrTimeout::Frame(Some(frame)) => {
+                let frame = frame
+                    .map_err(|e| docker_err(classify_docker_client_err("container_logs", e)))?;
+                if let LogOutput::StdOut { message: msg } = frame {
+                    buf.extend_from_slice(&msg);
+                    if buf.len() > cap {
+                        let excess = buf.len() - cap;
+                        buf.drain(..excess);
+                    }
+                    if buf.windows(needle.len()).any(|w| w == needle) {
+                        return Ok(());
+                    }
                 }
-                LogOutput::StdIn { .. } | LogOutput::Console { .. } => continue,
-            };
-            if text.contains(message) {
-                return Ok(());
             }
         }
-
-        if start.elapsed() >= timeout {
-            return Err(docker_err(DockerError::WaitTimeout {
-                strategy: format!("Stdout(\"{message}\")"),
-                elapsed: start.elapsed(),
-            }));
-        }
-
-        // Cooperatively sleep between polls.
-        sleep_async(Duration::from_millis(500)).await;
     }
 }
 
