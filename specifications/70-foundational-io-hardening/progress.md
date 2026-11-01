@@ -2,6 +2,14 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §10 gemm-f16 fullfp16 (foundation_ai) fixed on
+  `fix/io-20-vfs-process-ipc`. `cargo test` with candle failed to assemble
+  `gemm-f16` on Apple Silicon because `aarch64-apple-darwin` does not enable
+  the `fullfp16` target feature. `.cargo/config.toml` now enables `fullfp16`
+  for that target. Apple M-series chips all support it in hardware. The
+  `candle_tests` suite (61 tests) passes with no manual `RUSTFLAGS`. The
+  backlog entry is removed.
+
 - 2026-11-02: bug-backlog §10 clippy-warnings (foundation_ai) fixed on
   `fix/io-20-vfs-process-ipc`. Eight clippy lints are cleared: one
   `needless_pass_by_value` (agent_loop), one `wrong_self_convention` (turn),

@@ -127,19 +127,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 10. foundation_ai
 
-- **`cargo test` with the `candle` feature fails to assemble `gemm-f16` on
-  Apple Silicon.** `gemm-f16` (a `candle-core` dependency) uses the
-  `vfmaq_laneq_f16` instruction in inline assembly. The `aarch64-apple-darwin`
-  target does not enable the `fullfp16` target feature by default, so
-  `cargo test -p foundation_ai` with default features fails with
-  `error: instruction requires: fullfp16`. `cargo check` passes because it does
-  not generate code, and the Linux CI does not hit this (x86-64 has no such
-  feature gate). Fix: enable `fullfp16` for Apple targets in
-  `.cargo/config.toml` (`rustflags = ["-C", "target-feature=+fullfp16"]`), or
-  document `RUSTFLAGS="-C target-feature=+fullfp16"` as the local test
-  invocation. Verified: `RUSTFLAGS="-C target-feature=+fullfp16"` makes the
-  `candle_tests` suite (61 tests) pass.
-
 ## 11. foundation_db and its sync callers
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
