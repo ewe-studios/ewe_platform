@@ -2,6 +2,30 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (feature 20, foundation_nativeapis): `foundation_shell` is a
+  nushell stub (only `add`), not a process helper. The CLI searcher therefore
+  uses a small in-crate runner: a `BackgroundJobRegistry` offload worker runs
+  the blocking `Command`, and the async side parks on a valtron `Pipe`. The
+  child's stdout is read line by line with `BufReader::lines` and mapped into
+  results, never `read_to_end` (rule 4). Pipe only stdout; leave stderr on
+  `Stdio::null` unless you read it, or a full stderr pipe deadlocks the child.
+
+- 2026-11-01 (feature 20, foundation_nativeapis): the macOS mach-port code
+  compiled but failed at runtime because it turned a receive right into a send
+  right with `MACH_MSG_TYPE_COPY_SEND`. For a port the process owns, the
+  correct type is `MACH_MSG_TYPE_MAKE_SEND`. `task_get_special_port` also needs
+  the bootstrap-port enum cast to `i32` and a `ptr::addr_of_mut!` output
+  pointer. Compile clean is not enough for mach rights; the call returns an
+  error the assert then trips.
+
+- 2026-11-01 (feature 20, foundation_nativeapis): the IPC client now receives
+  on an async future and matches responses by request id, so it no longer
+  holds a lock across a send and its receive. The join and poll timeouts are
+  fields on `VfsIpcConfig` (defaults 30 s join, 1 s poll, the poll cited from
+  Go `http.Server`); the search limits are fields on `SearchConfig` (50 per
+  file, 200 per page, 5 s budget, 30 s scan wait, cited from fff-search and
+  Caddy). Rule 8: put them on the config, not in the code path.
+
 - 2026-11-01 (feature 17, foundation_db): the Cloudflare R2 object-listing
   endpoint is absent from the vendored OpenAPI spec that generates
   `foundation_deployment_cloudflare`'s types, so the R2 listing types cannot be

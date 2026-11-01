@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: feature 20 (foundation_nativeapis process side) done on
+  `fix/io-20-vfs-process-ipc` (commit 869572cd4). E5 makes the IPC client
+  receive on an async future; the join and poll timeouts move to
+  `VfsIpcConfig` (defaults 30 s join, 1 s poll). E6 adds a request id to
+  `VfsRequest`/`VfsResponse`; the client matches responses by id, drops the
+  release-count skip logic and the lock across a send and its receive, and
+  makes `ReadAt` sizes u64. E7 moves the CLI search wait onto a valtron offload
+  pool, streams the child's stdout line by line, and puts the limits on
+  `SearchConfig` (50 per file, 200 per page, 5 s budget, 30 s scan wait). The
+  macOS mach-port send right is fixed (`MACH_MSG_TYPE_MAKE_SEND` for a port the
+  process owns). Eight fixed bug-backlog §13 entries are removed. E1–E4 and E8
+  landed earlier (commits 0db0d2734, c37d7cf17, ac61b245f, 52b88e326,
+  a80d202dd). Verification: native_vfs 21 green, ipc_vfs 14 green, vfs_search
+  15 green, and the combined VFS feature check is clean.
+
 - 2026-11-01: feature 17 (foundation_db) PR 1 of 2 (E1–E6) done on
   `fix/io-20-vfs-process-ipc`. E1 makes `StateStore::set` key by `resource_id`
   (the stored state's `id` is set from it, whatever `state.id` holds). E2 moves
