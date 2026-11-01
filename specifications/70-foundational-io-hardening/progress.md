@@ -2,6 +2,12 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 16 E8 (foundation_ai) done on
+  `fix/io-20-vfs-process-ipc`. Memory records (WorkingMemory, Observation,
+  Reflection) now write through `append_promotable_with_id` with the record's
+  own scru128 id, so a retried write is a no-op. Two idempotency tests are
+  added. The conversation arm already used `append_with_id`. Commit 87fe96a67.
+
 - 2026-11-02: bug-backlog §13 (`vfs_search` panic) fixed on
   `fix/io-20-vfs-process-ipc`. `detect_tool()` used `Command::status().is_ok()`
   to pick `rg` or `grep`. On the Linux CI nightly toolchain a missing binary

@@ -2,6 +2,16 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 16 E8, foundation_ai): `append_with_id` /
+  `append_promotable_with_id` idempotency is keyed on `(collection key, doc_id)`.
+  The `doc_id` must be STABLE across a retry: mint it once in the record
+  constructor, never at the write site and never from wall-clock time. The
+  `Conversation` arm of `MessageInner::write` was already on `append_with_id`;
+  `session.rs` / `agent_loop.rs` only buffer via `MessageApi::append`, and the
+  real write is in `MessageInner::write`. The `Retracted` / `FailedAction` /
+  `Summary` variants carry no id, so they cannot be idempotent without a schema
+  change.
+
 - 2026-11-02 (backlog §13 fuse_vfs fix, foundation_nativeapis): `fuser` 0.15
   (resolved 0.15.1) declares `default = ["libfuse"]` and `libfuse =
   ["pkg-config"]`. A bare workspace dependency `fuser = "0.15"` pulls in
