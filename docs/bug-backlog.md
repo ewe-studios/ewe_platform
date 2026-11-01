@@ -221,9 +221,19 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `all(target_os = "linux", feature = "vfs-fuse")`) and calls the `MemoryFs`
   VFS helper methods, but the `vfs-fuse` CI run's feature set leaves the `fuse`
   module or the `VfsFileSystem` trait methods out of scope. Errors: unresolved
-  import `...::vfs::fuse`; no method `write_file`/`mkdir_all`/`join`. Fix: align
-  the run's features (or the test's `required-features`) so both the fuse module
-  and the VFS traits resolve. Seen in the six-crate Linux CI block, not on macOS.
+  import `...::vfs::fuse`; no method `write_file`/`mkdir_all`/`join`. Root cause:
+  the `fuse` crate needs the fuse3 system library, and `fuse3` pkg-config is
+  missing in the `ewestudios/ewe-platform-ci:latest` image, so the crate fails
+  to build and the `fuse` module is absent. Fix: install `libfuse3-dev` in the CI
+  image (or feature-gate the module so it does not need fuse3), and align the
+  run's features (or the test's `required-features`) so both the fuse module and
+  the VFS traits resolve. Seen in the six-crate Linux CI block, not on macOS.
+- **`vfs_search` `cli_search_streams_results` panics in the Linux CI.**
+  The test at `tests/vfs_search/mod.rs:273` panics inside
+  `foundation_core::valtron::executors::sendables` (`sendables.rs:822`). Seen in
+  `scripts/ci/linux.sh foundation_nativeapis`; not reproduced on macOS. Fix:
+  investigate the valtron sendable panic (likely a task polled or awaited after
+  it completed).
 - **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
   (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
   file, its metadata and its whiteout as separate blobs, and a blob store has
