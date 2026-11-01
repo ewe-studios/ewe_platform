@@ -23,6 +23,17 @@ _What an agent learned that the next agent needs. Newest first._
   sync `docker_available()` that wraps `block_on_future` is safe there and in a
   plain `#[test]`, as long as the pool is initialized before the ping.
 
+- 2026-11-01 (feature 13 E3, foundation_deployment_platform):
+  `block_on_future` needs a `'static` future, so an async function that borrows
+  `&VmProfile` cannot be driven by it. Pass the profile's `&'static str`
+  `image_name` by value instead; the future then owns a `Copy` reference and is
+  `'static`. The netio `ClientConfig::max_body_size` enforces the body cap at
+  transport level: a `Content-Length` larger than the cap is rejected before
+  reading, and a chunked body is truncated by `LimitedEOFStreamReader`, so
+  `collect_bytes_async` reads a bounded body without a second explicit cap. A
+  plain `std::net::TcpListener` on `127.0.0.1:0` serves as a local HTTP mock
+  for `send_async` tests under `#[valtron_test]`.
+
 - 2026-11-01 (feature 17 PR 2, verification): the six-crate CI block
   (`foundation_db`, `foundation_auth`, `foundation_deployment_cloudflare`,
   `foundation_nativeapis`, `foundation_vectors`, `foundation_cedar`) and the

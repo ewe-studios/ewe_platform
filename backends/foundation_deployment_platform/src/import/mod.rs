@@ -5,6 +5,10 @@
 //! Automatically extracts qcow2 from vagrant box archives (tar or gzip).
 
 use std::path::{Path, PathBuf};
+use std::time::Duration;
+
+use foundation_netio::shared::client::body_reader::collect_bytes_async;
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 use crate::config::{Result, TestbedError, VmProfile};
 
@@ -369,8 +373,10 @@ fn resolve_image_url(profile: &VmProfile) -> Result<String> {
         return Ok(url.to_string());
     }
 
-    // Check Vagrant Cloud for this image
-    if let Some(url) = query_vagrant_cloud(profile) {
+    // Check Vagrant Cloud for this image. The lookup is async (network I/O);
+    // this sync entry point drives it with the valtron executor.
+    if let Some(url) = foundation_core::valtron::block_on_future(query_vagrant_cloud(profile.image_name))?
+    {
         return Ok(url);
     }
 
@@ -496,46 +502,147 @@ fn extract_macos_tarball(tar_path: &Path, dest_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Query Vagrant Cloud for a libvirt download URL.
+/// Limits for image-import network lookups.
 ///
-/// Vagrant Cloud API: GET /api/v2/box/{username}/{box_name}
-fn query_vagrant_cloud(profile: &VmProfile) -> Option<String> {
-    let vagrant_box = match profile.image_name {
+/// Size caps are configuration, not constants (project rule 8). The default
+/// follows the size of a small JSON metadata document. The Vagrant Cloud box
+/// response is a few kilobytes, so 64 KiB leaves a large margin while still
+/// stopping a broken or hostile server from making the lookup buffer unbounded
+/// data.
+#[derive(Debug, Clone, Copy)]
+struct ImportLimits {
+    max_vagrant_metadata_bytes: usize,
+}
+
+impl Default for ImportLimits {
+    fn default() -> Self {
+        Self {
+            max_vagrant_metadata_bytes: 64 * 1024,
+        }
+    }
+}
+
+impl ImportLimits {
+    /// Maximum bytes of a Vagrant Cloud metadata response to buffer.
+    fn max_vagrant_metadata_bytes(self) -> usize {
+        self.max_vagrant_metadata_bytes
+    }
+}
+
+/// Typed subset of the Vagrant Cloud box metadata response.
+#[derive(Debug, serde::Deserialize)]
+struct VagrantBoxMetadata {
+    #[serde(default)]
+    current_version: Option<VagrantBoxVersion>,
+}
+
+/// The current version of a Vagrant box, with its provider list.
+#[derive(Debug, serde::Deserialize)]
+struct VagrantBoxVersion {
+    #[serde(default)]
+    providers: Vec<VagrantBoxProvider>,
+}
+
+/// One provider entry in the Vagrant Cloud metadata.
+#[derive(Debug, serde::Deserialize)]
+struct VagrantBoxProvider {
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    download_url: Option<String>,
+    #[serde(default)]
+    url: Option<String>,
+}
+
+/// Map a profile image name to its Vagrant Cloud box, if it is a Vagrant box.
+fn vagrant_box_name(image_name: &'static str) -> Option<&'static str> {
+    match image_name {
         "windows-11-x86_64.qcow2" => Some("gusztavvargadr/windows-11"),
         "ubuntu-24.04-x86_64.qcow2" => Some("alvistack/ubuntu-24.04"),
         _ => None,
-    };
-
-    let box_name = vagrant_box?;
-    let api_url = format!("https://app.vagrantup.com/api/v2/box/{box_name}");
-
-    // Use curl subprocess to avoid tokio runtime conflicts
-    let output = std::process::Command::new("curl")
-        .args(["-s", "-L", "--max-redirs", "5", "-m", "30", &api_url])
-        .output()
-        .ok()?;
-
-    if !output.status.success() {
-        return None;
     }
+}
 
-    let json: serde_json::Value = serde_json::from_slice(&output.stdout).ok()?;
-
-    // Find libvirt provider
-    if let Some(providers) = json.get("current_version")?.get("providers")?.as_array() {
-        for provider in providers {
-            if provider.get("name")?.as_str()? == "libvirt" {
-                if let Some(dl) = provider.get("download_url")?.as_str() {
-                    return Some(dl.to_string());
-                }
-                if let Some(url) = provider.get("url")?.as_str() {
-                    return Some(url.to_string());
-                }
-            }
+/// Extract the libvirt download URL from a parsed metadata document.
+fn libvirt_download_url(metadata: &VagrantBoxMetadata) -> Option<String> {
+    let providers = &metadata.current_version.as_ref()?.providers;
+    for provider in providers {
+        if provider.name != "libvirt" {
+            continue;
+        }
+        if let Some(download_url) = &provider.download_url {
+            return Some(download_url.clone());
+        }
+        if let Some(url) = &provider.url {
+            return Some(url.clone());
         }
     }
-
     None
+}
+
+/// Query Vagrant Cloud for a libvirt download URL.
+///
+/// Vagrant Cloud API: GET /api/v2/box/{username}/{box_name}
+async fn query_vagrant_cloud(image_name: &'static str) -> Result<Option<String>> {
+    let Some(box_name) = vagrant_box_name(image_name) else {
+        return Ok(None);
+    };
+    let api_url = format!("https://app.vagrantup.com/api/v2/box/{box_name}");
+
+    let limits = ImportLimits::default();
+    let client = HttpClientBuilder::new()
+        .max_body_size(Some(limits.max_vagrant_metadata_bytes() as u64))
+        .max_redirects(5)
+        .read_timeout(Duration::from_secs(30))
+        .build();
+
+    vagrant_cloud_lookup(&client, &api_url).await
+}
+
+/// Look up the libvirt download URL for a Vagrant box at `api_url`.
+///
+/// The caller's HTTP client carries the size cap in its config
+/// (`ClientConfig::max_body_size`). A response larger than the cap is rejected
+/// by the transport before the body is collected. The body is read as a stream
+/// (`collect_bytes_async`), never buffered whole by hand.
+pub async fn vagrant_cloud_lookup(
+    client: &DynNetClient,
+    api_url: &str,
+) -> Result<Option<String>> {
+    let request = PreparedRequestBuilder::get(api_url)
+        .map(PreparedRequestBuilder::build)
+        .map_err(|e| TestbedError::DownloadFailed {
+            status: 0,
+            url: format!("{api_url}: {e}"),
+        })?;
+
+    let response = client
+        .send_async(request)
+        .await
+        .map_err(|e| TestbedError::DownloadFailed {
+            status: 0,
+            url: format!("{api_url}: {e}"),
+        })?;
+
+    let status: usize = response.get_status().into();
+    if !(200..=299).contains(&status) {
+        return Err(TestbedError::DownloadFailed {
+            status: u16::try_from(status).unwrap_or(u16::MAX),
+            url: api_url.to_string(),
+        });
+    }
+
+    let (_, _, body) = response.into_async_parts();
+    let bytes = collect_bytes_async(body).await.map_err(|e| TestbedError::VagrantMetadataError {
+        message: format!("reading metadata from {api_url}: {e}"),
+    })?;
+
+    let metadata: VagrantBoxMetadata =
+        serde_json::from_slice(&bytes).map_err(|e| TestbedError::VagrantMetadataError {
+            message: format!("parsing metadata from {api_url}: {e}"),
+        })?;
+
+    Ok(libvirt_download_url(&metadata))
 }
 
 // ── Validation ──────────────────────────────────────────────────────────────

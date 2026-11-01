@@ -717,6 +717,9 @@ pub enum TestbedError {
     #[display("VM image download failed: HTTP {status} from {url}")]
     DownloadFailed { status: u16, url: String },
 
+    #[display("Vagrant Cloud metadata is invalid: {message}")]
+    VagrantMetadataError { message: String },
+
     #[display("Bootstrap failed at step '{step}': {message}")]
     BootstrapFailed { step: String, message: String },
 

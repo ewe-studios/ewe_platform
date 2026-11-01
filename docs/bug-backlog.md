@@ -57,7 +57,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 7. foundation_deployment_platform
 
-- **Vagrant box lookup runs a `curl` subprocess** (`src/import/mod.rs`, near line 512). The comment says this avoids "tokio runtime conflicts", but no tokio runtime is used now. The subprocess needs `curl` installed and returns no structured errors. Fix: use the valtron-based HTTP client from `foundation_netio` with a bounded, streamed read of the JSON response, and remove the comment.
 - **Inline tests remain** in `docker/wireguard.rs` (rule 7).
 - **Warnings:**
   - deprecated `SimpleHttpClient`, used in `wait_for.rs` and in `foundation_deployment/src/provider_client.rs`;

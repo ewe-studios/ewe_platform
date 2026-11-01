@@ -38,6 +38,24 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   clap, foundation_sshkit, portpicker); clippy clean; the proxy test target
   compiles; the skip path was proven with a dead `DOCKER_HOST`.
 
+- 2026-11-01: feature 13 (foundation_deployment_platform) E3 done on
+  `fix/io-20-vfs-process-ipc`. E3 rewrites `query_vagrant_cloud` to use the
+  `foundation_netio` HTTP client instead of a `curl` subprocess. The lookup is
+  now an async function (`send_async` plus `collect_bytes_async`, streamed and
+  never buffered whole by hand); its sync caller drives it with
+  `block_on_future`. The size cap comes from an `ImportLimits` config (default
+  64 KiB), applied through the client `ClientConfig::max_body_size`. The
+  response parses into typed structs (`VagrantBoxMetadata`, `VagrantBoxVersion`,
+  `VagrantBoxProvider`), not `serde_json::Value`. The function returns
+  `Result<Option<String>>`; a malformed document uses the new
+  `TestbedError::VagrantMetadataError`, and HTTP errors use the existing
+  `DownloadFailed`. The stale "tokio runtime conflicts" comment is deleted.
+  New tests in `tests/vms_import_tests.rs`:
+  `vagrant_lookup_parses_metadata` (against a local HTTP server) and
+  `vagrant_lookup_reports_http_error`. Verification: `cargo test -p
+  foundation_deployment_platform --test vms_import_tests --features vms
+  --profile dev` green (6/6). The §7 Vagrant backlog entry is removed.
+
 - 2026-11-01: feature 17 (foundation_db) PR 2 of 2 (E7–E12) done on
   `fix/io-20-vfs-process-ipc` (committed as `28f951edf`). E7 moves the auth-table cleanup
   to Unix milliseconds (migration 026 converts legacy whole-second rows with an
