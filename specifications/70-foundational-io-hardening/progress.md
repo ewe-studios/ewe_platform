@@ -47,14 +47,15 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   runs in a row; E9 builds with `tools/llama.cpp` moved away. PR: see the PR.
 
 - 2026-11-01: feature 24 (tokio boundaries and apps) done on
-  `fix/io-35-turso-async-trait-overflow`. Removed tokio and axum from `bin/platform`,
+  `fix/io-20-vfs-process-ipc`. Removed tokio and axum from `bin/platform`,
   its templates, the examples and the `ewe_channels` and `ewe_domain` crates. The
   platform binary now uses `#[valtron(seed = 100)]`. Inline tests moved to `tests/`.
   The `deno_core` tokio boundary in `foundation_testbed` is documented. New backlog
-  entries record the remaining channels, domain, todo and template debt. Issue #137
-  can close after the Linux CI gate. Commit c18df9490.
+  entries record the remaining channels, domain, todo and template debt. The Linux
+  CI gate is green (fmt, build, clippy, test, wasm; the templates test passed), so
+  issue #137 can close. Commit c18df9490.
 
-- 2026-11-01: feature 21 done on `fix/io-35-turso-async-trait-overflow` (commit
+- 2026-11-01: feature 21 done on `fix/io-20-vfs-process-ipc` (commit
   95838a4a8). `foundation_cronjobs` parses each `cron_expr` with
   `saffron` (five-field Quartz), rejects an invalid expression at `register`
   with a typed error, computes the real next fire, and runs one valtron task per
