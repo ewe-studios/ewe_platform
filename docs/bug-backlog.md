@@ -226,12 +226,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   missing `MemoryFs` methods. Fix: reproduce the Linux `vfs-fuse` build to get
   the current error, then align the test with the module API (or the reverse).
   Seen in the six-crate Linux CI block, not on macOS.
-- **`vfs_search` `cli_search_streams_results` panics in the Linux CI.**
-  The test at `tests/vfs_search/mod.rs:273` panics inside
-  `foundation_core::valtron::executors::sendables` (`sendables.rs:822`). Seen in
-  `scripts/ci/linux.sh foundation_nativeapis`; not reproduced on macOS. Fix:
-  investigate the valtron sendable panic (likely a task polled or awaited after
-  it completed).
 - **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
   (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
   file, its metadata and its whiteout as separate blobs, and a blob store has

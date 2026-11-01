@@ -412,27 +412,31 @@ impl CliSearcher {
 }
 
 /// Detects a CLI search tool with a fast `--version` status check.
+///
+/// A missing binary can report a `127` exit status, not a spawn error. The
+/// probe checks that the tool ran and exited with success, so a missing or
+/// broken binary does not pass.
 #[cfg(not(target_family = "wasm"))]
 fn detect_tool() -> Option<CliTool> {
-    if Command::new("rg")
-        .arg("--version")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .is_ok()
-    {
+    if probe_tool("rg") {
         return Some(CliTool::Ripgrep);
     }
-    if Command::new("grep")
-        .arg("--version")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .is_ok()
-    {
+    if probe_tool("grep") {
         return Some(CliTool::Grep);
     }
     None
+}
+
+/// Runs `tool --version` and reports whether the tool ran successfully.
+#[cfg(not(target_family = "wasm"))]
+fn probe_tool(tool: &str) -> bool {
+    Command::new(tool)
+        .arg("--version")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
 }
 
 /// The child process runs on a background worker; the valtron worker only
