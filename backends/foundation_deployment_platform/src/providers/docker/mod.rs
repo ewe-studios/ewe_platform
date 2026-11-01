@@ -1,4 +1,4 @@
-//! DockerProvider — implements `Provider` using `ContainerHandle`.
+//! `DockerProvider` — implements `Provider` using `ContainerHandle`.
 
 use crate::docker::{ContainerConfig, ContainerHandle, DockerResult};
 use crate::providers::{Provider, ProviderId, ResolvedPorts};

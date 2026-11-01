@@ -1,4 +1,4 @@
-//! Tests for the WireGuard mesh helpers in `docker::wireguard` (rule 7: moved
+//! Tests for the `WireGuard` mesh helpers in `docker::wireguard` (rule 7: moved
 //! out of the source file).
 
 #![cfg(feature = "wireguard")]

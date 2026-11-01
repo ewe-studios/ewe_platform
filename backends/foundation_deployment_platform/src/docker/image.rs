@@ -247,6 +247,9 @@ async fn image_sha(docker: &DockerClient, tag: &str) -> DockerResult<Option<Stri
 
 #[cfg(not(feature = "buildkit"))]
 impl DockerFileConfig {
+    // Must stay `async`: the caller awaits it, and the `buildkit` variant below
+    // has the same signature, so both feature configurations compile the same.
+    #[allow(clippy::unused_async, clippy::unused_async_trait_impl)]
     async fn build_buildkit(&self, _addr: &str) -> DockerResult<ImageBuildResult> {
         Err(docker_err(DockerError::InvalidConfig(
             "BuildBackend::BuildKit needs the `buildkit` feature on \

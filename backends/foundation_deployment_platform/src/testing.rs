@@ -30,6 +30,7 @@ pub async fn docker_daemon_reachable() -> bool {
 ///
 /// The caller must initialize a valtron pool first (with `initialize_pool`),
 /// or run under `#[valtron_test]`, which keeps one alive.
+#[must_use]
 pub fn docker_available() -> bool {
     foundation_core::valtron::block_on_future(docker_daemon_reachable())
 }

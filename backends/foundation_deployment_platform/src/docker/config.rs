@@ -24,7 +24,7 @@ pub struct ContainerConfig {
     pub image: String,
     /// Optional container name. Auto-generated if absent.
     pub name: Option<String>,
-    /// Port mappings: container_port -> optional host_port (None = auto-assign).
+    /// Port mappings: `container_port` -> optional `host_port` (None = auto-assign).
     pub ports: Vec<PortMapping>,
     /// Environment variables: KEY=VALUE pairs.
     pub env: Vec<(String, String)>,
@@ -344,6 +344,10 @@ impl ContainerConfig {
 ///
 /// Returns `Err` with the offending input rather than a fallback, so a
 /// mistyped limit surfaces instead of silently running unlimited.
+///
+/// # Errors
+/// Returns `Err` when the input is empty, has an unknown unit, or overflows
+/// an `i64` byte count.
 pub fn parse_memory_bytes(input: &str) -> Result<i64, String> {
     let text = input.trim().to_ascii_lowercase();
     if text.is_empty() {

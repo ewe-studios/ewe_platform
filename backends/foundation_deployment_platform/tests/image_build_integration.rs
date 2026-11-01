@@ -15,7 +15,7 @@
 //! - a failing Dockerfile is an error, not a silent success;
 //! - a missing tag is rejected up front.
 //!
-//! The BuildKit backend lives in `buildkit_backend` below and needs both the
+//! The `BuildKit` backend lives in `buildkit_backend` below and needs both the
 //! `buildkit` feature and a reachable `buildkitd` (it skips otherwise).
 //!
 //! Run: `cargo test -p foundation_deployment_platform --test

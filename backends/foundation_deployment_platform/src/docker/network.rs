@@ -145,6 +145,9 @@ impl NetworkHandle {
     }
 }
 
+// `client` is intentionally omitted: it holds a live connection and has no
+// meaningful Debug representation.
+#[allow(clippy::missing_fields_in_debug)]
 impl std::fmt::Debug for NetworkHandle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("NetworkHandle")
@@ -164,7 +167,7 @@ impl Drop for NetworkHandle {
         // removed, and that must not panic a test's unwind.
         let client = self.client.clone();
         let name = self.name.clone();
-        let _ = crate::block_on(async move {
+        crate::block_on(async move {
             if let Err(e) = client.network_delete(&name).await {
                 warn!(network = %name, "drop: failed to remove network: {e}");
             }

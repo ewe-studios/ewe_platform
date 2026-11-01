@@ -2,6 +2,24 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §7 (foundation_deployment_platform) cleaned on
+  `fix/io-20-vfs-process-ipc`. The three stale entries are removed: the
+  `docker/wireguard.rs` inline tests already moved to `tests/wireguard_tests.rs`,
+  the deprecated `SimpleHttpClient` is gone (`wait_for.rs` now uses
+  `HttpClientBuilder`), and `PortMapping` is now used. The lib and every
+  default-feature test file reach zero clippy warnings: 21 lints in
+  `docker/container.rs`, 17 in `docker/wait_for.rs`, and the rest across
+  `docker/` (config, group, image, network, wireguard), `providers/`,
+  `lib.rs`, `testing.rs` and six test files (`doc_markdown`,
+  `missing_errors_doc`, `must_use_candidate`, `implicit_hasher`,
+  `cast_possible_truncation`, `unused_async_trait_impl`, `map_unwrap_or`,
+  `match_wildcard_for_single_variants`, and others). The 43 non-Docker tests
+  pass. A new §7 entry records the ~625 pedantic warnings in the `vms` feature
+  tree (not CI-enforced: CI clippy/build run `runs[0]` = default features). A
+  new §6 entry records a Docker client stall: POST requests with a body wait
+  ~2 minutes for `100 Continue`, so the daemon-backed integration tests take
+  10+ minutes and look hung.
+
 - 2026-11-02: bug-backlog §6 (foundation_deployment_cloudflare) fixed on
   `fix/io-20-vfs-process-ipc`. The unused `urlencoding` dependency is removed
   from `foundation_deployment_cloudflare/Cargo.toml`. It appears nowhere in the

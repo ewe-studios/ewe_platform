@@ -24,7 +24,7 @@ mod mock_socket;
 
 use std::io::Write;
 use std::os::unix::net::UnixStream;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -37,8 +37,7 @@ fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_nanos());
     let path = std::env::temp_dir().join(format!("ewe_plat_wfs_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path
@@ -50,7 +49,7 @@ fn frame(stream_type: u8, payload: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(8 + payload.len());
     out.push(stream_type);
     out.extend_from_slice(&[0u8; 3]);
-    out.extend_from_slice(&(payload.len() as u32).to_be_bytes());
+    out.extend_from_slice(&u32::try_from(payload.len()).unwrap_or(u32::MAX).to_be_bytes());
     out.extend_from_slice(payload);
     out
 }
@@ -111,12 +110,12 @@ fn serve_logs(stream: &mut UnixStream, follow: bool, script: LogScript, bytes: &
 
 /// Start a mock Docker daemon on `socket_path`, serving until `stop` is set.
 fn mock_daemon(
-    socket_path: PathBuf,
+    socket_path: &Path,
     stop: Arc<AtomicBool>,
     bytes: Arc<AtomicUsize>,
     script: LogScript,
 ) {
-    mock_socket::serve(&socket_path, stop, move |mut stream| {
+    mock_socket::serve(socket_path, stop, move |mut stream| {
         let Some(req) = mock_socket::read_request(&mut stream) else {
             return;
         };
@@ -156,7 +155,7 @@ async fn wait_for_stdout_matches_across_frames() {
     let stop = Arc::new(AtomicBool::new(false));
     let bytes = Arc::new(AtomicUsize::new(0));
     mock_daemon(
-        socket.clone(),
+        &socket,
         stop.clone(),
         bytes.clone(),
         LogScript::SplitAcrossFrames { first: b"hello ", second: b"world" },
@@ -178,7 +177,7 @@ async fn wait_for_stdout_ignores_stderr() {
     let stop = Arc::new(AtomicBool::new(false));
     let bytes = Arc::new(AtomicUsize::new(0));
     mock_daemon(
-        socket.clone(),
+        &socket,
         stop.clone(),
         bytes.clone(),
         LogScript::StderrOnly { payload: b"hello world" },
@@ -203,7 +202,7 @@ async fn wait_for_stdout_reads_each_byte_once() {
     let stop = Arc::new(AtomicBool::new(false));
     let bytes = Arc::new(AtomicUsize::new(0));
     mock_daemon(
-        socket.clone(),
+        &socket,
         stop.clone(),
         bytes.clone(),
         LogScript::FollowVsPoll { first: b"hello", second: b"world" },

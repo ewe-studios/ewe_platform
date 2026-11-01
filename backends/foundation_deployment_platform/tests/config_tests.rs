@@ -1,4 +1,4 @@
-//! Unit tests for ContainerConfig builder.
+//! Unit tests for `ContainerConfig` builder.
 
 use foundation_deployment_platform::docker::{ContainerConfig, WaitFor, VolumeSource};
 
@@ -69,7 +69,7 @@ fn test_config_named_volume() {
     assert_eq!(cfg.volumes.len(), 1);
     match &cfg.volumes[0].source {
         VolumeSource::Named(name) => assert_eq!(name, "mysql-data"),
-        _ => panic!("expected named volume"),
+        VolumeSource::Bind(_) => panic!("expected named volume"),
     }
 }
 

@@ -1,4 +1,4 @@
-//! WireGuard mesh injection for Docker containers (spec-55, F10).
+//! `WireGuard` mesh injection for Docker containers (spec-55, F10).
 //!
 //! WHY: The owner's headline flow — `foundation_deployment_platform`'s Docker
 //! capability generates a network secret once and injects it into every container
@@ -37,7 +37,7 @@ pub const ENV_WG_RELAY: &str = "WG_RELAY";
 // WgNetworkSecret
 // ---------------------------------------------------------------------------
 
-/// A generated WireGuard network secret — seed + network id, ready for injection.
+/// A generated `WireGuard` network secret — seed + network id, ready for injection.
 ///
 /// WHY: Generated once at deploy time, persisted in deployment state, reused for
 /// scale-ups and re-deploys so the fleet stays on the same network.
@@ -135,6 +135,9 @@ pub fn generate_network_secret() -> WgNetworkSecret {
 }
 
 /// Like [`generate_network_secret`] but with an explicit network id.
+///
+/// # Panics
+/// Panics if the OS random source is unavailable.
 #[must_use]
 pub fn generate_network_secret_with_id(network_id: NetworkId) -> WgNetworkSecret {
     let seed = WgSeed::generate(SeedBits::Bits256)
@@ -159,6 +162,7 @@ pub trait WireguardInjector {
     /// Sets `WG_SECRET` and `WG_NETWORK`. If `seed_endpoints` is non-empty,
     /// also sets `WG_SEED_ENDPOINTS` as a comma-separated list. If
     /// `relay_enabled`, sets `WG_RELAY=true`.
+    #[must_use]
     fn inject_wireguard(
         self,
         secret: &WgNetworkSecret,
@@ -184,7 +188,7 @@ impl WireguardInjector for ContainerConfig {
         ));
 
         if !seed_endpoints.is_empty() {
-            let eps: Vec<String> = seed_endpoints.iter().map(|a| a.to_string()).collect();
+            let eps: Vec<String> = seed_endpoints.iter().map(ToString::to_string).collect();
             self.env.push((
                 ENV_WG_SEED_ENDPOINTS.to_string(),
                 eps.join(","),
@@ -217,7 +221,7 @@ pub fn designate_seed(config: &mut ContainerConfig, wg_port: u16) {
 }
 
 /// Designate this container as a relay-capable node — publishes the relay
-/// port and sets the WG_RELAY env var.
+/// port and sets the `WG_RELAY` env var.
 pub fn designate_relay(config: &mut ContainerConfig, relay_port: u16, wg_port: u16) {
     // Publish the relay port.
     config.ports.push(super::config::PortMapping {

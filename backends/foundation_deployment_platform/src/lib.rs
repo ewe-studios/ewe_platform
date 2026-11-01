@@ -19,11 +19,11 @@
 //! # Architecture
 //!
 //! - **config** — VM profiles, guest OS types, display modes, error types
-//! - **docker** — Container lifecycle (ContainerHandle, ContainerConfig, WaitFor)
+//! - **docker** — Container lifecycle (`ContainerHandle`, `ContainerConfig`, `WaitFor`)
 //! - **qemu** — Process management, disk operations, networking, snapshots, downloads
 //! - **providers** — Provider trait + Docker/QEMU/UTM backends
 //! - **ssh** — SSH connections and command execution on guests
-//! - **winrm** — WinRM SOAP client for Windows guest bootstrapping
+//! - **winrm** — `WinRM` SOAP client for Windows guest bootstrapping
 //! - **import** — Image download, cache management, Vagrant Cloud integration
 //! - **bootstrap** — VM bootstrapping with mise + nushell
 //! - **build** — Build pipeline, code sync, artifact retrieval
@@ -31,7 +31,7 @@
 //! - **state** — Persistent VM state management
 //! - **doctor** — Host and VM health checks
 //! - **init** — Project scaffolding (testbed init, scripts, .gitignore)
-//! - **host_bootstrap** — Host prerequisites (mise, nushell, pitchfork)
+//! - **`host_bootstrap`** — Host prerequisites (mise, nushell, pitchfork)
 
 #![allow(clippy::too_many_arguments)]
 

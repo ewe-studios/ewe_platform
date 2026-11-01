@@ -1,4 +1,4 @@
-//! Tests extracted from vms/host_bootstrap/ modules
+//! Tests extracted from `vms/host_bootstrap` modules
 
 #![cfg(feature = "vms")]
 

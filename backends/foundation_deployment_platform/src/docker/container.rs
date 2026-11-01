@@ -145,8 +145,19 @@ pub fn gateway_of(networks: Option<&serde_json::Value>) -> Option<Ipv4Addr> {
     })
 }
 
+/// Docker's stop timeout is a `u32` seconds value; the config stores `u64`.
+/// Saturate an absurd value at `u32::MAX` instead of truncating it.
+#[must_use]
+fn stop_timeout_secs(timeout: u64) -> u32 {
+    u32::try_from(timeout).unwrap_or(u32::MAX)
+}
+
 impl ContainerHandle {
     /// Start a container: pull → create → start → inspect → wait.
+    ///
+    /// # Errors
+    /// Returns an error if the image cannot be pulled, the container cannot be
+    /// created or started, or its readiness check fails.
     pub async fn start_async(config: ContainerConfig) -> DockerResult<Self> {
         let docker = DockerClient::connect_with_defaults()
             .map_err(|e| docker_err(classify_docker_client_err("connect", e)))?;
@@ -250,7 +261,7 @@ impl ContainerHandle {
     /// never propagated: the caller is already returning the real failure and
     /// must not have it masked by a cleanup problem.
     async fn discard(docker: &DockerClient, container_id: &str, stop_timeout: u64) {
-        if let Err(e) = docker.stop_container(container_id, Some(stop_timeout as u32)).await {
+        if let Err(e) = docker.stop_container(container_id, Some(stop_timeout_secs(stop_timeout))).await {
             warn!(container_id = %container_id, "start cleanup: failed to stop container: {e}");
         }
         if let Err(e) = docker.remove_container(container_id, true).await {
@@ -259,6 +270,9 @@ impl ContainerHandle {
     }
 
     /// Sync convenience — delegates to `start_async()` via `block_on`.
+    ///
+    /// # Errors
+    /// As [`Self::start_async`].
     pub fn start(config: ContainerConfig) -> DockerResult<Self> {
         crate::block_on(Self::start_async(config))
     }
@@ -268,7 +282,7 @@ impl ContainerHandle {
         &self.container_id
     }
 
-    /// The container name, if set via ContainerConfig::name().
+    /// The container name, if set via `ContainerConfig::name()`.
     #[must_use]
     pub fn name(&self) -> Option<&str> {
         self.container_name.as_deref()
@@ -324,10 +338,14 @@ impl ContainerHandle {
             .map(|p| SocketAddr::from((self.host_ip, p)))
     }
 
+    /// Stop and remove the container, best-effort.
+    ///
+    /// # Errors
+    /// Always returns `Ok(())`: stop and remove failures are logged, not returned.
     pub async fn shutdown_async(&self) -> DockerResult<()> {
         if let Err(e) = self
             .docker
-            .stop_container(&self.container_id, Some(self.stop_timeout as u32))
+            .stop_container(&self.container_id, Some(stop_timeout_secs(self.stop_timeout)))
             .await
         {
             warn!(container_id = %self.container_id, "failed to stop container: {e}");
@@ -344,6 +362,10 @@ impl ContainerHandle {
         Ok(())
     }
 
+    /// Sync convenience — delegates to [`Self::shutdown_async`] via `block_on`.
+    ///
+    /// # Errors
+    /// As [`Self::shutdown_async`] (always `Ok`).
     pub fn shutdown(&self) -> DockerResult<()> {
         crate::block_on(self.shutdown_async())
     }
@@ -445,6 +467,10 @@ impl ContainerHandle {
         crate::block_on(self.exec_async(cmd))
     }
 
+    /// Inspect the container and report whether it is running.
+    ///
+    /// # Errors
+    /// Returns an error if the daemon rejects the inspect request.
     pub async fn is_running_async(&self) -> DockerResult<bool> {
         let info = self
             .docker
@@ -536,6 +562,9 @@ impl ContainerHandle {
     /// sends for `config`: its ports published on `host_ip`, and the
     /// container on `network_mode` when one is given (the caller's network,
     /// see [`caller_network_mode`]) instead of the config's own networks.
+    // One cohesive request-body assembly; splitting it into smaller helpers
+    // would add indirection without making the mapping clearer.
+    #[allow(clippy::too_many_lines)]
     #[must_use]
     pub fn build_body(
         config: &ContainerConfig,
@@ -557,13 +586,10 @@ impl ContainerHandle {
                 }
             );
             // ExposedPorts: keys mapped to empty objects.
-            exposed_ports.insert(port_key.clone(), serde_json::Value::Object(Default::default()));
+            exposed_ports.insert(port_key.clone(), serde_json::Value::Object(serde_json::Map::default()));
 
             // PortBindings: keys mapped to arrays of {HostIp, HostPort}.
-            let host_port_str = pm
-                .host_port
-                .map(|p| p.to_string())
-                .unwrap_or_else(|| String::new());
+            let host_port_str = pm.host_port.map_or_else(String::new, |p| p.to_string());
             port_bindings.insert(
                 port_key,
                 serde_json::json!([{
@@ -611,12 +637,12 @@ impl ContainerHandle {
                 } else {
                     Some(config.extra_hosts.clone())
                 },
-                network_mode: network_mode.clone(),
+                network_mode,
                 ..Default::default()
             },
             resources: Resources {
                 memory: memory_bytes,
-                nano_cpus: config.cpus.map(|c| c as i64 * 1_000_000_000),
+                nano_cpus: config.cpus.map(|c| i64::from(c) * 1_000_000_000),
                 devices: if config.devices.is_empty() {
                     None
                 } else {
@@ -748,9 +774,9 @@ impl Drop for ContainerHandle {
         let id = self.container_id.clone();
         let timeout = self.stop_timeout;
 
-        let _ = crate::block_on(async move {
+        crate::block_on(async move {
             if let Err(e) = docker
-                .stop_container(&id, Some(timeout as u32))
+                .stop_container(&id, Some(stop_timeout_secs(timeout)))
                 .await
             {
                 warn!(container_id = %id, "drop: failed to stop container: {e}");
@@ -762,6 +788,10 @@ impl Drop for ContainerHandle {
     }
 }
 
+// `docker`, `container_name` and `stop_timeout` are intentionally omitted: the
+// client has no Debug, the name duplicates `container_id`, and the timeout is
+// minor.
+#[allow(clippy::missing_fields_in_debug)]
 impl std::fmt::Debug for ContainerHandle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ContainerHandle")

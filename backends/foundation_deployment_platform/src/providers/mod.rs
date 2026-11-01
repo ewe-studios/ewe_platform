@@ -100,7 +100,7 @@ pub fn default_provider() -> Result<Box<dyn VmProvider>> {
 
 /// A backend provider with associated types for handle, config, and error.
 ///
-/// DockerProvider implements this directly. QEMU/UTM will migrate from
+/// `DockerProvider` implements this directly. QEMU/UTM will migrate from
 /// [`VmProvider`] to this trait (Feature 10).
 pub trait Provider: Send + Sync {
     type Handle;
@@ -109,9 +109,15 @@ pub trait Provider: Send + Sync {
 
     fn name(&self) -> &'static str;
     fn id(&self) -> ProviderId;
+    /// # Errors
+    /// Returns an error when the backend cannot start the VM or container.
     fn launch(&self, config: &Self::Config) -> std::result::Result<Self::Handle, Self::Error>;
+    /// # Errors
+    /// Returns an error when the backend cannot stop the VM or container.
     fn stop(&self, handle: &Self::Handle) -> std::result::Result<(), Self::Error>;
     fn is_running(&self, handle: &Self::Handle) -> bool;
+    /// # Errors
+    /// Returns an error when the backend cannot resolve the running ports.
     fn resolved_ports(&self, handle: &Self::Handle) -> std::result::Result<ResolvedPorts, Self::Error>;
     fn host_health(&self) -> Vec<(String, bool, String)>;
 }

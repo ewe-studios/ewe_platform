@@ -23,7 +23,7 @@ use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 use crate::docker::error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
 
 /// A readiness condition for a running container.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum WaitFor {
     /// Wait for a TCP port to accept connections on the host.
     Port { port: u16, timeout: Duration },
@@ -36,37 +36,42 @@ pub enum WaitFor {
     /// Run multiple strategies in sequence (all must succeed).
     Composite { strategies: Vec<WaitFor> },
     /// No wait.
+    #[default]
     None,
 }
 
-impl Default for WaitFor {
-    fn default() -> Self { Self::None }
-}
-
 impl WaitFor {
+    #[must_use]
     pub fn port(port: u16) -> Self {
         Self::Port { port, timeout: Duration::from_secs(30) }
     }
+    #[must_use]
     pub fn port_with_timeout(port: u16, timeout: Duration) -> Self {
         Self::Port { port, timeout }
     }
+    #[must_use]
     pub fn udp(port: u16) -> Self {
         Self::Udp { port, timeout: Duration::from_secs(30) }
     }
+    #[must_use]
     pub fn udp_with_timeout(port: u16, timeout: Duration) -> Self {
         Self::Udp { port, timeout }
     }
+    #[must_use]
     pub fn http(url: impl Into<String>) -> Self {
         Self::Http { url: url.into(), expected_status: 200, timeout: Duration::from_secs(30) }
     }
+    #[must_use]
     pub fn stdout(message: impl Into<String>) -> Self {
         Self::Stdout { message: message.into(), timeout: Duration::from_secs(30) }
     }
+    #[must_use]
     pub fn all(strategies: Vec<WaitFor>) -> Self {
         Self::Composite { strategies }
     }
 
     /// Returns the timeout duration, or `None` for `WaitFor::None`.
+    #[must_use]
     pub fn timeout(&self) -> Option<Duration> {
         match self {
             Self::Port { timeout, .. }
@@ -74,22 +79,22 @@ impl WaitFor {
             | Self::Http { timeout, .. }
             | Self::Stdout { timeout, .. } => Some(*timeout),
             Self::Composite { strategies } => {
-                strategies.iter().fold(Some(Duration::ZERO), |acc, s| match (acc, s.timeout()) {
-                    (Some(a), Some(b)) => Some(a + b),
-                    _ => acc,
-                })
+                Some(strategies.iter().filter_map(WaitFor::timeout).sum())
             }
             Self::None => None,
         }
     }
 
-    /// Apply this wait strategy. Called by ContainerHandle::start_async().
+    /// Apply this wait strategy. Called by `ContainerHandle::start_async()`.
     ///
     /// `host` is where the published `ports` are reached from this process
     /// (see [`crate::docker::ContainerHandle::host_ip`]).
     ///
     /// All waits are async and use valtron's cooperative [`sleep_async`] for
     /// backoff — no thread blocking.
+    ///
+    /// # Errors
+    /// Returns an error when the container is not ready before its timeout.
     pub async fn apply(
         &self,
         client: &DockerClient,
@@ -124,20 +129,34 @@ impl WaitFor {
     }
 }
 
-/// Wait until the host port `port` is published on accepts TCP connections on
+/// Wait until the host port `port` is published and accepts TCP connections on
 /// `127.0.0.1`. See [`wait_for_port_at`] for a process that reaches the host
 /// elsewhere.
-pub async fn wait_for_port(port: u16, timeout: Duration, ports: &HashMap<String, u16>) -> DockerResult<()> {
+///
+/// # Errors
+/// Returns a [`DockerError::WaitTimeout`] if the port does not accept a
+/// connection before `timeout`, or a [`DockerError::InvalidConfig`] if the
+/// port was not mapped.
+pub async fn wait_for_port(
+    port: u16,
+    timeout: Duration,
+    ports: &HashMap<String, u16, impl std::hash::BuildHasher>,
+) -> DockerResult<()> {
     wait_for_port_at(Ipv4Addr::LOCALHOST, port, timeout, ports).await
 }
 
-/// Wait until the host port `port` is published on accepts TCP connections on
+/// Wait until the host port `port` is published and accepts TCP connections on
 /// `host`.
+///
+/// # Errors
+/// Returns a [`DockerError::WaitTimeout`] if the port does not accept a
+/// connection before `timeout`, or a [`DockerError::InvalidConfig`] if the
+/// port was not mapped.
 pub async fn wait_for_port_at(
     host: Ipv4Addr,
     port: u16,
     timeout: Duration,
-    ports: &HashMap<String, u16>,
+    ports: &HashMap<String, u16, impl std::hash::BuildHasher>,
 ) -> DockerResult<()> {
     let key = format!("{port}/tcp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
@@ -205,9 +224,8 @@ pub(crate) async fn wait_for_udp(
 /// `socat EXEC:cat` produces no response for an empty datagram — cat reads 0
 /// bytes and exits without writing.
 fn udp_probe(addr: SocketAddr) -> bool {
-    let socket = match UdpSocket::bind("0.0.0.0:0") {
-        Ok(s) => s,
-        Err(_) => return false,
+    let Ok(socket) = UdpSocket::bind("0.0.0.0:0") else {
+        return false;
     };
     // Without the timeout `recv_from` could block the probe forever.
     if socket.set_read_timeout(Some(Duration::from_millis(200))).is_err() {
@@ -238,6 +256,10 @@ enum FrameOrTimeout {
 /// the stream so a match split across frames is still found. Only
 /// [`LogOutput::StdOut`] bytes count; `StdErr`, `StdIn` and `Console` frames
 /// are ignored (stderr is not requested, but the stream is checked anyway).
+///
+/// # Errors
+/// Returns a [`DockerError::WaitTimeout`] if the message does not appear before
+/// `timeout`, or the daemon's error if the log stream cannot be read.
 pub async fn wait_for_stdout(
     client: &DockerClient,
     container_id: &str,
@@ -283,14 +305,9 @@ pub async fn wait_for_stdout(
         .await;
 
         match outcome {
-            FrameOrTimeout::TimedOut => {
-                return Err(docker_err(DockerError::WaitTimeout {
-                    strategy: format!("Stdout(\"{message}\")"),
-                    elapsed: start.elapsed(),
-                }));
-            }
-            FrameOrTimeout::Frame(None) => {
-                // The stream ended (the container stopped) without the message.
+            // Timed out, or the stream ended (the container stopped) without
+            // the message.
+            FrameOrTimeout::TimedOut | FrameOrTimeout::Frame(None) => {
                 return Err(docker_err(DockerError::WaitTimeout {
                     strategy: format!("Stdout(\"{message}\")"),
                     elapsed: start.elapsed(),

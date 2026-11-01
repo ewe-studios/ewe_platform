@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (backlog §7 clippy cleanup, foundation_deployment_platform): CI's
+  clippy and build steps run only `runs[0]` of `ci/packages.toml`. For
+  `foundation_deployment_platform` that is the default feature set, so the
+  `vms` feature tree is compiled only by `cargo test --features vms`, which
+  does not lint. A crate can therefore pass CI clippy while a feature-gated
+  tree still has hundreds of pedantic warnings. Check both feature sets by
+  hand with `--features vms` before calling the crate clean. Also: the
+  workspace-wide `fullfp16` rustc deprecation (`.cargo/config.toml`,
+  `aarch64-apple-darwin`) is reported once per crate as `generated 1 warning
+  (1 duplicate)`, so it looks like a real lint; it is tracked in backlog §10,
+  not a code defect. `cargo clippy --no-deps` is what isolates a crate's own
+  warnings from its path-dependency warnings.
+
 - 2026-11-02 (backlog §10 flaky-test fix, foundation_ai): the
   `TestHttpServer`-based SSE mock (`sse_response`) sent no `Connection: close`,
   so the mock kept the HTTP/1.1 connection open after the response. The SSE

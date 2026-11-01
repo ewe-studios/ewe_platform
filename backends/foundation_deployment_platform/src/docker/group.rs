@@ -38,6 +38,9 @@ pub struct ContainerGroup {
 impl ContainerGroup {
     /// Start all containers from their definitions. Returns a group
     /// handle that will clean up all containers on Drop.
+    ///
+    /// # Errors
+    /// Returns an error when any container fails to start.
     pub async fn start_async(configs: Vec<ContainerConfig>) -> DockerResult<Self> {
         let mut entries = Vec::with_capacity(configs.len());
         for cfg in configs {
@@ -74,6 +77,9 @@ impl ContainerGroup {
     }
 
     /// Sync convenience — delegates to `start_async()` via `block_on`.
+    ///
+    /// # Errors
+    /// Returns an error when any container fails to start.
     pub fn start(configs: Vec<ContainerConfig>) -> DockerResult<Self> {
         crate::block_on(Self::start_async(configs))
     }

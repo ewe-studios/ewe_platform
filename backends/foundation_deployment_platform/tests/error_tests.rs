@@ -1,4 +1,4 @@
-//! Unit tests for DockerError.
+//! Unit tests for `DockerError`.
 
 use foundation_deployment_platform::docker::{DockerError, docker_err};
 
