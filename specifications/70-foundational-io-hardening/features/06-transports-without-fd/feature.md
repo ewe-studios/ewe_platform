@@ -1,6 +1,6 @@
 ---
 feature: "Readiness for transports without a pollable fd"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: ["05-push-body-and-accept"]
 branch: "fix/io-06-transports-without-fd"

@@ -1,6 +1,6 @@
 ---
 feature: "HTTP/3 frame cap and streaming, WebTransport session lifetime, wasm SSE read errors"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: ["02-h2-h3-server-readiness"]
 branch: "fix/io-07-h3-wt-sse"

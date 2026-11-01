@@ -1,6 +1,6 @@
 ---
 feature: "HTTP/2 and HTTP/3 servers park on readiness"
-status: "pending"
+status: "done"
 priority: "critical"
 depends_on: ["01-valtron-parking"]
 branch: "fix/io-02-h2-h3-readiness"
