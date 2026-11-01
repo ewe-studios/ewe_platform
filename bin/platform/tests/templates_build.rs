@@ -67,7 +67,8 @@ fn templates_generate_projects_that_build() {
                 .into(),
         );
 
-        let config = PackageConfig::new(projects_dir.clone(), params, *template_name, *package_name);
+        let config =
+            PackageConfig::new(projects_dir.clone(), params, *template_name, *package_name);
         let generator = PackageGenerator::new(Directorate::<ProjectTemplates>::default());
         generator.create(config).expect("generate project");
 
@@ -82,8 +83,7 @@ fn templates_generate_projects_that_build() {
             ));
         }
         std::fs::create_dir_all(project_dir.join(".cargo")).expect("create .cargo dir");
-        std::fs::write(project_dir.join(".cargo/config.toml"), patch)
-            .expect("write patch config");
+        std::fs::write(project_dir.join(".cargo/config.toml"), patch).expect("write patch config");
 
         let status = Command::new("cargo")
             .arg("check")
