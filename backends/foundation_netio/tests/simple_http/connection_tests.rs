@@ -6,6 +6,7 @@
 //! are suitable as fast unit tests under `tests/.../units/simple_http/`.
 
 use super::*;
+use foundation_core::valtron::valtron_test;
 use foundation_netio::shared::client::{MockDnsResolver, SystemDnsResolver};
 use foundation_netio::http::HttpClientConnection;
 use foundation_netio::shared::http::HttpClientError;
@@ -305,7 +306,7 @@ fn test_connection_timeout() {
 /// WHY: Verify `HttpClientConnection` handles DNS resolution failures
 /// WHAT: Tests that `connect()` returns appropriate error when DNS fails
 /// IMPORTANCE: DNS errors are common and should be handled gracefully
-#[test]
+#[valtron_test]
 fn test_connection_dns_failure() {
     let url = Uri::parse("http://invalid-host-12345.invalid").unwrap();
     let resolver = SystemDnsResolver::new();

@@ -161,6 +161,14 @@ impl ClientConfig {
         self.timeout_calculator.config()
     }
 
+    /// DNS resolution timeout (feature 36).
+    ///
+    /// Default 30 s, matching nginx's `resolver_timeout` default.
+    #[must_use]
+    pub fn dns_timeout(&self) -> Duration {
+        self.timeout_calculator.config().dns_timeout
+    }
+
     #[must_use]
     pub fn with_follow_other_redirects_response(mut self, follow: bool) -> Self {
         self.redirect.follow_other_redirects_response = follow;
@@ -248,6 +256,15 @@ impl ClientConfig {
     pub fn with_connect_timeout(mut self, timeout: Duration) -> Self {
         let mut config = *self.timeout_calculator.config();
         config.connect_timeout = timeout;
+        self.timeout_calculator = TimeoutCalculator::with_config(config);
+        self
+    }
+
+    /// Set the DNS resolution timeout (feature 36).
+    #[must_use]
+    pub fn with_dns_timeout(mut self, timeout: Duration) -> Self {
+        let mut config = *self.timeout_calculator.config();
+        config.dns_timeout = timeout;
         self.timeout_calculator = TimeoutCalculator::with_config(config);
         self
     }

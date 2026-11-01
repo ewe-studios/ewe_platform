@@ -10,9 +10,11 @@ use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
 use crate::netcap::{Connection, RawStream};
-use crate::shared::client::dns::DnsResolver;
+use crate::shared::client::dns::{resolve_blocking, DnsResolver};
 use crate::shared::http::HttpClientError;
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use std::future::Future;
+use std::pin::Pin;
 use std::time::Duration;
 
 use crate::netcap::ssl::SSLConnector;
@@ -158,7 +160,7 @@ impl HttpClientConnection {
         let port = url.port_or_default();
 
         // Step 1: Resolve DNS
-        let addrs = resolver.resolve(&host, port)?;
+        let addrs = resolve_blocking(resolver, &host, port)?;
 
         if addrs.is_empty() {
             return Err(HttpClientError::ConnectionFailed(format!(
@@ -458,7 +460,7 @@ impl HttpClientConnection {
         let host = host.into();
 
         // Step 1: Resolve DNS
-        let addrs = resolver.resolve(&host, port)?;
+        let addrs = resolve_blocking(resolver, &host, port)?;
 
         if addrs.is_empty() {
             return Err(HttpClientError::ConnectionFailed(format!(
@@ -546,7 +548,7 @@ impl HttpClientConnection {
         let host = host.into();
 
         // Step 1: Resolve DNS
-        let addrs = resolver.resolve(&host, port)?;
+        let addrs = resolve_blocking(resolver, &host, port)?;
 
         if addrs.is_empty() {
             return Err(HttpClientError::ConnectionFailed(format!(
@@ -689,11 +691,12 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         self.tls_connector.as_ref()
     }
 
-    /// Resolve `host:port` with the pool's resolver.
+    /// Resolve `host:port` with the pool's resolver, as a future (feature 36).
     ///
-    /// WHY: the non-blocking connect path (feature 04) must resolve DNS before it
-    /// can start `connect(2)` on each address. DNS still blocks (`SystemDnsResolver`);
-    /// that is recorded in the backlog and out of scope here.
+    /// WHY: the non-blocking connect path (feature 04) must resolve DNS before
+    /// it can start `connect(2)` on each address. The future owns its data (an
+    /// `Arc` of the resolver and an owned host string), so the request task can
+    /// await it in its `Resolving` state without holding a valtron worker.
     ///
     /// # Errors
     /// The resolver's error, or `ConnectionFailed` if nothing resolved.
@@ -701,17 +704,30 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         &self,
         host: &str,
         port: u16,
-    ) -> Result<Vec<core::net::SocketAddr>, HttpClientError> {
-        let addrs = self
-            .resolver
-            .resolve(host, port)
-            .map_err(HttpClientError::DnsError)?;
-        if addrs.is_empty() {
-            return Err(HttpClientError::ConnectionFailed(format!(
-                "No addresses resolved for {host}"
-            )));
-        }
-        Ok(addrs)
+    ) -> Pin<
+        Box<
+            dyn Future<Output = Result<Vec<core::net::SocketAddr>, HttpClientError>>
+                + Send,
+        >,
+    >
+    where
+        R: 'static,
+    {
+        let resolver = self.resolver.clone();
+        let host = host.to_owned();
+        Box::pin(async move {
+            let addrs = resolver
+                .as_ref()
+                .resolve(&host, port)
+                .await
+                .map_err(HttpClientError::DnsError)?;
+            if addrs.is_empty() {
+                return Err(HttpClientError::ConnectionFailed(format!(
+                    "No addresses resolved for {host}"
+                )));
+            }
+            Ok(addrs)
+        })
     }
 
     /// Check out a pooled connection for `host:port`, if one is idle.
@@ -891,7 +907,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         }
 
         // Step 1: DNS resolution for proxy
-        let addrs = self.resolver.resolve(&proxy.host, proxy.port)?;
+        let addrs = resolve_blocking(self.resolver.as_ref(), &proxy.host, proxy.port)?;
         if addrs.is_empty() {
             return Err(HttpClientError::ConnectionFailed(format!(
                 "No addresses resolved for proxy {}",

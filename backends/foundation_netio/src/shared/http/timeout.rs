@@ -101,6 +101,13 @@ pub struct TimeoutConfig {
     /// TCP connection establishment timeout.
     pub connect_timeout: Duration,
 
+    /// DNS resolution timeout (feature 36).
+    ///
+    /// Default 30 s, matching nginx's `resolver_timeout` (which defaults to
+    /// 30 s). Bounds how long a task awaits the resolver before failing with
+    /// `ConnectionTimeout`.
+    pub dns_timeout: Duration,
+
     /// Base read timeout per KB of expected body size.
     /// Scaled sub-linearly using `sqrt(size_kb)` to avoid excessive timeouts.
     pub read_timeout_per_kb: Duration,
@@ -147,6 +154,7 @@ impl Default for TimeoutConfig {
     /// | Field | Default | Rationale |
     /// |-------|---------|-----------|
     /// | connect_timeout | 10s | TCP handshake completion |
+    /// | dns_timeout | 30s | DNS lookup (nginx `resolver_timeout` default) |
     /// | read_timeout_per_kb | 10ms | Base for size-based calculation |
     /// | write_timeout_per_kb | 5ms | Upload speed factor |
     /// | min_read_timeout | 100ms | Absolute minimum for small payloads |
@@ -164,6 +172,7 @@ impl Default for TimeoutConfig {
     fn default() -> Self {
         Self {
             connect_timeout: Duration::from_secs(10),
+            dns_timeout: Duration::from_secs(30),
             read_timeout_per_kb: Duration::from_millis(10),
             write_timeout_per_kb: Duration::from_millis(5),
             min_read_timeout: Duration::from_millis(100),

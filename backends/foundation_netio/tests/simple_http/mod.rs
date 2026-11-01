@@ -32,6 +32,7 @@ mod redacted_headers_tests;
 mod redirects_tests;
 mod try_clone_tests;
 mod dns_tests;
+mod dns_async_tests;
 mod eof_handling_tests;
 mod errors_tests;
 mod f51_unified_client_tests;

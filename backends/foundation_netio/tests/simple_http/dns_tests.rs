@@ -8,8 +8,10 @@
 //! resolvers). Time-based behavior for cache expiration uses short TTLs to keep
 //! test runtime minimal.
 
+use foundation_core::valtron::valtron_test;
 use foundation_netio::shared::client::{
-    CachingDnsResolver, DnsResolver, MockDnsResolver, StaticSocketAddr, SystemDnsResolver,
+    resolve_blocking, CachingDnsResolver, DnsResolver, MockDnsResolver, StaticSocketAddr,
+    SystemDnsResolver,
 };
 use foundation_netio::shared::http::{DnsError, HttpClientError};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -20,7 +22,7 @@ use std::{io, thread};
 fn test_static_socket_addr_resolves_to_configured_address() {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
     let resolver = StaticSocketAddr::new(addr);
-    let result = resolver.resolve("example.com", 80);
+    let result = resolve_blocking(&resolver, "example.com", 80);
 
     assert!(result.is_ok(), "StaticSocketAddr should always resolve");
     let addrs = result.unwrap();
@@ -32,7 +34,7 @@ fn test_mock_resolver_returns_configured_response() {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080);
     let resolver = MockDnsResolver::new().with_response("example.com", vec![addr]);
 
-    let result = resolver.resolve("example.com", 80);
+    let result = resolve_blocking(&resolver, "example.com", 80);
     assert!(result.is_ok());
     assert_eq!(result.unwrap(), vec![addr]);
 }
@@ -44,7 +46,7 @@ fn test_mock_resolver_returns_configured_error() {
         DnsError::ResolutionFailed("test error".to_string()),
     );
 
-    let result = resolver.resolve("error.com", 80);
+    let result = resolve_blocking(&resolver, "error.com", 80);
     assert!(result.is_err());
     matches!(result.unwrap_err(), DnsError::ResolutionFailed(_));
 }
@@ -52,7 +54,7 @@ fn test_mock_resolver_returns_configured_error() {
 #[test]
 fn test_mock_resolver_returns_not_found_for_unconfigured_host() {
     let resolver = MockDnsResolver::new();
-    let result = resolver.resolve("unconfigured.com", 80);
+    let result = resolve_blocking(&resolver, "unconfigured.com", 80);
 
     assert!(result.is_err());
     matches!(result.unwrap_err(), DnsError::NoAddressesFound(_));
@@ -66,12 +68,12 @@ fn test_caching_resolver_caches_results() {
 
     // First resolution - cache miss
     assert_eq!(resolver.cache_size(), 0);
-    let result1 = resolver.resolve("cache-test.com", 80);
+    let result1 = resolve_blocking(&resolver, "cache-test.com", 80);
     assert!(result1.is_ok());
     assert_eq!(resolver.cache_size(), 1);
 
     // Second resolution - cache hit
-    let result2 = resolver.resolve("cache-test.com", 80);
+    let result2 = resolve_blocking(&resolver, "cache-test.com", 80);
     assert!(result2.is_ok());
     assert_eq!(result1.unwrap(), result2.unwrap());
     assert_eq!(resolver.cache_size(), 1);
@@ -85,7 +87,7 @@ fn test_caching_resolver_expires_entries() {
     let resolver = CachingDnsResolver::new(mock, std::time::Duration::from_millis(100));
 
     // First resolution
-    let result1 = resolver.resolve("expire-test.com", 80);
+    let result1 = resolve_blocking(&resolver, "expire-test.com", 80);
     assert!(result1.is_ok());
     assert_eq!(resolver.cache_size(), 1);
 
@@ -93,7 +95,7 @@ fn test_caching_resolver_expires_entries() {
     thread::sleep(std::time::Duration::from_millis(150));
 
     // Second resolution after expiration
-    let result2 = resolver.resolve("expire-test.com", 80);
+    let result2 = resolve_blocking(&resolver, "expire-test.com", 80);
     assert!(result2.is_ok());
     // Cache still has 1 entry (replaced the expired one)
     assert_eq!(resolver.cache_size(), 1);
@@ -106,7 +108,7 @@ fn test_caching_resolver_clear_cache() {
     let resolver = CachingDnsResolver::new(mock, std::time::Duration::from_secs(60));
 
     // Populate cache
-    resolver.resolve("clear-test.com", 80).unwrap();
+    resolve_blocking(&resolver, "clear-test.com", 80).unwrap();
     assert_eq!(resolver.cache_size(), 1);
 
     // Clear cache
@@ -125,8 +127,8 @@ fn test_caching_resolver_differentiates_by_port() {
     let resolver = CachingDnsResolver::new(mock, std::time::Duration::from_secs(60));
 
     // Resolve with different ports (cache keys include port)
-    resolver.resolve("port-test.com", 80).unwrap();
-    resolver.resolve("port-test.com", 443).unwrap();
+    resolve_blocking(&resolver, "port-test.com", 80).unwrap();
+    resolve_blocking(&resolver, "port-test.com", 443).unwrap();
 
     // Should have 2 cache entries (host:port keys)
     assert_eq!(resolver.cache_size(), 2);
@@ -224,10 +226,10 @@ fn test_errors_implement_std_error() {
 
 /// WHY: Verify `SystemDnsResolver` can resolve localhost
 /// WHAT: Tests basic DNS resolution functionality with a known hostname
-#[test]
+#[valtron_test]
 fn test_system_resolver_resolves_localhost() {
     let resolver = SystemDnsResolver::new();
-    let result = resolver.resolve("localhost", 8080);
+    let result = resolve_blocking(&resolver, "localhost", 8080);
 
     assert!(result.is_ok(), "localhost should resolve successfully");
     let addrs = result.unwrap();
@@ -239,10 +241,10 @@ fn test_system_resolver_resolves_localhost() {
 
 /// WHY: Verify `SystemDnsResolver` rejects empty hostnames
 /// WHAT: Tests that invalid input is properly rejected
-#[test]
+#[valtron_test]
 fn test_system_resolver_rejects_empty_host() {
     let resolver = SystemDnsResolver::new();
-    let result = resolver.resolve("", 8080);
+    let result = resolve_blocking(&resolver, "", 8080);
 
     assert!(result.is_err(), "empty hostname should fail");
     matches!(result.unwrap_err(), DnsError::InvalidHost(_));
@@ -250,10 +252,10 @@ fn test_system_resolver_rejects_empty_host() {
 
 /// WHY: Verify `SystemDnsResolver` handles invalid hostnames
 /// WHAT: Tests error handling for hostnames that don't resolve
-#[test]
+#[valtron_test]
 fn test_system_resolver_handles_invalid_host() {
     let resolver = SystemDnsResolver::new();
-    let result = resolver.resolve("this-hostname-should-not-exist-12345.invalid", 8080);
+    let result = resolve_blocking(&resolver, "this-hostname-should-not-exist-12345.invalid", 8080);
 
     assert!(result.is_err(), "invalid hostname should fail to resolve");
 }
@@ -266,7 +268,7 @@ fn test_caching_resolver_propagates_errors() {
         .with_error("error.com", DnsError::ResolutionFailed("test".to_string()));
     let resolver = CachingDnsResolver::new(mock, std::time::Duration::from_secs(60));
 
-    let result = resolver.resolve("error.com", 80);
+    let result = resolve_blocking(&resolver, "error.com", 80);
     assert!(result.is_err());
 
     // Error should not be cached
