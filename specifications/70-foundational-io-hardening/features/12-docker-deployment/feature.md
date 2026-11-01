@@ -1,6 +1,6 @@
 ---
 feature: "Docker client and foundation_deployment: generated requests, streamed bodies, CI for integration targets"
-status: "in_progress"
+status: "done"
 priority: "high"
 depends_on: ["03-client-body-readiness"]
 branch: "fix/io-12-docker-deployment"
@@ -81,7 +81,7 @@ cargo check --workspace --all-targets --profile dev
 - [x] New tests fail on the base code and pass now; 20-run flake check passes.
 - [x] No hand-written request in the seven methods (`rg -n 'Request::new|PreparedRequest' src` in
       the crate shows none in them).
-- [ ] CI green, including the new `integration-tests` build.
+- [x] CI green, including the new `integration-tests` build.
 
 ## Finalization notes
 
@@ -94,8 +94,9 @@ cargo check --workspace --all-targets --profile dev
   struct with `{info:?}`.
 - `Cargo.lock` still records `foundation_deployment_docker 0.1.3`; it refreshes in the
   single end-of-branch `Cargo.lock` commit, not in this feature commit.
-- Linux CI gate (rule 11) is pending; mark `status: "done"` and tick the last
-  Done-when box when it is green.
+- Linux CI gate (rule 11) is green: the `foundation_deployment_docker` package
+  passed in the Linux CI image (`ewestudios/ewe-platform-ci`), including the
+  `integration-tests` `--no-run` build. Status moved to `done`.
 
 ## Review checklist (main session)
 
