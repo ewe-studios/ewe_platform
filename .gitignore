@@ -187,6 +187,9 @@ artefacts/models/*
 .worktrees
 .claude/worktrees
 
+# fff fast file-finder index (local machine state, never committed)
+.fff/
+
 # Committed tiny test models — deliberately version-controlled (~54 MB total).
 # These are random-weight fixtures with REAL configs and tokenizers, so the
 # candle and llama.cpp suites can exercise loading, tokenization and chat

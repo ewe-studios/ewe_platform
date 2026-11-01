@@ -115,7 +115,7 @@ echo "✓ Development environment setup complete"
 
 [tasks."setup:tools"]
 description = "Install rustfmt, clippy, rust-analyzer, cargo-nextest, cargo-audit, and C/C++ toolchains"
-depends = ["tools:llama:init", "tools:emsdk:init"]
+depends = ["tools:llama:init", "tools:emsdk:init", "tools:fff"]
 run = """
 echo "Installing development tools..."
 rustup component add rustfmt clippy rust-analyzer 2>/dev/null || true
@@ -303,6 +303,14 @@ git submodule update --init --recursive tools/emsdk
 echo "✓ emsdk submodule ready"
 """
 
+[tasks."tools:fff"]
+description = "Install fff (fast file finder + grep, replaces ripgrep) into cargo bin"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+bash "{{config_root}}/scripts/setup/fff.sh"
+"""
+
 [tasks."setup:cloudflare"]
 description = "Install Cloudflare tools (wrangler via mise)"
 depends = ["install:cloudflare"]
@@ -334,6 +342,7 @@ wasmtime --version 2>/dev/null || echo "⚠ wasmtime not installed (needed for W
 cargo nextest --version 2>/dev/null || echo "⚠ cargo-nextest not installed"
 cargo audit --version 2>/dev/null || echo "⚠ cargo-audit not installed"
 bacon --version 2>/dev/null || echo "⚠ bacon not installed"
+fff --version 2>/dev/null || echo "⚠ fff not installed (run 'mise run tools:fff')"
 echo "✓ Tool check complete"
 """
 
