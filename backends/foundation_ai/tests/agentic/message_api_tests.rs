@@ -177,6 +177,32 @@ async fn memory_record_flush_is_idempotent() {
     assert_eq!(all.len(), 1, "the same memory record is stored once, not twice");
 }
 
+#[test]
+fn pub_sub_event_id_matches_memory_record_id() {
+    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), threshold(100));
+    let rx = api.subscribe();
+
+    let rec = working_record("event id matches");
+    let rec_id = match &rec {
+        SessionRecord::WorkingMemory { id, .. } => id.to_string(),
+        _ => unreachable!("working_record returns a WorkingMemory record"),
+    };
+
+    // The returned id and the pub/sub event id must both be the record's own
+    // id, which `write` also stores as the doc_id (append_promotable_with_id).
+    let returned = api.append(rec);
+
+    let events: Vec<_> = rx.try_iter().collect();
+    assert_eq!(events.len(), 1);
+    let event_id = match &events[0] {
+        MessageEvent::Appended { id, .. } => id.clone(),
+        _ => unreachable!("expected an Appended event"),
+    };
+
+    assert_eq!(returned, rec_id);
+    assert_eq!(event_id, rec_id);
+}
+
 #[valtron_test]
 async fn all_returns_oldest_first() {
     let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), threshold(100));

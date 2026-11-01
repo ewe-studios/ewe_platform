@@ -27,6 +27,15 @@ _What an agent learned that the next agent needs. Newest first._
   vacuously true) plus a `Future` impl. On native the same wrapper auto-derives
   `Send` from the inner future, so the code is unchanged there.
 
+- 2026-11-02 (feature 16 E8 follow-up, foundation_ai): the pub/sub `Appended`
+  event id must reuse the record's own id, not mint a fresh one. `write()` stores
+  a memory record under its own id (`append_promotable_with_id`), so a fresh
+  mint in `append()` makes the event id differ from the stored `doc_id`. The
+  fix routes `WorkingMemory` / `Observation` / `Reflection` through the record's
+  id in the event match, matching `Conversation`. `Retracted` still mints a
+  fresh id because `write()` stores it through the non-idempotent `append`, not
+  its `id` field; that is a separate gap.
+
 - 2026-11-02 (feature 16 E8, foundation_ai): `append_with_id` /
   `append_promotable_with_id` idempotency is keyed on `(collection key, doc_id)`.
   The `doc_id` must be STABLE across a retry: mint it once in the record

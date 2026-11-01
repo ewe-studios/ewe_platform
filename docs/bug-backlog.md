@@ -137,12 +137,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   arguments"). The test passes in isolation. Fix: make the mock SSE response
   immune to the reconnect (end the stream cleanly, or set a retry/close policy
   so a reconnect does not replay deltas).
-- **The pub/sub `Appended` event id does not match the stored `doc_id`.** After
-  feature 16 E8, a memory record stores its own id as the `doc_id`. But
-  `MessageApi::append` (about line 347) mints a fresh scru128 for the pub/sub
-  `Appended` event id of a non-`Conversation` record. The two ids differ.
-  Callers discard the return value, so it is harmless now. Fix: reuse the
-  record's own id for the event id.
 - **The `agentic_tests` target warns `recursion_depth_exceeding_limit`.**
   The `TursoStorage` test in `tests/agentic/session_mock_tests.rs` drives a deep
   `Send` auto-trait resolution inside an `async_trait` future, so the compiler

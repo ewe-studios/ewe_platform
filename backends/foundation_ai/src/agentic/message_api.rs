@@ -348,6 +348,11 @@ impl<D> MessageApi<D> {
     pub fn append(&self, record: SessionRecord) -> String {
         let id = match &record {
             SessionRecord::Conversation { message } => message.id().to_string(),
+            // Memory records are stored under their own id (see `write`), so
+            // the pub/sub event id must match that id, not a fresh mint.
+            SessionRecord::WorkingMemory { id, .. }
+            | SessionRecord::Observation { id, .. }
+            | SessionRecord::Reflection { id, .. } => id.to_string(),
             _ => foundation_compact::ids::new_scru128_string(),
         };
         let variant = MessageEvent::variant_name(&record);

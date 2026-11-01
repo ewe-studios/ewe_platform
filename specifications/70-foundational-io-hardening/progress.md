@@ -20,6 +20,12 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `openai_provider::test_provider_streaming_tool_calls` is recorded. Commit
   04febe2cf.
 
+- 2026-11-02: feature 16 E8 follow-up (foundation_ai) done on
+  `fix/io-20-vfs-process-ipc`. The pub/sub `Appended` event id now reuses the
+  record's own id for WorkingMemory / Observation / Reflection, matching the
+  stored `doc_id`. A test asserts the event id and the append return value equal
+  the record id.
+
 - 2026-11-02: feature 16 E8 (foundation_ai) done on
   `fix/io-20-vfs-process-ipc`. Memory records (WorkingMemory, Observation,
   Reflection) now write through `append_promotable_with_id` with the record's
