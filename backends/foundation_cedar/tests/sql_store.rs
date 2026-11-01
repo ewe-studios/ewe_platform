@@ -6,14 +6,14 @@ use foundation_cedar::{load_from_store, PolicyStore, SqlPolicyStore};
 use foundation_core::valtron::valtron_test;
 use foundation_db::{DataValue, QueryStore, TursoStorage};
 
-const SCHEMA: &str = r#"
+const SCHEMA: &str = r"
 entity User;
 entity Album;
 action view appliesTo {
   principal: [User],
   resource: [Album]
 };
-"#;
+";
 
 const POLICIES: &str = r#"
 permit(

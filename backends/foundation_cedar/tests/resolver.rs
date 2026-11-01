@@ -1,14 +1,14 @@
 use foundation_cedar::{load_from_store, InMemoryPolicyStore};
 use foundation_core::valtron::valtron_test;
 
-const SCHEMA: &str = r#"
+const SCHEMA: &str = r"
 entity User;
 entity Album;
 action view appliesTo {
   principal: [User],
   resource: [Album]
 };
-"#;
+";
 
 const POLICIES: &str = r#"
 permit(

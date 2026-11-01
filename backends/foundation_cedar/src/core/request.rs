@@ -33,7 +33,10 @@ impl CedarRequestBuilder {
         self
     }
 
-    #[must_use]
+    /// Set the principal from a type name and an id.
+    ///
+    /// # Errors
+    /// Returns an error if the type name does not parse.
     pub fn principal_str(mut self, type_name: &str, id: &str) -> Result<Self, CedarError> {
         let tn = EntityTypeName::from_str(type_name)
             .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
@@ -48,7 +51,10 @@ impl CedarRequestBuilder {
         self
     }
 
-    #[must_use]
+    /// Set the action from a type name and an id.
+    ///
+    /// # Errors
+    /// Returns an error if the type name does not parse.
     pub fn action_str(mut self, type_name: &str, id: &str) -> Result<Self, CedarError> {
         let tn = EntityTypeName::from_str(type_name)
             .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
@@ -63,7 +69,10 @@ impl CedarRequestBuilder {
         self
     }
 
-    #[must_use]
+    /// Set the resource from a type name and an id.
+    ///
+    /// # Errors
+    /// Returns an error if the type name does not parse.
     pub fn resource_str(mut self, type_name: &str, id: &str) -> Result<Self, CedarError> {
         let tn = EntityTypeName::from_str(type_name)
             .map_err(|e| CedarError::RequestBuild(e.to_string()))?;
@@ -84,6 +93,10 @@ impl CedarRequestBuilder {
         self
     }
 
+    /// Build the request.
+    ///
+    /// # Errors
+    /// Returns an error if a required field is missing or the context fails to build.
     pub fn build(self) -> Result<CedarRequest, CedarError> {
         let principal = self
             .principal

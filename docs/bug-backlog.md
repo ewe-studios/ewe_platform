@@ -246,26 +246,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   pending, without `blocking_boundary!`, so on JS-hosted wasm it would spin.
   Fix: gate `SyncFs` and `exec_async` with `blocking_boundary!`.
 
-## 15. foundation_cedar
-
-- **Pre-existing clippy `pedantic` warnings (24).** `cargo clippy --no-deps`
-  still reports 24 warnings in this crate. The library has 18: nine
-  `missing_errors_doc` (`engine.rs`, `entity_provider.rs`, `policy_set.rs`,
-  `request.rs`), four `must_use` (`engine.rs`, `request.rs`), two
-  `redundant_closure_for_method_calls` (`engine.rs`, `response.rs`), two
-  `manual Debug does not include all fields` (`file_store.rs`, `traits.rs`)
-  and one `struct_field_names` (`file_store.rs`). The test targets have six
-  more: three `unnecessary hashes around raw string literal` and three
-  `assert!`-on-non-empty (`tests/engine.rs`, `tests/file_store.rs`,
-  `tests/resolver.rs`, `tests/traits.rs`). None are on feature-21 code.
-  Fix: add the missing doc sections, drop the redundant `#[must_use]`, complete
-  the Debug impls, and clean the test helpers, then delete this entry.
-- **Future-incompat `recursion_depth_exceeding_limit` in the `sql_store` test
-  (`--features db`).** The `turso::Builder::build()` async fn drives deep `Send`
-  auto-trait resolution, so the compiler warns it will become a hard error.
-  Fix: add `#![recursion_limit = "256"]` to the `sql_store` test target, or a
-  manual `Send` impl for the intermediate types.
-
 ## 16. Workspace / process
 
 - **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.

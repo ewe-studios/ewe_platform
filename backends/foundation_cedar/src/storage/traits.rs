@@ -90,6 +90,9 @@ impl PolicyStore for InMemoryPolicyStore {
 impl core::fmt::Debug for InMemoryPolicyStore {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("InMemoryPolicyStore")
+            .field("schema", &self.schema)
+            .field("policies", &self.policies)
+            .field("entities", &self.entities)
             .field("version", &self.version)
             .finish()
     }

@@ -2,6 +2,24 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §15 (foundation_cedar) clippy cleanup on
+  `fix/io-20-vfs-process-ipc`. Cleared the 24 pre-existing `pedantic` warnings
+  and deleted both §15 backlog entries (the warnings list and the stale
+  `recursion_depth_exceeding_limit` note, which no longer reproduces). Nine
+  `missing_errors_doc` sites gain `# Errors` sections, the redundant `#[must_use]`
+  attributes on `principal_str`/`action_str`/`resource_str` are dropped (one
+  added to `is_authorized_with_entities`), two
+  `redundant_closure_for_method_calls` sites use
+  `std::string::ToString::to_string`, two `missing_fields_in_debug` Debug impls
+  are completed, one `struct_field_names` site renames `*_path` fields, three
+  `needless_raw_string_hashes` sites drop the extra `#`, and three
+  `assert_is_empty` sites use the typed-empty-array form `assert_ne!(x, [] as [T; 0])`
+  (a plain `vec![]` fails E0282, and clippy's own `cedar_policy::api::id::PolicyId`
+  path is private, so the public `cedar_policy::PolicyId` re-export is used).
+  Verified with `cargo clippy --profile uat --all-targets [--features db] --no-deps`
+  (zero code warnings, only `fullfp16` noise) and `cargo test --profile uat
+  [--features db]` (17 default / 25 `db` tests green).
+
 - 2026-11-02: bug-backlog §7 (foundation_deployment_platform) `vms` clippy
   follow-up on `fix/io-20-vfs-process-ipc`. The first pass (commit `ab014f58a`)
   left 28 warnings: the check grep missed colorized clippy output, so it saw

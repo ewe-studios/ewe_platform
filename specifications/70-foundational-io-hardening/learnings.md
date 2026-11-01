@@ -2,6 +2,17 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (backlog §15 clippy cleanup, foundation_cedar): the
+  `assert_is_empty` fix has three more traps beyond the earlier `[] as [T; 0]`
+  note. (1) A plain `vec![]` in `assert_ne!(x, vec![])` fails E0282 ("type
+  annotations needed") because the empty vec's element type cannot unify through
+  the `PartialEq<Vec<T>> for Vec<T>` impl inside the macro; clippy's own form is
+  a typed empty array, `assert_ne!(x, [] as [T; 0])`. (2) Clippy emits a
+  fully-qualified element path that can name a private module —
+  `[] as [cedar_policy::api::id::PolicyId; 0]` does not compile because `api` is
+  private; use the public re-export `cedar_policy::PolicyId` instead. (3) For a
+  `String`, `assert_ne!(x, "")` compiles fine (no array needed).
+
 - 2026-11-02 (backlog §7 `vms` clippy follow-up, foundation_deployment_platform):
   two more gotchas. (1) rustc and clippy colorize their output, so a `grep
   "^warning:"` matches nothing on a colorized line; a crate can look clean
