@@ -330,6 +330,10 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
+- **`OverlayStream.owner` is never read.** `src/dataplane/netstack.rs:717` holds an
+  `Arc<OverlayStreamOwner>` only for its drop side effect (remove the smoltcp socket on the
+  last drop). Dead-code analysis ignores the derived `Clone` use, so the field warns. Fix:
+  rename the field `_owner`, or add a justified `#[allow(dead_code)]`.
 - **The shared-reactor tests use Linux-only calls.** `tests/reactor_shared_selector_tests.rs`
   calls `libc::pipe2` (not present in `libc` on macOS) and reads `/proc/self/fd` (Linux only),
   so `cargo check --workspace --all-targets` fails on macOS. The `Reactor` itself has a kqueue
