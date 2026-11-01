@@ -164,6 +164,20 @@ async fn memory_records_use_promotable_columns() {
 }
 
 #[valtron_test]
+async fn memory_record_flush_is_idempotent() {
+    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), threshold(100));
+
+    // The same record is appended twice (same id). The flush writes it once.
+    let rec = working_record("idempotent memory");
+    api.append(rec.clone());
+    api.append(rec.clone());
+    api.flush().await.unwrap();
+
+    let all = api.all().await.unwrap();
+    assert_eq!(all.len(), 1, "the same memory record is stored once, not twice");
+}
+
+#[valtron_test]
 async fn all_returns_oldest_first() {
     let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), threshold(100));
 

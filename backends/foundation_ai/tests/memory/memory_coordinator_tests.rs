@@ -2,13 +2,15 @@
 //! `DocumentStore` + the latest-memory cache, and the cache-miss fallback that
 //! rebuilds from the audit log.
 
+use std::sync::Arc;
+
 use foundation_ai::agentic::internals::{MemoryCoordinator, MemoryTier};
 use foundation_ai::agentic::{KvMemoryStore, MemoryStore};
 use foundation_ai::types::{
     ObservationEntry, ObservationKind, ReflectionEntry, SessionId, SessionRecord,
 };
 use foundation_compact::SystemTime;
-use foundation_db::{MemoryDocumentStore, MemoryStorage};
+use foundation_db::{DocumentStore, MemoryDocumentStore, MemoryStorage};
 use futures_lite::future::block_on;
 
 fn observation(content: &str) -> SessionRecord {
@@ -130,5 +132,25 @@ fn sessions_are_isolated() {
 
         assert!(coord.hydrate(&b).await.unwrap().observation.is_none());
         assert!(coord.hydrate(&a).await.unwrap().observation.is_some());
+    });
+}
+
+#[test]
+fn record_is_idempotent_on_retry() {
+    block_on(async {
+        let audit = Arc::new(MemoryDocumentStore::new());
+        let coord = MemoryCoordinator::from_shared(
+            Arc::new(KvMemoryStore::new(MemoryStorage::new())),
+            audit.clone(),
+        );
+        let session = SessionId::new();
+        let obs = observation("idempotent observation");
+        coord.record(&session, &obs).await.unwrap();
+        // A retried write of the same record must not create a second document.
+        coord.record(&session, &obs).await.unwrap();
+
+        let key = format!("session:{session}");
+        let count = audit.count(&key).await.unwrap();
+        assert_eq!(count, 1, "the same memory record is stored once, not twice");
     });
 }

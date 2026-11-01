@@ -248,11 +248,13 @@ impl<D: DocumentStore> MessageInner<D> {
                     .append_with_id(&key, &message.id().to_string(), record.clone())
                     .await?;
             }
-            SessionRecord::WorkingMemory { .. }
-            | SessionRecord::Observation { .. }
-            | SessionRecord::Reflection { .. } => {
+            SessionRecord::WorkingMemory { id, .. }
+            | SessionRecord::Observation { id, .. }
+            | SessionRecord::Reflection { id, .. } => {
+                // The record's own id is stable across a retry. A second write
+                // of the same record is a no-op, so no duplicate is created.
                 self.doc_store
-                    .append_promotable(&key, record.clone())
+                    .append_promotable_with_id(&key, &id.to_string(), record.clone())
                     .await?;
             }
             _ => {

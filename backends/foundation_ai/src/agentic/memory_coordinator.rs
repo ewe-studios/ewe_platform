@@ -103,6 +103,8 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     /// append fails the error propagates and the cache is left untouched; if the
     /// cache write fails afterwards it is logged and `Ok` is returned (the audit is
     /// the source of truth and the cache rebuilds on the next hydrate fallback).
+    /// The audit write is idempotent on the record's own id, so a retried write
+    /// of the same record does not create a duplicate document (F16 E8).
     /// # Errors
     /// Returns [`StorageError`] if the record cannot be stored.
     pub async fn record(
@@ -112,9 +114,22 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     ) -> StorageResult<()> {
         // Audit first — promoted columns (record_type/summary) come from
         // `PromotableDocument for SessionRecord` above.
-        self.audit
-            .append_promotable(&Self::audit_key(session), record.clone())
-            .await?;
+        let key = Self::audit_key(session);
+        match record {
+            SessionRecord::WorkingMemory { id, .. }
+            | SessionRecord::Observation { id, .. }
+            | SessionRecord::Reflection { id, .. } => {
+                // The record's own id is stable across a retry. A second write
+                // of the same record is a no-op, so no duplicate is created.
+                self.audit
+                    .append_promotable_with_id(&key, &id.to_string(), record.clone())
+                    .await?;
+            }
+            // A non-memory record carries no stable id. Keep the old path.
+            _ => {
+                self.audit.append_promotable(&key, record.clone()).await?;
+            }
+        }
 
         if let Err(e) = self.memory.set(session, record).await {
             tracing::warn!(
