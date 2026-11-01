@@ -12,7 +12,14 @@ _What an agent learned that the next agent needs. Newest first._
   `foundation_auth`), not a macro change. `recursion_limit` is per-crate, so each
   integration-test binary that overflows needs its own attribute. Check the true
   scope before trusting a spec: run `cargo check --workspace --all-targets` and
-  grep the warning, instead of the crate the spec names.
+  grep the warning, instead of the crate the spec names. A local rewrite cannot
+  avoid the limit: the depth is in turso's future *types* (its nested
+  `async fn` graph), not in our own nesting, so splitting the generic method or
+  hand-writing the boxed future still walks the same chain. Dropping `Send`
+  (`?Send`) would stop the recursion, but it is unavailable — `block_on_future`
+  (the `#[valtron_test]` / `#[valtron]` sync boundary) schedules onto the
+  multi-threaded pool and requires `F: Future + Send`. `recursion_limit` is the
+  intended knob for a third-party async graph deeper than the conservative 128.
 
 - 2026-10-31 (CI fix): a version bump must move the whole RustCrypto set together. The
   `pull/163/merge` inherited master's incomplete Dependabot bump of `sha2` from 0.10 to 0.11.
