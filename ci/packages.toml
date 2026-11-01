@@ -142,8 +142,9 @@ runs = ["", "vms"]
 # feature; with default features none of it compiles, so its mock-daemon tests
 # (API version negotiation, error classification, every endpoint wrapper)
 # never ran. Test that configuration as well. The real-daemon tests stay
-# behind `integration-tests`.
-runs = ["", "docker"]
+# behind `integration-tests`; that target is built (`--no-run`) so it cannot
+# silently rot, but never run — daemon-backed runs stay manual.
+runs = ["", "docker", "--no-run --features docker,integration-tests"]
 # ---------------------------------------------------------------------------
 # Packages that need more memory than the runner has to spare.
 
@@ -225,7 +226,9 @@ wasm-runs = [""]
 # readiness suite (tests/reactor_shared_selector_tests.rs), which is gated on
 # `feature = "fd"` and so runs in no other run. `netstack` adds the WireGuard
 # overlay data-plane suite (tests/dataplane), which no run compiled before.
-runs = ["", "fd", "vfs-native,vfs-d1,vfs-r2", "netstack"]
+# `vfs-fuse` builds and runs the FUSE adapter tests (mount tests skip without
+# /dev/fuse).
+runs = ["", "fd", "vfs-native,vfs-d1,vfs-r2", "netstack", "vfs-fuse"]
 
 [packages.foundation_compact]
 wasm = "enforce"
