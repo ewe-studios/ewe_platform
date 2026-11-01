@@ -98,7 +98,7 @@ impl<M: MemoryStore + 'static, D: DocumentStore + 'static> MemoryAccess for Memo
 
     async fn hydrate(&self) -> StorageResult<SessionMemory> {
         self.coordinator()
-            .hydrate_async(MemoryHierarchy::session_id(self))
+            .hydrate(MemoryHierarchy::session_id(self))
             .await
     }
 

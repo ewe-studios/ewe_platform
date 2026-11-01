@@ -530,8 +530,9 @@ async fn a_tool_less_session_declares_no_tools() {
 /// common with its name or description.
 struct GreetingEmbedder;
 
+#[async_trait::async_trait]
 impl EmbeddingProvider for GreetingEmbedder {
-    fn embed(&self, text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+    async fn embed(&self, text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
         let lower = text.to_lowercase();
         let data = if lower.contains("greet") || lower.contains("salute") {
             vec![1.0, 0.0]
@@ -544,12 +545,16 @@ impl EmbeddingProvider for GreetingEmbedder {
             model_id: "greeting".into(),
         })
     }
-    fn embed_batch(
+    async fn embed_batch(
         &self,
         texts: &[String],
         model_id: &str,
     ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
-        texts.iter().map(|t| self.embed(t, model_id)).collect()
+        let mut out = Vec::with_capacity(texts.len());
+        for t in texts {
+            out.push(self.embed(t, model_id).await?);
+        }
+        Ok(out)
     }
     fn register_model(&self, _model_id: &str, _dimensions: u16) {}
     fn cache_stats(&self) -> CacheStats {

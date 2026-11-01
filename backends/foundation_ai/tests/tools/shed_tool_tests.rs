@@ -390,8 +390,9 @@ async fn with_defaults_searches_through_discovery() {
 /// everything else as the same unit vector.
 struct PickyEmbedder;
 
+#[async_trait::async_trait]
 impl EmbeddingProvider for PickyEmbedder {
-    fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+    async fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
         if text.contains("broken") {
             return Err(EmbeddingError::ModelNotFound(model_id.to_string()));
         }
@@ -402,12 +403,16 @@ impl EmbeddingProvider for PickyEmbedder {
         })
     }
 
-    fn embed_batch(
+    async fn embed_batch(
         &self,
         texts: &[String],
         model_id: &str,
     ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
-        texts.iter().map(|t| self.embed(t, model_id)).collect()
+        let mut out = Vec::with_capacity(texts.len());
+        for t in texts {
+            out.push(self.embed(t, model_id).await?);
+        }
+        Ok(out)
     }
 
     fn register_model(&self, _model_id: &str, _dimensions: u16) {}

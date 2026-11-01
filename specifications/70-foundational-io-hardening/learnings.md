@@ -20,6 +20,41 @@ _What an agent learned that the next agent needs. Newest first._
   page keeps a large R2 bucket's listing from being read whole into memory
   (rule 4).
 
+- 2026-11-01 (feature 24, foundation_testbed): `deno_core` 0.404 hard-codes
+  `DefaultReactor = TokioReactor` with no seam to swap it, so its timers, TCP
+  and WebSocket need a tokio runtime. `JsRuntime::poll_event_loop` cannot be
+  driven from a valtron task on valtron's clock. So `embedded_js.rs` keeps a
+  current-thread tokio runtime local to the module, behind the
+  `wasm-embedded-js` feature flag, documented as a third-party boundary.
+
+- 2026-11-01 (feature 16, foundation_ai): `futures_lite::future::Zip<F1, F2>`
+  stores `Option<F1::Output>` and `Option<F2::Output>`, so `zip(a, b)` is `Send`
+  only when both OUTPUT types are `Send`. A timing test that
+  `zip(model.generate_async(..), ticker).await` inside a `#[valtron_test]` async
+  body failed to compile because `GenerationError` held
+  `foundation_core::extensions::result_ext::BoxedError` (a non-`Send`
+  `Box<dyn Error>`). The fix: use `SendableBoxedError`
+  (`Box<dyn Error + Send + Sync>`) in `GenerationError`, `ModelErrors` and
+  `ModelProviderErrors`. The same root cause was hidden in the pre-existing E1
+  test; it is a correctness bug, not a test-only one.
+
+- 2026-11-01 (feature 16, foundation_ai): `tests/agentic/mod.rs` is both the
+  `agentic_tests` crate root and a `mod agentic` submodule of `tests/mod.rs`
+  (the `foundation_ai_tests` crate). A crate-level attribute such as
+  `#![recursion_limit = "256"]` therefore fixes one crate and adds an
+  `unused_attributes` warning in the other. The `recursion_depth_exceeding_limit`
+  warning in `session_mock_tests.rs` stays recorded in the backlog until the two
+  roots are split.
+
+- 2026-11-01 (feature 16, foundation_ai): the dev profile uses the Cranelift
+  codegen backend (`CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift` via mise), and
+  Cranelift cannot compile `gemm-f16`'s AArch64 inline assembly, so the E9
+  verify command `cargo test -p foundation_ai --no-default-features --features
+  testing --no-run` fails in the `gemm-f16` dependency before reaching
+  `foundation_ai`. Run it with `--profile uat` (llvm) to verify the submodule
+  removal. `cargo test` also takes one positional TESTNAME before `--`; several
+  filters go after `--` as libtest arguments.
+
 - 2026-11-01 (feature 21, foundation_cronjobs): the `cron` crate was rejected
   and `saffron` 0.1 was chosen. `saffron` parses a five-field Quartz expression
   (minute, hour, day of month, month, day of week). That matches the existing

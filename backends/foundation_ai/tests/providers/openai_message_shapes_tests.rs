@@ -18,9 +18,9 @@ use foundation_ai::backends::openai_provider::{
     build_chat_request, parse_chat_response, ChatCompletionResponse,
 };
 use foundation_ai::types::{
-    CostStatus, ImageContent, MessageRole, Messages, MimeType, ModelId, ModelInteraction,
-    ModelOutput, ModelParams, ModelProviders, ModelUsageCosting, StopReason, TextContent,
-    ToolDeclarations, UsageCosting, UsageReport, UserModelContent,
+    CostStatus, ImageContent, Messages, MimeType, ModelId, ModelInteraction,
+    ModelOutput, ModelParams, ModelProviders, ModelUsageCosting, StopReason,
+    ToolDeclarations, UsageCosting, UsageReport,
 };
 
 // ---------------------------------------------------------------------------

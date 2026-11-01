@@ -46,7 +46,7 @@ fn cmd(command: &str, pairs: &[(&str, &str)]) -> ToolArguments {
 async fn facts_of(h: &Hierarchy) -> Vec<String> {
     let mem = h
         .coordinator()
-        .hydrate_async(h.session_id())
+        .hydrate(h.session_id())
         .await
         .expect("hydrate");
     match mem.working {

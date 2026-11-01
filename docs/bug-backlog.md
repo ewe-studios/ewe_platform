@@ -143,66 +143,45 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 10. foundation_ai
 
-- **Non-streaming wasm `generate` is unsupported.** The providers' sync
-  `generate` path calls `HttpClient::send`, which on wasm now returns an error
-  (spec 65 feature 06 T5: a sync send cannot wait for `fetch` without freezing the
-  isolate), and its retry backoff `backend_utils::sleep` is a no-op on wasm (T4).
-  So one-shot generation fails fast on wasm instead of deadlocking, but does not
-  work. Likely fix: an async `generate` seam (e.g. `generate_async`) over
-  `send_async`, or route wasm `generate` through the lazy `send_sse`/`stream`
-  machinery and collect its result async.
-- **The `agent` tool busy-loops on `Stream::Wait`.**
-  `src/agentic/tools/agent.rs` (~l. 492) drains a sub-agent's stream
-  synchronously and `continue`s on `Init | Ignore | Wait | Delayed`, so a
-  sub-agent waiting on I/O spins the caller's thread (and on wasm never yields
-  to the event loop, so the I/O can never complete). Likely fix: drive the
-  sub-agent as its own task and park on it (`valtron::park_on`), or report
-  `Working` and return on `Wait` the way it already does on `Pending`.
-- **HTTP providers read whole error bodies.** Every provider's non-2xx path
-  (`openai_provider`, `openai_responses_provider`,
-  `anthropic_messages_provider`, `backends::model_info`) collects the full
-  body to extract the vendor message. Likely fix: read at most a configured
-  number of bytes (a field on each provider config, default 64 KiB like Go
-  `net/http`'s error-drain limit) before parsing.
-- **`ResponsesProvider::fetch_model_info` has no success test.**
-  `tests/models/provider_model_info_tests.rs` defines `GPT_JSON` (a model
-  object) but no test uses it, so only the error and placeholder paths of the
-  Responses provider are tested. Fix: add the success test (a `GET` with the
-  bearer token that parses `GPT_JSON`), as the Anthropic one does.
-
-- **Embeddings are generated synchronously inside async code.**
-  `EmbeddingProvider::embed` is sync, and `CachedEmbeddingProvider` calls the
-  model's sync `generate` on a cache miss (`src/agentic/embedding.rs`,
-  `embed_single`). `ContextProvider::search` (semantic recall, the
-  `search_context` tool) and the `shed` tool's embedding search call it from
-  async code, so an HTTP embedder blocks the worker, and on wasm the sync
-  `generate` fails (see the first entry). Fix: an async `embed` /
-  `embed_batch` over an async generate, awaited by the callers.
-- **A flush that finds another flush running returns `Ok(0)` at once.**
-  `MessageApi::flush` (`src/agentic/message_api.rs`) guards with an
-  `AtomicBool`; a second caller doesn't wait. The agent loop's `Flushing`
-  state then resumes with the buffer still at the threshold, so it re-enters
-  `Flushing` every step until the other flush (e.g. a concurrent
-  `AgentSession::end`) finishes. Fix: let the second caller await the running
-  flush (an async lock or a completion signal) instead of returning early.
 - **A cancelled flush can write a record twice.** A record stays in
   `MessageApi`'s `retry` slot until its write returns, so a flush future
   dropped after the store accepted the write but before it returned writes the
-  record again on the next flush. Fix: make the writes idempotent (upsert on
-  the document id for `append_with_id`, and give memory records a stable id),
-  or clear the slot through a store acknowledgement.
-- **`MemoryCoordinator` keeps `_async` method names.** `record_async` and
-  `hydrate_async` (`src/agentic/memory_coordinator.rs`) are inherent, so spec
-  50 F05 T3 (storage trait methods) left them; next to `MemoryStore::hydrate`
-  the suffix now reads as a different operation. Fix: rename to `record` /
-  `hydrate` (no clash: `MemoryCoordinator` implements no store trait).
-- **The test targets need llama.cpp even without `llamacpp`.**
-  `infrastructure_llama_cpp` is an unconditional native dev-dependency
-  (`Cargo.toml`, for the `errors/llama.rs` conversion tests), so
-  `--no-default-features --features testing` still builds llama.cpp and fails
-  without the `tools/llama.cpp` submodule. Fix: drop the dev-dependency (a
-  dev-dependency cannot be optional) and reach the llama.cpp error types
-  through a `llamacpp`-gated re-export, with those tests gated on the feature.
+  record again on the next flush. Feature 16 E6 landed the async flush seam and
+  the flush guard that wakes waiters on a drop; the remaining fix is an
+  idempotent write in `foundation_db` (upsert on the document id for
+  `append_with_id`, and a stable id for memory records). Blocked on
+  `foundation_db`, which feature 17 owns.
+- **The `agentic_tests` target warns `recursion_depth_exceeding_limit`.**
+  The `TursoStorage` test in `tests/agentic/session_mock_tests.rs` drives a deep
+  `Send` auto-trait resolution inside an `async_trait` future, so the compiler
+  warns it will become a hard error. The usual fix, a `#![recursion_limit]`
+  attribute, cannot go in `tests/agentic/mod.rs` cleanly: that file is both the
+  `agentic_tests` crate root and a `mod agentic` submodule of `tests/mod.rs`
+  (the `foundation_ai_tests` crate), so the attribute fixes one crate and adds
+  an `unused_attributes` warning in the other. Fix: split the two crate roots
+  into separate attribute files, or add a manual `Send` impl for the
+  intermediate type.
+- **Four dead helpers in the candle test target.**
+  `tests/candle/huggingface_candle_provider.rs` defines `init_valtron`,
+  `get_token`, `get_project_root` and `get_artefacts_dir`; none is used, so
+  `cargo check --all-targets` reports four dead-code warnings. Fix: delete them
+  or wire them to the tests that need them.
+- **`candle-core` is an unused dependency on Apple without the `candle`
+  feature.** The manifest lists `candle-core` twice: once optional (behind the
+  `candle` feature) and once in the Apple-only target dependency with `metal`,
+  which is not optional. On Apple, `--no-default-features` still pulls it in,
+  and Cargo reports `unused dependency candle-core`. Fix: make the Apple target
+  entry optional and add it to the `candle` feature, or drop the duplicate and
+  put `metal` on the optional entry.
+- **Seven pre-existing lib clippy warnings.** `cargo clippy --no-deps` reports
+  seven in the library: `needless_pass_by_value`
+  (`src/agentic/agent_loop.rs:1342`), `wrong_self_convention`
+  (`src/agentic/turn.rs:662`), `arc_with_non_send_sync`
+  (`src/backends/llamacpp.rs:454`), two `cast_possible_truncation`
+  (`src/backends/candle.rs:644` and `:645`), and two `large_enum_variant`
+  (`src/backends/candle.rs:710` and `src/types/base_types.rs:1277`, the `Tool`
+  enum whose `SingleCommand(ToolDefinition)` variant is 360 bytes). None are on
+  feature 16 code. Fix: apply the suggestions and box the large variants.
 
 ## 11. foundation_db and its sync callers
 

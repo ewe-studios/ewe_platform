@@ -15,7 +15,7 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::backends::model_info::rfc3339_to_unix;
-use foundation_ai::backends::openai_responses_provider::ResponsesProvider;
+use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
 use foundation_netio::DynNetClient;
 use foundation_netio::shared::client::http_client::{
@@ -204,6 +204,27 @@ fn responses_fetch_model_info_updates_earlier_models() {
     assert_eq!(model.info().owned_by, "", "placeholder");
     assert!(futures_lite::future::block_on(provider.fetch_model_info(GPT)).is_err());
     assert_eq!(model.info().id, GPT);
+}
+
+#[test]
+fn responses_fetch_model_info_is_a_bearer_get_and_parses() {
+    let client = RecordingClient::new(Status::OK, GPT_JSON);
+    let provider = ResponsesProvider::with_http_client(Arc::clone(&client) as DynNetClient)
+        .create(Some(ResponsesConfig::api_key("sk-test")))
+        .expect("provider");
+    let info = futures_lite::future::block_on(provider.fetch_model_info(GPT)).expect("lookup");
+    assert_eq!(info.id, GPT);
+    assert_eq!(info.object, "model");
+    assert_eq!(info.owned_by, "acme");
+    assert_eq!(info.created, 1_700_000_000);
+
+    let (method, url, headers) = client.last();
+    assert_eq!(method, SimpleMethod::GET);
+    assert_eq!(url, format!("https://api.openai.com/v1/models/{GPT}"));
+    assert_eq!(
+        header(&headers, "authorization").as_deref(),
+        Some("Bearer sk-test")
+    );
 }
 
 #[test]

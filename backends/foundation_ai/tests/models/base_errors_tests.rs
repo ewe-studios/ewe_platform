@@ -15,7 +15,8 @@ fn generation_error_display_and_from() {
     assert!(matches!(g, GenerationError::Generic(_)));
     assert!(format!("{g}").contains("boom"));
 
-    let boxed: Box<dyn std::error::Error> = Box::<dyn std::error::Error>::from("inner");
+    let boxed: Box<dyn std::error::Error + Send + Sync> =
+        Box::<dyn std::error::Error + Send + Sync>::from("inner");
     let g2: GenerationError = boxed.into();
     assert!(matches!(g2, GenerationError::Failed(_)));
 
@@ -55,7 +56,8 @@ fn model_errors_display() {
             "{s} should contain {needle}"
         );
     }
-    let boxed: Box<dyn std::error::Error> = Box::<dyn std::error::Error>::from("load");
+    let boxed: Box<dyn std::error::Error + Send + Sync> =
+        Box::<dyn std::error::Error + Send + Sync>::from("load");
     let e = ModelErrors::FailedLoading(boxed);
     assert!(format!("{e}").contains("failed to load"));
 }
@@ -72,7 +74,8 @@ fn provider_errors_display_and_from_model_errors() {
     let nf = ModelProviderErrors::NotFound("y".into());
     assert!(format!("{nf}").to_lowercase().contains("not found"));
 
-    let boxed: Box<dyn std::error::Error> = Box::<dyn std::error::Error>::from("fetch");
+    let boxed: Box<dyn std::error::Error + Send + Sync> =
+        Box::<dyn std::error::Error + Send + Sync>::from("fetch");
     let ff = ModelProviderErrors::FailedFetching(boxed);
     assert!(format!("{ff}").to_lowercase().contains("fetch"));
 }

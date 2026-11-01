@@ -440,12 +440,6 @@ fn test_provider_streaming_error_emits_partial_then_failure() {
         },
     );
 
-    let addr: SocketAddr = server
-        .base_url()
-        .strip_prefix("http://")
-        .unwrap()
-        .parse()
-        .unwrap();
     let http_client: DynNetClient = HttpClientBuilder::new().build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())

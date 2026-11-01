@@ -575,13 +575,16 @@ where
                         run.iteration += 1;
                     }
                 },
-                Some(Stream::Pending(_)) => {
+                Some(Stream::Pending(_) | Stream::Wait) => {
+                    // No record is ready yet: report Working and return so the
+                    // caller parks or re-polls later. A `continue` here would
+                    // busy-loop — `Wait` means "queue open, nothing available".
                     run.latest = AgentStatus::Working {
                         iteration: run.iteration,
                     };
                     break;
                 }
-                Some(Stream::Init | Stream::Ignore | Stream::Wait | Stream::Delayed(_)) => {
+                Some(Stream::Init | Stream::Ignore | Stream::Delayed(_)) => {
                     continue;
                 }
                 Some(Stream::Spread(_)) => {

@@ -56,10 +56,10 @@ fn dual_write_then_hydrate_returns_each_tier() {
 
         let obs = observation("user prefers rust");
         let refl = reflection("the user is a systems programmer");
-        coord.record_async(&session, &obs).await.unwrap();
-        coord.record_async(&session, &refl).await.unwrap();
+        coord.record(&session, &obs).await.unwrap();
+        coord.record(&session, &refl).await.unwrap();
 
-        let memory = coord.hydrate_async(&session).await.unwrap();
+        let memory = coord.hydrate(&session).await.unwrap();
         assert_eq!(memory.observation.as_ref(), Some(&obs));
         assert_eq!(memory.reflection.as_ref(), Some(&refl));
         assert_eq!(memory.working, None);
@@ -72,13 +72,13 @@ fn set_overwrites_with_latest_per_tier() {
         let coord = new_coordinator();
         let session = SessionId::new();
         coord
-            .record_async(&session, &observation("first"))
+            .record(&session, &observation("first"))
             .await
             .unwrap();
         let latest = observation("second");
-        coord.record_async(&session, &latest).await.unwrap();
+        coord.record(&session, &latest).await.unwrap();
 
-        let memory = coord.hydrate_async(&session).await.unwrap();
+        let memory = coord.hydrate(&session).await.unwrap();
         assert_eq!(memory.observation.as_ref(), Some(&latest));
     });
 }
@@ -89,7 +89,7 @@ fn hydrate_falls_back_to_audit_and_repopulates_cache() {
         let coord = new_coordinator();
         let session = SessionId::new();
         let obs = observation("durable observation");
-        coord.record_async(&session, &obs).await.unwrap();
+        coord.record(&session, &obs).await.unwrap();
 
         // Simulate a cache loss (crash before the cache write / eviction).
         coord.memory().clear(&session).await.unwrap();
@@ -104,7 +104,7 @@ fn hydrate_falls_back_to_audit_and_repopulates_cache() {
         );
 
         // Hydrate must rebuild from the audit DocumentStore...
-        let memory = coord.hydrate_async(&session).await.unwrap();
+        let memory = coord.hydrate(&session).await.unwrap();
         assert_eq!(memory.observation.as_ref(), Some(&obs));
 
         // ...and re-populate the cache so the next resume is O(1).
@@ -126,9 +126,9 @@ fn sessions_are_isolated() {
         let coord = new_coordinator();
         let a = SessionId::new();
         let b = SessionId::new();
-        coord.record_async(&a, &observation("for a")).await.unwrap();
+        coord.record(&a, &observation("for a")).await.unwrap();
 
-        assert!(coord.hydrate_async(&b).await.unwrap().observation.is_none());
-        assert!(coord.hydrate_async(&a).await.unwrap().observation.is_some());
+        assert!(coord.hydrate(&b).await.unwrap().observation.is_none());
+        assert!(coord.hydrate(&a).await.unwrap().observation.is_some());
     });
 }

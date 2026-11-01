@@ -105,7 +105,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     /// the source of truth and the cache rebuilds on the next hydrate fallback).
     /// # Errors
     /// Returns [`StorageError`] if the record cannot be stored.
-    pub async fn record_async(
+    pub async fn record(
         &self,
         session: &SessionId,
         record: &SessionRecord,
@@ -130,7 +130,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     /// fallback + re-populate for any missing tier.
     /// # Errors
     /// Returns [`StorageError`] if the record cannot be retrieved.
-    pub async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory> {
+    pub async fn hydrate(&self, session: &SessionId) -> StorageResult<SessionMemory> {
         let mut memory = self.memory.hydrate(session).await?;
 
         let missing: Vec<MemoryTier> = [

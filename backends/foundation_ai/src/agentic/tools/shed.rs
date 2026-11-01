@@ -136,9 +136,10 @@ impl ToolDiscovery {
         }
     }
 
-    fn embed(&self, text: &str) -> Result<Vec<f32>, ToolError> {
+    async fn embed(&self, text: &str) -> Result<Vec<f32>, ToolError> {
         self.embedder
             .embed(text, &self.embedding_model)
+            .await
             .map(|v| v.data)
             .map_err(|e| ToolError::Execution {
                 tool: SHED_TOOL_NAME.into(),
@@ -158,7 +159,9 @@ impl ToolDiscovery {
     /// [`ToolError::Execution`] if embedding or the vector insert fails.
     pub async fn index_tool(&self, tool: &Tool) -> Result<(), ToolError> {
         let summary = ToolSummary::of(tool);
-        let embedding = self.embed(&format!("{}: {}", summary.name, summary.description))?;
+        let embedding = self
+            .embed(&format!("{}: {}", summary.name, summary.description))
+            .await?;
 
         let store = self.vector_store.get_or_init(|| {
             Arc::new(InMemoryVectorStore::new(VectorStoreConfig::new(
@@ -282,7 +285,7 @@ impl ToolDiscovery {
             // Nothing indexed yet.
             return Ok(Vec::new());
         };
-        let embedding = self.embed(query).map_err(|e| match e {
+        let embedding = self.embed(query).await.map_err(|e| match e {
             ToolError::Execution { tool, reason } => ToolError::Execution {
                 tool,
                 reason: format!("query {reason}"),

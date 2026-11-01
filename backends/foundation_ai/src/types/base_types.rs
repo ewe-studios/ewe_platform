@@ -1795,7 +1795,8 @@ pub type ModelStreamBox = Box<
     dyn WakeableStream<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send,
 >;
 
-pub trait Model {
+#[async_trait::async_trait]
+pub trait Model: Send + Sync {
     /// [`spec`] returns model specification information for this target model.
     fn spec(&self) -> ModelSpec;
 
@@ -1830,6 +1831,24 @@ pub trait Model {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<Vec<Messages>>;
+
+    /// [`generate_async`] runs inference without blocking the caller.
+    ///
+    /// HTTP-backed models implement this over [`HttpClient::send_async`] with
+    /// async retry back-off, so it works on wasm where a synchronous request
+    /// cannot wait for a `fetch`. Local models (llama.cpp, candle, mocks)
+    /// inherit the default, which runs the synchronous [`generate`].
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`GenerationError`] if inference fails.
+    async fn generate_async(
+        &self,
+        interaction: ModelInteraction,
+        specs: Option<ModelParams>,
+    ) -> GenerationResult<Vec<Messages>> {
+        self.generate(interaction, specs)
+    }
 
     /// [`stream`] will returns a stream iterator which will represent the
     /// results of the prompt from the underlying model.

@@ -16,7 +16,8 @@ use foundation_ai::agentic::{
     TurnOutcome, TurnTextEvent,
 };
 use foundation_ai::types::{
-    MessageRole, Messages, ModelOutput, SessionRecord, TextContent, ToolArguments, UserModelContent,
+    BoxModel, MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, RoutableProvider,
+    SessionRecord, TextContent, ToolArguments, ToolDeclarations, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream};
 use futures_lite::future::block_on;
@@ -782,4 +783,39 @@ async fn events_can_be_iterated_from_sync_code() {
     let answer = foundation_core::valtron::block_on_future(session.ask("again"))
         .expect("turn runs");
     assert_eq!(answer.text(), "Hello");
+}
+
+/// The `Model` trait's async-first `generate_async` returns a scripted
+/// completion on a native mock provider (the default implementation runs the
+/// synchronous `generate`).
+#[valtron_test]
+async fn generate_async_returns_completion() {
+    let mut mock = MockModelProvider::new();
+    mock.on_any(vec![mock_text("async mock reply")]);
+
+    let model: BoxModel = mock
+        .get_model(&ModelId::from("mock"))
+        .expect("the mock resolves its model");
+
+    let interaction = ModelInteraction {
+        system_prompt: None,
+        soul: None,
+        tools_shed: ToolDeclarations::default(),
+        messages: vec![Messages::user("hi")],
+        chat_template: None,
+        tool_choice: None,
+    };
+
+    let out = model
+        .generate_async(interaction, None)
+        .await
+        .expect("async completion");
+    assert_eq!(out.len(), 1, "one assistant message");
+    match &out[0] {
+        Messages::Assistant {
+            content: ModelOutput::Text(t),
+            ..
+        } => assert_eq!(t.content, "async mock reply"),
+        other => panic!("expected assistant text, got {other:?}"),
+    }
 }

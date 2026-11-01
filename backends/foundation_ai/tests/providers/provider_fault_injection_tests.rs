@@ -20,6 +20,7 @@
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
@@ -32,9 +33,10 @@ use foundation_ai::types::{
     ToolDeclarations, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{sleep_async, valtron_test};
 use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
+use futures_lite::future::zip;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -337,6 +339,81 @@ fn a_retry_eventually_succeeds() {
         hits.load(Ordering::SeqCst),
         2,
         "the success must have come from exactly one retry after the 503"
+    );
+}
+
+#[valtron_test]
+async fn generate_async_retries_with_async_backoff() {
+    // The async retry path must back off cooperatively (valtron `sleep_async`),
+    // so a ticker task on the same thread keeps ticking during the wait. A
+    // blocking sleep would freeze the ticker for the whole backoff.
+    let hits = Arc::new(AtomicUsize::new(0));
+    let counter = Arc::clone(&hits);
+
+    let ok_body = br#"{
+        "id": "chatcmpl-1",
+        "object": "chat.completion",
+        "created": 1,
+        "model": "gpt-4",
+        "choices": [{
+            "index": 0,
+            "message": {"role": "assistant", "content": "recovered"},
+            "finish_reason": "stop"
+        }],
+        "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}
+    }"#;
+
+    let server = TestHttpServer::with_response(move |req| {
+        let first_generation =
+            is_generation(req) && counter.fetch_add(1, Ordering::SeqCst) == 0;
+        if first_generation {
+            let mut resp = json_error(
+                503,
+                "Service Unavailable",
+                br#"{"error":{"message":"warming up","type":"server_error"}}"#,
+            );
+            resp.headers
+                .push(("Retry-After".to_string(), "1".to_string()));
+            resp
+        } else {
+            response(200, "OK", "application/json", ok_body)
+        }
+    });
+
+    let model = model_for(&server, 3);
+    // Exclude `get_model`'s catalog lookup so the first `generate` request is
+    // the one the closure answers with a 503.
+    hits.store(0, Ordering::SeqCst);
+
+    // A ticker that shares the executor thread: each tick is a 5 ms cooperative
+    // sleep. It runs while `generate_async` waits out its `Retry-After` second.
+    let ticks = Arc::new(AtomicUsize::new(0));
+    let ticker = {
+        let ticks = Arc::clone(&ticks);
+        async move {
+            for _ in 0..200 {
+                ticks.fetch_add(1, Ordering::SeqCst);
+                sleep_async(Duration::from_millis(5)).await;
+            }
+        }
+    };
+
+    let (out, _) = zip(model.generate_async(interaction(), None), ticker).await;
+
+    let out = out.expect("a transient 503 followed by a 200 must succeed");
+    assert!(
+        !out.is_empty(),
+        "the recovered attempt must yield the assistant message"
+    );
+    assert_eq!(
+        hits.load(Ordering::SeqCst),
+        2,
+        "the success must have come from exactly one retry after the 503"
+    );
+    assert!(
+        ticks.load(Ordering::SeqCst) > 20,
+        "the ticker must keep ticking during the async backoff, saw {} ticks",
+        ticks.load(Ordering::SeqCst)
     );
 }
 
@@ -856,4 +933,65 @@ fn a_top_p_of_one_is_omitted_as_a_no_op() {
         !body.contains("top_p"),
         "top_p = 1.0 is a no-op and must be omitted: {body}"
     );
+}
+
+// ---------------------------------------------------------------------------
+// Capped error bodies (E3)
+// ---------------------------------------------------------------------------
+//
+// A non-2xx reply is read only up to `max_error_body` (default 64 KiB) so a
+// vendor that answers with megabytes of HTML or JSON cannot make the provider
+// buffer it all. The first part is kept (that is where the useful message is),
+// the tail is never read.
+
+fn big_error_body() -> Vec<u8> {
+    let mut body = Vec::with_capacity(1_048_576 + 24);
+    body.extend_from_slice(b"BEGIN_MARKER");
+    body.extend(std::iter::repeat(b'x').take(1_048_576));
+    body.extend_from_slice(b"END_MARKER");
+    body
+}
+
+fn assert_error_body_capped(msg: &str) {
+    assert!(
+        msg.contains("BEGIN_MARKER"),
+        "the capped read must keep the first part of the body: {}",
+        &msg[..msg.len().min(200)]
+    );
+    assert!(
+        !msg.contains("END_MARKER"),
+        "the read must stop at the cap, not swallow the 1 MiB tail"
+    );
+    assert!(
+        msg.len() < 100_000,
+        "the error message must be capped near 64 KiB, got {} bytes",
+        msg.len()
+    );
+}
+
+#[valtron_test]
+fn openai_error_body_is_capped() {
+    let msg = expect_generate_error(
+        response(500, "Internal Server Error", "text/plain", &big_error_body()),
+        0,
+    );
+    assert_error_body_capped(&msg);
+}
+
+#[valtron_test]
+fn anthropic_error_body_is_capped() {
+    let msg = expect_anthropic_error(
+        response(500, "Internal Server Error", "text/plain", &big_error_body()),
+        0,
+    );
+    assert_error_body_capped(&msg);
+}
+
+#[valtron_test]
+fn responses_error_body_is_capped() {
+    let msg = expect_responses_error(
+        response(500, "Internal Server Error", "text/plain", &big_error_body()),
+        0,
+    );
+    assert_error_body_capped(&msg);
 }

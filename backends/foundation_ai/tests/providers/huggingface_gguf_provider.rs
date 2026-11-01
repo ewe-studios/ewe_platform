@@ -13,7 +13,7 @@ use foundation_ai::backends::huggingface_gguf_provider::{
     HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
 };
 use foundation_ai::types::{
-    Model, ModelId, ModelProvider, Quantization,
+    ModelId, ModelProvider, Quantization,
 };
 use foundation_core::valtron::valtron_test;
 

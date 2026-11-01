@@ -258,20 +258,25 @@ impl TopicEmbedder {
     }
 }
 
+#[async_trait::async_trait]
 impl EmbeddingProvider for TopicEmbedder {
-    fn embed(&self, text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+    async fn embed(&self, text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
         Ok(EmbeddingVector {
             dimensions: 3,
             data: Self::vec_for(text),
             model_id: "topic".into(),
         })
     }
-    fn embed_batch(
+    async fn embed_batch(
         &self,
         texts: &[String],
         model_id: &str,
     ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
-        texts.iter().map(|t| self.embed(t, model_id)).collect()
+        let mut out = Vec::with_capacity(texts.len());
+        for t in texts {
+            out.push(self.embed(t, model_id).await?);
+        }
+        Ok(out)
     }
     fn register_model(&self, _model_id: &str, _dimensions: u16) {}
     fn cache_stats(&self) -> CacheStats {

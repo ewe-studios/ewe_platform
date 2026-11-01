@@ -8,8 +8,9 @@
 //! (gated behind vector-store/embedding providers; the core append/flush/pub-sub
 //! works without them).
 
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::future::poll_fn;
 use std::sync::{Arc, Mutex, PoisonError};
+use std::task::Waker;
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_compact::SendWrapper;
@@ -115,12 +116,19 @@ struct MessageInner<D> {
     broadcaster: TrackedBroadcaster<MessageEvent>,
     /// Buffered records at which a flush is due.
     flush_threshold: usize,
-    /// Set while a flush is in progress.
-    flush_pending: AtomicBool,
+    /// Flush coordination: whether one runs now, and the tasks waiting for it.
+    flush: Mutex<FlushState>,
     /// The record being written, or the one the store refused on the last
     /// flush. The next flush writes it first, so a failed (or cancelled)
     /// flush neither loses the record nor reorders the log.
     retry: Mutex<Option<SessionRecord>>,
+}
+
+/// Who is flushing right now, and who awaits its completion.
+#[derive(Default)]
+struct FlushState {
+    running: bool,
+    waiters: Vec<Waker>,
 }
 
 impl<D> MessageInner<D> {
@@ -137,29 +145,63 @@ impl<D> MessageInner<D> {
     }
 }
 
-/// Clears `flush_pending` when a flush ends — including when its future is
-/// dropped part-way, which would otherwise block every later flush.
-struct FlushGuard<'a>(&'a AtomicBool);
+/// Ends a running flush — including when its future is dropped part-way —
+/// and wakes every task awaiting it, so a cancelled flush cannot leave later
+/// flushes parked forever.
+struct FlushGuard<'a>(&'a Mutex<FlushState>);
 
 impl Drop for FlushGuard<'_> {
     fn drop(&mut self) {
-        self.0.store(false, Ordering::SeqCst);
+        let mut state = self.0.lock().unwrap_or_else(PoisonError::into_inner);
+        state.running = false;
+        for waiter in std::mem::take(&mut state.waiters) {
+            waiter.wake();
+        }
     }
 }
 
 impl<D: DocumentStore> MessageInner<D> {
     /// Flush all buffered records to the document store.
     ///
-    /// On a store error the failing record is kept for the next flush (see
-    /// `retry`), the records behind it stay buffered, and the in-progress flag
-    /// is cleared — so a later flush can succeed instead of every flush after
-    /// the first error silently returning `Ok(0)`.
+    /// The first caller becomes the flusher. A caller that finds a flush
+    /// already running awaits its completion (instead of returning `Ok(0)` at
+    /// once), so a slow store never makes the agent loop re-enter `Flushing`
+    /// in a tight loop. On a store error the failing record is kept for the
+    /// next flush (see `retry`), the records behind it stay buffered, and the
+    /// running flag is cleared — so a later flush can succeed.
     async fn flush(&self) -> StorageResult<usize> {
-        if self.flush_pending.swap(true, Ordering::SeqCst) {
-            return Ok(0); // another flush in progress
+        // The guard ends a running flush, but `MutexGuard` is `!Send` and must
+        // not live across the awaits below, so the state is read and released
+        // in an inner block first.
+        let running = {
+            let mut state = self.flush.lock().unwrap_or_else(PoisonError::into_inner);
+            if state.running {
+                true
+            } else {
+                state.running = true;
+                false
+            }
+        };
+        if running {
+            return self.wait_for_flush().await;
         }
-        let _guard = FlushGuard(&self.flush_pending);
+        let _guard = FlushGuard(&self.flush);
         self.flush_buffered().await
+    }
+
+    /// Park until no flush is running, then return `Ok(0)`: the running flush
+    /// already drained the buffer, so this caller has nothing left to write.
+    fn wait_for_flush(&self) -> impl std::future::Future<Output = StorageResult<usize>> + '_ {
+        poll_fn(move |cx| {
+            let mut state = self.flush.lock().unwrap_or_else(PoisonError::into_inner);
+            if !state.running {
+                return std::task::Poll::Ready(Ok(0));
+            }
+            if !state.waiters.iter().any(|w| w.will_wake(cx.waker())) {
+                state.waiters.push(cx.waker().clone());
+            }
+            std::task::Poll::Pending
+        })
     }
 
     /// The next record to write: a held-back one first, then the buffer.
@@ -285,7 +327,7 @@ impl<D> MessageApi<D> {
                 write_buffer: ConcurrentQueue::unbounded(),
                 broadcaster: TrackedBroadcaster::new(config.subscriber_capacity),
                 flush_threshold: config.flush_threshold,
-                flush_pending: AtomicBool::new(false),
+                flush: Mutex::new(FlushState::default()),
                 retry: Mutex::new(None),
             }),
         }

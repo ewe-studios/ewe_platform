@@ -166,14 +166,15 @@ impl ColdCache for NoopColdCache {
 // EmbeddingProvider trait
 // ---------------------------------------------------------------------------
 
+#[async_trait::async_trait]
 pub trait EmbeddingProvider: Send + Sync {
     /// # Errors
     /// Returns [`EmbeddingError`] if the text cannot be embedded.
-    fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError>;
+    async fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError>;
 
     /// # Errors
     /// Returns [`EmbeddingError`] if any text cannot be embedded.
-    fn embed_batch(
+    async fn embed_batch(
         &self,
         texts: &[String],
         model_id: &str,
@@ -341,7 +342,11 @@ impl CachedEmbeddingProvider {
         Self::new(router, Box::new(SentenceChunker), Box::new(NoopColdCache), 1000)
     }
 
-    fn embed_single(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+    async fn embed_single(
+        &self,
+        text: &str,
+        model_id: &str,
+    ) -> Result<EmbeddingVector, EmbeddingError> {
         let text_hash = hash_text(text);
         let key = CacheKey {
             text_hash,
@@ -380,7 +385,7 @@ impl CachedEmbeddingProvider {
         let model: BoxModel = self.router.get_model(&mid)?;
 
         let interaction = make_embedding_interaction(text);
-        let results = model.generate(interaction, None)?;
+        let results = model.generate_async(interaction, None).await?;
 
         let (dimensions_raw, values) = results
             .iter()
@@ -430,11 +435,12 @@ impl CachedEmbeddingProvider {
     }
 }
 
+#[async_trait::async_trait]
 impl EmbeddingProvider for CachedEmbeddingProvider {
-    fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+    async fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
         let chunks = self.chunker.chunk(text);
         if chunks.len() == 1 {
-            return self.embed_single(&chunks[0], model_id);
+            return self.embed_single(&chunks[0], model_id).await;
         }
 
         let mut all_values: Vec<f32> = Vec::new();
@@ -442,7 +448,7 @@ impl EmbeddingProvider for CachedEmbeddingProvider {
         let mut count = 0u32;
 
         for chunk in &chunks {
-            let vec = self.embed_single(chunk, model_id)?;
+            let vec = self.embed_single(chunk, model_id).await?;
             match dim {
                 None => {
                     dim = Some(vec.dimensions);
@@ -476,15 +482,16 @@ impl EmbeddingProvider for CachedEmbeddingProvider {
         })
     }
 
-    fn embed_batch(
+    async fn embed_batch(
         &self,
         texts: &[String],
         model_id: &str,
     ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
-        texts
-            .iter()
-            .map(|t| self.embed(t, model_id))
-            .collect()
+        let mut out = Vec::with_capacity(texts.len());
+        for t in texts {
+            out.push(self.embed(t, model_id).await?);
+        }
+        Ok(out)
     }
 
     fn register_model(&self, model_id: &str, dimensions: u16) {

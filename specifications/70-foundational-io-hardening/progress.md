@@ -18,6 +18,34 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   version bump is deferred until feature 20 lands (it edits
   foundation_nativeapis).
 
+- 2026-11-01: feature 16 (foundation_ai) done in the working tree on
+  `fix/io-20-vfs-process-ipc` (not committed). E1 adds an async
+  `Model::generate_async` (async-first, default falls back to the sync
+  `generate`) with async retry back-off over the valtron timer; the HTTP
+  providers implement it over `send_async`. E2 makes the `agent` tool report
+  `Working` and return on `Stream::Wait` instead of `continue`, so it no longer
+  busy-loops. E3 caps non-2xx error bodies at a `max_error_body` config field
+  (default 64 KiB from Go `net/http`'s error-drain limit) in the OpenAI,
+  Responses, Anthropic, Workers and `model_info` paths; status is read before
+  the body. E4 adds the Responses `fetch_model_info` success test over
+  `GPT_JSON`. E5 makes `embed`/`embed_batch` async and awaits them from
+  `ContextProvider::search` and the `shed` tool. E6 makes a second concurrent
+  flush await the running one (a `FlushState` mutex with wakers and a drop
+  guard) instead of returning `Ok(0)`. E8 renames `record_async`/`hydrate_async`
+  to `record`/`hydrate`. E9 drops the unconditional `infrastructure_llama_cpp`
+  dev-dependency, re-exports the llama error types through the `llamacpp`-gated
+  module, and gates those tests on the feature. E7 is blocked on `foundation_db`
+  (idempotent upsert by document id) and stays in backlog §10. A `Send` bug was
+  found and fixed along the way: `GenerationError`/`ModelErrors`/
+  `ModelProviderErrors` held a non-`Send` `BoxedError`, which broke `zip` of an
+  async generate with a ticker; they now use `SendableBoxedError`. Verification:
+  `cargo check -p foundation_ai --all-targets --profile uat` clean (four
+  pre-existing candle dead-code warnings); `cargo clippy -p foundation_ai
+  --profile uat --no-deps` down to seven pre-existing lib warnings (two new ones
+  introduced and fixed); `cargo test -p foundation_ai --profile uat --features
+  testing` green (2126 passed, 0 failed); E1/E2/E5/E6 timing tests each pass 20
+  runs in a row; E9 builds with `tools/llama.cpp` moved away. PR: see the PR.
+
 - 2026-11-01: feature 24 (tokio boundaries and apps) done on
   `fix/io-35-turso-async-trait-overflow`. Removed tokio and axum from `bin/platform`,
   its templates, the examples and the `ewe_channels` and `ewe_domain` crates. The

@@ -22,8 +22,8 @@ use foundation_ai::errors::{
 // Helpers
 // ---------------------------------------------------------------------------
 
-/// A `BoxedError` carrying a known message, for the variants that wrap one.
-fn boxed(msg: &'static str) -> foundation_core::extensions::result_ext::BoxedError {
+/// A `SendableBoxedError` carrying a known message, for the variants that wrap one.
+fn boxed(msg: &'static str) -> foundation_core::extensions::result_ext::SendableBoxedError {
     Box::new(std::io::Error::other(msg))
 }
 
