@@ -216,14 +216,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **`ipc_concurrent_requests` hangs on Linux — a real IPC transport concurrency race.**
-  `tests/ipc_vfs/mod.rs:460` drives 16 concurrent `read_file_async` requests
-  through one `DaemonTransport`, awaited with `zip_all`. It passes on macOS and
-  hangs on Linux (one request never completes). The suspect points are the
-  reader thread `try_send` (`src/native/vfs/ipc_bus.rs:140`),
-  `ClientTransport::request` (`:211`) and the daemon loop (`:308`), plus
-  `src/ipc/platform/linux.rs`. Fix in flight (agent `ae766dfd302c57ff4`). Any
-  timeout or buffer bound must be a config field, not a hard-coded `const` (rule 8).
 - **The `fuse_vfs` test fails to compile in the Linux CI `vfs-fuse` run.**
   `tests/fuse_vfs/mod.rs:1` imports `native::vfs::fuse` (gated
   `all(target_os = "linux", feature = "vfs-fuse")`) and calls the `MemoryFs`

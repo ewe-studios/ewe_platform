@@ -439,12 +439,14 @@ impl<T: MessageBox> Message<T> {
 
     pub(crate) fn into_encoded(self) -> EncodedMessage {
         let (payload_data, iov_data, control_data) = self.encode_inner();
+        let control_len = control_data.len();
 
         EncodedMessage {
             selector: self.selector,
             payload_data,
             iov_data,
             control_data,
+            control_len,
             objects: self.objects,
             memory_regions: self.memory_regions,
         }
