@@ -133,5 +133,9 @@ required-features = ["rpc_multi"]
 name = "h1_pool_parking_tests"
 required-features = ["rpc_multi"]
 
+[[test]]
+name = "conn_io_fallback_tests"
+required-features = ["rpc_multi"]
+
 [lints]
 workspace = true

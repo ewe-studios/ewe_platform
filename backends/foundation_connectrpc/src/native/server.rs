@@ -69,6 +69,11 @@ pub struct ServeTimeouts {
     /// Longest wait for the peer to accept more response bytes. Default 60s,
     /// as nginx's `send_timeout`.
     pub write: Duration,
+    /// How often a transport that cannot report readiness (a completion socket,
+    /// openssl/native-tls) re-polls through the valtron timer instead of failing
+    /// with `Unsupported`. Default 10 ms, the same interval as `POLL_DELAY` in
+    /// `super::transport::h2`.
+    pub poll_fallback_interval: Duration,
 }
 
 impl Default for ServeTimeouts {
@@ -76,6 +81,7 @@ impl Default for ServeTimeouts {
         Self {
             body_read: Duration::from_secs(60),
             write: Duration::from_secs(60),
+            poll_fallback_interval: Duration::from_millis(10),
         }
     }
 }
@@ -92,6 +98,13 @@ impl ServeTimeouts {
     #[must_use]
     pub fn with_write(mut self, timeout: Duration) -> Self {
         self.write = timeout;
+        self
+    }
+
+    /// Set [`Self::poll_fallback_interval`].
+    #[must_use]
+    pub fn with_poll_fallback_interval(mut self, interval: Duration) -> Self {
+        self.poll_fallback_interval = interval;
         self
     }
 }
@@ -138,7 +151,7 @@ impl Serve for ConnectRpcServe {
         mut req: SimpleIncomingRequest,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let io = match ConnIo::new(&conn) {
+        let io = match ConnIo::new(&conn, self.timeouts.poll_fallback_interval) {
             Ok(io) => Arc::new(io),
             Err(e) => {
                 tracing::error!(error = %e, "could not set up the connection driver; closing");
