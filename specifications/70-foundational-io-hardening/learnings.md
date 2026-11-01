@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (backlog §7 `vms` clippy follow-up, foundation_deployment_platform):
+  two more gotchas. (1) rustc and clippy colorize their output, so a `grep
+  "^warning:"` matches nothing on a colorized line; a crate can look clean
+  while 28 warnings remain. Strip ANSI codes first: `sed
+  's/\x1b\[[0-9;]*m//g'`. (2) `#[allow(clippy::cast_precision_loss)]` on a
+  `println!`/`eprintln!` macro call is ignored: the cast sits inside the
+  macro's generated code, so the allow is reported "unused" and the cast still
+  warns. Move the cast to a `let` binding and put the allow on that binding.
+  Also: the earlier note to write `.map_while(|l| l.ok())` for the `Result`
+  alias is incomplete — that closure form trips
+  `redundant_closure_for_method_calls`. Use the fully-qualified
+  `.map_while(std::result::Result::ok)` instead.
+
 - 2026-11-02 (backlog §7 `vms` clippy, foundation_deployment_platform): three
   concrete gotchas from the manual pass. (1) `lines_filter_map_ok`'s
   `map_while(Result::ok)` suggestion breaks when a local `type Result<T> = ...`

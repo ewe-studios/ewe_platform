@@ -3,6 +3,19 @@
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
 - 2026-11-02: bug-backlog §7 (foundation_deployment_platform) `vms` clippy
+  follow-up on `fix/io-20-vfs-process-ipc`. The first pass (commit `ab014f58a`)
+  left 28 warnings: the check grep missed colorized clippy output, so it saw
+  none. Commit `614de3710` clears all 28. Seven `cast_precision_loss` allows
+  sat on `println!`/`eprintln!` macro calls; rustc ignores an allow on a macro
+  call, because the cast sits inside the macro's generated code. Each cast now
+  moves to a `let` binding that carries the allow. Two `redundant_closure`
+  sites use `map_while(std::result::Result::ok)` to dodge the
+  `crate::config::Result` alias. Nine `doc_markdown` sites gain backticks.
+  `cargo clippy --profile uat --all-targets --features vms --no-deps` and the
+  default-feature clippy both report zero code warnings (only the workspace
+  `fullfp16` note); 125 non-Docker tests pass.
+
+- 2026-11-02: bug-backlog §7 (foundation_deployment_platform) `vms` clippy
   warnings zeroed on `fix/io-20-vfs-process-ipc`. After the first-pass
   `cargo clippy --fix` (commit `abbe0c039`, 625 to 307), three subagents fixed
   the remaining 285 code warnings in disjoint file groups (edit-only), and the
