@@ -49,7 +49,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   the path is longer than `SUN_LEN` (104 bytes), so the bind fails. This is test
   infrastructure, not feature 12's code. Fix: bind the mock socket in a short
   path, such as a per-test temp directory.
-- **`foundation_deployment_cloudflare` has an unused `urlencoding` dependency.** It appears only in `Cargo.toml`, never in source or tests. Fix: remove the line.
 
 ## 7. foundation_deployment_platform
 

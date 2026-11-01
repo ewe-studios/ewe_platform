@@ -2,6 +2,13 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §6 (foundation_deployment_cloudflare) fixed on
+  `fix/io-20-vfs-process-ipc`. The unused `urlencoding` dependency is removed
+  from `foundation_deployment_cloudflare/Cargo.toml`. It appears nowhere in the
+  crate's source or tests. `cargo check --profile uat` passes. The full test
+  build is skipped: this generated crate's `--all-targets` twin peaks near
+  7 GB, and the local disk is 97% full. The backlog entry is removed.
+
 - 2026-11-02: bug-backlog §2 (foundation_netio) fixed on
   `fix/io-20-vfs-process-ipc`. The unused `thiserror` dependency is removed from
   `foundation_netio/Cargo.toml`. Nothing in the crate uses it; netio builds

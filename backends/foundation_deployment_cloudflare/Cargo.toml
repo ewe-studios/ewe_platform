@@ -5,7 +5,6 @@ version = "0.1.2"
 [dependencies]
 base85rs = "0.1"
 sha2 = "0.10"
-urlencoding = "2.1"
 
 [dependencies.chrono]
 workspace = true
