@@ -109,12 +109,12 @@ async fn run_full_cleanup_honours_the_configured_retention() {
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs(),
+            .as_millis(),
     )
     .unwrap();
-    // Expired 2 hours ago, and expired 2 days ago.
-    insert_jwt(&store, "recent", now - 2 * 60 * 60).await;
-    insert_jwt(&store, "stale", now - 2 * 24 * 60 * 60).await;
+    // Expired 2 hours ago, and expired 2 days ago (both in milliseconds).
+    insert_jwt(&store, "recent", now - 2 * 60 * 60 * 1000).await;
+    insert_jwt(&store, "stale", now - 2 * 24 * 60 * 60 * 1000).await;
 
     // Default retention (30 days) keeps both.
     let stats = store.run_full_cleanup(&CleanupConfig::default()).await.unwrap();
@@ -125,6 +125,25 @@ async fn run_full_cleanup_honours_the_configured_retention() {
     let stats = store.run_full_cleanup(&config).await.unwrap();
     assert_eq!(stats.jwt_tokens_deleted, 1);
     assert_eq!(jwt_ids(&store).await, vec!["recent".to_string()]);
+}
+
+#[valtron_test]
+async fn cleanup_deletes_expired_rows_by_documented_unit() {
+    let (store, _dir) = turso().await;
+    let now_ms = i64::try_from(
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis(),
+    )
+    .unwrap();
+    // One millisecond before the cutoff is expired; one millisecond after is
+    // not. A seconds-based comparison would treat both as the same instant.
+    insert_jwt(&store, "expired", now_ms - 1).await;
+    insert_jwt(&store, "kept", now_ms + 1).await;
+
+    assert_eq!(store.cleanup_expired_jwt_tokens(now_ms).await.unwrap(), 1);
+    assert_eq!(jwt_ids(&store).await, vec!["kept".to_string()]);
 }
 
 #[test]

@@ -27,7 +27,7 @@ use foundation_auth::{CredentialStorage, SessionConfig, SessionManager};
 use foundation_db::{
     core::schema::{MIGRATIONS, MigrationRunner},
     core::storage_provider::DataValue,
-    D1WasmStorage, StorageBackend, StorageProvider,
+    D1WasmStorage, KeyValueStore, QueryStore, StorageBackend, StorageProvider,
 };
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
@@ -65,12 +65,6 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
         .await
         .map_err(|e| format!("migration failed: {e:?}"))?;
 
-    // Initialize KV table for session/credential storage.
-    storage
-        .init_schema_async()
-        .await
-        .map_err(|e| format!("kv init failed: {e:?}"))?;
-
     // CredentialStorage → StorageProvider → D1WasmStorage
     // All SessionManager async calls go through StorageProvider → D1 JS API.
     let provider = StorageProvider::new(StorageBackend::D1Wasm {
@@ -79,6 +73,14 @@ async fn get_or_init_app(db: foundation_db::D1Database) -> Result<Arc<LazyApp>, 
     })
     .await
     .map_err(|e| format!("storage provider init failed: {e:?}"))?;
+
+    // Initialize KV table for session/credential storage (same `app_kv` table
+    // `storage` targets).
+    provider
+        .init_schema_async()
+        .await
+        .map_err(|e| format!("kv init failed: {e:?}"))?;
+
     let cred_storage = CredentialStorage::new(provider);
 
     let session_mgr = SessionManager::new(cred_storage, Default::default(), SIGNING_KEY)
@@ -151,7 +153,10 @@ fn json_response(body: &serde_json::Value, status: u16) -> web_sys::Response {
 
 async fn user_exists_async(storage: &D1WasmStorage, email: &str) -> Result<bool, String> {
     let rows = storage
-        .query_async("SELECT 1 FROM users WHERE email = ?", &[DataValue::Text(email.to_string())])
+        .query("SELECT 1 FROM users WHERE email = ?", &[DataValue::Text(email.to_string())])
+        .await
+        .map_err(|e| format!("query failed: {e:?}"))?
+        .collect_all()
         .await
         .map_err(|e| format!("query failed: {e:?}"))?;
     Ok(!rows.is_empty())
@@ -164,7 +169,7 @@ async fn create_user_async(
 ) -> Result<String, String> {
     let id = uuid::Uuid::new_v4().to_string();
     storage
-        .execute_async(
+        .execute(
             "INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)",
             &[
                 DataValue::Text(id.clone()),
@@ -182,10 +187,13 @@ async fn find_user_password_hash(
     email: &str,
 ) -> Result<Option<String>, String> {
     let rows = storage
-        .query_async(
+        .query(
             "SELECT password_hash FROM users WHERE email = ?",
             &[DataValue::Text(email.to_string())],
         )
+        .await
+        .map_err(|e| format!("query failed: {e:?}"))?
+        .collect_all()
         .await
         .map_err(|e| format!("query failed: {e:?}"))?;
     for row in &rows {
@@ -571,7 +579,7 @@ async fn handle_save_note(app: &LazyApp, req: &web_sys::Request) -> web_sys::Res
 
     // Direct D1WasmStorage async — calls D1 JS API via JsFuture.
     let key = format!("note:{}", session.user_id);
-    match app.storage.set_async(&key, note.clone()).await {
+    match KeyValueStore::set(app.storage.as_ref(), &key, note.clone()).await {
         Ok(()) => {
             log::info!("Stored note for {} via D1 async", session.user_id);
             json_response(&serde_json::json!({"status": "ok", "note": note}), 200)
@@ -601,7 +609,7 @@ async fn handle_get_note(app: &LazyApp, req: &web_sys::Request) -> web_sys::Resp
 
     // Direct D1WasmStorage async — calls D1 JS API via JsFuture.
     let key = format!("note:{}", session.user_id);
-    match app.storage.get_async::<String>(&key).await {
+    match KeyValueStore::get::<String>(app.storage.as_ref(), &key).await {
         Ok(Some(note)) => {
             log::info!("Retrieved note for {} via D1 async", session.user_id);
             json_response(&serde_json::json!({"note": note}), 200)

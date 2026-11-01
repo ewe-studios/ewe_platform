@@ -16,7 +16,7 @@
 use std::sync::Arc;
 
 use crate::wasm::D1WasmStorage;
-use crate::core::storage_provider::DataValue;
+use crate::core::storage_provider::{DataValue, QueryStore};
 
 // ===========================================================================
 // Session payload — the data we sign into cookies.
@@ -76,7 +76,7 @@ impl WasmSessionManager {
 
         let session_json = serde_json::to_string(&payload).map_err(|e| format!("serialize: {e}"))?;
         self.storage
-            .execute_async(
+            .execute(
                 "INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, ?)",
                 &[
                     DataValue::Text(format!("session:{}", id)),
@@ -96,10 +96,13 @@ impl WasmSessionManager {
 
         let rows = self
             .storage
-            .query_async(
+            .query(
                 "SELECT value FROM kv_store WHERE key = ?",
                 &[DataValue::Text(format!("session:{}", payload.id))],
             )
+            .await
+            .map_err(|e| format!("D1 query failed: {e:?}"))?
+            .collect_all()
             .await
             .map_err(|e| format!("D1 query failed: {e:?}"))?;
 
@@ -118,7 +121,7 @@ impl WasmSessionManager {
         };
 
         self.storage
-            .execute_async(
+            .execute(
                 "DELETE FROM kv_store WHERE key = ?",
                 &[DataValue::Text(format!("session:{}", payload.id))],
             )

@@ -46,7 +46,7 @@ impl R2WasmStorage {
 
 impl R2WasmStorage {
     /// Put a blob into R2 storage.
-    pub async fn put_blob_async(&self, key: &str, data: &[u8]) -> Result<(), StorageError> {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> Result<(), StorageError> {
         let object_key = self.object_key(key);
 
         // Create Uint8Array from bytes
@@ -62,7 +62,7 @@ impl R2WasmStorage {
     }
 
     /// Get a blob from R2 storage.
-    pub async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
+    async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
         let object_key = self.object_key(key);
 
         let promise = self.bucket.get(&object_key);
@@ -93,7 +93,7 @@ impl R2WasmStorage {
     }
 
     /// Delete a blob from R2 storage.
-    pub async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
+    async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
         let object_key = self.object_key(key);
 
         let promise = self.bucket.delete(&object_key);
@@ -105,7 +105,7 @@ impl R2WasmStorage {
     }
 
     /// Check if a blob exists in R2 storage.
-    pub async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
+    async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
         let object_key = self.object_key(key);
 
         let promise = self.bucket.head(&object_key);

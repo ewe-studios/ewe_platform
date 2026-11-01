@@ -51,7 +51,7 @@ impl KVWasmStorage {
 
 impl KVWasmStorage {
     /// Get a value by key.
-    pub async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
+    async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> Result<Option<V>, StorageError> {
@@ -76,7 +76,7 @@ impl KVWasmStorage {
     }
 
     /// Set a key-value pair.
-    pub async fn set_async<V: serde::Serialize>(
+    async fn set_async<V: serde::Serialize>(
         &self,
         key: &str,
         value: V,
@@ -95,7 +95,7 @@ impl KVWasmStorage {
     }
 
     /// Delete a key.
-    pub async fn delete_async(&self, key: &str) -> Result<(), StorageError> {
+    async fn delete_async(&self, key: &str) -> Result<(), StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.delete(&prefixed);
         SendWrapper::new(JsFuture::from(promise))
@@ -106,7 +106,7 @@ impl KVWasmStorage {
     }
 
     /// Check if a key exists.
-    pub async fn exists_async(&self, key: &str) -> Result<bool, StorageError> {
+    async fn exists_async(&self, key: &str) -> Result<bool, StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.get(&prefixed);
         let result = SendWrapper::new(JsFuture::from(promise))
@@ -117,7 +117,7 @@ impl KVWasmStorage {
     }
 
     /// List all keys with optional prefix filter.
-    pub async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, StorageError> {
+    async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, StorageError> {
         // KV list returns { keys: [{name: "..."}], cursor: "..." }
         let opts = Object::new();
 
@@ -243,7 +243,7 @@ impl KVWasmStorage {
     }
 
     /// Check if a rate limit key is allowed (see [`RateLimiterStore`]).
-    pub async fn check_rate_limit_async(
+    async fn check_rate_limit_async(
         &self,
         key: &str,
         max_count: u32,
@@ -256,9 +256,13 @@ impl KVWasmStorage {
             .is_none_or(|entry| entry.allows(max_count, now, window_seconds)))
     }
 
-    /// Record a rate-limited action (see [`RateLimiterStore`]). KV has
-    /// no atomic read-modify-write, so two concurrent records can count once.
-    pub async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> Result<u32, StorageError> {
+    /// Record a rate-limited action (see [`RateLimiterStore`]).
+    ///
+    /// **Best effort only.** Workers KV has no atomic read-modify-write, so
+    /// concurrent records read the same entry and each writes its own count:
+    /// some hits are never counted. Use a D1-backed [`RateLimiterStore`] (or a
+    /// Durable Object) where the limit must be exact.
+    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> Result<u32, StorageError> {
         let rate_key = format!("_rate_limit:{key}");
         let now = unix_now_secs()?;
         let previous = self.rate_limit_entry(&rate_key).await?;
@@ -273,7 +277,7 @@ impl KVWasmStorage {
     }
 
     /// Reset a rate limit key.
-    pub async fn reset_rate_limit_async(&self, key: &str) -> Result<(), StorageError> {
+    async fn reset_rate_limit_async(&self, key: &str) -> Result<(), StorageError> {
         let rate_key = format!("_rate_limit:{key}");
         let promise = self.kv.delete(&self.prefixed_key(&rate_key));
         SendWrapper::new(JsFuture::from(promise))
@@ -284,6 +288,10 @@ impl KVWasmStorage {
     }
 }
 
+/// Workers KV offers no atomic read-modify-write, so this rate limiter is
+/// best effort: concurrent records can lose counts. Prefer a D1-backed
+/// [`RateLimiterStore`] (single `UPDATE ... RETURNING`) or a Durable Object
+/// when the limit must be exact.
 #[async_trait::async_trait]
 impl RateLimiterStore for KVWasmStorage {
     async fn check_rate_limit(
@@ -312,7 +320,7 @@ impl RateLimiterStore for KVWasmStorage {
 
 impl KVWasmStorage {
     /// Put a blob into KV storage (base64-encoded).
-    pub async fn put_blob_async(&self, key: &str, data: &[u8]) -> Result<(), StorageError> {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> Result<(), StorageError> {
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, data);
         let json = serde_json::json!({ "type": "blob", "data": encoded }).to_string();
         let prefixed = self.prefixed_key(key);
@@ -325,7 +333,7 @@ impl KVWasmStorage {
     }
 
     /// Get a blob from KV storage (base64-decoded).
-    pub async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
+    async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.get(&prefixed);
         let result = SendWrapper::new(JsFuture::from(promise))
@@ -360,7 +368,7 @@ impl KVWasmStorage {
     }
 
     /// Delete a blob from KV storage.
-    pub async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
+    async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.delete(&prefixed);
         SendWrapper::new(JsFuture::from(promise))
@@ -370,7 +378,7 @@ impl KVWasmStorage {
     }
 
     /// Check if a blob exists in KV storage.
-    pub async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
+    async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.get(&prefixed);
         let result = SendWrapper::new(JsFuture::from(promise))

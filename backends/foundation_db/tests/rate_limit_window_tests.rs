@@ -83,3 +83,22 @@ async fn turso_storage_without_migrations() {
     counts_and_limits(&store).await;
     zero_window_never_accumulates(&store).await;
 }
+
+/// Fifty concurrent records against the serialised SQL path: the atomic
+/// upsert (`RETURNING count`) turns them into counts 1..=50 with no lost
+/// updates, so exactly ten are within a limit of ten.
+#[valtron_test]
+async fn rate_limit_counts_concurrent_hits() {
+    let store = TursoStorage::in_memory().await.unwrap();
+    let futures = (0..50).map(|_| store.record_rate_limit("k", 60));
+    let counts: Vec<u32> = futures_util::future::join_all(futures)
+        .await
+        .into_iter()
+        .map(|r| r.unwrap())
+        .collect();
+
+    let mut sorted = counts.clone();
+    sorted.sort_unstable();
+    assert_eq!(sorted, (1..=50).collect::<Vec<u32>>());
+    assert_eq!(counts.iter().filter(|&&c| c <= 10).count(), 10);
+}

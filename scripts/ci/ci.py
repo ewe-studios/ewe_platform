@@ -138,6 +138,17 @@ def load_workspace() -> dict[str, Package]:
             dep_name = by_id[dep]["name"]
             if dep_name in packages and dep_name != name:
                 packages[dep_name].dependents.add(name)
+
+    # The `examples/` directory holds self-contained workspaces (excluded from
+    # this workspace), so cargo metadata never lists them. Add one synthetic
+    # package that owns that directory; its build step (see `examples_commands`)
+    # compiles every `examples/cf-*` to wasm32 and the native `answerme-agent`.
+    # It builds answerme-agent, so it inherits that app's llama.cpp need.
+    packages["examples"] = Package(
+        name="examples",
+        dir="examples",
+        needs_llama=packages["answerme-agent"].needs_llama,
+    )
     return packages
 
 
@@ -264,7 +275,26 @@ def feature_flags(spec: str) -> list[str]:
     return ["--features", ",".join(spec.split())]
 
 
+def examples_commands(profile: str) -> dict[str, list[list[str]]]:
+    """Build commands for the synthetic `examples` package.
+
+    The `examples/cf-*` directories are self-contained wasm32 workspaces (the
+    workspace `[workspace] exclude`s them), so they are compiled directly by
+    manifest rather than by `-p`. The `answerme-agent` app is a workspace
+    member and gets a normal native build.
+    """
+    plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
+    for manifest in sorted((ROOT / "examples").glob("cf-*/Cargo.toml")):
+        plan["build"].append(
+            ["cargo", "build", "--target", "wasm32-unknown-unknown", "--manifest-path", manifest.as_posix()]
+        )
+    plan["build"].append(["cargo", "build", "--profile", profile, "-p", "answerme-agent"])
+    return plan
+
+
 def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]:
+    if name == "examples":
+        return examples_commands(profile)
     plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
     if s.fmt != "off":
         plan["fmt"].append(["cargo", "fmt", "-p", name, "--check"])

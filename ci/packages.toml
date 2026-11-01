@@ -246,3 +246,17 @@ wasm-runs = [""]
 runs = ["", "h3"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features rpc"]
+
+# ---------------------------------------------------------------------------
+# Example workspaces
+
+[packages.examples]
+# The `examples/cf-*` directories are self-contained wasm32 workspaces excluded
+# from the main workspace, so cargo metadata never lists them. The synthetic
+# `examples` package (see `examples_commands` in scripts/ci/ci.py) compiles each
+# of them for wasm32-unknown-unknown and builds the native `answerme-agent` app.
+fmt = "off"
+build = "enforce"
+clippy = "off"
+test = "off"
+wasm = "off"

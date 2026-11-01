@@ -67,6 +67,7 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tempfile = "3"
 serial_test = { workspace = true }
 ntest = { workspace = true }
+futures-util = "0.3"
 foundation_core = { path = "../foundation_core", features = ["std", "multi"] }
 
 [features]

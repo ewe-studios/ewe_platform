@@ -137,6 +137,16 @@ pub static MIGRATIONS: &[Migration] = &[
         name: "Create user-provider links table for account linking",
         sql: include_str!("sql/025_create_user_provider_links.sql"),
     },
+    Migration {
+        id: "026_auth_timestamps_milliseconds",
+        name: "Convert legacy auth-table timestamps to Unix milliseconds",
+        sql: include_str!("sql/026_auth_timestamps_milliseconds.sql"),
+    },
+    Migration {
+        id: "027_rebuild_rate_limits",
+        name: "Rebuild the rate limits table with the documented shape",
+        sql: include_str!("sql/027_rebuild_rate_limits.sql"),
+    },
 ];
 
 /// Migration runner that applies pending migrations.

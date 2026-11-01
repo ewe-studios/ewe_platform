@@ -7,7 +7,6 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{execute, from_future, Stream, StreamIteratorExt, StreamReadyFuture};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit;
 use crate::core::storage_provider::{
@@ -20,30 +19,6 @@ use js_sys::{Array, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use foundation_compact::SendWrapper;
-
-// ===========================================================================
-// Inline valtron helpers (no async_utils — use valtron directly)
-// ===========================================================================
-
-/// The valtron stream `schedule_future` returns: one `Stream::Next` with the
-/// future's result.
-type ValtronResultStream<T> = Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>>>;
-
-fn schedule_future<T: 'static, E: Into<StorageError> + 'static, F>(
-    future: F,
-) -> StorageResult<ValtronResultStream<T>>
-where
-    F: std::future::Future<Output = Result<T, E>> + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
-    Ok(Box::new(
-        stream
-            .map_done(|r: Result<T, E>| r.map_err(Into::into))
-            .map_pending(|_| ()),
-    ))
-}
 
 // ===========================================================================
 // D1WasmStorage
@@ -82,7 +57,7 @@ impl D1WasmStorage {
     }
 
     /// Initialize the KV table schema.
-    pub async fn init_schema_async(&self) -> Result<(), StorageError> {
+    pub(crate) async fn init_schema_async(&self) -> Result<(), StorageError> {
         let sql = format!(
             "CREATE TABLE IF NOT EXISTS {} (key TEXT PRIMARY KEY, value TEXT NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))",
             self.table_name()
@@ -234,7 +209,7 @@ impl D1WasmStorage {
 
 impl D1WasmStorage {
     /// Get a value by key from D1.
-    pub async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
+    async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> Result<Option<V>, StorageError> {
@@ -264,7 +239,7 @@ impl D1WasmStorage {
     }
 
     /// Set a key-value pair in D1.
-    pub async fn set_async<V: serde::Serialize>(
+    async fn set_async<V: serde::Serialize>(
         &self,
         key: &str,
         value: V,
@@ -299,7 +274,7 @@ impl D1WasmStorage {
     }
 
     /// Delete a key from D1.
-    pub async fn delete_async(&self, key: &str) -> Result<(), StorageError> {
+    async fn delete_async(&self, key: &str) -> Result<(), StorageError> {
         Self::do_delete_async(&self.db, &self.table_prefix, key).await
     }
 
@@ -314,7 +289,7 @@ impl D1WasmStorage {
     }
 
     /// Check if a key exists in D1.
-    pub async fn exists_async(&self, key: &str) -> Result<bool, StorageError> {
+    async fn exists_async(&self, key: &str) -> Result<bool, StorageError> {
         Self::do_exists_async(&self.db, &self.table_prefix, key).await
     }
 
@@ -330,7 +305,7 @@ impl D1WasmStorage {
     }
 
     /// List all keys with optional prefix filter.
-    pub async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, StorageError> {
+    async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, StorageError> {
         Self::do_list_keys_async(&self.db, &self.table_prefix, prefix).await
     }
 
@@ -397,58 +372,12 @@ impl KeyValueStore for D1WasmStorage {
 }
 
 // ===========================================================================
-// Valtron-driven async methods — exercises JSThreadYielder
-//
-// These use `set_valtron_async`/`get_valtron_async` which go through
-// `schedule_future` → valtron stream → `StreamReadyFuture` → `.await`.
-// The valtron executor drives the D1 Promise, JSThreadYielder yields via
-// setTimeout, and the Future polls back when repolled by the async runtime.
-// ===========================================================================
-
-impl D1WasmStorage {
-    /// Set a key-value pair via valtron executor (exercises JSThreadYielder).
-    pub async fn set_valtron_async(&self, key: &str, value: impl serde::Serialize + Send + 'static) -> Result<(), StorageError> {
-        let this = self.clone();
-        let key = key.to_string();
-        let stream = schedule_future(async move {
-            Self::do_set_async(&this.db, &this.table_prefix, &key, value).await
-        })?;
-        let future = StreamReadyFuture::new(stream.into_stream_iter());
-        let result = future.await;
-        match result {
-            Some((Ok(()), _)) => Ok(()),
-            Some((Err(e), _)) => Err(e),
-            None => Err(StorageError::Generic("valtron stream ended without result".into())),
-        }
-    }
-
-    /// Get a value via valtron executor (exercises JSThreadYielder).
-    pub async fn get_valtron_async<V: serde::de::DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> Result<Option<V>, StorageError> {
-        let this = self.clone();
-        let key = key.to_string();
-        let stream = schedule_future(async move {
-            Self::do_get_async::<V>(&this.db, &this.table_prefix, &key).await
-        })?;
-        let future = StreamReadyFuture::new(stream.into_stream_iter());
-        let result = future.await;
-        match result {
-            Some((Ok(v), _)) => Ok(v),
-            Some((Err(e), _)) => Err(e),
-            None => Err(StorageError::Generic("valtron stream ended without result".into())),
-        }
-    }
-}
-
-// ===========================================================================
 // QueryStore
 // ===========================================================================
 
 impl D1WasmStorage {
     /// Execute a SQL query and return rows as `Vec<SqlRow>`.
-    pub async fn query_async(
+    async fn query_async(
         &self,
         sql: &str,
         params: &[DataValue],
@@ -475,7 +404,7 @@ impl D1WasmStorage {
     }
 
     /// Execute a SQL statement and return the number of rows affected.
-    pub async fn execute_async(
+    async fn execute_async(
         &self,
         sql: &str,
         params: &[DataValue],
@@ -492,7 +421,7 @@ impl D1WasmStorage {
     }
 
     /// Execute a batch of SQL statements.
-    pub async fn execute_batch_async(&self, sql: &str) -> Result<(), StorageError> {
+    async fn execute_batch_async(&self, sql: &str) -> Result<(), StorageError> {
         Self::do_execute_batch_async(&self.db, sql).await
     }
 
@@ -555,7 +484,7 @@ impl RateLimiterStore for D1WasmStorage {
 
 impl D1WasmStorage {
     /// Put a blob into D1 (base64-encoded in the KV table).
-    pub async fn put_blob_async(&self, key: &str, data: &[u8]) -> Result<(), StorageError> {
+    async fn put_blob_async(&self, key: &str, data: &[u8]) -> Result<(), StorageError> {
         Self::do_put_blob_async(&self.db, &self.table_prefix, key, data).await
     }
 
@@ -591,7 +520,7 @@ impl D1WasmStorage {
     }
 
     /// Get a blob from D1 (base64-decoded).
-    pub async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
+    async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
         Self::do_get_blob_async(&self.db, &self.table_prefix, key).await
     }
 
@@ -636,7 +565,7 @@ impl D1WasmStorage {
     }
 
     /// Delete a blob from D1.
-    pub async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
+    async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
         Self::do_delete_blob_async(&self.db, &self.table_prefix, key).await
     }
 
@@ -651,7 +580,7 @@ impl D1WasmStorage {
     }
 
     /// Check if a blob exists in D1.
-    pub async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
+    async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
         Self::do_blob_exists_async(&self.db, &self.table_prefix, key).await
     }
 
