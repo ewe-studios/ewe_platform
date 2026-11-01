@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (version bump, workspace): commit `a896ff0bb` bumped `foundation_db`
+  to 0.0.5 but missed three consumers (`foundation_deployment_docker`,
+  `foundation_deployment_hetzner`, `foundation_deployment_digitalocean`). They
+  pin `version = "0.0.4"` on the line after `path` in a multi-line
+  `[dependencies.foundation_db]` table, so a same-line grep misses them.
+  `cargo metadata` then fails for the whole workspace and every CI gate dies
+  pre-flight. Feature 16 added public API (`generate_async`, async
+  `embed`/`embed_batch`, the `record`/`hydrate` renames, `max_error_body`) but
+  kept `foundation_ai` at 0.0.2. Bump it to 0.0.3 and both consumers
+  (`bin/platform`, `apps/answerme-agent`) in the same change. Use a `tomllib`
+  scan for version checks; it reads both inline and multi-line `version`
+  fields.
+
 - 2026-11-01 (feature 12, foundation_deployment_docker): moving the seven client
   methods onto the generated request/response types changes their public return
   type from JSON to typed structs, so it is a breaking change that needs the

@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: version-bump reconciliation. Commit `a896ff0bb` (foundation_db
+  0.0.4 to 0.0.5) missed three consumers that pin `version = "0.0.4"` on the
+  line after `path` in a multi-line `[dependencies.foundation_db]` table:
+  `foundation_deployment_docker`, `foundation_deployment_hetzner`,
+  `foundation_deployment_digitalocean`. `cargo metadata` failed workspace-wide,
+  so every CI gate died pre-flight. Feature 16 also added public API but kept
+  `foundation_ai` at 0.0.2. Commit `53b02bece` bumps the three consumers to
+  0.0.5. This change bumps `foundation_ai` to 0.0.3 and its two consumers
+  (`bin/platform`, `apps/answerme-agent`) to 0.0.3. `cargo metadata` resolves
+  and a `tomllib` scan reports zero mismatches.
+
 - 2026-11-01: feature 12 (Docker client and foundation_deployment) done on
   `fix/io-20-vfs-process-ipc`. E1 routes the seven hand-written client methods
   through the generated request/response types, streams the upload tar, caps
