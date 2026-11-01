@@ -36,7 +36,7 @@ pub mod d1_delta;
 pub mod r2_delta;
 
 pub use dir_delta::DirectoryDelta;
-pub use native_fs::NativeFs;
+pub use native_fs::{NativeFs, NativeFsConfig};
 
 #[cfg(all(target_os = "linux", feature = "vfs-fuse"))]
 pub use fuse::{FuseMount, FuseMountOptions};

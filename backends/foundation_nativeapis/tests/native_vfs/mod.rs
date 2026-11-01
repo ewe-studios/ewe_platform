@@ -1,13 +1,16 @@
 #![cfg(feature = "vfs-native")]
 
-use foundation_nativeapis::native::vfs::NativeFs;
+use foundation_nativeapis::native::vfs::{NativeFs, NativeFsConfig};
 use foundation_core::valtron::valtron_test;
 use foundation_nativeapis::shared::vfs::{AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem, SyncFs};
 use foundation_nativeapis::shared::vfs::{
     OpenMode, SeekFrom, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem, VfsFileType,
 };
+use futures_lite::future::{yield_now, zip};
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::Arc;
 
 struct TempDir(PathBuf);
 
@@ -274,4 +277,56 @@ async fn created_files_can_be_read_back() {
     let f = native_fs.create_async("/n.txt".into(), 0o644).await.unwrap();
     f.write_at_async(b"abc".to_vec(), 0).await.unwrap();
     assert_eq!(f.read_at_async(3, 0).await.unwrap(), b"abc");
+}
+
+/// A 64 MiB positional read runs on the offload pool, not on the valtron
+/// worker. A ticker that shares the worker keeps ticking while the read parks
+/// on its result pipe; a blocking read would starve the ticker to zero.
+#[valtron_test]
+async fn native_fs_large_read_does_not_hold_worker() {
+    let tmp = TempDir::new("large_read");
+    let size = 64 * 1024 * 1024;
+    let data = vec![0xA5u8; size];
+    fs::write(tmp.path().join("big.bin"), &data).unwrap();
+
+    let config = NativeFsConfig::new().with_offload_threads(2);
+    let native_fs = NativeFs::with_config(tmp.path(), config).unwrap();
+    let file = native_fs
+        .open_async("/big.bin".into(), OpenMode::Read)
+        .await
+        .unwrap();
+
+    let ticks = Arc::new(AtomicUsize::new(0));
+    let read_done = Arc::new(AtomicBool::new(false));
+
+    // The ticker yields cooperatively and counts each tick. It shares the
+    // valtron worker with the read because `zip` polls both on one task.
+    let ticker = {
+        let ticks = Arc::clone(&ticks);
+        let read_done = Arc::clone(&read_done);
+        async move {
+            while !read_done.load(Ordering::SeqCst) {
+                ticks.fetch_add(1, Ordering::SeqCst);
+                yield_now().await;
+            }
+        }
+    };
+
+    let read = {
+        let read_done = Arc::clone(&read_done);
+        async move {
+            let result = file.read_at_async(size, 0).await;
+            read_done.store(true, Ordering::SeqCst);
+            result
+        }
+    };
+
+    let (read_out, _) = zip(read, ticker).await;
+
+    assert_eq!(read_out.unwrap(), data);
+    assert!(
+        ticks.load(Ordering::SeqCst) > 50,
+        "the ticker must keep ticking while the offloaded read is pending, saw {} ticks",
+        ticks.load(Ordering::SeqCst)
+    );
 }
