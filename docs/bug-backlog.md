@@ -127,11 +127,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 10. foundation_ai
 
-- **Seventeen candle-backend tests panic on the Linux CI.** The
-  `scripts/ci/linux.sh foundation_ai` run fails 17 candle tests that panic in
-  `gemm-f32-0.19.0/src/gemm.rs:3:5`. `gemm-f32` is candle's fallback GEMM
-  path. The link fix revealed this; the build stopped at link before. Fix:
-  investigate why `gemm-f32` panics in the CI image.
 - **`openai_provider::test_provider_streaming_tool_calls` is flaky.** On a full
   `cargo test -p foundation_ai --features testing --profile uat` run the mock
   SSE server hit an idle timeout (`Idle timeout exceeded elapsed_secs=3
@@ -177,8 +172,10 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   (`src/backends/llamacpp.rs:454`), two `cast_possible_truncation`
   (`src/backends/candle.rs:644` and `:645`), and two `large_enum_variant`
   (`src/backends/candle.rs:710` and `src/types/base_types.rs:1277`, the `Tool`
-  enum whose `SingleCommand(ToolDefinition)` variant is 360 bytes). None are on
-  feature 16 code. Fix: apply the suggestions and box the large variants.
+  enum whose `SingleCommand(ToolDefinition)` variant is 360 bytes). With the
+  `testing` feature on, one more appears: `must_use_candidate`
+  (`src/agentic/testing.rs:161`). None are on feature 16 code. Fix: apply the
+  suggestions and box the large variants.
 
 ## 11. foundation_db and its sync callers
 

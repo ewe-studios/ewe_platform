@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: bug-backlog §10 candle-gemm (foundation_ai) fixed on
+  `fix/io-20-vfs-process-ipc`. Seventeen candle tests panicked in `gemm-f32`
+  on the Linux CI. gemm-common picked the `fma` kernel on `fma` alone, but
+  that kernel needs AVX2. The emulated linux/amd64 CPU has `fma` and not
+  `avx2`, so `V3::try_new()` returned `None` and the `.unwrap()` panicked.
+  The fix vendors gemm-common 0.19.0 under `patches/gemm-common` and requires
+  `fma` and `avx2` in `init_gemm_fn` and `init_gemm_cplx_fn`. The backlog
+  entry is removed.
+
 - 2026-11-02: bug-backlog §10 (foundation_ai) fixed on
   `fix/io-20-vfs-process-ipc`. The wasm32 `--no-default-features` check failed
   with three `Send` errors because the cloud providers awaited valtron's

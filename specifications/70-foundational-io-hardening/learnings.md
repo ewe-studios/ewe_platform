@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (backlog §10 candle-gemm fix, foundation_ai): the candle CPU
+  matrix multiply path uses the pure-Rust `gemm` crate (gemm-common 0.19.0)
+  when candle-core has no MKL and no Apple Accelerate. `init_gemm_fn` and
+  `init_gemm_cplx_fn` pick the `fma` kernel on `feature_detected!("fma")`
+  only. That kernel needs the V3 SIMD type. V3 needs AVX2 (and the features
+  AVX2 implies). The Docker Desktop linux/amd64 CPU reports `fma` but not
+  `avx2`. `V3::try_new()` then returns `None`, and the `__inject_mod!`
+  `.unwrap()` panics. The panic shows at `gemm-f32-0.19.0/src/gemm.rs:3:5`.
+  Fix: vendor gemm-common 0.19.0 under `patches/gemm-common`, add
+  `[patch.crates-io]`, and require `fma` and `avx2` before the fma kernel.
+  macOS still compiles: the check is inside an x86/x86_64 cfg block, and every
+  AVX2 CPU also has FMA, so the gate does not change on real hardware.
+
 - 2026-11-02 (backlog §10 wasm32 Send fix, foundation_ai): valtron re-exports
   `sleep_async` from `non_sendables` or `sendables` based on foundation_core's
   `multi` feature. On wasm32 `multi` is off (single-threaded), so `sleep_async`
