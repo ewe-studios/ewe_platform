@@ -231,6 +231,16 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
+- **`foundation_nativeapis` hangs in the Linux CI gate.** The
+  `scripts/ci/linux.sh foundation_nativeapis` run fails with a package test
+  timeout, not an assertion failure. The hang is in the IPC area added by
+  feature 20 (E5/E6): `ipc_concurrent_requests` (`tests/ipc_vfs/mod.rs`) drives
+  16 concurrent `read_file_async` requests through `DaemonTransport` and awaits
+  them with `zip_all`; on Linux one request never completes (macOS passes all
+  14 ipc_vfs tests locally). The ptrace tests have a separate documented
+  kernel-level deadlock already `#[ignore]`d. Fix: re-run the Linux gate with a
+  per-test timeout to pin the exact test, then fix the client/daemon concurrency
+  or out-of-order response match (feature 20 E6).
 - **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
   (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
   file, its metadata and its whiteout as separate blobs, and a blob store has
