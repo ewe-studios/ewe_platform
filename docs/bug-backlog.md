@@ -217,17 +217,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 ## 13. foundation_nativeapis
 
 - **The `fuse_vfs` test fails to compile in the Linux CI `vfs-fuse` run.**
-  `tests/fuse_vfs/mod.rs:1` imports `native::vfs::fuse` (gated
-  `all(target_os = "linux", feature = "vfs-fuse")`) and calls the `MemoryFs`
-  VFS helper methods, but the `vfs-fuse` CI run's feature set leaves the `fuse`
-  module or the `VfsFileSystem` trait methods out of scope. Errors: unresolved
-  import `...::vfs::fuse`; no method `write_file`/`mkdir_all`/`join`. Root cause:
-  the `fuse` crate needs the fuse3 system library, and `fuse3` pkg-config is
-  missing in the `ewestudios/ewe-platform-ci:latest` image, so the crate fails
-  to build and the `fuse` module is absent. Fix: install `libfuse3-dev` in the CI
-  image (or feature-gate the module so it does not need fuse3), and align the
-  run's features (or the test's `required-features`) so both the fuse module and
-  the VFS traits resolve. Seen in the six-crate Linux CI block, not on macOS.
+  `tests/fuse_vfs/mod.rs:1` imports `native::vfs::fuse::{flags_to_open_mode,
+  vfs_error_to_errno, FuseMount, FuseMountOptions, ROOT_INO}` (gated
+  `all(target_os = "linux", feature = "vfs-fuse")`). The `fuse` module
+  (`src/native/vfs/fuse.rs`) exists and exports all of those items, and `fuser`
+  0.15 is pure Rust with default features (no fuse3 pkg-config needed), so the
+  exact error is not yet pinned — an earlier run showed an unresolved import and
+  missing `MemoryFs` methods. Fix: reproduce the Linux `vfs-fuse` build to get
+  the current error, then align the test with the module API (or the reverse).
+  Seen in the six-crate Linux CI block, not on macOS.
 - **`vfs_search` `cli_search_streams_results` panics in the Linux CI.**
   The test at `tests/vfs_search/mod.rs:273` panics inside
   `foundation_core::valtron::executors::sendables` (`sendables.rs:822`). Seen in
