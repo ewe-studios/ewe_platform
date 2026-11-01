@@ -2,6 +2,16 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-01 (feature 26): `reactor_shared_selector_tests.rs` is gated
+  `#![cfg(all(unix, feature = "fd"))]`, and `fd` is not a default feature of
+  `foundation_nativeapis`, so `cargo test -p foundation_nativeapis` does not run
+  these tests — pass `--features fd`. `/proc/self/fd` exists only on Linux; any
+  test or helper that reads it must carry `#[cfg(target_os = "linux")]`, or it
+  panics at runtime on macOS (`.expect("procfs must be mounted")`), which a plain
+  `cargo check --all-targets` will not catch because the code compiles fine. The
+  portable pipe (`pipe` + `fcntl` on macOS, `pipe2` on Linux) was already present;
+  only the procfs gating remained.
+
 - 2026-11-01 (feature 36): `DnsResolver::resolve` became async via `#[async_trait]`
   (the crate re-exports the macro). The `Arc<T>` blanket impl compiles with
   `T: DnsResolver + ?Sized`, so `Arc<dyn DnsResolver>` still works. The trait also

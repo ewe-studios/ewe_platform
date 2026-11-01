@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-01: feature 26 done on `fix/io-35-turso-async-trait-overflow`. The
+  `foundation_nativeapis` shared-reactor tests now compile and run on macOS. The
+  nonblocking pipe was already portable (`pipe` + `fcntl` on macOS, `pipe2` on Linux). The
+  `/proc/self/fd` count test and its `open_fd_count` helper are now gated with
+  `#[cfg(target_os = "linux")]`, so the four portable tests run on macOS and the Linux-only
+  fd-count test stays in CI. Verification: `cargo test -p foundation_nativeapis --test
+  reactor_shared_selector_tests --features fd --profile uat` green (4 pass);
+  `cargo check -p foundation_nativeapis --all-targets --profile uat` clean. Linux CI gate
+  queued. PR: see the PR.
+
 - 2026-11-01: feature 37 done on `fix/io-35-turso-async-trait-overflow`. A
   transport with `conn_readiness() == None` (the completion socket) now falls
   back instead of spinning. `IoReady` sleeps one poll-fallback interval and

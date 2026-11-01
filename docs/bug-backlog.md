@@ -303,11 +303,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   state instead of only on a new write, so the edge-triggered promise is not kept. Pre-existing on
   master (wired in b91e25bc9) and unrelated to the version bump and features 38/40. Likely fix:
   clear the per-fd edge after the first readable report and re-report only on a new write.
-- **The shared-reactor tests use Linux-only calls.** `tests/reactor_shared_selector_tests.rs`
-  calls `libc::pipe2` (not present in `libc` on macOS) and reads `/proc/self/fd` (Linux only),
-  so `cargo check --workspace --all-targets` fails on macOS. The `Reactor` itself has a kqueue
-  backend. Fix: build the nonblocking pipe with `libc::pipe` then `fcntl` (portable), and gate
-  the `/proc/self/fd` count test behind `#[cfg(target_os = "linux")]`.
 - **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
   (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
   file, its metadata and its whiteout as separate blobs, and a blob store has

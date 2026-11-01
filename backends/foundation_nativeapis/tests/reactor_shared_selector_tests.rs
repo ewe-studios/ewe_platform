@@ -241,12 +241,14 @@ fn readiness_reports_actual_flags_not_a_collapsed_mask() {
 ///
 /// `/proc/self/fd` is itself read through an open fd, so the returned count is
 /// only meaningful as a *delta* between two calls made the same way.
+#[cfg(target_os = "linux")]
 fn open_fd_count() -> usize {
     std::fs::read_dir("/proc/self/fd")
         .expect("procfs must be mounted")
         .count()
 }
 
+#[cfg(target_os = "linux")]
 #[test]
 #[serial_test::serial]
 fn registering_many_fds_adds_no_selector_fds() {
