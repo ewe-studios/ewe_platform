@@ -132,11 +132,16 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `gemm-f32-0.19.0/src/gemm.rs:3:5`. `gemm-f32` is candle's fallback GEMM
   path. The link fix revealed this; the build stopped at link before. Fix:
   investigate why `gemm-f32` panics in the CI image.
-- **The wasm32 `--no-default-features` check fails with three `Send` errors.**
-  `src/backends/anthropic_messages_provider.rs`, `openai_provider.rs` and
-  `openai_responses_provider.rs` produce futures that are not `Send` on wasm32.
-  The cloud providers are not part of llama.cpp or candle. Fix: make the three
-  provider futures `Send` on wasm32, or gate the check.
+- **`openai_provider::test_provider_streaming_tool_calls` is flaky.** On a full
+  `cargo test -p foundation_ai --features testing --profile uat` run the mock
+  SSE server hit an idle timeout (`Idle timeout exceeded elapsed_secs=3
+  timeout_secs=0`), reconnected, and replayed a chunk. The tool-call delta
+  accumulator then saw `{"location"{"location": "Paris"}` (a duplicated
+  `{"location"` delta), the arguments JSON failed to parse, and the test
+  panicked at `tests/providers/openai_provider.rs:263` ("Should have
+  arguments"). The test passes in isolation. Fix: make the mock SSE response
+  immune to the reconnect (end the stream cleanly, or set a retry/close policy
+  so a reconnect does not replay deltas).
 - **The pub/sub `Appended` event id does not match the stored `doc_id`.** After
   feature 16 E8, a memory record stores its own id as the `doc_id`. But
   `MessageApi::append` (about line 347) mints a fresh scru128 for the pub/sub

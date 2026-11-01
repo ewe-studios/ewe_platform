@@ -3,7 +3,7 @@
 //! Implements the `/v1/messages` endpoint using Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
 
-use foundation_compact::SystemTime;
+use foundation_compact::{SendWrapper, SystemTime};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -848,7 +848,9 @@ impl AnthropicModel {
                     }
                     let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
                     attempt += 1;
-                    sleep_async(Duration::from_secs(delay)).await;
+                    // `sleep_async` is `!Send` on wasm (single-threaded valtron
+                    // executor); wrap it so this async-trait future stays `Send`.
+                    SendWrapper::new(sleep_async(Duration::from_secs(delay))).await;
                 }
             }
         }
