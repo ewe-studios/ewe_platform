@@ -15,7 +15,6 @@ use foundation_nativeapis::shared::vfs::{
     SeekableVfsFile, VfsCapabilities, VfsDirEntry, VfsDirectory, VfsFile, VfsFileSystem,
     VfsMetadata, VfsResult,
 };
-use tracing_test::traced_test;
 
 /// The chunk size the counting wrappers report. Small so the test stays fast.
 const CHUNK: usize = 256;
@@ -402,7 +401,6 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for CountingAsyncFs<F> {
 // ── Tests ──
 
 #[test]
-#[traced_test]
 fn vfs_copy_streams_in_chunks() {
     let content: Vec<u8> = (0..1000u16).map(|b| (b % 251) as u8).collect();
 
