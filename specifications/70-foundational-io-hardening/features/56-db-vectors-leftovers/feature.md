@@ -5,7 +5,7 @@ lane: "B"
 model: "haiku"
 branch: "fix/io-51-60-lane-b"
 crates: ["foundation_db", "foundation_vectors"]
-catalogue_rows: [25, 26, 39, 40]
+catalogue_rows: [25, 26, 39, 40, 50]
 ---
 
 # Feature 56: db and vectors leftovers
@@ -51,6 +51,14 @@ Check the status first; read a success body up to `max_response_body` on the D1 
 (builder method; pick the default from D1's documented maximum result size and cite it); over
 the cap → typed error, not a partial parse. Error bodies: up to the existing error-body cap.
 Test: `d1_response_over_cap_is_an_error` (mock).
+
+## E7. `FileStateStore::set` writes in place; the trait has no conditional write (found in feature 45)
+
+`std::fs::write` on the target path lets a reader see a torn file. Write to a temp file in the
+same directory, `fsync`, then `rename` over the target (atomic on POSIX). The missing
+conditional write (version/etag) in `StateStore`: record the design need in the entry; do not
+add it in this feature. Test: `file_state_store_write_is_atomic` (a reader loading in a loop
+never sees a partial file).
 
 ## Verify
 
