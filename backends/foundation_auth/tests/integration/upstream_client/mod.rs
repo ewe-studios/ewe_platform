@@ -4,7 +4,7 @@
 //! `exchange_code` and `fetch_userinfo` over the platform network client
 //! (`DynNetClient`, built with `HttpClientBuilder`). These tests drive both async methods end-to-end
 //! against a real local HTTP server, over the same client wasm/Workers use,
-//! proving the OAuth2 `authorization_code` grant and the userinfo Bearer fetch
+//! proving the `OAuth2` `authorization_code` grant and the userinfo Bearer fetch
 //! actually speak HTTP correctly — not just that the parsing helpers work.
 //!
 //! WHAT: `exchange_code` posts the grant to a live token endpoint and parses the
@@ -37,7 +37,7 @@ where
     collect_one(stream).expect("future produced a result")
 }
 
-/// A minimal OAuth2 provider; callers override the endpoint URLs to point at the
+/// A minimal `OAuth2` provider; callers override the endpoint URLs to point at the
 /// test server.
 fn test_provider() -> UpstreamProvider {
     UpstreamProvider {
@@ -68,8 +68,8 @@ fn body_string(body: &SendSafeBody) -> String {
     }
 }
 
-fn header_value(headers: &SimpleHeaders, name: SimpleHeader) -> Option<String> {
-    headers.get(&name).and_then(|v| v.first()).cloned()
+fn header_value(headers: &SimpleHeaders, name: &SimpleHeader) -> Option<String> {
+    headers.get(name).and_then(|v| v.first()).cloned()
 }
 
 #[valtron_test]
@@ -142,11 +142,12 @@ fn exchange_code_surfaces_endpoint_error() {
 
 #[valtron_test]
 fn fetch_userinfo_sends_bearer_and_maps_profile() {
-    let captured: Arc<Mutex<Option<(SimpleMethod, Option<String>)>>> = Arc::new(Mutex::new(None));
+    type Captured = Option<(SimpleMethod, Option<String>)>;
+    let captured: Arc<Mutex<Captured>> = Arc::new(Mutex::new(None));
     let cap = Arc::clone(&captured);
 
     let server = TestHttpServer::with_response(move |req| {
-        let auth = header_value(&req.headers, SimpleHeader::AUTHORIZATION);
+        let auth = header_value(&req.headers, &SimpleHeader::AUTHORIZATION);
         *cap.lock().unwrap() = Some((req.method.clone(), auth));
         let profile = r#"{"sub":"user-1","email":"alice@example.com","email_verified":true,"name":"Alice","preferred_username":"alice"}"#;
         HttpResponse::ok(profile)

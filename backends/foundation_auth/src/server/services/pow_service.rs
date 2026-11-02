@@ -40,12 +40,12 @@ struct ChallengeEntry {
     solved: bool,
 }
 
-/// Cache key for a PoW challenge.
+/// Cache key for a `PoW` challenge.
 fn challenge_key(challenge: &str) -> String {
     format!("pow:challenge:{challenge}")
 }
 
-/// Issues and verifies PoW challenges, keeping them in a shared async cache.
+/// Issues and verifies `PoW` challenges, keeping them in a shared async cache.
 pub struct PowService<KV: KeyValueStore> {
     cache: KV,
     difficulty: u32,
@@ -69,7 +69,7 @@ impl<KV: KeyValueStore> PowService<KV> {
         }
     }
 
-    /// Generate a new PoW challenge and persist it in the shared cache.
+    /// Generate a new `PoW` challenge and persist it in the shared cache.
     ///
     /// # Errors
     ///
@@ -84,7 +84,8 @@ impl<KV: KeyValueStore> PowService<KV> {
         let entry = ChallengeEntry {
             difficulty: self.difficulty,
             issued_at,
-            expires_at: issued_at + self.validity_secs as i64,
+            expires_at: issued_at
+                .saturating_add(i64::try_from(self.validity_secs).unwrap_or(i64::MAX)),
             solved: false,
         };
         self.cache.set(&challenge_key(&challenge), entry).await?;
@@ -96,7 +97,7 @@ impl<KV: KeyValueStore> PowService<KV> {
         })
     }
 
-    /// Verify a PoW solution. Returns true if valid.
+    /// Verify a `PoW` solution. Returns true if valid.
     ///
     /// Single-use: a solved challenge is marked solved so it can't be replayed.
     /// Cache errors are logged and treated as a verification failure.
@@ -121,7 +122,9 @@ impl<KV: KeyValueStore> PowService<KV> {
         }
 
         // Solve window: a solution must arrive within solve_validity_secs of issue.
-        if Utc::now().timestamp() - entry.issued_at > self.solve_validity_secs as i64 {
+        if Utc::now().timestamp() - entry.issued_at
+            > i64::try_from(self.solve_validity_secs).unwrap_or(i64::MAX)
+        {
             return false;
         }
 

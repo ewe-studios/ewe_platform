@@ -35,6 +35,7 @@ pub struct HandlerResponse {
 }
 
 impl HandlerResponse {
+    #[must_use]
     pub fn ok(body: serde_json::Value) -> Self {
         Self {
             status: 200,
@@ -42,6 +43,7 @@ impl HandlerResponse {
             headers: vec![],
         }
     }
+    #[must_use]
     pub fn accepted(body: serde_json::Value) -> Self {
         Self {
             status: 202,
@@ -50,6 +52,7 @@ impl HandlerResponse {
         }
     }
     /// Build a 302 redirect. The body is empty; `Location` is set from `url`.
+    #[must_use]
     pub fn redirect(url: &str) -> Self {
         Self {
             status: 302,
@@ -158,7 +161,7 @@ pub struct RegisterRequest {
     pub pow: Option<String>,
 }
 
-/// Password reset request body for POST /auth/v1/users/request_reset
+/// Password reset request body for POST `/auth/v1/users/request_reset`
 #[derive(Debug, Deserialize)]
 pub struct PasswordResetRequest {
     pub email: Option<String>,
@@ -280,6 +283,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// Enable social login by attaching a session store.
+    #[must_use]
     pub fn with_social_login(
         mut self,
         store: Arc<crate::shared::auth_session::memory::MemoryAuthSessionStore>,
@@ -294,11 +298,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         &self.config
     }
 
-    fn social_enabled(&self) -> bool {
-        self.session_store.is_some()
-    }
-
-    pub async fn discovery(
+    /// Discovery.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn discovery(
         &self,
         _bag: &ContextBag,
         _req: &SimpleIncomingRequest,
@@ -308,7 +313,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         Ok(HandlerResponse::ok(body))
     }
 
-    pub async fn jwks(
+    /// Jwks.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn jwks(
         &self,
         _bag: &ContextBag,
         _req: &SimpleIncomingRequest,
@@ -323,6 +333,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         })))
     }
 
+    /// Authorize.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn authorize(
         &self,
         _bag: &ContextBag,
@@ -368,12 +383,17 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         })))
     }
 
+    /// Token.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn token(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let pairs = parse_form_urlencoded(&body);
         let grant_type = pairs
             .get("grant_type")
@@ -519,7 +539,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let client_secret = pairs
             .get("client_secret")
             .ok_or_else(|| IdpError::BadRequest("Missing client_secret".into()))?;
-        let scope = pairs.get("scope").map(|s| s.as_str()).unwrap_or("");
+        let scope = pairs.get("scope").map_or("", std::string::String::as_str);
 
         let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)
             .await?
@@ -539,7 +559,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         })))
     }
 
-    pub async fn userinfo(
+    /// Userinfo.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn userinfo(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
@@ -571,12 +596,17 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         ))
     }
 
-    pub async fn introspect(
+    /// Introspect.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn introspect(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let pairs = parse_form_urlencoded(&body);
         let token = pairs
             .get("token")
@@ -584,8 +614,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
         match self.token_service.verify_access_token(token) {
             Ok(claims) => {
-                let exp = claims.get("exp").and_then(|v| v.as_u64()).unwrap_or(0);
-                let iat = claims.get("iat").and_then(|v| v.as_u64()).unwrap_or(0);
+                let exp = claims
+                    .get("exp")
+                    .and_then(serde_json::Value::as_u64)
+                    .unwrap_or(0);
+                let iat = claims
+                    .get("iat")
+                    .and_then(serde_json::Value::as_u64)
+                    .unwrap_or(0);
                 let sub = claims.get("sub").and_then(|v| v.as_str()).unwrap_or("");
                 let client_id = claims
                     .get("client_id")
@@ -605,17 +641,24 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         }
     }
 
+    /// Device authorize.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn device_authorize(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let pairs = parse_form_urlencoded(&body);
         let client_id = pairs
             .get("client_id")
             .ok_or_else(|| IdpError::BadRequest("Missing client_id".into()))?;
-        let scope = pairs.get("scope").map(|s| s.as_str()).unwrap_or("openid");
+        let scope = pairs
+            .get("scope")
+            .map_or("openid", std::string::String::as_str);
 
         let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)
             .await?
@@ -643,14 +686,18 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     // ─── F02: Login + MFA + Logout ─────────────────────────────────────────────
 
     /// Unified multi-step login: POST /auth/v1/oidc/authorize
-    /// Step 1 (email only): check if user exists, return "password_required" if no password
+    /// Step 1 (email only): check if user exists, return "`password_required`" if no password
     /// Step 2 (email + password): verify credentials, create session or MFA challenge
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn login(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let login_req: LoginRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -713,12 +760,16 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// MFA verification: POST /auth/v1/mfa
-    pub async fn mfa(
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn mfa(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let mfa_req: MfaRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -738,7 +789,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// Logout: POST /auth/v1/oidc/logout
-    pub async fn logout(
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn logout(
         &self,
         _bag: &ContextBag,
         _req: &SimpleIncomingRequest,
@@ -753,12 +808,16 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     // ─── F03: User Registration ────────────────────────────────────────────────
 
     /// Register a new user: POST /auth/v1/users/register
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn register(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let reg: RegisterRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -816,27 +875,35 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// Dev-mode registration: POST /auth/v1/dev/register
-    /// Simplified — no PoW required.
+    /// Simplified — no `PoW` required.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn dev_register(
         &self,
-        _bag: &ContextBag,
+        bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
         // In a real implementation, check IS_DEV flag.
         // For now, delegate to the regular registration.
-        self.register(_bag, req).await
+        self.register(bag, req).await
     }
 
     // ─── F04: Password Reset ────────────────────────────────────────────────────
 
-    /// Request password reset: POST /auth/v1/users/request_reset
+    /// Request password reset: POST `/auth/v1/users/request_reset`
     /// Sends a magic link to the user's email (email delivery is a follow-up).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn request_password_reset(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let reset_req: PasswordResetRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -858,12 +925,16 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// Set new password: PUT /auth/v1/users/{id}/reset
-    pub async fn set_password(
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn set_password(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let set_req: PasswordSetRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -894,7 +965,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
     // ─── F05: Proof of Work ────────────────────────────────────────────────────
 
-    /// Get PoW challenge: GET /auth/v1/pow
+    /// Get `PoW` challenge: GET /auth/v1/pow
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn pow_challenge(
         &self,
         _bag: &ContextBag,
@@ -910,13 +985,17 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         Ok(HandlerResponse::ok(body))
     }
 
-    /// Solve PoW challenge: POST /auth/v1/pow
+    /// Solve `PoW` challenge: POST /auth/v1/pow
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn pow_solve(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let solution: PowSolution = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -934,7 +1013,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     // ─── F08: Template/Config API ──────────────────────────────────────────────
 
     /// Get template config: GET /auth/v1/templates/config
-    pub async fn template_config(
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn template_config(
         &self,
         _bag: &ContextBag,
         _req: &SimpleIncomingRequest,
@@ -951,8 +1034,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         })))
     }
 
-    /// Get password policy: GET /auth/v1/templates/password_policy
-    pub async fn password_policy(
+    /// Get password policy: GET `/auth/v1/templates/password_policy`
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn password_policy(
         &self,
         _bag: &ContextBag,
         _req: &SimpleIncomingRequest,
@@ -969,6 +1056,10 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     // ─── F09: Account Management ───────────────────────────────────────────────
 
     /// Get user info: GET /auth/v1/users/{id}
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn get_user(
         &self,
         _bag: &ContextBag,
@@ -993,6 +1084,10 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// Update user info: PUT /auth/v1/users/{id}
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn update_user(
         &self,
         _bag: &ContextBag,
@@ -1001,7 +1096,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
             .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
 
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let update: serde_json::Value = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -1016,7 +1111,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         })))
     }
 
-    /// Change password: POST /auth/v1/users/{id}/change_password
+    /// Change password: POST `/auth/v1/users/{id}/change_password`
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn change_password(
         &self,
         _bag: &ContextBag,
@@ -1025,7 +1124,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
             .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
 
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let req_body: ChangePasswordRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -1074,7 +1173,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// List user sessions: GET /auth/v1/users/{id}/sessions
-    pub async fn list_sessions(
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn list_sessions(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
@@ -1090,6 +1193,10 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// Delete account: POST /auth/v1/users/{id}/revoke
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn revoke_user(
         &self,
         _bag: &ContextBag,
@@ -1110,12 +1217,16 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     // ─── F06: WebAuthn/FIDO2 ───────────────────────────────────────────────────
 
     /// WebAuthn register start: POST /auth/v1/webauthn/register/start
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn webauthn_register_start(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let start_req: serde_json::Value = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
         let user_id = start_req
@@ -1137,12 +1248,16 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// WebAuthn register finish: POST /auth/v1/webauthn/register/finish
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn webauthn_register_finish(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let finish_req: WebAuthnRegisterFinishRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -1158,12 +1273,16 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// WebAuthn auth start: POST /auth/v1/webauthn/login/start
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn webauthn_auth_start(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let start_req: serde_json::Value = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
         let user_id = start_req
@@ -1181,12 +1300,16 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// WebAuthn auth finish: POST /auth/v1/webauthn/login/finish
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn webauthn_auth_finish(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let finish_req: WebAuthnAuthFinishRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -1202,12 +1325,16 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// Passkey-only login start: POST /auth/v1/passkey/login/start
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn passkey_login_start(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let start_req: PasskeyLoginStartRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
         let email = start_req
@@ -1224,12 +1351,16 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// Passkey-only login finish: POST /auth/v1/passkey/login/finish
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn passkey_login_finish(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let finish_req: PasskeyLoginFinishRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -1245,6 +1376,10 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// Delete passkey: DELETE /auth/v1/webauthn/{id}
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn delete_passkey(
         &self,
         _bag: &ContextBag,
@@ -1263,6 +1398,10 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// Rename passkey: PUT /auth/v1/webauthn/{id}
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn rename_passkey(
         &self,
         _bag: &ContextBag,
@@ -1271,7 +1410,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let passkey_id = extract_path_param(&req.request_url.url, "/auth/v1/webauthn/")
             .ok_or_else(|| IdpError::BadRequest("Missing passkey ID".into()))?;
 
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let rename_req: serde_json::Value = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
         let name = rename_req
@@ -1290,8 +1429,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
     // ─── F07: Terms of Service ─────────────────────────────────────────────────
 
-    /// Get latest ToS: GET /auth/v1/tos/latest
-    pub async fn tos_latest(
+    /// Get latest `ToS`: GET /auth/v1/tos/latest
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    pub fn tos_latest(
         &self,
         _bag: &ContextBag,
         _req: &SimpleIncomingRequest,
@@ -1309,13 +1452,17 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         }
     }
 
-    /// Accept ToS: POST /auth/v1/tos/accept
+    /// Accept `ToS`: POST /auth/v1/tos/accept
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn tos_accept(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let body = extract_body_text(&req.body);
+        let body = extract_body_text(req.body.as_ref());
         let accept_req: serde_json::Value = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
@@ -1336,14 +1483,18 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     // ── F011 Social login handlers ────────────────────────────────────────
 
     /// `GET /authorize?provider=google&state=...&redirect_uri=...`
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn social_authorize(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        if !self.social_enabled() {
+        let Some(session_store) = self.session_store.as_ref() else {
             return Err(IdpError::BadRequest("social login not configured".into()));
-        }
+        };
         let query = extract_query(&req.request_url.url);
 
         let provider_id = query_param(&query, "provider")
@@ -1387,9 +1538,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             None
         };
 
-        self.session_store
-            .as_ref()
-            .unwrap()
+        session_store
             .insert(&UpstreamAuthSession::with_app_state(
                 upstream_state,
                 provider_id.to_string(),
@@ -1409,14 +1558,18 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     }
 
     /// `GET /callback?provider=google&code=...&state=...`
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn social_callback(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        if !self.social_enabled() {
+        let Some(session_store) = self.session_store.as_ref() else {
             return Err(IdpError::BadRequest("social login not configured".into()));
-        }
+        };
         let query = extract_query(&req.request_url.url);
 
         let code = query_param(&query, "code")
@@ -1424,10 +1577,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let state = query_param(&query, "state")
             .ok_or_else(|| IdpError::BadRequest("Missing 'state' query param".into()))?;
 
-        let session = self
-            .session_store
-            .as_ref()
-            .unwrap()
+        let session = session_store
             .take(state)
             .map_err(|e| IdpError::BadRequest(format!("session: {e}")))?;
 
@@ -1486,6 +1636,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         Ok(HandlerResponse::redirect(&redirect_to))
     }
 
+    /// Dispatch.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
     pub async fn dispatch(
         &self,
         bag: &ContextBag,
@@ -1495,9 +1650,9 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let path = path.split('?').next().unwrap_or(path);
 
         if path.ends_with("/.well-known/openid-configuration") {
-            self.discovery(bag, req).await
+            self.discovery(bag, req)
         } else if path.ends_with("/.well-known/jwks.json") {
-            self.jwks(bag, req).await
+            self.jwks(bag, req)
         }
         // F011: social login — /authorize?provider=X dispatches here
         else if path.ends_with("/authorize") && has_query_param("provider", req) {
@@ -1509,9 +1664,9 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         } else if path.ends_with("/token") && !path.contains("/introspect") {
             self.token(bag, req).await
         } else if path.ends_with("/userinfo") {
-            self.userinfo(bag, req).await
+            self.userinfo(bag, req)
         } else if path.ends_with("/introspect") {
-            self.introspect(bag, req).await
+            self.introspect(bag, req)
         } else if path.ends_with("/device/authorize") {
             self.device_authorize(bag, req).await
         }
@@ -1519,9 +1674,9 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         else if path.contains("/auth/v1/oidc/authorize") {
             self.login(bag, req).await
         } else if path.ends_with("/auth/v1/mfa") {
-            self.mfa(bag, req).await
+            self.mfa(bag, req)
         } else if path.ends_with("/auth/v1/oidc/logout") {
-            self.logout(bag, req).await
+            self.logout(bag, req)
         }
         // F03 registration routes
         else if path.ends_with("/auth/v1/users/register") {
@@ -1533,7 +1688,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         else if path.ends_with("/auth/v1/users/request_reset") {
             self.request_password_reset(bag, req).await
         } else if path.contains("/auth/v1/users/") && path.ends_with("/reset") {
-            self.set_password(bag, req).await
+            self.set_password(bag, req)
         }
         // F05 PoW routes
         else if path.ends_with("/auth/v1/pow") {
@@ -1545,15 +1700,15 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         }
         // F08 template/config routes
         else if path.ends_with("/auth/v1/templates/config") {
-            self.template_config(bag, req).await
+            self.template_config(bag, req)
         } else if path.ends_with("/auth/v1/templates/password_policy") {
-            self.password_policy(bag, req).await
+            self.password_policy(bag, req)
         }
         // F09 account management routes
         else if path.starts_with("/auth/v1/users/") && path.ends_with("/change_password") {
             self.change_password(bag, req).await
         } else if path.starts_with("/auth/v1/users/") && path.ends_with("/sessions") {
-            self.list_sessions(bag, req).await
+            self.list_sessions(bag, req)
         } else if path.starts_with("/auth/v1/users/") && path.ends_with("/revoke") {
             self.revoke_user(bag, req).await
         } else if path.starts_with("/auth/v1/users/")
@@ -1593,7 +1748,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         }
         // F07 ToS routes
         else if path.ends_with("/auth/v1/tos/latest") {
-            self.tos_latest(bag, req).await
+            self.tos_latest(bag, req)
         } else if path.ends_with("/auth/v1/tos/accept") {
             self.tos_accept(bag, req).await
         } else {
@@ -1639,7 +1794,7 @@ fn has_query_param(name: &str, req: &SimpleIncomingRequest) -> bool {
     extract_query(url).iter().any(|(k, _)| k == name)
 }
 
-/// Look up an upstream provider by slug from the IdP database.
+/// Look up an upstream provider by slug from the `IdP` database.
 async fn lookup_upstream_provider(
     qs: &dyn QueryStore,
     id: &str,
@@ -1755,7 +1910,7 @@ async fn find_user_by_email_lax(
     }
 }
 
-fn extract_body_text(body: &Option<SendSafeBody>) -> String {
+fn extract_body_text(body: Option<&SendSafeBody>) -> String {
     match body {
         Some(SendSafeBody::Text(t)) => t.clone(),
         Some(SendSafeBody::Bytes(b)) => String::from_utf8_lossy(b).to_string(),
@@ -1783,7 +1938,7 @@ fn parse_form_urlencoded(body: &str) -> std::collections::HashMap<String, String
     map
 }
 
-/// Extract the last path segment after a prefix (e.g. "/auth/v1/users/" → user_id).
+/// Extract the last path segment after a prefix (e.g. "/auth/v1/users/" → `user_id`).
 fn extract_path_param(url: &str, prefix: &str) -> Option<String> {
     let path = url.split('?').next().unwrap_or(url);
     path.strip_prefix(prefix).map(|s| {

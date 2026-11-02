@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 53 (auth leftovers) done on `fix/io-51-60-lane-b`. E1 deletes the dead
+  `foundation_db/src/wasm/session.rs`. E2 renames `NativeOAuth::{exchange_code, client_credentials,
+  refresh_token}` (no `_async`); no other crate called the old names. E3 adds `KeyRing` and
+  `SigningKey` to `TokenSigner`: tokens are `token.kid.tag`, a ring has one current key and
+  previous verify-only keys, and old `token.tag` tokens verify with the current key while
+  `allow_legacy_tokens` is on (default). E4 brings `foundation_auth` to 0 clippy warnings
+  under `server-native` and `server-test` (was 212 in `src/server` plus test-tree lints),
+  moves the inline tests of `two_factor.rs` and `auth_session.rs` to `tests/units/shared/`,
+  and adds `clippy-runs` to `ci/packages.toml` / `scripts/ci/ci.py` so CI lints `server-test`.
+  The §12 clippy entry is deleted; three newly found bugs are recorded in §12.
+
 - 2026-11-02: features 41–60 added by the main session after PR #172 merged: the PR review
   findings, the open backlog entries and the stale ones (requirements.md section 8). Two lanes
   (A: I/O and runtime, `fix/io-41-50-lane-a`; B: data, auth and hygiene,

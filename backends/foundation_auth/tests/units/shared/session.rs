@@ -24,9 +24,9 @@ async fn test_create_session() {
         .unwrap();
 
     assert_eq!(session.user_id, "user_1");
-    assert!(!session.token.get().is_empty());
+    assert_ne!(session.token.get(), "");
     assert!(!session.revoked);
-    assert!(!cookies.is_empty());
+    assert_ne!(cookies.len(), 0);
 }
 
 #[valtron_test]
@@ -89,10 +89,10 @@ fn test_signing_key_too_short() {
 #[test]
 fn token_signer_rejects_modified_tag() {
     let signer = TokenSigner::new(KeyRing::single(&[0xAB; 32]).expect("ring"));
-    let signed = signer.sign("plain-token");
+    let token_text = signer.sign("plain-token");
 
     // Flip one bit in the decoded signature, then re-encode it.
-    let mut parts = signed.split('.');
+    let mut parts = token_text.split('.');
     let plain = parts.next().expect("plain part");
     let kid = parts.next().expect("key id part");
     let sig = parts.next().expect("signature part");
@@ -106,11 +106,11 @@ fn token_signer_rejects_modified_tag() {
 #[test]
 fn token_signer_rejects_truncated_tag() {
     let signer = TokenSigner::new(KeyRing::single(&[0xAB; 32]).expect("ring"));
-    let signed = signer.sign("plain-token");
+    let token_text = signer.sign("plain-token");
 
     // Drop one byte from the decoded signature, then re-encode it, so the tag
     // is valid base64 but one byte short of the expected 32.
-    let mut parts = signed.split('.');
+    let mut parts = token_text.split('.');
     let plain = parts.next().expect("plain part");
     let kid = parts.next().expect("key id part");
     let sig = parts.next().expect("signature part");
@@ -139,13 +139,13 @@ fn legacy_token(raw_key: &[u8; 32], plain: &str) -> String {
 #[test]
 fn token_has_three_parts_with_the_current_key_id() {
     let signer = TokenSigner::new(KeyRing::new(key("k2", 2)));
-    let signed = signer.sign("plain-token");
-    let parts: Vec<&str> = signed.split('.').collect();
+    let token_text = signer.sign("plain-token");
+    let parts: Vec<&str> = token_text.split('.').collect();
     assert_eq!(parts.len(), 3);
     assert_eq!(parts[0], "plain-token");
     assert_eq!(parts[1], "k2");
-    assert!(signer.verify(&signed, "plain-token"));
-    assert!(!signer.verify(&signed, "other-token"));
+    assert!(signer.verify(&token_text, "plain-token"));
+    assert!(!signer.verify(&token_text, "other-token"));
 }
 
 #[test]
@@ -177,8 +177,8 @@ fn removed_previous_key_stops_verifying() {
 #[test]
 fn unknown_kid_is_rejected() {
     let signer = TokenSigner::new(KeyRing::new(key("k1", 1)));
-    let signed = signer.sign("plain-token");
-    let forged = signed.replace(".k1.", ".zz.");
+    let token_text = signer.sign("plain-token");
+    let forged = token_text.replace(".k1.", ".zz.");
     assert!(!signer.verify(&forged, "plain-token"));
     // A kid that names the right key but with a tag from another key also fails.
     let other = TokenSigner::new(KeyRing::new(key("k1", 9))).sign("plain-token");
@@ -212,8 +212,8 @@ fn legacy_token_without_kid_rejected_when_disabled() {
     let signer = TokenSigner::new(ring);
     assert!(!signer.verify(&legacy, "plain-token"));
     // Tokens with a key id still work.
-    let signed = signer.sign("plain-token");
-    assert!(signer.verify(&signed, "plain-token"));
+    let token_text = signer.sign("plain-token");
+    assert!(signer.verify(&token_text, "plain-token"));
 }
 
 #[test]

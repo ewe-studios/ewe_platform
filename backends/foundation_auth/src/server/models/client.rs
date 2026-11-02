@@ -1,4 +1,4 @@
-//! OAuth client entity for the IdP server.
+//! OAuth client entity for the `IdP` server.
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};

@@ -68,7 +68,7 @@ fn oidc_provider_builds_authorize_url_with_pkce() {
     assert!(url.contains("code_challenge="));
     assert!(url.contains("code_challenge_method=S256"));
     assert!(url.contains("state="));
-    assert!(!pkce.code_verifier.is_empty());
+    assert_ne!(pkce.code_verifier, "");
 }
 
 #[test]

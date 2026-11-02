@@ -100,6 +100,7 @@ class Settings:
     clippy: str
     test: str
     runs: list[str]  # one `cargo test` per entry; each entry is its feature flags
+    clippy_runs: list[str]  # one `cargo clippy` per entry; empty means `[runs[0]]`
     wasm: str  # wasm32-unknown-unknown compile check mode
     wasm_runs: list[str]  # one `cargo check --target wasm32` per entry; feature flags
     test_args: list[str]
@@ -208,6 +209,7 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
             clippy=merged.get("clippy", "enforce"),
             test=merged.get("test", "enforce"),
             runs=list(merged.get("runs", [""])) or [""],
+            clippy_runs=list(merged.get("clippy-runs", [])),
             wasm=merged.get("wasm", "off"),
             wasm_runs=list(merged.get("wasm-runs", [""])) or [""],
             test_args=list(merged.get("test-args", [])),
@@ -363,9 +365,10 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
             ["cargo", "build", "--profile", profile, "-p", name, "--all-targets", *feature_flags(s.runs[0])]
         )
     if s.clippy != "off":
-        plan["clippy"].append(
-            ["cargo", "clippy", "--profile", profile, "-p", name, "--all-targets", *feature_flags(s.runs[0])]
-        )
+        for run in s.clippy_runs or [s.runs[0]]:
+            plan["clippy"].append(
+                ["cargo", "clippy", "--profile", profile, "-p", name, "--all-targets", *feature_flags(run)]
+            )
     if s.test != "off":
         for run in s.runs:
             cmd = ["cargo", "test", "--profile", profile, "-p", name, "--no-fail-fast", *feature_flags(run)]

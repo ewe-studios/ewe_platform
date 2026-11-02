@@ -1,4 +1,4 @@
-//! Session management service — wraps existing SessionManager.
+//! Session management service — wraps existing `SessionManager`.
 
 use crate::shared::credential_store::CredentialStorage;
 use crate::shared::session::{Session, SessionError, SessionManager};
@@ -36,6 +36,11 @@ impl SessionService {
         Self { session_mgr }
     }
 
+    /// Create session.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionServiceError`] if the operation fails.
     pub async fn create_session(
         &self,
         user_id: &str,
@@ -48,6 +53,11 @@ impl SessionService {
             .map_err(SessionServiceError::Session)
     }
 
+    /// Get session.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionServiceError`] if the operation fails.
     pub async fn get_session(&self, token: &str) -> Result<Option<Session>, SessionServiceError> {
         self.session_mgr
             .get_session(token)
@@ -55,6 +65,11 @@ impl SessionService {
             .map_err(SessionServiceError::Session)
     }
 
+    /// Revoke session.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionServiceError`] if the operation fails.
     pub async fn revoke_session(&self, session_id: &str) -> Result<(), SessionServiceError> {
         self.session_mgr
             .revoke_session(session_id)
@@ -62,6 +77,11 @@ impl SessionService {
             .map_err(SessionServiceError::Session)
     }
 
+    /// Revoke all sessions.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionServiceError`] if the operation fails.
     pub async fn revoke_all_sessions(&self, user_id: &str) -> Result<usize, SessionServiceError> {
         self.session_mgr
             .revoke_all_sessions(user_id)

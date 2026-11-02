@@ -269,7 +269,10 @@ impl BackupCodeSet {
 }
 
 /// Constant-time byte comparison to prevent timing attacks.
-fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+///
+/// Slices of different length compare as not equal.
+#[must_use]
+pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     if a.len() != b.len() {
         return false;
     }
@@ -304,16 +307,3 @@ impl core::fmt::Display for TwoFactorError {
 }
 
 impl std::error::Error for TwoFactorError {}
-
-// Tests internal implementation detail: constant_time_eq is private
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_constant_time_eq() {
-        assert!(constant_time_eq(b"hello", b"hello"));
-        assert!(!constant_time_eq(b"hello", b"world"));
-        assert!(!constant_time_eq(b"short", b"longer"));
-    }
-}

@@ -1,9 +1,11 @@
-//! IdP server configuration.
+//! `IdP` server configuration.
 
 use std::time::Duration;
 
 use crate::shared::jwt::JwtSigningKey;
 
+// One public flag per password rule; grouping them would change the config API.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone)]
 pub struct PasswordPolicy {
     pub min_length: usize,
@@ -40,7 +42,7 @@ pub struct IdpConfig {
     pub device_code_interval: u32,
     pub require_pkce: bool,
     pub password_policy: PasswordPolicy,
-    /// Largest request body the IdP endpoints read, in bytes. IdP requests
+    /// Largest request body the `IdP` endpoints read, in bytes. `IdP` requests
     /// are small forms and JSON documents that must be parsed whole; anything
     /// larger is rejected with 413 before more of it is read. Default 1 MiB,
     /// nginx's `client_max_body_size` default.
@@ -105,7 +107,7 @@ impl IdpConfig {
         self
     }
 
-    /// Set the largest request body the IdP endpoints read (see
+    /// Set the largest request body the `IdP` endpoints read (see
     /// [`max_request_body_bytes`](Self::max_request_body_bytes)).
     #[must_use]
     pub fn with_max_request_body_bytes(mut self, bytes: usize) -> Self {

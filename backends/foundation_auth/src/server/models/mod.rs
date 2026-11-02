@@ -1,4 +1,4 @@
-//! IdP server data models.
+//! `IdP` server data models.
 
 pub mod client;
 pub mod code;

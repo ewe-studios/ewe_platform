@@ -137,14 +137,12 @@ fn cross_instance_challenge_match() {
 // ─── Helper ─────────────────────────────────────────────────────────────────
 
 fn find_nonce(challenge: &str, min_zero_bits: u32) -> Option<String> {
-    let mut nonce = 0u64;
-    for _ in 0..100_000 {
+    for nonce in 0u64..100_000 {
         let input = format!("{challenge}{nonce}");
         let hash = Sha256::digest(input.as_bytes());
         if count_leading_zero_bytes(&hash) >= min_zero_bits {
             return Some(nonce.to_string());
         }
-        nonce += 1;
     }
     None
 }

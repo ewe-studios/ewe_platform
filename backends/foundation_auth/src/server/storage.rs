@@ -1,4 +1,4 @@
-//! Storage-backed operations for the IdP server.
+//! Storage-backed operations for the `IdP` server.
 //!
 //! Every function here talks to an [`QueryStore`] (Turso/libsql natively,
 //! D1 on Workers) and is awaited by the async handlers. Multi-row reads hand
@@ -38,17 +38,24 @@ impl std::error::Error for StorageOpError {}
 
 // ─── Query helpers ───────────────────────────────────────────────────────────
 
+// Taken by value so it can be passed straight to `map_err`.
+#[allow(clippy::needless_pass_by_value)]
 fn query_err(e: StorageError) -> StorageOpError {
     StorageOpError::Query(e.to_string())
 }
 
+// Taken by value so it can be passed straight to `map_err`.
+#[allow(clippy::needless_pass_by_value)]
 fn parse_err(e: StorageError) -> StorageOpError {
     StorageOpError::Parse(e.to_string())
 }
 
 /// Convert a stored `INTEGER` column (i64) to a `u32`, returning a
 /// [`StorageOpError::Parse`] on a negative value or a value over `u32::MAX`.
-#[must_use]
+///
+/// # Errors
+///
+/// Returns [`StorageOpError::Parse`] if the value does not fit in a `u32`.
 pub fn int_to_u32(value: i64, column: &str) -> Result<u32, StorageOpError> {
     u32::try_from(value)
         .map_err(|_| StorageOpError::Parse(format!("{column} out of u32 range: {value}")))
@@ -89,6 +96,11 @@ async fn execute(
 
 // ─── OAuth clients, codes, tokens ────────────────────────────────────────────
 
+/// Find client by id.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_client_by_id(
     store: &dyn QueryStore,
     client_id: &str,
@@ -100,6 +112,11 @@ pub async fn find_client_by_id(
     }
 }
 
+/// Store auth code.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn store_auth_code(
     store: &dyn QueryStore,
     code: &AuthorizationCode,
@@ -123,6 +140,11 @@ pub async fn store_auth_code(
     .await
 }
 
+/// Find auth code.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_auth_code(
     store: &dyn QueryStore,
     code: &str,
@@ -134,11 +156,21 @@ pub async fn find_auth_code(
     }
 }
 
+/// Delete auth code.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn delete_auth_code(store: &dyn QueryStore, code: &str) -> Result<(), StorageOpError> {
     let sql = "DELETE FROM authorization_codes WHERE code = ?";
     execute(store, sql, &[DataValue::Text(code.to_string())]).await
 }
 
+/// Store refresh token.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn store_refresh_token(
     store: &dyn QueryStore,
     token: &RefreshToken,
@@ -160,6 +192,11 @@ pub async fn store_refresh_token(
     .await
 }
 
+/// Find refresh token by hash.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_refresh_token_by_hash(
     store: &dyn QueryStore,
     token_hash: &str,
@@ -171,6 +208,11 @@ pub async fn find_refresh_token_by_hash(
     }
 }
 
+/// Mark refresh token rotated.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn mark_refresh_token_rotated(
     store: &dyn QueryStore,
     token_hash: &str,
@@ -188,6 +230,11 @@ pub async fn mark_refresh_token_rotated(
     .await
 }
 
+/// Store device code.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn store_device_code(
     store: &dyn QueryStore,
     code: &DeviceCode,
@@ -210,6 +257,11 @@ pub async fn store_device_code(
     .await
 }
 
+/// Find device code.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_device_code(
     store: &dyn QueryStore,
     device_code: &str,
@@ -221,6 +273,11 @@ pub async fn find_device_code(
     }
 }
 
+/// Approve device code.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn approve_device_code(
     store: &dyn QueryStore,
     device_code: &str,
@@ -316,6 +373,11 @@ fn parse_device_code_row(row: &SqlRow) -> Result<DeviceCode, StorageOpError> {
 
 // ─── Users ───────────────────────────────────────────────────────────────────
 
+/// Find user by email.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_user_by_email(
     store: &dyn QueryStore,
     email: &str,
@@ -328,6 +390,10 @@ pub async fn find_user_by_email(
 }
 
 /// Update a user's failed login attempts and lockout state.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn update_user_lockout(
     store: &dyn QueryStore,
     user_id: &str,
@@ -352,6 +418,10 @@ pub async fn update_user_lockout(
 }
 
 /// Find a user by their ID.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_user_by_id(
     store: &dyn QueryStore,
     user_id: &str,
@@ -364,6 +434,10 @@ pub async fn find_user_by_id(
 }
 
 /// Update user profile fields (username only for now — email changes require re-verification).
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn update_user_profile(
     store: &dyn QueryStore,
     user_id: &str,
@@ -385,6 +459,10 @@ pub async fn update_user_profile(
 }
 
 /// Update a user's password hash.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn update_user_password(
     store: &dyn QueryStore,
     user_id: &str,
@@ -405,6 +483,10 @@ pub async fn update_user_password(
 }
 
 /// Soft-delete a user by setting `deleted_at`.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn soft_delete_user(store: &dyn QueryStore, user_id: &str) -> Result<(), StorageOpError> {
     let now = chrono::Utc::now().timestamp_millis();
     let sql = "UPDATE users SET deleted_at = ?, updated_at = ? WHERE id = ?";
@@ -509,6 +591,11 @@ fn parse_json_vec<T: serde::de::DeserializeOwned>(value: &str) -> Result<Vec<T>,
 
 // ─── Passkeys ────────────────────────────────────────────────────────────────
 
+/// Store passkey.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn store_passkey(
     store: &dyn QueryStore,
     passkey: &Passkey,
@@ -531,6 +618,10 @@ pub async fn store_passkey(
 }
 
 /// Stream a user's passkeys, one at a time (nothing is collected).
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_passkeys_by_user(
     store: &dyn QueryStore,
     user_id: &str,
@@ -550,6 +641,11 @@ pub async fn find_passkeys_by_user(
     Ok(Box::pin(mapped))
 }
 
+/// Find passkey by id.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_passkey_by_id(
     store: &dyn QueryStore,
     passkey_id: &str,
@@ -561,6 +657,11 @@ pub async fn find_passkey_by_id(
     }
 }
 
+/// Find passkey by credential id.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_passkey_by_credential_id(
     store: &dyn QueryStore,
     credential_id: &[u8],
@@ -572,6 +673,11 @@ pub async fn find_passkey_by_credential_id(
     }
 }
 
+/// Update passkey counter.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn update_passkey_counter(
     store: &dyn QueryStore,
     passkey_id: &str,
@@ -591,6 +697,11 @@ pub async fn update_passkey_counter(
     .await
 }
 
+/// Update passkey name.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn update_passkey_name(
     store: &dyn QueryStore,
     passkey_id: &str,
@@ -608,6 +719,11 @@ pub async fn update_passkey_name(
     .await
 }
 
+/// Delete passkey.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn delete_passkey(
     store: &dyn QueryStore,
     passkey_id: &str,
@@ -643,6 +759,11 @@ fn parse_passkey_row(row: &SqlRow) -> Result<Passkey, StorageOpError> {
 
 // ─── ToS Acceptances ────────────────────────────────────────────────────────
 
+/// Store tos acceptance.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn store_tos_acceptance(
     store: &dyn QueryStore,
     acceptance: &TosAcceptance,
@@ -661,6 +782,11 @@ pub async fn store_tos_acceptance(
     .await
 }
 
+/// Find tos acceptance.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_tos_acceptance(
     store: &dyn QueryStore,
     user_id: &str,
@@ -677,6 +803,11 @@ pub async fn find_tos_acceptance(
     }
 }
 
+/// Find latest tos acceptance.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
 pub async fn find_latest_tos_acceptance(
     store: &dyn QueryStore,
     user_id: &str,
@@ -704,13 +835,13 @@ fn parse_tos_acceptance_row(row: &SqlRow) -> Result<TosAcceptance, StorageOpErro
 
 // ─── HandlerStorage ─────────────────────────────────────────────────────────
 
-/// The IdP server's storage: an async SQL store plus a key-value cache.
+/// The `IdP` server's storage: an async SQL store plus a key-value cache.
 ///
-/// Implements [`AuthStore`] (passkeys, ToS, user lookup) over the SQL
+/// Implements [`AuthStore`] (passkeys, `ToS`, user lookup) over the SQL
 /// store.
 pub struct HandlerStorage<KV: KeyValueStore> {
     pub query_store: Arc<dyn QueryStore>,
-    /// Shared cache for short-lived two-step handshake state (PoW challenges,
+    /// Shared cache for short-lived two-step handshake state (`PoW` challenges,
     /// WebAuthn ceremony state). Generic over the KV backend so the same
     /// handler works with an in-memory cache (single process) or a persistent
     /// store (Turso/D1) for multi-instance, crash-safe operation.
@@ -771,6 +902,8 @@ fn stored_to_tos(st: &StoredTosAcceptance) -> TosAcceptance {
 
 // ─── AuthStore impl ─────────────────────────────────────────────────────
 
+// Taken by value so it can be passed straight to `map_err`.
+#[allow(clippy::needless_pass_by_value)]
 fn map_storage_err(e: StorageOpError) -> String {
     e.to_string()
 }

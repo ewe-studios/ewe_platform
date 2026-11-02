@@ -154,14 +154,24 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 12. foundation_auth
 
-- **The `server`/`server-native` feature tree has over 200 clippy warnings.**
-  `cargo clippy -p foundation_auth --features server-native` reports 212 lints
-  across `src/server/` (`config.rs`, `handlers/*`, `services/*`): redundant
-  closures, missing `#[must_use]`, docs missing backticks, `too_many_lines`,
-  and more. The CI clippy step runs default features only (`runs[0] = ""`), so
-  none of these are enforced. Fix: a dedicated clippy-cleanup pass over the
-  server tree, then extend the CI clippy run to `server-test` so the debt
-  stays cleared.
+- **`IdpHandlerCore::dev_register` has no development-mode check.**
+  (`src/server/handlers/core.rs`.) The comment says "check IS_DEV flag", but the
+  method only calls `register`. If a route reaches it in production, it is an
+  ordinary registration. Fix: add an `is_dev` field on `IdpConfig` and return
+  `IdpError::NotFound` when it is off, or remove the method and its route.
+
+- **`SessionManager::get_session` scans every session.** (`src/shared/session.rs`.)
+  `get_cached_session` always returns `None`, so each lookup lists all
+  `session:` keys and verifies each stored token (one HMAC per session). Cost
+  grows with the number of sessions. Fix: put a key id or token hash in the
+  cookie so the store key can be found directly, or implement the
+  `session_data` cache.
+
+- **`TosService::verify_tos_code` always returns `true`.**
+  (`src/server/services/tos_service.rs`.) `generate_tos_code` makes a random
+  UUID and does not store it or bind it to the user; `verify_tos_code` ignores
+  both arguments. Any string passes as an acceptance code. Fix: store the code
+  with the user id and an expiry, and check both (and delete it) on verify.
 
 ## 16. Workspace / process
 

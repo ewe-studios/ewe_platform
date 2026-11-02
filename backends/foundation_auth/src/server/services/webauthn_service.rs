@@ -110,7 +110,16 @@ pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
 }
 
 impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
+    /// Build the service. With `server-native`, the issuer URL becomes the
+    /// `WebAuthn` origin and relying-party id.
+    ///
+    /// # Panics
+    ///
+    /// Panics (with `server-native`) if the issuer URL is not a valid URL or
+    /// cannot be used as a `WebAuthn` relying party.
     #[must_use]
+    // `config` is only read in the `server-native` build; the other build drops it.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn new(config: Arc<IdpConfig>, store: Arc<S>, cache: KV) -> Self {
         #[cfg(feature = "server-native")]
         {
@@ -137,6 +146,16 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         }
     }
 
+    /// Register start.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
+    // Only the `server-native` build awaits; the stub build does not.
+    #[cfg_attr(
+        not(feature = "server-native"),
+        allow(clippy::unused_async, clippy::unused_async_trait_impl)
+    )]
     pub async fn register_start(
         &self,
         user_id: &str,
@@ -179,6 +198,16 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         }
     }
 
+    /// Register finish.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
+    // Only the `server-native` build awaits; the stub build does not.
+    #[cfg_attr(
+        not(feature = "server-native"),
+        allow(clippy::unused_async, clippy::unused_async_trait_impl)
+    )]
     pub async fn register_finish(
         &self,
         req: &WebAuthnRegisterFinishRequest,
@@ -245,7 +274,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 .as_ref()
                 .store_passkey(&stored)
                 .await
-                .map_err(|e| StorageOpError::Query(e))?;
+                .map_err(StorageOpError::Query)?;
 
             Ok(our_passkey)
         }
@@ -258,6 +287,16 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         }
     }
 
+    /// Auth start.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
+    // Only the `server-native` build awaits; the stub build does not.
+    #[cfg_attr(
+        not(feature = "server-native"),
+        allow(clippy::unused_async, clippy::unused_async_trait_impl)
+    )]
     pub async fn auth_start(&self, user_id: &str) -> Result<WebAuthnAuthOptions, StorageOpError> {
         #[cfg(feature = "server-native")]
         {
@@ -308,6 +347,16 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         }
     }
 
+    /// Auth finish.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
+    // Only the `server-native` build awaits; the stub build does not.
+    #[cfg_attr(
+        not(feature = "server-native"),
+        allow(clippy::unused_async, clippy::unused_async_trait_impl)
+    )]
     pub async fn auth_finish(
         &self,
         req: &WebAuthnAuthFinishRequest,
@@ -358,7 +407,7 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                     .as_ref()
                     .update_passkey_counter(&passkey.id, auth_result.counter())
                     .await
-                    .map_err(|e| StorageOpError::Query(e))?;
+                    .map_err(StorageOpError::Query)?;
             }
 
             Ok(state.user_id)
@@ -372,6 +421,16 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         }
     }
 
+    /// Passkey login start.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
+    // Only the `server-native` build awaits; the stub build does not.
+    #[cfg_attr(
+        not(feature = "server-native"),
+        allow(clippy::unused_async, clippy::unused_async_trait_impl)
+    )]
     pub async fn passkey_login_start(
         &self,
         email: &str,
@@ -396,6 +455,11 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         }
     }
 
+    /// Passkey login finish.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
     pub async fn passkey_login_finish(
         &self,
         req: &PasskeyLoginFinishRequest,
@@ -408,22 +472,37 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         self.auth_finish(&auth_req).await
     }
 
+    /// Delete passkey.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
     pub async fn delete_passkey(&self, passkey_id: &str) -> Result<(), StorageOpError> {
         self.store
             .as_ref()
             .delete_passkey(passkey_id)
             .await
-            .map_err(|e| StorageOpError::Query(e))
+            .map_err(StorageOpError::Query)
     }
 
+    /// Rename passkey.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
     pub async fn rename_passkey(&self, passkey_id: &str, name: &str) -> Result<(), StorageOpError> {
         self.store
             .as_ref()
             .update_passkey_name(passkey_id, name)
             .await
-            .map_err(|e| StorageOpError::Query(e))
+            .map_err(StorageOpError::Query)
     }
 
+    /// List passkeys.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
     pub async fn list_passkeys(&self, user_id: &str) -> Result<Vec<Passkey>, StorageOpError> {
         let stored = self.collect_passkeys(user_id).await?;
         Ok(stored

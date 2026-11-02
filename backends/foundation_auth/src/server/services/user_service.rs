@@ -24,6 +24,11 @@ impl core::fmt::Display for UserServiceError {
 
 impl std::error::Error for UserServiceError {}
 
+/// Hash password.
+///
+/// # Errors
+///
+/// Returns [`UserServiceError`] if the operation fails.
 pub fn hash_password(password: &str) -> Result<String, UserServiceError> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::new(
@@ -38,6 +43,11 @@ pub fn hash_password(password: &str) -> Result<String, UserServiceError> {
     Ok(hash.to_string())
 }
 
+/// Verify password.
+///
+/// # Errors
+///
+/// Returns [`UserServiceError`] if the operation fails.
 pub fn verify_password(hash: &str, password: &str) -> Result<bool, UserServiceError> {
     let parsed_hash =
         PasswordHash::new(hash).map_err(|e| UserServiceError::PasswordHash(e.to_string()))?;
@@ -49,6 +59,11 @@ pub fn verify_password(hash: &str, password: &str) -> Result<bool, UserServiceEr
     }
 }
 
+/// Validate password.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn validate_password(
     password: &str,
     policy: &super::super::config::PasswordPolicy,
@@ -61,10 +76,10 @@ pub fn validate_password(
             policy.min_length
         ));
     }
-    if policy.require_uppercase && !password.chars().any(|c| c.is_uppercase()) {
+    if policy.require_uppercase && !password.chars().any(char::is_uppercase) {
         errors.push("Password must contain an uppercase letter".into());
     }
-    if policy.require_lowercase && !password.chars().any(|c| c.is_lowercase()) {
+    if policy.require_lowercase && !password.chars().any(char::is_lowercase) {
         errors.push("Password must contain a lowercase letter".into());
     }
     if policy.require_number && !password.chars().any(|c| c.is_ascii_digit()) {

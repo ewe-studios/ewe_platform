@@ -56,7 +56,7 @@ fn oversized_body() -> Vec<u8> {
     vec![b'x'; 128 * 1024]
 }
 
-/// A minimal OAuth2 provider for the upstream client tests.
+/// A minimal `OAuth2` provider for the upstream client tests.
 fn test_provider() -> UpstreamProvider {
     UpstreamProvider {
         id: "test".into(),

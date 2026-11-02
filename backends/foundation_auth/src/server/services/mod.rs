@@ -1,4 +1,4 @@
-//! IdP server business logic services.
+//! `IdP` server business logic services.
 
 pub mod client_service;
 pub mod pow_service;

@@ -9,10 +9,10 @@ use super::super::models::{TosAcceptance, TosVersion};
 use super::super::storage::{self, HandlerStorage, StorageOpError};
 use foundation_db::KeyValueStore;
 
-/// ToS service — manages ToS versions and user acceptances.
+/// `ToS` service — manages `ToS` versions and user acceptances.
 pub struct TosService<KV: KeyValueStore> {
     storage: Arc<HandlerStorage<KV>>,
-    /// In-memory ToS versions (in production, loaded from DB).
+    /// In-memory `ToS` versions (in production, loaded from DB).
     versions: Mutex<Vec<TosVersion>>,
 }
 
@@ -25,24 +25,28 @@ impl<KV: KeyValueStore> TosService<KV> {
         }
     }
 
-    /// Register a new ToS version.
+    /// Register a new `ToS` version.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the version list lock is poisoned.
     pub fn add_version(&self, version: TosVersion) {
         let mut versions = self.versions.lock().unwrap();
         versions.push(version);
     }
 
-    /// Get the latest ToS version.
+    /// Get the latest `ToS` version.
     pub fn get_latest(&self) -> Option<TosVersion> {
         self.latest()
     }
 
-    /// The latest ToS version, if any is registered.
+    /// The latest `ToS` version, if any is registered.
     fn latest(&self) -> Option<TosVersion> {
         let versions = self.versions.lock().unwrap();
         versions.iter().max_by_key(|v| v.effective_from).cloned()
     }
 
-    /// Check if a user has accepted the latest ToS.
+    /// Check if a user has accepted the latest `ToS`.
     ///
     /// # Errors
     ///
@@ -60,7 +64,7 @@ impl<KV: KeyValueStore> TosService<KV> {
         Ok(accepted.is_none())
     }
 
-    /// Record a user's acceptance of the current ToS.
+    /// Record a user's acceptance of the current `ToS`.
     ///
     /// # Errors
     ///
@@ -78,20 +82,18 @@ impl<KV: KeyValueStore> TosService<KV> {
             user_id: user_id.to_string(),
             tos_version: latest.version,
             accepted_at: Utc::now().timestamp_millis(),
-            ip_address: ip_address.map(|s| s.to_string()),
+            ip_address: ip_address.map(std::string::ToString::to_string),
         };
 
         storage::store_tos_acceptance(self.storage.query_store.as_ref(), &acceptance).await
     }
 
-    /// Generate a ToS acceptance code for the login flow.
-    pub fn generate_tos_code(&self, user_id: &str) -> String {
-        let code = uuid::Uuid::new_v4().to_string();
-        let _user_id = user_id;
-        code
+    /// Generate a `ToS` acceptance code for the login flow.
+    pub fn generate_tos_code(&self, _user_id: &str) -> String {
+        uuid::Uuid::new_v4().to_string()
     }
 
-    /// Verify a ToS acceptance code.
+    /// Verify a `ToS` acceptance code.
     pub fn verify_tos_code(&self, _code: &str, user_id: &str) -> bool {
         // In production, look up the code and verify it matches the user.
         let _ = user_id;

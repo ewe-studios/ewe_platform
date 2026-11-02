@@ -1,4 +1,4 @@
-//! Shared auth_state tests.
+//! Shared `auth_state` tests.
 
 use foundation_auth::shared::auth_state::{AuthEvent, AuthState, AuthStateMachine};
 

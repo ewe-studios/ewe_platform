@@ -11,6 +11,10 @@
 #                             feature flags for that run: "" (defaults),
 #                             "a b" (--features a,b), or raw flags starting
 #                             with "-" (e.g. "--no-default-features")
+#   clippy-runs     = [...]   one `cargo clippy --all-targets` per entry, same
+#                             feature-flag syntax as `runs`. Default: only the
+#                             first entry of `runs`. Set it when a feature tree
+#                             (e.g. a server module) is not in the default build.
 #   wasm            = "enforce"|"report"|"off"  run the wasm32-unknown-unknown
 #                             compile gate (`cargo check --target wasm32`) for
 #                             this package; "off" (the default) skips it — most
@@ -177,6 +181,8 @@ env = { CARGO_BUILD_JOBS = "1" }
 [packages.foundation_auth]
 # `server-test` runs the IdP server suite (handlers, storage, services).
 runs = ["", "server-test"]
+# Clippy covers the server tree too, so its lint count stays at zero.
+clippy-runs = ["", "server-test"]
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 

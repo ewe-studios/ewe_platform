@@ -9,9 +9,9 @@ use super::handlers::ServeAdapter;
 use super::storage::HandlerStorage;
 use foundation_db::{KeyValueStore, MemoryStorage};
 
-/// The IdP server: routes plus the config and storage its handlers share.
+/// The `IdP` server: routes plus the config and storage its handlers share.
 ///
-/// `KV` is the cache for short-lived handshake state (PoW, WebAuthn); the
+/// `KV` is the cache for short-lived handshake state (`PoW`, WebAuthn); the
 /// default is the in-memory store.
 pub struct IdpServer<KV: KeyValueStore + Clone + 'static = MemoryStorage> {
     config: IdpConfig,

@@ -75,7 +75,7 @@ async fn new_profile_creates_user_and_link() {
             ref user_id,
             email_verified: true,
         } => {
-            assert!(!user_id.is_empty());
+            assert_ne!(user_id, "");
         }
         _ => panic!("expected Created, got {result:?}"),
     }

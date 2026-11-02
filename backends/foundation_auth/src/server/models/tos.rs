@@ -1,4 +1,4 @@
-//! Terms of Service model — versioned ToS with acceptance tracking.
+//! Terms of Service model — versioned `ToS` with acceptance tracking.
 
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +11,7 @@ pub struct TosVersion {
     pub effective_from: i64,
 }
 
-/// A user's acceptance of a ToS version.
+/// A user's acceptance of a `ToS` version.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TosAcceptance {
     pub user_id: String,

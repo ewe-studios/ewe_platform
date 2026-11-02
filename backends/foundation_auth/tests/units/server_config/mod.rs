@@ -1,4 +1,4 @@
-//! IdpConfig and PasswordPolicy tests.
+//! `IdpConfig` and `PasswordPolicy` tests.
 
 use foundation_auth::server::config::{IdpConfig, PasswordPolicy};
 use std::time::Duration;

@@ -35,7 +35,7 @@ fn json_with_headers(
         .add_header(SimpleHeader::CONTENT_TYPE, "application/json");
 
     for (name, value) in extra_headers {
-        builder = builder.add_header(name.to_string(), value.to_string());
+        builder = builder.add_header(name.clone(), value.clone());
     }
 
     let response = builder
@@ -79,7 +79,7 @@ fn status_code(code: u16) -> Status {
     }
 }
 
-/// Serves the IdP routes over the handlers in [`IdpHandlerCore`].
+/// Serves the `IdP` routes over the handlers in [`IdpHandlerCore`].
 ///
 /// `KV` is the cache type of the [`HandlerStorage`] the app's `ContextBag`
 /// holds (as `Arc<HandlerStorage<KV>>`, which is how [`IdpServer::http_app`]
@@ -91,6 +91,9 @@ pub struct ServeAdapter<KV: KeyValueStore + Clone + 'static = MemoryStorage> {
 }
 
 impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
+    // One dispatch function: reading the body, routing and writing the response
+    // stay together so the flow is read top to bottom.
+    #[allow(clippy::too_many_lines)]
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
@@ -262,7 +265,7 @@ fn run_sync<KV: KeyValueStore + Clone + 'static>(
 
 /// Read a request body into memory, refusing more than `limit` bytes.
 ///
-/// IdP bodies are small forms and JSON documents the handlers parse whole.
+/// `IdP` bodies are small forms and JSON documents the handlers parse whole.
 /// The streamed variants are read chunk by chunk and abandoned as soon as the
 /// limit is passed.
 fn read_body_bounded(body: Option<SendSafeBody>, limit: usize) -> Result<Vec<u8>, IdpError> {

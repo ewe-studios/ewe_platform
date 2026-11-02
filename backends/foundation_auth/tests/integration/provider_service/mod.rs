@@ -1,7 +1,7 @@
-//! ProviderService integration tests — real Turso DB, no mocks.
+//! `ProviderService` integration tests — real Turso DB, no mocks.
 //!
 //! Exercises the full CRUD + secret encryption round-trip against a real
-//! SQLite (Turso) database with migrations 024/025 applied via init_schema.
+//! SQLite (Turso) database with migrations 024/025 applied via `init_schema`.
 
 #![cfg(feature = "server-test")]
 
@@ -204,7 +204,7 @@ async fn delete_removes_provider() {
 async fn create_rejects_empty_id() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
-    p.id = "".into();
+    p.id = String::new();
     assert!(svc.create(p).await.is_err());
 }
 
@@ -212,7 +212,7 @@ async fn create_rejects_empty_id() {
 async fn create_rejects_empty_client_id() {
     let (svc, _tmp) = make_service();
     let mut p = sample_provider();
-    p.client_id = "".into();
+    p.client_id = String::new();
     assert!(svc.create(p).await.is_err());
 }
 
