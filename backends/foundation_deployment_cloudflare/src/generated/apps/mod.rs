@@ -62,7 +62,7 @@ pub struct AbuseReportsMitigationAppealResult {
     /// `result` property.
     pub result: Option<Vec<AbuseReportsMitigationListItem>>,
     /// `result_info` property.
-    pub result_info: std::collections::HashMap<String, serde_json::Value>,
+    pub result_info: ListAbuseReportsResponseResultInfo,
     /// `success` property.
     pub success: bool,
 }
@@ -207,6 +207,12 @@ pub struct AlexandriaUpdateApplicationVersionRequest {
     /// `support_domains` property.
     pub support_domains: Option<Vec<String>>,
 }
+
+/// `ListAbuseReportsResponseResultInfo` type.
+///
+/// Same shape as `super::shared::ListAbuseReportsResponseResultInfoShape`.
+pub type ListAbuseReportsResponseResultInfo =
+    super::shared::ListAbuseReportsResponseResultInfoShape;
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)

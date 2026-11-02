@@ -278,3 +278,32 @@ fn test_an_endpoint_response_reads_through_the_generic_envelope() {
     let generic: &ApiEnvelope<CacheResult> = &response;
     assert_eq!(serde_json::to_value(generic).unwrap()["result"]["id"], json["result"]["id"]);
 }
+
+#[test]
+fn d1_update_body_uses_typed_read_replication() {
+    // The D1 update bodies inline a `read_replication` object that byte-matches
+    // the named `d1_read_replication_details` schema. The generator must reuse
+    // the named type, so the field is `D1ReadReplicationDetails`, not an untyped
+    // `HashMap<String, serde_json::Value>`.
+    use foundation_deployment_cloudflare::generated::workers::{
+        D1DatabaseUpdateRequestBody, D1DatabaseUpdatePartialRequestBody, D1ReadReplicationDetails,
+    };
+
+    let body = D1DatabaseUpdateRequestBody {
+        read_replication: D1ReadReplicationDetails { mode: "auto".to_string() },
+    };
+    let json = serde_json::to_value(&body).unwrap();
+    assert_eq!(json, serde_json::json!({ "read_replication": { "mode": "auto" } }));
+
+    let back: D1DatabaseUpdateRequestBody = serde_json::from_value(json).unwrap();
+    assert_eq!(back.read_replication.mode, "auto");
+
+    // The partial (PATCH) body keeps the field optional.
+    let partial = D1DatabaseUpdatePartialRequestBody {
+        read_replication: Some(D1ReadReplicationDetails { mode: "manual".to_string() }),
+    };
+    assert_eq!(
+        serde_json::to_value(&partial).unwrap(),
+        serde_json::json!({ "read_replication": { "mode": "manual" } })
+    );
+}

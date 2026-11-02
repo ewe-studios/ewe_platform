@@ -24,10 +24,28 @@ and Defence Industries Association of Europe (ASD), the owner of the STE standar
     path (not the deep `std::env::temp_dir()`), so the mock tests run on macOS (SUN_LEN).
   - Validation under `--profile uat`: openapi tests green; docker tests green; cloudflare
     `--all-features` check green; platform check green. No new clippy warnings from this change.
+- E2 (typed D1 `read_replication` update bodies):
+  - `foundation_openapi` gained `reuse_identical_schemas` (and its helper `reuse_in_props`), a
+    transform that walks `components/schemas` and replaces an inline object property with a
+    `$ref` when it is byte-identical to a named schema. The pipeline runs it after
+    `canonicalize_operations`. (`src/transform.rs`, `src/pipeline.rs`, `src/lib.rs`.)
+  - Two unit tests in `foundation_openapi/tests/transform.rs`:
+    `an_inline_object_identical_to_a_named_schema_reuses_it` and
+    `an_inline_object_without_a_duplicate_is_untouched`.
+  - `foundation_deployment_cloudflare` regenerated. `D1DatabaseUpdateRequestBody.read_replication`
+    and `D1DatabaseUpdatePartialRequestBody.read_replication` are now `D1ReadReplicationDetails`
+    (was `HashMap<String, serde_json::Value>`). The same transform also typed two more fields:
+    `AbuseReportsMitigationAppealResult.result_info` and
+    `ImagesImageVariantPublicRequest.hero`.
+  - Test: `foundation_deployment_cloudflare/tests/types_tests.rs`
+    `d1_update_body_uses_typed_read_replication` (builds both update bodies, serialises and
+    deserialises). All 17 cloudflare types tests pass.
+  - Validation under `--profile uat`: openapi tests (47 transform + 12 type_resolver + 5 doc)
+    green; cloudflare types tests green. No new clippy warnings from the new transform.
+  - Backlog §8 `read_replication` entry deleted.
 
 ## Next
 
-- E2 — typed D1 `read_replication` update bodies (backlog §8 entry still open).
 - E3 — move inline tests out of `unified/emit.rs` and `unified/analyzer.rs`.
 - E4 — `genapi` `--profile` pass-through and `generate hetzner` selection honour.
 - Recorded (backlog §8): a dedicated clippy-cleanup pass for `foundation_openapi` (~112 lints)

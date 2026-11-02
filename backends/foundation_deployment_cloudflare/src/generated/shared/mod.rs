@@ -6060,7 +6060,7 @@ pub struct LinkedAppTokenObject {
     pub linked_app_token: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// A shape 4 generated types share.
+/// A shape 5 generated types share.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ListAbuseReportsResponseResultInfoShape {
     /// `count` property.

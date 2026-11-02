@@ -68,14 +68,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 8. foundation_openapi / foundation_codegentools
 
-- **D1 `read_replication` update bodies are untyped**
-  (`foundation_deployment_cloudflare/src/generated/workers/mod.rs`).
-  `D1DatabaseUpdateRequestBody.read_replication` and
-  `D1DatabaseUpdatePartialRequestBody.read_replication` are
-  `HashMap<String, serde_json::Value>`, while the create and details types use
-  `D1ReadReplicationDetails`. Code that turns read replication on (`mode: auto`)
-  would have to write untyped JSON (rule 5). Fix the generator so the update
-  bodies use the same typed struct, then regenerate.
 - **Pre-existing clippy warnings.** `cargo clippy` reports ~112 lints in
   `foundation_openapi` (mostly `unified/generator.rs` and `unified/analyzer.rs`:
   docs missing backticks, `too_many_lines`, `map(...).unwrap_or(false)`, an

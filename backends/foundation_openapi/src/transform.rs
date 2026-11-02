@@ -158,6 +158,67 @@ pub fn extract_inline_schemas(
     }
 }
 
+/// Point an inline object property at the named schema it duplicates.
+///
+/// WHY: [`canonicalize_operations`] hoists only operation-level request and
+/// response schemas. A vendor also writes the same object inline inside its own
+/// `components/schemas`. The generator names a type from a `$ref`, so an inline
+/// object generates as an untyped `HashMap<String, serde_json::Value>`.
+/// Cloudflare's `d1_database_update_request_body` inlines `read_replication`
+/// byte-for-byte as `d1_read_replication_details`: the update body generated
+/// untyped while create and details used the named struct.
+///
+/// WHAT: for every named schema, walk its properties. When a property is an
+/// inline object byte-identical to a named schema, replace it with a `$ref` to
+/// that schema. An inline object that matches nothing is left as it was.
+pub fn reuse_identical_schemas(spec: &mut Value) -> usize {
+    let Some(schemas) = spec
+        .pointer_mut("/components/schemas")
+        .and_then(Value::as_object_mut)
+    else {
+        return 0;
+    };
+
+    // Snapshot the named schemas once. Keys stay stable during the walk; the
+    // values are cloned so comparisons see the pre-walk shapes.
+    let named: Vec<(String, Value)> = schemas
+        .iter()
+        .map(|(name, schema)| (name.clone(), schema.clone()))
+        .collect();
+
+    let mut reused = 0;
+    for (_name, schema) in schemas.iter_mut() {
+        if let Some(props) = schema.get_mut("properties").and_then(Value::as_object_mut) {
+            reused += reuse_in_props(props, &named);
+        }
+    }
+    reused
+}
+
+fn reuse_in_props(props: &mut Map<String, Value>, named: &[(String, Value)]) -> usize {
+    let mut reused = 0;
+    for (_key, prop) in props.iter_mut() {
+        let is_inline = prop.get("$ref").is_none() && prop.get("properties").is_some();
+        if is_inline {
+            if let Some((name, _)) = named.iter().find(|(_, schema)| schema == prop) {
+                *prop = serde_json::json!({"$ref": format!("#/components/schemas/{name}")});
+                reused += 1;
+                continue;
+            }
+        }
+        // Recurse into nested properties and array items.
+        if let Some(inner) = prop.get_mut("properties").and_then(Value::as_object_mut) {
+            reused += reuse_in_props(inner, named);
+        }
+        if let Some(items) = prop.get_mut("items") {
+            if let Some(inner) = items.get_mut("properties").and_then(Value::as_object_mut) {
+                reused += reuse_in_props(inner, named);
+            }
+        }
+    }
+    reused
+}
+
 /// Convert a path like `/v1/databases/{databaseId}/backups` to a `PascalCase`
 /// type name prefix like `DatabasesBackups`.
 ///

@@ -1159,14 +1159,14 @@ pub struct D1DatabaseResponse {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1DatabaseUpdatePartialRequestBody {
     /// `read_replication` property.
-    pub read_replication: Option<std::collections::HashMap<String, serde_json::Value>>,
+    pub read_replication: Option<D1ReadReplicationDetails>,
 }
 
 /// `D1DatabaseUpdateRequestBody` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1DatabaseUpdateRequestBody {
     /// `read_replication` property.
-    pub read_replication: std::collections::HashMap<String, serde_json::Value>,
+    pub read_replication: D1ReadReplicationDetails,
 }
 
 /// `D1DatabaseVersion` type.

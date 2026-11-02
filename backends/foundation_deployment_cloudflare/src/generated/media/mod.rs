@@ -992,7 +992,7 @@ pub struct ImagesImageVariantPatchRequest {
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantPublicRequest {
     /// `hero` property.
-    pub hero: Option<std::collections::HashMap<String, serde_json::Value>>,
+    pub hero: Option<ImagesImageVariantDefinition>,
 }
 
 /// `ImagesImageVariantResponse` type.

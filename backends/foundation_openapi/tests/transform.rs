@@ -1,5 +1,6 @@
 use foundation_openapi::transform::{
     ensure_servers, extract_inline_schemas, normalize_nullable_types, path_to_type_name,
+    reuse_identical_schemas,
 };
 use serde_json::json;
 
@@ -96,6 +97,77 @@ fn extract_inline_schemas_extracts_array_items() {
     extract_inline_schemas(&mut props, "List", &mut schemas);
 
     assert!(schemas.contains_key("ListItemsItem"));
+}
+
+// ── reuse_identical_schemas (spec-70 feature 14 E2) ──────────────────────────
+
+/// A property whose inline object byte-matches a named schema becomes a `$ref`
+/// to it, so the generator types the field instead of emitting
+/// `HashMap<String, serde_json::Value>`.
+#[test]
+fn an_inline_object_identical_to_a_named_schema_reuses_it() {
+    let mut spec = json!({
+        "components": {"schemas": {
+            "d1_read_replication_details": {
+                "description": "Configuration for D1 read replication.",
+                "type": "object",
+                "properties": {
+                    "mode": {"$ref": "#/components/schemas/d1_read_replication_mode"}
+                },
+                "required": ["mode"]
+            },
+            "d1_database_update_request_body": {
+                "type": "object",
+                "properties": {
+                    "read_replication": {
+                        "description": "Configuration for D1 read replication.",
+                        "type": "object",
+                        "properties": {
+                            "mode": {"$ref": "#/components/schemas/d1_read_replication_mode"}
+                        },
+                        "required": ["mode"]
+                    }
+                }
+            }
+        }}
+    });
+
+    let reused = reuse_identical_schemas(&mut spec);
+    assert_eq!(reused, 1, "one inline object should have been reused");
+
+    let read_replication = &spec["components"]["schemas"]["d1_database_update_request_body"]
+        ["properties"]["read_replication"];
+    assert_eq!(
+        read_replication["$ref"],
+        "#/components/schemas/d1_read_replication_details",
+        "the inline object must become a $ref to the named schema"
+    );
+}
+
+/// An inline object that matches nothing is left alone (it stays untyped rather
+/// than getting a wrong name).
+#[test]
+fn an_inline_object_without_a_duplicate_is_untouched() {
+    let mut spec = json!({
+        "components": {"schemas": {
+            "some_named": {"type": "object", "properties": {"a": {"type": "string"}}},
+            "other": {
+                "type": "object",
+                "properties": {
+                    "inline": {"type": "object", "properties": {"b": {"type": "integer"}}}
+                }
+            }
+        }}
+    });
+
+    let reused = reuse_identical_schemas(&mut spec);
+    assert_eq!(reused, 0, "a unique inline object must not be rewritten");
+
+    let inline = &spec["components"]["schemas"]["other"]["properties"]["inline"];
+    assert!(
+        inline.get("$ref").is_none(),
+        "a non-matching inline object stays inline: {inline}"
+    );
 }
 
 // ── validate_canonical (spec-56 decision 05) ─────────────────────────────────

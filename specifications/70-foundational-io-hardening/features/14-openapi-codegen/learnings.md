@@ -70,6 +70,45 @@ Industries Association of Europe (ASD), the owner of the STE standard.
   the new code (`boolean_query_params`, `extract_boolean_query_params`, the `true`/`false`
   serialisation) is clean. The debt is recorded in backlog §8 for a dedicated cleanup pass.
 
+## E2. Typed D1 `read_replication` update bodies
+
+- The root cause is not a `$ref` in `allOf`/`oneOf`. It is an inline object. Cloudflare declares
+  the named schema `d1_read_replication_details` (an object with one required `mode` field). The
+  two update bodies (`d1_database_update_request_body` and
+  `d1_database_update_partial_request_body`) write the same object inline as the value of
+  `read_replication` instead of a `$ref`. They are byte-identical, but a `$ref` is what the
+  generator names a type from. An inline object generates as an untyped
+  `HashMap<String, serde_json::Value>`.
+- `canonicalize_operations` does not fix it. It hoists only operation-level schemas (request and
+  response bodies under `paths`), not objects already inline inside `components/schemas`. The
+  update bodies are already in `components/schemas`, so their inline `read_replication` object
+  was never hoisted.
+- The fix is a new transform, `reuse_identical_schemas`. It walks every named schema in
+  `components/schemas`. When a property is an inline object byte-identical to a named schema, it
+  replaces the object with a `$ref` to that schema. An inline object that matches nothing is
+  left as it was. The pipeline runs it after `canonicalize_operations`, before the second prune.
+- The byte comparison is `serde_json::Value` equality. The two objects match only when their
+  JSON is the same, including `description`, `required` and the nested `$ref` on `mode`. A
+  conservative match means the transform rewrites only true duplicates.
+- The same transform caught three more untyped fields in the Cloudflare spec, all correct:
+  - `AbuseReportsMitigationAppealResult.result_info` now reuses the shared
+    `ListAbuseReportsResponseResultInfoShape` (the shape's doc comment changed from "4 generated
+    types share" to "5 generated types share").
+  - `ImagesImageVariantPublicRequest.hero` now uses `ImagesImageVariantDefinition`.
+  - The two D1 update bodies now use `D1ReadReplicationDetails`.
+- `D1ReadReplicationMode` is a `String` alias (`pub type D1ReadReplicationMode = String`), not a
+  Rust enum. The generator does not emit string enums. So the test builds
+  `D1ReadReplicationDetails { mode: "auto".to_string() }`, not `mode: Auto`. The feature's test
+  line wrote `Auto` as if the mode were an enum; the generated type is a plain string.
+- The compile-level test lives in `foundation_deployment_cloudflare/tests/types_tests.rs` as
+  `d1_update_body_uses_typed_read_replication`. It builds both update bodies, serialises them to
+  `{"read_replication":{"mode":"auto"}}` / `{"read_replication":{"mode":"manual"}}`, and
+  deserialises one back.
+- Validation under `--profile uat` hit "No space left on device" (OS error 28). The LLVM `uat`
+  build of `foundation_deployment_cloudflare` (plus the heavy `turso` dependency tree) needed
+  more space than was free. Deleting `target/uat/incremental` (8.2 GB) freed enough to finish.
+  The disk is a recurring constraint on this machine; see the io-hardening swarm memory.
+
 ## Dead ends
 
 - Regenerating `digitalocean`/`hetzner` without the selection wasted a full generation pass and
