@@ -5,7 +5,7 @@ lane: "B"
 model: "haiku"
 branch: "fix/io-51-60-lane-b"
 crates: ["foundation_db", "foundation_vectors"]
-catalogue_rows: [25, 26]
+catalogue_rows: [25, 26, 39, 40, 50]
 ---
 
 # Feature 56: db and vectors leftovers
@@ -39,6 +39,27 @@ assertion (what the test means to check — read it), then make
 `cargo clippy -p foundation_vectors --all-targets --all-features` clean and add a
 `code-graph` run to CI.
 
+## E5. D1 `Real` NaN or infinity silently becomes NULL (found in feature 52)
+
+`data_value_to_json` (`src/native/d1_kvstore.rs`) maps a non-finite `f64` to JSON `null`, so a
+write stores NULL with no error. Return a typed `StorageError` (for example
+`InvalidValue("non-finite REAL")`) instead. Test: `d1_rejects_non_finite_real`.
+
+## E6. D1 `/query` responses are read whole with no cap (found in feature 52, rules 4 and 8)
+
+Check the status first; read a success body up to `max_response_body` on the D1 store config
+(builder method; pick the default from D1's documented maximum result size and cite it); over
+the cap → typed error, not a partial parse. Error bodies: up to the existing error-body cap.
+Test: `d1_response_over_cap_is_an_error` (mock).
+
+## E7. `FileStateStore::set` writes in place; the trait has no conditional write (found in feature 45)
+
+`std::fs::write` on the target path lets a reader see a torn file. Write to a temp file in the
+same directory, `fsync`, then `rename` over the target (atomic on POSIX). The missing
+conditional write (version/etag) in `StateStore`: record the design need in the entry; do not
+add it in this feature. Test: `file_state_store_write_is_atomic` (a reader loading in a loop
+never sees a partial file).
+
 ## Verify
 
 ```bash
@@ -50,4 +71,4 @@ cargo clippy -p foundation_vectors --profile dev --all-targets --all-features 2>
 
 ## Done when
 
-- [ ] Four entries fixed and deleted. CI green.
+- [ ] E1–E6 fixed and their entries deleted. CI green.

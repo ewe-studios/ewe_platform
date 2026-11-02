@@ -5,7 +5,7 @@ lane: "B"
 model: "haiku"
 branch: "fix/io-51-60-lane-b"
 crates: ["foundation_codegentools", "foundation_openapi", "foundation_deployment_cloudflare", "foundation_cloudflare_*"]
-catalogue_rows: [22, 23, 24]
+catalogue_rows: [22, 23, 24, 41]
 ---
 
 # Feature 55: generator hygiene
@@ -34,6 +34,13 @@ Move `foundation_errstacks` and `foundation_netio` to the native target section;
 wasm-only `foundation_netio` entry. Verify:
 `cargo check -p foundation_deployment_cloudflare --target wasm32-unknown-unknown` with no
 unused-dependency warnings (nightly lint if available).
+
+## E4. The Cloudflare wire-type check takes about 160 s in a dev build (found in feature 52)
+
+`cloudflare_types_are_generated` (`foundation_codegentools/tests/cloudflare_types.rs`) and the
+build-script check regenerate every group to compare. Add a check that regenerates only the
+shared types module and the hoisted schemas, used by the test (keep the full check in the
+build script if it is needed there). Target: under 20 s in dev. Then run it 20 times.
 
 ## Verify
 
