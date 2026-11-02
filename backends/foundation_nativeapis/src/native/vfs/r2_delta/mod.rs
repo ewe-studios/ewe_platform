@@ -8,10 +8,6 @@
 //! [`SyncFs`](crate::shared::vfs::sync_bridge::SyncFs). Storage layout: see
 //! [`blob_delta`](super::blob_delta).
 
-pub mod types;
-
-pub use types::{KeyLayout, KeyLayoutAdapter, PathKeyLayout, R2FsConfig, R2ObjectMeta};
-
 use foundation_db::R2Store;
 use foundation_errstacks::ErrorTrace;
 

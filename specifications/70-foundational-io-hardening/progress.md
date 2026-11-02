@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 19 (foundation_nativeapis) E2 done on
+  `fix/io-20-vfs-process-ipc`. E2 replaces the whole-file blob rewrite with
+  chunked storage: a file's content lives in `vfs/data/{path}/{chunk}` and
+  `replace_chunks` writes only the chunks whose bytes change. The chunk size
+  is `BlobDeltaConfig::chunk_size` (default 64 KiB, documented against Go's
+  `net/http` 32 KiB copy buffer). The unused `d1_delta::chunking`,
+  `d1_delta::types` and `r2_delta::types` modules are removed (dead code from
+  the abandoned inode design); their behaviour is covered by the new
+  `blob_delta_small_writes_touch_one_chunk` test, which counts store bytes and
+  asserts under 16 MiB for a 1 MiB file written in 4 KiB pieces. 15 blob-delta
+  tests and the 9-test D1/R2 API suites pass under `--profile uat`. The second
+  §13 backlog entry (whole-file rewrite) is removed.
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E1 done on
   `fix/io-20-vfs-process-ipc`. E1 adds `BlobStore::list_blobs_after` to
   `D1Store` (delegates to `list_keys` and enforces the literal prefix, because

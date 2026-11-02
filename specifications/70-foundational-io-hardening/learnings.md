@@ -2,6 +2,17 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 19 E2, foundation_nativeapis): the `d1_delta::chunking`
+  module was gated `#![cfg(feature = "vfs-d1")]` inside `d1_delta`, but
+  `blob_delta` compiles for both `vfs-d1` and `vfs-r2`, so the chunking logic
+  could not live there. Put the chunk slice/assemble helpers in `blob_delta.rs`
+  (gated `any(vfs-d1, vfs-r2)`) and delete the unused `d1_delta::chunking`,
+  `d1_delta::types` and `r2_delta::types` modules. Also: `MemoryStorage` has no
+  byte counter, so `blob_delta_small_writes_touch_one_chunk` needs a small
+  `BlobStore` wrapper in the test that forwards every method and counts
+  `put_blob` bytes; `foundation_db` re-exports `BlobStore`/`StorageResult` at
+  the root but `BlobListStream` only under `foundation_db::traits`.
+
 - 2026-11-02 (feature 19 E1, foundation_nativeapis): `BlobStore::list_blobs_after`
   returns a bare `BlobListStream` (`Pin<Box<dyn Stream<Item = StorageResult<String>> + Send>>`)
   with no `collect_all`, so a consumer needs a `StreamExt` in scope.

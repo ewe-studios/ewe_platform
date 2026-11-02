@@ -150,10 +150,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **A blob-delta write rewrites the whole file.** Each `write_at_async` reads
-  the blob, splices the bytes in and writes it back, so a large file written
-  in small pieces is O(n²). Fix: chunked storage (the unused
-  `d1_delta::chunking` module sketches it) with a configurable chunk size.
 - **The VFS shim never uses the D1/R2 deltas.** `src/native/vfs/shim/mod.rs`
   logs "impls pending" and falls back to the memory delta for
   `DeltaBackend::D1` / `R2`. The overlay is async now, so the deltas plug in

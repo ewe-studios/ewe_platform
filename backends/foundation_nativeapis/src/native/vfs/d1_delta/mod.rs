@@ -8,11 +8,7 @@
 //! [`SyncFs`](crate::shared::vfs::sync_bridge::SyncFs). Storage layout: see
 //! [`blob_delta`](super::blob_delta).
 
-pub mod chunking;
 pub mod schema;
-pub mod types;
-
-pub use types::{D1ChunkRef, D1FileMeta, D1FsConfig};
 
 use foundation_db::D1Store;
 use foundation_errstacks::ErrorTrace;

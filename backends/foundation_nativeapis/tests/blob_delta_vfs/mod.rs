@@ -5,10 +5,14 @@
 //! emulator: async directly, and sync through `SyncFs`.
 
 use std::io::SeekFrom;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
+use async_trait::async_trait;
 use foundation_core::valtron::{initialize_pool, valtron_test, PoolGuard};
-use foundation_db::MemoryStorage;
-use foundation_nativeapis::native::vfs::blob_delta::BlobDelta;
+use foundation_db::traits::BlobListStream;
+use foundation_db::{BlobStore, MemoryStorage, StorageResult};
+use foundation_nativeapis::native::vfs::blob_delta::{BlobDelta, BlobDeltaConfig};
 use foundation_nativeapis::shared::vfs::async_traits::{
     AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
 };
@@ -17,6 +21,55 @@ use foundation_nativeapis::shared::vfs::{DeltaStore, OpenMode, VfsFileSystem, Vf
 
 fn delta() -> BlobDelta<MemoryStorage> {
     BlobDelta::from_store(MemoryStorage::new())
+}
+
+/// A blob store that counts every byte passed to `put_blob`.
+#[derive(Clone)]
+struct CountingStore {
+    inner: MemoryStorage,
+    written: Arc<AtomicUsize>,
+}
+
+impl CountingStore {
+    fn new() -> (Self, Arc<AtomicUsize>) {
+        let written = Arc::new(AtomicUsize::new(0));
+        (
+            Self {
+                inner: MemoryStorage::new(),
+                written: Arc::clone(&written),
+            },
+            written,
+        )
+    }
+}
+
+#[async_trait]
+impl BlobStore for CountingStore {
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        self.written.fetch_add(data.len(), Ordering::Relaxed);
+        self.inner.put_blob(key, data).await
+    }
+
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        self.inner.get_blob(key).await
+    }
+
+    async fn delete_blob(&self, key: &str) -> StorageResult<()> {
+        self.inner.delete_blob(key).await
+    }
+
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
+        self.inner.blob_exists(key).await
+    }
+
+    async fn list_blobs_after(
+        &self,
+        prefix: &str,
+        start_after: Option<&str>,
+        limit: Option<usize>,
+    ) -> StorageResult<BlobListStream> {
+        self.inner.list_blobs_after(prefix, start_after, limit).await
+    }
 }
 
 #[valtron_test]
@@ -180,6 +233,34 @@ async fn blob_delta_reset_clears_everything() {
     assert!(!d.exists_async("/d/a".into()).await.unwrap());
     assert!(!d.exists_async("/d".into()).await.unwrap());
     assert!(d.list_whiteouts_async("/".into()).await.unwrap().is_empty());
+}
+
+#[valtron_test]
+async fn blob_delta_small_writes_touch_one_chunk() {
+    let (store, written) = CountingStore::new();
+    let config = BlobDeltaConfig::default().with_chunk_size(4096);
+    let d = BlobDelta::from_store_with_config(store, config);
+    let f = d.create_async("/big".into(), 0o644).await.unwrap();
+
+    // 1 MiB in 4 KiB pieces. Chunked writes touch one 4 KiB chunk per write,
+    // so the store sees about 1 MiB plus metadata; a whole-file rewrite would
+    // push ~128 MiB through the store.
+    let piece = vec![0xabu8; 4096];
+    for i in 0..256usize {
+        f.write_at_async(piece.clone(), (i * 4096) as u64)
+            .await
+            .unwrap();
+    }
+
+    assert_eq!(
+        d.read_file_async("/big".into()).await.unwrap().len(),
+        1024 * 1024
+    );
+    let bytes = written.load(Ordering::Relaxed);
+    assert!(
+        bytes < 16 * 1024 * 1024,
+        "expected chunked writes, but {bytes} bytes reached the store"
+    );
 }
 
 #[valtron_test]
