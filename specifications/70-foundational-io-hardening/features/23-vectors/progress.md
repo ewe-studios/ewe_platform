@@ -23,6 +23,11 @@ _Written in ASD-STE100 Simplified Technical English._
   `VectorStoreError::SchemaMismatch` naming the table. New tests
   `old_vec0_table_is_migrated` and
   `old_vec0_table_with_wrong_dimension_is_refused`.
+- **E4.** An opt-in live test `live_service_deleted_ids_and_vector` checks the
+  real `TurboPuffer` service when `TURBOPUFFER_API_KEY` is set; it skips with a
+  message when the key is not set. It proves `deleted_ids` lists only ids that
+  existed and `include_attributes: ["vector"]` returns the vector. It uses a
+  namespace with a unique suffix and deletes the namespace at the end.
 
 ## In progress
 
@@ -30,7 +35,6 @@ _Written in ASD-STE100 Simplified Technical English._
 
 ## Next
 
-- E4: opt-in live TurboPuffer test.
 - E5: TurboPuffer 429/503 retry.
 - E7: `hybrid_search` text lookup.
 - E8: `SqlVectorStore` scan-cost docs and threshold warning.

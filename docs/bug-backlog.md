@@ -224,13 +224,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 17. foundation_vectors
 
-- **`TurboPufferVectorStore` is tested only against a mock.** The mock
-  follows the request and response types of the official Python client
-  (`turbopuffer` 2.14.0), because the documentation site was not reachable.
-  Two details are not proven against the live service: that `deleted_ids`
-  lists only ids that existed (`delete` reports `NotFound` from it), and
-  that `include_attributes: ["vector"]` returns the vector. Fix: an opt-in
-  test against a real namespace (API key from the environment).
 - **`TurboPufferVectorStore` does not retry HTTP 429.** `TurboPuffer` throttles
   writes with 429 (backpressure). The store reports it as an error. Fix: retry
   with backoff, with the attempts and delays on a config.

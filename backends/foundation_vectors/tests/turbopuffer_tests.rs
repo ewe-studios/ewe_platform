@@ -30,7 +30,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use foundation_core::valtron::valtron_test;
-use foundation_netio::{DynNetClient, HttpClientBuilder};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{
     VectorEntry, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
@@ -422,5 +422,82 @@ async fn oversized_response_is_an_error() {
     assert!(
         matches!(&err, VectorStoreError::Backend(m) if m.contains("max_response_body")),
         "{err:?}"
+    );
+}
+
+/// A live check against the real `TurboPuffer` service, opt-in through
+/// `TURBOPUFFER_API_KEY`. It skips with a message when the key is not set.
+///
+/// It proves two details the mock cannot: `deleted_ids` lists only ids that
+/// existed (so `delete` reports `NotFound`), and `include_attributes:
+/// ["vector"]` returns the vector (so `get` reads it). The test uses a
+/// namespace with a unique suffix and deletes the namespace at the end.
+#[valtron_test]
+async fn live_service_deleted_ids_and_vector() {
+    let Ok(key) = std::env::var("TURBOPUFFER_API_KEY") else {
+        eprintln!("skipped: set TURBOPUFFER_API_KEY to run the live TurboPuffer test");
+        return;
+    };
+
+    let cfg = VectorStoreConfig::new(3, DistanceMetric::Cosine);
+    let store = TurboPufferVectorStore::new(key.clone(), cfg).expect("cosine builds");
+
+    let suffix = format!(
+        "{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock after the epoch")
+            .as_nanos()
+    );
+    let ns = format!("ewe_foundation_vectors_{suffix}");
+
+    store
+        .insert(&ns, entry("a", [1.0, 2.0, 3.0]))
+        .await
+        .unwrap();
+    store
+        .insert(&ns, entry("b", [4.0, 5.0, 6.0]))
+        .await
+        .unwrap();
+
+    // A delete of an id that never existed reports NotFound, because the live
+    // `deleted_ids` does not list it. A delete of an existing id succeeds, and
+    // a second delete of the same id reports NotFound.
+    assert!(matches!(
+        store.delete(&ns, "missing").await.unwrap_err(),
+        VectorStoreError::NotFound { .. }
+    ));
+    store.delete(&ns, "a").await.unwrap();
+    assert!(matches!(
+        store.delete(&ns, "a").await.unwrap_err(),
+        VectorStoreError::NotFound { .. }
+    ));
+
+    // `get` asks for `include_attributes: ["vector"]` and reads the vector.
+    let got = store.get(&ns, "b").await.unwrap().expect("row present");
+    assert_eq!(got.id, "b");
+    assert_eq!(got.vector.data, vec![4.0, 5.0, 6.0]);
+
+    // The surviving row still ranks first for its own vector.
+    let m = store.search(&ns, &[4.0, 5.0, 6.0], 10).await.unwrap();
+    assert_eq!(m[0].id, "b");
+
+    // Delete the namespace so the account does not keep the test data.
+    let client: DynNetClient = HttpClientBuilder::new().build();
+    let url = format!("https://api.turbopuffer.com/v2/namespaces/{ns}");
+    let req = PreparedRequestBuilder::delete(&url)
+        .expect("namespace URL parses")
+        .bearer_token(&key)
+        .build();
+    let response = client
+        .send_async(req)
+        .await
+        .expect("delete namespace request");
+    let (status, _headers, _body) = response.into_async_parts();
+    let code: usize = status.into();
+    assert!(
+        (200..=299).contains(&code),
+        "namespace delete status {code}"
     );
 }

@@ -56,6 +56,16 @@ _Written in ASD-STE100 Simplified Technical English._
   key refuses them, so the migration counts duplicates first and reports a
   typed `SchemaMismatch` instead of an opaque SQL constraint failure.
 
+## E4
+
+- **The live test skips, not fails, when the key is not set.** The pattern
+  `let Ok(key) = std::env::var("TURBOPUFFER_API_KEY") else { eprintln!(...);
+  return; }` keeps `cargo test` green in CI with no key. The message prints
+  with `--nocapture`.
+- **`PreparedRequestBuilder::delete` + `bearer_token` deletes the namespace.**
+  The `VectorStore` trait has no namespace delete, so the cleanup sends a raw
+  `DELETE /v2/namespaces/{ns}` through a fresh `DynNetClient`.
+
 ## Dead ends
 
 - **`f32::from(i32)` does not exist.** `f32` implements `From` for small
