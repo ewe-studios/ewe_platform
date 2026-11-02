@@ -175,19 +175,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   0, but the repo is not fmt-clean under the CI toolchain. Fix: pin one rustfmt
   version (a `rust-toolchain.toml` with the rustfmt component) and format the
   repo with it.
-- **`crates/ewe_deployables` doesn't build.** It isn't a workspace member, so
-  nothing compiles it, and it still implements an older `Deployable` shape
-  (sync `TaskIterator`s, sync `store(&client).get_typed(..)`), which no longer
-  exists. Fix: port it to the current async `Deployable` / `StateStore` and
-  add it to the workspace (or delete it if superseded by the per-provider
-  deployment crates).
-  Its HTTP client references were moved to `HttpClientBuilder` /
-  `ProviderClient::with_client` for #140, but the rest is still stale: it
-  imports `foundation_netio::simple_http`, `ProviderClient<S, R>` and
-  `foundation_deployment::providers::cloudflare` (now
-  `foundation_deployment_cloudflare`). `CloudflareWorker::deploy` also reads
-  the script from disk into `_script` and never uploads it, so a deploy would
-  push an empty module.
 - **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
 - **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
   compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target

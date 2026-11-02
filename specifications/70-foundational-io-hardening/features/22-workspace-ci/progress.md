@@ -9,6 +9,10 @@ Branch: `fix/io-20-vfs-process-ipc`.
   `$CARGO_TARGET_DIR/<checkout-name>`. `.agents/AGENTS.md` documents this rule
   where worktrees are described. The backlog entry "Shared target dir
   clobbering" is deleted in the same commit.
+- **E2.** `crates/ewe_deployables` is deleted. No code uses it, and the
+  per-provider deployment crates cover it. The stale comment in the workspace
+  `Cargo.toml` is removed. The backlog entry "`crates/ewe_deployables` doesn't
+  build" is deleted in the same commit.
 
 ## In progress
 
@@ -16,7 +20,6 @@ Branch: `fix/io-20-vfs-process-ipc`.
 
 ## Next
 
-- E2: decide port or delete for `crates/ewe_deployables`.
 - E5: gate `Command::Bindgen(args)` in `foundation_testbed`.
 - E6: split the wasm mise tools into their own mise environment.
 - E7: fix the `foundation_keychain` wasm warnings.

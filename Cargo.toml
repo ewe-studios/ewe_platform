@@ -21,7 +21,6 @@ exclude = [
   # examples are self-contained crates — build individually as needed
   "examples/*",
   "examples/*/src-tauri",
-  # "crates/ewe_deployables",
   "backends/docs",
   "backends/docs/*",
   "backends/node_modules",
