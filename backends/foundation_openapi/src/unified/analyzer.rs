@@ -844,7 +844,10 @@ pub fn analyze_spec(
     })
 }
 
-fn extract_group_name(path: &str) -> String {
+/// The group name a path belongs to: its last non-parameter segment, or
+/// `default` for a path with none.
+#[must_use]
+pub fn extract_group_name(path: &str) -> String {
     let path = path.trim_start_matches('/');
     let segments: Vec<&str> = path.split('/').collect();
     let non_param_segments: Vec<&&str> = segments
@@ -898,21 +901,3 @@ fn detect_shared_resources(groups: &[ApiGroup]) -> Vec<String> {
     shared
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_extract_group_name() {
-        assert_eq!(
-            extract_group_name("/v1/projects/{project}/instances/{instance}"),
-            "instances"
-        );
-        assert_eq!(
-            extract_group_name("/v1/run/projects/{project}/locations/{location}/instances"),
-            "instances"
-        );
-        assert_eq!(extract_group_name("/projects"), "projects");
-        assert_eq!(extract_group_name("/"), "default");
-    }
-}

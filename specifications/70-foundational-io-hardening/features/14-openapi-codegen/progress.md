@@ -43,10 +43,25 @@ and Defence Industries Association of Europe (ASD), the owner of the STE standar
   - Validation under `--profile uat`: openapi tests (47 transform + 12 type_resolver + 5 doc)
     green; cloudflare types tests green. No new clippy warnings from the new transform.
   - Backlog §8 `read_replication` entry deleted.
+- E3 (inline tests moved out, rule 7):
+  - `unified/mod.rs` exposes `pub mod emit;` and `pub mod analyzer;`. The `emit` IR became
+    public: `Field`, `TypeBody`, `TypeDef`, `ModuleFile`, `SCHEMA_DERIVES`, `ARGS_DERIVES`,
+    `hoist_envelopes`, `hoist_shared_shapes`, `dedupe_within_modules`, plus the constructors
+    `TypeDef::structure` / `TypeDef::alias` / `TypeDef::render` and `ModuleFile::new` /
+    `ModuleFile::push` / `ModuleFile::types`. `ModuleFile.items` became private.
+    `analyzer::extract_group_name` became public.
+  - The seven emit tests and one analyzer test moved to `tests/unified_emit.rs` and
+    `tests/unified_analyzer.rs`. The test count did not drop (8 tests, all green).
+  - `#[must_use]` added to `structure`, `alias`, `extract_group_name`; a `# Errors` doc section
+    added to `TypeDef::render`. No new clippy warnings.
+  - New public API: `foundation_openapi` 0.0.3 → 0.0.4; `foundation_codegentools` requirement
+    0.0.3 → 0.0.4.
+  - Validation under `--profile uat`: openapi tests green (incl. the 8 moved tests); clippy
+    shows no new warnings from the change.
+  - Backlog §8 "Inline tests remain" entry deleted.
 
 ## Next
 
-- E3 — move inline tests out of `unified/emit.rs` and `unified/analyzer.rs`.
 - E4 — `genapi` `--profile` pass-through and `generate hetzner` selection honour.
 - Recorded (backlog §8): a dedicated clippy-cleanup pass for `foundation_openapi` (~112 lints)
   and `foundation_deployment_docker` (~231 lints), none from this feature.

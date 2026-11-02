@@ -109,6 +109,30 @@ Industries Association of Europe (ASD), the owner of the STE standard.
   more space than was free. Deleting `target/uat/incremental` (8.2 GB) freed enough to finish.
   The disk is a recurring constraint on this machine; see the io-hardening swarm memory.
 
+## E3. Inline tests moved out of `unified/emit.rs` and `unified/analyzer.rs`
+
+- Rule 7 moves every test into `tests/`, and tests only public API there. The two inline test
+  modules tested internal generator machinery, so the right thing to make public was the
+  generator's intermediate representation (IR).
+- `unified/mod.rs` changed `mod emit;` / `mod analyzer;` to `pub mod emit;` / `pub mod analyzer;`.
+  `unified` was already `pub`, so the new paths are `foundation_openapi::unified::emit` and
+  `foundation_openapi::unified::analyzer`.
+- The `emit` IR became public: `Field`, `TypeBody`, `TypeDef`, `ModuleFile`, `SCHEMA_DERIVES`,
+  `ARGS_DERIVES`, and the three shrink passes `hoist_envelopes`, `hoist_shared_shapes`,
+  `dedupe_within_modules`. `TypeDef::structure`, `TypeDef::alias`, `TypeDef::render`,
+  `ModuleFile::new`, `ModuleFile::push`, and `ModuleFile::types` became `pub`. `ModuleFile.items`
+  became private (it was `pub`); callers reach types through `types()`.
+- `analyzer::extract_group_name` became `pub` (with a doc comment it did not have before).
+- The test-only helper `duplicate_names` moved into `tests/unified_emit.rs` as a local function.
+  It was `#[cfg(test)] pub(crate)` in the source file; it is not public API.
+- The seven emit tests and one analyzer test moved verbatim to `tests/unified_emit.rs` and
+  `tests/unified_analyzer.rs`. The test count did not drop.
+- A Rust visibility detail: enum variant fields always share the enum's visibility. A `pub`
+  qualifier on a variant field is a compile error (E0449). Making `TypeBody` a `pub enum` is
+  enough; its `Struct`/`Alias` fields are then public.
+- New public API means a version bump: `foundation_openapi` 0.0.3 → 0.0.4, and its only consumer
+  `foundation_codegentools` requirement 0.0.3 → 0.0.4.
+
 ## Dead ends
 
 - Regenerating `digitalocean`/`hetzner` without the selection wasted a full generation pass and
