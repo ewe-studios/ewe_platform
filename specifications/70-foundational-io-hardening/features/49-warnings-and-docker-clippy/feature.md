@@ -59,11 +59,12 @@ Fix all; mechanical only. Delete the §22 clippy entry.
 About 50 lib warnings, plus `load_balancer_tests` unused imports and
 `h2_integration_tests.rs:318` unused `mut`. Fix all; mechanical only. Delete the §9 entry.
 
-## E8. `foundation_wireguard` unused dependency and wasm manifest warnings (found in feature 54)
+## E8. `foundation_wireguard` wasm manifest warnings (found in feature 54)
 
-`foundation_errstacks` is unused; there are a few other manifest warnings on wasm32
-(`cargo check -p foundation_wireguard --target wasm32-unknown-unknown`). Remove or
-target-gate each dependency; 0 warnings native and wasm32.
+Fix the wasm32 manifest warnings (`cargo check -p foundation_wireguard --target
+wasm32-unknown-unknown`) by target-gating dependencies. **Do not remove
+`foundation_errstacks`:** it is the project's error standard; feature 67 adopts it in this
+crate. Remove only `thiserror` (unused; `derive_more` is the standard for the error enums).
 
 ## Verify
 
