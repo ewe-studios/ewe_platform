@@ -2,7 +2,7 @@
 feature: "foundation_db and foundation_vectors leftovers: timestamp units, rate-limit dead code, recursion lint, code-graph clippy"
 status: "pending"
 lane: "B"
-model: "haiku"
+model: "sonnet"
 branch: "fix/io-51-60-lane-b"
 crates: ["foundation_db", "foundation_vectors"]
 catalogue_rows: [25, 26, 39, 40, 50]
@@ -60,6 +60,25 @@ conditional write (version/etag) in `StateStore`: record the design need in the 
 add it in this feature. Test: `file_state_store_write_is_atomic` (a reader loading in a loop
 never sees a partial file).
 
+## E8. Prove D1 number and null parameters with local wrangler (owner decision 2026-11-02)
+
+The owner accepts local wrangler (`wrangler dev --local`, the D1 engine in workerd) as the
+check for D1 parameter types; no hosted-account test. Local wrangler does not run Cloudflare's
+hosted REST front end, so write that limit once in the test's doc comment.
+- Fix the worker stub (`worker-stub.js`, feature 52) so it binds values the way the D1 binding
+  does: check D1's documented JS-to-SQLite type mapping and bind an integer-valued number so
+  that it is stored as INTEGER (not REAL), a fractional number as REAL, `null` as NULL, a
+  string as TEXT. Cite the D1 doc section in a comment.
+- Strengthen the wrangler test (`tests/d1_batch_wrangler_tests.rs` or a new
+  `d1_param_types_wrangler`): insert `[7, 1.5, null, "x"]` through the store, then read back
+  `typeof(col)` for each and assert `integer`, `real`, `null`, `text`; also a batch with mixed
+  types, and a round trip of `i64::MAX`.
+- Run it with `CF_INTEGRATION_TEST=1` against `wrangler dev --local` (wrangler 4; install it
+  in a scratch directory outside the repo with `npm install wrangler@4`). 20 runs.
+- Delete the §11 entry "hosted D1 REST acceptance of number/null params is unproven" and the
+  `d1-query.json` overlay's note that says it is unproven (say "verified with local wrangler,
+  <date>").
+
 ## Verify
 
 ```bash
@@ -71,4 +90,4 @@ cargo clippy -p foundation_vectors --profile dev --all-targets --all-features 2>
 
 ## Done when
 
-- [ ] E1–E6 fixed and their entries deleted. CI green.
+- [ ] E1–E8 fixed and their entries deleted; the wrangler type test passes 20/20. CI green.

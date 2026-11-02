@@ -60,3 +60,31 @@ grep -n 'boringtun' Cargo.toml   # no [patch] line
 
 - [ ] boringtun fork is a workspace crate that publishes; wireguard uses it; gemm entry and
       upstream note written; fp16 decided. CI green.
+
+## E4. Owner decision (2026-11-02): the library name is `foundation_boringtun` too
+
+Feature 54 kept `[lib] name = "boringtun"`. The owner wants the crate used by its own name.
+- Set `[lib] name = "foundation_boringtun"` (or remove the `[lib] name` line).
+- Change every `boringtun::` path to `foundation_boringtun::`: 12 uses in
+  `foundation_wireguard` (`src/native/node.rs`, `src/wasm/browser.rs`,
+  `src/shared/keys/mod.rs`, `src/shared/tunnel/mod.rs`, `tests/webrtc_tests.rs`,
+  `tests/wasm/mod.rs`, `tests/tunnel_tests.rs`) and `foundation_nativeapis`
+  (`src/dataplane/mod.rs`, `src/lib.rs`). The owner allows these path-only edits in those lane
+  A crates; change nothing else there. Inside the vendored crate, its own `crate::` paths need no
+  change; fix any doc test or bench that names `boringtun::`.
+- Update the NOTICE (the library name changed too) and the crate docs.
+- Verify: `rg -n '\bboringtun::' backends --glob '*.rs'` shows only comments or none;
+  `cargo check -p foundation_wireguard` native and wasm32; `cargo check -p foundation_nativeapis
+  --features netstack`; `cargo test -p foundation_boringtun`.
+
+## E5. Make the vendored gemm-common patch match the upstream PR
+
+The workspace patch checks `fma && avx2`, but the `fma` kernel's `V3` also needs avx and
+sse3..sse4.2 (and f16c with `f16`), and the `avx512f` path has the same shape for `V4`; the f16
+dispatch in `gemm-f16` is not patched at all. The upstream fix (prepared 2026-11-02, branch
+`fix-fma-without-avx2` in the main session's clone of `sarah-ek/gemm`) dispatches on
+`V3::try_new().is_some()` / `V4::try_new().is_some()` in `gemm-common/src/gemm.rs`
+(`init_gemm_fn`, `init_gemm_cplx_fn`). Replace the two-line patch with that change, update
+`patches/gemm-common/UPSTREAM.md` to link the upstream issue and PR once they exist, and note
+that `gemm-f16` (a separate crate) is not patched in the workspace unless a build path needs it
+(check whether candle uses f16 gemm; if it does, vendor and patch `gemm-f16` the same way).

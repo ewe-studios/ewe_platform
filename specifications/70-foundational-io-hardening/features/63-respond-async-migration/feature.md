@@ -32,6 +32,12 @@ Also from feature 61's review: `ResponseWriter::flush` does not restart the idle
 stream's own buffer drains part of its data, so a large buffered flush can time out while
 making progress.
 
+Also from feature 65: a `ResponseWriter`'s idle timer starts when the writer is created, so a
+long-idle stream (a gRPC stream with no message for longer than `send_timeout`) times out at
+its next blocked write even though the client is reading. Start the idle timer when a write
+begins to block (or restart it at the start of each `write_all`), not at creation. Test:
+`idle_stream_then_blocked_write_does_not_time_out`.
+
 ## Design
 
 1. Move every native caller to `send_*` (returning `ConnectionResult::Async`). The templates
