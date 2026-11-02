@@ -37,6 +37,12 @@ _Written in ASD-STE100 Simplified Technical English._
   `turbopuffer_gives_up_after_max_attempts` and
   `turbopuffer_honours_retry_after` run against the mock; the retry tests pass
   a 20-run flake check.
+- **E7.** `hybrid_search` now takes a `TextLookup` source (an async id → text
+  lookup). It fetches one text per fused candidate, in fused order, and passes
+  the texts to the reranker. A candidate with no text reads as an empty string,
+  so the text list stays aligned with the candidate list. New test
+  `hybrid_search_passes_texts_to_reranker` records the texts a reranker sees
+  and asserts one text per candidate, in order.
 
 ## In progress
 
@@ -44,6 +50,5 @@ _Written in ASD-STE100 Simplified Technical English._
 
 ## Next
 
-- E7: `hybrid_search` text lookup.
 - E8: `SqlVectorStore` scan-cost docs and threshold warning.
 - E6 (last): `sql-store` on wasm32 + CI wasm run.

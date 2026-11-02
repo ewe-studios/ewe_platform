@@ -55,7 +55,7 @@ pub mod vector;
 
 pub use bm25::{Bm25Index, SimpleTokenizer, Tokenizer};
 pub use flat::{flat_top_k, flat_top_k_owned, TopK};
-pub use fusion::{FusionStrategy, Reranker, fuse, hybrid_search};
+pub use fusion::{FusionStrategy, Reranker, TextLookup, fuse, hybrid_search};
 pub use hnsw::HnswIndex;
 pub use index::{FlatIndex, VectorError, VectorIndex, load_index};
 pub use ivf::IvfIndex;

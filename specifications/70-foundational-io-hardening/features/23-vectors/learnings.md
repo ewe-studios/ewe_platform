@@ -87,6 +87,19 @@ _Written in ASD-STE100 Simplified Technical English._
   is scaled by `(draw as u128 * nanos) >> 32`, so clippy's
   `cast_precision_loss`/`cast_possible_truncation` never fire.
 
+## E7
+
+- **The reranker already took `texts: &[&str]`; the missing piece was a way to
+  fetch the texts.** A new `TextLookup` trait (async, `Send + Sync`,
+  `text(&self, id) -> Option<String>`) supplies them. `hybrid_search` collects
+  the owned strings into a `Vec`, then borrows them for the rerank call.
+- **A candidate with no text reads as an empty string** (`unwrap_or_default`).
+  That keeps the text slice aligned with the candidate list, so a reranker can
+  index the two together.
+- **The recording reranker stores `Mutex<Vec<Vec<String>>>` and returns the
+  candidates unchanged.** The test then asserts the recorded text order equals
+  the fused order, not just that the call happened.
+
 ## Dead ends
 
 - **`f32::from(i32)` does not exist.** `f32` implements `From` for small

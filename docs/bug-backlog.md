@@ -152,14 +152,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   server tree, then extend the CI clippy run to `server-test` so the debt
   stays cleared.
 
-## 13. foundation_nativeapis
-
-- **No delta store on the local Turso engine.** `TursoDelta` never compiled and was
-  deleted in spec 50 F05 T2 (with its example, the `vfs-turso` feature and the
-  shim's `turso` backend). A Turso cloud database still works through
-  `LibsqlDelta` with `TursoRemoteConfig`. Fix: rebuild it on the `turso` crate as
-  an async-only store; tracked in ewe-studios/ewe_platform#142.
-
 ## 16. Workspace / process
 
 - **`cargo fmt --check` diverges between local and CI.** The Linux CI image's
@@ -223,10 +215,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   native, so it does not see it. Fix: take `foundation_db` without default
   features on wasm32, then add `sql-store` to the crate's `wasm-runs` in
   `ci/packages.toml`.
-- **`hybrid_search` gives the reranker no texts** (`src/fusion.rs`). It calls
-  `Reranker::rerank(query, fused, &[])`, so a reranker cannot read the
-  candidate documents. Fix: take a text lookup (id → text) as an argument, or
-  change `Reranker` to fetch the texts it needs.
 - **The SQL-backed stores scan a whole namespace per search**
   (`SqlVectorStore::search`): memory is bounded (`TopK`), but time is
   O(n·d) per query. Expected for the portable fallback; large namespaces
