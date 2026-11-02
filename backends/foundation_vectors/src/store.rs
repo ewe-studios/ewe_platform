@@ -59,6 +59,9 @@ pub enum VectorStoreError {
     /// The backend cannot do this operation or use this configuration (for
     /// example, a distance metric that the service does not have).
     Unsupported(String),
+    /// The on-disk schema does not match what this store expects, and the
+    /// store could not migrate it. The message names the table.
+    SchemaMismatch(String),
     Backend(String),
 }
 
@@ -71,6 +74,7 @@ impl core::fmt::Display for VectorStoreError {
             Self::ZeroVector => write!(f, "zero-magnitude vector rejected"),
             Self::NotFound { id } => write!(f, "vector not found: {id}"),
             Self::Unsupported(msg) => write!(f, "unsupported: {msg}"),
+            Self::SchemaMismatch(msg) => write!(f, "schema mismatch: {msg}"),
             Self::Backend(msg) => write!(f, "backend error: {msg}"),
         }
     }

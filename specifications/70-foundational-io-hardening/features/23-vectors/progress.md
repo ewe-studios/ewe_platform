@@ -16,6 +16,13 @@ _Written in ASD-STE100 Simplified Technical English._
   `vendor/vec0.so` is deleted; `sqlite_vec_store.rs` now embeds the built
   extension. The vendored `sqlite3ext.h` is the standard SQLite 3.45.1 header
   (the one `libsql-ffi` 0.5.0 forks). Tested with the `sqlite-vec` feature on.
+- **E3.** `SqliteVecVectorStore::open` migrates old-shape `vec0` tables (spec
+  36 F29: no text primary key, no `metadata` column). The migration copies the
+  rows into a temporary table, swaps, and recovers a stopped swap on the next
+  open. A wrong dimension or a duplicate old id fails with the new typed
+  `VectorStoreError::SchemaMismatch` naming the table. New tests
+  `old_vec0_table_is_migrated` and
+  `old_vec0_table_with_wrong_dimension_is_refused`.
 
 ## In progress
 
@@ -23,8 +30,6 @@ _Written in ASD-STE100 Simplified Technical English._
 
 ## Next
 
-- E3: migrate old `vec0` tables.
-- E3: migrate old `vec0` tables.
 - E4: opt-in live TurboPuffer test.
 - E5: TurboPuffer 429/503 retry.
 - E7: `hybrid_search` text lookup.

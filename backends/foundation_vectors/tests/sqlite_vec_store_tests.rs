@@ -71,3 +71,86 @@ async fn l2_scores_are_negative_squared_distance() {
     assert!((m[0].score - -1.0).abs() < 1e-4, "score {}", m[0].score);
     assert!((m[1].score - -9.0).abs() < 1e-4, "score {}", m[1].score);
 }
+
+/// Seed a database with one old-shape `vec0` table (spec 36 F29) before the
+/// store opens it. The old shape has no `metadata` column and no text primary
+/// key.
+async fn seed_old_table(path: &std::path::Path) {
+    let db = libsql::Builder::new_local(path.to_str().unwrap())
+        .build()
+        .await
+        .unwrap();
+    let conn = db.connect().unwrap();
+    conn.load_extension_enable().unwrap();
+    conn.load_extension(env!("VEC0_SO"), None).unwrap();
+    conn.load_extension_disable().unwrap();
+    conn.execute(
+        "CREATE VIRTUAL TABLE vec0_old USING vec0(embedding float[3], external_id text)",
+        (),
+    )
+    .await
+    .unwrap();
+    let blob = |v: [f32; 3]| -> Vec<u8> { v.iter().flat_map(|f| f.to_le_bytes()).collect() };
+    for (id, v) in [
+        ("a", [1.0, 0.0, 0.0]),
+        ("b", [0.0, 2.0, 0.0]),
+        ("c", [0.0, 0.0, 3.0]),
+    ] {
+        conn.execute(
+            "INSERT INTO vec0_old(embedding, external_id) VALUES (?, ?)",
+            libsql::params![blob(v), id],
+        )
+        .await
+        .unwrap();
+    }
+}
+
+#[valtron_test]
+async fn old_vec0_table_is_migrated() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join("v.db");
+    seed_old_table(&path).await;
+
+    let cfg = VectorStoreConfig::new(3, DistanceMetric::L2);
+    let store = SqliteVecVectorStore::open(cfg, &path).await.unwrap();
+
+    // The migrated rows are searchable, best first by L2 distance.
+    let m = store.search("old", &[1.0, 0.0, 0.0], 10).await.unwrap();
+    let ids: Vec<&str> = m.iter().map(|x| x.id.as_str()).collect();
+    assert_eq!(ids, vec!["a", "b", "c"]);
+
+    // The migrated table has the current shape, so `get` reads the row and a
+    // default metadata (the old shape had none).
+    let got = store.get("old", "a").await.unwrap().expect("row migrated");
+    assert_eq!(got.id, "a");
+    assert!(got.metadata.tags.is_empty());
+}
+
+#[valtron_test]
+async fn old_vec0_table_with_wrong_dimension_is_refused() {
+    let dir = TempDir::new().unwrap();
+    let path = dir.path().join("v.db");
+    {
+        let db = libsql::Builder::new_local(path.to_str().unwrap())
+            .build()
+            .await
+            .unwrap();
+        let conn = db.connect().unwrap();
+        conn.load_extension_enable().unwrap();
+        conn.load_extension(env!("VEC0_SO"), None).unwrap();
+        conn.load_extension_disable().unwrap();
+        conn.execute(
+            "CREATE VIRTUAL TABLE vec0_bad USING vec0(embedding float[7], external_id text)",
+            (),
+        )
+        .await
+        .unwrap();
+    }
+
+    let cfg = VectorStoreConfig::new(3, DistanceMetric::L2);
+    let err = SqliteVecVectorStore::open(cfg, &path)
+        .await
+        .err()
+        .expect("wrong dimension is refused");
+    assert!(matches!(err, VectorStoreError::SchemaMismatch(_)), "{err}");
+}

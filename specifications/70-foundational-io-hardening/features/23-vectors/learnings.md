@@ -39,6 +39,23 @@ _Written in ASD-STE100 Simplified Technical English._
   The path comes from `OUT_DIR`, so it works for every target without a
   relative path to a vendored binary.
 
+## E3
+
+- **A virtual table's shadow tables share its `vec0_` name prefix.** The
+  `sqlite_master` scan `name GLOB 'vec0_*'` also returns `vec0_old_chunks`,
+  `vec0_old_info`, `vec0_old_rowids` and the rest. Filter on the statement:
+  only `sql` that contains `USING vec0` is the virtual table itself.
+- **`DROP TABLE` on a vec0 virtual table fails with `SQL logic error` while a
+  `sqlite_master` cursor is open.** The migration runs DDL, so the first pass
+  must collect the table names and close the cursor before the DDL. Reproduced
+  in a throwaway test: the same DDL succeeds with the cursor closed.
+- **vec0 has no `xRename`** (`sqlite-vec` sets it to 0), so `ALTER TABLE ...
+  RENAME TO` cannot swap tables. The migration copies rows into a temporary
+  table, drops the old table, recreates it, and copies back.
+- **The old shape allowed duplicate `external_id` rows.** The new text primary
+  key refuses them, so the migration counts duplicates first and reports a
+  typed `SchemaMismatch` instead of an opaque SQL constraint failure.
+
 ## Dead ends
 
 - **`f32::from(i32)` does not exist.** `f32` implements `From` for small
