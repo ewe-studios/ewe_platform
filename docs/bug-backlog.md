@@ -190,17 +190,9 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `foundation_core::valtron::request_executor_resume` (`reactor.rs:840`) and
   `EventReadiness::clear` (`fd_readiness.rs:143`) that were added to the local tree after 0.0.6 was
   published. `release-plz release` verifies the tarball against the published 0.0.6, so it fails with
-  E0425/E0407. Fix: bump `foundation_core` (and its `version_group` partner `foundation_macros`) to
-  0.0.7 and update the dependents, so 0.0.7 publishes before `foundation_reactor`.
-- **`release-plz release-pr` fails: the workspace root set the nightly-only `codegen-backend`.**
-  `release-plz` runs `cargo package --list` (on the stable release toolchain from
-  `ci/release-rust-toolchain`) in a temp copy of the repo. To package `foundation_ui_traits` it must
-  resolve `edition.workspace = true`, so it parses the workspace root `Cargo.toml`; the root's
-  `cargo-features = ["codegen-backend"]` is nightly-only, so stable Cargo refuses to load it
-  (`feature codegen-backend is required`) and the bump never computes. Fixed by df86d7e6d
-  ("CI(release): build releases on stable"), which dropped the codegen-backend feature and switched
-  the release pipeline to the stable toolchain.
-
+  E0425/E0407. The 0.0.7 bump has landed (`foundation_core` and `foundation_macros` are now
+  0.0.7 on `fix/io-35-turso-async-trait-overflow`); the crates.io publish still needs to
+  happen at release time so 0.0.7 publishes before `foundation_reactor`.
 ## 17. foundation_vectors
 
 - **The SQL store test tree hits `recursion_depth_exceeding_limit`.**
