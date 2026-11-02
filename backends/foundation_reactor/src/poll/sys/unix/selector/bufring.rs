@@ -155,7 +155,10 @@ impl BufRing {
             None => {
                 // SAFETY: `ring` came from `alloc_zeroed` with `ring_layout`.
                 unsafe { dealloc(ring.as_ptr(), ring_layout) };
-                return Err(io::Error::new(io::ErrorKind::OutOfMemory, "buffer space allocation"));
+                return Err(io::Error::new(
+                    io::ErrorKind::OutOfMemory,
+                    "buffer space allocation",
+                ));
             }
         };
 
@@ -357,9 +360,16 @@ impl ProvidedBuf {
     /// The kernel must have just reported this `bid` in a CQE (so it is no
     /// longer published), `len` must be the byte count that CQE reported, and no
     /// other `ProvidedBuf` may exist for the same `bid`.
-    pub(crate) unsafe fn from_completion(ring: std::sync::Arc<BufRing>, bid: u16, len: usize) -> Self {
+    pub(crate) unsafe fn from_completion(
+        ring: std::sync::Arc<BufRing>,
+        bid: u16,
+        len: usize,
+    ) -> Self {
         debug_assert!(bid < ring.entries, "buffer id {bid} out of range");
-        debug_assert!(len <= ring.buf_size, "completion length {len} exceeds buffer size");
+        debug_assert!(
+            len <= ring.buf_size,
+            "completion length {len} exceeds buffer size"
+        );
         Self { ring, bid, len }
     }
 

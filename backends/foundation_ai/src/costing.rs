@@ -267,4 +267,3 @@ pub fn message_cost(messages: &[Messages]) -> UsageCosting {
         status: CostStatus::Actual,
     }
 }
-

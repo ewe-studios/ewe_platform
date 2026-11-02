@@ -76,9 +76,17 @@ pub trait HttpClient: Send + Sync {
     ) -> Result<BoxedSseFutureStream, HttpClientError>;
 
     /// Send an HTTP request synchronously.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError`] if the request fails.
     fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
 
     /// Send an SSE request synchronously — returns a sync iterator.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError`] if the request fails.
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError>;
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask;

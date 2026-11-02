@@ -143,7 +143,10 @@ mod level_mapping_tests {
     fn native_info_is_demoted_so_a_plain_info_filter_stays_quiet() {
         // The model-loader dump arrives at ggml INFO. If this ever maps back to
         // tracing INFO, `RUST_LOG=info` floods again.
-        assert_eq!(tracing_level_for(bindings::GGML_LOG_LEVEL_INFO), Level::DEBUG);
+        assert_eq!(
+            tracing_level_for(bindings::GGML_LOG_LEVEL_INFO),
+            Level::DEBUG
+        );
         assert_eq!(
             tracing_level_for(bindings::GGML_LOG_LEVEL_DEBUG),
             Level::TRACE
@@ -164,7 +167,10 @@ mod level_mapping_tests {
         // Token-type warnings and similar model-metadata quirks are not
         // actionable for the end user. They must not survive a plain `info`
         // filter.
-        assert_eq!(tracing_level_for(bindings::GGML_LOG_LEVEL_WARN), Level::DEBUG);
+        assert_eq!(
+            tracing_level_for(bindings::GGML_LOG_LEVEL_WARN),
+            Level::DEBUG
+        );
     }
 }
 

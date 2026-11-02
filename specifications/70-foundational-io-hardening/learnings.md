@@ -2,6 +2,681 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 39, rustfmt version pin): the nightly channel name and
+  the rustfmt commit date differ by one day. The CI image's rustfmt is
+  `1.10.0-nightly (feaadeeaca 2026-09-19)`. The channel that gives that
+  rustfmt is `nightly-2026-09-20`. The date in the version string is the
+  commit date, not the channel name. Pin the channel, not the commit date.
+  `cargo fmt --all` does not touch `crates/*` (they are excluded), so each
+  standalone crate there needs its own `cargo fmt`. rustfmt needs two passes
+  on a few long `format!` calls inside `match` arms: the first `cargo fmt
+  --all` left one file flagged and a second run settled it. Run `cargo fmt
+  --all` and then `--check` until clean. The first `--check` counted 7292
+  `Diff in` lines. That is diff hunks across 1372 files, not 7292 files.
+  Generated code must stay byte-identical to the generator output: the
+  Cloudflare per-group build script regenerates on any difference, so those
+  43 shims are excluded with a `rustfmt.toml` `ignore` list, not reformatted.
+  The feature 08 learning "the repo is not fmt-clean" is now resolved.
+
+- 2026-11-02 (feature 19 E4, foundation_nativeapis): the local `turso`
+  engine (crate `turso` 0.8.3) can back a local delta store. It is not the
+  same as `LibsqlDelta` (remote Turso through the `libsql` 0.9 crate). The
+  two crates differ. `turso` `Statement::query` and `Statement::execute`
+  take `&mut self`; libsql consumes the statement. `turso` `execute_batch`
+  and `execute` fail with "unexpected row during execution" on any statement
+  that returns rows; libsql discards those rows. `PRAGMA
+  wal_checkpoint(TRUNCATE)` and the four open PRAGMAs (`journal_mode = WAL`,
+  `synchronous = NORMAL`, `foreign_keys = ON`, `busy_timeout = 5000`) all
+  return rows. Run them with `conn.query` and drain the rows. The PRAGMA
+  side effect happens on the first step; an undrained `Rows` does nothing.
+  Depend on `turso` with `default-features = false`; its default features
+  pull in `mimalloc` (a global allocator). `turso` is native-only, so gate
+  the dependency and module behind `cfg(not(target_arch = "wasm32"))` (the
+  same as `foundation_db`). The `turso` async chain overflows the default
+  `recursion_limit` while proving `Send` through the `async_trait` boxed
+  futures; set `#![recursion_limit = "256"]` on the crate root and the test
+  file (the same root cause and fix as feature 35). For the pedantic clippy
+  casts, use `cast_signed()` and `cast_unsigned()` (stable since Rust 1.87)
+  for same-width sign changes, `i64::from` and `u64::from` for lossless
+  widening, and `try_from(...).unwrap_or(0)` or `.expect(...)` for the rest.
+  The `uid` and `gid` local bindings trip `similar_names`; allow it on
+  `from_row`.
+
+- 2026-11-02 (feature 19 E10, foundation_nativeapis):
+  `foundation_core::blocking_boundary!` evaluates `foundation_core`'s own
+  `js-wasmbindgen`/`js-foundation-wasm` features (after feature unification),
+  not the dependent crate's `cfg`, so a dependent crate must not write its
+  own `cfg(wasm ...)`; it just wraps items in the macro. The macro keeps
+  items on native and plain wasm and drops them on JS-hosted wasm. Put `///`
+  doc comments INSIDE the macro, not just before it — a doc comment on a
+  macro invocation trips `unused_doc_comments`. The macro wraps a whole
+  module body and also a single method inside an `impl` block. When you gate
+  a module, gate every reference too: `pub use` re-exports, crate-root
+  re-exports, and callers (here `DynFs::from_async`). Move imports that only
+  the gated code uses inside the macro, or the JS-hosted wasm build warns
+  about unused imports. To verify a JS-hosted wasm build of a crate that
+  does not forward the js features, use a scratch crate outside the repo
+  that depends on both the crate and `foundation_core` with
+  `js-wasmbindgen`, and set `RUSTUP_TOOLCHAIN` to the repo toolchain: outside
+  the repo the `rust-toolchain.toml` override does not apply, and stable
+  cargo then fails on the `CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift` env
+  var.
+
+- 2026-11-02 (feature 19 E9, foundation_nativeapis): a per-store copy chunk
+  size is a defaulted trait method `copy_chunk_size()` (32 KiB, Go
+  `net/http` `io.Copy`), not a const; a config-backed store overrides it.
+  `read_at`/`read_at_async` may return fewer bytes than asked at end of
+  file, so the copy loop must advance by the returned count and stop on zero
+  (or an empty `Vec`), never assume a full read. A counting VFS that observes
+  read sizes must wrap the `File` type (reads happen on the file handle);
+  changing `File` forces the `Directory` associated type to change too, so
+  stub the unused `Directory` with `unimplemented!()` methods, because the
+  default `copy` never opens a directory. `usize::try_from(...).unwrap_or(usize::MAX)`
+  avoids the clippy `cast_possible_truncation` warning when a `u64` size is
+  narrowed to `usize`.
+
+- 2026-11-02 (feature 19 E8, foundation_nativeapis): the NFS v3 READDIR
+  cookie is the previous entry's `fileid`, so `start_after` must be matched
+  against the entry fileids, not against an index into the raw list. Resolve
+  every entry's fileid in list order before paginating, so the ids equal the
+  cookies the client sends back. `MemoryFs` lists children in name order, so
+  paging through it is deterministic. nfsserve's `nfstime3.seconds` is 32
+  bits; convert 64-bit seconds with
+  `u32::try_from(d.as_secs()).unwrap_or(u32::MAX)` to saturate without the
+  clippy `cast_possible_truncation` warning. In one test binary, manual
+  `initialize_pool` and `#[valtron_test]` cannot coexist (the valtron pool is
+  process-wide), so tests added to a file that already uses manual
+  `init_pool` must reuse the file's manual `run_*_async` pattern.
+
+- 2026-11-02 (feature 19 E7, foundation_nativeapis): when one type implements
+  both `VfsFileSystem` and `AsyncVfsFileSystem`, `capabilities` is the only
+  method name the two traits share (every other async method has an `_async`
+  suffix). A call such as `self.inner.capabilities()` in the sync
+  `VfsFileSystem` impl then fails with E0034; qualify it as
+  `VfsFileSystem::capabilities(&self.inner)`. The async face is sync-native:
+  each async method delegates to the sync trait method. Re-wrap the
+  `Box<dyn VfsDirectory>` results of `create_dir` / `open_directory` in an
+  `AsyncInodeDirectory` wrapper (the same shape as `AsyncMemoryDirectory`).
+  A private helper that is never called (here `InodeDir::new`, replaced by
+  struct literals) trips `dead_code`, so delete it. The `#[valtron_test]`
+  macro drives an `async fn` directly with `.await`; no manual
+  `initialize_pool` is needed.
+
+- 2026-11-02 (feature 19 E6, foundation_nativeapis): `async_trait` boxes the
+  `DocumentStore` futures as `Send`, so an async VFS store must never hold a
+  `std::sync` lock guard across an `.await` (the guards are not `Send`). Two
+  patterns: for writes, mutate the batch and advance the high water mark under
+  the lock, drop the guard, then await the VFS write; for reads, scope the
+  read guard to a block that returns before the VFS await. The fjall range
+  iterator is not `Send`, so a `Vec`-returning helper (`collect_rows`) must
+  collect the decoded index entries first and await the document reads
+  afterwards. Calling `read_at_async`/`write_at_async`/`sync_data_async`/
+  `size_async` on `<V as AsyncVfsFileSystem>::File`, and `list_async` on its
+  `Directory`, needs the `AsyncVfsFile` and `AsyncVfsDirectory` traits in
+  scope (not just `AsyncVfsFileSystem`), or method resolution fails with
+  E0599. `MemoryFs` implements both the sync and async VFS traits, so the
+  tests move to it, and the read-open counting wrapper now implements
+  `AsyncVfsFileSystem` and counts `open_async(Read)`.
+
+- 2026-11-02 (feature 19 E5, foundation_nativeapis): fjall's `range` returns
+  a `!Send` iterator (`Box<dyn DoubleEndedIterator + 'static>` with no `Send`
+  bound, from lsm-tree), so it cannot live in an `AsyncStorageItemStream`
+  (which is `Send` on non-wasm). Bridge it with a producer `std::thread` that
+  owns the iterator and pushes decoded index entries through a bounded valtron
+  `Pipe`; the thread blocks on a full pipe with
+  `futures_lite::future::block_on(tx.send(msg))` (backpressure, no valtron pool
+  needed) and the stream drains with `rx.receive().await` in
+  `futures_lite::stream::unfold`. Dropping the stream's receiver closes the
+  pipe, which unblocks the producer's send, so the thread exits. The laziness
+  test counts `VfsFileSystem::open(Read)` calls through a delegating wrapper
+  over `InodeFs`; the collection must be flushed first, because unflushed
+  batches are read from memory, not through the VFS.
+
+- 2026-11-02 (feature 25 E3, foundation_deployment_huggingface): a lazy
+  pagination iterator over async page fetches must drive each fetch with
+  `block_on_future` inside `Iterator::next`. That blocks the calling thread
+  and parks the fetch on the valtron pool, so it is safe only with the crate's
+  `multi` feature (the default, at least two task workers). The next page URL
+  is taken verbatim from the `Link` header, so the mock server builds the
+  absolute URL from the request's `Host` header.
+
+- 2026-11-02 (feature 25 E2, foundation_deployment_huggingface): the netio
+  client always chunk-frames a `SendSafeBody::Stream` request body — its
+  `SimpleIncomingRequest::build()` removes any `Content-Length` and adds
+  `Transfer-Encoding: chunked`. So a streamed upload computes and exposes its
+  length up front, but the wire uses chunked framing, not `Content-Length`.
+  The local `TestHttpServer` reads both sized and chunked request bodies to
+  completion before the handler runs, so body-exact assertions still work.
+
+- 2026-11-02 (feature 19 E3, foundation_nativeapis): the shim only compiles on
+  Linux (`target_os = "linux"` gate in `native/vfs/mod.rs`), so macOS cannot
+  type-check it. `cargo check --target x86_64-unknown-linux-gnu` fails on the
+  `ring` crate's build script (no `x86_64-linux-gnu-gcc`), not only on the
+  shim's own C file, so a local Linux cross-check is not possible. Validate the
+  Linux-only code by manual review plus a macOS `--test vfs_shim_vfs --no-run`
+  (the `#![cfg(target_os = "linux")]` file still parses). Also: the D1/R2 shim
+  branches must `initialize_pool` and keep the `PoolGuard`, exactly like the
+  sqlite branch — `DynFs::from_async` is `SyncFs` over `exec_async`, which
+  fast-paths ready-once futures (memory delta) but drives pending HTTP futures
+  through the valtron pool. The standard CI `runs` for foundation_nativeapis
+  do not include `vfs-preload`, so `vfs_shim_vfs` (and the shim) are not built
+  there; the D1 test needs `--features vfs-preload,vfs-d1` and a local
+  Cloudflare emulator.
+
+- 2026-11-02 (feature 25 E1, foundation_deployment_huggingface): the async
+  seam is `send_async` -> `into_async_parts()` (not `into_parts()`, which drops
+  the body's read-wake source). `AsyncSendSafeBody` is `Unpin`, so
+  `futures_lite::StreamExt::next().await` drains it without a manual `Pin`.
+  Sync callers at the boundary use
+  `block_on_future({ let x = x.clone(); async move { f(&x).await } })` because
+  the future must be `Send + 'static`. A `#[valtron_test] async fn` returning
+  `Result<(), Box<dyn std::error::Error>>` fails the `Send` bound
+  (`Box<dyn Error>` is `!Send`); return the concrete error or
+  `Box<dyn Error + Send + Sync>`.
+
+- 2026-11-02 (feature 19 E2, foundation_nativeapis): the `d1_delta::chunking`
+  module was gated `#![cfg(feature = "vfs-d1")]` inside `d1_delta`, but
+  `blob_delta` compiles for both `vfs-d1` and `vfs-r2`, so the chunking logic
+  could not live there. Put the chunk slice/assemble helpers in `blob_delta.rs`
+  (gated `any(vfs-d1, vfs-r2)`) and delete the unused `d1_delta::chunking`,
+  `d1_delta::types` and `r2_delta::types` modules. Also: `MemoryStorage` has no
+  byte counter, so `blob_delta_small_writes_touch_one_chunk` needs a small
+  `BlobStore` wrapper in the test that forwards every method and counts
+  `put_blob` bytes; `foundation_db` re-exports `BlobStore`/`StorageResult` at
+  the root but `BlobListStream` only under `foundation_db::traits`.
+
+- 2026-11-02 (feature 19 E1, foundation_nativeapis): `BlobStore::list_blobs_after`
+  returns a bare `BlobListStream` (`Pin<Box<dyn Stream<Item = StorageResult<String>> + Send>>`)
+  with no `collect_all`, so a consumer needs a `StreamExt` in scope.
+  `foundation_db` already depends on `futures-lite`; `foundation_nativeapis` had
+  it only behind `vfs-fjall`. Add `dep:futures-lite` to `vfs-d1`/`vfs-r2`
+  rather than reaching into `foundation_core::valtron::StreamExt`. Also: D1
+  `list_keys` matches with SQL `LIKE`, so `%` and `_` in blob keys widen the
+  match; `list_blobs_after` must re-filter with `starts_with(prefix)` to keep
+  the literal contract.
+
+- 2026-11-02 (backlog §15 clippy cleanup, foundation_cedar): the
+  `assert_is_empty` fix has three more traps beyond the earlier `[] as [T; 0]`
+  note. (1) A plain `vec![]` in `assert_ne!(x, vec![])` fails E0282 ("type
+  annotations needed") because the empty vec's element type cannot unify through
+  the `PartialEq<Vec<T>> for Vec<T>` impl inside the macro; clippy's own form is
+  a typed empty array, `assert_ne!(x, [] as [T; 0])`. (2) Clippy emits a
+  fully-qualified element path that can name a private module —
+  `[] as [cedar_policy::api::id::PolicyId; 0]` does not compile because `api` is
+  private; use the public re-export `cedar_policy::PolicyId` instead. (3) For a
+  `String`, `assert_ne!(x, "")` compiles fine (no array needed).
+
+- 2026-11-02 (backlog §7 `vms` clippy follow-up, foundation_deployment_platform):
+  two more gotchas. (1) rustc and clippy colorize their output, so a `grep
+  "^warning:"` matches nothing on a colorized line; a crate can look clean
+  while 28 warnings remain. Strip ANSI codes first: `sed
+  's/\x1b\[[0-9;]*m//g'`. (2) `#[allow(clippy::cast_precision_loss)]` on a
+  `println!`/`eprintln!` macro call is ignored: the cast sits inside the
+  macro's generated code, so the allow is reported "unused" and the cast still
+  warns. Move the cast to a `let` binding and put the allow on that binding.
+  Also: the earlier note to write `.map_while(|l| l.ok())` for the `Result`
+  alias is incomplete — that closure form trips
+  `redundant_closure_for_method_calls`. Use the fully-qualified
+  `.map_while(std::result::Result::ok)` instead.
+
+- 2026-11-02 (backlog §7 `vms` clippy, foundation_deployment_platform): three
+  concrete gotchas from the manual pass. (1) `lines_filter_map_ok`'s
+  `map_while(Result::ok)` suggestion breaks when a local `type Result<T> = ...`
+  alias shadows `std::result::Result`; write `.map_while(|l| l.ok())` instead.
+  (2) `assert_is_empty`'s `assert_ne!(x, [])` suggestion does not compile for
+  `&[T]` (the empty-array element type cannot be inferred); use
+  `assert_ne!(x, [] as [T; 0])`. (3) `format_push_string`/`format_collect` need
+  `use std::fmt::Write as _;` for `write!`. Also: moving a test-only optional
+  dependency to `[dev-dependencies]` clears `unused_crate_dependencies` without
+  any new default-feature warning.
+
+- 2026-11-02 (backlog §7 clippy cleanup, foundation_deployment_platform): CI's
+  clippy and build steps run only `runs[0]` of `ci/packages.toml`. For
+  `foundation_deployment_platform` that is the default feature set, so the
+  `vms` feature tree is compiled only by `cargo test --features vms`, which
+  does not lint. A crate can therefore pass CI clippy while a feature-gated
+  tree still has hundreds of pedantic warnings. Check both feature sets by
+  hand with `--features vms` before calling the crate clean. Also: the
+  workspace-wide `fullfp16` rustc deprecation (`.cargo/config.toml`,
+  `aarch64-apple-darwin`) is reported once per crate as `generated 1 warning
+  (1 duplicate)`, so it looks like a real lint; it is tracked in backlog §10,
+  not a code defect. `cargo clippy --no-deps` is what isolates a crate's own
+  warnings from its path-dependency warnings.
+
+- 2026-11-02 (backlog §10 flaky-test fix, foundation_ai): the
+  `TestHttpServer`-based SSE mock (`sse_response`) sent no `Connection: close`,
+  so the mock kept the HTTP/1.1 connection open after the response. The SSE
+  client reads a `text/event-stream` body as a line-feed stream until EOF; it
+  ignores `Content-Length`. With no EOF the client parked after the buffered
+  events, the 100 ms idle timeout fired, and the reconnecting SSE task replayed
+  the tool-call deltas. The duplicated deltas made the accumulated arguments
+  JSON invalid. Fix: set `Connection: close` on the mock response so the client
+  sees EOF and never reconnects. The `json_response` helper already sets the
+  same header.
+
+- 2026-11-02 (backlog §10 candle-gemm fix, foundation_ai): the candle CPU
+  matrix multiply path uses the pure-Rust `gemm` crate (gemm-common 0.19.0)
+  when candle-core has no MKL and no Apple Accelerate. `init_gemm_fn` and
+  `init_gemm_cplx_fn` pick the `fma` kernel on `feature_detected!("fma")`
+  only. That kernel needs the V3 SIMD type. V3 needs AVX2 (and the features
+  AVX2 implies). The Docker Desktop linux/amd64 CPU reports `fma` but not
+  `avx2`. `V3::try_new()` then returns `None`, and the `__inject_mod!`
+  `.unwrap()` panics. The panic shows at `gemm-f32-0.19.0/src/gemm.rs:3:5`.
+  Fix: vendor gemm-common 0.19.0 under `patches/gemm-common`, add
+  `[patch.crates-io]`, and require `fma` and `avx2` before the fma kernel.
+  macOS still compiles: the check is inside an x86/x86_64 cfg block, and every
+  AVX2 CPU also has FMA, so the gate does not change on real hardware.
+
+- 2026-11-02 (backlog §10 wasm32 Send fix, foundation_ai): valtron re-exports
+  `sleep_async` from `non_sendables` or `sendables` based on foundation_core's
+  `multi` feature. On wasm32 `multi` is off (single-threaded), so `sleep_async`
+  is `non_sendables::sleep_async`; its `timer.into_ready_future().await` future
+  holds the single-threaded executor and is `!Send`. Awaiting it inside an
+  `#[async_trait]` method on a `Send + Sync` trait makes the boxed future
+  `!Send`, so the wasm32 `--no-default-features` check fails with three `Send`
+  errors. The fix wraps the sleep future in `foundation_compact::SendWrapper`,
+  which has a wasm-only `unsafe impl Send` (one thread, so the assertion is
+  vacuously true) plus a `Future` impl. On native the same wrapper auto-derives
+  `Send` from the inner future, so the code is unchanged there.
+
+- 2026-11-02 (feature 16 E8 follow-up, foundation_ai): the pub/sub `Appended`
+  event id must reuse the record's own id, not mint a fresh one. `write()` stores
+  a memory record under its own id (`append_promotable_with_id`), so a fresh
+  mint in `append()` makes the event id differ from the stored `doc_id`. The
+  fix routes `WorkingMemory` / `Observation` / `Reflection` through the record's
+  id in the event match, matching `Conversation`. `Retracted` still mints a
+  fresh id because `write()` stores it through the non-idempotent `append`, not
+  its `id` field; that is a separate gap.
+
+- 2026-11-02 (feature 16 E8, foundation_ai): `append_with_id` /
+  `append_promotable_with_id` idempotency is keyed on `(collection key, doc_id)`.
+  The `doc_id` must be STABLE across a retry: mint it once in the record
+  constructor, never at the write site and never from wall-clock time. The
+  `Conversation` arm of `MessageInner::write` was already on `append_with_id`;
+  `session.rs` / `agent_loop.rs` only buffer via `MessageApi::append`, and the
+  real write is in `MessageInner::write`. The `Retracted` / `FailedAction` /
+  `Summary` variants carry no id, so they cannot be idempotent without a schema
+  change.
+
+- 2026-11-02 (backlog §13 fuse_vfs fix, foundation_nativeapis): `fuser` 0.15
+  (resolved 0.15.1) declares `default = ["libfuse"]` and `libfuse =
+  ["pkg-config"]`. A bare workspace dependency `fuser = "0.15"` pulls in
+  libfuse, whose build script probes for a system fuse3 via pkg-config and
+  panics when it is absent. The pure-Rust mount implementation is the
+  non-default path: set `default-features = false` on the WORKSPACE dependency.
+  A member-level `default-features = false` on a `fuser = { workspace = true,
+  optional = true }` dependency did not take effect (seen with `cargo tree -e
+  features`); the override must sit on the workspace dependency itself.
+  `fuser`'s public API (MountOption, Session, BackgroundSession, Filesystem,
+  the Reply* types) is not feature-gated and compiles the same in pure-Rust
+  mode, so only the one workspace line changed.
+
+- 2026-11-01 (feature 13 E1, foundation_deployment_platform): a mock daemon can
+  serve a `follow=true` log stream with a plain `Content-Length` response. The
+  client reads exactly the declared bytes and then ends the stream, so the mock
+  does not need to hold the connection open. `LogFrameDecoder` yields a frame as
+  soon as its 8-byte header and payload are complete, so two frames written in
+  one `write_all` still arrive as two `LogOutput::StdOut` items.
+  `futures_lite::future::race` needs both futures to share one output type; a
+  local enum (`FrameOrTimeout`) unifies `frames.next()` and the timeout. A `Fn`
+  handler passed to `mock_socket::serve` cannot move an `Arc` into an inner
+  `thread::spawn` closure — clone the `Arc` first. `ErrorTrace` exposes its
+  context with `current_context()`, not `as_error()`.
+
+- 2026-11-01 (feature 13 E2, foundation_deployment_platform):
+  `DockerClient::connect_with_defaults()` over a Unix socket is infallible and
+  lazy: it returns Ok even when `/var/run/docker.sock` is missing, because the
+  dial happens on the first request. A daemon-availability check must therefore
+  ping the daemon (`negotiate_version()`), not just connect. A sync
+  `#[valtron_test]` fn body runs on the test thread (not a pool worker), so a
+  sync `docker_available()` that wraps `block_on_future` is safe there and in a
+  plain `#[test]`, as long as the pool is initialized before the ping.
+
+- 2026-11-01 (feature 13 E3, foundation_deployment_platform):
+  `block_on_future` needs a `'static` future, so an async function that borrows
+  `&VmProfile` cannot be driven by it. Pass the profile's `&'static str`
+  `image_name` by value instead; the future then owns a `Copy` reference and is
+  `'static`. The netio `ClientConfig::max_body_size` enforces the body cap at
+  transport level: a `Content-Length` larger than the cap is rejected before
+  reading, and a chunked body is truncated by `LimitedEOFStreamReader`, so
+  `collect_bytes_async` reads a bounded body without a second explicit cap. A
+  plain `std::net::TcpListener` on `127.0.0.1:0` serves as a local HTTP mock
+  for `send_async` tests under `#[valtron_test]`.
+
+- 2026-11-01 (feature 17 PR 2, verification): the six-crate CI block
+  (`foundation_db`, `foundation_auth`, `foundation_deployment_cloudflare`,
+  `foundation_nativeapis`, `foundation_vectors`, `foundation_cedar`) and the
+  workspace check are green in the dev profile after the disk was freed. The
+  only warning is a pre-existing unused `urlencoding` dependency in
+  `foundation_deployment_cloudflare` (recorded in backlog §6). Committed as
+  `28f951edf`; the Linux CI gate is the remaining check.
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): a migration that rebuilds a table
+  cannot be tested by creating the old shape and then running the whole
+  migration set. The old `rate_limits` shape has no `window_end`, so migration
+  014's `CREATE INDEX ... ON rate_limits(window_end)` fails on it before the
+  rebuild migration runs. The test marks every migration except 027 as already
+  applied in `_migrations`, then runs the runner, so only 027 runs
+  (DROP + CREATE + CREATE INDEX against the new shape).
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): auth tables store timestamps in
+  Unix milliseconds (the IdP already writes milliseconds; `created_at` defaults
+  are already milliseconds). Migration 026 converts legacy whole-second values
+  with `UPDATE ... WHERE col > 0 AND col < 10000000000`, which is idempotent and
+  leaves real millisecond values alone. `rate_limits` stays in seconds, so
+  `run_full_cleanup` reads both clocks (`unix_now_millis` and `unix_now_secs`).
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): a fixed-window rate-limit record
+  is atomic in one SQLite statement with `INSERT ... ON CONFLICT(key) DO UPDATE
+  ... RETURNING count`. The `RETURNING` row is read once from the query stream,
+  not buffered (rule 4). Workers KV has no atomic read-modify-write, so its
+  `RateLimiterStore` stays as an explicitly best-effort option with a doc
+  warning; the exact path is D1 (or a Durable Object).
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): `futures_util::future::join_all`
+  (0.3) accepts non-`Unpin` async-trait futures (`impl<F: Future> Future for
+  JoinAll<F>` has no `F: Unpin` bound). It drives the 50 concurrent
+  `record_rate_limit` calls in the E8 test over the local Turso store, which
+  serialises writes the way D1 does.
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): wasm stores kept a second
+  inherent `*_async` API alongside the traits. E10 makes those inherent methods
+  private, removes the unused valtron helper path in `d1_wasm.rs`, and routes
+  `storage_provider`, `foundation_auth`, `wasm/session.rs` and the
+  `cf-login-app` example through the trait methods. The gate
+  `rg -n 'pub (async )?fn \w+_async' backends/foundation_db/src/wasm` is now
+  empty.
+
+- 2026-11-01 (feature 17 PR 2, foundation_db): the `examples/cf-*` directories
+  are self-contained wasm32 workspaces excluded from the main workspace, so
+  `cargo metadata` never lists them. The CI `examples` job is a synthetic
+  package: `ci.py load_workspace` adds it after the metadata loop, and
+  `commands()` special-cases its name to build each `examples/cf-*/Cargo.toml`
+  for `wasm32-unknown-unknown` plus the native `answerme-agent`.
+
+- 2026-11-01 (bug-backlog §13, foundation_reactor): the macOS kqueue waker fix.
+  `filt_usertrigger` in XNU copies the `NOTE_TRIGGER` kevent's `udata` onto the
+  knote (`kn->kn_udata = kev->udata`), so the returned event's `udata` is the
+  trigger's, not the one stored by `EV_ADD`. `register_waker` stored the token as
+  the `EV_ADD` `udata`, but `wake` triggered with a null `udata`, so the event
+  came back with `Token(0)`. Fix: in `wake`, pass the stored token
+  (`waker_token.0 as *mut c_void`) as the trigger `udata`. Verified by the 12
+  tests in `foundation_nativeapis --test poll` (dev profile), including the two
+  previously failing `waker_wakes_*` tests.
+
+- 2026-11-01 (version bump, workspace): commit `a896ff0bb` bumped `foundation_db`
+  to 0.0.5 but missed three consumers (`foundation_deployment_docker`,
+  `foundation_deployment_hetzner`, `foundation_deployment_digitalocean`). They
+  pin `version = "0.0.4"` on the line after `path` in a multi-line
+  `[dependencies.foundation_db]` table, so a same-line grep misses them.
+  `cargo metadata` then fails for the whole workspace and every CI gate dies
+  pre-flight. Feature 16 added public API (`generate_async`, async
+  `embed`/`embed_batch`, the `record`/`hydrate` renames, `max_error_body`) but
+  kept `foundation_ai` at 0.0.2. Bump it to 0.0.3 and both consumers
+  (`bin/platform`, `apps/answerme-agent`) in the same change. Use a `tomllib`
+  scan for version checks; it reads both inline and multi-line `version`
+  fields.
+
+- 2026-11-01 (feature 12, foundation_deployment_docker): moving the seven client
+  methods onto the generated request/response types changes their public return
+  type from JSON to typed structs, so it is a breaking change that needs the
+  version bump and the one consumer's `version` update in the same change (rule
+  12). The mock-daemon Unix socket under the deep `target/uat` directory exceeds
+  macOS `SUN_LEN` (104 bytes), so `docker_restart_container_defaults` fails
+  there; it is test infrastructure, recorded in backlog §6.
+
+- 2026-11-01 (feature 20, foundation_nativeapis): `foundation_shell` is a
+  nushell stub (only `add`), not a process helper. The CLI searcher therefore
+  uses a small in-crate runner: a `BackgroundJobRegistry` offload worker runs
+  the blocking `Command`, and the async side parks on a valtron `Pipe`. The
+  child's stdout is read line by line with `BufReader::lines` and mapped into
+  results, never `read_to_end` (rule 4). Pipe only stdout; leave stderr on
+  `Stdio::null` unless you read it, or a full stderr pipe deadlocks the child.
+
+- 2026-11-01 (feature 20, foundation_nativeapis): the macOS mach-port code
+  compiled but failed at runtime because it turned a receive right into a send
+  right with `MACH_MSG_TYPE_COPY_SEND`. For a port the process owns, the
+  correct type is `MACH_MSG_TYPE_MAKE_SEND`. `task_get_special_port` also needs
+  the bootstrap-port enum cast to `i32` and a `ptr::addr_of_mut!` output
+  pointer. Compile clean is not enough for mach rights; the call returns an
+  error the assert then trips.
+
+- 2026-11-01 (feature 20, foundation_nativeapis): the IPC client now receives
+  on an async future and matches responses by request id, so it no longer
+  holds a lock across a send and its receive. The join and poll timeouts are
+  fields on `VfsIpcConfig` (defaults 30 s join, 1 s poll, the poll cited from
+  Go `http.Server`); the search limits are fields on `SearchConfig` (50 per
+  file, 200 per page, 5 s budget, 30 s scan wait, cited from fff-search and
+  Caddy). Rule 8: put them on the config, not in the code path.
+
+- 2026-11-01 (feature 17, foundation_db): the Cloudflare R2 object-listing
+  endpoint is absent from the vendored OpenAPI spec that generates
+  `foundation_deployment_cloudflare`'s types, so the R2 listing types cannot be
+  generated with the rest. They are defined by hand in the new leaf crate
+  `foundation_cloudflare_types` (`R2ObjectInfo`, `R2ListObjectsResultInfo`,
+  `R2ListObjectsResponse`) to the shape the R2 REST API returns. The D1 `/query`
+  types there (`D1QueryResultResponse`, `D1QueryMeta`,
+  `D1QueryDatabaseResponse`) match the generated output exactly, so a later
+  generator run can replace them without a wire change. The leaf crate has no
+  dependency on `foundation_db` or `foundation_deployment`, so both storage
+  crates can depend on it (rule 5).
+
+- 2026-11-01 (feature 17, foundation_db): R2 returns object keys in
+  lexicographic order, so the cursor-driven listing stream (`list_after`) needs
+  no sort and can page by the last key of the previous page. Streaming page by
+  page keeps a large R2 bucket's listing from being read whole into memory
+  (rule 4).
+
+- 2026-11-01 (feature 24, foundation_testbed): `deno_core` 0.404 hard-codes
+  `DefaultReactor = TokioReactor` with no seam to swap it, so its timers, TCP
+  and WebSocket need a tokio runtime. `JsRuntime::poll_event_loop` cannot be
+  driven from a valtron task on valtron's clock. So `embedded_js.rs` keeps a
+  current-thread tokio runtime local to the module, behind the
+  `wasm-embedded-js` feature flag, documented as a third-party boundary.
+
+- 2026-11-01 (feature 16, foundation_ai): `futures_lite::future::Zip<F1, F2>`
+  stores `Option<F1::Output>` and `Option<F2::Output>`, so `zip(a, b)` is `Send`
+  only when both OUTPUT types are `Send`. A timing test that
+  `zip(model.generate_async(..), ticker).await` inside a `#[valtron_test]` async
+  body failed to compile because `GenerationError` held
+  `foundation_core::extensions::result_ext::BoxedError` (a non-`Send`
+  `Box<dyn Error>`). The fix: use `SendableBoxedError`
+  (`Box<dyn Error + Send + Sync>`) in `GenerationError`, `ModelErrors` and
+  `ModelProviderErrors`. The same root cause was hidden in the pre-existing E1
+  test; it is a correctness bug, not a test-only one.
+
+- 2026-11-01 (feature 16, foundation_ai): `tests/agentic/mod.rs` was both the
+  `agentic_tests` crate root and a `mod agentic` submodule of `tests/mod.rs`
+  (the `foundation_ai_tests` crate). A crate-level attribute such as
+  `#![recursion_limit = "256"]` therefore fixed one crate and added an
+  `unused_attributes` warning in the other.
+
+- 2026-11-02 (feature 16, foundation_ai): the `recursion_depth_exceeding_limit`
+  warning in `session_mock_tests.rs` is fixed by splitting the two crate roots.
+  `tests/agentic_tests.rs` is now the `agentic_tests` crate root. It holds
+  `#![recursion_limit = "256"]` and loads the shared module tree with
+  `#[path = "agentic/mod.rs"] mod agentic;`, so the existing module files keep
+  their paths. `tests/mod.rs` (the `foundation_ai_tests` crate root, not
+  shared) gains the same inner attribute. `tests/agentic/mod.rs` stays the
+  shared `mod agentic` list with no inner attribute, so neither crate warns
+  `unused_attributes`. The Cargo `[[test]] agentic_tests` path now points at
+  `tests/agentic_tests.rs`. Both test crates check without the warning and the
+  329 tests pass.
+
+- 2026-11-01 (feature 16, foundation_ai): the dev profile uses the Cranelift
+  codegen backend (`CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift` via mise), and
+  Cranelift cannot compile `gemm-f16`'s AArch64 inline assembly, so the E9
+  verify command `cargo test -p foundation_ai --no-default-features --features
+  testing --no-run` fails in the `gemm-f16` dependency before reaching
+  `foundation_ai`. Run it with `--profile uat` (llvm) to verify the submodule
+  removal. `cargo test` also takes one positional TESTNAME before `--`; several
+  filters go after `--` as libtest arguments.
+
+- 2026-11-01 (feature 21, foundation_cronjobs): the `cron` crate was rejected
+  and `saffron` 0.1 was chosen. `saffron` parses a five-field Quartz expression
+  (minute, hour, day of month, month, day of week). That matches the existing
+  `cron_expr` values such as `* * * * *`. The `cron` crate needs six or seven
+  fields with seconds first, so it would break every saved expression. In
+  `saffron`, the day of week is Quartz too: 1 is Sunday and 7 is Saturday. So
+  `1-5` is Sunday to Thursday, not Monday to Friday. Monday to Friday is `2-6`.
+
+- 2026-11-01 (feature 21, foundation_cronjobs): cron matching needs wall-clock
+  calendar fields (weekday, month, leap day). Valtron's `Clock` is monotonic
+  only and has no calendar. The crate adds a `CronClock` trait, a `UtcClock`
+  default and a `SharedCronClock`. The clock is injected by constructor
+  (threaded through `JobRunTask::new` / `into_run_task` / `into_run_tasks` and
+  stored in `JobRunState`), never read from `Ctx` — a missing clock is a caller
+  error, not a silent `UtcClock` fallback (rule 11). The `#[task]` macro
+  generates a braced struct that hides its state, so the crate writes a manual
+  `AsyncStateTask` wrapper (`JobRunTask`). That wrapper keeps its state in an
+  `Arc<Mutex<JobRunState>>` and exposes `snapshot()`.
+  `saffron::Cron::next_after` returns the next fire strictly after the input,
+  at whole minutes.
+
+- 2026-11-01 (feature 21, foundation_cronjobs): `TursoStorage::new` inside an
+  async test triggers a `recursion_depth_exceeding_limit` warning from the
+  `async_trait` Send-check. The fix used in `foundation_db/src/lib.rs`
+  (`#![recursion_limit = "256"]`) is also needed at the top of the test crate
+  (`tests/scheduler_tests.rs`), because each test target has its own recursion
+  limit.
+
+- 2026-11-01 (feature 21, foundation_cedar): `EntityId::new(id)` is infallible
+  in `cedar-policy` 4.11. The old `EntityId::from_str(id).map_err(..)` mapped
+  an error type that cannot occur (`Infallible`), which caused the rustc
+  `unreachable call` warnings; `new` removes them. A `PolicyBundle` struct plus
+  a `PolicyStore::load_all` default method lets `SqlPolicyStore` read its row
+  once (four columns in one `SELECT`) instead of once per field. Clippy still
+  reports 24 pre-existing `pedantic` warnings in untouched cedar library and
+  test files; they are recorded in `docs/bug-backlog.md` §15.
+
+- 2026-11-01 (bug-backlog §13): macOS kqueue reports `EVFILT_READ`
+  level-triggered for pipes despite `EV_CLEAR`. A C probe confirmed it: byte
+  counts 5, 3 and 9 all fire, and re-registering with fresh `EV_CLEAR` does not
+  help. The `data` field is the bytes available, which is reliable. So the
+  selector tracks the read edge in software: it delivers a readable event once per
+  edge and suppresses it while `data` has not grown. A drained fd must re-arm
+  (`rearm_readable`, wired to `reactor.clear`), or a drain-then-refill of the same
+  or fewer bytes is lost — the kernel cannot see the read.
+
+- 2026-11-01 (bug-backlog §13): the macOS kqueue waker (`EVFILT_USER`) returns
+  `udata = 0` after `NOTE_TRIGGER` with a null `udata`, so `Event::token()` reads
+  `Token(0)`, not the registered token. Linux epoll uses a different waker, so
+  this is macOS-only. `waker_wakes_from_another_thread` and
+  `waker_wakes_from_multiple_threads` fail locally for this reason.
+
+- 2026-11-01 (feature 26): `reactor_shared_selector_tests.rs` is gated
+  `#![cfg(all(unix, feature = "fd"))]`, and `fd` is not a default feature of
+  `foundation_nativeapis`, so `cargo test -p foundation_nativeapis` does not run
+  these tests — pass `--features fd`. `/proc/self/fd` exists only on Linux; any
+  test or helper that reads it must carry `#[cfg(target_os = "linux")]`, or it
+  panics at runtime on macOS (`.expect("procfs must be mounted")`), which a plain
+  `cargo check --all-targets` will not catch because the code compiles fine. The
+  portable pipe (`pipe` + `fcntl` on macOS, `pipe2` on Linux) was already present;
+  only the procfs gating remained.
+
+- 2026-11-01 (feature 36): `DnsResolver::resolve` became async via `#[async_trait]`
+  (the crate re-exports the macro). The `Arc<T>` blanket impl compiles with
+  `T: DnsResolver + ?Sized`, so `Arc<dyn DnsResolver>` still works. The trait also
+  gains a sync `resolve_blocking` (default = poll the boxed future with a
+  `std::thread::Thread::unpark` waker and `park` on `Pending`); valtron's
+  `block_on_future` cannot be used because it needs a `'static` future and
+  `resolver.resolve(..)` borrows the resolver. Critical: `SystemDnsResolver` and
+  `CachingDnsResolver` must override `resolve_blocking` to run `to_socket_addrs()`
+  inline — routing the sync path through the async offload calls
+  `run_background_job`, which panics ("Background job pool not initialized") on a
+  plain thread with no pool. Offloading `to_socket_addrs()` uses
+  `run_background_job` + `Pipe`;
+  the submit result is `AnyResult<(), Box<dyn Error>>` whose error is not `Send`,
+  so stringify it (`.map_err(|e| e.to_string())`) before the pipe `await` or the
+  async fn future stops being `Send` (E0310/E0277). The request task polls the
+  lookup through a new `Resolving` state that drains a `ConcurrentQueue<WakeToken>`
+  with `queue_waker(..)`, parks on `io_or_deadline(QueueReadiness, deadline)`, and
+  fails with `HttpClientError::ConnectionTimeout` at the configured
+  `dns_timeout` (default 30 s, nginx `resolver_timeout`). Gate the offload with
+  `#[cfg(not(target_family = "wasm"))]`; wasm keeps the blocking lookup inline
+  because its `DefaultResolver` is `NoopDnsResolver` and the browser resolves.
+
+- 2026-11-01 (feature 37): a transport with `conn_readiness() == None` needs two
+  fallback shapes. `IoReady` (wait to read or write) must sleep one poll-fallback
+  interval, then return `Ok`; the caller retries its syscall. Re-polling
+  `ready_now` forever never completes, because it always answers "not ready yet"
+  for such a transport. `Hangup` (wait for the peer to close) must re-poll
+  `gone_now` every interval and return `Ok` only on close/error. The raw-fd
+  `poll(2)` probe uses `POLLHUP`/`POLLERR`/`POLLNVAL`, plus `POLLRDHUP` on Linux.
+  Do not poll the completion socket's fd for *readiness*: `is_kernel_read()` is
+  true, so the kernel already moved the data into the inbox; the fd only still
+  tells close/error. The interval is a config field (rule 8), default 10 ms from
+  `POLL_DELAY` in `transport/h2.rs`; the wake is a valtron timer, never a spin.
+
+- 2026-11-01 (uuid via foundation_compact): do not give a consumer crate the
+  `uuid` crate's `js`/`v4`/`getrandom` features. Those bring a second entropy
+  path that bypasses rule 11 (one injected entropy seam). `uuid` 1.x offers
+  `Builder::from_random_bytes([u8; 16])` + `into_uuid()`, a `const fn` that only
+  sets the version-4 and RFC 4122 variant bits and needs no feature. So
+  `foundation_compact` depends on `uuid = { version = "1", default-features = false }`
+  and exposes `foundation_compact::uuid::new_v4()` which fills 16 bytes with
+  `foundation_compact::entropy::fill` (native OS RNG / wasm
+  `crypto.getRandomValues`) and then calls the builder. Consumers (for example
+  `foundation_keychain`) use `foundation_compact::uuid::{self, Uuid}` and never
+  depend on `uuid` directly. Inside `foundation_compact/src/uuid.rs`, write the
+  crate path as `::uuid::Builder` (leading `::`) so the extern prelude resolves
+  the crate, not the module of the same name.
+
+- 2026-11-01 (wasm fix, superseded): `uuid` 1.20 added a `compile_error!` on
+  `wasm32-unknown-unknown` when no randomness source is enabled (`js`,
+  `rng-getrandom`, or `rng-rand`). Of those three, only `js` works on wasm:
+  uuid target-gates its `getrandom` and `rand` dependencies to non-wasm, so the
+  other two features resolve to nothing there. `js` uses WebCrypto
+  `getRandomValues` and is a no-op on native (its `wasm-bindgen`/`js-sys` deps
+  are target-gated). The earlier fix — declaring `uuid = { version = "1",
+  features = ["v4", "js"] }` in a consumer crate — is now replaced by the
+  `foundation_compact` uuid module above. Do not restore the consumer-level
+  `js` feature.
+
+- 2026-11-01 (publish fix): a version bump must move every consumer, not just the
+  changed crate. `cargo package` resolves a `path = ".."` + `version = "0.0.6"`
+  dependency to crates.io `^0.0.6` (`>=0.0.6, <0.0.7`), not to the local tree. So
+  when `foundation_core` 0.0.6 was published before `request_executor_resume` and
+  `EventReadiness::clear` existed, `foundation_reactor` 0.0.1 (which uses both)
+  failed its publish tarball verification with E0425/E0407. The published 0.0.6 is
+  a floor, and `^0.0.6` excludes the fixed 0.0.7. Fix: bump `foundation_core` and
+  `foundation_macros` to 0.0.7 and bump every inline and table-format dependency on
+  them to `0.0.7` in the same change (43 manifests plus the lock). Do not bump
+  `foundation_nostd` (its own 0.0.6 is unrelated) or the cloud-provider crates'
+  own 0.1.x versions. A `release-plz` `release-pr` failure that looks like a
+  manifest parse problem is often the root manifest's nightly-only
+  `cargo-features = ["codegen-backend"]` (see the next entry).
+
+- 2026-11-01 (release-plz fix): the `release-pr` step failed because the root
+  `Cargo.toml` carried `cargo-features = ["codegen-backend"]`, a nightly-only
+  directive that stable Cargo 1.98.0 refuses to parse. release-plz runs `cargo
+  package --list` on stable, so it could not read `edition.workspace = true` and
+  failed. The `codegen-backend` choice lives in `mise.toml` `[env]`
+  (`CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift`, `_UAT_`=llvm,
+  `CARGO_UNSTABLE_CODEGEN_BACKEND=true`), not in the manifest; the manifest line is
+  redundant and wrong. Already fixed on master by `df86d7e6d`. A release that fails
+  only in `release-pr` (not `publish`) usually points at a root-manifest
+  `cargo-features`, not the crate being released.
+
+- 2026-11-01 (recursion fix): the `recursion_depth_exceeding_limit` warning on
+  `#[valtron_test]` tests is not a macro problem. It is the `turso` crate's deep
+  async chain (`Connection::execute`, `maybe_handle_dangling_tx`,
+  `Statement::execute`) overflowing the default 128 limit when `Send` is resolved.
+  The macro only forces the `Send` check (its `timeout` path spawns a
+  `std::thread`). The fix is `#![recursion_limit = "256"]` in the turso-backed
+  crates (`foundation_db` lib and the three test files in `foundation_db` and
+  `foundation_auth`), not a macro change. `recursion_limit` is per-crate, so each
+  integration-test binary that overflows needs its own attribute. Check the true
+  scope before trusting a spec: run `cargo check --workspace --all-targets` and
+  grep the warning, instead of the crate the spec names. A local rewrite cannot
+  avoid the limit: the depth is in turso's future *types* (its nested
+  `async fn` graph), not in our own nesting, so splitting the generic method or
+  hand-writing the boxed future still walks the same chain. Dropping `Send`
+  (`?Send`) would stop the recursion, but it is unavailable — `block_on_future`
+  (the `#[valtron_test]` / `#[valtron]` sync boundary) schedules onto the
+  multi-threaded pool and requires `F: Future + Send`. `recursion_limit` is the
+  intended knob for a third-party async graph deeper than the conservative 128.
+
 - 2026-10-31 (CI fix): a version bump must move the whole RustCrypto set together. The
   `pull/163/merge` inherited master's incomplete Dependabot bump of `sha2` from 0.10 to 0.11.
   `sha2` 0.11 uses `digest` 0.11.3; `hmac` 0.12, `pbkdf2` 0.12, and `argon2` 0.5 still use

@@ -17,22 +17,22 @@
 
 use std::sync::Arc;
 
-use bytes::{Buf, BufMut, Bytes};
+use bytes::{Buf, Bytes};
 use futures::StreamExt;
 
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
+use buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache};
 
-use foundation_http::ShutdownSignal;
 use foundation_core::url::Uri;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
-use foundation_netio::HttpClientBuilder;
+use foundation_http::ShutdownSignal;
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl, Status,
 };
+use foundation_netio::HttpClientBuilder;
 
 use foundation_connectrpc::shared::codec::{CodecFor, JsonCodec, ProcedureCodecs, ProtoCodec};
 use foundation_connectrpc::shared::protocol::connect::streaming_content_type;
@@ -42,8 +42,8 @@ use foundation_connectrpc::shared::protocol::grpc_web::{
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::H1Transport;
 use foundation_connectrpc::{
-    ConnectResult, ConnectRpcServe, HandlerOptions, IdempotencyLevel, Request, Response, Router,
-    Code, ConnectError,
+    Code, ConnectError, ConnectResult, ConnectRpcServe, HandlerOptions, IdempotencyLevel, Request,
+    Response, Router,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,9 +65,12 @@ impl DefaultInstance for TestMsg {
 
 impl Message for TestMsg {
     fn compute_size(&self, _c: &mut SizeCache) -> u32 {
-        0
+        let mut size = 0usize;
+        size += 1 + buffa::types::int32_encoded_len(self.id);
+        size += 1 + buffa::types::string_encoded_len(&self.name);
+        size as u32
     }
-    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl BufMut) {
+    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl EncodeSink) {
         Tag::new(1, WireType::Varint).encode(buf);
         encode_varint(self.id as u64, buf);
         Tag::new(2, WireType::LengthDelimited).encode(buf);
@@ -119,7 +122,9 @@ struct TestServer {
 /// Wait for the server to accept connections.
 fn wait_for_server(addr: std::net::SocketAddr) {
     for _ in 0..50 {
-        if std::net::TcpStream::connect_timeout(&addr, std::time::Duration::from_millis(200)).is_ok() {
+        if std::net::TcpStream::connect_timeout(&addr, std::time::Duration::from_millis(200))
+            .is_ok()
+        {
             return;
         }
         std::thread::sleep(std::time::Duration::from_millis(20));
@@ -197,7 +202,10 @@ fn error_stream_serve() -> Arc<dyn Serve> {
         ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
         |_ctx, req: Request<TestMsg>| async move {
             let items: Vec<ConnectResult<TestMsg>> = vec![
-                Ok(TestMsg { id: req.msg.id, name: "first".to_string() }),
+                Ok(TestMsg {
+                    id: req.msg.id,
+                    name: "first".to_string(),
+                }),
                 Err(ConnectError::internal("stream error after first frame").into()),
             ];
             Ok(futures::stream::iter(items))
@@ -220,7 +228,10 @@ fn client_stream_echo_serve() -> Arc<dyn Serve> {
             let mut s = reqs;
             while let Some(msg) = s.next().await {
                 match msg {
-                    Ok(m) => { count += 1; last = m; }
+                    Ok(m) => {
+                        count += 1;
+                        last = m;
+                    }
                     Err(_) => break,
                 }
             }
@@ -433,7 +444,10 @@ conformance_test!(
     {
         let (transport, server) = connect_transport();
 
-        let msg = TestMsg { id: 42, name: "proto-unary".into() };
+        let msg = TestMsg {
+            id: 42,
+            name: "proto-unary".into(),
+        };
         let body = proto_bytes(&msg);
 
         let desc = build_request_descriptor(
@@ -444,16 +458,23 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(body))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, headers) = stream.head.next().await
+        let (status, headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
         assert_eq!(status, Status::OK, "unary proto POST returns 200");
 
-        let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
+        let ct = headers
+            .get(&SimpleHeader::CONTENT_TYPE)
             .and_then(|v| v.first())
             .cloned()
             .unwrap_or_default();
@@ -484,7 +505,10 @@ conformance_test!(
     {
         let (transport, server) = connect_transport();
 
-        let msg = TestMsg { id: 99, name: "json-unary".into() };
+        let msg = TestMsg {
+            id: 99,
+            name: "json-unary".into(),
+        };
         let body = json_bytes(&msg);
 
         let desc = build_request_descriptor(
@@ -495,16 +519,23 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(body))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, headers) = stream.head.next().await
+        let (status, headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
         assert_eq!(status, Status::OK, "unary json POST returns 200");
 
-        let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
+        let ct = headers
+            .get(&SimpleHeader::CONTENT_TYPE)
             .and_then(|v| v.first())
             .cloned()
             .unwrap_or_default();
@@ -528,56 +559,61 @@ conformance_test!(
 
 // WHY: Handler errors must be rendered correctly per Connect spec.
 // WHAT: Handler returns permission_denied, verify HTTP 403 + JSON error body.
-conformance_test!(
-    connect_unary_error,
-    connect_unary_error_8_threads,
-    28103,
-    {
-        let serve = error_serve();
-        let server = start_server(serve);
-        let transport = H1Transport::new(HttpClientBuilder::new().build());
+conformance_test!(connect_unary_error, connect_unary_error_8_threads, 28103, {
+    let serve = error_serve();
+    let server = start_server(serve);
+    let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-        let msg = TestMsg { id: 1, name: "error".into() };
-        let body = json_bytes(&msg);
+    let msg = TestMsg {
+        id: 1,
+        name: "error".into(),
+    };
+    let body = json_bytes(&msg);
 
-        let desc = build_request_descriptor(
-            server.addr,
-            ECHO_PROCEDURE,
-            "application/json",
-            SimpleMethod::POST,
-        );
+    let desc = build_request_descriptor(
+        server.addr,
+        ECHO_PROCEDURE,
+        "application/json",
+        SimpleMethod::POST,
+    );
 
-        let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(body)).expect("send body");
-        stream.send_body.close();
+    let mut stream = transport.open(desc).expect("open transport");
+    stream
+        .send_body
+        .try_send(Bytes::from(body))
+        .expect("send body");
+    stream.send_body.close();
 
-        let (status, headers) = stream.head.next().await
-            .expect("response head")
-            .expect("head ok");
+    let (status, headers) = stream
+        .head
+        .next()
+        .await
+        .expect("response head")
+        .expect("head ok");
 
-        // permission_denied → 403
-        assert_eq!(status, Status::Forbidden, "permission_denied maps to 403");
+    // permission_denied → 403
+    assert_eq!(status, Status::Forbidden, "permission_denied maps to 403");
 
-        // Error body is JSON.
-        let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
-            .and_then(|v| v.first())
-            .cloned()
-            .unwrap_or_default();
-        assert_eq!(ct, "application/json", "error content-type is json");
+    // Error body is JSON.
+    let ct = headers
+        .get(&SimpleHeader::CONTENT_TYPE)
+        .and_then(|v| v.first())
+        .cloned()
+        .unwrap_or_default();
+    assert_eq!(ct, "application/json", "error content-type is json");
 
-        let mut body_bytes = Vec::new();
-        while let Some(chunk) = stream.recv_body.next().await {
-            body_bytes.extend_from_slice(&chunk.expect("body chunk"));
-        }
-
-        let err_body: serde_json::Value =
-            serde_json::from_slice(&body_bytes).expect("valid json error body");
-        assert_eq!(err_body["code"], "permission_denied");
-        assert_eq!(err_body["message"], "not allowed");
-
-        server.shutdown.turn_on();
+    let mut body_bytes = Vec::new();
+    while let Some(chunk) = stream.recv_body.next().await {
+        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
     }
-);
+
+    let err_body: serde_json::Value =
+        serde_json::from_slice(&body_bytes).expect("valid json error body");
+    assert_eq!(err_body["code"], "permission_denied");
+    assert_eq!(err_body["message"], "not allowed");
+
+    server.shutdown.turn_on();
+});
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 4: Connect — Unary GET Success
@@ -597,14 +633,14 @@ conformance_test!(
         let server = start_server(serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-        let msg = TestMsg { id: 77, name: "get-test".into() };
+        let msg = TestMsg {
+            id: 77,
+            name: "get-test".into(),
+        };
         let json_body = json_bytes(&msg);
         let encoded_msg = URL_SAFE_NO_PAD.encode(&json_body);
 
-        let query = format!(
-            "connect=v1&encoding=json&base64=1&message={}",
-            encoded_msg
-        );
+        let query = format!("connect=v1&encoding=json&base64=1&message={}", encoded_msg);
         let url = format!(
             "http://127.0.0.1:{}{}?{}",
             server.addr.port(),
@@ -624,17 +660,24 @@ conformance_test!(
         let mut stream = transport.open(desc).expect("open transport");
         stream.send_body.close(); // no body for GET
 
-        let (status, headers) = stream.head.next().await
+        let (status, headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
         assert_eq!(status, Status::OK, "unary GET returns 200");
 
-        let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
+        let ct = headers
+            .get(&SimpleHeader::CONTENT_TYPE)
             .and_then(|v| v.first())
             .cloned()
             .unwrap_or_default();
-        assert_eq!(ct, "application/json", "content-type is json for json encoding");
+        assert_eq!(
+            ct, "application/json",
+            "content-type is json for json encoding"
+        );
 
         let mut body_bytes = Vec::new();
         while let Some(chunk) = stream.recv_body.next().await {
@@ -663,7 +706,10 @@ conformance_test!(
     {
         let (transport, server) = connect_transport();
 
-        let msg = TestMsg { id: 0, name: "".into() };
+        let msg = TestMsg {
+            id: 0,
+            name: "".into(),
+        };
         let body = json_bytes(&msg);
 
         // Use a non-existent procedure path.
@@ -675,10 +721,16 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(body))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, _headers) = stream.head.next().await
+        let (status, _headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
@@ -716,17 +768,28 @@ conformance_test!(
         let mut stream = transport.open(desc).expect("open transport");
         stream.send_body.close(); // GET has no body
 
-        let (status, headers) = stream.head.next().await
+        let (status, headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
-        assert_eq!(status, Status::MethodNotAllowed, "GET to POST-only returns 405");
+        assert_eq!(
+            status,
+            Status::MethodNotAllowed,
+            "GET to POST-only returns 405"
+        );
 
-        let allow = headers.get(&SimpleHeader::from("allow".to_string()))
+        let allow = headers
+            .get(&SimpleHeader::from("allow".to_string()))
             .and_then(|v| v.first())
             .cloned()
             .unwrap_or_default();
-        assert!(allow.contains("POST"), "Allow header contains POST: {allow}");
+        assert!(
+            allow.contains("POST"),
+            "Allow header contains POST: {allow}"
+        );
 
         // Drain body.
         while let Some(chunk) = stream.recv_body.next().await {
@@ -752,7 +815,10 @@ conformance_test!(
         let server = start_server(serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-        let msg = TestMsg { id: 10, name: "seed".into() };
+        let msg = TestMsg {
+            id: 10,
+            name: "seed".into(),
+        };
         let json = json_bytes(&msg);
         let envelope = connect_envelope(&json);
 
@@ -764,16 +830,23 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(envelope))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, headers) = stream.head.next().await
+        let (status, headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
         assert_eq!(status, Status::OK, "server-stream returns 200");
 
-        let ct = headers.get(&SimpleHeader::CONTENT_TYPE)
+        let ct = headers
+            .get(&SimpleHeader::CONTENT_TYPE)
             .and_then(|v| v.first())
             .cloned()
             .unwrap_or_default();
@@ -825,16 +898,31 @@ conformance_test!(
         let mut stream = transport.open(desc).expect("open transport");
 
         // Send two messages.
-        let msg1 = TestMsg { id: 1, name: "first".into() };
-        let msg2 = TestMsg { id: 2, name: "second".into() };
+        let msg1 = TestMsg {
+            id: 1,
+            name: "first".into(),
+        };
+        let msg2 = TestMsg {
+            id: 2,
+            name: "second".into(),
+        };
         let enc1 = connect_envelope(&json_bytes(&msg1));
         let enc2 = connect_envelope(&json_bytes(&msg2));
 
-        stream.send_body.try_send(Bytes::from(enc1)).expect("send msg1");
-        stream.send_body.try_send(Bytes::from(enc2)).expect("send msg2");
+        stream
+            .send_body
+            .try_send(Bytes::from(enc1))
+            .expect("send msg1");
+        stream
+            .send_body
+            .try_send(Bytes::from(enc2))
+            .expect("send msg2");
         stream.send_body.close();
 
-        let (status, _headers) = stream.head.next().await
+        let (status, _headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
@@ -876,7 +964,10 @@ conformance_test!(
         let server = start_server(serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-        let msg = TestMsg { id: 1, name: "trigger".into() };
+        let msg = TestMsg {
+            id: 1,
+            name: "trigger".into(),
+        };
         let envelope = connect_envelope(&json_bytes(&msg));
 
         let desc = build_request_descriptor(
@@ -887,14 +978,24 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(envelope))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, _headers) = stream.head.next().await
+        let (status, _headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
-        assert_eq!(status, Status::OK, "streaming error returns 200 (error rides payload)");
+        assert_eq!(
+            status,
+            Status::OK,
+            "streaming error returns 200 (error rides payload)"
+        );
 
         let mut body_bytes = Vec::new();
         while let Some(chunk) = stream.recv_body.next().await {
@@ -928,7 +1029,10 @@ conformance_test!(
     {
         let (transport, server) = connect_transport();
 
-        let msg = TestMsg { id: 55, name: "grpc-web".into() };
+        let msg = TestMsg {
+            id: 55,
+            name: "grpc-web".into(),
+        };
         let proto = proto_bytes(&msg);
         let envelope = grpc_envelope(&proto);
 
@@ -940,10 +1044,16 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(envelope))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, _headers) = stream.head.next().await
+        let (status, _headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
@@ -965,7 +1075,9 @@ conformance_test!(
 
         // Verify grpc-status=0 in trailers.
         let grpc_status = trailers
-            .get(&SimpleHeader::from(grpc_web_consts::TRAILER_STATUS.to_string()))
+            .get(&SimpleHeader::from(
+                grpc_web_consts::TRAILER_STATUS.to_string(),
+            ))
             .and_then(|v| v.first())
             .cloned()
             .unwrap_or_default();
@@ -988,7 +1100,10 @@ conformance_test!(
         let server = start_server(serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-        let msg = TestMsg { id: 1, name: "grpc-error".into() };
+        let msg = TestMsg {
+            id: 1,
+            name: "grpc-error".into(),
+        };
         let proto = proto_bytes(&msg);
         let envelope = grpc_envelope(&proto);
 
@@ -1000,14 +1115,24 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(envelope))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, _headers) = stream.head.next().await
+        let (status, _headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
-        assert_eq!(status, Status::OK, "grpc-web error returns 200 (error rides trailers)");
+        assert_eq!(
+            status,
+            Status::OK,
+            "grpc-web error returns 200 (error rides trailers)"
+        );
 
         let mut body_bytes = Vec::new();
         while let Some(chunk) = stream.recv_body.next().await {
@@ -1018,7 +1143,9 @@ conformance_test!(
 
         // permission_denied → grpc-status=7
         let grpc_status = trailers
-            .get(&SimpleHeader::from(grpc_web_consts::TRAILER_STATUS.to_string()))
+            .get(&SimpleHeader::from(
+                grpc_web_consts::TRAILER_STATUS.to_string(),
+            ))
             .and_then(|v| v.first())
             .cloned()
             .unwrap_or_default();
@@ -1026,7 +1153,9 @@ conformance_test!(
 
         // grpc-message should contain the error message
         let grpc_message = trailers
-            .get(&SimpleHeader::from(grpc_web_consts::TRAILER_MESSAGE.to_string()))
+            .get(&SimpleHeader::from(
+                grpc_web_consts::TRAILER_MESSAGE.to_string(),
+            ))
             .and_then(|v| v.first())
             .cloned()
             .unwrap_or_default();
@@ -1051,7 +1180,10 @@ conformance_test!(
         let server = start_server(serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-        let msg = TestMsg { id: 20, name: "stream".into() };
+        let msg = TestMsg {
+            id: 20,
+            name: "stream".into(),
+        };
         let json = json_bytes(&msg);
         let envelope = grpc_envelope(&json); // gRPC envelope for request
 
@@ -1063,10 +1195,16 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(envelope))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, _headers) = stream.head.next().await
+        let (status, _headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
@@ -1090,7 +1228,9 @@ conformance_test!(
 
         // Verify grpc-status=0 in trailer frame.
         let grpc_status = trailers
-            .get(&SimpleHeader::from(grpc_web_consts::TRAILER_STATUS.to_string()))
+            .get(&SimpleHeader::from(
+                grpc_web_consts::TRAILER_STATUS.to_string(),
+            ))
             .and_then(|v| v.first())
             .cloned()
             .unwrap_or_default();
@@ -1115,13 +1255,19 @@ conformance_test!(
         let server = start_server(serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-        let msg = TestMsg { id: 1, name: "headers".into() };
+        let msg = TestMsg {
+            id: 1,
+            name: "headers".into(),
+        };
         let body = json_bytes(&msg);
 
         let url = format!("http://127.0.0.1:{}{}", server.addr.port(), ECHO_PROCEDURE);
         let uri = Uri::parse(&url).expect("valid URI");
         let mut headers = SimpleHeaders::new();
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/json".to_string()]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec!["application/json".to_string()],
+        );
         headers.insert(
             SimpleHeader::from("x-custom-foo".to_string()),
             vec!["bar".to_string()],
@@ -1140,10 +1286,16 @@ conformance_test!(
         };
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(body))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, response_headers) = stream.head.next().await
+        let (status, response_headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
@@ -1186,7 +1338,10 @@ conformance_test!(
         let server = start_server(serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-        let msg = TestMsg { id: 1, name: "resp-headers".into() };
+        let msg = TestMsg {
+            id: 1,
+            name: "resp-headers".into(),
+        };
         let body = json_bytes(&msg);
 
         let desc = build_request_descriptor(
@@ -1197,10 +1352,16 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(body))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, response_headers) = stream.head.next().await
+        let (status, response_headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
@@ -1211,7 +1372,11 @@ conformance_test!(
             .get(&SimpleHeader::from("x-response-custom".to_string()))
             .and_then(|v| v.first())
             .cloned();
-        assert_eq!(val.as_deref(), Some("header-value"), "response custom header present");
+        assert_eq!(
+            val.as_deref(),
+            Some("header-value"),
+            "response custom header present"
+        );
 
         // Drain body.
         while let Some(chunk) = stream.recv_body.next().await {
@@ -1238,7 +1403,10 @@ conformance_test!(
         let server = start_server(serve);
         let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-        let msg = TestMsg { id: 1, name: "trailers".into() };
+        let msg = TestMsg {
+            id: 1,
+            name: "trailers".into(),
+        };
         let body = json_bytes(&msg);
 
         let desc = build_request_descriptor(
@@ -1249,10 +1417,16 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(body))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, response_headers) = stream.head.next().await
+        let (status, response_headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 
@@ -1322,9 +1496,9 @@ conformance_test!(
         for (code, _expected_http, name) in &cases {
             let err: foundation_errstacks::ErrorTrace<ConnectError> =
                 ConnectError::new(*code, "test").into();
-            let body = foundation_connectrpc::shared::protocol::connect::unary_error_body(&err).expect("error body");
-            let parsed: serde_json::Value =
-                serde_json::from_slice(&body).expect("valid json");
+            let body = foundation_connectrpc::shared::protocol::connect::unary_error_body(&err)
+                .expect("error body");
+            let parsed: serde_json::Value = serde_json::from_slice(&body).expect("valid json");
             assert_eq!(parsed["code"], *name, "error body has correct code name");
         }
     }
@@ -1336,82 +1510,88 @@ conformance_test!(
 
 // WHY: Streaming EndStreamResponse must carry the error correctly.
 // WHAT: Handler returns error, verify EndStream frame with error details.
-conformance_test!(
-    error_end_stream,
-    error_end_stream_8_threads,
-    28117,
-    {
-        let serve = error_stream_serve();
-        let server = start_server(serve);
-        let transport = H1Transport::new(HttpClientBuilder::new().build());
+conformance_test!(error_end_stream, error_end_stream_8_threads, 28117, {
+    let serve = error_stream_serve();
+    let server = start_server(serve);
+    let transport = H1Transport::new(HttpClientBuilder::new().build());
 
-        let msg = TestMsg { id: 1, name: "endstream".into() };
-        let envelope = connect_envelope(&json_bytes(&msg));
+    let msg = TestMsg {
+        id: 1,
+        name: "endstream".into(),
+    };
+    let envelope = connect_envelope(&json_bytes(&msg));
 
-        let desc = build_request_descriptor(
-            server.addr,
-            LIST_PROCEDURE,
-            &streaming_content_type("json"),
-            SimpleMethod::POST,
-        );
+    let desc = build_request_descriptor(
+        server.addr,
+        LIST_PROCEDURE,
+        &streaming_content_type("json"),
+        SimpleMethod::POST,
+    );
 
-        let mut stream = transport.open(desc).expect("open transport");
+    let mut stream = transport.open(desc).expect("open transport");
 
-        stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+    stream
+        .send_body
+        .try_send(Bytes::from(envelope))
+        .expect("send body");
 
-        stream.send_body.close();
+    stream.send_body.close();
 
-        let (status, _headers) = stream.head.next().await
-            .expect("response head")
-            .expect("head ok");
+    let (status, _headers) = stream
+        .head
+        .next()
+        .await
+        .expect("response head")
+        .expect("head ok");
 
+    assert_eq!(
+        status,
+        Status::OK,
+        "error EndStream returns 200 (error rides payload)"
+    );
 
-        assert_eq!(status, Status::OK, "error EndStream returns 200 (error rides payload)");
-
-        let mut body_bytes = Vec::new();
-        while let Some(chunk) = stream.recv_body.next().await {
-            let chunk = chunk.expect("body chunk");
-            body_bytes.extend_from_slice(&chunk);
-        }
-
-        // Parse the stream: first data frame, then EndStream error frame.
-        let mut pos = 0;
-        let mut data_frames = 0;
-        let mut saw_error = false;
-        while pos + 5 <= body_bytes.len() {
-            let flags = body_bytes[pos];
-            let len = u32::from_be_bytes([
-                body_bytes[pos + 1],
-                body_bytes[pos + 2],
-                body_bytes[pos + 3],
-                body_bytes[pos + 4],
-            ]) as usize;
-            let start = pos + 5;
-            let stop = (start + len).min(body_bytes.len());
-            let payload = &body_bytes[start..stop];
-            if flags & FLAG_END_STREAM != 0 {
-                saw_error = true;
-                // The EndStream payload is JSON with nested error field:
-                // {"error":{"code":"internal",...},"metadata":{...}}
-                if !payload.is_empty() {
-                    let json: serde_json::Value =
-                        serde_json::from_slice(payload).expect("valid EndStream JSON");
-                    let code_str = json["error"]["code"].as_str().unwrap_or("unknown");
-                    assert_eq!(code_str, "internal", "EndStream error code is 'internal'");
-                }
-            } else {
-                data_frames += 1;
-            }
-            pos = stop;
-        }
-
-
-        assert!(data_frames >= 1, "at least one data frame before EndStream");
-        assert!(saw_error, "EndStream error frame present");
-
-        server.shutdown.turn_on();
+    let mut body_bytes = Vec::new();
+    while let Some(chunk) = stream.recv_body.next().await {
+        let chunk = chunk.expect("body chunk");
+        body_bytes.extend_from_slice(&chunk);
     }
-);
+
+    // Parse the stream: first data frame, then EndStream error frame.
+    let mut pos = 0;
+    let mut data_frames = 0;
+    let mut saw_error = false;
+    while pos + 5 <= body_bytes.len() {
+        let flags = body_bytes[pos];
+        let len = u32::from_be_bytes([
+            body_bytes[pos + 1],
+            body_bytes[pos + 2],
+            body_bytes[pos + 3],
+            body_bytes[pos + 4],
+        ]) as usize;
+        let start = pos + 5;
+        let stop = (start + len).min(body_bytes.len());
+        let payload = &body_bytes[start..stop];
+        if flags & FLAG_END_STREAM != 0 {
+            saw_error = true;
+            // The EndStream payload is JSON with nested error field:
+            // {"error":{"code":"internal",...},"metadata":{...}}
+            if !payload.is_empty() {
+                let json: serde_json::Value =
+                    serde_json::from_slice(payload).expect("valid EndStream JSON");
+                let code_str = json["error"]["code"].as_str().unwrap_or("unknown");
+                assert_eq!(code_str, "internal", "EndStream error code is 'internal'");
+            }
+        } else {
+            data_frames += 1;
+        }
+        pos = stop;
+    }
+
+    assert!(data_frames >= 1, "at least one data frame before EndStream");
+    assert!(saw_error, "EndStream error frame present");
+
+    server.shutdown.turn_on();
+});
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TEST 18: Unsupported Codec 415
@@ -1426,7 +1606,10 @@ conformance_test!(
     {
         let (transport, server) = connect_transport();
 
-        let msg = TestMsg { id: 0, name: "".into() };
+        let msg = TestMsg {
+            id: 0,
+            name: "".into(),
+        };
         let body = json_bytes(&msg);
 
         // application/xml is not a recognized codec — it parses as a Connect
@@ -1439,10 +1622,16 @@ conformance_test!(
         );
 
         let mut stream = transport.open(desc).expect("open transport");
-        stream.send_body.try_send(Bytes::from(body)).expect("send body");
+        stream
+            .send_body
+            .try_send(Bytes::from(body))
+            .expect("send body");
         stream.send_body.close();
 
-        let (status, headers) = stream.head.next().await
+        let (status, headers) = stream
+            .head
+            .next()
+            .await
             .expect("response head")
             .expect("head ok");
 

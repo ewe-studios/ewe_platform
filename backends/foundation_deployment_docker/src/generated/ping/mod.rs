@@ -34,6 +34,11 @@ use super::shared::ApiResponse;
 /// Same shape as `super::shared::EmptyArgs`.
 pub type SystemPingArgs = super::shared::EmptyArgs;
 
+/// Arguments for [`SystemPingHead_request`].
+///
+/// Same shape as `super::shared::EmptyArgs`.
+pub type SystemPingHeadArgs = super::shared::EmptyArgs;
+
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
 // =============================================================================
@@ -78,6 +83,55 @@ where
     let endpoint_url = format!("{}{}", base_url, path);
 
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    super::shared::send_bytes(client.into(), builder.build()).await
+}
+
+// -----------------------------------------------------------------------------
+// HEAD /_ping
+// -----------------------------------------------------------------------------
+
+/// HEAD /_ping.
+///
+/// Takes a client and args, builds the request, optionally applies
+/// modifications, then sends it via `send_async().await`.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Response body
+///
+/// Returned unread, as a stream of byte chunks: read it with `.next().await`.
+/// The status is checked before the body is touched.
+///
+/// # Example
+///
+/// ```ignore
+/// let response = system_ping_head_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {
+///     b.header("X-Custom-Header", "value");
+/// })).await?;
+/// ```
+pub async fn system_ping_head_request<F>(
+    client: impl Into<super::shared::ApiClient>,
+    _args: &SystemPingHeadArgs,
+    base_url: &str,
+    builder_mod: Option<F>,
+) -> Result<ApiResponse<super::shared::ByteStream>, super::shared::ApiError>
+where
+    F: FnOnce(&mut PreparedRequestBuilder),
+{
+    let path = format!("/_ping",);
+    let endpoint_url = format!("{}{}", base_url, path);
+
+    let mut builder = PreparedRequestBuilder::head(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     if let Some(f) = builder_mod {

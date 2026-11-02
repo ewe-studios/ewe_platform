@@ -6,9 +6,7 @@ use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{
     BodyLimitMiddleware, MiddlewareResult, RequestMiddleware,
 };
-use foundation_http::{
-    SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, Status,
-};
+use foundation_http::{SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, Status};
 
 fn request_with_content_length(bytes: usize) -> SimpleIncomingRequest {
     SimpleIncomingRequest::builder()
@@ -26,7 +24,10 @@ fn test_body_limit_enforces_max_bytes() {
 
     // Exactly at the limit is allowed.
     let mut ok = request_with_content_length(1024);
-    assert!(matches!(mw.handle(&ctx, &mut ok), MiddlewareResult::Continue));
+    assert!(matches!(
+        mw.handle(&ctx, &mut ok),
+        MiddlewareResult::Continue
+    ));
 
     // One byte over the limit is rejected.
     let mut too_large = request_with_content_length(1025);

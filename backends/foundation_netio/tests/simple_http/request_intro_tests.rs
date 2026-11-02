@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx, EventReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{valtron_test, Ctx, EventReadiness, TaskIterator, TaskStatus};
 use foundation_netio::http::{GetRequestIntroTask, HttpClientConnection, RequestIntro};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{HttpClientError, HttpReaderError};
@@ -24,7 +24,7 @@ use foundation_netio::shared::http::{HttpClientError, HttpReaderError};
 /// HOW: a loopback peer accepts and never writes; the client read timeout is
 /// 100ms. The task is driven with a hard iteration cap and a wall-clock bound,
 /// so a regression fails fast instead of hanging.
-#[test]
+#[valtron_test]
 fn blocking_transport_timeout_fails_once_and_terminates() {
     const MAX_STEPS: usize = 16;
 
@@ -87,7 +87,10 @@ fn blocking_transport_timeout_fails_once_and_terminates() {
         terminated,
         "task kept running after its terminal failure (unbounded retry loop)"
     );
-    assert_eq!(ready_failures, 1, "exactly one terminal failure is reported");
+    assert_eq!(
+        ready_failures, 1,
+        "exactly one terminal failure is reported"
+    );
     assert!(
         elapsed < Duration::from_secs(10),
         "task took {elapsed:?}; expected a single ~100ms read timeout"
@@ -106,7 +109,7 @@ fn blocking_transport_timeout_fails_once_and_terminates() {
 /// HOW: drive the task by hand. Expect a `Depends` whose signal is not ready
 /// at first (the peer is silent) and turns ready by itself at the deadline.
 /// One more step must then fail with `Timeout`, and the next must end.
-#[test]
+#[valtron_test]
 fn nonblocking_silent_peer_parks_then_times_out_once() {
     const MAX_STEPS: usize = 16;
     let head_timeout = Duration::from_millis(200);
@@ -175,7 +178,10 @@ fn nonblocking_silent_peer_parks_then_times_out_once() {
     stop_tx.send(()).expect("signal silent peer");
     peer.join().expect("silent peer thread");
 
-    assert!(parks >= 1, "the task must park on readiness, not fail at once");
+    assert!(
+        parks >= 1,
+        "the task must park on readiness, not fail at once"
+    );
     assert_eq!(timeouts, 1, "exactly one terminal timeout is reported");
     assert!(terminated, "task kept running after its terminal failure");
     assert!(

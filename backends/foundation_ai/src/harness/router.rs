@@ -122,8 +122,11 @@ impl RouterMix {
             .provider;
         let name = model.name().to_string();
 
-        let boxed: Box<dyn RoutableProvider> =
-            Box::new(RoutableProviderBox::with_identity(provider, name.clone(), provider_id));
+        let boxed: Box<dyn RoutableProvider> = Box::new(RoutableProviderBox::with_identity(
+            provider,
+            name.clone(),
+            provider_id,
+        ));
         self.providers.push(boxed);
         self.rules.push(RoutingRule {
             model: model.clone(),

@@ -13,13 +13,13 @@
 
 #![cfg(feature = "vfs")]
 
-mod memory;
 mod async_traits;
-mod overlay;
 mod errors;
+mod memory;
+mod overlay;
 mod vfs_task;
 
 #[cfg(feature = "vfs-sqlite")]
-mod sqlite;
-#[cfg(feature = "vfs-sqlite")]
 mod seekable;
+#[cfg(feature = "vfs-sqlite")]
+mod sqlite;

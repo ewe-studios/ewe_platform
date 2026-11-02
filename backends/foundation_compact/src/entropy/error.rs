@@ -155,10 +155,7 @@ impl Error {
             Error::IOS_RANDOM_GEN => "SecRandomCopyBytes: iOS Security framework failure",
             #[cfg(all(windows, target_vendor = "win7"))]
             Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
-            #[cfg(all(
-                target_family = "wasm",
-                any(target_os = "unknown", target_os = "none")
-            ))]
+            #[cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))]
             Error::WEB_CRYPTO => "Web Crypto API is unavailable",
             #[cfg(target_os = "vxworks")]
             Error::VXWORKS_RAND_SECURE => "randSecure: VxWorks RNG module is not initialized",

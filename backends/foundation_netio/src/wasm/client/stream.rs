@@ -19,7 +19,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{Stream, WakeCallback, WakeResult, WakeRegistry, WakeableStream};
+use foundation_core::valtron::{Stream, WakeCallback, WakeRegistry, WakeResult, WakeableStream};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
@@ -118,7 +118,13 @@ impl WasmSseIterator {
         let error = Arc::new(Mutex::new(None));
         let wake = Arc::new(WakeRegistry::new());
 
-        spawn_stream_reader(body, queue.clone(), done.clone(), error.clone(), wake.clone());
+        spawn_stream_reader(
+            body,
+            queue.clone(),
+            done.clone(),
+            error.clone(),
+            wake.clone(),
+        );
 
         Self {
             events: QueueSseEvents::new_with_error(queue, done, error, wake),

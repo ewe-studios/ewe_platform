@@ -9,11 +9,11 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 use foundation_netio::native::connection::Connector;
 use foundation_netio::HttpClientBuilder;
 use foundation_wireguard::native::overlay_acceptor::OverlayAcceptor;
@@ -117,10 +117,7 @@ async fn overlay_rpc_parks_and_completes() {
             break;
         }
     }
-    assert!(handle_a.wait_for_peer(
-        handle_b.overlay_ip(),
-        Duration::from_millis(10)
-    ));
+    assert!(handle_a.wait_for_peer(handle_b.overlay_ip(), Duration::from_millis(10)));
 
     // ── B: `HttpServer` on the overlay via `OverlayAcceptor` ──────────
     let b_ip = handle_b.overlay_ip();
@@ -133,11 +130,7 @@ async fn overlay_rpc_parks_and_completes() {
     app.router.add_route_any(UNARY, &serve);
     app.router.add_route_any(SERVER_STREAM, &serve);
 
-    let server = HttpServer::with_config(
-        app,
-        &format!("{b_ip}:{port}"),
-        ServerConfig::defaults(),
-    );
+    let server = HttpServer::with_config(app, &format!("{b_ip}:{port}"), ServerConfig::defaults());
     let shutdown = Arc::new(ShutdownSignal::new());
     let s = shutdown.clone();
     let acc = acceptor.clone();

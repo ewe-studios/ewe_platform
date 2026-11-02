@@ -3,7 +3,6 @@
 /// Instead of creating a new shared memory object on every send,
 /// `MemoryRegistry` keeps a cache of recently-used regions and reuses them
 /// when possible.
-
 use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 
@@ -62,7 +61,10 @@ impl MemoryRegistry {
         let now = Instant::now();
 
         // Search for reusable entries in range [min_size .. min_size * 2)
-        for (_, rs) in self.inner.range_mut(min_size..min_size.saturating_mul(2).max(min_size + 1)) {
+        for (_, rs) in self
+            .inner
+            .range_mut(min_size..min_size.saturating_mul(2).max(min_size + 1))
+        {
             for r in rs {
                 if r.region.ref_count() == 1 && tag == r.tag.as_deref() {
                     r.last_alloc = now;

@@ -48,7 +48,9 @@ fn write_spec(dir: &std::path::Path, version: &str) -> std::path::PathBuf {
 /// Every generated .rs file's contents, concatenated.
 fn generated_source(crate_dir: &std::path::Path) -> String {
     fn walk(dir: &std::path::Path, out: &mut String) {
-        let Ok(entries) = std::fs::read_dir(dir) else { return };
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
         for entry in entries.flatten() {
             let path = entry.path();
             if path.is_dir() {
@@ -140,6 +142,41 @@ fn no_selection_generates_everything() {
         .expect("generates");
 
     assert_eq!(report.paths_selected, 2, "both paths");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn a_selection_file_limits_what_generate_emits() {
+    // A split-out crate commits its declared slice as `codegen.json` (the
+    // machine-readable twin of its build.rs); `genapi generate <provider>` loads
+    // it so the CLI and the build script agree on what the crate contains. This
+    // is the loader plus the selection reaching the generator: only the named
+    // operation's code appears, and the unselected one is provably absent.
+    let dir = tmpdir("selection-file");
+    let spec = write_spec(&dir, "1.0.0");
+    let selection_file = dir.join("codegen.json");
+    std::fs::write(&selection_file, r#"{ "operations": ["list-servers"] }"#).unwrap();
+    let krate = dir.join("crate");
+
+    let selection = foundation_codegentools::selection_from_file(&selection_file).unwrap();
+    let report = generate()
+        .provider("testprov")
+        .spec(&spec)
+        .select(selection)
+        .crate_dir(&krate)
+        .write()
+        .expect("generates");
+
+    assert_eq!(report.paths_selected, 1, "1 of 2");
+    let source = generated_source(&krate);
+    assert!(
+        source.contains("servers") || source.to_lowercase().contains("server"),
+        "the selected operation is generated"
+    );
+    assert!(
+        !source.contains("invoice") && !source.contains("Invoice"),
+        "the unselected operation must not appear anywhere in the generated tree"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -247,7 +284,10 @@ fn check_fails_and_names_the_files_when_the_selection_widens() {
         }
         other => panic!("expected Stale, got {other:?}"),
     }
-    assert!(err.to_string().contains("regenerate"), "says the fix: {err}");
+    assert!(
+        err.to_string().contains("regenerate"),
+        "says the fix: {err}"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -328,11 +368,25 @@ fn check_catches_a_moved_spec_too() {
 
 #[test]
 fn an_incomplete_declaration_names_what_is_missing() {
-    let err = generate().spec("/some/spec.json").resolve().expect_err("no provider");
-    assert!(matches!(err, CodegenError::Incomplete { missing: "provider" }), "{err:?}");
+    let err = generate()
+        .spec("/some/spec.json")
+        .resolve()
+        .expect_err("no provider");
+    assert!(
+        matches!(
+            err,
+            CodegenError::Incomplete {
+                missing: "provider"
+            }
+        ),
+        "{err:?}"
+    );
 
     let err = generate().provider("x").resolve().expect_err("no spec");
-    assert!(matches!(err, CodegenError::Incomplete { missing: "spec" }), "{err:?}");
+    assert!(
+        matches!(err, CodegenError::Incomplete { missing: "spec" }),
+        "{err:?}"
+    );
 
     let dir = tmpdir("no-dest");
     let spec = write_spec(&dir, "1.0.0");
@@ -341,7 +395,15 @@ fn an_incomplete_declaration_names_what_is_missing() {
         .spec(&spec)
         .write()
         .expect_err("nowhere to write");
-    assert!(matches!(err, CodegenError::Incomplete { missing: "crate_dir" }), "{err:?}");
+    assert!(
+        matches!(
+            err,
+            CodegenError::Incomplete {
+                missing: "crate_dir"
+            }
+        ),
+        "{err:?}"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -375,7 +437,11 @@ fn the_real_linode_slice_generates_a_bounded_crate() {
         .expect("the real spec generates");
 
     assert_eq!(report.paths_selected, 3, "3 of 334");
-    assert!(report.schemas < 60, "a bounded surface, got {}", report.schemas);
+    assert!(
+        report.schemas < 60,
+        "a bounded surface, got {}",
+        report.schemas
+    );
 
     // The payoff, stated as the thing that would have caught the old behaviour:
     // 334 paths of Linode would not fit in a handful of files.
@@ -403,7 +469,11 @@ fn a_generated_build_script_reproduces_the_declaration() {
     let spec = write_spec(&dir, "1.0.0");
     let krate = dir.join("crate");
     std::fs::create_dir_all(&krate).unwrap();
-    std::fs::write(krate.join("Cargo.toml"), "[package]\nname = \"p\"\nversion = \"0.1.0\"\n").unwrap();
+    std::fs::write(
+        krate.join("Cargo.toml"),
+        "[package]\nname = \"p\"\nversion = \"0.1.0\"\n",
+    )
+    .unwrap();
 
     let outcome = generate()
         .provider("testprov")
@@ -422,7 +492,10 @@ fn a_generated_build_script_reproduces_the_declaration() {
     // Every part of the declaration survives the round trip.
     assert!(body.contains(r#".provider("testprov")"#), "{body}");
     assert!(body.contains(r#".api_version("v4")"#));
-    assert!(body.contains(r#".spec_version("1.0.0")"#), "the pin, or a moved spec goes unnoticed");
+    assert!(
+        body.contains(r#".spec_version("1.0.0")"#),
+        "the pin, or a moved spec goes unnoticed"
+    );
     assert!(body.contains(r#""/instances""#));
     assert!(body.contains(r#""post-instance""#));
 
@@ -450,7 +523,11 @@ fn writing_the_build_script_declares_the_dependency_it_needs() {
     let spec = write_spec(&dir, "1.0.0");
     let krate = dir.join("crate");
     std::fs::create_dir_all(&krate).unwrap();
-    std::fs::write(krate.join("Cargo.toml"), "[package]\nname = \"p\"\nversion = \"0.1.0\"\n").unwrap();
+    std::fs::write(
+        krate.join("Cargo.toml"),
+        "[package]\nname = \"p\"\nversion = \"0.1.0\"\n",
+    )
+    .unwrap();
 
     generate()
         .provider("testprov")
@@ -479,12 +556,19 @@ fn an_existing_build_script_is_never_clobbered_without_being_asked() {
     let spec = write_spec(&dir, "1.0.0");
     let krate = dir.join("crate");
     std::fs::create_dir_all(&krate).unwrap();
-    std::fs::write(krate.join("Cargo.toml"), "[package]\nname = \"p\"\nversion = \"0.1.0\"\n").unwrap();
+    std::fs::write(
+        krate.join("Cargo.toml"),
+        "[package]\nname = \"p\"\nversion = \"0.1.0\"\n",
+    )
+    .unwrap();
 
     let mine = "// my own build step\nfn main() { println!(\"hi\"); }\n";
     std::fs::write(krate.join("build.rs"), mine).unwrap();
 
-    let codegen = generate().provider("testprov").spec(&spec).crate_dir(&krate);
+    let codegen = generate()
+        .provider("testprov")
+        .spec(&spec)
+        .crate_dir(&krate);
 
     let kept = codegen.write_build_script(false).expect("keeps");
     assert!(matches!(kept, BuildScriptOutcome::Kept(_)), "{kept:?}");
@@ -496,7 +580,10 @@ fn an_existing_build_script_is_never_clobbered_without_being_asked() {
 
     // …and replaced only when asked.
     let replaced = codegen.write_build_script(true).expect("overwrites");
-    assert!(matches!(replaced, BuildScriptOutcome::Replaced(_)), "{replaced:?}");
+    assert!(
+        matches!(replaced, BuildScriptOutcome::Replaced(_)),
+        "{replaced:?}"
+    );
     let body = std::fs::read_to_string(krate.join("build.rs")).unwrap();
     assert_ne!(body, mine);
     assert!(body.contains(r#".provider("testprov")"#));
@@ -523,8 +610,14 @@ fn an_existing_build_dependency_is_left_as_the_crate_wrote_it() {
         .expect("writes");
 
     let manifest = std::fs::read_to_string(krate.join("Cargo.toml")).unwrap();
-    assert!(manifest.contains("9.9.9"), "the crate's own pin survived: {manifest}");
-    assert!(manifest.contains("../elsewhere"), "and its path: {manifest}");
+    assert!(
+        manifest.contains("9.9.9"),
+        "the crate's own pin survived: {manifest}"
+    );
+    assert!(
+        manifest.contains("../elsewhere"),
+        "and its path: {manifest}"
+    );
 
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -538,7 +631,11 @@ fn the_build_script_points_at_the_spec_from_the_crates_own_directory() {
     let dir = tmpdir("buildrs-relpath");
     let krate = dir.join("backends/foundation_deployment_testprov");
     std::fs::create_dir_all(&krate).unwrap();
-    std::fs::write(krate.join("Cargo.toml"), "[package]\nname = \"p\"\nversion = \"0.1.0\"\n").unwrap();
+    std::fs::write(
+        krate.join("Cargo.toml"),
+        "[package]\nname = \"p\"\nversion = \"0.1.0\"\n",
+    )
+    .unwrap();
     let spec = write_spec(&dir, "1.0.0");
 
     generate()
@@ -613,7 +710,10 @@ fn check_stays_green_across_runs() {
     let spec = write_spec(&dir, "1.0.0");
     let krate = dir.join("crate");
 
-    let codegen = generate().provider("testprov").spec(&spec).crate_dir(&krate);
+    let codegen = generate()
+        .provider("testprov")
+        .spec(&spec)
+        .crate_dir(&krate);
     codegen.write().expect("writes");
 
     for attempt in 0..3 {
@@ -718,8 +818,7 @@ fn openapi_31_nullable_syntax_reaches_the_generated_type() {
     // The normalize step a 3.1 provider runs (see PROVIDER_SPECS::HoistInlineFrom31).
     foundation_openapi::normalize_nullable_types(&mut spec["components"]["schemas"]["pagination"]);
     assert_eq!(
-        spec["components"]["schemas"]["pagination"]["properties"]["next_page"]["nullable"],
-        true,
+        spec["components"]["schemas"]["pagination"]["properties"]["next_page"]["nullable"], true,
         "the transform records it"
     );
 

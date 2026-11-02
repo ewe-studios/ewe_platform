@@ -120,4 +120,3 @@ fn generate_user_code() -> String {
     }
     code
 }
-

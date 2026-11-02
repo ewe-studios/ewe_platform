@@ -34,7 +34,11 @@ impl TestServer {
     /// Returns the URL for a given path on this server.
     #[must_use]
     pub fn url(&self, path: &str) -> String {
-        format!("http://localhost:{}/{}", self.port, path.trim_start_matches('/'))
+        format!(
+            "http://localhost:{}/{}",
+            self.port,
+            path.trim_start_matches('/')
+        )
     }
 
     /// Signal the server to stop and wait for the thread to finish.
@@ -56,8 +60,8 @@ impl TestServer {
 ///
 /// Returns an error if no available port can be found.
 pub fn start_serving(integration_dir: &Path) -> Result<TestServer> {
-    let port = portpicker::pick_unused_port()
-        .ok_or_else(|| WasmTestbedError::NoPortAvailable.trace())?;
+    let port =
+        portpicker::pick_unused_port().ok_or_else(|| WasmTestbedError::NoPortAvailable.trace())?;
 
     let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_clone = shutdown.clone();

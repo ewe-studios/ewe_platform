@@ -187,8 +187,8 @@ pub struct TaskSpec {
 pub struct ServiceListArgs {
     /// Query parameter: `filters`.
     pub filters: Option<String>,
-    /// Query parameter: `status`.
-    pub status: Option<String>,
+    /// Query parameter: `status` (true/false).
+    pub status: Option<bool>,
 }
 
 /// Arguments for [`ServiceInspect_request`].
@@ -196,8 +196,8 @@ pub struct ServiceListArgs {
 pub struct ServiceInspectArgs {
     /// Path parameter: `id`.
     pub id: String,
-    /// Query parameter: `insertDefaults`.
-    pub insert_defaults: Option<String>,
+    /// Query parameter: `insertDefaults` (true/false).
+    pub insert_defaults: Option<bool>,
 }
 
 /// Arguments for [`ServiceDelete_request`].
@@ -247,7 +247,10 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("filters", args.filters.as_deref());
-    builder = builder.query("status", args.status.as_deref());
+    builder = builder.query(
+        "status",
+        args.status.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -293,7 +296,11 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("insertDefaults", args.insert_defaults.as_deref());
+    builder = builder.query(
+        "insertDefaults",
+        args.insert_defaults
+            .map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);

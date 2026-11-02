@@ -5,7 +5,9 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::orgs;
@@ -100,10 +102,15 @@ fn collections_crud() {
     let c = ctx.clone();
     let oid = org_id.clone();
     let col = drive(async move {
-        orgs::create_collection(&c, OWNER, &oid, CollectionCreateRequest {
-            name: "Engineering".into(),
-            external_id: None,
-        })
+        orgs::create_collection(
+            &c,
+            OWNER,
+            &oid,
+            CollectionCreateRequest {
+                name: "Engineering".into(),
+                external_id: None,
+            },
+        )
         .await
     })
     .expect("create collection");
@@ -111,7 +118,12 @@ fn collections_crud() {
 
     let c = ctx.clone();
     let oid = org_id.clone();
-    assert_eq!(drive(async move { orgs::list_collections(&c, OWNER, &oid).await }).expect("list").len(), 2);
+    assert_eq!(
+        drive(async move { orgs::list_collections(&c, OWNER, &oid).await })
+            .expect("list")
+            .len(),
+        2
+    );
 
     let c = ctx.clone();
     let oid = org_id.clone();
@@ -119,7 +131,12 @@ fn collections_crud() {
     drive(async move { orgs::delete_collection(&c, OWNER, &oid, &cid).await }).expect("delete col");
 
     let c = ctx.clone();
-    assert_eq!(drive(async move { orgs::list_collections(&c, OWNER, &org_id).await }).expect("list2").len(), 1);
+    assert_eq!(
+        drive(async move { orgs::list_collections(&c, OWNER, &org_id).await })
+            .expect("list2")
+            .len(),
+        1
+    );
 }
 
 #[valtron_test]
@@ -130,10 +147,15 @@ fn invite_confirm_and_list_members() {
     let c = ctx.clone();
     let oid = org_id.clone();
     let invited = drive(async move {
-        orgs::invite_member(&c, OWNER, &oid, InviteMemberRequest {
-            email: "New@Example.com".into(),
-            member_type: OrganizationUserType::User,
-        })
+        orgs::invite_member(
+            &c,
+            OWNER,
+            &oid,
+            InviteMemberRequest {
+                email: "New@Example.com".into(),
+                member_type: OrganizationUserType::User,
+            },
+        )
         .await
     })
     .expect("invite");
@@ -151,12 +173,22 @@ fn invite_confirm_and_list_members() {
     let oid = org_id.clone();
     let mid = invited.id.clone();
     drive(async move {
-        orgs::confirm_member(&c, OWNER, &oid, &mid, ConfirmMemberRequest { key: Some("2.mk|enc".into()) }).await
+        orgs::confirm_member(
+            &c,
+            OWNER,
+            &oid,
+            &mid,
+            ConfirmMemberRequest {
+                key: Some("2.mk|enc".into()),
+            },
+        )
+        .await
     })
     .expect("confirm");
 
     let c = ctx.clone();
-    let members = drive(async move { orgs::list_members(&c, OWNER, &org_id).await }).expect("members2");
+    let members =
+        drive(async move { orgs::list_members(&c, OWNER, &org_id).await }).expect("members2");
     let confirmed = members.iter().find(|m| m.id == invited.id).unwrap();
     assert_eq!(confirmed.status, 2);
 }
@@ -177,10 +209,15 @@ fn non_members_are_forbidden() {
     let oid = org_id.clone();
     assert!(matches!(
         drive(async move {
-            orgs::create_collection(&c, OUTSIDER, &oid, CollectionCreateRequest {
-                name: "x".into(),
-                external_id: None,
-            })
+            orgs::create_collection(
+                &c,
+                OUTSIDER,
+                &oid,
+                CollectionCreateRequest {
+                    name: "x".into(),
+                    external_id: None,
+                },
+            )
             .await
         }),
         Err(AppError::Forbidden)

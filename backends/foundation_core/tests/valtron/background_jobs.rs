@@ -392,10 +392,8 @@ fn test_default_shutdown_timeout() {
 /// slot, the second is rejected.
 #[test]
 fn background_registry_full_queue_returns_error() {
-    let (registry, release) = registry_with_blocked_worker_config(
-        BackgroundJobConfig::new(1).with_capacity(1),
-        || {},
-    );
+    let (registry, release) =
+        registry_with_blocked_worker_config(BackgroundJobConfig::new(1).with_capacity(1), || {});
 
     // The worker is busy on the blocker, so the single queue slot is free.
     let (ran_tx, ran_rx) = mpsc::channel();
@@ -409,7 +407,9 @@ fn background_registry_full_queue_returns_error() {
 
     release.send(()).expect("blocker alive");
     assert_eq!(registry.shutdown(), ShutdownOutcome::Completed);
-    ran_rx.recv_timeout(JOB_DEADLINE).expect("queued job should run");
+    ran_rx
+        .recv_timeout(JOB_DEADLINE)
+        .expect("queued job should run");
 }
 
 /// WHY: Feature 09 makes `BackgroundJobRegistry::new` return a `Result`, so a

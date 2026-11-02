@@ -51,7 +51,12 @@ fn search_context_tool_definition() {
     let def = tool.definition();
     assert_eq!(def.name(), "search_context");
     assert_eq!(def.category().unwrap(), "search");
-    assert!(def.definitions().next().unwrap().description.contains("knowledge"));
+    assert!(def
+        .definitions()
+        .next()
+        .unwrap()
+        .description
+        .contains("knowledge"));
 }
 
 #[test]
@@ -204,7 +209,12 @@ fn search_file_tool_definition() {
     let def = tool.definition();
     assert_eq!(def.name(), "search_file");
     assert_eq!(def.category().unwrap(), "search_files");
-    assert!(def.definitions().next().unwrap().description.contains("grep"));
+    assert!(def
+        .definitions()
+        .next()
+        .unwrap()
+        .description
+        .contains("grep"));
 }
 
 #[test]

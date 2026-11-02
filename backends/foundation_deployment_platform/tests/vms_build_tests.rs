@@ -2,9 +2,9 @@
 
 #![cfg(feature = "vms")]
 
+use foundation_deployment_platform::build::logs::{ERROR_PATTERNS, extract_errors};
+use foundation_deployment_platform::build::multiarch::{CROSS_DEPS, cross_compile_env};
 use foundation_deployment_platform::build::{guest_project_path, target_triple};
-use foundation_deployment_platform::build::logs::{extract_errors, ERROR_PATTERNS};
-use foundation_deployment_platform::build::multiarch::{cross_compile_env, CROSS_DEPS};
 use foundation_deployment_platform::config::GuestOs;
 
 // From build/mod.rs
@@ -17,7 +17,10 @@ fn test_target_triple() {
 #[test]
 fn test_guest_project_path() {
     assert_eq!(guest_project_path(GuestOs::Linux), "/mnt/project");
-    assert_eq!(guest_project_path(GuestOs::Windows), "C:\\Users\\vagrant\\project");
+    assert_eq!(
+        guest_project_path(GuestOs::Windows),
+        "C:\\Users\\vagrant\\project"
+    );
     assert_eq!(guest_project_path(GuestOs::MacOS), "/Volumes/project");
 }
 
@@ -32,13 +35,13 @@ fn test_cross_compile_env_contains_expected_vars() {
 
 #[test]
 fn test_cross_deps_not_empty() {
-    assert!(!CROSS_DEPS.is_empty());
+    assert_ne!(CROSS_DEPS, [] as [&str; 0]);
 }
 
 // From build/logs.rs
 #[test]
 fn test_extract_errors_finds_rust_error() {
-    let log = r#"Compiling my-app v0.1.0
+    let log = r"Compiling my-app v0.1.0
    Compiling dependency v1.0.0
 error[E0308]: mismatched types
    --> src/main.rs:10:5
@@ -47,7 +50,7 @@ error[E0308]: mismatched types
     |         ^   ------ expected due to this
     |         |
     |         expected `String`, found integer
-"#;
+";
     let result = extract_errors(log).unwrap();
     assert!(result.contains("E0308"));
     assert!(result.contains("mismatched types"));

@@ -8,7 +8,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -68,7 +68,9 @@ fn map_row(row: &SqlRow) -> AppResult<UserRow> {
         client_kdf_type: row.get_by_name("client_kdf_type").map_err(store_err)?,
         client_kdf_iter: row.get_by_name("client_kdf_iter").map_err(store_err)?,
         client_kdf_memory: row.get_by_name("client_kdf_memory").map_err(store_err)?,
-        client_kdf_parallelism: row.get_by_name("client_kdf_parallelism").map_err(store_err)?,
+        client_kdf_parallelism: row
+            .get_by_name("client_kdf_parallelism")
+            .map_err(store_err)?,
         master_password_hint: row.get_by_name("master_password_hint").map_err(store_err)?,
         email_verified: email_verified != 0,
         created_at: parse_ts(&created_at)?,
@@ -108,11 +110,7 @@ pub async fn insert(db: &dyn QueryStore, row: &UserRow) -> AppResult<()> {
     Ok(())
 }
 
-async fn find_one(
-    db: &dyn QueryStore,
-    where_col: &str,
-    value: &str,
-) -> AppResult<Option<UserRow>> {
+async fn find_one(db: &dyn QueryStore, where_col: &str, value: &str) -> AppResult<Option<UserRow>> {
     let rows = db
         .query(
             &format!("SELECT {COLUMNS} FROM vault_accounts WHERE {where_col} = ?"),

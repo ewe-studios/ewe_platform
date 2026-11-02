@@ -145,7 +145,7 @@ impl WasmBundleGenerator {
     pub fn from_annotations(
         crate_dir: &Path,
         output_dir: &Path,
-        annotations: &[(&str, &str)],  // &[(mode_str, fn_name)]
+        annotations: &[(&str, &str)], // &[(mode_str, fn_name)]
         jsruntime_single: bool,
     ) -> Result<Self, WasmBinError> {
         let crate_name = WasmBinGenerator::from_crate_only(crate_dir)?
@@ -203,7 +203,13 @@ impl WasmBundleGenerator {
         jsruntime_single: bool,
     ) -> Result<Self, WasmBinError> {
         // Apply jsruntime_single to all entrypoints
-        let entrypoints: Vec<_> = entrypoints.into_iter().map(|mut ep| { ep.jsruntime_single = jsruntime_single; ep }).collect();
+        let entrypoints: Vec<_> = entrypoints
+            .into_iter()
+            .map(|mut ep| {
+                ep.jsruntime_single = jsruntime_single;
+                ep
+            })
+            .collect();
         let inner = WasmBinGenerator::from_crate_only(crate_dir)?;
         Ok(Self {
             inner,
@@ -224,8 +230,7 @@ impl WasmBundleGenerator {
         skip_runtimes: bool,
         runtime_assets: &[(&str, &Path)],
     ) -> Result<Vec<PlannedFile>, WasmBinError> {
-        std::fs::create_dir_all(&self.output_dir)
-            .map_err(|e| io_err(&self.output_dir, e))?;
+        std::fs::create_dir_all(&self.output_dir).map_err(|e| io_err(&self.output_dir, e))?;
 
         let profile_dir = if release { "release" } else { "uat" };
         let wasm_path = self
@@ -233,8 +238,7 @@ impl WasmBundleGenerator {
             .join("target/wasm32-unknown-unknown")
             .join(profile_dir)
             .join(format!("{crate_name}.wasm"));
-        let wasm_bytes =
-            std::fs::read(&wasm_path).map_err(|e| io_err(&wasm_path, e))?;
+        let wasm_bytes = std::fs::read(&wasm_path).map_err(|e| io_err(&wasm_path, e))?;
 
         let mut written = Vec::new();
         for ep in &self.entrypoints {
@@ -246,19 +250,30 @@ impl WasmBundleGenerator {
             let mut bundle = String::new();
             for (file_name, source) in runtime_assets {
                 if let Ok(content) = std::fs::read_to_string(source) {
-                    let stripped = content.lines().map(|l| {
-                        let t = l.trim();
-                        if t.starts_with("export ") { &t[7..] } else { l }
-                    }).collect::<Vec<_>>().join("\n");
+                    let stripped = content
+                        .lines()
+                        .map(|l| {
+                            let t = l.trim();
+                            if t.starts_with("export ") {
+                                &t[7..]
+                            } else {
+                                l
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n");
                     bundle.push_str(&format!(
-    "\n/* ═════════ {file_name} ═════════ */\n{stripped}\n"
-));
+                        "\n/* ═════════ {file_name} ═════════ */\n{stripped}\n"
+                    ));
                 }
             }
             if !bundle.is_empty() {
                 let dest = self.output_dir.join("bundle.js");
                 std::fs::write(&dest, &bundle).map_err(|e| io_err(&dest, e))?;
-                written.push(PlannedFile { path: dest, kind: "runtime bundle" });
+                written.push(PlannedFile {
+                    path: dest,
+                    kind: "runtime bundle",
+                });
             }
         }
         if !skip_runtimes && !do_single_js {
@@ -346,9 +361,7 @@ impl WasmBundleGenerator {
         } else {
             cargo.arg("--profile").arg("uat");
         }
-        let status = cargo
-            .status()
-            .map_err(|e| io_err(&self.crate_dir, e))?;
+        let status = cargo.status().map_err(|e| io_err(&self.crate_dir, e))?;
         if !status.success() {
             return Err(io_err(
                 &self.crate_dir,
@@ -356,8 +369,7 @@ impl WasmBundleGenerator {
             ));
         }
 
-        std::fs::create_dir_all(&self.output_dir)
-            .map_err(|e| io_err(&self.output_dir, e))?;
+        std::fs::create_dir_all(&self.output_dir).map_err(|e| io_err(&self.output_dir, e))?;
 
         let profile_dir = if release { "release" } else { "uat" };
         let mut written = Vec::new();
@@ -367,8 +379,7 @@ impl WasmBundleGenerator {
                 .join("target/wasm32-unknown-unknown")
                 .join(profile_dir)
                 .join(format!("{}.wasm", ep.name));
-            let wasm_bytes = std::fs::read(&wasm_path)
-                .map_err(|e| io_err(&wasm_path, e))?;
+            let wasm_bytes = std::fs::read(&wasm_path).map_err(|e| io_err(&wasm_path, e))?;
             written.extend(self.write_entrypoint(ep, &wasm_bytes)?);
         }
 
@@ -377,19 +388,30 @@ impl WasmBundleGenerator {
             let mut bundle = String::new();
             for (file_name, source) in runtime_assets {
                 if let Ok(content) = std::fs::read_to_string(source) {
-                    let stripped = content.lines().map(|l| {
-                        let t = l.trim();
-                        if t.starts_with("export ") { &t[7..] } else { l }
-                    }).collect::<Vec<_>>().join("\n");
+                    let stripped = content
+                        .lines()
+                        .map(|l| {
+                            let t = l.trim();
+                            if t.starts_with("export ") {
+                                &t[7..]
+                            } else {
+                                l
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n");
                     bundle.push_str(&format!(
-    "\n/* ═════════ {file_name} ═════════ */\n{stripped}\n"
-));
+                        "\n/* ═════════ {file_name} ═════════ */\n{stripped}\n"
+                    ));
                 }
             }
             if !bundle.is_empty() {
                 let dest = self.output_dir.join("bundle.js");
                 std::fs::write(&dest, &bundle).map_err(|e| io_err(&dest, e))?;
-                written.push(PlannedFile { path: dest, kind: "runtime bundle" });
+                written.push(PlannedFile {
+                    path: dest,
+                    kind: "runtime bundle",
+                });
             }
         }
         if !skip_runtimes && !do_single_js {
@@ -404,7 +426,9 @@ impl WasmBundleGenerator {
         }
 
         // Generate index.html — readable HTML, one <script> per entrypoint.
-        let bins: Vec<_> = self.entrypoints.iter()
+        let bins: Vec<_> = self
+            .entrypoints
+            .iter()
             .filter(|ep| matches!(ep.mode, BundleMode::Bin))
             .collect();
         if !bins.is_empty() {
@@ -450,7 +474,10 @@ impl WasmBundleGenerator {
             );
             let dest = self.output_dir.join("index.html");
             std::fs::write(&dest, &html).map_err(|e| io_err(&dest, e))?;
-            written.push(PlannedFile { path: dest, kind: "index.html" });
+            written.push(PlannedFile {
+                path: dest,
+                kind: "index.html",
+            });
         }
 
         Ok(written)

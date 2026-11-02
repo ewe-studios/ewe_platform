@@ -58,5 +58,9 @@ fn test_no_transition_when_already_in_state() {
 #[test]
 fn test_thresholds_clamped_to_at_least_one() {
     let mut state = ProbeState::new(0, 0, true);
-    assert_eq!(state.record(false), Some(false), "clamped threshold of 1 ejects on first failure");
+    assert_eq!(
+        state.record(false),
+        Some(false),
+        "clamped threshold of 1 ejects on first failure"
+    );
 }

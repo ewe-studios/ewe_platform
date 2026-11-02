@@ -301,9 +301,7 @@ fn wrap_ranges(text: &str, width: usize) -> Vec<(usize, usize)> {
 
                 for (offset, character) in token.char_indices() {
                     let character_width = character.width().unwrap_or(0);
-                    if chunk_width + character_width > width
-                        && position + offset > chunk_start
-                    {
+                    if chunk_width + character_width > width && position + offset > chunk_start {
                         ranges.push((line_base + chunk_start, line_base + position + offset));
                         chunk_start = position + offset;
                         chunk_width = 0;

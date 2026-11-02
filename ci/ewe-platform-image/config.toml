@@ -14,8 +14,10 @@ username = "ewestudios"
 [base]
 name = "ci-base"
 browsers = ["chrome", "firefox"]
-# Extra apt packages on top of the unit's lists (none needed today).
-packages = []
+# Extra apt packages on top of the unit's lists.
+# libfuse-dev: pkg-config `fuse` for the fuser 0.15 default (fuse2) backend of
+# the vfs-fuse adapter (feature 20 E2).
+packages = ["libfuse-dev"]
 
 [base.flavors.default]
 from = "docker.io/library/ubuntu:24.04"

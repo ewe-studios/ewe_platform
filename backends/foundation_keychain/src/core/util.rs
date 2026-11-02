@@ -21,8 +21,10 @@ pub fn validate_icon_domain(url: &str) -> bool {
 
     // Reject known internal hostnames.
     let lower = host.to_lowercase();
-    if lower == "localhost" || lower.ends_with(".localhost")
-        || lower.ends_with(".local") || lower == "0.0.0.0"
+    if lower == "localhost"
+        || lower.ends_with(".localhost")
+        || lower.ends_with(".local")
+        || lower == "0.0.0.0"
     {
         return false;
     }

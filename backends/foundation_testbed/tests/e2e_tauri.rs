@@ -25,8 +25,10 @@ mod common;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use common::{TestVm, assert_build_ok_linux, assert_build_ok_windows, assert_build_ok_macos,
-             assert_elf_binary, assert_pe_binary, assert_macho_binary};
+use common::{
+    TestVm, assert_build_ok_linux, assert_build_ok_macos, assert_build_ok_windows,
+    assert_elf_binary, assert_macho_binary, assert_pe_binary,
+};
 use foundation_testbed::platform::config::Result;
 use serial_test::serial;
 
@@ -109,8 +111,14 @@ fn test_project_mount_linux() -> Result<()> {
     );
 
     // Verify the example Tauri app is visible through the mount
-    let output = vm.ssh_exec(&format!("test -d {LINUX_MOUNT}/{TAURI_APP_GUEST} && echo FOUND || echo MISSING"))?;
-    assert_eq!(output.trim(), "FOUND", "example Tauri app should be visible in mount");
+    let output = vm.ssh_exec(&format!(
+        "test -d {LINUX_MOUNT}/{TAURI_APP_GUEST} && echo FOUND || echo MISSING"
+    ))?;
+    assert_eq!(
+        output.trim(),
+        "FOUND",
+        "example Tauri app should be visible in mount"
+    );
 
     println!("[mount/linux] Project mount verified, example app visible");
     Ok(())
@@ -129,7 +137,10 @@ fn test_project_mount_windows() -> Result<()> {
     let (mount_check, _) = vm.ps_exec(
         "if (Test-Path 'C:\\Users\\vagrant\\project\\Cargo.toml') { 'VIRTIOFS' } elseif (Test-Path 'Z:\\Cargo.toml') { 'SMB' } else { 'NONE' }"
     )?;
-    println!("[mount/windows] Detected mount type: {}", mount_check.trim());
+    println!(
+        "[mount/windows] Detected mount type: {}",
+        mount_check.trim()
+    );
 
     // Determine which path to use
     let (test_path, mount_type) = if mount_check.trim() == "VIRTIOFS" {
@@ -138,9 +149,16 @@ fn test_project_mount_windows() -> Result<()> {
         (format!("Z:\\{TAURI_APP_GUEST}"), "smb")
     } else {
         // List both locations for debugging
-        let (c_check, _) = vm.ps_exec("if (Test-Path 'C:\\Users\\vagrant\\project') { 'C_EXISTS' } else { 'C_MISSING' }")?;
-        let (z_check, _) = vm.ps_exec("if (Test-Path 'Z:\\') { 'Z_EXISTS' } else { 'Z_MISSING' }")?;
-        panic!("No mount detected. C:\\Users\\vagrant\\project: {}, Z:\\: {}", c_check.trim(), z_check.trim());
+        let (c_check, _) = vm.ps_exec(
+            "if (Test-Path 'C:\\Users\\vagrant\\project') { 'C_EXISTS' } else { 'C_MISSING' }",
+        )?;
+        let (z_check, _) =
+            vm.ps_exec("if (Test-Path 'Z:\\') { 'Z_EXISTS' } else { 'Z_MISSING' }")?;
+        panic!(
+            "No mount detected. C:\\Users\\vagrant\\project: {}, Z:\\: {}",
+            c_check.trim(),
+            z_check.trim()
+        );
     };
 
     // Verify the mount directory and example Tauri app are visible
@@ -148,28 +166,42 @@ fn test_project_mount_windows() -> Result<()> {
         "if (Test-Path '{}\\Cargo.toml') {{ 'FOUND' }} else {{ 'MISSING' }}",
         test_path
     ))?;
-    println!("[mount/windows] Mount check ({}): output={:?}, exit={}", mount_type, output, exit);
+    println!(
+        "[mount/windows] Mount check ({}): output={:?}, exit={}",
+        mount_type, output, exit
+    );
 
     // Diagnostic: list contents of mount directory
     let (dir_list, _) = vm.ps_exec(
         &format!("Get-ChildItem '{}' -ErrorAction SilentlyContinue | ForEach-Object {{ $_.Name }} | Select-Object -First 20", test_path)
     ).unwrap_or_else(|_| ("(error listing dir)".to_string(), 0));
-    println!("[mount/windows] Dir contents ({}): {}", mount_type, dir_list);
+    println!(
+        "[mount/windows] Dir contents ({}): {}",
+        mount_type, dir_list
+    );
 
     // Diagnostic: check mount point details
     let (mount_info, _) = vm.ps_exec(
         &format!("if (Test-Path '{}') {{ $fs = (Get-Item '{}').PSDrive; if ($fs) {{ 'Provider='+$fs.Provider.Name+' Type='+$fs.DriveType }} else {{ 'exists-no-drive' }} }} else {{ 'missing' }}",
             test_path, test_path)
     ).unwrap_or_else(|_| ("(error)".to_string(), 0));
-    println!("[mount/windows] Mount info ({}): {}", mount_type, mount_info);
+    println!(
+        "[mount/windows] Mount info ({}): {}",
+        mount_type, mount_info
+    );
 
     assert!(
         output.contains("FOUND"),
         "example Tauri app should be visible through {} mount (path: {}, dir contents: {})",
-        mount_type, test_path, dir_list
+        mount_type,
+        test_path,
+        dir_list
     );
 
-    println!("[mount/windows] Project mount verified via {}, example app visible", mount_type);
+    println!(
+        "[mount/windows] Project mount verified via {}, example app visible",
+        mount_type
+    );
     Ok(())
 }
 
@@ -233,13 +265,21 @@ if (Test-Path "${mountLetter}:") {
 "#;
 
         let (result, exit) = vm.ps_exec(smb_script)?;
-        println!("[smb-only] SMB mount result: exit={}, output={}", exit, result.trim());
+        println!(
+            "[smb-only] SMB mount result: exit={}, output={}",
+            exit,
+            result.trim()
+        );
 
         if !result.contains("MOUNT_OK") {
             // Get diagnostics
             let (ping, _) = vm.ps_exec("Test-Connection -ComputerName 10.0.2.4 -Count 2 -ErrorAction SilentlyContinue; if ($?) { 'PING_OK' } else { 'PING_FAIL' }")?;
             let (netstat, _) = vm.ps_exec("netstat -an | findstr 10.0.2.4")?;
-            println!("[smb-only] Diagnostics - Ping: {}, Netstat: {}", ping.trim(), netstat.trim());
+            println!(
+                "[smb-only] Diagnostics - Ping: {}, Netstat: {}",
+                ping.trim(),
+                netstat.trim()
+            );
         }
     }
 
@@ -282,7 +322,8 @@ fn test_tauri_build_linux() -> Result<()> {
     println!("[build/linux] Building Tauri app in VM...");
 
     // Trust the mise config in the project (use -y to auto-accept)
-    let trust_cmd = format!("cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && echo 'y' | ~/.local/bin/mise trust 2>&1");
+    let trust_cmd =
+        format!("cd {LINUX_MOUNT}/{TAURI_APP_GUEST} && echo 'y' | ~/.local/bin/mise trust 2>&1");
     let trust_output = vm.ssh_exec(&trust_cmd)?;
     println!("  Trust output: {}", trust_output);
 
@@ -294,8 +335,7 @@ fn test_tauri_build_linux() -> Result<()> {
     let output = vm.ssh_exec(&build_cmd)?;
     println!("  Build output:\n{}", output);
 
-    let artifact_on_host = tauri_app_host_path()
-        .join("target/release/tauri-e2e-test");
+    let artifact_on_host = tauri_app_host_path().join("target/release/tauri-e2e-test");
 
     let built = assert_build_ok_linux(&vm, &format!("{LINUX_MOUNT}/{TAURI_APP_GUEST}"))?;
     assert!(built, "Tauri build artifact should exist");
@@ -327,18 +367,19 @@ fn test_tauri_build_windows() -> Result<()> {
     );
 
     println!("[build/windows] Building Tauri app in VM...");
-    let build_cmd = format!(
-        "cd {WINDOWS_MOUNT}\\{TAURI_APP_GUEST} && cargo tauri build 2>&1"
-    );
+    let build_cmd = format!("cd {WINDOWS_MOUNT}\\{TAURI_APP_GUEST} && cargo tauri build 2>&1");
     let (output, exit_code) = vm.ps_exec(&build_cmd)?;
     println!("  Build output:\n{output}");
     println!("  Exit code: {exit_code}");
 
-    let artifact_on_host = tauri_app_host_path()
-        .join("target/x86_64-pc-windows-msvc/release/tauri-e2e-test.exe");
+    let artifact_on_host =
+        tauri_app_host_path().join("target/x86_64-pc-windows-msvc/release/tauri-e2e-test.exe");
 
     let built = assert_build_ok_windows(&vm, &format!("{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}"))?;
-    assert!(built, "Tauri build artifact should exist (exit code: {exit_code})");
+    assert!(
+        built,
+        "Tauri build artifact should exist (exit code: {exit_code})"
+    );
 
     let is_pe = assert_pe_binary(&artifact_on_host)?;
     assert!(is_pe, "build artifact should be a valid PE (.exe) binary");
@@ -464,9 +505,11 @@ fn test_project_mount_macos() -> Result<()> {
         .arg("-c")
         .arg(&scp_cmd)
         .status()
-        .map_err(|e| foundation_testbed::platform::config::TestbedError::Qcow2Error {
-            message: format!("scp command: {e}"),
-        })?;
+        .map_err(
+            |e| foundation_testbed::platform::config::TestbedError::Qcow2Error {
+                message: format!("scp command: {e}"),
+            },
+        )?;
     assert!(status.success(), "scp transfer should succeed");
 
     // Verify files arrived
@@ -500,9 +543,11 @@ fn test_tauri_build_macos() -> Result<()> {
         .arg("-c")
         .arg(&scp_cmd)
         .status()
-        .map_err(|e| foundation_testbed::platform::config::TestbedError::Qcow2Error {
-            message: format!("scp command: {e}"),
-        })?;
+        .map_err(
+            |e| foundation_testbed::platform::config::TestbedError::Qcow2Error {
+                message: format!("scp command: {e}"),
+            },
+        )?;
     assert!(status.success(), "scp transfer should succeed");
 
     println!("[build/macos] Building Tauri app in VM...");
@@ -525,7 +570,10 @@ fn test_tauri_build_macos() -> Result<()> {
         vm.ssh_port(),
         host_artifact.display()
     );
-    let _ = std::process::Command::new("sh").arg("-c").arg(&pull_cmd).status();
+    let _ = std::process::Command::new("sh")
+        .arg("-c")
+        .arg(&pull_cmd)
+        .status();
 
     if host_artifact.exists() {
         let is_macho = assert_macho_binary(&host_artifact)?;
@@ -555,12 +603,13 @@ fn test_headless_app_macos() -> Result<()> {
         vm.ssh_port(),
         project_path.display()
     );
-    let _ = std::process::Command::new("sh").arg("-c").arg(&scp_cmd).status();
+    let _ = std::process::Command::new("sh")
+        .arg("-c")
+        .arg(&scp_cmd)
+        .status();
 
     println!("[headless/macos] Building Tauri app...");
-    let build_output = vm.ssh_exec(
-        "cd /tmp/tauri-app && cargo tauri build 2>&1 | tail -5"
-    )?;
+    let build_output = vm.ssh_exec("cd /tmp/tauri-app && cargo tauri build 2>&1 | tail -5")?;
     println!("  Build output:\n{}", build_output);
 
     println!("[headless/macos] Launching app...");
@@ -610,8 +659,7 @@ fn test_full_e2e_linux() -> Result<()> {
     ))?;
     println!("  Build output:\n{}", build_output);
 
-    let artifact_on_host = tauri_app_host_path()
-        .join("target/release/tauri-e2e-test");
+    let artifact_on_host = tauri_app_host_path().join("target/release/tauri-e2e-test");
     let built = assert_build_ok_linux(&vm, &format!("{LINUX_MOUNT}/{TAURI_APP_GUEST}"))?;
     assert!(built, "build artifact should exist");
     let is_elf = assert_elf_binary(&artifact_on_host)?;
@@ -660,8 +708,8 @@ fn test_full_e2e_windows() -> Result<()> {
     ))?;
     println!("  Build output:\n{}", build_output);
 
-    let artifact_on_host = tauri_app_host_path()
-        .join("target/x86_64-pc-windows-msvc/release/tauri-e2e-test.exe");
+    let artifact_on_host =
+        tauri_app_host_path().join("target/x86_64-pc-windows-msvc/release/tauri-e2e-test.exe");
     let built = assert_build_ok_windows(&vm, &format!("{WINDOWS_MOUNT}\\{TAURI_APP_GUEST}"))?;
     assert!(built, "build artifact should exist");
     let is_pe = assert_pe_binary(&artifact_on_host)?;
@@ -713,16 +761,16 @@ fn test_full_e2e_macos() -> Result<()> {
         .arg("-c")
         .arg(&scp_cmd)
         .status()
-        .map_err(|e| foundation_testbed::platform::config::TestbedError::Qcow2Error {
-            message: format!("scp command: {e}"),
-        })?;
+        .map_err(
+            |e| foundation_testbed::platform::config::TestbedError::Qcow2Error {
+                message: format!("scp command: {e}"),
+            },
+        )?;
     assert!(status.success(), "scp transfer should succeed");
     println!("[e2e/macos] App transferred");
 
     println!("[e2e/macos] Building Tauri app...");
-    let build_output = vm.ssh_exec(
-        "cd /tmp/tauri-app && cargo tauri build 2>&1 | tail -10"
-    )?;
+    let build_output = vm.ssh_exec("cd /tmp/tauri-app && cargo tauri build 2>&1 | tail -10")?;
     println!("  Build output:\n{}", build_output);
 
     let built = assert_build_ok_macos(&vm, "/tmp/tauri-app")?;
@@ -733,7 +781,7 @@ fn test_full_e2e_macos() -> Result<()> {
         "export DISPLAY=:99 && \
          /tmp/tauri-app/target/x86_64-apple-darwin/release/tauri-e2e-test & \
          APP_PID=$! && sleep 5 && kill -0 $APP_PID 2>/dev/null && echo ALIVE || echo DEAD && \
-         kill $APP_PID 2>/dev/null; true"
+         kill $APP_PID 2>/dev/null; true",
     )?;
     assert!(
         launch_output.contains("ALIVE"),

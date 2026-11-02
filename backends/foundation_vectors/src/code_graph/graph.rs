@@ -5,8 +5,7 @@ use petgraph::visit::EdgeRef;
 use petgraph::Direction;
 
 use super::types::{
-    Confidence, FileExtraction, GraphEdge, GraphNode, RawCall, Relation,
-    normalize_label,
+    normalize_label, Confidence, FileExtraction, GraphEdge, GraphNode, RawCall, Relation,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -60,7 +59,8 @@ impl CodeGraph {
     pub fn build(extractions: Vec<FileExtraction>) -> Self {
         let mut cg = Self::new();
         for extraction in extractions {
-            cg.extractions.insert(extraction.file_path.clone(), extraction);
+            cg.extractions
+                .insert(extraction.file_path.clone(), extraction);
         }
         cg.rebuild();
         cg
@@ -75,7 +75,8 @@ impl CodeGraph {
     /// has no extractions to rebuild from.
     pub fn update(&mut self, changed: Vec<FileExtraction>) {
         for extraction in changed {
-            self.extractions.insert(extraction.file_path.clone(), extraction);
+            self.extractions
+                .insert(extraction.file_path.clone(), extraction);
         }
         self.rebuild();
     }
@@ -102,8 +103,10 @@ impl CodeGraph {
             }
         }
 
-        let all_raw_calls: Vec<RawCall> =
-            extractions.iter().flat_map(|e| e.raw_calls.clone()).collect();
+        let all_raw_calls: Vec<RawCall> = extractions
+            .iter()
+            .flat_map(|e| e.raw_calls.clone())
+            .collect();
         self.resolve_cross_file_calls(&all_raw_calls);
 
         self.deduplicate_by_label();
@@ -334,13 +337,7 @@ impl CodeGraph {
         let &start = self.id_to_index.get(from)?;
         let &end = self.id_to_index.get(to)?;
 
-        let path = petgraph::algo::astar(
-            &self.graph,
-            start,
-            |n| n == end,
-            |_| 1u32,
-            |_| 0u32,
-        );
+        let path = petgraph::algo::astar(&self.graph, start, |n| n == end, |_| 1u32, |_| 0u32);
 
         path.map(|(_cost, indices)| {
             indices
@@ -359,7 +356,10 @@ impl CodeGraph {
     }
 
     pub fn all_nodes(&self) -> Vec<&GraphNode> {
-        self.graph.node_indices().map(|idx| &self.graph[idx]).collect()
+        self.graph
+            .node_indices()
+            .map(|idx| &self.graph[idx])
+            .collect()
     }
 }
 

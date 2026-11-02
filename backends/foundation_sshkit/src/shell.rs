@@ -19,10 +19,14 @@ pub fn interactive(host: &Host) -> Result<(), String> {
     let status = Command::new("ssh")
         .args([
             "-tt",
-            "-p", &host.port.to_string(),
-            "-o", "StrictHostKeyChecking=no",
-            "-o", "UserKnownHostsFile=/dev/null",
-            "-o", "LogLevel=quiet",
+            "-p",
+            &host.port.to_string(),
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-o",
+            "LogLevel=quiet",
             &format!("{}@{}", host.user, host.hostname),
         ])
         .status()
@@ -47,12 +51,18 @@ pub fn exec_streaming(host: &Host, cmd: &str) -> Result<i32, String> {
 
     let mut child = Command::new("ssh")
         .args([
-            "-o", "StrictHostKeyChecking=no",
-            "-o", "UserKnownHostsFile=/dev/null",
-            "-o", "LogLevel=ERROR",
-            "-o", "BatchMode=yes",
-            "-p", &host.port.to_string(),
-            "-i", &key_path,
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-o",
+            "LogLevel=ERROR",
+            "-o",
+            "BatchMode=yes",
+            "-p",
+            &host.port.to_string(),
+            "-i",
+            &key_path,
             &format!("{}@{}", host.user, host.hostname),
             cmd,
         ])

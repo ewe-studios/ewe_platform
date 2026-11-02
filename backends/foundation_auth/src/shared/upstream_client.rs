@@ -21,10 +21,10 @@
 //! 3. `exchange_code()` — exchanges the auth code for tokens at the token endpoint
 //! 4. `fetch_userinfo()` — fetches the standardized profile from userinfo
 
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleResponse};
+use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
+use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
 use super::discovery::{DiscoveryClient, DiscoveryError, OidcDiscovery};
 use super::oauth::{OAuthConfig, OAuthError, OAuthManager, PkceChallenge, TokenResponse};
 use super::oauth_token::OAuthToken;
@@ -54,7 +54,9 @@ impl core::fmt::Display for UpstreamClientError {
             Self::OAuth(e) => write!(f, "oauth error: {e}"),
             Self::TokenExchange(s) => write!(f, "token exchange error: {s}"),
             Self::Userinfo(s) => write!(f, "userinfo error: {s}"),
-            Self::NoEndpoints => write!(f, "provider has no discovery URL and no explicit endpoints"),
+            Self::NoEndpoints => {
+                write!(f, "provider has no discovery URL and no explicit endpoints")
+            }
             Self::InvalidConfig(s) => write!(f, "invalid provider config: {s}"),
         }
     }
@@ -74,7 +76,7 @@ impl From<OAuthError> for UpstreamClientError {
     }
 }
 
-/// OIDC / OAuth2 upstream authentication client.
+/// OIDC / `OAuth2` upstream authentication client.
 ///
 /// Works for any provider that supports the standard OIDC/OAuth2 protocol.
 /// The client is configured from an [`UpstreamProvider`] — it either discovers
@@ -91,6 +93,7 @@ pub struct UpstreamOidcClient {
     discovery: Option<OidcDiscovery>,
     /// Redirect URI for the authorization code flow.
     redirect_uri: String,
+    max_error_body: usize,
 }
 
 impl UpstreamOidcClient {
@@ -121,7 +124,15 @@ impl UpstreamOidcClient {
             oauth: OAuthManager::new(OAuthConfig::default()),
             discovery: None,
             redirect_uri,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
         }
+    }
+
+    /// Cap an error body read for its message at `bytes`. Default 64 KiB.
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     /// Build from a provider using explicit endpoints (no discovery).
@@ -145,11 +156,7 @@ impl UpstreamOidcClient {
         let token_url = provider
             .token_url
             .as_deref()
-            .or_else(|| {
-                self.discovery
-                    .as_ref()
-                    .map(|d| d.token_endpoint.as_str())
-            })
+            .or_else(|| self.discovery.as_ref().map(|d| d.token_endpoint.as_str()))
             .ok_or(UpstreamClientError::NoEndpoints)?;
 
         let mut builder = OAuthConfig::builder()
@@ -273,7 +280,7 @@ impl UpstreamOidcClient {
 
     /// Exchange an authorization code for tokens at the provider's token endpoint.
     ///
-    /// Runs the OAuth2 `authorization_code` grant over the shared
+    /// Runs the `OAuth2` `authorization_code` grant over the shared
     /// client ([`DynNetClient`]), so it works identically on native and wasm.
     /// The `client_secret` (decrypted by the caller from
     /// [`UpstreamProvider::client_secret_ciphertext`]) is sent only when
@@ -309,9 +316,11 @@ impl UpstreamOidcClient {
         }
 
         let body = encode_form(&form);
-        let response = http_post_form(&self.http, &config.token_url, &body).await?;
-        let token: TokenResponse = serde_json::from_str(&response)
-            .map_err(|e| UpstreamClientError::TokenExchange(format!("parse token response: {e}")))?;
+        let response =
+            http_post_form(&self.http, &config.token_url, &body, self.max_error_body).await?;
+        let token: TokenResponse = serde_json::from_str(&response).map_err(|e| {
+            UpstreamClientError::TokenExchange(format!("parse token response: {e}"))
+        })?;
 
         Ok(OAuthToken {
             access_token: token.access_token,
@@ -342,7 +351,8 @@ impl UpstreamOidcClient {
             .userinfo_endpoint()
             .ok_or(UpstreamClientError::NoEndpoints)?;
 
-        let response = http_get_with_bearer(&self.http, &url, access_token).await?;
+        let response =
+            http_get_with_bearer(&self.http, &url, access_token, self.max_error_body).await?;
         let json: serde_json::Value = serde_json::from_str(&response)
             .map_err(|e| UpstreamClientError::Userinfo(format!("parse userinfo response: {e}")))?;
 
@@ -388,7 +398,7 @@ impl UpstreamProfile {
                 .map(String::from),
             email_verified: json
                 .get(&mapping.email_verified_field)
-                .and_then(|v| v.as_bool())
+                .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false),
             name: json
                 .get(&mapping.name_field)
@@ -405,6 +415,7 @@ impl UpstreamProfile {
     }
 
     /// Extract a profile from an OIDC ID token claims set.
+    #[must_use]
     pub fn from_id_token(
         claims: &serde_json::Value,
         mapping: &super::provider::ProviderMapping,
@@ -433,10 +444,14 @@ async fn http_post_form(
     client: &DynNetClient,
     url: &str,
     body: &str,
+    max_error_body: usize,
 ) -> Result<String, UpstreamClientError> {
     let req = PreparedRequestBuilder::post(url)
         .map_err(|e| UpstreamClientError::TokenExchange(format!("invalid token URL: {e}")))?
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
         .header(SimpleHeader::ACCEPT, "application/json")
         .body_text(body)
         .build();
@@ -447,14 +462,15 @@ async fn http_post_form(
         .map_err(|e| UpstreamClientError::TokenExchange(e.to_string()))?;
 
     let status: usize = resp.get_status().into();
-    let text = collect_body_text(resp)
-        .map_err(|e| UpstreamClientError::TokenExchange(format!("read token response: {e}")))?;
     if !(200..300).contains(&status) {
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
         return Err(UpstreamClientError::TokenExchange(format!(
             "HTTP {status}: {text}"
         )));
     }
-    Ok(text)
+    read_body_text(resp.take_async_body())
+        .await
+        .map_err(|e| UpstreamClientError::TokenExchange(format!("read token response: {e}")))
 }
 
 /// GET a URL with a Bearer access token and return the response text.
@@ -462,6 +478,7 @@ async fn http_get_with_bearer(
     client: &DynNetClient,
     url: &str,
     access_token: &str,
+    max_error_body: usize,
 ) -> Result<String, UpstreamClientError> {
     let req = PreparedRequestBuilder::get(url)
         .map_err(|e| UpstreamClientError::Userinfo(format!("invalid userinfo URL: {e}")))?
@@ -475,23 +492,19 @@ async fn http_get_with_bearer(
         .map_err(|e| UpstreamClientError::Userinfo(e.to_string()))?;
 
     let status: usize = resp.get_status().into();
-    let text = collect_body_text(resp)
-        .map_err(|e| UpstreamClientError::Userinfo(format!("read userinfo response: {e}")))?;
     if status == 401 {
-        return Err(UpstreamClientError::Userinfo(format!("unauthorized: {text}")));
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
+        return Err(UpstreamClientError::Userinfo(format!(
+            "unauthorized: {text}"
+        )));
     }
     if !(200..300).contains(&status) {
-        return Err(UpstreamClientError::Userinfo(format!("HTTP {status}: {text}")));
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
+        return Err(UpstreamClientError::Userinfo(format!(
+            "HTTP {status}: {text}"
+        )));
     }
-    Ok(text)
-}
-
-/// Drain a response body to a UTF-8 string (lossy for raw bytes).
-///
-/// The client returns bodies as a lazy [`SendSafeBody::Stream`], so
-/// `get_body_ref()` would observe an empty body — the stream must be collected
-/// via [`try_collect_bytes`].
-fn collect_body_text(resp: SimpleResponse<SendSafeBody>) -> Result<String, String> {
-    let bytes = try_collect_bytes(resp.take_body()).map_err(|e| e.to_string())?;
-    Ok(String::from_utf8_lossy(&bytes).to_string())
+    read_body_text(resp.take_async_body())
+        .await
+        .map_err(|e| UpstreamClientError::Userinfo(format!("read userinfo response: {e}")))
 }

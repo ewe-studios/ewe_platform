@@ -34,9 +34,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_core::valtron::{Ctx, 
-    self, Pipe, PipeReceiver, PipeSender, Stream as VStream, TaskIterator,
-    TaskStatus, TryRecvError, TrySendError,
+use foundation_core::valtron::{
+    self, Ctx, Pipe, PipeReceiver, PipeSender, Stream as VStream, TaskIterator, TaskStatus,
+    TryRecvError, TrySendError,
 };
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
 use foundation_netio::http3::H3Error;
@@ -46,8 +46,8 @@ use foundation_netio::shared::http::{
 };
 
 use crate::shared::transport::{
-    body_stream_from_pipe, head_stream_from_pipe, Transport, TransportCapabilities,
-    TransportError, TransportStream,
+    body_stream_from_pipe, head_stream_from_pipe, Transport, TransportCapabilities, TransportError,
+    TransportStream,
 };
 
 /// How long the pump yields for when neither direction can make progress.
@@ -71,7 +71,10 @@ impl H3Transport {
     /// pinned certificate.
     #[must_use]
     pub fn new(client_config: ClientConfig) -> Self {
-        Self { client_config, server_name: None }
+        Self {
+            client_config,
+            server_name: None,
+        }
     }
 
     /// Validate the server certificate against `name` rather than the URI host.
@@ -100,7 +103,10 @@ impl Transport for H3Transport {
     }
 
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
-        let host = request.request_uri.host_str().unwrap_or_else(|| "localhost".into());
+        let host = request
+            .request_uri
+            .host_str()
+            .unwrap_or_else(|| "localhost".into());
         let port = request.request_uri.port_or_default();
         let path = request.request_uri.path().to_string();
         // QUIC is always encrypted, so an HTTP/3 request is always `https`.
@@ -151,9 +157,8 @@ impl Transport for H3Transport {
             response_ended: false,
         };
 
-        valtron::send(pump).map_err(|e| {
-            TransportError::Connect(Arc::new(io::Error::other(e.to_string())))
-        })?;
+        valtron::send(pump)
+            .map_err(|e| TransportError::Connect(Arc::new(io::Error::other(e.to_string()))))?;
 
         Ok(TransportStream {
             send_body: Arc::new(send_tx),
@@ -216,9 +221,18 @@ impl H3Pump {
     /// The request's field section, pseudo-headers first (RFC 9114 §4.3).
     fn request_fields(&self) -> Vec<(Bytes, Bytes)> {
         let mut fields = vec![
-            (Bytes::from_static(b":method"), Bytes::from(self.method.clone())),
-            (Bytes::from_static(b":scheme"), Bytes::from(self.scheme.clone())),
-            (Bytes::from_static(b":authority"), Bytes::from(self.authority.clone())),
+            (
+                Bytes::from_static(b":method"),
+                Bytes::from(self.method.clone()),
+            ),
+            (
+                Bytes::from_static(b":scheme"),
+                Bytes::from(self.scheme.clone()),
+            ),
+            (
+                Bytes::from_static(b":authority"),
+                Bytes::from(self.authority.clone()),
+            ),
             (Bytes::from_static(b":path"), Bytes::from(self.path.clone())),
         ];
 
@@ -391,7 +405,9 @@ fn split_response_fields(fields: &[(Bytes, Bytes)]) -> (Status, SimpleHeaders) {
             continue;
         }
         headers
-            .entry(SimpleHeader::from(String::from_utf8_lossy(name).to_string()))
+            .entry(SimpleHeader::from(
+                String::from_utf8_lossy(name).to_string(),
+            ))
             .or_default()
             .push(String::from_utf8_lossy(value).to_string());
     }

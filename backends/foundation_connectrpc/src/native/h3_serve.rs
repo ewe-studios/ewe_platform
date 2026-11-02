@@ -46,9 +46,9 @@ use crate::shared::protocol::{ExchangeConfig, HandlerExchange, ProtocolHandler};
 use crate::shared::router::dispatch::{
     self, allowed_methods, blank_response, build_ctx, capabilities_for, deadline_exceeded,
     exchange_until_aborted, extract_path, grpc_status_trailers, h2_headers,
-    http_version_not_supported, method_not_allowed,
-    request_from_header, run_unary, status_only, stream_error_frame, stream_failure,
-    unclosed_stream_error, unsupported_media_type, write_error, Abort, StreamEnd, ThreadTimer,
+    http_version_not_supported, method_not_allowed, request_from_header, run_unary, status_only,
+    stream_error_frame, stream_failure, unclosed_stream_error, unsupported_media_type, write_error,
+    Abort, StreamEnd, ThreadTimer,
 };
 use crate::shared::router::erased::ErasedStreamHandler;
 use crate::shared::router::{ConnectRpcHandler, HandlerKind};
@@ -103,8 +103,8 @@ pub async fn dispatch_h3(
     // ── 1. Read the request headers ──────────────────────────────────────
     let fields = poll_req(&mut req, H3Request::poll_headers).await?;
 
-    let header = request_from_fields(&fields, connection)
-        .map_err(|e| io::Error::other(e.to_string()))?;
+    let header =
+        request_from_fields(&fields, connection).map_err(|e| io::Error::other(e.to_string()))?;
     let request = request_from_header(&header);
     let path = extract_path(&request.request_url.url);
 
@@ -450,9 +450,10 @@ async fn run_streaming_h3(
             .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
         if is_grpc {
             // A gRPC stream with no messages still ends in `grpc-status`.
-            response
-                .trailers
-                .insert(SimpleHeader::from("grpc-status".to_string()), vec!["0".to_string()]);
+            response.trailers.insert(
+                SimpleHeader::from("grpc-status".to_string()),
+                vec!["0".to_string()],
+            );
         }
     }
     send_h3_response(&mut req, response).await

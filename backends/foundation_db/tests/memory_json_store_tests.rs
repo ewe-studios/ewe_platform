@@ -2,9 +2,7 @@
 //! traits. Its futures are ready at once, so the tests drive them with
 //! `futures_lite`'s `block_on`.
 
-use foundation_db::traits::{
-    BlobStore, KeyValueStore, QueryStore, RateLimiterStore,
-};
+use foundation_db::traits::{BlobStore, KeyValueStore, QueryStore, RateLimiterStore};
 use foundation_db::{MemoryJsonStore, StorageBackend, StorageError, StorageProvider};
 use futures_lite::future::block_on;
 
@@ -72,7 +70,13 @@ fn test_memory_json_list_keys() {
         store.set("user:2", "bob").await.unwrap();
         store.set("admin:1", "charlie").await.unwrap();
 
-        let all_keys = store.list_keys(None).await.unwrap().collect_all().await.unwrap();
+        let all_keys = store
+            .list_keys(None)
+            .await
+            .unwrap()
+            .collect_all()
+            .await
+            .unwrap();
         assert_eq!(all_keys.len(), 3);
 
         let user_keys = store
@@ -221,9 +225,18 @@ fn test_memory_json_query_not_supported() {
 fn test_memory_json_async_query_not_supported() {
     let store = MemoryJsonStore::new();
     block_on(async {
-        assert!(matches!(store.query("SELECT 1", &[]).await, Err(StorageError::Generic(_))));
-        assert!(matches!(store.execute("DELETE FROM t", &[]).await, Err(StorageError::Generic(_))));
-        assert!(matches!(store.execute_batch("SELECT 1").await, Err(StorageError::Generic(_))));
+        assert!(matches!(
+            store.query("SELECT 1", &[]).await,
+            Err(StorageError::Generic(_))
+        ));
+        assert!(matches!(
+            store.execute("DELETE FROM t", &[]).await,
+            Err(StorageError::Generic(_))
+        ));
+        assert!(matches!(
+            store.execute_batch("SELECT 1").await,
+            Err(StorageError::Generic(_))
+        ));
     });
 }
 
@@ -244,7 +257,9 @@ fn test_storage_provider_memory_json() {
 #[test]
 fn test_storage_provider_memory_json_via_new() {
     block_on(async {
-        let provider = StorageProvider::new(StorageBackend::MemoryJson).await.unwrap();
+        let provider = StorageProvider::new(StorageBackend::MemoryJson)
+            .await
+            .unwrap();
         provider.set("count", 99i64).await.unwrap();
         let count: Option<i64> = provider.get("count").await.unwrap();
         assert_eq!(count, Some(99));

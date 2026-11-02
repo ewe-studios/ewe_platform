@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use foundation_nativeapis::shared::vfs::{
-    SyncFs,
-    DeltaStore, MemoryDelta, MemoryFs, OpenMode, OverlayFileSystem, VfsDirectory, VfsFile,
+    DeltaStore, MemoryDelta, MemoryFs, OpenMode, OverlayFileSystem, SyncFs, VfsDirectory, VfsFile,
     VfsFileSystem,
 };
 use tracing_test::traced_test;
@@ -348,11 +347,7 @@ fn test_rename_base_file() {
     // Base still has original
     assert!(overlay.base().exists("/readme.md").unwrap());
     // Whiteout on old path
-    assert!(overlay
-        .delta()
-        .is_whiteout("/readme.md")
-        .unwrap()
-        .is_some());
+    assert!(overlay.delta().is_whiteout("/readme.md").unwrap().is_some());
 }
 
 #[test]
@@ -419,7 +414,10 @@ fn test_stacked_overlay() {
         .write_file("/inner.txt", b"inner data")
         .unwrap();
 
-    let outer = SyncFs::new(OverlayFileSystem::from_arcs(inner, Arc::new(MemoryDelta::new())));
+    let outer = SyncFs::new(OverlayFileSystem::from_arcs(
+        inner,
+        Arc::new(MemoryDelta::new()),
+    ));
     outer.write_file("/outer.txt", b"outer data").unwrap();
 
     assert_eq!(outer.read_file("/base.txt").unwrap(), b"base data");
@@ -434,9 +432,14 @@ fn test_stacked_whiteouts() {
     base.write_file("/hidden.txt", b"data").unwrap();
 
     let inner = Arc::new(OverlayFileSystem::new(base, MemoryDelta::new()));
-    SyncFs::from_arc(Arc::clone(&inner)).remove("/hidden.txt").unwrap();
+    SyncFs::from_arc(Arc::clone(&inner))
+        .remove("/hidden.txt")
+        .unwrap();
 
-    let outer = SyncFs::new(OverlayFileSystem::from_arcs(inner, Arc::new(MemoryDelta::new())));
+    let outer = SyncFs::new(OverlayFileSystem::from_arcs(
+        inner,
+        Arc::new(MemoryDelta::new()),
+    ));
 
     assert!(!outer.exists("/hidden.txt").unwrap());
 }

@@ -34,8 +34,7 @@ pub mod session;
 pub mod types;
 
 use foundation_connectrpc::{
-    Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Request,
-    ServerStream, Transport,
+    Client, ClientOptions, Ctx, H2Transport, ProcedureCodecs, Request, ServerStream, Transport,
 };
 use std::path::Path;
 use std::sync::Arc;
@@ -99,7 +98,9 @@ impl BuildKitClient {
     ///
     /// Returns an error if a client cannot be constructed. (The socket is
     /// dialed lazily, per call.)
-    pub fn connect(socket_path: impl AsRef<Path>) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn connect(
+        socket_path: impl AsRef<Path>,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let transport: Arc<dyn Transport> = Arc::new(H2Transport::unix(socket_path.as_ref()));
         Self::from_transport(transport, "localhost")
     }
@@ -228,8 +229,7 @@ impl BuildKitClient {
     pub fn gateway_for_build(
         &self,
         build_ref: impl Into<String>,
-    ) -> Result<services::gateway::LLBBridgeClient, Box<dyn std::error::Error + Send + Sync>>
-    {
+    ) -> Result<services::gateway::LLBBridgeClient, Box<dyn std::error::Error + Send + Sync>> {
         let client = services::gateway::LLBBridgeClient::new(
             Arc::clone(&self.transport),
             &format!("http://{}", self.authority),
@@ -248,7 +248,10 @@ impl BuildKitClient {
     /// failure or non-OK gRPC status.
     pub async fn info(&self) -> Result<InfoResponse, Box<dyn std::error::Error + Send + Sync>> {
         let ctx = Ctx::background();
-        let response = self.info.unary(ctx, Request::new(InfoRequest::default())).await?;
+        let response = self
+            .info
+            .unary(ctx, Request::new(InfoRequest::default()))
+            .await?;
         Ok(response.msg)
     }
 
@@ -289,8 +292,14 @@ impl BuildKitClient {
         build_ref: impl Into<String>,
     ) -> Result<ServerStream<StatusResponse>, Box<dyn std::error::Error + Send + Sync>> {
         let ctx = Ctx::background();
-        let request = StatusRequest { Ref: build_ref.into(), ..Default::default() };
-        let stream = self.status.server_stream(ctx, Request::new(request)).await?;
+        let request = StatusRequest {
+            Ref: build_ref.into(),
+            ..Default::default()
+        };
+        let stream = self
+            .status
+            .server_stream(ctx, Request::new(request))
+            .await?;
         Ok(stream)
     }
 
@@ -307,7 +316,10 @@ impl BuildKitClient {
         filters: Vec<String>,
     ) -> Result<DiskUsageResponse, Box<dyn std::error::Error + Send + Sync>> {
         let ctx = Ctx::background();
-        let request = DiskUsageRequest { filter: filters, ..Default::default() };
+        let request = DiskUsageRequest {
+            filter: filters,
+            ..Default::default()
+        };
         let response = self.disk_usage.unary(ctx, Request::new(request)).await?;
         Ok(response.msg)
     }
@@ -322,7 +334,10 @@ impl BuildKitClient {
         filters: Vec<String>,
     ) -> Result<ListWorkersResponse, Box<dyn std::error::Error + Send + Sync>> {
         let ctx = Ctx::background();
-        let request = ListWorkersRequest { filter: filters, ..Default::default() };
+        let request = ListWorkersRequest {
+            filter: filters,
+            ..Default::default()
+        };
         let response = self.list_workers.unary(ctx, Request::new(request)).await?;
         Ok(response.msg)
     }

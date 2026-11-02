@@ -12,13 +12,13 @@ struct EchoTool;
 #[async_trait]
 impl ToolImpl for EchoTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "echo".into(),
             description: "Echoes the message argument".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        returns: None,
-        })
+            returns: None,
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {

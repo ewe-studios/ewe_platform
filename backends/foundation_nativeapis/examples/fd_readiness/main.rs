@@ -3,7 +3,6 @@
 /// Demonstrates how to use RegisteredFd with the poll selector to monitor
 /// an arbitrary file descriptor for readability. This is the building block
 /// that FdMonitorTask uses under the hood.
-
 use std::io;
 use std::os::fd::AsRawFd;
 use std::time::Duration;
@@ -36,13 +35,8 @@ fn main() -> io::Result<()> {
         PollResult::Ready(mut guard) => {
             let mut buf = [0u8; 64];
             let result = guard.try_io_read(|fd| {
-                let n = unsafe {
-                    libc::read(
-                        fd.as_raw_fd(),
-                        buf.as_mut_ptr() as *mut _,
-                        buf.len(),
-                    )
-                };
+                let n =
+                    unsafe { libc::read(fd.as_raw_fd(), buf.as_mut_ptr() as *mut _, buf.len()) };
                 if n < 0 {
                     Err(io::Error::last_os_error())
                 } else {
@@ -84,9 +78,7 @@ fn make_pipe() -> io::Result<(std::os::unix::io::OwnedFd, std::os::unix::io::Own
 }
 
 fn write_to_fd(fd: std::os::unix::io::RawFd, data: &[u8]) -> io::Result<()> {
-    let n = unsafe {
-        libc::write(fd, data.as_ptr() as *const libc::c_void, data.len())
-    };
+    let n = unsafe { libc::write(fd, data.as_ptr() as *const libc::c_void, data.len()) };
     if n < 0 {
         Err(io::Error::last_os_error())
     } else {
@@ -110,5 +102,8 @@ fn poll_for_readiness(poll: &Poll) -> io::Result<FdState> {
         }
     }
 
-    Err(io::Error::new(io::ErrorKind::TimedOut, "no readiness events within timeout"))
+    Err(io::Error::new(
+        io::ErrorKind::TimedOut,
+        "no readiness events within timeout",
+    ))
 }

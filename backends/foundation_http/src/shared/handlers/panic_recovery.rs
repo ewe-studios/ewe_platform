@@ -13,9 +13,8 @@ pub fn with_panic_recovery(
     req: SimpleIncomingRequest,
     conn: &mut dyn std::io::Write,
 ) -> ConnectionResult {
-    let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
-        handler.serve_writer(bag, req, conn)
-    }));
+    let result =
+        std::panic::catch_unwind(AssertUnwindSafe(|| handler.serve_writer(bag, req, conn)));
 
     match result {
         Ok(connection_result) => connection_result,
@@ -28,12 +27,12 @@ pub fn with_panic_recovery(
                 "unknown panic".to_string()
             };
             tracing::error!("Handler panicked: {reason}");
-            ConnectionResult::Close(Some(
-                foundation_errstacks::ErrorTrace::new(ServeError::InternalError {
+            ConnectionResult::Close(Some(foundation_errstacks::ErrorTrace::new(
+                ServeError::InternalError {
                     status: 500,
                     reason: format!("handler panicked: {reason}"),
-                }),
-            ))
+                },
+            )))
         }
     }
 }

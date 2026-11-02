@@ -40,7 +40,7 @@ fn test_percentile_calculation() {
     let p99 = percentile(&data, 99);
 
     // P50 should be around the median
-    assert!(p50 >= 50 && p50 <= 60);
+    assert!((50..=60).contains(&p50));
     // P99 should be near the max
     assert_eq!(p99, 100);
 }

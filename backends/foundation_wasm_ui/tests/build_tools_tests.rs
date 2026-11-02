@@ -95,7 +95,11 @@ fn attribute_mapping() {
 
     let empty = HashMap::new();
     let ep = entrypoint_from_attrs("w", BundleMode::Worker, &empty);
-    assert_eq!(ep.packaging, JsPackaging::Separate, "separate is the default");
+    assert_eq!(
+        ep.packaging,
+        JsPackaging::Separate,
+        "separate is the default"
+    );
 
     let mut routed = HashMap::new();
     routed.insert(
@@ -138,5 +142,8 @@ fn cli_flags_parse() {
     assert!(sub.get_flag("release"));
     assert!(sub.get_flag("skip_runtimes"));
     assert_eq!(sub.get_one::<String>("output").unwrap(), "dist");
-    assert_eq!(sub.get_one::<String>("crate_directory").unwrap(), "my-crate");
+    assert_eq!(
+        sub.get_one::<String>("crate_directory").unwrap(),
+        "my-crate"
+    );
 }

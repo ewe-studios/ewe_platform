@@ -41,7 +41,10 @@ use futures_core::Stream as FuturesStream;
 /// The body read parks on the valtron worker thread, and `#[valtron_test]`
 /// gives each test a fresh pool, so the polling thread's CPU isolates the wait
 /// from the CPU of any other test running in parallel on the harness threads.
+// CLOCK_THREAD_CPUTIME_ID always yields non-negative secs/nsecs, so the
+// i64 -> u64 casts below cannot lose a sign.
 #[cfg(unix)]
+#[allow(clippy::cast_sign_loss)]
 fn thread_cpu_nanos() -> u64 {
     let mut ts = libc::timespec {
         tv_sec: 0,
@@ -49,7 +52,7 @@ fn thread_cpu_nanos() -> u64 {
     };
     // SAFETY: `ts` is a valid out pointer; CLOCK_THREAD_CPUTIME_ID is supported
     // on every unix target this crate tests on.
-    let rc = unsafe { libc::clock_gettime(libc::CLOCK_THREAD_CPUTIME_ID, &mut ts) };
+    let rc = unsafe { libc::clock_gettime(libc::CLOCK_THREAD_CPUTIME_ID, &raw mut ts) };
     assert_eq!(rc, 0, "clock_gettime(CLOCK_THREAD_CPUTIME_ID) failed");
     ts.tv_sec as u64 * 1_000_000_000 + ts.tv_nsec as u64
 }
@@ -182,11 +185,11 @@ async fn read_with_counting(
     let cpu_ns = cpu_last
         .load(Ordering::SeqCst)
         .saturating_sub(cpu_first.load(Ordering::SeqCst));
-    (bytes, count, elapsed, cpu_ns as u128)
+    (bytes, count, elapsed, u128::from(cpu_ns))
 }
 
 #[cfg(unix)]
-fn assert_parked(bytes: Vec<u8>, expected: &[u8], count: usize, elapsed: Duration, cpu_ns: u128) {
+fn assert_parked(bytes: &[u8], expected: &[u8], count: usize, elapsed: Duration, cpu_ns: u128) {
     assert_eq!(bytes, expected);
     assert!(
         count < 10,
@@ -196,10 +199,10 @@ fn assert_parked(bytes: Vec<u8>, expected: &[u8], count: usize, elapsed: Duratio
         elapsed >= Duration::from_millis(400),
         "the body arrived after {elapsed:?}; it should have waited for the server's delay"
     );
-    let cpu_ms = cpu_ns / 1_000_000;
+    let cpu_millis = cpu_ns / 1_000_000;
     assert!(
-        cpu_ms < 50,
-        "reading the body used {cpu_ms} ms of CPU; it should park on readiness"
+        cpu_millis < 50,
+        "reading the body used {cpu_millis} ms of CPU; it should park on readiness"
     );
 }
 
@@ -207,7 +210,7 @@ fn assert_parked(bytes: Vec<u8>, expected: &[u8], count: usize, elapsed: Duratio
 #[valtron_test]
 async fn async_body_waits_without_spinning() {
     let addr = serve(
-        format!("HTTP/1.1 200 OK\r\nContent-Length: 10\r\nConnection: close\r\n\r\n"),
+        "HTTP/1.1 200 OK\r\nContent-Length: 10\r\nConnection: close\r\n\r\n".to_string(),
         b"hello body".to_vec(),
         Duration::from_millis(500),
     );
@@ -216,7 +219,7 @@ async fn async_body_waits_without_spinning() {
 
     let response = client.send_async(get_request(&url)).await.expect("send");
     let (bytes, count, elapsed, cpu_ns) = read_with_counting(response).await;
-    assert_parked(bytes, b"hello body", count, elapsed, cpu_ns);
+    assert_parked(&bytes, b"hello body", count, elapsed, cpu_ns);
 }
 
 #[cfg(unix)]
@@ -243,7 +246,7 @@ async fn async_body_chunked_waits_without_spinning() {
 
     let response = client.send_async(get_request(&url)).await.expect("send");
     let (bytes, count, elapsed, cpu_ns) = read_with_counting(response).await;
-    assert_parked(bytes, b"hello chunked", count, elapsed, cpu_ns);
+    assert_parked(&bytes, b"hello chunked", count, elapsed, cpu_ns);
 }
 
 #[cfg(unix)]
@@ -263,7 +266,7 @@ async fn async_body_sse_waits_without_spinning() {
     let response = client.send_async(get_request(&url)).await.expect("send");
     let (bytes, count, elapsed, cpu_ns) = read_with_counting(response).await;
     // `AsyncSendSafeBody` yields each SSE message's `data` plus a newline.
-    assert_parked(bytes, b"hello\n", count, elapsed, cpu_ns);
+    assert_parked(&bytes, b"hello\n", count, elapsed, cpu_ns);
 }
 
 #[cfg(unix)]
@@ -273,8 +276,7 @@ fn blocking_socket_wouldblock_is_an_error() {
     // the read timeout must surface as an error, not a hang and not a retry.
     let addr = serve_silent();
     let tcp = TcpStream::connect(addr).expect("connect");
-    tcp
-        .set_read_timeout(Some(Duration::from_millis(200)))
+    tcp.set_read_timeout(Some(Duration::from_millis(200)))
         .expect("read timeout");
     tcp.set_nonblocking(false).expect("blocking mode");
 

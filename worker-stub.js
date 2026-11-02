@@ -9,12 +9,14 @@
 //   GET    /accounts/:a/r2/buckets/:b/objects/:key
 //   DELETE /accounts/:a/r2/buckets/:b/objects/:key
 //   HEAD   /accounts/:a/r2/buckets/:b/objects/:key
+//   GET    /accounts/:a/r2/buckets/:b/objects         (R2 object listing)
 //
 // Requests are routed to the `DB` / `BUCKET` bindings declared in
 // wrangler.toml. Responses mimic the Cloudflare API shape the clients expect.
 
 const D1_QUERY_RE = /^\/accounts\/[^/]+\/d1\/database\/[^/]+\/query$/;
 const R2_OBJECT_RE = /^\/accounts\/[^/]+\/r2\/buckets\/[^/]+\/objects\/(.+)$/;
+const R2_LIST_RE = /^\/accounts\/[^/]+\/r2\/buckets\/[^/]+\/objects$/;
 
 export default {
   async fetch(request, env) {
@@ -30,6 +32,10 @@ export default {
 
     if (D1_QUERY_RE.test(path) && request.method === "POST") {
       return handleD1Query(request, env);
+    }
+
+    if (R2_LIST_RE.test(path) && request.method === "GET") {
+      return handleR2List(request, env);
     }
 
     const r2Match = path.match(R2_OBJECT_RE);
@@ -89,6 +95,32 @@ async function handleD1Query(request, env) {
   } catch (e) {
     return cfError(400, `D1 execution failed: ${e?.message || e}`);
   }
+}
+
+async function handleR2List(request, env) {
+  const url = new URL(request.url);
+  const prefix = url.searchParams.get("prefix") || "";
+  const cursor = url.searchParams.get("cursor") || undefined;
+
+  const listed = await env.BUCKET.list({ prefix, cursor });
+  const objects = (listed.objects || []).map((object) => ({ key: object.key }));
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      errors: [],
+      messages: [],
+      result: objects,
+      result_info: {
+        is_truncated: listed.truncated || false,
+        cursor: listed.cursor || "",
+      },
+    }),
+    {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    },
+  );
 }
 
 async function handleR2(request, env, key) {

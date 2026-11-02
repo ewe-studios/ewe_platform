@@ -4,8 +4,8 @@ use foundation_nostd::primitives::wait_duration::*;
 mod when_std {
     extern crate std;
 
-    use foundation_nostd::primitives::wait_duration::*;
     use core::time::Duration;
+    use foundation_nostd::primitives::wait_duration::*;
     use std::time::Instant;
 
     /// Test that `wait_duration` waits for the correct duration
@@ -152,8 +152,8 @@ mod when_std {
 }
 
 mod when_nostd {
-    use foundation_nostd::primitives::wait_duration::*;
     use core::time::Duration;
+    use foundation_nostd::primitives::wait_duration::*;
 
     /// Test that `wait_duration` waits for the correct duration
     #[test]

@@ -5,8 +5,8 @@
 //! WHAT: `TOTPSecret` for TOTP generation/verification, backup code support.
 //! HOW: HMAC-SHA1 with time steps. Synchronous — CPU-bound crypto ops.
 
-use hmac::{Hmac, Mac};
 use foundation_compact::rng::Rng;
+use hmac::{Hmac, Mac};
 use sha2::Sha256;
 use zeroize::Zeroizing;
 

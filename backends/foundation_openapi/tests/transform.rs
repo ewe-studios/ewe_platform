@@ -1,5 +1,6 @@
 use foundation_openapi::transform::{
     ensure_servers, extract_inline_schemas, normalize_nullable_types, path_to_type_name,
+    reuse_identical_schemas,
 };
 use serde_json::json;
 
@@ -98,6 +99,76 @@ fn extract_inline_schemas_extracts_array_items() {
     assert!(schemas.contains_key("ListItemsItem"));
 }
 
+// ── reuse_identical_schemas (spec-70 feature 14 E2) ──────────────────────────
+
+/// A property whose inline object byte-matches a named schema becomes a `$ref`
+/// to it, so the generator types the field instead of emitting
+/// `HashMap<String, serde_json::Value>`.
+#[test]
+fn an_inline_object_identical_to_a_named_schema_reuses_it() {
+    let mut spec = json!({
+        "components": {"schemas": {
+            "d1_read_replication_details": {
+                "description": "Configuration for D1 read replication.",
+                "type": "object",
+                "properties": {
+                    "mode": {"$ref": "#/components/schemas/d1_read_replication_mode"}
+                },
+                "required": ["mode"]
+            },
+            "d1_database_update_request_body": {
+                "type": "object",
+                "properties": {
+                    "read_replication": {
+                        "description": "Configuration for D1 read replication.",
+                        "type": "object",
+                        "properties": {
+                            "mode": {"$ref": "#/components/schemas/d1_read_replication_mode"}
+                        },
+                        "required": ["mode"]
+                    }
+                }
+            }
+        }}
+    });
+
+    let reused = reuse_identical_schemas(&mut spec);
+    assert_eq!(reused, 1, "one inline object should have been reused");
+
+    let read_replication = &spec["components"]["schemas"]["d1_database_update_request_body"]
+        ["properties"]["read_replication"];
+    assert_eq!(
+        read_replication["$ref"], "#/components/schemas/d1_read_replication_details",
+        "the inline object must become a $ref to the named schema"
+    );
+}
+
+/// An inline object that matches nothing is left alone (it stays untyped rather
+/// than getting a wrong name).
+#[test]
+fn an_inline_object_without_a_duplicate_is_untouched() {
+    let mut spec = json!({
+        "components": {"schemas": {
+            "some_named": {"type": "object", "properties": {"a": {"type": "string"}}},
+            "other": {
+                "type": "object",
+                "properties": {
+                    "inline": {"type": "object", "properties": {"b": {"type": "integer"}}}
+                }
+            }
+        }}
+    });
+
+    let reused = reuse_identical_schemas(&mut spec);
+    assert_eq!(reused, 0, "a unique inline object must not be rewritten");
+
+    let inline = &spec["components"]["schemas"]["other"]["properties"]["inline"];
+    assert!(
+        inline.get("$ref").is_none(),
+        "a non-matching inline object stays inline: {inline}"
+    );
+}
+
 // ── validate_canonical (spec-56 decision 05) ─────────────────────────────────
 //
 // WHY these exist: a half-applied transform yields a spec that generates quietly
@@ -170,11 +241,14 @@ fn an_inline_response_schema_is_caught() {
         ["schema"] = json!({ "type": "object", "properties": { "id": { "type": "integer" } } });
 
     let issues = validate_canonical(&spec).expect_err("inline schema is not canonical");
-    assert!(issues.iter().any(|i| matches!(
-        i,
-        NotCanonical::InlineSchema { path, method, location }
-            if path == "/servers" && method == "POST" && location == "201"
-    )), "should name where the inline schema is: {issues:?}");
+    assert!(
+        issues.iter().any(|i| matches!(
+            i,
+            NotCanonical::InlineSchema { path, method, location }
+                if path == "/servers" && method == "POST" && location == "201"
+        )),
+        "should name where the inline schema is: {issues:?}"
+    );
 }
 
 #[test]
@@ -184,10 +258,13 @@ fn an_inline_request_body_is_caught() {
         json!({ "type": "object", "properties": { "name": { "type": "string" } } });
 
     let issues = validate_canonical(&spec).expect_err("inline requestBody is not canonical");
-    assert!(issues.iter().any(|i| matches!(
-        i,
-        NotCanonical::InlineSchema { location, .. } if location == "requestBody"
-    )), "{issues:?}");
+    assert!(
+        issues.iter().any(|i| matches!(
+            i,
+            NotCanonical::InlineSchema { location, .. } if location == "requestBody"
+        )),
+        "{issues:?}"
+    );
 }
 
 #[test]
@@ -198,7 +275,10 @@ fn an_inline_allof_is_caught() {
     spec["paths"]["/servers"]["post"]["requestBody"]["content"]["application/json"]["schema"] =
         json!({ "type": "object", "allOf": [{ "properties": { "a": { "type": "string" } } }] });
 
-    assert!(validate_canonical(&spec).is_err(), "allOf composed in place is inline too");
+    assert!(
+        validate_canonical(&spec).is_err(),
+        "allOf composed in place is inline too"
+    );
 }
 
 #[test]
@@ -206,11 +286,14 @@ fn an_array_of_inline_objects_is_caught() {
     let mut spec = canonical();
     spec["paths"]["/servers"]["post"]["responses"]["201"]["content"]["application/json"]
         ["schema"] = json!({
-            "type": "array",
-            "items": { "type": "object", "properties": { "id": { "type": "integer" } } }
-        });
+        "type": "array",
+        "items": { "type": "object", "properties": { "id": { "type": "integer" } } }
+    });
 
-    assert!(validate_canonical(&spec).is_err(), "inline items are inline");
+    assert!(
+        validate_canonical(&spec).is_err(),
+        "inline items are inline"
+    );
 }
 
 #[test]
@@ -218,10 +301,14 @@ fn an_array_of_refs_is_fine() {
     let mut spec = canonical();
     spec["paths"]["/servers"]["post"]["responses"]["201"]["content"]["application/json"]
         ["schema"] = json!({
-            "type": "array", "items": { "$ref": "#/components/schemas/Server" }
-        });
+        "type": "array", "items": { "$ref": "#/components/schemas/Server" }
+    });
 
-    assert_eq!(validate_canonical(&spec), Ok(()), "a list of $refs is canonical");
+    assert_eq!(
+        validate_canonical(&spec),
+        Ok(()),
+        "a list of $refs is canonical"
+    );
 }
 
 #[test]
@@ -302,7 +389,10 @@ fn bundled() -> serde_json::Value {
 #[test]
 fn hoists_inline_operation_schemas_and_leaves_refs() {
     let mut spec = bundled();
-    assert!(validate_canonical(&spec).is_err(), "precondition: it starts inline");
+    assert!(
+        validate_canonical(&spec).is_err(),
+        "precondition: it starts inline"
+    );
 
     let stats = canonicalize_operations(&mut spec);
 
@@ -350,10 +440,17 @@ fn without_an_operation_id_the_collection_and_item_paths_do_not_collide() {
 
     let stats = canonicalize_operations(&mut spec);
     assert_eq!(stats.hoisted, 2);
-    assert_eq!(stats.renamed, 0, "different methods, different names — no dedup needed");
+    assert_eq!(
+        stats.renamed, 0,
+        "different methods, different names — no dedup needed"
+    );
 
     let schemas = spec["components"]["schemas"].as_object().unwrap();
-    assert!(schemas.contains_key("InstancesGetResponse"), "{:?}", schemas.keys().collect::<Vec<_>>());
+    assert!(
+        schemas.contains_key("InstancesGetResponse"),
+        "{:?}",
+        schemas.keys().collect::<Vec<_>>()
+    );
     assert!(schemas.contains_key("InstancesDeleteResponse"));
 }
 
@@ -395,7 +492,11 @@ fn an_array_of_inline_objects_names_the_item() {
 
     canonicalize_operations(&mut spec);
 
-    assert_eq!(validate_canonical(&spec), Ok(()), "an array of $refs is canonical");
+    assert_eq!(
+        validate_canonical(&spec),
+        Ok(()),
+        "an array of $refs is canonical"
+    );
     assert_eq!(
         spec["paths"]["/list"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
             ["items"]["$ref"],
@@ -431,7 +532,11 @@ fn canonicalizes_the_real_linode_spec() {
     ensure_servers(&mut spec, "https://api.linode.com");
     let stats = canonicalize_operations(&mut spec);
 
-    assert!(stats.hoisted > 500, "the bundled spec is full of them: {}", stats.hoisted);
+    assert!(
+        stats.hoisted > 500,
+        "the bundled spec is full of them: {}",
+        stats.hoisted
+    );
     assert_eq!(
         validate_canonical(&spec),
         Ok(()),
@@ -499,13 +604,19 @@ fn strips_documentation_that_generates_nothing_and_keeps_what_does() {
     let out = serde_json::to_string(&spec).unwrap();
     // The reason this exists: vendor doc placeholders trip secret scanning on an
     // artefact we have to commit.
-    assert!(!out.contains("hooks.slack.com"), "every doc placeholder is gone");
+    assert!(
+        !out.contains("hooks.slack.com"),
+        "every doc placeholder is gone"
+    );
     assert!(!out.contains("x-codeSamples"));
     assert!(!out.contains("\"example\""));
 
     // …but the parts that generate code survive.
     assert_eq!(spec["paths"]["/a"]["get"]["summary"], "keep me");
-    assert!(spec["paths"]["/a"]["get"]["description"].is_string(), "becomes a doc comment");
+    assert!(
+        spec["paths"]["/a"]["get"]["description"].is_string(),
+        "becomes a doc comment"
+    );
     assert_eq!(
         spec["paths"]["/a"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]
             ["properties"]["url"]["type"],
@@ -562,17 +673,21 @@ fn a_property_key_with_a_slash_still_yields_a_resolvable_ref() {
     let spec = json!({ "paths": { "/a": { "get": { "responses": { "200": {
         "content": { "application/json": { "schema": { "type": "object", "properties": props } } } } } } } },
         "components": { "schemas": schemas } });
-    assert_eq!(foundation_openapi::dangling_refs(&spec), Vec::<String>::new());
+    assert_eq!(
+        foundation_openapi::dangling_refs(&spec),
+        Vec::<String>::new()
+    );
 }
 
 #[test]
 fn a_property_key_starting_with_a_multibyte_char_does_not_panic() {
     // The old name builder uppercased byte 0 and sliced from byte 1 — which
     // panics outright on a non-ASCII key rather than producing a bad name.
-    let mut props = json!({ "é_field": { "type": "object", "properties": { "x": { "type": "string" } } } })
-        .as_object()
-        .unwrap()
-        .clone();
+    let mut props =
+        json!({ "é_field": { "type": "object", "properties": { "x": { "type": "string" } } } })
+            .as_object()
+            .unwrap()
+            .clone();
     let mut schemas = serde_json::Map::new();
     extract_inline_schemas(&mut props, "T", &mut schemas);
     assert_eq!(schemas.len(), 1, "it named something rather than panicking");
@@ -653,7 +768,10 @@ fn hoisting_never_takes_a_name_the_vendor_already_owns() {
             ["$ref"],
         "#/components/schemas/VectorizeIndexInfoResponse2"
     );
-    assert_eq!(foundation_openapi::dangling_refs(&spec), Vec::<String>::new());
+    assert_eq!(
+        foundation_openapi::dangling_refs(&spec),
+        Vec::<String>::new()
+    );
 }
 
 #[test]
@@ -711,7 +829,10 @@ fn a_response_referenced_from_components_gets_its_content_inlined() {
         ["application/json"]["schema"];
     assert_eq!(schema["$ref"], "#/components/schemas/DropletCreateResponse");
     assert!(spec["components"]["schemas"]["DropletCreateResponse"].is_object());
-    assert_eq!(foundation_openapi::dangling_refs(&spec), Vec::<String>::new());
+    assert_eq!(
+        foundation_openapi::dangling_refs(&spec),
+        Vec::<String>::new()
+    );
 }
 
 #[test]
@@ -736,11 +857,17 @@ fn a_response_component_is_named_once_not_once_per_operation() {
     resolve_response_refs(&mut spec);
 
     let schemas = spec["components"]["schemas"].as_object().unwrap();
-    assert_eq!(schemas.len(), 1, "one type, not one per operation: {:?}", schemas.keys().collect::<Vec<_>>());
+    assert_eq!(
+        schemas.len(),
+        1,
+        "one type, not one per operation: {:?}",
+        schemas.keys().collect::<Vec<_>>()
+    );
     assert!(schemas.contains_key("UnauthorizedResponse"));
     for path in ["/a", "/b"] {
         assert_eq!(
-            spec["paths"][path]["get"]["responses"]["401"]["content"]["application/json"]["schema"]["$ref"],
+            spec["paths"][path]["get"]["responses"]["401"]["content"]["application/json"]["schema"]
+                ["$ref"],
             "#/components/schemas/UnauthorizedResponse"
         );
     }
@@ -768,8 +895,14 @@ fn a_response_component_never_steals_a_schemas_name() {
     resolve_response_refs(&mut spec);
 
     let schemas = spec["components"]["schemas"].as_object().unwrap();
-    assert!(schemas.contains_key("droplet_create"), "the vendor's request schema is untouched");
-    assert!(schemas.contains_key("DropletCreateResponse"), "and the response has its own name");
+    assert!(
+        schemas.contains_key("droplet_create"),
+        "the vendor's request schema is untouched"
+    );
+    assert!(
+        schemas.contains_key("DropletCreateResponse"),
+        "and the response has its own name"
+    );
     assert!(
         !schemas.keys().any(|k| k.ends_with('2')),
         "no fallback rename was needed: {:?}",
@@ -844,9 +977,15 @@ fn the_real_digitalocean_responses_resolve() {
     let stats = resolve_response_refs(&mut spec);
     let after = foundation_openapi::dangling_refs(&spec);
 
-    assert!(stats.responses_inlined > 100, "DO refs its responses everywhere: {stats:?}");
+    assert!(
+        stats.responses_inlined > 100,
+        "DO refs its responses everywhere: {stats:?}"
+    );
     let introduced: Vec<&String> = after.iter().filter(|r| !before.contains(r)).collect();
-    assert!(introduced.is_empty(), "rewiring must not break a ref: {introduced:?}");
+    assert!(
+        introduced.is_empty(),
+        "rewiring must not break a ref: {introduced:?}"
+    );
     eprintln!(
         "  digitalocean: {} component responses named, {} operation responses rewired",
         stats.components_hoisted, stats.responses_inlined
@@ -885,10 +1024,18 @@ fn a_parameter_referenced_from_components_is_inlined() {
     assert_eq!(stats.parameters_inlined, 1);
     assert_eq!(stats.unresolved, 0);
 
-    let params = spec["paths"]["/v2/droplets"]["get"]["parameters"].as_array().unwrap();
-    assert_eq!(params[0]["name"], "tag_name", "the ref became the real parameter");
+    let params = spec["paths"]["/v2/droplets"]["get"]["parameters"]
+        .as_array()
+        .unwrap();
+    assert_eq!(
+        params[0]["name"], "tag_name",
+        "the ref became the real parameter"
+    );
     assert_eq!(params[0]["in"], "query");
-    assert_eq!(params[1]["name"], "inline_one", "an inline parameter is untouched");
+    assert_eq!(
+        params[1]["name"], "inline_one",
+        "an inline parameter is untouched"
+    );
 }
 
 #[test]
@@ -957,9 +1104,15 @@ fn the_real_digitalocean_parameters_resolve() {
     let stats = resolve_parameter_refs(&mut spec);
     let after = foundation_openapi::dangling_refs(&spec);
 
-    assert!(stats.parameters_inlined > 800, "DO refs nearly all of them: {stats:?}");
+    assert!(
+        stats.parameters_inlined > 800,
+        "DO refs nearly all of them: {stats:?}"
+    );
     let introduced: Vec<&String> = after.iter().filter(|r| !before.contains(r)).collect();
-    assert!(introduced.is_empty(), "rewiring must not break a ref: {introduced:?}");
+    assert!(
+        introduced.is_empty(),
+        "rewiring must not break a ref: {introduced:?}"
+    );
 
     // The one that carries the identity mechanism.
     let list = &spec["paths"]["/v2/droplets"]["get"]["parameters"];
@@ -973,5 +1126,8 @@ fn the_real_digitalocean_parameters_resolve() {
         names.contains(&"tag_name"),
         "droplets_list must keep ?tag_name= — it is how a deployment finds its own droplets: {names:?}"
     );
-    eprintln!("  digitalocean: {} parameters rewired", stats.parameters_inlined);
+    eprintln!(
+        "  digitalocean: {} parameters rewired",
+        stats.parameters_inlined
+    );
 }

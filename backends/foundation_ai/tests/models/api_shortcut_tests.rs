@@ -1,8 +1,8 @@
 //! Proposal 15, Tier 2 shortcuts: message constructors, string model ids,
 //! router conversions and API-key config constructors. All offline.
 
-use foundation_core::valtron::valtron_test;
 use foundation_ai::types::{MessageRole, Messages, TextContent, UserModelContent};
+use foundation_core::valtron::valtron_test;
 
 fn text_and_role(message: &Messages) -> (String, MessageRole) {
     match message {

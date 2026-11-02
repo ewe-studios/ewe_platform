@@ -10,7 +10,7 @@ description = "Connection-owned, worker-pooled HTTP serving framework built on f
 keywords = ["http", "server", "foundation", "sync"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_core = { path = "../foundation_core", version = "0.0.7" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 
 serde = { workspace = true }
@@ -58,7 +58,7 @@ web-sys = { version = "0.3", features = [
     "ReadableStreamDefaultReader",
     "ReadableStreamReadResult",
 ], optional = true }
-foundation_db = { path = "../foundation_db", version = "0.0.4", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.5", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
 
 [dev-dependencies]
 foundation_wireguard = { path = "../foundation_wireguard" }

@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
-use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 use crate::shared::http::framing::FrameLimits;
+use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 use crate::shared::http::{SimpleHeader, SimpleHeaders, SimpleHttpBody};
 
 use super::proxy;
@@ -67,7 +67,7 @@ pub struct ClientConfig {
     pub headers_to_pass_on_redirect: Option<Vec<SimpleHeader>>,
     pub headers_to_add: Option<SimpleHeaders>,
     /// Connect via a Unix domain socket instead of TCP (Docker daemon,
-    /// BuildKitd). When set, connection routing bypasses DNS/proxy and dials
+    /// `BuildKitd`). When set, connection routing bypasses DNS/proxy and dials
     /// this socket path. `None` (default) uses the normal TCP/TLS path.
     #[cfg(unix)]
     pub unix_socket: Option<std::path::PathBuf>,
@@ -161,6 +161,14 @@ impl ClientConfig {
         self.timeout_calculator.config()
     }
 
+    /// DNS resolution timeout (feature 36).
+    ///
+    /// Default 30 s, matching nginx's `resolver_timeout` default.
+    #[must_use]
+    pub fn dns_timeout(&self) -> Duration {
+        self.timeout_calculator.config().dns_timeout
+    }
+
     #[must_use]
     pub fn with_follow_other_redirects_response(mut self, follow: bool) -> Self {
         self.redirect.follow_other_redirects_response = follow;
@@ -248,6 +256,15 @@ impl ClientConfig {
     pub fn with_connect_timeout(mut self, timeout: Duration) -> Self {
         let mut config = *self.timeout_calculator.config();
         config.connect_timeout = timeout;
+        self.timeout_calculator = TimeoutCalculator::with_config(config);
+        self
+    }
+
+    /// Set the DNS resolution timeout (feature 36).
+    #[must_use]
+    pub fn with_dns_timeout(mut self, timeout: Duration) -> Self {
+        let mut config = *self.timeout_calculator.config();
+        config.dns_timeout = timeout;
         self.timeout_calculator = TimeoutCalculator::with_config(config);
         self
     }

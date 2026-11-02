@@ -45,11 +45,11 @@
 //! and drop it.
 
 #[cfg(all(target_os = "linux", feature = "uring"))]
+pub use crate::native::poll::sys::unix::selector::bufring::ProvidedBuf;
+#[cfg(all(target_os = "linux", feature = "uring"))]
 pub use crate::native::poll::sys::unix::selector::uring_completion::Completion;
 #[cfg(all(target_os = "linux", feature = "uring"))]
 pub use crate::native::poll::sys::unix::selector::uring_completion::SendCompletion;
-#[cfg(all(target_os = "linux", feature = "uring"))]
-pub use crate::native::poll::sys::unix::selector::bufring::ProvidedBuf;
 
 /// A source of bytes the kernel has already read.
 ///

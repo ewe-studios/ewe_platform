@@ -25,16 +25,16 @@ fn enable_push_validation() {
 fn max_frame_size_validation() {
     let mut s = SettingsStore::default();
     assert!(s.set(SettingId::MaxFrameSize, 16384).is_ok());
-    assert!(s.set(SettingId::MaxFrameSize, 16777215).is_ok());
+    assert!(s.set(SettingId::MaxFrameSize, 16_777_215).is_ok());
     assert!(s.set(SettingId::MaxFrameSize, 16383).is_err());
-    assert!(s.set(SettingId::MaxFrameSize, 16777216).is_err());
+    assert!(s.set(SettingId::MaxFrameSize, 16_777_216).is_err());
 }
 
 #[test]
 fn initial_window_size_validation() {
     let mut s = SettingsStore::default();
-    assert!(s.set(SettingId::InitialWindowSize, 2147483647).is_ok());
-    assert!(s.set(SettingId::InitialWindowSize, 2147483648).is_err());
+    assert!(s.set(SettingId::InitialWindowSize, 2_147_483_647).is_ok());
+    assert!(s.set(SettingId::InitialWindowSize, 2_147_483_648).is_err());
 }
 
 #[test]
@@ -60,10 +60,10 @@ fn apply_tracks_changes() {
 fn to_frame_roundtrip() {
     let mut s = SettingsStore::default();
     s.set(SettingId::MaxConcurrentStreams, 50).unwrap();
-    s.set(SettingId::InitialWindowSize, 128000).unwrap();
+    s.set(SettingId::InitialWindowSize, 128_000).unwrap();
     let frame = s.to_frame();
     let mut s2 = SettingsStore::default();
     s2.apply(&frame.settings).unwrap();
     assert_eq!(s2.get(SettingId::MaxConcurrentStreams), 50);
-    assert_eq!(s2.get(SettingId::InitialWindowSize), 128000);
+    assert_eq!(s2.get(SettingId::InitialWindowSize), 128_000);
 }

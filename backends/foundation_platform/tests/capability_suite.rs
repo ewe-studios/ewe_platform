@@ -43,7 +43,9 @@ fn invoke_with_correct_capability_succeeds() {
         content_type: CapabilityContentType::Json,
     };
 
-    assert!(reg.invoke(&session, &request, &active, Some(&route)).is_ok());
+    assert!(reg
+        .invoke(&session, &request, &active, Some(&route))
+        .is_ok());
 }
 
 #[test]
@@ -71,8 +73,7 @@ fn profile_too_low_denies_capability() {
 fn per_route_allowlist_blocks_unlisted_capability() {
     let reg = test_registry();
     let session = Arc::new(PlatformSession::new_test(std::path::PathBuf::from(".")));
-    let route = webview_app()
-        .with_allowed_capabilities(&[CapabilityId("microphone".into())]);
+    let route = webview_app().with_allowed_capabilities(&[CapabilityId("microphone".into())]);
 
     session.record_navigation("/chat");
     let active = session.active_page_identity().unwrap();

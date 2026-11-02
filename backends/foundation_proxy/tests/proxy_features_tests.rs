@@ -62,7 +62,9 @@ fn start_id_backend(id: &str) -> (u16, Backend) {
                                         "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{body}",
                                         body.len()
                                     );
-                                    if sock.write_all(resp.as_bytes()).is_err() || sock.flush().is_err() {
+                                    if sock.write_all(resp.as_bytes()).is_err()
+                                        || sock.flush().is_err()
+                                    {
                                         break;
                                     }
                                 }
@@ -116,14 +118,24 @@ fn parse(raw: &[u8]) -> RawResp {
         .and_then(|s| s.parse().ok())
         .unwrap_or(0);
     let headers = lines
-        .filter_map(|l| l.split_once(':').map(|(k, v)| (k.trim().to_lowercase(), v.trim().to_string())))
+        .filter_map(|l| {
+            l.split_once(':')
+                .map(|(k, v)| (k.trim().to_lowercase(), v.trim().to_string()))
+        })
         .collect();
-    RawResp { status, headers, body }
+    RawResp {
+        status,
+        headers,
+        body,
+    }
 }
 
 impl RawResp {
     fn header(&self, name: &str) -> Option<&str> {
-        self.headers.iter().find(|(k, _)| k == name).map(|(_, v)| v.as_str())
+        self.headers
+            .iter()
+            .find(|(k, _)| k == name)
+            .map(|(_, v)| v.as_str())
     }
 }
 
@@ -149,8 +161,11 @@ fn sticky_cookie_pins_requests_to_one_backend() {
         .backend(&format!("http://127.0.0.1:{pa}"))
         .backend(&format!("http://127.0.0.1:{pb}"));
     let proxy = ProxyServer::start(
-        ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0").service(svc),
-    ).block()
+        ProxyConfig::new("test.local", "127.0.0.1")
+            .bind("127.0.0.1:0")
+            .service(svc),
+    )
+    .block()
     .expect("start proxy");
     let addr = proxy.local_addr();
 
@@ -164,10 +179,16 @@ fn sticky_cookie_pins_requests_to_one_backend() {
         first = send(addr, "/", "test.local", &[]);
     }
     assert_eq!(first.status, 200, "proxy forwards to a backend once ready");
-    let set_cookie = first.header("set-cookie").expect("multi-backend responses set a sticky cookie").to_string();
+    let set_cookie = first
+        .header("set-cookie")
+        .expect("multi-backend responses set a sticky cookie")
+        .to_string();
     let cookie = set_cookie.split(';').next().unwrap().to_string(); // __proxy_sticky=<idx>
     let pinned = first.body.clone();
-    assert!(pinned == "BACKEND-A" || pinned == "BACKEND-B", "served a real backend: {pinned}");
+    assert!(
+        pinned == "BACKEND-A" || pinned == "BACKEND-B",
+        "served a real backend: {pinned}"
+    );
 
     // Subsequent requests carrying the cookie all hit the same backend.
     for _ in 0..6 {
@@ -188,20 +209,30 @@ fn draining_returns_503() {
 
     let svc = ServiceConfig::new("echo", "test.local").backend(&format!("http://127.0.0.1:{pa}"));
     let proxy = ProxyServer::start(
-        ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0").service(svc),
-    ).block()
+        ProxyConfig::new("test.local", "127.0.0.1")
+            .bind("127.0.0.1:0")
+            .service(svc),
+    )
+    .block()
     .expect("start proxy");
     let addr = proxy.local_addr();
     std::thread::sleep(Duration::from_millis(150));
 
     // Healthy: 200.
-    assert_eq!(send(addr, "/", "test.local", &[]).status, 200, "serves before drain");
+    assert_eq!(
+        send(addr, "/", "test.local", &[]).status,
+        200,
+        "serves before drain"
+    );
 
     // Begin draining: new requests get 503 (Decision 22).
     proxy.start_drain();
     std::thread::sleep(Duration::from_millis(50));
     let r = send(addr, "/", "test.local", &[]);
-    assert_eq!(r.status, 503, "draining proxy answers 503 so clients retry elsewhere");
+    assert_eq!(
+        r.status, 503,
+        "draining proxy answers 503 so clients retry elsewhere"
+    );
 
     proxy.shutdown();
 }
@@ -221,9 +252,12 @@ fn ssl_redirect_301_to_https() {
             .ssl(SslConfig::static_cert(&cert, &key))
             .redirect_bind("127.0.0.1:0")
             .service(svc),
-    ).block()
+    )
+    .block()
     .expect("start proxy with TLS");
-    let redirect_addr = proxy.redirect_local_addr().expect("redirect listener bound");
+    let redirect_addr = proxy
+        .redirect_local_addr()
+        .expect("redirect listener bound");
     std::thread::sleep(Duration::from_millis(150));
 
     // Plain HTTP to the redirect port → 301 to the https URL.
@@ -234,6 +268,95 @@ fn ssl_redirect_301_to_https() {
         Some("https://test.local/login"),
         "redirect points at the https URL for the same host+path"
     );
+
+    proxy.shutdown();
+}
+
+/// The redirect listener must accumulate the head across reads, not answer the
+/// first chunk. A client that sends the head in two writes still gets a 301 to
+/// the right https URL.
+#[test]
+fn redirect_handles_head_split_over_reads() {
+    let _guard = initialize_pool(64, Some(12));
+    let (pa, _a) = start_id_backend("SECURE");
+    let (cert, key) = write_certs();
+
+    let svc = ServiceConfig::new("echo", "test.local").backend(&format!("http://127.0.0.1:{pa}"));
+    let proxy = ProxyServer::start(
+        ProxyConfig::new("test.local", "127.0.0.1")
+            .bind("127.0.0.1:0")
+            .ssl(SslConfig::static_cert(&cert, &key))
+            .redirect_bind("127.0.0.1:0")
+            .service(svc),
+    )
+    .block()
+    .expect("start proxy with TLS");
+    let redirect_addr = proxy
+        .redirect_local_addr()
+        .expect("redirect listener bound");
+    std::thread::sleep(Duration::from_millis(150));
+
+    // Write the head in two parts. The blank line arrives only with part two,
+    // so a single-read redirect would answer (or drop) before seeing the path.
+    let mut stream = TcpStream::connect(redirect_addr).expect("connect");
+    stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
+    stream
+        .write_all(b"GET /login HTTP/1.1\r\nHost: test.local\r\n")
+        .expect("write part one");
+    stream.flush().ok();
+    std::thread::sleep(Duration::from_millis(150));
+    stream
+        .write_all(b"X-Split: 1\r\n\r\n")
+        .expect("write part two");
+    stream.flush().ok();
+
+    let mut raw = Vec::new();
+    stream.read_to_end(&mut raw).ok();
+    let r = parse(&raw);
+    assert_eq!(r.status, 301, "split head must still redirect: {raw:?}");
+    assert_eq!(r.header("location"), Some("https://test.local/login"));
+
+    proxy.shutdown();
+}
+
+/// A head that passes the configured redirect head limit before its blank line
+/// gets a `431 Request Header Fields Too Large`, not a silent drop.
+#[test]
+fn redirect_rejects_head_over_limit() {
+    let _guard = initialize_pool(65, Some(12));
+    let (pa, _a) = start_id_backend("SECURE");
+    let (cert, key) = write_certs();
+
+    let svc = ServiceConfig::new("echo", "test.local").backend(&format!("http://127.0.0.1:{pa}"));
+    let proxy = ProxyServer::start(
+        ProxyConfig::new("test.local", "127.0.0.1")
+            .bind("127.0.0.1:0")
+            .ssl(SslConfig::static_cert(&cert, &key))
+            .redirect_bind("127.0.0.1:0")
+            .redirect_head_limit(64)
+            .service(svc),
+    )
+    .block()
+    .expect("start proxy with TLS");
+    let redirect_addr = proxy
+        .redirect_local_addr()
+        .expect("redirect listener bound");
+    std::thread::sleep(Duration::from_millis(150));
+
+    // A head with a 200-byte header and no blank line passes the 64-byte limit.
+    let mut stream = TcpStream::connect(redirect_addr).expect("connect");
+    stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
+    let long_header = format!("X-Long: {}\r\n", "a".repeat(200));
+    let head = format!("GET / HTTP/1.1\r\nHost: test.local\r\n{long_header}");
+    stream
+        .write_all(head.as_bytes())
+        .expect("write over-limit head");
+    stream.flush().ok();
+
+    let mut raw = Vec::new();
+    stream.read_to_end(&mut raw).ok();
+    let r = parse(&raw);
+    assert_eq!(r.status, 431, "head over the limit must get a 431: {raw:?}");
 
     proxy.shutdown();
 }
@@ -299,8 +422,11 @@ fn websocket_upgrade_relays_and_tunnels_bytes() {
 
     let svc = ServiceConfig::new("ws", "test.local").backend(&format!("http://127.0.0.1:{pa}"));
     let proxy = ProxyServer::start(
-        ProxyConfig::new("test.local", "127.0.0.1").bind("127.0.0.1:0").service(svc),
-    ).block()
+        ProxyConfig::new("test.local", "127.0.0.1")
+            .bind("127.0.0.1:0")
+            .service(svc),
+    )
+    .block()
     .expect("start proxy");
     let addr = proxy.local_addr();
     std::thread::sleep(Duration::from_millis(200));
@@ -335,7 +461,10 @@ fn websocket_upgrade_relays_and_tunnels_bytes() {
     stream.flush().ok();
     let mut echo = vec![0u8; 15];
     stream.read_exact(&mut echo).expect("read echo");
-    assert_eq!(&echo, b"hello-websocket", "bytes tunnel through the upgrade splice");
+    assert_eq!(
+        &echo, b"hello-websocket",
+        "bytes tunnel through the upgrade splice"
+    );
 
     proxy.shutdown();
 }

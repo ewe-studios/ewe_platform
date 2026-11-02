@@ -35,11 +35,19 @@ fn offerer_initiates_and_processes_answer() {
     assert_eq!(offerer.state, OffererState::WaitingForAnswer);
 
     // Exchange ICE candidates.
-    let sig = offerer.add_local_candidate("candidate:1 1 UDP 2130706431 10.0.0.1 9000 typ host".into(), Some("0".into()), Some(0));
+    let sig = offerer.add_local_candidate(
+        "candidate:1 1 UDP 2130706431 10.0.0.1 9000 typ host".into(),
+        Some("0".into()),
+        Some(0),
+    );
     assert!(sig.is_some());
     assert_eq!(offerer.state, OffererState::IceExchange);
 
-    offerer.on_ice_candidate("candidate:2 1 UDP 1694498815 10.0.0.2 9000 typ srflx".into(), Some("0".into()), Some(0));
+    offerer.on_ice_candidate(
+        "candidate:2 1 UDP 1694498815 10.0.0.2 9000 typ srflx".into(),
+        Some("0".into()),
+        Some(0),
+    );
     assert!(!offerer.local_candidates().is_empty());
 
     // Connected.
@@ -79,12 +87,20 @@ fn answerer_ice_exchange_and_connected() {
     answerer.on_offer(test_peer(), "v=0\r\no=- 0 0 IN IP4 0.0.0.0\r\ns=-\r\nt=0 0\r\na=ice-ufrag:b\r\na=ice-pwd:b\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\n".to_string());
 
     // First ICE candidate from browser.
-    let locals = answerer.on_ice_candidate("candidate:1 1 UDP 2130706431 10.0.0.1 9000 typ host".into(), Some("0".into()), Some(0));
+    let locals = answerer.on_ice_candidate(
+        "candidate:1 1 UDP 2130706431 10.0.0.1 9000 typ host".into(),
+        Some("0".into()),
+        Some(0),
+    );
     assert!(!locals.is_empty()); // generated local candidates
     assert_eq!(answerer.state, AnswererState::IceExchange);
 
     // More candidates arrive.
-    answerer.on_ice_candidate("candidate:2 1 UDP 1694498815 10.0.0.1 9001 typ srflx".into(), Some("0".into()), Some(0));
+    answerer.on_ice_candidate(
+        "candidate:2 1 UDP 1694498815 10.0.0.1 9001 typ srflx".into(),
+        Some("0".into()),
+        Some(0),
+    );
 
     // Check connected.
     assert!(answerer.check_connected());
@@ -106,9 +122,17 @@ fn answerer_failure() {
 #[test]
 fn webrtc_signal_codec_round_trip() {
     let signals = vec![
-        WebRtcSignal::Offer { sdp: "v=0\r\no=- 0 0".into() },
-        WebRtcSignal::Answer { sdp: "v=0\r\no=- 1 0".into() },
-        WebRtcSignal::IceCandidate { candidate: "candidate:1 1 UDP 2130706431 10.0.0.1 9000 typ host".into(), sdp_mid: Some("0".into()), sdp_mline_index: Some(0) },
+        WebRtcSignal::Offer {
+            sdp: "v=0\r\no=- 0 0".into(),
+        },
+        WebRtcSignal::Answer {
+            sdp: "v=0\r\no=- 1 0".into(),
+        },
+        WebRtcSignal::IceCandidate {
+            candidate: "candidate:1 1 UDP 2130706431 10.0.0.1 9000 typ host".into(),
+            sdp_mid: Some("0".into()),
+            sdp_mline_index: Some(0),
+        },
     ];
 
     for sig in signals {
@@ -123,9 +147,9 @@ fn webrtc_signal_codec_round_trip() {
 #[traced_test]
 #[test]
 fn browser_peer_ws_relay_and_webrtc_upgrade() {
-    use foundation_wireguard::wasm::browser::BrowserWgNode;
-    use foundation_wireguard::shared::tunnel::WgTunnel;
     use boringtun::x25519::{PublicKey, StaticSecret};
+    use foundation_wireguard::shared::tunnel::WgTunnel;
+    use foundation_wireguard::wasm::browser::BrowserWgNode;
     use std::net::IpAddr;
 
     // Create a BrowserWgNode (simulates a browser peer).
@@ -160,7 +184,13 @@ fn browser_peer_ws_relay_and_webrtc_upgrade() {
     assert_eq!(offerer.state, OffererState::WaitingForAnswer);
 
     // ICE exchange.
-    let sig = offerer.add_local_candidate("candidate:1 1 UDP 2130706431 10.0.0.1 9000 typ host".into(), Some("0".into()), Some(0)).expect("ICE sig");
+    let sig = offerer
+        .add_local_candidate(
+            "candidate:1 1 UDP 2130706431 10.0.0.1 9000 typ host".into(),
+            Some("0".into()),
+            Some(0),
+        )
+        .expect("ICE sig");
     let decoded = WebRtcSignal::from_bytes(&sig).expect("decode ICE");
     match decoded {
         WebRtcSignal::IceCandidate { candidate, .. } => {

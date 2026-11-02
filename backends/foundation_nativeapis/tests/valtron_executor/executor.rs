@@ -1,5 +1,4 @@
 /// Integration test: FileWatcherTask and FdMonitorTask run through the valtron executor.
-
 use std::fs::File;
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::path::PathBuf;
@@ -97,7 +96,10 @@ fn file_watcher_task_valtron_execution() {
         event.path
     );
 
-    assert!(rx.recv_timeout(Duration::from_secs(5)).is_ok(), "subscriber missed event");
+    assert!(
+        rx.recv_timeout(Duration::from_secs(5)).is_ok(),
+        "subscriber missed event"
+    );
 }
 
 /// Test: FdMonitorTask executes through valtron and invokes callback
@@ -131,17 +133,22 @@ fn fd_monitor_task_valtron_execution() {
         );
     }
 
-    let task = FdMonitorTask::new(registered)
-        .with_callback(move |fd| {
-            let mut buf = [0u8; 64];
-            let n = unsafe { libc::read(fd.as_raw_fd(), buf.as_mut_ptr() as *mut _, buf.len()) };
-            if n > 0 {
-                data_clone.lock().unwrap().extend_from_slice(&buf[..n as usize]);
-                Ok(())
-            } else {
-                Err(std::io::Error::new(std::io::ErrorKind::Other, "read returned 0"))
-            }
-        });
+    let task = FdMonitorTask::new(registered).with_callback(move |fd| {
+        let mut buf = [0u8; 64];
+        let n = unsafe { libc::read(fd.as_raw_fd(), buf.as_mut_ptr() as *mut _, buf.len()) };
+        if n > 0 {
+            data_clone
+                .lock()
+                .unwrap()
+                .extend_from_slice(&buf[..n as usize]);
+            Ok(())
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "read returned 0",
+            ))
+        }
+    });
 
     // Signal stop after a short delay so the task runs a few ticks then terminates
     let stop = task.stop_signal();
@@ -274,7 +281,10 @@ fn file_watcher_task_delivers_events() {
         event.path
     );
 
-    assert!(rx.recv_timeout(Duration::from_secs(5)).is_ok(), "subscriber missed event");
+    assert!(
+        rx.recv_timeout(Duration::from_secs(5)).is_ok(),
+        "subscriber missed event"
+    );
 }
 
 /// Test: FileWatcherTask with no watches — should not panic.
@@ -420,7 +430,10 @@ fn file_watcher_task_inotify_execution() {
         event.path
     );
 
-    assert!(rx.recv_timeout(Duration::from_secs(5)).is_ok(), "subscriber missed event");
+    assert!(
+        rx.recv_timeout(Duration::from_secs(5)).is_ok(),
+        "subscriber missed event"
+    );
 }
 
 /// Test: InotifyWatcher with multiple subscribers — all receive events

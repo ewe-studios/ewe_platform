@@ -78,10 +78,7 @@ fn a_fully_populated_cache_dir_short_circuits_the_download() {
     std::fs::remove_dir_all(&cache).ok();
 
     let path = result.expect("a populated cache must short-circuit, not attempt a download");
-    assert_eq!(
-        path, dest,
-        "the cached directory itself must be returned"
-    );
+    assert_eq!(path, dest, "the cached directory itself must be returned");
 }
 
 #[test]
@@ -199,7 +196,8 @@ fn the_cache_path_flattens_the_org_separator() {
 
     let path = result.expect("cached");
     assert!(
-        path.file_name().is_some_and(|n| n == "some-org--some-model"),
+        path.file_name()
+            .is_some_and(|n| n == "some-org--some-model"),
         "expected the flattened name, got {path:?}"
     );
 }

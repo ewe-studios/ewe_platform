@@ -37,7 +37,11 @@ impl PeerId {
 impl std::fmt::Debug for PeerId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // Short prefix keeps logs readable.
-        write!(f, "PeerId({}…)", &self.to_base64()[..8.min(self.to_base64().len())])
+        write!(
+            f,
+            "PeerId({}…)",
+            &self.to_base64()[..8.min(self.to_base64().len())]
+        )
     }
 }
 

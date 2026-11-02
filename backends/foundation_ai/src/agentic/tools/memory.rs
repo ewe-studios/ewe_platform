@@ -121,7 +121,9 @@ impl MemoryTool {
         let before = facts.len();
         let remaining: Vec<MemoryFact> = facts.into_iter().filter(|f| f.fact != fact).collect();
         if remaining.len() == before {
-            return Err(exec_err(format!("no fact matching '{fact}' in working memory")));
+            return Err(exec_err(format!(
+                "no fact matching '{fact}' in working memory"
+            )));
         }
         self.write(remaining, version).await?;
         Ok(ToolCallResult::text(format!("Forgot: {fact}")))
@@ -134,13 +136,15 @@ impl MemoryTool {
         let mut replaced = false;
         for f in &mut facts {
             if f.fact == old {
-                f.fact = new.clone();
+                f.fact.clone_from(&new);
                 f.asserted_at = SystemTime::now();
                 replaced = true;
             }
         }
         if !replaced {
-            return Err(exec_err(format!("no fact matching '{old}' in working memory")));
+            return Err(exec_err(format!(
+                "no fact matching '{old}' in working memory"
+            )));
         }
         self.write(facts, version).await?;
         Ok(ToolCallResult::text(format!(

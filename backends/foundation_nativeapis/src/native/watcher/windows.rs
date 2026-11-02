@@ -2,7 +2,6 @@
 ///
 /// Uses CreateFile to open directory handles, then ReadDirectoryChangesW
 /// with overlapped I/O to receive file system notifications via IOCP.
-
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
@@ -14,15 +13,11 @@ use std::{io, mem, ptr};
 
 use concurrent_queue::ConcurrentQueue;
 
+use crate::native::poll::Poll;
 use crate::shared::error::{Result, WatchError};
 use crate::shared::event::{WatchEvent, WatchEventKind};
-use crate::native::poll::Poll;
 
-use windows_sys::Win32::{
-    Foundation::*,
-    Storage::FileSystem::*,
-    System::IO::*,
-};
+use windows_sys::Win32::{Foundation::*, Storage::FileSystem::*, System::IO::*};
 
 /// Per-watch state for ReadDirectoryChangesW.
 struct WatchState {
@@ -137,7 +132,9 @@ impl WinWatcher {
 
             // Decode the filename from UTF-16
             let name_slice = &buffer[offset + mem::size_of::<FILE_NOTIFY_INFORMATION>()
-                ..offset + mem::size_of::<FILE_NOTIFY_INFORMATION>() + info.FileNameLength as usize];
+                ..offset
+                    + mem::size_of::<FILE_NOTIFY_INFORMATION>()
+                    + info.FileNameLength as usize];
             let name = {
                 let utf16: Vec<u16> = name_slice
                     .chunks_exact(2)
@@ -182,7 +179,10 @@ impl NativeWatcher for WinWatcher {
         if let Some(state) = self.watches.remove(path) {
             unsafe {
                 // Cancel pending I/O
-                CancelIoEx(state.dir_handle, state.overlapped.as_ref() as *const _ as *mut _);
+                CancelIoEx(
+                    state.dir_handle,
+                    state.overlapped.as_ref() as *const _ as *mut _,
+                );
                 CloseHandle(state.dir_handle);
             }
             Ok(())
@@ -268,7 +268,10 @@ impl NativeWatcher for WinWatcher {
         for path in completed_paths {
             if let Some(state) = self.watches.remove(&path) {
                 unsafe {
-                    CancelIoEx(state.dir_handle, state.overlapped.as_ref() as *const _ as *mut _);
+                    CancelIoEx(
+                        state.dir_handle,
+                        state.overlapped.as_ref() as *const _ as *mut _,
+                    );
                     CloseHandle(state.dir_handle);
                 }
             }

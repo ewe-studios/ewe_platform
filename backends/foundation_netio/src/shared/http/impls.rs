@@ -456,7 +456,6 @@ impl core::fmt::Debug for SendSafeBody {
 impl From<SendSafeBody> for SimpleBody {
     fn from(value: SendSafeBody) -> Self {
         match value {
-            SendSafeBody::None => Self::None,
             SendSafeBody::Text(s) => Self::Text(s),
             SendSafeBody::Bytes(b) => Self::Bytes(b),
             SendSafeBody::Stream(iter) => {
@@ -473,9 +472,9 @@ impl From<SendSafeBody> for SimpleBody {
             SendSafeBody::LineFeedStream(iter) => {
                 Self::LineFeedStream(iter.map(|i| i as LineFeedVecIterator<BoxedError>))
             }
-            // SseStream cannot be converted to SimpleBody as it requires special handling
-            // In this case, we return SimpleBody::None as SSE streams should be handled separately
-            SendSafeBody::SseStream(_) => Self::None,
+            // SseStream cannot be converted to SimpleBody as it requires special handling.
+            // In this case, we return SimpleBody::None as SSE streams should be handled separately.
+            SendSafeBody::None | SendSafeBody::SseStream(_) => Self::None,
         }
     }
 }
@@ -670,7 +669,7 @@ pub type SimpleHeaders = BTreeMap<SimpleHeader, Vec<String>>;
 /// A logging-safe view of [`SimpleHeaders`] with sensitive values redacted.
 ///
 /// WHY: request/response header logging previously wrote every header value
-/// with `{:?}`, so a `Bearer <token>` in `Authorization` (HuggingFace, OpenAI,
+/// with `{:?}`, so a `Bearer <token>` in `Authorization` (`HuggingFace`, `OpenAI`,
 /// Anthropic, …) — or a `Cookie` / `X-Api-Key` — landed in plaintext wherever
 /// that tracing was enabled. Credentials must never reach logs. `Debug` on this
 /// wrapper renders the same map but replaces the values of sensitive headers
@@ -1888,9 +1887,8 @@ impl SimpleOutgoingResponseBuilder {
     /// # Errors
     /// Returns an error if the status is not set or if building fails.
     pub fn build(self) -> SimpleResponseResult<SimpleOutgoingResponse> {
-        let status = match self.status {
-            Some(inner) => inner,
-            None => return Err(SimpleResponseError::StatusIsRequired),
+        let Some(status) = self.status else {
+            return Err(SimpleResponseError::StatusIsRequired);
         };
 
         let mut headers = self.headers.unwrap_or_default();
@@ -1898,14 +1896,6 @@ impl SimpleOutgoingResponseBuilder {
         let body = self.body.unwrap_or(SendSafeBody::None);
 
         match &body {
-            SendSafeBody::None => {
-                // Absent body → DO NOT auto-add `Content-Length`. A streaming
-                // response (SSE, long-poll, chunked) is delimited by its framing or
-                // by connection close, not a declared length; a `Content-Length: 0`
-                // makes clients treat the body as complete and ignore everything
-                // streamed afterwards. An explicit `Content-Length` (e.g. from
-                // `empty()`) set on the headers is preserved untouched.
-            }
             SendSafeBody::Bytes(inner) => {
                 let content_length = inner
                     .len()
@@ -1937,7 +1927,14 @@ impl SimpleOutgoingResponseBuilder {
             SendSafeBody::ChunkedStream(_) => {
                 ensure_chunked_transfer_encoding(&mut headers);
             }
-            SendSafeBody::Stream(_)
+            // Absent body → DO NOT auto-add `Content-Length`. A streaming
+            // response (SSE, long-poll, chunked) is delimited by its framing or
+            // by connection close, not a declared length; a `Content-Length: 0`
+            // makes clients treat the body as complete and ignore everything
+            // streamed afterwards. An explicit `Content-Length` (e.g. from
+            // `empty()`) set on the headers is preserved untouched.
+            SendSafeBody::None
+            | SendSafeBody::Stream(_)
             | SendSafeBody::LineFeedStream(_)
             | SendSafeBody::SseStream(_) => {}
         }
@@ -2210,9 +2207,8 @@ impl SimpleIncomingRequestBuilder {
     /// # Errors
     /// Returns an error if the URL is not provided or if building fails.
     pub fn build(self) -> SimpleRequestResult<SimpleIncomingRequest> {
-        let request_url = match self.url {
-            Some(inner) => inner,
-            None => return Err(SimpleRequestError::NoURLProvided),
+        let Some(request_url) = self.url else {
+            return Err(SimpleRequestError::NoURLProvided);
         };
 
         let req_uri = if let Some(uri) = self.req_uri {
@@ -2227,14 +2223,6 @@ impl SimpleIncomingRequestBuilder {
         let body = self.body.unwrap_or(SendSafeBody::None);
 
         match &body {
-            SendSafeBody::None => {
-                // Absent body → DO NOT auto-add `Content-Length: 0`. A bodyless
-                // request (e.g. a GET, or a WebSocket upgrade) must not declare a
-                // body; strict servers (Firefox's WebDriver BiDi, the `websockets`
-                // lib) reject a GET carrying `Content-Length` as "unsupported
-                // request body" (Chromium's CDP tolerates it). An explicitly-set
-                // `Content-Length` is preserved.
-            }
             SendSafeBody::Bytes(inner) => {
                 let content_length = inner
                     .len()
@@ -2260,9 +2248,16 @@ impl SimpleIncomingRequestBuilder {
             | SendSafeBody::LineFeedStream(_) => {
                 ensure_chunked_transfer_encoding(&mut headers);
             }
+            // Absent body → DO NOT auto-add `Content-Length: 0`. A bodyless
+            // request (e.g. a GET, or a WebSocket upgrade) must not declare a
+            // body; strict servers (Firefox's WebDriver BiDi, the `websockets`
+            // lib) reject a GET carrying `Content-Length` as "unsupported
+            // request body" (Chromium's CDP tolerates it). An explicitly-set
+            // `Content-Length` is preserved.
+            //
             // SSE is a response-only body; the request renderer emits no
             // framing for it, so no Transfer-Encoding is declared.
-            SendSafeBody::SseStream(_) => {}
+            SendSafeBody::None | SendSafeBody::SseStream(_) => {}
         }
 
         Ok(SimpleIncomingRequest {
@@ -2423,6 +2418,8 @@ impl Http11RequestBodyIterator {
 impl Iterator for Http11RequestBodyIterator {
     type Item = Result<Vec<u8>, Http11RenderError>;
 
+    // Iterator state machine: one arm per render state makes the body long.
+    #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<Self::Item> {
         match self.0.take()? {
             Http11RequestBodyState::Intro(mut request) => {
@@ -2950,6 +2947,8 @@ impl Http11ResponseIterator {
 impl Iterator for Http11ResponseIterator {
     type Item = Result<Vec<u8>, Http11RenderError>;
 
+    // Iterator state machine: one arm per render state makes the body long.
+    #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<Self::Item> {
         let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
         match self.0.take()? {
@@ -3264,9 +3263,7 @@ impl RenderHttp for Http11 {
             }
             Self::ResponseHead(head) => Ok(Box::new(Http11ResponseHeadIterator::new(head))),
             Self::ResponseBodyChunk(chunk) => Ok(Box::new(Http11ChunkIterator::new(chunk))),
-            Self::ResponseTrailers(trailers) => {
-                Ok(Box::new(Http11TrailersIterator::new(trailers)))
-            }
+            Self::ResponseTrailers(trailers) => Ok(Box::new(Http11TrailersIterator::new(trailers))),
         }
     }
 }
@@ -3517,6 +3514,8 @@ impl<T> HeaderReader<T>
 where
     T: std::io::Read,
 {
+    // Long by design: parses every header line plus continuation folds.
+    #[allow(clippy::too_many_lines)]
     fn parse_headers(&mut self) -> Result<SimpleHeaders, HttpReaderError> {
         let _span = tracing::span!(tracing::Level::TRACE, "parse_headers").entered();
         let mut headers: SimpleHeaders = BTreeMap::new();
@@ -3917,6 +3916,8 @@ where
 {
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
+    // Iterator state machine: one arm per read state makes the body long.
+    #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<Self::Item> {
         let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
         let no_body = matches!(&self.state, HttpReadState::OnlyHeaders);
@@ -4091,10 +4092,9 @@ where
                     }
 
                     if current_values.len() > 1 {
-                        if let Some(chunked_index) =
-                            transfer_encodings
-                                .iter()
-                                .position(|n| n.eq_ignore_ascii_case(CHUNKED_VALUE))
+                        if let Some(chunked_index) = transfer_encodings
+                            .iter()
+                            .position(|n| n.eq_ignore_ascii_case(CHUNKED_VALUE))
                         {
                             tracing::trace!("Chunked header index: {}", chunked_index);
                             if chunked_index != (current_values.len() - 1) {
@@ -4393,6 +4393,8 @@ where
 {
     type Item = Result<IncomingResponseParts, HttpReaderError>;
 
+    // Iterator state machine: one arm per read state makes the body long.
+    #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<Self::Item> {
         let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
         let no_body = matches!(&self.state, HttpReadState::OnlyHeaders);
@@ -4647,10 +4649,9 @@ where
                     }
 
                     if current_values.len() > 1 {
-                        if let Some(chunked_index) =
-                            transfer_encodings
-                                .iter()
-                                .position(|n| n.eq_ignore_ascii_case(CHUNKED_VALUE))
+                        if let Some(chunked_index) = transfer_encodings
+                            .iter()
+                            .position(|n| n.eq_ignore_ascii_case(CHUNKED_VALUE))
                         {
                             tracing::trace!("Chunked header index: {}", chunked_index);
                             if chunked_index != (current_values.len() - 1) {
@@ -4785,11 +4786,16 @@ impl LineFeed {
     pub fn stream_line_feeds_from_string(chunk_text: &[u8]) -> Result<Self, LineFeedError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::rwrite(cursor);
-        Self::stream_line_feeds(reader)
+        Self::stream_line_feeds(&reader)
     }
 
+    /// Parses line feeds from a stream pointer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`LineFeedError`] if parsing fails.
     pub fn stream_line_feeds<T: Read>(
-        pointer: SharedByteBufferStream<T>,
+        pointer: &SharedByteBufferStream<T>,
     ) -> Result<Self, LineFeedError> {
         while pointer.do_once_mut(|binding| {
             if let Ok(b) = binding.nextby2(1) {
@@ -4852,8 +4858,7 @@ impl LineFeed {
                 }
             }
             false
-        }) {
-        }
+        }) {}
 
         let line_feed_result = match pointer
             .do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume_some)
@@ -4878,21 +4883,21 @@ impl LineFeed {
         };
 
         // eat all the space
-        let () = Self::eat_space(pointer.clone())?;
+        Self::eat_space(pointer);
 
         // eat all newlines
-        let () = Self::eat_newlines(pointer.clone())?;
+        Self::eat_newlines(pointer);
 
         // eat all crlf
-        let () = Self::eat_crlf(pointer.clone())?;
+        Self::eat_crlf(pointer);
 
         // eat all crlf
-        let () = Self::eat_escaped_crlf(pointer)?;
+        Self::eat_escaped_crlf(pointer);
 
         line_feed_result
     }
 
-    fn eat_newlines_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), LineFeedError> {
+    fn eat_newlines_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) {
         let newline = b"\n";
         while let Ok(b) = acc.nextby2(1) {
             if b[0] == newline[0] {
@@ -4903,14 +4908,11 @@ impl LineFeed {
             let _ = acc.unforward();
             acc.skip();
 
-            return Ok(());
+            return;
         }
-        Ok(())
     }
 
-    fn eat_escaped_crlf_pointer<T: Read>(
-        acc: &mut ByteBufferPointer<T>,
-    ) -> Result<(), LineFeedError> {
+    fn eat_escaped_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) {
         while let Ok(b) = acc.nextby2(2) {
             if b != b"\\r" && b != b"\\n" {
                 let _ = acc.unforward_by(2);
@@ -4918,10 +4920,9 @@ impl LineFeed {
                 break;
             }
         }
-        Ok(())
     }
 
-    fn eat_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), LineFeedError> {
+    fn eat_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] != b'\r' && b[0] != b'\n' {
                 let _ = acc.unforward();
@@ -4929,10 +4930,9 @@ impl LineFeed {
                 break;
             }
         }
-        Ok(())
     }
 
-    fn eat_space_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), LineFeedError> {
+    fn eat_space_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] == b' ' {
                 continue;
@@ -4941,25 +4941,24 @@ impl LineFeed {
             // move backwards
             let _ = acc.unforward();
             acc.skip();
-            return Ok(());
+            return;
         }
-        Ok(())
     }
 
-    fn eat_newlines<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
-        pointer.do_once_mut(|binding| Self::eat_newlines_pointer(binding))
+    fn eat_newlines<T: Read>(pointer: &SharedByteBufferStream<T>) {
+        pointer.do_once_mut(|binding| Self::eat_newlines_pointer(binding));
     }
 
-    fn eat_escaped_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
-        pointer.do_once_mut(|binding| Self::eat_escaped_crlf_pointer(binding))
+    fn eat_escaped_crlf<T: Read>(pointer: &SharedByteBufferStream<T>) {
+        pointer.do_once_mut(|binding| Self::eat_escaped_crlf_pointer(binding));
     }
 
-    fn eat_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
-        pointer.do_once_mut(|binding| Self::eat_crlf_pointer(binding))
+    fn eat_crlf<T: Read>(pointer: &SharedByteBufferStream<T>) {
+        pointer.do_once_mut(|binding| Self::eat_crlf_pointer(binding));
     }
 
-    fn eat_space<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), LineFeedError> {
-        pointer.do_once_mut(|binding| Self::eat_space_pointer(binding))
+    fn eat_space<T: Read>(pointer: &SharedByteBufferStream<T>) {
+        pointer.do_once_mut(|binding| Self::eat_space_pointer(binding));
     }
 }
 
@@ -5040,6 +5039,11 @@ impl ChunkState {
         Self::try_new(chunk_size_octet, chunk_extension).expect("should parse octet string")
     }
 
+    /// Creates a chunk from a size octet string and optional extensions.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ChunkStateError`] if the size octet string is not valid.
     pub fn try_new(
         chunk_size_octet: String,
         chunk_extension: Option<Extensions>,
@@ -5057,7 +5061,7 @@ impl ChunkState {
     pub fn parse_http_trailer_chunk(chunk_text: &[u8]) -> Result<Option<Self>, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::ref_cell(cursor);
-        Self::parse_http_trailer_from_pointer(reader)
+        Self::parse_http_trailer_from_pointer(&reader)
     }
 
     /// Parses an HTTP chunk from bytes.
@@ -5067,7 +5071,7 @@ impl ChunkState {
     pub fn parse_http_chunk(chunk_text: &[u8]) -> Result<Self, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::ref_cell(cursor);
-        Self::parse_http_chunk_from_pointer(reader)
+        Self::parse_http_chunk_from_pointer(&reader)
     }
 
     /// Gets the length of an HTTP chunk header from bytes.
@@ -5077,16 +5081,21 @@ impl ChunkState {
     pub fn get_http_chunk_header_length(chunk_text: &[u8]) -> Result<usize, ChunkStateError> {
         let cursor = Cursor::new(chunk_text.to_vec());
         let reader = SharedByteBufferStream::ref_cell(cursor);
-        Self::get_http_chunk_header_length_from_pointer(reader)
+        Self::get_http_chunk_header_length_from_pointer(&reader)
     }
 
+    /// Parses an HTTP trailer chunk from a stream pointer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ChunkStateError`] if parsing fails.
     pub fn parse_http_trailer_from_pointer<T: Read>(
-        pointer: SharedByteBufferStream<T>,
+        pointer: &SharedByteBufferStream<T>,
     ) -> Result<Option<Self>, ChunkStateError> {
         // let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
 
         // eat all the space
-        let () = Self::eat_space(pointer.clone())?;
+        Self::eat_space(pointer);
 
         while pointer.do_once_mut(|acc| {
             if let Ok(b) = acc.nextby2(1) {
@@ -5153,8 +5162,7 @@ impl ChunkState {
             }
 
             false
-        }) {
-        }
+        }) {}
 
         match pointer.do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume) {
             Ok(value) => match String::from_utf8(value) {
@@ -5180,7 +5188,7 @@ impl ChunkState {
     ///
     /// Returns an error if the operation fails.
     pub fn get_http_chunk_header_length_from_pointer<T: Read>(
-        pointer: SharedByteBufferStream<T>,
+        pointer: &SharedByteBufferStream<T>,
     ) -> Result<usize, ChunkStateError> {
         // let mut acc = pointer.write().map_err(|_| ChunkStateError::ReadErrors)?;
         let mut total_bytes = 0;
@@ -5199,12 +5207,8 @@ impl ChunkState {
         while pointer.do_once_mut(|acc| {
             if let Ok(content) = acc.nextby2(1) {
                 match content {
-                    b"\r" => {
-                        let _ = acc.unforward();
-                        return false;
-                    }
                     // incase they use newline instead, http spec not respected
-                    b"\n" => {
+                    b"\r" | b"\n" => {
                         let _ = acc.unforward();
                         return false;
                     }
@@ -5215,8 +5219,7 @@ impl ChunkState {
                 }
             }
             false
-        }) {
-        }
+        }) {}
 
         // NOTE: Some chunk encoding use \r\n and others \n\n for
         // chunk encoding to have newline instead both \r\n?
@@ -5261,12 +5264,12 @@ impl ChunkState {
     ///
     /// Returns an error if the operation fails.
     pub fn parse_http_chunk_from_pointer<T: Read>(
-        pointer: SharedByteBufferStream<T>,
+        pointer: &SharedByteBufferStream<T>,
     ) -> Result<Self, ChunkStateError> {
         // let mut acc = pointer.write()?;
 
         // eat up any space (except CRLF)
-        Self::eat_space(pointer.clone())?;
+        Self::eat_space(pointer);
 
         // are we starting out with a CRLF, if so, skip it
         let _: Result<(), ChunkStateError> = pointer.do_once_mut(|acc| {
@@ -5294,9 +5297,7 @@ impl ChunkState {
             while let Ok(content) = acc.nextby2(1) {
                 let b = content[0];
                 match b {
-                    b'0'..=b'9' => continue,
-                    b'a'..=b'f' => continue,
-                    b'A'..=b'F' => continue,
+                    b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => {}
                     b' ' | b'\r' | b'\n' | b';' => {
                         let _ = acc.unforward();
                         chunk_size_octet = Some(acc.consume()?);
@@ -5344,7 +5345,7 @@ impl ChunkState {
             return Ok(Self::LastChunk);
         }
 
-        Self::eat_space(pointer.clone())?;
+        Self::eat_space(pointer);
 
         // do w have the extension starter marker (a semicolon)
         let extensions: Extensions = pointer.do_once_mut(|acc| {
@@ -5399,6 +5400,8 @@ impl ChunkState {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
+    // Long by design: parses a chunk extension token plus optional value.
+    #[allow(clippy::too_many_lines)]
     pub fn parse_http_chunk_extension<T: Read>(
         acc: &mut ByteBufferPointer<T>,
     ) -> Result<(String, Option<String>), ChunkStateError> {
@@ -5414,7 +5417,7 @@ impl ChunkState {
                     let _ = acc.unforward();
                     break;
                 }
-                _ => continue,
+                _ => {}
             }
         }
 
@@ -5444,7 +5447,7 @@ impl ChunkState {
         }
 
         // eat all the space
-        Self::eat_space_pointer(acc)?;
+        Self::eat_space_pointer(acc);
 
         // skip first extension starter
         if !foundation_core::is_ok!(acc.nextby2(1), b"=") {
@@ -5461,7 +5464,7 @@ impl ChunkState {
         acc.skip();
 
         // eat all the space
-        Self::eat_space_pointer(acc)?;
+        Self::eat_space_pointer(acc);
 
         let is_quoted = foundation_core::is_ok!(acc.peekby2(1), b"\"");
 
@@ -5502,7 +5505,7 @@ impl ChunkState {
                     let _ = acc.unforward();
                     break;
                 }
-                _ => continue,
+                _ => {}
             }
         }
 
@@ -5519,17 +5522,12 @@ impl ChunkState {
         }
 
         match (extension_key, extension_value) {
-            (Some(key), Some(value)) => {
-                match (
-                    String::from_utf8(key),
-                    String::from_utf8(value),
-                ) {
-                    (Ok(key_string), Ok(value_string)) => Ok((key_string, Some(value_string))),
-                    (Ok(_), Err(err)) => Err(ChunkStateError::InvalidOctetBytes(err)),
-                    (Err(err), Ok(_)) => Err(ChunkStateError::InvalidOctetBytes(err)),
-                    (Err(err), Err(_)) => Err(ChunkStateError::InvalidOctetBytes(err)),
+            (Some(key), Some(value)) => match (String::from_utf8(key), String::from_utf8(value)) {
+                (Ok(key_string), Ok(value_string)) => Ok((key_string, Some(value_string))),
+                (Ok(_), Err(err)) | (Err(err), Ok(_) | Err(_)) => {
+                    Err(ChunkStateError::InvalidOctetBytes(err))
                 }
-            }
+            },
             (Some(key), None) => match String::from_utf8(key) {
                 Ok(converted_string) => Ok((converted_string, None)),
                 Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
@@ -5539,7 +5537,7 @@ impl ChunkState {
         }
     }
 
-    fn eat_space_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), ChunkStateError> {
+    fn eat_space_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] == b' ' {
                 continue;
@@ -5548,13 +5546,12 @@ impl ChunkState {
             // move backwards
             let _ = acc.unforward();
             acc.skip();
-            return Ok(());
+            return;
         }
-        Ok(())
     }
 
-    fn eat_space<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
-        pointer.do_once_mut(|binding| Self::eat_space_pointer(binding))
+    fn eat_space<T: Read>(pointer: &SharedByteBufferStream<T>) {
+        pointer.do_once_mut(|binding| Self::eat_space_pointer(binding));
     }
 
     /// Parse a buffer of bytes that should contain a hex string of the size of chunk.
@@ -5648,17 +5645,16 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleLineFeedIterator<T> {
         // a `WouldBlock` cannot split it, and a line that never ends errors at
         // `max_line` instead of growing the buffer without bound.
         let limits = self.2;
-        match self
-            .1
-            .do_once_mut(|reader| super::framing::buffer_until(reader, super::framing::line, &limits))
-        {
+        match self.1.do_once_mut(|reader| {
+            super::framing::buffer_until(reader, super::framing::line, &limits)
+        }) {
             Ok(super::framing::BufferOutcome::Ready) => {}
             Ok(super::framing::BufferOutcome::WouldBlock) => {
                 return Some(Err(Box::new(HttpReaderError::WouldBlock)));
             }
             Err(err) => return Some(Err(Box::new(HttpReaderError::from_read_io(err)))),
         }
-        match LineFeed::stream_line_feeds(self.1.clone()) {
+        match LineFeed::stream_line_feeds(&self.1) {
             Ok(line) => {
                 tracing::trace!("LineFeed::next_line: {:?}", &line);
                 match &line {
@@ -5718,7 +5714,9 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleSseIterator<T> {
         }) {
             Ok(super::framing::BufferOutcome::Ready) => {}
             Ok(super::framing::BufferOutcome::WouldBlock) => {
-                return Some(Err(Box::new(HttpReaderError::WouldBlock) as SendableBoxedError));
+                return Some(Err(
+                    Box::new(HttpReaderError::WouldBlock) as SendableBoxedError
+                ));
             }
             Err(err) => {
                 return Some(Err(
@@ -5820,14 +5818,14 @@ impl<T: std::io::Read + Send + Sync> SimpleHttpChunkIterator<T> {
         self
     }
 
-    fn would_block() -> Option<Result<ChunkedData, BoxedError>> {
-        Some(Err(Box::new(HttpReaderError::WouldBlock)))
+    fn would_block() -> Result<ChunkedData, BoxedError> {
+        Err(Box::new(HttpReaderError::WouldBlock))
     }
 
     /// Hand out the next piece of the current chunk's data: `piece_size`
     /// bytes, or the rest of the chunk if that is less. A chunk no larger than
     /// `piece_size` therefore arrives whole, as one item.
-    fn next_piece(&self, progress: &mut ChunkProgress) -> Option<Result<ChunkedData, BoxedError>> {
+    fn next_piece(&self, progress: &mut ChunkProgress) -> Result<ChunkedData, BoxedError> {
         let remaining = progress.remaining;
         let piece_size = self.piece_size;
         #[allow(clippy::cast_possible_truncation)]
@@ -5864,10 +5862,10 @@ impl<T: std::io::Read + Send + Sync> SimpleHttpChunkIterator<T> {
                 // have every CR stripped, which corrupted binary bodies; see
                 // specifications/11-foundation-deployment/features/
                 // 05-gcp-cloud-run-cli-provider/CR_BYTE_INVESTIGATION.md.)
-                Some(Ok(ChunkedData::Data(bytes, progress.extensions.take())))
+                Ok(ChunkedData::Data(bytes, progress.extensions.take()))
             }
             Ok(None) => Self::would_block(),
-            Err(err) => Some(Err(Box::new(err))),
+            Err(err) => Err(Box::new(err)),
         }
     }
 }
@@ -5884,7 +5882,7 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 
             // The trailer section was buffered (and capped) together with the
             // last chunk's size line, so this parse reads only buffered bytes.
-            return match ChunkState::parse_http_trailer_from_pointer(self.stream.clone()) {
+            return match ChunkState::parse_http_trailer_from_pointer(&self.stream) {
                 Ok(value) => match value {
                     Some(item) => match item {
                         ChunkState::Trailer(inner) => {
@@ -5919,7 +5917,7 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
 
         // Inside a chunk: stream its next piece.
         if progress.remaining > 0 {
-            return self.next_piece(&mut progress);
+            return Some(self.next_piece(&mut progress));
         }
 
         // Between chunks: buffer the whole (capped) size line before parsing, so
@@ -5930,20 +5928,20 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleHttpChunkIterator<T> {
             super::framing::buffer_until(reader, super::framing::chunk_header, &limits)
         }) {
             Ok(super::framing::BufferOutcome::Ready) => {}
-            Ok(super::framing::BufferOutcome::WouldBlock) => return Self::would_block(),
+            Ok(super::framing::BufferOutcome::WouldBlock) => return Some(Self::would_block()),
             Err(err) => {
                 return Some(Err(Box::new(HttpReaderError::from_read_io(err))));
             }
         }
 
         tracing::trace!("ChunKState::StillParsingChunks");
-        match ChunkState::parse_http_chunk_from_pointer(self.stream.clone()) {
+        match ChunkState::parse_http_chunk_from_pointer(&self.stream) {
             Ok(chunk) => match chunk {
                 ChunkState::Chunk(size, _, opt_exts) => {
                     tracing::trace!("ChunkState::Chunk::GetSize: {:?}", size);
                     progress.remaining = size;
                     progress.extensions = opt_exts;
-                    self.next_piece(&mut progress)
+                    Some(self.next_piece(&mut progress))
                 }
                 ChunkState::LastChunk => {
                     ending_indicator.store(true, Ordering::Release);
@@ -6122,11 +6120,14 @@ impl BodyExtractor for SimpleHttpBody {
                     .batch_size(self.2)
                     .max_consecutive_retries(self.3);
 
+                // Content-Length is a byte count; a value above usize::MAX cannot
+                // be addressed in memory, so the truncating u64 -> usize cast is
+                // intentional and matches the previous behavior.
                 #[allow(clippy::cast_possible_truncation)]
-                let limited = LimitedBatchStreamReader::new(batch, content_length as usize);
+                let content_len = content_length as usize;
+                let limited = LimitedBatchStreamReader::new(batch, content_len);
                 // Enforce that the promised Content-Length is actually delivered
-                let enforcing =
-                    ContentLengthEnforcingIterator::new(limited, content_length as usize);
+                let enforcing = ContentLengthEnforcingIterator::new(limited, content_len);
                 let stream_reader: BoxedSendableDataIterator<BoxedError> = Box::new(enforcing);
 
                 Ok(SendSafeBody::Stream(Some(stream_reader)))
@@ -6158,9 +6159,7 @@ impl BodyExtractor for SimpleHttpBody {
 
 impl<T: std::io::Read + Send + Sync + 'static> HttpRequestReader<SimpleHttpBody, T> {
     #[must_use]
-    pub fn simple_tcp_stream(
-        reader: SharedByteBufferStream<T>,
-    ) -> Self {
+    pub fn simple_tcp_stream(reader: SharedByteBufferStream<T>) -> Self {
         Self::new(reader, SimpleHttpBody::default())
     }
 
@@ -6196,9 +6195,7 @@ impl<T: std::io::Read + Send + Sync + 'static> HttpRequestReader<SimpleHttpBody,
 
 impl<T: std::io::Read + Send + Sync + 'static> HttpResponseReader<SimpleHttpBody, T> {
     #[must_use]
-    pub fn simple_tcp_stream(
-        reader: SharedByteBufferStream<T>,
-    ) -> Self {
+    pub fn simple_tcp_stream(reader: SharedByteBufferStream<T>) -> Self {
         Self::new(reader, SimpleHttpBody::default())
     }
 
@@ -6340,6 +6337,11 @@ pub mod http_streams {
 }
 
 pub trait SimpleServer {
+    /// Handles an incoming request.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if handling the request fails.
     fn handle(&self, req: SimpleIncomingRequest) -> Result<SimpleOutgoingResponse, BoxedError>;
 }
 
@@ -6397,13 +6399,16 @@ pub struct ServiceActionList(Vec<ServiceAction>);
 
 impl ServiceActionList {
     #[must_use]
+    // Public API: `foundation_testing` passes an owned `SimpleMethod`, so the
+    // by-value signature must stay.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn get_one_matching2(
         &self,
         url: &SimpleUrl,
         method: SimpleMethod,
     ) -> Option<ServiceAction> {
         for endpoint in &self.0 {
-            if endpoint.match_head2(url, method.clone()) {
+            if endpoint.match_head2(url, &method) {
                 return Some(endpoint.clone());
             }
         }
@@ -6415,12 +6420,12 @@ impl ServiceActionList {
     pub fn get_matching2(
         &self,
         url: &SimpleUrl,
-        method: SimpleMethod,
+        method: &SimpleMethod,
     ) -> Option<Vec<ServiceAction>> {
         let mut matches = Vec::new();
 
         for endpoint in &self.0 {
-            if !endpoint.match_head2(url, method.clone()) {
+            if !endpoint.match_head2(url, method) {
                 continue;
             }
             matches.push(endpoint.clone());
@@ -6434,9 +6439,9 @@ impl ServiceActionList {
     }
 
     #[must_use]
-    pub fn get_one_matching(&self, url: &str, method: SimpleMethod) -> Option<ServiceAction> {
+    pub fn get_one_matching(&self, url: &str, method: &SimpleMethod) -> Option<ServiceAction> {
         for endpoint in &self.0 {
-            if endpoint.match_head(url, method.clone()) {
+            if endpoint.match_head(url, method) {
                 return Some(endpoint.clone());
             }
         }
@@ -6444,11 +6449,11 @@ impl ServiceActionList {
     }
 
     #[must_use]
-    pub fn get_matching(&self, url: &str, method: SimpleMethod) -> Option<Vec<ServiceAction>> {
+    pub fn get_matching(&self, url: &str, method: &SimpleMethod) -> Option<Vec<ServiceAction>> {
         let mut matches = Vec::new();
 
         for endpoint in &self.0 {
-            if !endpoint.match_head(url, method.clone()) {
+            if !endpoint.match_head(url, method) {
                 continue;
             }
             matches.push(endpoint.clone());
@@ -6489,10 +6494,11 @@ pub struct ServiceAction {
 impl std::fmt::Debug for ServiceAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ServiceAction")
+            .field("route", &self.route)
             .field("method", &self.method)
             .field("headers", &self.headers)
-            .field("Body", &"Body(CloneableSimpleServer)")
-            .finish()
+            .field("body", &"CloneableSimpleServer")
+            .finish_non_exhaustive()
     }
 }
 
@@ -6514,8 +6520,8 @@ impl ServiceAction {
     }
 
     #[must_use]
-    pub fn match_head2(&self, url: &SimpleUrl, method: SimpleMethod) -> bool {
-        if self.method != method {
+    pub fn match_head2(&self, url: &SimpleUrl, method: &SimpleMethod) -> bool {
+        if &self.method != method {
             return false;
         }
 
@@ -6523,8 +6529,8 @@ impl ServiceAction {
     }
 
     #[must_use]
-    pub fn match_head(&self, url: &str, method: SimpleMethod) -> bool {
-        if self.method != method {
+    pub fn match_head(&self, url: &str, method: &SimpleMethod) -> bool {
+        if &self.method != method {
             return false;
         }
 
@@ -6535,10 +6541,10 @@ impl ServiceAction {
     pub fn extract_match(
         &self,
         url: &str,
-        method: SimpleMethod,
+        method: &SimpleMethod,
         headers: Option<SimpleHeaders>,
     ) -> (bool, Option<BTreeMap<String, String>>) {
-        if self.method != method {
+        if &self.method != method {
             return (false, None);
         }
 
@@ -6555,8 +6561,7 @@ impl ServiceAction {
                 (false, None)
             }
             (Some(_), None) => (false, None),
-            (None, Some(_)) => (matched_url, extracted_params),
-            (None, None) => (matched_url, extracted_params),
+            (None, Some(_) | None) => (matched_url, extracted_params),
         }
     }
 }
@@ -6630,9 +6635,8 @@ impl ServiceActionBuilder {
     /// # Errors
     /// Returns an error if the route is not provided or if building fails.
     pub fn build(self) -> SimpleHttpResult<ServiceAction> {
-        let route = match self.route {
-            Some(inner) => inner,
-            None => return Err(SimpleHttpError::NoRouteProvided),
+        let Some(route) = self.route else {
+            return Err(SimpleHttpError::NoRouteProvided);
         };
 
         let method = match self.method {
@@ -6640,9 +6644,8 @@ impl ServiceActionBuilder {
             None => SimpleMethod::GET,
         };
 
-        let body = match self.body {
-            Some(inner) => inner,
-            None => return Err(SimpleHttpError::NoBodyProvided),
+        let Some(body) = self.body else {
+            return Err(SimpleHttpError::NoBodyProvided);
         };
 
         Ok(ServiceAction {

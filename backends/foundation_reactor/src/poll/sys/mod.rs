@@ -17,10 +17,10 @@ pub use self::unix::selector::dispatch::{RawFd, Selector};
     target_os = "openbsd",
     target_os = "dragonfly",
 ))]
-pub use self::unix::selector::kqueue::{Selector, RawFd};
+pub use self::unix::selector::kqueue::{RawFd, Selector};
 
 #[cfg(target_os = "windows")]
-pub use self::windows::{Selector, RawFd};
+pub use self::windows::{RawFd, Selector};
 
 #[cfg(not(any(
     target_os = "linux",
@@ -33,7 +33,7 @@ pub use self::windows::{Selector, RawFd};
     target_os = "dragonfly",
     target_os = "windows",
 )))]
-pub use self::shell::{Selector, RawFd};
+pub use self::shell::{RawFd, Selector};
 
 /// Public so the F41 parity suite can construct `epoll::Selector` and
 /// `uring::Selector` side by side in one test process.

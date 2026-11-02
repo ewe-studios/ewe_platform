@@ -1,4 +1,5 @@
 // Integration tests — organized by scenario.
+mod body_streaming;
 mod e2e;
 mod idp_server;
 mod provider_admin;

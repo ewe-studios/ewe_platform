@@ -17,19 +17,19 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::must_use_candidate)]
 
+pub mod builder;
 mod config;
 mod error;
-pub mod types;
-mod vec_ext;
-pub mod builder;
 pub mod harness;
 pub mod proxy;
 pub mod runner;
 pub mod service;
+pub mod types;
+mod vec_ext;
 pub mod watcher;
 
-pub use config::*;
 pub use builder::*;
+pub use config::*;
 pub use error::*;
 pub use runner::*;
 pub use service::*;

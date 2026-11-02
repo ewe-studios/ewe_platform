@@ -196,8 +196,8 @@ pub type NetworkListArgs = super::shared::FiltersArgs;
 pub struct NetworkInspectArgs {
     /// Path parameter: `id`.
     pub id: String,
-    /// Query parameter: `verbose`.
-    pub verbose: Option<String>,
+    /// Query parameter: `verbose` (true/false).
+    pub verbose: Option<bool>,
     /// Query parameter: `scope`.
     pub scope: Option<String>,
 }
@@ -294,7 +294,10 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("verbose", args.verbose.as_deref());
+    builder = builder.query(
+        "verbose",
+        args.verbose.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("scope", args.scope.as_deref());
 
     if let Some(f) = builder_mod {

@@ -14,4 +14,3 @@ macro_rules! make_collection {
         core::convert::From::from([$($v,)*])
     }};
 }
-

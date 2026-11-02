@@ -47,7 +47,13 @@ struct CountingDriver {
 impl CountingDriver {
     fn new(inner: QuicDriver) -> (Self, Arc<AtomicUsize>) {
         let polls = Arc::new(AtomicUsize::new(0));
-        (Self { inner, polls: polls.clone() }, polls)
+        (
+            Self {
+                inner,
+                polls: polls.clone(),
+            },
+            polls,
+        )
     }
 }
 
@@ -95,7 +101,8 @@ fn the_driver_wakes_accept_waiters_and_parked_requests() {
         .unwrap()
         .push(Waker::from(Arc::clone(&accept)));
 
-    let (mut cq, client_conn) = QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+    let (mut cq, client_conn) =
+        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
     let deadline = Instant::now() + BUDGET;
     let server_conn = loop {
         if let Some(conn) = sq.take_accepted() {
@@ -104,7 +111,10 @@ fn the_driver_wakes_accept_waiters_and_parked_requests() {
         assert!(Instant::now() < deadline, "server never accepted");
         pump(&mut sq, &mut cq);
     };
-    assert!(accept.0.load(Ordering::SeqCst) >= 1, "the accept waiter was never woken");
+    assert!(
+        accept.0.load(Ordering::SeqCst) >= 1,
+        "the accept waiter was never woken"
+    );
 
     let mut server = H3Connection::new(server_conn);
     let mut client = H3Connection::new(client_conn);
@@ -131,7 +141,10 @@ fn the_driver_wakes_accept_waiters_and_parked_requests() {
         inbound.register_waker(&Waker::from(Arc::clone(&parked))),
         "quinn connections can wake parked futures"
     );
-    assert!(!matches!(inbound.poll_body(), Stream::Next(_)), "no body yet");
+    assert!(
+        !matches!(inbound.poll_body(), Stream::Next(_)),
+        "no body yet"
+    );
     assert_eq!(parked.0.load(Ordering::SeqCst), 0);
 
     // The body arrives: the driver wakes the parked request.
@@ -139,7 +152,10 @@ fn the_driver_wakes_accept_waiters_and_parked_requests() {
     until!(sq, cq, req.poll_send_data(&mut data));
     let deadline = Instant::now() + BUDGET;
     while parked.0.load(Ordering::SeqCst) == 0 {
-        assert!(Instant::now() < deadline, "the parked request was never woken");
+        assert!(
+            Instant::now() < deadline,
+            "the parked request was never woken"
+        );
         pump(&mut sq, &mut cq);
     }
     let chunk = until!(sq, cq, inbound.poll_body());
@@ -153,8 +169,8 @@ fn the_driver_wakes_accept_waiters_and_parked_requests() {
 #[cfg(all(feature = "multi", unix))]
 #[test]
 fn idle_h3_connection_uses_no_cpu() {
-    use std::os::fd::AsRawFd;
     use foundation_core::valtron::{initialize_pool, send};
+    use std::os::fd::AsRawFd;
 
     let _guard = initialize_pool(200, Some(4));
 
@@ -167,7 +183,8 @@ fn idle_h3_connection_uses_no_cpu() {
     send(counting).expect("spawn server driver");
 
     let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
-    let (mut cq, client_conn) = QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
+    let (mut cq, client_conn) =
+        QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
 
     // Drive the client by hand while the server driver runs on the pool.
     let deadline = Instant::now() + BUDGET;

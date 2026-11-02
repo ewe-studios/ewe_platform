@@ -1,8 +1,8 @@
 //! CloudflareClient — wraps the auto-generated async `*_request` functions
 //! with auth injection and typed domain structs.
 
-use foundation_netio::{DynNetClient, HttpClientBuilder};
 use crate::types::*;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 /// Cloudflare's API base URL, from the spec's `servers[]`.
 ///
@@ -66,13 +66,28 @@ impl CloudflareClient {
         self
     }
 
-    #[must_use] pub fn zone_id(&self) -> &str { &self.zone_id }
+    #[must_use]
+    pub fn zone_id(&self) -> &str {
+        &self.zone_id
+    }
     /// The cross-platform HTTP client handle (cheap `Arc` clone).
-    #[must_use] pub fn http(&self) -> DynNetClient { self.http.clone() }
-    #[must_use] pub fn token(&self) -> String { self.token.clone() }
-    #[must_use] pub fn domain(&self) -> &str { &self.domain }
+    #[must_use]
+    pub fn http(&self) -> DynNetClient {
+        self.http.clone()
+    }
+    #[must_use]
+    pub fn token(&self) -> String {
+        self.token.clone()
+    }
+    #[must_use]
+    pub fn domain(&self) -> &str {
+        &self.domain
+    }
     /// The API base URL the generated calls are pointed at.
-    #[must_use] pub fn base_url(&self) -> &str { &self.base_url }
+    #[must_use]
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
 
     /// Point the client at a different base URL — a mock server, in practice.
     #[must_use]

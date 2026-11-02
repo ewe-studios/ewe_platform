@@ -21,8 +21,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx,
-    sync_collect_one, sync_one, valtron, valtron_test, TaskIterator, TaskStatus,
+use foundation_core::valtron::{
+    sync_collect_one, sync_one, valtron, valtron_test, Ctx, TaskIterator, TaskStatus,
 };
 
 /// Produces `max` ready values, one per executor iteration.
@@ -47,8 +47,7 @@ impl TaskIterator for CountingTask {
 /// Drive a 3-iteration task to completion on whatever engine the surrounding
 /// macro initialized; returns the Ready values the executor produced.
 fn run_counting_task() -> Vec<usize> {
-    sync_one(CountingTask { max: 3, current: 0 })
-        .expect("engine must be initialized by the macro")
+    sync_one(CountingTask { max: 3, current: 0 }).expect("engine must be initialized by the macro")
 }
 
 #[valtron_test]

@@ -1,6 +1,6 @@
 //! Tests for Feature 02 (spec 54) — Unix domain socket transport.
 //!
-//! WHY: The Docker daemon and BuildKitd serve HTTP over a Unix socket. These
+//! WHY: The Docker daemon and `BuildKitd` serve HTTP over a Unix socket. These
 //! tests verify `HttpClientBuilder::unix_socket()` routes requests over a real
 //! Unix socket end-to-end (no DNS, no proxy) and returns the correct response.
 //!
@@ -28,8 +28,7 @@ fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
+        .map_or(0, |d| d.as_nanos());
     let path = std::env::temp_dir().join(format!("ewe_netio_unix_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path

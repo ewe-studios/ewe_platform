@@ -62,12 +62,13 @@ pub use prune::{
     component_count, dangling_refs, prune_to_selection, unreachable_components, PruneStats,
 };
 pub use selection::{glob_match, operations_of, Selection};
-pub use transform::{
-    resolve_parameter_refs, resolve_response_refs, ParameterRefStats, ResponseRefStats,
-    canonicalize_operations, ensure_servers, extract_inline_schemas, normalize_nullable_types,
-    path_to_type_name, strip_doc_only, validate_canonical, CanonicalizeStats, NotCanonical,
-};
 pub use spec::{OpenApiSpec, Schema, SpecFormat};
+pub use transform::{
+    canonicalize_operations, ensure_servers, extract_inline_schemas, normalize_nullable_types,
+    path_to_type_name, resolve_parameter_refs, resolve_response_refs, reuse_identical_schemas,
+    strip_doc_only, validate_canonical, CanonicalizeStats, NotCanonical, ParameterRefStats,
+    ResponseRefStats,
+};
 pub use type_resolver::TypeResolver;
 
 // Re-exports for unified code generation

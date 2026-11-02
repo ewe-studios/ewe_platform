@@ -74,9 +74,15 @@ impl AsyncVfsFile for SqliteFile {
             row.get::<i64>(0).map_err(le)? as u64
         };
         let mut buf = vec![0u8; len];
-        let n =
-            read_chunk_range_async(&self.db, self.ino, current_size, self.chunk_size, &mut buf, offset)
-                .await?;
+        let n = read_chunk_range_async(
+            &self.db,
+            self.ino,
+            current_size,
+            self.chunk_size,
+            &mut buf,
+            offset,
+        )
+        .await?;
         buf.truncate(n);
         Ok(buf)
     }
@@ -256,14 +262,24 @@ impl AsyncVfsFile for SeekableSqliteFile {
 #[async_trait]
 impl AsyncSeekableVfsFile for SeekableSqliteFile {
     async fn read_async(&mut self, len: usize) -> VfsResult<Vec<u8>> {
-        let data = AsyncVfsFile::read_at_async(&self.inner, len, self.cursor.load(Ordering::Relaxed)).await?;
-        self.cursor.store(self.cursor.load(Ordering::Relaxed) + data.len() as u64, Ordering::Relaxed);
+        let data =
+            AsyncVfsFile::read_at_async(&self.inner, len, self.cursor.load(Ordering::Relaxed))
+                .await?;
+        self.cursor.store(
+            self.cursor.load(Ordering::Relaxed) + data.len() as u64,
+            Ordering::Relaxed,
+        );
         Ok(data)
     }
 
     async fn write_async(&mut self, data: Vec<u8>) -> VfsResult<usize> {
-        let n = AsyncVfsFile::write_at_async(&self.inner, data, self.cursor.load(Ordering::Relaxed)).await?;
-        self.cursor.store(self.cursor.load(Ordering::Relaxed) + n as u64, Ordering::Relaxed);
+        let n =
+            AsyncVfsFile::write_at_async(&self.inner, data, self.cursor.load(Ordering::Relaxed))
+                .await?;
+        self.cursor.store(
+            self.cursor.load(Ordering::Relaxed) + n as u64,
+            Ordering::Relaxed,
+        );
         Ok(n)
     }
 
@@ -412,9 +428,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
             .await
             .map_err(|e| {
                 if e.to_string().contains("UNIQUE constraint") {
-                    VfsError::AlreadyExists {
-                        path: name.clone(),
-                    }
+                    VfsError::AlreadyExists { path: name.clone() }
                 } else {
                     VfsError::Backend {
                         message: e.to_string(),
@@ -453,9 +467,8 @@ impl AsyncVfsDirectory for SqliteDirectory {
     async fn create_dir_async(
         &self,
         name: String,
-    ) -> VfsResult<
-        Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>,
-    > {
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
         let updated_at = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -621,7 +634,11 @@ impl AsyncVfsDirectory for SqliteDirectory {
         })
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         let file = self.open_async(path, mode).await?;
         Ok(SeekableSqliteFile::new(file))
     }
@@ -629,9 +646,8 @@ impl AsyncVfsDirectory for SqliteDirectory {
     async fn open_directory_async(
         &self,
         path: String,
-    ) -> VfsResult<
-        Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>,
-    > {
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
         let ino = resolve_path_async(self.db.clone(), path.clone()).await?;
         let stmt = self
             .db

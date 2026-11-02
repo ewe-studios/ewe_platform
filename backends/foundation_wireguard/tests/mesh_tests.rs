@@ -117,13 +117,9 @@ fn three_node_mesh_gossip_discovery_and_overlay_traffic() {
     let a_ip = node_a.overlay_ip();
 
     // Node B joins A.
-    let node_b = WgNode::from_config(WgConfig::joiner(
-        seed.clone(),
-        network_id,
-        vec![a_boot],
-    ))
-    .join()
-    .expect("B joins");
+    let node_b = WgNode::from_config(WgConfig::joiner(seed.clone(), network_id, vec![a_boot]))
+        .join()
+        .expect("B joins");
     let b_ip = node_b.overlay_ip();
     let b_boot = node_b.bootstrap_addr();
 

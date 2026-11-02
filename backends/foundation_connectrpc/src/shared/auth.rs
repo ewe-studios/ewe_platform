@@ -299,7 +299,7 @@ impl AuthFunc for JwtAuthenticator {
 
                     let auth_token = AuthToken::Jwt {
                         token: ConfidentialText::new(token),
-                        expires_at: claims.exp.timestamp() as f64,
+                        expires_at: claims.exp.timestamp(),
                         issuer: Some(claims.iss.clone()),
                         audience: Some(claims.aud.clone()),
                     };
@@ -425,11 +425,7 @@ impl PerProcedureAuth {
 
     /// Register an authenticator for a specific procedure.
     #[must_use]
-    pub fn with_procedure(
-        mut self,
-        procedure: impl Into<String>,
-        auth: impl AuthFunc,
-    ) -> Self {
+    pub fn with_procedure(mut self, procedure: impl Into<String>, auth: impl AuthFunc) -> Self {
         self.procedure_auth.insert(procedure.into(), Arc::new(auth));
         self
     }

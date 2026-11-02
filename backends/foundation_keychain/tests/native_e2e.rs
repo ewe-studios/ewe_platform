@@ -8,17 +8,19 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_http::ShutdownSignal;
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
-use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
+use foundation_http::ShutdownSignal;
 use foundation_keychain::core::store::apply_schema;
 use foundation_keychain::server::native::KeychainServer;
 use foundation_keychain::KeychainContext;
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use tempfile::TempDir;
 
 struct TestServer {
@@ -65,7 +67,11 @@ fn start_server() -> TestServer {
     std::thread::spawn(move || server.serve_with_listener(&listener, &sc));
     std::thread::sleep(Duration::from_millis(150));
 
-    TestServer { addr, shutdown, _dir: dir }
+    TestServer {
+        addr,
+        shutdown,
+        _dir: dir,
+    }
 }
 
 fn client() -> DynNetClient {
@@ -127,7 +133,10 @@ fn register_login_sync_and_create_over_http() {
     let login_body = read_body(body);
     assert_eq!(status.into_usize(), 200, "login: {login_body}");
     let login_json: serde_json::Value = serde_json::from_str(&login_body).expect("login json");
-    let access_token = login_json["access_token"].as_str().expect("access_token").to_string();
+    let access_token = login_json["access_token"]
+        .as_str()
+        .expect("access_token")
+        .to_string();
     assert!(!access_token.is_empty());
 
     let bearer = format!("Bearer {access_token}");

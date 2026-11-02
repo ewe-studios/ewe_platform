@@ -49,8 +49,14 @@ async fn normalized_vectors_strategy() {
 #[valtron_test]
 async fn l2_search() {
     let store = InMemoryVectorStore::new(VectorStoreConfig::new(2, DistanceMetric::L2));
-    store.insert(NS, entry("near", vec![0.1, 0.0])).await.unwrap();
-    store.insert(NS, entry("far", vec![10.0, 10.0])).await.unwrap();
+    store
+        .insert(NS, entry("near", vec![0.1, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert(NS, entry("far", vec![10.0, 10.0]))
+        .await
+        .unwrap();
     let results = store.search(NS, &[0.0, 0.0], 1).await.unwrap();
     assert_eq!(results[0].id, "near");
 }
@@ -58,8 +64,14 @@ async fn l2_search() {
 #[valtron_test]
 async fn dot_search() {
     let store = InMemoryVectorStore::new(VectorStoreConfig::new(2, DistanceMetric::Dot));
-    store.insert(NS, entry("high", vec![10.0, 10.0])).await.unwrap();
-    store.insert(NS, entry("low", vec![0.1, 0.1])).await.unwrap();
+    store
+        .insert(NS, entry("high", vec![10.0, 10.0]))
+        .await
+        .unwrap();
+    store
+        .insert(NS, entry("low", vec![0.1, 0.1]))
+        .await
+        .unwrap();
     let results = store.search(NS, &[1.0, 1.0], 1).await.unwrap();
     assert_eq!(results[0].id, "high");
 }

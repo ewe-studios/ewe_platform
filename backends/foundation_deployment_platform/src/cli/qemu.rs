@@ -3,19 +3,25 @@
 
 use std::path::Path;
 
+use crate::config::{DisplayMode, get_profile};
 use clap::ArgMatches;
-use crate::config::{get_profile, DisplayMode};
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
 fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, BoxedError> {
-    get_profile(name).map(|p| p.clone()).map_err(|e| Box::new(e) as BoxedError)
+    get_profile(name)
+        .map(|p| p.clone())
+        .map_err(|e| Box::new(e) as BoxedError)
 }
 
 /// Attach to an already-running VM via its state file + monitor socket.
-fn attach_running(profile: &crate::config::VmProfile) -> std::result::Result<crate::qemu::QemuVm, BoxedError> {
+fn attach_running(
+    profile: &crate::config::VmProfile,
+) -> std::result::Result<crate::qemu::QemuVm, BoxedError> {
     let vm_state = crate::state::load(&profile.name).map_err(|e| Box::new(e) as BoxedError)?;
-    let pid = vm_state.pid.ok_or_else(|| format!("VM '{}' is not running", profile.name))?;
+    let pid = vm_state
+        .pid
+        .ok_or_else(|| format!("VM '{}' is not running", profile.name))?;
     let monitor = std::path::PathBuf::from(&vm_state.monitor_socket);
 
     let resolved = crate::qemu::ResolvedPorts {
@@ -78,7 +84,10 @@ pub fn cmd_snapshot(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
                     } else {
                         format!("{:.0} MB", snap.vm_clock_size as f64 / 1_048_576.0)
                     };
-                    println!("{:<8} {:<20} {:<12} {:<22}", snap.id, snap.tag, size, snap.date);
+                    println!(
+                        "{:<8} {:<20} {:<12} {:<22}",
+                        snap.id, snap.tag, size, snap.date
+                    );
                 }
             }
         }
@@ -128,9 +137,8 @@ pub fn cmd_mount(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
             let profile = resolve_profile(name)?;
 
             let mut session = crate::ssh::connect(&profile)?;
-            let verify_cmd = crate::qemu::mount::verify_mount_command(
-                crate::qemu::mount::DEFAULT_GUEST_PATH,
-            );
+            let verify_cmd =
+                crate::qemu::mount::verify_mount_command(crate::qemu::mount::DEFAULT_GUEST_PATH);
             let output = crate::ssh::exec(&mut session, &verify_cmd)?;
             if output.contains("OK") {
                 println!("Project mount is active in VM '{}'", profile.name);
@@ -184,43 +192,58 @@ fn verify_mount(
             diagnosis.push_str("  Checking virtiofs...\n");
 
             // Check if virtiofs.exe is available — FAST PATH first
-            let check = crate::ssh::exec(session,
-                "$p1='C:\\Program Files\\Virtio-Win\\VioFS\\virtiofs.exe'; $p2='C:\\Program Files (x86)\\Virtio-Win\\VioFS\\virtiofs.exe'; if (Test-Path $p1) { 'VIRTIOFS_OK' } elseif (Test-Path $p2) { 'VIRTIOFS_OK_X86' } else { 'VIRTIOFS_MISSING' }");
+            let check = crate::ssh::exec(
+                session,
+                "$p1='C:\\Program Files\\Virtio-Win\\VioFS\\virtiofs.exe'; $p2='C:\\Program Files (x86)\\Virtio-Win\\VioFS\\virtiofs.exe'; if (Test-Path $p1) { 'VIRTIOFS_OK' } elseif (Test-Path $p2) { 'VIRTIOFS_OK_X86' } else { 'VIRTIOFS_MISSING' }",
+            );
             match check {
                 Ok(output) if output.contains("VIRTIOFS_OK") => {
                     diagnosis.push_str("  ✓ virtiofs.exe found\n");
                 }
                 _ => {
                     // FALLBACK: Check registry
-                    let reg_check = crate::ssh::exec(session,
-                        "$reg=Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Virtio-win-driver-installer' -ErrorAction SilentlyContinue; if ($reg -and $reg.InstallLocation -and (Test-Path (Join-Path $reg.InstallLocation 'VioFS\\virtiofs.exe'))) { 'VIRTIOFS_OK_REG' } else { 'VIRTIOFS_MISSING' }");
+                    let reg_check = crate::ssh::exec(
+                        session,
+                        "$reg=Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Virtio-win-driver-installer' -ErrorAction SilentlyContinue; if ($reg -and $reg.InstallLocation -and (Test-Path (Join-Path $reg.InstallLocation 'VioFS\\virtiofs.exe'))) { 'VIRTIOFS_OK_REG' } else { 'VIRTIOFS_MISSING' }",
+                    );
                     match reg_check {
                         Ok(output) if output.contains("VIRTIOFS_OK") => {
                             diagnosis.push_str("  ✓ virtiofs.exe found via registry\n");
                         }
                         _ => {
                             diagnosis.push_str("  ✗ virtiofs.exe not found\n");
-                            diagnosis.push_str(&format!("    Fix: Run 'testbed bootstrap {}'\n", profile.name));
+                            diagnosis.push_str(&format!(
+                                "    Fix: Run 'testbed bootstrap {}'\n",
+                                profile.name
+                            ));
                         }
                     }
                 }
             }
 
             // Check mount point
-            let mount_check = crate::ssh::exec(session,
-                &format!("if (Test-Path '{}') {{ 'MOUNT_OK' }} else {{ 'MOUNT_MISSING' }}", guest_path));
+            let mount_check = crate::ssh::exec(
+                session,
+                &format!(
+                    "if (Test-Path '{}') {{ 'MOUNT_OK' }} else {{ 'MOUNT_MISSING' }}",
+                    guest_path
+                ),
+            );
             match mount_check {
                 Ok(output) if output.contains("MOUNT_OK") => {
                     // Try to read a file to verify it's working
-                    let file_check = crate::ssh::exec(session,
-                        &format!("Test-Path (Join-Path '{}' 'Cargo.toml')", guest_path));
+                    let file_check = crate::ssh::exec(
+                        session,
+                        &format!("Test-Path (Join-Path '{}' 'Cargo.toml')", guest_path),
+                    );
                     match file_check {
                         Ok(_) => {
                             diagnosis.push_str(&format!("  ✓ Mount accessible: {}\n", guest_path));
                             success = true;
                         }
                         Err(_) => {
-                            diagnosis.push_str(&format!("  ⚠ Mount exists but files not readable\n"));
+                            diagnosis
+                                .push_str(&format!("  ⚠ Mount exists but files not readable\n"));
                         }
                     }
                 }
@@ -235,7 +258,10 @@ fn verify_mount(
             diagnosis.push_str("  Checking SMB...\n");
 
             // Check if SMB is already mounted
-            let smb_check = crate::ssh::exec(session, "if (Test-Path 'Z:\\') { 'SMB_OK' } else { 'SMB_MISSING' }");
+            let smb_check = crate::ssh::exec(
+                session,
+                "if (Test-Path 'Z:\\') { 'SMB_OK' } else { 'SMB_MISSING' }",
+            );
             match smb_check {
                 Ok(output) if output.contains("SMB_OK") => {
                     diagnosis.push_str("  ✓ SMB mounted at Z:\\\n");
@@ -243,15 +269,18 @@ fn verify_mount(
                 }
                 _ => {
                     diagnosis.push_str("  → SMB not mounted\n");
-                    diagnosis.push_str("    To mount inside VM: net use Z: \\\\\\10.0.2.4\\\\qemu\n");
+                    diagnosis
+                        .push_str("    To mount inside VM: net use Z: \\\\\\10.0.2.4\\\\qemu\n");
                     diagnosis.push_str(&format!("    Or: testbed exec {} --method winrm \"net use Z: \\\\\\\\\\10.0.2.4\\\\qemu\"\n", profile.name));
                 }
             }
         }
         "9p" => {
             diagnosis.push_str("  Checking 9p mount...\n");
-            let mount_check = crate::ssh::exec(session,
-                &format!("mount | grep '{}' || echo 'NOT_MOUNTED'", guest_path));
+            let mount_check = crate::ssh::exec(
+                session,
+                &format!("mount | grep '{}' || echo 'NOT_MOUNTED'", guest_path),
+            );
             match mount_check {
                 Ok(output) if output.contains("9p") => {
                     diagnosis.push_str(&format!("  ✓ 9p mount active at {}\n", guest_path));
@@ -259,8 +288,10 @@ fn verify_mount(
                 }
                 _ => {
                     diagnosis.push_str(&format!("  → 9p not mounted, attempting auto-mount...\n"));
-                    let mount_cmd = format!("sudo mkdir -p {} && sudo mount -t 9p -o trans=virtio,version=9p2000.L project {}",
-                        guest_path, guest_path);
+                    let mount_cmd = format!(
+                        "sudo mkdir -p {} && sudo mount -t 9p -o trans=virtio,version=9p2000.L project {}",
+                        guest_path, guest_path
+                    );
                     match crate::ssh::exec(session, &mount_cmd) {
                         Ok(_) => {
                             diagnosis.push_str("  ✓ Auto-mount successful\n");
@@ -268,7 +299,10 @@ fn verify_mount(
                         }
                         Err(e) => {
                             diagnosis.push_str(&format!("  ✗ Auto-mount failed: {}\n", e));
-                            diagnosis.push_str(&format!("    Try manual: testbed shell {}\n", profile.name));
+                            diagnosis.push_str(&format!(
+                                "    Try manual: testbed shell {}\n",
+                                profile.name
+                            ));
                         }
                     }
                 }
@@ -300,13 +334,23 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let profile = resolve_profile(name)?;
 
-    let mount_type = args.get_one::<String>("type").map(|s| s.as_str()).unwrap_or("virtiofs");
-    let host_dir = args.get_one::<String>("host-dir").map(|s| s.to_string()).unwrap_or_else(|| ".".to_string());
+    let mount_type = args
+        .get_one::<String>("type")
+        .map(|s| s.as_str())
+        .unwrap_or("virtiofs");
+    let host_dir = args
+        .get_one::<String>("host-dir")
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| ".".to_string());
     let guest_dir = args.get_one::<String>("guest-dir").map(|s| s.to_string());
     let headful = args.get_flag("headful");
     let daemonize = args.get_flag("daemonize");
 
-    let display = if headful { DisplayMode::Headful } else { DisplayMode::Headless };
+    let display = if headful {
+        DisplayMode::Headful
+    } else {
+        DisplayMode::Headless
+    };
 
     // Canonicalize the path
     let canonical_host = std::env::current_dir()?
@@ -314,19 +358,20 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         .canonicalize()
         .map_err(|e| format!("Cannot resolve host directory '{}': {}", host_dir, e))?;
 
-    println!("Starting VM '{}' with network mount configuration:", profile.name);
+    println!(
+        "Starting VM '{}' with network mount configuration:",
+        profile.name
+    );
     println!("  Mount type: {}", mount_type);
     println!("  Host path: {}", canonical_host.display());
 
     // Determine guest path
     let effective_guest_path = match guest_dir {
         Some(path) => path,
-        None => {
-            match profile.os {
-                GuestOs::Windows => r"C:\Users\vagrant\project".to_string(),
-                _ => "/mnt/project".to_string(),
-            }
-        }
+        None => match profile.os {
+            GuestOs::Windows => r"C:\Users\vagrant\project".to_string(),
+            _ => "/mnt/project".to_string(),
+        },
     };
     println!("  Guest path: {}", effective_guest_path);
 
@@ -345,7 +390,9 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         }
         "9p" => {
             if profile.os == GuestOs::Windows {
-                return Err("9p mount is not supported for Windows guests. Use virtiofs or SMB".into());
+                return Err(
+                    "9p mount is not supported for Windows guests. Use virtiofs or SMB".into(),
+                );
             }
         }
         "none" => {}
@@ -389,14 +436,12 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         let profile_clone = profile.clone();
 
         // Spawn background thread to wait for SSH
-        std::thread::spawn(move || {
-            match wait_for_ssh_ready(&profile_clone, 120) {
-                Ok(session) => {
-                    let _ = ready_tx.send(Ok(session));
-                }
-                Err(e) => {
-                    let _ = ready_tx.send(Err(e.to_string()));
-                }
+        std::thread::spawn(move || match wait_for_ssh_ready(&profile_clone, 120) {
+            Ok(session) => {
+                let _ = ready_tx.send(Ok(session));
+            }
+            Err(e) => {
+                let _ = ready_tx.send(Err(e.to_string()));
             }
         });
 
@@ -422,7 +467,8 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         // Run mount verification
         println!("\n→ Running mount verification...");
         let mut session = session;
-        let (success, diagnosis) = verify_mount(&mut session, mount_type, &effective_guest_path, &profile)?;
+        let (success, diagnosis) =
+            verify_mount(&mut session, mount_type, &effective_guest_path, &profile)?;
 
         println!("{}", diagnosis);
 
@@ -450,7 +496,10 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         Err(e) => {
             println!("✗ SSH connection failed: {}", e);
             println!("\nDiagnosis:");
-            println!("  1. Check if VM is running: testbed doctor {}", profile.name);
+            println!(
+                "  1. Check if VM is running: testbed doctor {}",
+                profile.name
+            );
             println!("  2. View VM logs: ls ~/.cache/foundation_testbed/logs/");
             return Err("SSH connection failed".into());
         }
@@ -458,7 +507,8 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
 
     // Run mount verification
     println!("\n→ Running mount verification...");
-    let (success, diagnosis) = verify_mount(&mut session, mount_type, &effective_guest_path, &profile)?;
+    let (success, diagnosis) =
+        verify_mount(&mut session, mount_type, &effective_guest_path, &profile)?;
     println!("{}", diagnosis);
 
     if success {
@@ -467,7 +517,10 @@ pub fn cmd_network(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         println!("\n⚠ Mount verification FAILED");
     }
 
-    println!("\n✓ VM is running. Press Ctrl+C to stop or run 'testbed stop {}'", profile.name);
+    println!(
+        "\n✓ VM is running. Press Ctrl+C to stop or run 'testbed stop {}'",
+        profile.name
+    );
 
     // Keep process alive
     loop {
@@ -481,7 +534,11 @@ pub fn cmd_adopt(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let profile = resolve_profile(name)?;
 
     let (adopted_profile, disk_path) = crate::qemu::adopt(&profile, Path::new(disk))?;
-    println!("Adopted disk {} as VM '{}'", disk_path.display(), adopted_profile.name);
+    println!(
+        "Adopted disk {} as VM '{}'",
+        disk_path.display(),
+        adopted_profile.name
+    );
     println!("Start with: testbed start {}", adopted_profile.name);
     Ok(())
 }
@@ -502,11 +559,17 @@ pub fn cmd_refresh_network(args: &ArgMatches) -> std::result::Result<(), BoxedEr
 
 pub fn cmd_export(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
-    let out = args.get_one::<String>("out").map(|s| std::path::PathBuf::from(s));
+    let out = args
+        .get_one::<String>("out")
+        .map(|s| std::path::PathBuf::from(s));
     let store = args.get_one::<String>("store").map(|s| s.clone());
-    let version = args.get_one::<String>("version").map(|s| s.clone())
+    let version = args
+        .get_one::<String>("version")
+        .map(|s| s.clone())
         .unwrap_or_else(|| "latest".to_string());
-    let notes = args.get_one::<String>("notes").map(|s| s.clone())
+    let notes = args
+        .get_one::<String>("notes")
+        .map(|s| s.clone())
         .unwrap_or_default();
     let include_bootstrap = args.get_flag("include-bootstrap");
     let clean = args.get_flag("clean");
@@ -515,7 +578,11 @@ pub fn cmd_export(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
         Some("xz") | Some("lzma") => crate::export::Compression::Xz,
         Some("gzip") | Some("gz") => crate::export::Compression::Gzip,
         Some("none") => crate::export::Compression::None,
-        Some(other) => return Err(format!("Unknown compression type: {other}. Use xz, gzip, or none.").into()),
+        Some(other) => {
+            return Err(
+                format!("Unknown compression type: {other}. Use xz, gzip, or none.").into(),
+            );
+        }
         None => crate::export::Compression::Xz, // default: best compression
     };
 

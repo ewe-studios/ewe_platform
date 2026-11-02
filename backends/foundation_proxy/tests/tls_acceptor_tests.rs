@@ -19,7 +19,10 @@ fn test_build_acceptor_static_from_fixtures() {
         &cert_path.display().to_string(),
         &key_path.display().to_string(),
     );
-    assert!(build_acceptor(&config).is_ok(), "valid PEM should build acceptor");
+    assert!(
+        build_acceptor(&config).is_ok(),
+        "valid PEM should build acceptor"
+    );
 }
 
 #[test]

@@ -127,6 +127,9 @@ impl EndpointLatency {
     }
 
     /// Calculate P50 and P99 from samples.
+    // A u64 count of milliseconds spans ~584 million years, so the u128 ->
+    // u64 cast of `as_millis()` is lossless for any real sample.
+    #[allow(clippy::cast_possible_truncation)]
     fn calculate_percentiles(&self) -> LatencyStats {
         let durations: Vec<u64> = self
             .samples

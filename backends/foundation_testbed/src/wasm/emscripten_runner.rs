@@ -7,8 +7,8 @@
 //! node/deno binary required.
 
 use crate::wasm::cli::{Browser, EmscriptenArgs, OwnedRunArgs, WasmTarget};
-use crate::wasm::fwt_runner::{self, RunOutcome};
 use crate::wasm::error::Result;
+use crate::wasm::fwt_runner::{self, RunOutcome};
 
 /// Build a crate for `wasm32-unknown-emscripten` and run via the embedded Deno
 /// runtime using the FWT test protocol.

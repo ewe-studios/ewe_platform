@@ -142,10 +142,12 @@ pub fn normalize_provider(
     out_dir: &Path,
 ) -> Result<NormalizeReport, BoxedError> {
     let raw_path = workspace_root.join(spec.raw);
-    let raw = std::fs::read_to_string(&raw_path)
-        .map_err(|e| -> BoxedError { format!("cannot read raw spec {}: {e}", raw_path.display()).into() })?;
-    let mut doc: Value = serde_json::from_str(&raw)
-        .map_err(|e| -> BoxedError { format!("raw spec {} is not JSON: {e}", raw_path.display()).into() })?;
+    let raw = std::fs::read_to_string(&raw_path).map_err(|e| -> BoxedError {
+        format!("cannot read raw spec {}: {e}", raw_path.display()).into()
+    })?;
+    let mut doc: Value = serde_json::from_str(&raw).map_err(|e| -> BoxedError {
+        format!("raw spec {} is not JSON: {e}", raw_path.display()).into()
+    })?;
 
     let mut report = NormalizeReport {
         inline_before: inline_count(&doc),
@@ -153,7 +155,10 @@ pub fn normalize_provider(
             .pointer("/info/version")
             .and_then(Value::as_str)
             .map(ToString::to_string),
-        openapi_version: doc.get("openapi").and_then(Value::as_str).map(ToString::to_string),
+        openapi_version: doc
+            .get("openapi")
+            .and_then(Value::as_str)
+            .map(ToString::to_string),
         ..Default::default()
     };
 
@@ -173,15 +178,21 @@ pub fn normalize_provider(
             let stats = canonicalize_operations(&mut doc);
             report.hoisted = stats.hoisted;
             report.renamed = stats.renamed;
-            report.transforms.push("canonicalize_operations".to_string());
+            report
+                .transforms
+                .push("canonicalize_operations".to_string());
         }
         Normalizer::HoistInlineFrom31 => {
             normalize_nullable_types(&mut doc);
-            report.transforms.push("normalize_nullable_types".to_string());
+            report
+                .transforms
+                .push("normalize_nullable_types".to_string());
             let stats = canonicalize_operations(&mut doc);
             report.hoisted = stats.hoisted;
             report.renamed = stats.renamed;
-            report.transforms.push("canonicalize_operations".to_string());
+            report
+                .transforms
+                .push("canonicalize_operations".to_string());
         }
     }
 
@@ -215,14 +226,16 @@ pub fn normalize_provider(
     report.schemas_after = foundation_openapi::component_count(&doc, "schemas");
 
     let provider_dir = out_dir.join(spec.name);
-    std::fs::create_dir_all(&provider_dir)
-        .map_err(|e| -> BoxedError { format!("cannot create {}: {e}", provider_dir.display()).into() })?;
+    std::fs::create_dir_all(&provider_dir).map_err(|e| -> BoxedError {
+        format!("cannot create {}: {e}", provider_dir.display()).into()
+    })?;
 
     let canonical_path = provider_dir.join("openapi.json");
     let body = serde_json::to_string_pretty(&doc)
         .map_err(|e| -> BoxedError { format!("cannot serialize canonical spec: {e}").into() })?;
-    std::fs::write(&canonical_path, &body)
-        .map_err(|e| -> BoxedError { format!("cannot write {}: {e}", canonical_path.display()).into() })?;
+    std::fs::write(&canonical_path, &body).map_err(|e| -> BoxedError {
+        format!("cannot write {}: {e}", canonical_path.display()).into()
+    })?;
 
     write_manifest(spec, &provider_dir, &report, &raw, &body)?;
 

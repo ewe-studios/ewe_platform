@@ -39,10 +39,12 @@ fn test_wasm_response_with_body_binary() {
 
 #[test]
 fn test_wasm_response_with_single_header() {
-    let resp = WasmResponse::new(200)
-        .with_header("Content-Type", "application/json");
+    let resp = WasmResponse::new(200).with_header("Content-Type", "application/json");
     assert_eq!(resp.headers.len(), 1);
-    assert_eq!(resp.headers[0], ("Content-Type".into(), "application/json".into()));
+    assert_eq!(
+        resp.headers[0],
+        ("Content-Type".into(), "application/json".into())
+    );
 }
 
 #[test]

@@ -344,7 +344,9 @@ fn empty_and_garbage_payloads_fail_cleanly() {
             actual: 0
         })
     );
-    let err = ArrowIpcEncoder.decode(b"definitely not arrow ipc").unwrap_err();
+    let err = ArrowIpcEncoder
+        .decode(b"definitely not arrow ipc")
+        .unwrap_err();
     assert!(matches!(err, DecodeError::SchemaMismatch { .. }), "{err:?}");
 }
 
@@ -353,7 +355,9 @@ fn empty_and_garbage_payloads_fail_cleanly() {
 #[test]
 fn ipc_and_owned_columnar_agree() {
     let ops = all_nineteen();
-    let from_ipc = ArrowIpcEncoder.decode(&ArrowIpcEncoder.encode(ops.clone())).unwrap();
+    let from_ipc = ArrowIpcEncoder
+        .decode(&ArrowIpcEncoder.encode(ops.clone()))
+        .unwrap();
     let owned = foundation_ui_traits::ColumnarEncoder;
     let from_owned = owned.decode(&owned.encode(ops.clone())).unwrap();
     assert_eq!(from_ipc, ops);

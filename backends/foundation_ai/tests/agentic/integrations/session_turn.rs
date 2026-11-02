@@ -91,9 +91,7 @@ async fn gemma_session() -> TestSession {
     let provider = Gemma4E2b::q4_k_m(Some(gguf_config())).expect("provider builds");
     let model_id = ModelId::Name(Gemma4E2b::MODEL_ID.to_string(), None);
 
-    let preset = RouterMix::new()
-        .primary(provider, model_id.clone())
-        .build();
+    let preset = RouterMix::new().primary(provider, model_id.clone()).build();
 
     preset
         .into_agent_builder()
@@ -213,7 +211,8 @@ async fn run_turn_returns_an_assistant_reply() {
     let session = gemma_session().await;
 
     let records = session
-        .run_turn(user_msg("Reply with a single short greeting.")).await
+        .run_turn(user_msg("Reply with a single short greeting."))
+        .await
         .expect("turn should succeed");
 
     assert!(
@@ -247,7 +246,8 @@ async fn run_turn_persists_the_user_prompt() {
     let session = gemma_session().await;
 
     session
-        .run_turn(user_msg("Reply with a single short greeting.")).await
+        .run_turn(user_msg("Reply with a single short greeting."))
+        .await
         .expect("turn should succeed");
 
     let history = session
@@ -303,8 +303,8 @@ fn concurrent_agents_share_one_model_safely() {
                         session.run_turn(user_msg("Reply with a single short greeting.")),
                     )
                     .unwrap_or_else(|e| {
-                            panic!("agent {agent} turn {turn} failed: {e:?}");
-                        });
+                        panic!("agent {agent} turn {turn} failed: {e:?}");
+                    });
                     let text = assistant_text(&records);
                     assert!(
                         !text.is_empty(),
@@ -336,7 +336,8 @@ async fn second_turn_answers_and_reuses_the_loaded_model() {
     let session = gemma_session().await;
 
     let first = session
-        .run_turn(user_msg("Reply with a single short greeting.")).await
+        .run_turn(user_msg("Reply with a single short greeting."))
+        .await
         .expect("first turn should succeed");
     assert!(
         !assistant_text(&first).is_empty(),
@@ -344,7 +345,8 @@ async fn second_turn_answers_and_reuses_the_loaded_model() {
     );
 
     let second = session
-        .run_turn(user_msg("Reply with one more short greeting.")).await
+        .run_turn(user_msg("Reply with one more short greeting."))
+        .await
         .expect("second turn should succeed");
     assert!(
         !assistant_text(&second).is_empty(),

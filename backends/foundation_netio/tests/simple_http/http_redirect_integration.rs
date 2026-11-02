@@ -83,18 +83,18 @@ fn test_post_without_redirect() {
 }
 
 /// WHY: Validate redirect handling when each redirect is returned as the final response
-///      to a request (not during initial connection phase). This exercises the CheckRedirect
-///      state in SendRequestTask which was added to handle this edge case.
+///      to a request (not during initial connection phase). This exercises the `CheckRedirect`
+///      state in `SendRequestTask` which was added to handle this edge case.
 ///
 /// WHAT: Tests a chain of redirects where each one is returned as the final response,
-///       verifying the client automatically follows them via the CheckRedirect state.
+///       verifying the client automatically follows them via the `CheckRedirect` state.
 ///
 /// IMPORTANCE: The original implementation only handled redirects during initial connection.
-///             The updated SendRequestTask adds a CheckRedirect state that validates the
+///             The updated `SendRequestTask` adds a `CheckRedirect` state that validates the
 ///             final response for redirect status codes (301-308) and follows the Location.
 ///
-/// NOTE: This test uses http_chain which inherently returns each redirect as a final
-///       response to each request in the chain, exercising the CheckRedirect state.
+/// NOTE: This test uses `http_chain` which inherently returns each redirect as a final
+///       response to each request in the chain, exercising the `CheckRedirect` state.
 #[test]
 #[serial(valtron_pool)]
 fn test_redirect_as_final_response_chain() {
@@ -156,9 +156,9 @@ fn test_redirect_307_as_final_response() {
     assert!(response.is_success());
 }
 
-/// WHY: Validate that redirect fails gracefully when max_redirects limit is exceeded.
+/// WHY: Validate that redirect fails gracefully when `max_redirects` limit is exceeded.
 ///
-/// WHAT: Tests that too many redirects returns TooManyRedirects error.
+/// WHAT: Tests that too many redirects returns `TooManyRedirects` error.
 ///
 /// IMPORTANCE: Prevents infinite redirect loops from hanging the client.
 #[test]
@@ -226,8 +226,7 @@ fn test_redirect_after_100_continue() {
                 .get(&foundation_netio::shared::http::SimpleHeader::HOST);
             let host_str = host
                 .and_then(|v| v.first())
-                .map(|s| s.as_str())
-                .unwrap_or("127.0.0.1");
+                .map_or("127.0.0.1", std::string::String::as_str);
             let redirect_location = format!("http://{host_str}/final");
             (
                 Some(HttpResponse::continue_response()),
@@ -271,7 +270,7 @@ fn test_redirect_after_100_continue() {
 // unnecessarily.
 
 /// A plain GET with no body must complete successfully without entering
-/// WriteBody. Before the fix, WriteBody would call `Http11::request_body()` on
+/// `WriteBody`. Before the fix, `WriteBody` would call `Http11::request_body()` on
 /// a bodyless request and attempt to render/write an empty body.
 #[test]
 #[serial(valtron_pool)]
@@ -294,7 +293,7 @@ fn get_without_body_completes_successfully() {
 }
 
 /// A POST with no body (Content-Length: 0 but no actual body data in the
-/// SendSafeBody field) must NOT trigger the Expect: 100-continue handshake
+/// `SendSafeBody` field) must NOT trigger the Expect: 100-continue handshake
 /// probe. The body field directly tells us there's nothing to write.
 #[test]
 #[serial(valtron_pool)]
@@ -339,7 +338,7 @@ fn post_with_body_still_works() {
 }
 
 /// A redirect chain where each hop is a bodyless GET must complete without
-/// entering WriteBody at any redirect step.
+/// entering `WriteBody` at any redirect step.
 #[test]
 #[serial(valtron_pool)]
 fn redirect_chain_bodyless_requests_skip_writebody() {

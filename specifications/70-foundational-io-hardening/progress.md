@@ -2,6 +2,682 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 39 (rustfmt version pin) done on
+  `fix/io-35-turso-async-trait-overflow`. `rust-toolchain.toml` names the pinned channel
+  `nightly-2026-09-20`. That channel gives rustfmt `1.10.0-nightly
+  (feaadeeaca 2026-09-19)`, the same rustfmt the CI image uses. The file also
+  adds `clippy` to the components. One repo-wide `cargo fmt --all` reformats
+  1334 hand-written Rust files (7292 diff hunks); the standalone
+  `crates/channels` workspace is formatted too. The 43 generated
+  `foundation_cloudflare_*/src/lib.rs` shims are excluded with a `rustfmt.toml`
+  `ignore` list (their build script regenerates them on any difference).
+  `cargo fmt --all -- --check` now prints nothing on the host. The §16
+  backlog entry is removed; a §8 entry records the generator emitting
+  non-fmt-clean shims.
+
+- 2026-11-02: feature 22 (workspace, process and CI) done on
+  `fix/io-35-turso-async-trait-overflow`. E1–E8 landed. E1 gives `scripts/ci/ci.py` a
+  per-worktree target directory. E2 deletes the unused `crates/ewe_deployables`.
+  E3 splits the generated Cloudflare groups into 43 per-group crates
+  (`foundation_cloudflare_<group>`); the umbrella re-exports them behind
+  `cloudflare_<group>` features, so old callers do not change. The umbrella
+  bumps to 0.2.0, `foundation_keychain` to 0.1.4 and `foundation_proxy` to 0.1.6.
+  E4 adds a synthetic `wasm-tests` CI package that checks every crate with wasm
+  tests and runs the two Deno wasm suites. E5–E8 clear the wasm-only warnings
+  and the mise over-install. The §16 and §21 backlog entries are removed; new
+  entries record the remaining lints.
+
+- 2026-11-02: feature 23 (foundation_vectors) done on
+  `fix/io-35-turso-async-trait-overflow`. E1–E8 landed. E1 offloads `FjallVectorStore`
+  blocking work to a valtron pool; E2 builds the vendored sqlite-vec extension;
+  E3 migrates old-shape `vec0` tables on open; E4 adds an opt-in live
+  TurboPuffer test; E5 retries HTTP 429/503 with backoff; E6 builds the
+  `sql-store` feature on wasm32; E7 passes texts to the reranker; E8 documents
+  the O(n·d) scan cost. `foundation_vectors` bumps to 0.0.4 and `foundation_ai`'s
+  requirement follows. The turbopuffer wasm `Send` failure is fixed with
+  `SendWrapper`. Linux CI is green (199 tests plus the three wasm runs).
+
+- 2026-11-02: feature 19 (foundation_nativeapis) E4 done on
+  `fix/io-35-turso-async-trait-overflow`. E4 rebuilds `TursoDelta` on the `turso` crate
+  0.8.3 (local engine, `default-features = false`). The store is async-only:
+  `AsyncVfsFileSystem` plus `AsyncDeltaStore`, with `TursoFile`,
+  `SeekableTursoFile` and `TursoDirectory`. It lives under
+  `src/native/vfs/turso_delta/` (mod, schema, types, path_resolve, chunking,
+  file_handle). The `vfs-turso` feature enables it, the `turso` dependency is
+  target-gated to `not(target_arch = "wasm32")`, and the shim gains a `turso`
+  backend (`FOUNDATION_VFS_DELTA=turso`, default path `vfs-turso.db`, memory
+  fallback). The delta contract suite runs in `tests/turso_delta_vfs/`: 8
+  tests, all pass under `--profile uat`. A `#![recursion_limit = "256"]` is
+  added to the crate root and the test file (the local turso engine's async
+  chain overflows the default limit while proving `Send`, the same root cause
+  as feature 35). The crate bumps 0.0.5 to 0.0.6 and the five consumers
+  (iogate, toolings, ai, proxy, wireguard) pin 0.0.6. The §13 backlog entry
+  is removed.
+
+- 2026-11-02: feature 19 (foundation_nativeapis) E10 done on
+  `fix/io-35-turso-async-trait-overflow`. E10 gates the VFS sync boundary behind
+  `foundation_core::blocking_boundary!`. `exec_async` is wrapped in the
+  macro, and the whole `sync_bridge` module (`SyncFile`, `SyncDirectory`,
+  `LocalSeekableFile`, `SyncFs`) is compiled only where valtron can block.
+  The `exec_async` and sync-bridge re-exports in `shared/vfs/mod.rs`, the
+  crate-root `SyncFs` re-export in `lib.rs`, and `DynFs::from_async` in
+  `dynfs.rs` are gated the same way. Verified with `cargo check --target
+  wasm32-unknown-unknown --no-default-features --features vfs` (plain wasm)
+  and with a scratch crate that enables `foundation_core/js-wasmbindgen`
+  (JS-hosted wasm): the build passes and `SyncFs`/`exec_async` are absent.
+  All VFS tests pass under `--profile uat`. The `SyncFs` §13 backlog entry
+  is removed.
+
+- 2026-11-02: feature 19 (foundation_nativeapis) E9 done on
+  `fix/io-35-turso-async-trait-overflow`. E9 makes the VFS `copy` and `copy_async`
+  default methods stream in chunks. The four traits (`VfsFileSystem`,
+  `VfsDirectory`, `AsyncVfsFileSystem`, `AsyncVfsDirectory`) gain a
+  `copy_chunk_size` method with a documented 32 KiB default (Go `net/http`
+  `io.Copy`); an implementation overrides it to read its own config. Each
+  copy loops with `read_at`/`read_at_async`, advances by the returned byte
+  count, and stops on a short read, so no whole-file `Vec` is built.
+  `read_file` and `read_file_async` stay whole-file by contract and are now
+  documented as such; `copy` no longer calls them. The `InodeFs::copy`
+  override is removed so it uses the chunked default. New tests
+  `vfs_copy_streams_in_chunks` (sync) and `vfs_copy_async_streams_in_chunks`
+  (async) wrap `MemoryFs` in a counting VFS, set the chunk to 256 bytes, and
+  assert a 1000-byte copy issues several reads with none over 256 bytes.
+  The crate bumps 0.0.4 to 0.0.5, and the five consumers pin 0.0.5. The
+  whole-file-reads §13 backlog entry is removed.
+
+- 2026-11-02: feature 19 (foundation_nativeapis) E8 done on
+  `fix/io-35-turso-async-trait-overflow`. E8 makes `VfsNfs::readdir` honor the NFS v3
+  `start_after` cookie: it resolves the fileid of every entry in list order
+  first, then skips up to the entry whose fileid equals the cookie and takes
+  the next `max_entries`. A `to_nfstime3` helper maps `VfsMetadata` times to
+  `nfstime3`, saturating the 64-bit seconds into the NFS 32-bit field with
+  `u32::try_from(...).unwrap_or(u32::MAX)`; `to_fattr3` now sets `atime` from
+  `accessed` and `mtime`/`ctime` from `modified`. New tests
+  `nfs_readdir_pages_without_repeats` (a 1000-entry directory, page 100,
+  every name seen exactly once) and `nfs_attrs_have_mtime` land. All 13 NFS
+  tests pass under `--profile uat`. The NFS `readdir` §13 backlog entry is
+  removed.
+
+- 2026-11-02: feature 19 (foundation_nativeapis) E7 done on
+  `fix/io-35-turso-async-trait-overflow`. E7 renames the constructors to
+  `InodeFs::new()` and `InodeDelta::new()` (infallible, no path or config).
+  It drops `InodeFsConfig` and the `FjallFs` / `FjallDelta` /
+  `FjallVfsConfig` aliases and their re-exports. It adds the async face like
+  `MemoryFs`: `AsyncVfsFile` for `InodeFile` and `SeekableInodeFile`,
+  `AsyncSeekableVfsFile`, `AsyncVfsDirectory` for `InodeDir` and the
+  `AsyncInodeDirectory` wrapper, `AsyncVfsFileSystem` for `InodeFs`, and
+  `AsyncVfsFileSystem` plus `AsyncDeltaStore` for `InodeDelta`. The
+  never-read `InodeEntry.name` field and the dead `InodeDir::new` are
+  removed, so the module compiles with zero warnings. `InodeDelta`'s sync
+  `capabilities` now calls `VfsFileSystem::capabilities(&self.inner)`;
+  `capabilities` is the only method name shared by the two traits. The 29
+  sync tests move from `FjallFs` / `FjallDelta` to `InodeFs` / `InodeDelta`,
+  and 6 async contract tests land via `#[valtron_test]`. 35 fjall VFS tests
+  and 20 fjall document-store tests pass under `--profile uat`. The §13
+  backlog entry is removed.
+
+- 2026-11-02: feature 19 (foundation_nativeapis) E6 done on
+  `fix/io-35-turso-async-trait-overflow`. E6 switches `FjallDocumentStore` from
+  `V: VfsFileSystem` to `V: AsyncVfsFileSystem` and awaits every VFS call, so
+  an I/O-backed store (wrapped in `SyncFs`) no longer blocks the calling
+  thread inside the async `DocumentStore` methods. To keep the async futures
+  `Send`, no `std::sync` lock guard is held across an await: `put` mutates the
+  batch and `flush_locked` advances the high water mark under the lock before
+  the guard is dropped, and `read_document_at` scopes its read guard to a
+  block before the file read. `collect_rows` collects the fjall index entries
+  first and then awaits the document reads, because the fjall range iterator
+  is not `Send`. The tests move from `InodeFs` to `MemoryFs`; the read-open
+  counting wrapper now implements `AsyncVfsFileSystem` and counts
+  `open_async(Read)`. 20 fjall document-store tests pass under `--profile
+  uat`. The fourth §13 backlog entry (sync VFS traits) is removed.
+
+- 2026-11-02: feature 25 (foundation_deployment_huggingface) E3 done on
+  `fix/io-35-turso-async-trait-overflow`. E3 makes `list_models`, `list_datasets`,
+  `list_spaces` and `repo_list_tree` follow the Hub's `Link: rel="next"`
+  pagination. The first page is fetched eagerly; later pages are fetched
+  lazily by a `LazyPageIterator` when the previous page's items are pulled
+  past. `send_json_async_with_headers` returns the response headers and
+  `next_link` extracts the next URL. Config `max_list_pages` (default
+  10 000) guards against a loop. New tests `hub_list_follows_link_pages`
+  (three pages, page 2 fetched only after page 1's items are pulled) and
+  `hub_list_stops_without_next_link` land. The third §20 backlog entry is
+  removed, closing the section.
+
+- 2026-11-02: feature 25 (foundation_deployment_huggingface) E2 done on
+  `fix/io-35-turso-async-trait-overflow`. E2 replaces the buffered commit body with a
+  streamed multipart body. `repo_create_commit` no longer calls
+  `std::fs::read`; it builds a `SendSafeBody::Stream` via
+  `repository::commit_multipart`, opening each added file and reading it in
+  `upload_chunk_size` chunks (default 32 KiB, cited against Go `net/http`
+  `io.Copy`). The total body length is computed up front from the part headers
+  and `file.metadata().len()`. New tests `hub_commit_streams_multipart` (a
+  64 KiB binary file round-trips byte-exact) and
+  `commit_multipart_streams_file_in_chunks` (a 785-byte file is read in three
+  full 256-byte chunks) land. The second §20 backlog entry (buffered uploads)
+  is removed.
+
+- 2026-11-02: feature 25 (foundation_deployment_huggingface) E1 done on
+  `fix/io-35-turso-async-trait-overflow`. E1 turns the Hub client and repository API into
+  `async fn`s over `send_async`/`send_raw_async`; the sync `send`/`send_raw`/
+  `send_json` helpers and `LimitedWriter` are gone (no sync twins).
+  `repo_download_file` streams the body chunk by chunk to a `.part` file and
+  renames it into place, never `collect_bytes_async` for files. The crate bumps
+  0.1.2 -> 0.1.3, and `foundation_ai`/`foundation_testing` require 0.1.3; their
+  sync callers wrap the async Hub calls with `block_on_future` at the boundary
+  (the `ModelProvider` trait stays sync). `foundation_testing`'s inline tests
+  move to `tests/huggingface_tests.rs` and `TestHarness` gains a public
+  `artefacts_dir` accessor. New tests `hub_whoami_awaits_without_blocking` (a
+  300 ms delay plus a zipped ticker) and `hub_download_streams_to_file` land,
+  and the older tests convert to `#[valtron_test] async fn`. The first §20
+  backlog entry (sync Hub API) is removed.
+
+- 2026-11-02: feature 19 (foundation_nativeapis) E5 done on
+  `fix/io-35-turso-async-trait-overflow`. E5 makes `scan`, `scan_all` and `scan_from`
+  lazy: no row `Vec` is collected and `scan_all` no longer buffers the whole
+  collection. A producer thread walks the fjall index range (which is not
+  `Send`) and pushes decoded offsets through a bounded valtron `Pipe`; the
+  stream reads one document per yielded item and the producer parks on a full
+  pipe, so an undrained `scan_all` stays bounded. Test
+  `fjall_scan_yields_before_reading_all` wraps `InodeFs` in a read-open
+  counter and asserts the stream reads zero files when created and one file
+  after its first item (not 50). 20 fjall document-store tests pass under
+  `--profile uat`. The first §13 backlog entry (scans buffer their rows) is
+  removed.
+
+- 2026-11-02: feature 19 (foundation_nativeapis) E3 done on
+  `fix/io-35-turso-async-trait-overflow`. E3 makes the shim build the real D1/R2 deltas
+  instead of falling back to the memory delta. `DeltaBackend::D1` builds
+  `D1Delta` and `DeltaBackend::R2` builds `R2Delta`; each panics when the
+  feature is missing or init fails (no memory fallback). Both branches
+  initialize a valtron pool so the async HTTP store can be driven from the
+  sync libc handlers, and wrap the delta as
+  `DynFs::from_async(OverlayFileSystem::new(base, delta))`. A
+  `LOCAL_CF_API_BASE` override makes the shim reach a local Cloudflare
+  emulator (test credentials are defaulted in that mode). Test
+  `shim_config_d1_uses_d1_delta` writes a file through the `LD_PRELOAD` shim
+  with `FOUNDATION_VFS_DELTA=d1` and reads it back from the same D1 emulator.
+  The third §13 backlog entry (shim never uses D1/R2) is removed.
+
+- 2026-11-02: feature 19 (foundation_nativeapis) E2 done on
+  `fix/io-35-turso-async-trait-overflow`. E2 replaces the whole-file blob rewrite with
+  chunked storage: a file's content lives in `vfs/data/{path}/{chunk}` and
+  `replace_chunks` writes only the chunks whose bytes change. The chunk size
+  is `BlobDeltaConfig::chunk_size` (default 64 KiB, documented against Go's
+  `net/http` 32 KiB copy buffer). The unused `d1_delta::chunking`,
+  `d1_delta::types` and `r2_delta::types` modules are removed (dead code from
+  the abandoned inode design); their behaviour is covered by the new
+  `blob_delta_small_writes_touch_one_chunk` test, which counts store bytes and
+  asserts under 16 MiB for a 1 MiB file written in 4 KiB pieces. 15 blob-delta
+  tests and the 9-test D1/R2 API suites pass under `--profile uat`. The second
+  §13 backlog entry (whole-file rewrite) is removed.
+
+- 2026-11-02: feature 19 (foundation_nativeapis) E1 done on
+  `fix/io-35-turso-async-trait-overflow`. E1 adds `BlobStore::list_blobs_after` to
+  `D1Store` (delegates to `list_keys` and enforces the literal prefix, because
+  SQL `LIKE` widens `%`/`_`). `BlobDelta` now lists a directory from meta keys,
+  lists whiteouts from whiteout keys, and resets by deleting every `vfs/` key.
+  Two tests land in `tests/blob_delta_vfs/`: `blob_delta_lists_files_and_whiteouts`
+  and `blob_delta_reset_clears_everything` (14 tests green under `--profile uat`).
+  The `vfs-d1`/`vfs-r2` features gain `dep:futures-lite` so `BlobDelta` can
+  drain the listing stream. The first §13 backlog entry (blob deltas cannot
+  list) is removed.
+
+- 2026-11-02: bug-backlog §15 (foundation_cedar) clippy cleanup on
+  `fix/io-35-turso-async-trait-overflow`. Cleared the 24 pre-existing `pedantic` warnings
+  and deleted both §15 backlog entries (the warnings list and the stale
+  `recursion_depth_exceeding_limit` note, which no longer reproduces). Nine
+  `missing_errors_doc` sites gain `# Errors` sections, the redundant `#[must_use]`
+  attributes on `principal_str`/`action_str`/`resource_str` are dropped (one
+  added to `is_authorized_with_entities`), two
+  `redundant_closure_for_method_calls` sites use
+  `std::string::ToString::to_string`, two `missing_fields_in_debug` Debug impls
+  are completed, one `struct_field_names` site renames `*_path` fields, three
+  `needless_raw_string_hashes` sites drop the extra `#`, and three
+  `assert_is_empty` sites use the typed-empty-array form `assert_ne!(x, [] as [T; 0])`
+  (a plain `vec![]` fails E0282, and clippy's own `cedar_policy::api::id::PolicyId`
+  path is private, so the public `cedar_policy::PolicyId` re-export is used).
+  Verified with `cargo clippy --profile uat --all-targets [--features db] --no-deps`
+  (zero code warnings, only `fullfp16` noise) and `cargo test --profile uat
+  [--features db]` (17 default / 25 `db` tests green).
+
+- 2026-11-02: bug-backlog §7 (foundation_deployment_platform) `vms` clippy
+  follow-up on `fix/io-35-turso-async-trait-overflow`. The first pass (commit `ab014f58a`)
+  left 28 warnings: the check grep missed colorized clippy output, so it saw
+  none. Commit `614de3710` clears all 28. Seven `cast_precision_loss` allows
+  sat on `println!`/`eprintln!` macro calls; rustc ignores an allow on a macro
+  call, because the cast sits inside the macro's generated code. Each cast now
+  moves to a `let` binding that carries the allow. Two `redundant_closure`
+  sites use `map_while(std::result::Result::ok)` to dodge the
+  `crate::config::Result` alias. Nine `doc_markdown` sites gain backticks.
+  `cargo clippy --profile uat --all-targets --features vms --no-deps` and the
+  default-feature clippy both report zero code warnings (only the workspace
+  `fullfp16` note); 125 non-Docker tests pass.
+
+- 2026-11-02: bug-backlog §7 (foundation_deployment_platform) `vms` clippy
+  warnings zeroed on `fix/io-35-turso-async-trait-overflow`. After the first-pass
+  `cargo clippy --fix` (commit `abbe0c039`, 625 to 307), three subagents fixed
+  the remaining 285 code warnings in disjoint file groups (edit-only), and the
+  main session fixed the 3 manifest `unused_crate_dependencies` warnings:
+  `clap` moved from the `vms` feature to `cli`, `portpicker` removed,
+  `foundation_sshkit` moved to dev-dependencies. `cargo clippy --profile uat
+  --all-targets --features vms --no-deps` and the default-feature clippy both
+  report zero warnings; 137 non-Docker tests pass. The §7 entry is reduced to
+  one remaining item: extend the CI clippy run to the `vms` feature.
+
+- 2026-11-02: bug-backlog §7 (foundation_deployment_platform) cleaned on
+  `fix/io-35-turso-async-trait-overflow`. The three stale entries are removed: the
+  `docker/wireguard.rs` inline tests already moved to `tests/wireguard_tests.rs`,
+  the deprecated `SimpleHttpClient` is gone (`wait_for.rs` now uses
+  `HttpClientBuilder`), and `PortMapping` is now used. The lib and every
+  default-feature test file reach zero clippy warnings: 21 lints in
+  `docker/container.rs`, 17 in `docker/wait_for.rs`, and the rest across
+  `docker/` (config, group, image, network, wireguard), `providers/`,
+  `lib.rs`, `testing.rs` and six test files (`doc_markdown`,
+  `missing_errors_doc`, `must_use_candidate`, `implicit_hasher`,
+  `cast_possible_truncation`, `unused_async_trait_impl`, `map_unwrap_or`,
+  `match_wildcard_for_single_variants`, and others). The 43 non-Docker tests
+  pass. A new §7 entry records the ~625 pedantic warnings in the `vms` feature
+  tree (not CI-enforced: CI clippy/build run `runs[0]` = default features). A
+  new §6 entry records a Docker client stall: POST requests with a body wait
+  ~2 minutes for `100 Continue`, so the daemon-backed integration tests take
+  10+ minutes and look hung.
+
+- 2026-11-02: bug-backlog §6 (foundation_deployment_cloudflare) fixed on
+  `fix/io-35-turso-async-trait-overflow`. The unused `urlencoding` dependency is removed
+  from `foundation_deployment_cloudflare/Cargo.toml`. It appears nowhere in the
+  crate's source or tests. `cargo check --profile uat` passes. The full test
+  build is skipped: this generated crate's `--all-targets` twin peaks near
+  7 GB, and the local disk is 97% full. The backlog entry is removed.
+
+- 2026-11-02: bug-backlog §2 (foundation_netio) fixed on
+  `fix/io-35-turso-async-trait-overflow`. The unused `thiserror` dependency is removed from
+  `foundation_netio/Cargo.toml`. Nothing in the crate uses it; netio builds
+  errors with `derive_more`. The two remaining manifest warnings (`flate2`,
+  `rustls-pemfile`) are false positives: both are optional and used under their
+  features. The default test suite passes (1270 tests), clippy is clean, and
+  the wasm-fetch check passes. The backlog entry is removed.
+
+- 2026-11-02: bug-backlog §12 (foundation_auth) fixed on
+  `fix/io-35-turso-async-trait-overflow`. Two entries are cleared. First, the dead
+  `WebAuthnService.config` field is dropped from both the `server-native` and
+  the non-`server-native` variants; the `config` argument is used only locally
+  in `new()`. Second, the five `shared` clients (`discovery`, `jwks`,
+  `introspection`, `userinfo`, `upstream_client`) each gain a `max_error_body`
+  field and a `with_max_error_body` setter that threads the cap into
+  `read_error_text`. The new public setter bumps `foundation_auth` 0.0.4 ->
+  0.0.5 and its four versioned consumers follow. Five `body_streaming` tests
+  assert a client with `with_max_error_body(128)` cuts a 128 KiB error body at
+  128 bytes. Two more `server-native` warnings are cleared in the same file: a
+  dead `base64::engine::Engine` import and an unused `wa_passkey`
+  deserialization. The backlog entries are removed, and a new entry records
+  the 200+ clippy warnings in the `server`/`server-native` feature tree.
+
+- 2026-11-02: bug-backlog §10 gemm-f16 fullfp16 (foundation_ai) fixed on
+  `fix/io-35-turso-async-trait-overflow`. `cargo test` with candle failed to assemble
+  `gemm-f16` on Apple Silicon because `aarch64-apple-darwin` does not enable
+  the `fullfp16` target feature. `.cargo/config.toml` now enables `fullfp16`
+  for that target. Apple M-series chips all support it in hardware. The
+  `candle_tests` suite (61 tests) passes with no manual `RUSTFLAGS`. The
+  backlog entry is removed.
+
+- 2026-11-02: bug-backlog §10 clippy-warnings (foundation_ai) fixed on
+  `fix/io-35-turso-async-trait-overflow`. Eight clippy lints are cleared: one
+  `needless_pass_by_value` (agent_loop), one `wrong_self_convention` (turn),
+  one `arc_with_non_send_sync` (llamacpp), two `cast_possible_truncation`
+  (candle), one `must_use_candidate` (testing), and two `large_enum_variant`.
+  The two large variants are boxed: `Tool::SingleCommand(Box<ToolDefinition>)`
+  and the candle Llama cache (`Box<candle_llama::Cache>`). Boxing `Tool` is a
+  breaking API change, so `foundation_ai` bumps 0.0.4 -> 0.0.5 and its two
+  versioned consumers (`ewe_platform`, `answerme-agent`) follow. The backlog
+  entry is removed. A new issue is recorded: `cargo test` with candle fails to
+  assemble `gemm-f16` on Apple Silicon without the `fullfp16` target feature.
+
+- 2026-11-02: bug-backlog §10 flaky-test fix (foundation_ai) done on
+  `fix/io-35-turso-async-trait-overflow`. `openai_provider::test_provider_streaming_tool_calls`
+  flaked when the mock SSE response stayed open. The SSE client then hit its
+  100 ms idle timeout, reconnected, and replayed tool-call deltas. The replayed
+  deltas corrupted the accumulated arguments JSON. The fix adds
+  `Connection: close` to the shared `sse_response` test helper. The mock now
+  closes after the body, and the client sees EOF instead of reconnecting. The
+  test passes 25/25 in a loop. The backlog entry is removed.
+
+- 2026-11-02: bug-backlog §10 `recursion_depth_exceeding_limit`
+  (foundation_ai) fixed on `fix/io-35-turso-async-trait-overflow`. The `agentic_tests`
+  and `foundation_ai_tests` test crates both warned on the deep `Send`
+  auto-trait resolution in `tests/agentic/session_mock_tests.rs`
+  (`build_and_run_a_turn_on_sql_backed_stores`). The two crate roots are now
+  split: `tests/agentic_tests.rs` is the `agentic_tests` crate root with
+  `#![recursion_limit = "256"]` and loads the shared module tree via
+  `#[path = "agentic/mod.rs"] mod agentic;`; `tests/mod.rs` (the unique
+  `foundation_ai_tests` root) gains the same inner attribute.
+  `tests/agentic/mod.rs` keeps no inner attribute, so neither crate warns
+  `unused_attributes`. The Cargo `[[test]] agentic_tests` path now points at
+  the new root. Both crates check clean of the warning, and the `agentic_tests`
+  suite still passes 329/329. The backlog entry is removed.
+
+- 2026-11-02: bug-backlog §10 candle-gemm (foundation_ai) fixed on
+  `fix/io-35-turso-async-trait-overflow`. Seventeen candle tests panicked in `gemm-f32`
+  on the Linux CI. gemm-common picked the `fma` kernel on `fma` alone, but
+  that kernel needs AVX2. The emulated linux/amd64 CPU has `fma` and not
+  `avx2`, so `V3::try_new()` returned `None` and the `.unwrap()` panicked.
+  The fix vendors gemm-common 0.19.0 under `patches/gemm-common` and requires
+  `fma` and `avx2` in `init_gemm_fn` and `init_gemm_cplx_fn`. The backlog
+  entry is removed.
+
+- 2026-11-02: bug-backlog §10 (foundation_ai) fixed on
+  `fix/io-35-turso-async-trait-overflow`. The wasm32 `--no-default-features` check failed
+  with three `Send` errors because the cloud providers awaited valtron's
+  non-Send `sleep_async` inside their async-trait futures. Each provider now
+  wraps the sleep future in `foundation_compact::SendWrapper`. The backlog
+  entry is removed, and a flaky
+  `openai_provider::test_provider_streaming_tool_calls` is recorded. Commit
+  04febe2cf.
+
+- 2026-11-02: feature 16 E8 follow-up (foundation_ai) done on
+  `fix/io-35-turso-async-trait-overflow`. The pub/sub `Appended` event id now reuses the
+  record's own id for WorkingMemory / Observation / Reflection, matching the
+  stored `doc_id`. A test asserts the event id and the append return value equal
+  the record id.
+
+- 2026-11-02: feature 16 E8 (foundation_ai) done on
+  `fix/io-35-turso-async-trait-overflow`. Memory records (WorkingMemory, Observation,
+  Reflection) now write through `append_promotable_with_id` with the record's
+  own scru128 id, so a retried write is a no-op. Two idempotency tests are
+  added. The conversation arm already used `append_with_id`. Commit 87fe96a67.
+
+- 2026-11-02: bug-backlog §13 (`vfs_search` panic) fixed on
+  `fix/io-35-turso-async-trait-overflow`. `detect_tool()` used `Command::status().is_ok()`
+  to pick `rg` or `grep`. On the Linux CI nightly toolchain a missing binary
+  returns `Ok(127)`, not an error, so the probe picked `rg` though it was
+  absent, and the search returned zero matches. The new `probe_tool()` helper
+  checks `status.success()`. The `cli_search_streams_results` test passes 15/15
+  on macOS and in the Linux CI image. The backlog entry is removed. Commit
+  51320ad9a.
+
+- 2026-11-02: bug-backlog §13 (`fuse_vfs` compile) fixed on
+  `fix/io-35-turso-async-trait-overflow`. `fuser` 0.15 default features include `libfuse`,
+  which probes for a system fuse3 via pkg-config and panics in its build script
+  when it is absent. The fix disables `fuser` default features on the workspace
+  dependency so it uses the pure-Rust mount implementation. The `fuse_vfs` test
+  passes 21/21 in the Linux image (3 mount tests skip without /dev/fuse). The
+  backlog entry is removed. Commit d98c9f12a.
+
+- 2026-11-01: feature 13 (foundation_deployment_platform) E1 done on
+  `fix/io-35-turso-async-trait-overflow`. E1 rewrites `wait_for_stdout` to follow the log
+  stream once (`follow=true`, stdout only, stderr=false), match a message
+  across frame boundaries with a rolling buffer sized `message.len() +
+  client.limits().max_log_frame`, and race the next frame against the
+  remaining timeout with `futures_lite::future::race`. Only stdout bytes
+  count; an empty message returns at once. The function is now `pub` and is
+  re-exported from the `docker` module. New mock-daemon tests
+  (`tests/wait_for_stdout_tests.rs`):
+  `wait_for_stdout_matches_across_frames`,
+  `wait_for_stdout_ignores_stderr`, `wait_for_stdout_reads_each_byte_once`.
+  Verification: `cargo test -p foundation_deployment_platform --test
+  wait_for_stdout_tests --profile dev` green (3/3); `cargo clippy -p
+  foundation_deployment_platform --all-targets --profile dev` clean. The
+  bug-backlog §7 `wait_for_stdout` entry is removed. The local disk was full
+  (ENOSPC); the 45 GiB `target/uat` LLVM cache was deleted to free space
+  before the build ran.
+
+- 2026-11-01: feature 13 (foundation_deployment_platform) E2 done on
+  `fix/io-35-turso-async-trait-overflow`. E2 adds one shared Docker-daemon helper:
+  `foundation_deployment_platform::testing::docker_available()`. It connects
+  with `DockerClient::connect_with_defaults()` and pings the daemon with
+  `negotiate_version()`. The helper is gated on the `docker` feature. Six
+  duplicated `/var/run/docker.sock` file checks in the platform tests are
+  replaced with the helper, and `docker_container_macro_supports_async_functions`
+  skips (prints SKIP and returns) when no daemon answers. The proxy test
+  (`foundation_proxy/tests/proxy_integration_tests.rs`) uses the same helper.
+  The platform crate is bumped 0.1.2→0.1.3 and `foundation_testbed` pins
+  0.1.3. Bug-backlog §7 Docker-gated-tests and
+  `docker_container_macro_supports_async_functions` entries and the §9 proxy
+  Docker-gated entry are removed. Verification: `cargo check -p
+  foundation_deployment_platform --all-targets --profile dev` and
+  `--features vms` clean (three pre-existing unused-dependency warnings stay:
+  clap, foundation_sshkit, portpicker); clippy clean; the proxy test target
+  compiles; the skip path was proven with a dead `DOCKER_HOST`.
+
+- 2026-11-01: feature 13 (foundation_deployment_platform) E3 done on
+  `fix/io-35-turso-async-trait-overflow`. E3 rewrites `query_vagrant_cloud` to use the
+  `foundation_netio` HTTP client instead of a `curl` subprocess. The lookup is
+  now an async function (`send_async` plus `collect_bytes_async`, streamed and
+  never buffered whole by hand); its sync caller drives it with
+  `block_on_future`. The size cap comes from an `ImportLimits` config (default
+  64 KiB), applied through the client `ClientConfig::max_body_size`. The
+  response parses into typed structs (`VagrantBoxMetadata`, `VagrantBoxVersion`,
+  `VagrantBoxProvider`), not `serde_json::Value`. The function returns
+  `Result<Option<String>>`; a malformed document uses the new
+  `TestbedError::VagrantMetadataError`, and HTTP errors use the existing
+  `DownloadFailed`. The stale "tokio runtime conflicts" comment is deleted.
+  New tests in `tests/vms_import_tests.rs`:
+  `vagrant_lookup_parses_metadata` (against a local HTTP server) and
+  `vagrant_lookup_reports_http_error`. Verification: `cargo test -p
+  foundation_deployment_platform --test vms_import_tests --features vms
+  --profile dev` green (6/6). The §7 Vagrant backlog entry is removed.
+
+- 2026-11-01: feature 17 (foundation_db) PR 2 of 2 (E7–E12) done on
+  `fix/io-35-turso-async-trait-overflow` (committed as `28f951edf`). E7 moves the auth-table cleanup
+  to Unix milliseconds (migration 026 converts legacy whole-second rows with an
+  idempotent `< 10000000000` guard; `rate_limits` stays in seconds;
+  `run_full_cleanup` reads both clocks). E8 makes the SQL rate-limit record one
+  atomic `INSERT ... ON CONFLICT ... RETURNING count` statement and keeps
+  Workers KV as a documented best-effort path only. E9 adds migration 027 to
+  rebuild the old-shape `rate_limits` table. E10 makes the wasm stores'
+  inherent `*_async` methods private and routes every caller through the
+  traits. E11 adds the synthetic `examples` CI job (wasm32 builds of the
+  `examples/cf-*` workspaces plus the native `answerme-agent`). E12
+  feature-gates the rate-limit SQL constants and helpers behind
+  `turso|d1|libsql|wasm-bindgen-storage`. New tests:
+  `cleanup_deletes_expired_rows_by_documented_unit`,
+  `old_rate_limit_table_is_rebuilt`, `rate_limit_counts_concurrent_hits`.
+  Verification: `cargo test -p foundation_db --profile uat` green (all targets);
+  both wasm32 gates (`--features wasm` and `--features wasm-bindgen-storage`)
+  clean; `rg` for public `*_async` in `src/wasm` is empty; `ci.py plan` lists
+  `examples`. The six-crate CI block and the workspace check are green (dev
+  profile) after the disk was freed; the Linux CI gate is the remaining check.
+
+- 2026-11-01: bug-backlog §13 (kqueue waker) fixed on
+  `fix/io-35-turso-async-trait-overflow`. The macOS kqueue waker (`EVFILT_USER`) returned
+  `Token(0)` because `wake` triggered `NOTE_TRIGGER` with a null `udata` while
+  `register_waker` stored the token as the `EV_ADD` `udata`; XNU copies the
+  trigger's `udata` onto the knote. Fix: `wake` now passes the stored token as
+  the trigger `udata`. The two failing tests (`waker_wakes_from_another_thread`,
+  `waker_wakes_from_multiple_threads`) now pass; the full `poll` target is 12/12
+  green (dev profile). The backlog §13 entry is removed.
+
+- 2026-11-01: version-bump reconciliation. Commit `a896ff0bb` (foundation_db
+  0.0.4 to 0.0.5) missed three consumers that pin `version = "0.0.4"` on the
+  line after `path` in a multi-line `[dependencies.foundation_db]` table:
+  `foundation_deployment_docker`, `foundation_deployment_hetzner`,
+  `foundation_deployment_digitalocean`. `cargo metadata` failed workspace-wide,
+  so every CI gate died pre-flight. Feature 16 also added public API but kept
+  `foundation_ai` at 0.0.2. Commit `53b02bece` bumps the three consumers to
+  0.0.5. This change bumps `foundation_ai` to 0.0.3 and its two consumers
+  (`bin/platform`, `apps/answerme-agent`) to 0.0.3. `cargo metadata` resolves
+  and a `tomllib` scan reports zero mismatches.
+
+- 2026-11-01: feature 12 (Docker client and foundation_deployment) done on
+  `fix/io-35-turso-async-trait-overflow`. E1 routes the seven hand-written client methods
+  through the generated request/response types, streams the upload tar, caps
+  error bodies, and returns typed `system_data_usage`. E2 adds `max_json_body`
+  to `BodyLimits`. E3 adds a CI run that builds the `docker,integration-tests`
+  targets. E4 makes `LogFrameDecoder` return an enum so "need more bytes" and
+  "skipped" are distinct. The docker crate's version bumps 0.1.3 to 0.1.4 and
+  its consumer `foundation_deployment_platform` follows. Four fixed backlog §6
+  entries are removed; one new test-infra entry (SUN_LEN) is added.
+
+- 2026-11-01: feature 20 (foundation_nativeapis process side) done on
+  `fix/io-35-turso-async-trait-overflow` (commit 869572cd4). E5 makes the IPC client
+  receive on an async future; the join and poll timeouts move to
+  `VfsIpcConfig` (defaults 30 s join, 1 s poll). E6 adds a request id to
+  `VfsRequest`/`VfsResponse`; the client matches responses by id, drops the
+  release-count skip logic and the lock across a send and its receive, and
+  makes `ReadAt` sizes u64. E7 moves the CLI search wait onto a valtron offload
+  pool, streams the child's stdout line by line, and puts the limits on
+  `SearchConfig` (50 per file, 200 per page, 5 s budget, 30 s scan wait). The
+  macOS mach-port send right is fixed (`MACH_MSG_TYPE_MAKE_SEND` for a port the
+  process owns). Eight fixed bug-backlog §13 entries are removed. E1–E4 and E8
+  landed earlier (commits 0db0d2734, c37d7cf17, ac61b245f, 52b88e326,
+  a80d202dd). Verification: native_vfs 21 green, ipc_vfs 14 green, vfs_search
+  15 green, and the combined VFS feature check is clean.
+
+- 2026-11-01: feature 17 (foundation_db) PR 1 of 2 (E1–E6) done on
+  `fix/io-35-turso-async-trait-overflow`. E1 makes `StateStore::set` key by `resource_id`
+  (the stored state's `id` is set from it, whatever `state.id` holds). E2 moves
+  the Cloudflare D1/R2 wire types into a new leaf crate
+  `foundation_cloudflare_types` and uses them in `R2Store` (rule 5: the old
+  `foundation_deployment_cloudflare` types had a cyclic dependency). E3 makes R2
+  state listings a cursor-driven page stream (no sort; R2 returns keys in
+  order). E4 streams blob get/put and adds range get, conditional put
+  (`if_none_match`/`if_match` returning `PreconditionFailed`) and ordered
+  `list_after`. E5 adds `QueryStore::execute_batch_statements` (D1 `batch()`,
+  one transaction on libsql and Turso). E6 adds a mock-D1 `init` test.
+  Verification: `cargo test -p foundation_db --profile uat` green; clippy clean
+  on both crates. E7–E12 stay open for PR 2. The foundation_db 0.0.4→0.0.5
+  version bump is deferred until feature 20 lands (it edits
+  foundation_nativeapis).
+
+- 2026-11-01: feature 16 (foundation_ai) done in the working tree on
+  `fix/io-35-turso-async-trait-overflow` (not committed). E1 adds an async
+  `Model::generate_async` (async-first, default falls back to the sync
+  `generate`) with async retry back-off over the valtron timer; the HTTP
+  providers implement it over `send_async`. E2 makes the `agent` tool report
+  `Working` and return on `Stream::Wait` instead of `continue`, so it no longer
+  busy-loops. E3 caps non-2xx error bodies at a `max_error_body` config field
+  (default 64 KiB from Go `net/http`'s error-drain limit) in the OpenAI,
+  Responses, Anthropic, Workers and `model_info` paths; status is read before
+  the body. E4 adds the Responses `fetch_model_info` success test over
+  `GPT_JSON`. E5 makes `embed`/`embed_batch` async and awaits them from
+  `ContextProvider::search` and the `shed` tool. E6 makes a second concurrent
+  flush await the running one (a `FlushState` mutex with wakers and a drop
+  guard) instead of returning `Ok(0)`. E8 renames `record_async`/`hydrate_async`
+  to `record`/`hydrate`. E9 drops the unconditional `infrastructure_llama_cpp`
+  dev-dependency, re-exports the llama error types through the `llamacpp`-gated
+  module, and gates those tests on the feature. E7 is blocked on `foundation_db`
+  (idempotent upsert by document id) and stays in backlog §10. A `Send` bug was
+  found and fixed along the way: `GenerationError`/`ModelErrors`/
+  `ModelProviderErrors` held a non-`Send` `BoxedError`, which broke `zip` of an
+  async generate with a ticker; they now use `SendableBoxedError`. Verification:
+  `cargo check -p foundation_ai --all-targets --profile uat` clean (four
+  pre-existing candle dead-code warnings); `cargo clippy -p foundation_ai
+  --profile uat --no-deps` down to seven pre-existing lib warnings (two new ones
+  introduced and fixed); `cargo test -p foundation_ai --profile uat --features
+  testing` green (2126 passed, 0 failed); E1/E2/E5/E6 timing tests each pass 20
+  runs in a row; E9 builds with `tools/llama.cpp` moved away. PR: see the PR.
+
+- 2026-11-01: feature 24 (tokio boundaries and apps) done on
+  `fix/io-35-turso-async-trait-overflow`. Removed tokio and axum from `bin/platform`,
+  its templates, the examples and the `ewe_channels` and `ewe_domain` crates. The
+  platform binary now uses `#[valtron(seed = 100)]`. Inline tests moved to `tests/`.
+  The `deno_core` tokio boundary in `foundation_testbed` is documented. New backlog
+  entries record the remaining channels, domain, todo and template debt. The Linux
+  CI gate is green (fmt, build, clippy, test, wasm; the templates test passed), so
+  issue #137 can close. Commit c18df9490.
+
+- 2026-11-01: feature 21 done on `fix/io-35-turso-async-trait-overflow` (commit
+  95838a4a8). `foundation_cronjobs` parses each `cron_expr` with
+  `saffron` (five-field Quartz), rejects an invalid expression at `register`
+  with a typed error, computes the real next fire, and runs one valtron task per
+  job: park on `TaskStatus::Delayed` until the next fire, run the job, record
+  the result, apply the missed-job policy (catch up once, skip, or run all). The
+  wall clock is a `SharedCronClock` injected by constructor (rule 11); the crate
+  bumped to 0.0.4. `foundation_cedar` gained `PolicyStore::load_all` plus
+  `PolicyBundle` so `SqlPolicyStore` reads its row in one query, dropped the
+  unused `derive_more`, and replaced the infallible
+  `EntityId::from_str(..).map_err(..)` with `EntityId::new(..)`; bumped to
+  0.0.4. Verification: `cargo check` clean for both crates, clippy adds no new
+  warnings (24 pre-existing cedar `pedantic` warnings recorded in backlog §15),
+  cronjobs 13 tests green, cedar 17 (default) / 25 (`db`) tests green, timing
+  tests stable over 20 runs. Commit 95838a4a8.
+
+- 2026-11-01: bug-backlog §13 #1 (kqueue edge-triggered read) fixed on
+  `fix/io-35-turso-async-trait-overflow`. The macOS kqueue selector now records the
+  byte count per fd and delivers a readable event only when the count grows; a
+  drained fd re-arms on `reactor.clear`. Verification: `registered_fd_edge_triggered`
+  passes, the four shared-reactor tests pass, `foundation_reactor` tests are green,
+  and clippy adds no new warnings. Commit 0e43720a7. A macOS waker bug
+  (`Token(0)` from `EVFILT_USER`) was found and recorded in backlog §13. The
+  `fd` CI run was added to `ci/packages.toml`. Linux CI gate queued.
+
+- 2026-11-01: feature 26 done on `fix/io-35-turso-async-trait-overflow`. The
+  `foundation_nativeapis` shared-reactor tests now compile and run on macOS. The
+  nonblocking pipe was already portable (`pipe` + `fcntl` on macOS, `pipe2` on Linux). The
+  `/proc/self/fd` count test and its `open_fd_count` helper are now gated with
+  `#[cfg(target_os = "linux")]`, so the four portable tests run on macOS and the Linux-only
+  fd-count test stays in CI. Verification: `cargo test -p foundation_nativeapis --test
+  reactor_shared_selector_tests --features fd --profile uat` green (4 pass);
+  `cargo check -p foundation_nativeapis --all-targets --profile uat` clean. Linux CI gate
+  queued. PR: see the PR.
+
+- 2026-11-01: feature 37 done on `fix/io-35-turso-async-trait-overflow`. A
+  transport with `conn_readiness() == None` (the completion socket) now falls
+  back instead of spinning. `IoReady` sleeps one poll-fallback interval and
+  returns `Ok`; `Hangup` re-polls `gone_now` each interval and returns `Ok` only
+  on close/error. The raw-fd probe uses `poll(2)` with
+  `POLLHUP`/`POLLERR`/`POLLNVAL` (plus `POLLRDHUP` on Linux). The interval is a
+  config field (`ServeTimeouts::poll_fallback_interval`, default 10 ms from
+  `POLL_DELAY`), never a constant. Tests: `tests/conn_io_fallback_tests.rs`
+  (2 tests). Verification: `cargo test -p foundation_connectrpc --profile uat`
+  green. PR: see the PR.
+
+- 2026-11-01: feature 36 done on `fix/io-35-turso-async-trait-overflow`.
+  `DnsResolver::resolve` became async via `#[async_trait]`; the request task
+  awaits it in a new `Resolving` state instead of blocking a valtron worker.
+  `SystemDnsResolver` offloads `to_socket_addrs()` to the valtron background
+  boundary (`run_background_job` + `Pipe`). The DNS deadline is a config field
+  (`dns_timeout`, default 30 s from nginx `resolver_timeout`). A first-pass
+  regression — the sync connect path routed `SystemDnsResolver` through
+  `run_background_job`, which panics when the pool is uninitialized — was fixed
+  by adding a synchronous `DnsResolver::resolve_blocking` seam (default
+  park/unpark, overridden pool-free by `SystemDnsResolver`, `CachingDnsResolver`,
+  and `Arc<T>`). Tests: `tests/simple_http/dns_async_tests.rs` (3 tests).
+  Verification: `cargo test -p foundation_netio --profile uat` green. PR: see
+  the PR.
+
+- 2026-11-01: moved UUID generation into `foundation_compact` on
+  `fix/io-35-turso-async-trait-overflow`. The earlier keychain wasm fix added
+  `uuid = { version = "1", features = ["v4", "js"] }` to the keychain, which is a
+  second entropy path that bypasses rule 11 (one injected entropy seam). The
+  corrected fix makes `foundation_compact` depend on
+  `uuid = { version = "1", default-features = false }` and expose
+  `foundation_compact::uuid::new_v4()`, which fills 16 bytes with
+  `foundation_compact::entropy::fill` and calls `Builder::from_random_bytes`
+  (a `const fn`, no feature). `foundation_keychain` now uses
+  `foundation_compact::uuid::{self, Uuid}` through `core::crypto::new_uuid_v4()`
+  and no longer depends on `uuid` directly. Verification: native + wasm
+  `cargo check` pass, keychain `cargo test --profile uat` green. PR: see the PR.
+
+- 2026-11-01: features 38 and 40 done, and the publish fix landed, on
+  `fix/io-35-turso-async-trait-overflow`. Feature 38 deleted the dead
+  `foundation_netio/src/native/tls_verification.rs` module (490 lines, never declared)
+  and the commented-out `// pub mod tls_verification;` in `native/mod.rs`. Feature 40
+  renamed `OverlayStream.owner` to `_owner` (option 1) in `netstack.rs`; the
+  `Arc<OverlayStreamOwner>` still keeps the smoltcp socket alive until the last drop.
+  The publish fix bumped `foundation_core` and `foundation_macros` to 0.0.7 and every
+  consumer dependency to `0.0.7` (43 manifests plus the lock), so `foundation_reactor`
+  0.0.1 no longer fails tarball verification on the stale published `foundation_core`
+  0.0.6 (E0425/E0407). The `release-plz release-pr` failure was a root-manifest
+  `cargo-features = ["codegen-backend"]` already fixed on master by `df86d7e6d`.
+  Verification: `cargo check` and `clippy` clean for the touched crates; the netstack
+  dataplane tests pass 7/7. A pre-existing `tests/fd/registration.rs` edge-triggered
+  failure is tracked in the backlog §13 and is unrelated. PR: see the PR.
+
+- 2026-11-01: feature 35 done (with feature 34) on
+  `fix/io-35-turso-async-trait-overflow`. The `recursion_depth_exceeding_limit`
+  warning came from the `turso` crate's deep async chain, not from the
+  `#[valtron_test]` macro. `TursoStorage::set` (async-trait) overflows the
+  `CoerceUnsized`/`Send` check, and `#[valtron_test]` bodies in the turso-backed
+  test files force `Send` through the same chain. Fix: `#![recursion_limit = "256"]`
+  in `foundation_db/src/lib.rs` and the three test files
+  (`foundation_db/tests/turso_storage_tests.rs`,
+  `foundation_auth/tests/credential_store_tests.rs`,
+  `foundation_auth/tests/auth_manager_tests.rs`). Feature 34's "149 files across 17
+  crates" premise was wrong — the warning is confined to turso-backed stores, so
+  no macro change is needed. Verification: `cargo check -p foundation_db --tests`
+  and `-p foundation_auth --tests` are warning-free; the foundation_db CI gate is
+  green and all tests pass. PR: see the PR.
+
 - 2026-10-31: fixed the second native build error on `fix/io-01-valtron-parking`. The
   `pull/163/merge` brought master's incomplete Dependabot bump of `sha2` (0.10 to 0.11).
   `foundation_auth` then used `sha2` 0.11 (`digest` 0.11.3) beside `hmac` 0.12, `pbkdf2` 0.12,

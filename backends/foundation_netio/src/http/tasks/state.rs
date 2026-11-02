@@ -1,6 +1,6 @@
+use crate::http::{HttpClientConnection, HttpConnectionPool, HttpRequestPending};
 use crate::netcap::RawStream;
 use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
-use crate::http::{HttpClientConnection, HttpConnectionPool, HttpRequestPending};
 use crate::shared::http::{
     HttpClientError, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,
 };
@@ -82,8 +82,9 @@ impl<S: AsRef<str>, E: std::fmt::Display> FetchPending<S, E> {
     /// Convert from `HttpRequestPending` with source context
     pub fn from_http_request(p: HttpRequestPending, source: S) -> Self {
         match p {
-            HttpRequestPending::WaitingForStream => Self::connecting(source),
-            HttpRequestPending::CheckRedirectResponse => Self::connecting(source),
+            HttpRequestPending::WaitingForStream | HttpRequestPending::CheckRedirectResponse => {
+                Self::connecting(source)
+            }
             HttpRequestPending::WaitingIntroAndHeaders => Self::awaiting_response(source),
         }
     }

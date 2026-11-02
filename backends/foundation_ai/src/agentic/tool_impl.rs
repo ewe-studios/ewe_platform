@@ -438,13 +438,13 @@ impl std::fmt::Debug for FnTool {
 #[async_trait]
 impl ToolImpl for FnTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: self.name.clone(),
             category: self.category.clone(),
             description: self.description.clone(),
             arguments: self.arguments.clone(),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -853,11 +853,9 @@ impl ToolCallManager {
         let names: Vec<String> = result.tools.iter().map(|h| h.name.clone()).collect();
         self.activate(&names);
 
-        let json = serde_json::to_string(&result).map_err(|e| {
-            ToolError::Execution {
-                tool: SHED_TOOL_NAME.into(),
-                reason: format!("serialization failed: {e}"),
-            }
+        let json = serde_json::to_string(&result).map_err(|e| ToolError::Execution {
+            tool: SHED_TOOL_NAME.into(),
+            reason: format!("serialization failed: {e}"),
         })?;
         Ok(ToolCallResult::text(json))
     }
@@ -906,6 +904,7 @@ impl ToolCallManager {
         &self,
         request: &ToolCallRequest,
     ) -> Result<ToolCallResult, ToolError> {
+        use futures_lite::FutureExt;
         if request.name == SHED_TOOL_NAME {
             return self.run_shed(&request.arguments).await;
         }
@@ -922,7 +921,6 @@ impl ToolCallManager {
         // Contain a panicking tool at the boundary: a buggy tool must not take
         // down the agent (or wedge the driving valtron task). A panic becomes a
         // ToolError::Execution the loop handles like any other tool failure.
-        use futures_lite::FutureExt;
         let name = request.name.clone();
         match std::panic::AssertUnwindSafe(tool.execute(request.arguments.clone()))
             .catch_unwind()

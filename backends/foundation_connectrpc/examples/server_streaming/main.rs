@@ -21,11 +21,11 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
@@ -63,7 +63,12 @@ fn count_serve() -> Arc<dyn Serve> {
             // than capping — it returns the larger of `count` and `0`.
             let n = req.msg.count.max(0);
             let items: Vec<ConnectResult<CountItem>> = (0..n)
-                .map(|i| Ok(CountItem { index: i, label: format!("item-{i}") }))
+                .map(|i| {
+                    Ok(CountItem {
+                        index: i,
+                        label: format!("item-{i}"),
+                    })
+                })
                 .collect();
             Ok(futures::stream::iter(items))
         },
@@ -79,8 +84,11 @@ fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind loopback");
     let addr = listener.local_addr().expect("local addr");
-    let server =
-        HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
 
     let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
@@ -96,7 +104,8 @@ fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
 async fn main() {
     let (addr, shutdown) = start_server();
 
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
+    let transport: Arc<dyn Transport> =
+        Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
     let url = format!("http://127.0.0.1:{}{PROCEDURE}", addr.port());
     let client: Client<CountRequest, CountItem> = Client::new(
         transport,
@@ -122,7 +131,10 @@ async fn main() {
 
     assert_eq!(received.len(), 3, "expected 3 streamed items");
     assert_eq!(received[2].label, "item-2");
-    println!("server-stream round-trip verified ✓ ({} items)", received.len());
+    println!(
+        "server-stream round-trip verified ✓ ({} items)",
+        received.len()
+    );
 
     shutdown.turn_on();
 }

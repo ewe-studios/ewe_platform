@@ -6,7 +6,7 @@ use foundation_ai::types::ModelParams;
 #[test]
 fn test_sampler_chain_default() {
     let params = ModelParams::default();
-    let sampler = build_sampler_chain(&params);
+    let sampler = build_sampler_chain(&params, 32_000);
 
     // Sampler should be created without panicking
     assert!(!sampler.sampler.is_null());
@@ -31,7 +31,7 @@ fn test_sampler_chain_with_all_options() {
         logit_bias: None,
     };
 
-    let sampler = build_sampler_chain(&params);
+    let sampler = build_sampler_chain(&params, 32_000);
     assert!(!sampler.sampler.is_null());
 }
 
@@ -42,7 +42,7 @@ fn test_sampler_chain_greedy() {
         ..Default::default()
     };
 
-    let sampler = build_sampler_chain(&params);
+    let sampler = build_sampler_chain(&params, 32_000);
     assert!(!sampler.sampler.is_null());
 }
 
@@ -53,7 +53,7 @@ fn test_sampler_chain_high_temperature() {
         ..Default::default()
     };
 
-    let sampler = build_sampler_chain(&params);
+    let sampler = build_sampler_chain(&params, 32_000);
     assert!(!sampler.sampler.is_null());
 }
 
@@ -64,7 +64,7 @@ fn test_sampler_chain_no_top_k() {
         ..Default::default()
     };
 
-    let sampler = build_sampler_chain(&params);
+    let sampler = build_sampler_chain(&params, 32_000);
     assert!(!sampler.sampler.is_null());
 }
 
@@ -75,6 +75,6 @@ fn test_sampler_chain_no_repetition_penalty() {
         ..Default::default()
     };
 
-    let sampler = build_sampler_chain(&params);
+    let sampler = build_sampler_chain(&params, 32_000);
     assert!(!sampler.sampler.is_null());
 }

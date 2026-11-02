@@ -24,10 +24,7 @@ pub fn ps_exec(session: &ssh2::Session, script: &str) -> Result<(String, i32), S
         .encode_utf16()
         .flat_map(|c| c.to_le_bytes())
         .collect();
-    let encoded = base64::Engine::encode(
-        &base64::engine::general_purpose::STANDARD,
-        &utf16le,
-    );
+    let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
 
     let cmd = format!("powershell -NoProfile -EncodedCommand {encoded}");
     let mut channel = session

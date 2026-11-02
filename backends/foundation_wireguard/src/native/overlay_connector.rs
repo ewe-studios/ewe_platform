@@ -39,17 +39,15 @@ impl OverlayConnector {
 }
 
 impl Connector for OverlayConnector {
-    fn connect(
-        &self,
-        host: &str,
-        port: u16,
-        timeout: Option<Duration>,
-    ) -> io::Result<Connection> {
+    fn connect(&self, host: &str, port: u16, timeout: Option<Duration>) -> io::Result<Connection> {
         // Parse the host as an overlay IP. WireGuard overlay addresses
         // are in the 10.0.0.0/8 range.
-        let ip: IpAddr = host
-            .parse()
-            .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, format!("not an overlay IP: {host}")))?;
+        let ip: IpAddr = host.parse().map_err(|_| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("not an overlay IP: {host}"),
+            )
+        })?;
         // The Connector contract returns an established connection, so drive the
         // overlay handshake to completion (default 8s when the caller sets none).
         let timeout = timeout.unwrap_or_else(|| Duration::from_secs(8));

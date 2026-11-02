@@ -20,8 +20,8 @@
 #![warn(missing_docs)]
 
 use crate::wasm::sections::SectionOrderError;
-use thiserror::Error;
 pub use foundation_macros::Wasmbin;
+use thiserror::Error;
 
 /// [Decode] error kind.
 #[derive(Error, Debug)]

@@ -138,12 +138,10 @@ async fn file_store_delete() {
 
     let state = make_state("doomed", StateStatus::Created);
     store.set("doomed", &state).await.unwrap();
-    assert!(store.get("doomed").await.unwrap()
-        .is_some());
+    assert!(store.get("doomed").await.unwrap().is_some());
 
     store.delete("doomed").await.unwrap();
-    assert!(store.get("doomed").await.unwrap()
-        .is_none());
+    assert!(store.get("doomed").await.unwrap().is_none());
 }
 
 #[valtron_test]
@@ -167,9 +165,23 @@ async fn file_store_upsert_overwrites() {
     let v2 = make_state("worker", StateStatus::Created);
     store.set("worker", &v2).await.unwrap();
 
-    let retrieved = store.get("worker").await.unwrap()
-        .unwrap();
+    let retrieved = store.get("worker").await.unwrap().unwrap();
     assert_eq!(retrieved.status, StateStatus::Created);
+}
+
+#[valtron_test]
+async fn set_uses_resource_id() {
+    let tmp = TempDir::new().unwrap();
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
+    store.init().await.unwrap();
+
+    // The caller labels the state "b" but writes it under "a".
+    let state_with_id_b = make_state("b", StateStatus::Created);
+    store.set("a", &state_with_id_b).await.unwrap();
+
+    let under_a = store.get("a").await.unwrap().unwrap();
+    assert_eq!(under_a.id, "a");
+    assert!(store.get("b").await.unwrap().is_none());
 }
 
 #[valtron_test]
@@ -184,8 +196,7 @@ async fn file_store_slash_in_resource_id() {
     let ids = collect(store.list().await.unwrap()).await;
     assert_eq!(ids, vec!["ns/my-worker"]);
 
-    let retrieved = store.get("ns/my-worker").await.unwrap()
-        .unwrap();
+    let retrieved = store.get("ns/my-worker").await.unwrap().unwrap();
     assert_eq!(retrieved.id, "ns/my-worker");
 }
 

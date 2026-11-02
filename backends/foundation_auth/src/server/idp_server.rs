@@ -26,7 +26,10 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
 
     pub fn register_routes(app: &mut HttpApp<Arc<dyn Serve>>, prefix: &str) {
         let p = prefix.trim_end_matches('/');
-        app.route::<ServeAdapter<KV>>(SimpleMethod::GET, &format!("{p}/.well-known/openid-configuration"));
+        app.route::<ServeAdapter<KV>>(
+            SimpleMethod::GET,
+            &format!("{p}/.well-known/openid-configuration"),
+        );
         app.route::<ServeAdapter<KV>>(SimpleMethod::GET, &format!("{p}/.well-known/jwks.json"));
         app.route::<ServeAdapter<KV>>(SimpleMethod::GET, &format!("{p}/authorize"));
         app.route::<ServeAdapter<KV>>(SimpleMethod::POST, &format!("{p}/token"));
@@ -96,4 +99,3 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
         self.http_app().server_with_config(addr, config)
     }
 }
-

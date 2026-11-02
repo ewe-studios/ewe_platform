@@ -39,7 +39,10 @@ async fn test_json_file_blobstore_persistence() {
 
     {
         let storage = JsonFileStorage::new(&file_path).unwrap();
-        storage.put_blob("persist_key", b"Persist me!").await.unwrap();
+        storage
+            .put_blob("persist_key", b"Persist me!")
+            .await
+            .unwrap();
     }
 
     // File should exist and contain data

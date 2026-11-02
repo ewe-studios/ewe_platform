@@ -12,8 +12,8 @@ use std::sync::Arc;
 use std::task::{Context, Poll, Wake, Waker};
 
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
-use bytes::{Buf, BufMut, Bytes};
+use buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache};
+use bytes::{Buf, Bytes};
 
 use foundation_http::shared::context::ContextBag;
 use foundation_netio::shared::http::{
@@ -67,9 +67,12 @@ impl DefaultInstance for TestMsg {
 
 impl Message for TestMsg {
     fn compute_size(&self, _cache: &mut SizeCache) -> u32 {
-        0
+        let mut size = 0usize;
+        size += 1 + buffa::types::int32_encoded_len(self.id);
+        size += 1 + buffa::types::string_encoded_len(&self.name);
+        size as u32
     }
-    fn write_to(&self, _cache: &mut SizeCache, buf: &mut impl BufMut) {
+    fn write_to(&self, _cache: &mut SizeCache, buf: &mut impl EncodeSink) {
         Tag::new(1, WireType::Varint).encode(buf);
         encode_varint(self.id as u64, buf);
         Tag::new(2, WireType::LengthDelimited).encode(buf);
@@ -165,7 +168,8 @@ fn echo_router() -> Router {
         ECHO,
         ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
         |_ctx, req: Request<TestMsg>| async move { Ok(Response::new(req.msg)) },
-        HandlerOptions::new().with_idempotency(foundation_connectrpc::IdempotencyLevel::NoSideEffects),
+        HandlerOptions::new()
+            .with_idempotency(foundation_connectrpc::IdempotencyLevel::NoSideEffects),
     );
     router
 }
@@ -193,14 +197,22 @@ fn wrong_method_is_405_with_allow() {
     assert_eq!(response.status, Status::MethodNotAllowed);
     let allow = header(&response, "allow").expect("Allow header present");
     assert!(allow.contains("POST"), "Allow lists POST: {allow}");
-    assert!(allow.contains("GET"), "Allow lists GET (Connect unary): {allow}");
+    assert!(
+        allow.contains("GET"),
+        "Allow lists GET (Connect unary): {allow}"
+    );
 }
 
 #[test]
 fn unknown_codec_is_415_with_accept_post() {
     let handler = echo_router().into_handler();
     // `application/xml` parses as the Connect codec name "xml" — not registered.
-    let req = request(ECHO, SimpleMethod::POST, Some("application/xml"), Some(vec![]));
+    let req = request(
+        ECHO,
+        SimpleMethod::POST,
+        Some("application/xml"),
+        Some(vec![]),
+    );
     let response = block_on(handler.dispatch(bag(), req));
     assert_eq!(response.status, Status::UnsupportedMediaType);
     let accept = header(&response, "accept-post").expect("Accept-Post present");
@@ -273,7 +285,11 @@ fn unary_get_is_routed_and_decoded() {
     );
     let req = request(&url, SimpleMethod::GET, None, None);
     let response = block_on(handler.dispatch(bag(), req));
-    assert_eq!(response.status, Status::OK, "unary GET routes to the handler");
+    assert_eq!(
+        response.status,
+        Status::OK,
+        "unary GET routes to the handler"
+    );
     let echoed: TestMsg = JsonCodec
         .unmarshal(Bytes::from(body_bytes(&response)))
         .expect("decode echo");

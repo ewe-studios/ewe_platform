@@ -54,12 +54,7 @@ impl FdReadiness {
     pub fn register(fd: RawFd) -> io::Result<Self> {
         let reactor = Reactor::get()?;
         let token = crate::token::next_token();
-        let readiness = SharedReadiness::new(
-            fd,
-            Arc::clone(&reactor),
-            token,
-            Interest::READABLE,
-        )?;
+        let readiness = SharedReadiness::new(fd, Arc::clone(&reactor), token, Interest::READABLE)?;
         Ok(Self {
             readiness,
             reactor,

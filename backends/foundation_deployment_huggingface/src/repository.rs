@@ -5,19 +5,22 @@
 
 #![allow(clippy::too_many_lines)]
 
-use crate::client::{is_success_status, HFClient};
+use crate::client::{into_lazy_pages, is_success_status, HFClient};
 use crate::error::{HuggingFaceError, Result};
 use crate::types::{
     AddSource, CommitInfo, CommitOperation, RepoCreateCommitParams, RepoDeleteFileParams,
     RepoDownloadFileParams, RepoInfo, RepoInfoParams, RepoListTreeParams, RepoTreeEntry, RepoType,
     RepoUploadFileParams,
 };
+use foundation_core::extensions::result_ext::BoxedError;
+use foundation_core::io::readers::Data;
 use foundation_core::valtron::Stream;
-use foundation_netio::shared::client::body_reader::collect_bytes_into;
-use foundation_netio::shared::http::{SimpleHeader, SimpleMethod};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod};
+use futures_lite::StreamExt;
 
 use foundation_macros::JsonHash;
 use serde::Serialize;
+use std::io::Read;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -102,7 +105,7 @@ impl HFRepository {
 /// status (e.g., 404 if the repo or revision does not exist),
 /// `HuggingFaceError::Json` if the response cannot be deserialized into
 /// `RepoInfo`, or `HuggingFaceError::Backend` for a transport failure.
-pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInfo> {
+pub async fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInfo> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
             "{}/api/datasets/{}",
@@ -129,7 +132,7 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
 
     let client = &repo.inner.client;
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
-    client.send_json(request, &url)
+    client.send_json_async(request, &url).await
 }
 
 /// Check if repository exists.
@@ -139,7 +142,7 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built or
 /// the request fails in transport (the Hub could not be asked). Any non-2xx
 /// answer from the Hub is `Ok(false)`.
-pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
+pub async fn repo_exists(repo: &HFRepository) -> Result<bool> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
             "{}/api/datasets/{}",
@@ -163,7 +166,7 @@ pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
     // dropped unread.
     let client = &repo.inner.client;
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
-    let (status, _body) = client.send_raw(request)?;
+    let (status, _headers, _body) = client.send_raw_async(request).await?;
     Ok(is_success_status(&status))
 }
 
@@ -174,7 +177,7 @@ pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built or
 /// the request fails in transport. Any non-2xx answer (missing revision) is
 /// `Ok(false)`.
-pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool> {
+pub async fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
             "{}/api/datasets/{}/revision/{}",
@@ -201,7 +204,7 @@ pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool>
     // dropped unread.
     let client = &repo.inner.client;
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
-    let (status, _body) = client.send_raw(request)?;
+    let (status, _headers, _body) = client.send_raw_async(request).await?;
     Ok(is_success_status(&status))
 }
 
@@ -212,7 +215,7 @@ pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool>
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built. Per-page
 /// errors (HTTP failures, JSON parse failures) surface as `Err` items inside
 /// the returned stream.
-pub fn repo_list_tree(
+pub async fn repo_list_tree(
     repo: &HFRepository,
     params: &RepoListTreeParams,
 ) -> Result<impl Iterator<Item = Stream<Result<RepoTreeEntry>, ()>> + Send + 'static> {
@@ -232,12 +235,10 @@ pub fn repo_list_tree(
 
     let client = &repo.inner.client;
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
-    let page = client.send_json::<Vec<RepoTreeEntry>>(request, &url);
-    let items: Vec<Stream<Result<RepoTreeEntry>, ()>> = match page {
-        Ok(entries) => entries.into_iter().map(|e| Stream::Next(Ok(e))).collect(),
-        Err(e) => vec![Stream::Next(Err(e))],
-    };
-    Ok(items.into_iter())
+    let page = client
+        .send_json_async_with_headers::<Vec<RepoTreeEntry>>(request, &url)
+        .await;
+    Ok(into_lazy_pages(client, true, page))
 }
 
 /// Download a file, handling `HuggingFace`'s CDN redirect.
@@ -250,7 +251,10 @@ pub fn repo_list_tree(
 ///
 /// Returns an error if the HTTP request fails, the redirect URL is malformed,
 /// or the file cannot be written to the destination directory.
-pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) -> Result<PathBuf> {
+pub async fn repo_download_file(
+    repo: &HFRepository,
+    params: &RepoDownloadFileParams,
+) -> Result<PathBuf> {
     tracing::debug!("Starting download of file from huggingface={:?}", &params);
 
     let revision = params.revision.as_deref().unwrap_or("main");
@@ -271,13 +275,10 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
 
     tracing::debug!("Call endpoint for huggingface={:?}", &params);
 
-    // Status first: an error answer (404 for a missing file, 401/403 for a
-    // gated model) must never be written to disk as the file.
-    let (status, body) = client.send_raw(request)?;
-    tracing::debug!("Received response with status={}", &status);
-    if !is_success_status(&status) {
-        return Err(client.http_error(&status, &url, body));
-    }
+    // `send_async` checks the status first: an error answer (404 for a missing
+    // file, 401/403 for a gated model) must never be written to disk as the
+    // file. Only a 2xx answer is returned as a body.
+    let mut body = client.send_async(request, &url).await?;
 
     // Stream the body to a temporary `.part` file and only rename it into place
     // once the full download succeeds. This prevents a failed/partial download
@@ -288,10 +289,18 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
     let temp_destination = PathBuf::from(temp_os);
 
     let mut file = std::fs::File::create(&temp_destination).map_err(HuggingFaceError::Io)?;
-    if let Err(e) = collect_bytes_into(body, &mut file) {
+    let result = async {
+        while let Some(chunk) = body.next().await {
+            let chunk = chunk.map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
+            std::io::Write::write_all(&mut file, &chunk).map_err(HuggingFaceError::Io)?;
+        }
+        Ok::<(), HuggingFaceError>(())
+    }
+    .await;
+    if let Err(e) = result {
         drop(file);
         let _ = std::fs::remove_file(&temp_destination);
-        return Err(HuggingFaceError::Backend(e.to_string()));
+        return Err(e);
     }
     drop(file);
 
@@ -305,7 +314,10 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
 /// # Errors
 ///
 /// Returns an error if the upload request fails or the commit cannot be created.
-pub fn repo_upload_file(repo: &HFRepository, params: &RepoUploadFileParams) -> Result<CommitInfo> {
+pub async fn repo_upload_file(
+    repo: &HFRepository,
+    params: &RepoUploadFileParams,
+) -> Result<CommitInfo> {
     let commit_params = RepoCreateCommitParams {
         operations: vec![CommitOperation::Add {
             path_in_repo: params.path_in_repo.clone(),
@@ -319,7 +331,7 @@ pub fn repo_upload_file(repo: &HFRepository, params: &RepoUploadFileParams) -> R
         revision: params.revision.clone(),
         create_pr: None,
     };
-    repo_create_commit(repo, &commit_params)
+    repo_create_commit(repo, &commit_params).await
 }
 
 /// Delete a file.
@@ -327,7 +339,10 @@ pub fn repo_upload_file(repo: &HFRepository, params: &RepoUploadFileParams) -> R
 /// # Errors
 ///
 /// Returns an error if the delete request fails or the commit cannot be created.
-pub fn repo_delete_file(repo: &HFRepository, params: &RepoDeleteFileParams) -> Result<CommitInfo> {
+pub async fn repo_delete_file(
+    repo: &HFRepository,
+    params: &RepoDeleteFileParams,
+) -> Result<CommitInfo> {
     let commit_params = RepoCreateCommitParams {
         operations: vec![CommitOperation::Delete {
             path_in_repo: params.path_in_repo.clone(),
@@ -340,23 +355,211 @@ pub fn repo_delete_file(repo: &HFRepository, params: &RepoDeleteFileParams) -> R
         revision: params.revision.clone(),
         create_pr: None,
     };
-    repo_create_commit(repo, &commit_params)
+    repo_create_commit(repo, &commit_params).await
+}
+
+/// The multipart boundary for a commit request.
+pub const COMMIT_BOUNDARY: &str = "----RustBoundary";
+
+/// One part of a streamed multipart commit body.
+enum CommitPart {
+    /// Bytes already held in memory (part headers and in-memory sources).
+    Chunk(Vec<u8>),
+    /// The rest of an open file, streamed from its current position.
+    File { file: std::fs::File, remaining: u64 },
+}
+
+/// A streamed multipart commit body with its total byte length.
+pub struct CommitMultipart {
+    /// The multipart body stream.
+    pub body: SendSafeBody,
+    /// The total body length in bytes, computed up front from the part
+    /// headers and the file sizes.
+    pub len: u64,
+}
+
+/// The iterator that yields the multipart body chunk by chunk.
+struct CommitPartIterator {
+    parts: std::vec::IntoIter<CommitPart>,
+    current: Option<(std::fs::File, u64)>,
+    chunk_size: usize,
+}
+
+impl Iterator for CommitPartIterator {
+    type Item = std::result::Result<Data, BoxedError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let Some((file, remaining)) = self.current.as_mut() {
+                if *remaining == 0 {
+                    self.current = None;
+                    continue;
+                }
+                let want = self
+                    .chunk_size
+                    .min(usize::try_from(*remaining).unwrap_or(usize::MAX));
+                let mut buf = vec![0u8; want];
+                match file.read(&mut buf) {
+                    Ok(0) => {
+                        self.current = None;
+                        return Some(Err(Box::new(std::io::Error::new(
+                            std::io::ErrorKind::UnexpectedEof,
+                            "the uploaded file ended before its recorded size",
+                        ))));
+                    }
+                    Ok(n) => {
+                        buf.truncate(n);
+                        *remaining -= n as u64;
+                        return Some(Ok(Data::Bytes(buf)));
+                    }
+                    Err(e) => {
+                        self.current = None;
+                        return Some(Err(Box::new(e)));
+                    }
+                }
+            }
+            match self.parts.next() {
+                None => return None,
+                Some(CommitPart::Chunk(bytes)) => {
+                    if bytes.is_empty() {
+                        continue;
+                    }
+                    return Some(Ok(Data::Bytes(bytes)));
+                }
+                Some(CommitPart::File { file, remaining }) => {
+                    self.current = Some((file, remaining));
+                }
+            }
+        }
+    }
+}
+
+/// Build the streamed multipart body for a commit.
+///
+/// Added files are opened and streamed from disk in chunks of `chunk_size`
+/// bytes; no file is read whole into memory. The total length is computed
+/// up front from the part headers and the file sizes.
+///
+/// # Errors
+///
+/// Returns `HuggingFaceError::Json` if the embedded summary cannot be
+/// serialised, or `HuggingFaceError::Io` if an added file cannot be opened.
+pub fn commit_multipart(
+    params: &RepoCreateCommitParams,
+    boundary: &str,
+    chunk_size: usize,
+) -> Result<CommitMultipart> {
+    let mut parts: Vec<CommitPart> = Vec::new();
+    let mut len: u64 = 0;
+
+    let push = |parts: &mut Vec<CommitPart>, len: &mut u64, bytes: Vec<u8>| {
+        *len += bytes.len() as u64;
+        parts.push(CommitPart::Chunk(bytes));
+    };
+
+    let summary = serde_json::to_string(&serde_json::json!({
+        "type": "commit",
+        "summary": params.commit_message,
+        "description": params.commit_description,
+        "hub": "huggingface.co",
+    }))?;
+    push(
+        &mut parts,
+        &mut len,
+        format!("--{boundary}\r\n").into_bytes(),
+    );
+    push(
+        &mut parts,
+        &mut len,
+        b"Content-Disposition: form-data; name=\"summary\"\r\n\r\n".to_vec(),
+    );
+    push(&mut parts, &mut len, summary.into_bytes());
+    push(&mut parts, &mut len, b"\r\n".to_vec());
+
+    for op in &params.operations {
+        match op {
+            CommitOperation::Add {
+                path_in_repo,
+                source,
+            } => {
+                push(
+                    &mut parts,
+                    &mut len,
+                    format!("--{boundary}\r\n").into_bytes(),
+                );
+                push(
+                    &mut parts,
+                    &mut len,
+                    format!(
+                        "Content-Disposition: form-data; name=\"files\"; filename=\"{path_in_repo}\"\r\n"
+                    )
+                    .into_bytes(),
+                );
+                push(
+                    &mut parts,
+                    &mut len,
+                    b"Content-Type: application/octet-stream\r\n\r\n".to_vec(),
+                );
+                match source {
+                    AddSource::Bytes(data) => push(&mut parts, &mut len, data.clone()),
+                    AddSource::File(path) => {
+                        let file = std::fs::File::open(path).map_err(HuggingFaceError::Io)?;
+                        let remaining = file.metadata().map_err(HuggingFaceError::Io)?.len();
+                        len += remaining;
+                        parts.push(CommitPart::File { file, remaining });
+                    }
+                }
+                push(&mut parts, &mut len, b"\r\n".to_vec());
+            }
+            CommitOperation::Delete { path_in_repo } => {
+                push(
+                    &mut parts,
+                    &mut len,
+                    format!("--{boundary}\r\n").into_bytes(),
+                );
+                push(
+                    &mut parts,
+                    &mut len,
+                    b"Content-Disposition: form-data; name=\"deletedFiles\"\r\n\r\n".to_vec(),
+                );
+                push(&mut parts, &mut len, path_in_repo.as_bytes().to_vec());
+                push(&mut parts, &mut len, b"\r\n".to_vec());
+            }
+        }
+    }
+
+    push(
+        &mut parts,
+        &mut len,
+        format!("--{boundary}--\r\n").into_bytes(),
+    );
+
+    let iterator = CommitPartIterator {
+        parts: parts.into_iter(),
+        current: None,
+        chunk_size,
+    };
+    Ok(CommitMultipart {
+        body: SendSafeBody::Stream(Some(Box::new(iterator))),
+        len,
+    })
 }
 
 /// Create a commit with multiple operations.
 ///
+/// The multipart body is streamed: added files are read from disk chunk by
+/// chunk (see [`HFClientBuilder::upload_chunk_size`]) and never buffered whole.
+///
 /// # Errors
 ///
-/// Returns `HuggingFaceError::Io` if a local source file cannot be read,
+/// Returns `HuggingFaceError::Io` if a local source file cannot be opened,
 /// `HuggingFaceError::Json` if the embedded summary cannot be serialised,
 /// `HuggingFaceError::Http` if the Hub responds with a non-2xx status, or
 /// `HuggingFaceError::Backend` for transport failures.
-pub fn repo_create_commit(
+pub async fn repo_create_commit(
     repo: &HFRepository,
     params: &RepoCreateCommitParams,
 ) -> Result<CommitInfo> {
-    use std::io::Write as _;
-
     let base_path = match repo.inner.repo_type {
         RepoType::Dataset => "datasets",
         RepoType::Space => "spaces",
@@ -371,64 +574,15 @@ pub fn repo_create_commit(
         revision
     );
 
-    // Build multipart body. Bytes, not a `String`: an added file can be
-    // binary (weights, images), so it must not pass through UTF-8.
-    let boundary = "----RustBoundary".to_string();
-    let mut body: Vec<u8> = Vec::new();
-
-    let _ = write!(body, "--{boundary}\r\n");
-    body.extend_from_slice(b"Content-Disposition: form-data; name=\"summary\"\r\n\r\n");
-    body.extend_from_slice(
-        serde_json::to_string(&serde_json::json!({
-            "type": "commit",
-            "summary": params.commit_message,
-            "description": params.commit_description,
-            "hub": "huggingface.co",
-        }))?
-        .as_bytes(),
-    );
-    body.extend_from_slice(b"\r\n");
-
-    for op in &params.operations {
-        match op {
-            CommitOperation::Add {
-                path_in_repo,
-                source,
-            } => {
-                let _ = write!(body, "--{boundary}\r\n");
-                let _ = write!(
-                    body,
-                    "Content-Disposition: form-data; name=\"files\"; filename=\"{path_in_repo}\"\r\n"
-                );
-                body.extend_from_slice(b"Content-Type: application/octet-stream\r\n\r\n");
-                match source {
-                    AddSource::Bytes(data) => body.extend_from_slice(data),
-                    AddSource::File(path) => {
-                        let content = std::fs::read(path).map_err(HuggingFaceError::Io)?;
-                        body.extend_from_slice(&content);
-                    }
-                }
-                body.extend_from_slice(b"\r\n");
-            }
-            CommitOperation::Delete { path_in_repo } => {
-                let _ = write!(body, "--{boundary}\r\n");
-                body.extend_from_slice(
-                    b"Content-Disposition: form-data; name=\"deletedFiles\"\r\n\r\n",
-                );
-                body.extend_from_slice(path_in_repo.as_bytes());
-                body.extend_from_slice(b"\r\n");
-            }
-        }
-    }
-
-    let _ = write!(body, "--{boundary}--\r\n");
-
     let client = &repo.inner.client;
-    let content_type = format!("multipart/form-data; boundary={boundary}");
+    let multipart = commit_multipart(params, COMMIT_BOUNDARY, client.upload_chunk_size())?;
+
+    let content_type = format!("multipart/form-data; boundary={COMMIT_BOUNDARY}");
     let request = client
         .request(SimpleMethod::POST, &url, true)?
         .header(SimpleHeader::CONTENT_TYPE, content_type)
-        .body_bytes(body)
+        .header(SimpleHeader::CONTENT_LENGTH, multipart.len.to_string())
+        .body(multipart.body)
         .build();
-    client.send_json(request, &url)
+    client.send_json_async(request, &url).await
 }

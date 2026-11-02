@@ -1083,7 +1083,10 @@ pub fn provider_to_filename(provider: &str) -> String {
 }
 
 #[must_use]
-pub fn generate_provider_file(provider_name: &str, models: &BTreeMap<String, ModelEntry>) -> String {
+pub fn generate_provider_file(
+    provider_name: &str,
+    models: &BTreeMap<String, ModelEntry>,
+) -> String {
     use std::fmt::Write;
 
     let mut out = String::with_capacity(64 * 1024);
@@ -1155,7 +1158,9 @@ pub static MODELS: &[ModelProviderDescriptor] = &["
 }
 
 #[must_use]
-pub fn generate_providers_mod(providers: &BTreeMap<String, BTreeMap<String, ModelEntry>>) -> String {
+pub fn generate_providers_mod(
+    providers: &BTreeMap<String, BTreeMap<String, ModelEntry>>,
+) -> String {
     use std::fmt::Write;
 
     let mut out = String::with_capacity(4096);

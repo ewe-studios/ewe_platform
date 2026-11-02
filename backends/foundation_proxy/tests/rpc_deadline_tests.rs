@@ -18,11 +18,11 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
-use foundation_http::native::server::HttpServer;
 use foundation_http::native::serve::H2Serve;
+use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::ShutdownSignal;
 use foundation_netio::http2::channel::H2Channel;
 use foundation_netio::http2::connection::H2Request;
 
@@ -61,10 +61,7 @@ fn build_deadline_router() -> Router {
         UNARY,
         codecs(),
         |ctx: Ctx, _req: Request<Msg>| async move {
-            let ms = ctx
-                .remaining_timeout()
-                .map(|d| d.as_millis())
-                .unwrap_or(0);
+            let ms = ctx.remaining_timeout().map(|d| d.as_millis()).unwrap_or(0);
             Ok(Response::new(Msg::of(ms.to_string())))
         },
         HandlerOptions::new(),
@@ -166,8 +163,8 @@ fn start_grpc_backend(router: Router) -> (u16, Arc<ShutdownSignal>) {
 
 /// A proxy whose service routes to a `grpc://` backend (the D-leg relay).
 fn proxy_config_grpc(backend_port: u16) -> ProxyConfig {
-    let svc = ServiceConfig::new("rpc", "127.0.0.1")
-        .backend(&format!("grpc://127.0.0.1:{backend_port}"));
+    let svc =
+        ServiceConfig::new("rpc", "127.0.0.1").backend(&format!("grpc://127.0.0.1:{backend_port}"));
     ProxyConfig::new("127.0.0.1", "127.0.0.1")
         .bind("127.0.0.1:0")
         .service(svc)
@@ -193,7 +190,9 @@ fn connect_h2_client(addr: &str, procedure: &str) -> Client<Msg, Msg> {
 #[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
 async fn connect_deadline_is_observed_at_grpc_backend() {
     let (backend_port, backend_shutdown) = start_grpc_backend(build_deadline_router());
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config_grpc(backend_port))
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, UNARY);
@@ -349,9 +348,10 @@ fn drive_raw_h2_cancel(
 #[valtron_test(seed = 63, threads = 8, timeout = 60_000)]
 async fn cancelled_connect_stream_tears_down_grpc_backend() {
     let slot = Slot::default();
-    let (backend_port, backend_shutdown) =
-        start_grpc_backend(build_cancel_router(slot.clone()));
-    let proxy = ProxyServer::start(proxy_config_grpc(backend_port)).await.expect("start proxy");
+    let (backend_port, backend_shutdown) = start_grpc_backend(build_cancel_router(slot.clone()));
+    let proxy = ProxyServer::start(proxy_config_grpc(backend_port))
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     // The raw client reports once it has read the first item, then waits for the
@@ -361,13 +361,18 @@ async fn cancelled_connect_stream_tears_down_grpc_backend() {
     let client_addr = addr.clone();
     std::thread::spawn(move || drive_raw_h2_cancel(&client_addr, flowing_tx, reset_rx));
 
-    let flowing = flowing_rx.recv_timeout(Duration::from_secs(10)).unwrap_or(false);
+    let flowing = flowing_rx
+        .recv_timeout(Duration::from_secs(10))
+        .unwrap_or(false);
     assert!(flowing, "the stream must flow before the reset");
 
     // The handler parked its `Ctx` before yielding the first item; the call is
     // still live (the reset has not been granted yet).
     let ctx = slot.wait_entered();
-    assert!(!ctx.is_canceled(), "the call must still be live before the reset");
+    assert!(
+        !ctx.is_canceled(),
+        "the call must still be live before the reset"
+    );
 
     // Abort the client call; the relay's cancel signal must reach the backend.
     reset_tx.send(()).expect("grant the reset");

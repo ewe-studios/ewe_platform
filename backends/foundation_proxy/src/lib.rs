@@ -32,8 +32,8 @@ pub mod handler;
 pub mod health;
 pub mod passthrough;
 pub mod persistence;
-pub mod rpc_relay;
 pub mod router;
+pub mod rpc_relay;
 pub mod runtime;
 pub mod server;
 pub mod state;
@@ -44,6 +44,7 @@ pub use config::{
     ServiceConfig, SslConfig, SslProvider,
 };
 pub use forward::SharedHttpClient;
+pub use foundation_macros::proxy;
 pub use handler::ProxyHandler;
 pub use health::{HealthMonitor, ProbeState};
 pub use passthrough::{TcpPassthrough, UdpPassthrough};
@@ -51,4 +52,3 @@ pub use router::Router;
 pub use runtime::{BackendLease, BackendRuntime, ServiceRuntime};
 pub use server::ProxyServer;
 pub use state::ProxyState;
-pub use foundation_macros::proxy;

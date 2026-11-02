@@ -101,4 +101,3 @@ impl SessionAccessProvider for AllowAllAccess {
         Ok(TokenBudget::unlimited())
     }
 }
-

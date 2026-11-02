@@ -2,8 +2,8 @@
 //!
 //! This module provides `ClientRequestBuilder` — the fluent API for building requests.
 
-use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver};
 use crate::http::{ClientRequest, HttpConnectionPool};
+use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver};
 use crate::shared::http::Extensions;
 use crate::shared::http::{
     BodyReadiness, HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
@@ -242,6 +242,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         self
     }
 
+    /// Set a JSON body from a serializable value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError`] if serialization fails.
     pub fn body_json<T: Serialize>(mut self, value: &T) -> Result<Self, HttpClientError> {
         let json_string =
             serde_json::to_string(value).map_err(|e| HttpClientError::FailedWith(Box::new(e)))?;
@@ -366,6 +371,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         Self::new(SimpleMethod::HEAD, url)
     }
 
+    /// Create an OPTIONS request.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn options(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::OPTIONS, url)
     }

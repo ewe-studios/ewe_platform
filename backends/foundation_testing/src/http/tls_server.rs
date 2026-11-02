@@ -19,9 +19,7 @@ use std::thread;
 
 use foundation_netio::netcap::connection::Connection;
 use foundation_netio::netcap::ssl::{SSLAcceptor, SSLConnector};
-use foundation_netio::shared::http::{
-    Proto, SendSafeBody, SimpleHeaders, SimpleMethod, SimpleUrl,
-};
+use foundation_netio::shared::http::{Proto, SendSafeBody, SimpleHeaders, SimpleMethod, SimpleUrl};
 
 use zeroize::Zeroizing;
 

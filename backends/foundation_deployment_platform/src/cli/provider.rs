@@ -1,23 +1,33 @@
 //! Provider-agnostic CLI commands (start, stop, import, doctor, ls, init).
 
-use clap::ArgMatches;
+use crate::config::{self, DisplayMode, get_profile};
 use crate::providers::default_provider;
-use crate::config::{self, get_profile, DisplayMode};
 use crate::state;
+use clap::ArgMatches;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
 fn resolve_profile(name: &str) -> std::result::Result<config::VmProfile, BoxedError> {
-    get_profile(name).map(|p| p.clone()).map_err(|e| Box::new(e) as BoxedError)
+    get_profile(name)
+        .map(|p| p.clone())
+        .map_err(|e| Box::new(e) as BoxedError)
 }
 
 pub fn cmd_start(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let headful = args.get_flag("headful");
     let profile = resolve_profile(name)?;
-    let display = if headful { DisplayMode::Headful } else { DisplayMode::Headless };
+    let display = if headful {
+        DisplayMode::Headful
+    } else {
+        DisplayMode::Headless
+    };
 
-    eprintln!("Starting VM '{}' ({} mode)...", profile.name, if headful { "headful" } else { "headless" });
+    eprintln!(
+        "Starting VM '{}' ({} mode)...",
+        profile.name,
+        if headful { "headful" } else { "headless" }
+    );
 
     let provider = default_provider()?;
     let handle = provider.launch(&profile, display)?;
@@ -61,7 +71,9 @@ pub fn cmd_stop(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
 
     let vm_state = state::load(name)?;
-    let _pid = vm_state.pid.ok_or_else(|| format!("VM '{}' is not running (no PID in state)", name))?;
+    let _pid = vm_state
+        .pid
+        .ok_or_else(|| format!("VM '{}' is not running (no PID in state)", name))?;
 
     let provider = default_provider()?;
 
@@ -122,10 +134,16 @@ pub fn cmd_ls() -> std::result::Result<(), BoxedError> {
         return Ok(());
     }
 
-    println!("{:<20} {:<10} {:<8} {:<8} {:<8}", "PROFILE", "PID", "SSH", "VNC", "BOOTSTRAP");
+    println!(
+        "{:<20} {:<10} {:<8} {:<8} {:<8}",
+        "PROFILE", "PID", "SSH", "VNC", "BOOTSTRAP"
+    );
     println!("{}", "-".repeat(60));
     for (name, vm_state) in &vms {
-        let pid = vm_state.pid.map(|p| p.to_string()).unwrap_or_else(|| "stopped".to_string());
+        let pid = vm_state
+            .pid
+            .map(|p| p.to_string())
+            .unwrap_or_else(|| "stopped".to_string());
         let bootstrap = if vm_state.bootstrapped { "yes" } else { "no" };
         println!(
             "{:<20} {:<10} {:<8} {:<8} {:<8}",
@@ -139,7 +157,13 @@ pub fn cmd_init(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let vms: Vec<String> = args
         .get_many::<String>("vms")
         .map(|vals| vals.cloned().collect())
-        .unwrap_or_else(|| vec!["windows-build".to_string(), "linux-build".to_string(), "macos-build".to_string()]);
+        .unwrap_or_else(|| {
+            vec![
+                "windows-build".to_string(),
+                "linux-build".to_string(),
+                "macos-build".to_string(),
+            ]
+        });
 
     crate::init::init(std::path::Path::new("."), &vms)?;
     println!("Scaffolded .testbed/ directory with:");

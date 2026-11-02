@@ -14,10 +14,12 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
+use crate::backend::http::HttpBackend;
 use crate::route::RouteDecisionExt;
 use crate::route_handler::RouteResponder;
-use crate::backend::http::HttpBackend;
-use foundation_ui_traits::{SessionId, PageIdentity, NavigationIntent, RouteDecision, Presentation, Profile, CachePolicy};
+use foundation_ui_traits::{
+    CachePolicy, NavigationIntent, PageIdentity, Presentation, Profile, RouteDecision, SessionId,
+};
 
 // ── Session event types ───────────────────────────────────────────────
 
@@ -132,7 +134,10 @@ impl PlatformSession {
     /// Returns `Arc<Self>` — subsystems clone the Arc to share ownership.
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn new(resource_root: PathBuf, script_injector: crate::injector::ScriptInjector) -> Arc<Self> {
+    pub fn new(
+        resource_root: PathBuf,
+        script_injector: crate::injector::ScriptInjector,
+    ) -> Arc<Self> {
         let session_id = SessionId(
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
@@ -172,7 +177,10 @@ impl PlatformSession {
     #[doc(hidden)]
     #[must_use]
     pub fn new_test(resource_root: PathBuf) -> Arc<Self> {
-        Self::new(resource_root, crate::injector::ScriptInjector::new(PathBuf::from(".")))
+        Self::new(
+            resource_root,
+            crate::injector::ScriptInjector::new(PathBuf::from(".")),
+        )
     }
 }
 
@@ -303,7 +311,11 @@ impl PlatformSession {
         if self.cache.should_serve_cached(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
                 // Even for cached responses, record the navigation mode.
-                self.record_presentation(&route, &decision.presentation, decision.target.as_deref());
+                self.record_presentation(
+                    &route,
+                    &decision.presentation,
+                    decision.target.as_deref(),
+                );
                 return tauri::http::Response::builder()
                     .status(200)
                     .header("Content-Type", entry.content_type.as_str())
@@ -315,7 +327,11 @@ impl PlatformSession {
         // Offline fallback
         if !self.is_online() && self.cache.can_serve_offline(decision, &route) {
             if let Some(entry) = self.cache.get(decision.profile, &route) {
-                self.record_presentation(&route, &decision.presentation, decision.target.as_deref());
+                self.record_presentation(
+                    &route,
+                    &decision.presentation,
+                    decision.target.as_deref(),
+                );
                 return tauri::http::Response::builder()
                     .status(200)
                     .header("Content-Type", entry.content_type.as_str())
@@ -341,18 +357,24 @@ impl PlatformSession {
         }
 
         // Step 5: Handler dispatch
-        let response = if let Some(handler_id) = decision.handler_id.as_ref() { if let Some(handler) = self.get_responder(handler_id) { handler.respond(intent, decision, self) } else {
-            let body = format!("No handler for '{handler_id}'").into_bytes();
-            tauri::http::Response::builder()
-                .status(500)
-                .header("Content-Type", "text/plain")
-                .body(body).unwrap()
-        } } else {
+        let response = if let Some(handler_id) = decision.handler_id.as_ref() {
+            if let Some(handler) = self.get_responder(handler_id) {
+                handler.respond(intent, decision, self)
+            } else {
+                let body = format!("No handler for '{handler_id}'").into_bytes();
+                tauri::http::Response::builder()
+                    .status(500)
+                    .header("Content-Type", "text/plain")
+                    .body(body)
+                    .unwrap()
+            }
+        } else {
             let body = format!("No handler_id on decision for route: {route}").into_bytes();
             tauri::http::Response::builder()
                 .status(500)
                 .header("Content-Type", "text/plain")
-                .body(body).unwrap()
+                .body(body)
+                .unwrap()
         };
 
         // Steps 8-9: Record navigation + page identity
@@ -374,12 +396,7 @@ impl PlatformSession {
     ///
     /// This gives Hotwire-style native navigation feel without the 50-150MB
     /// per-WebView RAM cost of keeping multiple WebViews alive.
-    fn record_presentation(
-        &self,
-        route: &str,
-        presentation: &Presentation,
-        target: Option<&str>,
-    ) {
+    fn record_presentation(&self, route: &str, presentation: &Presentation, target: Option<&str>) {
         let win_mgr = self.window_manager();
         if let Ok(mut stack) = self.webview_stack.write() {
             if stack.depth() == 0 {
@@ -393,7 +410,9 @@ impl PlatformSession {
 
             let active_idx = stack.active();
             // Extract the old slot's route before any mutable borrows.
-            let prev_route = stack.slots().get(active_idx)
+            let prev_route = stack
+                .slots()
+                .get(active_idx)
                 .map(|s| s.route.clone())
                 .unwrap_or_else(|| "main".to_string());
             let prev_label = prev_route
@@ -609,7 +628,11 @@ impl PlatformSession {
     #[must_use]
     pub fn bundle_root(&self) -> PathBuf {
         let dev = self.resource_root.join("public");
-        if dev.exists() { dev } else { self.resource_root.clone() }
+        if dev.exists() {
+            dev
+        } else {
+            self.resource_root.clone()
+        }
     }
 
     /// Access the WebView stack for navigation tracking (F29 Stage 3).

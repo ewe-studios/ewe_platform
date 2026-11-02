@@ -50,4 +50,3 @@ impl User {
         self.password_hash.is_some()
     }
 }
-

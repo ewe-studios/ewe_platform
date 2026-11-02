@@ -10,8 +10,8 @@
 use std::string::String;
 use std::vec::Vec;
 
-use crate::core::storage_provider::AsyncStorageItemStream;
 use crate::core::errors::StorageResult;
+use crate::core::storage_provider::AsyncStorageItemStream;
 
 // ─── Stored Types ────────────────────────────────────────────────────────────
 
@@ -50,9 +50,18 @@ pub struct StoredTosAcceptance {
 #[async_trait::async_trait]
 pub trait PasskeyStore {
     async fn store_passkey(&self, passkey: &StoredPasskey) -> Result<(), String>;
-    async fn find_passkeys_by_user<'a>(&'a self, user_id: &'a str) -> StorageResult<AsyncStorageItemStream<'a, StoredPasskey>>;
-    async fn find_passkey_by_id<'a>(&'a self, passkey_id: &'a str) -> StorageResult<Option<StoredPasskey>>;
-    async fn find_passkey_by_credential_id<'a>(&'a self, credential_id: &'a [u8]) -> StorageResult<Option<StoredPasskey>>;
+    async fn find_passkeys_by_user<'a>(
+        &'a self,
+        user_id: &'a str,
+    ) -> StorageResult<AsyncStorageItemStream<'a, StoredPasskey>>;
+    async fn find_passkey_by_id<'a>(
+        &'a self,
+        passkey_id: &'a str,
+    ) -> StorageResult<Option<StoredPasskey>>;
+    async fn find_passkey_by_credential_id<'a>(
+        &'a self,
+        credential_id: &'a [u8],
+    ) -> StorageResult<Option<StoredPasskey>>;
     async fn update_passkey_counter(&self, passkey_id: &str, counter: u32) -> Result<(), String>;
     async fn update_passkey_name(&self, passkey_id: &str, name: &str) -> Result<(), String>;
     async fn delete_passkey(&self, passkey_id: &str) -> Result<(), String>;
@@ -62,8 +71,15 @@ pub trait PasskeyStore {
 #[async_trait::async_trait]
 pub trait TosStore {
     async fn store_tos_acceptance(&self, acceptance: &StoredTosAcceptance) -> Result<(), String>;
-    async fn find_tos_acceptance<'a>(&'a self, user_id: &'a str, tos_version: &'a str) -> StorageResult<Option<StoredTosAcceptance>>;
-    async fn find_latest_tos_acceptance<'a>(&'a self, user_id: &'a str) -> StorageResult<Option<StoredTosAcceptance>>;
+    async fn find_tos_acceptance<'a>(
+        &'a self,
+        user_id: &'a str,
+        tos_version: &'a str,
+    ) -> StorageResult<Option<StoredTosAcceptance>>;
+    async fn find_latest_tos_acceptance<'a>(
+        &'a self,
+        user_id: &'a str,
+    ) -> StorageResult<Option<StoredTosAcceptance>>;
 }
 
 /// Combined async auth store — the primary trait for async auth handlers.

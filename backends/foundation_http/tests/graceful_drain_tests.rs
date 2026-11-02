@@ -18,8 +18,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 use serial_test::serial;
@@ -80,7 +80,10 @@ impl Serve for SlowHandler {
 
 /// Start a server with `config`; returns its address, the shutdown signal, and a
 /// receiver that fires once `serve_with_listener` returns (drain finished).
-fn start_server(app: HttpApp<Arc<dyn Serve>>, config: ServerConfig) -> (std::net::SocketAddr, Arc<ShutdownSignal>, Receiver<()>) {
+fn start_server(
+    app: HttpApp<Arc<dyn Serve>>,
+    config: ServerConfig,
+) -> (std::net::SocketAddr, Arc<ShutdownSignal>, Receiver<()>) {
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("local_addr");
@@ -119,8 +122,10 @@ fn stops_new_keepalive_requests_after_shutdown() {
     let _pool = initialize_pool(41, Some(4));
     let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
-    let (addr, shutdown, done_rx) =
-        start_server(app, ServerConfig::defaults().with_shutdown_grace(Duration::from_secs(2)));
+    let (addr, shutdown, done_rx) = start_server(
+        app,
+        ServerConfig::defaults().with_shutdown_grace(Duration::from_secs(2)),
+    );
 
     let mut stream = std::net::TcpStream::connect(addr).expect("connect");
     raw_get(&mut stream, "/echo").expect("write first");
@@ -157,8 +162,10 @@ fn completes_inflight_request_within_grace() {
     SLOW_SLEEP_MS.store(500, Ordering::SeqCst);
     let mut app = HttpApp::new_serve();
     app.route::<SlowHandler>(SimpleMethod::GET, "/slow");
-    let (addr, shutdown, done_rx) =
-        start_server(app, ServerConfig::defaults().with_shutdown_grace(Duration::from_secs(5)));
+    let (addr, shutdown, done_rx) = start_server(
+        app,
+        ServerConfig::defaults().with_shutdown_grace(Duration::from_secs(5)),
+    );
 
     let mut stream = std::net::TcpStream::connect(addr).expect("connect");
     raw_get(&mut stream, "/slow").expect("write");
@@ -188,8 +195,10 @@ fn force_closes_past_grace_deadline() {
     SLOW_SLEEP_MS.store(4000, Ordering::SeqCst); // far exceeds the grace below
     let mut app = HttpApp::new_serve();
     app.route::<SlowHandler>(SimpleMethod::GET, "/slow");
-    let (addr, shutdown, done_rx) =
-        start_server(app, ServerConfig::defaults().with_shutdown_grace(Duration::from_millis(500)));
+    let (addr, shutdown, done_rx) = start_server(
+        app,
+        ServerConfig::defaults().with_shutdown_grace(Duration::from_millis(500)),
+    );
 
     let mut stream = std::net::TcpStream::connect(addr).expect("connect");
     raw_get(&mut stream, "/slow").expect("write");
@@ -200,7 +209,10 @@ fn force_closes_past_grace_deadline() {
 
     let returned = done_rx.recv_timeout(Duration::from_secs(3)).is_ok();
     let elapsed = t0.elapsed();
-    assert!(returned, "serve_loop should return after the grace deadline");
+    assert!(
+        returned,
+        "serve_loop should return after the grace deadline"
+    );
     assert!(
         elapsed < Duration::from_secs(3),
         "serve_loop should force-close past the grace deadline (took {elapsed:?}), \

@@ -103,7 +103,12 @@ impl SendPool {
 
     /// Pop a free buffer, or allocate a fresh one while under `max_bufs`.
     fn take_free(&self) -> io::Result<Vec<u8>> {
-        if let Some(buf) = self.free.lock().expect("SendPool free poisoned").pop_front() {
+        if let Some(buf) = self
+            .free
+            .lock()
+            .expect("SendPool free poisoned")
+            .pop_front()
+        {
             return Ok(buf);
         }
         // No idle buffer — allocate if we have not hit the cap. A CAS loop keeps
@@ -131,7 +136,10 @@ impl SendPool {
     /// Return a buffer to the free list (called from [`SendBuf`]'s drop).
     fn checkin(&self, mut buf: Vec<u8>) {
         buf.clear();
-        self.free.lock().expect("SendPool free poisoned").push_back(buf);
+        self.free
+            .lock()
+            .expect("SendPool free poisoned")
+            .push_back(buf);
     }
 
     /// Number of buffers currently allocated (live + idle). For monitoring pool

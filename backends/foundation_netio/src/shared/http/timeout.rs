@@ -22,6 +22,35 @@ use crate::shared::http::latency_tracker::LatencyTracker;
 use crate::shared::http::load_tracker::LoadTracker;
 use std::time::Duration;
 
+/// A duration's millisecond count as `f64`. Timeouts are far below 2^52 ms
+/// (~285,000 years), so the `u128 -> f64` precision loss is irrelevant.
+#[allow(clippy::cast_precision_loss)]
+fn millis_f64(d: Duration) -> f64 {
+    d.as_millis() as f64
+}
+
+/// A duration's millisecond count as `u64`. Timeouts never approach
+/// `u64::MAX` ms, so the `u128 -> u64` cast cannot truncate in practice.
+#[allow(clippy::cast_possible_truncation)]
+fn millis_u64(d: Duration) -> u64 {
+    d.as_millis() as u64
+}
+
+/// A byte count as `f64`. Body sizes above 2^52 bytes are not real, so the
+/// `usize -> f64` precision loss is irrelevant.
+#[allow(clippy::cast_precision_loss)]
+fn size_f64(v: usize) -> f64 {
+    v as f64
+}
+
+/// A scaled, non-negative millisecond value as `u64`. Rust's float-to-int cast
+/// saturates; the value is a small timeout, so truncation and sign loss cannot
+/// occur in practice.
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+fn scaled_millis_u64(v: f64) -> u64 {
+    v as u64
+}
+
 /// Configuration for 100-continue expect delay behavior.
 ///
 /// WHY: After sending 100 Continue, the server must pause to give the client
@@ -43,7 +72,7 @@ pub struct ExpectContinueConfig {
     pub penalty_reduction: Duration,
 
     /// Total time the server waits for the body after it sends 100 Continue
-    /// (default: 3s). A transport that reports readiness (the WireGuard overlay)
+    /// (default: 3s). A transport that reports readiness (the `WireGuard` overlay)
     /// parks on the connection read waker and sends 408 Request Timeout only when
     /// this window ends with no body. A blocking transport keeps the
     /// `base_delay` / `max_attempts` polling scheme instead.
@@ -71,6 +100,13 @@ impl Default for ExpectContinueConfig {
 pub struct TimeoutConfig {
     /// TCP connection establishment timeout.
     pub connect_timeout: Duration,
+
+    /// DNS resolution timeout (feature 36).
+    ///
+    /// Default 30 s, matching nginx's `resolver_timeout` (which defaults to
+    /// 30 s). Bounds how long a task awaits the resolver before failing with
+    /// `ConnectionTimeout`.
+    pub dns_timeout: Duration,
 
     /// Base read timeout per KB of expected body size.
     /// Scaled sub-linearly using `sqrt(size_kb)` to avoid excessive timeouts.
@@ -118,6 +154,7 @@ impl Default for TimeoutConfig {
     /// | Field | Default | Rationale |
     /// |-------|---------|-----------|
     /// | connect_timeout | 10s | TCP handshake completion |
+    /// | dns_timeout | 30s | DNS lookup (nginx `resolver_timeout` default) |
     /// | read_timeout_per_kb | 10ms | Base for size-based calculation |
     /// | write_timeout_per_kb | 5ms | Upload speed factor |
     /// | min_read_timeout | 100ms | Absolute minimum for small payloads |
@@ -135,6 +172,7 @@ impl Default for TimeoutConfig {
     fn default() -> Self {
         Self {
             connect_timeout: Duration::from_secs(10),
+            dns_timeout: Duration::from_secs(30),
             read_timeout_per_kb: Duration::from_millis(10),
             write_timeout_per_kb: Duration::from_millis(5),
             min_read_timeout: Duration::from_millis(100),
@@ -445,9 +483,9 @@ impl TimeoutCalculator {
             if let Some(ref tracker) = self.latency_tracker {
                 if let Some(stats) = tracker.get_stats(endpoint) {
                     // Add P99 latency * safety factor as safety margin
-                    let latency_adjustment = Duration::from_millis(
-                        (stats.p99.as_millis() as f64 * self.latency_safety_factor) as u64,
-                    );
+                    let latency_adjustment = Duration::from_millis(scaled_millis_u64(
+                        millis_f64(stats.p99) * self.latency_safety_factor,
+                    ));
                     base_timeout + latency_adjustment
                 } else {
                     base_timeout
@@ -462,7 +500,7 @@ impl TimeoutCalculator {
         // Apply load-based scaling if enabled
         let adjusted_timeout = if let Some(ref load_tracker) = self.load_tracker {
             let factor = load_tracker.timeout_factor();
-            Duration::from_millis((adjusted_timeout.as_millis() as f64 * factor) as u64)
+            Duration::from_millis(scaled_millis_u64(millis_f64(adjusted_timeout) * factor))
         } else {
             adjusted_timeout
         };
@@ -502,9 +540,9 @@ impl TimeoutCalculator {
         if let Some(ref classifier) = self.client_classifier {
             if let Some(ip) = client_ip {
                 let multiplier = classifier.timeout_multiplier(ip);
-                return Duration::from_millis(
-                    (base_timeout.as_millis() as f64 * multiplier) as u64,
-                );
+                return Duration::from_millis(scaled_millis_u64(
+                    millis_f64(base_timeout) * multiplier,
+                ));
             }
         }
 
@@ -518,15 +556,15 @@ impl TimeoutCalculator {
     #[must_use]
     pub fn calculate_write_timeout(&self, ctx: &TimeoutContext) -> Duration {
         let base_timeout = if let Some(size) = ctx.expected_body_size {
-            let size_kb = size as f64 / 1024.0;
-            let per_kb_ms = self.config.write_timeout_per_kb.as_millis() as f64;
+            let size_kb = size_f64(size) / 1024.0;
+            let per_kb_ms = millis_f64(self.config.write_timeout_per_kb);
             let scaled_ms = per_kb_ms * size_kb.sqrt();
 
             if ctx.is_upload {
                 // Uploads are typically slower, apply 1.5x factor
-                Duration::from_millis((scaled_ms * 1.5) as u64)
+                Duration::from_millis(scaled_millis_u64(scaled_ms * 1.5))
             } else {
-                Duration::from_millis(scaled_ms as u64)
+                Duration::from_millis(scaled_millis_u64(scaled_ms))
             }
         } else {
             self.config.min_read_timeout
@@ -565,13 +603,13 @@ impl TimeoutCalculator {
             return self.config.min_read_timeout;
         }
 
-        let size_kb = size_bytes as f64 / 1024.0;
-        let per_kb_ms = self.config.read_timeout_per_kb.as_millis() as f64;
+        let size_kb = size_f64(size_bytes) / 1024.0;
+        let per_kb_ms = millis_f64(self.config.read_timeout_per_kb);
 
         // Sub-linear scaling: sqrt(size_kb) * per_kb
         let scaled_ms = per_kb_ms * size_kb.sqrt();
 
-        Duration::from_millis(scaled_ms as u64)
+        Duration::from_millis(scaled_millis_u64(scaled_ms))
     }
 
     /// Calculate sleep duration between work iterations.
@@ -599,7 +637,7 @@ impl TimeoutCalculator {
     #[must_use]
     pub fn calculate_sleep_duration(&self, ctx: &TimeoutContext) -> Duration {
         // Base sleep duration from config
-        let base_sleep_ms = self.config.min_sleep_duration.as_millis() as u64;
+        let base_sleep_ms = millis_u64(self.config.min_sleep_duration);
 
         // For streaming operations, use longer sleep to reduce CPU
         if ctx.is_streaming {
@@ -609,10 +647,7 @@ impl TimeoutCalculator {
 
         // For upload operations, use middle value
         if ctx.is_upload {
-            let mid_ms = u64::midpoint(
-                base_sleep_ms,
-                self.config.max_sleep_duration.as_millis() as u64,
-            );
+            let mid_ms = u64::midpoint(base_sleep_ms, millis_u64(self.config.max_sleep_duration));
             return Duration::from_millis(mid_ms);
         }
 
@@ -621,10 +656,8 @@ impl TimeoutCalculator {
             let read_timeout = self.calculate_read_timeout(ctx);
             // Sleep should be fraction of expected timeout, clamped to min/max
             let fraction = self.config.sleep_timeout_fraction.max(1);
-            let sleep_ms = (read_timeout.as_millis() as u64 / fraction).clamp(
-                base_sleep_ms,
-                self.config.max_sleep_duration.as_millis() as u64,
-            );
+            let sleep_ms = (millis_u64(read_timeout) / fraction)
+                .clamp(base_sleep_ms, millis_u64(self.config.max_sleep_duration));
             return Duration::from_millis(sleep_ms);
         }
 

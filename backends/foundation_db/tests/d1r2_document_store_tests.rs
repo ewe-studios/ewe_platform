@@ -24,7 +24,9 @@ use foundation_db::{D1R2DocumentStore, D1Store, DataValue, R2Store};
 use futures_lite::StreamExt;
 
 /// Full `documents` schema (migrations 020+021+022) under a unique table name so
-/// concurrent/rerun isolation holds against the persistent local D1.
+/// concurrent/rerun isolation holds against the persistent local D1. The unique
+/// index from migration 020 is what `append_with_id`'s idempotent
+/// `ON CONFLICT(collection_key, doc_id)` clause targets.
 async fn create_table(d1: &D1Store, table: &str) {
     let sql = format!(
         "CREATE TABLE IF NOT EXISTS {table} (\
@@ -34,7 +36,9 @@ async fn create_table(d1: &D1Store, table: &str) {
             content TEXT NOT NULL, \
             metadata TEXT NOT NULL DEFAULT '{{}}', \
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, \
-            title TEXT, summary TEXT, record_type TEXT, r2_key TEXT)"
+            title TEXT, summary TEXT, record_type TEXT, r2_key TEXT); \
+         CREATE UNIQUE INDEX IF NOT EXISTS idx_{table}_collection_doc_id \
+            ON {table}(collection_key, doc_id)"
     );
     d1.execute_batch(&sql).await.unwrap();
 }
@@ -64,11 +68,23 @@ async fn append_orders_by_scru128_and_counts() {
         return;
     };
     let key = unique("order");
-    let a = store.append(&key, serde_json::json!({"n": 0})).await.unwrap();
-    let b = store.append(&key, serde_json::json!({"n": 1})).await.unwrap();
-    let c = store.append(&key, serde_json::json!({"n": 2})).await.unwrap();
+    let a = store
+        .append(&key, serde_json::json!({"n": 0}))
+        .await
+        .unwrap();
+    let b = store
+        .append(&key, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    let c = store
+        .append(&key, serde_json::json!({"n": 2}))
+        .await
+        .unwrap();
     assert_eq!(a.id.len(), 25, "scru128 id");
-    assert!(b.id > a.id && c.id > b.id, "appends produce ascending scru128 ids");
+    assert!(
+        b.id > a.id && c.id > b.id,
+        "appends produce ascending scru128 ids"
+    );
     assert_eq!(store.count(&key).await.unwrap(), 3);
 
     let docs = store.scan_documents(&key, 10).await.unwrap();
@@ -86,9 +102,18 @@ async fn scan_from_is_inclusive_and_ascending() {
         return;
     };
     let key = unique("from");
-    let _a = store.append(&key, serde_json::json!({"n": 0})).await.unwrap();
-    let b = store.append(&key, serde_json::json!({"n": 1})).await.unwrap();
-    let _c = store.append(&key, serde_json::json!({"n": 2})).await.unwrap();
+    let _a = store
+        .append(&key, serde_json::json!({"n": 0}))
+        .await
+        .unwrap();
+    let b = store
+        .append(&key, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    let _c = store
+        .append(&key, serde_json::json!({"n": 2}))
+        .await
+        .unwrap();
 
     let from_b: Vec<serde_json::Value> = store
         .scan_from::<serde_json::Value>(&key, &b.id, 0)

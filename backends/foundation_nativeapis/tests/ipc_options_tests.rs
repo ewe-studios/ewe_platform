@@ -1,7 +1,6 @@
 //! Tests extracted from shared/ipc/options.rs
 mod tests {
     use foundation_nativeapis::shared::ipc::*;
-    
 
     #[test]
     fn options_new() {

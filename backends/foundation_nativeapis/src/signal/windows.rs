@@ -17,8 +17,8 @@ pub fn register_signals() -> Result<SignalHandle, SignalError> {
     let event = unsafe {
         CreateEventW(
             std::ptr::null_mut(),
-            0,            // auto-reset
-            0,            // initial state nonsignaled
+            0, // auto-reset
+            0, // initial state nonsignaled
             std::ptr::null(),
         )
     };
@@ -42,7 +42,7 @@ pub fn register_signals() -> Result<SignalHandle, SignalError> {
 }
 
 use windows_sys::Win32::System::Console::{
-    CTRL_C_EVENT, CTRL_CLOSE_EVENT, CTRL_LOGOFF_EVENT, CTRL_SHUTDOWN_EVENT,
+    CTRL_CLOSE_EVENT, CTRL_C_EVENT, CTRL_LOGOFF_EVENT, CTRL_SHUTDOWN_EVENT,
 };
 use windows_sys::Win32::System::Threading::SetEvent;
 

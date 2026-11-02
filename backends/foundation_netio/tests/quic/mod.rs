@@ -373,7 +373,9 @@ fn idle_driver_parks_on_injected_readiness_instead_of_spinning() {
 
     // No datagrams, no connections: the driver has nothing to do. It must park on
     // the reactor, not burn a worker with `Delayed`.
-    let status = server.next_status(Ctx::new()).expect("server driver keeps running");
+    let status = server
+        .next_status(Ctx::new())
+        .expect("server driver keeps running");
     assert!(
         matches!(status, TaskStatus::Depends(_)),
         "an idle driver with an injected readiness signal must park via Depends, \
@@ -386,7 +388,9 @@ fn idle_driver_without_readiness_falls_back_to_delayed() {
     let server_cfg = server_config_from_pem(CERT_PEM, KEY_PEM).expect("server config");
     let mut server = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind");
 
-    let status = server.next_status(Ctx::new()).expect("server driver keeps running");
+    let status = server
+        .next_status(Ctx::new())
+        .expect("server driver keeps running");
     assert!(
         matches!(status, TaskStatus::Delayed(_)),
         "without a readiness signal the driver must yield with Delayed rather than \

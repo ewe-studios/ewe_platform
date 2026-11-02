@@ -5,7 +5,6 @@
 /// | Linux | Unix domain sockets (`SOCK_SEQPACKET`) | Abstract socket addresses, `SCM_RIGHTS` for FD passing |
 /// | macOS | Mach ports | `mach_msg`, `mach_port` operations |
 /// | Windows | Named pipes | `CreateNamedPipe`, `ConnectNamedPipe` |
-
 use std::{
     io, mem,
     ops::RangeBounds,
@@ -23,11 +22,17 @@ pub type Object = self::macos::MachPort;
 pub type Object = self::windows::Handle;
 
 #[cfg(target_os = "linux")]
-pub(crate) use self::linux::{look_up, page_mask, register, EncodedMessage, IoHub, IoMultiplexing, Remote};
+pub(crate) use self::linux::{
+    look_up, page_mask, register, EncodedMessage, IoHub, IoMultiplexing, Remote,
+};
 #[cfg(target_os = "macos")]
-pub(crate) use self::macos::{look_up, page_mask, register, EncodedMessage, IoHub, IoMultiplexing, Remote};
+pub(crate) use self::macos::{
+    look_up, page_mask, register, EncodedMessage, IoHub, IoMultiplexing, Remote,
+};
 #[cfg(target_os = "windows")]
-pub(crate) use self::windows::{look_up, page_mask, register, EncodedMessage, IoHub, IoMultiplexing, Remote};
+pub(crate) use self::windows::{
+    look_up, page_mask, register, EncodedMessage, IoHub, IoMultiplexing, Remote,
+};
 
 mod bus_controller_impl;
 pub(crate) use bus_controller_impl::BusController;
@@ -206,10 +211,7 @@ impl MappedRegion {
 
         Ok(Self {
             offset,
-            buffer: slice::from_raw_parts_mut(
-                addr.add(adjustment_for_alignment),
-                size,
-            ),
+            buffer: slice::from_raw_parts_mut(addr.add(adjustment_for_alignment), size),
         })
     }
 

@@ -146,7 +146,9 @@ fn top_k_accumulator_matches_flat_top_k() {
         DistanceMetric::Cosine,
     );
     assert_eq!(streamed.len(), 5);
-    let ids = |m: &[foundation_vectors::store::VectorMatch]| m.iter().map(|x| x.id.clone()).collect::<Vec<_>>();
+    let ids = |m: &[foundation_vectors::store::VectorMatch]| {
+        m.iter().map(|x| x.id.clone()).collect::<Vec<_>>()
+    };
     assert_eq!(ids(&streamed), ids(&batch));
     assert_eq!(streamed[0].id, "v49");
 }

@@ -11,8 +11,8 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 /// A cheap, widely-available OpenRouter model with tool support.
 ///
@@ -98,7 +98,10 @@ fn openrouter_generate_returns_text() {
         return;
     };
     let out = model
-        .generate(interaction("Reply with the single word: pong."), Some(params()))
+        .generate(
+            interaction("Reply with the single word: pong."),
+            Some(params()),
+        )
         .expect("openrouter generate should succeed");
     let text: String = out
         .iter()
@@ -110,7 +113,10 @@ fn openrouter_generate_returns_text() {
             _ => None,
         })
         .collect();
-    assert!(!text.trim().is_empty(), "openrouter must return text: {out:?}");
+    assert!(
+        !text.trim().is_empty(),
+        "openrouter must return text: {out:?}"
+    );
     println!("openrouter generate: {text:?}");
 }
 

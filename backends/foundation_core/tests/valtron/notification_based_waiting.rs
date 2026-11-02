@@ -13,15 +13,15 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use concurrent_queue::ConcurrentQueue;
+#[cfg(feature = "multi")]
+use foundation_core::valtron::NotifyRecvIter;
 use foundation_core::valtron::{
     Ctx, ExecutionAction, SharedTaskQueue, TaskIterator, TaskStatus, WrapTask,
 };
 use foundation_core::valtron::{
-    InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotifyQueue,
-    NotifyQueueStreamIterator, NotifyRecvIterator, PriorityOrder, NotificationItem,
+    InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotificationItem, NotifyQueue,
+    NotifyQueueStreamIterator, NotifyRecvIterator, PriorityOrder,
 };
-#[cfg(feature = "multi")]
-use foundation_core::valtron::NotifyRecvIter;
 use foundation_core::{
     retries::ExponentialBackoffDecider,
     synca::{IdleMan, SleepyMan},
@@ -61,9 +61,12 @@ fn test_notify_queue_blocks_until_item_available() {
     let mut result = None;
     loop {
         match queue.wait_for_item(Duration::from_micros(100)) {
-            Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
+            Some(NotificationItem::Ready(val)) => {
+                result = Some(val);
+                break;
+            }
             Some(NotificationItem::None) => {} // Yield signal, retry
-            None => break, // Queue closed
+            None => break,                     // Queue closed
         }
     }
     let elapsed = start.elapsed();
@@ -125,7 +128,10 @@ fn test_notify_queue_multiple_items_blocking() {
     for _ in 0..5 {
         loop {
             match queue.wait_for_item(Duration::from_micros(100)) {
-                Some(NotificationItem::Ready(item)) => { received.push(item); break; }
+                Some(NotificationItem::Ready(item)) => {
+                    received.push(item);
+                    break;
+                }
                 Some(NotificationItem::None) => {} // Yield signal, retry
                 None => break,
             }
@@ -202,7 +208,10 @@ fn test_notify_queue_timeout_is_recheck_interval() {
     let mut result = None;
     loop {
         match queue.wait_for_item(Duration::from_micros(1)) {
-            Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
+            Some(NotificationItem::Ready(val)) => {
+                result = Some(val);
+                break;
+            }
             Some(NotificationItem::None) => {} // Yield signal, retry
             None => break,
         }
@@ -242,7 +251,10 @@ fn test_notify_recv_iterator_blocks_until_item() {
     let mut result = None;
     loop {
         match recv_iter.block_recv(Duration::from_micros(100)) {
-            Some(NotificationItem::Ready(val)) => { result = Some(val); break; }
+            Some(NotificationItem::Ready(val)) => {
+                result = Some(val);
+                break;
+            }
             Some(NotificationItem::None) => {} // Yield signal, retry
             None => break,
         }
@@ -308,8 +320,14 @@ fn test_notify_queue_stream_iterator_blocks_until_values() {
     while results.len() < 2 {
         match iterator.next() {
             Some(Stream::Next(v)) => results.push(v),
-            Some(Stream::Wait | Stream::Ignore | Stream::Init | Stream::Pending(()) |
-Stream::Delayed(_) | Stream::Spread(_)) => {} // Not a value — keep polling
+            Some(
+                Stream::Wait
+                | Stream::Ignore
+                | Stream::Init
+                | Stream::Pending(())
+                | Stream::Delayed(_)
+                | Stream::Spread(_),
+            ) => {} // Not a value — keep polling
             None => break,
         }
     }
@@ -368,8 +386,7 @@ fn test_notify_queue_stream_iterator_receives_values() {
 /// Verifies that tasks using NotifyQueue-based receivers don't block progress.
 #[test]
 fn test_single_threaded_executor_with_notification_tasks() {
-    let global: SharedTaskQueue =
-        Arc::new(ConcurrentQueue::bounded(10));
+    let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
     let results: Arc<Mutex<Vec<usize>>> = Arc::new(Mutex::new(Vec::new()));
 
@@ -427,8 +444,7 @@ fn test_single_threaded_executor_with_notification_tasks() {
 /// without blocking indefinitely. Uses very short wait timeouts.
 #[test]
 fn test_single_threaded_executor_pends_without_blocking() {
-    let global: SharedTaskQueue =
-        Arc::new(ConcurrentQueue::bounded(10));
+    let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
     let counter: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
 

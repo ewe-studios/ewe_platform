@@ -4,7 +4,7 @@
 //! composes (status line / headers / head / body chunk / trailers), the chunked
 //! wire framing living in the part iterator, and the `trailers` field on
 //! `SimpleOutgoingResponse`. The atomic whole-response path is covered (unchanged)
-//! by the existing simple_http suite.
+//! by the existing `simple_http` suite.
 //!
 //! Header keys use `SimpleHeader::Custom` with explicit strings so the rendered
 //! bytes are exactly as written — independent of feature 06's known-variant
@@ -262,8 +262,8 @@ fn body_streaming_yields_chunked_framed_output() {
 
 #[test]
 fn body_streaming_empty_stream_yields_only_terminator() {
-    let (_producer, body) = pushable_request_body_with_depth(4);
-    drop(_producer); // close → consumer sees EOF immediately
+    let (producer, body) = pushable_request_body_with_depth(4);
+    drop(producer); // close → consumer sees EOF immediately
 
     let request = request_with_body(body);
     let output = collect_body(Http11RequestBodyIterator::new(request));

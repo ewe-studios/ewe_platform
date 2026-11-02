@@ -1,4 +1,3 @@
-
 /// A single readiness event from `epoll_wait()`.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
@@ -80,10 +79,7 @@ impl Event {
 impl Default for Event {
     fn default() -> Self {
         Self {
-            event: libc::epoll_event {
-                events: 0,
-                u64: 0,
-            },
+            event: libc::epoll_event { events: 0, u64: 0 },
         }
     }
 }

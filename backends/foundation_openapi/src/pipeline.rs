@@ -250,6 +250,9 @@ impl Pipeline {
         // own droplets.
         crate::transform::resolve_parameter_refs(&mut spec);
         crate::transform::canonicalize_operations(&mut spec);
+        // Named schemas can still inline an object the vendor already declared as
+        // a named schema elsewhere. Reuse the named one so the field is typed.
+        crate::transform::reuse_identical_schemas(&mut spec);
 
         // 3. prune again — hoisting rewires reachability, and nothing else drops
         //    what the vendor left orphaned.

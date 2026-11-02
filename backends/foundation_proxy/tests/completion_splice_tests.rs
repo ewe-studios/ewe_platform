@@ -79,6 +79,9 @@ fn completion_splice_relays_bytes_both_directions() {
         }
         thread::sleep(Duration::from_millis(100));
     }
-    assert!(ok.load(std::sync::atomic::Ordering::Acquire), "splice completed cleanly");
+    assert!(
+        ok.load(std::sync::atomic::Ordering::Acquire),
+        "splice completed cleanly"
+    );
     splice_thread.join().ok();
 }

@@ -18,9 +18,11 @@
 // for ewe_platform (feature 15); modifications are listed in src/wasm/README.md.
 
 use crate::wasm::builtins::FloatConst;
-use crate::wasm::indices::{DataId, ElemId, FuncId, GlobalId, LabelId, LocalId, MemId, TableId, TypeId};
+use crate::wasm::indices::{
+    DataId, ElemId, FuncId, GlobalId, LabelId, LocalId, MemId, TableId, TypeId,
+};
 use crate::wasm::io::{
-    Decode, DecodeError, DecodeWithDiscriminant, Encode, PathItem, Wasmbin, encode_decode_as,
+    encode_decode_as, Decode, DecodeError, DecodeWithDiscriminant, Encode, PathItem, Wasmbin,
 };
 use crate::wasm::types::{BlockType, HeapType, ValueType};
 use crate::wasm::visit::Visit;

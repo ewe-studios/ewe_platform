@@ -1,7 +1,8 @@
 /// macOS/BSD kqueue selector.
-
+use crate::poll::event::Event;
 use crate::poll::{Events, Interest, Registry, Token};
 
+use std::collections::HashMap;
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 use std::sync::{Arc, Mutex};
@@ -13,6 +14,11 @@ pub struct Selector {
     kq: OwnedFd,
     /// Waker token, if registered.
     waker_token: Mutex<Option<Token>>,
+    /// Per-fd read-edge tracking. macOS kqueue reports `EVFILT_READ`
+    /// level-triggered for pipes despite `EV_CLEAR`, so the selector records
+    /// the byte count delivered on each readable edge and suppresses a re-fire
+    /// until the count grows (new data) or the caller re-arms it.
+    read_edges: Mutex<HashMap<RawFd, usize>>,
 }
 
 /// The raw fd type on macOS/BSD.
@@ -57,6 +63,7 @@ impl Selector {
         Ok(Self {
             kq: kq_fd,
             waker_token: Mutex::new(None),
+            read_edges: Mutex::new(HashMap::new()),
         })
     }
 
@@ -153,9 +160,8 @@ impl Selector {
 
     /// Register a raw file descriptor with the kqueue selector.
     pub fn register_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
-        let mut events: [libc::kevent; 2] = [unsafe { std::mem::zeroed() }, unsafe {
-            std::mem::zeroed()
-        }];
+        let mut events: [libc::kevent; 2] =
+            [unsafe { std::mem::zeroed() }, unsafe { std::mem::zeroed() }];
         let mut count = 0;
 
         if interest.is_readable() {
@@ -255,9 +261,8 @@ impl Selector {
 
     /// Deregister a raw file descriptor from the kqueue selector.
     pub fn deregister_fd(&self, fd: RawFd) -> io::Result<()> {
-        let mut events: [libc::kevent; 2] = [unsafe { std::mem::zeroed() }, unsafe {
-            std::mem::zeroed()
-        }];
+        let mut events: [libc::kevent; 2] =
+            [unsafe { std::mem::zeroed() }, unsafe { std::mem::zeroed() }];
         let mut count = 0;
 
         // Delete both read and write filters
@@ -306,7 +311,17 @@ impl Selector {
             }
         }
 
+        self.read_edges.lock().unwrap().remove(&fd);
+
         Ok(())
+    }
+
+    /// Re-arm the read edge for `fd` after the caller drained it.
+    ///
+    /// A drained fd must be re-armed so the next data arrival is delivered as
+    /// a fresh readable edge. Called by `Poll::rearm_readable`.
+    pub(crate) fn rearm_readable(&self, fd: RawFd) {
+        self.read_edges.lock().unwrap().remove(&fd);
     }
 
     /// Register the waker (EVFILT_USER).
@@ -347,7 +362,7 @@ impl Selector {
     /// Wake the poll selector by triggering the EVFILT_USER event.
     pub fn wake(&self, _token: Token) -> io::Result<()> {
         let waker_token = self.waker_token.lock().unwrap();
-        if waker_token.is_some() {
+        if let Some(wt) = *waker_token {
             let mut event: libc::kevent = unsafe { std::mem::zeroed() };
             unsafe {
                 ev_set(
@@ -357,7 +372,7 @@ impl Selector {
                     0,
                     libc::NOTE_TRIGGER,
                     0,
-                    std::ptr::null_mut(),
+                    wt.0 as *mut libc::c_void,
                 );
             }
 
@@ -378,14 +393,19 @@ impl Selector {
                 Ok(())
             }
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                "waker not registered",
-            ))
+            Err(io::Error::new(io::ErrorKind::Other, "waker not registered"))
         }
     }
 
     /// Wait for readiness events.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    #[allow(
+        clippy::cast_possible_truncation,
+        clippy::cast_possible_wrap,
+        clippy::cast_sign_loss
+    )]
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
         let mut ts: libc::timespec = unsafe { std::mem::zeroed() };
         let ts_ptr: *const libc::timespec = if let Some(d) = timeout {
@@ -424,6 +444,40 @@ impl Selector {
         }
 
         events.set_len(n as usize);
+
+        // macOS kqueue reports `EVFILT_READ` level-triggered for pipes despite
+        // `EV_CLEAR`, so the selector enforces the read edge itself: a readable
+        // event is delivered once per edge and suppressed while its byte count
+        // has not grown (no new data) since the last delivered event. Read-
+        // closed and error events are never suppressed — they are control
+        // signals, not data.
+        let keep = {
+            let len = events.len();
+            let (ptr, _cap) = events.as_mut_ptr_and_cap();
+            let slice = unsafe { std::slice::from_raw_parts_mut::<Event>(ptr, len) };
+            let mut edges = self.read_edges.lock().unwrap();
+            let mut keep = 0usize;
+            for i in 0..slice.len() {
+                let ev = slice[i];
+                let plain_readable = ev.is_readable() && !ev.is_read_closed() && !ev.is_error();
+                if plain_readable {
+                    let fd = ev.ident() as RawFd;
+                    let data = ev.data() as usize;
+                    let new_edge = match edges.get(&fd) {
+                        None => true,
+                        Some(&last) => data > last,
+                    };
+                    if !new_edge {
+                        continue;
+                    }
+                    edges.insert(fd, data);
+                }
+                slice[keep] = ev;
+                keep += 1;
+            }
+            keep
+        };
+        events.set_len(keep);
 
         // Check if the waker fired and clear it
         let waker_token = self.waker_token.lock().unwrap();

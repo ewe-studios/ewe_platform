@@ -22,12 +22,12 @@ use std::sync::{Arc, Mutex};
 use std::task::{Wake, Waker};
 use std::time::Duration;
 
-use foundation_iogate::ShutdownSignal;
 use foundation_core::valtron::{
     AnyReadiness, BoolSignal, Ctx, EventReadiness, FutureTask, Stream, TaskIterator, TaskStatus,
 };
 #[cfg(unix)]
 use foundation_iogate::FdReadiness as SocketReadiness;
+use foundation_iogate::ShutdownSignal;
 use foundation_netio::http3::connection::error_code;
 use foundation_netio::http3::{H3Connection, H3Error};
 use foundation_netio::netcap::ConnectionContext;
@@ -69,8 +69,13 @@ pub fn serve_h3(
     let accept_wakers = driver.accept_wakers();
     foundation_core::valtron::send(driver)
         .map_err(|e| io::Error::other(format!("spawn quic driver: {e}")))?;
-    foundation_core::valtron::send(H3AcceptTask::new(accept_queue, accept_wakers, app, shutdown))
-        .map_err(|e| io::Error::other(format!("spawn h3 accept task: {e}")))?;
+    foundation_core::valtron::send(H3AcceptTask::new(
+        accept_queue,
+        accept_wakers,
+        app,
+        shutdown,
+    ))
+    .map_err(|e| io::Error::other(format!("spawn h3 accept task: {e}")))?;
     Ok(local)
 }
 

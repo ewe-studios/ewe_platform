@@ -18,6 +18,10 @@ pub struct BootstrapLogger {
 }
 
 impl BootstrapLogger {
+    /// Create a bootstrap logger for a VM.
+    ///
+    /// # Errors
+    /// Returns an error if the log directory or file cannot be created.
     pub fn new(vm_name: &str) -> std::io::Result<Self> {
         let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
         let log_dir = cwd.join(".testbed").join(vm_name);
@@ -78,7 +82,9 @@ impl BootstrapLogger {
     }
 
     pub fn log_path(&self) -> PathBuf {
-        PathBuf::from(".testbed").join(&self.vm_name).join("bootstrap.log")
+        PathBuf::from(".testbed")
+            .join(&self.vm_name)
+            .join("bootstrap.log")
     }
 
     pub fn elapsed(&self) -> std::time::Duration {
@@ -99,6 +105,9 @@ impl BootstrapLogger {
 }
 
 /// Run a named bootstrap step with logging.
+///
+/// # Errors
+/// Returns the error from the bootstrap step.
 pub fn step<F>(logger: &BootstrapLogger, label: &str, f: F) -> crate::config::Result<()>
 where
     F: FnOnce() -> crate::config::Result<()>,
@@ -127,4 +136,3 @@ where
     }
     result
 }
-

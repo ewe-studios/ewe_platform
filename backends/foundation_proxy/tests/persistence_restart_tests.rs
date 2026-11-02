@@ -50,11 +50,16 @@ fn backend_drain_survives_restart() {
 
     // ── Run 1: drain one backend, then shut down. ──
     {
-        let proxy = ProxyServer::start(build_config()).block().expect("start proxy 1");
+        let proxy = ProxyServer::start(build_config())
+            .block()
+            .expect("start proxy 1");
         std::thread::sleep(Duration::from_millis(200));
 
         let resp = rpc(&sock, r#"{"command":"status"}"#);
-        assert_eq!(resp["data"]["draining"], 0, "nothing draining at first run: {resp}");
+        assert_eq!(
+            resp["data"]["draining"], 0,
+            "nothing draining at first run: {resp}"
+        );
 
         let resp = rpc(
             &sock,
@@ -66,7 +71,9 @@ fn backend_drain_survives_restart() {
 
     // ── Run 2: fresh proxy, same state dir — the drain must be restored. ──
     {
-        let proxy = ProxyServer::start(build_config()).block().expect("start proxy 2");
+        let proxy = ProxyServer::start(build_config())
+            .block()
+            .expect("start proxy 2");
         std::thread::sleep(Duration::from_millis(200));
 
         let resp = rpc(&sock, r#"{"command":"status"}"#);
@@ -77,12 +84,17 @@ fn backend_drain_survives_restart() {
 
         // And specifically the right backend.
         let resp = rpc(&sock, r#"{"command":"list"}"#);
-        let backends = resp["data"][0]["backends"].as_array().expect("backends array");
+        let backends = resp["data"][0]["backends"]
+            .as_array()
+            .expect("backends array");
         let drained = backends
             .iter()
             .find(|b| b["url"] == "http://127.0.0.1:19101")
             .expect("backend present");
-        assert_eq!(drained["state"], "Draining", "restored backend is draining: {resp}");
+        assert_eq!(
+            drained["state"], "Draining",
+            "restored backend is draining: {resp}"
+        );
 
         proxy.shutdown();
     }

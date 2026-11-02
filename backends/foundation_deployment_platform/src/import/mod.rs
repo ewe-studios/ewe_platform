@@ -5,6 +5,10 @@
 //! Automatically extracts qcow2 from vagrant box archives (tar or gzip).
 
 use std::path::{Path, PathBuf};
+use std::time::Duration;
+
+use foundation_netio::shared::client::body_reader::collect_bytes_async;
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 use crate::config::{Result, TestbedError, VmProfile};
 
@@ -28,6 +32,9 @@ const COMPRESSED_EXTENSIONS: &[&str] = &["qcow2.gz", "qcow2.xz"];
 ///
 /// The environment variable must point to a valid file (qcow2 or compressed
 /// qcow2). It is used as-is — no download, no extraction, no copy.
+///
+/// # Errors
+/// Returns an error if the image cannot be resolved or downloaded.
 pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
     // macOS uses a different layout (directory with BaseSystem.qcow2 + opencore.qcow2 + data disk)
     // Try image stores / prebaked tarball first, then fall back to native IPSW creation.
@@ -36,13 +43,16 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
     }
 
     // 1. Check environment variable override
-    let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
+    let env_key = format!(
+        "TESTBED_IMAGE_{}",
+        profile.name.to_uppercase().replace('-', "_")
+    );
     if let Ok(image_path) = std::env::var(&env_key) {
         let path = PathBuf::from(&image_path);
         if !path.exists() {
             return Err(TestbedError::DownloadFailed {
                 status: 0,
-                url: format!("TESTBED_IMAGE_{} points to non-existent file: {}", env_key, image_path),
+                url: format!("TESTBED_IMAGE_{env_key} points to non-existent file: {image_path}"),
             });
         }
         let meta = std::fs::metadata(&path).map_err(|e| TestbedError::Qcow2Error {
@@ -50,17 +60,31 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
         })?;
         if meta.len() < MIN_IMAGE_SIZE {
             return Err(TestbedError::Qcow2Error {
-                message: format!("image at {} too small ({} bytes) — likely corrupted", path.display(), meta.len()),
+                message: format!(
+                    "image at {} too small ({} bytes) — likely corrupted",
+                    path.display(),
+                    meta.len()
+                ),
             });
         }
         // If it's a compressed archive, decompress to cache first
         if is_compressed_qcow2(&path) {
-            println!("  Decompressing {} from override path...", path.extension().unwrap_or_default().to_str().unwrap_or("unknown"));
+            println!(
+                "  Decompressing {} from override path...",
+                path.extension()
+                    .unwrap_or_default()
+                    .to_str()
+                    .unwrap_or("unknown")
+            );
             let dest = profile.image_cache_path();
             crate::export::decompress(&path, &dest)?;
             return Ok(dest);
         }
-        println!("  Using image from override ({}): {}", env_key, path.display());
+        println!(
+            "  Using image from override ({}): {}",
+            env_key,
+            path.display()
+        );
         return Ok(path);
     }
 
@@ -83,7 +107,14 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
     download::download(&url, &temp_dest)?;
 
     if is_compressed_qcow2(&temp_dest) {
-        println!("  Decompressing {} archive...", temp_dest.extension().unwrap_or_default().to_str().unwrap_or("unknown"));
+        println!(
+            "  Decompressing {} archive...",
+            temp_dest
+                .extension()
+                .unwrap_or_default()
+                .to_str()
+                .unwrap_or("unknown")
+        );
         crate::export::decompress(&temp_dest, &dest)?;
         let _ = std::fs::remove_file(&temp_dest);
     } else if is_vagrant_box(&temp_dest) {
@@ -91,7 +122,7 @@ pub fn ensure_image(profile: &VmProfile) -> Result<std::path::PathBuf> {
         let _ = std::fs::remove_file(&temp_dest);
     } else {
         std::fs::rename(&temp_dest, &dest).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("moving downloaded image to {dest:?}: {e}"),
+            message: format!("moving downloaded image to {}: {e}", dest.display()),
         })?;
     }
 
@@ -114,7 +145,9 @@ fn try_download_from_store(profile: &VmProfile, dest: &Path) -> Result<Option<Pa
     let filename = format!("{}.qcow2", profile.name);
 
     for store in &stores {
-        let Some(url) = store_download_url_direct(store, &filename) else { continue };
+        let Some(url) = store_download_url_direct(store, &filename) else {
+            continue;
+        };
         let url_path = Path::new(&url);
 
         // For local stores, just check if the file exists
@@ -147,12 +180,11 @@ fn try_download_from_store(profile: &VmProfile, dest: &Path) -> Result<Option<Pa
 /// Only works for Http and Local store types.
 fn store_download_url_direct(store: &crate::config::ImageStore, filename: &str) -> Option<String> {
     match store.store_type {
-        crate::config::StoreType::Http => {
-            Some(format!("{}/{}", store.destination.trim_end_matches('/'), filename))
-        }
-        crate::config::StoreType::Local => {
-            Some(format!("{}/{}", store.destination.trim_end_matches('/'), filename))
-        }
+        crate::config::StoreType::Http | crate::config::StoreType::Local => Some(format!(
+            "{}/{}",
+            store.destination.trim_end_matches('/'),
+            filename
+        )),
         crate::config::StoreType::R2 | crate::config::StoreType::S3 => {
             // Cloud stores require rclone/aws CLI — not supported for simple download
             None
@@ -186,13 +218,13 @@ fn find_cached_image(dest: &std::path::Path) -> Option<std::path::PathBuf> {
 /// Check if a file looks like a compressed qcow2 archive (by extension + magic).
 fn is_compressed_qcow2(path: &std::path::Path) -> bool {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
-    match ext {
-        "gz" | "xz" => true,
-        _ => false,
-    }
+    matches!(ext, "gz" | "xz")
 }
 
 /// Download an image from a specific URL.
+///
+/// # Errors
+/// Returns an error if the download or validation fails.
 pub fn download_from_url(url: &str, dest: &Path) -> Result<()> {
     download::download(url, dest)?;
     validate_image(dest)?;
@@ -200,9 +232,13 @@ pub fn download_from_url(url: &str, dest: &Path) -> Result<()> {
 }
 
 /// Check if a profile's image is already cached.
+#[must_use]
 pub fn is_cached(profile: &VmProfile) -> bool {
     // Check env var override first
-    let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
+    let env_key = format!(
+        "TESTBED_IMAGE_{}",
+        profile.name.to_uppercase().replace('-', "_")
+    );
     if let Ok(path) = std::env::var(&env_key) {
         return PathBuf::from(&path).exists();
     }
@@ -215,16 +251,22 @@ pub fn is_cached(profile: &VmProfile) -> bool {
     } else {
         let dest = profile.image_cache_path();
         download::is_cached(&dest)
-            || COMPRESSED_EXTENSIONS.iter().any(|ext| {
-                dest.with_extension(ext).exists()
-            })
+            || COMPRESSED_EXTENSIONS
+                .iter()
+                .any(|ext| dest.with_extension(ext).exists())
     }
 }
 
 /// Remove a cached image for a profile.
+///
+/// # Errors
+/// Returns an error if a cached image file cannot be removed.
 pub fn evict(profile: &VmProfile) -> Result<()> {
     // Don't evict env-var override images — the file is user-managed
-    let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
+    let env_key = format!(
+        "TESTBED_IMAGE_{}",
+        profile.name.to_uppercase().replace('-', "_")
+    );
     if std::env::var(&env_key).is_ok() {
         return Ok(());
     }
@@ -233,7 +275,7 @@ pub fn evict(profile: &VmProfile) -> Result<()> {
         let macos_dir = crate::config::image_cache_dir().join(format!("macos-{}", profile.name));
         if macos_dir.exists() {
             std::fs::remove_dir_all(&macos_dir).map_err(|e| TestbedError::Qcow2Error {
-                message: format!("removing {macos_dir:?}: {e}"),
+                message: format!("removing {}: {e}", macos_dir.display()),
             })?;
         }
         Ok(())
@@ -243,7 +285,7 @@ pub fn evict(profile: &VmProfile) -> Result<()> {
         let mut removed = false;
         if dest.exists() {
             std::fs::remove_file(&dest).map_err(|e| TestbedError::Qcow2Error {
-                message: format!("removing {dest:?}: {e}"),
+                message: format!("removing {}: {e}", dest.display()),
             })?;
             removed = true;
         }
@@ -251,7 +293,7 @@ pub fn evict(profile: &VmProfile) -> Result<()> {
             let compressed = dest.with_extension(ext);
             if compressed.exists() {
                 std::fs::remove_file(&compressed).map_err(|e| TestbedError::Qcow2Error {
-                    message: format!("removing {compressed:?}: {e}"),
+                    message: format!("removing {}: {e}", compressed.display()),
                 })?;
                 removed = true;
             }
@@ -264,9 +306,15 @@ pub fn evict(profile: &VmProfile) -> Result<()> {
 }
 
 /// Get the size of a cached image.
+///
+/// # Errors
+/// Returns an error if the cached image metadata cannot be read.
 pub fn cached_size(profile: &VmProfile) -> Result<u64> {
     // Check env var override first
-    let env_key = format!("TESTBED_IMAGE_{}", profile.name.to_uppercase().replace('-', "_"));
+    let env_key = format!(
+        "TESTBED_IMAGE_{}",
+        profile.name.to_uppercase().replace('-', "_")
+    );
     if let Ok(path) = std::env::var(&env_key) {
         let meta = std::fs::metadata(&path).map_err(|e| TestbedError::Qcow2Error {
             message: format!("stat {path}: {e}"),
@@ -276,7 +324,7 @@ pub fn cached_size(profile: &VmProfile) -> Result<u64> {
 
     let dest = profile.image_cache_path();
     let metadata = std::fs::metadata(&dest).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("stat {dest:?}: {e}"),
+        message: format!("stat {}: {e}", dest.display()),
     })?;
     Ok(metadata.len())
 }
@@ -288,17 +336,15 @@ fn is_vagrant_box(path: &Path) -> bool {
     // Check for gzip magic: 0x1f 0x8b
     if let Ok(mut f) = std::fs::File::open(path) {
         let mut buf = [0u8; 2];
-        if std::io::Read::read_exact(&mut f, &mut buf).is_ok()
-            && buf[0] == 0x1f && buf[1] == 0x8b {
-                return true;
-            }
+        if std::io::Read::read_exact(&mut f, &mut buf).is_ok() && buf[0] == 0x1f && buf[1] == 0x8b {
+            return true;
+        }
     }
     // Fallback: try tar -tf and see if it works
     std::process::Command::new("tar")
         .args(["-tf", path.to_str().unwrap()])
         .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
+        .is_ok_and(|o| o.status.success())
 }
 
 /// Extract the qcow2 disk image from a vagrant box archive.
@@ -317,7 +363,10 @@ fn extract_qcow2_from_box(box_path: &Path, dest: &Path) -> Result<()> {
 
     if !output.status.success() {
         return Err(TestbedError::Qcow2Error {
-            message: format!("failed to list vagrant box: {}", String::from_utf8_lossy(&output.stderr)),
+            message: format!(
+                "failed to list vagrant box: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ),
         });
     }
 
@@ -325,7 +374,10 @@ fn extract_qcow2_from_box(box_path: &Path, dest: &Path) -> Result<()> {
     let entries: String = String::from_utf8_lossy(&output.stdout).to_string();
     let disk_entry = entries.lines().find(|name| {
         let n = name.trim();
-        n == "box.img" || n == "box_0.img" || n.ends_with(".qcow2") || n.ends_with(".img")
+        n == "box.img"
+            || n == "box_0.img"
+            || Path::new(n).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("qcow2"))
+            || Path::new(n).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("img"))
     }).ok_or_else(|| TestbedError::Qcow2Error {
         message: "no disk image found in vagrant box (expected box.img, box_0.img, *.qcow2, or *.img)".to_string(),
     })?;
@@ -333,7 +385,7 @@ fn extract_qcow2_from_box(box_path: &Path, dest: &Path) -> Result<()> {
     // Extract the specific file to a temp location
     let temp_extract = dest.with_extension("extracting");
     let out_file = std::fs::File::create(&temp_extract).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating {temp_extract:?}: {e}"),
+        message: format!("creating {}: {e}", temp_extract.display()),
     })?;
 
     let status = std::process::Command::new("tar")
@@ -353,7 +405,7 @@ fn extract_qcow2_from_box(box_path: &Path, dest: &Path) -> Result<()> {
 
     // Move to final destination
     std::fs::rename(&temp_extract, dest).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("moving extracted disk to {dest:?}: {e}"),
+        message: format!("moving extracted disk to {}: {e}", dest.display()),
     })?;
 
     Ok(())
@@ -363,14 +415,17 @@ fn extract_qcow2_from_box(box_path: &Path, dest: &Path) -> Result<()> {
 
 /// Resolve the image URL for a profile.
 ///
-/// Priority: profile.prebaked_url → Vagrant Cloud lookup → error.
+/// Priority: `profile.prebaked_url` → Vagrant Cloud lookup → error.
 fn resolve_image_url(profile: &VmProfile) -> Result<String> {
     if let Some(url) = profile.prebaked_url {
         return Ok(url.to_string());
     }
 
-    // Check Vagrant Cloud for this image
-    if let Some(url) = query_vagrant_cloud(profile) {
+    // Check Vagrant Cloud for this image. The lookup is async (network I/O);
+    // this sync entry point drives it with the valtron executor.
+    if let Some(url) =
+        foundation_core::valtron::block_on_future(query_vagrant_cloud(profile.image_name))?
+    {
         return Ok(url);
     }
 
@@ -396,28 +451,35 @@ fn ensure_macos_from_store_or_fallback(profile: &VmProfile) -> Result<PathBuf> {
     let data_disk_qcow2 = macos_dir.join("macOS-data.qcow2");
 
     // Already cached and valid
-    if basesystem_qcow2.exists() && opencore_qcow2.exists() && data_disk_qcow2.exists()
+    if basesystem_qcow2.exists()
+        && opencore_qcow2.exists()
+        && data_disk_qcow2.exists()
         && let Ok(meta) = std::fs::metadata(&basesystem_qcow2)
-            && meta.len() > 100_000_000 {
-                return Ok(basesystem_qcow2);
-            }
+        && meta.len() > 100_000_000
+    {
+        return Ok(basesystem_qcow2);
+    }
 
     // Try to download a pre-baked tarball from image stores
     if let Some(tarball_url) = resolve_macos_tarball_url(profile) {
         eprintln!("  Downloading pre-baked macOS image from store...");
         let temp_tar = macos_dir.join(format!("{}.tar.gz", profile.name));
         if download::download(&tarball_url, &temp_tar).is_ok()
-            && extract_macos_tarball(&temp_tar, &macos_dir).is_ok() {
-                let _ = std::fs::remove_file(&temp_tar);
-                // Validate extracted structure
-                if basesystem_qcow2.exists() && opencore_qcow2.exists() && data_disk_qcow2.exists()
-                    && let Ok(meta) = std::fs::metadata(&basesystem_qcow2)
-                        && meta.len() > 100_000_000 {
-                            eprintln!("  Pre-baked macOS image extracted successfully.");
-                            return Ok(basesystem_qcow2);
-                        }
-                eprintln!("  Pre-baked tarball invalid — falling back to native IPSW creation.");
+            && extract_macos_tarball(&temp_tar, &macos_dir).is_ok()
+        {
+            let _ = std::fs::remove_file(&temp_tar);
+            // Validate extracted structure
+            if basesystem_qcow2.exists()
+                && opencore_qcow2.exists()
+                && data_disk_qcow2.exists()
+                && let Ok(meta) = std::fs::metadata(&basesystem_qcow2)
+                && meta.len() > 100_000_000
+            {
+                eprintln!("  Pre-baked macOS image extracted successfully.");
+                return Ok(basesystem_qcow2);
             }
+            eprintln!("  Pre-baked tarball invalid — falling back to native IPSW creation.");
+        }
         let _ = std::fs::remove_file(&temp_tar);
     }
 
@@ -426,9 +488,9 @@ fn ensure_macos_from_store_or_fallback(profile: &VmProfile) -> Result<PathBuf> {
     macos::ensure_macos_image(profile.name)
 }
 
-/// Resolve a macOS tarball URL from image stores or prebaked_url.
+/// Resolve a macOS tarball URL from image stores or `prebaked_url`.
 ///
-/// Priority: image stores (testbed.toml) → profile prebaked_url → None (triggers IPSW fallback).
+/// Priority: image stores (testbed.toml) → profile `prebaked_url` → None (triggers IPSW fallback).
 fn resolve_macos_tarball_url(profile: &VmProfile) -> Option<String> {
     // 1. Check configured image stores first (testbed.toml)
     let stores = crate::config::load_image_stores();
@@ -451,9 +513,11 @@ fn resolve_macos_tarball_url(profile: &VmProfile) -> Option<String> {
 /// requires a CLI tool we can't resolve to a direct URL.
 fn store_download_url(store: &crate::config::ImageStore, filename: &str) -> Option<String> {
     match store.store_type {
-        crate::config::StoreType::Http => {
-            Some(format!("{}/{}", store.destination.trim_end_matches('/'), filename))
-        }
+        crate::config::StoreType::Http => Some(format!(
+            "{}/{}",
+            store.destination.trim_end_matches('/'),
+            filename
+        )),
         crate::config::StoreType::Local => {
             // Local store: check if the file already exists on disk
             let local_path = format!("{}/{}", store.destination.trim_end_matches('/'), filename);
@@ -478,7 +542,12 @@ fn store_download_url(store: &crate::config::ImageStore, filename: &str) -> Opti
 /// - macOS-data.qcow2
 fn extract_macos_tarball(tar_path: &Path, dest_dir: &Path) -> Result<()> {
     let output = std::process::Command::new("tar")
-        .args(["-xzf", tar_path.to_str().unwrap(), "-C", dest_dir.to_str().unwrap()])
+        .args([
+            "-xzf",
+            tar_path.to_str().unwrap(),
+            "-C",
+            dest_dir.to_str().unwrap(),
+        ])
         .output()
         .map_err(|e| TestbedError::Qcow2Error {
             message: format!("extracting macOS tarball: {e}"),
@@ -496,61 +565,169 @@ fn extract_macos_tarball(tar_path: &Path, dest_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Query Vagrant Cloud for a libvirt download URL.
+/// Limits for image-import network lookups.
 ///
-/// Vagrant Cloud API: GET /api/v2/box/{username}/{box_name}
-fn query_vagrant_cloud(profile: &VmProfile) -> Option<String> {
-    let vagrant_box = match profile.image_name {
+/// Size caps are configuration, not constants (project rule 8). The default
+/// follows the size of a small JSON metadata document. The Vagrant Cloud box
+/// response is a few kilobytes, so 64 KiB leaves a large margin while still
+/// stopping a broken or hostile server from making the lookup buffer unbounded
+/// data.
+#[derive(Debug, Clone, Copy)]
+struct ImportLimits {
+    max_vagrant_metadata_bytes: usize,
+}
+
+impl Default for ImportLimits {
+    fn default() -> Self {
+        Self {
+            max_vagrant_metadata_bytes: 64 * 1024,
+        }
+    }
+}
+
+impl ImportLimits {
+    /// Maximum bytes of a Vagrant Cloud metadata response to buffer.
+    fn max_vagrant_metadata_bytes(self) -> usize {
+        self.max_vagrant_metadata_bytes
+    }
+}
+
+/// Typed subset of the Vagrant Cloud box metadata response.
+#[derive(Debug, serde::Deserialize)]
+struct VagrantBoxMetadata {
+    #[serde(default)]
+    current_version: Option<VagrantBoxVersion>,
+}
+
+/// The current version of a Vagrant box, with its provider list.
+#[derive(Debug, serde::Deserialize)]
+struct VagrantBoxVersion {
+    #[serde(default)]
+    providers: Vec<VagrantBoxProvider>,
+}
+
+/// One provider entry in the Vagrant Cloud metadata.
+#[derive(Debug, serde::Deserialize)]
+struct VagrantBoxProvider {
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    download_url: Option<String>,
+    #[serde(default)]
+    url: Option<String>,
+}
+
+/// Map a profile image name to its Vagrant Cloud box, if it is a Vagrant box.
+fn vagrant_box_name(image_name: &'static str) -> Option<&'static str> {
+    match image_name {
         "windows-11-x86_64.qcow2" => Some("gusztavvargadr/windows-11"),
         "ubuntu-24.04-x86_64.qcow2" => Some("alvistack/ubuntu-24.04"),
         _ => None,
-    };
-
-    let box_name = vagrant_box?;
-    let api_url = format!("https://app.vagrantup.com/api/v2/box/{box_name}");
-
-    // Use curl subprocess to avoid tokio runtime conflicts
-    let output = std::process::Command::new("curl")
-        .args(["-s", "-L", "--max-redirs", "5", "-m", "30", &api_url])
-        .output()
-        .ok()?;
-
-    if !output.status.success() {
-        return None;
     }
+}
 
-    let json: serde_json::Value = serde_json::from_slice(&output.stdout).ok()?;
-
-    // Find libvirt provider
-    if let Some(providers) = json.get("current_version")?.get("providers")?.as_array() {
-        for provider in providers {
-            if provider.get("name")?.as_str()? == "libvirt" {
-                if let Some(dl) = provider.get("download_url")?.as_str() {
-                    return Some(dl.to_string());
-                }
-                if let Some(url) = provider.get("url")?.as_str() {
-                    return Some(url.to_string());
-                }
-            }
+/// Extract the libvirt download URL from a parsed metadata document.
+fn libvirt_download_url(metadata: &VagrantBoxMetadata) -> Option<String> {
+    let providers = &metadata.current_version.as_ref()?.providers;
+    for provider in providers {
+        if provider.name != "libvirt" {
+            continue;
+        }
+        if let Some(download_url) = &provider.download_url {
+            return Some(download_url.clone());
+        }
+        if let Some(url) = &provider.url {
+            return Some(url.clone());
         }
     }
-
     None
+}
+
+/// Query Vagrant Cloud for a libvirt download URL.
+///
+/// Vagrant Cloud API: GET /`api/v2/box/{username}/{box_name`}
+async fn query_vagrant_cloud(image_name: &'static str) -> Result<Option<String>> {
+    let Some(box_name) = vagrant_box_name(image_name) else {
+        return Ok(None);
+    };
+    let api_url = format!("https://app.vagrantup.com/api/v2/box/{box_name}");
+
+    let limits = ImportLimits::default();
+    let client = HttpClientBuilder::new()
+        .max_body_size(Some(limits.max_vagrant_metadata_bytes() as u64))
+        .max_redirects(5)
+        .read_timeout(Duration::from_secs(30))
+        .build();
+
+    vagrant_cloud_lookup(&client, &api_url).await
+}
+
+/// Look up the libvirt download URL for a Vagrant box at `api_url`.
+///
+/// The caller's HTTP client carries the size cap in its config
+/// (`ClientConfig::max_body_size`). A response larger than the cap is rejected
+/// by the transport before the body is collected. The body is read as a stream
+/// (`collect_bytes_async`), never buffered whole by hand.
+///
+/// # Errors
+/// Returns an error if the request, response, or metadata parse fails.
+pub async fn vagrant_cloud_lookup(client: &DynNetClient, api_url: &str) -> Result<Option<String>> {
+    let request = PreparedRequestBuilder::get(api_url)
+        .map(PreparedRequestBuilder::build)
+        .map_err(|e| TestbedError::DownloadFailed {
+            status: 0,
+            url: format!("{api_url}: {e}"),
+        })?;
+
+    let response = client
+        .send_async(request)
+        .await
+        .map_err(|e| TestbedError::DownloadFailed {
+            status: 0,
+            url: format!("{api_url}: {e}"),
+        })?;
+
+    let status: usize = response.get_status().into();
+    if !(200..=299).contains(&status) {
+        return Err(TestbedError::DownloadFailed {
+            status: u16::try_from(status).unwrap_or(u16::MAX),
+            url: api_url.to_string(),
+        });
+    }
+
+    let (_, _, body) = response.into_async_parts();
+    let bytes =
+        collect_bytes_async(body)
+            .await
+            .map_err(|e| TestbedError::VagrantMetadataError {
+                message: format!("reading metadata from {api_url}: {e}"),
+            })?;
+
+    let metadata: VagrantBoxMetadata =
+        serde_json::from_slice(&bytes).map_err(|e| TestbedError::VagrantMetadataError {
+            message: format!("parsing metadata from {api_url}: {e}"),
+        })?;
+
+    Ok(libvirt_download_url(&metadata))
 }
 
 // ── Validation ──────────────────────────────────────────────────────────────
 
 /// Validate that a downloaded image looks legitimate.
+///
+/// # Errors
+/// Returns an error if the image metadata cannot be read or the image is too small.
 pub fn validate_image(path: &Path) -> Result<()> {
     let metadata = std::fs::metadata(path).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("stat {path:?}: {e}"),
+        message: format!("stat {}: {e}", path.display()),
     })?;
 
     let size = metadata.len();
     if size < MIN_IMAGE_SIZE {
         return Err(TestbedError::Qcow2Error {
             message: format!(
-                "image at {path:?} is only {} bytes (< {} MB minimum) — likely a failed download",
+                "image at {} is only {} bytes (< {} MB minimum) — likely a failed download",
+                path.display(),
                 size,
                 MIN_IMAGE_SIZE / 1_048_576
             ),
@@ -568,29 +745,37 @@ const MIN_VIRTIO_ISO_SIZE: u64 = 500 * 1_048_576;
 /// Ensure the virtio-win driver ISO is available.
 ///
 /// Checks multiple locations in order:
-/// 1. EweStore local store (primary): `/home/darkvoid/EweStore/Testbed/virtio-win-0.1.262.iso`
+/// 1. `EweStore` local store (primary): `/home/darkvoid/EweStore/Testbed/virtio-win-0.1.262.iso`
 /// 2. Local cache: `~/.cache/foundation_testbed/images/virtio-win.iso`
 /// 3. Download from Fedora Project URL (fallback)
 ///
 /// Returns the path to the ISO file. The ISO is attached as a CD-ROM
 /// drive to Windows VMs during QEMU launch, allowing driver installation
 /// via `pnputil` during bootstrap.
+///
+/// # Panics
+/// Panics if the cache path has no parent, which cannot happen because the path is under the image cache directory.
+///
+/// # Errors
+/// Returns an error if the virtio ISO cannot be downloaded or validated.
 pub fn ensure_virtio_iso() -> Result<PathBuf> {
     let cache_path = crate::config::image_cache_dir().join("virtio-win.iso");
 
     // 1. Check EweStore local store
     let store_path = Path::new(crate::config::VIRTIO_ISO_STORE_PATH);
     if let Ok(meta) = std::fs::metadata(store_path)
-        && meta.len() >= MIN_VIRTIO_ISO_SIZE {
-            return Ok(store_path.to_path_buf());
-        }
+        && meta.len() >= MIN_VIRTIO_ISO_SIZE
+    {
+        return Ok(store_path.to_path_buf());
+    }
 
     // 2. Check local cache
     if cache_path.exists()
         && let Ok(meta) = std::fs::metadata(&cache_path)
-            && meta.len() >= MIN_VIRTIO_ISO_SIZE {
-                return Ok(cache_path);
-            }
+        && meta.len() >= MIN_VIRTIO_ISO_SIZE
+    {
+        return Ok(cache_path);
+    }
 
     // 3. Download from Fedora Project
     eprintln!("  Downloading virtio-win driver ISO...");
@@ -607,11 +792,13 @@ pub fn ensure_virtio_iso() -> Result<PathBuf> {
     })?;
     if meta.len() < MIN_VIRTIO_ISO_SIZE {
         return Err(TestbedError::Qcow2Error {
-            message: format!("virtio ISO too small ({} bytes) — download may have failed", meta.len()),
+            message: format!(
+                "virtio ISO too small ({} bytes) — download may have failed",
+                meta.len()
+            ),
         });
     }
 
     eprintln!("  virtio-win ISO cached at: {}", cache_path.display());
     Ok(cache_path)
 }
-

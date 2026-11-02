@@ -61,27 +61,40 @@ impl Backend for BiDiBackend<'_> {
         // `{type:"exception", exceptionDetails}` (an uncaught JS error is still a
         // SUCCESSFUL command).
         if res.get("type").and_then(Value::as_str) == Some("success") {
-            Ok(remote_value_to_json(res.get("result").unwrap_or(&Value::Null)))
+            Ok(remote_value_to_json(
+                res.get("result").unwrap_or(&Value::Null),
+            ))
         } else {
             let msg = res
                 .get("exceptionDetails")
                 .and_then(|e| e.get("text").or_else(|| e.get("message")))
                 .and_then(Value::as_str)
                 .unwrap_or("script.evaluate exception");
-            Err(BrowserError::Protocol { code: 0, message: msg.to_string() })
+            Err(BrowserError::Protocol {
+                code: 0,
+                message: msg.to_string(),
+            })
         }
     }
 
     fn screenshot_png(&self) -> Result<Vec<u8>> {
-        let res =
-            self.call("browsingContext.captureScreenshot", json!({ "context": self.context }))?;
-        let data = res.get("data").and_then(Value::as_str).ok_or_else(|| BrowserError::Protocol {
-            code: 0,
-            message: "captureScreenshot returned no data".into(),
-        })?;
+        let res = self.call(
+            "browsingContext.captureScreenshot",
+            json!({ "context": self.context }),
+        )?;
+        let data =
+            res.get("data")
+                .and_then(Value::as_str)
+                .ok_or_else(|| BrowserError::Protocol {
+                    code: 0,
+                    message: "captureScreenshot returned no data".into(),
+                })?;
         base64::engine::general_purpose::STANDARD
             .decode(data)
-            .map_err(|e| BrowserError::Protocol { code: 0, message: format!("bad base64: {e}") })
+            .map_err(|e| BrowserError::Protocol {
+                code: 0,
+                message: format!("bad base64: {e}"),
+            })
     }
 
     fn click_at(&self, x: f64, y: f64) -> Result<()> {
@@ -157,7 +170,11 @@ fn remote_value_to_json(rv: &Value) -> Value {
         Some("number") => match rv.get("value") {
             Some(n @ Value::Number(_)) => n.clone(),
             // Special doubles arrive as strings ("NaN"/"Infinity"/"-0").
-            Some(Value::String(s)) => s.parse::<f64>().ok().and_then(serde_json::Number::from_f64).map_or(Value::Null, Value::Number),
+            Some(Value::String(s)) => s
+                .parse::<f64>()
+                .ok()
+                .and_then(serde_json::Number::from_f64)
+                .map_or(Value::Null, Value::Number),
             _ => Value::Null,
         },
         Some("bigint") => rv

@@ -132,7 +132,9 @@ impl SignalHub {
         self.ctx.effect(move || {
             let value = read.get(); // tracked — re-runs on change
             {
-                let mut slot = publish_cell.write().unwrap_or_else(std::sync::PoisonError::into_inner);
+                let mut slot = publish_cell
+                    .write()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner);
                 slot.0 += 1;
                 slot.1 = Some(value.clone());
             }
@@ -260,7 +262,10 @@ impl HubHandle {
     ///
     /// # Errors
     /// [`HubGone`] when the hub (and its runtime thread) no longer exists.
-    pub fn run_on_hub(&self, f: impl FnOnce(&HubScope<'_>) + Send + 'static) -> Result<(), HubGone> {
+    pub fn run_on_hub(
+        &self,
+        f: impl FnOnce(&HubScope<'_>) + Send + 'static,
+    ) -> Result<(), HubGone> {
         self.tx.send(Box::new(f)).map_err(|_| HubGone)
     }
 

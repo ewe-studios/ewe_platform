@@ -114,7 +114,9 @@ fn sse_parser_keeps_an_event_s_fields_across_a_park() {
     let buffer = SharedByteBufferStream::ref_cell(reader);
     let mut parser = SseParser::new(buffer);
 
-    queue.push(b"event: greeting\ndata: hello\n".to_vec()).unwrap();
+    queue
+        .push(b"event: greeting\ndata: hello\n".to_vec())
+        .unwrap();
     match parser.parse_next() {
         Err(EventSourceError::ReadError(err)) => {
             assert_eq!(err.kind(), std::io::ErrorKind::WouldBlock);
@@ -125,7 +127,9 @@ fn sse_parser_keeps_an_event_s_fields_across_a_park() {
     queue.push(b"\n".to_vec()).unwrap();
     match parser.parse_next().unwrap() {
         Some(result) => match result.event {
-            Event::Message { data, event_type, .. } => {
+            Event::Message {
+                data, event_type, ..
+            } => {
                 assert_eq!(data, "hello");
                 assert_eq!(event_type.as_deref(), Some("greeting"));
             }
@@ -147,7 +151,10 @@ fn queue_sse_events_fail_a_broken_feed_instead_of_waiting() {
     struct Broken;
     impl Read for Broken {
         fn read(&mut self, _buf: &mut [u8]) -> std::io::Result<usize> {
-            Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "malformed feed"))
+            Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "malformed feed",
+            ))
         }
     }
 
@@ -158,7 +165,7 @@ fn queue_sse_events_fail_a_broken_feed_instead_of_waiting() {
         QueueSseEvents::over_reader(Broken, queue, done, Arc::new(WakeRegistry::new()));
 
     match events.next() {
-        Some(Stream::Pending(SseProgress::Failed(msg))) => assert!(!msg.is_empty()),
+        Some(Stream::Pending(SseProgress::Failed(msg))) => assert_ne!(msg, ""),
         other => panic!("expected Pending(Failed), got {other:?}"),
     }
     assert!(events.next().is_none(), "a failed stream ends");

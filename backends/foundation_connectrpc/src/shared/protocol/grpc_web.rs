@@ -21,21 +21,21 @@ use std::time::Duration;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine as _;
 use bytes::{Bytes, BytesMut};
-use futures::StreamExt;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };
+use futures::StreamExt;
 
 use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
 use crate::shared::context::{Peer, Spec, StreamType};
-use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
+use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::transport::{
-    body_stream_from_pipe, fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn,
-    PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
+    body_stream_from_pipe, fail_stream, race, BodyStream, ByteSink, ByteSource, Frame,
+    PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
@@ -342,9 +342,9 @@ impl Base64StreamDecoder {
             return Ok(Vec::new());
         }
         let head: Vec<u8> = self.pending.drain(..complete).collect();
-        STANDARD
-            .decode(head)
-            .map_err(|e| ConnectError::invalid_argument(format!("invalid grpc-web-text base64: {e}")).into())
+        STANDARD.decode(head).map_err(|e| {
+            ConnectError::invalid_argument(format!("invalid grpc-web-text base64: {e}")).into()
+        })
     }
 }
 
@@ -563,16 +563,18 @@ async fn read_grpc_web_response(
         Ok(false) => match stream.trailers.receive().await {
             Some(trailers) => {
                 let error = parse_status_trailers(&trailers);
-                let _ = race(tx.send(Frame::EndStream { error, trailers }), cancel.cancelled())
-                    .await;
+                let _ = race(
+                    tx.send(Frame::EndStream { error, trailers }),
+                    cancel.cancelled(),
+                )
+                .await;
                 tx.close();
                 Ok(())
             }
             None => {
-                let e = ConnectError::internal(
-                    "the gRPC-Web response ended without a status trailer",
-                )
-                .into();
+                let e =
+                    ConnectError::internal("the gRPC-Web response ended without a status trailer")
+                        .into();
                 fail_stream(&tx, &e, &cancel).await;
                 Err(e)
             }
@@ -841,7 +843,10 @@ impl ProtocolHandler for GrpcWebHandler {
         };
 
         let mut headers = outcome.headers;
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec![content_type(codec_name, text)]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![content_type(codec_name, text)],
+        );
         if let Some(enc) = response_encoding {
             headers.insert(
                 SimpleHeader::from(constants::HEADER_ENCODING.to_string()),
@@ -876,7 +881,10 @@ fn is_text(request: &SimpleIncomingRequest) -> bool {
 /// Trim ASCII whitespace from both ends of a byte slice (base64 bodies may carry
 /// trailing newlines).
 fn trim_ascii(bytes: &[u8]) -> &[u8] {
-    let start = bytes.iter().position(|b| !b.is_ascii_whitespace()).unwrap_or(bytes.len());
+    let start = bytes
+        .iter()
+        .position(|b| !b.is_ascii_whitespace())
+        .unwrap_or(bytes.len());
     let end = bytes
         .iter()
         .rposition(|b| !b.is_ascii_whitespace())

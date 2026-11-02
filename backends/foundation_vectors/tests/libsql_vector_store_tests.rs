@@ -10,8 +10,7 @@ use foundation_core::valtron::valtron_test;
 use foundation_db::LibsqlStore;
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{
-    VectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
-    VectorStoreError,
+    VectorEntry, VectorMatch, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
 };
 use foundation_vectors::vector::Vector;
 use foundation_vectors::LibsqlVectorStore;
@@ -44,9 +43,18 @@ fn ids(m: &[VectorMatch]) -> Vec<&str> {
 #[valtron_test]
 async fn diskann_search_returns_nearest_first() {
     let (_d, store) = make_store().await;
-    store.insert("ns", entry("x", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert("ns", entry("y", [0.0, 1.0, 0.0])).await.unwrap();
-    store.insert("ns", entry("z", [0.9, 0.1, 0.0])).await.unwrap();
+    store
+        .insert("ns", entry("x", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert("ns", entry("y", [0.0, 1.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert("ns", entry("z", [0.9, 0.1, 0.0]))
+        .await
+        .unwrap();
 
     let m = store.search("ns", &[1.0, 0.0, 0.0], 2).await.unwrap();
     assert_eq!(m.len(), 2);
@@ -57,9 +65,18 @@ async fn diskann_search_returns_nearest_first() {
 #[valtron_test]
 async fn namespaces_isolated_via_overfetch_filter() {
     let (_d, store) = make_store().await;
-    store.insert("a", entry("a1", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert("a", entry("a2", [0.8, 0.2, 0.0])).await.unwrap();
-    store.insert("b", entry("b1", [1.0, 0.0, 0.0])).await.unwrap();
+    store
+        .insert("a", entry("a1", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert("a", entry("a2", [0.8, 0.2, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert("b", entry("b1", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
 
     let ma = store.search("a", &[1.0, 0.0, 0.0], 5).await.unwrap();
     let mut got = ids(&ma);
@@ -81,29 +98,44 @@ async fn dimension_and_zero_validation() {
     };
     assert!(matches!(
         store.insert("ns", bad).await.unwrap_err(),
-        VectorStoreError::DimensionMismatch { expected: 3, got: 2 }
+        VectorStoreError::DimensionMismatch {
+            expected: 3,
+            got: 2
+        }
     ));
     assert!(matches!(
-        store.insert("ns", entry("z", [0.0, 0.0, 0.0])).await.unwrap_err(),
+        store
+            .insert("ns", entry("z", [0.0, 0.0, 0.0]))
+            .await
+            .unwrap_err(),
         VectorStoreError::ZeroVector
     ));
     assert!(matches!(
         store.search("ns", &[1.0], 1).await.unwrap_err(),
-        VectorStoreError::DimensionMismatch { expected: 3, got: 1 }
+        VectorStoreError::DimensionMismatch {
+            expected: 3,
+            got: 1
+        }
     ));
 }
 
 #[valtron_test]
 async fn get_update_and_delete() {
     let (_d, store) = make_store().await;
-    store.insert("ns", entry("k", [0.2, 0.4, 0.6])).await.unwrap();
+    store
+        .insert("ns", entry("k", [0.2, 0.4, 0.6]))
+        .await
+        .unwrap();
     let got = store.get("ns", "k").await.unwrap().expect("present");
     assert_eq!(got.id, "k");
     assert_eq!(got.vector.data.len(), 3);
     assert!((got.vector.data[0] - 0.2).abs() < 1e-4);
 
     // Upsert replaces the vector for the same (namespace, id).
-    store.insert("ns", entry("k", [0.0, 0.0, 1.0])).await.unwrap();
+    store
+        .insert("ns", entry("k", [0.0, 0.0, 1.0]))
+        .await
+        .unwrap();
     assert_eq!(store.len("ns").await.unwrap(), 1);
     let updated = store.get("ns", "k").await.unwrap().unwrap();
     assert!((updated.vector.data[2] - 1.0).abs() < 1e-4);

@@ -28,18 +28,34 @@ pub fn command() -> Command {
         .subcommand(
             Command::new("inspect")
                 .about("Dump module structure: sections, sizes, exports, imports")
-                .arg(Arg::new("file").required(true).help("Path to a .wasm or .wat file")),
+                .arg(
+                    Arg::new("file")
+                        .required(true)
+                        .help("Path to a .wasm or .wat file"),
+                ),
         )
         .subcommand(
             Command::new("validate")
                 .about("Check that the file decodes cleanly into the typed model")
-                .arg(Arg::new("file").required(true).help("Path to a .wasm or .wat file")),
+                .arg(
+                    Arg::new("file")
+                        .required(true)
+                        .help("Path to a .wasm or .wat file"),
+                ),
         )
         .subcommand(
             Command::new("convert")
                 .about("Convert between binary and text by extension (.wasm ⇄ .wat)")
-                .arg(Arg::new("input").required(true).help("Input .wasm or .wat file"))
-                .arg(Arg::new("output").required(true).help("Output .wasm or .wat file")),
+                .arg(
+                    Arg::new("input")
+                        .required(true)
+                        .help("Input .wasm or .wat file"),
+                )
+                .arg(
+                    Arg::new("output")
+                        .required(true)
+                        .help("Output .wasm or .wat file"),
+                ),
         )
         .subcommand(
             Command::new("edit")
@@ -49,17 +65,47 @@ pub fn command() -> Command {
                     Command::new("add-custom-section")
                         .about("Append a custom section (name + data)")
                         .arg(Arg::new("file").required(true).help("Module to edit"))
-                        .arg(Arg::new("name").long("name").required(true).help("Custom section name"))
-                        .arg(Arg::new("data").long("data").required(true).help("Section payload (UTF-8 text)"))
-                        .arg(Arg::new("output").long("output").short('o').help("Output path (defaults to in-place)")),
+                        .arg(
+                            Arg::new("name")
+                                .long("name")
+                                .required(true)
+                                .help("Custom section name"),
+                        )
+                        .arg(
+                            Arg::new("data")
+                                .long("data")
+                                .required(true)
+                                .help("Section payload (UTF-8 text)"),
+                        )
+                        .arg(
+                            Arg::new("output")
+                                .long("output")
+                                .short('o')
+                                .help("Output path (defaults to in-place)"),
+                        ),
                 )
                 .subcommand(
                     Command::new("rename-export")
                         .about("Rename an export, keeping every other byte untouched")
                         .arg(Arg::new("file").required(true).help("Module to edit"))
-                        .arg(Arg::new("from").long("from").required(true).help("Current export name"))
-                        .arg(Arg::new("to").long("to").required(true).help("New export name"))
-                        .arg(Arg::new("output").long("output").short('o').help("Output path (defaults to in-place)")),
+                        .arg(
+                            Arg::new("from")
+                                .long("from")
+                                .required(true)
+                                .help("Current export name"),
+                        )
+                        .arg(
+                            Arg::new("to")
+                                .long("to")
+                                .required(true)
+                                .help("New export name"),
+                        )
+                        .arg(
+                            Arg::new("output")
+                                .long("output")
+                                .short('o')
+                                .help("Output path (defaults to in-place)"),
+                        ),
                 ),
         )
 }
@@ -160,7 +206,10 @@ fn run_validate(args: &ArgMatches) -> Result<(), BoxedError> {
 
 fn run_convert(args: &ArgMatches) -> Result<(), BoxedError> {
     let input = Path::new(args.get_one::<String>("input").expect("input is required"));
-    let output = Path::new(args.get_one::<String>("output").expect("output is required"));
+    let output = Path::new(
+        args.get_one::<String>("output")
+            .expect("output is required"),
+    );
     let module = load(input)?;
     save(&module, output)?;
     println!("converted {} -> {}", input.display(), output.display());

@@ -14,19 +14,19 @@ use std::time::{Duration, Instant};
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_core::synca::WaitGroupGuard;
-use foundation_iogate::ShutdownSignal;
 use foundation_core::valtron::{
     queue_waker, AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, QueueReadiness,
     TaskIterator, TaskStatus, WakeToken,
 };
+use foundation_errstacks::ErrorTrace;
+use foundation_iogate::ShutdownSignal;
+use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::shared::http::{
     HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleIncomingRequest, SimpleOutgoingResponse,
 };
-use foundation_errstacks::ErrorTrace;
 
 use crate::native::reader::read_next_request;
 use crate::shared::serve::{respond, ConnectionResult, Serve, ServeError, ServeFuture};
@@ -171,7 +171,10 @@ impl ConnectionHandler {
     /// report readiness (the WireGuard overlay). A blocking transport uses the
     /// `base_delay` / `max_attempts` polling scheme instead.
     fn body_wait_timeout(&self) -> Duration {
-        self.timeout_calculator.config().expect_continue.body_timeout
+        self.timeout_calculator
+            .config()
+            .expect_continue
+            .body_timeout
     }
 
     fn is_transient_error(e: &HttpReaderError) -> bool {
@@ -597,16 +600,28 @@ impl ConnectionHandler {
                 self.state = Some(HandlerState::Processing { req, should_close });
                 Some(TaskStatus::Pending(()))
             }
-            Ok(_) => {
-                self.waiting_for_body_retry(req, should_close, attempt, next_attempt, deadline, armed)
-            }
+            Ok(_) => self.waiting_for_body_retry(
+                req,
+                should_close,
+                attempt,
+                next_attempt,
+                deadline,
+                armed,
+            ),
             Err(e) => {
                 let kind = e.kind();
                 if kind == std::io::ErrorKind::WouldBlock
                     || kind == std::io::ErrorKind::TimedOut
                     || kind == std::io::ErrorKind::Interrupted
                 {
-                    self.waiting_for_body_retry(req, should_close, attempt, next_attempt, deadline, armed)
+                    self.waiting_for_body_retry(
+                        req,
+                        should_close,
+                        attempt,
+                        next_attempt,
+                        deadline,
+                        armed,
+                    )
                 } else {
                     tracing::warn!(
                         client_ip = %self.client_ip,
@@ -670,8 +685,7 @@ impl ConnectionHandler {
         // its read waker, bounded by `body_timeout`, instead of polling on fixed
         // delays. Blocking transports fall through to the countdown below.
         if let Some(signal) = armed {
-            let deadline =
-                deadline.unwrap_or_else(|| Instant::now() + self.body_wait_timeout());
+            let deadline = deadline.unwrap_or_else(|| Instant::now() + self.body_wait_timeout());
             if Instant::now() >= deadline {
                 return self.send_408(attempt);
             }
@@ -790,8 +804,7 @@ impl ConnectionHandler {
                     // `SendSafeBody::None` is the *representation* of "no body"
                     // that the renderer expects; `Option::None` is not
                     // interchangeable with it. Only real content is stripped.
-                    let carries_content =
-                        !matches!(resp.body, None | Some(SendSafeBody::None));
+                    let carries_content = !matches!(resp.body, None | Some(SendSafeBody::None));
                     if carries_content {
                         tracing::warn!(
                             client_ip = %self.client_ip,
@@ -843,8 +856,7 @@ impl ConnectionHandler {
                     vec![format!("h3=\":{port}\"")],
                 );
             }
-            if let Err(err) = Http11::response(resp).http_render_to_writer(&mut self.conn.clone())
-            {
+            if let Err(err) = Http11::response(resp).http_render_to_writer(&mut self.conn.clone()) {
                 tracing::debug!(
                     client_ip = %self.client_ip,
                     err = ?err,
@@ -897,7 +909,10 @@ impl ConnectionHandler {
                 }
                 ConnectionResult::Async(future) => {
                     tracing::trace!(client_ip = %self.client_ip, "Processing: handler returned Async; parking on its future");
-                    self.state = Some(HandlerState::Awaiting { future, should_close });
+                    self.state = Some(HandlerState::Awaiting {
+                        future,
+                        should_close,
+                    });
                     Some(TaskStatus::Pending(()))
                 }
             }
@@ -951,7 +966,10 @@ impl ConnectionHandler {
         match future.as_mut().poll(&mut cx) {
             Poll::Ready(result) => self.apply_async_result(result, should_close),
             Poll::Pending => {
-                self.state = Some(HandlerState::Awaiting { future, should_close });
+                self.state = Some(HandlerState::Awaiting {
+                    future,
+                    should_close,
+                });
                 if self.wake_queue.is_empty() {
                     Some(TaskStatus::Depends(Arc::new(AsyncReadiness {
                         future: QueueReadiness::new(self.wake_queue.clone()),
@@ -1062,9 +1080,10 @@ impl TaskIterator for ConnectionHandler {
             HandlerState::Processing { req, should_close } => {
                 self.handle_processing(req, should_close)
             }
-            HandlerState::Awaiting { future, should_close } => {
-                self.handle_awaiting(future, should_close)
-            }
+            HandlerState::Awaiting {
+                future,
+                should_close,
+            } => self.handle_awaiting(future, should_close),
         }
     }
 }

@@ -90,7 +90,11 @@ fn tun_mode_seed_node_starts_over_kernel_gossip() {
     // A bound bootstrap listener means the whole TUN startup path — device open, overlay
     // route, and the kernel-UDP gossip bind — completed.
     let addr = node.bootstrap_addr();
-    assert_ne!(addr.port(), 0, "bootstrap listener bound to a real port in TUN mode");
+    assert_ne!(
+        addr.port(),
+        0,
+        "bootstrap listener bound to a real port in TUN mode"
+    );
 
     node.shutdown();
 }

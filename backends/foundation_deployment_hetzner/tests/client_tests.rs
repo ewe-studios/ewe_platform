@@ -43,7 +43,10 @@ fn every_override_is_tried_before_every_vendor_name() {
     // token for this workspace", and that intent should beat any vendor variable
     // lying around in the environment.
     let vars = credential_vars();
-    let last_override = vars.iter().rposition(|v| v.starts_with("EWE_")).expect("has overrides");
+    let last_override = vars
+        .iter()
+        .rposition(|v| v.starts_with("EWE_"))
+        .expect("has overrides");
     let first_vendor = vars
         .iter()
         .position(|v| !v.starts_with("EWE_"))
@@ -129,7 +132,10 @@ fn debug_never_prints_the_token() {
 
     // The alternate/pretty formatter is a separate code path.
     let pretty = format!("{client:#?}");
-    assert!(!pretty.contains("super-secret-token-value"), "leaked in {{:#?}}: {pretty}");
+    assert!(
+        !pretty.contains("super-secret-token-value"),
+        "leaked in {{:#?}}: {pretty}"
+    );
 }
 
 #[test]
@@ -138,14 +144,18 @@ fn no_error_variant_interpolates_a_token() {
     // to carry the secret, so none of them holds it in the first place.
     let errors = [
         HetznerError::Unauthorized,
-        HetznerError::RateLimited { retry_after_secs: Some(30) },
+        HetznerError::RateLimited {
+            retry_after_secs: Some(30),
+        },
         HetznerError::Api {
             status: 422,
             code: "invalid_input".into(),
             message: "server_type is required".into(),
         },
         HetznerError::Transport("connection refused".into()),
-        HetznerError::NoCredentials { looked_for: credential_vars() },
+        HetznerError::NoCredentials {
+            looked_for: credential_vars(),
+        },
     ];
     for err in errors {
         let rendered = format!("{err} {err:?}");

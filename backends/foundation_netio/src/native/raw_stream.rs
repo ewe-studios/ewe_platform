@@ -201,7 +201,7 @@ impl RawStream {
     /// Whether the underlying transport is a Unix-domain socket.
     ///
     /// WHY: Unix sockets are closed by the server after every HTTP response
-    /// (Docker, BuildKitd). The connection pool must never cache them.
+    /// (Docker, `BuildKitd`). The connection pool must never cache them.
     /// TLS variants are always over TCP — they return `false`.
     #[must_use]
     pub fn is_unix(&self) -> bool {
@@ -250,14 +250,11 @@ impl foundation_core::io::ioutils::IsUnixTransport for RawStream {
 impl RawStream {
     /// Register a wake callback fired when the underlying connection becomes
     /// readable. Returns `true` if the transport supports readiness wakeups (the
-    /// WireGuard overlay), `false` otherwise — TLS-over-TCP and plain TCP block on
+    /// `WireGuard` overlay), `false` otherwise — TLS-over-TCP and plain TCP block on
     /// read and never park. A reader task uses this to decide between
     /// `TaskStatus::Depends` (park) and failing on a `WouldBlock`.
     #[must_use]
-    pub fn register_read_waker(
-        &self,
-        waker: crate::native::connection::ConnWaker,
-    ) -> bool {
+    pub fn register_read_waker(&self, waker: crate::native::connection::ConnWaker) -> bool {
         match self {
             Self::AsPlain(inner, _) => inner.get_core_ref().register_read_waker(waker),
             #[cfg(any(
@@ -299,7 +296,11 @@ impl RawStream {
             #[cfg(all(unix, feature = "ssl-rustls"))]
             Self::AsClientTls(inner, _) => inner.get_core_ref().supports_nonblocking_io(),
             #[cfg(all(
-                any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"),
+                any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                ),
                 not(all(unix, feature = "ssl-rustls"))
             ))]
             Self::AsServerTls(..) | Self::AsClientTls(..) => false,
@@ -403,12 +404,10 @@ impl RawStream {
     /// registers the fd with the shared reactor, which wakes the waker on
     /// readability. A blocking socket returns `None` (its `WouldBlock` is a
     /// timeout, not a wait), as does a completion socket (bytes come from an
-    /// io_uring inbox, not fd readability) and a TLS backend that cannot be
+    /// `io_uring` inbox, not fd readability) and a TLS backend that cannot be
     /// driven non-blocking.
     #[must_use]
-    pub fn read_wake_source(
-        &self,
-    ) -> Option<crate::shared::client::body_reader::ReadWakeSource> {
+    pub fn read_wake_source(&self) -> Option<crate::shared::client::body_reader::ReadWakeSource> {
         use std::sync::Arc;
 
         // Overlay: only `AsPlain` wraps a `Connection` that may be an overlay.
@@ -541,7 +540,7 @@ impl RawStream {
                 EndpointConfig::WithTimeout(_, timeout) => {
                     Connection::with_timeout(host_socket_addr, *timeout)
                 }
-                _ => Connection::without_timeout(host_socket_addr),
+                EndpointConfig::NoTimeout(_) => Connection::without_timeout(host_socket_addr),
             }
         } else {
             unreachable!("Should not attempt creating tls connection in this method")

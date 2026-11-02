@@ -55,9 +55,9 @@ impl LlamaServer {
             ));
         }
 
-        let port = config.port.unwrap_or_else(|| {
-            super::pick_unused_port().expect("no free port available")
-        });
+        let port = config
+            .port
+            .unwrap_or_else(|| super::pick_unused_port().expect("no free port available"));
 
         kill_existing(port);
 

@@ -80,7 +80,9 @@ impl WebSocketConnector for ModelInfoClient {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<WebSocketClient, WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 
     fn open_websocket_task(
@@ -88,7 +90,9 @@ impl WebSocketConnector for ModelInfoClient {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 }
 

@@ -187,7 +187,10 @@ impl BytesPool {
             PooledBuffer::new(buf, Some(self.clone()))
         } else {
             self.stats.allocations.fetch_add(1, Ordering::Relaxed);
-            PooledBuffer::new(Vec::with_capacity(self.default_capacity), Some(self.clone()))
+            PooledBuffer::new(
+                Vec::with_capacity(self.default_capacity),
+                Some(self.clone()),
+            )
         }
     }
 

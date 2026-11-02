@@ -2,8 +2,8 @@
 
 use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_nativeapis::native::vfs::d1_delta::D1Delta;
-use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
 use foundation_nativeapis::shared::vfs::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
+use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
 use foundation_nativeapis::shared::vfs::{DeltaStore, VfsFileSystem};
 
 fn init_pool() -> PoolGuard {
@@ -15,7 +15,8 @@ fn is_local_cf_available() -> bool {
     if std::env::var("CF_INTEGRATION_TEST").ok().as_deref() != Some("1") {
         return false;
     }
-    let base = std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
+    let base =
+        std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
     let response = std::process::Command::new("curl")
         .args(["-s", "-o", "/dev/null", "-w", "%{http_code}", &base])
         .output();
@@ -34,9 +35,11 @@ fn make_sync_d1() -> Option<SyncFs<D1Delta>> {
     if !is_local_cf_available() {
         return None;
     }
-    let base = std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
+    let base =
+        std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
     let db_id = std::env::var("LOCAL_D1_DATABASE_ID").unwrap_or_else(|_| "test-db".to_string());
-    let delta = D1Delta::new_with_base_url("test-token", "test-account", &db_id, Some(&base)).ok()?;
+    let delta =
+        D1Delta::new_with_base_url("test-token", "test-account", &db_id, Some(&base)).ok()?;
     Some(SyncFs::new(delta))
 }
 

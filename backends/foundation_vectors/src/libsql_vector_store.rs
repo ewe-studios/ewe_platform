@@ -23,14 +23,13 @@
 
 use std::sync::Arc;
 
-use foundation_db::{QueryStore, DataValue};
+use foundation_db::{DataValue, QueryStore};
 use futures_lite::StreamExt;
 
 use crate::flat::TopK;
 use crate::sql_store::count_rows;
 use crate::store::{
-    VectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
-    VectorStoreError,
+    VectorEntry, VectorMatch, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
 };
 use crate::vector::Vector;
 
@@ -133,13 +132,21 @@ fn vec_to_str(v: &[f32]) -> String {
 /// Parse `vector_extract`'s `[a,b,c]` output back to floats. A component that
 /// doesn't parse is an error (dropping it would shift every later dimension).
 fn parse_vec_str(s: &str) -> Result<Vec<f32>, VectorStoreError> {
-    let inner = s.trim().trim_start_matches('[').trim_end_matches(']').trim();
+    let inner = s
+        .trim()
+        .trim_start_matches('[')
+        .trim_end_matches(']')
+        .trim();
     if inner.is_empty() {
         return Ok(Vec::new());
     }
     inner
         .split(',')
-        .map(|p| p.trim().parse::<f32>().map_err(backend_err("parse embedding")))
+        .map(|p| {
+            p.trim()
+                .parse::<f32>()
+                .map_err(backend_err("parse embedding"))
+        })
         .collect()
 }
 
@@ -147,7 +154,8 @@ fn parse_vec_str(s: &str) -> Result<Vec<f32>, VectorStoreError> {
 impl<Q: QueryStore + 'static> VectorStore for LibsqlVectorStore<Q> {
     async fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(entry.vector.dimension(), entry.vector.is_zero())?;
-        let meta = serde_json::to_string(&entry.metadata).map_err(backend_err("encode metadata"))?;
+        let meta =
+            serde_json::to_string(&entry.metadata).map_err(backend_err("encode metadata"))?;
         self.backend
             .execute(
                 &format!(
@@ -229,7 +237,11 @@ impl<Q: QueryStore + 'static> VectorStore for LibsqlVectorStore<Q> {
         Ok(top.finish())
     }
 
-    async fn get(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
+    async fn get(
+        &self,
+        namespace: &str,
+        id: &str,
+    ) -> Result<Option<VectorEntry>, VectorStoreError> {
         let mut rows = self
             .backend
             .query(

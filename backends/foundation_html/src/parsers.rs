@@ -46,7 +46,9 @@ pub enum ParsingTagError {
     #[display("Parser encountered closing tag but never pre-allocated the start tag in stack")]
     ClosingTagHasZeroElementInStack,
 
-    #[display("Parser encountered markup at top of stack has no markup, our invariants are broken")]
+    #[display(
+        "Parser encountered markup at top of stack has no markup, our invariants are broken"
+    )]
     StackedMarkupHasNoTag,
 
     #[display("Parser encountered a closing tag different from top markup in stack nor does not close top markup in rules: {_0}")]

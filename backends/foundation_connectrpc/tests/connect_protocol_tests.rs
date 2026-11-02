@@ -57,8 +57,7 @@ fn unary_error_status_and_body_match_spec() {
     let body = unary_error_body(&err).unwrap();
     assert_eq!(&body, br#"{"code":"unavailable","message":"overloaded"}"#);
 
-    let nf: foundation_errstacks::ErrorTrace<ConnectError> =
-        ConnectError::not_found("nope").into();
+    let nf: foundation_errstacks::ErrorTrace<ConnectError> = ConnectError::not_found("nope").into();
     assert_eq!(unary_error_status(&nf), 404);
 }
 
@@ -68,10 +67,7 @@ fn unary_error_status_and_body_match_spec() {
 fn get_query_text_codec_is_percent_encoded() {
     // JSON (text) codec, no compression → percent-encoded message, no base64 flag.
     let q = encode_get_query("json", br#"{"a":1}"#, false, None).unwrap();
-    assert_eq!(
-        q,
-        "connect=v1&encoding=json&message=%7B%22a%22%3A1%7D"
-    );
+    assert_eq!(q, "connect=v1&encoding=json&message=%7B%22a%22%3A1%7D");
 }
 
 #[test]
@@ -114,7 +110,12 @@ fn client_headers_unary_vs_streaming() {
         .is_some());
 
     let mut streaming = SimpleHeaders::new();
-    client.write_request_headers(StreamType::ServerStream, &mut streaming, "json", Some("gzip"));
+    client.write_request_headers(
+        StreamType::ServerStream,
+        &mut streaming,
+        "json",
+        Some("gzip"),
+    );
     assert_eq!(
         streaming.get(&SimpleHeader::CONTENT_TYPE).unwrap(),
         &vec!["application/connect+json".to_string()]
@@ -225,7 +226,9 @@ fn streaming_roundtrip_normalizes_endstream() {
                 send_body: Arc::new(req_tx),
                 // F45 Part D: TransportStream now speaks FutureStream; bridge the
                 // pipe-fed test harness through the pipe→FutureStream adapters.
-                head: foundation_connectrpc::shared::transport::head_stream_from_pipe(client_head_rx),
+                head: foundation_connectrpc::shared::transport::head_stream_from_pipe(
+                    client_head_rx,
+                ),
                 recv_body: foundation_connectrpc::shared::transport::body_stream_from_pipe(resp_rx),
                 trailers: {
                     let (tx, rx) = Pipe::with_depth(1);
@@ -260,7 +263,10 @@ fn streaming_roundtrip_normalizes_endstream() {
             server_sender.send(bytes).await.unwrap();
         }
         let mut trailers = SimpleHeaders::new();
-        trailers.insert(SimpleHeader::from("x-count".to_string()), vec!["2".to_string()]);
+        trailers.insert(
+            SimpleHeader::from("x-count".to_string()),
+            vec!["2".to_string()],
+        );
         server_sender.close(None, trailers).await.unwrap();
     });
 
@@ -287,10 +293,18 @@ fn streaming_roundtrip_normalizes_endstream() {
         cs,
         srv,
         cr,
-        Box::pin(async move { let _ = s_read.await; }),
-        Box::pin(async move { let _ = s_write.await; }),
-        Box::pin(async move { let _ = c_read.await; }),
-        Box::pin(async move { let _ = c_write.await; }),
+        Box::pin(async move {
+            let _ = s_read.await;
+        }),
+        Box::pin(async move {
+            let _ = s_write.await;
+        }),
+        Box::pin(async move {
+            let _ = c_read.await;
+        }),
+        Box::pin(async move {
+            let _ = c_write.await;
+        }),
     ]);
 
     let msgs = received.lock().unwrap();
@@ -298,5 +312,8 @@ fn streaming_roundtrip_normalizes_endstream() {
         &*msgs,
         &[Bytes::from_static(b"m1"), Bytes::from_static(b"m2")]
     );
-    assert!(*got_clean_eos.lock().unwrap(), "EndStream normalized to Ok(None)");
+    assert!(
+        *got_clean_eos.lock().unwrap(),
+        "EndStream normalized to Ok(None)"
+    );
 }

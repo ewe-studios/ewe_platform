@@ -122,7 +122,9 @@ pub fn classify_docker_client_err(
 ) -> DockerError {
     use foundation_deployment_docker::DockerError as De;
     match e {
-        De::Transport(m) | De::Unavailable(m) => DockerError::Connection(format!("{operation}: {m}")),
+        De::Transport(m) | De::Unavailable(m) => {
+            DockerError::Connection(format!("{operation}: {m}"))
+        }
         De::Api { status, message } => DockerError::Api {
             operation: operation.to_string(),
             status,
@@ -135,7 +137,10 @@ pub fn classify_docker_client_err(
         De::BuildFailed(m) => DockerError::ImageBuild(m),
         // The image name is not part of the client's error; the caller (which
         // knows it) builds `ImagePull` itself where it matters.
-        De::PullFailed(m) => DockerError::ImagePull { image: operation.to_string(), reason: m },
+        De::PullFailed(m) => DockerError::ImagePull {
+            image: operation.to_string(),
+            reason: m,
+        },
         De::PushFailed(m) => DockerError::ImagePush(format!("{operation}: {m}")),
         De::LoadFailed(m) => DockerError::ImageLoad(format!("{operation}: {m}")),
     }
@@ -148,6 +153,8 @@ pub fn classify_docker_client_err(
 /// [`classify_docker_client_err`] for how each kind maps; prefer that (with an
 /// operation name) where the operation is known.
 #[must_use]
-pub fn map_docker_client_err(e: foundation_deployment_docker::DockerError) -> ErrorTrace<DockerError> {
+pub fn map_docker_client_err(
+    e: foundation_deployment_docker::DockerError,
+) -> ErrorTrace<DockerError> {
     docker_err(classify_docker_client_err("docker request", e))
 }

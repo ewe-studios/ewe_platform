@@ -1,5 +1,4 @@
 /// Linux epoll selector.
-
 use super::super::super::super::event::Events;
 use crate::poll::{Interest, Token};
 
@@ -54,14 +53,8 @@ impl Selector {
             u64: token.0 as u64,
         };
 
-        let r = unsafe {
-            libc::epoll_ctl(
-                self.epoll.as_raw_fd(),
-                libc::EPOLL_CTL_ADD,
-                fd,
-                &mut event,
-            )
-        };
+        let r =
+            unsafe { libc::epoll_ctl(self.epoll.as_raw_fd(), libc::EPOLL_CTL_ADD, fd, &mut event) };
 
         if r < 0 {
             Err(io::Error::last_os_error())
@@ -77,14 +70,8 @@ impl Selector {
             u64: token.0 as u64,
         };
 
-        let r = unsafe {
-            libc::epoll_ctl(
-                self.epoll.as_raw_fd(),
-                libc::EPOLL_CTL_MOD,
-                fd,
-                &mut event,
-            )
-        };
+        let r =
+            unsafe { libc::epoll_ctl(self.epoll.as_raw_fd(), libc::EPOLL_CTL_MOD, fd, &mut event) };
 
         if r < 0 {
             Err(io::Error::last_os_error())
@@ -146,10 +133,7 @@ impl Selector {
             }
             Ok(())
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                "waker not registered",
-            ))
+            Err(io::Error::new(io::ErrorKind::Other, "waker not registered"))
         }
     }
 
@@ -170,7 +154,10 @@ impl Selector {
 
     /// EVFILT_VNODE is not supported on epoll. Returns Unsupported.
     pub fn register_vnode(&self, _fd: RawFd, _token: Token) -> io::Result<()> {
-        Err(io::Error::new(io::ErrorKind::Unsupported, "EVFILT_VNODE not supported on epoll"))
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "EVFILT_VNODE not supported on epoll",
+        ))
     }
 
     /// EVFILT_VNODE deregistration — no-op on epoll.
@@ -180,9 +167,7 @@ impl Selector {
 
     /// Wait for readiness events.
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
-        let timeout_ms = timeout
-            .map(|d| d.as_millis() as libc::c_int)
-            .unwrap_or(-1);
+        let timeout_ms = timeout.map(|d| d.as_millis() as libc::c_int).unwrap_or(-1);
 
         // Get pointer to the Vec's buffer and its capacity (not length).
         // The Vec has capacity but length 0 — epoll_wait writes directly into

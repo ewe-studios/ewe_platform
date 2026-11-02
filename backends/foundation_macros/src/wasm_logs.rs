@@ -62,8 +62,13 @@ impl Default for Args {
 }
 
 const KNOWN_ARGS: &[&str] = &[
-    "tracing", "tracing_targets", "tracing_ids", "tracing_names",
-    "tracing_files", "tracing_lines", "tracing_ansi",
+    "tracing",
+    "tracing_targets",
+    "tracing_ids",
+    "tracing_names",
+    "tracing_files",
+    "tracing_lines",
+    "tracing_ansi",
 ];
 
 fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
@@ -72,8 +77,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
         return Ok(args);
     }
     let metas =
-        syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated
-            .parse2(attr)?;
+        syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated.parse2(attr)?;
     for meta in metas {
         match meta {
             // A bare `console` / `stdout` selects the backend.
@@ -238,7 +242,10 @@ mod tests {
 
     #[test]
     fn bad_key_rejected() {
-        let out = err(&wasm_logs(quote! { tracing_file = true }, quote! { fn f() {} }));
+        let out = err(&wasm_logs(
+            quote! { tracing_file = true },
+            quote! { fn f() {} },
+        ));
         assert!(out.contains("unknown argument"));
     }
 }

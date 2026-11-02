@@ -23,7 +23,6 @@
 ///
 /// // The fd is NOT closed — you are still responsible for closing it.
 /// ```
-
 use super::super::super::event::Source;
 use crate::poll::{Interest, Registry, Token};
 

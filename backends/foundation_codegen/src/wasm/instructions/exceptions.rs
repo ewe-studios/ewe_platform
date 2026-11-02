@@ -1,7 +1,7 @@
 use super::Instruction;
 use crate::wasm::builtins::WasmbinCountable;
 use crate::wasm::indices::{ExceptionId, LabelId};
-use crate::wasm::io::{Wasmbin, encode_decode_as};
+use crate::wasm::io::{encode_decode_as, Wasmbin};
 use crate::wasm::types::BlockType;
 use crate::wasm::visit::Visit;
 #[cfg(feature = "wasm-serde")]

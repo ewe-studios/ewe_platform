@@ -55,9 +55,18 @@ fn extract_rust_file_nodes() {
     let node_labels: Vec<&str> = ext.nodes.iter().map(|n| n.label.as_str()).collect();
     assert!(node_labels.contains(&"Parser"), "should find struct Parser");
     assert!(node_labels.contains(&"Token"), "should find enum Token");
-    assert!(node_labels.contains(&"Tokenizer"), "should find trait Tokenizer");
-    assert!(node_labels.contains(&"process_tokens"), "should find fn process_tokens");
-    assert!(node_labels.contains(&"MAX_BUFFER"), "should find const MAX_BUFFER");
+    assert!(
+        node_labels.contains(&"Tokenizer"),
+        "should find trait Tokenizer"
+    );
+    assert!(
+        node_labels.contains(&"process_tokens"),
+        "should find fn process_tokens"
+    );
+    assert!(
+        node_labels.contains(&"MAX_BUFFER"),
+        "should find const MAX_BUFFER"
+    );
     assert!(node_labels.contains(&"Config"), "should find struct Config");
 }
 
@@ -76,7 +85,11 @@ fn extract_rust_file_node_kinds() {
 #[test]
 fn extract_rust_file_has_file_node() {
     let ext = rust_walker::extract_rust_file("src/parser.rs", SAMPLE_RUST).unwrap();
-    let file_nodes: Vec<_> = ext.nodes.iter().filter(|n| n.kind == NodeKind::File).collect();
+    let file_nodes: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::File)
+        .collect();
     assert_eq!(file_nodes.len(), 1);
     assert_eq!(file_nodes[0].source_file, "src/parser.rs");
 }
@@ -89,7 +102,10 @@ fn extract_contains_edges() {
         .iter()
         .filter(|(_, _, e)| e.relation == Relation::Contains)
         .collect();
-    assert!(contains_edges.len() >= 5, "should have contains edges for structs/fns/etc");
+    assert!(
+        contains_edges.len() >= 5,
+        "should have contains edges for structs/fns/etc"
+    );
 }
 
 #[test]
@@ -100,7 +116,10 @@ fn extract_imports_edges() {
         .iter()
         .filter(|(_, _, e)| e.relation == Relation::Imports)
         .collect();
-    assert!(!import_edges.is_empty(), "should have import edges for `use std::collections::HashMap`");
+    assert!(
+        !import_edges.is_empty(),
+        "should have import edges for `use std::collections::HashMap`"
+    );
 }
 
 #[test]
@@ -111,35 +130,55 @@ fn extract_impl_trait_creates_implements_edge() {
         .iter()
         .filter(|(_, _, e)| e.relation == Relation::Implements)
         .collect();
-    assert!(!impl_edges.is_empty(), "should have implements edge for `impl Tokenizer for Parser`");
+    assert!(
+        !impl_edges.is_empty(),
+        "should have implements edge for `impl Tokenizer for Parser`"
+    );
 }
 
 #[test]
 fn extract_raw_calls() {
     let ext = rust_walker::extract_rust_file("src/parser.rs", SAMPLE_RUST).unwrap();
-    let call_names: Vec<&str> = ext.raw_calls.iter().map(|c| c.callee_name.as_str()).collect();
-    assert!(call_names.contains(&"new"), "should find call to HashMap::new");
-    assert!(call_names.contains(&"process_tokens"), "should find call to process_tokens");
+    let call_names: Vec<&str> = ext
+        .raw_calls
+        .iter()
+        .map(|c| c.callee_name.as_str())
+        .collect();
+    assert!(
+        call_names.contains(&"new"),
+        "should find call to HashMap::new"
+    );
+    assert!(
+        call_names.contains(&"process_tokens"),
+        "should find call to process_tokens"
+    );
 }
 
 #[test]
 fn extract_member_calls_flagged() {
     let ext = rust_walker::extract_rust_file("src/parser.rs", SAMPLE_RUST).unwrap();
-    let tokenize_call = ext
-        .raw_calls
-        .iter()
-        .find(|c| c.callee_name == "tokenize");
+    let tokenize_call = ext.raw_calls.iter().find(|c| c.callee_name == "tokenize");
     assert!(tokenize_call.is_some(), "should find self.tokenize call");
-    assert!(tokenize_call.unwrap().is_member_call, "self.tokenize should be member call");
+    assert!(
+        tokenize_call.unwrap().is_member_call,
+        "self.tokenize should be member call"
+    );
 }
 
 #[test]
 fn extract_rationale() {
     let ext = rust_walker::extract_rust_file("src/parser.rs", SAMPLE_RUST).unwrap();
     let parser_node = ext.nodes.iter().find(|n| n.label == "Parser").unwrap();
-    assert!(parser_node.rationale.is_some(), "Parser should have rationale from WHY comment");
     assert!(
-        parser_node.rationale.as_ref().unwrap().contains("core data structure"),
+        parser_node.rationale.is_some(),
+        "Parser should have rationale from WHY comment"
+    );
+    assert!(
+        parser_node
+            .rationale
+            .as_ref()
+            .unwrap()
+            .contains("core data structure"),
         "rationale should contain the WHY text"
     );
 }
@@ -179,7 +218,10 @@ pub fn caller() {
 
     let callers = graph.callers_of(&helper_node[0].id);
     let caller_ids: Vec<&str> = callers.iter().map(|n| n.label.as_str()).collect();
-    assert!(caller_ids.contains(&"caller"), "helper should have caller as a caller (cross-file INFERRED)");
+    assert!(
+        caller_ids.contains(&"caller"),
+        "helper should have caller as a caller (cross-file INFERRED)"
+    );
 }
 
 #[test]
@@ -205,7 +247,10 @@ pub fn main() {
         let callers = graph.callers_of(&log_node[0].id);
         // member calls should NOT create cross-file INFERRED edges
         let has_cross_file_caller = callers.iter().any(|n| n.source_file == "src/b.rs");
-        assert!(!has_cross_file_caller, "member call l.log() should NOT create cross-file edge");
+        assert!(
+            !has_cross_file_caller,
+            "member call l.log() should NOT create cross-file edge"
+        );
     }
 }
 
@@ -215,7 +260,10 @@ fn find_entity_partial_match() {
     let graph = CodeGraph::build(vec![ext]);
 
     let results = graph.find_entity("process");
-    assert!(!results.is_empty(), "should find process_tokens via partial match");
+    assert!(
+        !results.is_empty(),
+        "should find process_tokens via partial match"
+    );
 }
 
 #[test]
@@ -243,12 +291,23 @@ fn shortest_path_exists() {
     let ext = rust_walker::extract_rust_file("src/parser.rs", SAMPLE_RUST).unwrap();
     let graph = CodeGraph::build(vec![ext]);
 
-    let file_nodes: Vec<_> = graph.all_nodes().into_iter().filter(|n| n.kind == NodeKind::File).collect();
-    let fn_nodes: Vec<_> = graph.all_nodes().into_iter().filter(|n| n.kind == NodeKind::Function).collect();
+    let file_nodes: Vec<_> = graph
+        .all_nodes()
+        .into_iter()
+        .filter(|n| n.kind == NodeKind::File)
+        .collect();
+    let fn_nodes: Vec<_> = graph
+        .all_nodes()
+        .into_iter()
+        .filter(|n| n.kind == NodeKind::Function)
+        .collect();
 
     if !file_nodes.is_empty() && !fn_nodes.is_empty() {
         let path = graph.shortest_path(&file_nodes[0].id, &fn_nodes[0].id);
-        assert!(path.is_some(), "should find path from file to function via contains");
+        assert!(
+            path.is_some(),
+            "should find path from file to function via contains"
+        );
     }
 }
 
@@ -279,7 +338,10 @@ fn make_id_normalization() {
 fn file_stem_qualified_paths() {
     assert_eq!(file_stem_qualified("src/parser.rs"), "src_parser");
     assert_eq!(file_stem_qualified("lib.rs"), "lib");
-    assert_eq!(file_stem_qualified("deeply/nested/module.rs"), "nested_module");
+    assert_eq!(
+        file_stem_qualified("deeply/nested/module.rs"),
+        "nested_module"
+    );
 }
 
 #[test]
@@ -344,10 +406,19 @@ fn update_replaces_changed_file_and_reresolves_cross_file() {
     let ext_a2 = rust_walker::extract_rust_file("src/a.rs", a_v2).unwrap();
     graph.update(vec![ext_a2]);
 
-    assert!(graph.find_entity("helper").is_empty(), "renamed entity gone");
-    assert!(!graph.find_entity("assist").is_empty(), "new entity present");
+    assert!(
+        graph.find_entity("helper").is_empty(),
+        "renamed entity gone"
+    );
+    assert!(
+        !graph.find_entity("assist").is_empty(),
+        "new entity present"
+    );
     // b.rs (unchanged) is still in the graph.
-    assert!(!graph.find_entity("caller").is_empty(), "unchanged file retained");
+    assert!(
+        !graph.find_entity("caller").is_empty(),
+        "unchanged file retained"
+    );
 }
 
 #[test]
@@ -360,8 +431,14 @@ fn remove_file_drops_its_nodes() {
     assert!(!graph.find_entity("helper").is_empty());
 
     graph.remove_file("src/a.rs");
-    assert!(graph.find_entity("helper").is_empty(), "removed file's entity gone");
-    assert!(!graph.find_entity("caller").is_empty(), "other file retained");
+    assert!(
+        graph.find_entity("helper").is_empty(),
+        "removed file's entity gone"
+    );
+    assert!(
+        !graph.find_entity("caller").is_empty(),
+        "other file retained"
+    );
 }
 
 #[test]

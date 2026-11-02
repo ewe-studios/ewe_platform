@@ -21,17 +21,20 @@ use std::sync::Arc;
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
-use foundation_http::ShutdownSignal;
+#[cfg(unix)]
+use foundation_iogate::FdReadiness;
+
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 use foundation_netio::http::HttpConnectionPool;
-use foundation_netio::shared::client::{ClientConfig, SystemDnsResolver};
 use foundation_netio::http::NativeHttpClient;
+use foundation_netio::shared::client::{ClientConfig, SystemDnsResolver};
 
 use crate::config::{BackendState, ProxyConfig, ProxyError, SslProvider};
 use crate::control::ControlSocket;
-use crate::handler::ProxyHandler;
 use crate::h2_proxy::H2ProxyHandler;
+use crate::handler::ProxyHandler;
 use crate::health::{spawn_service_probes, HealthMonitor};
 use crate::persistence::{PersistedProxyState, ProxyStateStore};
 use crate::router::Router;
@@ -120,7 +123,10 @@ impl ProxyServer {
         );
 
         // Bind the front-end listener (ephemeral port support for tests).
-        let bind_addr = config.bind_addr.clone().unwrap_or_else(|| DEFAULT_BIND.to_string());
+        let bind_addr = config
+            .bind_addr
+            .clone()
+            .unwrap_or_else(|| DEFAULT_BIND.to_string());
         let listener = TcpListener::bind(&bind_addr)
             .map_err(|e| ProxyError::Startup(format!("bind {bind_addr}: {e}")))?;
         let local_addr = listener
@@ -138,7 +144,10 @@ impl ProxyServer {
         // from a previous run, and attach the store so admin changes are written
         // through. `None` state_dir disables persistence entirely.
         let store: Option<Arc<ProxyStateStore>> = config.state_dir.as_ref().map(|dir| {
-            Arc::new(ProxyStateStore::new(std::path::Path::new(dir), &config.domain))
+            Arc::new(ProxyStateStore::new(
+                std::path::Path::new(dir),
+                &config.domain,
+            ))
         });
         if let Some(store) = &store {
             restore_persisted_state(store, &services, &config).await;
@@ -170,7 +179,10 @@ impl ProxyServer {
         // obtain the cert once, and build the acceptor. The same cert also feeds
         // the HTTP/3 (QUIC) front end when enabled.
         let mut _redirect_thread: Option<std::thread::JoinHandle<()>> = None;
+        #[cfg(feature = "quic")]
         let mut h3_local_addr: Option<SocketAddr> = None;
+        #[cfg(not(feature = "quic"))]
+        let h3_local_addr: Option<SocketAddr> = None;
         let mut redirect_local_addr: Option<SocketAddr> = None;
         if use_tls {
             let cert_manager = tls::build_cert_manager(&config, Arc::new(client.clone()))?;
@@ -182,12 +194,21 @@ impl ProxyServer {
             // actual port is observable (tests use an ephemeral port); a bind
             // failure (e.g. :80 without privileges) is non-fatal.
             let redirect_addr = config.redirect_bind.as_deref().unwrap_or(REDIRECT_PORT);
+            let redirect_head_limit = config.redirect_head_limit;
+            let redirect_read_timeout = config.redirect_read_timeout;
+            let redirect_accept_poll = config.redirect_accept_poll;
             match TcpListener::bind(redirect_addr) {
                 Ok(listener) => {
                     redirect_local_addr = listener.local_addr().ok();
                     let redirect_shutdown = shutdown.clone();
                     _redirect_thread = Some(std::thread::spawn(move || {
-                        ssl_redirect_loop(listener, &redirect_shutdown);
+                        ssl_redirect_loop(
+                            listener,
+                            &redirect_shutdown,
+                            redirect_head_limit,
+                            redirect_read_timeout,
+                            redirect_accept_poll,
+                        );
                     }));
                 }
                 Err(e) => tracing::warn!("SSL redirect: cannot bind {redirect_addr}: {e}"),
@@ -197,8 +218,12 @@ impl ProxyServer {
             // configured UDP address using the same certificate.
             #[cfg(feature = "quic")]
             if let Some(h3_addr) = &config.h3_bind {
-                h3_local_addr =
-                    Some(spawn_h3_server(h3_addr, &cert_pair, Arc::clone(&proxy_state), shutdown.clone())?);
+                h3_local_addr = Some(spawn_h3_server(
+                    h3_addr,
+                    &cert_pair,
+                    Arc::clone(&proxy_state),
+                    shutdown.clone(),
+                )?);
             }
         }
 
@@ -377,33 +402,123 @@ impl Drop for ProxyServer {
 /// WHY: Decision 25 — when TLS is enabled, plain-HTTP traffic must be
 /// redirected rather than dropped or answered with connection-refused.
 ///
-/// HOW: Reads just the request line + Host header, constructs the redirect,
-/// and closes the connection.  No buffering, no keep-alive, no full HTTP parse.
+/// HOW: Reads just the request head (request line + headers) until its blank
+/// line or the configured head limit, constructs the redirect, and closes the
+/// connection. No buffering, no keep-alive, no full HTTP parse. The head limit,
+/// read timeout and accept poll come from the config; a head past the limit
+/// gets a 431.
 const REDIRECT_PORT: &str = "0.0.0.0:80";
 
-fn ssl_redirect_loop(listener: TcpListener, shutdown: &Arc<ShutdownSignal>) {
+/// The result of reading one redirect request head.
+enum HeadRead {
+    /// The blank line that ends the head arrived within the limit.
+    Complete,
+    /// The head grew past the limit without a blank line.
+    TooLarge,
+    /// The read ended or timed out before the head was complete.
+    Failed,
+}
+
+/// Read the head from `stream` into the reusable `head` buffer until its blank
+/// line (`\r\n\r\n`) arrives or the buffer reaches `limit`.
+fn read_head(stream: &mut std::net::TcpStream, head: &mut Vec<u8>, limit: usize) -> HeadRead {
+    let mut chunk = [0u8; 1024];
+    loop {
+        if head.windows(4).any(|w| w == b"\r\n\r\n") {
+            return HeadRead::Complete;
+        }
+        if head.len() >= limit {
+            return HeadRead::TooLarge;
+        }
+        let want = (limit - head.len()).min(chunk.len());
+        match stream.read(&mut chunk[..want]) {
+            Ok(0) => return HeadRead::Failed,
+            Ok(n) => head.extend_from_slice(&chunk[..n]),
+            Err(_) => return HeadRead::Failed,
+        }
+    }
+}
+
+fn ssl_redirect_loop(
+    listener: TcpListener,
+    shutdown: &Arc<ShutdownSignal>,
+    head_limit: usize,
+    read_timeout: Duration,
+    accept_poll: Duration,
+) {
     let _ = listener.set_nonblocking(true);
     tracing::info!(addr = ?listener.local_addr(), "SSL redirect listening");
 
-    let mut buf = [0u8; 4096];
+    // Park the accept loop on listener readiness (unix): register the listener
+    // fd with the shared reactor so a new connection wakes this thread at once,
+    // and link the shutdown signal so a turn-on wakes it too. Without a
+    // registered fd (or on non-unix) the loop sleeps `accept_poll` between
+    // attempts.
+    #[cfg(unix)]
+    let listener_readiness: Option<FdReadiness> = {
+        use std::os::unix::io::AsRawFd;
+        match FdReadiness::register(listener.as_raw_fd()) {
+            Ok(r) => Some(r),
+            Err(e) => {
+                tracing::warn!(
+                    error = %e,
+                    "SSL redirect: cannot register listener fd; falling back to sleep"
+                );
+                None
+            }
+        }
+    };
+    #[cfg(unix)]
+    if listener_readiness.is_some() {
+        if let Err(e) = shutdown.register_wake() {
+            tracing::warn!(
+                error = %e,
+                "SSL redirect: cannot link the shutdown signal; \
+                 shutdown waits for accept_poll"
+            );
+        }
+    }
+
+    let mut head = Vec::with_capacity(head_limit.min(1024));
     loop {
         if shutdown.probe() {
             return;
         }
+        #[cfg(unix)]
+        let gen = listener_readiness.as_ref().map(|r| r.events_generation());
+
         match listener.accept() {
             Ok((mut stream, _addr)) => {
-                let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
-                match stream.read(&mut buf) {
-                    Ok(n) if n > 0 => {
-                        let head = String::from_utf8_lossy(&buf[..n]);
-                        let redirect = ssl_redirect_response(&head);
+                // Accepted sockets inherit the listener's non-blocking mode on
+                // BSD/macOS. Make it blocking so the read timeout below governs
+                // and the head may arrive over several reads.
+                let _ = stream.set_nonblocking(false);
+                let _ = stream.set_read_timeout(Some(read_timeout));
+                match read_head(&mut stream, &mut head, head_limit) {
+                    HeadRead::Complete => {
+                        let text = String::from_utf8_lossy(&head);
+                        let redirect = ssl_redirect_response(&text);
                         let _ = stream.write_all(redirect.as_bytes());
                     }
-                    _ => {}
+                    HeadRead::TooLarge => {
+                        let _ = stream.write_all(ssl_redirect_too_large_response().as_bytes());
+                    }
+                    HeadRead::Failed => {}
                 }
+                head.clear();
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                std::thread::sleep(Duration::from_millis(10));
+                #[cfg(unix)]
+                {
+                    if let Some(readiness) = &listener_readiness {
+                        readiness.wait_for_events(
+                            gen.expect("generation snapshotted before accept"),
+                            accept_poll,
+                        );
+                        continue;
+                    }
+                }
+                std::thread::sleep(accept_poll);
             }
             Err(e) => {
                 tracing::error!("SSL redirect accept error: {e}");
@@ -424,6 +539,13 @@ pub fn ssl_redirect_response(head: &str) -> String {
          Location: https://{host}{path}\r\n\
          Connection: close\r\n\r\n"
     )
+}
+
+/// The `431 Request Header Fields Too Large` answer for a head that grew past
+/// the redirect head limit before its blank line arrived.
+#[must_use]
+fn ssl_redirect_too_large_response() -> String {
+    "HTTP/1.1 431 Request Header Fields Too Large\r\nConnection: close\r\n\r\n".to_string()
 }
 
 /// Best-effort: extract the first header value matching `prefix:` (case-insensitive).
@@ -508,7 +630,11 @@ fn apply_backend_states(services: &[Arc<ServiceRuntime>], persisted: &PersistedP
         let name = &svc.config().name;
         for backend in svc.backends() {
             let key = format!("{name}/{}", backend.url());
-            if let Some(state) = persisted.backend_states.get(&key).and_then(|s| parse_backend_state(s)) {
+            if let Some(state) = persisted
+                .backend_states
+                .get(&key)
+                .and_then(|s| parse_backend_state(s))
+            {
                 backend.set_state(state);
                 tracing::info!(service = %name, url = %backend.url(), state = %state, "restored backend state");
             }

@@ -61,7 +61,11 @@ pub struct HttpClientBuilder {
     // wasm build, where the native TLS connector simply does not exist (wasm uses fetch).
     #[cfg(all(
         not(target_family = "wasm"),
-        any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls")
+        any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        )
     ))]
     tls_connector: Option<crate::netcap::ssl::SSLConnector>,
     #[cfg(not(target_family = "wasm"))]
@@ -104,7 +108,11 @@ impl HttpClientBuilder {
     /// [`SSLConnector::from_client_mutual_pem`](crate::netcap::ssl::SSLConnector)).
     #[cfg(all(
         not(target_family = "wasm"),
-        any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls")
+        any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        )
     ))]
     #[must_use]
     pub fn with_tls_connector(mut self, connector: crate::netcap::ssl::SSLConnector) -> Self {
@@ -396,7 +404,7 @@ impl HttpClientBuilder {
 
     /// Route requests over a Unix domain socket instead of TCP.
     ///
-    /// WHY: The Docker daemon and BuildKitd expose HTTP over a Unix socket
+    /// WHY: The Docker daemon and `BuildKitd` expose HTTP over a Unix socket
     /// (`/var/run/docker.sock`, `/run/buildkit/buildkitd.sock`) — no DNS, no
     /// TLS, authenticated by file permissions.
     ///
@@ -459,7 +467,11 @@ impl HttpClientBuilder {
         R: DnsResolver + Clone + Default + Send + Sync + 'static,
     {
         let mut client = crate::http::NativeHttpClient::new(resolver).config(self.config);
-        #[cfg(any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"))]
+        #[cfg(any(
+            feature = "ssl-rustls",
+            feature = "ssl-openssl",
+            feature = "ssl-native-tls"
+        ))]
         if let Some(tls) = self.tls_connector {
             client = client.with_tls_connector(tls);
         }

@@ -21,15 +21,17 @@ use foundation_core::valtron::{execute, StreamIteratorExt};
 use crate::event_source::{ReconnectingEventSourceTask, ReconnectingProgress};
 use crate::http::pool::ConnectionPool;
 use crate::http::tasks::HttpExchangeTask;
+use crate::http::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
 use crate::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
 use crate::shared::client::{ClientConfig, DnsResolver, SystemDnsResolver};
-use crate::http::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
 use crate::shared::http::timeout::TimeoutCalculator;
-use crate::shared::http::{HttpClientError, SendSafeBody, SimpleHeader, SimpleMethod, SimpleResponse};
+use crate::shared::http::{
+    HttpClientError, SendSafeBody, SimpleHeader, SimpleMethod, SimpleResponse,
+};
 
 /// The native HTTP client — owns the connection pool, configuration, and resolver.
 ///
@@ -261,7 +263,7 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         self
     }
 
-    /// Route requests over a custom transport connector (WireGuard overlay, SSH
+    /// Route requests over a custom transport connector (`WireGuard` overlay, SSH
     /// `docker system dial-stdio`) instead of dialing DNS+TCP.
     #[must_use]
     pub fn with_connector(
@@ -548,7 +550,9 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
         let (status, headers, body, _pool, conn) = response.into_parts();
         let source = conn.as_ref().and_then(|c| c.read_wake_source());
 
-        Ok(SimpleResponse::with_read_wake(status, headers, body, source))
+        Ok(SimpleResponse::with_read_wake(
+            status, headers, body, source,
+        ))
     }
 
     async fn send_sse_async(

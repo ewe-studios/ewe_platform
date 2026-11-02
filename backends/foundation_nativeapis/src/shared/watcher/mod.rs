@@ -59,5 +59,5 @@ pub mod poll_watcher;
 /// SharedNativeWatcher — thread-safe Arc<RwLock<T>> wrapper + type-erased SharedWatcher.
 pub mod shared;
 
-pub use shared::{SharedNativeWatcher, SharedWatcher};
 pub use poll_watcher::PollWatcher;
+pub use shared::{SharedNativeWatcher, SharedWatcher};

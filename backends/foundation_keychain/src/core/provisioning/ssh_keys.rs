@@ -5,9 +5,9 @@
 
 use chrono::{Duration, Utc};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::provisioning::keygen;
 use crate::core::provisioning::store::{self, SshKeyRow};
@@ -73,9 +73,12 @@ pub async fn create(
     let generated = keygen::generate(req.key_type.as_deref().unwrap_or("ed25519"), &comment)?;
 
     let now = Utc::now();
-    let expires_at = req.ttl_hours.filter(|h| *h > 0).map(|h| now + Duration::hours(h));
+    let expires_at = req
+        .ttl_hours
+        .filter(|h| *h > 0)
+        .map(|h| now + Duration::hours(h));
     let row = SshKeyRow {
-        uuid: Uuid::new_v4().to_string(),
+        uuid: crypto::new_uuid_v4()?.to_string(),
         app_uuid: app_id.to_string(),
         name: req.name,
         key_type: generated.key_type,

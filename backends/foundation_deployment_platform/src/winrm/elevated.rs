@@ -1,4 +1,4 @@
-//! Elevated (SYSTEM) command execution via WinRM scheduled tasks.
+//! Elevated (SYSTEM) command execution via `WinRM` scheduled tasks.
 //!
 //! Runs PowerShell scripts as SYSTEM with highest privileges by creating
 //! a scheduled task, triggering it, and polling for completion via sentinel.
@@ -28,12 +28,13 @@ pub type ProgressCallback<'a> = Option<&'a dyn Fn(&str)>;
 ///
 /// Does NOT wait for completion or use a sentinel — it just fires the task
 /// and returns. The task runs in the user's session.
-pub fn run_interactive(
-    winrm: &WinRM,
-    ps_code: &str,
-    user: &str,
-) -> Result<()> {
-    let task_name = format!("FoundationTestbed_Interactive_{}",
+///
+/// # Errors
+///
+/// Returns an error if a `WinRM` command fails.
+pub fn run_interactive(winrm: &WinRM, ps_code: &str, user: &str) -> Result<()> {
+    let task_name = format!(
+        "FoundationTestbed_Interactive_{}",
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
@@ -49,31 +50,35 @@ pub fn run_interactive(
     let write_cmd = format!(
         "[System.IO.File]::WriteAllBytes('{script_path}', [System.Convert]::FromBase64String('{script_b64}'))"
     );
-    winrm.run_ps(&write_cmd).map_err(|e| TestbedError::BootstrapFailed {
-        step: "write interactive script".to_string(),
-        message: e.to_string(),
-    })?;
+    winrm
+        .run_ps(&write_cmd)
+        .map_err(|e| TestbedError::BootstrapFailed {
+            step: "write interactive script".to_string(),
+            message: e.to_string(),
+        })?;
 
     // Create scheduled task: run as user, interactive (IT flag)
     let create_task = format!(
-        r#"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File {script_path}'
+        r"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File {script_path}'
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 $principal = New-ScheduledTaskPrincipal -UserId '{user}' -LogonType Interactive
-Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null"#
+Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null"
     );
-    winrm.run_ps(&create_task).map_err(|e| TestbedError::BootstrapFailed {
-        step: "create interactive task".to_string(),
-        message: e.to_string(),
-    })?;
+    winrm
+        .run_ps(&create_task)
+        .map_err(|e| TestbedError::BootstrapFailed {
+            step: "create interactive task".to_string(),
+            message: e.to_string(),
+        })?;
 
     // Start it immediately
-    winrm.run_ps(&format!("Start-ScheduledTask -TaskName '{task_name}'")).map_err(|e| {
-        TestbedError::BootstrapFailed {
+    winrm
+        .run_ps(&format!("Start-ScheduledTask -TaskName '{task_name}'"))
+        .map_err(|e| TestbedError::BootstrapFailed {
             step: "start interactive task".to_string(),
             message: e.to_string(),
-        }
-    })?;
+        })?;
 
     // Brief pause for task to spin up, then clean up registration
     thread::sleep(Duration::from_secs(2));
@@ -93,12 +98,24 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
 /// is reported every ~15 seconds so callers know the script is still alive.
 ///
 /// Returns `Err` if the script does not complete within the timeout.
+///
+/// # Errors
+///
+/// Returns an error if a `WinRM` command fails, if the script writes fail, or
+/// if the script times out or completes with errors.
+///
+/// # Panics
+///
+/// Panics if the deadline is shorter than the timeout. This cannot happen because
+/// the deadline starts at the current time plus the timeout.
+#[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
 pub fn run_elevated(
     winrm: &WinRM,
     ps_code: &str,
     timeout_secs: u64,
     progress: ProgressCallback<'_>,
 ) -> Result<()> {
+    const CHUNK_SIZE: usize = 1500;
     // Unique sentinel per invocation — avoids false positives from previous runs
     let sentinel_id = format!(
         "{}",
@@ -123,7 +140,7 @@ pub fn run_elevated(
 
     // Build script: run user code, heartbeat every 3s, full transcript, capture errors, write sentinel
     let script_with_sentinel = format!(
-        r#"$ErrorActionPreference = 'Continue'
+        r"$ErrorActionPreference = 'Continue'
 $Error.Clear()
 
 # Full transcript: capture all stdout/stderr from this script
@@ -148,7 +165,7 @@ if ($Error.Count -gt 0) {{
 }}
 Stop-Job $heartbeatJob; Remove-Job $heartbeatJob
 Stop-Transcript | Out-Null
-Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"#
+Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"
     );
 
     // Write script to disk in chunks to stay under WinRM's command-line size limits.
@@ -156,31 +173,39 @@ Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"#
     // cmd.exe has an 8191 character command-line limit.
     // Each chunk's command is: powershell -EncodedCommand <base64(UTF16LE(cmd))>
     // For a 2000-byte chunk: cmd ≈ 2100 chars → UTF16LE = 4200 → b64 = 5600 → total ≈ 5625 < 8191.
-    const CHUNK_SIZE: usize = 1500;
-    debug!("run_elevated: writing script ({} bytes) to VM", script_with_sentinel.len());
-
+    debug!(
+        "run_elevated: writing script ({} bytes) to VM",
+        script_with_sentinel.len()
+    );
     let script_bytes = script_with_sentinel.as_bytes();
     let chunks: Vec<_> = script_bytes.chunks(CHUNK_SIZE).collect();
-    let chunk_files: Vec<_> = chunks.iter().enumerate().map(|(i, _)| {
-        format!("C:\\bootstrap-chunk-{i:03}.bin")
-    }).collect();
+    let chunk_files: Vec<_> = chunks
+        .iter()
+        .enumerate()
+        .map(|(i, _)| format!("C:\\bootstrap-chunk-{i:03}.bin"))
+        .collect();
 
     for (i, chunk) in chunks.iter().enumerate() {
-        let chunk_b64 = base64::Engine::encode(
-            &base64::engine::general_purpose::STANDARD,
-            chunk,
-        );
+        let chunk_b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, chunk);
         let bin_file = &chunk_files[i];
         // Write bytes directly — FromBase64String returns byte[], WriteAllBytes writes as-is
         let write_cmd = format!(
             "[System.IO.File]::WriteAllBytes('{bin_file}', [System.Convert]::FromBase64String('{chunk_b64}'))"
         );
-        debug!("run_elevated: chunk {i}: {} raw -> {} b64 bytes", chunk.len(), chunk_b64.len());
+        debug!(
+            "run_elevated: chunk {i}: {} raw -> {} b64 bytes",
+            chunk.len(),
+            chunk_b64.len()
+        );
         let write_result = winrm.run_ps(&write_cmd)?;
         if write_result.exit_code != 0 {
             return Err(TestbedError::BootstrapFailed {
                 step: format!("write script chunk {i} to VM"),
-                message: format!("exit code {}: {}", write_result.exit_code, write_result.stderr.trim()),
+                message: format!(
+                    "exit code {}: {}",
+                    write_result.exit_code,
+                    write_result.stderr.trim()
+                ),
             });
         }
     }
@@ -194,7 +219,12 @@ Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"#
         );
         winrm.run_ps(&copy_cmd)?;
         // Clean up the chunk
-        winrm.run_ps(&format!("Remove-Item '{}' -Force -ErrorAction SilentlyContinue", chunk_files[0])).ok();
+        winrm
+            .run_ps(&format!(
+                "Remove-Item '{}' -Force -ErrorAction SilentlyContinue",
+                chunk_files[0]
+            ))
+            .ok();
     } else {
         // Multiple chunks — concatenate using a glob-based approach
         // to avoid inflating the command with per-chunk paths.
@@ -219,12 +249,18 @@ Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"#
         }
         // Clean up chunk files
         for cf in &chunk_files {
-            winrm.run_ps(&format!("Remove-Item '{cf}' -Force -ErrorAction SilentlyContinue")).ok();
+            winrm
+                .run_ps(&format!(
+                    "Remove-Item '{cf}' -Force -ErrorAction SilentlyContinue"
+                ))
+                .ok();
         }
     }
 
     // Verify the file was actually written
-    let verify = winrm.run_ps(&format!("if (Test-Path '{script_path}') {{ 'OK' }} else {{ 'MISSING' }}"))?;
+    let verify = winrm.run_ps(&format!(
+        "if (Test-Path '{script_path}') {{ 'OK' }} else {{ 'MISSING' }}"
+    ))?;
     if !verify.stdout.contains("OK") {
         return Err(TestbedError::BootstrapFailed {
             step: "verify script on VM".to_string(),
@@ -237,16 +273,18 @@ Set-Content -Path '{sentinel_path}' -Value 'done' -Encoding ASCII"#
     let task_name = format!("FoundationTestbedBootstrap_{sentinel_id}");
     trace!("run_elevated: creating scheduled task '{}'", task_name);
     let create_task = format!(
-        r#"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File {script_path}'
+        r"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File {script_path}'
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -DontStopOnIdleEnd
 $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
-Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null"#
+Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null"
     );
-    winrm.run_ps(&create_task).map_err(|e| TestbedError::BootstrapFailed {
-        step: "create scheduled task".to_string(),
-        message: e.to_string(),
-    })?;
+    winrm
+        .run_ps(&create_task)
+        .map_err(|e| TestbedError::BootstrapFailed {
+            step: "create scheduled task".to_string(),
+            message: e.to_string(),
+        })?;
 
     // Start the task immediately (ignores the scheduled time)
     let start_result = winrm.run_ps(&format!("Start-ScheduledTask -TaskName '{task_name}'"));
@@ -280,7 +318,10 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                 let transcript_text = String::from_utf8_lossy(&bytes).to_string();
                 let current_size = transcript_text.len() as u64;
                 if current_size > last_transcript_size {
-                    let new_content = &transcript_text[last_transcript_size as usize..];
+                    // Byte offset fits in usize; the string length bounds it.
+                    #[allow(clippy::cast_possible_truncation)]
+                    let start = last_transcript_size as usize;
+                    let new_content = &transcript_text[start..];
                     for line in new_content.lines() {
                         let trimmed = line.trim();
                         if !trimmed.is_empty() {
@@ -296,8 +337,8 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
         }
 
         // Poll bootstrap-step-error.log for new content
-        if poll_count % 3 == 0 {
-            if let Ok(elog) = winrm.run_ps_quiet(&format!(
+        if poll_count.is_multiple_of(3)
+            && let Ok(elog) = winrm.run_ps_quiet(&format!(
                 "if (Test-Path '{error_log}') {{ [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes('{error_log}')) }} else {{ '' }}"
             ))
                 && !elog.stdout.trim().is_empty()
@@ -310,7 +351,10 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                     let current_size = log_text.len() as u64;
                     if current_size > last_error_log_size {
                         // New error content appeared — report it
-                        let new_content = &log_text[last_error_log_size as usize..];
+                        // Byte offset fits in usize; the string length bounds it.
+                        #[allow(clippy::cast_possible_truncation)]
+                        let start = last_error_log_size as usize;
+                        let new_content = &log_text[start..];
                         for line in new_content.lines() {
                             let trimmed = line.trim();
                             if !trimmed.is_empty() {
@@ -324,21 +368,26 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                     }
                 }
             }
-        }
 
         // Check sentinel — use contains() to handle CLIXML wrapper output
-        let sentinel = winrm.run_ps_quiet(
-            &format!("if (Test-Path '{sentinel_path}') {{ 'DONE' }} else {{ 'PENDING' }}"),
-        );
+        let sentinel = winrm.run_ps_quiet(&format!(
+            "if (Test-Path '{sentinel_path}') {{ 'DONE' }} else {{ 'PENDING' }}"
+        ));
         if let Ok(result) = sentinel
             && result.stdout.contains("DONE")
         {
-            debug!("run_elevated: script completed after {:?}", Instant::now() - (deadline - Duration::from_secs(timeout_secs)));
+            debug!(
+                "run_elevated: script completed after {:?}",
+                deadline
+                    .checked_sub(Duration::from_secs(timeout_secs))
+                    .unwrap()
+                    .elapsed()
+            );
             // Check for errors — fail if error log exists and has content
             // Use file size check to avoid CLIXML wrapper issues
-            let err_check = winrm.run_ps_quiet(
-                &format!("if (Test-Path '{error_log}') {{ (Get-Item '{error_log}').Length }} else {{ 0 }}"),
-            );
+            let err_check = winrm.run_ps_quiet(&format!(
+                "if (Test-Path '{error_log}') {{ (Get-Item '{error_log}').Length }} else {{ 0 }}"
+            ));
             if let Ok(ref e) = err_check
                 && let Ok(size) = e.stdout.trim().parse::<u64>()
                 && size > 0
@@ -349,25 +398,56 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
                 );
                 let error_content = if let Ok(ref cb) = content_b64 {
                     // Extract base64 from possible CLIXML wrapper
-                    let b64 = cb.stdout.lines()
-                        .filter(|l| !l.contains("<") && !l.contains(">") && l.trim().len() > 10)
-                        .next()
+                    let b64 = cb
+                        .stdout
+                        .lines()
+                        .find(|l| !l.contains('<') && !l.contains('>') && l.trim().len() > 10)
                         .unwrap_or("");
-                    if let Ok(bytes) = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64.trim()) {
-                        String::from_utf8_lossy(&bytes).trim().chars().take(1000).collect::<String>()
+                    if let Ok(bytes) = base64::Engine::decode(
+                        &base64::engine::general_purpose::STANDARD,
+                        b64.trim(),
+                    ) {
+                        String::from_utf8_lossy(&bytes)
+                            .trim()
+                            .chars()
+                            .take(1000)
+                            .collect::<String>()
                     } else {
                         String::new()
                     }
                 } else {
                     String::new()
                 };
-                warn!("run_elevated: script completed with errors:\n{}", error_content);
+                warn!(
+                    "run_elevated: script completed with errors:\n{}",
+                    error_content
+                );
                 // Clean up
-                winrm.run_ps_quiet(&format!("Remove-Item -Path '{sentinel_path}' -Force -ErrorAction SilentlyContinue")).ok();
-                winrm.run_ps_quiet(&format!("Remove-Item -Path '{heartbeat_path}' -Force -ErrorAction SilentlyContinue")).ok();
-                winrm.run_ps_quiet(&format!("Remove-Item -Path '{transcript_path}' -Force -ErrorAction SilentlyContinue")).ok();
-                winrm.run_ps_quiet(&format!("Remove-Item -Path '{progress_log}' -Force -ErrorAction SilentlyContinue")).ok();
-                winrm.run_ps_quiet(&format!("Unregister-ScheduledTask -TaskName '{task_name}' -Confirm:$false")).ok();
+                winrm
+                    .run_ps_quiet(&format!(
+                        "Remove-Item -Path '{sentinel_path}' -Force -ErrorAction SilentlyContinue"
+                    ))
+                    .ok();
+                winrm
+                    .run_ps_quiet(&format!(
+                        "Remove-Item -Path '{heartbeat_path}' -Force -ErrorAction SilentlyContinue"
+                    ))
+                    .ok();
+                winrm
+                    .run_ps_quiet(&format!(
+                        "Remove-Item -Path '{transcript_path}' -Force -ErrorAction SilentlyContinue"
+                    ))
+                    .ok();
+                winrm
+                    .run_ps_quiet(&format!(
+                        "Remove-Item -Path '{progress_log}' -Force -ErrorAction SilentlyContinue"
+                    ))
+                    .ok();
+                winrm
+                    .run_ps_quiet(&format!(
+                        "Unregister-ScheduledTask -TaskName '{task_name}' -Confirm:$false"
+                    ))
+                    .ok();
                 return Err(TestbedError::BootstrapFailed {
                     step: "elevated script".to_string(),
                     message: format!("script completed with errors: {error_content}"),
@@ -375,18 +455,38 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
             }
 
             // Clean up
-            winrm.run_ps_quiet(&format!("Remove-Item -Path '{sentinel_path}' -Force -ErrorAction SilentlyContinue")).ok();
-            winrm.run_ps_quiet(&format!("Remove-Item -Path '{heartbeat_path}' -Force -ErrorAction SilentlyContinue")).ok();
-            winrm.run_ps_quiet(&format!("Remove-Item -Path '{transcript_path}' -Force -ErrorAction SilentlyContinue")).ok();
-            winrm.run_ps_quiet(&format!("Remove-Item -Path '{progress_log}' -Force -ErrorAction SilentlyContinue")).ok();
-            winrm.run_ps_quiet(&format!("Unregister-ScheduledTask -TaskName '{task_name}' -Confirm:$false")).ok();
+            winrm
+                .run_ps_quiet(&format!(
+                    "Remove-Item -Path '{sentinel_path}' -Force -ErrorAction SilentlyContinue"
+                ))
+                .ok();
+            winrm
+                .run_ps_quiet(&format!(
+                    "Remove-Item -Path '{heartbeat_path}' -Force -ErrorAction SilentlyContinue"
+                ))
+                .ok();
+            winrm
+                .run_ps_quiet(&format!(
+                    "Remove-Item -Path '{transcript_path}' -Force -ErrorAction SilentlyContinue"
+                ))
+                .ok();
+            winrm
+                .run_ps_quiet(&format!(
+                    "Remove-Item -Path '{progress_log}' -Force -ErrorAction SilentlyContinue"
+                ))
+                .ok();
+            winrm
+                .run_ps_quiet(&format!(
+                    "Unregister-ScheduledTask -TaskName '{task_name}' -Confirm:$false"
+                ))
+                .ok();
             return Ok(());
         }
 
         // Check heartbeat — use contains() to handle CLIXML wrapper output
-        let hb = winrm.run_ps_quiet(
-            &format!("if (Test-Path '{heartbeat_path}') {{ 'HB_OK' }} else {{ 'HB_NO' }}"),
-        );
+        let hb = winrm.run_ps_quiet(&format!(
+            "if (Test-Path '{heartbeat_path}') {{ 'HB_OK' }} else {{ 'HB_NO' }}"
+        ));
         if let Ok(ref h) = hb
             && h.stdout.contains("HB_OK")
         {
@@ -394,7 +494,7 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
         }
 
         // Report progress every 15 seconds (3 polls)
-        if poll_count % 3 == 0 {
+        if poll_count.is_multiple_of(3) {
             let hb_age = last_heartbeat.elapsed().as_secs();
             let msg = if hb_age < 15 {
                 format!("♥ alive ({hb_age}s since heartbeat)")
@@ -411,9 +511,9 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
 
     // Timeout: try to read error log and transcript and clean up
     warn!("run_elevated: script timed out after {}s", timeout_secs);
-    let error_log_content = winrm.run_ps_quiet(
-        &format!("if (Test-Path '{error_log}') {{ Get-Content '{error_log}' -Raw }} else {{ '' }}"),
-    );
+    let error_log_content = winrm.run_ps_quiet(&format!(
+        "if (Test-Path '{error_log}') {{ Get-Content '{error_log}' -Raw }} else {{ '' }}"
+    ));
     let diag = if let Ok(ref e) = error_log_content
         && !e.stdout.trim().is_empty()
     {
@@ -437,7 +537,11 @@ Register-ScheduledTask -TaskName '{task_name}' -Action $action -Trigger $trigger
             String::new()
         }
     };
-    winrm.run_ps_quiet(&format!("Unregister-ScheduledTask -TaskName '{task_name}' -Confirm:$false")).ok();
+    winrm
+        .run_ps_quiet(&format!(
+            "Unregister-ScheduledTask -TaskName '{task_name}' -Confirm:$false"
+        ))
+        .ok();
     Err(TestbedError::BootstrapFailed {
         step: "elevated script".to_string(),
         message: format!("script did not complete within {timeout_secs}s timeout.{diag}"),

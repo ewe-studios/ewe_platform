@@ -61,7 +61,10 @@ impl TunConfig {
 // Platform TUN device
 // ---------------------------------------------------------------------------
 
-#[cfg(all(not(target_family = "wasm"), any(target_os = "linux", target_os = "macos")))]
+#[cfg(all(
+    not(target_family = "wasm"),
+    any(target_os = "linux", target_os = "macos")
+))]
 mod imp {
     use super::{TunConfig, MAX_PACKET};
     use std::io;
@@ -156,9 +159,8 @@ mod imp {
         fn open_darwin(config: &TunConfig) -> io::Result<Self> {
             const UTUN_CONTROL_NAME: &[u8] = b"com.apple.net.utun_control\0";
 
-            let fd = unsafe {
-                libc::socket(libc::PF_SYSTEM, libc::SOCK_DGRAM, libc::SYSPROTO_CONTROL)
-            };
+            let fd =
+                unsafe { libc::socket(libc::PF_SYSTEM, libc::SOCK_DGRAM, libc::SYSPROTO_CONTROL) };
             if fd < 0 {
                 return Err(io::Error::last_os_error());
             }
@@ -204,8 +206,7 @@ mod imp {
 
             // Switch to non-blocking mode.
             let flags = unsafe { libc::fcntl(fd, libc::F_GETFL, 0) };
-            if flags < 0
-                || unsafe { libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) } < 0
+            if flags < 0 || unsafe { libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) } < 0
             {
                 let err = io::Error::last_os_error();
                 unsafe { libc::close(fd) };
@@ -227,9 +228,7 @@ mod imp {
         pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
             let mut raw = [0u8; MAX_PACKET + 4];
             let want = buf.len().min(MAX_PACKET) + if self.af_header { 4 } else { 0 };
-            let n = unsafe {
-                libc::read(self.fd, raw.as_mut_ptr().cast(), want.min(raw.len()))
-            };
+            let n = unsafe { libc::read(self.fd, raw.as_mut_ptr().cast(), want.min(raw.len())) };
             if n < 0 {
                 return Err(io::Error::last_os_error());
             }
@@ -256,9 +255,7 @@ mod imp {
                 let mut framed = Vec::with_capacity(packet.len() + 4);
                 framed.extend_from_slice(&af.to_be_bytes());
                 framed.extend_from_slice(packet);
-                let n = unsafe {
-                    libc::write(self.fd, framed.as_ptr().cast(), framed.len())
-                };
+                let n = unsafe { libc::write(self.fd, framed.as_ptr().cast(), framed.len()) };
                 if n < 0 {
                     return Err(io::Error::last_os_error());
                 }
@@ -301,7 +298,10 @@ mod imp {
 }
 
 // wasm / unsupported-OS stub: compiles but errors if selected.
-#[cfg(not(all(not(target_family = "wasm"), any(target_os = "linux", target_os = "macos"))))]
+#[cfg(not(all(
+    not(target_family = "wasm"),
+    any(target_os = "linux", target_os = "macos")
+)))]
 mod imp {
     use super::{TunConfig, MAX_PACKET};
     use std::io;

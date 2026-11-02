@@ -6,8 +6,8 @@
 //! HOW: mock capability that echoes the request action in its response.
 
 use foundation_wasm::{
-    CapabilityContentType, CapabilityError, CapabilityRegistry, CapabilityRequest,
-    CapabilityResponse, WasmCapability, is_valid_capability_name,
+    is_valid_capability_name, CapabilityContentType, CapabilityError, CapabilityRegistry,
+    CapabilityRequest, CapabilityResponse, WasmCapability,
 };
 
 // ── Mock capability ─────────────────────────────────────────────────────
@@ -45,7 +45,9 @@ impl WasmCapability for FailingCapability {
         &self,
         _request: &CapabilityRequest,
     ) -> Result<CapabilityResponse, CapabilityError> {
-        Err(CapabilityError::ExecutionFailed("intentional failure".into()))
+        Err(CapabilityError::ExecutionFailed(
+            "intentional failure".into(),
+        ))
     }
 }
 
@@ -135,14 +137,14 @@ fn valid_capability_names() {
     assert!(is_valid_capability_name("camera"));
     assert!(is_valid_capability_name("biometric_auth"));
     assert!(is_valid_capability_name("file-system"));
-    assert!(is_valid_capability_name("a"));  // single char
-    assert!(is_valid_capability_name(&"x".repeat(64)));  // max length
+    assert!(is_valid_capability_name("a")); // single char
+    assert!(is_valid_capability_name(&"x".repeat(64))); // max length
 }
 
 #[test]
 fn invalid_capability_names() {
-    assert!(!is_valid_capability_name(""));   // empty
-    assert!(!is_valid_capability_name(&"x".repeat(65)));  // too long
+    assert!(!is_valid_capability_name("")); // empty
+    assert!(!is_valid_capability_name(&"x".repeat(65))); // too long
     assert!(!is_valid_capability_name("has spaces"));
     assert!(!is_valid_capability_name("has/slash"));
     assert!(!is_valid_capability_name("has.dot"));

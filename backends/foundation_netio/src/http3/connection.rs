@@ -79,8 +79,8 @@ fn our_settings(max_field_section_size: u64) -> Frame {
         (setting::QPACK_MAX_TABLE_CAPACITY, 0),
         (setting::QPACK_BLOCKED_STREAMS, 0),
         (setting::MAX_FIELD_SECTION_SIZE, max_field_section_size),
-        (setting::ENABLE_CONNECT_PROTOCOL, 1),   // RFC 9220 Extended CONNECT
-        (setting::ENABLE_WEBTRANSPORT, 1),        // draft-ietf-webtrans-http3 (F06)
+        (setting::ENABLE_CONNECT_PROTOCOL, 1), // RFC 9220 Extended CONNECT
+        (setting::ENABLE_WEBTRANSPORT, 1),     // draft-ietf-webtrans-http3 (F06)
     ])
 }
 
@@ -366,14 +366,12 @@ impl<C: QuicConnection> H3Connection<C> {
     /// nothing yet — call [`H3Request::poll_headers`].
     pub fn poll_accept(&mut self) -> Stream<Result<H3Request<C::BidiStream>, H3Error>, ()> {
         match self.conn.accept_bidi() {
-            Stream::Next(Ok(stream)) => {
-                Stream::Next(Ok(H3Request::new(
-                    stream,
-                    self.max_field_section_size,
-                    self.max_frame_size,
-                    self.read_chunk,
-                )))
-            }
+            Stream::Next(Ok(stream)) => Stream::Next(Ok(H3Request::new(
+                stream,
+                self.max_field_section_size,
+                self.max_frame_size,
+                self.read_chunk,
+            ))),
             Stream::Next(Err(e)) => Stream::Next(Err(e.into())),
             _ => Stream::Pending(()),
         }
@@ -382,14 +380,12 @@ impl<C: QuicConnection> H3Connection<C> {
     /// Open an outbound request stream (client role).
     pub fn poll_open_request(&mut self) -> Stream<Result<H3Request<C::BidiStream>, H3Error>, ()> {
         match self.conn.open_bidi() {
-            Stream::Next(Ok(stream)) => {
-                Stream::Next(Ok(H3Request::new(
-                    stream,
-                    self.max_field_section_size,
-                    self.max_frame_size,
-                    self.read_chunk,
-                )))
-            }
+            Stream::Next(Ok(stream)) => Stream::Next(Ok(H3Request::new(
+                stream,
+                self.max_field_section_size,
+                self.max_frame_size,
+                self.read_chunk,
+            ))),
             Stream::Next(Err(e)) => Stream::Next(Err(e.into())),
             _ => Stream::Pending(()),
         }
@@ -439,7 +435,9 @@ impl<C: QuicConnection> H3Connection<C> {
     /// # Errors
     /// `Next(Err(..))` when the connection fails, or when the accepted stream is
     /// malformed (it is reset and dropped; the connection stays usable).
-    pub fn poll_accept_webtransport(&mut self) -> Stream<Result<WtAccept<C::BidiStream>, H3Error>, ()> {
+    pub fn poll_accept_webtransport(
+        &mut self,
+    ) -> Stream<Result<WtAccept<C::BidiStream>, H3Error>, ()> {
         let pending = match self.pending_accept.as_mut() {
             Some(pending) => pending,
             None => match self.conn.accept_bidi() {
@@ -527,10 +525,14 @@ impl<C: QuicConnection> H3Connection<C> {
 
     /// Extract the underlying QUIC connection (for constructing a WtSession after
     /// the Extended CONNECT handshake completes).
-    pub fn into_conn(self) -> C { self.conn }
+    pub fn into_conn(self) -> C {
+        self.conn
+    }
 
     /// Borrow the underlying QUIC connection.
-    pub fn conn_mut(&mut self) -> &mut C { &mut self.conn }
+    pub fn conn_mut(&mut self) -> &mut C {
+        &mut self.conn
+    }
 
     /// Close the connection with an HTTP/3 error code.
     pub fn close(&mut self, code: u64, reason: &[u8]) {
@@ -616,7 +618,12 @@ pub struct H3Request<S: QuicBidiStream> {
 }
 
 impl<S: QuicBidiStream> H3Request<S> {
-    fn new(stream: S, max_field_section_size: u64, max_frame_size: usize, read_chunk: usize) -> Self {
+    fn new(
+        stream: S,
+        max_field_section_size: u64,
+        max_frame_size: usize,
+        read_chunk: usize,
+    ) -> Self {
         Self {
             framed: FramedRecv::new(stream)
                 .with_max_frame_size(max_frame_size)

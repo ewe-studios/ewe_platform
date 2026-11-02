@@ -242,7 +242,10 @@ impl ConnSender for PipeConnSender {
     fn send_headers(&mut self, headers: SimpleHeaders) -> BoxFuture<'_, ConnectResult<()>> {
         Box::pin(async move {
             if !self.headers_sent {
-                *self.response_headers.lock().unwrap_or_else(|e| e.into_inner()) = Some(headers);
+                *self
+                    .response_headers
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner()) = Some(headers);
                 self.headers_sent = true;
             }
             Ok(())

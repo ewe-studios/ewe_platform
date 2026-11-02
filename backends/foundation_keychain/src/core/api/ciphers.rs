@@ -12,11 +12,13 @@
 //! deleted state) lives in columns and is overlaid onto the [`Cipher`] on read.
 
 use chrono::Utc;
-use uuid::Uuid;
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
-use crate::core::models::cipher::{Cipher, CipherCreateRequest, CipherRepromptType, CipherUpdateRequest};
+use crate::core::models::cipher::{
+    Cipher, CipherCreateRequest, CipherRepromptType, CipherUpdateRequest,
+};
 use crate::core::store::ciphers as store;
 use crate::core::store::ciphers::CipherRow;
 
@@ -68,7 +70,7 @@ pub async fn create(
         return Err(AppError::BadRequest("cipher name is required".into()));
     }
     let now = Utc::now();
-    let uuid = Uuid::new_v4().to_string();
+    let uuid = crypto::new_uuid_v4()?.to_string();
     let cipher = Cipher {
         id: uuid.clone(),
         organization_id: req.organization_id.clone(),
@@ -157,7 +159,11 @@ pub async fn update(
     row.favorite = cipher.favorite;
     row.atype = cipher.cipher_type as i64;
     if let Some(folder_id) = req.folder_id {
-        row.folder_uuid = if folder_id.is_empty() { None } else { Some(folder_id) };
+        row.folder_uuid = if folder_id.is_empty() {
+            None
+        } else {
+            Some(folder_id)
+        };
     }
     row.data = to_json(&cipher)?;
     row.updated_at = now;

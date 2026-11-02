@@ -345,7 +345,9 @@ impl H2Channel {
             // (e.g. grpc-go, which BuildKit's session uses) treats it as a
             // connection error and tears the connection down. Our own H2 client
             // tolerated the wrong order, which hid the bug until now.
-            self.local_settings.to_frame_server().encode(&mut self.write_buf);
+            self.local_settings
+                .to_frame_server()
+                .encode(&mut self.write_buf);
             self.flags.set(ChannelFlags::SETTINGS_SENT, true);
             self.flags.set(ChannelFlags::WAITING_SETTINGS_ACK, true);
 
@@ -725,13 +727,20 @@ impl H2Channel {
         if *stream_credit >= CREDIT_FLUSH_THRESHOLD {
             let credit = *stream_credit;
             self.uncredited_streams.remove(&stream_id);
-            WindowUpdateFrame { stream_id, size_increment: credit }.encode(&mut self.write_buf);
+            WindowUpdateFrame {
+                stream_id,
+                size_increment: credit,
+            }
+            .encode(&mut self.write_buf);
         }
         self.uncredited_conn += n;
         if self.uncredited_conn >= CREDIT_FLUSH_THRESHOLD {
             let credit = std::mem::take(&mut self.uncredited_conn);
-            WindowUpdateFrame { stream_id: 0, size_increment: credit }
-                .encode(&mut self.write_buf);
+            WindowUpdateFrame {
+                stream_id: 0,
+                size_increment: credit,
+            }
+            .encode(&mut self.write_buf);
         }
     }
 
@@ -814,7 +823,10 @@ impl H2Channel {
             Kind::Settings => self.handle_settings(*head, payload)?,
             Kind::WindowUpdate => self.handle_window_update(*head, payload)?,
             Kind::Ping => self.handle_ping(*head, payload)?,
-            Kind::GoAway => { self.flags.set(ChannelFlags::GOAWAY_RECEIVED, true); return Ok(true); }
+            Kind::GoAway => {
+                self.flags.set(ChannelFlags::GOAWAY_RECEIVED, true);
+                return Ok(true);
+            }
             _ => {} // stream-level frames — caller handles
         }
         Ok(self.flags.has(ChannelFlags::GOAWAY_RECEIVED))
@@ -822,11 +834,16 @@ impl H2Channel {
 
     /// Whether the peer has sent GOAWAY.
     #[must_use]
-    pub fn goaway_received(&self) -> bool { self.flags.has(ChannelFlags::GOAWAY_RECEIVED) }
+    pub fn goaway_received(&self) -> bool {
+        self.flags.has(ChannelFlags::GOAWAY_RECEIVED)
+    }
 
     /// Send `RST_STREAM` for the given stream.
     pub fn send_rst_stream(&mut self, stream_id: u32) {
-        let rf = ResetFrame { stream_id, error_code: crate::http2::frame::ErrorCode::Cancel };
+        let rf = ResetFrame {
+            stream_id,
+            error_code: crate::http2::frame::ErrorCode::Cancel,
+        };
         // `ResetFrame::encode` emits the complete frame — re-wrapping it via
         // `queue_frame` produced RST_STREAM with length=13 instead of 4, a
         // connection error (RFC 7540 §6.4, FRAME_SIZE_ERROR).

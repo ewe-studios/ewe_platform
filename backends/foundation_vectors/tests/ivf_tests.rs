@@ -1,4 +1,4 @@
-use foundation_vectors::index::{VectorError, VectorIndex, load_index};
+use foundation_vectors::index::{load_index, VectorError, VectorIndex};
 use foundation_vectors::ivf::IvfIndex;
 use foundation_vectors::metric::DistanceMetric;
 
@@ -22,7 +22,13 @@ fn ivf_insert_and_search() {
 fn ivf_dimension_mismatch() {
     let index = make_ivf();
     let err = index.insert("a", &[1.0]).unwrap_err();
-    assert!(matches!(err, VectorError::DimensionMismatch { expected: 3, got: 1 }));
+    assert!(matches!(
+        err,
+        VectorError::DimensionMismatch {
+            expected: 3,
+            got: 1
+        }
+    ));
 }
 
 #[test]

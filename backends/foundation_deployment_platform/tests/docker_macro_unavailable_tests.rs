@@ -32,10 +32,7 @@ async fn async_body(_containers: ContainerGroup) {
 
 #[test]
 fn sync_and_async_arms_both_skip_when_docker_is_unreachable() {
-    let socket = std::env::temp_dir().join(format!(
-        "ewe-no-docker-{}.sock",
-        std::process::id()
-    ));
+    let socket = std::env::temp_dir().join(format!("ewe-no-docker-{}.sock", std::process::id()));
     assert!(!socket.exists(), "{socket:?} must not exist for this test");
 
     // SAFETY: this is the only test in this binary and it sets the variable

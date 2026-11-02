@@ -302,6 +302,8 @@ where
     type Ready = ParseResult;
     type Pending = ReconnectingProgress;
 
+    // Long by design: one match over every reconnect/parse state.
+    #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 

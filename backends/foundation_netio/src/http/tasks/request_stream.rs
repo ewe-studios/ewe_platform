@@ -15,8 +15,8 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
-use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
 use crate::http::HttpConnectionPool;
+use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
 use crate::shared::http::{Http11, HttpClientError, RenderHttp};
 use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use std::io::Write;

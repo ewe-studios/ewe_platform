@@ -21,6 +21,7 @@ pub struct HostHealth {
 }
 
 impl HostHealth {
+    #[must_use]
     pub fn is_healthy(&self) -> bool {
         self.checks.iter().all(|c| c.ok)
     }
@@ -31,7 +32,7 @@ impl HostHealth {
             let status = if c.ok { "OK" } else { "FAIL" };
             println!("  [{status}] {} — {}", c.name, c.message);
             if let Some(s) = c.suggestion {
-                println!("         Suggestion: {}", s);
+                println!("         Suggestion: {s}");
             }
         }
 
@@ -43,6 +44,8 @@ impl HostHealth {
 }
 
 /// Run all host-level health checks.
+#[must_use]
+#[allow(clippy::too_many_lines)] // Long function; refactor is tracked separately.
 pub fn check_host() -> HostHealth {
     let mut checks = Vec::new();
 
@@ -130,10 +133,9 @@ pub fn check_host() -> HostHealth {
     checks.push(Check {
         name: "ssh_key",
         ok: has_key,
-        message: if has_key {
-            format!("found: {}", ssh_key.unwrap().display())
-        } else {
-            "no SSH key found".to_string()
+        message: match &ssh_key {
+            Some(key) => format!("found: {}", key.display()),
+            None => "no SSH key found".to_string(),
         },
         suggestion: Some("run: ssh-keygen -t ed25519"),
     });
@@ -143,18 +145,26 @@ pub fn check_host() -> HostHealth {
     let disk_target = if cache_dir.exists() {
         cache_dir
     } else {
-        cache_dir.ancestors().find(|p| p.exists()).map(|p| p.to_path_buf())
-            .unwrap_or_else(|| std::path::PathBuf::from("/"))
+        cache_dir.ancestors().find(|p| p.exists()).map_or_else(
+            || std::path::PathBuf::from("/"),
+            std::path::Path::to_path_buf,
+        )
     };
     let disk_msg = match fs2::available_space(&disk_target) {
         Ok(bytes) => {
+            #[allow(clippy::cast_precision_loss)]
+            // size in bytes to f64 for display; precision loss is acceptable.
             let gb = bytes as f64 / 1_073_741_824.0;
             let ok = gb > 10.0;
             Check {
                 name: "disk_space",
                 ok,
                 message: format!("{:.1} GB available on {}", gb, disk_target.display()),
-                suggestion: if !ok { Some("free up disk space or expand partition") } else { None },
+                suggestion: if ok {
+                    None
+                } else {
+                    Some("free up disk space or expand partition")
+                },
             }
         }
         Err(_) => Check {
@@ -173,7 +183,10 @@ pub fn check_host() -> HostHealth {
             checks.push(Check {
                 name: "port_check",
                 ok: false,
-                message: format!("default SSH port {} (profile '{}') is in use", profile.ssh_port, profile.name),
+                message: format!(
+                    "default SSH port {} (profile '{}') is in use",
+                    profile.ssh_port, profile.name
+                ),
                 suggestion: Some("stop the running VM or override the port in testbed.toml"),
             });
         }
@@ -183,6 +196,7 @@ pub fn check_host() -> HostHealth {
 }
 
 /// Run VM-level health checks for a specific profile.
+#[must_use]
 pub fn check_vm(profile: &VmProfile) -> HostHealth {
     let mut checks = Vec::new();
 
@@ -271,12 +285,14 @@ pub fn check_vm(profile: &VmProfile) -> HostHealth {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /// Check if KVM is available.
+#[must_use]
 pub fn kvm_available() -> bool {
     let path = std::path::Path::new("/dev/kvm");
-    path.exists() && std::fs::metadata(path).map(|m| !m.permissions().readonly()).unwrap_or(false)
+    path.exists() && std::fs::metadata(path).is_ok_and(|m| !m.permissions().readonly())
 }
 
 /// Find the user's SSH public key (ed25519 preferred).
+#[must_use]
 pub fn find_ssh_key() -> Option<std::path::PathBuf> {
     let home = dirs::home_dir()?;
     let ssh_dir = home.join(".ssh");
@@ -294,4 +310,3 @@ pub fn find_ssh_key() -> Option<std::path::PathBuf> {
 fn is_port_free(port: u16) -> bool {
     std::net::TcpListener::bind(("127.0.0.1", port)).is_ok()
 }
-

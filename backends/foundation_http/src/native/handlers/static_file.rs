@@ -9,8 +9,8 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{
-    Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
-    SendSafeBody, Status,
+    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
+    Status,
 };
 
 use crate::shared::context::ContextBag;
@@ -52,7 +52,11 @@ impl StaticFileHandler {
         Self { root: root.into() }
     }
 
-    fn serve_file(&self, path: &str, conn: &mut SharedByteBufferStream<RawStream>) -> ConnectionResult {
+    fn serve_file(
+        &self,
+        path: &str,
+        conn: &mut SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
         // Prevent path traversal
         let safe_path = path.trim_start_matches('/');
         if safe_path.contains("..") {
@@ -77,7 +81,10 @@ impl StaticFileHandler {
         Self::serve_file_path(&file_path, conn)
     }
 
-    fn serve_file_path(path: &Path, conn: &mut SharedByteBufferStream<RawStream>) -> ConnectionResult {
+    fn serve_file_path(
+        path: &Path,
+        conn: &mut SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
         let Ok(mut file) = File::open(path) else {
             return crate::shared::serve::respond::not_found(conn)
                 .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep);

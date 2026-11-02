@@ -26,7 +26,8 @@ use std::path::Path;
 
 fn main() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
-    let spec = Path::new(&manifest).join("../../artefacts/cloud_providers/digitalocean/openapi.json");
+    let spec =
+        Path::new(&manifest).join("../../artefacts/cloud_providers/digitalocean/openapi.json");
 
     // The spec artefact is not published to crates.io, so a consumer building
     // this crate from the registry has no spec to check against — and the
@@ -62,8 +63,13 @@ fn main() {
         Ok(()) => {}
         // The selection or the spec's shape moved — regenerate.
         Err(foundation_codegentools::CodegenError::Stale { .. }) => {
-            codegen.write().expect("regenerate digitalocean's API surface");
-            println!("cargo:warning=regenerated digitalocean's src/generated/ from {}", spec.display());
+            codegen
+                .write()
+                .expect("regenerate digitalocean's API surface");
+            println!(
+                "cargo:warning=regenerated digitalocean's src/generated/ from {}",
+                spec.display()
+            );
         }
         // A moved pin, an unreadable spec, a spec that will not canonicalise.
         Err(e) => panic!("{e}"),

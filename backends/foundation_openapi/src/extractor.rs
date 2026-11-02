@@ -70,6 +70,7 @@ impl EndpointExtractor {
                 ("PUT", &path_item.put),
                 ("PATCH", &path_item.patch),
                 ("DELETE", &path_item.delete),
+                ("HEAD", &path_item.head),
             ];
 
             for (method_name, operation_opt) in methods {
@@ -148,6 +149,12 @@ impl EndpointExtractor {
             .map(EndpointInfo::extract_array_query_params)
             .unwrap_or_default();
 
+        let boolean_query_params = operation
+            .parameters
+            .as_deref()
+            .map(EndpointInfo::extract_boolean_query_params)
+            .unwrap_or_default();
+
         // Use path template params if parameter array didn't provide path params
         if param_path.is_empty() && !path_params.is_empty() {
             param_path.clone_from(&path_params);
@@ -193,6 +200,7 @@ impl EndpointExtractor {
             path_params: param_path,
             query_params: param_query,
             array_query_params,
+            boolean_query_params,
             request_type,
             raw_request_body,
             response_type,
@@ -388,6 +396,7 @@ impl EndpointExtractor {
             path_params,
             query_params,
             array_query_params: Vec::new(),
+            boolean_query_params: Vec::new(),
             request_type,
             raw_request_body: None,
             response_type,

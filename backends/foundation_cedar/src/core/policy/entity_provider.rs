@@ -4,6 +4,10 @@ use super::super::errors::CedarError;
 use super::super::request::CedarRequest;
 
 pub trait EntityProvider: Send + Sync {
+    /// Load the entities for a request.
+    ///
+    /// # Errors
+    /// Returns an error if the entities cannot be produced.
     fn get_entities(&self, request: &CedarRequest) -> Result<Entities, CedarError>;
 }
 

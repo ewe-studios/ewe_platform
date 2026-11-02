@@ -6,7 +6,7 @@
 use std::sync::Arc;
 
 use foundation_netio::shared::http::{
-    SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, SendSafeBody, Status,
+    SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 
 use crate::shared::context::ContextBag;
@@ -215,11 +215,7 @@ impl AuthMiddleware {
 }
 
 impl RequestMiddleware for AuthMiddleware {
-    fn handle(
-        &self,
-        _ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         let path = &req.request_url.url;
 
         // Check if path is public

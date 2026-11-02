@@ -25,25 +25,31 @@
 //! timeouts.
 
 use crate::http::{HttpClientConnection, HttpConnectionPool};
-use crate::native::readiness::{DeadlineReadiness, IoInterest};
-use crate::netcap::{Connection, RawStream};
-#[cfg(unix)]
-use crate::native::readiness::SocketReadiness;
 use crate::native::readiness::io_or_deadline;
 #[cfg(unix)]
-use crate::netcap::PendingConnect;
+use crate::native::readiness::SocketReadiness;
+use crate::native::readiness::{DeadlineReadiness, IoInterest};
 #[cfg(feature = "ssl-rustls")]
 use crate::netcap::ssl::{ClientSSLStream, SSLConnector};
+#[cfg(unix)]
+use crate::netcap::PendingConnect;
+use crate::netcap::{Connection, RawStream};
 use crate::shared::client::{redirects, ClientConfig, DnsResolver};
 use crate::shared::http::{
     ensure_chunked_transfer_encoding, BodyReadiness, Http11, Http11RequestBodyIterator,
     HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp, RequestDescriptor,
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
+use concurrent_queue::ConcurrentQueue;
 use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
-use foundation_core::valtron::{Ctx, AnyReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{
+    queue_waker, AnyReadiness, Ctx, QueueReadiness, TaskIterator, TaskStatus, WakeToken,
+};
+use std::future::Future;
 use std::io::Write;
+use std::pin::Pin;
 use std::sync::Arc;
+use std::task::{Context, Poll};
 use std::time::Instant;
 
 use super::nonblocking::{self, IdleDeadline, IoStep, Park, PendingBytes};
@@ -167,6 +173,25 @@ pub struct WritingBody {
     body_readiness: Option<BodyReadiness>,
 }
 
+/// A DNS resolution in flight (feature 36).
+///
+/// WHY: `SystemDnsResolver` runs the blocking lookup off the valtron worker; the
+/// request task must await it instead of blocking. This state polls the resolver
+/// future, parks on its wake queue, and fails at the configured DNS deadline.
+///
+/// HOW: the future's waker pushes a [`WakeToken`] onto `wake_queue`; the task
+/// parks on [`QueueReadiness`] for that queue composed with the DNS deadline
+/// (via `io_or_deadline`), so it wakes on whichever comes first.
+#[cfg(unix)]
+pub struct Resolving<R: DnsResolver + Send + 'static> {
+    exchange: PendingExchange<R>,
+    future:
+        Pin<Box<dyn Future<Output = Result<Vec<core::net::SocketAddr>, HttpClientError>> + Send>>,
+    /// Fixed DNS deadline (feature 36).
+    deadline: Instant,
+    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+}
+
 /// A TCP connect in flight on a non-blocking socket (feature 04 §2.1).
 ///
 /// WHY: `TcpStream::connect_timeout` holds a valtron worker for the whole kernel
@@ -203,6 +228,9 @@ pub struct TlsHandshake<R: DnsResolver + Send + 'static> {
 pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
     Init(Option<InitData<R>>),
     Trying(Option<TryingData<R>>),
+    /// Non-blocking: DNS resolution is in flight (feature 36).
+    #[cfg(unix)]
+    Resolving(Option<Box<Resolving<R>>>),
     /// Non-blocking: the TCP connect is in flight.
     #[cfg(unix)]
     Connecting(Option<Box<Connecting<R>>>),
@@ -414,16 +442,13 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             }
         }
 
-        let target_host = match descriptor.request_uri.host_str() {
-            Some(host) => host.to_string(),
-            None => {
-                tracing::error!("Missing host in request URI");
-                return self.fail(HttpClientError::InvalidUrl("Missing host".to_string()));
-            }
+        let Some(target_host) = descriptor.request_uri.host_str() else {
+            tracing::error!("Missing host in request URI");
+            return self.fail(HttpClientError::InvalidUrl("Missing host".to_string()));
         };
         let target_port = descriptor.request_uri.port_or_default();
-        let use_tls = descriptor.request_uri.scheme().is_https()
-            || descriptor.request_uri.scheme().is_wss();
+        let use_tls =
+            descriptor.request_uri.scheme().is_https() || descriptor.request_uri.scheme().is_wss();
 
         // Determine effective proxy configuration.
         let env_proxy = if config.proxy_from_env {
@@ -460,17 +485,14 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         }
 
         // Blocking fallback (proxy, custom connector, non-unix, non-rustls TLS).
-        let connection = match pool.create_connection_with_proxy(
-            &descriptor.request_uri,
-            proxy_config,
-            None,
-        ) {
-            Ok(connection) => connection,
-            Err(err) => {
-                tracing::error!("Failed to connect: {:?}", err);
-                return self.fail(HttpClientError::ConnectionError);
-            }
-        };
+        let connection =
+            match pool.create_connection_with_proxy(&descriptor.request_uri, proxy_config, None) {
+                Ok(connection) => connection,
+                Err(err) => {
+                    tracing::error!("Failed to connect: {:?}", err);
+                    return self.fail(HttpClientError::ConnectionError);
+                }
+            };
 
         self.finish_connected(
             PendingExchange {
@@ -597,8 +619,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     }
 
     /// Begin a non-blocking direct connect: reuse a pooled connection if one is
-    /// idle, otherwise resolve DNS (still blocking — out of scope) and enter
-    /// [`Connecting`].
+    /// idle, otherwise start DNS resolution (feature 36) and enter [`Resolving`].
     #[cfg(unix)]
     fn start_connecting(&mut self, exchange: PendingExchange<R>) -> Step {
         if let Some(connection) = exchange
@@ -608,26 +629,64 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             return self.finish_connected(exchange, connection);
         }
 
-        let addrs = match exchange.pool.resolve_host(&exchange.host, exchange.port) {
-            Ok(addrs) => addrs,
-            Err(err) => {
-                tracing::error!("Failed to resolve {}: {:?}", exchange.host, err);
-                return self.fail(err);
-            }
-        };
+        let future = exchange.pool.resolve_host(&exchange.host, exchange.port);
+        let deadline = Instant::now() + exchange.config.timeout_config().dns_timeout;
 
-        let deadline = Instant::now() + exchange.config.timeout_config().connect_timeout;
-
-        self.0 = Some(HttpRequestRedirectState::Connecting(Some(Box::new(
-            Connecting {
+        self.0 = Some(HttpRequestRedirectState::Resolving(Some(Box::new(
+            Resolving {
                 exchange,
-                addrs: addrs.into_iter(),
-                current: None,
+                future,
                 deadline,
-                last_error: None,
+                wake_queue: Arc::new(ConcurrentQueue::unbounded()),
             },
         ))));
         TaskStatus::Pending(HttpOperationState::Connecting)
+    }
+
+    /// Drive DNS resolution (feature 36). Parks on the resolver's wake queue,
+    /// bounded by the DNS deadline; on success hands the addresses to
+    /// [`Connecting`].
+    #[cfg(unix)]
+    fn resolving(&mut self, mut st: Box<Resolving<R>>) -> Step {
+        // Drain stale wake tokens before polling, so a prior turn's wake is not
+        // mistaken for a fresh one (same race-safe pattern as `FutureTask`).
+        while st.wake_queue.pop().is_ok() {}
+
+        let waker = queue_waker(st.wake_queue.clone(), 0);
+        let mut cx = Context::from_waker(&waker);
+
+        match st.future.as_mut().poll(&mut cx) {
+            Poll::Ready(Ok(addrs)) => {
+                let deadline = Instant::now() + st.exchange.config.timeout_config().connect_timeout;
+                self.0 = Some(HttpRequestRedirectState::Connecting(Some(Box::new(
+                    Connecting {
+                        exchange: st.exchange,
+                        addrs: addrs.into_iter(),
+                        current: None,
+                        deadline,
+                        last_error: None,
+                    },
+                ))));
+                TaskStatus::Pending(HttpOperationState::Connecting)
+            }
+            Poll::Ready(Err(err)) => {
+                tracing::error!("Failed to resolve {}: {:?}", st.exchange.host, err);
+                self.fail(err)
+            }
+            Poll::Pending => {
+                if Instant::now() >= st.deadline {
+                    return self.fail(HttpClientError::ConnectionTimeout(format!(
+                        "DNS resolution of {}:{} timed out",
+                        st.exchange.host, st.exchange.port
+                    )));
+                }
+                let deadline = st.deadline;
+                let queue = Arc::new(QueueReadiness::new(st.wake_queue.clone()));
+                let signal = io_or_deadline(queue, deadline);
+                self.0 = Some(HttpRequestRedirectState::Resolving(Some(st)));
+                TaskStatus::Depends(signal)
+            }
+        }
     }
 
     /// Drive the non-blocking connect across the resolved addresses (feature 04
@@ -636,27 +695,27 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     #[cfg(unix)]
     fn connecting(&mut self, mut st: Box<Connecting<R>>) -> Step {
         loop {
-            let pending = match st.current.take() {
-                Some(pending) => pending,
-                None => {
-                    let Some(addr) = st.addrs.next() else {
-                        let error = st.last_error.take().map(HttpClientError::IoError).unwrap_or_else(
-                            || {
-                                HttpClientError::ConnectionFailed(format!(
-                                    "Failed to connect to {}:{}",
-                                    st.exchange.host, st.exchange.port
-                                ))
-                            },
-                        );
-                        return self.fail(error);
-                    };
-                    match PendingConnect::start(addr) {
-                        Ok(pending) => pending,
-                        Err(err) => {
-                            // Immediate failure (no route, refused): try the next.
-                            st.last_error = Some(err);
-                            continue;
-                        }
+            let pending = if let Some(pending) = st.current.take() {
+                pending
+            } else {
+                let Some(addr) = st.addrs.next() else {
+                    let error = st.last_error.take().map_or_else(
+                        || {
+                            HttpClientError::ConnectionFailed(format!(
+                                "Failed to connect to {}:{}",
+                                st.exchange.host, st.exchange.port
+                            ))
+                        },
+                        HttpClientError::IoError,
+                    );
+                    return self.fail(error);
+                };
+                match PendingConnect::start(addr) {
+                    Ok(pending) => pending,
+                    Err(err) => {
+                        // Immediate failure (no route, refused): try the next.
+                        st.last_error = Some(err);
+                        continue;
                     }
                 }
             };
@@ -1341,6 +1400,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
     type Pending = HttpOperationState;
     type Ready = HttpRequestRedirectResponse;
 
+    // Long by design: one match over every redirect state.
+    #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
         trace_span.in_scope(|| match self.0.take()? {
@@ -1428,6 +1489,15 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         TaskStatus::Ready(HttpRequestRedirectResponse::FlushFailed(connection, e))
                     }
                 })
+            }
+            #[cfg(unix)]
+            HttpRequestRedirectState::Resolving(inner_opt) => {
+                tracing::trace!("HttpRequestRedirectState::Resolving");
+                let Some(state) = inner_opt else {
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    return None;
+                };
+                Some(self.resolving(state))
             }
             #[cfg(unix)]
             HttpRequestRedirectState::Connecting(inner_opt) => {

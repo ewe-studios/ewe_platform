@@ -64,7 +64,9 @@ pub struct CapabilityRegistry {
 impl CapabilityRegistry {
     #[must_use]
     pub fn new() -> Self {
-        Self { handlers: RwLock::new(HashMap::new()) }
+        Self {
+            handlers: RwLock::new(HashMap::new()),
+        }
     }
 
     /// Register a platform capability.
@@ -122,7 +124,10 @@ impl CapabilityRegistry {
         // Layer 4: Per-route allowlist gate
         if let Some(route) = current_route {
             if !route.capabilities.is_empty()
-                && !route.capabilities.iter().any(|c| c == handler.capability_id())
+                && !route
+                    .capabilities
+                    .iter()
+                    .any(|c| c == handler.capability_id())
             {
                 return Err(CapabilityError::PermissionDenied(format!(
                     "capability '{}' not allowed on this route",
@@ -166,7 +171,9 @@ impl CapabilityRegistry {
     #[must_use]
     pub fn get(&self, name: &str) -> Option<&dyn PlatformCapability> {
         let guard = self.handlers.read().unwrap();
-        guard.get(name).map(|b| unsafe { &*(b.as_ref() as *const dyn PlatformCapability) })
+        guard
+            .get(name)
+            .map(|b| unsafe { &*(b.as_ref() as *const dyn PlatformCapability) })
     }
 
     #[must_use]
@@ -176,7 +183,9 @@ impl CapabilityRegistry {
 }
 
 impl Default for CapabilityRegistry {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 /// Check if a profile meets or exceeds a minimum required profile.
@@ -193,8 +202,7 @@ fn profile_satisfies(actual: Profile, required: Profile) -> bool {
     if matches!(actual, Profile::Auth | Profile::Devtools)
         || matches!(required, Profile::Auth | Profile::Devtools)
     {
-        return actual == required
-            || (actual == Profile::Devtools && cfg!(debug_assertions));
+        return actual == required || (actual == Profile::Devtools && cfg!(debug_assertions));
     }
     rank(actual) >= rank(required)
 }
@@ -208,7 +216,9 @@ pub struct TestPlatformCap {
 }
 
 impl foundation_wasm::WasmCapability for TestPlatformCap {
-    fn name(&self) -> &str { &self.id.0 }
+    fn name(&self) -> &str {
+        &self.id.0
+    }
 
     fn invoke_capability(
         &self,
@@ -224,8 +234,12 @@ impl foundation_wasm::WasmCapability for TestPlatformCap {
 }
 
 impl PlatformCapability for TestPlatformCap {
-    fn capability_id(&self) -> &CapabilityId { &self.id }
-    fn min_profile(&self) -> Profile { self.min_profile }
+    fn capability_id(&self) -> &CapabilityId {
+        &self.id
+    }
+    fn min_profile(&self) -> Profile {
+        self.min_profile
+    }
 }
 
 /// Create a test registry with a camera capability registered.

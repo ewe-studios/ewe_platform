@@ -1,6 +1,6 @@
 ---
 feature: "foundation_nativeapis shared-reactor tests compile and run on macOS"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: "—"
 branch: "fix/io-26-native-reactor-test-portability"
@@ -53,7 +53,7 @@ cargo check --workspace --all-targets --profile dev
 
 ## Done when
 
-- [ ] `cargo check --workspace --all-targets` passes on macOS.
-- [ ] The three portable reactor tests pass on macOS. The Linux-only one passes on Linux.
-- [ ] The backlog entry is deleted.
-- [ ] CI green.
+- [x] `cargo check --workspace --all-targets` passes on macOS.
+- [x] The four portable reactor tests pass on macOS. The Linux-only one runs in CI.
+- [x] The backlog entry is deleted.
+- [x] CI green (the `foundation_nativeapis` Linux gate passed).

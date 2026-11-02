@@ -1,32 +1,32 @@
 use proc_macro::TokenStream;
 
-mod connectrpc_service;
 mod arrow_json_schema;
 mod arrow_schema;
+mod bindgen_test;
+mod connectrpc_service;
 mod crate_paths;
 mod docker_container;
-mod proxy;
 mod embedders;
-mod mobile_directory;
 mod from_arrow;
-mod platform_test;
+mod html_macro;
 mod json_hash;
 mod json_schema;
+mod mobile_directory;
+mod platform_test;
+mod proxy;
 mod scaffold;
 mod schema_fields;
-mod to_arrow;
-mod type_uuid;
-mod wasm_entrypoint;
-mod wasm_logs;
-mod html_macro;
-mod theme_macro;
-mod theme_tokens;
-mod wasm_modes;
 mod serial_test;
 mod state_task;
+mod theme_macro;
+mod theme_tokens;
+mod to_arrow;
+mod type_uuid;
 mod valtron_entry;
+mod wasm_entrypoint;
+mod wasm_logs;
+mod wasm_modes;
 mod wasm_test;
-mod bindgen_test;
 mod wasm_ui_server_entry;
 mod wasmbin_codec;
 mod wireguard;
@@ -712,9 +712,8 @@ pub fn timeout(attr: TokenStream, item: TokenStream) -> TokenStream {
     use quote::quote;
 
     let input = syn::parse_macro_input!(item as syn::ItemFn);
-    let time_ms: syn::LitInt = syn::parse(attr).unwrap_or_else(|_| {
-        panic!("timeout: integer in ms expected. Example: #[timeout(60000)]")
-    });
+    let time_ms: syn::LitInt = syn::parse(attr)
+        .unwrap_or_else(|_| panic!("timeout: integer in ms expected. Example: #[timeout(60000)]"));
     let vis = &input.vis;
     let sig = &input.sig;
     let output = &sig.output;
@@ -1011,4 +1010,3 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn generate(input: TokenStream) -> TokenStream {
     connectrpc_service::expand_generate(input.into()).into()
 }
-

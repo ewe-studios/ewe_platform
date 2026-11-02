@@ -20,7 +20,7 @@
 use crate::wasm::builtins::WasmbinCountable;
 use crate::wasm::indices::TypeId;
 use crate::wasm::io::{
-    Decode, DecodeError, DecodeWithDiscriminant, Encode, PathItem, Wasmbin, encode_decode_as,
+    encode_decode_as, Decode, DecodeError, DecodeWithDiscriminant, Encode, PathItem, Wasmbin,
 };
 use crate::wasm::visit::Visit;
 #[cfg(feature = "wasm-serde")]

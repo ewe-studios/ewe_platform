@@ -25,7 +25,11 @@ pub enum TestEnvError {
     /// The container is running but not responding on the expected port.
     ContainerNotReady { container: String, port: u16 },
     /// A `docker exec` command failed.
-    ExecFailed { container: String, command: String, stderr: String },
+    ExecFailed {
+        container: String,
+        command: String,
+        stderr: String,
+    },
     /// A `docker cp` command failed.
     CopyFailed { container: String, detail: String },
     /// Timed out waiting for the container to become ready.
@@ -35,10 +39,20 @@ pub enum TestEnvError {
 impl std::fmt::Display for TestEnvError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ContainerNotFound(c) => write!(f, "Docker container '{c}' not found (is it running?)"),
-            Self::ContainerNotReady { container, port } => write!(f, "Container '{container}' not ready on port {port}"),
-            Self::ExecFailed { container, command, stderr } => write!(f, "exec failed in '{container}': {command}: {stderr}"),
-            Self::CopyFailed { container, detail } => write!(f, "copy failed to '{container}': {detail}"),
+            Self::ContainerNotFound(c) => {
+                write!(f, "Docker container '{c}' not found (is it running?)")
+            }
+            Self::ContainerNotReady { container, port } => {
+                write!(f, "Container '{container}' not ready on port {port}")
+            }
+            Self::ExecFailed {
+                container,
+                command,
+                stderr,
+            } => write!(f, "exec failed in '{container}': {command}: {stderr}"),
+            Self::CopyFailed { container, detail } => {
+                write!(f, "copy failed to '{container}': {detail}")
+            }
             Self::Timeout(msg) => write!(f, "timed out: {msg}"),
         }
     }
@@ -53,7 +67,11 @@ pub enum ConnectionMode {
     /// VNC (macOS: port 5900, Android: web UI on 8006)
     Vnc { port: u16, password: Option<String> },
     /// RDP (Windows: port 3389)
-    Rdp { port: u16, username: String, password: String },
+    Rdp {
+        port: u16,
+        username: String,
+        password: String,
+    },
     /// Shell-only via docker exec, no graphical access.
     Shell,
 }
@@ -68,7 +86,9 @@ struct DockerExec {
 
 impl DockerExec {
     fn new(container: &str) -> Self {
-        Self { container: container.to_string() }
+        Self {
+            container: container.to_string(),
+        }
     }
 
     /// Run a command inside the container. Returns stdout as a string.
@@ -97,7 +117,11 @@ impl DockerExec {
     /// Copy a local file into the container at `dest`.
     fn copy_in(&self, src: &Path, dest: &str) -> Result<(), TestEnvError> {
         let output = Command::new("docker")
-            .args(["cp", &src.display().to_string(), &format!("{}:{}", self.container, dest)])
+            .args([
+                "cp",
+                &src.display().to_string(),
+                &format!("{}:{}", self.container, dest),
+            ])
             .output()
             .map_err(|e| TestEnvError::CopyFailed {
                 container: self.container.clone(),
@@ -136,7 +160,10 @@ impl TestEnvironmentBuilder {
     /// Connect via VNC (macOS, Android).
     #[must_use]
     pub fn with_vnc(mut self, port: u16) -> Self {
-        self.mode = ConnectionMode::Vnc { port, password: None };
+        self.mode = ConnectionMode::Vnc {
+            port,
+            password: None,
+        };
         self
     }
 
@@ -162,9 +189,19 @@ impl TestEnvironmentBuilder {
     #[must_use]
     pub fn is_running(&self) -> bool {
         let output = Command::new("docker")
-            .args(["ps", "--filter", &format!("name={}", self.container), "--format", "{{.Status}}"])
+            .args([
+                "ps",
+                "--filter",
+                &format!("name={}", self.container),
+                "--format",
+                "{{.Status}}",
+            ])
             .output()
-            .unwrap_or_else(|_| Output { status: Default::default(), stdout: vec![], stderr: vec![] });
+            .unwrap_or_else(|_| Output {
+                status: Default::default(),
+                stdout: vec![],
+                stderr: vec![],
+            });
 
         let status = String::from_utf8_lossy(&output.stdout);
         !status.trim().is_empty() && status.contains("Up")
@@ -221,11 +258,9 @@ impl TestEnvironmentBuilder {
                 let port_ok = port_is_open("localhost", *port);
                 exec_ok && port_ok
             }
-            ConnectionMode::Shell => {
-                DockerExec::new(&self.container)
-                    .exec("echo ready")
-                    .is_ok_and(|s| s == "ready")
-            }
+            ConnectionMode::Shell => DockerExec::new(&self.container)
+                .exec("echo ready")
+                .is_ok_and(|s| s == "ready"),
         }
     }
 }
@@ -300,7 +335,8 @@ impl TestEnvironment {
     fn try_macos_screenshot(&self) -> Result<Vec<u8>, TestEnvError> {
         // Write screenshot to a temp file, then docker cp it out.
         let tmp_in = "/tmp/ewe_screenshot.png";
-        self.docker_exec.exec(&format!("screencapture -x {tmp_in}"))?;
+        self.docker_exec
+            .exec(&format!("screencapture -x {tmp_in}"))?;
 
         let mut out = Command::new("docker")
             .args(["cp", &format!("{}:{tmp_in}", self.container), "-"])
@@ -383,7 +419,8 @@ impl TestEnvironment {
     /// Android: uses `adb shell input keyevent`.
     pub fn key_press(&self, key: &str) -> Result<(), TestEnvError> {
         if self.is_android() {
-            self.docker_exec.exec(&format!("adb -e shell input keyevent {key}"))?;
+            self.docker_exec
+                .exec(&format!("adb -e shell input keyevent {key}"))?;
             return Ok(());
         }
         // QEMU-backed: try QMP first
@@ -394,24 +431,25 @@ impl TestEnvironment {
             command: "qemu_connect".into(),
             stderr: e.to_string(),
         })?;
-        let qk = crate::qemu_control::Key::from_name(key).ok_or_else(|| {
-            TestEnvError::ExecFailed {
+        let qk =
+            crate::qemu_control::Key::from_name(key).ok_or_else(|| TestEnvError::ExecFailed {
                 container: self.container.clone(),
                 command: format!("key_press({key})"),
                 stderr: format!("unknown key: {key}"),
-            }
-        })?;
-        ctrl.send_key(&mut conn, qk).map_err(|e| TestEnvError::ExecFailed {
-            container: self.container.clone(),
-            command: format!("send_key({key})"),
-            stderr: e.to_string(),
-        })
+            })?;
+        ctrl.send_key(&mut conn, qk)
+            .map_err(|e| TestEnvError::ExecFailed {
+                container: self.container.clone(),
+                command: format!("send_key({key})"),
+                stderr: e.to_string(),
+            })
     }
 
     /// Type text into the guest.
     pub fn type_text(&self, text: &str) -> Result<(), TestEnvError> {
         if self.is_android() {
-            self.docker_exec.exec(&format!("adb -e shell input text '{text}'"))?;
+            self.docker_exec
+                .exec(&format!("adb -e shell input text '{text}'"))?;
             return Ok(());
         }
         use crate::qemu_control::QemuController;
@@ -421,19 +459,23 @@ impl TestEnvironment {
             command: "qemu_connect".into(),
             stderr: e.to_string(),
         })?;
-        ctrl.type_text(&mut conn, text).map_err(|e| TestEnvError::ExecFailed {
-            container: self.container.clone(),
-            command: format!("type_text({text})"),
-            stderr: e.to_string(),
-        })
+        ctrl.type_text(&mut conn, text)
+            .map_err(|e| TestEnvError::ExecFailed {
+                container: self.container.clone(),
+                command: format!("type_text({text})"),
+                stderr: e.to_string(),
+            })
     }
 
     /// Send a key combo (e.g. ctrl+alt+delete).
     pub fn key_combo(&self, modifier: &str, keys: &[&str]) -> Result<(), TestEnvError> {
         if self.is_android() {
             let mut combo = format!("KEYCODE_{}", modifier.to_uppercase());
-            for k in keys { combo.push_str(&format!(" KEYCODE_{}", k.to_uppercase())); }
-            self.docker_exec.exec(&format!("adb -e shell input keyevent --longpress {combo}"))?;
+            for k in keys {
+                combo.push_str(&format!(" KEYCODE_{}", k.to_uppercase()));
+            }
+            self.docker_exec
+                .exec(&format!("adb -e shell input keyevent --longpress {combo}"))?;
             return Ok(());
         }
         use crate::qemu_control::QemuController;
@@ -443,11 +485,12 @@ impl TestEnvironment {
             command: "qemu_connect".into(),
             stderr: e.to_string(),
         })?;
-        ctrl.key_combo(&mut conn, modifier, keys).map_err(|e| TestEnvError::ExecFailed {
-            container: self.container.clone(),
-            command: format!("key_combo({modifier}+{keys:?})"),
-            stderr: e.to_string(),
-        })
+        ctrl.key_combo(&mut conn, modifier, keys)
+            .map_err(|e| TestEnvError::ExecFailed {
+                container: self.container.clone(),
+                command: format!("key_combo({modifier}+{keys:?})"),
+                stderr: e.to_string(),
+            })
     }
 
     // ── Agentic: mouse ──────────────────────────────────────────────────
@@ -458,19 +501,23 @@ impl TestEnvironment {
             // Convert to pixel coords (assume 1080p)
             let px = (x * 1080.0) as u16;
             let py = (y * 1920.0) as u16;
-            self.docker_exec.exec(&format!("adb -e shell input tap {px} {py}"))?;
+            self.docker_exec
+                .exec(&format!("adb -e shell input tap {px} {py}"))?;
             return Ok(());
         }
         use crate::qemu_control::QemuController;
         let ctrl = QemuController::auto();
         let mut conn = ctrl.connect().map_err(|e| TestEnvError::ExecFailed {
-            container: self.container.clone(), command: "qemu_connect".into(), stderr: e.to_string(),
-        })?;
-        ctrl.mouse_move_abs(&mut conn, x, y).map_err(|e| TestEnvError::ExecFailed {
             container: self.container.clone(),
-            command: format!("mouse_move({x},{y})"),
+            command: "qemu_connect".into(),
             stderr: e.to_string(),
-        })
+        })?;
+        ctrl.mouse_move_abs(&mut conn, x, y)
+            .map_err(|e| TestEnvError::ExecFailed {
+                container: self.container.clone(),
+                command: format!("mouse_move({x},{y})"),
+                stderr: e.to_string(),
+            })
     }
 
     /// Click at current mouse position.
@@ -484,10 +531,20 @@ impl TestEnvironment {
     pub fn screenshot_png(&self) -> Result<Vec<u8>, TestEnvError> {
         if self.is_android() {
             let output = std::process::Command::new("docker")
-                .args(["exec", &self.container, "adb", "-e", "exec-out", "screencap", "-p"])
-                .output().map_err(|e| TestEnvError::ExecFailed {
+                .args([
+                    "exec",
+                    &self.container,
+                    "adb",
+                    "-e",
+                    "exec-out",
+                    "screencap",
+                    "-p",
+                ])
+                .output()
+                .map_err(|e| TestEnvError::ExecFailed {
                     container: self.container.clone(),
-                    command: "adb screencap".into(), stderr: e.to_string(),
+                    command: "adb screencap".into(),
+                    stderr: e.to_string(),
                 })?;
             return Ok(output.stdout);
         }
@@ -495,13 +552,16 @@ impl TestEnvironment {
         use crate::qemu_control::QemuController;
         let ctrl = QemuController::auto();
         let mut conn = ctrl.connect().map_err(|e| TestEnvError::ExecFailed {
-            container: self.container.clone(), command: "qemu_connect".into(), stderr: e.to_string(),
-        })?;
-        ctrl.screendump_png(&mut conn).map_err(|e| TestEnvError::ExecFailed {
             container: self.container.clone(),
-            command: "screendump_png".into(),
+            command: "qemu_connect".into(),
             stderr: e.to_string(),
-        })
+        })?;
+        ctrl.screendump_png(&mut conn)
+            .map_err(|e| TestEnvError::ExecFailed {
+                container: self.container.clone(),
+                command: "screendump_png".into(),
+                stderr: e.to_string(),
+            })
     }
 
     // ── Agentic: launch ─────────────────────────────────────────────────
@@ -553,8 +613,7 @@ mod tests {
 
     #[test]
     fn builder_with_rdp_configures_correctly() {
-        let builder = TestEnvironmentBuilder::new("ewe_windows")
-            .with_rdp(3389, "Docker", "admin");
+        let builder = TestEnvironmentBuilder::new("ewe_windows").with_rdp(3389, "Docker", "admin");
         assert!(builder.is_running()); // Windows container should be up
     }
 

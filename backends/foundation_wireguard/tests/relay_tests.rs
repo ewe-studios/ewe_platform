@@ -9,11 +9,11 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::{Duration, Instant};
 
+use foundation_wireguard::native::relay::{HolePuncher, RelayClient, RelayServer};
 use foundation_wireguard::shared::membership::{Capabilities, MemberState, PeerId, PeerRecord};
 use foundation_wireguard::shared::relay::{
     ConnectivityPath, RelayFrame, RelaySelector, RelaySession, RelayStrategy, RELAY_MAX_PAYLOAD,
 };
-use foundation_wireguard::native::relay::{HolePuncher, RelayClient, RelayServer};
 use tracing_test::traced_test;
 
 fn test_peer(id: u8) -> PeerId {
@@ -78,7 +78,6 @@ fn frame_rejects_wrong_version() {
 #[traced_test]
 #[test]
 fn server_attach_and_forward() {
-
     let mut server = RelayServer::new(16, 1000, 60);
     let src = test_peer(10);
     let dst = test_peer(20);
@@ -97,7 +96,6 @@ fn server_attach_and_forward() {
 #[traced_test]
 #[test]
 fn server_rejects_unattached_sender() {
-
     let mut server = RelayServer::new(16, 1000, 60);
     server.attach(test_peer(20)); // only dst
     let frame = RelayFrame::new(test_peer(20), vec![1, 2, 3]);
@@ -107,7 +105,6 @@ fn server_rejects_unattached_sender() {
 #[traced_test]
 #[test]
 fn server_rejects_unknown_dst() {
-
     let mut server = RelayServer::new(16, 1000, 60);
     server.attach(test_peer(10)); // only src
     let frame = RelayFrame::new(test_peer(99), vec![1, 2]); // dst not attached
@@ -117,7 +114,6 @@ fn server_rejects_unknown_dst() {
 #[traced_test]
 #[test]
 fn server_gc_removes_stale() {
-
     let mut server = RelayServer::new(16, 1000, 0); // 0s timeout
     server.attach(test_peer(1));
     server.attach(test_peer(2));
@@ -129,7 +125,6 @@ fn server_gc_removes_stale() {
 #[traced_test]
 #[test]
 fn server_detach_removes_peer() {
-
     let mut server = RelayServer::new(16, 1000, 60);
     server.attach(test_peer(1));
     server.detach(&test_peer(1));
@@ -193,7 +188,7 @@ fn selector_rtt_degradation_triggers_failover() {
     let first_id = sel.select().expect("first").peer_id;
     // Record bad RTT on first; should fail over on next select.
     sel.record_rtt(first_id, 100_000); // 100ms
-    // Second relay should now be better — failover picks it.
+                                       // Second relay should now be better — failover picks it.
     sel.failover();
     let next_id = sel.select().expect("next").peer_id;
     assert_ne!(next_id, first_id);
@@ -258,7 +253,10 @@ fn client_tracks_peer_paths() {
 
     // Direct failure with no relay → HolePunching.
     client.on_direct_probe_failure(test_peer(5));
-    assert_eq!(client.peer_path(test_peer(5)), ConnectivityPath::HolePunching);
+    assert_eq!(
+        client.peer_path(test_peer(5)),
+        ConnectivityPath::HolePunching
+    );
 }
 
 // ── HolePuncher ──
@@ -323,9 +321,9 @@ fn hole_punch_ack_contains_magic() {
 #[traced_test]
 #[test]
 fn three_node_mesh_with_relay() {
-    use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
-    use foundation_wireguard::native::{WgNode};
+    use foundation_wireguard::native::WgNode;
     use foundation_wireguard::shared::membership::MemberState;
+    use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 
     let seed = WgSeed::generate(SeedBits::Bits256).expect("seed");
     let net = seed.derive_network_id();
@@ -366,7 +364,10 @@ fn three_node_mesh_with_relay() {
 
     // Verify A has relay capability in its membership view.
     let a_members = handle_a.members();
-    let a_self = a_members.iter().find(|p| p.identity == handle_a.identity()).expect("A in own members");
+    let a_self = a_members
+        .iter()
+        .find(|p| p.identity == handle_a.identity())
+        .expect("A in own members");
     assert!(a_self.caps.relay, "Node A should advertise relay");
 
     handle_a.shutdown();
@@ -434,7 +435,9 @@ fn browser_ws_relay_frame_encoding_and_forward() {
     let mask: [u8; 4] = [0xAA; 4];
     wsf.extend_from_slice(&mask);
     let mut masked = encoded.clone();
-    for i in 0..masked.len() { masked[i] ^= mask[i % 4]; }
+    for i in 0..masked.len() {
+        masked[i] ^= mask[i % 4];
+    }
     wsf.extend_from_slice(&masked);
 
     // ── WS frame decoding (what the relay acceptor does) ────────────
@@ -444,7 +447,9 @@ fn browser_ws_relay_frame_encoding_and_forward() {
     let len = (header[1] & 0x7F) as usize;
     assert_eq!(payload_start + len, wsf.len());
     let mut payload = wsf[payload_start..payload_start + len].to_vec();
-    for i in 0..len { payload[i] ^= mask_key[i % 4]; }
+    for i in 0..len {
+        payload[i] ^= mask_key[i % 4];
+    }
 
     // ── Verify relay frame decodes correctly ────────────────────────
     let decoded = RelayFrame::decode(&payload).expect("decode relay frame");

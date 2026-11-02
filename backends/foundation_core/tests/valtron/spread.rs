@@ -6,9 +6,8 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 use foundation_core::valtron::{
-    Ctx, Stream, StreamAsFutureStream, StreamCollectFuture, StreamIteratorExt,
-    StreamPendingFuture, StreamReadyFuture, StreamSpread, TaskIterator, TaskIteratorExt, TaskSpread,
-    TaskStatus,
+    Ctx, Stream, StreamAsFutureStream, StreamCollectFuture, StreamIteratorExt, StreamPendingFuture,
+    StreamReadyFuture, StreamSpread, TaskIterator, TaskIteratorExt, TaskSpread, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 
@@ -247,7 +246,10 @@ fn test_task_map_pending_transforms_spread_pending() {
     ];
     let mut mapped = VecTask::new(items).map_pending(|s| s.len());
 
-    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Pending(2)));
+    assert_eq!(
+        mapped.next_status(ctx.clone()),
+        Some(TaskStatus::Pending(2))
+    );
     assert_eq!(
         mapped.next_status(ctx.clone()),
         Some(TaskStatus::Spread(vec![
@@ -327,7 +329,10 @@ fn test_task_find_spread_done() {
         TaskSpread::Ready(3),
     ])];
     let mut found = VecTask::new(items).find(|x| *x == 2);
-    assert_eq!(found.next_status(ctx.clone()), Some(TaskStatus::Ready(Some(2))));
+    assert_eq!(
+        found.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(Some(2)))
+    );
 }
 
 #[test]
@@ -505,7 +510,8 @@ fn test_collect_future_next_values_collected() {
         Stream::Next(2),
         Stream::Next(3),
     ]
-    .into_iter().into_stream_iter();
+    .into_iter()
+    .into_stream_iter();
     let mut future = StreamCollectFuture::new(iter);
 
     match poll_once(&mut future) {
@@ -521,7 +527,8 @@ fn test_collect_future_spread_pending_skipped_not_parked() {
         Stream::Spread(vec![StreamSpread::Pending("a"), StreamSpread::Pending("b")]),
         Stream::Next(2),
     ]
-    .into_iter().into_stream_iter();
+    .into_iter()
+    .into_stream_iter();
     let mut future = StreamCollectFuture::new(iter);
 
     // Spread with only Pending payloads is drained (no Done values), then
@@ -539,7 +546,8 @@ fn test_collect_future_spread_done_collected() {
         Stream::<i32, &str>::Next(1),
         Stream::Spread(vec![StreamSpread::Done(2), StreamSpread::Done(3)]),
     ]
-    .into_iter().into_stream_iter();
+    .into_iter()
+    .into_stream_iter();
     let mut future = StreamCollectFuture::new(iter);
 
     // Spread with Done drains every payload into the collected Vec.
@@ -560,7 +568,8 @@ fn test_ready_future_spread_done_returns_first_value() {
         StreamSpread::Done(99),
         StreamSpread::Done(100),
     ])]
-    .into_iter().into_stream_iter();
+    .into_iter()
+    .into_stream_iter();
     let mut future = StreamReadyFuture::new(iter);
 
     match poll_once(&mut future) {
@@ -573,7 +582,9 @@ fn test_ready_future_spread_done_returns_first_value() {
 
 #[test]
 fn test_ready_future_spread_done_empty_returns_pending() {
-    let iter = vec![Stream::<i32, &str>::Spread(vec![])].into_iter().into_stream_iter();
+    let iter = vec![Stream::<i32, &str>::Spread(vec![])]
+        .into_iter()
+        .into_stream_iter();
     let mut future = StreamReadyFuture::new(iter);
 
     // Empty Spread: no value to return, iterator exhausted → None
@@ -589,7 +600,8 @@ fn test_ready_future_spread_pending_returns_pending() {
         Stream::<i32, &str>::Spread(vec![StreamSpread::Pending("a"), StreamSpread::Pending("b")]),
         Stream::Next(42),
     ]
-    .into_iter().into_stream_iter();
+    .into_iter()
+    .into_stream_iter();
     let mut future = StreamReadyFuture::new(iter);
 
     // With unified Spread, StreamReadyFuture iterates through spread items,
@@ -611,7 +623,8 @@ fn test_pending_future_spread_pending_returns_first_value() {
         StreamSpread::Pending("b"),
         StreamSpread::Pending("c"),
     ])]
-    .into_iter().into_stream_iter();
+    .into_iter()
+    .into_stream_iter();
     let mut future = StreamPendingFuture::new(iter);
 
     // StreamPendingFuture returns Ready immediately on Spread with Pending (first value)
@@ -625,7 +638,9 @@ fn test_pending_future_spread_pending_returns_first_value() {
 
 #[test]
 fn test_pending_future_spread_pending_empty_returns_pending() {
-    let iter = vec![Stream::<i32, &str>::Spread(vec![])].into_iter().into_stream_iter();
+    let iter = vec![Stream::<i32, &str>::Spread(vec![])]
+        .into_iter()
+        .into_stream_iter();
     let mut future = StreamPendingFuture::new(iter);
 
     // Empty Spread: no value to return, iterator exhausted → None
@@ -641,7 +656,8 @@ fn test_pending_future_spread_done_returns_pending() {
         Stream::<i32, &str>::Spread(vec![StreamSpread::Done(1), StreamSpread::Done(2)]),
         Stream::Pending("x"),
     ]
-    .into_iter().into_stream_iter();
+    .into_iter()
+    .into_stream_iter();
     let mut future = StreamPendingFuture::new(iter);
 
     // With unified Spread, StreamPendingFuture iterates through spread items,
@@ -734,182 +750,180 @@ fn test_future_stream_empty_spread() {
 #[cfg(not(target_family = "wasm"))]
 mod tokio_tests {
     use super::*;
-    
 
-#[tokio::test]
-async fn test_tokio_collect_with_spread_pending_in_chain() {
-    let result = vec![
-        Stream::<i32, &str>::Next(1),
-        Stream::Spread(vec![StreamSpread::Pending("a")]),
-        Stream::Next(2),
-    ]
-    .into_iter()
-    .into_stream_iter()
-    .into_collect_future()
-    .await;
-    // Collect sees Next(1), then Spread with Pending → Pending (wakes), then Next(2)
-    // on next poll. Result should contain both Next values.
-    assert_eq!(result, vec![1, 2]);
-}
-
-#[tokio::test]
-async fn test_tokio_ready_future_with_spread_done() {
-    let (value, _) = vec![Stream::<i32, &str>::Spread(vec![
-        StreamSpread::Done(42),
-        StreamSpread::Done(99),
-    ])]
-    .into_iter()
-    .into_stream_iter()
-    .into_ready_future()
-    .await
-    .unwrap();
-    assert_eq!(value, 42);
-}
-
-#[tokio::test]
-async fn test_tokio_pending_future_with_spread_pending() {
-    let (ctx, _) = vec![
-        Stream::<i32, &str>::Next(1),
-        Stream::Spread(vec![StreamSpread::Pending("done")]),
-    ]
-    .into_iter()
-    .into_stream_iter()
-    .into_pending_future()
-    .await
-    .unwrap();
-    assert_eq!(ctx, "done");
-}
-
-#[tokio::test]
-async fn test_tokio_future_stream_with_spread() {
-    let mut stream = vec![
-        Stream::<i32, &str>::Next(1),
-        Stream::Spread(vec![StreamSpread::Done(2), StreamSpread::Done(3)]),
-        Stream::Spread(vec![StreamSpread::Pending("a")]),
-    ]
-    .into_iter()
-    .into_pure_future_stream();
-    let mut items = Vec::new();
-    while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
-        items.push(item);
-    }
-    assert_eq!(items.len(), 3);
-    assert_eq!(items[0], Stream::Next(1));
-    assert_eq!(
-        items[1],
-        Stream::Spread(vec![StreamSpread::Done(2), StreamSpread::Done(3)])
-    );
-    assert_eq!(items[2], Stream::Spread(vec![StreamSpread::Pending("a")]));
-}
-
-// ============================================================================
-// smol async tests
-// ============================================================================
-
-#[test]
-fn test_smol_collect_with_spread_pending() {
-    let result = smol::block_on(async {
-        vec![
-            Stream::<i32, &str>::Next(10),
-            Stream::Spread(vec![StreamSpread::Pending("wait")]),
-            Stream::Next(20),
+    #[tokio::test]
+    async fn test_tokio_collect_with_spread_pending_in_chain() {
+        let result = vec![
+            Stream::<i32, &str>::Next(1),
+            Stream::Spread(vec![StreamSpread::Pending("a")]),
+            Stream::Next(2),
         ]
         .into_iter()
         .into_stream_iter()
         .into_collect_future()
-        .await
-    });
-    assert_eq!(result, vec![10, 20]);
-}
+        .await;
+        // Collect sees Next(1), then Spread with Pending → Pending (wakes), then Next(2)
+        // on next poll. Result should contain both Next values.
+        assert_eq!(result, vec![1, 2]);
+    }
 
-#[test]
-fn test_smol_ready_future_with_spread_done() {
-    let (value, mut remaining) = smol::block_on(async {
-        vec![
-            Stream::<i32, &str>::Spread(vec![StreamSpread::Done(99), StreamSpread::Done(100)]),
-            Stream::Next(1),
-        ]
+    #[tokio::test]
+    async fn test_tokio_ready_future_with_spread_done() {
+        let (value, _) = vec![Stream::<i32, &str>::Spread(vec![
+            StreamSpread::Done(42),
+            StreamSpread::Done(99),
+        ])]
         .into_iter()
         .into_stream_iter()
         .into_ready_future()
         .await
-        .unwrap()
-    });
-    assert_eq!(value, 99);
-    // Remaining iterator should still have Spread and Next
-    assert!(remaining.next().is_some());
-}
-
-#[test]
-fn test_smol_future_stream_with_spread() {
-    let mut stream = vec![
-        Stream::<i32, &str>::Spread(vec![StreamSpread::Done(1), StreamSpread::Done(2)]),
-        Stream::Spread(vec![StreamSpread::Pending("p")]),
-    ]
-    .into_iter()
-    .into_pure_future_stream();
-    let mut items = Vec::new();
-    while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
-        items.push(item);
+        .unwrap();
+        assert_eq!(value, 42);
     }
-    assert_eq!(items.len(), 2);
-}
 
-// ============================================================================
-// Combinator chaining with spread
-// ============================================================================
-
-#[test]
-fn test_map_done_then_collect_with_spread_done_in_chain() {
-    let result = smol::block_on(async {
-        vec![
-            Stream::<i32, &str>::Next(5),
-            Stream::Spread(vec![
-                StreamSpread::Done(1),
-                StreamSpread::Done(2),
-                StreamSpread::Done(3),
-            ]),
+    #[tokio::test]
+    async fn test_tokio_pending_future_with_spread_pending() {
+        let (ctx, _) = vec![
+            Stream::<i32, &str>::Next(1),
+            Stream::Spread(vec![StreamSpread::Pending("done")]),
         ]
         .into_iter()
         .into_stream_iter()
-        .map_done(|v| v * 2)
-        .into_collect_future()
+        .into_pending_future()
         .await
-    });
-    // Next(5) -> Next(10); Spread Done payloads drained: 1,2,3 -> 2,4,6
-    assert_eq!(result, vec![10, 2, 4, 6]);
-}
-
-#[test]
-fn test_task_map_ready_then_collect_with_spread_done() {
-    use foundation_core::valtron::TaskStatus;
-
-    let ctx = Ctx::new();
-    let items = vec![
-        TaskStatus::<i32, &str>::Ready(5),
-        TaskStatus::Spread(vec![
-            TaskSpread::Ready(1),
-            TaskSpread::Ready(2),
-            TaskSpread::Ready(3),
-        ]),
-    ];
-    let mut mapped = VecTask::new(items).map_ready(|x| x * 10);
-
-    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Ready(50)));
-    // Spread with Ready is mapped: each item * 10, re-wrapped as Spread with Ready
-    match mapped.next_status(ctx.clone()).unwrap() {
-        TaskStatus::Spread(items) => {
-            let ready_items: Vec<_> = items
-                .into_iter()
-                .filter_map(|s| match s {
-                    TaskSpread::Ready(v) => Some(v),
-                    TaskSpread::Pending(_) => None,
-                })
-                .collect();
-            assert_eq!(ready_items, vec![10, 20, 30]);
-        }
-        _ => panic!("expected Spread"),
+        .unwrap();
+        assert_eq!(ctx, "done");
     }
-}
 
+    #[tokio::test]
+    async fn test_tokio_future_stream_with_spread() {
+        let mut stream = vec![
+            Stream::<i32, &str>::Next(1),
+            Stream::Spread(vec![StreamSpread::Done(2), StreamSpread::Done(3)]),
+            Stream::Spread(vec![StreamSpread::Pending("a")]),
+        ]
+        .into_iter()
+        .into_pure_future_stream();
+        let mut items = Vec::new();
+        while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
+            items.push(item);
+        }
+        assert_eq!(items.len(), 3);
+        assert_eq!(items[0], Stream::Next(1));
+        assert_eq!(
+            items[1],
+            Stream::Spread(vec![StreamSpread::Done(2), StreamSpread::Done(3)])
+        );
+        assert_eq!(items[2], Stream::Spread(vec![StreamSpread::Pending("a")]));
+    }
+
+    // ============================================================================
+    // smol async tests
+    // ============================================================================
+
+    #[test]
+    fn test_smol_collect_with_spread_pending() {
+        let result = smol::block_on(async {
+            vec![
+                Stream::<i32, &str>::Next(10),
+                Stream::Spread(vec![StreamSpread::Pending("wait")]),
+                Stream::Next(20),
+            ]
+            .into_iter()
+            .into_stream_iter()
+            .into_collect_future()
+            .await
+        });
+        assert_eq!(result, vec![10, 20]);
+    }
+
+    #[test]
+    fn test_smol_ready_future_with_spread_done() {
+        let (value, mut remaining) = smol::block_on(async {
+            vec![
+                Stream::<i32, &str>::Spread(vec![StreamSpread::Done(99), StreamSpread::Done(100)]),
+                Stream::Next(1),
+            ]
+            .into_iter()
+            .into_stream_iter()
+            .into_ready_future()
+            .await
+            .unwrap()
+        });
+        assert_eq!(value, 99);
+        // Remaining iterator should still have Spread and Next
+        assert!(remaining.next().is_some());
+    }
+
+    #[test]
+    fn test_smol_future_stream_with_spread() {
+        let mut stream = vec![
+            Stream::<i32, &str>::Spread(vec![StreamSpread::Done(1), StreamSpread::Done(2)]),
+            Stream::Spread(vec![StreamSpread::Pending("p")]),
+        ]
+        .into_iter()
+        .into_pure_future_stream();
+        let mut items = Vec::new();
+        while let Poll::Ready(Some(item)) = poll_stream_next(&mut stream) {
+            items.push(item);
+        }
+        assert_eq!(items.len(), 2);
+    }
+
+    // ============================================================================
+    // Combinator chaining with spread
+    // ============================================================================
+
+    #[test]
+    fn test_map_done_then_collect_with_spread_done_in_chain() {
+        let result = smol::block_on(async {
+            vec![
+                Stream::<i32, &str>::Next(5),
+                Stream::Spread(vec![
+                    StreamSpread::Done(1),
+                    StreamSpread::Done(2),
+                    StreamSpread::Done(3),
+                ]),
+            ]
+            .into_iter()
+            .into_stream_iter()
+            .map_done(|v| v * 2)
+            .into_collect_future()
+            .await
+        });
+        // Next(5) -> Next(10); Spread Done payloads drained: 1,2,3 -> 2,4,6
+        assert_eq!(result, vec![10, 2, 4, 6]);
+    }
+
+    #[test]
+    fn test_task_map_ready_then_collect_with_spread_done() {
+        use foundation_core::valtron::TaskStatus;
+
+        let ctx = Ctx::new();
+        let items = vec![
+            TaskStatus::<i32, &str>::Ready(5),
+            TaskStatus::Spread(vec![
+                TaskSpread::Ready(1),
+                TaskSpread::Ready(2),
+                TaskSpread::Ready(3),
+            ]),
+        ];
+        let mut mapped = VecTask::new(items).map_ready(|x| x * 10);
+
+        assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Ready(50)));
+        // Spread with Ready is mapped: each item * 10, re-wrapped as Spread with Ready
+        match mapped.next_status(ctx.clone()).unwrap() {
+            TaskStatus::Spread(items) => {
+                let ready_items: Vec<_> = items
+                    .into_iter()
+                    .filter_map(|s| match s {
+                        TaskSpread::Ready(v) => Some(v),
+                        TaskSpread::Pending(_) => None,
+                    })
+                    .collect();
+                assert_eq!(ready_items, vec![10, 20, 30]);
+            }
+            _ => panic!("expected Spread"),
+        }
+    }
 }

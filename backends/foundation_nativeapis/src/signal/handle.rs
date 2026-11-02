@@ -6,7 +6,6 @@ use foundation_core::valtron::EventReadiness;
 #[cfg(target_os = "macos")]
 use crate::signal::event::SignalKind;
 
-
 /// Platform-specific signal handle.
 ///
 /// On Linux: wraps eventfd + epoll_fd.
@@ -23,9 +22,7 @@ pub enum SignalHandle {
     },
     /// macOS: kqueue fd with EVFILT_SIGNAL registrations.
     #[cfg(target_os = "macos")]
-    Macos {
-        kq_fd: std::os::fd::RawFd,
-    },
+    Macos { kq_fd: std::os::fd::RawFd },
     /// Windows: event HANDLE.
     #[cfg(target_os = "windows")]
     Windows {
@@ -71,24 +68,27 @@ impl EventReadiness for SignalHandle {
             Self::Linux { epoll_fd, .. } => {
                 let mut events = [libc::epoll_event { events: 0, u64: 0 }];
                 let timeout = dur.map(|d| d.as_millis() as i32).unwrap_or(-1);
-                let count = unsafe {
-                    libc::epoll_wait(*epoll_fd, events.as_mut_ptr(), 1, timeout)
-                };
+                let count = unsafe { libc::epoll_wait(*epoll_fd, events.as_mut_ptr(), 1, timeout) };
                 count > 0
             }
             #[cfg(target_os = "macos")]
             Self::Macos { kq_fd } => {
                 use std::mem::MaybeUninit;
                 let mut event = MaybeUninit::<libc::kevent>::uninit();
-                let timeout = dur.map(|d| {
-                    libc::timespec {
-                        tv_sec: d.as_secs() as _,
-                        tv_nsec: d.subsec_nanos() as _,
-                    }
+                let timeout = dur.map(|d| libc::timespec {
+                    tv_sec: d.as_secs() as _,
+                    tv_nsec: d.subsec_nanos() as _,
                 });
                 let timeout_ptr = timeout.as_ref().map_or(std::ptr::null(), |t| t as *const _);
                 let count = unsafe {
-                    libc::kevent(*kq_fd, std::ptr::null(), 0, event.as_mut_ptr(), 1, timeout_ptr)
+                    libc::kevent(
+                        *kq_fd,
+                        std::ptr::null(),
+                        0,
+                        event.as_mut_ptr(),
+                        1,
+                        timeout_ptr,
+                    )
                 };
                 if count <= 0 {
                     return false;

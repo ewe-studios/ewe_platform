@@ -43,14 +43,17 @@ use std::task::Waker;
 use std::thread;
 use std::time::Duration;
 
-use crate::ready::Ready;
 use crate::poll::{Backend, BackendPreference, Events, Interest, Poll, Registry, Token};
+use crate::ready::Ready;
 
 /// Per-registration readiness tracking.
 ///
 /// `ready` is atomic so the drain thread can OR bits in, and consumers can mask
 /// bits out, while both hold only a *read* lock on the entry map.
 struct Entry {
+    /// The registered fd, kept so [`Reactor::clear`] can re-arm the selector's
+    /// read edge (a kqueue-only concern; see [`Poll::rearm_readable`]).
+    fd: std::os::fd::RawFd,
     ready: AtomicU8,
     #[allow(dead_code)]
     interest: Interest,
@@ -63,7 +66,10 @@ struct Entry {
 impl std::fmt::Debug for Entry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Entry")
-            .field("ready", &Ready::from_bits(self.ready.load(Ordering::Acquire)))
+            .field(
+                "ready",
+                &Ready::from_bits(self.ready.load(Ordering::Acquire)),
+            )
             .field("interest", &self.interest)
             .finish()
     }
@@ -99,7 +105,10 @@ pub struct Reactor {
 impl std::fmt::Debug for Reactor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Reactor")
-            .field("registered", &self.entries.read().map(|e| e.len()).unwrap_or(0))
+            .field(
+                "registered",
+                &self.entries.read().map(|e| e.len()).unwrap_or(0),
+            )
             .field("shutdown", &self.shutdown.load(Ordering::Acquire))
             .field("drain_poll_timeout", &self.drain_poll_timeout)
             .finish()
@@ -167,7 +176,9 @@ pub struct ReactorConfig {
 
 impl Default for ReactorConfig {
     fn default() -> Self {
-        Self { drain_poll_timeout: DEFAULT_DRAIN_POLL_TIMEOUT }
+        Self {
+            drain_poll_timeout: DEFAULT_DRAIN_POLL_TIMEOUT,
+        }
     }
 }
 
@@ -267,7 +278,11 @@ impl Reactor {
             // Mismatch: the caller asked for something different than what is
             // already running.
             if !backend_matches(running, preference) {
-                return Err(AlreadyInitialised { running, requested: preference }.into());
+                return Err(AlreadyInitialised {
+                    running,
+                    requested: preference,
+                }
+                .into());
             }
             tracing::debug!(
                 running = %running,
@@ -326,7 +341,9 @@ impl Reactor {
                 Ok(reactor)
             }
             // Lost the init race — the winner's instance is authoritative.
-            Err(_) => Ok(Arc::clone(REACTOR.get().expect("set() raced, so it is populated"))),
+            Err(_) => Ok(Arc::clone(
+                REACTOR.get().expect("set() raced, so it is populated"),
+            )),
         }
     }
 
@@ -406,12 +423,22 @@ impl Reactor {
     ///
     /// # Panics
     /// Panics if the registration map lock is poisoned.
-    pub fn register(&self, fd: std::os::fd::RawFd, token: Token, interest: Interest) -> io::Result<()> {
+    pub fn register(
+        &self,
+        fd: std::os::fd::RawFd,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<()> {
         let _guard = self.reg_lock.lock().expect("reg_lock poisoned");
         self.registry.register_fd(fd, token, interest)?;
         self.entries.write().expect("entries lock poisoned").insert(
             token,
-            Entry { ready: AtomicU8::new(Ready::EMPTY.bits()), interest, waker: Mutex::new(None) },
+            Entry {
+                fd,
+                ready: AtomicU8::new(Ready::EMPTY.bits()),
+                interest,
+                waker: Mutex::new(None),
+            },
         );
         Ok(())
     }
@@ -431,10 +458,20 @@ impl Reactor {
     ///
     /// # Panics
     /// Panics if the registration map lock is poisoned.
-    pub fn reregister(&self, fd: std::os::fd::RawFd, token: Token, interest: Interest) -> io::Result<()> {
+    pub fn reregister(
+        &self,
+        fd: std::os::fd::RawFd,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<()> {
         let _guard = self.reg_lock.lock().expect("reg_lock poisoned");
         self.registry.reregister_fd(fd, token, interest)?;
-        if let Some(entry) = self.entries.write().expect("entries lock poisoned").get_mut(&token) {
+        if let Some(entry) = self
+            .entries
+            .write()
+            .expect("entries lock poisoned")
+            .get_mut(&token)
+        {
             entry.interest = interest;
         }
         Ok(())
@@ -468,7 +505,12 @@ impl Reactor {
         let armed = self.poll.register_recv_fd(fd, token, interest)?;
         self.entries.write().expect("entries lock poisoned").insert(
             token,
-            Entry { ready: AtomicU8::new(Ready::EMPTY.bits()), interest, waker: Mutex::new(None) },
+            Entry {
+                fd,
+                ready: AtomicU8::new(Ready::EMPTY.bits()),
+                interest,
+                waker: Mutex::new(None),
+            },
         );
         Ok(armed)
     }
@@ -493,7 +535,10 @@ impl Reactor {
                 return Err(e);
             }
         }
-        self.entries.write().expect("entries lock poisoned").remove(&token);
+        self.entries
+            .write()
+            .expect("entries lock poisoned")
+            .remove(&token);
         Ok(())
     }
 
@@ -543,12 +588,23 @@ impl Reactor {
     /// # Panics
     /// Panics if the registration map lock is poisoned.
     pub fn clear(&self, token: Token, ready: Ready) {
-        if let Some(entry) = self.entries.read().expect("entries lock poisoned").get(&token) {
+        let fd = {
+            let entries = self.entries.read().expect("entries lock poisoned");
+            let Some(entry) = entries.get(&token) else {
+                return;
+            };
             entry.ready.fetch_and(!ready.bits(), Ordering::AcqRel);
             // Clearing readiness also disarms any armed waker. The register-
             // before-check protocol re-arms it on the next park, so a stale
             // edge cannot re-wake a reader that has already drained the fd.
             *entry.waker.lock().expect("waker lock poisoned") = None;
+            entry.fd
+        };
+        // A consumer that cleared READABLE has drained the fd, so re-arm its
+        // read edge for the next arrival. A no-op on backends that re-arm
+        // themselves (epoll/io_uring).
+        if ready.is_readable() {
+            self.poll.rearm_readable(fd);
         }
     }
 
@@ -568,7 +624,12 @@ impl Reactor {
     /// # Panics
     /// Panics if the registration map lock or the waker slot is poisoned.
     pub fn register_waker(&self, token: Token, waker: Waker) -> bool {
-        if let Some(entry) = self.entries.read().expect("entries lock poisoned").get(&token) {
+        if let Some(entry) = self
+            .entries
+            .read()
+            .expect("entries lock poisoned")
+            .get(&token)
+        {
             *entry.waker.lock().expect("waker lock poisoned") = Some(waker);
             true
         } else {
@@ -588,7 +649,10 @@ impl Reactor {
     /// # Panics
     /// Never panics.
     #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn take_completions(&self, token: Token) -> Option<Vec<crate::poll::sys::unix::selector::uring_completion::Completion>> {
+    pub fn take_completions(
+        &self,
+        token: Token,
+    ) -> Option<Vec<crate::poll::sys::unix::selector::uring_completion::Completion>> {
         self.poll.take_completions(token)
     }
 
@@ -622,7 +686,12 @@ impl Reactor {
     /// `WouldBlock` when the send pool is exhausted; `Unsupported` off the
     /// completion backend; the kernel's submission error otherwise.
     #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn submit_send(&self, token: Token, fd: std::os::fd::RawFd, data: &[u8]) -> io::Result<usize> {
+    pub fn submit_send(
+        &self,
+        token: Token,
+        fd: std::os::fd::RawFd,
+        data: &[u8],
+    ) -> io::Result<usize> {
         self.poll.submit_send(token, fd, data)
     }
 
@@ -634,7 +703,12 @@ impl Reactor {
     /// `WouldBlock` when the send pool is exhausted; `Unsupported` off the
     /// completion backend; the kernel's submission error otherwise.
     #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn submit_send_zc(&self, token: Token, fd: std::os::fd::RawFd, data: &[u8]) -> io::Result<usize> {
+    pub fn submit_send_zc(
+        &self,
+        token: Token,
+        fd: std::os::fd::RawFd,
+        data: &[u8],
+    ) -> io::Result<usize> {
         self.poll.submit_send_zc(token, fd, data)
     }
 
@@ -659,7 +733,10 @@ impl Reactor {
     /// # Panics
     /// Never panics.
     #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub fn take_send_completions(&self, token: Token) -> Vec<crate::poll::sys::unix::selector::uring_completion::SendCompletion> {
+    pub fn take_send_completions(
+        &self,
+        token: Token,
+    ) -> Vec<crate::poll::sys::unix::selector::uring_completion::SendCompletion> {
         self.poll.take_send_completions(token)
     }
 
@@ -802,15 +879,27 @@ fn drain_loop(
                     let entries = entries.read().expect("entries lock poisoned");
                     for event in events.iter() {
                         let mut ready = Ready::EMPTY;
-                        if event.is_readable() { ready = ready.union(Ready::READABLE); }
-                        if event.is_writable() { ready = ready.union(Ready::WRITABLE); }
-                        if event.is_read_closed() { ready = ready.union(Ready::READ_CLOSED); }
-                        if event.is_write_closed() { ready = ready.union(Ready::WRITE_CLOSED); }
-                        if event.is_error() { ready = ready.union(Ready::ERROR); }
+                        if event.is_readable() {
+                            ready = ready.union(Ready::READABLE);
+                        }
+                        if event.is_writable() {
+                            ready = ready.union(Ready::WRITABLE);
+                        }
+                        if event.is_read_closed() {
+                            ready = ready.union(Ready::READ_CLOSED);
+                        }
+                        if event.is_write_closed() {
+                            ready = ready.union(Ready::WRITE_CLOSED);
+                        }
+                        if event.is_error() {
+                            ready = ready.union(Ready::ERROR);
+                        }
 
                         if let Some(entry) = entries.get(&event.token()) {
                             entry.ready.fetch_or(ready.bits(), Ordering::AcqRel);
-                            if let Some(waker) = entry.waker.lock().expect("waker lock poisoned").as_ref() {
+                            if let Some(waker) =
+                                entry.waker.lock().expect("waker lock poisoned").as_ref()
+                            {
                                 to_wake.push(waker.clone());
                             }
                         }
@@ -876,7 +965,12 @@ impl SharedReadiness {
     ///
     /// # Panics
     /// Never panics.
-    pub fn new(fd: std::os::fd::RawFd, reactor: Arc<Reactor>, token: Token, interest: Interest) -> io::Result<Self> {
+    pub fn new(
+        fd: std::os::fd::RawFd,
+        reactor: Arc<Reactor>,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<Self> {
         reactor.register(fd, token, interest)?;
         Ok(Self { reactor, token })
     }

@@ -13,15 +13,13 @@
 //! [`crate::core::store::devices`].
 
 use chrono::Utc;
-use uuid::Uuid;
 
-use base64::Engine;
 use crate::core::api::accounts::verify_user_password;
-use crate::core::crypto;
 use crate::core::auth::{
     mint_access_token, mint_refresh_token, verify_refresh_token, ACCESS_TOKEN_TTL_SECS,
 };
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::models::user::{
     LoginResponse, MasterPasswordUnlock, MasterPasswordUnlockKdf, TokenRequest,
@@ -29,13 +27,16 @@ use crate::core::models::user::{
 };
 use crate::core::store::devices::{self, DeviceRow};
 use crate::core::store::users::{self, UserRow};
+use base64::Engine;
 
 /// `POST /identity/connect/token` — dispatch on `grant_type`.
 pub async fn connect_token(ctx: &KeychainContext, req: TokenRequest) -> AppResult<LoginResponse> {
     match req.grant_type.as_str() {
         "password" => password_grant(ctx, req).await,
         "refresh_token" => refresh_grant(ctx, req).await,
-        other => Err(AppError::BadRequest(format!("unsupported grant_type: {other}"))),
+        other => Err(AppError::BadRequest(format!(
+            "unsupported grant_type: {other}"
+        ))),
     }
 }
 
@@ -54,10 +55,10 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
         .master_password_hash
         .as_deref()
         .ok_or_else(|| invalid_grant("missing password"))?;
-    let device_identifier = req
-        .device_identifier
-        .clone()
-        .unwrap_or_else(|| Uuid::new_v4().to_string());
+    let device_identifier = match req.device_identifier.clone() {
+        Some(id) => id,
+        None => crypto::new_uuid_v4()?.to_string(),
+    };
 
     let user = users::find_by_email(ctx.db(), &email)
         .await?
@@ -82,7 +83,8 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
         } else {
             600_000
         };
-        if let Ok(Some(computed)) = crypto::derive_client_hash(password, &email, client_iters).await {
+        if let Ok(Some(computed)) = crypto::derive_client_hash(password, &email, client_iters).await
+        {
             verify_user_password(&user, &computed).await?
         } else {
             false
@@ -106,7 +108,7 @@ async fn password_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<L
             devices::insert(
                 ctx.db(),
                 &DeviceRow {
-                    uuid: Uuid::new_v4().to_string(),
+                    uuid: crypto::new_uuid_v4()?.to_string(),
                     user_uuid: user.uuid.clone(),
                     identifier: device_identifier.clone(),
                     name: req.device_name.clone(),
@@ -154,7 +156,11 @@ async fn refresh_grant(ctx: &KeychainContext, req: TokenRequest) -> AppResult<Lo
     Ok(build_login_response(&user, access_token, new_refresh))
 }
 
-fn build_login_response(user: &UserRow, access_token: String, refresh_token: String) -> LoginResponse {
+fn build_login_response(
+    user: &UserRow,
+    access_token: String,
+    refresh_token: String,
+) -> LoginResponse {
     // `bw` requires `Key` in the login response.  The real value is the user's
     // symmetric key encrypted with the stretched master key (EncString type 2).
     // Self-hosted servers set a dummy EncString — `bw` tries to decrypt it,
@@ -163,7 +169,8 @@ fn build_login_response(user: &UserRow, access_token: String, refresh_token: Str
     let akey = user.akey.clone().or_else(|| {
         // EncString type-2: "2.<base64-iv>|<base64-ciphertext>|<base64-mac>"
         // 16-byte IV + 32 bytes garbage + 32-byte HMAC placeholder
-        Some(format!("2.{}=|{}=",
+        Some(format!(
+            "2.{}=|{}=",
             base64::engine::general_purpose::STANDARD.encode([0u8; 16]),
             base64::engine::general_purpose::STANDARD.encode([0u8; 32]),
         ))

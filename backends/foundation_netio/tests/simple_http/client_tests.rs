@@ -6,8 +6,8 @@
 //!
 //! They intentionally avoid performing real network operations.
 
-use foundation_netio::shared::client::*;
 use foundation_netio::http::*;
+use foundation_netio::shared::client::*;
 use foundation_netio::shared::http::*;
 use std::time::Duration;
 

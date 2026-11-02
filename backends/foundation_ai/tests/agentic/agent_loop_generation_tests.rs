@@ -676,9 +676,18 @@ fn assembled_interaction_carries_system_message_and_tools() {
     let _ = h.follow_up.push(user_msg("find me something"));
     drive(&mut h);
 
-    assert!(saw_system.load(Ordering::SeqCst), "interaction must carry the system prompt");
-    assert!(saw_user.load(Ordering::SeqCst), "interaction must carry the user message text");
-    assert!(saw_tool.load(Ordering::SeqCst), "interaction must carry the registered tools");
+    assert!(
+        saw_system.load(Ordering::SeqCst),
+        "interaction must carry the system prompt"
+    );
+    assert!(
+        saw_user.load(Ordering::SeqCst),
+        "interaction must carry the user message text"
+    );
+    assert!(
+        saw_tool.load(Ordering::SeqCst),
+        "interaction must carry the registered tools"
+    );
 }
 
 /// Matrix 4.5 — a tool's result is fed back into the model on the next inner
@@ -771,7 +780,12 @@ fn context_pressure_note_injected_when_over_threshold() {
     let mut mock = MockModelProvider::new();
     mock.on(
         move |mi| {
-            if mi.system_prompt.as_deref().unwrap_or("").contains("capacity") {
+            if mi
+                .system_prompt
+                .as_deref()
+                .unwrap_or("")
+                .contains("capacity")
+            {
                 flag.store(true, Ordering::SeqCst);
             }
             true
@@ -830,7 +844,9 @@ fn preflight_compression_drops_oldest_when_over_budget() {
     // Persist several history messages (each ~a few tokens) so the assembled
     // context far exceeds 0.85 * 5 tokens.
     for i in 0..8 {
-        let _ = h.follow_up.push(user_msg(&format!("history message number {i} with some words")));
+        let _ = h.follow_up.push(user_msg(&format!(
+            "history message number {i} with some words"
+        )));
     }
 
     drive(&mut h);
@@ -841,7 +857,10 @@ fn preflight_compression_drops_oldest_when_over_budget() {
         n < 8,
         "an over-budget context must be compressed below the full history (sent {n} of 8)"
     );
-    assert!(n >= 1, "compression must keep at least the newest message (sent {n})");
+    assert!(
+        n >= 1,
+        "compression must keep at least the newest message (sent {n})"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -854,11 +873,7 @@ fn preflight_compression_drops_oldest_when_over_budget() {
 // dependent tool before the tool it needs.
 
 /// An assistant tool-call message whose call carries explicit `depends_on` ids.
-fn tool_call_with_deps(
-    call_id: &str,
-    name: &str,
-    depends_on: Vec<String>,
-) -> Messages {
+fn tool_call_with_deps(call_id: &str, name: &str, depends_on: Vec<String>) -> Messages {
     Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: ModelId::Name("mock".into(), None),

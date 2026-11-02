@@ -15,22 +15,24 @@ pub mod server;
 pub mod wasm_bindgen;
 
 // Re-export shared items at crate root for backward compatibility.
-pub use shared::types::{
-    AuthCredential, Authenticated, AuthenticationErrors, AuthenticationResult,
-    AuthenticationStates, ConfidentialText, JwtCredential, OnAuthData, OAuthCredential,
-    AuthProviderEndpoint, SessionCredential,
-};
 pub use shared::auth_manager::{AuthManager, AuthManagerConfig, AuthManagerError};
-pub use shared::auth_state::{AuthEvent, AuthState, AuthStateError, AuthStateMachine, QueuedRequest};
+pub use shared::auth_state::{
+    AuthEvent, AuthState, AuthStateError, AuthStateMachine, QueuedRequest,
+};
 pub use shared::auth_token::AuthToken;
 pub use shared::credential_store::{
-    CredentialStore, CredentialStorage, CredentialStoreError, OAuthState, OAuthTokenStore,
+    CredentialStorage, CredentialStore, CredentialStoreError, OAuthState, OAuthTokenStore,
     StoredCredential,
+};
+pub use shared::types::{
+    AuthCredential, AuthProviderEndpoint, Authenticated, AuthenticationErrors,
+    AuthenticationResult, AuthenticationStates, ConfidentialText, JwtCredential, OAuthCredential,
+    OnAuthData, SessionCredential,
 };
 
 // Feature 01: JWT Verifier
 pub use shared::jwt::{
-    JwtAlgorithm, JwtError, JwtManager, JwtToken, JwtVerifier, JwtVerifierConfig, JwtSigningKey,
+    JwtAlgorithm, JwtError, JwtManager, JwtSigningKey, JwtToken, JwtVerifier, JwtVerifierConfig,
     PublicKeySource, VerifiedClaims,
 };
 
@@ -52,16 +54,16 @@ pub use shared::userinfo::{UserInfo, UserInfoClient, UserInfoError};
 // Feature 06: Token Introspection
 pub use shared::introspection::{IntrospectionClient, IntrospectionError, IntrospectionResult};
 
+pub use shared::auth_session::{
+    AuthSessionError, UpstreamAuthSession, UpstreamAuthSessionStore, DEFAULT_AUTH_SESSION_TTL_SECS,
+};
 pub use shared::middleware::{
     extract_bearer_token, extract_session_token, has_scope, optional_auth, require_auth,
     AuthContext, GuardResult,
 };
-pub use shared::auth_session::{
-    AuthSessionError, UpstreamAuthSession, UpstreamAuthSessionStore, DEFAULT_AUTH_SESSION_TTL_SECS,
-};
 
-pub use shared::oauth::{OAuthConfig, OAuthConfigBuilder, OAuthError, OAuthManager, PkceChallenge};
 pub use shared::oauth::TokenResponse;
+pub use shared::oauth::{OAuthConfig, OAuthConfigBuilder, OAuthError, OAuthManager, PkceChallenge};
 pub use shared::oauth_token::OAuthToken;
 pub use shared::session::{Session, SessionConfig, SessionError, SessionManager};
 pub use shared::two_factor::{BackupCodeSet, TOTPSecret, TwoFactorChallenge, TwoFactorError};
@@ -73,7 +75,7 @@ pub use native::oauth::NativeOAuth;
 // Feature 05: Password Auth (native only)
 #[cfg(not(target_family = "wasm"))]
 pub use native::password_auth::{
-    LoginResult, LoginRequest, MfaType, PasswordAuthClient, PasswordAuthError,
+    LoginRequest, LoginResult, MfaType, PasswordAuthClient, PasswordAuthError,
 };
 
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-oauth"))]

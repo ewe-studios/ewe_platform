@@ -22,7 +22,7 @@ use std::io;
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant};
 
-use foundation_nativeapis::native::fd::{Ready, Reactor};
+use foundation_nativeapis::native::fd::{Reactor, Ready};
 use foundation_nativeapis::{Interest, Token};
 
 /// Create a nonblocking pipe, returning `(read_fd, write_fd)`.
@@ -241,12 +241,14 @@ fn readiness_reports_actual_flags_not_a_collapsed_mask() {
 ///
 /// `/proc/self/fd` is itself read through an open fd, so the returned count is
 /// only meaningful as a *delta* between two calls made the same way.
+#[cfg(target_os = "linux")]
 fn open_fd_count() -> usize {
     std::fs::read_dir("/proc/self/fd")
         .expect("procfs must be mounted")
         .count()
 }
 
+#[cfg(target_os = "linux")]
 #[test]
 #[serial_test::serial]
 fn registering_many_fds_adds_no_selector_fds() {
@@ -269,7 +271,8 @@ fn registering_many_fds_adds_no_selector_fds() {
 
     let after = open_fd_count();
     assert_eq!(
-        after, before,
+        after,
+        before,
         "registering {N} fds into the shared reactor allocated {} new fds; a \
          shared reactor must add none — one private epoll fd per registration is \
          exactly what Decision 14 §Scope 3 removes",
@@ -277,7 +280,9 @@ fn registering_many_fds_adds_no_selector_fds() {
     );
 
     for (i, (read_fd, write_fd)) in pipes.iter().enumerate() {
-        reactor.deregister(*read_fd, Token(0xF43_1000 + i)).expect("deregister");
+        reactor
+            .deregister(*read_fd, Token(0xF43_1000 + i))
+            .expect("deregister");
         // SAFETY: fds are owned by this test and not used again.
         unsafe {
             libc::close(*read_fd);

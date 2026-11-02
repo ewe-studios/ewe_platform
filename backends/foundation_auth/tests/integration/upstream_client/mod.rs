@@ -90,8 +90,7 @@ fn exchange_code_posts_grant_and_parses_token() {
 
     let mut provider = test_provider();
     provider.token_url = Some(server.url("/token"));
-    let mut client =
-        UpstreamOidcClient::new(provider, "https://app.example/callback".into());
+    let mut client = UpstreamOidcClient::new(provider, "https://app.example/callback".into());
     client.configure().expect("configure");
 
     let token = drive(async move {
@@ -107,9 +106,16 @@ fn exchange_code_posts_grant_and_parses_token() {
     assert_eq!(token.refresh_token.as_deref(), Some("rt-456"));
     assert_eq!(token.id_token.as_deref(), Some("idt-789"));
 
-    let (method, body) = captured.lock().unwrap().clone().expect("server saw the request");
+    let (method, body) = captured
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("server saw the request");
     assert_eq!(method, SimpleMethod::POST);
-    assert!(body.contains("grant_type=authorization_code"), "body: {body}");
+    assert!(
+        body.contains("grant_type=authorization_code"),
+        "body: {body}"
+    );
     assert!(body.contains("code=auth-code-xyz"), "body: {body}");
     assert!(body.contains("redirect_uri="), "body: {body}");
     assert!(body.contains("client_id=client-abc"), "body: {body}");
@@ -124,14 +130,14 @@ fn exchange_code_surfaces_endpoint_error() {
 
     let mut provider = test_provider();
     provider.token_url = Some(server.url("/token"));
-    let mut client =
-        UpstreamOidcClient::new(provider, "https://app.example/callback".into());
+    let mut client = UpstreamOidcClient::new(provider, "https://app.example/callback".into());
     client.configure().expect("configure");
 
-    let result = drive(async move {
-        client.exchange_code("bad-code", None, None).await
-    });
-    assert!(result.is_err(), "a 400 from the token endpoint must be an error");
+    let result = drive(async move { client.exchange_code("bad-code", None, None).await });
+    assert!(
+        result.is_err(),
+        "a 400 from the token endpoint must be an error"
+    );
 }
 
 #[valtron_test]
@@ -161,7 +167,11 @@ fn fetch_userinfo_sends_bearer_and_maps_profile() {
     assert_eq!(profile.name.as_deref(), Some("Alice"));
     assert_eq!(profile.preferred_username.as_deref(), Some("alice"));
 
-    let (method, auth) = captured.lock().unwrap().clone().expect("server saw the request");
+    let (method, auth) = captured
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("server saw the request");
     assert_eq!(method, SimpleMethod::GET);
     assert_eq!(auth.as_deref(), Some("Bearer access-tok-xyz"));
 }
@@ -195,17 +205,21 @@ fn discover_and_configure_reads_endpoints_from_discovery_doc() {
     provider.authorization_url = None;
     provider.discovery_url = Some(server.url("/.well-known/openid-configuration"));
 
-    let mut client =
-        UpstreamOidcClient::new(provider, "https://app.example/callback".into());
+    let mut client = UpstreamOidcClient::new(provider, "https://app.example/callback".into());
 
     let configured = drive(async move {
         let mut discovery = DiscoveryClient::new();
-        client.discover_and_configure(&mut discovery).await.map(|()| client)
+        client
+            .discover_and_configure(&mut discovery)
+            .await
+            .map(|()| client)
     });
     let client = configured.expect("discovery + configure succeeds");
 
     // The userinfo endpoint must come from the discovered document.
-    let userinfo = client.userinfo_endpoint().expect("discovered userinfo endpoint");
+    let userinfo = client
+        .userinfo_endpoint()
+        .expect("discovered userinfo endpoint");
     assert!(userinfo.ends_with("/userinfo"), "userinfo: {userinfo}");
 
     // And the client can now build an authorize URL against the discovered endpoint.
@@ -217,10 +231,7 @@ fn discover_and_configure_reads_endpoints_from_discovery_doc() {
 #[valtron_test]
 fn fetch_userinfo_without_endpoint_errors() {
     // Provider has no userinfo_url and no discovery — fetch must fail, not panic.
-    let client = UpstreamOidcClient::new(
-        test_provider(),
-        "https://app.example/callback".into(),
-    );
+    let client = UpstreamOidcClient::new(test_provider(), "https://app.example/callback".into());
     let result = drive(async move { client.fetch_userinfo("tok").await });
     assert!(result.is_err(), "missing userinfo endpoint must error");
 }

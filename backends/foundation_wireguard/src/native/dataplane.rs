@@ -18,7 +18,9 @@ use std::time::Instant;
 
 use std::net::IpAddr;
 
-use foundation_nativeapis::dataplane::netstack::{NetStack, NetStackConfig, OverlayListener, OverlayStream, OverlayUdp};
+use foundation_nativeapis::dataplane::netstack::{
+    NetStack, NetStackConfig, OverlayListener, OverlayStream, OverlayUdp,
+};
 use foundation_nativeapis::dataplane::tun::{TunConfig, TunDataPlane};
 use foundation_nativeapis::dataplane::DataPlane;
 
@@ -36,7 +38,11 @@ pub enum MeshDataPlane {
 impl MeshDataPlane {
     /// Create a data plane from config. Returns an error if TUN open fails
     /// (missing device, no permissions, etc.).
-    pub fn from_config(mode: &DataPlaneMode, my_ip: IpAddr, prefix_len: u8) -> Result<Self, crate::shared::error::WgError> {
+    pub fn from_config(
+        mode: &DataPlaneMode,
+        my_ip: IpAddr,
+        prefix_len: u8,
+    ) -> Result<Self, crate::shared::error::WgError> {
         Ok(match mode {
             #[cfg(not(target_family = "wasm"))]
             DataPlaneMode::Tun { name, mtu } => {
@@ -45,9 +51,9 @@ impl MeshDataPlane {
                     mtu: *mtu,
                     ipv6: false,
                 })
-                .map_err(|e| crate::shared::error::WgError::Config(
-                    format!("TUN device '{}': {e}", name)
-                ))?;
+                .map_err(|e| {
+                    crate::shared::error::WgError::Config(format!("TUN device '{}': {e}", name))
+                })?;
                 #[cfg(target_os = "linux")]
                 add_tun_route(name);
                 tracing::info!(name = name, mtu = mtu, "kernel TUN data plane active");
@@ -57,11 +63,9 @@ impl MeshDataPlane {
             DataPlaneMode::Tun { .. } => {
                 panic!("kernel TUN is not available on wasm targets");
             }
-            DataPlaneMode::Netstack => {
-                Self::Stack(NetStack::new(
-                    NetStackConfig::new(my_ip, prefix_len).with_mtu(1380),
-                ))
-            }
+            DataPlaneMode::Netstack => Self::Stack(NetStack::new(
+                NetStackConfig::new(my_ip, prefix_len).with_mtu(1380),
+            )),
         })
     }
 

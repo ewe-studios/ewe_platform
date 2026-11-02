@@ -138,10 +138,19 @@ h2 { font-size: 18px; }
         let out = transform_scoped_css(css, "#panel");
         assert!(out.contains("#panel { background: white; }"), "{out}");
         assert!(out.contains("#panel:hover { opacity: 0.8; }"));
-        assert!(out.contains("#panel .title { font-weight: bold; }"), "already scoped untouched");
-        assert!(out.contains("& .nested { color: red; }"), "nesting untouched");
+        assert!(
+            out.contains("#panel .title { font-weight: bold; }"),
+            "already scoped untouched"
+        );
+        assert!(
+            out.contains("& .nested { color: red; }"),
+            "nesting untouched"
+        );
         assert!(out.contains("#panel .unscoped-child { padding: 8px; }"));
-        assert!(out.contains("--color-accent: #ff0;"), "custom property untouched");
+        assert!(
+            out.contains("--color-accent: #ff0;"),
+            "custom property untouched"
+        );
         assert!(out.contains("#panel h2 { font-size: 18px; }"));
     }
 

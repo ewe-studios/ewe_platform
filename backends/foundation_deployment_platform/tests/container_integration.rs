@@ -10,11 +10,7 @@ use std::net::TcpStream;
 
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
-
-/// Helper: check if Docker is available.
-fn docker_available() -> bool {
-    std::path::Path::new("/var/run/docker.sock").exists()
-}
+use foundation_deployment_platform::testing::docker_available;
 
 #[valtron_test(seed = 54, threads = 4)]
 #[ignore = "requires Docker daemon running"]

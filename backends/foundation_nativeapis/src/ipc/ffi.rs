@@ -2,14 +2,12 @@
 ///
 /// Provides opaque types and functions for C/C++ consumers.
 /// All functions return 0 on success, -1 on error.
-
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 use std::time::Duration;
 
 use crate::ipc::{
-    BytesMessage, Message, Options, Label, LabelOp, Selector,
-    EndpointSender, EndpointReceiver,
+    BytesMessage, EndpointReceiver, EndpointSender, Label, LabelOp, Message, Options, Selector,
 };
 
 #[repr(C)]
@@ -63,7 +61,9 @@ pub unsafe extern "C" fn ipmb_join(
     out_sender: *mut *mut ipmb_Sender,
     out_receiver: *mut *mut ipmb_Receiver,
 ) -> c_int {
-    let Some(opts) = parse_options(&options) else { return -1 };
+    let Some(opts) = parse_options(&options) else {
+        return -1;
+    };
 
     let timeout = if timeout_ms == 0 {
         None
@@ -97,7 +97,9 @@ pub unsafe extern "C" fn ipmb_send(
     data: *const u8,
     data_len: u32,
 ) -> c_int {
-    if sender.is_null() { return -1; }
+    if sender.is_null() {
+        return -1;
+    }
     let sender_ref = &*(*sender).inner;
     let payload = BytesMessage {
         format,
@@ -124,7 +126,9 @@ pub unsafe extern "C" fn ipmb_recv(
     out_message: *mut *mut ipmb_Message,
     timeout_ms: u32,
 ) -> c_int {
-    if receiver.is_null() || out_message.is_null() { return -1; }
+    if receiver.is_null() || out_message.is_null() {
+        return -1;
+    }
     let receiver_ref = &mut *(*receiver).inner;
     let timeout = if timeout_ms == 0 {
         None
@@ -156,14 +160,21 @@ pub unsafe extern "C" fn ipmb_recv(
 /// Get the format field from a received message.
 #[no_mangle]
 pub unsafe extern "C" fn ipmb_message_format(msg: *const ipmb_Message) -> u16 {
-    if msg.is_null() { return 0; }
+    if msg.is_null() {
+        return 0;
+    }
     (*msg).format
 }
 
 /// Get a pointer to the message data and its length.
 #[no_mangle]
-pub unsafe extern "C" fn ipmb_message_data(msg: *const ipmb_Message, out_len: *mut u32) -> *const u8 {
-    if msg.is_null() { return std::ptr::null(); }
+pub unsafe extern "C" fn ipmb_message_data(
+    msg: *const ipmb_Message,
+    out_len: *mut u32,
+) -> *const u8 {
+    if msg.is_null() {
+        return std::ptr::null();
+    }
     if !out_len.is_null() {
         *out_len = (*msg).data_len;
     }
@@ -173,17 +184,25 @@ pub unsafe extern "C" fn ipmb_message_data(msg: *const ipmb_Message, out_len: *m
 /// Free a message returned by `ipmb_recv`.
 #[no_mangle]
 pub unsafe extern "C" fn ipmb_message_free(msg: *mut ipmb_Message) {
-    if msg.is_null() { return; }
+    if msg.is_null() {
+        return;
+    }
     let msg = Box::from_raw(msg);
     if !msg.data.is_null() && msg.data_len > 0 {
-        drop(Vec::from_raw_parts(msg.data, msg.data_len as usize, msg.data_len as usize));
+        drop(Vec::from_raw_parts(
+            msg.data,
+            msg.data_len as usize,
+            msg.data_len as usize,
+        ));
     }
 }
 
 /// Free a sender returned by `ipmb_join`.
 #[no_mangle]
 pub unsafe extern "C" fn ipmb_sender_free(sender: *mut ipmb_Sender) {
-    if sender.is_null() { return; }
+    if sender.is_null() {
+        return;
+    }
     let s = Box::from_raw(sender);
     drop(Box::from_raw(s.inner));
 }
@@ -191,7 +210,9 @@ pub unsafe extern "C" fn ipmb_sender_free(sender: *mut ipmb_Sender) {
 /// Free a receiver returned by `ipmb_join`.
 #[no_mangle]
 pub unsafe extern "C" fn ipmb_receiver_free(receiver: *mut ipmb_Receiver) {
-    if receiver.is_null() { return; }
+    if receiver.is_null() {
+        return;
+    }
     let r = Box::from_raw(receiver);
     drop(Box::from_raw(r.inner));
 }

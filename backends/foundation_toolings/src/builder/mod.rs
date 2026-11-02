@@ -11,10 +11,10 @@ pub use wasm_pack::WasmPackBuilder;
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::QueueReadiness;
 use foundation_core::valtron::run_background_job;
-use foundation_nativeapis::valtron::CompositeReadiness;
+use foundation_core::valtron::QueueReadiness;
 use foundation_nativeapis::shared::WatchEvent;
+use foundation_nativeapis::valtron::CompositeReadiness;
 
 use crate::watcher::FileChange;
 use crate::ToolingError;
@@ -118,7 +118,8 @@ impl ProjectBuilderTask {
             let result = builder.build(&_change);
             let _ = result_queue.push(result);
             let _ = complete_queue.push(());
-        }).expect("background job pool available");
+        })
+        .expect("background job pool available");
     }
 
     /// Drain build results (fire-and-forget: log, signal).

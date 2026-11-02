@@ -1,6 +1,6 @@
 #![cfg(feature = "multi")]
 
-//! WebSocket ReconnectingWebSocketTask integration tests.
+//! WebSocket `ReconnectingWebSocketTask` integration tests.
 //!
 //! Tests automatic reconnection with exponential backoff.
 
@@ -71,17 +71,9 @@ fn test_reconnecting_task_progress_states() {
     let status = task.next_status(Ctx::new());
     assert!(status.is_some(), "Should return Some status");
 
-    match status {
-        Some(TaskStatus::Pending(ReconnectingWebSocketProgress::Connecting)) => {
-            // Expected - trying to connect
-        }
-        Some(TaskStatus::Pending(_)) => {
-            // Also acceptable - might transition quickly
-        }
-        _ => {
-            // Other states are also valid depending on timing
-        }
-    }
+    // Any status is acceptable here: Connecting, another Pending state, or other
+    // states that depend on connection timing.
+    let _ = status;
 }
 
 // Test 6: ReconnectingWebSocketTask is Send
@@ -183,9 +175,7 @@ fn test_connection_failure_triggers_reconnect() {
                 let delay = std::cmp::min(duration, std::time::Duration::from_millis(50));
                 std::thread::sleep(delay);
             }
-            Some(TaskStatus::Ready(Err(_))) => {
-                // Connection error - expected
-            }
+            // Connection error (Ready(Err)) or any other status: tolerated here.
             _ => {}
         }
     }
@@ -267,12 +257,10 @@ fn test_max_reconnect_duration_exhausts() {
     let elapsed = start.elapsed();
     assert!(
         got_exhausted,
-        "Task should exhaust after max duration, iterations={}, elapsed={:?}",
-        iterations, elapsed
+        "Task should exhaust after max duration, iterations={iterations}, elapsed={elapsed:?}"
     );
     assert!(
         elapsed >= std::time::Duration::from_millis(100),
-        "Should have run for some time before exhausting, elapsed={:?}",
-        elapsed
+        "Should have run for some time before exhausting, elapsed={elapsed:?}"
     );
 }

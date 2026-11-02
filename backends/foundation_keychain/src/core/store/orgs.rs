@@ -5,7 +5,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -107,7 +107,8 @@ pub struct MembershipRow {
     pub updated_at: DateTime<Utc>,
 }
 
-const M_COLS: &str = "uuid, org_uuid, user_uuid, email, atype, status, akey, created_at, updated_at";
+const M_COLS: &str =
+    "uuid, org_uuid, user_uuid, email, atype, status, akey, created_at, updated_at";
 
 fn map_membership(row: &SqlRow) -> AppResult<MembershipRow> {
     let created_at: String = row.get_by_name("created_at").map_err(store_err)?;
@@ -148,7 +149,9 @@ pub async fn insert_membership(db: &dyn QueryStore, row: &MembershipRow) -> AppR
 }
 
 pub async fn find_membership(db: &dyn QueryStore, uuid: &str) -> AppResult<Option<MembershipRow>> {
-    query_memberships(db, "WHERE uuid = ?", uuid).await.map(|mut v| v.pop())
+    query_memberships(db, "WHERE uuid = ?", uuid)
+        .await
+        .map(|mut v| v.pop())
 }
 
 pub async fn find_membership_for_user(
@@ -158,7 +161,9 @@ pub async fn find_membership_for_user(
 ) -> AppResult<Option<MembershipRow>> {
     let rows = db
         .query(
-            &format!("SELECT {M_COLS} FROM vault_org_memberships WHERE org_uuid = ? AND user_uuid = ?"),
+            &format!(
+                "SELECT {M_COLS} FROM vault_org_memberships WHERE org_uuid = ? AND user_uuid = ?"
+            ),
             &[
                 DataValue::Text(org_uuid.to_string()),
                 DataValue::Text(user_uuid.to_string()),

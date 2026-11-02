@@ -24,12 +24,15 @@ fn main() {
     // Create files — stored as chunked blobs in SQLite
     delta.mkdir("/config").unwrap();
     let file = delta.create("/config/app.toml", 0o644).unwrap();
-    file.write_at(b"[server]\nport = 8080\nhost = \"0.0.0.0\"\n", 0).unwrap();
+    file.write_at(b"[server]\nport = 8080\nhost = \"0.0.0.0\"\n", 0)
+        .unwrap();
     println!("Created /config/app.toml ({} bytes)", file.size().unwrap());
 
     // Write a larger file
     let payload = "line\n".repeat(200);
-    delta.write_file("/config/data.csv", payload.as_bytes()).unwrap();
+    delta
+        .write_file("/config/data.csv", payload.as_bytes())
+        .unwrap();
     println!("Wrote /config/data.csv ({} bytes)", payload.len());
 
     // Read back

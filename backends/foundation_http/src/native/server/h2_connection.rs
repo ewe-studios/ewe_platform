@@ -29,13 +29,13 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::synca::WaitGroupGuard;
-use foundation_iogate::ShutdownSignal;
 use foundation_core::valtron::{
-    AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, FutureTask, Pipe, PipeReceiver, PipeSender,
-    TaskIterator, TaskStatus, TryRecvError,
+    AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, FutureTask, Pipe,
+    PipeReceiver, PipeSender, TaskIterator, TaskStatus, TryRecvError,
 };
 #[cfg(unix)]
 use foundation_iogate::FdReadiness as SocketReadiness;
+use foundation_iogate::ShutdownSignal;
 use foundation_netio::http2::conn::H2Conn;
 use foundation_netio::http2::frame::{
     data_flags, headers_flags, ErrorCode, Head, HeadersFrame, Kind, ResetFrame,
@@ -43,8 +43,8 @@ use foundation_netio::http2::frame::{
 use foundation_netio::http2::types::{header_from_hpack, H2Frame, H2IncomingFrame};
 use foundation_netio::netcap::ConnectionContext;
 
-use crate::shared::app::HttpApp;
 use crate::native::serve::H2Serve;
+use crate::shared::app::HttpApp;
 
 const POLL_DELAY: Duration = Duration::from_millis(10);
 /// Aggressive poll delay during the H2 handshake — grpc-go may fire GOAWAY
@@ -282,7 +282,9 @@ impl TaskIterator for H2ConnectionHandler {
                     if !self.flush() {
                         return None;
                     }
-                    tracing::debug!("h2 server: handshake done, keepalive PING + window raise sent");
+                    tracing::debug!(
+                        "h2 server: handshake done, keepalive PING + window raise sent"
+                    );
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // Handshake in progress: wait for the rest of the preface.
@@ -306,15 +308,27 @@ impl TaskIterator for H2ConnectionHandler {
                 self.idle_since = None;
                 match head.kind {
                     Kind::Headers => {
-                        tracing::debug!(stream = head.stream_id, kind = "HEADERS", "h2 frame received");
+                        tracing::debug!(
+                            stream = head.stream_id,
+                            kind = "HEADERS",
+                            "h2 frame received"
+                        );
                         self.on_headers(head, &payload);
                     }
                     Kind::Data => {
-                        tracing::debug!(stream = head.stream_id, kind = "DATA", "h2 frame received");
+                        tracing::debug!(
+                            stream = head.stream_id,
+                            kind = "DATA",
+                            "h2 frame received"
+                        );
                         self.on_data(head, &payload);
                     }
                     Kind::Reset => {
-                        tracing::debug!(stream = head.stream_id, kind = "RST_STREAM", "h2 frame received");
+                        tracing::debug!(
+                            stream = head.stream_id,
+                            kind = "RST_STREAM",
+                            "h2 frame received"
+                        );
                         self.on_reset(head, &payload);
                     }
                     _ => {}
@@ -516,7 +530,10 @@ impl H2ConnectionHandler {
         if !payload.is_empty() {
             let data = Bytes::copy_from_slice(payload);
             if stream.pending_body.is_empty()
-                && stream.body_tx.try_send(H2IncomingFrame::Data(data.clone())).is_ok()
+                && stream
+                    .body_tx
+                    .try_send(H2IncomingFrame::Data(data.clone()))
+                    .is_ok()
             {
                 stream.uncredited += payload_len_u32(payload.len());
                 if stream.uncredited >= CREDIT_FLUSH_THRESHOLD {
@@ -657,7 +674,9 @@ fn new_ping_opaque_h2srv() -> [u8; 8] {
     use std::time::{SystemTime, UNIX_EPOCH};
     // Opaque 8-byte PING nonce — any value works. Fold the full nanos into a
     // u64 (truncation is fine and intended for a nonce).
-    let dur = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default();
+    let dur = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default();
     let nonce = (u64::from(dur.subsec_nanos())) ^ dur.as_secs().rotate_left(32);
     nonce.to_be_bytes()
 }

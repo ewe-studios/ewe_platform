@@ -37,14 +37,23 @@ fn download(ctx: Ctx, state: Download) -> Option<(Download, TaskStatus<&'static 
         return None; // body fully delivered — the stream ends here
     }
     let chunk = chunks[index];
-    Some((Download { chunks, index: index + 1 }, TaskStatus::Ready(chunk)))
+    Some((
+        Download {
+            chunks,
+            index: index + 1,
+        },
+        TaskStatus::Ready(chunk),
+    ))
 }
 
 #[valtron]
 async fn main() {
     let body = ["Hello", ", ", "valtron", " ", "streams", "!"];
     let mut stream = execute(
-        download::new(Download { chunks: body.to_vec(), index: 0 }),
+        download::new(Download {
+            chunks: body.to_vec(),
+            index: 0,
+        }),
         None,
     )
     .expect("engine live")

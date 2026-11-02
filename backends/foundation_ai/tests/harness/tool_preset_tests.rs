@@ -273,8 +273,7 @@ fn preset_tools_survive_into_a_toolshed() {
         .expect("ready-made tools register");
     let shed = mgr.all_declarations();
 
-    let mut shed_names: Vec<String> =
-        shed.tools.iter().map(|t| t.name().to_string()).collect();
+    let mut shed_names: Vec<String> = shed.tools.iter().map(|t| t.name().to_string()).collect();
     shed_names.sort();
     assert_eq!(shed_names, vec!["bash", "edit", "read", "write"]);
 }

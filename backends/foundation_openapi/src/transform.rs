@@ -158,6 +158,67 @@ pub fn extract_inline_schemas(
     }
 }
 
+/// Point an inline object property at the named schema it duplicates.
+///
+/// WHY: [`canonicalize_operations`] hoists only operation-level request and
+/// response schemas. A vendor also writes the same object inline inside its own
+/// `components/schemas`. The generator names a type from a `$ref`, so an inline
+/// object generates as an untyped `HashMap<String, serde_json::Value>`.
+/// Cloudflare's `d1_database_update_request_body` inlines `read_replication`
+/// byte-for-byte as `d1_read_replication_details`: the update body generated
+/// untyped while create and details used the named struct.
+///
+/// WHAT: for every named schema, walk its properties. When a property is an
+/// inline object byte-identical to a named schema, replace it with a `$ref` to
+/// that schema. An inline object that matches nothing is left as it was.
+pub fn reuse_identical_schemas(spec: &mut Value) -> usize {
+    let Some(schemas) = spec
+        .pointer_mut("/components/schemas")
+        .and_then(Value::as_object_mut)
+    else {
+        return 0;
+    };
+
+    // Snapshot the named schemas once. Keys stay stable during the walk; the
+    // values are cloned so comparisons see the pre-walk shapes.
+    let named: Vec<(String, Value)> = schemas
+        .iter()
+        .map(|(name, schema)| (name.clone(), schema.clone()))
+        .collect();
+
+    let mut reused = 0;
+    for (_name, schema) in schemas.iter_mut() {
+        if let Some(props) = schema.get_mut("properties").and_then(Value::as_object_mut) {
+            reused += reuse_in_props(props, &named);
+        }
+    }
+    reused
+}
+
+fn reuse_in_props(props: &mut Map<String, Value>, named: &[(String, Value)]) -> usize {
+    let mut reused = 0;
+    for (_key, prop) in props.iter_mut() {
+        let is_inline = prop.get("$ref").is_none() && prop.get("properties").is_some();
+        if is_inline {
+            if let Some((name, _)) = named.iter().find(|(_, schema)| schema == prop) {
+                *prop = serde_json::json!({"$ref": format!("#/components/schemas/{name}")});
+                reused += 1;
+                continue;
+            }
+        }
+        // Recurse into nested properties and array items.
+        if let Some(inner) = prop.get_mut("properties").and_then(Value::as_object_mut) {
+            reused += reuse_in_props(inner, named);
+        }
+        if let Some(items) = prop.get_mut("items") {
+            if let Some(inner) = items.get_mut("properties").and_then(Value::as_object_mut) {
+                reused += reuse_in_props(inner, named);
+            }
+        }
+    }
+    reused
+}
+
 /// Convert a path like `/v1/databases/{databaseId}/backups` to a `PascalCase`
 /// type name prefix like `DatabasesBackups`.
 ///
@@ -210,9 +271,16 @@ impl std::fmt::Display for NotCanonical {
         match self {
             Self::NoServers => write!(f, "no `servers` entry — clients would have no base URL"),
             Self::NoComponentSchemas => {
-                write!(f, "`components/schemas` is missing or empty — nothing to $ref")
+                write!(
+                    f,
+                    "`components/schemas` is missing or empty — nothing to $ref"
+                )
             }
-            Self::InlineSchema { path, method, location } => write!(
+            Self::InlineSchema {
+                path,
+                method,
+                location,
+            } => write!(
                 f,
                 "{method} {path} ({location}) still has an inline object schema — \
                  it would generate as an anonymous blob, since types are named from $ref"
@@ -254,7 +322,9 @@ pub fn validate_canonical(spec: &Value) -> Result<(), Vec<NotCanonical>> {
 
     if let Some(paths) = spec.get("paths").and_then(Value::as_object) {
         for (path, item) in paths {
-            let Some(item) = item.as_object() else { continue };
+            let Some(item) = item.as_object() else {
+                continue;
+            };
             for (method, op) in item {
                 if !is_http_method(method) {
                     continue;
@@ -402,12 +472,16 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
     };
 
     for (path, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         for (method, op) in item.iter_mut() {
             if !is_http_method(method) {
                 continue;
             }
-            let Some(op) = op.as_object_mut() else { continue };
+            let Some(op) = op.as_object_mut() else {
+                continue;
+            };
 
             let base = operation_type_base(op, path, method);
 
@@ -417,7 +491,13 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
                 .and_then(Value::as_object_mut)
                 .and_then(first_media_schema_mut)
             {
-                hoist(schema, &format!("{base}Request"), &mut hoisted, &reserved, &mut stats);
+                hoist(
+                    schema,
+                    &format!("{base}Request"),
+                    &mut hoisted,
+                    &reserved,
+                    &mut stats,
+                );
             }
 
             if let Some(responses) = op.get_mut("responses").and_then(Value::as_object_mut) {
@@ -658,7 +738,9 @@ pub fn resolve_parameter_refs(spec: &mut Value) -> ParameterRefStats {
     };
 
     for (_, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         for (method, op) in item.iter_mut() {
             // A path item can carry `parameters` shared by every method on it, so
             // that key is walked too — not only the HTTP methods.
@@ -740,7 +822,11 @@ pub fn resolve_response_refs(spec: &mut Value) -> ResponseRefStats {
     let reserved: BTreeSet<String> = spec
         .pointer("/components/schemas")
         .and_then(Value::as_object)
-        .map(|s| s.keys().map(|k| crate::api_catalog::to_pascal_case_from_any(k)).collect())
+        .map(|s| {
+            s.keys()
+                .map(|k| crate::api_catalog::to_pascal_case_from_any(k))
+                .collect()
+        })
         .unwrap_or_default();
 
     let mut hoisted: Map<String, Value> = Map::new();
@@ -812,15 +898,14 @@ pub fn resolve_response_refs(spec: &mut Value) -> ResponseRefStats {
     };
 
     for (_, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         for (method, op) in item.iter_mut() {
             if !is_http_method(method) {
                 continue;
             }
-            let Some(responses) = op
-                .get_mut("responses")
-                .and_then(Value::as_object_mut)
-            else {
+            let Some(responses) = op.get_mut("responses").and_then(Value::as_object_mut) else {
                 continue;
             };
 

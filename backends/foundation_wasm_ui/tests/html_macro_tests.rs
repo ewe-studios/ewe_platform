@@ -103,9 +103,7 @@ fn child_slot_emits_text_part() {
 fn dynamic_attribute_emits_attr_part() {
     let cls = "highlight";
     let h = html! { <div class={cls}></div> };
-    assert!(
-        matches!(&h.parts[0], Part::Attribute(a) if a.node_id == 0 && a.attr_name == "class")
-    );
+    assert!(matches!(&h.parts[0], Part::Attribute(a) if a.node_id == 0 && a.attr_name == "class"));
     assert_eq!(attr(&h, "class"), Some("highlight"));
 }
 
@@ -114,9 +112,7 @@ fn dynamic_attribute_emits_attr_part() {
 fn event_attribute_emits_event_part() {
     let handler = |_: &EventData| {};
     let h = html! { <button primal:onclick={handler}></button> };
-    assert!(
-        matches!(&h.parts[0], Part::Event(e) if e.node_id == 0 && e.event_name == "click")
-    );
+    assert!(matches!(&h.parts[0], Part::Event(e) if e.node_id == 0 && e.event_name == "click"));
     assert_eq!(attr(&h, "primal:onclick"), Some("true"));
 }
 
@@ -201,7 +197,8 @@ fn attr_part_precedes_child_slot() {
 #[test]
 fn event_parts_on_nested_elements() {
     let (s, h2) = (|_: &EventData| {}, |_: &EventData| {});
-    let h = html! { <form><input primal:onchange={s}/><button primal:onclick={h2}></button></form> };
+    let h =
+        html! { <form><input primal:onchange={s}/><button primal:onclick={h2}></button></form> };
     assert!(matches!(&h.parts[0], Part::Event(e) if e.node_id == 1 && e.event_name == "change"));
     assert!(matches!(&h.parts[1], Part::Event(e) if e.node_id == 2 && e.event_name == "click"));
 }
@@ -294,8 +291,7 @@ fn known_names_resolve_to_ids() {
     assert!(h
         .attributes
         .iter()
-        .any(|(n, _)| *n == AttrName::from_static("class")
-            && matches!(n, AttrName::Id(_))));
+        .any(|(n, _)| *n == AttrName::from_static("class") && matches!(n, AttrName::Id(_))));
 }
 
 /// Custom elements stay name-form and require explicit closing.
@@ -377,7 +373,11 @@ fn reactive_slot_renders_and_updates() {
             _ => None,
         })
         .collect::<Vec<_>>();
-    assert_eq!(initial, vec![(18, "7".into())], "initial render targets the slot text node");
+    assert_eq!(
+        initial,
+        vec![(18, "7".into())],
+        "initial render targets the slot text node"
+    );
 
     // Signal change re-renders exactly the slot.
     set_count.set(8);
@@ -514,8 +514,7 @@ fn reactive_option_attribute_toggles_presence() {
     let m = reactive_setup();
     let (on, set_on) = m.ctx.signal(true);
 
-    let _tree =
-        html! { m.ctx, m.receiver, <div data-checked={on.get().then_some("")}></div> };
+    let _tree = html! { m.ctx, m.receiver, <div data-checked={on.get().then_some("")}></div> };
     m.signals.stabilize();
     let ops = all_ops(&m.sent);
     assert!(

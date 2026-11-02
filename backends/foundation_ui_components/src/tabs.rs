@@ -113,8 +113,20 @@ pub fn tabs(
                     .get()
                     .and_then(|cur| order.iter().position(|v| v == &cur));
                 let dir = match (prev_idx, new_idx) {
-                    (Some(p), Some(n)) if n > p => if vertical { "down" } else { "right" },
-                    (Some(p), Some(n)) if n < p => if vertical { "up" } else { "left" },
+                    (Some(p), Some(n)) if n > p => {
+                        if vertical {
+                            "down"
+                        } else {
+                            "right"
+                        }
+                    }
+                    (Some(p), Some(n)) if n < p => {
+                        if vertical {
+                            "up"
+                        } else {
+                            "left"
+                        }
+                    }
                     _ => "none",
                 };
                 set_dir.set(dir);

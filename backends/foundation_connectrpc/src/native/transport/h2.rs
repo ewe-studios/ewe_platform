@@ -21,15 +21,14 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::valtron::{Ctx, 
-    self, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
-    TryRecvError,
-};
-use foundation_netio::shared::http::{
-    Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, Status,
+use foundation_core::valtron::{
+    self, Ctx, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus, TryRecvError,
 };
 use foundation_netio::http2::channel::{H2Channel, H2StreamEvent};
 use foundation_netio::http2::connection::H2Request;
+use foundation_netio::shared::http::{
+    Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, Status,
+};
 
 use crate::shared::transport::{
     body_stream_from_pipe, BodyStream, HeadStream, Transport, TransportCapabilities,
@@ -117,6 +116,10 @@ pub struct H2Transport {
     /// Longest the call waits for the peer's h2 SETTINGS. See
     /// [`Self::with_handshake_timeout`].
     handshake_timeout: Duration,
+    /// Longest the pump waits for the next bytes from the peer once the request
+    /// is out. `Duration::ZERO` disables the check (the default). See
+    /// [`Self::with_read_timeout`].
+    read_timeout: Duration,
 }
 
 impl Default for H2Transport {
@@ -126,6 +129,7 @@ impl Default for H2Transport {
             unix_path: None,
             connect_timeout: Self::DEFAULT_CONNECT_TIMEOUT,
             handshake_timeout: Self::DEFAULT_HANDSHAKE_TIMEOUT,
+            read_timeout: Self::DEFAULT_READ_TIMEOUT,
         }
     }
 }
@@ -141,8 +145,16 @@ impl H2Transport {
     /// finished its preamble.
     pub const DEFAULT_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
 
+    /// Default for [`Self::with_read_timeout`]: `Duration::ZERO`, which disables
+    /// the check. A disabled read timeout keeps this transport's old behaviour,
+    /// where a peer that stops answering leaves the call hanging on the peer's
+    /// own idle timeout.
+    pub const DEFAULT_READ_TIMEOUT: Duration = Duration::ZERO;
+
     #[must_use]
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     /// An `H2Transport` that dials the given Unix domain socket for every
     /// call — h2c-over-Unix, the shape `buildkitd` listens on by default
@@ -150,7 +162,10 @@ impl H2Transport {
     #[cfg(unix)]
     #[must_use]
     pub fn unix(path: impl Into<std::path::PathBuf>) -> Self {
-        Self { unix_path: Some(path.into()), ..Self::default() }
+        Self {
+            unix_path: Some(path.into()),
+            ..Self::default()
+        }
     }
 
     /// Set how long `open()` waits for the TCP (or Unix socket) dial.
@@ -168,6 +183,17 @@ impl H2Transport {
     #[must_use]
     pub fn with_handshake_timeout(mut self, timeout: Duration) -> Self {
         self.handshake_timeout = timeout;
+        self
+    }
+
+    /// Set how long the pump waits for the next bytes from the peer once the
+    /// request is out. A peer that accepts the connection but then sends nothing
+    /// fails the call with [`TransportError::Timeout`] instead of hanging it on
+    /// the peer's own idle timeout. `Duration::ZERO` (the default) disables the
+    /// check. See [`Self::DEFAULT_READ_TIMEOUT`].
+    #[must_use]
+    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
+        self.read_timeout = timeout;
         self
     }
 }
@@ -188,7 +214,9 @@ impl Transport for H2Transport {
     }
 
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
-        let host = request.request_uri.host_str()
+        let host = request
+            .request_uri
+            .host_str()
             .map(|s| s.to_string())
             .unwrap_or_else(|| "localhost".into());
         let port = request.request_uri.port_or_default();
@@ -210,7 +238,9 @@ impl Transport for H2Transport {
                 let addr = format!("{host}:{port}");
                 H2Socket::Tcp(
                     TcpStream::connect_timeout(
-                        &addr.parse().map_err(|e| TransportError::Connect(Arc::new(e)))?,
+                        &addr
+                            .parse()
+                            .map_err(|e| TransportError::Connect(Arc::new(e)))?,
                         self.connect_timeout,
                     )
                     .map_err(|e| TransportError::Connect(Arc::new(e)))?,
@@ -222,7 +252,9 @@ impl Transport for H2Transport {
             let addr = format!("{host}:{port}");
             H2Socket::Tcp(
                 TcpStream::connect_timeout(
-                    &addr.parse().map_err(|e| TransportError::Connect(Arc::new(e)))?,
+                    &addr
+                        .parse()
+                        .map_err(|e| TransportError::Connect(Arc::new(e)))?,
                     self.connect_timeout,
                 )
                 .map_err(|e| TransportError::Connect(Arc::new(e)))?,
@@ -251,6 +283,8 @@ impl Transport for H2Transport {
             channel,
             state: PumpPhase::Handshaking,
             handshake_deadline: Instant::now() + self.handshake_timeout,
+            read_timeout: self.read_timeout,
+            last_progress: Instant::now(),
             pending_out: Vec::new(),
             send_rx,
             head_tx,
@@ -270,9 +304,8 @@ impl Transport for H2Transport {
             response_ended: false,
         };
 
-        valtron::send(pump).map_err(|e| {
-            TransportError::Connect(Arc::new(io::Error::other(e.to_string())))
-        })?;
+        valtron::send(pump)
+            .map_err(|e| TransportError::Connect(Arc::new(io::Error::other(e.to_string()))))?;
 
         // The head pipe carries `Result`s so a handshake failure reaches the
         // caller as `Err(TransportError)`, as it did when `open()` returned it.
@@ -281,7 +314,12 @@ impl Transport for H2Transport {
         }));
         let recv_body: BodyStream = body_stream_from_pipe(body_rx);
 
-        Ok(TransportStream { send_body: Arc::new(send_tx), head, recv_body, trailers: trailer_rx })
+        Ok(TransportStream {
+            send_body: Arc::new(send_tx),
+            head,
+            recv_body,
+            trailers: trailer_rx,
+        })
     }
 }
 
@@ -302,6 +340,12 @@ struct H2Pump {
     state: PumpPhase,
     /// When `Handshaking` gives up on the peer's SETTINGS.
     handshake_deadline: Instant,
+    /// Longest the pump waits for the next bytes from the peer once the request
+    /// is out. `Duration::ZERO` disables the check.
+    read_timeout: Duration,
+    /// When the peer last sent bytes or the socket last took our bytes. The
+    /// read timeout measures from here.
+    last_progress: Instant,
     /// Bytes drained from `channel` that the non-blocking socket has not taken
     /// yet. Written ahead of any later output so frames are never split or lost.
     pending_out: Vec<u8>,
@@ -436,6 +480,7 @@ impl H2Pump {
                 }
                 Ok(n) => {
                     self.pending_out.drain(..n);
+                    self.last_progress = Instant::now();
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return Ok(false),
                 Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
@@ -466,6 +511,26 @@ impl TaskIterator for H2Pump {
         self.stream.set_nonblocking(true).ok();
 
         loop {
+            // ── Idle read timeout ──────────────────────────────────────
+            // Once the request is out, the peer must keep making progress. A
+            // peer that accepts the connection but then sends nothing trips this
+            // before its own (often 60 s+) idle timeout. The handshake has its
+            // own deadline, so it is skipped here.
+            if !self.read_timeout.is_zero()
+                && !matches!(self.state, PumpPhase::Handshaking)
+                && self.last_progress.elapsed() >= self.read_timeout
+            {
+                if self.response_head_sent {
+                    // The head is already out. End the response stream here;
+                    // there is no head pipe left to publish the error on.
+                    self.body_tx.close();
+                    self.trailer_tx.close();
+                    return None;
+                }
+                self.fail_before_head(TransportError::Timeout);
+                return None;
+            }
+
             // ── Read from socket, feed to channel ──────────────────────
             let mut buf = [0u8; 8192];
             let mut read_some = false;
@@ -495,6 +560,7 @@ impl TaskIterator for H2Pump {
                 }
                 Ok(n) => {
                     self.channel.feed_input(&buf[..n]);
+                    self.last_progress = Instant::now();
                     read_some = true;
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
@@ -608,7 +674,9 @@ impl TaskIterator for H2Pump {
                                 self.request_ended = no_body;
                             }
                             Err(_e) => {
-                                let _ = self.head_tx.try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
+                                let _ = self
+                                    .head_tx
+                                    .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
                                 self.head_tx.close();
                                 self.body_tx.close();
                                 return None;
@@ -654,7 +722,9 @@ impl TaskIterator for H2Pump {
                         Ok(true) => {}
                         Ok(false) => return Some(TaskStatus::Delayed(POLL_DELAY)),
                         Err(_e) => {
-                            let _ = self.head_tx.try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
+                            let _ = self
+                                .head_tx
+                                .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
                             self.head_tx.close();
                             self.body_tx.close();
                             return None;
@@ -700,11 +770,14 @@ impl TaskIterator for H2Pump {
                             for (name, value) in &resp.headers {
                                 let n = String::from_utf8_lossy(name);
                                 if n == ":status" {
-                                    if let Ok(code) = String::from_utf8_lossy(value).trim().parse::<u16>() {
+                                    if let Ok(code) =
+                                        String::from_utf8_lossy(value).trim().parse::<u16>()
+                                    {
                                         status = status_from_u16(code);
                                     }
                                 } else {
-                                    resp_headers.entry(SimpleHeader::from(n.to_string()))
+                                    resp_headers
+                                        .entry(SimpleHeader::from(n.to_string()))
                                         .or_default()
                                         .push(String::from_utf8_lossy(value).to_string());
                                 }
@@ -737,7 +810,9 @@ impl TaskIterator for H2Pump {
                         }
                         Ok(None) => {
                             // GOAWAY or connection closed
-                            let _ = self.head_tx.try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
+                            let _ = self
+                                .head_tx
+                                .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
                             self.head_tx.close();
                             self.body_tx.close();
                             return None;
@@ -752,7 +827,9 @@ impl TaskIterator for H2Pump {
                             return Some(TaskStatus::Delayed(POLL_DELAY));
                         }
                         Err(_e) => {
-                            let _ = self.head_tx.try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
+                            let _ = self
+                                .head_tx
+                                .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
                             self.head_tx.close();
                             self.body_tx.close();
                             return None;
@@ -793,7 +870,14 @@ impl TaskIterator for H2Pump {
                     }
 
                     match self.channel.recv_stream_event() {
-                        Ok(Some((_sid, H2StreamEvent::Data { data, end_stream: end, .. }))) => {
+                        Ok(Some((
+                            _sid,
+                            H2StreamEvent::Data {
+                                data,
+                                end_stream: end,
+                                ..
+                            },
+                        ))) => {
                             if !data.is_empty() {
                                 self.pending_body.push_back(data);
                             }
@@ -905,4 +989,3 @@ fn status_from_u16(code: u16) -> Status {
         _ => Status::InternalServerError,
     }
 }
-

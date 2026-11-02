@@ -1,11 +1,10 @@
+use foundation_core::type_uuid::{Bytes, TypeUuid};
+use foundation_macros::TypeUuid;
 /// Shareable IPC message types and the MessageBox trait.
 ///
 /// `MessageBox` is a blanket impl for any `T: TypeUuid + Serialize + Deserialize + Send + 'static`.
 /// The `#[derive(TypeUuid)]` with `#[uuid = "..."]` attribute provides type identification.
-
 use serde::{Deserialize, Serialize};
-use foundation_core::type_uuid::{Bytes, TypeUuid};
-use foundation_macros::TypeUuid;
 
 use super::{EndpointID, Error, Label, Version};
 

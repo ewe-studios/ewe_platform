@@ -24,5 +24,8 @@ impl TaskIterator for Once {
 #[test]
 fn send_and_execute_without_a_pool_return_an_error() {
     assert!(send(Once(false)).is_err(), "send without a pool");
-    assert!(execute(Once(false), None).is_err(), "execute without a pool");
+    assert!(
+        execute(Once(false), None).is_err(),
+        "execute without a pool"
+    );
 }

@@ -208,7 +208,10 @@ fn client_receive_clean_eos_is_ok_none() {
             .unwrap();
     });
 
-    assert_eq!(block_on(rx.receive()).unwrap(), Some(Bytes::from_static(b"one")));
+    assert_eq!(
+        block_on(rx.receive()).unwrap(),
+        Some(Bytes::from_static(b"one"))
+    );
     assert_eq!(block_on(rx.receive()).unwrap(), None, "clean EOS");
 }
 
@@ -255,8 +258,12 @@ fn bidi_concurrent_send_receive_no_deadlock_depth_4() {
         cancel.clone(),
         DEPTH,
     );
-    let (client_conn, client_ends) =
-        PipeClientConn::new(spec(StreamType::BidiStream), SimpleHeaders::new(), cancel, DEPTH);
+    let (client_conn, client_ends) = PipeClientConn::new(
+        spec(StreamType::BidiStream),
+        SimpleHeaders::new(),
+        cancel,
+        DEPTH,
+    );
 
     let (mut server_rx, server_tx) = Box::new(server_conn).split();
     let (mut client_tx, mut client_rx) = Box::new(client_conn).split();
@@ -289,7 +296,10 @@ fn bidi_concurrent_send_receive_no_deadlock_depth_4() {
         while let Some(bytes) = server_rx.receive().await.unwrap() {
             server_sender.send(bytes).await.unwrap();
         }
-        server_sender.close(None, SimpleHeaders::new()).await.unwrap();
+        server_sender
+            .close(None, SimpleHeaders::new())
+            .await
+            .unwrap();
     });
 
     // Pumps wiring client ⇄ server byte-for-byte (stand-in for the wire).

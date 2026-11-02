@@ -1,3 +1,4 @@
+pub mod error;
 /// File descriptor management — wraps any raw fd with readiness tracking.
 ///
 /// Built for our sync, task-driven model on top of our cross-platform
@@ -41,9 +42,7 @@
 ///
 /// `foundation_core` never touches the fd or gains an OS dependency: the bridge
 /// is realized entirely through the `EventReadiness` impl on `RegisteredFd`.
-
 pub mod guard;
-pub mod error;
 // `Reactor`/`SharedReadiness`/`Ready` now live in `foundation_reactor` so that
 // `foundation_netio` can reach them without a dependency cycle. Re-export to
 // keep `foundation_nativeapis::native::fd::{Reactor, SharedReadiness, Ready}`.
@@ -61,17 +60,17 @@ pub use foundation_reactor::send_pool;
 // the netio `Connection`/`CompletionReadWrite` seam it plugs into. Keeping it
 // here would strand it below the `Connection` it exists to construct.
 
-pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 pub use error::{FdRegistrationError, RegistrationError};
 pub use foundation_reactor::reactor::{AlreadyInitialised, Reactor, SharedReadiness};
+pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 
 #[cfg(all(target_os = "linux", feature = "uring"))]
 pub use completion::{Completion, CompletionSource};
 #[cfg(all(target_os = "linux", feature = "uring"))]
 pub use send_pool::{SendBuf, SendPool};
 
-use crate::native::poll::{Events, Interest, Token};
 use crate::native::poll::sys::RawFd;
+use crate::native::poll::{Events, Interest, Token};
 
 use std::io;
 use std::os::unix::io::{AsRawFd, RawFd as StdRawFd};
@@ -404,7 +403,10 @@ impl FdRegistration {
             }
 
             let Some(ref reactor) = self.reactor else {
-                return Err(io::Error::new(io::ErrorKind::WouldBlock, "no completions pending"));
+                return Err(io::Error::new(
+                    io::ErrorKind::WouldBlock,
+                    "no completions pending",
+                ));
             };
             let refill = reactor.take_completions(self.token).unwrap_or_default();
             if refill.is_empty() {
@@ -412,7 +414,10 @@ impl FdRegistration {
                 // contract as a `WouldBlock` from `read(2)` in readiness mode.
                 drop(guard);
                 self.clear_readiness(Ready::READABLE);
-                return Err(io::Error::new(io::ErrorKind::WouldBlock, "no completions pending"));
+                return Err(io::Error::new(
+                    io::ErrorKind::WouldBlock,
+                    "no completions pending",
+                ));
             }
             staged.queue.extend(refill);
         }
@@ -655,8 +660,17 @@ impl<T: AsRawFd> RegisteredFd<T> {
     ///
     /// The fd is immediately registered with the poll::Selector.
     /// The fd MUST be in nonblocking mode for correct operation.
-    pub fn new(inner: T, registry: &crate::native::poll::Registry, token: Token) -> io::Result<Self> {
-        Self::with_interest(inner, registry, token, Interest::READABLE | Interest::WRITABLE)
+    pub fn new(
+        inner: T,
+        registry: &crate::native::poll::Registry,
+        token: Token,
+    ) -> io::Result<Self> {
+        Self::with_interest(
+            inner,
+            registry,
+            token,
+            Interest::READABLE | Interest::WRITABLE,
+        )
     }
 
     /// Create with specific interest.
@@ -704,7 +718,10 @@ impl<T: AsRawFd> RegisteredFd<T> {
     ) -> io::Result<Self> {
         let fd = inner.as_raw_fd();
         let registration = FdRegistration::with_completion(fd, registry, token, interest)?;
-        Ok(Self { registration, inner: Some(inner) })
+        Ok(Self {
+            registration,
+            inner: Some(inner),
+        })
     }
 
     /// Create, returning the original inner value on failure.
@@ -745,7 +762,11 @@ impl<T: AsRawFd> RegisteredFd<T> {
     /// Panics if an internal lock is poisoned.
     #[cfg(all(target_os = "linux", feature = "uring"))]
     pub fn read_bytes(&self, buf: &mut [u8]) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        let fd = self
+            .inner
+            .as_ref()
+            .expect("inner present until into_inner")
+            .as_raw_fd();
         self.registration.read_bytes(fd, buf)
     }
 
@@ -763,7 +784,11 @@ impl<T: AsRawFd> RegisteredFd<T> {
     /// Panics if an internal lock is poisoned.
     #[cfg(all(target_os = "linux", feature = "uring"))]
     pub fn send_bytes(&self, data: &[u8]) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        let fd = self
+            .inner
+            .as_ref()
+            .expect("inner present until into_inner")
+            .as_raw_fd();
         self.registration.send_bytes(fd, data)
     }
 
@@ -771,7 +796,11 @@ impl<T: AsRawFd> RegisteredFd<T> {
     /// `IORING_OP_SEND_ZC` (F50 Part C). See [`FdRegistration::send_bytes_zc`].
     #[cfg(all(target_os = "linux", feature = "uring"))]
     pub fn send_bytes_zc(&self, data: &[u8]) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        let fd = self
+            .inner
+            .as_ref()
+            .expect("inner present until into_inner")
+            .as_raw_fd();
         self.registration.send_bytes_zc(fd, data)
     }
 
@@ -783,7 +812,11 @@ impl<T: AsRawFd> RegisteredFd<T> {
         &self,
         buf: crate::native::poll::sys::unix::selector::bufring::ProvidedBuf,
     ) -> io::Result<usize> {
-        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        let fd = self
+            .inner
+            .as_ref()
+            .expect("inner present until into_inner")
+            .as_raw_fd();
         self.registration.send_bytes_zc_direct(fd, buf)
     }
 

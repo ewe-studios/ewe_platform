@@ -26,7 +26,6 @@
 ///         event.token(), event.is_readable(), event.is_writable());
 /// }
 /// ```
-
 pub mod event;
 pub use event::{Events, Source};
 
@@ -107,7 +106,9 @@ pub struct Poll {
 
 impl std::fmt::Debug for Poll {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Poll").field("backend", &self.backend()).finish()
+        f.debug_struct("Poll")
+            .field("backend", &self.backend())
+            .finish()
     }
 }
 
@@ -312,6 +313,34 @@ impl Poll {
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
         self.selector.poll(events, timeout)
     }
+
+    /// Re-arm the read edge for `fd` after the caller drained it.
+    ///
+    /// A no-op except on kqueue (macOS/BSD). There the kernel reports
+    /// `EVFILT_READ` level-triggered for pipes despite `EV_CLEAR`, so the
+    /// selector tracks the read edge in software and a drained fd must be
+    /// re-armed to receive the next edge.
+    pub(crate) fn rearm_readable(&self, fd: sys::RawFd) {
+        #[cfg(any(
+            target_os = "macos",
+            target_os = "ios",
+            target_os = "freebsd",
+            target_os = "netbsd",
+            target_os = "openbsd",
+            target_os = "dragonfly",
+        ))]
+        self.selector.rearm_readable(fd);
+
+        #[cfg(not(any(
+            target_os = "macos",
+            target_os = "ios",
+            target_os = "freebsd",
+            target_os = "netbsd",
+            target_os = "openbsd",
+            target_os = "dragonfly",
+        )))]
+        let _ = fd;
+    }
 }
 
 /// Registration handle — used to add, modify, and remove source interests.
@@ -380,7 +409,12 @@ impl Registry {
     }
 
     /// Re-register a raw file descriptor with a new token and/or interest.
-    pub fn reregister_fd(&self, fd: sys::RawFd, token: Token, interest: Interest) -> io::Result<()> {
+    pub fn reregister_fd(
+        &self,
+        fd: sys::RawFd,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<()> {
         self.selector.reregister_fd(fd, token, interest)
     }
 
@@ -401,7 +435,7 @@ impl Registry {
     }
 
     /// Access the internal selector (for platform-specific operations).
-#[allow(dead_code)]
+    #[allow(dead_code)]
     pub(crate) fn selector(&self) -> &sys::Selector {
         &self.selector
     }

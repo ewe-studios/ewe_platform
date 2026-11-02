@@ -21,7 +21,10 @@ use foundation_deployment_docker::DockerClient;
 async fn real_docker_version() {
     let client = DockerClient::connect_unix("/var/run/docker.sock");
     let version = client.version().await.expect("GET /version");
-    assert!(version.api_version.is_some(), "ApiVersion should be present");
+    assert!(
+        version.api_version.is_some(),
+        "ApiVersion should be present"
+    );
     assert!(version.os.is_some(), "Os should be present");
     assert!(version.arch.is_some(), "Arch should be present");
 }
@@ -44,7 +47,10 @@ async fn real_docker_lifecycle_stop_while_running() {
         .expect("create container");
     assert!(!id.id.is_empty());
 
-    client.start_container(&id.id).await.expect("start container");
+    client
+        .start_container(&id.id)
+        .await
+        .expect("start container");
 
     // Stop while running — Docker blocks until container exits (up to 10s).
     // Our 120s read timeout handles this.
@@ -52,7 +58,10 @@ async fn real_docker_lifecycle_stop_while_running() {
         .stop_container(&id.id, Some(10))
         .await
         .expect("stop container (while running)");
-    client.remove_container(&id.id, true).await.expect("remove container");
+    client
+        .remove_container(&id.id, true)
+        .await
+        .expect("remove container");
 }
 
 #[valtron_test]
@@ -108,23 +117,52 @@ async fn real_docker_pause_unpause() {
         .await
         .expect("create container");
 
-    client.start_container(&id.id).await.expect("start container");
-    client.pause_container(&id.id).await.expect("pause container");
+    client
+        .start_container(&id.id)
+        .await
+        .expect("start container");
+    client
+        .pause_container(&id.id)
+        .await
+        .expect("pause container");
 
-    let inspect = client.inspect_container(&id.id).await.expect("inspect after pause");
+    let inspect = client
+        .inspect_container(&id.id)
+        .await
+        .expect("inspect after pause");
     assert!(
-        inspect.state.as_ref().and_then(|s| s.paused).unwrap_or(false),
+        inspect
+            .state
+            .as_ref()
+            .and_then(|s| s.paused)
+            .unwrap_or(false),
         "container should be paused"
     );
 
-    client.unpause_container(&id.id).await.expect("unpause container");
+    client
+        .unpause_container(&id.id)
+        .await
+        .expect("unpause container");
 
-    let inspect = client.inspect_container(&id.id).await.expect("inspect after unpause");
+    let inspect = client
+        .inspect_container(&id.id)
+        .await
+        .expect("inspect after unpause");
     assert!(
-        inspect.state.as_ref().and_then(|s| s.running).unwrap_or(false),
+        inspect
+            .state
+            .as_ref()
+            .and_then(|s| s.running)
+            .unwrap_or(false),
         "container should be running after unpause"
     );
 
-    client.stop_container(&id.id, Some(5)).await.expect("stop container");
-    client.remove_container(&id.id, true).await.expect("remove container");
+    client
+        .stop_container(&id.id, Some(5))
+        .await
+        .expect("stop container");
+    client
+        .remove_container(&id.id, true)
+        .await
+        .expect("remove container");
 }

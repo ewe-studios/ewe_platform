@@ -70,7 +70,10 @@ pub trait StateStore: Send + Sync {
     /// Returns an error if the query can't start.
     async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>>;
 
-    /// Create or update a resource's state.
+    /// Create or update a resource's state, keyed by `resource_id`.
+    ///
+    /// The stored state's `id` is set to `resource_id`, whatever `state.id`
+    /// holds.
     ///
     /// # Errors
     ///
@@ -134,7 +137,8 @@ pub trait StateStore: Send + Sync {
         let prefix = prefix.to_string();
         let all = self.all().await?;
         Ok(Box::pin(all.filter(move |item| {
-            item.as_ref().map_or(true, |state| state.id.starts_with(&prefix))
+            item.as_ref()
+                .map_or(true, |state| state.id.starts_with(&prefix))
         })))
     }
 
@@ -160,7 +164,8 @@ pub trait StateStore: Send + Sync {
         let status = status.to_string();
         let all = self.all().await?;
         Ok(Box::pin(all.filter(move |item| {
-            item.as_ref().map_or(true, |state| state.status.to_string() == status)
+            item.as_ref()
+                .map_or(true, |state| state.status.to_string() == status)
         })))
     }
 
@@ -169,11 +174,15 @@ pub trait StateStore: Send + Sync {
     /// # Errors
     ///
     /// Returns an error if the underlying operation fails.
-    async fn find_by_provider(&self, provider: &str) -> StorageResult<StateStoreStream<ResourceState>> {
+    async fn find_by_provider(
+        &self,
+        provider: &str,
+    ) -> StorageResult<StateStoreStream<ResourceState>> {
         let provider = provider.to_string();
         let all = self.all().await?;
         Ok(Box::pin(all.filter(move |item| {
-            item.as_ref().map_or(true, |state| state.provider == provider)
+            item.as_ref()
+                .map_or(true, |state| state.provider == provider)
         })))
     }
 

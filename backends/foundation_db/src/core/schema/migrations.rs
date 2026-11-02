@@ -6,7 +6,7 @@
 use futures_lite::StreamExt;
 
 use crate::core::errors::StorageResult;
-use crate::core::storage_provider::{QueryStore, DataValue};
+use crate::core::storage_provider::{DataValue, QueryStore};
 
 /// A single database migration.
 pub struct Migration {
@@ -137,6 +137,16 @@ pub static MIGRATIONS: &[Migration] = &[
         name: "Create user-provider links table for account linking",
         sql: include_str!("sql/025_create_user_provider_links.sql"),
     },
+    Migration {
+        id: "026_auth_timestamps_milliseconds",
+        name: "Convert legacy auth-table timestamps to Unix milliseconds",
+        sql: include_str!("sql/026_auth_timestamps_milliseconds.sql"),
+    },
+    Migration {
+        id: "027_rebuild_rate_limits",
+        name: "Rebuild the rate limits table with the documented shape",
+        sql: include_str!("sql/027_rebuild_rate_limits.sql"),
+    },
 ];
 
 /// Migration runner that applies pending migrations.
@@ -166,10 +176,12 @@ impl<'a> MigrationRunner<'a> {
 
         for migration in self.migrations {
             // Check if migration already applied
-            let mut rows = store.query(
-                "SELECT 1 FROM _migrations WHERE id = ?",
-                &[DataValue::Text(migration.id.to_string())],
-            ).await?;
+            let mut rows = store
+                .query(
+                    "SELECT 1 FROM _migrations WHERE id = ?",
+                    &[DataValue::Text(migration.id.to_string())],
+                )
+                .await?;
 
             // One row is enough to know the migration ran.
             let exists = match rows.next().await {
@@ -185,13 +197,15 @@ impl<'a> MigrationRunner<'a> {
                 store.execute_batch(migration.sql).await?;
 
                 // Record migration
-                store.execute(
-                    "INSERT INTO _migrations (id, name) VALUES (?, ?)",
-                    &[
-                        DataValue::Text(migration.id.to_string()),
-                        DataValue::Text(migration.name.to_string()),
-                    ],
-                ).await?;
+                store
+                    .execute(
+                        "INSERT INTO _migrations (id, name) VALUES (?, ?)",
+                        &[
+                            DataValue::Text(migration.id.to_string()),
+                            DataValue::Text(migration.name.to_string()),
+                        ],
+                    )
+                    .await?;
 
                 count += 1;
             }

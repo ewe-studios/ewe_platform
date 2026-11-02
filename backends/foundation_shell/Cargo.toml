@@ -10,7 +10,7 @@ repository.workspace = true
 keywords = ["foundation_shell", "foundation_nushell"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_core = { path = "../foundation_core", version = "0.0.7" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3" }
 
 serde = { workspace = true }

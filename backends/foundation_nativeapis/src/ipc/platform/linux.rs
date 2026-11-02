@@ -2,21 +2,20 @@
 ///
 /// Uses `SCM_RIGHTS` ancillary data for kernel object (FD) passing.
 /// Shared memory via `memfd_create()` + `mmap()`.
+use std::{ffi, io, mem, os::fd::RawFd, ptr, sync::mpsc, sync::Arc, time::Duration};
 
-use std::{ffi, io, mem, os::fd::RawFd, ptr, sync::Arc, sync::mpsc, time::Duration};
-
-pub(crate) use fd::{Fd, Local, Remote};
-pub(crate) use encoded_message::EncodedMessage;
 pub(crate) use encoded_message::alloc_buffer;
+pub(crate) use encoded_message::EncodedMessage;
+pub(crate) use fd::{Fd, Local, Remote};
 pub(crate) use io_mul::IoMultiplexing;
 
 use crate::ipc::{
-    version::version, util::EndpointID, Error, Label, LabelOp, MemoryRegion, MessageBox, Message,
-    Selector, util::Align4,
+    util::Align4, util::EndpointID, version::version, Error, Label, LabelOp, MemoryRegion, Message,
+    MessageBox, Selector,
 };
 
-pub mod fd;
 pub mod encoded_message;
+pub mod fd;
 pub mod io_mul;
 
 static MAXIMUM_BUF_SIZE: i32 = 64 << 10;
@@ -439,12 +438,14 @@ impl<T: MessageBox> Message<T> {
 
     pub(crate) fn into_encoded(self) -> EncodedMessage {
         let (payload_data, iov_data, control_data) = self.encode_inner();
+        let control_len = control_data.len();
 
         EncodedMessage {
             selector: self.selector,
             payload_data,
             iov_data,
             control_data,
+            control_len,
             objects: self.objects,
             memory_regions: self.memory_regions,
         }

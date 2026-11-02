@@ -1,4 +1,4 @@
-//! Tests for `http2::flow_control` — window arithmetic, WINDOW_UPDATE thresholds,
+//! Tests for `http2::flow_control` — window arithmetic, `WINDOW_UPDATE` thresholds,
 //! SETTINGS window-change semantics (Feature 29).
 //!
 //! WHY: Flow control is the foundation for HTTP/2 backpressure — every window
@@ -120,7 +120,7 @@ fn send_data_zero_is_noop() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "exceeds window_size")]
 fn send_data_exceeding_window_panics() {
     let mut fc = fc_with(100);
     let _ = fc.send_data(101);

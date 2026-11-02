@@ -50,7 +50,6 @@ impl Kind {
     #[must_use]
     pub fn from_byte(byte: u8) -> Self {
         match byte {
-            0 => Self::Data,
             1 => Self::Headers,
             2 => Self::Priority,
             3 => Self::Reset,
@@ -60,7 +59,8 @@ impl Kind {
             7 => Self::GoAway,
             8 => Self::WindowUpdate,
             9 => Self::Continuation,
-            _ => Self::Data, // Unknown types treated as DATA per spec (but flagged by validator)
+            // 0 (DATA) and unknown types are DATA per spec (flagged by validator).
+            _ => Self::Data,
         }
     }
 }
@@ -161,6 +161,10 @@ impl DataFrame {
     ///
     /// # Errors
     /// Returns an error string on malformed input.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         let mut data = payload;
         let mut pad_len = None;
@@ -197,7 +201,10 @@ impl DataFrame {
             flag: self.flags,
             stream_id: self.stream_id,
         };
-        head.encode(payload_len as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = payload_len as u32;
+        head.encode(payload_len_u32, dst);
         if let Some(pl) = self.pad_len {
             dst.put_u8(pl);
         }
@@ -259,6 +266,10 @@ impl HeadersFrame {
     }
 
     /// Parse a HEADERS frame from header + payload buffer.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string on malformed input.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         let mut data = payload;
         let mut pad_len = None;
@@ -311,9 +322,10 @@ impl HeadersFrame {
     /// Returns an error if the operation fails.
     pub fn encode(&self, dst: &mut BytesMut) {
         let mut payload_len = self.header_block.len();
-        let pad = self.pad_len.unwrap_or(0) as usize;
+        // `pad_len` is a `u8`; keep `pad` as `u8` to avoid a lossy round-trip.
+        let pad = self.pad_len.unwrap_or(0);
         if pad > 0 {
-            payload_len += 1 + pad;
+            payload_len += 1 + usize::from(pad);
         }
         if self.priority.is_some() {
             payload_len += 5;
@@ -324,10 +336,13 @@ impl HeadersFrame {
             flag: self.flags,
             stream_id: self.stream_id,
         };
-        head.encode(payload_len as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = payload_len as u32;
+        head.encode(payload_len_u32, dst);
 
         if pad > 0 {
-            dst.put_u8(pad as u8);
+            dst.put_u8(pad);
         }
         if let Some(ref pri) = self.priority {
             let dep = if pri.exclusive {
@@ -340,7 +355,7 @@ impl HeadersFrame {
         }
         dst.put_slice(&self.header_block);
         if pad > 0 {
-            dst.put_bytes(0, pad);
+            dst.put_bytes(0, usize::from(pad));
         }
     }
 }
@@ -424,7 +439,6 @@ impl ErrorCode {
     pub fn from_u32(code: u32) -> Self {
         match code {
             0 => Self::NoError,
-            1 => Self::ProtocolError,
             2 => Self::InternalError,
             3 => Self::FlowControlError,
             4 => Self::SettingsTimeout,
@@ -550,6 +564,10 @@ impl SettingsFrame {
 
     /// Parse a SETTINGS frame from header + payload.
     /// Each setting is 6 bytes: 2-byte id + 4-byte value.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string on malformed input.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         if head.flag & settings_flags::ACK != 0 {
             if !payload.is_empty() {
@@ -587,7 +605,10 @@ impl SettingsFrame {
             flag: self.flags,
             stream_id: 0,
         };
-        head.encode(payload_len as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = payload_len as u32;
+        head.encode(payload_len_u32, dst);
         for s in &self.settings {
             dst.put_u16(s.id as u16);
             dst.put_u32(s.value);
@@ -656,9 +677,10 @@ impl PushPromiseFrame {
     /// Encode this `PUSH_PROMISE` frame into `dst`.
     pub fn encode(&self, dst: &mut BytesMut) {
         let mut payload_len = 4 + self.header_block.len();
-        let pad = self.pad_len.unwrap_or(0) as usize;
+        // `pad_len` is a `u8`; keep `pad` as `u8` to avoid a lossy round-trip.
+        let pad = self.pad_len.unwrap_or(0);
         if pad > 0 {
-            payload_len += 1 + pad;
+            payload_len += 1 + usize::from(pad);
         }
 
         let head = Head {
@@ -666,14 +688,17 @@ impl PushPromiseFrame {
             flag: self.flags,
             stream_id: self.stream_id,
         };
-        head.encode(payload_len as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = payload_len as u32;
+        head.encode(payload_len_u32, dst);
         if pad > 0 {
-            dst.put_u8(pad as u8);
+            dst.put_u8(pad);
         }
         dst.put_u32(self.promised_stream_id);
         dst.put_slice(&self.header_block);
         if pad > 0 {
-            dst.put_bytes(0, pad);
+            dst.put_bytes(0, usize::from(pad));
         }
     }
 }
@@ -719,6 +744,10 @@ impl PingFrame {
     }
 
     /// Parse a PING frame (always 8 bytes).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string on malformed input.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         if payload.len() != 8 {
             return Err("PING: payload != 8 bytes");
@@ -768,6 +797,10 @@ impl GoAwayFrame {
     }
 
     /// Parse a GOAWAY frame (8+ bytes: 4-byte last stream + 4-byte error + debug).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error string on malformed input.
     pub fn parse(_head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         if payload.len() < 8 {
             return Err("GOAWAY: payload < 8 bytes");
@@ -794,7 +827,10 @@ impl GoAwayFrame {
             flag: 0,
             stream_id: 0,
         };
-        head.encode(payload_len as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = payload_len as u32;
+        head.encode(payload_len_u32, dst);
         dst.put_u32(self.last_stream_id);
         dst.put_u32(self.error_code as u32);
         dst.put_slice(&self.debug_data);
@@ -872,6 +908,10 @@ impl ContinuationFrame {
     }
 
     /// Parse a CONTINUATION frame.
+    ///
+    /// # Errors
+    ///
+    /// This function does not return an error.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         Ok(Self {
             stream_id: head.stream_id,
@@ -887,7 +927,10 @@ impl ContinuationFrame {
             flag: self.flags,
             stream_id: self.stream_id,
         };
-        head.encode(self.header_block.len() as u32, dst);
+        // The frame length field is 24 bits, so a valid payload fits a `u32`.
+        #[allow(clippy::cast_possible_truncation)]
+        let payload_len_u32 = self.header_block.len() as u32;
+        head.encode(payload_len_u32, dst);
         dst.put_slice(&self.header_block);
     }
 }

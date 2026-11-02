@@ -9,12 +9,12 @@ use clap::Parser;
 use foundation_errstacks::ErrorTrace;
 use tracing::error;
 
+#[cfg(feature = "wasm-bindgen-test")]
+use foundation_testbed::wasm::bindgen_runner;
 use foundation_testbed::wasm::{
     browser, build, cli, deno, emscripten_runner, error, fwt_runner, init, server, wasi_runner,
     wasm, wasm_test, wrangler,
 };
-#[cfg(feature = "wasm-bindgen-test")]
-use foundation_testbed::wasm::bindgen_runner;
 
 use cli::{Cli, Command};
 use error::WasmTestbedError;
@@ -34,23 +34,7 @@ fn main() {
         Command::Test(args) => run_test(&args),
         Command::Deno(args) => run_owned(fwt_runner::run_deno(&args)),
         Command::Browser(args) => run_owned(fwt_runner::run_web(&args)),
-        Command::Bindgen(args) => {
-            #[cfg(feature = "wasm-bindgen-test")]
-            {
-                run_bindgen_outcome(bindgen_runner::run_bindgen(&args))
-            }
-            #[cfg(not(feature = "wasm-bindgen-test"))]
-            {
-                use error::ToTrace;
-                Err(WasmTestbedError::BrowserDriver(
-                    "the `bindgen` command requires the `wasm-bindgen-test` feature.\n\
-                     Re-run with: cargo run -p foundation_testbed \
-                     --features wasm,wasm-bindgen-test --bin wasm-testbed -- bindgen ..."
-                        .into(),
-                )
-                .trace())
-            }
-        }
+        Command::Bindgen(args) => run_bindgen_command(args),
         Command::Emscripten(args) => run_owned(emscripten_runner::run(&args)),
         Command::Wasi(args) => run_subprocess(wasi_runner::run(&args)),
     };
@@ -92,6 +76,25 @@ fn run_bindgen_outcome(
         return Err(WasmTestbedError::OwnedRunFailed(outcome.exit_code).trace());
     }
     Ok(())
+}
+
+/// Run the bindgen command. The `args` binding lives behind the same feature
+/// gate as its use, so the other arm never warns about an unused argument.
+#[cfg(feature = "wasm-bindgen-test")]
+fn run_bindgen_command(args: cli::BindgenArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
+    run_bindgen_outcome(bindgen_runner::run_bindgen(&args))
+}
+
+#[cfg(not(feature = "wasm-bindgen-test"))]
+fn run_bindgen_command(_args: cli::BindgenArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
+    use error::ToTrace;
+    Err(WasmTestbedError::BrowserDriver(
+        "the `bindgen` command requires the `wasm-bindgen-test` feature.\n\
+         Re-run with: cargo run -p foundation_testbed \
+         --features wasm,wasm-bindgen-test --bin wasm-testbed -- bindgen ..."
+            .into(),
+    )
+    .trace())
 }
 
 fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {

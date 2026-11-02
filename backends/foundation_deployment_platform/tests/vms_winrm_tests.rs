@@ -3,18 +3,20 @@
 #![cfg(feature = "vms")]
 
 use foundation_deployment_platform::winrm::{
-    generate_message_id, parse_command_id, parse_receive_response, parse_shell_id, WinRM,
+    WinRM, generate_message_id, parse_command_id, parse_receive_response, parse_shell_id,
 };
 
 #[test]
 fn test_parse_shell_id() {
-    let response = r#"<SelectorSet><w:Selector Name="ShellId">ABC123-DEF456</w:Selector></SelectorSet>"#;
+    let response =
+        r#"<SelectorSet><w:Selector Name="ShellId">ABC123-DEF456</w:Selector></SelectorSet>"#;
     assert_eq!(parse_shell_id(response).as_deref(), Some("ABC123-DEF456"));
 }
 
 #[test]
 fn test_parse_command_id() {
-    let response = r#"<rsp:CommandResponse><rsp:CommandId>cmd-789</rsp:CommandId></rsp:CommandResponse>"#;
+    let response =
+        r"<rsp:CommandResponse><rsp:CommandId>cmd-789</rsp:CommandId></rsp:CommandResponse>";
     assert_eq!(parse_command_id(response).as_deref(), Some("cmd-789"));
 }
 
@@ -37,8 +39,8 @@ fn test_auth_header_value() {
 fn test_parse_receive_response_empty() {
     let response = "<rsp:ReceiveResponse></rsp:ReceiveResponse>";
     let (stdout, stderr, done, code) = parse_receive_response(response);
-    assert!(stdout.is_empty());
-    assert!(stderr.is_empty());
+    assert_eq!(stdout, "");
+    assert_eq!(stderr, "");
     assert!(!done);
     assert_eq!(code, 0);
 }

@@ -1,13 +1,13 @@
-//! Integration tests for EventSourceTask with real TCP connections.
+//! Integration tests for `EventSourceTask` with real TCP connections.
 //!
-//! WHY: Tests that verify EventSourceTask behavior over real network connections
+//! WHY: Tests that verify `EventSourceTask` behavior over real network connections
 //! must use a local test server to avoid external dependencies.
 //!
-//! HOW: Uses TestHttpServer (or raw TcpListener) bound to localhost with
+//! HOW: Uses `TestHttpServer` (or raw `TcpListener`) bound to localhost with
 //! SSE-formatted responses.
 
-use foundation_core::valtron::{Ctx, TaskIterator};
 use foundation_core::valtron::TaskStatus;
+use foundation_core::valtron::{Ctx, TaskIterator};
 use foundation_netio::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
 use foundation_netio::shared::client::{MockDnsResolver, StaticSocketAddr};
 use foundation_netio::shared::http::{SendSafeBody, SimpleMethod};
@@ -15,7 +15,7 @@ use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
-/// Parse the SocketAddr from a TestHttpServer's base_url (e.g. "http://127.0.0.1:PORT").
+/// Parse the `SocketAddr` from a `TestHttpServer`'s `base_url` (e.g. "http://127.0.0.1:PORT").
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
         .base_url()
@@ -39,7 +39,7 @@ fn sse_response(body: &[u8]) -> HttpResponse {
     }
 }
 
-/// WHY: EventSourceTask should connect to a real server and receive SSE events.
+/// WHY: `EventSourceTask` should connect to a real server and receive SSE events.
 /// WHAT: Verify full connect → read → event → close lifecycle.
 #[test]
 fn test_event_source_task_connects_to_server() {
@@ -110,8 +110,8 @@ fn test_event_source_task_connects_to_server() {
     assert!(fifth.is_none(), "Expected None after stream exhausted");
 }
 
-/// WHY: EventSourceTask should resolve DNS and connect to a real server.
-/// WHAT: Verify MockDnsResolver routes to the test server's address and events are received.
+/// WHY: `EventSourceTask` should resolve DNS and connect to a real server.
+/// WHAT: Verify `MockDnsResolver` routes to the test server's address and events are received.
 #[test]
 fn test_event_source_task_dns_resolves_to_server() {
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
@@ -173,7 +173,7 @@ fn test_event_source_task_dns_resolves_to_server() {
     }
 }
 
-/// WHY: EventSourceTask should preserve query parameters when connecting.
+/// WHY: `EventSourceTask` should preserve query parameters when connecting.
 /// WHAT: Verify URL query string is sent to the test server and events are received.
 #[test]
 fn test_event_source_task_url_with_query() {
@@ -235,7 +235,7 @@ fn test_event_source_task_url_with_query() {
     }
 }
 
-/// WHY: EventSourceTask should work with localhost URLs.
+/// WHY: `EventSourceTask` should work with localhost URLs.
 /// WHAT: Verify localhost URL connects, receives event, then closes.
 #[test]
 fn test_event_source_task_localhost_url() {
@@ -297,7 +297,7 @@ fn test_event_source_task_localhost_url() {
     }
 }
 
-/// WHY: EventSourceTask should handle connection refused gracefully.
+/// WHY: `EventSourceTask` should handle connection refused gracefully.
 /// WHAT: Verify task returns Pending(Connecting) then None when no server is listening.
 #[test]
 fn test_event_source_task_connection_refused() {
@@ -334,7 +334,7 @@ fn test_event_source_task_connection_refused() {
     );
 }
 
-/// WHY: EventSourceTask should fully exhaust after server closes connection.
+/// WHY: `EventSourceTask` should fully exhaust after server closes connection.
 /// WHAT: Verify task receives at least one event, then returns None.
 #[test]
 fn test_event_source_task_stream_exhaust() {

@@ -313,9 +313,17 @@ pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send +
     fn peer_addr(&self) -> Option<SocketAddr>;
 
     /// The local address via getsockname on the fd.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the address cannot be obtained.
     fn local_addr(&self) -> std::io::Result<Option<SocketAddr>>;
 
     /// Shutdown the socket.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the shutdown fails.
     fn shutdown(&self, how: Shutdown) -> std::io::Result<()>;
 
     /// Whether `read` here costs no syscall. Observational only.
@@ -324,7 +332,7 @@ pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send +
     }
 }
 
-/// WireGuard overlay byte stream (smoltcp userspace TCP/IP, spec-55 F11).
+/// `WireGuard` overlay byte stream (smoltcp userspace TCP/IP, spec-55 F11).
 ///
 /// Same pattern as [`CompletionReadWrite`]: a boxed trait object so
 /// `foundation_netio` does not need to depend on `foundation_nativeapis`
@@ -337,7 +345,7 @@ pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send +
 ///
 /// Registered via [`Connection::register_read_waker`] /
 /// [`Connection::register_write_waker`]; the transport's own driver (e.g. the
-/// WireGuard `TunnelDriver`) invokes it when the underlying socket's readiness
+/// `WireGuard` `TunnelDriver`) invokes it when the underlying socket's readiness
 /// changes. Structurally identical to `foundation_nativeapis::dataplane::WakeFn`,
 /// so a wireguard `OverlayReadWrite` impl can pass it straight through to
 /// `OverlayStream::set_read_waker`.
@@ -423,8 +431,10 @@ pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
 #[cfg(unix)]
 pub trait TlsInterest: Send + Sync + std::fmt::Debug {
     /// The wire direction `interest` actually needs.
-    fn corrected(&self, interest: crate::native::readiness::IoInterest)
-        -> crate::native::readiness::IoInterest;
+    fn corrected(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> crate::native::readiness::IoInterest;
 
     /// The underlying kernel fd the TLS session wraps.
     fn fd(&self) -> std::os::unix::io::RawFd;
@@ -440,8 +450,11 @@ pub trait TlsInterest: Send + Sync + std::fmt::Debug {
 pub enum ConnReadiness {
     /// A kernel-fd transport: poll `fd`, with the TLS-corrected direction from
     /// `tls` when it is `Some`.
-    Fd(std::os::unix::io::RawFd, Option<std::sync::Arc<dyn TlsInterest>>),
-    /// The WireGuard overlay: no pollable fd. Probe with
+    Fd(
+        std::os::unix::io::RawFd,
+        Option<std::sync::Arc<dyn TlsInterest>>,
+    ),
+    /// The `WireGuard` overlay: no pollable fd. Probe with
     /// [`ConnReadiness::ready_now`] and register a [`ConnWaker`].
     Overlay(Box<dyn OverlayReadWrite>),
 }
@@ -454,12 +467,13 @@ impl ConnReadiness {
     pub fn poll_fd(
         &self,
         interest: crate::native::readiness::IoInterest,
-    ) -> Option<(std::os::unix::io::RawFd, crate::native::readiness::IoInterest)> {
+    ) -> Option<(
+        std::os::unix::io::RawFd,
+        crate::native::readiness::IoInterest,
+    )> {
         match self {
             Self::Fd(fd, tls) => {
-                let corrected = tls
-                    .as_ref()
-                    .map_or(interest, |t| t.corrected(interest));
+                let corrected = tls.as_ref().map_or(interest, |t| t.corrected(interest));
                 Some((*fd, corrected))
             }
             Self::Overlay(_) => None,
@@ -477,9 +491,7 @@ impl ConnReadiness {
     ) -> std::io::Result<bool> {
         match self {
             Self::Fd(fd, tls) => {
-                let corrected = tls
-                    .as_ref()
-                    .map_or(interest, |t| t.corrected(interest));
+                let corrected = tls.as_ref().map_or(interest, |t| t.corrected(interest));
                 crate::native::readiness::SocketReadiness::new(*fd, corrected).poll_now()
             }
             Self::Overlay(o) => Ok(match interest {
@@ -510,11 +522,28 @@ impl ConnReadiness {
     }
 }
 
-/// Trait name stays as-is. TcpListener blanket impl wraps the OS `accept`
-/// behind `&mut self`. OverlayAcceptor (in wireguard) wraps smoltcp.
+/// Trait name stays as-is. `TcpListener` blanket impl wraps the OS `accept`
+/// behind `&mut self`. `OverlayAcceptor` (in wireguard) wraps smoltcp.
 pub trait Acceptor: Send + Sync + 'static {
+    /// Accept one connection from the listener.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the accept fails.
     fn accept_connection(&self) -> std::io::Result<(Connection, std::net::SocketAddr)>;
+
+    /// Switch the acceptor's blocking mode.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the operation fails.
     fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()>;
+
+    /// The listener's local address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the address cannot be obtained.
     fn local_addr(&self) -> std::io::Result<std::net::SocketAddr>;
 
     /// The underlying file descriptor, when the transport has one. Unix TCP
@@ -529,7 +558,7 @@ pub trait Acceptor: Send + Sync + 'static {
 /// Opens a `Connection` for a given host:port (spec-55, F11).
 ///
 /// WHY: `HttpConnectionPool` hardcodes DNS + `TcpStream::connect()`. This trait
-/// lets different transports plug in — kernel TCP, WireGuard overlay, Unix
+/// lets different transports plug in — kernel TCP, `WireGuard` overlay, Unix
 /// sockets — without changing the HTTP stack.
 ///
 /// WHAT: `connect(host, port, timeout)` returns an established `Connection`.
@@ -540,6 +569,10 @@ pub trait Acceptor: Send + Sync + 'static {
 /// Implementors: `OverlayConnector` in `foundation_wireguard`.
 pub trait Connector: Send + Sync + 'static {
     /// Open a connection to `host:port` with an optional timeout.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the connection cannot be established.
     fn connect(
         &self,
         host: &str,
@@ -621,7 +654,7 @@ pub enum Connection {
     #[cfg(unix)]
     Completion(Box<dyn CompletionReadWrite>),
 
-    /// WireGuard overlay TCP stream — smoltcp userspace netstack (spec-55 F11).
+    /// `WireGuard` overlay TCP stream — smoltcp userspace netstack (spec-55 F11).
     /// The trait object avoids a `netio → nativeapis → db → netio` cycle.
     /// The impl lives in `foundation_wireguard`.
     Overlay(Box<dyn OverlayReadWrite>),
@@ -730,7 +763,7 @@ impl Connection {
 
     /// Connect to a Unix domain socket.
     ///
-    /// WHY: The Docker daemon and BuildKitd listen on Unix sockets
+    /// WHY: The Docker daemon and `BuildKitd` listen on Unix sockets
     /// (`/var/run/docker.sock`, `/run/buildkit/buildkitd.sock`) — the primary,
     /// unprivileged, TLS-free local transport.
     ///
@@ -760,7 +793,7 @@ impl Connection {
         matches!(self, Self::Unix(_))
     }
 
-    /// Whether this connection is a WireGuard overlay stream (smoltcp userspace TCP).
+    /// Whether this connection is a `WireGuard` overlay stream (smoltcp userspace TCP).
     #[must_use]
     pub fn is_overlay(&self) -> bool {
         matches!(self, Self::Overlay(_))
@@ -1228,7 +1261,7 @@ impl Connection {
 
     /// Register a wake callback fired when this connection becomes readable.
     ///
-    /// Returns `true` if the transport supports readiness wakeups (the WireGuard
+    /// Returns `true` if the transport supports readiness wakeups (the `WireGuard`
     /// overlay), `false` for blocking transports (TCP/TLS/Unix) whose reads block
     /// until data or timeout and never surface `WouldBlock` for parking. A reader
     /// task uses the result to decide between parking (`Depends`) and treating a
@@ -1288,7 +1321,11 @@ impl Connection {
             #[cfg(all(unix, feature = "ssl-rustls"))]
             Self::Tls(_) => true,
             #[cfg(all(
-                any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"),
+                any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                ),
                 not(all(unix, feature = "ssl-rustls"))
             ))]
             Self::Tls(_) => false,
@@ -1399,8 +1436,9 @@ impl Connection {
             Self::Overlay(o) => {
                 let signal = foundation_core::valtron::BoolSignal::new(false);
                 let flag = signal.clone_inner();
-                let waker: ConnWaker =
-                    std::sync::Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+                let waker: ConnWaker = std::sync::Arc::new(move || {
+                    flag.store(true, std::sync::atomic::Ordering::SeqCst)
+                });
                 match interest {
                     IoInterest::Readable => o.set_read_waker(waker),
                     IoInterest::Writable => o.set_write_waker(waker),

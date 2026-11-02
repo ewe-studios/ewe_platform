@@ -17,9 +17,7 @@ fn google_provider() -> UpstreamProvider {
         authorization_url: None,
         token_url: None,
         userinfo_url: None,
-        discovery_url: Some(
-            "https://accounts.google.com/.well-known/openid-configuration".into(),
-        ),
+        discovery_url: Some("https://accounts.google.com/.well-known/openid-configuration".into()),
         scopes: vec!["openid".into(), "email".into(), "profile".into()],
         is_active: true,
         mapping_config: ProviderMapping::default(),
@@ -60,8 +58,7 @@ fn oidc_provider_builds_authorize_url_with_pkce() {
     let mut provider = google_provider();
     provider.authorization_url = Some("https://accounts.google.com/o/oauth2/v2/auth".into());
     provider.token_url = Some("https://oauth2.googleapis.com/token".into());
-    let mut client =
-        UpstreamOidcClient::new(provider, "https://auth.example.com/callback".into());
+    let mut client = UpstreamOidcClient::new(provider, "https://auth.example.com/callback".into());
     client.configure().expect("configure");
 
     let state = OAuthManager::generate_state();
@@ -91,8 +88,7 @@ fn oauth2_provider_with_explicit_urls_configures() {
 fn provider_with_no_endpoints_returns_error() {
     let mut p = google_provider();
     p.discovery_url = None;
-    let mut client =
-        UpstreamOidcClient::new(p, "https://auth.example.com/callback".into());
+    let mut client = UpstreamOidcClient::new(p, "https://auth.example.com/callback".into());
     let err = client.configure().unwrap_err();
     assert!(matches!(err, UpstreamClientError::NoEndpoints));
 }
@@ -129,8 +125,7 @@ fn profile_extraction_uses_custom_mapping() {
         name_field: "login".into(),
         username_field: None,
     };
-    let profile =
-        UpstreamProfile::from_userinfo(&json, &mapping).expect("extract profile");
+    let profile = UpstreamProfile::from_userinfo(&json, &mapping).expect("extract profile");
     assert_eq!(profile.sub, "ghuser");
     assert_eq!(profile.name.unwrap(), "ghuser");
 }

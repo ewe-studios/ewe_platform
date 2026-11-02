@@ -1,8 +1,9 @@
+use foundation_core::valtron::valtron;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-#[tokio::main]
-async fn main() {
+#[valtron(seed = 100)]
+fn main() {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::TRACE)
         .finish();

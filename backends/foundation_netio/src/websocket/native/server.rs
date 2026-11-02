@@ -80,11 +80,7 @@ impl WebSocketUpgrade {
             .and_then(|values| values.first())
             .is_some_and(|v| v == "13");
 
-        if !version_valid {
-            return false;
-        }
-
-        true
+        version_valid
     }
 
     /// Extract the Sec-WebSocket-Key from a validated upgrade request.
@@ -334,8 +330,8 @@ impl WebSocketServerConnection {
     /// Returns [`WebSocketError`] if the close frame cannot be sent.
     pub fn close(&mut self, code: u16, reason: &str) -> Result<(), WebSocketError> {
         match self.state {
-            ServerConnectionState::Closed => return Ok(()),
-            ServerConnectionState::Closing {
+            ServerConnectionState::Closed
+            | ServerConnectionState::Closing {
                 close_sent: true, ..
             } => return Ok(()),
             _ => {}

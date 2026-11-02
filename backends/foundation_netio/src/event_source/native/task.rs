@@ -352,6 +352,8 @@ where
     type Ready = ParseResult;
     type Pending = EventSourceProgress;
 
+    // Long by design: one match over every event-source state.
+    #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 
@@ -464,10 +466,7 @@ where
                 // This ensures HTTP headers are not parsed as SSE events
                 // stream is already SharedByteBufferStream<RawStream>, so we use new() directly
                 let reader = HttpSendResponseReader::from(
-                    crate::shared::http::HttpResponseReader::new(
-                        stream,
-                        SimpleHttpBody::default(),
-                    ),
+                    crate::shared::http::HttpResponseReader::new(stream, SimpleHttpBody::default()),
                 );
 
                 self.state = Some(EventSourceState::AwaitingHeaders {
@@ -634,7 +633,7 @@ where
                     Some(Ok(parse_result)) => {
                         // Track last event ID from ParseResult
                         if parse_result.last_known_id.is_some() {
-                            self.last_event_id = parse_result.last_known_id.clone();
+                            self.last_event_id.clone_from(&parse_result.last_known_id);
                         }
                         // Reset activity timestamp on successful event
                         self.state = Some(EventSourceState::Reading {
@@ -690,7 +689,7 @@ where
                     Some(Ok(parse_result)) => {
                         // Track last event ID from ParseResult
                         if parse_result.last_known_id.is_some() {
-                            self.last_event_id = parse_result.last_known_id.clone();
+                            self.last_event_id.clone_from(&parse_result.last_known_id);
                         }
                         // Reset activity timestamp on successful event
                         self.state = Some(EventSourceState::ReadingStream {

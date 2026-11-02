@@ -90,6 +90,9 @@ pub struct ValidationError {
 impl ValidationError {
     #[must_use]
     pub fn new(message: impl Into<String>, object: impl Into<String>) -> Self {
-        Self { message: message.into(), object: object.into() }
+        Self {
+            message: message.into(),
+            object: object.into(),
+        }
     }
 }

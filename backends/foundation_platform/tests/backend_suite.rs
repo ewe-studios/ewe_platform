@@ -29,8 +29,7 @@ fn default_transport_returns_typed_envelopes() {
 
 #[test]
 fn query_dispatches_to_correct_transport_method() {
-    let transport = TestTransport::new()
-        .with_remote(b"fetched-from-remote");
+    let transport = TestTransport::new().with_remote(b"fetched-from-remote");
 
     // WebviewApp -> signal_webview
     let d = webview_app();

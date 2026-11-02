@@ -24,15 +24,15 @@ use futures_core::Stream as AsyncStream;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
-use crate::core::rate_limit;
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::rate_limit;
 use crate::core::schema::{MigrationRunner, MIGRATIONS};
 
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{status_column_value, ResourceState, StateStatus};
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, AsyncQueryStream, QueryStore,
-    RateLimiterStore, DataValue, SqlRow,
+    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
+    RateLimiterStore, SqlRow,
 };
 
 // ============================================================================
@@ -65,7 +65,10 @@ fn escape_like(s: &str) -> String {
 }
 
 fn parse_state_row(row: &libsql::Row) -> Result<ResourceState, StorageError> {
-    let get = |idx: usize| row.get::<String>(idx as i32).map_err(|e| StorageError::SqlConversion(e.to_string()));
+    let get = |idx: usize| {
+        row.get::<String>(idx as i32)
+            .map_err(|e| StorageError::SqlConversion(e.to_string()))
+    };
     let id = get(0)?;
     let kind = get(1)?;
     let provider = get(2)?;
@@ -89,19 +92,36 @@ fn parse_state_row(row: &libsql::Row) -> Result<ResourceState, StorageError> {
     let updated_at = chrono::DateTime::parse_from_rfc3339(&updated_str)
         .map(|dt| dt.with_timezone(&chrono::Utc))
         .map_err(|e| StorageError::Serialization(format!("updated_at parse: {e}")))?;
-    Ok(ResourceState { id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at })
+    Ok(ResourceState {
+        id,
+        kind,
+        provider,
+        status,
+        environment,
+        config_hash,
+        output,
+        config_snapshot,
+        created_at,
+        updated_at,
+    })
 }
 
 fn state_to_params(state: &ResourceState) -> Result<Vec<libsql::Value>, StorageError> {
-    let status_json = serde_json::to_string(&state.status).map_err(|e| StorageError::Serialization(e.to_string()))?;
-    let output_json = serde_json::to_string(&state.output).map_err(|e| StorageError::Serialization(e.to_string()))?;
-    let snapshot_json = serde_json::to_string(&state.config_snapshot).map_err(|e| StorageError::Serialization(e.to_string()))?;
+    let status_json = serde_json::to_string(&state.status)
+        .map_err(|e| StorageError::Serialization(e.to_string()))?;
+    let output_json = serde_json::to_string(&state.output)
+        .map_err(|e| StorageError::Serialization(e.to_string()))?;
+    let snapshot_json = serde_json::to_string(&state.config_snapshot)
+        .map_err(|e| StorageError::Serialization(e.to_string()))?;
     Ok(vec![
         libsql::Value::Text(state.id.clone()),
         libsql::Value::Text(state.kind.clone()),
         libsql::Value::Text(state.provider.clone()),
         libsql::Value::Text(status_json),
-        state.environment.as_ref().map_or(libsql::Value::Null, |e| libsql::Value::Text(e.clone())),
+        state
+            .environment
+            .as_ref()
+            .map_or(libsql::Value::Null, |e| libsql::Value::Text(e.clone())),
         libsql::Value::Text(state.config_hash.clone()),
         libsql::Value::Text(output_json),
         libsql::Value::Text(snapshot_json),
@@ -127,7 +147,8 @@ fn libsql_rows<T: Send + 'static>(
 }
 
 fn row_id(row: &libsql::Row) -> StorageResult<String> {
-    row.get::<String>(0).map_err(|e| StorageError::SqlConversion(e.to_string()))
+    row.get::<String>(0)
+        .map_err(|e| StorageError::SqlConversion(e.to_string()))
 }
 
 /// A `SELECT COUNT(*)`'s single value.
@@ -136,11 +157,23 @@ async fn libsql_count(
     sql: &str,
     params: Vec<libsql::Value>,
 ) -> StorageResult<usize> {
-    let mut stmt = conn.prepare(sql).await.map_err(|e| StorageError::Backend(e.to_string()))?;
-    let mut rows = stmt.query(params).await.map_err(|e| StorageError::Backend(e.to_string()))?;
-    match rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
+    let mut stmt = conn
+        .prepare(sql)
+        .await
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+    let mut rows = stmt
+        .query(params)
+        .await
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
+    match rows
+        .next()
+        .await
+        .map_err(|e| StorageError::Backend(e.to_string()))?
+    {
         Some(row) => {
-            let n: i64 = row.get(0).map_err(|e| StorageError::SqlConversion(e.to_string()))?;
+            let n: i64 = row
+                .get(0)
+                .map_err(|e| StorageError::SqlConversion(e.to_string()))?;
             usize::try_from(n).map_err(|e| StorageError::SqlConversion(format!("count: {e}")))
         }
         None => Ok(0),
@@ -157,7 +190,9 @@ const STATE_COLUMNS: &str =
 #[derive(Clone)]
 enum LibsqlMode {
     /// KV/query/rate-limit/blob store. Uses kv_store, rate_limits, blobs tables.
-    KeyValue { encryption_key: Option<EncryptionKey> },
+    KeyValue {
+        encryption_key: Option<EncryptionKey>,
+    },
     /// StateStore. Table name = `{project}_{stage}_resources`.
     State { table_name: String },
     /// StateStore with Turso remote sync. Table name = `{project}_{stage}_resources`.
@@ -197,9 +232,14 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database connection fails.
-    pub async fn new_kv(db_path: &str, encryption_key: Option<EncryptionKey>) -> StorageResult<Self> {
+    pub async fn new_kv(
+        db_path: &str,
+        encryption_key: Option<EncryptionKey>,
+    ) -> StorageResult<Self> {
         let db = libsql::Builder::new_local(db_path).build().await?;
-        let conn = db.connect().map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
+        let conn = db
+            .connect()
+            .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
             db: None,
@@ -226,7 +266,9 @@ impl LibsqlStore {
             stage.replace(['-', ' '], "_"),
         );
         let db = libsql::Builder::new_local(db_path).build().await?;
-        let conn = db.connect().map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
+        let conn = db
+            .connect()
+            .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
             db: None,
@@ -259,8 +301,12 @@ impl LibsqlStore {
             project.replace(['-', ' '], "_"),
             stage.replace(['-', ' '], "_"),
         );
-        let db = libsql::Builder::new_remote_replica(path, url, token).build().await?;
-        let conn = db.connect().map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
+        let db = libsql::Builder::new_remote_replica(path, url, token)
+            .build()
+            .await?;
+        let conn = db
+            .connect()
+            .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
             db: Some(Arc::new(db)),
@@ -292,7 +338,11 @@ impl LibsqlStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database cannot be opened.
-    pub async fn from_env_state(project_dir: &Path, project: &str, stage: &str) -> StorageResult<Self> {
+    pub async fn from_env_state(
+        project_dir: &Path,
+        project: &str,
+        stage: &str,
+    ) -> StorageResult<Self> {
         // Remote Turso
         if let (Ok(url), Ok(token)) = (
             std::env::var("TURSO_DATABASE_URL"),
@@ -330,13 +380,16 @@ impl LibsqlStore {
     }
 
     fn to_libsql_params(params: &[DataValue]) -> Vec<libsql::Value> {
-        params.iter().map(|v| match v {
-            DataValue::Null => libsql::Value::Null,
-            DataValue::Integer(i) => libsql::Value::Integer(*i),
-            DataValue::Real(r) => libsql::Value::Real(*r),
-            DataValue::Text(s) => libsql::Value::Text(s.clone()),
-            DataValue::Blob(b) => libsql::Value::Blob(b.clone()),
-        }).collect()
+        params
+            .iter()
+            .map(|v| match v {
+                DataValue::Null => libsql::Value::Null,
+                DataValue::Integer(i) => libsql::Value::Integer(*i),
+                DataValue::Real(r) => libsql::Value::Real(*r),
+                DataValue::Text(s) => libsql::Value::Text(s.clone()),
+                DataValue::Blob(b) => libsql::Value::Blob(b.clone()),
+            })
+            .collect()
     }
 
     fn libsql_row_to_sql_row(row: &libsql::Row, column_count: i32) -> StorageResult<SqlRow> {
@@ -361,7 +414,9 @@ impl LibsqlStore {
 
     fn maybe_encrypt(&self, json_str: &str) -> StorageResult<String> {
         match &self.mode {
-            LibsqlMode::KeyValue { encryption_key: Some(key) } => {
+            LibsqlMode::KeyValue {
+                encryption_key: Some(key),
+            } => {
                 let encrypted = encrypt(key, json_str.as_bytes())?;
                 Ok(STANDARD.encode(&encrypted))
             }
@@ -371,13 +426,18 @@ impl LibsqlStore {
 
     fn maybe_decrypt(&self, stored_value: &str) -> StorageResult<String> {
         match &self.mode {
-            LibsqlMode::KeyValue { encryption_key: Some(key) } => {
-                let encrypted = STANDARD.decode(stored_value)
+            LibsqlMode::KeyValue {
+                encryption_key: Some(key),
+            } => {
+                let encrypted = STANDARD
+                    .decode(stored_value)
                     .map_err(|e| StorageError::Encryption(format!("Base64 decode failed: {e}")))?;
                 let decrypted = decrypt(key, &encrypted)?;
                 core::str::from_utf8(&decrypted)
                     .map(String::from)
-                    .map_err(|e| StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}")))
+                    .map_err(|e| {
+                        StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}"))
+                    })
             }
             _ => Ok(stored_value.to_string()),
         }
@@ -408,7 +468,10 @@ impl LibsqlStore {
     // Async-First internal methods (source of truth for all KV/blob/SQL ops)
     // ========================================================================
 
-    async fn get_async_internal<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get_async_internal<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         let storage = self.clone();
@@ -551,7 +614,8 @@ impl LibsqlStore {
     async fn put_blob_async_internal(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let create_table = "CREATE TABLE IF NOT EXISTS blobs (key TEXT PRIMARY KEY, data BLOB NOT NULL, size INTEGER NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))";
         let conn = Arc::clone(&self.conn);
-        conn.execute_batch(create_table).await
+        conn.execute_batch(create_table)
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let encoded = STANDARD.encode(data);
@@ -585,9 +649,12 @@ impl LibsqlStore {
 
         match opt {
             Some(row) => {
-                let encoded: String = row.get(0).map_err(|e| StorageError::Backend(e.to_string()))?;
-                Ok(Some(STANDARD.decode(&encoded)
-                    .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))?))
+                let encoded: String = row
+                    .get(0)
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok(Some(STANDARD.decode(&encoded).map_err(|e| {
+                    StorageError::Backend(format!("Base64 decode failed: {e}"))
+                })?))
             }
             None => Ok(None),
         }
@@ -628,7 +695,11 @@ impl LibsqlStore {
 impl StateStore for LibsqlStore {
     async fn init(&self) -> StorageResult<()> {
         let table = self.state_table();
-        let sql = format!("{};\n{}", state_create_table_sql(table), state_create_indexes_sql(table));
+        let sql = format!(
+            "{};\n{}",
+            state_create_table_sql(table),
+            state_create_indexes_sql(table)
+        );
         self.conn
             .execute_batch(&sql)
             .await
@@ -642,17 +713,33 @@ impl StateStore for LibsqlStore {
     }
 
     async fn count(&self) -> StorageResult<usize> {
-        libsql_count(&self.conn, &format!("SELECT COUNT(*) FROM {}", self.state_table()), Vec::new()).await
+        libsql_count(
+            &self.conn,
+            &format!("SELECT COUNT(*) FROM {}", self.state_table()),
+            Vec::new(),
+        )
+        .await
     }
 
     async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>> {
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} WHERE id = ?", self.state_table());
-        let mut stmt = self.conn.prepare(&sql).await.map_err(|e| StorageError::Backend(e.to_string()))?;
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} WHERE id = ?",
+            self.state_table()
+        );
+        let mut stmt = self
+            .conn
+            .prepare(&sql)
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
         let mut rows = stmt
             .query([resource_id.to_string()])
             .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
-        match rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
+        match rows
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+        {
             Some(row) => Ok(Some(parse_state_row(&row)?)),
             None => Ok(None),
         }
@@ -663,18 +750,38 @@ impl StateStore for LibsqlStore {
             return Ok(Box::pin(futures_lite::stream::empty()));
         }
         let placeholders = vec!["?"; ids.len()].join(",");
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} WHERE id IN ({placeholders})", self.state_table());
-        let params = ids.iter().map(|id| libsql::Value::Text((*id).to_string())).collect();
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, parse_state_row))
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} WHERE id IN ({placeholders})",
+            self.state_table()
+        );
+        let params = ids
+            .iter()
+            .map(|id| libsql::Value::Text((*id).to_string()))
+            .collect();
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            sql,
+            params,
+            parse_state_row,
+        ))
     }
 
     async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} ORDER BY id", self.state_table());
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, Vec::new(), parse_state_row))
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} ORDER BY id",
+            self.state_table()
+        );
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            sql,
+            Vec::new(),
+            parse_state_row,
+        ))
     }
 
-    async fn set(&self, _resource_id: &str, state: &ResourceState) -> StorageResult<()> {
-        let params = state_to_params(state)?;
+    async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
+        let state = state.with_id(resource_id);
+        let params = state_to_params(&state)?;
         self.conn
             .execute(&state_upsert_sql(self.state_table()), params)
             .await
@@ -692,14 +799,25 @@ impl StateStore for LibsqlStore {
     }
 
     async fn list_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<String>> {
-        let sql = format!("SELECT id FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id", self.state_table());
+        let sql = format!(
+            "SELECT id FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id",
+            self.state_table()
+        );
         let params = vec![libsql::Value::Text(escape_like(prefix))];
         Ok(libsql_rows(Arc::clone(&self.conn), sql, params, row_id))
     }
 
     async fn count_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
-        let sql = format!("SELECT COUNT(*) FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'", self.state_table());
-        libsql_count(&self.conn, &sql, vec![libsql::Value::Text(escape_like(prefix))]).await
+        let sql = format!(
+            "SELECT COUNT(*) FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'",
+            self.state_table()
+        );
+        libsql_count(
+            &self.conn,
+            &sql,
+            vec![libsql::Value::Text(escape_like(prefix))],
+        )
+        .await
     }
 
     async fn all_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<ResourceState>> {
@@ -708,36 +826,73 @@ impl StateStore for LibsqlStore {
             self.state_table()
         );
         let params = vec![libsql::Value::Text(escape_like(prefix))];
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, parse_state_row))
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            sql,
+            params,
+            parse_state_row,
+        ))
     }
 
     async fn find_by_kind(&self, kind: &str) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} WHERE kind = ? ORDER BY id", self.state_table());
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} WHERE kind = ? ORDER BY id",
+            self.state_table()
+        );
         let params = vec![libsql::Value::Text(kind.to_string())];
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, parse_state_row))
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            sql,
+            params,
+            parse_state_row,
+        ))
     }
 
     async fn find_by_status(&self, status: &str) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} WHERE status = ? ORDER BY id", self.state_table());
-        let status = status_column_value(status).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} WHERE status = ? ORDER BY id",
+            self.state_table()
+        );
+        let status =
+            status_column_value(status).map_err(|e| StorageError::Serialization(e.to_string()))?;
         let params = vec![libsql::Value::Text(status)];
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, parse_state_row))
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            sql,
+            params,
+            parse_state_row,
+        ))
     }
 
-    async fn find_by_provider(&self, provider: &str) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {STATE_COLUMNS} FROM {} WHERE provider = ? ORDER BY id", self.state_table());
+    async fn find_by_provider(
+        &self,
+        provider: &str,
+    ) -> StorageResult<StateStoreStream<ResourceState>> {
+        let sql = format!(
+            "SELECT {STATE_COLUMNS} FROM {} WHERE provider = ? ORDER BY id",
+            self.state_table()
+        );
         let params = vec![libsql::Value::Text(provider.to_string())];
-        Ok(libsql_rows(Arc::clone(&self.conn), sql, params, parse_state_row))
+        Ok(libsql_rows(
+            Arc::clone(&self.conn),
+            sql,
+            params,
+            parse_state_row,
+        ))
     }
 
     async fn delete_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
-        let sql = format!("DELETE FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'", self.state_table());
+        let sql = format!(
+            "DELETE FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'",
+            self.state_table()
+        );
         let deleted = self
             .conn
             .execute(&sql, [libsql::Value::Text(escape_like(prefix))])
             .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
-        usize::try_from(deleted).map_err(|e| StorageError::SqlConversion(format!("deleted count: {e}")))
+        usize::try_from(deleted)
+            .map_err(|e| StorageError::SqlConversion(format!("deleted count: {e}")))
     }
 
     async fn sync_remote(&self) -> StorageResult<()> {
@@ -756,7 +911,10 @@ impl StateStore for LibsqlStore {
 
 #[async_trait::async_trait]
 impl KeyValueStore for LibsqlStore {
-    async fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
         self.get_async_internal::<V>(key).await
     }
     async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
@@ -801,11 +959,38 @@ impl QueryStore for LibsqlStore {
     async fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_batch_async_internal(sql).await
     }
+
+    async fn execute_batch_statements(
+        &self,
+        statements: &[(String, Vec<DataValue>)],
+    ) -> StorageResult<()> {
+        let conn = Arc::clone(&self.conn);
+        conn.execute_batch("BEGIN")
+            .await
+            .map(|_| ())
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        for (sql, params) in statements {
+            let params = Self::to_libsql_params(params);
+            if let Err(e) = conn.execute(sql, params).await {
+                let _ = conn.execute_batch("ROLLBACK").await;
+                return Err(StorageError::Backend(e.to_string()));
+            }
+        }
+        conn.execute_batch("COMMIT")
+            .await
+            .map(|_| ())
+            .map_err(|e| StorageError::Backend(e.to_string()))
+    }
 }
 
 #[async_trait::async_trait]
 impl RateLimiterStore for LibsqlStore {
-    async fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
+    async fn check_rate_limit(
+        &self,
+        key: &str,
+        max_count: u32,
+        window_seconds: u64,
+    ) -> StorageResult<bool> {
         rate_limit::sql_check(self, key, max_count, window_seconds).await
     }
     async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {

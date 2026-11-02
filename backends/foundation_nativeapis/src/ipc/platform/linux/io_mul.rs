@@ -1,5 +1,4 @@
 /// Linux IO multiplexing — epoll-based event loop.
-
 use std::{ffi, mem, time::Duration};
 
 use super::Fd;

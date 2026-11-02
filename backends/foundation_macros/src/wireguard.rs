@@ -61,10 +61,7 @@ impl Parse for WireguardInput {
                 "mtu" => mtu = Some(input.parse()?),
                 "keepalive" => keepalive = Some(input.parse()?),
                 other => {
-                    return Err(syn::Error::new(
-                        key.span(),
-                        format!("unknown key: {other}"),
-                    ));
+                    return Err(syn::Error::new(key.span(), format!("unknown key: {other}")));
                 }
             }
             // Optional trailing comma between fields.
@@ -74,9 +71,9 @@ impl Parse for WireguardInput {
         }
 
         if seed.is_none() && seed_env.is_none() {
-            return Err(input.error(
-                "missing required field: `seed` or `seed_env` (no silent default)",
-            ));
+            return Err(
+                input.error("missing required field: `seed` or `seed_env` (no silent default)")
+            );
         }
 
         Ok(Self {

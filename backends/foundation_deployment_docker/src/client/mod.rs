@@ -20,8 +20,14 @@ use std::sync::{Arc, OnceLock};
 use crate::error::DockerError;
 use crate::generated::auth::AuthResponse;
 use crate::generated::containers::{container_delete_request, ContainerDeleteArgs};
-use crate::generated::create::{container_create_request, ContainerCreateArgs, ContainerCreateResponse};
-use crate::generated::json::{container_inspect_request, ContainerInspectArgs, ContainerInspectResponse};
+use crate::generated::create::{
+    container_create_request, ContainerCreateArgs, ContainerCreateResponse,
+};
+use crate::generated::df::SystemDataUsageResponse;
+use crate::generated::info::SystemInfo;
+use crate::generated::json::{
+    container_inspect_request, ContainerInspectArgs, ContainerInspectResponse, ExecInspectResponse,
+};
 use crate::generated::pause::{container_pause_request, ContainerPauseArgs};
 use crate::generated::shared::{ApiError, IDResponse};
 use crate::generated::start::{container_start_request, ContainerStartArgs};
@@ -148,17 +154,11 @@ pub struct ContainerCreateBody {
     pub config: crate::generated::json::ContainerConfig,
 
     /// Port bindings, volumes, capabilities PLUS CPU/memory/device limits.
-    #[serde(
-        rename = "HostConfig",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "HostConfig", skip_serializing_if = "Option::is_none")]
     pub host_config: Option<ContainerHostConfig>,
 
     /// Per-network endpoint configuration (aliases, static IPs, MAC address).
-    #[serde(
-        rename = "NetworkingConfig",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "NetworkingConfig", skip_serializing_if = "Option::is_none")]
     pub networking_config: Option<NetworkingConfig>,
 }
 
@@ -168,7 +168,11 @@ impl ContainerCreateBody {
     pub fn new(image: impl Into<String>) -> Self {
         let mut config = crate::generated::json::ContainerConfig::default();
         config.image = Some(image.into());
-        Self { config, host_config: None, networking_config: None }
+        Self {
+            config,
+            host_config: None,
+            networking_config: None,
+        }
     }
 
     /// Set the command to run in the container.
@@ -232,7 +236,8 @@ pub struct ContainerHostConfig {
 pub struct NetworkingConfig {
     /// A mapping of network name to endpoint configuration for that network.
     #[serde(rename = "EndpointsConfig")]
-    pub endpoints_config: std::collections::HashMap<String, crate::generated::connect::EndpointSettings>,
+    pub endpoints_config:
+        std::collections::HashMap<String, crate::generated::connect::EndpointSettings>,
 }
 
 /// Container lifecycle operations (restart, kill, rename, resize, top, changes,
@@ -525,7 +530,8 @@ impl DockerClient {
         }
         if let Some(addr) = host.strip_prefix("tcp://") {
             // TLS when DOCKER_TLS_VERIFY is set, or a DOCKER_CERT_PATH is given.
-            let verify = std::env::var("DOCKER_TLS_VERIFY").is_ok_and(|v| v != "0" && !v.is_empty());
+            let verify =
+                std::env::var("DOCKER_TLS_VERIFY").is_ok_and(|v| v != "0" && !v.is_empty());
             let cert_dir = std::env::var("DOCKER_CERT_PATH").ok();
             if verify || cert_dir.is_some() {
                 let dir = cert_dir.ok_or_else(|| {
@@ -735,7 +741,8 @@ impl DockerClient {
             body: generated_body("container config", json)?,
         };
         let response =
-            container_create_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_create_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -767,7 +774,9 @@ impl DockerClient {
             id: id.to_string(),
             condition: condition.map(str::to_string),
         };
-        let response = container_wait_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            container_wait_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -791,7 +800,8 @@ impl DockerClient {
             signal: None,
             t: timeout_secs.map(|t| t.to_string()),
         };
-        match container_stop_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await {
+        match container_stop_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await
+        {
             Ok(_) => Ok(()),
             // Docker returns 304 when the container is already exited — not an error.
             Err(ApiError::HttpStatus { code: 304, .. }) => Ok(()),
@@ -808,7 +818,7 @@ impl DockerClient {
         let args = ContainerDeleteArgs {
             id: id.to_string(),
             v: None,
-            force: Some(force.to_string()),
+            force: Some(force),
             link: None,
         };
         container_delete_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
@@ -828,7 +838,9 @@ impl DockerClient {
             id: id.to_string(),
             size: None,
         };
-        let response = container_inspect_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            container_inspect_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -840,9 +852,7 @@ impl DockerClient {
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
     pub async fn pause_container(&self, id: &str) -> Result<(), DockerError> {
-        let args = ContainerPauseArgs {
-            id: id.to_string(),
-        };
+        let args = ContainerPauseArgs { id: id.to_string() };
         container_pause_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
@@ -855,9 +865,7 @@ impl DockerClient {
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
     pub async fn unpause_container(&self, id: &str) -> Result<(), DockerError> {
-        let args = ContainerUnpauseArgs {
-            id: id.to_string(),
-        };
+        let args = ContainerUnpauseArgs { id: id.to_string() };
         container_unpause_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }
@@ -881,7 +889,7 @@ impl DockerClient {
     /// Inspect an exec instance (`GET /exec/{id}/json`).
     ///
     /// Delegates to [`exec::exec_inspect`].
-    pub async fn exec_inspect(&self, id: &str) -> Result<serde_json::Value, DockerError> {
+    pub async fn exec_inspect(&self, id: &str) -> Result<ExecInspectResponse, DockerError> {
         exec::exec_inspect(self, id).await
     }
 
@@ -897,10 +905,7 @@ impl DockerClient {
     /// Get system information (`GET /info`).
     ///
     /// Delegates to [`system::system_info`].
-    ///
-    /// Returns `serde_json::Value` because Docker's `LocalNodeState` is a raw
-    /// string (`"inactive"`) that the generated `SystemInfo` struct can't parse.
-    pub async fn system_info(&self) -> Result<serde_json::Value, DockerError> {
+    pub async fn system_info(&self) -> Result<SystemInfo, DockerError> {
         system::system_info(self).await
     }
 
@@ -926,14 +931,21 @@ impl DockerClient {
     /// Get data usage information (`GET /system/df`).
     ///
     /// Delegates to [`system::system_data_usage`].
-    pub async fn system_data_usage(&self, types: Option<&str>) -> Result<serde_json::Value, DockerError> {
+    pub async fn system_data_usage(
+        &self,
+        types: Option<&str>,
+    ) -> Result<SystemDataUsageResponse, DockerError> {
         system::system_data_usage(self, types).await
     }
 
     /// Check auth configuration (`POST /auth`).
     ///
     /// Delegates to [`system::system_auth`].
-    pub async fn system_auth(&self, username: &str, password: &str) -> Result<AuthResponse, DockerError> {
+    pub async fn system_auth(
+        &self,
+        username: &str,
+        password: &str,
+    ) -> Result<AuthResponse, DockerError> {
         system::system_auth(self, username, password).await
     }
 }
@@ -948,8 +960,9 @@ pub(crate) fn generated_body<T: serde::de::DeserializeOwned>(
     what: &str,
     value: serde_json::Value,
 ) -> Result<T, DockerError> {
-    serde_json::from_value(value)
-        .map_err(|e| DockerError::JsonParse(format!("{what} does not fit the API's request type: {e}")))
+    serde_json::from_value(value).map_err(|e| {
+        DockerError::JsonParse(format!("{what} does not fit the API's request type: {e}"))
+    })
 }
 
 /// A Docker Engine API version, `major.minor` (e.g. `1.53`).

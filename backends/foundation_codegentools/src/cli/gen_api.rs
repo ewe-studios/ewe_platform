@@ -4,9 +4,7 @@
 //!
 //! HOW: Uses foundation_openapi for analysis and generation with intelligent grouping.
 
-use foundation_openapi::{
-    unified::{analyze_spec, AnalysisOptions},
-};
+use foundation_openapi::unified::{analyze_spec, AnalysisOptions};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
@@ -21,7 +19,10 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 const SPLIT_OUT_PROVIDERS: &[(&str, &str)] = &[
     ("cloudflare", "backends/foundation_deployment_cloudflare"),
     ("hetzner", "backends/foundation_deployment_hetzner"),
-    ("digitalocean", "backends/foundation_deployment_digitalocean"),
+    (
+        "digitalocean",
+        "backends/foundation_deployment_digitalocean",
+    ),
     ("docker", "backends/foundation_deployment_docker"),
     ("stripe", "backends/foundation_deployment_stripe"),
     ("supabase", "backends/foundation_deployment_supabase"),
@@ -395,11 +396,18 @@ fn write_features_back(manifest: &str, features: &toml::Table) -> Result<String,
     for (key, value) in features {
         let entries: Vec<String> = value
             .as_array()
-            .map(|a| a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(str::to_string))
+                    .collect()
+            })
             .unwrap_or_default();
-        let current: Option<Vec<String>> = table.get(key).and_then(toml_edit::Item::as_array).map(|a| {
-            a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect()
-        });
+        let current: Option<Vec<String>> =
+            table.get(key).and_then(toml_edit::Item::as_array).map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(str::to_string))
+                    .collect()
+            });
         if current.as_ref() == Some(&entries) {
             continue;
         }
@@ -693,6 +701,12 @@ pub fn command() -> clap::Command {
                             .action(clap::ArgAction::Append),
                     )
                     .arg(
+                        clap::Arg::new("selection-file")
+                            .long("selection-file")
+                            .help("Load the selection (paths/tags/operations) from this JSON file instead of the crate's codegen.json")
+                            .value_name("PATH"),
+                    )
+                    .arg(
                         clap::Arg::new("spec-version")
                             .long("spec-version")
                             .help("Pin the spec revision (info.version); a mismatch fails the run")
@@ -715,6 +729,12 @@ pub fn command() -> clap::Command {
                             .long("buildrs-overwrite")
                             .help("Replace the crate's build.rs. Without this, an existing one is left alone — it is a source file people edit")
                             .action(clap::ArgAction::SetTrue),
+                    )
+                    .arg(
+                        clap::Arg::new("profile")
+                            .long("profile")
+                            .help("Profile for the cargo fix post-step (dev, uat, release, …)")
+                            .value_name("PROFILE"),
                     ),
             )
             .subcommand(
@@ -749,6 +769,30 @@ pub fn command() -> clap::Command {
                             .default_value("200"),
                     ),
     )
+}
+
+/// The argument list for the `cargo fix` post-step that tidies a freshly
+/// generated crate (unused imports, `snake_case`, …).
+///
+/// `profile` names a cargo profile (`dev`, `uat`, `release`, …); it is passed
+/// through as `--profile`. `None` lets cargo use its default profile (dev) —
+/// the pre-E4 behaviour, which dropped the flag entirely.
+#[must_use]
+pub fn cargo_fix_args(crate_name: &str, feature_name: &str, profile: Option<&str>) -> Vec<String> {
+    let mut args = vec![
+        "fix".to_string(),
+        "--lib".to_string(),
+        "-p".to_string(),
+        crate_name.to_string(),
+        "--allow-dirty".to_string(),
+        "--features".to_string(),
+        feature_name.to_string(),
+    ];
+    if let Some(profile) = profile {
+        args.push("--profile".to_string());
+        args.push(profile.to_string());
+    }
+    args
 }
 
 /// Run the `gen_api` command.
@@ -839,6 +883,9 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             // Selection + pins (spec-56 feature 00). Left unset, `Selection::all()`
             // generates everything — which is what cloudflare/gcp/stripe expect.
             let mut selection = foundation_openapi::Selection::all();
+            if let Some(path) = sub_matches.get_one::<String>("selection-file") {
+                selection = crate::codegen::selection_from_file(path)?;
+            }
             if let Some(v) = sub_matches.get_many::<String>("include-path") {
                 selection = selection.paths(v.cloned().collect::<Vec<_>>());
             }
@@ -879,6 +926,18 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let (default_root, is_split) = provider_crate_info(provider);
             let crate_root = output_override.unwrap_or(default_root);
             let output_dir = crate_root.clone();
+
+            // Honour a split-out crate's declared selection — its committed
+            // `codegen.json` — when the user named no `--include-*` flag and no
+            // `--selection-file`. `generate hetzner` used to regenerate all 151
+            // endpoints because the crate declares its six only in `build.rs`.
+            if is_split && selection.is_all() {
+                let declared = crate_root.join("codegen.json");
+                if declared.exists() {
+                    selection = crate::codegen::selection_from_file(&declared)?;
+                    println!("Using declared selection from {}", declared.display());
+                }
+            }
             // The provider's source directory. The generator appends `generated/`
             // internally, so all files land under <provider_dir>/generated/.
             //  - monolith: <crate_root>/<provider>/generated/  (e.g. foundation_deployment/src/providers/cloudflare/generated/)
@@ -1014,6 +1073,13 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     // alongside hand-written client.rs, types.rs, dns_ops.rs.
                     codegen = codegen.provider_dir(actual_provider_dir.clone());
                 }
+                if provider == "cloudflare" {
+                    // Feature 22 E3: one crate per generated group. The umbrella
+                    // crate keeps only the feature-gated re-export shim; the
+                    // cross-group shared types land in the shared types crate.
+                    codegen =
+                        codegen.split_groups("backends", "backends/foundation_cloudflare_types");
+                }
                 if let Some(v) = &spec_version {
                     codegen = codegen.spec_version(v);
                 }
@@ -1026,12 +1092,9 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     // run that skipped them would report on a spec the real run
                     // never sees.
                     let resolved = codegen.resolve()?;
-                    let analysis = analyze_spec(
-                        &serde_json::to_string(&resolved)?,
-                        api_name,
-                        &options,
-                    )
-                    .map_err(|e| format!("Analysis failed: {}", e))?;
+                    let analysis =
+                        analyze_spec(&serde_json::to_string(&resolved)?, api_name, &options)
+                            .map_err(|e| format!("Analysis failed: {}", e))?;
                     println!(
                         "    Paths: {} | schemas: {} | groups: {}",
                         resolved
@@ -1135,16 +1198,13 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             } else {
                 "foundation_deployment".to_string()
             };
+            let profile = sub_matches.get_one::<String>("profile");
             let fix_output = std::process::Command::new("cargo")
-                .args([
-                    "fix",
-                    "--lib",
-                    "-p",
+                .args(cargo_fix_args(
                     &crate_name,
-                    "--allow-dirty",
-                    "--features",
                     &feature_name,
-                ])
+                    profile.map(String::as_str),
+                ))
                 .output()
                 .expect("cargo fix should run");
 

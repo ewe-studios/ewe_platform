@@ -1,8 +1,8 @@
 //! AuthorizationCode and DeviceCode model tests.
 
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_auth::server::models::code::{AuthorizationCode, DeviceCode};
 use sha2::{Digest, Sha256};
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use std::time::Duration;
 
 #[test]

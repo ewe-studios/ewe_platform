@@ -47,6 +47,11 @@ pub enum StorageError {
     #[from(ignore)]
     SqlConversion(String),
 
+    /// A conditional write's precondition failed (e.g. `If-None-Match: *`
+    /// against an existing object, or a stale `If-Match` `ETag`).
+    #[from(ignore)]
+    PreconditionFailed(String),
+
     /// I/O error during filesystem operations.
     Io(std::io::Error),
 
@@ -80,6 +85,7 @@ impl core::fmt::Display for StorageError {
             Self::Migration(s) => write!(f, "Migration error: {s}"),
             Self::Generic(s) => write!(f, "Storage error: {s}"),
             Self::SqlConversion(s) => write!(f, "SQL conversion error: {s}"),
+            Self::PreconditionFailed(s) => write!(f, "Precondition failed: {s}"),
             Self::Io(e) => write!(f, "IO error: {e}"),
             Self::Json(e) => write!(f, "JSON error: {e}"),
             Self::Base64(e) => write!(f, "Base64 error: {e}"),

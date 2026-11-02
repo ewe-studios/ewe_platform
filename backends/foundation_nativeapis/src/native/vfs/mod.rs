@@ -19,12 +19,14 @@ pub mod nfs;
 #[cfg(feature = "vfs-nfs")]
 pub use nfs::VfsNfs;
 
-#[cfg(feature = "vfs-preload")]
+#[cfg(all(target_os = "linux", feature = "vfs-preload"))]
 pub mod shim;
 
 #[cfg(feature = "vfs-sqlite")]
 pub mod libsql_delta;
 
+#[cfg(feature = "vfs-turso")]
+pub mod turso_delta;
 
 #[cfg(any(feature = "vfs-d1", feature = "vfs-r2"))]
 pub mod blob_delta;
@@ -36,7 +38,7 @@ pub mod d1_delta;
 pub mod r2_delta;
 
 pub use dir_delta::DirectoryDelta;
-pub use native_fs::NativeFs;
+pub use native_fs::{NativeFs, NativeFsConfig};
 
 #[cfg(all(target_os = "linux", feature = "vfs-fuse"))]
 pub use fuse::{FuseMount, FuseMountOptions};
@@ -45,8 +47,12 @@ pub use fuse::{FuseMount, FuseMountOptions};
     feature = "vfs-ipc",
     any(target_os = "linux", target_os = "macos", target_os = "windows")
 ))]
-pub use ipc_bus::{run_daemon_loop, ClientTransport, DaemonTransport, VFS_BUS_IDENTIFIER};
+pub use ipc_bus::{
+    run_daemon_loop, ClientTransport, DaemonTransport, VfsIpcConfig, VFS_BUS_IDENTIFIER,
+};
 
 #[cfg(feature = "vfs-sqlite")]
 pub use libsql_delta::LibsqlDelta;
 
+#[cfg(feature = "vfs-turso")]
+pub use turso_delta::TursoDelta;

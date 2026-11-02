@@ -26,8 +26,8 @@ use foundation_netio::shared::http::{
     http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody,
 };
 
-use crate::http::HttpRequest;
 use super::server::{expects_continue, set_request_read_mode, REQUEST_READ_TIMEOUT};
+use crate::http::HttpRequest;
 
 /// Set SO_LINGER=0 on the socket to force TCP RST on close.
 ///
@@ -222,14 +222,15 @@ impl SseTestServer {
     where
         F: Fn(&HttpRequest, &mut SseStreamWriter, usize) -> SseConnectionResult + Send + 'static,
     {
-        let listener = TcpListener::bind("127.0.0.1:0")
-            .expect("Failed to bind SSE test server to localhost");
+        let listener =
+            TcpListener::bind("127.0.0.1:0").expect("Failed to bind SSE test server to localhost");
         let addr = format!("http://{}", listener.local_addr().unwrap());
         let running = Arc::new(AtomicBool::new(true));
         let connect_count = Arc::new(AtomicUsize::new(0));
-        let handler = Arc::new(std::sync::Mutex::new(
-            Box::new(handler) as Box<dyn Fn(&HttpRequest, &mut SseStreamWriter, usize) -> SseConnectionResult + Send>,
-        ));
+        let handler = Arc::new(std::sync::Mutex::new(Box::new(handler)
+            as Box<
+                dyn Fn(&HttpRequest, &mut SseStreamWriter, usize) -> SseConnectionResult + Send,
+            >));
 
         let running_clone = Arc::clone(&running);
         let handler_clone = Arc::clone(&handler);
@@ -275,14 +276,16 @@ impl SseTestServer {
     /// Each event is `{{"seq": N}}` where N is 0-based within the connection.
     #[must_use]
     pub fn events_then_close(count: usize) -> Self {
-        Self::with_handler(move |_req: &HttpRequest, writer: &mut SseStreamWriter, _conn: usize| {
-            for i in 0..count {
-                if writer.event(&format!("{{\"seq\": {i}}}")).is_err() {
-                    break;
+        Self::with_handler(
+            move |_req: &HttpRequest, writer: &mut SseStreamWriter, _conn: usize| {
+                for i in 0..count {
+                    if writer.event(&format!("{{\"seq\": {i}}}")).is_err() {
+                        break;
+                    }
                 }
-            }
-            SseConnectionResult::clean_close()
-        })
+                SseConnectionResult::clean_close()
+            },
+        )
     }
 
     /// Convenience: server that sends one event then abruptly drops.
@@ -381,10 +384,7 @@ impl SseTestServer {
         };
 
         if let Err(part_err) = parts {
-            tracing::error!(
-                "SseTestServer: Failed to parse request: {:?}",
-                part_err
-            );
+            tracing::error!("SseTestServer: Failed to parse request: {:?}", part_err);
             return Ok(());
         }
 
@@ -537,11 +537,7 @@ mod tests {
         let mut writer = stream;
 
         // Send a minimal HTTP/1.1 GET request
-        write!(
-            writer,
-            "GET /test HTTP/1.1\r\nHost: localhost\r\n\r\n"
-        )
-        .unwrap();
+        write!(writer, "GET /test HTTP/1.1\r\nHost: localhost\r\n\r\n").unwrap();
         writer.flush().unwrap();
 
         // Read the full response

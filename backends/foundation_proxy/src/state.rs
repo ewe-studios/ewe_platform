@@ -8,8 +8,8 @@
 //! WHAT: [`ProxyState`] holds the [`Router`] and the shared [`SharedHttpClient`],
 //! plus the scheme the front end terminates (used for `X-Forwarded-Proto`).
 
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use foundation_iogate::ServerIo;
 
@@ -78,7 +78,10 @@ impl ProxyState {
     /// a persistence failure is logged, never propagated to the admin caller.
     pub async fn persist_backend_state(&self, service: &str, url: &str, state: BackendState) {
         if let Some(store) = &self.store {
-            if let Err(e) = store.save_backend_state(service, url, &state.to_string()).await {
+            if let Err(e) = store
+                .save_backend_state(service, url, &state.to_string())
+                .await
+            {
                 tracing::warn!(%service, %url, "failed to persist backend state: {e}");
             }
         }

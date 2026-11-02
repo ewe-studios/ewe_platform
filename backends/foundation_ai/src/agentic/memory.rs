@@ -195,7 +195,9 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
     }
 
     pub fn set_observation_memory_tokens(&self, tokens: u64) {
-        self.inner.observation_tokens.store(tokens, Ordering::Relaxed);
+        self.inner
+            .observation_tokens
+            .store(tokens, Ordering::Relaxed);
     }
 
     /// Persist an observation snapshot.
@@ -217,7 +219,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
 
         self.inner
             .coordinator
-            .record_async(&self.inner.session_id, &record)
+            .record(&self.inner.session_id, &record)
             .await?;
 
         self.inner
@@ -253,7 +255,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
 
         self.inner
             .coordinator
-            .record_async(&self.inner.session_id, &record)
+            .record(&self.inner.session_id, &record)
             .await?;
 
         self.inner.observation_tokens.store(0, Ordering::Relaxed);
@@ -278,7 +280,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         };
         self.inner
             .coordinator
-            .record_async(&self.inner.session_id, &record)
+            .record(&self.inner.session_id, &record)
             .await
     }
 
@@ -320,4 +322,3 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         &self.inner.session_id
     }
 }
-

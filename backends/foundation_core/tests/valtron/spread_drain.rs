@@ -21,8 +21,8 @@ use futures_core::Stream as FuturesStream;
 
 use foundation_core::valtron::{
     collect_one, collect_result, execute, valtron_test, Ctx, Stream, StreamCollectFuture,
-    StreamIteratorExt, StreamSpread, TaskIterator, TaskSpread, TaskStatus, WakeCallback, WakeResult,
-    WakeableStream,
+    StreamIteratorExt, StreamSpread, TaskIterator, TaskSpread, TaskStatus, WakeCallback,
+    WakeResult, WakeableStream,
 };
 
 // ============================================================================
@@ -166,7 +166,10 @@ impl Iterator for RecheckSpreadIter {
             }
             1 => {
                 self.step = 2;
-                Some(Stream::Spread(vec![StreamSpread::Done(1), StreamSpread::Done(2)]))
+                Some(Stream::Spread(vec![
+                    StreamSpread::Done(1),
+                    StreamSpread::Done(2),
+                ]))
             }
             _ => None,
         }
@@ -372,10 +375,7 @@ impl TaskIterator for SpreadTask {
     type Ready = i32;
     type Pending = &'static str;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.emitted {
             None
         } else {

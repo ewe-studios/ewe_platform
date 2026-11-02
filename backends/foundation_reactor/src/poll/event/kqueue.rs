@@ -65,6 +65,13 @@ impl Event {
     pub fn fflags(&self) -> u32 {
         self.event.fflags
     }
+
+    /// Returns the `data` field. For `EVFILT_READ` this is the number of bytes
+    /// available to read.
+    #[must_use]
+    pub fn data(&self) -> libc::intptr_t {
+        self.event.data
+    }
 }
 
 impl Default for Event {

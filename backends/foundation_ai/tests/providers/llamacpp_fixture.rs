@@ -11,11 +11,11 @@
 //! produced, the stream advances past its first token, the two APIs agree.
 
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
+use foundation_ai::types::ModelState;
 use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec,
     TextContent, ToolDeclarations, UserModelContent,
 };
-use foundation_ai::types::ModelState;
 use foundation_core::valtron::{valtron_test, Stream};
 
 fn fixture_gguf() -> std::path::PathBuf {
@@ -77,7 +77,9 @@ fn tiny_gguf_loads_offline() {
 #[valtron_test]
 fn tiny_gguf_generate_produces_output() {
     let model = load();
-    let out = model.generate(interaction(), Some(params())).expect("generate");
+    let out = model
+        .generate(interaction(), Some(params()))
+        .expect("generate");
     assert!(!out.is_empty(), "generate() must produce a message");
 }
 
@@ -144,7 +146,8 @@ async fn agent_session_run_turn_through_gguf() {
                 signature: None,
             }),
             signature: None,
-        }).await
+        })
+        .await
         .expect("a real llama.cpp turn must complete, not error");
 
     assert!(

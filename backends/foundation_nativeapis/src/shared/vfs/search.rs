@@ -6,8 +6,20 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
+#[cfg(not(target_family = "wasm"))]
+use std::io::BufRead;
+#[cfg(not(target_family = "wasm"))]
+use std::process::{Command, Stdio};
+#[cfg(not(target_family = "wasm"))]
+use std::time::Duration;
+
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+
+#[cfg(not(target_family = "wasm"))]
+use foundation_core::valtron::{BackgroundJobConfig, BackgroundJobRegistry, Pipe};
+#[cfg(not(target_family = "wasm"))]
+use foundation_errstacks::ErrorTrace;
 
 use super::async_traits::{AsyncVfsDirectory, AsyncVfsFileSystem};
 use super::error::{VfsError, VfsResult};
@@ -102,8 +114,11 @@ impl<F: AsyncVfsFileSystem + 'static> VfsSearcher for InCodeVfsSearcher<F> {
         }
 
         if matches!(kind, VfsSearchKind::Grep | VfsSearchKind::MultiGrep) {
-            matches
-                .sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+            matches.sort_by(|a, b| {
+                b.score
+                    .partial_cmp(&a.score)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
         }
 
         Ok(matches)
@@ -181,6 +196,116 @@ async fn grep_file<F: AsyncVfsFileSystem>(
 }
 
 // ---------------------------------------------------------------------------
+// SearchConfig — limits for the native search backends
+// ---------------------------------------------------------------------------
+
+/// Limits for the native search backends (rule 8: limits are config, not
+/// constants).
+///
+/// The fff searcher uses every field. The CLI searcher uses
+/// [`Self::max_matches_per_file`] (mapped to `--max-count`); `rg` and `grep`
+/// have no page or time limit to set.
+#[cfg(not(target_family = "wasm"))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SearchConfig {
+    max_matches_per_file: usize,
+    page_limit: usize,
+    time_budget: Duration,
+    scan_timeout: Duration,
+}
+
+#[cfg(not(target_family = "wasm"))]
+impl Default for SearchConfig {
+    fn default() -> Self {
+        Self {
+            max_matches_per_file: Self::DEFAULT_MAX_MATCHES_PER_FILE,
+            page_limit: Self::DEFAULT_PAGE_LIMIT,
+            time_budget: Self::DEFAULT_TIME_BUDGET,
+            scan_timeout: Self::DEFAULT_SCAN_TIMEOUT,
+        }
+    }
+}
+
+#[cfg(not(target_family = "wasm"))]
+impl SearchConfig {
+    /// Default matches kept per file: 50. fff-search's default is 200; 50
+    /// keeps one hot file from crowding a page of results.
+    pub const DEFAULT_MAX_MATCHES_PER_FILE: usize = 50;
+
+    /// Default page size: 200. fff-search paginates at 200 items; Caddy's
+    /// default request-body limit is a similar small, bounded page.
+    pub const DEFAULT_PAGE_LIMIT: usize = 200;
+
+    /// Default grep time budget: 5 s. fff-search stops a grep past this
+    /// budget; nginx's default `proxy_connect_timeout` is 60 s, so 5 s keeps
+    /// one query from holding a worker long.
+    pub const DEFAULT_TIME_BUDGET: Duration = Duration::from_secs(5);
+
+    /// Default scan wait: 30 s. The fff file scan must finish within this;
+    /// nginx's default `proxy_connect_timeout` is 60 s, so 30 s fails a stuck
+    /// scan in half that time.
+    pub const DEFAULT_SCAN_TIMEOUT: Duration = Duration::from_secs(30);
+
+    /// A config with the documented defaults.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set the matches kept per file.
+    #[must_use]
+    pub fn with_max_matches_per_file(mut self, limit: usize) -> Self {
+        self.max_matches_per_file = limit;
+        self
+    }
+
+    /// Set the page size.
+    #[must_use]
+    pub fn with_page_limit(mut self, limit: usize) -> Self {
+        self.page_limit = limit;
+        self
+    }
+
+    /// Set the grep time budget.
+    #[must_use]
+    pub fn with_time_budget(mut self, budget: Duration) -> Self {
+        self.time_budget = budget;
+        self
+    }
+
+    /// Set the initial file-scan wait.
+    #[must_use]
+    pub fn with_scan_timeout(mut self, timeout: Duration) -> Self {
+        self.scan_timeout = timeout;
+        self
+    }
+
+    /// Matches kept per file.
+    #[must_use]
+    pub fn max_matches_per_file(&self) -> usize {
+        self.max_matches_per_file
+    }
+
+    /// Page size.
+    #[must_use]
+    pub fn page_limit(&self) -> usize {
+        self.page_limit
+    }
+
+    /// Grep time budget.
+    #[must_use]
+    pub fn time_budget(&self) -> Duration {
+        self.time_budget
+    }
+
+    /// Initial file-scan wait.
+    #[must_use]
+    pub fn scan_timeout(&self) -> Duration {
+        self.scan_timeout
+    }
+}
+
+// ---------------------------------------------------------------------------
 // CliSearcher — native-only, tries rg then grep -rn
 // ---------------------------------------------------------------------------
 
@@ -193,82 +318,74 @@ enum CliTool {
 #[cfg(not(target_family = "wasm"))]
 pub struct CliSearcher {
     tool: CliTool,
+    config: SearchConfig,
+    pool: Arc<BackgroundJobRegistry>,
 }
 
 #[cfg(not(target_family = "wasm"))]
 impl CliSearcher {
+    /// Detect `rg` or `grep` with the default search limits.
     #[must_use]
     pub fn detect() -> Option<Self> {
-        if std::process::Command::new("rg")
-            .arg("--version")
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .status()
-            .is_ok()
-        {
-            return Some(Self {
-                tool: CliTool::Ripgrep,
-            });
-        }
-        if std::process::Command::new("grep")
-            .arg("--version")
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .status()
-            .is_ok()
-        {
-            return Some(Self {
-                tool: CliTool::Grep,
-            });
-        }
-        None
+        Self::detect_with_config(SearchConfig::default())
     }
 
-    fn run_grep(&self, query: &str, roots: &[String]) -> VfsResult<Vec<VfsSearchMatch>> {
-        let output = match self.tool {
+    /// Detect `rg` or `grep` with the given search limits.
+    #[must_use]
+    pub fn detect_with_config(config: SearchConfig) -> Option<Self> {
+        let tool = detect_tool()?;
+        let pool = BackgroundJobRegistry::with_config(BackgroundJobConfig::new(1)).ok()?;
+        Some(Self { tool, config, pool })
+    }
+
+    /// The limits this searcher uses.
+    #[must_use]
+    pub fn config(&self) -> &SearchConfig {
+        &self.config
+    }
+
+    async fn run_grep(&self, query: &str, roots: &[String]) -> VfsResult<Vec<VfsSearchMatch>> {
+        let max = self.config.max_matches_per_file();
+        let cmd = match self.tool {
             CliTool::Ripgrep => {
-                let mut cmd = std::process::Command::new("rg");
+                let mut cmd = Command::new("rg");
                 cmd.arg("-n").arg("--no-heading");
+                cmd.arg("--max-count").arg(max.to_string());
                 for dir in EXCLUDED_DIRS {
                     cmd.arg("--glob").arg(format!("!{dir}"));
                 }
                 cmd.arg("--").arg(query);
                 cmd.args(roots);
-                cmd.output()
+                cmd
             }
             CliTool::Grep => {
-                let mut cmd = std::process::Command::new("grep");
+                let mut cmd = Command::new("grep");
                 cmd.arg("-rn").arg("-E");
+                cmd.arg(format!("--max-count={max}"));
                 for dir in EXCLUDED_DIRS {
                     cmd.arg(format!("--exclude-dir={dir}"));
                 }
                 cmd.arg("--").arg(query);
                 cmd.args(roots);
-                cmd.output()
+                cmd
             }
         };
-
-        let output = output.map_err(|e| VfsError::Backend {
-            message: format!("CLI search failed: {e}"),
-        })?;
-
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        Ok(parse_grep_output(&stdout))
+        run_cli_streaming(&self.pool, cmd, parse_grep_line).await
     }
 
-    fn run_find(&self, query: &str, roots: &[String]) -> VfsResult<Vec<VfsSearchMatch>> {
-        let output = match self.tool {
+    async fn run_find(&self, query: &str, roots: &[String]) -> VfsResult<Vec<VfsSearchMatch>> {
+        let cmd = match self.tool {
             CliTool::Ripgrep => {
-                let mut cmd = std::process::Command::new("rg");
+                let mut cmd = Command::new("rg");
                 cmd.arg("--files");
                 for dir in EXCLUDED_DIRS {
                     cmd.arg("--glob").arg(format!("!{dir}"));
                 }
                 cmd.args(roots);
-                cmd.output()
+                cmd
             }
             CliTool::Grep => {
-                let mut cmd = std::process::Command::new("find");
+                let mut cmd = Command::new("find");
                 for (i, root) in roots.iter().enumerate() {
                     if i > 0 {
                         cmd.arg("-o");
@@ -276,34 +393,57 @@ impl CliSearcher {
                     cmd.arg(root);
                 }
                 cmd.arg("-type").arg("f");
-                cmd.output()
+                cmd
             }
         };
-
-        let output = output.map_err(|e| VfsError::Backend {
-            message: format!("CLI find failed: {e}"),
-        })?;
-
-        let stdout = String::from_utf8_lossy(&output.stdout);
         let re = regex::Regex::new(query).map_err(|e| VfsError::Backend {
             message: format!("invalid regex: {e}"),
         })?;
-
-        Ok(stdout
-            .lines()
-            .filter(|line| !line.is_empty() && re.is_match(line))
-            .map(|line| VfsSearchMatch {
+        run_cli_streaming(&self.pool, cmd, move |line| {
+            if line.is_empty() || !re.is_match(line) {
+                return None;
+            }
+            Some(VfsSearchMatch {
                 path: line.to_string(),
                 line_number: 0,
                 content: String::new(),
                 score: 1.0,
             })
-            .collect())
+        })
+        .await
     }
 }
 
-/// The child process runs to completion on the calling thread (see the bug
-/// backlog: `std::process` has no async wait).
+/// Detects a CLI search tool with a fast `--version` status check.
+///
+/// A missing binary can report a `127` exit status, not a spawn error. The
+/// probe checks that the tool ran and exited with success, so a missing or
+/// broken binary does not pass.
+#[cfg(not(target_family = "wasm"))]
+fn detect_tool() -> Option<CliTool> {
+    if probe_tool("rg") {
+        return Some(CliTool::Ripgrep);
+    }
+    if probe_tool("grep") {
+        return Some(CliTool::Grep);
+    }
+    None
+}
+
+/// Runs `tool --version` and reports whether the tool ran successfully.
+#[cfg(not(target_family = "wasm"))]
+fn probe_tool(tool: &str) -> bool {
+    Command::new(tool)
+        .arg("--version")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
+}
+
+/// The child process runs on a background worker; the valtron worker only
+/// awaits the result pipe.
 #[cfg(not(target_family = "wasm"))]
 #[async_trait]
 impl VfsSearcher for CliSearcher {
@@ -314,39 +454,94 @@ impl VfsSearcher for CliSearcher {
         roots: &[String],
     ) -> VfsResult<Vec<VfsSearchMatch>> {
         match kind {
-            VfsSearchKind::Grep | VfsSearchKind::MultiGrep => self.run_grep(query, roots),
-            VfsSearchKind::Find => self.run_find(query, roots),
+            VfsSearchKind::Grep | VfsSearchKind::MultiGrep => self.run_grep(query, roots).await,
+            VfsSearchKind::Find => self.run_find(query, roots).await,
         }
     }
 }
 
+/// Runs `cmd` on the offload pool and maps each stdout line as it streams.
 #[cfg(not(target_family = "wasm"))]
-fn parse_grep_output(stdout: &str) -> Vec<VfsSearchMatch> {
-    let mut matches = Vec::new();
-    for line in stdout.lines() {
-        if line.is_empty() {
-            continue;
-        }
-        // Format: path:line_number:content
-        let mut parts = line.splitn(3, ':');
-        let Some(path) = parts.next() else {
-            continue;
-        };
-        let Some(line_num_str) = parts.next() else {
-            continue;
-        };
-        let content = parts.next().unwrap_or("");
-        let Ok(line_number) = line_num_str.parse::<u32>() else {
-            continue;
-        };
-        matches.push(VfsSearchMatch {
-            path: path.to_string(),
-            line_number,
-            content: content.to_string(),
-            score: 1.0,
-        });
+async fn run_cli_streaming<F>(
+    pool: &Arc<BackgroundJobRegistry>,
+    cmd: Command,
+    map: F,
+) -> VfsResult<Vec<VfsSearchMatch>>
+where
+    F: Fn(&str) -> Option<VfsSearchMatch> + Send + 'static,
+{
+    let (tx, rx) = Pipe::new();
+    pool.submit(move || {
+        let result = run_and_collect(cmd, map);
+        let _ = tx.try_send(result);
+    })
+    .map_err(|e| {
+        ErrorTrace::new(VfsError::Backend {
+            message: format!("CLI search queue is full or closed: {e}"),
+        })
+    })?;
+    match rx.receive().await {
+        Some(result) => result,
+        None => Err(ErrorTrace::new(VfsError::Backend {
+            message: "CLI search worker dropped the result channel".to_string(),
+        })),
     }
-    matches
+}
+
+/// Spawns `cmd`, reads its stdout line by line, and waits for the child. The
+/// body is streamed: no `read_to_end`, so long output is never held whole.
+#[cfg(not(target_family = "wasm"))]
+fn run_and_collect<F>(mut cmd: Command, map: F) -> VfsResult<Vec<VfsSearchMatch>>
+where
+    F: Fn(&str) -> Option<VfsSearchMatch>,
+{
+    let mut child = cmd
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|e| {
+            ErrorTrace::new(VfsError::Backend {
+                message: format!("CLI search spawn failed: {e}"),
+            })
+        })?;
+    let stdout = child.stdout.take().expect("stdout was piped");
+    let reader = std::io::BufReader::new(stdout);
+    let mut matches = Vec::new();
+    for line in reader.lines() {
+        match line {
+            Ok(line) => {
+                if let Some(m) = map(&line) {
+                    matches.push(m);
+                }
+            }
+            Err(_) => break,
+        }
+    }
+    child.wait().map_err(|e| {
+        ErrorTrace::new(VfsError::Backend {
+            message: format!("CLI search wait failed: {e}"),
+        })
+    })?;
+    Ok(matches)
+}
+
+/// One `path:line_number:content` line into a match, or `None` when malformed.
+#[cfg(not(target_family = "wasm"))]
+fn parse_grep_line(line: &str) -> Option<VfsSearchMatch> {
+    if line.is_empty() {
+        return None;
+    }
+    let mut parts = line.splitn(3, ':');
+    let path = parts.next()?;
+    let line_num_str = parts.next()?;
+    let content = parts.next().unwrap_or("");
+    let line_number = line_num_str.parse::<u32>().ok()?;
+    Some(VfsSearchMatch {
+        path: path.to_string(),
+        line_number,
+        content: content.to_string(),
+        score: 1.0,
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -367,7 +562,7 @@ impl CascadingVfsSearcher {
 #[async_trait]
 impl VfsSearcher for CascadingVfsSearcher {
     fn is_available(&self) -> bool {
-        self.backends.iter().any(|b| b.is_available())
+        self.backends.iter().any(VfsSearcher::is_available)
     }
 
     async fn search(
@@ -396,11 +591,24 @@ impl VfsSearcher for CascadingVfsSearcher {
 pub struct FffSearcher {
     picker: fff_search::SharedFilePicker,
     base_path: String,
+    config: SearchConfig,
 }
 
 #[cfg(all(not(target_family = "wasm"), feature = "vfs-search-fff"))]
 impl FffSearcher {
+    /// Create an fff searcher under `root` with the default limits.
+    ///
+    /// # Errors
+    /// Returns `VfsError::Backend` when the fff picker cannot start.
     pub fn new(root: &str) -> Result<Self, VfsError> {
+        Self::with_config(root, SearchConfig::default())
+    }
+
+    /// Create an fff searcher under `root` with the given limits.
+    ///
+    /// # Errors
+    /// Returns `VfsError::Backend` when the fff picker cannot start.
+    pub fn with_config(root: &str, config: SearchConfig) -> Result<Self, VfsError> {
         let picker = fff_search::SharedFilePicker::default();
 
         fff_search::file_picker::FilePicker::new_with_shared_state(
@@ -417,11 +625,12 @@ impl FffSearcher {
             message: format!("fff init failed: {e}"),
         })?;
 
-        picker.wait_for_scan(std::time::Duration::from_secs(30));
+        picker.wait_for_scan(config.scan_timeout());
 
         Ok(Self {
             picker,
             base_path: root.into(),
+            config,
         })
     }
 }
@@ -447,14 +656,16 @@ impl VfsSearcher for FffSearcher {
 
         match kind {
             VfsSearchKind::Grep | VfsSearchKind::MultiGrep => {
+                let time_budget_ms =
+                    u64::try_from(self.config.time_budget().as_millis()).unwrap_or(u64::MAX);
                 let options = fff_search::grep::GrepSearchOptions {
                     max_file_size: fff_search::grep::MAX_FFFILE_SIZE,
-                    max_matches_per_file: 50,
+                    max_matches_per_file: self.config.max_matches_per_file(),
                     smart_case: true,
                     file_offset: 0,
-                    page_limit: 200,
+                    page_limit: self.config.page_limit(),
                     mode: fff_search::grep::GrepMode::PlainText,
-                    time_budget_ms: 5000,
+                    time_budget_ms,
                     before_context: 0,
                     after_context: 0,
                     classify_definitions: false,
@@ -475,7 +686,7 @@ impl VfsSearcher for FffSearcher {
                             path: path.to_string_lossy().to_string(),
                             line_number: m.line_number as u32,
                             content: m.line_content.clone(),
-                            score: m.fuzzy_score.map_or(1.0, |s| s as f32 / 1000.0),
+                            score: m.fuzzy_score.map_or(1.0, |s| f32::from(s) / 1000.0),
                         }
                     })
                     .collect();
@@ -488,7 +699,7 @@ impl VfsSearcher for FffSearcher {
                     current_file: None,
                     pagination: fff_search::PaginationArgs {
                         offset: 0,
-                        limit: 200,
+                        limit: self.config.page_limit(),
                     },
                     ..Default::default()
                 };

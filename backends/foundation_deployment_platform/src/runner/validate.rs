@@ -22,6 +22,11 @@ pub struct ValidationResult {
 ///
 /// Returns a `ValidationResult` with match percentage and pass/fail.
 /// If the match is below tolerance, generates a diff image.
+///
+/// # Errors
+///
+/// Returns an error if an image cannot be loaded or if the diff image cannot
+/// be saved.
 pub fn validate(
     actual: &Path,
     golden: &Path,
@@ -29,15 +34,11 @@ pub fn validate(
     diff_output: Option<&Path>,
 ) -> Result<ValidationResult> {
     // Load images
-    let golden_img = image::open(golden).map_err(|e| {
-        crate::config::TestbedError::Qcow2Error {
-            message: format!("loading golden image {golden:?}: {e}"),
-        }
+    let golden_img = image::open(golden).map_err(|e| crate::config::TestbedError::Qcow2Error {
+        message: format!("loading golden image {}: {e}", golden.display()),
     })?;
-    let actual_img = image::open(actual).map_err(|e| {
-        crate::config::TestbedError::Qcow2Error {
-            message: format!("loading actual image {actual:?}: {e}"),
-        }
+    let actual_img = image::open(actual).map_err(|e| crate::config::TestbedError::Qcow2Error {
+        message: format!("loading actual image {}: {e}", actual.display()),
     })?;
 
     // Resize actual to match golden dimensions
@@ -48,7 +49,7 @@ pub fn validate(
     let golden_rgba = golden_img.to_rgba8();
     let actual_rgba = actual_resized.to_rgba8();
 
-    let total_pixels = (gw as u64) * (gh as u64);
+    let total_pixels = u64::from(gw) * u64::from(gh);
     let mut matching_pixels: u64 = 0;
     let mut diff_img = if diff_output.is_some() {
         Some(image::RgbaImage::new(gw, gh))
@@ -63,23 +64,24 @@ pub fn validate(
             let ap = actual_rgba.get_pixel(x, y);
 
             // Simple threshold-based comparison (allow 16/255 per channel drift)
-            let matches = gp.0.iter().zip(ap.0.iter()).all(|(g, a)| {
-                (*g as i16 - *a as i16).abs() < 16
-            });
+            let matches =
+                gp.0.iter()
+                    .zip(ap.0.iter())
+                    .all(|(g, a)| (i16::from(*g) - i16::from(*a)).abs() < 16);
 
             if matches {
                 matching_pixels += 1;
                 if let Some(ref mut diff) = diff_img {
                     diff.put_pixel(x, y, image::Rgba([0, 255, 0, 255])); // green = match
                 }
-            } else {
-                if let Some(ref mut diff) = diff_img {
-                    diff.put_pixel(x, y, image::Rgba([255, 0, 0, 255])); // red = mismatch
-                }
+            } else if let Some(ref mut diff) = diff_img {
+                diff.put_pixel(x, y, image::Rgba([255, 0, 0, 255])); // red = mismatch
             }
         }
     }
 
+    // pixel counts to f64 for a percentage; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
     let match_pct = (matching_pixels as f64 / total_pixels as f64) * 100.0;
     let passed = match_pct >= tolerance;
 
@@ -88,11 +90,10 @@ pub fn validate(
         None
     } else if let (Some(diff), Some(out_path)) = (diff_img, diff_output) {
         let path_str = out_path.to_string_lossy().to_string();
-        diff.save(out_path).map_err(|e| {
-            crate::config::TestbedError::Qcow2Error {
-                message: format!("saving diff image {out_path:?}: {e}"),
-            }
-        })?;
+        diff.save(out_path)
+            .map_err(|e| crate::config::TestbedError::Qcow2Error {
+                message: format!("saving diff image {}: {e}", out_path.display()),
+            })?;
         Some(path_str)
     } else {
         None
@@ -104,4 +105,3 @@ pub fn validate(
         diff_path,
     })
 }
-

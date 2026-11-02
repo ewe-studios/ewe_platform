@@ -6,7 +6,8 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+
+use crate::core::crypto;
 
 use crate::core::context::KeychainContext;
 use crate::core::error::AppResult;
@@ -60,7 +61,7 @@ pub async fn collect(
         store::insert(
             ctx.db(),
             &EventRow {
-                uuid: Uuid::new_v4().to_string(),
+                uuid: crypto::new_uuid_v4()?.to_string(),
                 user_uuid: user_uuid.to_string(),
                 atype: i64::from(event.event_type),
                 cipher_uuid: event.cipher_id,

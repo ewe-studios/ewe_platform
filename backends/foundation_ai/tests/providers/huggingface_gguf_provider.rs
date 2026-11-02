@@ -12,9 +12,7 @@
 use foundation_ai::backends::huggingface_gguf_provider::{
     HuggingFaceGGUFConfig, HuggingFaceGGUFProvider,
 };
-use foundation_ai::types::{
-    Model, ModelId, ModelProvider, Quantization,
-};
+use foundation_ai::types::{ModelId, ModelProvider, Quantization};
 use foundation_core::valtron::valtron_test;
 
 // ---------------------------------------------------------------------------
@@ -54,7 +52,10 @@ fn gguf_provider_parses_model_ids() {
         .expect("parses bare repo");
     assert_eq!(parsed.repo_id, "TheBloke/Llama-2-7B-GGUF");
     assert_eq!(parsed.revision, "main");
-    assert!(parsed.quantization.is_some(), "bare repo gets a default quant");
+    assert!(
+        parsed.quantization.is_some(),
+        "bare repo gets a default quant"
+    );
 }
 
 #[valtron_test]
@@ -63,7 +64,10 @@ fn gguf_provider_parses_quantization_enum_and_revision() {
 
     // A ModelId Quantization enum takes priority and maps to GGUF filename form.
     let parsed = provider
-        .parse_model_id(&ModelId::Name("some/repo".to_string(), Some(Quantization::Q2K)))
+        .parse_model_id(&ModelId::Name(
+            "some/repo".to_string(),
+            Some(Quantization::Q2K),
+        ))
         .expect("parses with enum quant");
     assert_eq!(parsed.repo_id, "some/repo");
     assert_eq!(parsed.quantization, Some("Q2_K".to_string()));
@@ -221,10 +225,12 @@ mod live {
             return;
         };
         let model_id = ModelId::Name(SMOLLM_REPO.to_string(), Some(Quantization::Q2K));
-        provider.get_model(model_id).expect("SmolLM downloads + loads");
+        provider
+            .get_model(model_id)
+            .expect("SmolLM downloads + loads");
 
-        let expected = cache_dir()
-            .join("unsloth--SmolLM2-360M-Instruct-GGUF/SmolLM2-360M-Instruct-Q2_K.gguf");
+        let expected =
+            cache_dir().join("unsloth--SmolLM2-360M-Instruct-GGUF/SmolLM2-360M-Instruct-Q2_K.gguf");
         assert!(expected.exists(), "GGUF file cached at {expected:?}");
     }
 
@@ -285,8 +291,7 @@ mod live {
 
 /// A default-config provider; parse_model_id needs no cache or network.
 fn provider() -> HuggingFaceGGUFProvider {
-    HuggingFaceGGUFProvider::new(HuggingFaceGGUFConfig::default())
-        .expect("provider builds offline")
+    HuggingFaceGGUFProvider::new(HuggingFaceGGUFConfig::default()).expect("provider builds offline")
 }
 
 #[test]
@@ -421,7 +426,10 @@ fn the_quantization_match_is_case_insensitive_on_the_request_side() {
     let result = provider.download_model(&parsed);
     std::fs::remove_dir_all(&cache).ok();
 
-    assert!(result.is_ok(), "lowercase request must match an uppercase filename");
+    assert!(
+        result.is_ok(),
+        "lowercase request must match an uppercase filename"
+    );
 }
 
 #[foundation_core::valtron::valtron_test]

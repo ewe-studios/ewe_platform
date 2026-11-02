@@ -96,7 +96,11 @@ pub struct SelectionError {
 
 impl std::fmt::Display for SelectionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "cannot use requested reactor backend {:?}: {}", self.requested, self.detail)
+        write!(
+            f,
+            "cannot use requested reactor backend {:?}: {}",
+            self.requested, self.detail
+        )
     }
 }
 

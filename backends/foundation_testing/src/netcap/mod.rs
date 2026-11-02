@@ -4,7 +4,9 @@
 use derive_more::From;
 use foundation_core::extensions::result_ext::{SendableBoxedError, SendableBoxedResult};
 use foundation_netio::netcap::RawStream;
-use foundation_netio::shared::http::{http_streams, is_sub_set_of_other_header, HttpReaderError, SendSafeBody};
+use foundation_netio::shared::http::{
+    http_streams, is_sub_set_of_other_header, HttpReaderError, SendSafeBody,
+};
 use std::{
     io::Write,
     net::{TcpListener, TcpStream},
@@ -14,8 +16,8 @@ use std::{
 
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_netio::shared::http::{
-    Http11, IncomingRequestParts, RenderHttp, RequestDescriptor, ServiceAction,
-    ServiceActionList, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
+    Http11, IncomingRequestParts, RenderHttp, RequestDescriptor, ServiceAction, ServiceActionList,
+    SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 
 /// Result type for test server operations.
@@ -319,14 +321,16 @@ mod test_server_tests {
 
     use tracing_test::traced_test;
 
-    use foundation_core::extensions::result_ext::BoxedResult;
     use foundation_core::extensions::result_ext::BoxedError;
+    use foundation_core::extensions::result_ext::BoxedResult;
     use foundation_netio::shared::client::body_reader::try_collect_bytes;
     use foundation_netio::shared::http::{
         FuncSimpleServer, RequestDescriptor, SendSafeBody, SimpleIncomingRequest, Status,
     };
 
-    use foundation_netio::shared::http::{ServiceAction, SimpleHeader, SimpleMethod, SimpleOutgoingResponse};
+    use foundation_netio::shared::http::{
+        ServiceAction, SimpleHeader, SimpleMethod, SimpleOutgoingResponse,
+    };
 
     use super::ResourcesHttpServer;
 
@@ -344,7 +348,8 @@ mod test_server_tests {
             }
             Some(body) => body,
         };
-        let content = String::from_utf8(try_collect_bytes(body)?).map_err(|err| err.into_boxed_error())?;
+        let content =
+            String::from_utf8(try_collect_bytes(body)?).map_err(|err| err.into_boxed_error())?;
         SimpleOutgoingResponse::builder()
             .with_status(Status::OK)
             .with_body_bytes(format!(r#"{{"name": "alex", "body": {content} }}"#).into_bytes())

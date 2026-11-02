@@ -1,5 +1,4 @@
 /// UDP networking using the poll layer for readiness tracking.
-
 use std::io;
 use std::net::{self, SocketAddr, ToSocketAddrs};
 use std::os::unix::io::{AsRawFd, RawFd};

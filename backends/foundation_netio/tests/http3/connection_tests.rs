@@ -27,9 +27,7 @@ use foundation_netio::quic::{
     client_config_trusting_pem, server_config_from_pem, QuicDriver, QuinnBidiStream,
     QuinnConnection,
 };
-use foundation_netio::shared::http::{
-    SimpleHeader, SimpleMethod, SimpleOutgoingResponse, Status,
-};
+use foundation_netio::shared::http::{SimpleHeader, SimpleMethod, SimpleOutgoingResponse, Status};
 
 const CERT_PEM: &[u8] = include_bytes!("../fixtures/quic_cert.pem");
 const KEY_PEM: &[u8] = include_bytes!("../fixtures/quic_key.pem");

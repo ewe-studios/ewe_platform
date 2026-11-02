@@ -1,7 +1,7 @@
 //! Docker Engine API v1.53 client — bollard-free, over `DynNetClient` + valtron.
 //!
 //! WHY: Spec 53 proved bollard is intertwined with tokio (transport, streaming
-//! decoders, BuildKit gRPC). This crate talks to the Docker daemon via our own
+//! decoders, `BuildKit` gRPC). This crate talks to the Docker daemon via our own
 //! cross-platform HTTP surface (`foundation_netio::DynNetClient` +
 //! `PreparedRequestBuilder`) over a Unix socket, driven by valtron async tasks.
 //!
@@ -23,11 +23,11 @@ pub mod generated;
 #[cfg(feature = "docker")]
 pub mod client;
 #[cfg(feature = "docker")]
+pub mod deployable;
+#[cfg(feature = "docker")]
 pub mod error;
 #[cfg(feature = "docker")]
 pub mod streaming;
-#[cfg(feature = "docker")]
-pub mod deployable;
 
 #[cfg(feature = "buildkit")]
 pub mod buildkit;
@@ -37,6 +37,6 @@ pub use client::{
     DockerClient, DockerLimits, DockerTls, DEFAULT_API_VERSION, DEFAULT_DOCKER_SOCKET,
 };
 #[cfg(feature = "docker")]
-pub use deployable::{ContainerDeployment, ContainerDeployOutput};
+pub use deployable::{ContainerDeployOutput, ContainerDeployment};
 #[cfg(feature = "docker")]
 pub use error::DockerError;

@@ -234,7 +234,10 @@ event: error\ndata: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\"
 
     match &spread[1] {
         StreamSpread::Pending(ModelState::Error(msg)) => {
-            assert!(msg.contains("Overloaded"), "unexpected error message: {msg}");
+            assert!(
+                msg.contains("Overloaded"),
+                "unexpected error message: {msg}"
+            );
         }
         other => panic!("expected Pending(ModelState::Error), got {other:?}"),
     }
@@ -892,7 +895,7 @@ fn test_build_anthropic_request_basic() {
 
 #[test]
 fn test_build_anthropic_request_with_tools() {
-    let test_tool = Tool::SingleCommand(ToolDefinition {
+    let test_tool = Tool::SingleCommand(Box::new(ToolDefinition {
         name: "get_weather".into(),
         category: "search".into(),
         description: "Get weather info".into(),
@@ -904,7 +907,7 @@ fn test_build_anthropic_request_with_tools() {
             "required": ["location"],
         })),
         returns: None,
-    });
+    }));
     let interaction = ModelInteraction {
         system_prompt: None,
         soul: None,

@@ -325,9 +325,7 @@ impl FrameDecoder {
                     // Yield what is already buffered, capped by the frame remainder
                     // and the per-yield chunk size. This is what streams the body:
                     // the receiver does not wait for `remaining` bytes to arrive.
-                    let n = remaining
-                        .min(self.buffer.len())
-                        .min(self.read_chunk);
+                    let n = remaining.min(self.buffer.len()).min(self.read_chunk);
                     let chunk = self.buffer.split_to(n);
                     let remaining = remaining - n;
                     self.state = if remaining == 0 {
@@ -433,10 +431,6 @@ impl IncrementalDecoder for FrameDecoder {
     }
 
     fn has_partial(&self) -> bool {
-        !self.buffer.is_empty()
-            || matches!(
-                self.state,
-                State::Payload { .. } | State::Data { .. }
-            )
+        !self.buffer.is_empty() || matches!(self.state, State::Payload { .. } | State::Data { .. })
     }
 }

@@ -15,7 +15,6 @@ use foundation_core::valtron::{
     MapAllPendingAndDone, Stream, TaskIterator, TaskStatus, DEFAULT_WAIT_CYCLE,
 };
 
-
 // Simple test stream iterator
 struct TestStream {
     items: Vec<Stream<u32, String>>,
@@ -231,10 +230,7 @@ impl TaskIterator for CounterTask {
     type Ready = u32;
     type Pending = u32;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         println!("Count: {} {}", &self.current, self.ready_value);
         if self.current < self.ready_value {
             let res = Some(TaskStatus::Pending(self.current));
@@ -345,19 +341,16 @@ fn test_execute_map_all_pending_and_done() {
         .expect("get the result");
 
     // Iterate through the progress stream
-    let results: Vec<u32> = Iterator::collect(
-        result
-            .filter(|v| matches!(v, Stream::Next(_)))
-            .flat_map(|item| match item {
-                Stream::Next(inner) => inner
-                    .into_iter()
-                    .filter_map(|item2| match item2 {
-                        Stream::Next(n) => Some(n),
-                        _ => None,
-                    }),
+    let results: Vec<u32> =
+        Iterator::collect(result.filter(|v| matches!(v, Stream::Next(_))).flat_map(
+            |item| match item {
+                Stream::Next(inner) => inner.into_iter().filter_map(|item2| match item2 {
+                    Stream::Next(n) => Some(n),
+                    _ => None,
+                }),
                 _ => unreachable!("should never be triggered"),
-            }),
-    );
+            },
+        ));
 
     assert_eq!(results.len(), 2, "Should get exactly 2 values");
     assert!(results.contains(&3), "Should contain 3");
@@ -453,10 +446,7 @@ impl TaskIterator for SplitTestTask {
     type Ready = u32;
     type Pending = String;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.items.next()
     }
 }

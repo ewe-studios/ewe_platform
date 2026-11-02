@@ -19,10 +19,10 @@ foundation_packager = { path = "../../backends/foundation_packager", version = "
 # ewe_watch_utils = { workspace = true }
 # ewe_watchers = { workspace = true }
 foundation_toolings = { path = "../../backends/foundation_toolings", version = "0.0.3" }
-foundation_core = { path = "../../backends/foundation_core", version = "0.0.6", features = ["multi"] }
+foundation_core = { path = "../../backends/foundation_core", version = "0.0.7", features = ["multi"] }
 foundation_netio = { path = "../../backends/foundation_netio", version = "0.0.4", features = ["ssl", "multi"] }
-foundation_ai = { path = "../../backends/foundation_ai", version = "0.0.2" }
-foundation_macros = { path = "../../backends/foundation_macros", version = "0.0.6" }
+foundation_ai = { path = "../../backends/foundation_ai", version = "0.0.5" }
+foundation_macros = { path = "../../backends/foundation_macros", version = "0.0.7" }
 # Referenced by the code `foundation_macros::EmbedDirectoryAs` expands to.
 foundation_nostd = { path = "../../backends/foundation_nostd", version = "0.0.6" }
 
@@ -31,9 +31,6 @@ tracing = { workspace = true }
 
 # cli
 clap = { version = "4.5.54", features = ["derive"] }
-
-# -- tokio
-tokio = { version = "1.36", features = ["full"], default-features = true }
 
 # -- http
 bytes = { version = "1.6.1" }

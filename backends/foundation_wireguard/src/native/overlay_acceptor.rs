@@ -49,7 +49,10 @@ impl Clone for OverlayAcceptor {
 
 impl Acceptor for OverlayAcceptor {
     fn accept_connection(&self) -> io::Result<(Connection, SocketAddr)> {
-        let mut guard = self.listener.lock().expect("OverlayAcceptor::accept_connection: Mutex poisoned");
+        let mut guard = self
+            .listener
+            .lock()
+            .expect("OverlayAcceptor::accept_connection: Mutex poisoned");
         let stream = guard.accept()?;
         let peer = stream.peer_addr();
         drop(guard);

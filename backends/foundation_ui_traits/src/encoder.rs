@@ -184,11 +184,12 @@ impl<'a> Cursor<'a> {
     }
 
     pub(crate) fn u32(&mut self) -> DecodeResult<u32> {
-        let end = self.pos.checked_add(4).ok_or_else(|| {
-            DecodeError::SchemaMismatch {
+        let end = self
+            .pos
+            .checked_add(4)
+            .ok_or_else(|| DecodeError::SchemaMismatch {
                 detail: "offset overflow".into(),
-            }
-        })?;
+            })?;
         let slice = self
             .bytes
             .get(self.pos..end)
@@ -212,11 +213,12 @@ impl<'a> Cursor<'a> {
     }
 
     pub(crate) fn bytes(&mut self, len: usize) -> DecodeResult<&'a [u8]> {
-        let end = self.pos.checked_add(len).ok_or_else(|| {
-            DecodeError::SchemaMismatch {
+        let end = self
+            .pos
+            .checked_add(len)
+            .ok_or_else(|| DecodeError::SchemaMismatch {
                 detail: "length overflow".into(),
-            }
-        })?;
+            })?;
         let slice = self
             .bytes
             .get(self.pos..end)
@@ -424,20 +426,12 @@ pub fn row_view<R>(
             Str(value.as_ref()),
             CNone,
         ),
-        DomOp::AddClass { node_id, class } => (
-            OP_ADD_CLASS,
-            *node_id,
-            CNone,
-            Str(class.as_ref()),
-            CNone,
-        ),
-        DomOp::RemoveClass { node_id, class } => (
-            OP_REMOVE_CLASS,
-            *node_id,
-            CNone,
-            Str(class.as_ref()),
-            CNone,
-        ),
+        DomOp::AddClass { node_id, class } => {
+            (OP_ADD_CLASS, *node_id, CNone, Str(class.as_ref()), CNone)
+        }
+        DomOp::RemoveClass { node_id, class } => {
+            (OP_REMOVE_CLASS, *node_id, CNone, Str(class.as_ref()), CNone)
+        }
         DomOp::MorphNode {
             target,
             action,

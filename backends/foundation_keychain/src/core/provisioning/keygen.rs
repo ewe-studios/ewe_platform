@@ -21,7 +21,11 @@ pub fn generate(key_type: &str, comment: &str) -> AppResult<GeneratedKey> {
     let (algo, canonical) = match key_type {
         "rsa" | "rsa4096" => (Algorithm::Rsa { hash: None }, "rsa4096"),
         "ed25519" | "" => (Algorithm::Ed25519, "ed25519"),
-        other => return Err(AppError::BadRequest(format!("unsupported key_type: {other}"))),
+        other => {
+            return Err(AppError::BadRequest(format!(
+                "unsupported key_type: {other}"
+            )))
+        }
     };
     let mut key = PrivateKey::random(&mut ssh_key::rand_core::OsRng, algo)
         .map_err(|e| AppError::Internal(format!("ssh key generation failed: {e}")))?;
@@ -69,7 +73,9 @@ pub fn decrypt(master_key: &str, ciphertext_b64: &str) -> AppResult<Vec<u8>> {
     {
         age::Decryptor::Passphrase(d) => d,
         age::Decryptor::Recipients(_) => {
-            return Err(AppError::Internal("age: expected passphrase ciphertext".into()))
+            return Err(AppError::Internal(
+                "age: expected passphrase ciphertext".into(),
+            ))
         }
     };
     let mut reader = decryptor

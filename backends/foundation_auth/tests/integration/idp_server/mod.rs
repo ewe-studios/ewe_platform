@@ -5,12 +5,12 @@ use std::time::Duration;
 
 use foundation_auth::server::storage::HandlerStorage;
 use foundation_auth::server::{IdpConfig, IdpServer};
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_db::{MemoryStorage, QueryStore};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::SimpleResponse;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
@@ -792,6 +792,39 @@ fn device_code_endpoint_is_post_only_at_correct_path() {
         400,
         "POST to device/authorize should reach handler"
     );
+
+    shutdown.turn_on();
+    let _ = handle.join();
+}
+
+// ============================================================================
+// Scenario 16: Duplicate registration — a second register with the same email
+// is a 409 Conflict, not a 200 with `{"error":"user_exists"}`.
+// ============================================================================
+
+#[valtron_test(threads = 8)]
+fn register_duplicate_email_is_409() {
+    let (addr, shutdown, handle) = start_idp(test_config());
+    let client = make_client(addr);
+
+    let register = |email: &str| {
+        PreparedRequestBuilder::post("http://testserver/auth/v1/users/register")
+            .unwrap()
+            .body_text(
+                serde_json::json!({ "email": email, "password": "ValidPass123!" }).to_string(),
+            )
+            .header(SimpleHeader::CONTENT_TYPE, "application/json")
+            .build()
+    };
+
+    let first = client.send(register("dup@example.com")).unwrap();
+    let (status, _, _) = first.into_parts();
+    assert_eq!(status_code(&status), 200, "first registration succeeds");
+
+    let second = client.send(register("dup@example.com")).unwrap();
+    let (status, _, body) = second.into_parts();
+    assert_eq!(status_code(&status), 409, "duplicate email is a conflict");
+    assert_eq!(parse_json(&read_body(body))["error"], "conflict");
 
     shutdown.turn_on();
     let _ = handle.join();

@@ -6,25 +6,28 @@
 /// - Write to pipe's write end
 /// - Verify callback is invoked and data is read
 /// - Verify poll interval respected (callback not called before write)
-
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use foundation_core::valtron::{Ctx, TaskIterator};
 use foundation_nativeapis::native::fd::RegisteredFd;
-use foundation_nativeapis::{Poll, Token};
 use foundation_nativeapis::FdMonitorTask;
+use foundation_nativeapis::{Poll, Token};
 
 /// Create a pipe (reader, writer), both nonblocking.
 fn make_pipe() -> (OwnedFd, OwnedFd) {
     let (r, w) = nix::unistd::pipe().expect("pipe creation failed");
-    nix::fcntl::fcntl(r.as_raw_fd(), nix::fcntl::FcntlArg::F_SETFL(
-        nix::fcntl::OFlag::O_NONBLOCK
-    )).expect("fcntl O_NONBLOCK failed");
-    nix::fcntl::fcntl(w.as_raw_fd(), nix::fcntl::FcntlArg::F_SETFL(
-        nix::fcntl::OFlag::O_NONBLOCK
-    )).expect("fcntl O_NONBLOCK failed");
+    nix::fcntl::fcntl(
+        r.as_raw_fd(),
+        nix::fcntl::FcntlArg::F_SETFL(nix::fcntl::OFlag::O_NONBLOCK),
+    )
+    .expect("fcntl O_NONBLOCK failed");
+    nix::fcntl::fcntl(
+        w.as_raw_fd(),
+        nix::fcntl::FcntlArg::F_SETFL(nix::fcntl::OFlag::O_NONBLOCK),
+    )
+    .expect("fcntl O_NONBLOCK failed");
     (r, w)
 }
 
@@ -35,29 +38,27 @@ fn fd_monitor_task_invokes_callback_on_readiness() {
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let registered = RegisteredFd::new(reader, &registry, Token(0))
-        .expect("failed to register fd");
+    let registered = RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
     let data_received: Arc<Mutex<Vec<u8>>> = Arc::new(Mutex::new(Vec::new()));
     let data_clone = data_received.clone();
 
-    let mut task = FdMonitorTask::new(registered)
-        .with_callback(move |fd| {
-            let mut buf = [0u8; 64];
-            let n = unsafe {
-                libc::read(
-                    fd.as_raw_fd(),
-                    buf.as_mut_ptr() as *mut _,
-                    buf.len(),
-                )
-            };
-            if n > 0 {
-                data_clone.lock().unwrap().extend_from_slice(&buf[..n as usize]);
-                Ok(())
-            } else {
-                Err(std::io::Error::new(std::io::ErrorKind::Other, "read returned 0"))
-            }
-        });
+    let mut task = FdMonitorTask::new(registered).with_callback(move |fd| {
+        let mut buf = [0u8; 64];
+        let n = unsafe { libc::read(fd.as_raw_fd(), buf.as_mut_ptr() as *mut _, buf.len()) };
+        if n > 0 {
+            data_clone
+                .lock()
+                .unwrap()
+                .extend_from_slice(&buf[..n as usize]);
+            Ok(())
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "read returned 0",
+            ))
+        }
+    });
 
     // Write data before first tick
     unsafe {
@@ -84,8 +85,7 @@ fn fd_monitor_task_no_callback() {
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let registered = RegisteredFd::new(reader, &registry, Token(0))
-        .expect("failed to register fd");
+    let registered = RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
     // Create task WITHOUT a callback
     let mut task = FdMonitorTask::new(registered);
@@ -103,8 +103,7 @@ fn fd_monitor_task_terminates_on_error() {
     let registry = poll.registry();
 
     // Register the fd first
-    let registered = RegisteredFd::new(reader, &registry, Token(0))
-        .expect("failed to register fd");
+    let registered = RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
     // Close the underlying fd directly (bypassing RegisteredFd)
     // This simulates the fd being closed externally
@@ -126,8 +125,7 @@ fn fd_monitor_task_poll_interval() {
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let registered = RegisteredFd::new(reader, &registry, Token(0))
-        .expect("failed to register fd");
+    let registered = RegisteredFd::new(reader, &registry, Token(0)).expect("failed to register fd");
 
     let _interval = Duration::from_millis(100);
     let mut task = FdMonitorTask::new(registered);
@@ -138,6 +136,9 @@ fn fd_monitor_task_poll_interval() {
     let elapsed = start.elapsed();
 
     // next_status returns immediately (it doesn't block — blocking is handled by valtron executor)
-    assert!(elapsed < Duration::from_millis(50), "next_status should return immediately");
+    assert!(
+        elapsed < Duration::from_millis(50),
+        "next_status should return immediately"
+    );
     assert!(status.is_some());
 }

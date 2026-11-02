@@ -26,8 +26,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use foundation_core::valtron::{
-    execute, from_future, task, valtron_test, Ctx, StreamIteratorExt, TaskIterator,
-    TaskStatus,
+    execute, from_future, task, valtron_test, Ctx, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 
 // ============================================================================
@@ -86,10 +85,7 @@ impl TaskIterator for Counter {
     type Ready = u32;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.0 == 0 {
             None
         } else {
@@ -114,7 +110,10 @@ struct ThreadWakeFuture {
 
 impl ThreadWakeFuture {
     fn new() -> Self {
-        Self { state: Arc::new(AtomicUsize::new(0)), started: false }
+        Self {
+            state: Arc::new(AtomicUsize::new(0)),
+            started: false,
+        }
     }
 }
 
@@ -244,7 +243,10 @@ fn tokio_drives_general_task() {
 
 #[valtron_test(seed = 42)]
 fn tokio_drives_future_task() {
-    assert_eq!(drive_under_tokio(from_future(core::future::ready(7u32))), vec![7]);
+    assert_eq!(
+        drive_under_tokio(from_future(core::future::ready(7u32))),
+        vec![7]
+    );
 }
 
 // ============================================================================
@@ -269,7 +271,10 @@ fn smol_drives_general_task() {
 
 #[valtron_test(seed = 42)]
 fn smol_drives_future_task() {
-    assert_eq!(drive_under_smol(from_future(core::future::ready(7u32))), vec![7]);
+    assert_eq!(
+        drive_under_smol(from_future(core::future::ready(7u32))),
+        vec![7]
+    );
 }
 
 // ============================================================================
@@ -292,10 +297,16 @@ async fn valtron_drives_parked_future_task() {
 
 #[valtron_test(seed = 42)]
 fn tokio_drives_parked_future_task() {
-    assert_eq!(drive_under_tokio(from_future(ThreadWakeFuture::new())), vec![42]);
+    assert_eq!(
+        drive_under_tokio(from_future(ThreadWakeFuture::new())),
+        vec![42]
+    );
 }
 
 #[valtron_test(seed = 42)]
 fn smol_drives_parked_future_task() {
-    assert_eq!(drive_under_smol(from_future(ThreadWakeFuture::new())), vec![42]);
+    assert_eq!(
+        drive_under_smol(from_future(ThreadWakeFuture::new())),
+        vec![42]
+    );
 }

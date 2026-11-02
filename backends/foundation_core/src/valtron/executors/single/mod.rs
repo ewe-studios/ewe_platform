@@ -13,8 +13,8 @@ use crate::valtron::{
         DEFAULT_BACK_OFF_THREAD_FACTOR, DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT,
         MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
-    Ctx, LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator,
-    SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskSpawnConfig,
+    Ctx, LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator, SharedTaskQueue,
+    TaskIterator, TaskReadyResolver, TaskSpawnConfig,
 };
 
 use crate::{
@@ -333,8 +333,7 @@ where
 ///
 /// A builder for creating a task iterator
 #[must_use]
-pub fn spawn2<Task, Resolver>(
-) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
+pub fn spawn2<Task, Resolver>() -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
 where
     Task::Ready: 'static,
     Task::Pending: 'static,

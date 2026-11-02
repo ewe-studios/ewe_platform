@@ -65,7 +65,9 @@ const CATALOG: &[u8] = br#"{
 }"#;
 
 fn provider_for(server: &TestHttpServer) -> OpenAIProvider {
-    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(server_addr(server)).build();
+    let http_client: DynNetClient = HttpClientBuilder::new()
+        .resolve_to(server_addr(server))
+        .build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)
@@ -115,7 +117,11 @@ fn get_all_filter_is_case_insensitive() {
     let specs = provider
         .get_all(ModelId::Name("GPT-4O".into(), None))
         .expect("catalog fetch succeeds");
-    assert_eq!(specs.len(), 2, "uppercase must match lowercase ids: {specs:?}");
+    assert_eq!(
+        specs.len(),
+        2,
+        "uppercase must match lowercase ids: {specs:?}"
+    );
 }
 
 #[valtron_test]
@@ -167,7 +173,9 @@ fn get_all_surfaces_a_transport_failure_as_not_found() {
     let provider = provider_for(&server);
 
     assert!(
-        provider.get_all(ModelId::Name("gpt-4o".into(), None)).is_err(),
+        provider
+            .get_all(ModelId::Name("gpt-4o".into(), None))
+            .is_err(),
         "a failing catalog fetch must be an error, not an empty list"
     );
 }
@@ -324,7 +332,9 @@ fn anthropic_get_one_resolves_the_synthesised_spec() {
 // ---------------------------------------------------------------------------
 
 fn responses_provider_for(server: &TestHttpServer) -> ResponsesProvider {
-    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(server_addr(server)).build();
+    let http_client: DynNetClient = HttpClientBuilder::new()
+        .resolve_to(server_addr(server))
+        .build();
     let config = ResponsesConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(0)
@@ -376,7 +386,9 @@ fn responses_get_all_surfaces_a_transport_failure() {
     let provider = responses_provider_for(&server);
 
     assert!(
-        provider.get_all(ModelId::Name("gpt-4o".into(), None)).is_err(),
+        provider
+            .get_all(ModelId::Name("gpt-4o".into(), None))
+            .is_err(),
         "a failing catalog fetch must error, not yield an empty list"
     );
 }
@@ -396,7 +408,9 @@ fn responses_get_one_with_no_match_is_not_found() {
     let server = catalog_server();
     let provider = responses_provider_for(&server);
     assert!(
-        provider.get_one(ModelId::Name("absent".into(), None)).is_err(),
+        provider
+            .get_one(ModelId::Name("absent".into(), None))
+            .is_err(),
         "an unmatched model must be NotFound, not an empty success"
     );
 }

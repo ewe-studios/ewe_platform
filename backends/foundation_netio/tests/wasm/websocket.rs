@@ -1,11 +1,11 @@
-use foundation_core::valtron::{self, Stream};
+use foundation_core::valtron;
+use foundation_macros::valtron_bindgen;
 use foundation_netio::wasm::client::FetchHttpClient;
-use foundation_netio::websocket::shared::client::{WebSocketConnectConfig, WebSocketEvent, WsProgress};
+use foundation_netio::websocket::shared::client::{WebSocketConnectConfig, WebSocketEvent};
 use foundation_netio::websocket::shared::connector::WebSocketConnector;
 use foundation_netio::websocket::shared::message::WebSocketMessage;
-use foundation_macros::valtron_bindgen;
-use wasm_bindgen_test::wasm_bindgen_test;
 use foundation_testbed::bindgen::{js_sys, wasm_bindgen_futures, web_sys};
+use wasm_bindgen_test::wasm_bindgen_test;
 
 async fn yield_now() {
     let promise = js_sys::Promise::new(&mut |resolve, _reject| {

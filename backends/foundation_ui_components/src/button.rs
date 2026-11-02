@@ -124,5 +124,8 @@ pub fn button_with_click(
 
 /// Render slot children to `Html` for embedding (the established slot pattern).
 fn render_children(ctx: &Context, rcv: &SharedInstructionReceiver, slots: Vec<Slot>) -> Vec<Html> {
-    slots.into_iter().map(|slot| slot.render(ctx, rcv)).collect()
+    slots
+        .into_iter()
+        .map(|slot| slot.render(ctx, rcv))
+        .collect()
 }

@@ -32,8 +32,8 @@ pub use json_file::*;
 #[cfg(feature = "libsql")]
 pub use rows_stream::*;
 
-use crate::core::state::traits::StateStore;
 use crate::core::state::file::FileStateStore;
+use crate::core::state::traits::StateStore;
 use std::path::Path;
 
 /// Select a state store backend based on environment configuration.
@@ -58,7 +58,10 @@ use std::path::Path;
 /// `.block()` behind `blocking_boundary!`.
 #[cfg_attr(
     not(feature = "libsql"),
-    allow(clippy::unused_async, reason = "only the libsql backend awaits; the signature is the same for every feature set")
+    allow(
+        clippy::unused_async,
+        reason = "only the libsql backend awaits; the signature is the same for every feature set"
+    )
 )]
 pub async fn create_state_store(
     project: &str,

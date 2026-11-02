@@ -81,11 +81,18 @@ pub fn encode(src: &[u8], dst: &mut BytesMut) {
     for &b in src {
         let (nbits, code) = huffman_table::ENCODE_TABLE[b as usize];
 
-        bits |= code << (bits_left - nbits as i32);
-        bits_left -= nbits as i32;
+        // HPACK Huffman code lengths are at most 30, so `nbits` fits an `i32`.
+        #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+        let nbits = nbits as i32;
+
+        bits |= code << (bits_left - nbits);
+        bits_left -= nbits;
 
         while bits_left <= 32 {
-            dst.put_u8((bits >> 32) as u8);
+            // The flush takes the low byte of the high word.
+            #[allow(clippy::cast_possible_truncation)]
+            let byte = (bits >> 32) as u8;
+            dst.put_u8(byte);
             bits <<= 8;
             bits_left += 8;
         }
@@ -94,6 +101,8 @@ pub fn encode(src: &[u8], dst: &mut BytesMut) {
     if bits_left != 40 {
         // Pad with the EOS prefix (all 1s) and flush the final byte.
         bits |= (1 << bits_left) - 1;
-        dst.put_u8((bits >> 32) as u8);
+        #[allow(clippy::cast_possible_truncation)]
+        let byte = (bits >> 32) as u8;
+        dst.put_u8(byte);
     }
 }

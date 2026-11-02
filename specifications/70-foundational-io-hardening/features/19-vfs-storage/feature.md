@@ -1,6 +1,7 @@
 ---
 feature: "foundation_nativeapis VFS storage: blob deltas list and chunk, shim uses D1/R2, Turso delta, lazy fjall scans, async document store, NFS readdir, streamed copies, SyncFs boundary"
-status: "pending"
+status: "done"
+note: "E1–E10 landed; foundation_nativeapis 0.0.5→0.0.6 + 4 consumer pins; E4 TursoDelta on turso 0.8.3 (async-only, vfs-turso feature)"
 priority: "medium"
 depends_on: ["17-db"]
 branch: "fix/io-19-vfs-storage"

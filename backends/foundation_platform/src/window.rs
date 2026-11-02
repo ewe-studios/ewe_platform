@@ -43,8 +43,8 @@ pub trait WindowOps: Send + Sync + 'static {
 
 #[cfg(not(target_family = "wasm"))]
 mod tauri_impl {
-    use tauri::Manager;
     use super::*;
+    use tauri::Manager;
 
     /// A `WindowOps` backed by Tauri's `AppHandle`.
     /// Implements the trait by calling Tauri's WebView window API.
@@ -147,7 +147,9 @@ impl WindowOps for NoopWindowOps {
     fn show(&self, _label: &str) {}
     fn hide(&self, _label: &str) {}
     fn close(&self, _label: &str) {}
-    fn screenshot(&self, _label: &str) -> Vec<u8> { Vec::new() }
+    fn screenshot(&self, _label: &str) -> Vec<u8> {
+        Vec::new()
+    }
     fn eval(&self, _label: &str, _script: &str) {}
     fn open_url(&self, _url: &str) {}
 }
@@ -163,7 +165,9 @@ pub struct WindowManager {
 impl WindowManager {
     #[must_use]
     pub fn new() -> Self {
-        Self { ops: Mutex::new(None) }
+        Self {
+            ops: Mutex::new(None),
+        }
     }
 
     /// Inject the concrete window backend (called by PlatformBuilder at build time).
@@ -261,6 +265,7 @@ impl WindowManager {
 }
 
 impl Default for WindowManager {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
-

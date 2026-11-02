@@ -7,8 +7,8 @@
 use tree_sitter::{Node, Parser};
 
 use super::types::{
-    Confidence, FileExtraction, GraphEdge, GraphNode, NodeKind, RawCall, Relation,
-    file_stem_qualified, make_id,
+    file_stem_qualified, make_id, Confidence, FileExtraction, GraphEdge, GraphNode, NodeKind,
+    RawCall, Relation,
 };
 
 pub fn extract_go_file(path: &str, source: &str) -> Result<FileExtraction, String> {
@@ -68,7 +68,15 @@ fn walk_node(
                 extract_type_declaration(&child, source, file_path, stem, parent_id, extraction);
             }
             "function_declaration" => {
-                extract_function(&child, source, file_path, stem, parent_id, extraction, NodeKind::Function);
+                extract_function(
+                    &child,
+                    source,
+                    file_path,
+                    stem,
+                    parent_id,
+                    extraction,
+                    NodeKind::Function,
+                );
             }
             "method_declaration" => {
                 extract_method(&child, source, file_path, stem, parent_id, extraction);
@@ -152,14 +160,18 @@ fn extract_type_declaration(
                 for tc_child in type_body.children(&mut tc) {
                     // Handle both direct field_declaration and field_declaration_list wrapper
                     if tc_child.kind() == "field_declaration" {
-                        process_field_for_inheritance(&tc_child, source, file_path, stem, &id, extraction);
+                        process_field_for_inheritance(
+                            &tc_child, source, file_path, stem, &id, extraction,
+                        );
                     } else if tc_child.kind() == "field_declaration_list"
                         || tc_child.kind() == "method_spec_list"
                     {
                         let mut fc = tc_child.walk();
                         for fc_child in tc_child.children(&mut fc) {
                             if fc_child.kind() == "field_declaration" {
-                                process_field_for_inheritance(&fc_child, source, file_path, stem, &id, extraction);
+                                process_field_for_inheritance(
+                                    &fc_child, source, file_path, stem, &id, extraction,
+                                );
                             }
                         }
                     }
@@ -183,9 +195,7 @@ fn process_field_for_inheritance(
     if let Some(type_n) = type_node {
         if field_name.is_none() {
             // Embedded type → inherits edge
-            let embedded_name = type_n
-                .utf8_text(source.as_bytes())
-                .unwrap_or("");
+            let embedded_name = type_n.utf8_text(source.as_bytes()).unwrap_or("");
             let super_label = embedded_name.split('.').last().unwrap_or(embedded_name);
             let super_id = make_id(stem, super_label);
             extraction.edges.push((
@@ -212,12 +222,17 @@ fn extract_function(
     extraction: &mut FileExtraction,
     kind: NodeKind,
 ) {
-    let Some(name) = node.child_by_field_name("name")
+    let Some(name) = node
+        .child_by_field_name("name")
         .and_then(|n| n.utf8_text(source.as_bytes()).ok())
-    else { return };
+    else {
+        return;
+    };
 
     let id = make_id(stem, name);
-    if extraction.seen_ids.contains_key(&id) { return }
+    if extraction.seen_ids.contains_key(&id) {
+        return;
+    }
     extraction.seen_ids.insert(id.clone(), true);
 
     let line = node.start_position().row + 1;
@@ -256,9 +271,12 @@ fn extract_method(
     parent_id: &str,
     extraction: &mut FileExtraction,
 ) {
-    let Some(name) = node.child_by_field_name("name")
+    let Some(name) = node
+        .child_by_field_name("name")
         .and_then(|n| n.utf8_text(source.as_bytes()).ok())
-    else { return };
+    else {
+        return;
+    };
 
     // Method has a receiver: `func (r *Receiver) MethodName() { ... }`
     let receiver_name = if let Some(recv) = node.child_by_field_name("receiver") {
@@ -280,7 +298,9 @@ fn extract_method(
     };
 
     let id = make_id(stem, name);
-    if extraction.seen_ids.contains_key(&id) { return }
+    if extraction.seen_ids.contains_key(&id) {
+        return;
+    }
     extraction.seen_ids.insert(id.clone(), true);
 
     let line = node.start_position().row + 1;
@@ -365,7 +385,9 @@ fn extract_const_or_var(
                     NodeKind::Static
                 };
                 let id = make_id(stem, name);
-                if extraction.seen_ids.contains_key(&id) { continue }
+                if extraction.seen_ids.contains_key(&id) {
+                    continue;
+                }
                 extraction.seen_ids.insert(id.clone(), true);
 
                 extraction.nodes.push(GraphNode {

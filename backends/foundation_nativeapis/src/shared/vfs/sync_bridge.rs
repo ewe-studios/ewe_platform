@@ -1,5 +1,8 @@
 //! Synchronous bridge adapters for async VFS traits.
 //!
+//! Everything here waits on async work, so the whole module is compiled only
+//! where valtron can block (see [`foundation_core::blocking_boundary!`]).
+//!
 //! **Design:** `&self` methods (`VfsFile`, most of `VfsDirectory`/`VfsFileSystem`)
 //! are bridged generically via `SyncFile<A>` using valtron's `exec_async`.
 //! Seekable methods (`&mut self`) use `LocalSeekableFile` — plain cursor +
@@ -11,6 +14,7 @@
 //! delegation. `DerefMut` is only implemented for types with interior mutability
 //! (`LocalSeekableFile`).
 
+foundation_core::blocking_boundary! {
 use std::fmt;
 use std::io::SeekFrom;
 use std::ops::{Deref, DerefMut};
@@ -662,4 +666,5 @@ impl<A: AsyncDeltaStore + 'static> DeltaStore for SyncFs<A> {
         let inner = self.inner.clone();
         exec_async(async move { inner.reset_async().await })
     }
+}
 }

@@ -75,7 +75,10 @@ fn test_reconnecting_task_exhausts_after_max_retries() {
     }
 
     // Should be exhausted now
-    assert!(task.next_status(Ctx::new()).is_none(), "Task should stay exhausted");
+    assert!(
+        task.next_status(Ctx::new()).is_none(),
+        "Task should stay exhausted"
+    );
 }
 
 /// WHY: When DNS has no configured response, initial connection fails.
@@ -153,8 +156,8 @@ fn test_reconnecting_task_initial_connection_failure_reconnects() {
     while let Some(status) = task.next_status(Ctx::new()) {
         let label = match status {
             foundation_core::valtron::TaskStatus::Init => "Init".to_string(),
-            foundation_core::valtron::TaskStatus::Pending(p) => format!("Pending({:?})", p),
-            foundation_core::valtron::TaskStatus::Delayed(d) => format!("Delayed({:?})", d),
+            foundation_core::valtron::TaskStatus::Pending(p) => format!("Pending({p:?})"),
+            foundation_core::valtron::TaskStatus::Delayed(d) => format!("Delayed({d:?})"),
             foundation_core::valtron::TaskStatus::Ready(_) => "Ready".to_string(),
             foundation_core::valtron::TaskStatus::Ignore => "Ignore".to_string(),
             foundation_core::valtron::TaskStatus::Spawn(_) => "Spawn".to_string(),
@@ -164,13 +167,12 @@ fn test_reconnecting_task_initial_connection_failure_reconnects() {
         };
         states.push(label);
         // Safety valve
-        assert!(states.len() < 100, "Too many steps: {:?}", states);
+        assert!(states.len() < 100, "Too many steps: {states:?}");
     }
 
     // Should have seen at least Pending (Connecting attempt) and Delayed (backoff)
     assert!(
         states.iter().any(|s| s.contains("Connecting")),
-        "Should have attempted connecting, saw states: {:?}",
-        states
+        "Should have attempted connecting, saw states: {states:?}"
     );
 }

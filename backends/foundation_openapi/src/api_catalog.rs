@@ -584,7 +584,13 @@ pub fn to_sentence_case(s: &str) -> String {
 #[must_use]
 pub fn sanitize_identifier(s: &str) -> String {
     s.chars()
-        .map(|c| if c.is_ascii_alphanumeric() || c == '_' { c } else { '_' })
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect()
 }
 

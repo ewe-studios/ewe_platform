@@ -1,6 +1,6 @@
 ---
 feature: "foundation_db: StateStore keys, typed R2, streamed blobs, batch statements, timestamps, rate limits, wasm inherent APIs, examples CI"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: ["03-client-body-readiness"]
 branch: "fix/io-17-db"
@@ -21,6 +21,10 @@ integration (CI); pull request (PR); AeroSpace and Defence Industries Associatio
 Use the shared protocol in [`requirements.md`](../../requirements.md) sections 3 and 4. One
 commit per entry. This feature is large: split it into two PRs if it passes about 1500 changed
 lines (E1–E6, then E7–E12), and say so.
+
+**Progress.** E1–E6 are done (PR 1, committed). E7–E12 stay open for PR 2. The
+foundation_db 0.0.4→0.0.5 version bump is deferred until feature 20 lands (it
+edits foundation_nativeapis).
 
 ## T0. Check that every entry is still open (table in the PR body)
 

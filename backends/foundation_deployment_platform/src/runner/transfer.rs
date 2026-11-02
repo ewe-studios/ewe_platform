@@ -1,6 +1,6 @@
 //! File transfer between host and VM via SCP.
 //!
-//! Wraps ssh::upload and ssh::download with path resolution.
+//! Wraps `ssh::upload` and `ssh::download` with path resolution.
 
 use std::path::Path;
 
@@ -10,6 +10,10 @@ use crate::ssh::VmSession;
 /// Push a file or directory from host to VM.
 ///
 /// Supports both single files and recursive directory transfers.
+///
+/// # Errors
+///
+/// Returns an error if the upload or directory push fails.
 pub fn push(session: &mut VmSession, local: &Path, remote: &str) -> Result<()> {
     if local.is_dir() {
         // For directories, tar+scp is more reliable than recursive scp
@@ -20,6 +24,10 @@ pub fn push(session: &mut VmSession, local: &Path, remote: &str) -> Result<()> {
 }
 
 /// Pull a file or directory from VM to host.
+///
+/// # Errors
+///
+/// Returns an error if the download fails.
 pub fn pull(session: &mut VmSession, remote: &str, local: &Path) -> Result<()> {
     crate::ssh::download(session, remote, local)
 }
@@ -60,4 +68,3 @@ fn push_dir(session: &mut VmSession, dir: &Path, _remote: &str) -> Result<()> {
 
     Ok(())
 }
-

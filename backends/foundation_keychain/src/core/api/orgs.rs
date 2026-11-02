@@ -13,9 +13,9 @@
 //! Membership `status`: 0 invited, 1 accepted, 2 confirmed.
 
 use chrono::Utc;
-use uuid::Uuid;
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::models::org::{
     Collection, CollectionCreateRequest, ConfirmMemberRequest, InviteMemberRequest, MemberResponse,
@@ -113,7 +113,7 @@ pub async fn create(
     }
     let now = Utc::now();
     let org = OrgRow {
-        uuid: Uuid::new_v4().to_string(),
+        uuid: crypto::new_uuid_v4()?.to_string(),
         name: req.name,
         billing_email: req.billing_email.or_else(|| Some(email.to_string())),
         enabled: true,
@@ -126,7 +126,7 @@ pub async fn create(
     store::insert_membership(
         ctx.db(),
         &MembershipRow {
-            uuid: Uuid::new_v4().to_string(),
+            uuid: crypto::new_uuid_v4()?.to_string(),
             org_uuid: org.uuid.clone(),
             user_uuid: Some(user_uuid.to_string()),
             email: email.to_string(),
@@ -142,9 +142,11 @@ pub async fn create(
     store::insert_collection(
         ctx.db(),
         &CollectionRow {
-            uuid: Uuid::new_v4().to_string(),
+            uuid: crypto::new_uuid_v4()?.to_string(),
             org_uuid: org.uuid.clone(),
-            name: req.collection_name.unwrap_or_else(|| "Default Collection".into()),
+            name: req
+                .collection_name
+                .unwrap_or_else(|| "Default Collection".into()),
             created_at: now,
             updated_at: now,
         },
@@ -207,7 +209,7 @@ pub async fn create_collection(
     }
     let now = Utc::now();
     let row = CollectionRow {
-        uuid: Uuid::new_v4().to_string(),
+        uuid: crypto::new_uuid_v4()?.to_string(),
         org_uuid: org_id.to_string(),
         name: req.name,
         created_at: now,
@@ -262,7 +264,7 @@ pub async fn invite_member(
     }
     let now = Utc::now();
     let row = MembershipRow {
-        uuid: Uuid::new_v4().to_string(),
+        uuid: crypto::new_uuid_v4()?.to_string(),
         org_uuid: org_id.to_string(),
         user_uuid: None,
         email,

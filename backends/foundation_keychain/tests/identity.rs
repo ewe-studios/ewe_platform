@@ -6,7 +6,9 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::{accounts, identity};
@@ -80,7 +82,11 @@ fn password_grant_issues_verifiable_tokens() {
 
     let c = ctx.clone();
     let login = drive(async move {
-        identity::connect_token(&c, password_grant("alice@example.com", "master-hash", "dev-1")).await
+        identity::connect_token(
+            &c,
+            password_grant("alice@example.com", "master-hash", "dev-1"),
+        )
+        .await
     })
     .expect("login");
 
@@ -90,7 +96,10 @@ fn password_grant_issues_verifiable_tokens() {
     assert_eq!(login.kdf_iterations, 600_000);
     // The user's protected key round-trips into the unlock metadata.
     assert_eq!(login.key.as_deref(), Some("2.userkey|wrapped"));
-    assert!(login.user_decryption_options.master_password_unlock.is_some());
+    assert!(login
+        .user_decryption_options
+        .master_password_unlock
+        .is_some());
 
     // The minted access token verifies and carries the right principal + sstamp.
     let authed = verify_access_token(ctx.verifier(), &login.access_token).expect("verify access");
@@ -108,7 +117,10 @@ fn wrong_password_is_rejected() {
     let res = drive(async move {
         identity::connect_token(&c, password_grant("bob@example.com", "wrong", "dev-1")).await
     });
-    assert!(matches!(res, Err(AppError::BadRequest(_))), "wrong password must be invalid_grant");
+    assert!(
+        matches!(res, Err(AppError::BadRequest(_))),
+        "wrong password must be invalid_grant"
+    );
 }
 
 #[valtron_test]
@@ -141,12 +153,17 @@ fn refresh_grant_rotates_and_supersedes_old_token() {
         refresh_token: Some(first_refresh.clone()),
         ..Default::default()
     };
-    let rotated = drive(async move { identity::connect_token(&c, refresh_req).await }).expect("refresh");
+    let rotated =
+        drive(async move { identity::connect_token(&c, refresh_req).await }).expect("refresh");
     assert!(!rotated.access_token.is_empty());
-    assert_ne!(rotated.refresh_token, first_refresh, "refresh token must rotate");
+    assert_ne!(
+        rotated.refresh_token, first_refresh,
+        "refresh token must rotate"
+    );
 
     // The rotated access token verifies.
-    let authed = verify_access_token(ctx.verifier(), &rotated.access_token).expect("verify rotated");
+    let authed =
+        verify_access_token(ctx.verifier(), &rotated.access_token).expect("verify rotated");
     assert_eq!(authed.device.as_deref(), Some("dev-1"));
 
     // The OLD refresh token is now superseded.
@@ -157,7 +174,10 @@ fn refresh_grant_rotates_and_supersedes_old_token() {
         ..Default::default()
     };
     let reuse = drive(async move { identity::connect_token(&c, reuse_req).await });
-    assert!(matches!(reuse, Err(AppError::BadRequest(_))), "reused refresh token must fail");
+    assert!(
+        matches!(reuse, Err(AppError::BadRequest(_))),
+        "reused refresh token must fail"
+    );
 }
 
 #[valtron_test]

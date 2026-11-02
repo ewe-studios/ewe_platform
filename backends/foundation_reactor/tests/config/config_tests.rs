@@ -7,7 +7,10 @@ use foundation_reactor::{BackendPreference, ReactorConfig, DEFAULT_DRAIN_POLL_TI
 #[test]
 fn default_drain_poll_timeout_is_100_ms() {
     assert_eq!(DEFAULT_DRAIN_POLL_TIMEOUT, Duration::from_millis(100));
-    assert_eq!(ReactorConfig::default().drain_poll_timeout(), Duration::from_millis(100));
+    assert_eq!(
+        ReactorConfig::default().drain_poll_timeout(),
+        Duration::from_millis(100)
+    );
 }
 
 #[test]

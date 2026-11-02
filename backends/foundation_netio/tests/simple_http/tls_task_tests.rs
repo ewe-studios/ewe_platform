@@ -49,10 +49,7 @@ fn test_tls_handshake_task_associated_types() {
     // If TlsHandshakeTask does not match the required associated types, this will fail to compile.
     fn check_types<T>()
     where
-        T: TaskIterator<
-            Pending = TlsHandshakeState,
-            Ready = (),
-        >,
+        T: TaskIterator<Pending = TlsHandshakeState, Ready = ()>,
     {
     }
 

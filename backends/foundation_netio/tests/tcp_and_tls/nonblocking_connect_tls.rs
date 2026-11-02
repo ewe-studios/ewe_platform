@@ -168,7 +168,13 @@ fn connect_to_blackhole_does_not_hold_a_worker() {
     .expect("execute connect b");
 
     let ticks = Arc::new(AtomicUsize::new(0));
-    let ticker = valtron::execute(Ticker { ticks: ticks.clone() }, None).expect("execute ticker");
+    let ticker = valtron::execute(
+        Ticker {
+            ticks: ticks.clone(),
+        },
+        None,
+    )
+    .expect("execute ticker");
 
     expect_timeout(&drain_error(conn_a));
     expect_timeout(&drain_error(conn_b));
@@ -199,7 +205,10 @@ fn connect_refused_reports_refused() {
 
     let resolver = MockDnsResolver::new().with_response(
         "refused.test",
-        vec![SocketAddr::new("127.0.0.1".parse().expect("loopback"), port)],
+        vec![SocketAddr::new(
+            "127.0.0.1".parse().expect("loopback"),
+            port,
+        )],
     );
     let pool = Arc::new(HttpConnectionPool::new(ConnectionPool::default(), resolver));
     let config = ClientConfig::default();
@@ -253,12 +262,13 @@ mod tls {
         stream.flush().expect("flush reply");
     }
 
-    /// A slow server stalls 500 ms before answering the ClientHello. The client
+    /// A slow server stalls 500 ms before answering the `ClientHello`. The client
     /// must park (not hold a worker) and still finish the handshake.
     #[valtron_test(seed = 30_003, threads = 4, timeout = 60_000)]
     fn tls_handshake_waits_on_slow_server() {
-        let acceptor = SSLAcceptor::from_pem(fixture("cert.pem"), Zeroizing::new(fixture("key.pem")))
-            .expect("acceptor");
+        let acceptor =
+            SSLAcceptor::from_pem(fixture("cert.pem"), Zeroizing::new(fixture("key.pem")))
+                .expect("acceptor");
 
         let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
         let addr = listener.local_addr().expect("addr");
@@ -266,7 +276,9 @@ mod tls {
             let (socket, _) = listener.accept().expect("accept");
             // Stall before answering the ClientHello so the client's handshake parks.
             std::thread::sleep(Duration::from_millis(500));
-            let tls = acceptor.accept(Connection::Tcp(socket)).expect("tls accept");
+            let tls = acceptor
+                .accept(Connection::Tcp(socket))
+                .expect("tls accept");
             serve_http(tls);
         });
 
@@ -274,7 +286,10 @@ mod tls {
         // embedded cert is byte-identical to tests/tcp_and_tls/fixtures/cert.pem).
         let resolver = MockDnsResolver::new().with_response(
             "localhost",
-            vec![SocketAddr::new("127.0.0.1".parse().expect("loopback"), addr.port())],
+            vec![SocketAddr::new(
+                "127.0.0.1".parse().expect("loopback"),
+                addr.port(),
+            )],
         );
         let pool = Arc::new(
             HttpConnectionPool::new(ConnectionPool::default(), resolver)
@@ -283,18 +298,26 @@ mod tls {
 
         let started = Instant::now();
         let ticks = Arc::new(AtomicUsize::new(0));
-        let ticker = valtron::execute(Ticker { ticks: ticks.clone() }, None).expect("ticker");
-
-        let (status, body) = drain_ok(valtron::execute(
-            HttpExchangeTask::new(
-                get(&format!("https://localhost:{}/slow", addr.port())),
-                0,
-                pool,
-                ClientConfig::default(),
-            ),
+        let ticker = valtron::execute(
+            Ticker {
+                ticks: ticks.clone(),
+            },
             None,
         )
-        .expect("execute"));
+        .expect("ticker");
+
+        let (status, body) = drain_ok(
+            valtron::execute(
+                HttpExchangeTask::new(
+                    get(&format!("https://localhost:{}/slow", addr.port())),
+                    0,
+                    pool,
+                    ClientConfig::default(),
+                ),
+                None,
+            )
+            .expect("execute"),
+        );
 
         drop(ticker);
         let elapsed = started.elapsed();
@@ -323,7 +346,10 @@ mod tls {
 
         let resolver = MockDnsResolver::new().with_response(
             "localhost",
-            vec![SocketAddr::new("127.0.0.1".parse().expect("loopback"), port)],
+            vec![SocketAddr::new(
+                "127.0.0.1".parse().expect("loopback"),
+                port,
+            )],
         );
         let pool = Arc::new(HttpConnectionPool::new(ConnectionPool::default(), resolver));
 

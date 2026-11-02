@@ -17,7 +17,7 @@ use crate::http2::frame::{Setting, SettingId, SettingsFrame};
 pub const DEFAULT_HEADER_TABLE_SIZE: u32 = 4096;
 pub const DEFAULT_ENABLE_PUSH: u32 = 1;
 pub const DEFAULT_MAX_CONCURRENT_STREAMS: u32 = 256; // RFC 7540 leaves this unbounded, but u32::MAX (0xFFFF_FFFF)
-// is interpreted as i32(-1) by Go's grpc-go, which clamps it to 0 and refuses to create streams.
+                                                     // is interpreted as i32(-1) by Go's grpc-go, which clamps it to 0 and refuses to create streams.
 pub const DEFAULT_INITIAL_WINDOW_SIZE: u32 = 65_535;
 pub const DEFAULT_MAX_FRAME_SIZE: u32 = 16_384;
 pub const DEFAULT_MAX_HEADER_LIST_SIZE: u32 = u32::MAX; // "unlimited"
@@ -173,7 +173,7 @@ impl SettingsStore {
     /// `SETTINGS_ENABLE_PUSH` is a client→server control (RFC 7540 §6.5.2): it is
     /// how a client tells the server whether it will accept server push. A server
     /// advertising it (especially with value 1) is meaningless and is rejected by
-    /// strict peers such as grpc-go (which BuildKit's session client uses), which
+    /// strict peers such as grpc-go (which `BuildKit`'s session client uses), which
     /// tear the connection down. Real servers (nginx, grpc-go, …) never send it.
     #[must_use]
     pub fn to_frame_server(&self) -> SettingsFrame {
@@ -217,37 +217,37 @@ impl SettingsStore {
     #[must_use]
     pub fn to_frame_non_default(&self) -> SettingsFrame {
         let mut settings = Vec::new();
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::HeaderTableSize,
             self.header_table_size,
             DEFAULT_HEADER_TABLE_SIZE,
         );
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::EnablePush,
             self.enable_push,
             DEFAULT_ENABLE_PUSH,
         );
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::MaxConcurrentStreams,
             self.max_concurrent_streams,
             DEFAULT_MAX_CONCURRENT_STREAMS,
         );
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::InitialWindowSize,
             self.initial_window_size,
             DEFAULT_INITIAL_WINDOW_SIZE,
         );
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::MaxFrameSize,
             self.max_frame_size,
             DEFAULT_MAX_FRAME_SIZE,
         );
-        self.push_if_non_default(
+        Self::push_if_non_default(
             &mut settings,
             SettingId::MaxHeaderListSize,
             self.max_header_list_size,
@@ -256,7 +256,7 @@ impl SettingsStore {
         SettingsFrame::new(settings)
     }
 
-    fn push_if_non_default(&self, v: &mut Vec<Setting>, id: SettingId, value: u32, default: u32) {
+    fn push_if_non_default(v: &mut Vec<Setting>, id: SettingId, value: u32, default: u32) {
         if value != default {
             v.push(Setting { id, value });
         }

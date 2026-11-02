@@ -35,7 +35,10 @@ fn auto_never_fails_on_linux() {
         .expect("Auto must always resolve on Linux");
     let backend = poll.backend();
     assert!(
-        matches!(backend, Backend::Epoll | Backend::UringReadiness | Backend::UringCompletion),
+        matches!(
+            backend,
+            Backend::Epoll | Backend::UringReadiness | Backend::UringCompletion
+        ),
         "Auto resolved to a non-Linux backend: {backend}"
     );
 }
@@ -57,8 +60,7 @@ fn native_default_api_is_auto_not_a_silent_backend() {
 #[test]
 fn default_poll_matches_auto() {
     let default = foundation_nativeapis::Poll::new().expect("Poll::new");
-    let auto = foundation_nativeapis::Poll::with_preference(BackendPreference::Auto)
-        .expect("Auto");
+    let auto = foundation_nativeapis::Poll::with_preference(BackendPreference::Auto).expect("Auto");
     assert_eq!(
         default.backend(),
         auto.backend(),
@@ -90,8 +92,8 @@ mod without_uring {
 
     #[test]
     fn auto_lands_on_epoll_without_uring() {
-        let poll = foundation_nativeapis::Poll::with_preference(BackendPreference::Auto)
-            .expect("Auto");
+        let poll =
+            foundation_nativeapis::Poll::with_preference(BackendPreference::Auto).expect("Auto");
         assert_eq!(poll.backend(), Backend::Epoll);
     }
 }
@@ -114,7 +116,10 @@ mod with_uring {
     fn probe_reports_readiness_tier_on_a_supporting_kernel() {
         match probe::probe() {
             Ok(caps) => {
-                assert!(caps.poll_add, "POLL_ADD must be in the opcode bitmap: {caps}");
+                assert!(
+                    caps.poll_add,
+                    "POLL_ADD must be in the opcode bitmap: {caps}"
+                );
                 assert!(
                     caps.poll_add_multi,
                     "probe returned Ok without multishot poll: {caps}"

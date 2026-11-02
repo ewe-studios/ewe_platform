@@ -90,7 +90,10 @@ fn test_pull_gemma4_e2b_via_preset() {
         .generate(hello_interaction(), Some(ModelParams::default()))
         .expect("generation should succeed");
 
-    assert!(!output.is_empty(), "model should return at least one message");
+    assert!(
+        !output.is_empty(),
+        "model should return at least one message"
+    );
     println!("Gemma 4 E2B (preset) generated: {output:?}");
 }
 
@@ -109,7 +112,10 @@ fn test_pull_gemma4_memory_via_router_preset() {
         .memory_model
         .clone()
         .expect("gemma_router wires a memory model");
-    assert_eq!(memory_id, ModelId::Name(Gemma4E2b::MODEL_ID.to_string(), None));
+    assert_eq!(
+        memory_id,
+        ModelId::Name(Gemma4E2b::MODEL_ID.to_string(), None)
+    );
 
     let model = preset
         .router
@@ -120,6 +126,9 @@ fn test_pull_gemma4_memory_via_router_preset() {
         .generate(hello_interaction(), Some(ModelParams::default()))
         .expect("generation should succeed");
 
-    assert!(!output.is_empty(), "model should return at least one message");
+    assert!(
+        !output.is_empty(),
+        "model should return at least one message"
+    );
     println!("Gemma 4 E2B (router) generated: {output:?}");
 }

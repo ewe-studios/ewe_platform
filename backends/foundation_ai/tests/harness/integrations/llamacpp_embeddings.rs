@@ -25,9 +25,9 @@
 
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::types::{
-    CostStatus, MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelSpec,
-    ModelProviders, StopReason, TextContent, ToolDeclarations, UsageCosting, UsageReport,
-    UserModelContent,
+    CostStatus, MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput,
+    ModelProviders, ModelSpec, StopReason, TextContent, ToolDeclarations, UsageCosting,
+    UsageReport, UserModelContent,
 };
 use foundation_core::valtron::valtron_test;
 use infrastructure_llama_cpp::context::params::LlamaPoolingType;
@@ -183,7 +183,11 @@ fn test_llamacpp_embeddings_nomic_end_to_end() {
 
     assert!(!values.is_empty(), "embedding values must be non-empty");
     assert_eq!(dimensions, 768, "nomic-embed-text-v1.5 is 768-dimensional");
-    assert_eq!(values.len(), dimensions, "values.len() must equal dimensions");
+    assert_eq!(
+        values.len(),
+        dimensions,
+        "values.len() must equal dimensions"
+    );
 
     println!("nomic-embed-text-v1.5 embedding: {dimensions} dims");
 }

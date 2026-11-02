@@ -27,30 +27,30 @@ use std::thread::JoinHandle;
 use foundation_connectrpc::{
     Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, ProcedureCodecs, Router, Transport,
 };
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron;
 use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
+use foundation_http::ShutdownSignal;
 use tracing::error;
 
 use crate::buildkit::generated::fsutil::types::packet::PacketType;
 use crate::buildkit::generated::fsutil::types::{Packet, Stat};
 use crate::buildkit::generated::grpc::health::v1::health_check_response::ServingStatus;
 use crate::buildkit::generated::grpc::health::v1::{HealthCheckRequest, HealthCheckResponse};
-use crate::buildkit::generated::moby::filesync::v1::BytesMessage as FsBytesMessage;
-use crate::buildkit::generated::moby::filesync::v1::{CredentialsRequest, CredentialsResponse};
 use crate::buildkit::generated::moby::buildkit::secrets::v1::{
     GetSecretRequest, GetSecretResponse,
 };
+use crate::buildkit::generated::moby::filesync::v1::BytesMessage as FsBytesMessage;
+use crate::buildkit::generated::moby::filesync::v1::{CredentialsRequest, CredentialsResponse};
 use crate::buildkit::generated::moby::sshforward::v1::BytesMessage as SshBytesMessage;
 use crate::buildkit::generated::moby::sshforward::v1::{CheckAgentRequest, CheckAgentResponse};
 use crate::buildkit::services::auth::{self, register_auth, Auth};
-use crate::buildkit::services::ssh::{self, register_ssh, SSH as Ssh};
-use crate::buildkit::services::secrets::{self, register_secrets, Secrets};
 use crate::buildkit::services::filesend::{self, register_file_send, FileSend};
 use crate::buildkit::services::filesync::{self, register_file_sync, FileSync};
 use crate::buildkit::services::health::{self, register_health, Health};
+use crate::buildkit::services::secrets::{self, register_secrets, Secrets};
+use crate::buildkit::services::ssh::{self, register_ssh, SSH as Ssh};
 use crate::buildkit::types::BytesMessage;
 
 use foundation_connectrpc::{ConnectError, ConnectResult, Request, Response};
@@ -80,7 +80,9 @@ const GO_MODE_DIR: u32 = 0x8000_0000;
 impl DirFileSync {
     #[must_use]
     pub fn new(root: impl Into<PathBuf>) -> Self {
-        Self { root: Arc::new(root.into()) }
+        Self {
+            root: Arc::new(root.into()),
+        }
     }
 
     /// Walk the context directory into a deterministic (lexical) list of entries,
@@ -94,7 +96,9 @@ impl DirFileSync {
 }
 
 fn walk_dir(root: &Path, dir: &Path, out: &mut Vec<Entry>) {
-    let Ok(read) = std::fs::read_dir(dir) else { return };
+    let Ok(read) = std::fs::read_dir(dir) else {
+        return;
+    };
     for entry in read.flatten() {
         let path = entry.path();
         let Ok(meta) = entry.metadata() else { continue };
@@ -105,7 +109,11 @@ fn walk_dir(root: &Path, dir: &Path, out: &mut Vec<Entry>) {
         };
         if meta.is_dir() {
             out.push(Entry {
-                stat: Stat { path: rel, mode: GO_MODE_DIR | 0o755, ..Default::default() },
+                stat: Stat {
+                    path: rel,
+                    mode: GO_MODE_DIR | 0o755,
+                    ..Default::default()
+                },
                 content: None,
             });
             walk_dir(root, &path, out);
@@ -154,16 +162,24 @@ fn stat_packet(stat: Stat) -> Packet {
 }
 
 fn data_packet(id: u32, data: Vec<u8>) -> Packet {
-    Packet { r#type: PacketType::PACKET_DATA.into(), ID: id, data, ..Default::default() }
+    Packet {
+        r#type: PacketType::PACKET_DATA.into(),
+        ID: id,
+        data,
+        ..Default::default()
+    }
 }
 
 impl DirFileSync {
     /// The shared `DiffCopy` driver used for both `diff_copy` and `tar_stream`.
     fn diff_copy_stream(
         &self,
-        requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>> + Send + 'static,
-    ) -> std::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>> + Send>>
-    {
+        requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>>
+            + Send
+            + 'static,
+    ) -> std::pin::Pin<
+        Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>> + Send>,
+    > {
         use futures::StreamExt;
 
         let entries = self.walk();
@@ -209,7 +225,8 @@ impl DirFileSync {
                                     if let Some(entry) = st.entries.get(id as usize) {
                                         if let Some(content) = &entry.content {
                                             for chunk in content.chunks(32 * 1024) {
-                                                st.pending.push_back(data_packet(id, chunk.to_vec()));
+                                                st.pending
+                                                    .push_back(data_packet(id, chunk.to_vec()));
                                             }
                                         }
                                     }
@@ -242,10 +259,16 @@ impl FileSync for DirFileSync {
     fn diff_copy(
         &self,
         _ctx: Ctx,
-        requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>> + Send + 'static,
+        requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>>
+            + Send
+            + 'static,
     ) -> impl core::future::Future<
         Output = foundation_connectrpc::ConnectResult<
-            std::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>> + Send>>,
+            std::pin::Pin<
+                Box<
+                    dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>> + Send,
+                >,
+            >,
         >,
     > + Send {
         let this = self.clone();
@@ -255,10 +278,16 @@ impl FileSync for DirFileSync {
     fn tar_stream(
         &self,
         _ctx: Ctx,
-        requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>> + Send + 'static,
+        requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>>
+            + Send
+            + 'static,
     ) -> impl core::future::Future<
         Output = foundation_connectrpc::ConnectResult<
-            std::pin::Pin<Box<dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>> + Send>>,
+            std::pin::Pin<
+                Box<
+                    dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<Packet>> + Send,
+                >,
+            >,
         >,
     > + Send {
         let this = self.clone();
@@ -321,7 +350,8 @@ impl StaticRegistryAuth {
         username: impl Into<String>,
         secret: impl Into<String>,
     ) -> Self {
-        self.creds.insert(host.into(), (username.into(), secret.into()));
+        self.creds
+            .insert(host.into(), (username.into(), secret.into()));
         self
     }
 
@@ -388,8 +418,7 @@ impl Secrets for StaticSecrets {
         &self,
         _ctx: Ctx,
         request: Request<GetSecretRequest>,
-    ) -> impl core::future::Future<Output = ConnectResult<Response<GetSecretResponse>>> + Send
-    {
+    ) -> impl core::future::Future<Output = ConnectResult<Response<GetSecretResponse>>> + Send {
         let result = match self.secrets.get(&request.msg.ID) {
             Some(data) => Ok(Response::new(GetSecretResponse {
                 data: data.clone(),
@@ -423,7 +452,9 @@ impl SshAgentProxy {
     /// Proxy to the agent at `socket` (typically `std::env::var("SSH_AUTH_SOCK")`).
     #[must_use]
     pub fn new(socket: impl Into<PathBuf>) -> Self {
-        Self { socket: Arc::new(socket.into()) }
+        Self {
+            socket: Arc::new(socket.into()),
+        }
     }
 }
 
@@ -518,9 +549,15 @@ impl Ssh for SshAgentProxy {
             });
 
             let out = futures::stream::unfold(from_agent_rx, |rx| async move {
-                rx.receive()
-                    .await
-                    .map(|data| (Ok(SshBytesMessage { data, ..Default::default() }), rx))
+                rx.receive().await.map(|data| {
+                    (
+                        Ok(SshBytesMessage {
+                            data,
+                            ..Default::default()
+                        }),
+                        rx,
+                    )
+                })
             });
             let boxed: std::pin::Pin<
                 Box<dyn futures::Stream<Item = ConnectResult<SshBytesMessage>> + Send>,
@@ -547,7 +584,9 @@ pub struct FileExportSink {
 impl FileExportSink {
     #[must_use]
     pub fn new(path: impl Into<PathBuf>) -> Self {
-        Self { path: Arc::new(path.into()) }
+        Self {
+            path: Arc::new(path.into()),
+        }
     }
 }
 
@@ -580,8 +619,7 @@ impl FileSend for FileExportSink {
                             if let Err(e) = file.write_all(&msg.data) {
                                 error!(err = %e, "filesend: export write failed");
                                 return Some((
-                                    Err(ConnectError::internal(format!("export write: {e}"))
-                                        .into()),
+                                    Err(ConnectError::internal(format!("export write: {e}")).into()),
                                     (reqs, file),
                                 ));
                             }
@@ -756,10 +794,8 @@ impl SessionBuilder {
             .with_header("x-docker-expose-session-uuid".to_string(), id.clone())
             .with_header("x-docker-expose-session-name".to_string(), "ewe");
         for method in &methods {
-            options = options.with_header(
-                "x-docker-expose-session-grpc-method".to_string(),
-                *method,
-            );
+            options =
+                options.with_header("x-docker-expose-session-grpc-method".to_string(), *method);
         }
         let session_client = Client::<BytesMessage, BytesMessage>::new(
             control_transport,
@@ -769,14 +805,19 @@ impl SessionBuilder {
         )?;
 
         let mut bidi = session_client
-            .bidi_stream(Ctx::background(), futures::stream::pending::<BytesMessage>())
+            .bidi_stream(
+                Ctx::background(),
+                futures::stream::pending::<BytesMessage>(),
+            )
             .await?;
 
         // Check the gRPC response headers — do we have grpc-status?
         match bidi.response_headers().await {
             Ok(h) => {
                 let mut s = String::new();
-                for (k, vs) in h.iter() { s.push_str(&format!("{k}={vs:?} ")); }
+                for (k, vs) in h.iter() {
+                    s.push_str(&format!("{k}={vs:?} "));
+                }
                 tracing::debug!(headers = %s, "session bidi response headers");
             }
             Err(e) => tracing::warn!(err = %e, "session bidi response headers failed"),
@@ -798,8 +839,7 @@ impl SessionBuilder {
                 match receiver.receive().await {
                     Ok(Some(msg)) => {
                         let tag = h2_frame_tag(&msg.data);
-                        let hex: String = msg.data.iter()
-                            .map(|b| format!("{b:02x}")).collect();
+                        let hex: String = msg.data.iter().map(|b| format!("{b:02x}")).collect();
                         tracing::trace!(bytes = msg.data.len(), frame = tag, hex = %hex, "session: buildkitd -> loopback");
                         if let Err(e) = down_tx.send(msg.data) {
                             error!(err = %e, "[sess] down_tx send failed");
@@ -845,11 +885,22 @@ impl SessionBuilder {
             let mut buf = vec![0u8; 32 * 1024];
             loop {
                 match tcp_read.read(&mut buf) {
-                    Ok(0) => { tracing::debug!(elapsed = ?start.elapsed(), "session loopback closed"); break; }
-                    Err(e) => { tracing::warn!(elapsed = ?start.elapsed(), err = %e, "session loopback read error"); break; }
+                    Ok(0) => {
+                        tracing::debug!(elapsed = ?start.elapsed(), "session loopback closed");
+                        break;
+                    }
+                    Err(e) => {
+                        tracing::warn!(elapsed = ?start.elapsed(), err = %e, "session loopback read error");
+                        break;
+                    }
                     Ok(n) => {
                         let tag = h2_frame_tag(&buf[..n]);
-                        tracing::trace!(bytes = n, frame = tag, elapsed_ms = start.elapsed().as_secs_f64() * 1000.0, "session: loopback -> buildkitd (read)");
+                        tracing::trace!(
+                            bytes = n,
+                            frame = tag,
+                            elapsed_ms = start.elapsed().as_secs_f64() * 1000.0,
+                            "session: loopback -> buildkitd (read)"
+                        );
                         if up_tx.send(buf[..n].to_vec()).is_err() {
                             break;
                         }
@@ -863,8 +914,15 @@ impl SessionBuilder {
             // sender is moved in via `move` closure — it is now owned here.
             while let Ok(data) = up_rx.recv() {
                 let tag = h2_frame_tag(&data);
-                tracing::trace!(bytes = data.len(), frame = tag, "session: loopback -> buildkitd (send)");
-                let msg = BytesMessage { data, ..Default::default() };
+                tracing::trace!(
+                    bytes = data.len(),
+                    frame = tag,
+                    "session: loopback -> buildkitd (send)"
+                );
+                let msg = BytesMessage {
+                    data,
+                    ..Default::default()
+                };
                 if let Err(e) = futures_lite::future::block_on(sender.send(&msg)) {
                     error!(err = %e, "[sess] me->buildkit send failed");
                     break;
@@ -957,7 +1015,9 @@ impl SessionServer {
         control_authority: &str,
         context_dir: impl Into<PathBuf>,
     ) -> Result<Self, BoxErr> {
-        Self::builder(context_dir).start_with(transport, control_authority).await
+        Self::builder(context_dir)
+            .start_with(transport, control_authority)
+            .await
     }
 }
 
@@ -974,7 +1034,10 @@ impl Drop for SessionServer {
 /// `identity.NewID()`). Used for session ids and build refs alike.
 pub(crate) fn new_session_id() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
-    let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+    let seed = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
     let mut x = seed as u64 ^ 0x9E37_79B9_7F4A_7C15;
     let mut s = String::with_capacity(32);
     for _ in 0..4 {

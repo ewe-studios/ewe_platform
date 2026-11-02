@@ -67,7 +67,10 @@ fn user_record(text: &str) -> SessionRecord {
 
 #[test]
 fn empty_memory_yields_system_prompt_only() {
-    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&SessionMemory::default())).expect("assemble");
+    let ctx = block_on(
+        provider(ContextConfig::default()).assemble_from_memory(&SessionMemory::default()),
+    )
+    .expect("assemble");
     assert_eq!(ctx.system_prompt.as_deref(), Some("SYS"));
     assert!(
         ctx.messages.is_empty(),
@@ -82,7 +85,8 @@ fn working_memory_is_injected() {
         working: Some(working_memory("the sky is blue")),
         ..SessionMemory::default()
     };
-    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory)).expect("assemble");
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory))
+        .expect("assemble");
     assert!(
         !ctx.messages.is_empty(),
         "working memory must appear in the assembled context"
@@ -125,7 +129,10 @@ fn recent_message_count_is_capped_by_config() {
         .iter()
         .filter(|m| matches!(m, Messages::User { .. }))
         .count();
-    assert_eq!(count, 1, "recent_message_count must cap the included messages");
+    assert_eq!(
+        count, 1,
+        "recent_message_count must cap the included messages"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -183,7 +190,8 @@ fn reflection_memory_is_injected() {
         reflection: Some(reflection(1)),
         ..SessionMemory::default()
     };
-    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory)).expect("assemble");
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory))
+        .expect("assemble");
     assert!(
         assistant_texts_of(&ctx).contains("prefers tea"),
         "reflection memory must be injected: {ctx:?}"
@@ -198,7 +206,8 @@ fn observation_injected_when_newer_than_reflection() {
         observation: Some(observation(5)),
         ..SessionMemory::default()
     };
-    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory)).expect("assemble");
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory))
+        .expect("assemble");
     assert!(
         assistant_texts_of(&ctx).contains("likes tea"),
         "a newer observation must be injected alongside the reflection: {ctx:?}"
@@ -213,7 +222,8 @@ fn observation_skipped_when_older_than_reflection() {
         observation: Some(observation(1)),
         ..SessionMemory::default()
     };
-    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory)).expect("assemble");
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory))
+        .expect("assemble");
     assert!(
         !assistant_texts_of(&ctx).contains("likes tea"),
         "an observation older than the latest reflection must be skipped (INCON-03): {ctx:?}"
@@ -226,7 +236,8 @@ fn observation_injected_when_no_reflection() {
         observation: Some(observation(1)),
         ..SessionMemory::default()
     };
-    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory)).expect("assemble");
+    let ctx = block_on(provider(ContextConfig::default()).assemble_from_memory(&memory))
+        .expect("assemble");
     assert!(
         assistant_texts_of(&ctx).contains("likes tea"),
         "with no reflection, the observation is always injected: {ctx:?}"
@@ -258,20 +269,25 @@ impl TopicEmbedder {
     }
 }
 
+#[async_trait::async_trait]
 impl EmbeddingProvider for TopicEmbedder {
-    fn embed(&self, text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+    async fn embed(&self, text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
         Ok(EmbeddingVector {
             dimensions: 3,
             data: Self::vec_for(text),
             model_id: "topic".into(),
         })
     }
-    fn embed_batch(
+    async fn embed_batch(
         &self,
         texts: &[String],
         model_id: &str,
     ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
-        texts.iter().map(|t| self.embed(t, model_id)).collect()
+        let mut out = Vec::with_capacity(texts.len());
+        for t in texts {
+            out.push(self.embed(t, model_id).await?);
+        }
+        Ok(out)
     }
     fn register_model(&self, _model_id: &str, _dimensions: u16) {}
     fn cache_stats(&self) -> CacheStats {
@@ -311,7 +327,10 @@ fn semantic_search_uses_embeddings_not_keywords() {
         .with_embedder(Arc::new(TopicEmbedder), "topic");
 
         // "feline" shares NO substring with "cat" — only an embedder can match it.
-        let hits = p.search("feline companion", SearchMode::Semantic, 5).await.expect("search");
+        let hits = p
+            .search("feline companion", SearchMode::Semantic, 5)
+            .await
+            .expect("search");
         assert!(!hits.is_empty(), "semantic search should return hits");
         let top = &hits[0];
         assert!(
@@ -319,7 +338,11 @@ fn semantic_search_uses_embeddings_not_keywords() {
             "semantic top hit should be the cat message, got: {:?}",
             top.content
         );
-        assert!(top.score > 0.9, "cosine to the animal message should be high: {}", top.score);
+        assert!(
+            top.score > 0.9,
+            "cosine to the animal message should be high: {}",
+            top.score
+        );
     });
 }
 
@@ -329,12 +352,21 @@ fn semantic_search_without_embedder_falls_back_to_keyword() {
         // No embedder → keyword fallback: "feline" won't match "cat".
         let p = provider_seeded(&["I have a cat named Whiskers", "My laptop is fast"]);
 
-        let none = p.search("feline", SearchMode::Semantic, 5).await.expect("search");
+        let none = p
+            .search("feline", SearchMode::Semantic, 5)
+            .await
+            .expect("search");
         assert!(none.is_empty(), "keyword fallback can't match feline→cat");
 
         // But a shared keyword does match under the fallback.
-        let some = p.search("laptop", SearchMode::Semantic, 5).await.expect("search");
-        assert!(some.iter().any(|h| h.content.contains("laptop")), "keyword hit");
+        let some = p
+            .search("laptop", SearchMode::Semantic, 5)
+            .await
+            .expect("search");
+        assert!(
+            some.iter().any(|h| h.content.contains("laptop")),
+            "keyword hit"
+        );
     });
 }
 
@@ -344,7 +376,10 @@ fn graph_search_falls_back_to_hybrid_not_silently_empty() {
         // F17: Graph mode has no session knowledge graph, so instead of silently
         // returning empty it falls back to hybrid recall (keyword here, no embedder).
         let p = provider_seeded(&["the laptop is on the desk", "unrelated note"]);
-        let hits = p.search("laptop", SearchMode::Graph, 5).await.expect("search");
+        let hits = p
+            .search("laptop", SearchMode::Graph, 5)
+            .await
+            .expect("search");
         assert!(
             hits.iter().any(|h| h.content.contains("laptop")),
             "Graph mode must fall back to useful recall, got: {hits:?}"
@@ -453,7 +488,10 @@ fn search_returns_nothing_for_a_query_that_matches_nothing() {
         &SessionMemory::default(),
     ))
     .expect("search");
-    assert!(hits.is_empty(), "a non-matching query must yield no hits: {hits:?}");
+    assert!(
+        hits.is_empty(),
+        "a non-matching query must yield no hits: {hits:?}"
+    );
 }
 
 #[test]

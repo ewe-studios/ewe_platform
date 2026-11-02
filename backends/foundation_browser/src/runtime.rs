@@ -30,7 +30,11 @@ static POOL: OnceLock<PoolGuard> = OnceLock::new();
 pub fn ensure_runtime(seed: Option<u64>) {
     POOL.get_or_init(|| {
         let threads = available_parallelism().map_or(4, std::num::NonZeroUsize::get);
-        tracing::debug!(threads, seed = seed.unwrap_or(0), "initializing valtron multi-threaded pool");
+        tracing::debug!(
+            threads,
+            seed = seed.unwrap_or(0),
+            "initializing valtron multi-threaded pool"
+        );
         // Some(threads) = use all CPU threads.
         foundation_core::valtron::initialize_pool(seed.unwrap_or(0), Some(threads))
     });

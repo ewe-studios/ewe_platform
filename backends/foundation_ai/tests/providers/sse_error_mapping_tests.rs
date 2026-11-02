@@ -17,7 +17,6 @@ use foundation_ai::types::{
     ModelStreamBox, TextContent, ToolDeclarations, UserModelContent,
 };
 use foundation_core::valtron::{valtron_test, Stream, StreamIter};
-use foundation_netio::DynNetClient;
 use foundation_netio::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
@@ -29,6 +28,7 @@ use foundation_netio::websocket::shared::client::{
 };
 use foundation_netio::websocket::shared::connector::{WebSocketConnector, WsExchangeTask};
 use foundation_netio::websocket::shared::error::WebSocketError;
+use foundation_netio::DynNetClient;
 
 /// A mock `HttpClient` whose `send_sse` yields a single
 /// `Stream::Pending(SseProgress::Failed(..))` before ending.
@@ -72,7 +72,9 @@ impl WebSocketConnector for FailedSseClient {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<WebSocketClient, WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 
     fn open_websocket_task(
@@ -80,7 +82,9 @@ impl WebSocketConnector for FailedSseClient {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 }
 
@@ -110,7 +114,10 @@ fn assert_maps_failed(mut stream: ModelStreamBox) {
         Stream::Pending(ModelState::Error(msg)) => assert_eq!(msg, "boom"),
         other => panic!("expected Pending(ModelState::Error), got {other:?}"),
     }
-    assert!(stream.next().is_none(), "Failed should terminate the stream");
+    assert!(
+        stream.next().is_none(),
+        "Failed should terminate the stream"
+    );
 }
 
 #[valtron_test]

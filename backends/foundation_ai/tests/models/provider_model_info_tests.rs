@@ -15,9 +15,8 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::backends::model_info::rfc3339_to_unix;
-use foundation_ai::backends::openai_responses_provider::ResponsesProvider;
+use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 use foundation_ai::types::{ModelId, ModelProvider};
-use foundation_netio::DynNetClient;
 use foundation_netio::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient,
 };
@@ -32,6 +31,7 @@ use foundation_netio::websocket::shared::client::{
 };
 use foundation_netio::websocket::shared::connector::{WebSocketConnector, WsExchangeTask};
 use foundation_netio::websocket::shared::error::WebSocketError;
+use foundation_netio::DynNetClient;
 
 /// Answers both `send` and `send_async` with a fixed status and body and
 /// records every request it saw.
@@ -102,7 +102,9 @@ impl WebSocketConnector for RecordingClient {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<WebSocketClient, WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 
     fn open_websocket_task(
@@ -110,7 +112,9 @@ impl WebSocketConnector for RecordingClient {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 }
 
@@ -137,20 +141,29 @@ fn anthropic_fetch_model_info_is_a_versioned_get() {
     assert_eq!(info.id, CLAUDE);
     assert_eq!(info.object, "model");
     assert_eq!(info.owned_by, "anthropic");
-    assert_eq!(info.created, 1_739_923_200, "created_at parsed to Unix seconds");
+    assert_eq!(
+        info.created, 1_739_923_200,
+        "created_at parsed to Unix seconds"
+    );
 
     let (method, url, headers) = client.last();
     assert_eq!(method, SimpleMethod::GET);
     assert_eq!(url, format!("https://api.anthropic.com/v1/models/{CLAUDE}"));
     assert_eq!(header(&headers, "x-api-key").as_deref(), Some("sk-test"));
-    assert_eq!(header(&headers, "anthropic-version").as_deref(), Some("2023-06-01"));
+    assert_eq!(
+        header(&headers, "anthropic-version").as_deref(),
+        Some("2023-06-01")
+    );
 }
 
 #[test]
 fn anthropic_model_sees_a_later_lookup() {
     // The native `get_model` lookup fails (404), so the model starts with the
     // placeholder; a later successful fetch updates the same model.
-    let failing = RecordingClient::new(Status::NotFound, r#"{"error":{"type":"not_found_error","message":"no such model"}}"#);
+    let failing = RecordingClient::new(
+        Status::NotFound,
+        r#"{"error":{"type":"not_found_error","message":"no such model"}}"#,
+    );
     let provider = anthropic(&failing);
     let model = provider
         .get_model(ModelId::Name(CLAUDE.to_string(), None))
@@ -160,13 +173,20 @@ fn anthropic_model_sees_a_later_lookup() {
     let err = futures_lite::future::block_on(provider.fetch_model_info(CLAUDE))
         .expect_err("404 is an error");
     assert!(err.to_string().contains("no such model"), "{err}");
-    assert_eq!(model.info().created, 0, "a failed lookup keeps the placeholder");
+    assert_eq!(
+        model.info().created,
+        0,
+        "a failed lookup keeps the placeholder"
+    );
 }
 
 #[test]
 fn anthropic_urls_use_v1_and_follow_a_proxy_endpoint() {
     let config = AnthropicConfig::default();
-    assert_eq!(config.build_url("messages"), "https://api.anthropic.com/v1/messages");
+    assert_eq!(
+        config.build_url("messages"),
+        "https://api.anthropic.com/v1/messages"
+    );
     assert_eq!(
         config.models_url("m").as_deref(),
         Some("https://api.anthropic.com/v1/models/m")
@@ -175,7 +195,10 @@ fn anthropic_urls_use_v1_and_follow_a_proxy_endpoint() {
     let proxied = AnthropicConfig::default()
         .with_base_url("http://localhost:8080")
         .with_messages_endpoint("/v1/messages");
-    assert_eq!(proxied.build_url("messages"), "http://localhost:8080/v1/messages");
+    assert_eq!(
+        proxied.build_url("messages"),
+        "http://localhost:8080/v1/messages"
+    );
     assert_eq!(
         proxied.models_url("m").as_deref(),
         Some("http://localhost:8080/v1/models/m")
@@ -186,7 +209,8 @@ fn anthropic_urls_use_v1_and_follow_a_proxy_endpoint() {
 }
 
 const GPT: &str = "gpt-test";
-const GPT_JSON: &str = r#"{"id":"gpt-test","object":"model","owned_by":"acme","created":1700000000}"#;
+const GPT_JSON: &str =
+    r#"{"id":"gpt-test","object":"model","owned_by":"acme","created":1700000000}"#;
 
 fn responses(client: &Arc<RecordingClient>) -> ResponsesProvider {
     ResponsesProvider::with_http_client(Arc::clone(client) as DynNetClient)
@@ -207,13 +231,50 @@ fn responses_fetch_model_info_updates_earlier_models() {
 }
 
 #[test]
+fn responses_fetch_model_info_is_a_bearer_get_and_parses() {
+    let client = RecordingClient::new(Status::OK, GPT_JSON);
+    let provider = ResponsesProvider::with_http_client(Arc::clone(&client) as DynNetClient)
+        .create(Some(ResponsesConfig::api_key("sk-test")))
+        .expect("provider");
+    let info = futures_lite::future::block_on(provider.fetch_model_info(GPT)).expect("lookup");
+    assert_eq!(info.id, GPT);
+    assert_eq!(info.object, "model");
+    assert_eq!(info.owned_by, "acme");
+    assert_eq!(info.created, 1_700_000_000);
+
+    let (method, url, headers) = client.last();
+    assert_eq!(method, SimpleMethod::GET);
+    assert_eq!(url, format!("https://api.openai.com/v1/models/{GPT}"));
+    assert_eq!(
+        header(&headers, "authorization").as_deref(),
+        Some("Bearer sk-test")
+    );
+}
+
+#[test]
 fn rfc3339_times_convert_to_unix_seconds() {
     assert_eq!(rfc3339_to_unix("1970-01-01T00:00:00Z"), Some(0));
     assert_eq!(rfc3339_to_unix("2025-02-19T00:00:00Z"), Some(1_739_923_200));
-    assert_eq!(rfc3339_to_unix("2025-02-19T02:00:00+02:00"), Some(1_739_923_200));
-    assert_eq!(rfc3339_to_unix("2025-02-18T19:00:00.123-05:00"), Some(1_739_923_200));
-    assert_eq!(rfc3339_to_unix("2024-02-29T12:00:00Z"), Some(1_709_208_000), "leap day");
-    for bad in ["", "2025-02-19", "2025-13-01T00:00:00Z", "2025-02-19T00:00:00", "1969-12-31T23:59:59Z"] {
+    assert_eq!(
+        rfc3339_to_unix("2025-02-19T02:00:00+02:00"),
+        Some(1_739_923_200)
+    );
+    assert_eq!(
+        rfc3339_to_unix("2025-02-18T19:00:00.123-05:00"),
+        Some(1_739_923_200)
+    );
+    assert_eq!(
+        rfc3339_to_unix("2024-02-29T12:00:00Z"),
+        Some(1_709_208_000),
+        "leap day"
+    );
+    for bad in [
+        "",
+        "2025-02-19",
+        "2025-13-01T00:00:00Z",
+        "2025-02-19T00:00:00",
+        "1969-12-31T23:59:59Z",
+    ] {
         assert_eq!(rfc3339_to_unix(bad), None, "{bad:?}");
     }
 }
@@ -261,7 +322,9 @@ impl WebSocketConnector for NeverAnswers {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<WebSocketClient, WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 
     fn open_websocket_task(
@@ -269,7 +332,9 @@ impl WebSocketConnector for NeverAnswers {
         _url: &str,
         _config: WebSocketConnectConfig,
     ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError> {
-        Err(WebSocketError::ProtocolError("not used by these tests".into()))
+        Err(WebSocketError::ProtocolError(
+            "not used by these tests".into(),
+        ))
     }
 }
 

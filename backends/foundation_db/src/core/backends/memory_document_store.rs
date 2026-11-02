@@ -11,7 +11,7 @@
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    DocumentStore, AsyncStorageItemStream, Document, PromotableDocument,
+    AsyncStorageItemStream, Document, DocumentStore, PromotableDocument,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
@@ -85,7 +85,14 @@ impl MemoryDocumentStore {
             record_type,
         };
         let doc = row.to_document();
-        self.lock()?.entry(key.to_string()).or_default().push(row);
+        let mut docs = self.lock()?;
+        let collection = docs.entry(key.to_string()).or_default();
+        // Idempotent (F16 E7): re-appending the same doc_id is a no-op, so a
+        // retried write cannot create a duplicate row. Fresh-id appends never
+        // collide (each scru128 id is unique).
+        if !collection.iter().any(|r| r.doc_id == row.doc_id) {
+            collection.push(row);
+        }
         Ok(doc)
     }
 
@@ -237,7 +244,12 @@ impl DocumentStore for MemoryDocumentStore {
         key: &str,
         limit: usize,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
-        Ok(rows_to_async(self.collect_rows(key, true, None, Some(limit))?))
+        Ok(rows_to_async(self.collect_rows(
+            key,
+            true,
+            None,
+            Some(limit),
+        )?))
     }
 
     async fn scan_all<V: DeserializeOwned + Send + 'static>(

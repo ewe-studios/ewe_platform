@@ -105,7 +105,10 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
         }
     }
     let server = server.expect("server accepted the overlay connection");
-    assert!(client.may_send(), "client overlay connection established over WG");
+    assert!(
+        client.may_send(),
+        "client overlay connection established over WG"
+    );
 
     // client -> server
     let request = b"GET /wg HTTP/1.0\r\n\r\n";
@@ -167,7 +170,10 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
         }
         pump(&mut driver_a, &mut driver_b);
     }
-    assert_eq!(echoed, response, "client received the server's reply over the tunnel");
+    assert_eq!(
+        echoed, response,
+        "client received the server's reply over the tunnel"
+    );
 }
 
 // ── Keepalive test (F01 task 5) ─────────────────────────────────────
@@ -175,8 +181,8 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
 #[traced_test]
 #[test]
 fn tunnel_with_keepalive_emits_network_write_after_idle() {
-    use foundation_wireguard::shared::tunnel::WgOutcome;
     use boringtun::x25519::{PublicKey, StaticSecret};
+    use foundation_wireguard::shared::tunnel::WgOutcome;
     use std::time::{Duration, Instant};
 
     // Create a tunnel with keepalive enabled (25s is the WG default).
@@ -206,6 +212,8 @@ fn tunnel_with_keepalive_emits_network_write_after_idle() {
     let outcome = tunnel.update_timers();
     // The outcome may be Done or WriteToNetwork — both are valid.
     // The tunnel must not be in an error state.
-    assert!(!matches!(outcome, WgOutcome::Error(_)),
-        "tunnel with keepalive should not error on update_timers: {outcome:?}");
+    assert!(
+        !matches!(outcome, WgOutcome::Error(_)),
+        "tunnel with keepalive should not error on update_timers: {outcome:?}"
+    );
 }

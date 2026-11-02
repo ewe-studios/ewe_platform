@@ -17,7 +17,10 @@ pub struct ConnectionPool {
 
 impl ConnectionPool {
     pub fn new(idle_timeout: Duration) -> Self {
-        Self { sessions: Mutex::new(HashMap::new()), idle_timeout }
+        Self {
+            sessions: Mutex::new(HashMap::new()),
+            idle_timeout,
+        }
     }
 
     fn key(host: &Host) -> String {
@@ -105,9 +108,7 @@ fn verify_host_key(session: &Session, host: &Host) -> Result<(), String> {
     // A missing file just means "no known hosts yet".
     let _ = known.read_file(&kh_path, KnownHostFileKind::OpenSSH);
 
-    let (key, key_type) = session
-        .host_key()
-        .ok_or("server presented no host key")?;
+    let (key, key_type) = session.host_key().ok_or("server presented no host key")?;
 
     match known.check_port(&host.hostname, host.port, key) {
         CheckResult::Match => Ok(()),
@@ -177,10 +178,7 @@ fn authenticate(session: &Session, host: &Host) -> Result<(), String> {
         host.key_paths.clone()
     };
     for key in &keys {
-        if session
-            .userauth_pubkey_file(user, None, key, None)
-            .is_ok()
-        {
+        if session.userauth_pubkey_file(user, None, key, None).is_ok() {
             return Ok(());
         }
     }
@@ -207,9 +205,7 @@ fn authenticate_via_agent(session: &Session, user: &str) -> bool {
     let Ok(identities) = agent.identities() else {
         return false;
     };
-    identities
-        .iter()
-        .any(|id| agent.userauth(user, id).is_ok())
+    identities.iter().any(|id| agent.userauth(user, id).is_ok())
 }
 
 /// The default identity files OpenSSH tries, in preference order, that exist.

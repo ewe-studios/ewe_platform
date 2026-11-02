@@ -8,7 +8,6 @@
 /// On level-triggered platforms (Linux, macOS/BSD), `is_ready()` performs
 /// a readiness check with zero-timeout that doesn't consume events.
 /// On Windows (IOCP), it peeks the internal event cache.
-
 use std::path::Path;
 use std::sync::{Arc, RwLock, RwLockWriteGuard};
 use std::time::Duration;

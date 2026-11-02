@@ -9,15 +9,17 @@ use std::time::Duration;
 use clap::ArgMatches;
 
 use crate::bootstrap::BootstrapLogger;
-use crate::config::{get_profile, DisplayMode, GuestOs};
-use crate::providers::{default_provider, ResolvedPorts};
+use crate::config::{DisplayMode, GuestOs, get_profile};
+use crate::providers::{ResolvedPorts, default_provider};
 use crate::state;
 use crate::winrm::WinRM;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
 fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, BoxedError> {
-    get_profile(name).map(|p| p.clone()).map_err(|e| Box::new(e) as BoxedError)
+    get_profile(name)
+        .map(|p| p.clone())
+        .map_err(|e| Box::new(e) as BoxedError)
 }
 
 /// Ensure the VM image is available in the cache.
@@ -29,7 +31,8 @@ fn ensure_image(profile: &crate::config::VmProfile) -> Result<(), BoxedError> {
 
     eprintln!("  Image not cached, importing...");
     let provider = default_provider()?;
-    let path = provider.ensure_image(profile)
+    let path = provider
+        .ensure_image(profile)
         .map_err(|e| format!("Failed to import image: {e}"))?;
     eprintln!("  Image imported at {}", path.display());
     Ok(())
@@ -39,9 +42,12 @@ fn ensure_image(profile: &crate::config::VmProfile) -> Result<(), BoxedError> {
 fn ensure_vm_running(profile: &crate::config::VmProfile) -> Result<ResolvedPorts, BoxedError> {
     // Check if there's existing state with a live PID
     if state::is_running(&profile.name) {
-        let vm_state = state::load(&profile.name)
-            .expect("is_running returned true but load failed");
-        eprintln!("  VM '{}' already running (PID {:?})", profile.name, vm_state.pid);
+        let vm_state =
+            state::load(&profile.name).expect("is_running returned true but load failed");
+        eprintln!(
+            "  VM '{}' already running (PID {:?})",
+            profile.name, vm_state.pid
+        );
         return Ok(ResolvedPorts {
             ssh_port: vm_state.ssh_port,
             winrm_port: vm_state.winrm_port,
@@ -52,14 +58,17 @@ fn ensure_vm_running(profile: &crate::config::VmProfile) -> Result<ResolvedPorts
 
     eprintln!("  VM '{}' not running, launching...", profile.name);
     let provider = default_provider()?;
-    let handle = provider.launch(profile, DisplayMode::Headless)
+    let handle = provider
+        .launch(profile, DisplayMode::Headless)
         .map_err(|e| format!("Failed to launch VM: {e}"))?;
 
     let ports = handle.resolved_ports.clone();
     drop(handle); // Provider saved state already
 
-    eprintln!("  VM launched: SSH={}, VNC={}, WinRM={:?}",
-        ports.ssh_port, ports.vnc_port, ports.winrm_port);
+    eprintln!(
+        "  VM launched: SSH={}, VNC={}, WinRM={:?}",
+        ports.ssh_port, ports.vnc_port, ports.winrm_port
+    );
     Ok(ports)
 }
 
@@ -81,8 +90,9 @@ fn ensure_bootstrapped(
 
     match profile.os {
         GuestOs::Linux | GuestOs::MacOS => {
-            let mut session = crate::ssh::connect_from_port(ports.ssh_port, &profile.user, profile.os)
-                .map_err(|e| format!("SSH connection failed: {e}"))?;
+            let mut session =
+                crate::ssh::connect_from_port(ports.ssh_port, &profile.user, profile.os)
+                    .map_err(|e| format!("SSH connection failed: {e}"))?;
             crate::bootstrap::bootstrap(profile, &mut session, &logger, None)?;
         }
         GuestOs::Windows => {
@@ -109,7 +119,8 @@ fn bootstrap_windows(
     use crate::winrm::elevated::ProgressCallback;
     use std::time::Instant;
 
-    let winrm_port = ports.winrm_port
+    let winrm_port = ports
+        .winrm_port
         .ok_or_else(|| format!("No WinRM port configured for '{}'", profile.name))?;
 
     eprintln!("  Waiting for WinRM on port {winrm_port}...");
@@ -153,7 +164,14 @@ fn bootstrap_windows(
     // Phase 2: SSH
     let mut session = crate::ssh::connect_from_port(ports.ssh_port, &profile.user, profile.os)
         .map_err(|e| format!("SSH connection failed: {e}"))?;
-    crate::bootstrap::windows::bootstrap_windows_ssh_phase(profile, &winrm, &mut session, logger, progress_cb, false)?;
+    crate::bootstrap::windows::bootstrap_windows_ssh_phase(
+        profile,
+        &winrm,
+        &mut session,
+        logger,
+        progress_cb,
+        false,
+    )?;
 
     Ok(())
 }
@@ -169,10 +187,18 @@ pub fn cmd_build(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
 
     let project_path = PathBuf::from(project_dir);
     if !project_path.exists() {
-        return Err(format!("Project directory does not exist: {}", project_path.display()).into());
+        return Err(format!(
+            "Project directory does not exist: {}",
+            project_path.display()
+        )
+        .into());
     }
     if !project_path.is_dir() {
-        return Err(format!("Project path is not a directory: {}", project_path.display()).into());
+        return Err(format!(
+            "Project path is not a directory: {}",
+            project_path.display()
+        )
+        .into());
     }
 
     // Ensure image is imported
@@ -208,7 +234,10 @@ pub fn cmd_build(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     if no_artifacts {
         eprintln!("\nBuild complete. Artifacts left in VM (--no-artifacts specified).");
     } else {
-        eprintln!("\nBuild complete. Artifacts retrieved to: {}", artifact_dir.display());
+        eprintln!(
+            "\nBuild complete. Artifacts retrieved to: {}",
+            artifact_dir.display()
+        );
 
         // List artifacts
         if let Ok(entries) = std::fs::read_dir(&artifact_dir) {
@@ -216,7 +245,11 @@ pub fn cmd_build(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
             for entry in entries.flatten() {
                 if let Ok(meta) = entry.metadata() {
                     let size_mb = meta.len() as f64 / 1_048_576.0;
-                    eprintln!("  {:.2} MB  {}", size_mb, entry.file_name().to_string_lossy());
+                    eprintln!(
+                        "  {:.2} MB  {}",
+                        size_mb,
+                        entry.file_name().to_string_lossy()
+                    );
                 }
             }
         }

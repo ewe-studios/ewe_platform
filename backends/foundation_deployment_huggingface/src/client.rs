@@ -30,20 +30,30 @@ use crate::types::{
     CreateRepoParams, DatasetInfo, DeleteRepoParams, ListDatasetsParams, ListModelsParams,
     ListSpacesParams, ModelInfo, MoveRepoParams, RepoType, RepoUrl, SpaceInfo, User,
 };
-use foundation_core::valtron::Stream;
-use foundation_netio::shared::client::body_reader::{collect_bytes_into, try_collect_bytes};
-use foundation_netio::shared::client::request::PreparedRequest;
-use foundation_netio::shared::http::{
-    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
+use foundation_core::valtron::{block_on_future, Stream};
+use foundation_netio::shared::client::body_reader::{
+    collect_bytes_async, collect_bytes_bounded, AsyncSendSafeBody,
 };
+use foundation_netio::shared::client::request::PreparedRequest;
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod, Status};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::de::DeserializeOwned;
+use std::collections::VecDeque;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 /// Default for [`HFClientBuilder::max_error_body`]: 64 KiB, the amount Go
 /// `net/http` drains from a response body it discards.
 pub const DEFAULT_MAX_ERROR_BODY: usize = 64 * 1024;
+
+/// Default for [`HFClientBuilder::upload_chunk_size`]: 32 KiB, the buffer Go
+/// `net/http` allocates for `io.Copy` when it streams a request body to the
+/// wire.
+pub const DEFAULT_UPLOAD_CHUNK_SIZE: usize = 32 * 1024;
+
+/// Default for [`HFClientBuilder::max_list_pages`]: the most pages a listing
+/// follows before it stops, so a broken `Link` header cannot loop forever.
+pub const DEFAULT_MAX_LIST_PAGES: usize = 10_000;
 
 /// Hugging Face Hub API client.
 ///
@@ -58,6 +68,8 @@ struct HFClientInner {
     endpoint: String,
     token: Option<String>,
     max_error_body: usize,
+    upload_chunk_size: usize,
+    max_list_pages: usize,
 }
 
 /// Builder for `HFClient`.
@@ -66,6 +78,8 @@ pub struct HFClientBuilder {
     token: Option<String>,
     client: Option<DynNetClient>,
     max_error_body: usize,
+    upload_chunk_size: usize,
+    max_list_pages: usize,
 }
 
 impl Default for HFClientBuilder {
@@ -83,6 +97,8 @@ impl HFClientBuilder {
             token: None,
             client: None,
             max_error_body: DEFAULT_MAX_ERROR_BODY,
+            upload_chunk_size: DEFAULT_UPLOAD_CHUNK_SIZE,
+            max_list_pages: DEFAULT_MAX_LIST_PAGES,
         }
     }
 
@@ -103,6 +119,22 @@ impl HFClientBuilder {
     #[must_use]
     pub fn max_error_body(mut self, bytes: usize) -> Self {
         self.max_error_body = bytes;
+        self
+    }
+
+    /// Read each uploaded file in chunks of at most `bytes` when a commit
+    /// body is streamed. Default [`DEFAULT_UPLOAD_CHUNK_SIZE`].
+    #[must_use]
+    pub fn upload_chunk_size(mut self, bytes: usize) -> Self {
+        self.upload_chunk_size = bytes;
+        self
+    }
+
+    /// Follow at most `pages` pages of a listing, `Link` pagination
+    /// included. Default [`DEFAULT_MAX_LIST_PAGES`].
+    #[must_use]
+    pub fn max_list_pages(mut self, pages: usize) -> Self {
+        self.max_list_pages = pages;
         self
     }
 
@@ -149,6 +181,8 @@ impl HFClientBuilder {
                 endpoint,
                 token,
                 max_error_body: self.max_error_body,
+                upload_chunk_size: self.upload_chunk_size,
+                max_list_pages: self.max_list_pages,
             }),
         })
     }
@@ -241,6 +275,16 @@ impl HFClient {
         &self.inner.endpoint
     }
 
+    /// The chunk size used when a commit streams an uploaded file from disk.
+    pub(crate) fn upload_chunk_size(&self) -> usize {
+        self.inner.upload_chunk_size
+    }
+
+    /// The most pages a listing follows through `Link` pagination.
+    pub(crate) fn max_list_pages(&self) -> usize {
+        self.inner.max_list_pages
+    }
+
     /// Check if implicit token is disabled.
     pub(crate) fn is_implicit_token_disabled() -> bool {
         std::env::var(HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV).is_ok_and(|v| v == "1" || v == "true")
@@ -263,54 +307,76 @@ impl HFClient {
         })
     }
 
-    /// Send `request`. A transport failure is an error; the status is
-    /// returned as is and the body is not read.
-    pub(crate) fn send_raw(&self, request: PreparedRequest) -> Result<(Status, SendSafeBody)> {
+    /// Send `request`. A transport failure is an error; the status and
+    /// headers are returned as is and the body is not read.
+    pub(crate) async fn send_raw_async(
+        &self,
+        request: PreparedRequest,
+    ) -> Result<(Status, SimpleHeaders, AsyncSendSafeBody)> {
         let response = self
             .inner
             .client
-            .send(request)
+            .send_async(request)
+            .await
             .map_err(|e| HuggingFaceError::Backend(format!("Request failed: {e}")))?;
-        let (status, _headers, body) = response.into_parts();
-        Ok((status, body))
+        Ok(response.into_async_parts())
     }
 
     /// Send `request` and return its body; an error unless the status is
     /// 2xx. The body of an error answer is read only up to `max_error_body`.
-    pub(crate) fn send(&self, request: PreparedRequest, url: &str) -> Result<SendSafeBody> {
-        let (status, body) = self.send_raw(request)?;
+    pub(crate) async fn send_async(
+        &self,
+        request: PreparedRequest,
+        url: &str,
+    ) -> Result<AsyncSendSafeBody> {
+        let (status, _headers, body) = self.send_raw_async(request).await?;
         if !is_success_status(&status) {
-            return Err(self.http_error(&status, url, body));
+            return Err(self.http_error(&status, url, body).await);
         }
         Ok(body)
     }
 
     /// Send `request` and parse its (small) JSON answer.
-    pub(crate) fn send_json<T: DeserializeOwned>(
+    pub(crate) async fn send_json_async<T: DeserializeOwned>(
         &self,
         request: PreparedRequest,
         url: &str,
     ) -> Result<T> {
-        let body = self.send(request, url)?;
-        let bytes = try_collect_bytes(body)
+        self.send_json_async_with_headers(request, url)
+            .await
+            .map(|(value, _headers)| value)
+    }
+
+    /// Send `request`, parse its JSON answer, and return the answer with the
+    /// response headers (for `Link` pagination).
+    pub(crate) async fn send_json_async_with_headers<T: DeserializeOwned>(
+        &self,
+        request: PreparedRequest,
+        url: &str,
+    ) -> Result<(T, SimpleHeaders)> {
+        let (status, headers, body) = self.send_raw_async(request).await?;
+        if !is_success_status(&status) {
+            return Err(self.http_error(&status, url, body).await);
+        }
+        let bytes = collect_bytes_async(body)
+            .await
             .map_err(|e| HuggingFaceError::Backend(format!("read body from {url}: {e}")))?;
-        serde_json::from_slice(&bytes).map_err(HuggingFaceError::Json)
+        let value = serde_json::from_slice(&bytes).map_err(HuggingFaceError::Json)?;
+        Ok((value, headers))
     }
 
     /// The error for a non-2xx answer, with at most `max_error_body` bytes
     /// of its body.
-    pub(crate) fn http_error(
+    pub(crate) async fn http_error(
         &self,
         status: &Status,
         url: &str,
-        body: SendSafeBody,
+        body: AsyncSendSafeBody,
     ) -> HuggingFaceError {
         let code = status_code(status);
-        let mut limited = LimitedWriter::new(self.inner.max_error_body);
-        // The writer refuses bytes past the limit, which ends the read early;
-        // that error is expected and what was read is kept.
-        let _ = collect_bytes_into(body, &mut limited);
-        let message = String::from_utf8_lossy(&limited.buf);
+        // Read only up to the limit; the rest of the body is never read.
+        let buf = collect_bytes_bounded(body, self.inner.max_error_body).await;
+        let message = String::from_utf8_lossy(&buf);
         HuggingFaceError::Http {
             status: code,
             url: url.to_string(),
@@ -406,17 +472,15 @@ impl HFClient {
 
 /// Get authenticated user info.
 ///
-/// Blocks until the answer arrives (native client, sync `send`).
-///
 /// # Errors
 ///
 /// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status,
 /// `HuggingFaceError::Json` if the response body cannot be deserialized into
 /// a `User`, or `HuggingFaceError::Backend` if the HTTP request fails.
-pub fn whoami(client: &HFClient) -> Result<User> {
+pub async fn whoami(client: &HFClient) -> Result<User> {
     let url = format!("{}{}", client.inner.endpoint, HF_API_WHOAMI);
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
-    client.send_json(request, &url)
+    client.send_json_async(request, &url).await
 }
 
 /// Check if token is valid.
@@ -426,65 +490,66 @@ pub fn whoami(client: &HFClient) -> Result<User> {
 /// Returns the same errors as `whoami` — a non-2xx HTTP response (typically
 /// 401 if the token is invalid or missing), a transport failure, or a
 /// deserialization failure on the user payload.
-pub fn auth_check(client: &HFClient) -> Result<()> {
-    whoami(client).map(|_| ())
+pub async fn auth_check(client: &HFClient) -> Result<()> {
+    whoami(client).await.map(|_| ())
 }
 
 /// List models with pagination.
 ///
-/// The page is fetched before this returns; the iterator yields its entries.
+/// The first page is fetched before this returns; the iterator yields its
+/// entries.
 ///
 /// # Errors
 ///
-/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
-///. Per-page
-/// errors (HTTP failures, JSON parse failures) surface as `Err` items inside
-/// the returned stream.
-pub fn list_models(
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built.
+/// Per-page errors (HTTP failures, JSON parse failures) surface as `Err` items
+/// inside the returned stream.
+pub async fn list_models(
     client: &HFClient,
     params: &ListModelsParams,
 ) -> Result<impl Iterator<Item = Stream<Result<ModelInfo>, ()>> + Send + 'static> {
     let url = build_list_url(&client.inner.endpoint, HF_API_MODELS, params);
     let request = client.request(SimpleMethod::GET, &url, false)?.build();
-    Ok(page_items(
-        client.send_json::<Vec<ModelInfo>>(request, &url),
-    ))
+    let page = client
+        .send_json_async_with_headers::<Vec<ModelInfo>>(request, &url)
+        .await;
+    Ok(into_lazy_pages(client, false, page))
 }
 
 /// List datasets with pagination.
 ///
 /// # Errors
 ///
-/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
-///. Per-page
-/// errors surface as `Err` items inside the returned stream.
-pub fn list_datasets(
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built.
+/// Per-page errors surface as `Err` items inside the returned stream.
+pub async fn list_datasets(
     client: &HFClient,
     params: &ListDatasetsParams,
 ) -> Result<impl Iterator<Item = Stream<Result<DatasetInfo>, ()>> + Send + 'static> {
     let url = build_list_url(&client.inner.endpoint, HF_API_DATASETS, params);
     let request = client.request(SimpleMethod::GET, &url, false)?.build();
-    Ok(page_items(
-        client.send_json::<Vec<DatasetInfo>>(request, &url),
-    ))
+    let page = client
+        .send_json_async_with_headers::<Vec<DatasetInfo>>(request, &url)
+        .await;
+    Ok(into_lazy_pages(client, false, page))
 }
 
 /// List spaces with pagination.
 ///
 /// # Errors
 ///
-/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
-///. Per-page
-/// errors surface as `Err` items inside the returned stream.
-pub fn list_spaces(
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built.
+/// Per-page errors surface as `Err` items inside the returned stream.
+pub async fn list_spaces(
     client: &HFClient,
     params: &ListSpacesParams,
 ) -> Result<impl Iterator<Item = Stream<Result<SpaceInfo>, ()>> + Send + 'static> {
     let url = build_list_url(&client.inner.endpoint, HF_API_SPACES, params);
     let request = client.request(SimpleMethod::GET, &url, false)?.build();
-    Ok(page_items(
-        client.send_json::<Vec<SpaceInfo>>(request, &url),
-    ))
+    let page = client
+        .send_json_async_with_headers::<Vec<SpaceInfo>>(request, &url)
+        .await;
+    Ok(into_lazy_pages(client, false, page))
 }
 
 /// Create a repository.
@@ -495,7 +560,7 @@ pub fn list_spaces(
 /// (e.g., 409 if the repo already exists and `exist_ok` is `false`),
 /// `HuggingFaceError::Json` on malformed response bodies, or
 /// `HuggingFaceError::Backend` for transport failures.
-pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoUrl> {
+pub async fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoUrl> {
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_CREATE);
 
     let body_json = serde_json::json!({
@@ -516,7 +581,7 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
         .body_json(&body_json)
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
         .build();
-    client.send_json(request, &url)
+    client.send_json_async(request, &url).await
 }
 
 /// Delete a repository.
@@ -526,7 +591,7 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
 /// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status
 /// (e.g., 404 when the repo does not exist and `missing_ok` is `false`), or
 /// `HuggingFaceError::Backend` for transport failures.
-pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
+pub async fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_DELETE);
 
     let body_json = serde_json::json!({
@@ -546,7 +611,7 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
         .build();
     // The answer has no content we use; the body is dropped unread.
-    client.send(request, &url).map(drop)
+    client.send_async(request, &url).await.map(drop)
 }
 
 /// Move/rename a repository.
@@ -556,7 +621,7 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
 /// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status,
 /// `HuggingFaceError::Json` on malformed response bodies, or
 /// `HuggingFaceError::Backend` for transport failures.
-pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> {
+pub async fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> {
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_MOVE);
 
     let body_json = serde_json::json!({
@@ -575,50 +640,116 @@ pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> 
         .body_json(&body_json)
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
         .build();
-    client.send_json(request, &url)
+    client.send_json_async(request, &url).await
 }
 
-/// One page of a listing as stream items: each entry, or the page's error.
-fn page_items<T>(page: Result<Vec<T>>) -> std::vec::IntoIter<Stream<Result<T>, ()>> {
-    let items: Vec<Stream<Result<T>, ()>> = match page {
-        Ok(entries) => entries.into_iter().map(|e| Stream::Next(Ok(e))).collect(),
-        Err(e) => vec![Stream::Next(Err(e))],
+/// A listing that follows the Hub's `Link: rel="next"` pages lazily.
+///
+/// The first page is fetched before the listing is returned; every later page
+/// is fetched only when the previous page's items are pulled past.
+pub(crate) struct LazyPageIterator<T> {
+    client: HFClient,
+    with_auth: bool,
+    buffer: VecDeque<Stream<Result<T>, ()>>,
+    next_url: Option<String>,
+    pages: usize,
+    max_pages: usize,
+}
+
+impl<T> Iterator for LazyPageIterator<T>
+where
+    T: DeserializeOwned + Send + 'static,
+{
+    type Item = Stream<Result<T>, ()>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let Some(item) = self.buffer.pop_front() {
+                return Some(item);
+            }
+            let next_url = self.next_url.take()?;
+            if self.pages >= self.max_pages {
+                return None;
+            }
+            let client = self.client.clone();
+            let with_auth = self.with_auth;
+            let page = block_on_future(async move {
+                let request = client
+                    .request(SimpleMethod::GET, &next_url, with_auth)?
+                    .build();
+                client
+                    .send_json_async_with_headers::<Vec<T>>(request, &next_url)
+                    .await
+            });
+            self.pages += 1;
+            match page {
+                Ok((entries, headers)) => {
+                    self.buffer = entries.into_iter().map(|e| Stream::Next(Ok(e))).collect();
+                    self.next_url = next_link(&headers);
+                }
+                Err(e) => {
+                    self.buffer = VecDeque::from([Stream::Next(Err(e))]);
+                    self.next_url = None;
+                }
+            }
+        }
+    }
+}
+
+/// Build the first page of a listing into a lazy follower.
+pub(crate) fn into_lazy_pages<T: DeserializeOwned + Send + 'static>(
+    client: &HFClient,
+    with_auth: bool,
+    first: Result<(Vec<T>, SimpleHeaders)>,
+) -> LazyPageIterator<T> {
+    let (buffer, next_url): (VecDeque<Stream<Result<T>, ()>>, Option<String>) = match first {
+        Ok((entries, headers)) => (
+            entries.into_iter().map(|e| Stream::Next(Ok(e))).collect(),
+            next_link(&headers),
+        ),
+        Err(e) => (VecDeque::from([Stream::Next(Err(e))]), None),
     };
-    items.into_iter()
+    LazyPageIterator {
+        client: client.clone(),
+        with_auth,
+        buffer,
+        next_url,
+        pages: 1,
+        max_pages: client.max_list_pages(),
+    }
 }
 
-/// A writer that keeps at most `limit` bytes and refuses the rest.
-struct LimitedWriter {
-    buf: Vec<u8>,
-    limit: usize,
+/// The `rel="next"` URL in a `Link` response header, if any.
+pub(crate) fn next_link(headers: &SimpleHeaders) -> Option<String> {
+    headers
+        .get(&SimpleHeader::LINK)?
+        .iter()
+        .find_map(|value| parse_next_link(value))
 }
 
-impl LimitedWriter {
-    fn new(limit: usize) -> Self {
-        Self {
-            buf: Vec::new(),
-            limit,
+/// Parse one `Link` header value for the `rel="next"` link.
+fn parse_next_link(value: &str) -> Option<String> {
+    for part in value.split(',') {
+        let part = part.trim();
+        let mut segments = part.split(';');
+        let url = segments
+            .next()
+            .map(str::trim)
+            .and_then(|s| s.strip_prefix('<'))
+            .and_then(|s| s.strip_suffix('>'))
+            .map(str::to_string);
+        let is_next = segments.any(|param| {
+            let Some((key, val)) = param.trim().split_once('=') else {
+                return false;
+            };
+            key.trim().eq_ignore_ascii_case("rel")
+                && val.trim().trim_matches('"').eq_ignore_ascii_case("next")
+        });
+        if is_next {
+            return url;
         }
     }
-}
-
-impl std::io::Write for LimitedWriter {
-    fn write(&mut self, data: &[u8]) -> std::io::Result<usize> {
-        let room = self.limit - self.buf.len();
-        if room == 0 {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::WriteZero,
-                "limit reached",
-            ));
-        }
-        let n = data.len().min(room);
-        self.buf.extend_from_slice(&data[..n]);
-        Ok(n)
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        Ok(())
-    }
+    None
 }
 
 /// Build URL for listing operations.

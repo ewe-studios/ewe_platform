@@ -1,14 +1,14 @@
-//! UserInfo Client — fetches user profile from OIDC `/userinfo` endpoint.
+//! `UserInfo` Client — fetches user profile from OIDC `/userinfo` endpoint.
 //!
 //! Sends a GET request with a Bearer token and parses the response into
-//! standard OIDC UserInfo claims.
+//! standard OIDC `UserInfo` claims.
 
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 
-/// User profile from OIDC UserInfo endpoint.
+/// User profile from OIDC `UserInfo` endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserInfo {
     /// Subject identifier (required).
@@ -89,9 +89,10 @@ impl UserInfo {
     }
 }
 
-/// UserInfo client — fetches user profile from OIDC provider.
+/// `UserInfo` client — fetches user profile from OIDC provider.
 pub struct UserInfoClient {
     http: DynNetClient,
+    max_error_body: usize,
 }
 
 impl Default for UserInfoClient {
@@ -112,7 +113,17 @@ impl UserInfoClient {
     /// test client).
     #[must_use]
     pub fn with_client(http: DynNetClient) -> Self {
-        Self { http }
+        Self {
+            http,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
+        }
+    }
+
+    /// Cap an error body read for its message at `bytes`. Default 64 KiB.
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     /// Fetch user profile using the given access token.
@@ -126,9 +137,10 @@ impl UserInfoClient {
         userinfo_url: &str,
         access_token: &str,
     ) -> Result<UserInfo, UserInfoError> {
-        let body = fetch_userinfo(&self.http, userinfo_url, access_token).await?;
-        let info: UserInfo = serde_json::from_str(&body)
-            .map_err(|e| UserInfoError::ParseError(e.to_string()))?;
+        let body =
+            fetch_userinfo(&self.http, userinfo_url, access_token, self.max_error_body).await?;
+        let info: UserInfo =
+            serde_json::from_str(&body).map_err(|e| UserInfoError::ParseError(e.to_string()))?;
         info.validate()?;
         Ok(info)
     }
@@ -171,6 +183,7 @@ async fn fetch_userinfo(
     client: &DynNetClient,
     url: &str,
     access_token: &str,
+    max_error_body: usize,
 ) -> Result<String, UserInfoError> {
     let req = PreparedRequestBuilder::get(url)
         .map_err(|e| UserInfoError::FetchFailed(format!("invalid URL: {e}")))?
@@ -184,17 +197,16 @@ async fn fetch_userinfo(
         .map_err(|e| UserInfoError::FetchFailed(e.to_string()))?;
 
     let status: usize = resp.get_status().into();
-    // Response bodies arrive as a lazy `SendSafeBody::Stream`, so they must be
-    // drained with `try_collect_bytes` (`get_body_ref` would observe them empty).
-    let body = try_collect_bytes(resp.take_body())
-        .map(|b| String::from_utf8_lossy(&b).to_string())
-        .map_err(|e| UserInfoError::FetchFailed(format!("read body: {e}")))?;
-
     if status == 401 {
-        return Err(UserInfoError::Unauthorized(body));
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
+        return Err(UserInfoError::Unauthorized(text));
     }
     if !(200..300).contains(&status) {
-        return Err(UserInfoError::FetchFailed(format!("HTTP {status}: {body}")));
+        let text = read_error_text(resp.take_async_body(), max_error_body).await;
+        return Err(UserInfoError::FetchFailed(format!("HTTP {status}: {text}")));
     }
+    let body = read_body_text(resp.take_async_body())
+        .await
+        .map_err(|e| UserInfoError::FetchFailed(format!("read body: {e}")))?;
     Ok(body)
 }

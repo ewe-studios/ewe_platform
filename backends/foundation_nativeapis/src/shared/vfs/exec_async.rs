@@ -7,44 +7,51 @@ use std::future::Future;
 use std::pin::pin;
 use std::task::{Context, Poll, Waker};
 
-use foundation_core::valtron::{collect_one, execute, from_future};
-use foundation_errstacks::ErrorTrace;
+foundation_core::blocking_boundary! {
+    use foundation_core::valtron::{collect_one, execute, from_future};
+    use foundation_errstacks::ErrorTrace;
 
-use super::error::{VfsError, VfsResult};
+    use super::error::{VfsError, VfsResult};
 
-/// Executes an async future synchronously.
-///
-/// The future is polled once on the calling thread first. Most VFS futures
-/// (memory stores, the native file system, Fjall) are ready at once, so they
-/// need no valtron pool and never use a worker. Only a future that is really
-/// `Pending` goes to valtron, which drives it to completion.
-///
-/// # Errors
-///
-/// Returns [`VfsError::Backend`] if valtron execution fails or produces no result.
-pub fn exec_async<T: Send + 'static, F>(future: F) -> VfsResult<T>
-where
-    F: Future<Output = VfsResult<T>> + Send + 'static,
-{
-    let mut future = Box::pin(future);
-    let mut cx = Context::from_waker(Waker::noop());
-    if let Poll::Ready(result) = future.as_mut().poll(&mut cx) {
-        return result;
-    }
+    /// Executes an async future synchronously.
+    ///
+    /// Only compiled where valtron can block the calling thread (native, and
+    /// wasm hosts that are not JS). On JS-hosted wasm the whole function is
+    /// dropped by `foundation_core::blocking_boundary!`, because waiting for a
+    /// `Pending` future there would freeze the isolate's only thread.
+    ///
+    /// The future is polled once on the calling thread first. Most VFS futures
+    /// (memory stores, the native file system, Fjall) are ready at once, so they
+    /// need no valtron pool and never use a worker. Only a future that is really
+    /// `Pending` goes to valtron, which drives it to completion.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`VfsError::Backend`] if valtron execution fails or produces no result.
+    pub fn exec_async<T: Send + 'static, F>(future: F) -> VfsResult<T>
+    where
+        F: Future<Output = VfsResult<T>> + Send + 'static,
+    {
+        let mut future = Box::pin(future);
+        let mut cx = Context::from_waker(Waker::noop());
+        if let Poll::Ready(result) = future.as_mut().poll(&mut cx) {
+            return result;
+        }
 
-    let task = from_future(future);
-    let stream = execute(task, None).map_err(|e| {
-        ErrorTrace::new(VfsError::Backend {
-            message: format!("valtron execution failed: {e}"),
-        })
-    })?;
-    let result: Option<Result<T, ErrorTrace<VfsError>>> = collect_one(stream);
-    match result {
-        Some(Ok(v)) => Ok(v),
-        Some(Err(e)) => Err(e),
-        None => Err(ErrorTrace::new(VfsError::Backend {
-            message: "no result from async execution".into(),
-        })),
+        let task = from_future(future);
+        let stream = execute(task, None).map_err(|e| {
+            ErrorTrace::new(VfsError::Backend {
+                message: format!("valtron execution failed: {e}"),
+            })
+        })?;
+        let result: Option<Result<T, ErrorTrace<VfsError>>> = collect_one(stream);
+        match result {
+            Some(Ok(v)) => Ok(v),
+            Some(Err(e)) => Err(e),
+            None => Err(ErrorTrace::new(VfsError::Backend {
+                message: "no result from async execution".into(),
+            })),
+        }
     }
 }
 

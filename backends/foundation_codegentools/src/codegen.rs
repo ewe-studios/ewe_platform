@@ -145,6 +145,49 @@ pub fn generate() -> Codegen {
     Codegen::default()
 }
 
+/// Load a [`Selection`] from a JSON file — the machine-readable twin of the
+/// declaration a `build.rs` carries (spec-56 feature 00 §4).
+///
+/// A split-out provider crate commits one as `codegen.json`, so
+/// `genapi generate <provider>` honours the same slice its build script checks,
+/// without the `--include-*` flags having to be retyped from the crate's doc
+/// comment (`generate hetzner` used to ignore the crate's six declared
+/// operations and regenerate all 151 endpoints).
+///
+/// The file is a JSON object with optional string arrays `paths`, `tags` and
+/// `operations`. An omitted or empty array contributes nothing — an empty object
+/// means "generate everything", exactly like an absent selection.
+///
+/// # Errors
+/// [`CodegenError::Io`] when the file is unreadable, or not a JSON object whose
+/// arrays hold strings.
+pub fn selection_from_file(path: impl AsRef<Path>) -> Result<Selection, CodegenError> {
+    let path = path.as_ref();
+    let raw = std::fs::read_to_string(path).map_err(|source| CodegenError::Io {
+        path: path.to_path_buf(),
+        source,
+    })?;
+    let value: serde_json::Value = serde_json::from_str(&raw).map_err(|e| CodegenError::Io {
+        path: path.to_path_buf(),
+        source: std::io::Error::new(std::io::ErrorKind::InvalidData, format!("{e}")),
+    })?;
+
+    let mut selection = Selection::all();
+    if let Some(items) = value.get("paths").and_then(serde_json::Value::as_array) {
+        selection = selection.paths(items.iter().filter_map(serde_json::Value::as_str));
+    }
+    if let Some(items) = value.get("tags").and_then(serde_json::Value::as_array) {
+        selection = selection.tags(items.iter().filter_map(serde_json::Value::as_str));
+    }
+    if let Some(items) = value
+        .get("operations")
+        .and_then(serde_json::Value::as_array)
+    {
+        selection = selection.operations(items.iter().filter_map(serde_json::Value::as_str));
+    }
+    Ok(selection)
+}
+
 /// What a crate generates, declared once.
 #[derive(Debug, Clone)]
 pub struct Codegen {
@@ -157,6 +200,11 @@ pub struct Codegen {
     crate_dir: Option<PathBuf>,
     provider_dir: Option<PathBuf>,
     output_dir: Option<PathBuf>,
+    /// Split mode (feature 22 E3): one crate per generated group, created
+    /// under this directory (a workspace `backends/` root).
+    groups_dir: Option<PathBuf>,
+    /// Split mode: the crate that receives the cross-group shared types.
+    shared_crate_dir: Option<PathBuf>,
     options: AnalysisOptions,
 }
 
@@ -172,6 +220,8 @@ impl Default for Codegen {
             crate_dir: None,
             provider_dir: None,
             output_dir: None,
+            groups_dir: None,
+            shared_crate_dir: None,
             // The thresholds `genapi generate` has always defaulted to; a
             // declaration that says nothing about grouping gets what the CLI gives.
             options: AnalysisOptions {
@@ -298,6 +348,23 @@ impl Codegen {
         self
     }
 
+    /// Split the generated groups into one crate per group (feature 22 E3).
+    ///
+    /// `groups_dir` names the workspace root the group crates are created under
+    /// (one `foundation_<provider>_<group>/` per group); `shared_crate_dir` names
+    /// the leaf crate that receives the cross-group shared types. The provider
+    /// crate keeps only a feature-gated re-export shim.
+    #[must_use]
+    pub fn split_groups(
+        mut self,
+        groups_dir: impl Into<PathBuf>,
+        shared_crate_dir: impl Into<PathBuf>,
+    ) -> Self {
+        self.groups_dir = Some(groups_dir.into());
+        self.shared_crate_dir = Some(shared_crate_dir.into());
+        self
+    }
+
     /// The slice of the spec this declaration generates: select → canonicalise →
     /// prune, with the pins verified.
     ///
@@ -309,10 +376,9 @@ impl Codegen {
     }
 
     fn pipeline(&self) -> Result<Pipeline, CodegenError> {
-        let provider = self
-            .provider
-            .as_deref()
-            .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+        let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+            missing: "provider",
+        })?;
         let spec = self
             .spec
             .as_ref()
@@ -348,21 +414,23 @@ impl Codegen {
             // code goes beside the hand-written client in src/.
             return Ok((crate_dir.clone(), Some(crate_dir.join("src"))));
         }
-        let output = self
-            .output_dir
-            .clone()
-            .ok_or(CodegenError::Incomplete { missing: "crate_dir" })?;
+        let output = self.output_dir.clone().ok_or(CodegenError::Incomplete {
+            missing: "crate_dir",
+        })?;
         Ok((output, self.provider_dir.clone()))
     }
 
-    fn provider_root(&self, output: PathBuf, provider_dir: &Option<PathBuf>) -> Result<PathBuf, CodegenError> {
+    fn provider_root(
+        &self,
+        output: PathBuf,
+        provider_dir: &Option<PathBuf>,
+    ) -> Result<PathBuf, CodegenError> {
         Ok(match provider_dir {
             Some(dir) => dir.clone(),
             None => {
-                let provider = self
-                    .provider
-                    .as_deref()
-                    .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+                let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+                    missing: "provider",
+                })?;
                 output.join(provider)
             }
         })
@@ -379,18 +447,63 @@ impl Codegen {
     pub fn write(&self) -> Result<CodegenReport, CodegenError> {
         let resolved = self.resolve()?;
         let (output, provider_dir) = self.roots()?;
-        self.run_generator(&resolved, output.clone(), provider_dir.clone())?;
+        self.run_generator(
+            &resolved,
+            output.clone(),
+            provider_dir.clone(),
+            self.groups_dir.clone(),
+            self.shared_crate_dir.clone(),
+        )?;
 
         let generated_dir = self.provider_root(output, &provider_dir)?.join("generated");
+        let files = if let (Some(groups_dir), Some(_)) = (&self.groups_dir, &self.shared_crate_dir)
+        {
+            self.count_split_files(groups_dir, &generated_dir)?
+        } else {
+            read_tree(&generated_dir)?.len()
+        };
         Ok(CodegenReport {
             paths_selected: resolved
                 .get("paths")
                 .and_then(serde_json::Value::as_object)
                 .map_or(0, serde_json::Map::len),
             schemas: foundation_openapi::component_count(&resolved, "schemas"),
-            files: read_tree(&generated_dir)?.len(),
+            files,
             generated_dir,
         })
+    }
+
+    /// How many files split mode wrote: the umbrella shim, the shared crate's
+    /// single `generated.rs`, and every generated group crate under
+    /// `groups_dir`. Only crates whose name carries this provider's prefix are
+    /// counted, so hand-written neighbours in a shared `backends/` root do not
+    /// inflate the report.
+    fn count_split_files(
+        &self,
+        groups_dir: &Path,
+        generated_dir: &Path,
+    ) -> Result<usize, CodegenError> {
+        let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+            missing: "provider",
+        })?;
+        let provider_safe = provider.replace('-', "_").replace('/', "_");
+        let prefix = format!("foundation_{provider_safe}_");
+        let mut count = read_tree(generated_dir)?.len() + 1; // shim + shared/generated.rs
+        let entries = std::fs::read_dir(groups_dir).map_err(|source| CodegenError::Io {
+            path: groups_dir.to_path_buf(),
+            source,
+        })?;
+        for entry in entries {
+            let entry = entry.map_err(|source| CodegenError::Io {
+                path: groups_dir.to_path_buf(),
+                source,
+            })?;
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if name.starts_with(&prefix) && entry.path().is_dir() {
+                count += read_tree(&entry.path())?.len();
+            }
+        }
+        Ok(count)
     }
 
     /// Resolve, generate into a temporary directory, and compare against what is
@@ -417,17 +530,97 @@ impl Codegen {
         })?;
         let (_, provider_dir) = self.roots()?;
         let scratch_provider_dir = provider_dir.as_ref().map(|_| scratch.path().join("src"));
-        self.run_generator(
-            &resolved,
-            scratch.path().to_path_buf(),
-            scratch_provider_dir.clone(),
-        )?;
-        let fresh_dir = self
-            .provider_root(scratch.path().to_path_buf(), &scratch_provider_dir)?
-            .join("generated");
 
-        let fresh = read_tree(&fresh_dir)?;
-        let committed = read_tree(&generated_dir)?;
+        let mut fresh = BTreeMap::new();
+        let mut committed = BTreeMap::new();
+
+        if let (Some(groups_dir), Some(shared_crate_dir)) =
+            (&self.groups_dir, &self.shared_crate_dir)
+        {
+            // Split mode writes three places: the umbrella shim, the shared types
+            // crate, and one crate per group. Redirect all three into the scratch
+            // tree, then compare each against its committed counterpart. The
+            // shared types crate also holds hand-written `lib.rs`/`Cargo.toml`,
+            // so only its single generated file is compared.
+            let scratch_groups = scratch.path().join("groups");
+            let scratch_shared = scratch.path().join("shared_crate");
+            self.run_generator(
+                &resolved,
+                scratch.path().to_path_buf(),
+                scratch_provider_dir,
+                Some(scratch_groups.clone()),
+                Some(scratch_shared.clone()),
+            )?;
+
+            merge_prefixed(
+                "shim",
+                &read_tree(&scratch.path().join("src/generated"))?,
+                &mut fresh,
+            );
+            merge_prefixed("shim", &read_tree(&generated_dir)?, &mut committed);
+
+            merge_prefixed(
+                "shared",
+                &read_file_tree(&scratch_shared.join("src/generated.rs"), "src/generated.rs")?,
+                &mut fresh,
+            );
+            merge_prefixed(
+                "shared",
+                &read_file_tree(
+                    &shared_crate_dir.join("src/generated.rs"),
+                    "src/generated.rs",
+                )?,
+                &mut committed,
+            );
+
+            // Group crates: the fresh tree under the scratch root is exactly the
+            // set this declaration produces. The committed side is read from the
+            // real `groups_dir`, but only for crates carrying this provider's
+            // prefix — a shared `backends/` root holds many other crates.
+            let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+                missing: "provider",
+            })?;
+            let provider_safe = provider.replace('-', "_").replace('/', "_");
+            let prefix = format!("foundation_{provider_safe}_");
+
+            for (rel, body) in read_tree(&scratch_groups)? {
+                fresh.insert(format!("groups/{rel}"), body);
+            }
+            let entries = std::fs::read_dir(groups_dir).map_err(|source| CodegenError::Io {
+                path: groups_dir.clone(),
+                source,
+            })?;
+            for entry in entries {
+                let entry = entry.map_err(|source| CodegenError::Io {
+                    path: groups_dir.clone(),
+                    source,
+                })?;
+                let name = entry.file_name().to_string_lossy().into_owned();
+                // The shared types crate also carries the `foundation_<provider>_`
+                // prefix but is not a group crate; it is compared separately above.
+                if name.starts_with(&prefix)
+                    && entry.path().as_path() != shared_crate_dir.as_path()
+                    && entry.path().is_dir()
+                {
+                    for (sub, body) in read_tree(&entry.path())? {
+                        committed.insert(format!("groups/{name}/{sub}"), body);
+                    }
+                }
+            }
+        } else {
+            self.run_generator(
+                &resolved,
+                scratch.path().to_path_buf(),
+                scratch_provider_dir.clone(),
+                None,
+                None,
+            )?;
+            let fresh_dir = self
+                .provider_root(scratch.path().to_path_buf(), &scratch_provider_dir)?
+                .join("generated");
+            fresh = read_tree(&fresh_dir)?;
+            committed = read_tree(&generated_dir)?;
+        }
 
         let added: Vec<String> = fresh
             .keys()
@@ -463,15 +656,19 @@ impl Codegen {
         resolved: &serde_json::Value,
         output: PathBuf,
         provider_dir: Option<PathBuf>,
+        groups_dir: Option<PathBuf>,
+        shared_crate_dir: Option<PathBuf>,
     ) -> Result<(), CodegenError> {
-        let provider = self
-            .provider
-            .as_deref()
-            .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+        let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+            missing: "provider",
+        })?;
 
         let mut generator = UnifiedGenerator::new(output);
         if let Some(dir) = provider_dir {
             generator = generator.with_provider_dir(dir);
+        }
+        if let (Some(groups_dir), Some(shared_crate_dir)) = (groups_dir, shared_crate_dir) {
+            generator = generator.split_group_crates(groups_dir, shared_crate_dir);
         }
         let body = serde_json::to_string(resolved).expect("a resolved spec serializes");
         generator
@@ -492,6 +689,33 @@ fn read_tree(dir: &Path) -> Result<BTreeMap<String, String>, CodegenError> {
     }
     walk(dir, dir, &mut files)?;
     Ok(files)
+}
+
+/// Read a single file into a one-entry tree keyed by `rel`. A missing file
+/// reads as empty — the same "not generated yet" convention as [`read_tree`].
+fn read_file_tree(path: &Path, rel: &str) -> Result<BTreeMap<String, String>, CodegenError> {
+    let mut tree = BTreeMap::new();
+    if path.exists() {
+        let body = std::fs::read_to_string(path).map_err(|source| CodegenError::Io {
+            path: path.to_path_buf(),
+            source,
+        })?;
+        tree.insert(rel.to_string(), body);
+    }
+    Ok(tree)
+}
+
+/// Copy every `(rel, body)` of `tree` into `out` under the `prefix/` namespace,
+/// so several generated trees can share one comparison without their relative
+/// paths colliding.
+fn merge_prefixed(
+    prefix: &str,
+    tree: &BTreeMap<String, String>,
+    out: &mut BTreeMap<String, String>,
+) {
+    for (rel, body) in tree {
+        out.insert(format!("{prefix}/{rel}"), body.clone());
+    }
 }
 
 fn walk(root: &Path, dir: &Path, out: &mut BTreeMap<String, String>) -> Result<(), CodegenError> {
@@ -564,10 +788,9 @@ impl Codegen {
     /// [`CodegenError::Incomplete`] without a `crate_dir`/`provider`/`spec`, or
     /// [`CodegenError::Io`] if the write fails.
     pub fn write_build_script(&self, overwrite: bool) -> Result<BuildScriptOutcome, CodegenError> {
-        let crate_dir = self
-            .crate_dir
-            .clone()
-            .ok_or(CodegenError::Incomplete { missing: "crate_dir" })?;
+        let crate_dir = self.crate_dir.clone().ok_or(CodegenError::Incomplete {
+            missing: "crate_dir",
+        })?;
         let target = crate_dir.join("build.rs");
 
         if target.exists() && !overwrite {
@@ -600,10 +823,9 @@ impl Codegen {
     fn render_build_script(&self, crate_dir: &Path) -> Result<String, CodegenError> {
         use std::fmt::Write as _;
 
-        let provider = self
-            .provider
-            .as_deref()
-            .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+        let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+            missing: "provider",
+        })?;
         let spec = self
             .spec
             .as_ref()
@@ -611,7 +833,11 @@ impl Codegen {
         let spec_from_crate = relative_to(crate_dir, spec);
 
         let mut out = String::new();
-        writeln!(out, "//! Keeps `src/generated/` honest against the vendor's spec.").unwrap();
+        writeln!(
+            out,
+            "//! Keeps `src/generated/` honest against the vendor's spec."
+        )
+        .unwrap();
         writeln!(out, "//!").unwrap();
         writeln!(
             out,
@@ -630,15 +856,31 @@ impl Codegen {
         .unwrap();
         writeln!(out, "//! anyone can reproduce it (spec-56 feature 00 §4).").unwrap();
         writeln!(out, "//!").unwrap();
-        writeln!(out, "//! **WHAT:** verifies the pins still hold, and regenerates when the").unwrap();
-        writeln!(out, "//! committed output no longer matches this declaration.").unwrap();
+        writeln!(
+            out,
+            "//! **WHAT:** verifies the pins still hold, and regenerates when the"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "//! committed output no longer matches this declaration."
+        )
+        .unwrap();
         writeln!(out, "//!").unwrap();
-        writeln!(out, "//! **HOW:** the three outcomes are deliberately different:").unwrap();
+        writeln!(
+            out,
+            "//! **HOW:** the three outcomes are deliberately different:"
+        )
+        .unwrap();
         writeln!(out, "//!").unwrap();
         writeln!(out, "//! | `check()` says | meaning | what happens |").unwrap();
         writeln!(out, "//! |---|---|---|").unwrap();
         writeln!(out, "//! | `Ok` | output is current | nothing |").unwrap();
-        writeln!(out, "//! | `Stale` | the declaration moved | **regenerate** |").unwrap();
+        writeln!(
+            out,
+            "//! | `Stale` | the declaration moved | **regenerate** |"
+        )
+        .unwrap();
         writeln!(
             out,
             "//! | anything else | the spec moved under the pin, or is unreadable | **fail the build** |"
@@ -693,7 +935,11 @@ impl Codegen {
             "    // committed `src/generated/` is exactly what they should be compiling anyway."
         )
         .unwrap();
-        writeln!(out, "    // Nothing to do, and failing here would break their build.").unwrap();
+        writeln!(
+            out,
+            "    // Nothing to do, and failing here would break their build."
+        )
+        .unwrap();
         writeln!(out, "    if !spec.exists() {{").unwrap();
         writeln!(out, "        return;").unwrap();
         writeln!(out, "    }}").unwrap();
@@ -709,7 +955,11 @@ impl Codegen {
         )
         .unwrap();
         writeln!(out, "    // `src/`, that would rebuild forever.").unwrap();
-        writeln!(out, "    println!(\"cargo:rerun-if-changed={{}}\", spec.display());").unwrap();
+        writeln!(
+            out,
+            "    println!(\"cargo:rerun-if-changed={{}}\", spec.display());"
+        )
+        .unwrap();
         writeln!(out, "    println!(\"cargo:rerun-if-changed=build.rs\");").unwrap();
         writeln!(out).unwrap();
         writeln!(out, "    let codegen = foundation_codegentools::generate()").unwrap();
@@ -737,12 +987,27 @@ impl Codegen {
                 writeln!(out, "        ])").unwrap();
             }
         }
+        if let (Some(groups_dir), Some(shared_crate_dir)) =
+            (&self.groups_dir, &self.shared_crate_dir)
+        {
+            let groups_from_crate = relative_to(crate_dir, groups_dir);
+            let shared_from_crate = relative_to(crate_dir, shared_crate_dir);
+            writeln!(
+                out,
+                "        .split_groups(Path::new(&manifest).join({groups_from_crate:?}), Path::new(&manifest).join({shared_from_crate:?}))"
+            )
+            .unwrap();
+        }
         writeln!(out, "        .crate_dir(&manifest);").unwrap();
         writeln!(out).unwrap();
         writeln!(out, "    match codegen.check() {{").unwrap();
         writeln!(out, "        // Already what this declaration produces.").unwrap();
         writeln!(out, "        Ok(()) => {{}}").unwrap();
-        writeln!(out, "        // The selection or the spec's shape moved — regenerate.").unwrap();
+        writeln!(
+            out,
+            "        // The selection or the spec's shape moved — regenerate."
+        )
+        .unwrap();
         writeln!(
             out,
             "        Err(foundation_codegentools::CodegenError::Stale {{ .. }}) => {{"
@@ -811,7 +1076,7 @@ const BUILD_DEP: &str = "foundation_codegentools";
 /// Kept in step with this crate's own `version` — a generated manifest entry that
 /// names a version we do not publish would break `cargo package` for every
 /// provider at once.
-const BUILD_DEP_VERSION: &str = "0.1.0";
+const BUILD_DEP_VERSION: &str = "0.1.3";
 
 /// `spec`, expressed relative to `crate_dir`.
 ///

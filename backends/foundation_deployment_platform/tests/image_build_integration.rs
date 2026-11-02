@@ -15,7 +15,7 @@
 //! - a failing Dockerfile is an error, not a silent success;
 //! - a missing tag is rejected up front.
 //!
-//! The BuildKit backend lives in `buildkit_backend` below and needs both the
+//! The `BuildKit` backend lives in `buildkit_backend` below and needs both the
 //! `buildkit` feature and a reachable `buildkitd` (it skips otherwise).
 //!
 //! Run: `cargo test -p foundation_deployment_platform --test
@@ -23,12 +23,9 @@
 
 use foundation_core::valtron::initialize_pool;
 use foundation_deployment_platform::docker::{
-    ContainerConfig, ContainerHandle, DockerClient, DockerError, DockerFileConfig,
+    ContainerConfig, ContainerHandle, DockerClient, DockerFileConfig,
 };
-
-fn docker_available() -> bool {
-    std::path::Path::new("/var/run/docker.sock").exists()
-}
+use foundation_deployment_platform::testing::docker_available;
 
 /// Unique-ish tag so parallel runs never collide on a daemon-global image name.
 fn tag(name: &str) -> String {
@@ -44,11 +41,12 @@ async fn remove_image(t: &str) {
 #[test]
 #[ignore = "requires Docker daemon running"]
 fn builds_an_inline_dockerfile_into_a_runnable_image() {
+    // A valtron pool must be live before the docker_available ping.
+    let _pool = initialize_pool(54, Some(4));
     if !docker_available() {
         eprintln!("SKIP: Docker not available");
         return;
     }
-    let _pool = initialize_pool(54, Some(4));
 
     foundation_core::valtron::block_on_future(async {
         let t = tag("inline");
@@ -63,16 +61,17 @@ fn builds_an_inline_dockerfile_into_a_runnable_image() {
         .expect("inline build should succeed");
 
         assert_eq!(built.image_tag, t);
-        assert!(!built.sha256.is_empty(), "a built image should report a digest");
+        assert!(
+            !built.sha256.is_empty(),
+            "a built image should report a digest"
+        );
         assert!(!built.was_cached, "the first build is not a cache hit");
 
         // The real proof: dockerd can run what we built, and the file we RUN-created
         // is in the image.
-        let handle = ContainerHandle::start_async(
-            ContainerConfig::new(&t).stop_timeout_secs(2),
-        )
-        .await
-        .expect("the built image should run");
+        let handle = ContainerHandle::start_async(ContainerConfig::new(&t).stop_timeout_secs(2))
+            .await
+            .expect("the built image should run");
         let logs = handle.wait_for_exit_async().await.expect("logs");
         assert!(
             logs.contains("built-natively"),
@@ -87,7 +86,10 @@ fn builds_an_inline_dockerfile_into_a_runnable_image() {
             .await
             .expect("second build_once should succeed");
         assert!(again.was_cached, "an existing tag must not be rebuilt");
-        assert_eq!(again.sha256, built.sha256, "the cached digest is the built one");
+        assert_eq!(
+            again.sha256, built.sha256,
+            "the cached digest is the built one"
+        );
 
         remove_image(&t).await;
     });
@@ -96,11 +98,12 @@ fn builds_an_inline_dockerfile_into_a_runnable_image() {
 #[test]
 #[ignore = "requires Docker daemon running"]
 fn build_context_files_are_uploaded_and_build_args_apply() {
+    // A valtron pool must be live before the docker_available ping.
+    let _pool = initialize_pool(54, Some(4));
     if !docker_available() {
         eprintln!("SKIP: Docker not available");
         return;
     }
-    let _pool = initialize_pool(54, Some(4));
 
     // A context on disk, with a file the Dockerfile COPYs.
     let dir = std::env::temp_dir().join(format!("ewe-f04-ctx-{}", std::process::id()));
@@ -127,11 +130,9 @@ fn build_context_files_are_uploaded_and_build_args_apply() {
         .await
         .expect("context build should succeed");
 
-        let handle = ContainerHandle::start_async(
-            ContainerConfig::new(&t).stop_timeout_secs(2),
-        )
-        .await
-        .expect("the built image should run");
+        let handle = ContainerHandle::start_async(ContainerConfig::new(&t).stop_timeout_secs(2))
+            .await
+            .expect("the built image should run");
         let logs = handle.wait_for_exit_async().await.expect("logs");
 
         assert!(
@@ -153,11 +154,12 @@ fn build_context_files_are_uploaded_and_build_args_apply() {
 #[test]
 #[ignore = "requires Docker daemon running"]
 fn a_failing_dockerfile_is_reported_as_an_error() {
+    // A valtron pool must be live before the docker_available ping.
+    let _pool = initialize_pool(54, Some(4));
     if !docker_available() {
         eprintln!("SKIP: Docker not available");
         return;
     }
-    let _pool = initialize_pool(54, Some(4));
 
     foundation_core::valtron::block_on_future(async {
         let t = tag("failing");
@@ -216,8 +218,8 @@ mod buildkit_backend {
     use foundation_deployment_platform::docker::BuildBackend;
 
     fn buildkitd_addr() -> Option<String> {
-        let addr = std::env::var("EWE_BUILDKITD_ADDR")
-            .unwrap_or_else(|_| "127.0.0.1:13434".to_string());
+        let addr =
+            std::env::var("EWE_BUILDKITD_ADDR").unwrap_or_else(|_| "127.0.0.1:13434".to_string());
         match std::net::TcpStream::connect(&addr) {
             Ok(_) => Some(addr),
             Err(_) => {
@@ -236,14 +238,13 @@ mod buildkit_backend {
         foundation_core::valtron::block_on_future(async move {
             let t = tag("buildkit");
 
-            let built = DockerFileConfig::new(
-                "FROM alpine:3\nRUN echo built-by-buildkit > /marker\n",
-            )
-            .tag(&t)
-            .backend(BuildBackend::BuildKit(addr))
-            .build_once()
-            .await
-            .expect("buildkit solve should succeed");
+            let built =
+                DockerFileConfig::new("FROM alpine:3\nRUN echo built-by-buildkit > /marker\n")
+                    .tag(&t)
+                    .backend(BuildBackend::BuildKit(addr))
+                    .build_once()
+                    .await
+                    .expect("buildkit solve should succeed");
 
             assert_eq!(built.image_tag, t);
             assert!(

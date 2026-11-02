@@ -19,10 +19,10 @@ use std::time::Duration;
 
 use futures::Stream;
 
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
@@ -76,8 +76,11 @@ fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind loopback");
     let addr = listener.local_addr().expect("local addr");
-    let server =
-        HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
 
     let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
@@ -91,11 +94,15 @@ fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
 async fn main() {
     let (addr, shutdown) = start_server();
 
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
+    let transport: Arc<dyn Transport> =
+        Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
     let base_url = format!("http://127.0.0.1:{}", addr.port());
-    let client =
-        TickServiceClient::new(transport, &base_url, ClientOptions::new().with_codec("json"))
-            .expect("build client");
+    let client = TickServiceClient::new(
+        transport,
+        &base_url,
+        ClientOptions::new().with_codec("json"),
+    )
+    .expect("build client");
 
     let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
     let mut stream = client
@@ -111,7 +118,10 @@ async fn main() {
 
     assert_eq!(ticks.len(), 3);
     assert_eq!(ticks[2].seq, 2);
-    println!("code-first server-streaming round-trip verified ✓ ({} ticks)", ticks.len());
+    println!(
+        "code-first server-streaming round-trip verified ✓ ({} ticks)",
+        ticks.len()
+    );
 
     shutdown.turn_on();
 }

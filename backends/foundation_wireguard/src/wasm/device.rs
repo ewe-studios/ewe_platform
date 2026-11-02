@@ -25,7 +25,11 @@ pub struct JsDevice {
 impl JsDevice {
     #[must_use]
     pub fn new(mtu: usize) -> Self {
-        Self { mtu, rx: VecDeque::new(), tx: VecDeque::new() }
+        Self {
+            mtu,
+            rx: VecDeque::new(),
+            tx: VecDeque::new(),
+        }
     }
 
     /// Push a decrypted inbound IP packet from the relay → smoltcp.
@@ -39,12 +43,16 @@ impl JsDevice {
     }
 
     #[must_use]
-    pub fn mtu(&self) -> usize { self.mtu }
+    pub fn mtu(&self) -> usize {
+        self.mtu
+    }
 }
 
 // ── smoltcp phy::Device impl (matches TunnDevice pattern in nativeapis) ──
 
-pub struct RxToken { buffer: Vec<u8> }
+pub struct RxToken {
+    buffer: Vec<u8>,
+}
 
 impl smoltcp::phy::RxToken for RxToken {
     fn consume<R, F>(self, f: F) -> R

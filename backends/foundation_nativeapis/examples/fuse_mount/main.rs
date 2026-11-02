@@ -6,18 +6,18 @@
 ///
 /// Requires: Linux with FUSE support, and the user must be in the `fuse` group
 /// or the system must allow unprivileged FUSE mounts.
-
 use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_nativeapis::shared::vfs::memory_delta::MemoryDelta;
 use foundation_nativeapis::shared::vfs::memory_fs::MemoryFs;
 use foundation_nativeapis::shared::vfs::overlay_fs::OverlayFileSystem;
 #[cfg(feature = "vfs-fuse")]
 use foundation_nativeapis::shared::vfs::SyncFs;
-use foundation_nativeapis::shared::vfs::memory_delta::MemoryDelta;
+use foundation_nativeapis::VfsFileSystem;
 
 #[cfg(feature = "vfs-fuse")]
-use foundation_nativeapis::native::vfs::fuse::FuseMount;
+use foundation_nativeapis::native::vfs::fuse::{FuseMount, FuseMountOptions};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== FUSE Mount Example ===\n");
@@ -41,7 +41,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(feature = "vfs-fuse")]
     {
-        let mount_point = std::env::args().nth(1).unwrap_or_else(|| "/tmp/vfs-fuse".to_string());
+        let mount_point = std::env::args()
+            .nth(1)
+            .unwrap_or_else(|| "/tmp/vfs-fuse".to_string());
         std::fs::create_dir_all(&mount_point).ok();
 
         println!("Mount point: {}", mount_point);
@@ -49,7 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // FUSE calls the file system synchronously, so the async overlay goes
         // in through `SyncFs`.
-        let fuse = FuseMount::new(SyncFs::new(overlay));
+        let fuse = FuseMount::new(SyncFs::new(overlay), FuseMountOptions::default());
         // In a real scenario this would block until unmount:
         // fuse.mount(&mount_point)?;
         println!("FUSE mount would start here. Full implementation requires:");

@@ -2,10 +2,10 @@
 //!
 //! Provides consistent error response rendering for debug/release modes.
 
-use foundation_netio::shared::http::{
-    Http11, RenderHttp, SimpleHeader, SimpleOutgoingResponse, SendSafeBody, Status,
-};
 use foundation_errstacks::ErrorTrace;
+use foundation_netio::shared::http::{
+    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleOutgoingResponse, Status,
+};
 
 use crate::shared::serve::ServeError;
 
@@ -22,8 +22,10 @@ pub fn handle_close(
 
     let serve_error = err.downcast_ref::<ServeError>();
     let (status, reason) = match serve_error {
-        Some(ServeError::BadRequest { status, reason } | ServeError::InternalError {
-status, reason }) => (*status, reason.clone()),
+        Some(
+            ServeError::BadRequest { status, reason }
+            | ServeError::InternalError { status, reason },
+        ) => (*status, reason.clone()),
         None => (500, format!("{err}")),
     };
 

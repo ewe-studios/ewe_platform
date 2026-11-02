@@ -201,7 +201,7 @@ gguf_model!(
     "GLM 5.2 ships an MTP head — MTP speculative decoding is supported."
 );
 
-/// Qwen 3.6 35B-A3B - Alibaba's MoE model with excellent reasoning.
+/// Qwen 3.6 35B-A3B - Alibaba's `MoE` model with excellent reasoning.
 #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Qwen36;
 
@@ -237,7 +237,7 @@ gguf_model!(
     "Gemma 4 ships an MTP head — MTP speculative decoding is supported."
 );
 
-/// Gemma 4 26B-A4B - Google's MoE model.
+/// Gemma 4 26B-A4B - Google's `MoE` model.
 #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub struct Gemma4_26b;
 
@@ -285,9 +285,9 @@ gguf_model!(
 pub const CLAUDE_OPUS: &str = "claude-opus-4-8";
 /// Claude Sonnet 4.6 — fast + cheap, a good cloud memory/reflection model.
 pub const CLAUDE_SONNET: &str = "claude-sonnet-4-6";
-/// OpenAI GPT-4o — the default "main" OpenAI model.
+/// `OpenAI` GPT-4o — the default "main" `OpenAI` model.
 pub const OPENAI_GPT4O: &str = "gpt-4o";
-/// OpenAI GPT-4o-mini — fast + cheap, a good OpenAI memory/reflection model.
+/// `OpenAI` GPT-4o-mini — fast + cheap, a good `OpenAI` memory/reflection model.
 pub const OPENAI_GPT4O_MINI: &str = "gpt-4o-mini";
 
 /// Cloud provider presets - pre-configured providers for cloud models.
@@ -308,17 +308,17 @@ impl CloudPresets {
         Ok(AnthropicMessagesProvider::api_key(api_key))
     }
 
-    /// Create an OpenAI GPT-4 provider (Chat Completions API).
+    /// Create an `OpenAI` GPT-4 provider (Chat Completions API).
     pub fn openai_gpt4(api_key: &str) -> Result<OpenAIProvider, ErrorTrace<AgenticError>> {
         Ok(OpenAIProvider::api_key(api_key))
     }
 
-    /// Create an OpenAI GPT-4o provider (Chat Completions API).
+    /// Create an `OpenAI` GPT-4o provider (Chat Completions API).
     pub fn openai_gpt4o(api_key: &str) -> Result<OpenAIProvider, ErrorTrace<AgenticError>> {
         Ok(OpenAIProvider::api_key(api_key))
     }
 
-    /// Create an OpenAI provider that speaks the **Responses API** (rather than
+    /// Create an `OpenAI` provider that speaks the **Responses API** (rather than
     /// Chat Completions). Use this for the newer `/v1/responses` surface.
     pub fn openai_responses(api_key: &str) -> Result<ResponsesProvider, ErrorTrace<AgenticError>> {
         Ok(ResponsesProvider::api_key(api_key))

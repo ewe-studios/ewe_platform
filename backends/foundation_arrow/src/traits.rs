@@ -101,72 +101,104 @@ pub trait ArrowValue<T> {
 impl ArrowValue<u8> for ArrayRef {
     fn arrow_value(&self, idx: usize) -> Option<u8> {
         use arrow_array::UInt8Array;
-        self.as_any()
-            .downcast_ref::<UInt8Array>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+        self.as_any().downcast_ref::<UInt8Array>().and_then(|arr| {
+            if arr.is_null(idx) {
+                None
+            } else {
+                Some(arr.value(idx))
+            }
+        })
     }
 }
 
 impl ArrowValue<u16> for ArrayRef {
     fn arrow_value(&self, idx: usize) -> Option<u16> {
         use arrow_array::UInt16Array;
-        self.as_any()
-            .downcast_ref::<UInt16Array>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+        self.as_any().downcast_ref::<UInt16Array>().and_then(|arr| {
+            if arr.is_null(idx) {
+                None
+            } else {
+                Some(arr.value(idx))
+            }
+        })
     }
 }
 
 impl ArrowValue<u32> for ArrayRef {
     fn arrow_value(&self, idx: usize) -> Option<u32> {
         use arrow_array::UInt32Array;
-        self.as_any()
-            .downcast_ref::<UInt32Array>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+        self.as_any().downcast_ref::<UInt32Array>().and_then(|arr| {
+            if arr.is_null(idx) {
+                None
+            } else {
+                Some(arr.value(idx))
+            }
+        })
     }
 }
 
 impl ArrowValue<u64> for ArrayRef {
     fn arrow_value(&self, idx: usize) -> Option<u64> {
         use arrow_array::UInt64Array;
-        self.as_any()
-            .downcast_ref::<UInt64Array>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+        self.as_any().downcast_ref::<UInt64Array>().and_then(|arr| {
+            if arr.is_null(idx) {
+                None
+            } else {
+                Some(arr.value(idx))
+            }
+        })
     }
 }
 
 impl ArrowValue<i8> for ArrayRef {
     fn arrow_value(&self, idx: usize) -> Option<i8> {
         use arrow_array::Int8Array;
-        self.as_any()
-            .downcast_ref::<Int8Array>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+        self.as_any().downcast_ref::<Int8Array>().and_then(|arr| {
+            if arr.is_null(idx) {
+                None
+            } else {
+                Some(arr.value(idx))
+            }
+        })
     }
 }
 
 impl ArrowValue<i16> for ArrayRef {
     fn arrow_value(&self, idx: usize) -> Option<i16> {
         use arrow_array::Int16Array;
-        self.as_any()
-            .downcast_ref::<Int16Array>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+        self.as_any().downcast_ref::<Int16Array>().and_then(|arr| {
+            if arr.is_null(idx) {
+                None
+            } else {
+                Some(arr.value(idx))
+            }
+        })
     }
 }
 
 impl ArrowValue<i32> for ArrayRef {
     fn arrow_value(&self, idx: usize) -> Option<i32> {
         use arrow_array::Int32Array;
-        self.as_any()
-            .downcast_ref::<Int32Array>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+        self.as_any().downcast_ref::<Int32Array>().and_then(|arr| {
+            if arr.is_null(idx) {
+                None
+            } else {
+                Some(arr.value(idx))
+            }
+        })
     }
 }
 
 impl ArrowValue<i64> for ArrayRef {
     fn arrow_value(&self, idx: usize) -> Option<i64> {
         use arrow_array::Int64Array;
-        self.as_any()
-            .downcast_ref::<Int64Array>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+        self.as_any().downcast_ref::<Int64Array>().and_then(|arr| {
+            if arr.is_null(idx) {
+                None
+            } else {
+                Some(arr.value(idx))
+            }
+        })
     }
 }
 
@@ -175,7 +207,13 @@ impl ArrowValue<f32> for ArrayRef {
         use arrow_array::Float32Array;
         self.as_any()
             .downcast_ref::<Float32Array>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+            .and_then(|arr| {
+                if arr.is_null(idx) {
+                    None
+                } else {
+                    Some(arr.value(idx))
+                }
+            })
     }
 }
 
@@ -184,7 +222,13 @@ impl ArrowValue<f64> for ArrayRef {
         use arrow_array::Float64Array;
         self.as_any()
             .downcast_ref::<Float64Array>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+            .and_then(|arr| {
+                if arr.is_null(idx) {
+                    None
+                } else {
+                    Some(arr.value(idx))
+                }
+            })
     }
 }
 
@@ -193,25 +237,39 @@ impl ArrowValue<bool> for ArrayRef {
         use arrow_array::BooleanArray;
         self.as_any()
             .downcast_ref::<BooleanArray>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx)) })
+            .and_then(|arr| {
+                if arr.is_null(idx) {
+                    None
+                } else {
+                    Some(arr.value(idx))
+                }
+            })
     }
 }
 
 impl ArrowValue<String> for ArrayRef {
     fn arrow_value(&self, idx: usize) -> Option<String> {
         use arrow_array::StringArray;
-        self.as_any()
-            .downcast_ref::<StringArray>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx).to_string()) })
+        self.as_any().downcast_ref::<StringArray>().and_then(|arr| {
+            if arr.is_null(idx) {
+                None
+            } else {
+                Some(arr.value(idx).to_string())
+            }
+        })
     }
 }
 
 impl ArrowValue<Vec<u8>> for ArrayRef {
     fn arrow_value(&self, idx: usize) -> Option<Vec<u8>> {
         use arrow_array::BinaryArray;
-        self.as_any()
-            .downcast_ref::<BinaryArray>()
-            .and_then(|arr| if arr.is_null(idx) { None } else { Some(arr.value(idx).to_vec()) })
+        self.as_any().downcast_ref::<BinaryArray>().and_then(|arr| {
+            if arr.is_null(idx) {
+                None
+            } else {
+                Some(arr.value(idx).to_vec())
+            }
+        })
     }
 }
 
@@ -224,7 +282,10 @@ impl ArrowValue<std::time::SystemTime> for ArrayRef {
                 if arr.is_null(idx) {
                     None
                 } else {
-                    Some(std::time::UNIX_EPOCH + std::time::Duration::from_millis(arr.value(idx) as u64))
+                    Some(
+                        std::time::UNIX_EPOCH
+                            + std::time::Duration::from_millis(arr.value(idx) as u64),
+                    )
                 }
             })
     }

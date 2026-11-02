@@ -84,7 +84,9 @@ mod rustls_tests {
 
         let server = std::thread::spawn(move || {
             let (socket, _) = listener.accept().expect("accept");
-            let mut tls = acceptor.accept(Connection::Tcp(socket)).expect("tls accept");
+            let mut tls = acceptor
+                .accept(Connection::Tcp(socket))
+                .expect("tls accept");
             let mut buf = [0u8; 8192];
             let n = tls.read(&mut buf).expect("server read");
             assert!(n > 0, "server read no request bytes");
@@ -106,7 +108,10 @@ mod rustls_tests {
         tls_stream.flush().expect("flush request");
 
         let response = read_http_response(&mut tls_stream);
-        assert!(response.contains("HTTP/1.1"), "expected HTTP response: {response}");
+        assert!(
+            response.contains("HTTP/1.1"),
+            "expected HTTP response: {response}"
+        );
 
         server.join().expect("server thread");
     }
@@ -144,12 +149,8 @@ mod feature_tests {
 
     #[test]
     fn test_feature_mutual_exclusivity_documented() {
-        // This test documents that feature conflicts are checked at compile time
-        // The actual checks are in src/netcap/ssl/mod.rs via compile_error! macros
-        assert!(
-            true,
-            "Feature conflicts are enforced via compile_error! in mod.rs"
-        );
+        // This test documents that feature conflicts are checked at compile time.
+        // The actual checks are in src/netcap/ssl/mod.rs via compile_error! macros.
     }
 
     #[test]

@@ -12,20 +12,21 @@
 //!   - `D1Store::new_state()` — `StateStore` (table: `{project}_{stage}_resources`)
 
 use base64::{engine::general_purpose::STANDARD, Engine};
+use foundation_cloudflare_types::D1QueryDatabaseResponse;
 use foundation_netio::shared::client::body_reader::collect_string_async;
-use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::shared::http::{SimpleHeader, Status};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use futures_lite::{stream, StreamExt};
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::core::rate_limit;
+use crate::core::crypto::ZeroizingString;
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::rate_limit;
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{status_column_value, ResourceState, StateStatus};
-use crate::core::crypto::ZeroizingString;
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, AsyncQueryStream, QueryStore,
-    RateLimiterStore, DataValue, SqlRow,
+    AsyncListStream, AsyncQueryStream, BlobListStream, BlobStore, DataValue, KeyValueStore,
+    QueryStore, RateLimiterStore, SqlRow,
 };
 
 /// Default Cloudflare API base. Tests override via `D1Store::with_base_url`.
@@ -58,6 +59,19 @@ fn escape_like(s: &str) -> String {
     s.replace('%', "\\%").replace('_', "\\_")
 }
 
+/// Convert one [`DataValue`] into the JSON parameter shape the D1 REST API
+/// expects.
+fn data_value_to_json(value: &DataValue) -> serde_json::Value {
+    match value {
+        DataValue::Null => serde_json::Value::Null,
+        DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
+        DataValue::Real(f) => serde_json::Number::from_f64(*f)
+            .map_or(serde_json::Value::Null, serde_json::Value::Number),
+        DataValue::Text(s) => serde_json::Value::String(s.clone()),
+        DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
+    }
+}
+
 // ---- State mode row parsing ----
 
 fn parse_d1_row(row: &serde_json::Value) -> Result<ResourceState, StorageError> {
@@ -71,7 +85,10 @@ fn parse_d1_row(row: &serde_json::Value) -> Result<ResourceState, StorageError> 
     let kind = get_str("kind")?;
     let provider = get_str("provider")?;
     let status_str = get_str("status")?;
-    let environment = row.get("environment").and_then(serde_json::Value::as_str).map(String::from);
+    let environment = row
+        .get("environment")
+        .and_then(serde_json::Value::as_str)
+        .map(String::from);
     let config_hash = get_str("config_hash")?;
     let output_str = get_str("output")?;
     let snapshot_str = get_str("config_snapshot")?;
@@ -89,19 +106,38 @@ fn parse_d1_row(row: &serde_json::Value) -> Result<ResourceState, StorageError> 
     let updated_at = chrono::DateTime::parse_from_rfc3339(&updated_str)
         .map(|dt| dt.with_timezone(&chrono::Utc))
         .map_err(|e| StorageError::Serialization(format!("updated_at parse: {e}")))?;
-    Ok(ResourceState { id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at })
+    Ok(ResourceState {
+        id,
+        kind,
+        provider,
+        status,
+        environment,
+        config_hash,
+        output,
+        config_snapshot,
+        created_at,
+        updated_at,
+    })
 }
 
 fn state_to_params(state: &ResourceState) -> Result<Vec<serde_json::Value>, StorageError> {
-    let status_json = serde_json::to_string(&state.status).map_err(|e| StorageError::Serialization(e.to_string()))?;
-    let output_json = serde_json::to_string(&state.output).map_err(|e| StorageError::Serialization(e.to_string()))?;
-    let snapshot_json = serde_json::to_string(&state.config_snapshot).map_err(|e| StorageError::Serialization(e.to_string()))?;
+    let status_json = serde_json::to_string(&state.status)
+        .map_err(|e| StorageError::Serialization(e.to_string()))?;
+    let output_json = serde_json::to_string(&state.output)
+        .map_err(|e| StorageError::Serialization(e.to_string()))?;
+    let snapshot_json = serde_json::to_string(&state.config_snapshot)
+        .map_err(|e| StorageError::Serialization(e.to_string()))?;
     Ok(vec![
         serde_json::Value::String(state.id.clone()),
         serde_json::Value::String(state.kind.clone()),
         serde_json::Value::String(state.provider.clone()),
         serde_json::Value::String(status_json),
-        state.environment.as_ref().map_or(serde_json::Value::Null, |e| serde_json::Value::String(e.clone())),
+        state
+            .environment
+            .as_ref()
+            .map_or(serde_json::Value::Null, |e| {
+                serde_json::Value::String(e.clone())
+            }),
         serde_json::Value::String(state.config_hash.clone()),
         serde_json::Value::String(output_json),
         serde_json::Value::String(snapshot_json),
@@ -137,14 +173,29 @@ impl D1Store {
 
     /// KV/query/rate-limit/blob store at production Cloudflare API.
     #[must_use]
-    pub fn new_kv(api_token: &str, account_id: &str, database_id: &str, table_prefix: &str) -> Self {
-        Self::new_kv_with_base_url(api_token, account_id, database_id, table_prefix, CF_API_BASE)
+    pub fn new_kv(
+        api_token: &str,
+        account_id: &str,
+        database_id: &str,
+        table_prefix: &str,
+    ) -> Self {
+        Self::new_kv_with_base_url(
+            api_token,
+            account_id,
+            database_id,
+            table_prefix,
+            CF_API_BASE,
+        )
     }
 
     /// KV store with custom base URL (for tests).
     #[must_use]
     pub fn new_kv_with_base_url(
-        api_token: &str, account_id: &str, database_id: &str, table_prefix: &str, base_url: &str,
+        api_token: &str,
+        account_id: &str,
+        database_id: &str,
+        table_prefix: &str,
+        base_url: &str,
     ) -> Self {
         Self {
             api_token: ZeroizingString::from_string(api_token.to_string()),
@@ -152,7 +203,9 @@ impl D1Store {
             database_id: database_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
             client: HttpClientBuilder::new().build(),
-            mode: D1Mode::KeyValue { kv_table: format!("{table_prefix}_kv") },
+            mode: D1Mode::KeyValue {
+                kv_table: format!("{table_prefix}_kv"),
+            },
         }
     }
 
@@ -180,14 +233,32 @@ impl D1Store {
 
     /// `StateStore` at production Cloudflare API.
     #[must_use]
-    pub fn new_state(api_token: &str, account_id: &str, database_id: &str, project: &str, stage: &str) -> Self {
-        Self::new_state_with_base_url(api_token, account_id, database_id, project, stage, CF_API_BASE)
+    pub fn new_state(
+        api_token: &str,
+        account_id: &str,
+        database_id: &str,
+        project: &str,
+        stage: &str,
+    ) -> Self {
+        Self::new_state_with_base_url(
+            api_token,
+            account_id,
+            database_id,
+            project,
+            stage,
+            CF_API_BASE,
+        )
     }
 
     /// `StateStore` with custom base URL (for tests).
     #[must_use]
     pub fn new_state_with_base_url(
-        api_token: &str, account_id: &str, database_id: &str, project: &str, stage: &str, base_url: &str,
+        api_token: &str,
+        account_id: &str,
+        database_id: &str,
+        project: &str,
+        stage: &str,
+        base_url: &str,
     ) -> Self {
         let state_table = format!(
             "{}_{}_resources",
@@ -226,7 +297,10 @@ impl D1Store {
     // ========== Shared helpers ==========
 
     fn query_url(&self) -> String {
-        format!("{}/accounts/{}/d1/database/{}/query", self.base_url, self.account_id, self.database_id)
+        format!(
+            "{}/accounts/{}/d1/database/{}/query",
+            self.base_url, self.account_id, self.database_id
+        )
     }
 
     fn auth_header(&self) -> String {
@@ -235,7 +309,11 @@ impl D1Store {
 
     /// Run a SQL statement through the D1 HTTP API (`send_async`, no
     /// blocking) and return the parsed JSON response.
-    async fn execute_sql_async(&self, sql: &str, params: &[serde_json::Value]) -> Result<serde_json::Value, StorageError> {
+    async fn execute_sql_async(
+        &self,
+        sql: &str,
+        params: &[serde_json::Value],
+    ) -> Result<D1QueryDatabaseResponse, StorageError> {
         let body = serde_json::json!({ "sql": sql, "params": params });
         let response = self
             .client
@@ -251,7 +329,10 @@ impl D1Store {
             .map_err(|e| StorageError::Backend(format!("D1 request failed: {e}")))?;
 
         if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("D1 query failed with status {}", response.get_status())));
+            return Err(StorageError::Backend(format!(
+                "D1 query failed with status {}",
+                response.get_status()
+            )));
         }
 
         let (_, _, body) = response.into_async_parts();
@@ -259,15 +340,15 @@ impl D1Store {
             .await
             .map_err(|e| StorageError::Backend(format!("D1 body read failed: {e}")))?;
 
-        serde_json::from_str(&text)
+        serde_json::from_str::<D1QueryDatabaseResponse>(&text)
             .map_err(|e| StorageError::Serialization(format!("D1 response parse failed: {e}")))
     }
 
-    fn extract_rows(response: &serde_json::Value) -> Vec<serde_json::Value> {
+    fn extract_rows(response: &D1QueryDatabaseResponse) -> Vec<serde_json::Value> {
         response
-            .pointer("/result/0/results")
-            .and_then(serde_json::Value::as_array)
-            .cloned()
+            .result
+            .first()
+            .and_then(|statement| statement.results.clone())
             .unwrap_or_default()
     }
 
@@ -287,11 +368,11 @@ impl D1Store {
 
     /// The D1 API returns a query's rows in one JSON body; stream them,
     /// decoding each row as it is pulled.
-    fn state_rows(response: &serde_json::Value) -> StateStoreStream<ResourceState> {
+    fn state_rows(response: &D1QueryDatabaseResponse) -> StateStoreStream<ResourceState> {
         Box::pin(stream::iter(Self::extract_rows(response)).map(|row| parse_d1_row(&row)))
     }
 
-    fn id_rows(response: &serde_json::Value) -> StateStoreStream<String> {
+    fn id_rows(response: &D1QueryDatabaseResponse) -> StateStoreStream<String> {
         Box::pin(stream::iter(Self::extract_rows(response)).map(|row| {
             row.get("id")
                 .and_then(serde_json::Value::as_str)
@@ -300,7 +381,7 @@ impl D1Store {
         }))
     }
 
-    fn count_row(response: &serde_json::Value) -> StorageResult<usize> {
+    fn count_row(response: &D1QueryDatabaseResponse) -> StorageResult<usize> {
         let rows = Self::extract_rows(response);
         let Some(row) = rows.first() else {
             return Ok(0);
@@ -312,7 +393,11 @@ impl D1Store {
         usize::try_from(n).map_err(|e| StorageError::SqlConversion(format!("count: {e}")))
     }
 
-    async fn state_query(&self, sql: &str, params: &[serde_json::Value]) -> StorageResult<StateStoreStream<ResourceState>> {
+    async fn state_query(
+        &self,
+        sql: &str,
+        params: &[serde_json::Value],
+    ) -> StorageResult<StateStoreStream<ResourceState>> {
         let response = self.execute_sql_async(sql, params).await?;
         Ok(Self::state_rows(&response))
     }
@@ -342,7 +427,11 @@ impl D1Store {
 impl StateStore for D1Store {
     async fn init(&self) -> StorageResult<()> {
         let table = self.state_table();
-        let sql = format!("{};\n{}", state_create_table_sql(table), state_create_indexes_sql(table));
+        let sql = format!(
+            "{};\n{}",
+            state_create_table_sql(table),
+            state_create_indexes_sql(table)
+        );
         self.execute_sql_async(&sql, &[]).await?;
         Ok(())
     }
@@ -358,11 +447,17 @@ impl StateStore for D1Store {
     }
 
     async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>> {
-        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} WHERE id = ?", self.state_table());
+        let sql = format!(
+            "SELECT {D1_STATE_COLUMNS} FROM {} WHERE id = ?",
+            self.state_table()
+        );
         let response = self
             .execute_sql_async(&sql, &[serde_json::Value::String(resource_id.to_string())])
             .await?;
-        Self::extract_rows(&response).first().map(parse_d1_row).transpose()
+        Self::extract_rows(&response)
+            .first()
+            .map(parse_d1_row)
+            .transpose()
     }
 
     async fn get_batch(&self, ids: &[&str]) -> StorageResult<StateStoreStream<ResourceState>> {
@@ -370,20 +465,30 @@ impl StateStore for D1Store {
             return Ok(Box::pin(stream::empty()));
         }
         let placeholders = vec!["?"; ids.len()].join(",");
-        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} WHERE id IN ({placeholders})", self.state_table());
-        let params: Vec<serde_json::Value> =
-            ids.iter().map(|id| serde_json::Value::String((*id).to_string())).collect();
+        let sql = format!(
+            "SELECT {D1_STATE_COLUMNS} FROM {} WHERE id IN ({placeholders})",
+            self.state_table()
+        );
+        let params: Vec<serde_json::Value> = ids
+            .iter()
+            .map(|id| serde_json::Value::String((*id).to_string()))
+            .collect();
         self.state_query(&sql, &params).await
     }
 
     async fn all(&self) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} ORDER BY id", self.state_table());
+        let sql = format!(
+            "SELECT {D1_STATE_COLUMNS} FROM {} ORDER BY id",
+            self.state_table()
+        );
         self.state_query(&sql, &[]).await
     }
 
-    async fn set(&self, _resource_id: &str, state: &ResourceState) -> StorageResult<()> {
-        let params = state_to_params(state)?;
-        self.execute_sql_async(&state_upsert_sql(self.state_table()), &params).await?;
+    async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
+        let state = state.with_id(resource_id);
+        let params = state_to_params(&state)?;
+        self.execute_sql_async(&state_upsert_sql(self.state_table()), &params)
+            .await?;
         Ok(())
     }
 
@@ -395,7 +500,10 @@ impl StateStore for D1Store {
     }
 
     async fn list_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<String>> {
-        let sql = format!("SELECT id FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id", self.state_table());
+        let sql = format!(
+            "SELECT id FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id",
+            self.state_table()
+        );
         let response = self
             .execute_sql_async(&sql, &[serde_json::Value::String(escape_like(prefix))])
             .await?;
@@ -403,7 +511,10 @@ impl StateStore for D1Store {
     }
 
     async fn count_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
-        let sql = format!("SELECT COUNT(*) as cnt FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'", self.state_table());
+        let sql = format!(
+            "SELECT COUNT(*) as cnt FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'",
+            self.state_table()
+        );
         let response = self
             .execute_sql_async(&sql, &[serde_json::Value::String(escape_like(prefix))])
             .await?;
@@ -415,35 +526,58 @@ impl StateStore for D1Store {
             "SELECT {D1_STATE_COLUMNS} FROM {} WHERE id LIKE ?||'%' ESCAPE '\\' ORDER BY id",
             self.state_table()
         );
-        self.state_query(&sql, &[serde_json::Value::String(escape_like(prefix))]).await
+        self.state_query(&sql, &[serde_json::Value::String(escape_like(prefix))])
+            .await
     }
 
     async fn find_by_kind(&self, kind: &str) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} WHERE kind = ? ORDER BY id", self.state_table());
-        self.state_query(&sql, &[serde_json::Value::String(kind.to_string())]).await
+        let sql = format!(
+            "SELECT {D1_STATE_COLUMNS} FROM {} WHERE kind = ? ORDER BY id",
+            self.state_table()
+        );
+        self.state_query(&sql, &[serde_json::Value::String(kind.to_string())])
+            .await
     }
 
     async fn find_by_status(&self, status: &str) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} WHERE status = ? ORDER BY id", self.state_table());
-        let status = status_column_value(status).map_err(|e| StorageError::Serialization(e.to_string()))?;
-        self.state_query(&sql, &[serde_json::Value::String(status)]).await
+        let sql = format!(
+            "SELECT {D1_STATE_COLUMNS} FROM {} WHERE status = ? ORDER BY id",
+            self.state_table()
+        );
+        let status =
+            status_column_value(status).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.state_query(&sql, &[serde_json::Value::String(status)])
+            .await
     }
 
-    async fn find_by_provider(&self, provider: &str) -> StorageResult<StateStoreStream<ResourceState>> {
-        let sql = format!("SELECT {D1_STATE_COLUMNS} FROM {} WHERE provider = ? ORDER BY id", self.state_table());
-        self.state_query(&sql, &[serde_json::Value::String(provider.to_string())]).await
+    async fn find_by_provider(
+        &self,
+        provider: &str,
+    ) -> StorageResult<StateStoreStream<ResourceState>> {
+        let sql = format!(
+            "SELECT {D1_STATE_COLUMNS} FROM {} WHERE provider = ? ORDER BY id",
+            self.state_table()
+        );
+        self.state_query(&sql, &[serde_json::Value::String(provider.to_string())])
+            .await
     }
 
     async fn delete_by_prefix(&self, prefix: &str) -> StorageResult<usize> {
-        let sql = format!("DELETE FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'", self.state_table());
+        let sql = format!(
+            "DELETE FROM {} WHERE id LIKE ?||'%' ESCAPE '\\'",
+            self.state_table()
+        );
         let response = self
             .execute_sql_async(&sql, &[serde_json::Value::String(escape_like(prefix))])
             .await?;
         let n = response
-            .pointer("/result/0/meta/rows_written")
-            .and_then(serde_json::Value::as_u64)
+            .result
+            .first()
+            .and_then(|statement| statement.meta.as_ref())
+            .and_then(|meta| meta.rows_written)
             .ok_or_else(|| StorageError::SqlConversion("missing rows_written".to_string()))?;
-        usize::try_from(n).map_err(|e| StorageError::SqlConversion(format!("rows_written: {e}")))
+        usize::try_from(n.unsigned_abs())
+            .map_err(|e| StorageError::SqlConversion(format!("rows_written: {e}")))
     }
 }
 
@@ -457,48 +591,69 @@ const D1_STATE_COLUMNS: &str =
 
 #[async_trait::async_trait]
 impl KeyValueStore for D1Store {
-    async fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
-        let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        let response = self
+            .execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())])
+            .await?;
         let rows = Self::extract_rows(&response);
         match rows.first() {
             Some(row) => {
-                let value: String = row.get("value").and_then(serde_json::Value::as_str).map(String::from)
-                    .ok_or_else(|| StorageError::SqlConversion("missing or invalid value field".to_string()))?;
-                Ok(Some(serde_json::from_str(&value).map_err(|e| StorageError::Serialization(e.to_string()))?))
+                let value: String = row
+                    .get("value")
+                    .and_then(serde_json::Value::as_str)
+                    .map(String::from)
+                    .ok_or_else(|| {
+                        StorageError::SqlConversion("missing or invalid value field".to_string())
+                    })?;
+                Ok(Some(
+                    serde_json::from_str(&value)
+                        .map_err(|e| StorageError::Serialization(e.to_string()))?,
+                ))
             }
             None => Ok(None),
         }
     }
 
     async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
-        let json_value = serde_json::to_string(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let json_value = serde_json::to_string(&value)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let sql = format!(
             "INSERT INTO {} (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
             self.kv_table()
         );
         let kv = serde_json::Value::String(key.to_string());
         let jv = serde_json::Value::String(json_value);
-        self.execute_sql_async(&sql, &[kv.clone(), jv.clone(), jv]).await?;
+        self.execute_sql_async(&sql, &[kv.clone(), jv.clone(), jv])
+            .await?;
         Ok(())
     }
 
     async fn delete(&self, key: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
-        self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())])
+            .await?;
         Ok(())
     }
 
     async fn exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
-        let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        let response = self
+            .execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())])
+            .await?;
         Ok(!Self::extract_rows(&response).is_empty())
     }
 
     async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         let (sql, params) = match prefix {
             Some(p) => (
-                format!("SELECT key FROM {} WHERE key LIKE ? ORDER BY key", self.kv_table()),
+                format!(
+                    "SELECT key FROM {} WHERE key LIKE ? ORDER BY key",
+                    self.kv_table()
+                ),
                 vec![serde_json::Value::String(format!("{p}%"))],
             ),
             None => (
@@ -509,60 +664,85 @@ impl KeyValueStore for D1Store {
         let response = self.execute_sql_async(&sql, &params).await?;
         let keys: Vec<String> = Self::extract_rows(&response)
             .iter()
-            .map(|row| row.get("key").and_then(serde_json::Value::as_str).map(String::from)
-                .ok_or_else(|| StorageError::SqlConversion("missing or invalid key field".to_string())))
+            .map(|row| {
+                row.get("key")
+                    .and_then(serde_json::Value::as_str)
+                    .map(String::from)
+                    .ok_or_else(|| {
+                        StorageError::SqlConversion("missing or invalid key field".to_string())
+                    })
+            })
             .collect::<Result<Vec<_>, _>>()?;
-        Ok(AsyncListStream::new(stream::iter(
-            keys.into_iter().map(Ok)
-        )))
+        Ok(AsyncListStream::new(stream::iter(keys.into_iter().map(Ok))))
     }
 }
 
 #[async_trait::async_trait]
 impl QueryStore for D1Store {
     async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
-        let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
-            DataValue::Null => serde_json::Value::Null,
-            DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
-            DataValue::Real(f) => serde_json::Number::from_f64(*f).map_or(serde_json::Value::Null, serde_json::Value::Number),
-            DataValue::Text(s) => serde_json::Value::String(s.clone()),
-            DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
-        }).collect();
+        let json_params: Vec<serde_json::Value> = params
+            .iter()
+            .map(|v| match v {
+                DataValue::Null => serde_json::Value::Null,
+                DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
+                DataValue::Real(f) => serde_json::Number::from_f64(*f)
+                    .map_or(serde_json::Value::Null, serde_json::Value::Number),
+                DataValue::Text(s) => serde_json::Value::String(s.clone()),
+                DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
+            })
+            .collect();
         let response = self.execute_sql_async(sql, &json_params).await?;
         let rows: Vec<SqlRow> = Self::extract_rows(&response)
             .iter()
             .map(|row| {
-                let obj = row.as_object().ok_or_else(|| StorageError::SqlConversion("row is not an object".to_string()))?;
-                let columns: Vec<(String, DataValue)> = obj.iter().map(|(k, v)| {
-                    let dv = match v {
-                        serde_json::Value::Number(n) => {
-                            if let Some(i) = n.as_i64() { DataValue::Integer(i) }
-                            else if let Some(f) = n.as_f64() { DataValue::Real(f) }
-                            else { DataValue::Null }
-                        }
-                        serde_json::Value::String(s) => DataValue::Text(s.clone()),
-                        _ => DataValue::Null,
-                    };
-                    (k.clone(), dv)
-                }).collect();
+                let obj = row.as_object().ok_or_else(|| {
+                    StorageError::SqlConversion("row is not an object".to_string())
+                })?;
+                let columns: Vec<(String, DataValue)> = obj
+                    .iter()
+                    .map(|(k, v)| {
+                        let dv = match v {
+                            serde_json::Value::Number(n) => {
+                                if let Some(i) = n.as_i64() {
+                                    DataValue::Integer(i)
+                                } else if let Some(f) = n.as_f64() {
+                                    DataValue::Real(f)
+                                } else {
+                                    DataValue::Null
+                                }
+                            }
+                            serde_json::Value::String(s) => DataValue::Text(s.clone()),
+                            _ => DataValue::Null,
+                        };
+                        (k.clone(), dv)
+                    })
+                    .collect();
                 Ok::<_, StorageError>(SqlRow::new(columns))
-            }).collect::<Result<Vec<_>, _>>()?;
+            })
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(AsyncQueryStream::new(stream::iter(
-            rows.into_iter().map(Ok)
+            rows.into_iter().map(Ok),
         )))
     }
 
     async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
-        let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
-            DataValue::Null => serde_json::Value::Null,
-            DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
-            DataValue::Real(f) => serde_json::Number::from_f64(*f).map_or(serde_json::Value::Null, serde_json::Value::Number),
-            DataValue::Text(s) => serde_json::Value::String(s.clone()),
-            DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
-        }).collect();
+        let json_params: Vec<serde_json::Value> = params
+            .iter()
+            .map(|v| match v {
+                DataValue::Null => serde_json::Value::Null,
+                DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
+                DataValue::Real(f) => serde_json::Number::from_f64(*f)
+                    .map_or(serde_json::Value::Null, serde_json::Value::Number),
+                DataValue::Text(s) => serde_json::Value::String(s.clone()),
+                DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
+            })
+            .collect();
         let response = self.execute_sql_async(sql, &json_params).await?;
-        let affected = response.pointer("/result/0/meta/changes")
-            .and_then(serde_json::Value::as_i64)
+        let affected = response
+            .result
+            .first()
+            .and_then(|statement| statement.meta.as_ref())
+            .and_then(|meta| meta.changes)
             .map_or(0, i64::unsigned_abs);
         Ok(affected)
     }
@@ -571,11 +751,44 @@ impl QueryStore for D1Store {
         self.execute_sql_async(sql, &[]).await?;
         Ok(())
     }
+
+    async fn execute_batch_statements(
+        &self,
+        statements: &[(String, Vec<DataValue>)],
+    ) -> StorageResult<()> {
+        // D1 runs all statements in one `/query` call; params bind positionally
+        // across the joined SQL. Any failed statement fails the whole batch.
+        let mut sql_parts = Vec::with_capacity(statements.len());
+        let mut all_params: Vec<serde_json::Value> = Vec::new();
+        for (sql, params) in statements {
+            sql_parts.push(sql.trim().trim_end_matches(';').to_string());
+            all_params.extend(params.iter().map(data_value_to_json));
+        }
+        let combined_sql = sql_parts.join("; ");
+        let response = self.execute_sql_async(&combined_sql, &all_params).await?;
+        let any_failed = !response.success
+            || !response.errors.is_empty()
+            || response
+                .result
+                .iter()
+                .any(|stmt| stmt.success != Some(true));
+        if any_failed {
+            return Err(StorageError::Backend(
+                "D1 batch: one or more statements failed".to_string(),
+            ));
+        }
+        Ok(())
+    }
 }
 
 #[async_trait::async_trait]
 impl RateLimiterStore for D1Store {
-    async fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
+    async fn check_rate_limit(
+        &self,
+        key: &str,
+        max_count: u32,
+        window_seconds: u64,
+    ) -> StorageResult<bool> {
         rate_limit::sql_check(self, key, max_count, window_seconds).await
     }
 
@@ -592,33 +805,51 @@ impl RateLimiterStore for D1Store {
 impl BlobStore for D1Store {
     async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = STANDARD.encode(data);
-        let json_value = serde_json::json!({ "type": "blob", "encoding": "base64", "data": encoded }).to_string();
+        let json_value =
+            serde_json::json!({ "type": "blob", "encoding": "base64", "data": encoded })
+                .to_string();
         let sql = format!(
             "INSERT INTO {} (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
             self.kv_table()
         );
         let kv = serde_json::Value::String(key.to_string());
         let jv = serde_json::Value::String(json_value);
-        self.execute_sql_async(&sql, &[kv.clone(), jv.clone(), jv]).await?;
+        self.execute_sql_async(&sql, &[kv.clone(), jv.clone(), jv])
+            .await?;
         Ok(())
     }
 
     async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
-        let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        let response = self
+            .execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())])
+            .await?;
         let rows = Self::extract_rows(&response);
         match rows.first() {
             Some(row) => {
-                let value: String = row.get("value").and_then(serde_json::Value::as_str).map(String::from)
-                    .ok_or_else(|| StorageError::SqlConversion("missing or invalid value field".to_string()))?;
+                let value: String = row
+                    .get("value")
+                    .and_then(serde_json::Value::as_str)
+                    .map(String::from)
+                    .ok_or_else(|| {
+                        StorageError::SqlConversion("missing or invalid value field".to_string())
+                    })?;
                 let wrapper: serde_json::Value = serde_json::from_str(&value)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
                 if wrapper.get("type").and_then(serde_json::Value::as_str) != Some("blob") {
                     return Ok(None);
                 }
-                let encoded = wrapper.get("data").and_then(serde_json::Value::as_str)
-                    .ok_or_else(|| StorageError::Serialization("missing data field in blob wrapper".to_string()))?;
-                Ok(Some(STANDARD.decode(encoded).map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))?))
+                let encoded = wrapper
+                    .get("data")
+                    .and_then(serde_json::Value::as_str)
+                    .ok_or_else(|| {
+                        StorageError::Serialization(
+                            "missing data field in blob wrapper".to_string(),
+                        )
+                    })?;
+                Ok(Some(STANDARD.decode(encoded).map_err(|e| {
+                    StorageError::Backend(format!("Base64 decode failed: {e}"))
+                })?))
             }
             None => Ok(None),
         }
@@ -626,13 +857,33 @@ impl BlobStore for D1Store {
 
     async fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
-        self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())])
+            .await?;
         Ok(())
     }
 
     async fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
-        let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
+        let response = self
+            .execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())])
+            .await?;
         Ok(!Self::extract_rows(&response).is_empty())
+    }
+
+    async fn list_blobs_after(
+        &self,
+        prefix: &str,
+        start_after: Option<&str>,
+        limit: Option<usize>,
+    ) -> StorageResult<BlobListStream> {
+        // `list_keys` matches with SQL `LIKE`; `%` and `_` in blob keys widen
+        // that match, so keep the literal prefix here. `list_keys` already
+        // sorts (`ORDER BY key`).
+        let mut keys = self.list_keys(Some(prefix)).await?.collect_all().await?;
+        keys.retain(|k| k.starts_with(prefix) && start_after.is_none_or(|s| k.as_str() > s));
+        if let Some(limit) = limit {
+            keys.truncate(limit);
+        }
+        Ok(Box::pin(stream::iter(keys.into_iter().map(Ok))))
     }
 }

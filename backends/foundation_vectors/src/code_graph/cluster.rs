@@ -62,7 +62,11 @@ fn build_undirected(graph: &petgraph::graph::DiGraph<GraphNode, GraphEdge>) -> V
     }
 
     for ((source, target), weight) in edge_map {
-        edges.push(UEdge { source, target, weight });
+        edges.push(UEdge {
+            source,
+            target,
+            weight,
+        });
     }
     edges
 }
@@ -73,10 +77,7 @@ fn total_weight(edges: &[UEdge]) -> f64 {
 }
 
 /// Build adjacency from undirected edges.
-fn build_adj(
-    edges: &[UEdge],
-    n: usize,
-) -> Vec<Vec<(usize, f64)>> {
+fn build_adj(edges: &[UEdge], n: usize) -> Vec<Vec<(usize, f64)>> {
     let mut adj = vec![Vec::new(); n];
     for e in edges {
         let s = e.source.index();
@@ -179,7 +180,8 @@ fn local_move(
             if comm == current_comm {
                 continue;
             }
-            let score = ki_in - resolution * comm_degrees.get(&comm).copied().unwrap_or(0.0) * ki / m;
+            let score =
+                ki_in - resolution * comm_degrees.get(&comm).copied().unwrap_or(0.0) * ki / m;
             if score > best_score {
                 best_score = score;
                 best_comm = comm;

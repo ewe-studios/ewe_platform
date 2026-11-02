@@ -19,7 +19,10 @@ fn main() {
     let app_ino = fs.inode("/projects/app.rs").unwrap();
     let lib_ino = fs.inode("/projects/lib.rs").unwrap();
     let dir_ino = fs.inode("/projects").unwrap();
-    println!("Inodes: /projects={}, app.rs={}, lib.rs={}", dir_ino, app_ino, lib_ino);
+    println!(
+        "Inodes: /projects={}, app.rs={}, lib.rs={}",
+        dir_ino, app_ino, lib_ino
+    );
     assert_ne!(app_ino, lib_ino);
 
     // Reverse lookup: inode → path
@@ -41,7 +44,12 @@ fn main() {
     fs.rename("/projects/app.rs", "/projects/main.rs").unwrap();
     let ino_after = fs.inode("/projects/main.rs").unwrap();
     println!("\nRename /projects/app.rs → /projects/main.rs");
-    println!("Inode before: {}, after: {} (preserved: {})", app_ino, ino_after, app_ino == ino_after);
+    println!(
+        "Inode before: {}, after: {} (preserved: {})",
+        app_ino,
+        ino_after,
+        app_ino == ino_after
+    );
     assert_eq!(app_ino, ino_after);
 
     // Reverse lookup updates too

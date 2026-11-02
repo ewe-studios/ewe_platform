@@ -1,8 +1,7 @@
 //! F27b/F27c tests: JS/TS/Python/Go extraction + clustering + analysis.
 
 use foundation_vectors::code_graph::{
-    extract_js_file, extract_ts_file, extract_py_file, extract_go_file,
-    Relation, NodeKind,
+    extract_go_file, extract_js_file, extract_py_file, extract_ts_file, NodeKind, Relation,
 };
 
 const JS_SOURCE: &str = r#"
@@ -32,7 +31,11 @@ export default Database;
 #[test]
 fn js_extracts_classes() {
     let ext = extract_js_file("src/database.js", JS_SOURCE).unwrap();
-    let class_nodes: Vec<_> = ext.nodes.iter().filter(|n| n.kind == NodeKind::Struct).collect();
+    let class_nodes: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Struct)
+        .collect();
     assert!(!class_nodes.is_empty());
     let db = class_nodes.iter().find(|n| n.label == "Database").unwrap();
     assert_eq!(db.kind, NodeKind::Struct);
@@ -41,7 +44,11 @@ fn js_extracts_classes() {
 #[test]
 fn js_extracts_functions_and_methods() {
     let ext = extract_js_file("src/database.js", JS_SOURCE).unwrap();
-    let func_nodes: Vec<_> = ext.nodes.iter().filter(|n| n.kind == NodeKind::Function).collect();
+    let func_nodes: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Function)
+        .collect();
     assert!(!func_nodes.is_empty());
     let names: Vec<_> = func_nodes.iter().map(|n| n.label.as_str()).collect();
     assert!(names.contains(&"processData"));
@@ -50,18 +57,30 @@ fn js_extracts_functions_and_methods() {
 #[test]
 fn js_extracts_imports() {
     let ext = extract_js_file("src/database.js", JS_SOURCE).unwrap();
-    let import_edges: Vec<_> = ext.edges.iter().filter(|e| e.2.relation == Relation::Imports).collect();
+    let import_edges: Vec<_> = ext
+        .edges
+        .iter()
+        .filter(|e| e.2.relation == Relation::Imports)
+        .collect();
     assert!(!import_edges.is_empty());
 }
 
 #[test]
 fn js_extracts_inheritance() {
-    let ext = extract_js_file("src/logger.js", r#"
+    let ext = extract_js_file(
+        "src/logger.js",
+        r#"
 class Logger extends EventEmitter {
     log(msg) { this.emit('log', msg); }
 }
-"#).unwrap();
-    let inherit_edges: Vec<_> = ext.edges.iter().filter(|e| e.2.relation == Relation::Inherits).collect();
+"#,
+    )
+    .unwrap();
+    let inherit_edges: Vec<_> = ext
+        .edges
+        .iter()
+        .filter(|e| e.2.relation == Relation::Inherits)
+        .collect();
     assert!(!inherit_edges.is_empty());
 }
 
@@ -69,7 +88,11 @@ class Logger extends EventEmitter {
 fn js_raw_calls_extraction() {
     let ext = extract_js_file("src/app.js", JS_SOURCE).unwrap();
     assert!(!ext.raw_calls.is_empty());
-    let callee_names: Vec<_> = ext.raw_calls.iter().map(|c| c.callee_name.as_str()).collect();
+    let callee_names: Vec<_> = ext
+        .raw_calls
+        .iter()
+        .map(|c| c.callee_name.as_str())
+        .collect();
     assert!(callee_names.contains(&"formatName"));
 }
 
@@ -95,14 +118,22 @@ export { UserController };
 #[test]
 fn ts_extracts_classes() {
     let ext = extract_ts_file("src/controller.ts", TS_SOURCE).unwrap();
-    let class_nodes: Vec<_> = ext.nodes.iter().filter(|n| n.kind == NodeKind::Struct).collect();
+    let class_nodes: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Struct)
+        .collect();
     assert!(class_nodes.len() >= 2);
 }
 
 #[test]
 fn ts_extracts_methods() {
     let ext = extract_ts_file("src/controller.ts", TS_SOURCE).unwrap();
-    let method_nodes: Vec<_> = ext.nodes.iter().filter(|n| n.kind == NodeKind::Method).collect();
+    let method_nodes: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Method)
+        .collect();
     assert!(!method_nodes.is_empty());
     let names: Vec<_> = method_nodes.iter().map(|n| n.label.as_str()).collect();
     assert!(names.contains(&"handle"));
@@ -111,7 +142,11 @@ fn ts_extracts_methods() {
 #[test]
 fn ts_extracts_inheritance() {
     let ext = extract_ts_file("src/controller.ts", TS_SOURCE).unwrap();
-    let inherit_edges: Vec<_> = ext.edges.iter().filter(|e| e.2.relation == Relation::Inherits).collect();
+    let inherit_edges: Vec<_> = ext
+        .edges
+        .iter()
+        .filter(|e| e.2.relation == Relation::Inherits)
+        .collect();
     assert!(!inherit_edges.is_empty());
 }
 
@@ -148,21 +183,33 @@ class CachedUserRepository(UserRepository):
 #[test]
 fn py_extracts_classes() {
     let ext = extract_py_file("src/repo.py", PY_SOURCE).unwrap();
-    let class_nodes: Vec<_> = ext.nodes.iter().filter(|n| n.kind == NodeKind::Struct).collect();
+    let class_nodes: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Struct)
+        .collect();
     assert!(class_nodes.len() >= 2);
 }
 
 #[test]
 fn py_extracts_imports() {
     let ext = extract_py_file("src/repo.py", PY_SOURCE).unwrap();
-    let import_edges: Vec<_> = ext.edges.iter().filter(|e| e.2.relation == Relation::Imports).collect();
+    let import_edges: Vec<_> = ext
+        .edges
+        .iter()
+        .filter(|e| e.2.relation == Relation::Imports)
+        .collect();
     assert!(!import_edges.is_empty());
 }
 
 #[test]
 fn py_extracts_inheritance() {
     let ext = extract_py_file("src/repo.py", PY_SOURCE).unwrap();
-    let inherit_edges: Vec<_> = ext.edges.iter().filter(|e| e.2.relation == Relation::Inherits).collect();
+    let inherit_edges: Vec<_> = ext
+        .edges
+        .iter()
+        .filter(|e| e.2.relation == Relation::Inherits)
+        .collect();
     assert!(!inherit_edges.is_empty());
 }
 
@@ -198,14 +245,22 @@ func main() {
 #[test]
 fn go_extracts_structs() {
     let ext = extract_go_file("main.go", GO_SOURCE).unwrap();
-    let struct_nodes: Vec<_> = ext.nodes.iter().filter(|n| n.kind == NodeKind::Struct).collect();
+    let struct_nodes: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Struct)
+        .collect();
     assert!(struct_nodes.len() >= 2);
 }
 
 #[test]
 fn go_extracts_functions() {
     let ext = extract_go_file("main.go", GO_SOURCE).unwrap();
-    let func_nodes: Vec<_> = ext.nodes.iter().filter(|n| n.kind == NodeKind::Function).collect();
+    let func_nodes: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Function)
+        .collect();
     let names: Vec<_> = func_nodes.iter().map(|n| n.label.as_str()).collect();
     assert!(names.contains(&"main"));
 }
@@ -213,7 +268,11 @@ fn go_extracts_functions() {
 #[test]
 fn go_extracts_methods() {
     let ext = extract_go_file("main.go", GO_SOURCE).unwrap();
-    let method_nodes: Vec<_> = ext.nodes.iter().filter(|n| n.kind == NodeKind::Method).collect();
+    let method_nodes: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Method)
+        .collect();
     let names: Vec<_> = method_nodes.iter().map(|n| n.label.as_str()).collect();
     assert!(names.contains(&"GetID"));
 }
@@ -221,14 +280,22 @@ fn go_extracts_methods() {
 #[test]
 fn go_extracts_imports() {
     let ext = extract_go_file("main.go", GO_SOURCE).unwrap();
-    let import_edges: Vec<_> = ext.edges.iter().filter(|e| e.2.relation == Relation::Imports).collect();
+    let import_edges: Vec<_> = ext
+        .edges
+        .iter()
+        .filter(|e| e.2.relation == Relation::Imports)
+        .collect();
     assert!(!import_edges.is_empty());
 }
 
 #[test]
 fn go_extracts_inheritance() {
     let ext = extract_go_file("main.go", GO_SOURCE).unwrap();
-    let inherit_edges: Vec<_> = ext.edges.iter().filter(|e| e.2.relation == Relation::Inherits).collect();
+    let inherit_edges: Vec<_> = ext
+        .edges
+        .iter()
+        .filter(|e| e.2.relation == Relation::Inherits)
+        .collect();
     assert!(!inherit_edges.is_empty());
 }
 
@@ -268,19 +335,29 @@ fn make_test_graph() -> CodeGraph {
         ..Default::default()
     };
     for (i, name) in ["a", "b", "c", "x", "y", "z"].iter().enumerate() {
-        extraction.nodes.push(foundation_vectors::code_graph::GraphNode {
-            id: format!("test_{name}"),
-            label: name.to_string(),
-            kind: NodeKind::Function,
-            source_file: "test.go".to_string(),
-            source_line: i + 1,
-            rationale: None,
-        });
+        extraction
+            .nodes
+            .push(foundation_vectors::code_graph::GraphNode {
+                id: format!("test_{name}"),
+                label: name.to_string(),
+                kind: NodeKind::Function,
+                source_file: "test.go".to_string(),
+                source_line: i + 1,
+                rationale: None,
+            });
         extraction.seen_ids.insert(format!("test_{name}"), true);
     }
-    for (src, tgt) in [("a", "b"), ("b", "c"), ("a", "c"), ("x", "y"), ("y", "z"), ("x", "z")] {
+    for (src, tgt) in [
+        ("a", "b"),
+        ("b", "c"),
+        ("a", "c"),
+        ("x", "y"),
+        ("y", "z"),
+        ("x", "z"),
+    ] {
         extraction.edges.push((
-            format!("test_{src}"), format!("test_{tgt}"),
+            format!("test_{src}"),
+            format!("test_{tgt}"),
             foundation_vectors::code_graph::GraphEdge {
                 relation: Relation::Calls,
                 confidence: foundation_vectors::code_graph::Confidence::Extracted,
@@ -291,7 +368,8 @@ fn make_test_graph() -> CodeGraph {
         ));
     }
     extraction.edges.push((
-        "test_c".to_string(), "test_x".to_string(),
+        "test_c".to_string(),
+        "test_x".to_string(),
         foundation_vectors::code_graph::GraphEdge {
             relation: Relation::Calls,
             confidence: foundation_vectors::code_graph::Confidence::Extracted,
@@ -309,19 +387,22 @@ fn make_god_graph() -> CodeGraph {
         ..Default::default()
     };
     for name in ["central", "a", "b", "c", "d"] {
-        extraction.nodes.push(foundation_vectors::code_graph::GraphNode {
-            id: format!("test_{name}"),
-            label: name.to_string(),
-            kind: NodeKind::Function,
-            source_file: "test.go".to_string(),
-            source_line: 1,
-            rationale: None,
-        });
+        extraction
+            .nodes
+            .push(foundation_vectors::code_graph::GraphNode {
+                id: format!("test_{name}"),
+                label: name.to_string(),
+                kind: NodeKind::Function,
+                source_file: "test.go".to_string(),
+                source_line: 1,
+                rationale: None,
+            });
         extraction.seen_ids.insert(format!("test_{name}"), true);
     }
     for other in ["a", "b", "c", "d"] {
         extraction.edges.push((
-            format!("test_{other}"), "test_central".to_string(),
+            format!("test_{other}"),
+            "test_central".to_string(),
             foundation_vectors::code_graph::GraphEdge {
                 relation: Relation::Calls,
                 confidence: foundation_vectors::code_graph::Confidence::Extracted,

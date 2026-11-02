@@ -193,10 +193,9 @@ fn mock_tool_call_builds_message() {
     let msg = mock_tool_call("read_file", args);
     match msg {
         Messages::Assistant {
-            content:
-                ModelOutput::ToolCall {
-                    name, arguments, ..
-                },
+            content: ModelOutput::ToolCall {
+                name, arguments, ..
+            },
             stop_reason,
             ..
         } => {
@@ -302,7 +301,11 @@ fn tool_definition_has_correct_name() {
     // populates the ToolDeclarations handed to the model; override via with_category.
     assert_eq!(def.category().unwrap(), "shell");
     assert_eq!(
-        MockTool::returning("t", "r").with_category("search").definition().category().unwrap(),
+        MockTool::returning("t", "r")
+            .with_category("search")
+            .definition()
+            .category()
+            .unwrap(),
         "search"
     );
 }

@@ -11,9 +11,9 @@
 //! the access `password`.
 
 use chrono::{DateTime, Duration, Utc};
-use uuid::Uuid;
 
 use crate::core::context::KeychainContext;
+use crate::core::crypto;
 use crate::core::error::{AppError, AppResult};
 use crate::core::models::send::{Send, SendCreateRequest, SendType, SendUpdateRequest};
 use crate::core::store::sends as store;
@@ -91,7 +91,7 @@ pub async fn create(
     let expiration_date = req.expiration_date.as_deref().map(parse_date).transpose()?;
 
     let row = SendRow {
-        uuid: Uuid::new_v4().to_string(),
+        uuid: crypto::new_uuid_v4()?.to_string(),
         user_uuid: user_uuid.to_string(),
         atype: req.send_type as i64,
         name: req.name,
@@ -168,11 +168,7 @@ pub async fn delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResu
 /// Enforces disabled / deletion / expiry / max-access-count / password, then
 /// increments the access counter and returns the send (a "not found" is returned
 /// for any access-denied case so a probe can't distinguish reasons).
-pub async fn access(
-    ctx: &KeychainContext,
-    id: &str,
-    password: Option<&str>,
-) -> AppResult<Send> {
+pub async fn access(ctx: &KeychainContext, id: &str, password: Option<&str>) -> AppResult<Send> {
     let mut row = store::find(ctx.db(), id)
         .await?
         .ok_or_else(|| AppError::NotFound("send not found".into()))?;

@@ -26,7 +26,9 @@ use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender, Stream, TryRecvError, TrySendError};
+use foundation_core::valtron::{
+    Pipe, PipeReceiver, PipeSender, Stream, TryRecvError, TrySendError,
+};
 use foundation_netio::http::ClientRequestBuilder;
 use foundation_netio::http2::frame::ErrorCode;
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
@@ -42,11 +44,11 @@ use foundation_netio::shared::http::{
 use foundation_http::native::serve::{BoxFuture, H2Serve};
 use foundation_http::shared::context::ContextBag;
 
-use foundation_connectrpc::shared::protocol::connect::{
-    streaming_content_type as connect_streaming_content_type,
-};
+use foundation_connectrpc::shared::protocol::connect::streaming_content_type as connect_streaming_content_type;
 use foundation_connectrpc::shared::protocol::grpc::content_type as grpc_content_type;
-use foundation_connectrpc::shared::transport::{BodyStream, HeadStream, SendBody, DEFAULT_PIPE_DEPTH};
+use foundation_connectrpc::shared::transport::{
+    BodyStream, HeadStream, SendBody, DEFAULT_PIPE_DEPTH,
+};
 use foundation_connectrpc::{
     parse_connect_content_type, CancelSignal, ConnectHandler, H2Transport, Transport,
 };
@@ -115,7 +117,14 @@ impl H2Serve for H2ProxyHandler {
                 // way (streaming relays) and runs on the worker; trailers flow back
                 // through `tx` as an `H2Frame::Trailers`. `host`/`client` are unused.
                 forward_upstream_h2(
-                    lease, method, path, orig_headers, client_ip, scheme, body, &tx,
+                    lease,
+                    method,
+                    path,
+                    orig_headers,
+                    client_ip,
+                    scheme,
+                    body,
+                    &tx,
                 )
                 .await;
             } else if lease.backend().protocol() == BackendProtocol::Grpc
@@ -126,7 +135,13 @@ impl H2Serve for H2ProxyHandler {
                 // front end — the H1 leg is half-duplex. Async all the way, like the
                 // gRPC leg; the Connect-framed response flows back as DATA frames.
                 relay_connect_streaming_h2(
-                    lease, header, orig_headers, client_ip, scheme, body, &tx,
+                    lease,
+                    header,
+                    orig_headers,
+                    client_ip,
+                    scheme,
+                    body,
+                    &tx,
                 )
                 .await;
             } else if lease.backend().protocol() == BackendProtocol::Grpc
@@ -135,10 +150,8 @@ impl H2Serve for H2ProxyHandler {
                 // Connect unary (bare `application/{codec}` body) to a `grpc://`
                 // backend: decode, envelope as one gRPC message, and decode the
                 // single gRPC response back to a bare Connect body.
-                relay_connect_unary_h2(
-                    lease, header, orig_headers, client_ip, scheme, body, &tx,
-                )
-                .await;
+                relay_connect_unary_h2(lease, header, orig_headers, client_ip, scheme, body, &tx)
+                    .await;
             } else {
                 // The upstream exchange blocks (the shared client drives its own I/O),
                 // so run it off the worker pool on a dedicated thread. The lease moves
@@ -147,7 +160,15 @@ impl H2Serve for H2ProxyHandler {
                 // which the h2 connection task drains and writes to the socket.
                 std::thread::spawn(move || {
                     forward_upstream(
-                        lease, method, host, path, orig_headers, client_ip, scheme, client, body,
+                        lease,
+                        method,
+                        host,
+                        path,
+                        orig_headers,
+                        client_ip,
+                        scheme,
+                        client,
+                        body,
                         &tx,
                     );
                 });
@@ -210,7 +231,10 @@ fn forward_upstream(
     });
 
     let builder = match ClientRequestBuilder::<SystemDnsResolver>::new(method, &url) {
-        Ok(b) => b.headers(headers).body(body_stream).with_body_readiness(readiness),
+        Ok(b) => b
+            .headers(headers)
+            .body(body_stream)
+            .with_body_readiness(readiness),
         Err(e) => {
             tracing::warn!(%url, "H2 build upstream request failed: {e}");
             let _ = blocking_send(tx, h2_status(502, true));

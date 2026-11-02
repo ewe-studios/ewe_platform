@@ -22,13 +22,18 @@ fn map_api_error(e: ApiError) -> CloudflareError {
             status: code,
             message: body.as_deref().unwrap_or("(no body)").to_string(),
         },
-        other => CloudflareError::Api { status: 0, message: format!("{other:?}") },
+        other => CloudflareError::Api {
+            status: 0,
+            message: format!("{other:?}"),
+        },
     }
 }
 
 /// Convert a typed [`DnsRecordInput`] into the generated (flattened) request
 /// body type via a serde round-trip.
-fn dns_record_post_body(input: &DnsRecordInput) -> Result<DnsRecordsDnsRecordPost, CloudflareError> {
+fn dns_record_post_body(
+    input: &DnsRecordInput,
+) -> Result<DnsRecordsDnsRecordPost, CloudflareError> {
     let value = serde_json::to_value(input)
         .map_err(|e| CloudflareError::Json(format!("serialize DnsRecordInput: {e}")))?;
     serde_json::from_value(value)
@@ -64,11 +69,14 @@ impl crate::client::CloudflareClient {
         .await
         .map_err(map_api_error)?;
         let results = response.body.result.unwrap_or_default();
-        results.iter().map(|entry| {
-            let v = serde_json::to_value(entry).unwrap_or_default();
-            serde_json::from_value(v)
-                .map_err(|e| CloudflareError::Json(format!("deserialize DnsRecord: {e}")))
-        }).collect()
+        results
+            .iter()
+            .map(|entry| {
+                let v = serde_json::to_value(entry).unwrap_or_default();
+                serde_json::from_value(v)
+                    .map_err(|e| CloudflareError::Json(format!("deserialize DnsRecord: {e}")))
+            })
+            .collect()
     }
 
     pub async fn upsert_dns_record(&self, record: &DnsRecord) -> Result<String, CloudflareError> {
@@ -77,7 +85,9 @@ impl crate::client::CloudflareClient {
         // typed input via a serde round-trip so the request carries the DNS
         // record fields.
         let body = dns_record_post_body(&input)?;
-        let existing = self.list_dns_records(Some(record.r#type), Some(&record.name)).await?;
+        let existing = self
+            .list_dns_records(Some(record.r#type), Some(&record.name))
+            .await?;
 
         if let Some(existing_record) = existing.into_iter().next() {
             let args = DnsRecordsForAZoneUpdateDnsRecordArgs {
@@ -86,7 +96,10 @@ impl crate::client::CloudflareClient {
                 body,
             };
             dns_records_for_a_zone_update_dns_record_request(
-                self.http(), &args, self.base_url(), Some(auth_mod(&self.token())),
+                self.http(),
+                &args,
+                self.base_url(),
+                Some(auth_mod(&self.token())),
             )
             .await
             .map_err(map_api_error)?;
@@ -98,12 +111,17 @@ impl crate::client::CloudflareClient {
             };
             let response: ApiResponse<DnsRecordsDnsResponseSingle> =
                 dns_records_for_a_zone_create_dns_record_request(
-                    self.http(), &args, self.base_url(), Some(auth_mod(&self.token())),
+                    self.http(),
+                    &args,
+                    self.base_url(),
+                    Some(auth_mod(&self.token())),
                 )
                 .await
                 .map_err(map_api_error)?;
-            let entry = response.body.result.as_ref()
-                .ok_or_else(|| CloudflareError::Json("response missing 'result' field".into()))?;
+            let entry =
+                response.body.result.as_ref().ok_or_else(|| {
+                    CloudflareError::Json("response missing 'result' field".into())
+                })?;
             let v = serde_json::to_value(entry).unwrap_or_default();
             let created: DnsRecord = serde_json::from_value(v)
                 .map_err(|e| CloudflareError::Json(format!("deserialize DnsRecord: {e}")))?;
@@ -128,7 +146,9 @@ impl crate::client::CloudflareClient {
     }
 
     pub async fn delete_dns_records_by_name(
-        &self, name: &str, record_type: DnsRecordType,
+        &self,
+        name: &str,
+        record_type: DnsRecordType,
     ) -> Result<(), CloudflareError> {
         for record in self.list_dns_records(Some(record_type), Some(name)).await? {
             self.delete_dns_record(&record.id).await?;
@@ -138,8 +158,17 @@ impl crate::client::CloudflareClient {
 
     pub async fn find_zone(&self, _domain: &str) -> Result<bool, CloudflareError> {
         use crate::generated::zones::{zones_0_get_request, Zones0GetArgs};
-        let args = Zones0GetArgs { zone_id: self.zone_id().to_string() };
-        match zones_0_get_request(self.http(), &args, self.base_url(), Some(auth_mod(&self.token()))).await {
+        let args = Zones0GetArgs {
+            zone_id: self.zone_id().to_string(),
+        };
+        match zones_0_get_request(
+            self.http(),
+            &args,
+            self.base_url(),
+            Some(auth_mod(&self.token())),
+        )
+        .await
+        {
             Ok(_) => Ok(true),
             Err(ApiError::HttpStatus { code: 404, .. }) => Ok(false),
             Err(e) => Err(map_api_error(e)),
@@ -149,10 +178,17 @@ impl crate::client::CloudflareClient {
     pub async fn bootstrap_domain(&self, public_ip: &str) -> Result<(), CloudflareError> {
         let wildcard = format!("*.{}", self.domain());
         let record = DnsRecord {
-            id: String::new(), zone_id: self.zone_id().to_string(), name: wildcard,
-            r#type: DnsRecordType::A, content: public_ip.to_string(), ttl: 60,
-            proxied: false, comment: None, tags: vec![],
-            created_on: chrono::Utc::now(), modified_on: chrono::Utc::now(),
+            id: String::new(),
+            zone_id: self.zone_id().to_string(),
+            name: wildcard,
+            r#type: DnsRecordType::A,
+            content: public_ip.to_string(),
+            ttl: 60,
+            proxied: false,
+            comment: None,
+            tags: vec![],
+            created_on: chrono::Utc::now(),
+            modified_on: chrono::Utc::now(),
         };
         self.upsert_dns_record(&record).await?;
         Ok(())

@@ -91,7 +91,10 @@ fn host_specificity(pattern: &str, host: &str) -> Option<u32> {
         // `*.example.com` → suffix `example.com`. Match `a.example.com` (and
         // deeper) but not `example.com` itself.
         let dotted = format!(".{suffix}");
-        if host.len() > dotted.len() && host.to_ascii_lowercase().ends_with(&dotted.to_ascii_lowercase())
+        if host.len() > dotted.len()
+            && host
+                .to_ascii_lowercase()
+                .ends_with(&dotted.to_ascii_lowercase())
         {
             return Some(1);
         }

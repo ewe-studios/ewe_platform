@@ -10,11 +10,9 @@
 //! HOW: Groups endpoints (10-200 per group), then generates one module per group
 //! where each endpoint's artifacts are colocated.
 
-mod analyzer;
-mod emit;
+pub mod analyzer;
+pub mod emit;
 mod generator;
 
 pub use analyzer::{analyze_spec, AnalysisOptions, AnalysisResult, ApiGroup};
-pub use generator::{
-    rewrite_features_for_groups, FeatureRewriteError, GenError, UnifiedGenerator,
-};
+pub use generator::{rewrite_features_for_groups, FeatureRewriteError, GenError, UnifiedGenerator};

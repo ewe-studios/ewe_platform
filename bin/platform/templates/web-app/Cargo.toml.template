@@ -30,17 +30,17 @@ bench = false
 [dependencies]
 
 # -- ewe platform dependencies
-ewe_devserver = { version = "0.0.1"}
-ewe_watch_utils = { version = "0.0.1" }
-foundation_core = { version = "0.0.6" }
+foundation_toolings = { version = "0.0.3" }
+foundation_http = { version = "0.0.3", features = ["multi"] }
+foundation_core = { version = "0.0.7", features = ["multi"] }
 foundation_config = { version = "0.1.2" }
 
-# -- tokio & axum
-axum = { version = "0.7.5" }
-tokio = { version = "1.36", features = ["full"], default-features = true }
+# directory embedding
+rust-embed = "8.5.0"
+
+# -- serialization crates
+serde = { version = "1.0.197", features = ["derive"] }
 
 # -- tracing crates
 tracing = { version = "0.1.40" }
 tracing-subscriber = { version = "0.3.18" }
-
-[lints]

@@ -161,9 +161,13 @@ impl Sim {
         let mut queue = VecDeque::new();
         for i in 1..n as usize {
             nodes[i].merge(&seed_snapshot);
-            queue.push_back((peer_id(i as u8), peer_id(0), SwimMessage::Gossip {
-                updates: vec![nodes[i].my_record().clone()],
-            }));
+            queue.push_back((
+                peer_id(i as u8),
+                peer_id(0),
+                SwimMessage::Gossip {
+                    updates: vec![nodes[i].my_record().clone()],
+                },
+            ));
         }
         Self {
             nodes,
@@ -226,7 +230,10 @@ impl Sim {
         let mut budget = 200_000;
         while let Some((from, to, msg)) = self.queue.pop_front() {
             budget -= 1;
-            assert!(budget > 0, "message delivery did not converge (gossip storm?)");
+            assert!(
+                budget > 0,
+                "message delivery did not converge (gossip storm?)"
+            );
             if self.dead_nodes.contains(&to) {
                 continue;
             }
@@ -284,7 +291,10 @@ fn swim_converges_across_nodes_without_loss() {
             break;
         }
     }
-    assert!(sim.fully_converged(), "all nodes learned the full membership");
+    assert!(
+        sim.fully_converged(),
+        "all nodes learned the full membership"
+    );
 }
 
 #[test]

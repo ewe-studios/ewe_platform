@@ -11,15 +11,15 @@ use std::time::Duration as StdDuration;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Duration, Utc};
+use foundation_compact::rng::Rng;
 use foundation_netio::shared::client::{Cookie, SameSite};
 use hmac::{Hmac, Mac};
-use foundation_compact::rng::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use zeroize::Zeroizing;
 
-use crate::shared::credential_store::CredentialStore;
 use super::types::ConfidentialText;
+use crate::shared::credential_store::CredentialStore;
 use crate::shared::credential_store::CredentialStoreError;
 
 type HmacSha256 = Hmac<Sha256>;
@@ -168,6 +168,16 @@ impl<S> SessionManager<S> {
 
 impl<S: CredentialStore> SessionManager<S> {
     /// Create a new session for a user (async).
+    ///
+    /// # Errors
+    ///
+    /// Returns `SessionError::Storage` if the session cannot be stored.
+    /// Returns `SessionError::Serialization` if the session data cannot be serialized.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the signer lock is poisoned. The `expect("signer lock")` call
+    /// fails then.
     pub async fn create_session(
         &self,
         user_id: &str,
@@ -205,10 +215,17 @@ impl<S: CredentialStore> SessionManager<S> {
     }
 
     /// Get and validate a session by token (async).
-    pub async fn get_session(
-        &self,
-        token: &str,
-    ) -> Result<Option<Session>, SessionError> {
+    ///
+    /// # Errors
+    ///
+    /// Returns `SessionError::Storage` if the store fails.
+    /// Returns `SessionError::InvalidToken` if the token signature is invalid.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the signer lock is poisoned. The `expect("signer lock")` call
+    /// fails then.
+    pub async fn get_session(&self, token: &str) -> Result<Option<Session>, SessionError> {
         let cache = Self::get_cached_session(token);
         if let Some(ref cache_data) = cache {
             if !cache_data.user_id.is_empty() {
@@ -265,10 +282,11 @@ impl<S: CredentialStore> SessionManager<S> {
     }
 
     /// Revoke a single session (async).
-    pub async fn revoke_session(
-        &self,
-        session_id: &str,
-    ) -> Result<(), SessionError> {
+    ///
+    /// # Errors
+    ///
+    /// Returns `SessionError::Storage` if the store fails.
+    pub async fn revoke_session(&self, session_id: &str) -> Result<(), SessionError> {
         if let Some(session) = self
             .store
             .get::<Session>(session_id)
@@ -290,10 +308,11 @@ impl<S: CredentialStore> SessionManager<S> {
     }
 
     /// Revoke all sessions for a user (async).
-    pub async fn revoke_all_sessions(
-        &self,
-        user_id: &str,
-    ) -> Result<usize, SessionError> {
+    ///
+    /// # Errors
+    ///
+    /// Returns `SessionError::Storage` if the store fails.
+    pub async fn revoke_all_sessions(&self, user_id: &str) -> Result<usize, SessionError> {
         let prefix = format!("session:{user_id}:");
         let keys = self
             .store
@@ -325,10 +344,7 @@ impl<S: CredentialStore> SessionManager<S> {
     }
 
     /// Extend session expiration (async, sliding expiration).
-    async fn extend_session(
-        &self,
-        session: &Session,
-    ) -> Result<(), SessionError> {
+    async fn extend_session(&self, session: &Session) -> Result<(), SessionError> {
         let now = Utc::now();
         let time_left = session.expires_at - now;
         if time_left < self.config.sliding_window {
@@ -346,12 +362,17 @@ impl<S: CredentialStore> SessionManager<S> {
 }
 
 /// HMAC-SHA256 token signer for session tokens.
-struct TokenSigner {
+pub struct TokenSigner {
     key: Zeroizing<Vec<u8>>,
 }
 
 impl TokenSigner {
-    fn new(key: &[u8]) -> Result<Self, SessionError> {
+    /// Create a signer from a raw key of at least 32 bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError::InvalidSigningKey`] if the key is shorter than 32 bytes.
+    pub fn new(key: &[u8]) -> Result<Self, SessionError> {
         if key.len() < 32 {
             return Err(SessionError::InvalidSigningKey);
         }
@@ -360,14 +381,36 @@ impl TokenSigner {
         })
     }
 
-    fn sign(&self, token: &str) -> String {
+    /// Sign a raw session token, returning `"{token}.{base64(signature)}"`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the HMAC key setup fails. The
+    /// `expect("HMAC can take key of any size")` call fails then. This cannot
+    /// happen because HMAC accepts a key of any size.
+    #[must_use]
+    pub fn sign(&self, token: &str) -> String {
         let mut mac = HmacSha256::new_from_slice(&self.key).expect("HMAC can take key of any size");
         mac.update(token.as_bytes());
         let result = mac.finalize().into_bytes();
         format!("{token}.{}", URL_SAFE_NO_PAD.encode(result))
     }
 
-    fn verify(&self, signed: &str, plain: &str) -> Result<bool, SessionError> {
+    /// Verify a signed token against its plain text.
+    ///
+    /// The tag comparison runs in constant time through [`Mac::verify_slice`],
+    /// which also compares the lengths first, so a truncated tag is rejected.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError::InvalidToken`] if the signature is not valid base64.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the HMAC key setup fails. The
+    /// `expect("HMAC can take key of any size")` call fails then. This cannot
+    /// happen because HMAC accepts a key of any size.
+    pub fn verify(&self, signed: &str, plain: &str) -> Result<bool, SessionError> {
         let parts: Vec<&str> = signed.split('.').collect();
         if parts.len() != 2 {
             return Ok(false);
@@ -375,13 +418,12 @@ impl TokenSigner {
 
         let mut mac = HmacSha256::new_from_slice(&self.key).expect("HMAC can take key of any size");
         mac.update(plain.as_bytes());
-        let expected = mac.finalize().into_bytes();
 
         let actual = URL_SAFE_NO_PAD
             .decode(parts[1])
             .map_err(|_| SessionError::InvalidToken)?;
 
-        Ok(expected.len() == actual.len() && expected.iter().zip(&actual).all(|(a, b)| a == b))
+        Ok(mac.verify_slice(&actual).is_ok())
     }
 }
 
@@ -425,4 +467,3 @@ impl core::fmt::Display for SessionError {
 }
 
 impl std::error::Error for SessionError {}
-

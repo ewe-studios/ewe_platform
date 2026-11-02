@@ -72,10 +72,6 @@ fn make_tunnel() -> WgTunnel {
 #[test]
 fn browser_node_tick_does_not_panic() {
     let tunnel = make_tunnel();
-    let mut node = BrowserWgNode::new(
-        tunnel,
-        1380,
-        IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)),
-    );
+    let mut node = BrowserWgNode::new(tunnel, 1380, IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)));
     node.tick();
 }

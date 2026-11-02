@@ -68,7 +68,9 @@ pub async fn fetch_icon(domain: &str) -> AppResult<IconData> {
         .map_err(|e| AppError::NotFound(format!("icon fetch failed: {e}")))?;
     let status: usize = resp.get_status().into();
     if !(200..300).contains(&status) {
-        return Err(AppError::NotFound(format!("icon not found (HTTP {status})")));
+        return Err(AppError::NotFound(format!(
+            "icon not found (HTTP {status})"
+        )));
     }
     let content_type = resp
         .get_headers_ref()
@@ -79,5 +81,8 @@ pub async fn fetch_icon(domain: &str) -> AppResult<IconData> {
     let bytes = try_collect_bytes(resp.take_body())
         .map_err(|e| AppError::NotFound(format!("read icon body: {e}")))?;
 
-    Ok(IconData { content_type, bytes })
+    Ok(IconData {
+        content_type,
+        bytes,
+    })
 }

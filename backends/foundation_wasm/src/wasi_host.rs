@@ -92,8 +92,7 @@ where
 }
 
 fn register_schedule_inner(timing_ms: f64, id: InternalPointer) -> InternalPointer {
-    let deadline =
-        std::time::Instant::now() + std::time::Duration::from_millis(timing_ms as u64);
+    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timing_ms as u64);
     TIMERS
         .lock()
         .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)

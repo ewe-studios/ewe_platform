@@ -249,6 +249,8 @@ where
     type Ready = Result<WebSocketMessage, WebSocketError>;
     type Pending = ReconnectingWebSocketProgress;
 
+    // Long by design: one match over every reconnect/handshake state.
+    #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let state = self.state.take()?;
 

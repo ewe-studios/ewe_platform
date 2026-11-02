@@ -255,8 +255,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
     }
 
     async fn symlink_async(&self, target: String, link_path: String) -> VfsResult<()> {
-        let (parent_ino, name) =
-            resolve_parent_async(self.conn.clone(), link_path).await?;
+        let (parent_ino, name) = resolve_parent_async(self.conn.clone(), link_path).await?;
         let updated_at = now_ms();
         let version_id = next_version_id();
         self.conn
@@ -293,8 +292,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
 
     async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
         let ino = resolve_path_async(self.conn.clone(), from).await?;
-        let (new_parent_ino, new_name) =
-            resolve_parent_async(self.conn.clone(), to).await?;
+        let (new_parent_ino, new_name) = resolve_parent_async(self.conn.clone(), to).await?;
         let updated_at = now_ms();
         self.conn
             .execute(
@@ -380,7 +378,11 @@ impl AsyncVfsFileSystem for LibsqlDelta {
         })
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         let file = self.open_async(path, mode).await?;
         Ok(SeekableSqliteFile::new(file))
     }
@@ -414,12 +416,11 @@ impl AsyncVfsFileSystem for LibsqlDelta {
     }
 
     async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> {
-        let (parent_ino, name) =
-            resolve_parent_async(self.conn.clone(), path.clone()).await?;
+        let (parent_ino, name) = resolve_parent_async(self.conn.clone(), path.clone()).await?;
         let updated_at = now_ms();
         let version_id = next_version_id();
-        let chunk_size = i64::try_from(self.chunk_config.default_chunk_size)
-            .expect("chunk size overflow");
+        let chunk_size =
+            i64::try_from(self.chunk_config.default_chunk_size).expect("chunk size overflow");
         self.conn
             .execute(
                 "INSERT INTO vfs_dentry (name, parent_ino, file_type, size, permissions, \
@@ -473,8 +474,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
     }
 
     async fn mkdir_async(&self, path: String) -> VfsResult<()> {
-        let (parent_ino, name) =
-            resolve_parent_async(self.conn.clone(), path.clone()).await?;
+        let (parent_ino, name) = resolve_parent_async(self.conn.clone(), path.clone()).await?;
         let updated_at = now_ms();
         let version_id = next_version_id();
         self.conn
@@ -510,8 +510,7 @@ impl AsyncVfsFileSystem for LibsqlDelta {
             drop(self.create_async(path.clone(), 0o644).await?);
         }
         let ino = resolve_path_async(self.conn.clone(), path).await?;
-        write_all_chunks_async(&self.conn, ino, &data, self.chunk_config.default_chunk_size)
-            .await
+        write_all_chunks_async(&self.conn, ino, &data, self.chunk_config.default_chunk_size).await
     }
 
     async fn read_file_async(&self, path: String) -> VfsResult<Vec<u8>> {
@@ -596,28 +595,18 @@ impl AsyncDeltaStore for LibsqlDelta {
 
     async fn remove_whiteout_async(&self, path: String) -> VfsResult<()> {
         self.conn
-            .execute(
-                "DELETE FROM vfs_whiteouts WHERE path = ?",
-                [path.clone()],
-            )
+            .execute("DELETE FROM vfs_whiteouts WHERE path = ?", [path.clone()])
             .await
             .map_err(err)?;
         self.conn
-            .execute(
-                "DELETE FROM vfs_whiteout_prefixes WHERE path = ?",
-                [path],
-            )
+            .execute("DELETE FROM vfs_whiteout_prefixes WHERE path = ?", [path])
             .await
             .map_err(err)?;
         Ok(())
     }
 
     async fn list_whiteouts_async(&self, dir: String) -> VfsResult<Vec<(String, u64)>> {
-        let prefix = if dir == "/" {
-            "/".to_string()
-        } else {
-            dir
-        };
+        let prefix = if dir == "/" { "/".to_string() } else { dir };
         let stmt = self
             .conn
             .prepare(

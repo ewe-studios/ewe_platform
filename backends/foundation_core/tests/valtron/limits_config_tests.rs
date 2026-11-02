@@ -10,9 +10,9 @@
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    DEFAULT_DELIVERY_CAPACITY, DEFAULT_MAX_TURNS, DEFAULT_NOTIFY_QUEUE_MAX_SPINS,
-    DEFAULT_PARK_DURATION, DEFAULT_READINESS_POLL_QUANTUM, DEFAULT_READINESS_WAIT,
-    DEFAULT_WAIT_CHECK_INTERVAL, DEFAULT_WAIT_CYCLE, NotifyQueueConfig, StreamConfig,
+    NotifyQueueConfig, StreamConfig, DEFAULT_DELIVERY_CAPACITY, DEFAULT_MAX_TURNS,
+    DEFAULT_NOTIFY_QUEUE_MAX_SPINS, DEFAULT_PARK_DURATION, DEFAULT_READINESS_POLL_QUANTUM,
+    DEFAULT_READINESS_WAIT, DEFAULT_WAIT_CHECK_INTERVAL, DEFAULT_WAIT_CYCLE,
 };
 
 // ---------------------------------------------------------------------------
@@ -116,9 +116,9 @@ fn stream_config_defaults_and_builders_round_trip() {
 mod multi_limits {
     use super::*;
     use foundation_core::valtron::multi::PoolConfig;
+    use foundation_core::valtron::ThreadedIterFutureConfig;
     use foundation_core::valtron::DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT;
     use foundation_core::valtron::DEFAULT_OP_READ_TIME;
-    use foundation_core::valtron::ThreadedIterFutureConfig;
 
     /// The pool config stores `op_read_time`. The value is public, so the
     /// builder round-trips. The read path is `activity_receiver.recv_timeout`,
@@ -138,7 +138,10 @@ mod multi_limits {
     #[test]
     fn threaded_iter_config_notify_queue_wait_timeout_round_trips() {
         let default = ThreadedIterFutureConfig::default();
-        assert_eq!(default.notify_queue_wait_timeout, DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT);
+        assert_eq!(
+            default.notify_queue_wait_timeout,
+            DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT
+        );
 
         let custom = ThreadedIterFutureConfig {
             notify_queue_wait_timeout: Duration::from_millis(321),
@@ -178,7 +181,11 @@ fn new_executor() -> LocalThreadExecutor<NoYielder> {
         seed,
         "test".into(),
         global.clone(),
-        IdleMan::new(3, None, SleepyMan::new(3, ExponentialBackoffDecider::default())),
+        IdleMan::new(
+            3,
+            None,
+            SleepyMan::new(3, ExponentialBackoffDecider::default()),
+        ),
         PriorityOrder::Bottom,
         NoYielder,
         Duration::from_secs(10),

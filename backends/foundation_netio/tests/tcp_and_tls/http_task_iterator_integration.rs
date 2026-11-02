@@ -8,8 +8,10 @@
 //!
 //! HOW: Creates realistic HTTP request scenarios using public client APIs.
 
+use foundation_core::valtron::valtron_test;
 use foundation_netio::shared::client::{
-    ClientRequestBuilder, DnsResolver, MockDnsResolver, NativeHttpClient, SystemDnsResolver,
+    resolve_blocking, ClientRequestBuilder, DnsResolver, MockDnsResolver, NativeHttpClient,
+    SystemDnsResolver,
 };
 use std::net::SocketAddr;
 
@@ -52,7 +54,7 @@ fn test_simple_http_client_with_mock_resolver() {
     let request = builder.build();
 
     // Verify resolver works independently
-    let resolved = resolver.resolve("example.com", 80);
+    let resolved = resolve_blocking(&resolver, "example.com", 80);
     assert!(resolved.is_ok());
 
     assert_eq!(request.url.host_str().unwrap(), "example.com");
@@ -170,14 +172,14 @@ fn test_simple_http_client_request_method() {
 
 /// WHY: Verify DnsResolver trait includes Clone bound
 /// WHAT: Tests that resolvers can be cloned (required for RedirectAction)
-#[test]
+#[valtron_test]
 fn test_dns_resolver_clone() {
     let resolver1 = SystemDnsResolver::new();
     let resolver2 = resolver1.clone();
 
     // Both resolvers should work
-    assert!(resolver1.resolve("localhost", 80).is_ok());
-    assert!(resolver2.resolve("localhost", 80).is_ok());
+    assert!(resolve_blocking(&resolver1, "localhost", 80).is_ok());
+    assert!(resolve_blocking(&resolver2, "localhost", 80).is_ok());
 }
 
 /// WHY: Verify MockDnsResolver cloning preserves configuration
@@ -189,8 +191,8 @@ fn test_mock_dns_resolver_clone_preserves_config() {
     let resolver2 = resolver1.clone();
 
     // Both should return the same configured response
-    let result1 = resolver1.resolve("secure.example.com", 443);
-    let result2 = resolver2.resolve("secure.example.com", 443);
+    let result1 = resolve_blocking(&resolver1, "secure.example.com", 443);
+    let result2 = resolve_blocking(&resolver2, "secure.example.com", 443);
 
     assert!(result1.is_ok());
     assert!(result2.is_ok());

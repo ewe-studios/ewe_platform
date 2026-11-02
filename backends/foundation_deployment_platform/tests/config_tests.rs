@@ -1,6 +1,6 @@
-//! Unit tests for ContainerConfig builder.
+//! Unit tests for `ContainerConfig` builder.
 
-use foundation_deployment_platform::docker::{ContainerConfig, WaitFor, VolumeSource};
+use foundation_deployment_platform::docker::{ContainerConfig, VolumeSource, WaitFor};
 
 #[test]
 fn test_config_new_sets_image() {
@@ -63,13 +63,12 @@ fn test_config_devices_and_caps() {
 
 #[test]
 fn test_config_named_volume() {
-    let cfg = ContainerConfig::new("mysql:8")
-        .named_volume("mysql-data", "/var/lib/mysql");
+    let cfg = ContainerConfig::new("mysql:8").named_volume("mysql-data", "/var/lib/mysql");
 
     assert_eq!(cfg.volumes.len(), 1);
     match &cfg.volumes[0].source {
         VolumeSource::Named(name) => assert_eq!(name, "mysql-data"),
-        _ => panic!("expected named volume"),
+        VolumeSource::Bind(_) => panic!("expected named volume"),
     }
 }
 
@@ -110,5 +109,8 @@ fn test_parse_memory_bytes_rejects_bad_input() {
     assert!(parse_memory_bytes("").is_err());
     assert!(parse_memory_bytes("lots").is_err());
     assert!(parse_memory_bytes("256x").is_err());
-    assert!(parse_memory_bytes("9999999999g").is_err(), "overflow must not wrap");
+    assert!(
+        parse_memory_bytes("9999999999g").is_err(),
+        "overflow must not wrap"
+    );
 }

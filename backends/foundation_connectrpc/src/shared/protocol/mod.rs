@@ -29,12 +29,12 @@ use foundation_netio::shared::http::{
 use crate::shared::compression::CompressionRegistry;
 use crate::shared::context::{CancelSignal, Spec, StreamType};
 use crate::shared::error::{ConnectError, ConnectResult};
-use foundation_errstacks::ErrorTrace;
 use crate::shared::transport::{
-    fail_stream, race, BodyStream, BoxFuture, ByteSink, ByteSource, ClientConn, Frame,
-    HandlerConn, HeadStream, ProtocolKind, TransportStream,
+    fail_stream, race, BodyStream, BoxFuture, ByteSink, ByteSource, ClientConn, Frame, HandlerConn,
+    HeadStream, ProtocolKind, TransportStream,
 };
 use foundation_core::valtron::PipeSender;
+use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::Status;
 use std::sync::Mutex;
 
@@ -319,8 +319,11 @@ pub(crate) async fn open_response_stream(
     } else {
         String::from_utf8_lossy(&message).to_string()
     };
-    let error: ErrorTrace<ConnectError> =
-        ConnectError::new(crate::shared::client::code_from_http_status(&status), message).into();
+    let error: ErrorTrace<ConnectError> = ConnectError::new(
+        crate::shared::client::code_from_http_status(&status),
+        message,
+    )
+    .into();
     let end = Frame::EndStream {
         error: Some(error),
         trailers: headers,

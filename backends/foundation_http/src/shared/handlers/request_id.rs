@@ -15,21 +15,16 @@ use crate::shared::middleware::{MiddlewareResult, RequestMiddleware};
 pub struct RequestIdMiddleware;
 
 impl RequestMiddleware for RequestIdMiddleware {
-    fn handle(
-        &self,
-        _ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult {
-        let has_id = req.headers.iter().any(|(k, _)| {
-            format!("{k}").eq_ignore_ascii_case("x-request-id")
-        });
+    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
+        let has_id = req
+            .headers
+            .iter()
+            .any(|(k, _)| format!("{k}").eq_ignore_ascii_case("x-request-id"));
 
         if !has_id {
             let id = Uuid::new_v4().to_string();
-            req.headers.insert(
-                SimpleHeader::custom("X-Request-Id"),
-                vec![id],
-            );
+            req.headers
+                .insert(SimpleHeader::custom("X-Request-Id"), vec![id]);
         }
 
         MiddlewareResult::Continue

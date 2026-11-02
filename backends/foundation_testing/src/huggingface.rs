@@ -8,9 +8,8 @@
 //! HOW: Uses the new `foundation_deployment_huggingface` client with
 //! simple_http (no tokio/async required).
 
-use foundation_deployment_huggingface::{
-    repository, HFClientBuilder, RepoDownloadFileParams,
-};
+use foundation_core::valtron::block_on_future;
+use foundation_deployment_huggingface::{repository, HFClientBuilder, RepoDownloadFileParams};
 use std::fs;
 use std::path::{Path, PathBuf};
 use tracing::{debug, info, warn};
@@ -26,9 +25,10 @@ pub const MODELS_SUBDIR: &str = "models";
 /// # Usage
 ///
 /// ```rust,no_run
+/// use std::path::Path;
 /// use foundation_testing::huggingface::TestHarness;
 ///
-/// let harness = TestHarness::new(project_root);
+/// let harness = TestHarness::new(Path::new("."));
 /// let model_path = harness.get_model("unsloth/SmolLM2-360M-Instruct-GGUF", "SmolLM2-360M-Instruct-Q2_K.gguf");
 /// ```
 pub struct TestHarness {
@@ -46,6 +46,12 @@ impl TestHarness {
     pub fn new(project_root: &Path) -> Self {
         let artefacts_dir = project_root.join(DEFAULT_ARTEFACTS_DIR).join(MODELS_SUBDIR);
         Self { artefacts_dir }
+    }
+
+    /// The artefacts directory models are downloaded into.
+    #[must_use]
+    pub fn artefacts_dir(&self) -> &Path {
+        &self.artefacts_dir
     }
 
     /// Get or download a model from HuggingFace Hub.
@@ -108,14 +114,13 @@ impl TestHarness {
         info!("Downloading model {filename} from {repo_id}...");
         debug!("This may take a while for large models...");
 
-        repository::repo_download_file(
-            &self.build_repo(repo_id)?,
-            &RepoDownloadFileParams {
-                filename: filename.to_string(),
-                revision: None,
-                directory: self.artefacts_dir.clone(),
-            },
-        )?;
+        let repo = self.build_repo(repo_id)?;
+        let params = RepoDownloadFileParams {
+            filename: filename.to_string(),
+            revision: None,
+            directory: self.artefacts_dir.clone(),
+        };
+        block_on_future(async move { repository::repo_download_file(&repo, &params).await })?;
 
         // Hard guard: a successful download must produce a non-empty file.
         // If we ever end up with a 0-byte file, delete it and fail loudly
@@ -182,29 +187,5 @@ impl TestHarness {
             "unsloth/SmolLM2-360M-Instruct-GGUF",
             "SmolLM2-360M-Instruct-Q2_K.gguf",
         )
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_artefacts_dir_constant() {
-        assert!(!DEFAULT_ARTEFACTS_DIR.is_empty());
-        assert_eq!(MODELS_SUBDIR, "models");
-    }
-
-    #[test]
-    fn test_harness_creation() {
-        let temp_dir = std::env::temp_dir();
-        let harness = TestHarness::new(&temp_dir);
-        // artefacts_dir should be: temp_dir/artefacts/models
-        assert!(harness.artefacts_dir.ends_with(MODELS_SUBDIR));
-        assert!(harness
-            .artefacts_dir
-            .parent()
-            .unwrap()
-            .ends_with(DEFAULT_ARTEFACTS_DIR));
     }
 }

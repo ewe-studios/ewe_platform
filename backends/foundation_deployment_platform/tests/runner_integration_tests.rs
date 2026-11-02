@@ -23,15 +23,12 @@ use std::time::Duration;
 
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, WaitFor};
+use foundation_deployment_platform::testing::docker_available;
 use foundation_sshkit::{Command, ConnectionPool, Host, Runner, Ssh2Backend};
 
 const SSH_USER: &str = "testuser";
 const SSH_PASSWORD: &str = "testpass";
 const SSH_PORT: u16 = 2222;
-
-fn docker_available() -> bool {
-    std::path::Path::new("/var/run/docker.sock").exists()
-}
 
 fn sshd_config() -> ContainerConfig {
     ContainerConfig::new("lscr.io/linuxserver/openssh-server:latest")

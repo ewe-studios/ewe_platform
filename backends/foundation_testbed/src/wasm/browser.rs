@@ -87,5 +87,9 @@ pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput
     let test_result = output.lines().next().unwrap_or("").trim().to_string();
     debug!("Browser test result: {test_result}");
 
-    Ok(BrowserOutput { test_result, console_logs: Vec::new(), exit_code: 0 })
+    Ok(BrowserOutput {
+        test_result,
+        console_logs: Vec::new(),
+        exit_code: 0,
+    })
 }

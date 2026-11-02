@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use foundation_ui_traits::{Profile, RouteDecision, CachePolicy};
+use foundation_ui_traits::{CachePolicy, Profile, RouteDecision};
 
 use crate::session::PlatformSession;
 
@@ -38,7 +38,9 @@ pub struct MemoryCacheStorage {
 impl MemoryCacheStorage {
     #[must_use]
     pub fn new() -> Self {
-        Self { data: RwLock::new(HashMap::new()) }
+        Self {
+            data: RwLock::new(HashMap::new()),
+        }
     }
 }
 
@@ -63,7 +65,7 @@ impl CacheStorage for MemoryCacheStorage {
 pub struct CachedEntry {
     pub body: Vec<u8>,
     pub content_type: String,
-    pub cached_at: u64,       // Unix timestamp (seconds)
+    pub cached_at: u64, // Unix timestamp (seconds)
     pub profile: Profile,
 }
 
@@ -74,7 +76,12 @@ impl CachedEntry {
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs();
-        Self { body, content_type: content_type.to_string(), cached_at, profile }
+        Self {
+            body,
+            content_type: content_type.to_string(),
+            cached_at,
+            profile,
+        }
     }
 }
 
@@ -88,7 +95,9 @@ pub struct CacheManager {
 
 impl CacheManager {
     pub fn new(storage: impl CacheStorage) -> Self {
-        Self { storage: Box::new(storage) }
+        Self {
+            storage: Box::new(storage),
+        }
     }
 
     #[must_use]
@@ -102,7 +111,8 @@ impl CacheManager {
 
     pub fn store(&self, profile: Profile, route: &str, body: &[u8], content_type: &str) {
         let key = Self::scoped_key(profile, route);
-        self.storage.set(&key, CachedEntry::new(body.to_vec(), content_type, profile));
+        self.storage
+            .set(&key, CachedEntry::new(body.to_vec(), content_type, profile));
     }
 
     #[must_use]
@@ -183,7 +193,9 @@ impl PlatformSession {
         decision: &RouteDecision,
         route: &str,
     ) -> bool {
-        if self.is_online() { return false; }
+        if self.is_online() {
+            return false;
+        }
         cache.can_serve_offline(decision, route)
     }
 }

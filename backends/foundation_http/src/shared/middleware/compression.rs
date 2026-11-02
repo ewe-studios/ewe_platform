@@ -71,7 +71,7 @@ impl CompressionConfig {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            min_size: 1024,     // 1KB
+            min_size: 1024,       // 1KB
             max_size: 10_485_760, // 10MB
             level: 6,
             mime_types: vec![
@@ -131,9 +131,9 @@ impl CompressionConfig {
     /// Check if a MIME type should be compressed.
     #[allow(dead_code)]
     fn should_compress(&self, mime_type: &str) -> bool {
-        self.mime_types.iter().any(|m| {
-            mime_type.starts_with(m) || m.starts_with(mime_type)
-        })
+        self.mime_types
+            .iter()
+            .any(|m| mime_type.starts_with(m) || m.starts_with(mime_type))
     }
 }
 
@@ -210,8 +210,16 @@ impl CompressionMiddleware {
             }
 
             // Tie-break by preferred order
-            let a_idx = self.config.preferred_algorithms.iter().position(|p| p == &a.0);
-            let b_idx = self.config.preferred_algorithms.iter().position(|p| p == &b.0);
+            let a_idx = self
+                .config
+                .preferred_algorithms
+                .iter()
+                .position(|p| p == &a.0);
+            let b_idx = self
+                .config
+                .preferred_algorithms
+                .iter()
+                .position(|p| p == &b.0);
             a_idx.cmp(&b_idx)
         });
 
@@ -248,14 +256,10 @@ pub struct CompressionPreference {
 }
 
 impl RequestMiddleware for CompressionMiddleware {
-    fn handle(
-        &self,
-        _ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         // Parse Accept-Encoding header
-        let algorithm = Self::extract_accept_encoding(req)
-            .and_then(|enc| self.select_algorithm(&enc));
+        let algorithm =
+            Self::extract_accept_encoding(req).and_then(|enc| self.select_algorithm(&enc));
 
         // Store compression preference in request extensions
         // This would require modifying SimpleIncomingRequest.extensions

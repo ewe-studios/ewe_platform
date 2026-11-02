@@ -23,8 +23,8 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::{PeekError, PeekableReadStream, SharedByteBufferStream};
 use foundation_core::synca::WaitGroupGuard;
-use foundation_iogate::ShutdownSignal;
 use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
+use foundation_iogate::ShutdownSignal;
 use foundation_netio::http2::conn::H2Conn;
 use foundation_netio::http2::detect::{detect_protocol, DetectedProtocol, H2C_PREFACE_PEEK_LEN};
 use foundation_netio::netcap::{ConnectionContext, RawStream};

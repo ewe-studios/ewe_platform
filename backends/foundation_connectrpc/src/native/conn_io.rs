@@ -34,8 +34,9 @@
 //! TLS session needs (`wants_write` first, then "still handshaking"), not the
 //! direction the application asked for; the WireGuard overlay has no fd and is
 //! woken by its driver through a wake callback. A transport that still cannot
-//! report readiness (a completion socket, openssl/native-tls) fails with
-//! `Unsupported` instead of spinning.
+//! report readiness (a completion socket, openssl/native-tls) parks on the
+//! valtron timer and re-polls at the configured poll-fallback interval instead
+//! of failing with `Unsupported` or spinning.
 
 use std::future::Future;
 use std::io;
@@ -52,17 +53,26 @@ use foundation_netio::native::readiness::IoInterest;
 use foundation_netio::netcap::RawStream;
 #[cfg(unix)]
 use foundation_reactor::FdReadiness;
+#[cfg(unix)]
+use std::os::unix::io::{AsRawFd, RawFd};
 
 /// Drives one request's waits on the connection's socket. See the module docs.
 #[cfg(unix)]
 pub(crate) struct ConnIo {
     /// How to wait for this connection's readiness, when the transport reports
     /// it (kernel fd, rustls, the overlay). `None` is a completion socket or an
-    /// openssl/native-tls stream, which cannot be waited on here.
+    /// openssl/native-tls stream, which park on the valtron timer instead
+    /// ([`Self::poll_fallback_interval`]).
     readiness: Option<ConnReadiness>,
     /// The shared-reactor registration for a kernel-fd transport; `None` for
-    /// the overlay (woken by callbacks) and for unsupported transports.
+    /// the overlay (woken by callbacks) and for the poll-fallback transports.
     fd_ready: Option<FdReadiness>,
+    /// The raw fd to poll for a peer close/error when `readiness` is `None`
+    /// (the poll-fallback transports both expose one). `None` for the overlay.
+    fallback_fd: Option<RawFd>,
+    /// How often the poll-fallback transports re-probe. See
+    /// [`ServeTimeouts::poll_fallback_interval`](super::server::ServeTimeouts).
+    poll_fallback_interval: Duration,
 }
 
 #[cfg(not(unix))]
@@ -71,25 +81,43 @@ pub(crate) struct ConnIo {
 }
 
 impl ConnIo {
-    /// A driver for `conn`.
+    /// A driver for `conn`, with `poll_fallback_interval` as the re-probe period
+    /// for transports that cannot report readiness (see the module docs).
     ///
     /// # Errors
     /// The reactor could not register the connection's fd.
     #[cfg(unix)]
-    pub(crate) fn new(conn: &SharedByteBufferStream<RawStream>) -> io::Result<Self> {
+    pub(crate) fn new(
+        conn: &SharedByteBufferStream<RawStream>,
+        poll_fallback_interval: Duration,
+    ) -> io::Result<Self> {
         let readiness = conn.with_inner_ref(|raw: &RawStream| raw.conn_readiness());
         let fd_ready = match &readiness {
             Some(ConnReadiness::Fd(fd, _)) => Some(FdReadiness::register(*fd)?),
             _ => None,
         };
+        // The poll-fallback transports expose a raw fd (openssl/native-tls wrap a
+        // TCP socket; the completion socket has one too), even though they do not
+        // report readiness. Keep it so `gone_now` can watch for a close/error.
+        let fallback_fd = if readiness.is_none() {
+            let fd = conn.with_inner_ref(|raw: &RawStream| raw.as_raw_fd());
+            (fd >= 0).then_some(fd)
+        } else {
+            None
+        };
         Ok(Self {
             readiness,
             fd_ready,
+            fallback_fd,
+            poll_fallback_interval,
         })
     }
 
     #[cfg(not(unix))]
-    pub(crate) fn new(_conn: &SharedByteBufferStream<RawStream>) -> io::Result<Self> {
+    pub(crate) fn new(
+        _conn: &SharedByteBufferStream<RawStream>,
+        _poll_fallback_interval: Duration,
+    ) -> io::Result<Self> {
         Ok(Self { _priv: () })
     }
 
@@ -118,28 +146,82 @@ impl ConnIo {
         )
     }
 
+    /// Whether this transport reports readiness (`Some`) or parks on the valtron
+    /// timer and re-polls (completion socket, openssl/native-tls).
+    fn uses_poll_fallback(&self) -> bool {
+        self.readiness.is_none()
+    }
+
+    /// The re-probe period for poll-fallback transports. See
+    /// [`ServeTimeouts::poll_fallback_interval`](super::server::ServeTimeouts).
+    fn poll_fallback_interval(&self) -> Duration {
+        self.poll_fallback_interval
+    }
+
     /// Whether the connection is ready in `interest`'s direction right now.
+    /// A poll-fallback transport answers "not ready yet" — its wait future
+    /// re-polls through the valtron timer instead of erroring.
     fn ready_now(&self, interest: IoInterest) -> io::Result<bool> {
         match &self.readiness {
             Some(r) => r.ready_now(interest),
-            None => Err(Self::unsupported()),
+            None => Ok(false),
         }
     }
 
-    /// Whether the peer has closed or reset the connection right now.
+    /// Whether the peer has closed or reset the connection right now. A
+    /// poll-fallback transport probes its raw fd for a close/error.
     fn gone_now(&self) -> io::Result<bool> {
         match &self.fd_ready {
             Some(r) => {
                 let ready = r.ready();
                 Ok(ready.is_read_closed() || ready.is_write_closed() || ready.is_error())
             }
-            None => Err(Self::unsupported()),
+            None => match self.fallback_fd {
+                Some(fd) => Self::fd_gone(fd),
+                None => Err(Self::unsupported()),
+            },
         }
+    }
+
+    /// Probe `fd` with `poll(2)` for a close (`POLLHUP`, `POLLRDHUP` on Linux) or
+    /// an error (`POLLERR`, `POLLNVAL`). The probe is non-blocking (timeout 0), so
+    /// it never blocks the poll of the calling future. An interrupted probe
+    /// answers "not gone yet" and is re-probed later.
+    fn fd_gone(fd: RawFd) -> io::Result<bool> {
+        let mut pfd = libc::pollfd {
+            fd,
+            events: libc::POLLIN,
+            revents: 0,
+        };
+        // `POLLRDHUP` separates a half-close (FIN) from a full close on Linux;
+        // other platforms report a full close as `POLLHUP`. The flag must be
+        // requested in `events` for `poll` to report it.
+        #[cfg(any(target_os = "linux", target_os = "android"))]
+        {
+            pfd.events |= libc::POLLRDHUP;
+        }
+        // SAFETY: `pfd` is one valid pollfd and outlives the call.
+        let rc = unsafe { libc::poll(&raw mut pfd, 1, 0) };
+        if rc < 0 {
+            let err = io::Error::last_os_error();
+            if err.raw_os_error() == Some(libc::EINTR) {
+                return Ok(false);
+            }
+            return Err(err);
+        }
+        let revents = pfd.revents;
+        #[cfg(any(target_os = "linux", target_os = "android"))]
+        let closed =
+            (revents & (libc::POLLHUP | libc::POLLERR | libc::POLLNVAL | libc::POLLRDHUP)) != 0;
+        #[cfg(not(any(target_os = "linux", target_os = "android")))]
+        let closed = (revents & (libc::POLLHUP | libc::POLLERR | libc::POLLNVAL)) != 0;
+        Ok(closed)
     }
 
     /// Register `waker` so the connection wakes it when `interest` becomes
     /// ready. A kernel fd is watched in the TLS-corrected direction; the
-    /// overlay registers a one-shot wake callback.
+    /// overlay registers a one-shot wake callback; a poll-fallback transport
+    /// has nothing to register — its wait future re-arms the valtron timer.
     fn register(&self, interest: IoInterest, waker: &Waker) -> io::Result<()> {
         match &self.readiness {
             Some(ConnReadiness::Fd(_, _)) => {
@@ -162,20 +244,23 @@ impl ConnIo {
                     .register_waker(interest, cb);
                 Ok(())
             }
-            None => Err(Self::unsupported()),
+            None => Ok(()),
         }
     }
 
     /// Register `waker` for a hangup. Only a kernel fd can report one (its read
-    /// registration latches the close); the overlay and unsupported transports
-    /// have nothing to watch.
+    /// registration latches the close); a poll-fallback transport re-polls its
+    /// fd through the valtron timer; the overlay has nothing to watch.
     fn register_hangup(&self, waker: &Waker) -> io::Result<()> {
         match &self.fd_ready {
             Some(r) => {
                 r.register_waker(waker);
                 Ok(())
             }
-            None => Err(Self::unsupported()),
+            None => match self.fallback_fd {
+                Some(_) => Ok(()),
+                None => Err(Self::unsupported()),
+            },
         }
     }
 }
@@ -187,6 +272,14 @@ impl ConnIo {
             io::ErrorKind::Unsupported,
             "waiting on a connection is only supported on unix",
         )
+    }
+
+    fn uses_poll_fallback(&self) -> bool {
+        false
+    }
+
+    fn poll_fallback_interval(&self) -> Duration {
+        Duration::ZERO
     }
 
     fn ready_now(&self, _interest: IoInterest) -> io::Result<bool> {
@@ -213,6 +306,9 @@ pub(crate) struct IoReady {
     timeout: Duration,
     /// The valtron timer that wakes this future at the deadline.
     timer: Option<Sleep>,
+    /// The valtron timer that re-polls a poll-fallback transport at
+    /// [`ConnIo::poll_fallback_interval`]. `None` when not poll-fallback.
+    fallback: Option<Sleep>,
 }
 
 impl IoReady {
@@ -223,6 +319,7 @@ impl IoReady {
             interest,
             timeout,
             timer: Some(timer::sleep_until(deadline)),
+            fallback: None,
         }
     }
 
@@ -244,7 +341,20 @@ impl Future for IoReady {
             Ok(false) => {}
             Err(e) => return Poll::Ready(Err(e)),
         }
-        if let Err(e) = this.io.register(this.interest, cx.waker()) {
+        if this.io.uses_poll_fallback() {
+            // Park on the valtron timer for one poll-fallback interval, then
+            // return `Ok` so the caller retries its read or write. The retry is
+            // paced at the configured interval; the wake is a timer wake, never
+            // a spin.
+            if this.fallback.is_none() {
+                this.fallback = Some(timer::sleep_for(this.io.poll_fallback_interval()));
+            }
+            if let Some(fallback) = this.fallback.as_mut() {
+                if Pin::new(fallback).poll(cx).is_ready() {
+                    return Poll::Ready(Ok(()));
+                }
+            }
+        } else if let Err(e) = this.io.register(this.interest, cx.waker()) {
             return Poll::Ready(Err(e));
         }
         // The timer wakes this future at the deadline. A `Ready` here means the
@@ -261,11 +371,14 @@ impl Future for IoReady {
 /// See [`ConnIo::hangup`].
 pub(crate) struct Hangup {
     io: Arc<ConnIo>,
+    /// The valtron timer that re-polls a poll-fallback transport's fd at
+    /// [`ConnIo::poll_fallback_interval`]. `None` when not poll-fallback.
+    fallback: Option<Sleep>,
 }
 
 impl Hangup {
     pub(crate) fn new(io: Arc<ConnIo>) -> Self {
-        Self { io }
+        Self { io, fallback: None }
     }
 }
 
@@ -276,10 +389,28 @@ impl Future for Hangup {
         let this = self.get_mut();
         match this.io.gone_now() {
             Ok(true) => Poll::Ready(Ok(())),
-            Ok(false) => match this.io.register_hangup(cx.waker()) {
-                Ok(()) => Poll::Pending,
-                Err(e) => Poll::Ready(Err(e)),
-            },
+            Ok(false) => {
+                if this.io.uses_poll_fallback() {
+                    // Park on the valtron timer for one poll-fallback interval,
+                    // then re-probe `gone_now`. The wake is a timer wake, never
+                    // a spin.
+                    if this.fallback.is_none() {
+                        this.fallback = Some(timer::sleep_for(this.io.poll_fallback_interval()));
+                    }
+                    if let Some(fallback) = this.fallback.as_mut() {
+                        if Pin::new(fallback).poll(cx).is_ready() {
+                            this.fallback = None;
+                            cx.waker().wake_by_ref();
+                        }
+                    }
+                    Poll::Pending
+                } else {
+                    match this.io.register_hangup(cx.waker()) {
+                        Ok(()) => Poll::Pending,
+                        Err(e) => Poll::Ready(Err(e)),
+                    }
+                }
+            }
             Err(e) => Poll::Ready(Err(e)),
         }
     }

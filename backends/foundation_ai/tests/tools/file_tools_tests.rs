@@ -100,7 +100,10 @@ fn write_creates_then_read_back() {
         assert!(text_of(&out).contains("4 bytes"));
 
         let read = ReadTool::new(fs);
-        let back = read.execute(args(&[("path", "/new.txt")])).await.expect("read");
+        let back = read
+            .execute(args(&[("path", "/new.txt")]))
+            .await
+            .expect("read");
         assert_eq!(text_of(&back), "data");
     });
 }
@@ -113,7 +116,10 @@ fn write_overwrites() {
             .execute(args(&[("path", "/f.txt"), ("content", "new content")]))
             .await
             .expect("overwrite");
-        let back = ReadTool::new(fs).execute(args(&[("path", "/f.txt")])).await.unwrap();
+        let back = ReadTool::new(fs)
+            .execute(args(&[("path", "/f.txt")]))
+            .await
+            .unwrap();
         assert_eq!(text_of(&back), "new content");
     });
 }
@@ -133,7 +139,10 @@ fn edit_unique_replace() {
         ]))
         .await
         .expect("edit ok");
-        let back = ReadTool::new(fs).execute(args(&[("path", "/e.txt")])).await.unwrap();
+        let back = ReadTool::new(fs)
+            .execute(args(&[("path", "/e.txt")]))
+            .await
+            .unwrap();
         assert_eq!(text_of(&back), "foo QUX baz");
     });
 }
@@ -204,9 +213,15 @@ fn edit_replace_all() {
 fn tool_definitions_expose_names_and_categories() {
     let fs = Arc::new(MemoryFs::new());
     assert_eq!(ReadTool::new(fs.clone()).definition().name(), "read");
-    assert_eq!(ReadTool::new(fs.clone()).definition().category().unwrap(), "read");
+    assert_eq!(
+        ReadTool::new(fs.clone()).definition().category().unwrap(),
+        "read"
+    );
     assert_eq!(WriteTool::new(fs.clone()).definition().name(), "write");
-    assert_eq!(WriteTool::new(fs.clone()).definition().category().unwrap(), "write");
+    assert_eq!(
+        WriteTool::new(fs.clone()).definition().category().unwrap(),
+        "write"
+    );
     assert_eq!(EditTool::new(fs.clone()).definition().name(), "edit");
     assert_eq!(EditTool::new(fs).definition().category().unwrap(), "edit");
 }

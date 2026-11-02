@@ -317,11 +317,7 @@ impl WebViewStack {
     /// 2. Deactivate current: state → Screenshot
     /// 3. Create new slot, set Active
     /// 4. Navigate shared `WebView` to new route
-    pub fn push(
-        &mut self,
-        route: &str,
-        webview: &dyn WebViewOps,
-    ) {
+    pub fn push(&mut self, route: &str, webview: &dyn WebViewOps) {
         // 1. Capture screenshot of current active
         if let Some(slot) = self.slots.get_mut(self.active_index) {
             let ss = webview.screenshot();
@@ -358,9 +354,9 @@ impl WebViewStack {
 
         // Drop top slot, free its screenshot memory
         if let Some(top) = self.slots.get(self.active_index) {
-            self.screenshot_bytes = self.screenshot_bytes.saturating_sub(
-                top.screenshot.as_ref().map_or(0, std::vec::Vec::len),
-            );
+            self.screenshot_bytes = self
+                .screenshot_bytes
+                .saturating_sub(top.screenshot.as_ref().map_or(0, std::vec::Vec::len));
         }
         self.slots.pop();
         self.active_index = self.slots.len() - 1;
@@ -559,9 +555,9 @@ impl WebViewStack {
     /// Mark a specific screenshot as stale — clear it.
     pub fn mark_screenshot_stale(&mut self, index: usize) {
         if let Some(slot) = self.slots.get_mut(index) {
-            self.screenshot_bytes = self.screenshot_bytes.saturating_sub(
-                slot.screenshot.as_ref().map_or(0, std::vec::Vec::len),
-            );
+            self.screenshot_bytes = self
+                .screenshot_bytes
+                .saturating_sub(slot.screenshot.as_ref().map_or(0, std::vec::Vec::len));
             slot.clear_screenshot();
         }
     }
@@ -573,12 +569,11 @@ impl WebViewStack {
             || self.slot_with_screenshots() > self.config.max_screenshots
         {
             // Evict oldest screenshot (LRU: first slot with a screenshot)
-            let evicted = self.slots.iter_mut()
-                .find(|s| s.screenshot.is_some());
+            let evicted = self.slots.iter_mut().find(|s| s.screenshot.is_some());
             if let Some(slot) = evicted {
-                self.screenshot_bytes = self.screenshot_bytes.saturating_sub(
-                    slot.screenshot.as_ref().map_or(0, std::vec::Vec::len),
-                );
+                self.screenshot_bytes = self
+                    .screenshot_bytes
+                    .saturating_sub(slot.screenshot.as_ref().map_or(0, std::vec::Vec::len));
                 slot.clear_screenshot();
             } else {
                 break;

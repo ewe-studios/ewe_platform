@@ -229,4 +229,3 @@ impl core::fmt::Display for AuthStateError {
 }
 
 impl std::error::Error for AuthStateError {}
-

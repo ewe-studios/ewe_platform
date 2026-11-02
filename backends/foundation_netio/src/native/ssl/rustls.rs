@@ -366,16 +366,17 @@ where
 #[cfg(unix)]
 impl<T, D> RustlsStream<T>
 where
-    T: core::ops::Deref<Target = rustls::ConnectionCommon<D>> + Send + Sync + std::fmt::Debug + 'static,
+    T: core::ops::Deref<Target = rustls::ConnectionCommon<D>>
+        + Send
+        + Sync
+        + std::fmt::Debug
+        + 'static,
 {
     #[must_use]
     pub fn conn_readiness(&self) -> crate::native::connection::ConnReadiness {
         use std::os::fd::AsRawFd;
         let fd = self.as_raw_fd();
-        crate::native::connection::ConnReadiness::Fd(
-            fd,
-            Some(std::sync::Arc::new(self.clone())),
-        )
+        crate::native::connection::ConnReadiness::Fd(fd, Some(std::sync::Arc::new(self.clone())))
     }
 }
 #[cfg(unix)]
@@ -388,7 +389,10 @@ where
         interest: crate::native::readiness::IoInterest,
     ) -> crate::native::readiness::IoInterest {
         use crate::native::readiness::IoInterest;
-        let guard = self.0.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        let guard = self
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         if guard.conn.wants_write() {
             IoInterest::Writable
         } else if guard.conn.is_handshaking() {
@@ -611,6 +615,9 @@ impl RustlsAcceptor {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
+    // Public API: callers in other crates pass the PEM bytes by value; changing
+    // to slices would break the crate's public API surface.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn from_pem(
         certificates: Vec<u8>,
         private_key: Zeroizing<Vec<u8>>,
@@ -749,7 +756,7 @@ impl RustlsConnector {
             Endpoint::WithIdentity(_, identity) => {
                 Self(identity.clone())
             }
-            _ => unreachable!("You generally won't call this method with Endpoint::NoIdentity since its left to you to generate")
+            Endpoint::WithDefault(_) => unreachable!("You generally won't call this method with Endpoint::WithDefault since its left to you to generate")
         }
     }
 
@@ -803,17 +810,11 @@ impl RustlsConnector {
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
 
         let plain_stream = match endpoint {
-            Endpoint::WithDefault(config) => match config {
+            Endpoint::WithDefault(config) | Endpoint::WithIdentity(config, _) => match config {
                 EndpointConfig::WithTimeout(_, timeout) => {
                     TcpStream::connect_timeout(&host_socket_addr, *timeout)
                 }
-                _ => TcpStream::connect(host_socket_addr),
-            },
-            Endpoint::WithIdentity(config, _) => match config {
-                EndpointConfig::WithTimeout(_, timeout) => {
-                    TcpStream::connect_timeout(&host_socket_addr, *timeout)
-                }
-                _ => TcpStream::connect(host_socket_addr),
+                EndpointConfig::NoTimeout(_) => TcpStream::connect(host_socket_addr),
             },
         }?;
 

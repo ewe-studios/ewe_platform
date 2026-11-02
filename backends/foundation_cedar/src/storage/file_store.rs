@@ -4,24 +4,24 @@ use super::traits::PolicyStore;
 use crate::core::errors::CedarError;
 
 pub struct FilePolicyStore {
-    schema_path: PathBuf,
-    policy_path: PathBuf,
-    entities_path: Option<PathBuf>,
+    schema: PathBuf,
+    policy: PathBuf,
+    entities: Option<PathBuf>,
 }
 
 impl FilePolicyStore {
     #[must_use]
     pub fn new(schema_path: impl Into<PathBuf>, policy_path: impl Into<PathBuf>) -> Self {
         Self {
-            schema_path: schema_path.into(),
-            policy_path: policy_path.into(),
-            entities_path: None,
+            schema: schema_path.into(),
+            policy: policy_path.into(),
+            entities: None,
         }
     }
 
     #[must_use]
     pub fn with_entities(mut self, path: impl Into<PathBuf>) -> Self {
-        self.entities_path = Some(path.into());
+        self.entities = Some(path.into());
         self
     }
 
@@ -34,26 +34,23 @@ impl FilePolicyStore {
 #[async_trait::async_trait]
 impl PolicyStore for FilePolicyStore {
     async fn load_policies(&self) -> Result<String, CedarError> {
-        Self::read_file(&self.policy_path)
+        Self::read_file(&self.policy)
     }
 
     async fn load_schema(&self) -> Result<String, CedarError> {
-        Self::read_file(&self.schema_path)
+        Self::read_file(&self.schema)
     }
 
     async fn load_entities(&self) -> Result<Option<String>, CedarError> {
-        match &self.entities_path {
+        match &self.entities {
             Some(p) => Self::read_file(p).map(Some),
             None => Ok(None),
         }
     }
 
     async fn version(&self) -> Result<String, CedarError> {
-        let meta = std::fs::metadata(&self.policy_path).map_err(|e| {
-            CedarError::PolicyParse(format!(
-                "Failed to stat {}: {e}",
-                self.policy_path.display()
-            ))
+        let meta = std::fs::metadata(&self.policy).map_err(|e| {
+            CedarError::PolicyParse(format!("Failed to stat {}: {e}", self.policy.display()))
         })?;
         let modified = meta
             .modified()
@@ -68,8 +65,9 @@ impl PolicyStore for FilePolicyStore {
 impl core::fmt::Debug for FilePolicyStore {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("FilePolicyStore")
-            .field("schema", &self.schema_path)
-            .field("policies", &self.policy_path)
+            .field("schema", &self.schema)
+            .field("policies", &self.policy)
+            .field("entities", &self.entities)
             .finish()
     }
 }

@@ -5,12 +5,12 @@
 //! pulled row by row.
 
 use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
-use crate::core::rate_limit;
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::rate_limit;
 use crate::core::schema::{MigrationRunner, MIGRATIONS};
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
-    RateLimiterStore, DataValue, SqlRow,
+    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
+    RateLimiterStore, SqlRow,
 };
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
@@ -86,9 +86,7 @@ impl TursoStorage {
         // `kv_store`/`_migrations`, so every other table — including `documents`
         // — was never created on the native sync path. The runner is idempotent
         // (each migration is `IF NOT EXISTS` and tracked in `_migrations`).
-        MigrationRunner::new(MIGRATIONS)
-            .run_async(self)
-            .await?;
+        MigrationRunner::new(MIGRATIONS).run_async(self).await?;
         Ok(())
     }
 
@@ -326,11 +324,9 @@ impl TursoStorage {
                 let encoded: String = row
                     .get(0)
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
-                Ok(Some(
-                    STANDARD
-                        .decode(&encoded)
-                        .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))?,
-                ))
+                Ok(Some(STANDARD.decode(&encoded).map_err(|e| {
+                    StorageError::Backend(format!("Base64 decode failed: {e}"))
+                })?))
             }
             None => Ok(None),
         }
@@ -425,11 +421,7 @@ impl TursoStorage {
     }
 
     /// Async execute (returns rows affected).
-    async fn execute_async_internal(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> StorageResult<u64> {
+    async fn execute_async_internal(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
         let turso_params = Self::to_turso_params(params);
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
@@ -454,7 +446,10 @@ impl TursoStorage {
 
 #[async_trait::async_trait]
 impl KeyValueStore for TursoStorage {
-    async fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
         self.get_async_internal::<V>(key).await
     }
 
@@ -502,6 +497,26 @@ impl QueryStore for TursoStorage {
 
     async fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_batch_async_internal(sql).await
+    }
+
+    async fn execute_batch_statements(
+        &self,
+        statements: &[(String, Vec<DataValue>)],
+    ) -> StorageResult<()> {
+        let conn = Arc::clone(&self.conn);
+        conn.execute_batch("BEGIN")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        for (sql, params) in statements {
+            let params = Self::to_turso_params(params);
+            if let Err(e) = conn.execute(sql, params).await {
+                let _ = conn.execute_batch("ROLLBACK").await;
+                return Err(StorageError::Backend(e.to_string()));
+            }
+        }
+        conn.execute_batch("COMMIT")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))
     }
 }
 

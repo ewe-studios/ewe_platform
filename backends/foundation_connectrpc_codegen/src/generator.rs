@@ -100,8 +100,7 @@ impl MethodInfo {
         let pascal = m.name.as_deref().unwrap_or("Unknown").to_string();
         let snake = escape_keyword(to_snake_case(&pascal));
         let input_type = extract_type_name(m.input_type.as_deref().unwrap_or("UnknownRequest"));
-        let output_type =
-            extract_type_name(m.output_type.as_deref().unwrap_or("UnknownResponse"));
+        let output_type = extract_type_name(m.output_type.as_deref().unwrap_or("UnknownResponse"));
         let client_stream = m.client_streaming.unwrap_or(false);
         let server_stream = m.server_streaming.unwrap_or(false);
 
@@ -135,11 +134,11 @@ fn escape_keyword(name: String) -> String {
     // Keywords that can appear from snake_casing a proto RPC name and that
     // Rust permits as raw identifiers.
     const KEYWORDS: &[&str] = &[
-        "as", "async", "await", "become", "box", "break", "const", "continue", "do", "dyn",
-        "else", "enum", "extern", "false", "final", "fn", "for", "if", "impl", "in", "let",
-        "loop", "match", "mod", "move", "mut", "override", "priv", "pub", "ref", "return",
-        "static", "struct", "trait", "true", "try", "type", "unsafe", "use", "virtual",
-        "where", "while", "yield",
+        "as", "async", "await", "become", "box", "break", "const", "continue", "do", "dyn", "else",
+        "enum", "extern", "false", "final", "fn", "for", "if", "impl", "in", "let", "loop",
+        "match", "mod", "move", "mut", "override", "priv", "pub", "ref", "return", "static",
+        "struct", "trait", "true", "try", "type", "unsafe", "use", "virtual", "where", "while",
+        "yield",
     ];
     if KEYWORDS.contains(&name.as_str()) {
         format!("r#{name}")
@@ -228,7 +227,12 @@ fn generate_name_constant(package: &str, svc_name: &str, out: &mut String) {
 
 // ── 2. Procedure path constants (R1) ─────────────────────────────────────
 
-fn generate_procedure_module(package: &str, svc_name: &str, methods: &[MethodInfo], out: &mut String) {
+fn generate_procedure_module(
+    package: &str,
+    svc_name: &str,
+    methods: &[MethodInfo],
+    out: &mut String,
+) {
     out.push_str("/// Procedure path constants — leading slash included (R1).\n");
     out.push_str("pub mod procedure {\n");
     for m in methods {
@@ -246,9 +250,7 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
     out.push_str(&format!(
         "/// Server-side implementation trait for {svc_name}.\n"
     ));
-    out.push_str(&format!(
-        "pub trait {svc_name}: Send + Sync + 'static {{\n"
-    ));
+    out.push_str(&format!("pub trait {svc_name}: Send + Sync + 'static {{\n"));
 
     for m in methods {
         let ty = m.kind;
@@ -590,9 +592,7 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
     out.push_str("}\n\n");
 
     // Blanket impl of client trait for the client struct
-    out.push_str(&format!(
-        "impl {client_trait_name} for {client_name} {{\n"
-    ));
+    out.push_str(&format!("impl {client_trait_name} for {client_name} {{\n"));
 
     for m in methods {
         let method_name = &m.snake;
@@ -690,18 +690,17 @@ mod tests {
         assert!(code.contains("\"connectrpc.greet.v1.GreetService\""));
 
         // Procedure constants with leading slash (R1)
-        assert!(code.contains(
-            "pub const GREET: &str = \"/connectrpc.greet.v1.GreetService/Greet\""
-        ));
+        assert!(
+            code.contains("pub const GREET: &str = \"/connectrpc.greet.v1.GreetService/Greet\"")
+        );
         assert!(code.contains(
             "pub const GREET_GROUP: &str = \"/connectrpc.greet.v1.GreetService/GreetGroup\""
         ));
         assert!(code.contains(
             "pub const GREET_INDIVIDUALS: &str = \"/connectrpc.greet.v1.GreetService/GreetIndividuals\""
         ));
-        assert!(code.contains(
-            "pub const CONVERSE: &str = \"/connectrpc.greet.v1.GreetService/Converse\""
-        ));
+        assert!(code
+            .contains("pub const CONVERSE: &str = \"/connectrpc.greet.v1.GreetService/Converse\""));
 
         // Service trait
         assert!(code.contains("pub trait GreetService: Send + Sync + 'static"));
@@ -734,13 +733,14 @@ mod tests {
     #[test]
     fn test_idempotency_extraction() {
         let options = MethodOptions {
-            idempotency_level: Some(
-                method_options::IdempotencyLevel::NoSideEffects as i32,
-            ),
+            idempotency_level: Some(method_options::IdempotencyLevel::NoSideEffects as i32),
             ..Default::default()
         };
         let expr = extract_idempotency(&Some(options));
-        assert_eq!(expr, "foundation_connectrpc::IdempotencyLevel::NoSideEffects");
+        assert_eq!(
+            expr,
+            "foundation_connectrpc::IdempotencyLevel::NoSideEffects"
+        );
     }
 
     /// WHY: Verify idempotent level extraction.
@@ -748,9 +748,7 @@ mod tests {
     #[test]
     fn test_idempotent_extraction() {
         let options = MethodOptions {
-            idempotency_level: Some(
-                method_options::IdempotencyLevel::Idempotent as i32,
-            ),
+            idempotency_level: Some(method_options::IdempotencyLevel::Idempotent as i32),
             ..Default::default()
         };
         let expr = extract_idempotency(&Some(options));
@@ -772,7 +770,9 @@ mod tests {
         let file = make_greet_file();
         let code = generate_services(&[file]);
         assert!(code.contains("greet: foundation_connectrpc::Client<GreetRequest, GreetResponse>"));
-        assert!(code.contains("greet_group: foundation_connectrpc::Client<GreetRequest, GreetGroupResponse>"));
+        assert!(code.contains(
+            "greet_group: foundation_connectrpc::Client<GreetRequest, GreetGroupResponse>"
+        ));
         assert!(code.contains(
             "greet_individuals: foundation_connectrpc::Client<GreetRequest, GreetResponse>"
         ));

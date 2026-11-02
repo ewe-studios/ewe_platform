@@ -7,11 +7,11 @@
 #![cfg(feature = "vfs")]
 
 use foundation_core::valtron::{initialize_pool, PoolGuard};
+use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
 use foundation_nativeapis::shared::vfs::{
     DeltaStore, MemoryDelta, MemoryFs, OpenMode, SeekableVfsFile, VfsDirectory, VfsFile,
     VfsFileSystem,
 };
-use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
 
 fn init_pool() -> PoolGuard {
     initialize_pool(42, Some(3))
@@ -232,7 +232,8 @@ fn syncfs_memory_delta_basic() {
     let sync = SyncFs::new(MemoryDelta::new());
 
     sync.mkdir("/delta").unwrap();
-    sync.write_file("/delta/file.txt", b"delta content").unwrap();
+    sync.write_file("/delta/file.txt", b"delta content")
+        .unwrap();
     assert_eq!(sync.read_file("/delta/file.txt").unwrap(), b"delta content");
 }
 

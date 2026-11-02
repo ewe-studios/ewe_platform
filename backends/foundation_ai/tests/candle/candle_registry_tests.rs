@@ -14,7 +14,9 @@
 //! HOW: offline — a `tempdir`, no weights, no device. The one thing NOT covered
 //! here is successful weight loading, which the gated live-model suite does.
 
-use foundation_ai::backends::candle::{CandleArchitecture, CandleBackend, CandleBackendConfig, CandleDType};
+use foundation_ai::backends::candle::{
+    CandleArchitecture, CandleBackend, CandleBackendConfig, CandleDType,
+};
 use foundation_ai::types::{ModelId, ModelProvider, ModelSpec};
 
 // ---------------------------------------------------------------------------
@@ -44,9 +46,15 @@ fn config_builder_chain_preserves_every_field() {
 fn every_dtype_is_distinct() {
     // The dtype selects the weight precision; two variants collapsing to one
     // would silently load at the wrong precision.
-    let f32c = CandleBackendConfig::builder().dtype(CandleDType::F32).build();
-    let f16c = CandleBackendConfig::builder().dtype(CandleDType::F16).build();
-    let bf16c = CandleBackendConfig::builder().dtype(CandleDType::BF16).build();
+    let f32c = CandleBackendConfig::builder()
+        .dtype(CandleDType::F32)
+        .build();
+    let f16c = CandleBackendConfig::builder()
+        .dtype(CandleDType::F16)
+        .build();
+    let bf16c = CandleBackendConfig::builder()
+        .dtype(CandleDType::BF16)
+        .build();
     assert_ne!(f32c.dtype, f16c.dtype);
     assert_ne!(f16c.dtype, bf16c.dtype);
     assert_ne!(f32c.dtype, bf16c.dtype);

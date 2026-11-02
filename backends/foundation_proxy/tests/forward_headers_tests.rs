@@ -17,7 +17,10 @@ use foundation_proxy::forward::{
 #[test]
 fn test_strip_removes_hop_by_hop_and_connection_listed() {
     let mut headers: SimpleHeaders = BTreeMap::new();
-    headers.insert(SimpleHeader::CONNECTION, vec!["close, x-custom".to_string()]);
+    headers.insert(
+        SimpleHeader::CONNECTION,
+        vec!["close, x-custom".to_string()],
+    );
     headers.insert(SimpleHeader::custom("x-custom"), vec!["secret".to_string()]);
     headers.insert(SimpleHeader::TRANSFER_ENCODING, vec!["chunked".to_string()]);
     headers.insert(SimpleHeader::KEEP_ALIVE, vec!["timeout=5".to_string()]);
@@ -26,15 +29,30 @@ fn test_strip_removes_hop_by_hop_and_connection_listed() {
 
     let stripped = strip_hop_by_hop(&headers);
 
-    assert!(!stripped.contains_key(&SimpleHeader::CONNECTION), "Connection is hop-by-hop");
+    assert!(
+        !stripped.contains_key(&SimpleHeader::CONNECTION),
+        "Connection is hop-by-hop"
+    );
     assert!(
         !stripped.contains_key(&SimpleHeader::custom("x-custom")),
         "Connection-listed header must be dropped"
     );
-    assert!(!stripped.contains_key(&SimpleHeader::TRANSFER_ENCODING), "Transfer-Encoding is hop-by-hop");
-    assert!(!stripped.contains_key(&SimpleHeader::KEEP_ALIVE), "Keep-Alive is hop-by-hop");
-    assert!(stripped.contains_key(&SimpleHeader::CONTENT_TYPE), "Content-Type is end-to-end");
-    assert!(stripped.contains_key(&SimpleHeader::HOST), "Host is preserved");
+    assert!(
+        !stripped.contains_key(&SimpleHeader::TRANSFER_ENCODING),
+        "Transfer-Encoding is hop-by-hop"
+    );
+    assert!(
+        !stripped.contains_key(&SimpleHeader::KEEP_ALIVE),
+        "Keep-Alive is hop-by-hop"
+    );
+    assert!(
+        stripped.contains_key(&SimpleHeader::CONTENT_TYPE),
+        "Content-Type is end-to-end"
+    );
+    assert!(
+        stripped.contains_key(&SimpleHeader::HOST),
+        "Host is preserved"
+    );
 }
 
 /// WHY: WebSocket relaying triggers only on a genuine upgrade request.
@@ -49,7 +67,10 @@ fn test_upgrade_detection() {
         .add_header(SimpleHeader::UPGRADE, "websocket")
         .build()
         .expect("build ws request");
-    assert!(is_upgrade_request(&ws), "Connection: upgrade + Upgrade header is an upgrade");
+    assert!(
+        is_upgrade_request(&ws),
+        "Connection: upgrade + Upgrade header is an upgrade"
+    );
 
     let plain = SimpleIncomingRequest::builder()
         .with_plain_url("/")
@@ -57,7 +78,10 @@ fn test_upgrade_detection() {
         .add_header(SimpleHeader::CONNECTION, "keep-alive")
         .build()
         .expect("build plain request");
-    assert!(!is_upgrade_request(&plain), "no Upgrade header → not an upgrade");
+    assert!(
+        !is_upgrade_request(&plain),
+        "no Upgrade header → not an upgrade"
+    );
 
     let missing_conn = SimpleIncomingRequest::builder()
         .with_plain_url("/")
@@ -83,24 +107,48 @@ fn test_request_strip_preserves_grpc_trailer_headers() {
     let mut headers: SimpleHeaders = BTreeMap::new();
     headers.insert(SimpleHeader::TE, vec!["trailers".to_string()]);
     headers.insert(SimpleHeader::TRAILER, vec!["grpc-status".to_string()]);
-    headers.insert(SimpleHeader::custom("trailers"), vec!["grpc-message".to_string()]);
+    headers.insert(
+        SimpleHeader::custom("trailers"),
+        vec!["grpc-message".to_string()],
+    );
     headers.insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
     headers.insert(SimpleHeader::TRANSFER_ENCODING, vec!["chunked".to_string()]);
     headers.insert(SimpleHeader::KEEP_ALIVE, vec!["timeout=5".to_string()]);
-    headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/grpc+json".to_string()]);
+    headers.insert(
+        SimpleHeader::CONTENT_TYPE,
+        vec!["application/grpc+json".to_string()],
+    );
 
     let stripped = strip_hop_by_hop_request(&headers);
 
-    assert!(stripped.contains_key(&SimpleHeader::TE), "te: trailers must survive");
-    assert!(stripped.contains_key(&SimpleHeader::TRAILER), "trailer must survive");
+    assert!(
+        stripped.contains_key(&SimpleHeader::TE),
+        "te: trailers must survive"
+    );
+    assert!(
+        stripped.contains_key(&SimpleHeader::TRAILER),
+        "trailer must survive"
+    );
     assert!(
         stripped.contains_key(&SimpleHeader::custom("trailers")),
         "trailers must survive"
     );
-    assert!(!stripped.contains_key(&SimpleHeader::CONNECTION), "Connection is hop-by-hop");
-    assert!(!stripped.contains_key(&SimpleHeader::TRANSFER_ENCODING), "Transfer-Encoding is hop-by-hop");
-    assert!(!stripped.contains_key(&SimpleHeader::KEEP_ALIVE), "Keep-Alive is hop-by-hop");
-    assert!(stripped.contains_key(&SimpleHeader::CONTENT_TYPE), "Content-Type is end-to-end");
+    assert!(
+        !stripped.contains_key(&SimpleHeader::CONNECTION),
+        "Connection is hop-by-hop"
+    );
+    assert!(
+        !stripped.contains_key(&SimpleHeader::TRANSFER_ENCODING),
+        "Transfer-Encoding is hop-by-hop"
+    );
+    assert!(
+        !stripped.contains_key(&SimpleHeader::KEEP_ALIVE),
+        "Keep-Alive is hop-by-hop"
+    );
+    assert!(
+        stripped.contains_key(&SimpleHeader::CONTENT_TYPE),
+        "Content-Type is end-to-end"
+    );
 }
 
 /// WHY: only the gRPC-mandated `trailers` token may be forwarded on `te`; any
@@ -113,7 +161,10 @@ fn test_request_strip_drops_non_trailers_te() {
 
     let stripped = strip_hop_by_hop_request(&headers);
 
-    assert!(!stripped.contains_key(&SimpleHeader::TE), "te: gzip must be stripped");
+    assert!(
+        !stripped.contains_key(&SimpleHeader::TE),
+        "te: gzip must be stripped"
+    );
 }
 
 fn headers_with_content_type(ct: &str) -> SimpleHeaders {
@@ -142,10 +193,21 @@ fn test_is_streaming_request() {
         "application/grpc-web+proto",
         "application/grpc-web-text",
     ] {
-        assert!(is_streaming_request(&headers_with_content_type(ct)), "{ct} is a streaming RPC type");
+        assert!(
+            is_streaming_request(&headers_with_content_type(ct)),
+            "{ct} is a streaming RPC type"
+        );
     }
-    for ct in ["application/json", "application/proto", "text/plain", "application/octet-stream"] {
-        assert!(!is_streaming_request(&headers_with_content_type(ct)), "{ct} is not streaming RPC");
+    for ct in [
+        "application/json",
+        "application/proto",
+        "text/plain",
+        "application/octet-stream",
+    ] {
+        assert!(
+            !is_streaming_request(&headers_with_content_type(ct)),
+            "{ct} is not streaming RPC"
+        );
     }
 }
 
@@ -156,7 +218,8 @@ fn test_is_streaming_request() {
 /// omits it for gRPC / Connect-streaming / gRPC-Web.
 #[test]
 fn test_forward_headers_relax_connection_close_for_streams() {
-    let plain = forward_request_headers(&headers_with_content_type("text/plain"), "1.2.3.4", "http");
+    let plain =
+        forward_request_headers(&headers_with_content_type("text/plain"), "1.2.3.4", "http");
     assert!(
         plain.contains_key(&SimpleHeader::CONNECTION),
         "plain requests still get Connection: close"

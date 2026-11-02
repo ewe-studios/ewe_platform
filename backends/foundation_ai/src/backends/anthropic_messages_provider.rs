@@ -3,28 +3,28 @@
 //! Implements the `/v1/messages` endpoint using Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
 
-use foundation_compact::SystemTime;
+use foundation_compact::{SendWrapper, SystemTime};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{Stream, StreamSpread};
+use foundation_core::valtron::{sleep_async, Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
-use foundation_netio::DynNetClient;
-#[cfg(not(target_family = "wasm"))]
-use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
-    body_reader::collect_strings_from_send_safe,
+    body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},
     http_client::{BoxedSseIterator, SseProgress},
     request::PreparedRequest,
 };
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;
 
 use crate::backends::backend_utils::{
-    prepared_request, sleep, tool_arguments_from_str, tool_arguments_from_value,
+    capped_error_body, prepared_request, sleep, tool_arguments_from_str, tool_arguments_from_value,
 };
 use crate::backends::model_info::{self, ModelInfoCache};
 use crate::backends::openai_provider::OpenAIModelInfo;
@@ -49,6 +49,10 @@ pub struct AnthropicConfig {
     pub api_version: String,
     pub timeout_secs: u64,
     pub max_retries: u32,
+    /// At most this many bytes of a non-2xx response body are read to form the
+    /// error message. Default is 64 KiB, the error-drain limit Go `net/http`
+    /// uses before it closes a response body it will not use.
+    pub max_error_body: usize,
     pub proxy_url: Option<String>,
     pub streaming: bool,
     pub auth: Option<AuthCredential>,
@@ -65,6 +69,7 @@ impl Default for AnthropicConfig {
             api_version: String::from("2023-06-01"),
             timeout_secs: 120,
             max_retries: 3,
+            max_error_body: 64 * 1024,
             proxy_url: None,
             streaming: true,
             auth: None,
@@ -116,6 +121,12 @@ impl AnthropicConfig {
     #[must_use]
     pub fn with_max_retries(mut self, retries: u32) -> Self {
         self.max_retries = retries;
+        self
+    }
+
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
         self
     }
 
@@ -201,6 +212,7 @@ impl Clone for AnthropicConfig {
             api_version: self.api_version.clone(),
             timeout_secs: self.timeout_secs,
             max_retries: self.max_retries,
+            max_error_body: self.max_error_body,
             proxy_url: self.proxy_url.clone(),
             streaming: self.streaming,
             auth: None,
@@ -513,8 +525,14 @@ impl AnthropicMessagesProvider {
         let req = self.model_info_request(model_name)?.ok_or_else(|| {
             GenerationError::Generic("this endpoint configuration has no models path".into())
         })?;
-        let info = model_info::fetch(client, req, parse_anthropic_error, AnthropicModelResponse::into_info)
-            .await?;
+        let info = model_info::fetch(
+            client,
+            req,
+            parse_anthropic_error,
+            AnthropicModelResponse::into_info,
+            self.config.max_error_body,
+        )
+        .await?;
         model_info::store(&self.models_cache, model_name, info.clone());
         Ok(info)
     }
@@ -524,7 +542,9 @@ impl AnthropicMessagesProvider {
     /// shared cache, which [`AnthropicModel::info`] reads. `get_model` never
     /// blocks on the network, on any target.
     fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
-        if let (Some(client), Ok(Some(req))) = (&self.http_client, self.model_info_request(model_name)) {
+        if let (Some(client), Ok(Some(req))) =
+            (&self.http_client, self.model_info_request(model_name))
+        {
             model_info::spawn_lookup(
                 Arc::clone(&self.models_cache),
                 model_name.to_string(),
@@ -533,6 +553,7 @@ impl AnthropicMessagesProvider {
                     req,
                     parse_anthropic_error,
                     AnthropicModelResponse::into_info,
+                    self.config.max_error_body,
                 ),
             );
         }
@@ -701,7 +722,10 @@ impl AnthropicModel {
 
     fn auth_headers(&self) -> SimpleHeaders {
         let mut headers = self.config.auth_headers(self.api_key.as_ref());
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![String::from("application/json")],
+        );
         headers
     }
 
@@ -713,7 +737,10 @@ impl AnthropicModel {
 
     fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
         let mut headers = self.auth_headers();
-        headers.insert(SimpleHeader::ACCEPT, vec![String::from("text/event-stream")]);
+        headers.insert(
+            SimpleHeader::ACCEPT,
+            vec![String::from("text/event-stream")],
+        );
         prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
@@ -747,27 +774,101 @@ impl AnthropicModel {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_prepared_request(url, body)?;
-        let response = client.send(req)
+        let response = client
+            .send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
         let (status, _headers, body) = response.into_parts();
         let status_code: usize = status.into();
-        let body_text = collect_strings_from_send_safe(body)
-            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
+            // Status first; cap the error body so a huge reply is not buffered.
+            let body_text = capped_error_body(body, self.config.max_error_body);
             let detail = parse_anthropic_error(&body_text).unwrap_or_else(|| body_text.clone());
             let msg = format_http_error(status_code, &detail);
             return Ok(Err((status_code as u16, None, msg)));
         }
 
+        let body_text = collect_strings_from_send_safe(body)
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
+
         serde_json::from_str(&body_text)
             .map(|v| Ok(v))
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))
+    }
+
+    /// Async single attempt over [`HttpClient::send_async`]; yields on wasm.
+    #[allow(clippy::type_complexity, clippy::cast_possible_truncation)]
+    async fn do_request_async<T: for<'de> Deserialize<'de> + Send>(
+        &self,
+        url: &str,
+        body: &str,
+    ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
+        let client = self
+            .http_client
+            .as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
+
+        let req = self.build_prepared_request(url, body)?;
+        let response = client
+            .send_async(req)
+            .await
+            .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
+
+        let (status, _headers, body) = response.into_async_parts();
+        let status_code: usize = status.into();
+
+        if !(200..=299).contains(&status_code) {
+            // Status first; cap the error body so a huge reply is not buffered.
+            let bytes = collect_bytes_bounded(body, self.config.max_error_body).await;
+            let body_text = String::from_utf8_lossy(&bytes);
+            let detail =
+                parse_anthropic_error(&body_text).unwrap_or_else(|| body_text.into_owned());
+            let msg = format_http_error(status_code, &detail);
+            return Ok(Err((status_code as u16, None, msg)));
+        }
+
+        let body_text = collect_string_async(body)
+            .await
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
+
+        serde_json::from_str(&body_text)
+            .map(|v| Ok(v))
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))
+    }
+
+    /// Async retry loop over [`Self::do_request_async`]; back-off yields on
+    /// wasm via valtron's [`sleep_async`] timer.
+    async fn execute_request_async<T: for<'de> Deserialize<'de> + Send>(
+        &self,
+        url: &str,
+        body: &str,
+    ) -> GenerationResult<T> {
+        let mut attempt = 0;
+        let max_retries = self.config.max_retries;
+
+        loop {
+            let result = self.do_request_async::<T>(url, body).await?;
+            match result {
+                Ok(value) => return Ok(value),
+                Err((status, retry_after, msg)) => {
+                    if attempt >= max_retries || !is_retryable_status(status) {
+                        return Err(GenerationError::Backend(msg));
+                    }
+                    let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
+                    attempt += 1;
+                    // `sleep_async` is `!Send` on wasm (single-threaded valtron
+                    // executor); wrap it so this async-trait future stays `Send`.
+                    SendWrapper::new(sleep_async(Duration::from_secs(delay))).await;
+                }
+            }
+        }
     }
 }
 
@@ -913,6 +1014,7 @@ impl ToolFormatter for AnthropicFormatter {
     }
 }
 
+#[async_trait::async_trait]
 impl Model for AnthropicModel {
     fn spec(&self) -> ModelSpec {
         ModelSpec {
@@ -970,6 +1072,25 @@ impl Model for AnthropicModel {
         Ok(messages)
     }
 
+    async fn generate_async(
+        &self,
+        interaction: ModelInteraction,
+        specs: Option<ModelParams>,
+    ) -> GenerationResult<Vec<Messages>> {
+        let params = specs.unwrap_or_default();
+        let request = build_anthropic_request(&self.model_name, &interaction, &params, false);
+
+        let body = serde_json::to_string(&request)
+            .map_err(|e| GenerationError::Generic(format!("Failed to serialize request: {e}")))?;
+
+        let url = self.build_url("messages");
+        let response: MessagesResponse = self.execute_request_async(&url, &body).await?;
+
+        let (messages, report) = parse_response(&response, &self.model_id, &self.pricing)?;
+        self.cumulative_cost.lock().unwrap().add(&report.cost);
+        Ok(messages)
+    }
+
     fn stream(
         &self,
         interaction: ModelInteraction,
@@ -983,11 +1104,14 @@ impl Model for AnthropicModel {
 
         let url = self.build_url("messages");
 
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_sse_request(&url, &body)?;
-        let sse_iter = client.send_sse(req)
+        let sse_iter = client
+            .send_sse(req)
             .map_err(|e| GenerationError::Backend(format!("SSE request failed: {e}")))?;
 
         Ok(Box::new(AnthropicStream {
@@ -1233,7 +1357,7 @@ impl AnthropicStream {
                 // as an SSE `error` event. Surface it as a model error so the
                 // loop ends the turn with a `FailedAction`, instead of silently
                 // ignoring the event and ending with empty text.
-                let message = parse_anthropic_error(data).unwrap_or_else(|| data.to_string());
+                let message = parse_anthropic_error(data).unwrap_or_else(|| data.clone());
                 tracing::warn!(%message, "Anthropic stream returned an error event");
                 self.partial_then_error(message)
             }

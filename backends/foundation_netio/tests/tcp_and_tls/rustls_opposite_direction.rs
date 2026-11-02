@@ -17,10 +17,10 @@ use std::net::TcpListener;
 use std::os::unix::io::AsRawFd;
 use std::time::Duration;
 
+use foundation_netio::native::readiness::IoInterest;
 use foundation_netio::netcap::connection::{ConnReadiness, Connection};
 use foundation_netio::netcap::ssl::rustls::RustlsStream;
 use foundation_netio::netcap::ssl::SSLAcceptor;
-use foundation_netio::native::readiness::IoInterest;
 use foundation_testing::http::test_tls_connector;
 use zeroize::Zeroizing;
 
@@ -55,16 +55,17 @@ fn finish_handshake(client: &RustlsStream<rustls::ClientConnection>) {
 /// write direction, or a driver that polls "readable" stalls.
 #[test]
 fn rustls_opposite_direction_does_not_stall() {
-    let acceptor =
-        SSLAcceptor::from_pem(fixture("cert.pem"), Zeroizing::new(fixture("key.pem")))
-            .expect("acceptor");
+    let acceptor = SSLAcceptor::from_pem(fixture("cert.pem"), Zeroizing::new(fixture("key.pem")))
+        .expect("acceptor");
 
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
 
     let server = std::thread::spawn(move || {
         let (socket, _) = listener.accept().expect("accept");
-        let mut tls = acceptor.accept(Connection::Tcp(socket)).expect("tls accept");
+        let mut tls = acceptor
+            .accept(Connection::Tcp(socket))
+            .expect("tls accept");
         // `Read` completes the handshake, then blocks for the client's byte.
         let mut buf = [0u8; 16];
         let n = tls.read(&mut buf).expect("server read");

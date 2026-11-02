@@ -2,7 +2,7 @@
 
 #![cfg(feature = "vms")]
 
-use foundation_deployment_platform::state::{from_qemu, is_process_alive, state_dir, VmState};
+use foundation_deployment_platform::state::{VmState, from_qemu, is_process_alive, state_dir};
 
 #[test]
 fn test_is_process_alive_check() {
@@ -39,7 +39,7 @@ fn test_from_qemu_creates_valid_state() {
     assert_eq!(state.pid, Some(12345));
     assert_eq!(state.ssh_port, 2222);
     assert!(!state.bootstrapped);
-    assert!(!state.created_at.is_empty());
+    assert_ne!(state.created_at, "");
 }
 
 #[test]

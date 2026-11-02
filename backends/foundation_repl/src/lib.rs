@@ -205,16 +205,16 @@ pub use shared::activity::{Activity, ActivityView};
 pub use shared::commands::{CommandHandler, CommandRegistry, CommandResult};
 pub use shared::config::ReplConfig;
 pub use shared::history::ReplHistory;
+#[cfg(any(feature = "native", feature = "ratzilla"))]
+pub use shared::host::{ReplHost, ViewportMode};
 pub use shared::layout::{
     layout_input, split_committed, visible_window, wrap_text, InputLayout, InputRow, InputView,
 };
+#[cfg(any(feature = "native", feature = "ratzilla"))]
+pub use shared::render::ReplRenderer;
 #[cfg(any(feature = "native", feature = "wasm"))]
 pub use shared::repl::{Repl, ReplBuilder, ReplMessageIter};
 pub use shared::theme::{ActivityStyle, BorderKind, ReplColor, ReplPadding, ReplTheme};
-#[cfg(any(feature = "native", feature = "ratzilla"))]
-pub use shared::host::{ReplHost, ViewportMode};
-#[cfg(any(feature = "native", feature = "ratzilla"))]
-pub use shared::render::ReplRenderer;
 pub use shared::traits::{ReplDisplay, ReplInput, SharedDisplay};
 
 #[cfg(all(feature = "native", not(feature = "wasm")))]

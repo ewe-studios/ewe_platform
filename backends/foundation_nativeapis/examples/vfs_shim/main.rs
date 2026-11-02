@@ -32,7 +32,6 @@
 /// 5. **Legacy app compatibility** — Intercept hardcoded paths in apps you
 ///    can't modify. Redirect `/opt/app/data` → virtual overlay with custom
 ///    content.
-
 use std::process::Command;
 
 fn main() {
@@ -41,7 +40,11 @@ fn main() {
     // The shim is built as a cdylib — find it
     let lib = std::env::current_exe()
         .ok()
-        .and_then(|p| p.parent().map(|p| p.parent().map(|p| p.to_path_buf())).flatten())
+        .and_then(|p| {
+            p.parent()
+                .map(|p| p.parent().map(|p| p.to_path_buf()))
+                .flatten()
+        })
         .and_then(|target_dir| {
             // Find the .so in target/debug
             std::fs::read_dir(&target_dir).ok().and_then(|entries| {
@@ -209,7 +212,9 @@ int main(int argc, char *argv[]) {
             let stdout = String::from_utf8_lossy(&o.stdout);
             let stderr = String::from_utf8_lossy(&o.stderr);
             print!("{stdout}");
-            if !stderr.is_empty() { eprintln!("{stderr}"); }
+            if !stderr.is_empty() {
+                eprintln!("{stderr}");
+            }
         })
         .ok();
 
@@ -229,7 +234,9 @@ int main(int argc, char *argv[]) {
             let stdout = String::from_utf8_lossy(&o.stdout);
             let stderr = String::from_utf8_lossy(&o.stderr);
             print!("{stdout}");
-            if !stderr.is_empty() { eprintln!("{stderr}"); }
+            if !stderr.is_empty() {
+                eprintln!("{stderr}");
+            }
         })
         .ok();
 
@@ -249,7 +256,9 @@ int main(int argc, char *argv[]) {
             let stdout = String::from_utf8_lossy(&o.stdout);
             let stderr = String::from_utf8_lossy(&o.stderr);
             print!("{stdout}");
-            if !stderr.is_empty() { eprintln!("{stderr}"); }
+            if !stderr.is_empty() {
+                eprintln!("{stderr}");
+            }
         })
         .ok();
 
@@ -259,7 +268,11 @@ int main(int argc, char *argv[]) {
         println!("\nDelta directory contents:");
         if let Ok(entries) = std::fs::read_dir(&delta_dir) {
             for e in entries.flatten() {
-                println!("  {} ({:?})", e.file_name().to_string_lossy(), e.file_type().ok());
+                println!(
+                    "  {} ({:?})",
+                    e.file_name().to_string_lossy(),
+                    e.file_type().ok()
+                );
                 if let Ok(content) = std::fs::read_to_string(e.path()) {
                     println!("    {:?}", content);
                 }

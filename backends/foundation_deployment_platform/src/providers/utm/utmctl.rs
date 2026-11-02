@@ -24,6 +24,9 @@ pub struct VmEntry {
 }
 
 /// Check if UTM is installed and meets the minimum version.
+///
+/// # Errors
+/// Returns an error if the version cannot be read.
 pub fn check_utm_version() -> Result<Option<String>> {
     let plist_path = "/Applications/UTM.app/Contents/Info.plist";
     if !std::path::Path::new(plist_path).exists() {
@@ -53,6 +56,7 @@ pub fn check_utm_version() -> Result<Option<String>> {
 }
 
 /// Check UTM.app version, return it if installed.
+#[must_use]
 pub fn installed_utm_version() -> Option<String> {
     let plist = "/Applications/UTM.app/Contents/Info.plist";
     let out = Command::new("/usr/libexec/PlistBuddy")
@@ -66,25 +70,29 @@ pub fn installed_utm_version() -> Option<String> {
 }
 
 /// Check that UTM.app is responsive (try listing VMs).
+///
+/// # Errors
+/// Returns an error if UTM is not installed. Returns an error if utmctl cannot run.
 pub fn ensure_utm() -> Result<Vec<String>> {
     let mut warnings = Vec::new();
 
     // Check utmctl exists
     if !std::path::Path::new(UTMCTL).exists() {
         return Err(TestbedError::Qcow2Error {
-            message: format!(
+            message:
                 "UTM not installed at /Applications/UTM.app. Install via: brew install --cask utm"
-            ),
+                    .to_string(),
         });
     }
 
     // Check that utmctl is responsive
-    let output = Command::new(UTMCTL)
-        .args(["list"])
-        .output()
-        .map_err(|e| TestbedError::Qcow2Error {
-            message: format!("utmctl list failed: {e}"),
-        })?;
+    let output =
+        Command::new(UTMCTL)
+            .args(["list"])
+            .output()
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("utmctl list failed: {e}"),
+            })?;
 
     if !output.status.success() {
         // UTM may not be running — try launching it
@@ -103,8 +111,7 @@ pub fn ensure_utm() -> Result<Vec<String>> {
             if Command::new(UTMCTL)
                 .arg("list")
                 .output()
-                .map(|o| o.status.success())
-                .unwrap_or(false)
+                .is_ok_and(|o| o.status.success())
             {
                 eprintln!("  UTM ready");
                 break;
@@ -112,12 +119,13 @@ pub fn ensure_utm() -> Result<Vec<String>> {
         }
 
         // Verify
-        let output = Command::new(UTMCTL)
-            .args(["list"])
-            .output()
-            .map_err(|e| TestbedError::Qcow2Error {
-                message: format!("utmctl list failed after launch: {e}"),
-            })?;
+        let output =
+            Command::new(UTMCTL)
+                .args(["list"])
+                .output()
+                .map_err(|e| TestbedError::Qcow2Error {
+                    message: format!("utmctl list failed after launch: {e}"),
+                })?;
 
         if !output.status.success() {
             return Err(TestbedError::Qcow2Error {
@@ -135,13 +143,17 @@ pub fn ensure_utm() -> Result<Vec<String>> {
 }
 
 /// List all VMs known to UTM.
+///
+/// # Errors
+/// Returns an error if utmctl list fails.
 pub fn list_vms() -> Result<Vec<VmEntry>> {
-    let output = Command::new(UTMCTL)
-        .args(["list"])
-        .output()
-        .map_err(|e| TestbedError::Qcow2Error {
-            message: format!("utmctl list failed: {e}"),
-        })?;
+    let output =
+        Command::new(UTMCTL)
+            .args(["list"])
+            .output()
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("utmctl list failed: {e}"),
+            })?;
 
     if !output.status.success() {
         return Err(TestbedError::Qcow2Error {
@@ -171,12 +183,21 @@ pub fn list_vms() -> Result<Vec<VmEntry>> {
 }
 
 /// Find a VM by name.
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read.
 pub fn find_vm_by_name(name: &str) -> Result<Option<VmEntry>> {
     let vms = list_vms()?;
     Ok(vms.into_iter().find(|vm| vm.name == name))
 }
 
 /// Read the Name from a .utm bundle's config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be read.
+///
+/// # Panics
+/// Panics if the plist path is not valid UTF-8.
 pub fn get_vm_name(bundle_path: &std::path::Path) -> Result<String> {
     let plist = bundle_path.join("config.plist");
     let output = Command::new("/usr/libexec/PlistBuddy")
@@ -199,6 +220,10 @@ pub fn get_vm_name(bundle_path: &std::path::Path) -> Result<String> {
 }
 
 /// Start a VM by name, with retry logic (up to 3 attempts).
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read. Returns an error if the start fails
+/// after 3 attempts.
 pub fn start_vm(name: &str) -> Result<()> {
     // Already running?
     if let Some(e) = list_vms()?.into_iter().find(|e| e.name == name) {
@@ -229,6 +254,9 @@ pub fn start_vm(name: &str) -> Result<()> {
 }
 
 /// Stop a VM by name. No-op if not running.
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read. Returns an error if the stop fails.
 pub fn stop_vm(name: &str) -> Result<()> {
     let running = list_vms()?
         .into_iter()
@@ -258,6 +286,9 @@ pub fn stop_vm(name: &str) -> Result<()> {
 }
 
 /// Delete a VM by UUID (used for orphan cleanup).
+///
+/// # Errors
+/// Returns an error if the delete fails.
 pub fn delete_vm(uuid: &str) -> Result<()> {
     let output = Command::new(UTMCTL)
         .args(["delete", uuid])
@@ -279,6 +310,9 @@ pub fn delete_vm(uuid: &str) -> Result<()> {
 }
 
 /// Check if a VM is running.
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read.
 pub fn is_vm_running(name: &str) -> Result<bool> {
     if let Some(vm) = find_vm_by_name(name)? {
         Ok(vm.status == "started")
@@ -288,6 +322,9 @@ pub fn is_vm_running(name: &str) -> Result<bool> {
 }
 
 /// Wait for a VM UUID to appear in `utmctl list` after import.
+///
+/// # Errors
+/// Returns an error if the VM list cannot be read.
 pub fn wait_for_vm(uuid: &str, timeout_secs: u64) -> Result<bool> {
     let start = Instant::now();
     loop {
@@ -304,6 +341,7 @@ pub fn wait_for_vm(uuid: &str, timeout_secs: u64) -> Result<bool> {
 }
 
 /// Compare two semantic versions. Returns true if `actual` < `min`.
+#[must_use]
 pub fn version_is_older(actual: &str, min: &str) -> bool {
     let parse = |v: &str| -> (u32, u32, u32) {
         let mut parts = v.split('.').map(|s| s.parse::<u32>().unwrap_or(0));
@@ -317,4 +355,3 @@ pub fn version_is_older(actual: &str, min: &str) -> bool {
     let (m1, m2, m3) = parse(min);
     (a1, a2, a3) < (m1, m2, m3)
 }
-

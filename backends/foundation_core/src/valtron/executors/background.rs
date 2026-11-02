@@ -68,7 +68,9 @@ impl JobQueue {
     /// this module's own bookkeeping; the state is still consistent, so keep
     /// going rather than cascading the panic into every worker.
     fn lock(&self) -> MutexGuard<'_, QueueState> {
-        self.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+        self.state
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
     fn push(&self, job: BackgroundJob) -> Result<(), JobPushError> {
@@ -370,12 +372,8 @@ impl BackgroundJobRegistry {
     /// or full (at its configured capacity). The job is not run in that case.
     pub fn submit(&self, job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
         self.queue.push(Box::new(job)).map_err(|e| match e {
-            JobPushError::Closed => {
-                "BackgroundJobRegistry: queue closed, cannot submit job".into()
-            }
-            JobPushError::Full => {
-                "BackgroundJobRegistry: queue full, cannot submit job".into()
-            }
+            JobPushError::Closed => "BackgroundJobRegistry: queue closed, cannot submit job".into(),
+            JobPushError::Full => "BackgroundJobRegistry: queue full, cannot submit job".into(),
         })
     }
 

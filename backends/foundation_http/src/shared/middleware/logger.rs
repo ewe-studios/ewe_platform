@@ -162,11 +162,7 @@ impl Default for LoggerMiddleware {
 }
 
 impl RequestMiddleware for LoggerMiddleware {
-    fn handle(
-        &self,
-        _ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         let _start = Instant::now();
 
         let method = format!("{}", req.method);
@@ -184,10 +180,8 @@ impl RequestMiddleware for LoggerMiddleware {
 
         if self.config.include_query {
             if let Some(ref query) = req.request_url.queries {
-                let query_str: Vec<String> = query
-                    .iter()
-                    .map(|(k, v)| format!("{k}={v}"))
-                    .collect();
+                let query_str: Vec<String> =
+                    query.iter().map(|(k, v)| format!("{k}={v}")).collect();
                 if !query_str.is_empty() {
                     parts.push(format!("query=?{}", query_str.join("&")));
                 }

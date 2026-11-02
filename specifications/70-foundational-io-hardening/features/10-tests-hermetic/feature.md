@@ -1,6 +1,6 @@
 ---
 feature: "Hermetic netio tests, runnable doc examples, 8-thread conformance"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: ["04-nonblocking-connect-tls"]
 branch: "fix/io-10-tests-hermetic"

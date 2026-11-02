@@ -16,7 +16,7 @@ const NAME_KEY: &str = "Name";
 /// Plist key path for UTM version.
 const UTM_VERSION_KEY: &str = "UTMVersion";
 
-/// Run PlistBuddy to read a value from a plist.
+/// Run `PlistBuddy` to read a value from a plist.
 fn plist_get(plist_path: &Path, key: &str) -> Result<String> {
     let output = std::process::Command::new("/usr/libexec/PlistBuddy")
         .args(["-c", &format!("Print :{key}"), plist_path.to_str().unwrap()])
@@ -37,7 +37,7 @@ fn plist_get(plist_path: &Path, key: &str) -> Result<String> {
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
-/// Run PlistBuddy to set a value in a plist.
+/// Run `PlistBuddy` to set a value in a plist.
 fn plist_set(plist_path: &Path, key: &str, value: &str) -> Result<()> {
     let output = std::process::Command::new("/usr/libexec/PlistBuddy")
         .args([
@@ -63,29 +63,40 @@ fn plist_set(plist_path: &Path, key: &str, value: &str) -> Result<()> {
 }
 
 /// Read the VM name from a .utm bundle's config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be read.
 pub fn get_vm_name(bundle_path: &Path) -> Result<String> {
     let plist = config_plist_path(bundle_path);
     plist_get(&plist, NAME_KEY)
 }
 
 /// Set the VM name in a .utm bundle's config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be set.
 pub fn set_vm_name(bundle_path: &Path, name: &str) -> Result<()> {
     let plist = config_plist_path(bundle_path);
     plist_set(&plist, NAME_KEY, &quoted_plist_string(name))
 }
 
 /// Read the UTM version from a .utm bundle's config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be read.
 pub fn get_utm_version(bundle_path: &Path) -> Result<String> {
     let plist = config_plist_path(bundle_path);
     plist_get(&plist, UTM_VERSION_KEY)
 }
 
 /// Get the path to config.plist inside a .utm bundle.
+#[must_use]
 pub fn config_plist_path(bundle_path: &Path) -> PathBuf {
     bundle_path.join("config.plist")
 }
 
 /// Check if a path looks like a valid .utm bundle.
+#[must_use]
 pub fn is_utm_bundle(path: &Path) -> bool {
     path.is_dir()
         && path.extension().and_then(|e| e.to_str()) == Some("utm")
@@ -93,20 +104,27 @@ pub fn is_utm_bundle(path: &Path) -> bool {
 }
 
 /// Configure CPU cores in the config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be set.
 pub fn set_cpu_cores(bundle_path: &Path, cores: u32) -> Result<()> {
     let plist = config_plist_path(bundle_path);
     plist_set(&plist, "CPUCount", &cores.to_string())
 }
 
 /// Configure memory (RAM) in the config.plist.
+///
+/// # Errors
+/// Returns an error if the plist value cannot be set.
 pub fn set_memory_mb(bundle_path: &Path, mb: u32) -> Result<()> {
     let plist = config_plist_path(bundle_path);
     plist_set(&plist, "MemorySize", &mb.to_string())
 }
 
-/// Quote a string value for PlistBuddy Set command.
+/// Quote a string value for `PlistBuddy` Set command.
 ///
-/// PlistBuddy expects string values in the format `"value"` (with quotes).
+/// `PlistBuddy` expects string values in the format `"value"` (with quotes).
+#[must_use]
 pub fn quoted_plist_string(s: &str) -> String {
     let escaped = s.replace('\\', "\\\\").replace('"', "\\\"");
     format!("\"{escaped}\"")
@@ -114,7 +132,10 @@ pub fn quoted_plist_string(s: &str) -> String {
 
 /// Apply profile resource settings to a .utm bundle's config.plist.
 ///
-/// Sets VM name, CPU cores, and memory based on the VmProfile.
+/// Sets VM name, CPU cores, and memory based on the `VmProfile`.
+///
+/// # Errors
+/// Returns an error if the plist values cannot be set.
 pub fn apply_profile(bundle_path: &Path, profile: &VmProfile) -> Result<()> {
     set_vm_name(bundle_path, profile.name)?;
 
@@ -128,4 +149,3 @@ pub fn apply_profile(bundle_path: &Path, profile: &VmProfile) -> Result<()> {
 
     Ok(())
 }
-

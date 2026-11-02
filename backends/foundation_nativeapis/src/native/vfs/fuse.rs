@@ -158,9 +158,8 @@ impl<F: VfsFileSystem + 'static> FuseMount<F> {
 
     pub fn mount(self, mountpoint: &str) -> VfsResult<Session<Self>> {
         let mount_options = self.build_mount_options();
-        Session::new(self, std::path::Path::new(mountpoint), &mount_options).map_err(|e| {
-            foundation_errstacks::ErrorTrace::new(VfsError::Io { source: e })
-        })
+        Session::new(self, std::path::Path::new(mountpoint), &mount_options)
+            .map_err(|e| foundation_errstacks::ErrorTrace::new(VfsError::Io { source: e }))
     }
 
     pub fn mount_background(self, mountpoint: &str) -> VfsResult<BackgroundSession>
@@ -168,9 +167,9 @@ impl<F: VfsFileSystem + 'static> FuseMount<F> {
         F: Send,
     {
         let session = self.mount(mountpoint)?;
-        session.spawn().map_err(|e| {
-            foundation_errstacks::ErrorTrace::new(VfsError::Io { source: e })
-        })
+        session
+            .spawn()
+            .map_err(|e| foundation_errstacks::ErrorTrace::new(VfsError::Io { source: e }))
     }
 
     fn build_mount_options(&self) -> Vec<MountOption> {
@@ -282,18 +281,16 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
                 let attr = self.metadata_to_attr(&meta);
                 reply.attr(&self.options.attr_timeout, &attr);
             }
-            Err(_) => {
-                match self.fs.path_by_inode(ino) {
-                    Ok(path) => match self.fs.stat(&path) {
-                        Ok(meta) => {
-                            let attr = self.metadata_to_attr(&meta);
-                            reply.attr(&self.options.attr_timeout, &attr);
-                        }
-                        Err(e) => reply_err_from_vfs(&e, reply),
-                    },
+            Err(_) => match self.fs.path_by_inode(ino) {
+                Ok(path) => match self.fs.stat(&path) {
+                    Ok(meta) => {
+                        let attr = self.metadata_to_attr(&meta);
+                        reply.attr(&self.options.attr_timeout, &attr);
+                    }
                     Err(e) => reply_err_from_vfs(&e, reply),
-                }
-            }
+                },
+                Err(e) => reply_err_from_vfs(&e, reply),
+            },
         }
     }
 
@@ -561,10 +558,12 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         match self.fs.open(&path, mode) {
             Ok(file) => {
                 let fh = self.alloc_fh();
-                self.file_handles
-                    .write()
-                    .unwrap()
-                    .insert(fh, OpenFileHandle { file: Box::new(file) });
+                self.file_handles.write().unwrap().insert(
+                    fh,
+                    OpenFileHandle {
+                        file: Box::new(file),
+                    },
+                );
                 reply.opened(fh, 0);
             }
             Err(e) => reply_err_from_vfs(&e, reply),
@@ -664,10 +663,12 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         match self.fs.create(&child, mode) {
             Ok(file) => {
                 let fh = self.alloc_fh();
-                self.file_handles
-                    .write()
-                    .unwrap()
-                    .insert(fh, OpenFileHandle { file: Box::new(file) });
+                self.file_handles.write().unwrap().insert(
+                    fh,
+                    OpenFileHandle {
+                        file: Box::new(file),
+                    },
+                );
 
                 match self.fs.stat(&child) {
                     Ok(meta) => {
@@ -694,10 +695,12 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
             Ok(dir) => match dir.list() {
                 Ok(entries) => {
                     let fh = self.alloc_fh();
-                    self.dir_handles
-                        .write()
-                        .unwrap()
-                        .insert(fh, OpenDirHandle { cached_entries: entries });
+                    self.dir_handles.write().unwrap().insert(
+                        fh,
+                        OpenDirHandle {
+                            cached_entries: entries,
+                        },
+                    );
                     reply.opened(fh, 0);
                 }
                 Err(e) => reply_err_from_vfs(&e, reply),
@@ -738,10 +741,7 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
             } else {
                 match self.fs.path_by_inode(ino) {
                     Ok(path) => {
-                        let parent = path
-                            .rfind('/')
-                            .map(|pos| &path[..pos])
-                            .unwrap_or("/");
+                        let parent = path.rfind('/').map(|pos| &path[..pos]).unwrap_or("/");
                         let parent = if parent.is_empty() { "/" } else { parent };
                         self.fs.inode(parent).unwrap_or(ROOT_INO)
                     }
@@ -771,7 +771,14 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
         reply.ok();
     }
 
-    fn releasedir(&mut self, _req: &Request<'_>, _ino: u64, fh: u64, _flags: i32, reply: ReplyEmpty) {
+    fn releasedir(
+        &mut self,
+        _req: &Request<'_>,
+        _ino: u64,
+        fh: u64,
+        _flags: i32,
+        reply: ReplyEmpty,
+    ) {
         self.dir_handles.write().unwrap().remove(&fh);
         reply.ok();
     }

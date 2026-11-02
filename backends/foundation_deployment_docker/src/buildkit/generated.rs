@@ -68,13 +68,19 @@ pub mod moby {
             /// `moby.buildkit.v1.sourcepolicy` — source policy
             /// (`sourcepolicy/pb/policy.proto`).
             pub mod sourcepolicy {
-                include!(concat!(env!("OUT_DIR"), "/moby.buildkit.v1.sourcepolicy.mod.rs"));
+                include!(concat!(
+                    env!("OUT_DIR"),
+                    "/moby.buildkit.v1.sourcepolicy.mod.rs"
+                ));
             }
 
             /// `moby.buildkit.v1.frontend` — Gateway/LLBBridge messages
             /// (`frontend/gateway/pb/gateway.proto`).
             pub mod frontend {
-                include!(concat!(env!("OUT_DIR"), "/moby.buildkit.v1.frontend.mod.rs"));
+                include!(concat!(
+                    env!("OUT_DIR"),
+                    "/moby.buildkit.v1.frontend.mod.rs"
+                ));
             }
 
             /// `moby.buildkit.v1.apicaps` — API capability descriptors

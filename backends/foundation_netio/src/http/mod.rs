@@ -12,7 +12,7 @@ mod tls_task;
 
 pub use api::*;
 pub use connection::*;
-pub use connector::{Connector};
+pub use connector::Connector;
 pub use http_client_impl::*;
 pub use pool::*;
 pub use proxy::*;

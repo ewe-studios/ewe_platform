@@ -23,13 +23,13 @@ pub mod native;
 pub mod wasm;
 
 // Re-exported from foundation_core for convenience
-pub use foundation_netio::shared::http::{
-    SimpleIncomingRequest, SimpleMethod, SimpleHeader, SimpleHeaders, SimpleUrl,
-    SimpleOutgoingResponse, SendSafeBody, Proto, Status,
-};
 pub use foundation_core::io::ioutils::SharedByteBufferStream;
+pub use foundation_netio::shared::http::{
+    Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SimpleOutgoingResponse, SimpleUrl, Status,
+};
 
 #[cfg(not(target_family = "wasm"))]
-pub use foundation_netio::netcap::RawStream;
-#[cfg(not(target_family = "wasm"))]
 pub use foundation_iogate::ShutdownSignal;
+#[cfg(not(target_family = "wasm"))]
+pub use foundation_netio::netcap::RawStream;

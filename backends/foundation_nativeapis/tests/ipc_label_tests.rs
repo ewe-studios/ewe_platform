@@ -1,7 +1,6 @@
 //! Tests extracted from shared/ipc/label.rs
 mod tests {
     use foundation_nativeapis::shared::ipc::*;
-    
 
     #[test]
     fn leaf_matches() {

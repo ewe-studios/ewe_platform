@@ -1,8 +1,8 @@
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
-use foundation_core::valtron::{Ctx, 
-    CancellableFutureTask, CancelOutcome, Stream, TaskIterator, TaskStatus,
+use foundation_core::valtron::{
+    CancelOutcome, CancellableFutureTask, Ctx, Stream, TaskIterator, TaskStatus,
 };
 
 // ============================================================================
@@ -51,7 +51,10 @@ fn pending_then_ready() {
     // Pending now parks via Depends (composed with the not-set cancel signal).
     match task.next_status(ctx.clone()) {
         Some(TaskStatus::Depends(signal)) => {
-            assert!(!signal.is_ready(None), "not cancelled + inner parked -> not ready");
+            assert!(
+                !signal.is_ready(None),
+                "not cancelled + inner parked -> not ready"
+            );
         }
         other => panic!("expected Depends, got {other:?}"),
     }
@@ -101,12 +104,18 @@ fn cancel_after_pending() {
         Some(TaskStatus::Depends(signal)) => signal,
         other => panic!("expected Depends, got {other:?}"),
     };
-    assert!(!signal.is_ready(None), "not cancelled -> parked signal not ready");
+    assert!(
+        !signal.is_ready(None),
+        "not cancelled -> parked signal not ready"
+    );
 
     // Setting cancel makes the composed signal ready — the executor would re-run
     // the task, which then observes the cancel flag before polling.
     cancel.store(true, Ordering::Release);
-    assert!(signal.is_ready(None), "cancel flips the composed signal ready");
+    assert!(
+        signal.is_ready(None),
+        "cancel flips the composed signal ready"
+    );
 
     match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled))) => {}
@@ -261,10 +270,8 @@ fn execute_cancellable_futures_cancel_one() {
         }
     }
 
-    let futures: Vec<core::pin::Pin<Box<dyn Future<Output = i32> + Send>>> = vec![
-        Box::pin(core::future::ready(10)),
-        Box::pin(AlwaysPending),
-    ];
+    let futures: Vec<core::pin::Pin<Box<dyn Future<Output = i32> + Send>>> =
+        vec![Box::pin(core::future::ready(10)), Box::pin(AlwaysPending)];
 
     let (mut stream, signals) =
         foundation_core::valtron::execute_cancellable_futures(futures, None)

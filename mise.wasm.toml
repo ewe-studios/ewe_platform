@@ -1,0 +1,35 @@
+# =============================================================================
+# EWE Platform - wasm mise environment
+# =============================================================================
+# Loaded when MISE_ENV=wasm is set: `MISE_ENV=wasm mise run <task>`.
+# This file overlays mise.toml. It pins only the two tools the wasm runtime
+# tests need (deno and wasm-bindgen) and turns off automatic install, so a
+# wasm task does not first build every tool in mise.toml.
+# =============================================================================
+
+[settings]
+auto_install = false
+
+[tools]
+"aqua:denoland/deno" = "2.9.7"
+# Must match the wasm-bindgen version in Cargo.lock (CI checks this).
+"github:wasm-bindgen/wasm-bindgen" = "0.2.126"
+
+[tasks."test:wasm-testbed:deno"]
+alias = "test-wasm-testbed-deno"
+description = "Owned #[wasm_test] harness e2e on the EMBEDDED Deno runtime (spec-44) — in-process, zero node/deno install. Sample crate + ported JS-yield tests."
+run = """
+echo "Owned wasm-testbed sample (embedded deno, filtered green subset)..."
+cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_testbed/integration/module --filter passes
+echo "Ported foundation_core JS-yield tests (embedded deno)..."
+cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_core/integration/wasm_tests
+echo "✓ owned embedded-deno harness green"
+"""
+
+[tasks."test:wasm-bindgen:deno"]
+alias = "test-wasm-bindgen-deno"
+description = "valtron's js-wasmbindgen backend (the one Workers run) under Deno: park → wake → microtask resume, JS yield (spec 68). Needs the mise-pinned deno + wasm-bindgen."
+run = """
+mise install deno wasm-bindgen
+cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std --filter wasm_js_yield_integration
+"""
