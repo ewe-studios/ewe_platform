@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 42
-  uncompleted: 24
-  total: 66
+  uncompleted: 25
+  total: 67
   completion_percentage: 66%
 ---
 
@@ -187,6 +187,7 @@ done
 | 64 | [keychain reads the request body as a bounded stream](./features/64-keychain-streamed-request-body/feature.md) | §8 catalogue row 37 (sonnet) | 44 | S |
 | 65 | [Proxy: no thread per connection, no sleep-poll loops](./features/65-proxy-remaining-threads/feature.md) | §8 catalogue rows 43–48 (sonnet) | 45 | L |
 | 66 | [Auth: no security stubs; direct session lookup](./features/66-auth-stubs-and-session-lookup/feature.md) | §8 catalogue rows 51–53 (sonnet) | 53 | M |
+| 67 | [One error standard: `foundation_errstacks`, no `thiserror`](./features/67-errstacks-error-standard/feature.md) | §8 catalogue rows 54, 55 (sonnet) | both lanes merged | L |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -314,6 +315,9 @@ fixed in code but not deleted.
 | 51 | `TosService::verify_tos_code` always returns true; codes not bound to the user | found in 53 | 66 |
 | 52 | `dev_register` has no dev-mode check | found in 53 | 66 |
 | 53 | `SessionManager::get_session` scans every session key (stub cache) | found in 53 | 66 |
+| 54 | crates declare `foundation_errstacks` but do not use it (wireguard, proxy, shell, html, arrow, sshkit, toolings) | owner rule, found in 54 | 67 |
+| 55 | crates still declare `thiserror` (9) | owner rule | 67 |
+| 56 | `foundation_boringtun` library still named `boringtun` | owner decision | 54 E4 |
 
 ### 8.1 Lanes, branches and models
 
@@ -327,7 +331,7 @@ the choice.
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
 | A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
-| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → … → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
+| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 54 E4 → 56 → … → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
   reports to the main session. (Feature 54 may change only the boringtun line of
@@ -335,8 +339,8 @@ the choice.
 - Shared files (`Cargo.lock`, `docs/bug-backlog.md`, `progress.md`, `learnings.md`): on a
   conflict keep both sides.
 - One commit or more per feature. One PR per lane at the end, base `master`.
-- Feature 63 runs after both lane PRs merge, on its own branch, because it edits crates of both
-  lanes.
+- Features 63 and 67 run after both lane PRs merge, each on its own branch, because they edit
+  crates of both lanes.
 
 ### 8.2 Rules added for features 41–60
 

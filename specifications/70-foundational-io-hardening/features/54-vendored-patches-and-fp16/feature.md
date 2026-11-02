@@ -60,3 +60,19 @@ grep -n 'boringtun' Cargo.toml   # no [patch] line
 
 - [ ] boringtun fork is a workspace crate that publishes; wireguard uses it; gemm entry and
       upstream note written; fp16 decided. CI green.
+
+## E4. Owner decision (2026-11-02): the library name is `foundation_boringtun` too
+
+Feature 54 kept `[lib] name = "boringtun"`. The owner wants the crate used by its own name.
+- Set `[lib] name = "foundation_boringtun"` (or remove the `[lib] name` line).
+- Change every `boringtun::` path to `foundation_boringtun::`: 12 uses in
+  `foundation_wireguard` (`src/native/node.rs`, `src/wasm/browser.rs`,
+  `src/shared/keys/mod.rs`, `src/shared/tunnel/mod.rs`, `tests/webrtc_tests.rs`,
+  `tests/wasm/mod.rs`, `tests/tunnel_tests.rs`) and `foundation_nativeapis`
+  (`src/dataplane/mod.rs`, `src/lib.rs`). The owner allows these path-only edits in those lane
+  A crates; change nothing else there. Inside the vendored crate, its own `crate::` paths need no
+  change; fix any doc test or bench that names `boringtun::`.
+- Update the NOTICE (the library name changed too) and the crate docs.
+- Verify: `rg -n '\bboringtun::' backends --glob '*.rs'` shows only comments or none;
+  `cargo check -p foundation_wireguard` native and wasm32; `cargo check -p foundation_nativeapis
+  --features netstack`; `cargo test -p foundation_boringtun`.
