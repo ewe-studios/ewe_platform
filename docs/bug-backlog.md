@@ -159,6 +159,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `vfs-native,vfs-d1,vfs-r2`, foundation_vectors `sql-store`, foundation_auth
   `server-test`) are in `ci/packages.toml` since F04 T12.
 
+- **Turso store rejects overlapping calls: "Backend error: concurrent use forbidden".**
+  `turso_sdk_kit` allows one use of a connection at a time, and the Turso
+  `StorageProvider` shares one connection. Now that the keychain server runs
+  handlers as `ConnectionResult::Async` (features 44 and 64), two requests that
+  reach the store at the same moment make one fail with HTTP 500. Seen in
+  `foundation_keychain/tests/streamed_body.rs` when two slow uploads finish
+  together. Fix: a connection per call or a small pool, or serialise calls in
+  the Turso backend (feature 51 owns the shared-connection work).
+
 ## 12. foundation_auth
 
 - **The `server`/`server-native` feature tree has over 200 clippy warnings.**
@@ -249,12 +258,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 22. foundation_keychain
 
-- **`ServeAdapter::serve` collects the request body synchronously.**
-  `src/server/native.rs` `read_body` calls `try_collect_bytes` on a lazy body
-  variant before the async handler starts. That blocks a worker thread until the
-  whole body has arrived, and it holds the whole body in memory. Fix: read the
-  body inside the returned `ConnectionResult::Async` future as a bounded stream
-  (size limit as a config field).
 - **`foundation_keychain` clippy debt.** `cargo clippy -p foundation_keychain
   --profile dev --no-deps` reports 174 warnings in the lib (for example
   `manual_let_else` in `provisioning_route`) and more in the tests. Fix: follow

@@ -1,6 +1,6 @@
 ---
 feature: "foundation_keychain: the server reads the request body inside the async future as a bounded stream"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -47,5 +47,5 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] Body read inside the future, capped from config; first test fails before, passes after.
-- [ ] §22 entry deleted. CI green.
+- [x] Body read inside the future, capped from config; first test fails before, passes after.
+- [x] §22 entry deleted. CI green.

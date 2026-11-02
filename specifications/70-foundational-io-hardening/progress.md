@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 64 (keychain streamed request body) done on `fix/io-41-50-lane-a`. T0:
+  open. `ServeAdapter::serve` no longer reads the body; the async future reads it with
+  `AsyncSendSafeBody` plus the connection's `read_wake_source`, through `collect_bytes_bounded`
+  (cap + 1 bytes, to tell "at the cap" from "over"). New `KeychainServerConfig`
+  (`max_request_body`, default 1 MiB, nginx `client_max_body_size`; builders on the config and
+  `KeychainServer::with_max_request_body`), stored in the `ContextBag`. Over the cap: 413 with
+  `Connection: close`, rest unread, connection closed. Test `slow_request_body_does_not_hold_worker`
+  failed on the feature 44 code: `try_collect_bytes` hit `WouldBlock` on the non-blocking socket
+  and silently returned a truncated body ("slow body was truncated, prelogin answered:
+  kdfIterations 600000" instead of 123456), so the old code was worse than a held worker. Now
+  passes; `request_body_over_cap_is_413` passes. 20/20 runs each. New backlog entry (§11): the
+  Turso store fails overlapping calls with "concurrent use forbidden" (now reachable through
+  concurrent async handlers); the slow test staggers its two uploads. §22 sync-body entry deleted.
+
 - 2026-11-02: feature 44 (keychain async serve) done on `fix/io-41-50-lane-a`. T0: open.
   `ServeAdapter::serve` now returns `ConnectionResult::Async`. The future owns the method,
   path, body, bearer, master key, a clone of `KeychainContext` (all `Arc` fields) and the

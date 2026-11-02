@@ -19,23 +19,80 @@ use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 use foundation_http::{RawStream, SimpleIncomingRequest, SimpleMethod};
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::client::body_reader::{collect_bytes_bounded, AsyncSendSafeBody};
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 
 use crate::core::context::KeychainContext;
 use crate::core::error::AppError;
 use crate::core::router::route;
 
+/// Default for [`KeychainServerConfig::max_request_body`]: 1 MiB, the default of
+/// nginx's `client_max_body_size`.
+pub const DEFAULT_MAX_REQUEST_BODY: usize = 1024 * 1024;
+
+/// Limits for the native keychain server.
+#[derive(Debug, Clone, Copy)]
+pub struct KeychainServerConfig {
+    /// Largest request body, in bytes, the server reads. The handlers parse
+    /// whole JSON documents, so the body is collected up to this size. A larger
+    /// body is answered with `413 Payload Too Large` and the connection is
+    /// closed without the rest of the body being read. Default 1 MiB, nginx's
+    /// `client_max_body_size` default.
+    pub max_request_body: usize,
+}
+
+impl Default for KeychainServerConfig {
+    fn default() -> Self {
+        Self {
+            max_request_body: DEFAULT_MAX_REQUEST_BODY,
+        }
+    }
+}
+
+impl KeychainServerConfig {
+    /// A configuration with the documented defaults.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set the largest request body the server reads (see
+    /// [`max_request_body`](Self::max_request_body)).
+    #[must_use]
+    pub fn with_max_request_body(mut self, bytes: usize) -> Self {
+        self.max_request_body = bytes;
+        self
+    }
+}
+
 /// A configured native keychain server.
 pub struct KeychainServer {
     ctx: KeychainContext,
+    config: KeychainServerConfig,
 }
 
 impl KeychainServer {
     /// Build a server over the given context (holds the DB + JWT keys).
     #[must_use]
     pub fn new(ctx: KeychainContext) -> Self {
-        Self { ctx }
+        Self {
+            ctx,
+            config: KeychainServerConfig::default(),
+        }
+    }
+
+    /// Replace the server limits.
+    #[must_use]
+    pub fn with_config(mut self, config: KeychainServerConfig) -> Self {
+        self.config = config;
+        self
+    }
+
+    /// Set the largest request body the server reads (default 1 MiB).
+    #[must_use]
+    pub fn with_max_request_body(mut self, bytes: usize) -> Self {
+        self.config.max_request_body = bytes;
+        self
     }
 
     /// Build the routed [`HttpApp`].
@@ -43,6 +100,7 @@ impl KeychainServer {
     pub fn http_app(self) -> HttpApp<Arc<dyn Serve>> {
         let mut app = HttpApp::new_serve();
         app.ctx.store(self.ctx);
+        app.ctx.store(self.config);
         register_routes(&mut app);
         app
     }
@@ -183,6 +241,7 @@ async fn provisioning_route(
 /// The per-connection dispatcher.
 pub struct ServeAdapter {
     ctx: KeychainContext,
+    config: KeychainServerConfig,
 }
 
 impl ServeFactory for ServeAdapter {
@@ -190,7 +249,8 @@ impl ServeFactory for ServeAdapter {
         let ctx = bag
             .get_cloned::<KeychainContext>()
             .expect("KeychainContext must be in ContextBag");
-        Self { ctx }
+        let config = bag.get_cloned::<KeychainServerConfig>().unwrap_or_default();
+        Self { ctx, config }
     }
 }
 
@@ -202,7 +262,8 @@ impl Serve for ServeAdapter {
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         // Take everything the handlers need out of the request now: the future
-        // returned below is `'static` and cannot borrow `self` or `req`.
+        // returned below is `'static` and cannot borrow `self` or `req`. The
+        // body is not read here: it is read inside the future.
         let method = format!("{:?}", req.method);
         let path = req
             .request_url
@@ -211,7 +272,7 @@ impl Serve for ServeAdapter {
             .next()
             .unwrap_or("")
             .to_string();
-        let body = read_body(req.body.take());
+        let body = req.body.take();
         let bearer = req
             .headers
             .get(&SimpleHeader::AUTHORIZATION)
@@ -222,11 +283,34 @@ impl Serve for ServeAdapter {
             .unwrap_or_else(|_| "insecure-dev-master-key".to_string());
         // `KeychainContext` holds only `Arc`s, so this clone is cheap.
         let ctx = self.ctx.clone();
+        let limit = self.config.max_request_body;
 
         ConnectionResult::Async(Box::pin(async move {
+            let read_wake = conn.with_inner_ref(RawStream::read_wake_source);
+            let body = match read_body(body, read_wake, limit).await {
+                Ok(body) => body,
+                Err(BodyError::TooLarge) => {
+                    // The rest of the body is unread, so the connection cannot
+                    // carry another request: answer, then close.
+                    let json = serde_json::json!({
+                        "error": "payload_too_large",
+                        "error_description": "The request body is too large",
+                        "ErrorModel": {
+                            "Message": "The request body is too large",
+                            "Object": "error"
+                        }
+                    });
+                    let _ = write_json(conn, 413, &json, true).await;
+                    return ConnectionResult::Close(None);
+                }
+                Err(BodyError::NotUtf8) => {
+                    let err = AppError::BadRequest("request body is not valid UTF-8".into());
+                    return write_json(conn, err.status(), &err.to_json(), false).await;
+                }
+            };
             let (status, json) =
                 handle(&ctx, &master_key, &method, &path, &body, bearer.as_deref()).await;
-            write_json(conn, status, &json).await
+            write_json(conn, status, &json, false).await
         }))
     }
 }
@@ -252,17 +336,37 @@ async fn handle(
     }
 }
 
-/// Drain a request body to a string, collecting the lazy stream variant.
-fn read_body(body: Option<SendSafeBody>) -> String {
-    match body {
-        None | Some(SendSafeBody::None) => String::new(),
-        Some(SendSafeBody::Text(t)) => t,
-        Some(SendSafeBody::Bytes(b)) => String::from_utf8_lossy(&b).to_string(),
-        Some(other) => {
-            let bytes = try_collect_bytes(other).unwrap_or_default();
-            String::from_utf8_lossy(&bytes).to_string()
-        }
+/// Why a request body could not be read.
+enum BodyError {
+    /// The body is larger than the configured limit.
+    TooLarge,
+    /// The body is not valid UTF-8.
+    NotUtf8,
+}
+
+/// Read a request body as an async stream, at most `limit` bytes.
+///
+/// One byte more than `limit` is read to tell "exactly `limit`" from "too
+/// large"; the rest of the body is never read. `read_wake` lets the stream park
+/// until the socket is readable instead of spinning.
+async fn read_body(
+    body: Option<SendSafeBody>,
+    read_wake: Option<foundation_netio::shared::client::body_reader::ReadWakeSource>,
+    limit: usize,
+) -> Result<String, BodyError> {
+    let body = match body {
+        None | Some(SendSafeBody::None) => return Ok(String::new()),
+        Some(body) => body,
+    };
+    let mut stream = AsyncSendSafeBody::from(body);
+    if let Some(source) = read_wake {
+        stream = stream.with_read_wake(source);
     }
+    let bytes = collect_bytes_bounded(stream, limit.saturating_add(1)).await;
+    if bytes.len() > limit {
+        return Err(BodyError::TooLarge);
+    }
+    String::from_utf8(bytes).map_err(|_| BodyError::NotUtf8)
 }
 
 /// Write `body` as a complete `application/json` response. The write is
@@ -271,6 +375,7 @@ async fn write_json(
     conn: SharedByteBufferStream<RawStream>,
     status: u16,
     body: &serde_json::Value,
+    close: bool,
 ) -> ConnectionResult {
     let bytes = match serde_json::to_vec(body) {
         Ok(bytes) => bytes,
@@ -279,7 +384,10 @@ async fn write_json(
             return ConnectionResult::Close(None);
         }
     };
-    let headers = [(SimpleHeader::CONTENT_TYPE, "application/json".to_string())];
+    let mut headers = vec![(SimpleHeader::CONTENT_TYPE, "application/json".to_string())];
+    if close {
+        headers.push((SimpleHeader::CONNECTION, "close".to_string()));
+    }
     match render_head(status, &headers, bytes.len()) {
         Ok(head) => {
             let writer = ResponseWriter::new(conn, WriterConfig::default());
