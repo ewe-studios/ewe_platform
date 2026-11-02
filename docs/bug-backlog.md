@@ -27,7 +27,19 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 3. foundation_http
 
-(no open entries)
+- `backends/foundation_http/src/native/handlers/static_asset.rs` (`StaticAssetHandler::serve`) and
+  `src/shared/serve/mod.rs` (`respond::*` via `render_response`): both write the whole response
+  with `write_all`-style rendering on the non-blocking connection socket. A response larger than
+  the socket send buffer, or a slow peer, makes the write fail with `WouldBlock` after a partial
+  write and the connection is closed with a truncated response. Likely fix: return
+  `ConnectionResult::Async` and write with the offset-tracking, writability-parking loop that
+  `StaticFileHandler` now uses (`SendFile::write_all`); extract that loop into a shared
+  helper so `respond::*` and `StaticAssetHandler` use it.
+- `backends/foundation_http/tests/h2_parking_tests.rs` (`idle_h2_connection_uses_no_cpu`): fails
+  about half the runs on the dev VM, on master as well (54 ms of process CPU in 1 s against a
+  50 ms cap). The cap measures the whole process, so any other thread's work counts. Likely
+  fix: measure only the connection task's CPU (or the reactor and worker threads by thread id),
+  or find what still wakes the process while idle; do not raise the cap blindly.
 
 ## 4. foundation_core / valtron
 

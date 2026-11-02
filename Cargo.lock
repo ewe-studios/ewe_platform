@@ -5732,6 +5732,7 @@ dependencies = [
  "serde_json",
  "serial_test",
  "sha1",
+ "sha2 0.10.9",
  "tracing",
  "tracing-test",
  "uuid",

@@ -2,6 +2,18 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 41 (static file handler streams correctly) done on
+  `fix/io-41-50-lane-a`. T0: open on master. `StaticFileHandler` now returns
+  `ConnectionResult::Async`. It reads the file in `StaticFileConfig::chunk_size` chunks
+  (default 64 KiB), writes each with an offset that tracks what the socket took (the old
+  `write_all(&wire)` retry restarted at byte 0 and sent duplicate bytes), and on `WouldBlock`
+  parks on write readiness (shared reactor, or the overlay wake callback). It never sleeps a
+  thread. A reset, aborted or broken peer ends the response at once; a `write_timeout` (default
+  60 s, nginx `send_timeout`) closes a stalled client. `MAX_RETRIES` and every `thread::sleep`
+  are gone; the head carries `Content-Length`, and `HEAD` sends no body. New tests in
+  `tests/static_file_tests.rs` (all fail on master). New backlog entry: `StaticAssetHandler`
+  and `respond::*` have the same partial-write bug (section 3).
+
 - 2026-11-02: features 41–60 added by the main session after PR #172 merged: the PR review
   findings, the open backlog entries and the stale ones (requirements.md section 8). Two lanes
   (A: I/O and runtime, `fix/io-41-50-lane-a`; B: data, auth and hygiene,
