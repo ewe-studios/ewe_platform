@@ -2,6 +2,20 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 19 E5, foundation_nativeapis): fjall's `range` returns
+  a `!Send` iterator (`Box<dyn DoubleEndedIterator + 'static>` with no `Send`
+  bound, from lsm-tree), so it cannot live in an `AsyncStorageItemStream`
+  (which is `Send` on non-wasm). Bridge it with a producer `std::thread` that
+  owns the iterator and pushes decoded index entries through a bounded valtron
+  `Pipe`; the thread blocks on a full pipe with
+  `futures_lite::future::block_on(tx.send(msg))` (backpressure, no valtron pool
+  needed) and the stream drains with `rx.receive().await` in
+  `futures_lite::stream::unfold`. Dropping the stream's receiver closes the
+  pipe, which unblocks the producer's send, so the thread exits. The laziness
+  test counts `VfsFileSystem::open(Read)` calls through a delegating wrapper
+  over `InodeFs`; the collection must be flushed first, because unflushed
+  batches are read from memory, not through the VFS.
+
 - 2026-11-02 (feature 25 E3, foundation_deployment_huggingface): a lazy
   pagination iterator over async page fetches must drive each fetch with
   `block_on_future` inside `Iterator::next`. That blocks the calling thread

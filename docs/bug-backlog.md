@@ -150,11 +150,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **`FjallDocumentStore` scans buffer their rows.** `scan`,
-  `scan_all` and `scan_from` collect the matching rows into a
-  `Vec` before streaming them (`src/shared/vfs/fjall_document_store.rs`);
-  `scan_all` is unbounded. Fix: walk the fjall index range lazily.
-
 - **No delta store on the local Turso engine.** `TursoDelta` never compiled and was
   deleted in spec 50 F05 T2 (with its example, the `vfs-turso` feature and the
   shim's `turso` backend). A Turso cloud database still works through

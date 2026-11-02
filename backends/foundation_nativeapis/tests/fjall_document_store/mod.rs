@@ -1,10 +1,14 @@
 #![cfg(feature = "vfs-fjall")]
 
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_nativeapis::shared::vfs::fjall_fs::InodeFs;
-use foundation_nativeapis::{DurabilityWriteConfig, FjallDocumentStore, MemoryFs, VfsFileSystem};
+use foundation_nativeapis::shared::vfs::{OpenMode, VfsCapabilities, VfsMetadata};
+use foundation_nativeapis::{
+    DurabilityWriteConfig, FjallDocumentStore, MemoryFs, VfsFileSystem, VfsResult,
+};
 
 use foundation_core::valtron::valtron_test;
 use futures_lite::StreamExt;
@@ -391,4 +395,110 @@ async fn default_store_is_usable_and_starts_empty() {
     let other = FjallDocumentStore::<MemoryFs>::default();
     let other_docs = collect_stream(other.scan_all::<TestRecord>("col").await.unwrap()).await;
     assert_eq!(other_docs, Vec::<TestRecord>::new());
+}
+
+// --- Lazy scan (E5) ---
+
+/// A VFS wrapper that counts read opens. Scan laziness is proven by how many
+/// document files the store opens while a stream is drained.
+struct CountingFs<F> {
+    inner: F,
+    read_opens: Arc<AtomicUsize>,
+}
+
+impl<F> CountingFs<F> {
+    fn new(inner: F) -> (Self, Arc<AtomicUsize>) {
+        let read_opens = Arc::new(AtomicUsize::new(0));
+        (Self { inner, read_opens: read_opens.clone() }, read_opens)
+    }
+}
+
+impl<F: VfsFileSystem> VfsFileSystem for CountingFs<F> {
+    type File = F::File;
+    type SeekableFile = F::SeekableFile;
+    type Directory = F::Directory;
+
+    fn capabilities(&self) -> VfsCapabilities {
+        self.inner.capabilities()
+    }
+    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
+        self.inner.stat(path)
+    }
+    fn exists(&self, path: &str) -> VfsResult<bool> {
+        self.inner.exists(path)
+    }
+    fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
+        self.inner.chmod(path, mode)
+    }
+    fn symlink(&self, target: &str, link: &str) -> VfsResult<()> {
+        self.inner.symlink(target, link)
+    }
+    fn readlink(&self, path: &str) -> VfsResult<String> {
+        self.inner.readlink(path)
+    }
+    fn rename(&self, from: &str, to: &str) -> VfsResult<()> {
+        self.inner.rename(from, to)
+    }
+    fn remove(&self, path: &str) -> VfsResult<()> {
+        self.inner.remove(path)
+    }
+    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
+        if matches!(mode, OpenMode::Read) {
+            self.read_opens.fetch_add(1, Ordering::Relaxed);
+        }
+        self.inner.open(path, mode)
+    }
+    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        self.inner.open_seekable(path, mode)
+    }
+    fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
+        self.inner.open_directory(path)
+    }
+    fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File> {
+        self.inner.create(path, mode)
+    }
+    fn mkdir(&self, path: &str) -> VfsResult<()> {
+        self.inner.mkdir(path)
+    }
+    fn inode(&self, path: &str) -> VfsResult<u64> {
+        self.inner.inode(path)
+    }
+    fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
+        self.inner.path_by_inode(ino)
+    }
+    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
+        self.inner.stat_by_inode(ino)
+    }
+}
+
+#[valtron_test]
+async fn fjall_scan_yields_before_reading_all() {
+    let (fs, opens) = CountingFs::new(InodeFs::in_memory().unwrap());
+    let tmpdir = tempfile::tempdir().unwrap();
+    let durability = Arc::new(DurabilityWriteConfig::default());
+    let store = FjallDocumentStore::open(fs, "/data".to_string(), tmpdir.path(), durability).unwrap();
+
+    for i in 0..50 {
+        store
+            .append("col", TestRecord { name: format!("item-{i}"), value: i }).await
+            .unwrap();
+    }
+    store.flush("col").unwrap();
+
+    // Creating the stream must not read any document.
+    opens.store(0, Ordering::Relaxed);
+    let mut stream = store.scan::<TestRecord>("col", 50).await.unwrap();
+    assert_eq!(opens.load(Ordering::Relaxed), 0, "scan read eagerly while being created");
+
+    // Draining one item must not read the whole collection.
+    let first = stream.next().await.expect("first item").expect("scan item");
+    assert_eq!(first.name, "item-49");
+    let after_one = opens.load(Ordering::Relaxed);
+    assert!(
+        (1..50).contains(&after_one),
+        "read {after_one} document files for a single scan item"
+    );
+
+    let rest = collect_stream(stream).await;
+    assert_eq!(rest.len(), 49);
 }

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
+use foundation_core::valtron::Pipe;
 use foundation_db::traits::{DocumentStore, Document, PromotableDocument};
 use foundation_db::{AsyncStorageItemStream, StorageError, StorageResult};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -33,6 +34,17 @@ struct IndexValue {
     offset: u64,
     len: u32,
 }
+
+/// One decoded fjall index entry, sent from the scan producer thread to the
+/// stream consumer through the bounded pipe.
+enum ScanIndexItem {
+    Entry(IndexValue),
+    Error(StorageError),
+}
+
+/// Boxed fjall range iterator, erased without a `Send` bound (fjall's own
+/// erasure). Owned by the scan producer thread.
+type FjallRange = Box<dyn Iterator<Item = fjall::Result<(Vec<u8>, Vec<u8>)>>>;
 
 #[derive(Serialize, Deserialize)]
 struct NdjsonRow {
@@ -502,6 +514,101 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
         Ok(rows)
     }
 
+    /// A lazy scan: a producer thread walks the fjall index range one entry at
+    /// a time and pushes decoded offsets through a bounded, waker-hooked pipe,
+    /// and the stream reads one document per yielded item. Nothing is collected
+    /// into a `Vec`, so `scan_all` is bounded only by how many items the caller
+    /// drains.
+    fn scan_rows_stream<C: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        newest_first: bool,
+        from_id: Option<&str>,
+        limit: Option<usize>,
+    ) -> AsyncStorageItemStream<'_, C> {
+        let prefix = Self::collection_prefix(key);
+        let range_start = from_id.map_or_else(
+            || prefix.clone(),
+            |fid| Self::composite_key(key, fid),
+        );
+        let mut range_end = prefix.clone();
+        if let Some(last) = range_end.last_mut() {
+            *last = last.saturating_add(1);
+        }
+
+        // The fjall range iterator is `!Send` (fjall erases the box without a
+        // `Send` bound), but the stream must be `Send`. A producer thread owns
+        // the iterator and streams decoded index entries through a bounded
+        // pipe. The producer parks on a full pipe (backpressure) and stops when
+        // the consumer drops its half.
+        let primary = self.primary.clone();
+        let (tx, rx) = Pipe::new();
+        std::thread::spawn(move || {
+            let range = primary.range(range_start..range_end);
+            let mapped = range.map(|item| item.map(|(k, v)| (k.to_vec(), v.to_vec())));
+            let iter: FjallRange = if newest_first {
+                Box::new(mapped.rev())
+            } else {
+                Box::new(mapped)
+            };
+            for item in iter {
+                let msg = match item {
+                    Ok((k, v)) => {
+                        if k.starts_with(HWM_KEY_PREFIX) {
+                            continue;
+                        }
+                        match serde_json::from_slice::<IndexValue>(&v) {
+                            Ok(idx) => ScanIndexItem::Entry(idx),
+                            Err(e) => ScanIndexItem::Error(StorageError::Deserialization(
+                                e.to_string(),
+                            )),
+                        }
+                    }
+                    Err(e) => ScanIndexItem::Error(StorageError::Backend(e.to_string())),
+                };
+                // Blocking send with backpressure. An error means the consumer
+                // dropped the pipe, so the thread can stop.
+                if futures_lite::future::block_on(tx.send(msg)).is_err() {
+                    break;
+                }
+            }
+            // Dropping `tx` closes the pipe; `rx.receive()` then returns None.
+        });
+
+        let key = key.to_string();
+        Box::pin(futures_lite::stream::unfold(
+            (rx, key, limit),
+            move |(rx, key, mut remaining)| async move {
+                if remaining == Some(0) {
+                    return None;
+                }
+                loop {
+                    let item = rx.receive().await?;
+                    let idx = match item {
+                        ScanIndexItem::Entry(idx) => idx,
+                        ScanIndexItem::Error(e) => return Some((Err(e), (rx, key, remaining))),
+                    };
+                    let Ok(row) = self.read_document_at(&key, idx.offset, idx.len) else {
+                        continue;
+                    };
+                    let doc: C = match serde_json::from_str(&row.content) {
+                        Ok(d) => d,
+                        Err(e) => {
+                            return Some((
+                                Err(StorageError::Deserialization(e.to_string())),
+                                (rx, key, remaining),
+                            ))
+                        }
+                    };
+                    if let Some(rem) = &mut remaining {
+                        *rem -= 1;
+                    }
+                    return Some((Ok(doc), (rx, key, remaining)));
+                }
+            },
+        ))
+    }
+
     fn rebuild_stale_indexes(&self) -> StorageResult<()> {
         // Scan all .jsonl files in root directory
         let dir = self
@@ -613,16 +720,6 @@ fn limit_opt(limit: usize) -> Option<usize> {
     (limit > 0).then_some(limit)
 }
 
-/// Decode buffered rows into the async stream the trait returns.
-fn rows_to_stream<V: DeserializeOwned + Send + 'static>(
-    rows: Vec<NdjsonRow>,
-) -> AsyncStorageItemStream<'static, V> {
-    Box::pin(futures_lite::stream::iter(rows.into_iter().map(|r| {
-        serde_json::from_str::<V>(&r.content)
-            .map_err(|e| StorageError::Deserialization(e.to_string()))
-    })))
-}
-
 fn backend(e: impl std::fmt::Display) -> StorageError {
     StorageError::Backend(e.to_string())
 }
@@ -702,16 +799,14 @@ where
         key: &str,
         limit: usize,
     ) -> StorageResult<AsyncStorageItemStream<'_, C>> {
-        let rows = self.collect_rows(key, true, None, Some(limit))?;
-        Ok(rows_to_stream(rows))
+        Ok(self.scan_rows_stream(key, true, None, Some(limit)))
     }
 
     async fn scan_all<C: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<AsyncStorageItemStream<'_, C>> {
-        let rows = self.collect_rows(key, false, None, None)?;
-        Ok(rows_to_stream(rows))
+        Ok(self.scan_rows_stream(key, false, None, None))
     }
 
     async fn scan_from<C: DeserializeOwned + Send + 'static>(
@@ -720,8 +815,7 @@ where
         from_id: &str,
         limit: usize,
     ) -> StorageResult<AsyncStorageItemStream<'_, C>> {
-        let rows = self.collect_rows(key, false, Some(from_id), limit_opt(limit))?;
-        Ok(rows_to_stream(rows))
+        Ok(self.scan_rows_stream(key, false, Some(from_id), limit_opt(limit)))
     }
 
     async fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {

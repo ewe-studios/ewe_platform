@@ -42,6 +42,19 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   and the older tests convert to `#[valtron_test] async fn`. The first §20
   backlog entry (sync Hub API) is removed.
 
+- 2026-11-02: feature 19 (foundation_nativeapis) E5 done on
+  `fix/io-20-vfs-process-ipc`. E5 makes `scan`, `scan_all` and `scan_from`
+  lazy: no row `Vec` is collected and `scan_all` no longer buffers the whole
+  collection. A producer thread walks the fjall index range (which is not
+  `Send`) and pushes decoded offsets through a bounded valtron `Pipe`; the
+  stream reads one document per yielded item and the producer parks on a full
+  pipe, so an undrained `scan_all` stays bounded. Test
+  `fjall_scan_yields_before_reading_all` wraps `InodeFs` in a read-open
+  counter and asserts the stream reads zero files when created and one file
+  after its first item (not 50). 20 fjall document-store tests pass under
+  `--profile uat`. The first §13 backlog entry (scans buffer their rows) is
+  removed.
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E3 done on
   `fix/io-20-vfs-process-ipc`. E3 makes the shim build the real D1/R2 deltas
   instead of falling back to the memory delta. `DeltaBackend::D1` builds
