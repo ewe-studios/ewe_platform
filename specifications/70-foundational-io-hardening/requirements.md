@@ -17,10 +17,10 @@ related_specs:
   - "specifications/50-valtron-async-readiness"
   - "specifications/65-agent-rpc-serving-system"
 tasks:
-  completed: 40
-  uncompleted: 20
-  total: 60
-  completion_percentage: 67%
+  completed: 41
+  uncompleted: 21
+  total: 62
+  completion_percentage: 66%
 ---
 
 # Spec 70: Foundational I/O hardening
@@ -171,7 +171,7 @@ done
 | 48 | [Two ignored condvar tests run](./features/48-nostd-condvar-ignored-tests/feature.md) | §8 catalogue row 12 (sonnet) | — | M |
 | 49 | [Reactor/testbed warnings; docker clippy debt](./features/49-warnings-and-docker-clippy/feature.md) | §8 catalogue row 13–15 (haiku) | — | S |
 | 50 | [Inline tests out of lane A crates](./features/50-lane-a-inline-tests/feature.md) | §8 catalogue row 16 (haiku) | — | S |
-| 51 | [libsql/Turso batches isolated on the shared connection](./features/51-sql-batch-connection-gate/feature.md) | §8 catalogue row 17 (sonnet) | — | M |
+| 51 | [libsql/Turso: one connection per store, lock for batches](./features/51-sql-batch-lock/feature.md) | §8 catalogue row 17 (sonnet) | — | M |
 | 52 | [D1 batch request; generated D1/R2 types](./features/52-d1-batch-and-generated-types/feature.md) | §8 catalogue row 18 (sonnet) | — | M |
 | 53 | [Auth leftovers and key rotation](./features/53-auth-leftovers/feature.md) | §8 catalogue row 19 (sonnet) | — | M |
 | 54 | [Vendored patches reach published users; fp16](./features/54-vendored-patches-and-fp16/feature.md) | §8 catalogue row 20, 21 (sonnet) | — | M |
@@ -181,6 +181,8 @@ done
 | 58 | [todo example, web-app template, vms lint](./features/58-examples-templates-ci/feature.md) | §8 catalogue row 28 (haiku) | — | S |
 | 59 | [Inline tests out of lane B crates](./features/59-lane-b-inline-tests/feature.md) | §8 catalogue row 29 (haiku) | — | S |
 | 60 | [Stale backlog entries and bookkeeping](./features/60-backlog-and-spec-bookkeeping/feature.md) | §8 catalogue row 30 (haiku) | — | S |
+| 61 | [Shared response writer; idle send timeout](./features/61-http-shared-response-writer/feature.md) | §8 catalogue rows 32, 33 (sonnet) | 41 | M |
+| 62 | [Idle HTTP/2 CPU test is reliable](./features/62-h2-idle-cpu-test/feature.md) | §8 catalogue row 34 (sonnet) | — | S |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -285,6 +287,10 @@ fixed in code but not deleted.
 | 28 | todo example dead code and deps; web-app template dead code; `vms` not linted | B §23, §24, §7 | 58 |
 | 29 | inline `#[cfg(test)]` in lane B crates | R | 59 |
 | 30 | stale backlog entries (§11 ×4, §16 publish note) | S | 60 |
+| 31 | `foundation_connectrpc` clippy debt | B §1 | 49 |
+| 32 | `StaticAssetHandler` and `respond::*` truncate responses after a partial write | found in 41 | 61 |
+| 33 | feature 41 `write_timeout` is a total deadline; nginx `send_timeout` is idle time | review of 41 | 61 |
+| 34 | `idle_h2_connection_uses_no_cpu` flaky (measures the whole process) | found in 41 | 62 |
 
 ### 8.1 Lanes, branches and models
 
@@ -297,7 +303,7 @@ the choice.
 
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
-| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 50 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
+| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
 | B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
