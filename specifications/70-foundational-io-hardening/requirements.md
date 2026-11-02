@@ -17,9 +17,9 @@ related_specs:
   - "specifications/50-valtron-async-readiness"
   - "specifications/65-agent-rpc-serving-system"
 tasks:
-  completed: 40
-  uncompleted: 20
-  total: 60
+  completed: 42
+  uncompleted: 21
+  total: 63
   completion_percentage: 67%
 ---
 
@@ -181,6 +181,9 @@ done
 | 58 | [todo example, web-app template, vms lint](./features/58-examples-templates-ci/feature.md) | §8 catalogue row 28 (haiku) | — | S |
 | 59 | [Inline tests out of lane B crates](./features/59-lane-b-inline-tests/feature.md) | §8 catalogue row 29 (haiku) | — | S |
 | 60 | [Stale backlog entries and bookkeeping](./features/60-backlog-and-spec-bookkeeping/feature.md) | §8 catalogue row 30 (haiku) | — | S |
+| 61 | [Shared response writer; idle send timeout](./features/61-http-shared-response-writer/feature.md) | §8 catalogue rows 32, 33 (sonnet) | 41 | M |
+| 62 | [Idle HTTP/2 CPU test is reliable](./features/62-h2-idle-cpu-test/feature.md) | §8 catalogue row 34 (sonnet) | — | S |
+| 63 | [Retire the truncating sync `respond::*` path](./features/63-respond-async-migration/feature.md) | §8 catalogue rows 35, 36 (sonnet) | 61, both lanes merged | M |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -286,6 +289,11 @@ fixed in code but not deleted.
 | 29 | inline `#[cfg(test)]` in lane B crates | R | 59 |
 | 30 | stale backlog entries (§11 ×4, §16 publish note) | S | 60 |
 | 31 | `foundation_connectrpc` clippy debt | B §1 | 49 |
+| 32 | `StaticAssetHandler` and `respond::*` truncate responses after a partial write | found in 41 | 61 |
+| 33 | feature 41 `write_timeout` is a total deadline; nginx `send_timeout` is idle time | review of 41 | 61 |
+| 34 | `idle_h2_connection_uses_no_cpu` flaky (measures the whole process) | found in 41 | 62 |
+| 35 | sync `respond::*` still truncates for its remaining callers (proxy, templates, wello, server internals) | found in 61 | 63 |
+| 36 | `ResponseWriter::flush` does not restart the idle timer when the stream buffer drains | review of 61 | 63 |
 
 ### 8.1 Lanes, branches and models
 
@@ -298,7 +306,7 @@ the choice.
 
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
-| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 50 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
+| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
 | B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
@@ -307,6 +315,8 @@ the choice.
 - Shared files (`Cargo.lock`, `docs/bug-backlog.md`, `progress.md`, `learnings.md`): on a
   conflict keep both sides.
 - One commit or more per feature. One PR per lane at the end, base `master`.
+- Feature 63 runs after both lane PRs merge, on its own branch, because it edits crates of both
+  lanes.
 
 ### 8.2 Rules added for features 41–60
 
