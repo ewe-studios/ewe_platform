@@ -523,19 +523,20 @@ impl Codegen {
         Ok((output, self.provider_dir.clone()))
     }
 
+    #[allow(clippy::ref_option)] // Takes the optional field by reference, as the callers hold it.
+    #[allow(clippy::needless_pass_by_value)] // Signature kept; the output path is owned by the caller's clone.
     fn provider_root(
         &self,
         output: PathBuf,
         provider_dir: &Option<PathBuf>,
     ) -> Result<PathBuf, CodegenError> {
-        Ok(match provider_dir {
-            Some(dir) => dir.clone(),
-            None => {
-                let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
-                    missing: "provider",
-                })?;
-                output.join(provider)
-            }
+        Ok(if let Some(dir) = provider_dir {
+            dir.clone()
+        } else {
+            let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+                missing: "provider",
+            })?;
+            output.join(provider)
         })
     }
 
@@ -589,7 +590,7 @@ impl Codegen {
         let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
             missing: "provider",
         })?;
-        let provider_safe = provider.replace('-', "_").replace('/', "_");
+        let provider_safe = provider.replace(['-', '/'], "_");
         let prefix = format!("foundation_{provider_safe}_");
         let mut count = read_tree(generated_dir)?.len() + 1; // shim + shared/generated.rs
         let entries = std::fs::read_dir(groups_dir).map_err(|source| CodegenError::Io {
@@ -619,6 +620,7 @@ impl Codegen {
     /// # Errors
     /// [`CodegenError::Stale`] naming the files that differ, plus anything
     /// [`Codegen::write`] can return.
+    #[allow(clippy::too_many_lines)] // Long by design: one flow per subcommand; splitting it is a refactor, not a lint fix.
     pub fn check(&self) -> Result<(), CodegenError> {
         let resolved = self.resolve()?;
         let generated_dir = self.generated_dir()?;
@@ -683,7 +685,7 @@ impl Codegen {
             let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
                 missing: "provider",
             })?;
-            let provider_safe = provider.replace('-', "_").replace('/', "_");
+            let provider_safe = provider.replace(['-', '/'], "_");
             let prefix = format!("foundation_{provider_safe}_");
 
             for (rel, body) in read_tree(&scratch_groups)? {
@@ -924,6 +926,7 @@ impl Codegen {
     }
 
     /// The `build.rs` source for this declaration.
+    #[allow(clippy::too_many_lines)] // Long by design: one flow per subcommand; splitting it is a refactor, not a lint fix.
     fn render_build_script(&self, crate_dir: &Path) -> Result<String, CodegenError> {
         use std::fmt::Write as _;
 
@@ -1019,8 +1022,7 @@ impl Codegen {
         .unwrap();
         writeln!(
             out,
-            "    let spec = Path::new(&manifest).join({:?});",
-            spec_from_crate
+            "    let spec = Path::new(&manifest).join({spec_from_crate:?});"
         )
         .unwrap();
         writeln!(out).unwrap();

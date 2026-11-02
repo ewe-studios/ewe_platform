@@ -169,7 +169,7 @@ impl Pipeline {
         self
     }
 
-    /// Pin the vendor's API version (Linode `v4`, DigitalOcean `v2`, Hetzner `v1`).
+    /// Pin the vendor's API version (Linode `v4`, `DigitalOcean` `v2`, Hetzner `v1`).
     ///
     /// It is fixed into the client so callers never pass it — an API version is
     /// not a per-call decision. Linode needs this most: its paths carry the
@@ -366,6 +366,9 @@ impl Pipeline {
     ///
     /// # Errors
     /// [`PipelineError`] from [`Pipeline::resolve`], or an IO failure writing.
+    ///
+    /// # Panics
+    /// If the resolved spec cannot be serialized to JSON. A value read from JSON always can be.
     pub fn write(&self, out_dir: &Path) -> Result<PathBuf, PipelineError> {
         let resolved = self.resolve()?;
         let target = out_dir.join(format!("{}.canonical.json", self.provider));

@@ -269,6 +269,7 @@ impl EndpointExtractor {
     }
 
     /// Extract endpoint info from a GCP method.
+    #[allow(clippy::too_many_lines)] // One template per generated unit; splitting it is a refactor, not part of this lint pass.
     fn extract_gcp_method(method: &GcpMethod, base_url: Option<&str>) -> Option<EndpointInfo> {
         let operation_id = method.id.clone()?;
 

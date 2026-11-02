@@ -72,16 +72,10 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 8. foundation_openapi / foundation_codegentools
 
-- **Pre-existing clippy warnings.** `cargo clippy` reports ~112 lints in
-  `foundation_openapi` (mostly `unified/generator.rs` and `unified/analyzer.rs`:
-  docs missing backticks, `too_many_lines`, `map(...).unwrap_or(false)`, an
-  unused `self`, consecutive `str::replace`, trailing commas), ~231 in
-  `foundation_deployment_docker` (`format!` inline variables, trailing commas,
-  `::default()` calls, missing `# Errors` sections), and ~67 in
-  `foundation_codegentools` (`format!` inline variables, redundant closures,
-  `too_many_lines`, missing `# Errors`/`# Panics` sections). None come from
-  feature 14's change; a dedicated clippy-cleanup pass should clear them, then
-  keep them at zero.
+- **`foundation_deployment_docker` clippy debt.** About 231 lints (`format!` inline
+  variables, trailing commas, `::default()` calls, missing `# Errors` sections).
+  `foundation_openapi` and `foundation_codegentools` are clean (spec 70 feature 55).
+  Fix: clear the docker lints in feature 49, then keep them at zero.
 
 ## 9. foundation_proxy
 

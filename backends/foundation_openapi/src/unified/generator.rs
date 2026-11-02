@@ -1,4 +1,4 @@
-//! Unified code generator for OpenAPI specs.
+//! Unified code generator for `OpenAPI` specs.
 //!
 //! WHY: Generates cohesive per-endpoint units (types + clients + provider impl).
 //!
@@ -78,7 +78,7 @@ const RUST_KEYWORDS: &[&str] = &[
 /// NOTE: This does NOT work for field names — use `escape_field_keyword` instead.
 fn escape_rust_keyword(ident: &str) -> String {
     if RUST_KEYWORDS.contains(&ident) {
-        format!("r#{}", ident)
+        format!("r#{ident}")
     } else {
         ident.to_string()
     }
@@ -92,7 +92,7 @@ fn escape_rust_keyword(ident: &str) -> String {
 /// that handles keywords and casing but assumes the key is otherwise already an
 /// identifier. Vendors do not cooperate — Cloudflare keys properties `13335` (an
 /// ASN), `*` and `$metadata`; Linode uses `+and`/`+gt` for filter operators;
-/// DigitalOcean has `pg_partman_bgw.interval`. Those went straight into the
+/// `DigitalOcean` has `pg_partman_bgw.interval`. Those went straight into the
 /// output as `pub 13335: …`, which does not parse.
 ///
 /// The wire name is preserved regardless: the caller emits `#[serde(rename)]`
@@ -159,7 +159,7 @@ fn escape_field_keyword(ident: &str) -> String {
     if ident == "self" {
         "_self".to_string()
     } else if RUST_KEYWORDS.contains(&ident) {
-        format!("r#{}", ident)
+        format!("r#{ident}")
     } else {
         ident.to_string()
     }
@@ -169,7 +169,7 @@ fn escape_field_keyword(ident: &str) -> String {
 /// `r#move` is invalid syntax, so we rename problematic keywords with a `_` suffix.
 fn sanitize_module_name(name: &str) -> String {
     if RUST_KEYWORDS.contains(&name) {
-        format!("{}_mod", name)
+        format!("{name}_mod")
     } else {
         name.to_string()
     }
@@ -182,14 +182,14 @@ fn rename_std_type_conflict(type_name: &str) -> String {
         "String", "Vec", "Option", "Result", "Box", "Rc", "Arc", "Cow", "HashMap", "BTreeMap",
     ];
     if std_types.contains(&type_name) {
-        format!("{}Type", type_name)
+        format!("{type_name}Type")
     } else {
         type_name.to_string()
     }
 }
 
 /// Extract inner type names from a type string (handles Vec<T>, Option<T>, etc.).
-/// Adds extracted type names to the all_types set.
+/// Adds extracted type names to the `all_types` set.
 fn extract_type_names_from_generic(
     type_str: &str,
     all_types: &mut std::collections::BTreeSet<String>,
@@ -228,7 +228,7 @@ fn extract_type_names_from_generic(
 }
 
 /// Collect all type names referenced via $ref in a schema, recursively.
-/// Adds found type names (in PascalCase) to seen_types and types_to_process.
+/// Adds found type names (in `PascalCase`) to `seen_types` and `types_to_process`.
 fn collect_referenced_type_names(
     schema: &crate::spec::Schema,
     seen_types: &mut std::collections::BTreeSet<String>,
@@ -269,7 +269,7 @@ fn collect_referenced_type_names(
 
     // Collect from properties
     if let Some(properties) = &schema.properties {
-        for (_prop_name, prop_schema) in properties {
+        for prop_schema in properties.values() {
             // Check if property is a $ref
             if let Some(ref_path) = &prop_schema.ref_path {
                 let ref_name = ref_path
@@ -326,7 +326,7 @@ fn collect_referenced_type_names(
 }
 
 /// Build a map of which types reference which other types (dependency graph).
-/// Returns: Map<type_name, Set<types it references>>
+/// Returns: Map<`type_name`, Set<types it references>>
 fn build_type_dependencies(
     schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
 ) -> std::collections::HashMap<String, std::collections::HashSet<String>> {
@@ -343,6 +343,7 @@ fn build_type_dependencies(
     deps
 }
 
+#[allow(clippy::only_used_in_recursion)] // The map is passed down the recursion; removing it changes every caller.
 fn collect_refs_from_schema(
     schema: &crate::spec::Schema,
     refs: &mut std::collections::HashSet<String>,
@@ -371,7 +372,7 @@ fn collect_refs_from_schema(
 
     // Collect from properties
     if let Some(properties) = &schema.properties {
-        for (_k, prop) in properties {
+        for prop in properties.values() {
             if let Some(ref_path) = &prop.ref_path {
                 let ref_name = ref_path
                     .trim_start_matches("#/components/schemas/")
@@ -443,7 +444,7 @@ fn maybe_box_type(field_type: &str, recursive_types: &std::collections::HashSet<
         .and_then(|s| s.strip_suffix(">"))
     {
         if recursive_types.contains(inner) {
-            return format!("Option<Box<{}>>", inner);
+            return format!("Option<Box<{inner}>>");
         }
     }
     // Handle Vec<T> -> Vec<Box<T>> if T is recursive
@@ -452,7 +453,7 @@ fn maybe_box_type(field_type: &str, recursive_types: &std::collections::HashSet<
         .and_then(|s| s.strip_suffix(">"))
     {
         if recursive_types.contains(inner) {
-            return format!("Vec<Box<{}>>", inner);
+            return format!("Vec<Box<{inner}>>");
         }
     }
     // Handle Option<Vec<T>> -> Option<Vec<Box<T>>> if T is recursive
@@ -461,12 +462,12 @@ fn maybe_box_type(field_type: &str, recursive_types: &std::collections::HashSet<
         .and_then(|s| s.strip_suffix(">>"))
     {
         if recursive_types.contains(inner) {
-            return format!("Option<Vec<Box<{}>>>", inner);
+            return format!("Option<Vec<Box<{inner}>>>");
         }
     }
     // Direct type reference that is recursive
     if recursive_types.contains(field_type) {
-        return format!("Box<{}>", field_type);
+        return format!("Box<{field_type}>");
     }
 
     field_type.to_string()
@@ -478,8 +479,8 @@ fn type_ident_in(ty: &str, name: &str) -> bool {
         .any(|ident| ident == name)
 }
 
-/// Transform an OpenAPI path into a Rust format! string.
-/// Converts `{param}` placeholders to `{}` only for params in path_params.
+/// Transform an `OpenAPI` path into a Rust format! string.
+/// Converts `{param}` placeholders to `{}` only for params in `path_params`.
 /// Other braces are escaped as literal braces.
 /// Returns the escaped path and the list of param names in URL order.
 fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<String>) {
@@ -508,12 +509,12 @@ fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<Str
                                 .push(to_snake_case(&sanitize_identifier(matching_param)));
                         } else {
                             // Unknown param - escape as literal braces
-                            result.push_str(&format!("{{{{{}}}}}", param_content));
+                            write!(result, "{{{{{param_content}}}}}")
+                                .expect("writing to a String cannot fail");
                         }
                         break;
-                    } else {
-                        param_content.push(chars.next().unwrap());
                     }
+                    param_content.push(chars.next().unwrap());
                 }
             }
             '}' => {
@@ -528,7 +529,7 @@ fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<Str
 }
 
 /// Sanitize a group name for use as a directory/file name and Rust identifier.
-/// Converts PascalCase to snake_case, removes redundant words, and normalizes identifiers.
+/// Converts `PascalCase` to `snake_case`, removes redundant words, and normalizes identifiers.
 fn sanitize_group_name(name: &str) -> String {
     // Step 1: Convert PascalCase/CamelCase to snake_case
     // Insert underscore before each uppercase letter that follows a lowercase letter or digit
@@ -538,7 +539,7 @@ fn sanitize_group_name(name: &str) -> String {
     for (i, c) in name.chars().enumerate() {
         if c.is_uppercase() {
             // Insert underscore before uppercase if previous char was lowercase or digit
-            if i > 0 && prev_was_upper_or_digit == false {
+            if i > 0 && !prev_was_upper_or_digit {
                 snake_case.push('_');
             }
             snake_case.push(c.to_ascii_lowercase());
@@ -585,7 +586,7 @@ fn sanitize_group_name(name: &str) -> String {
         // Keep first 40 chars + underscore + hash of last 10
         let hash = result.len() % 1000;
         result.truncate(40);
-        result = format!("{}_{}", result, hash);
+        result = format!("{result}_{hash}");
     }
 
     if result.is_empty() {
@@ -824,6 +825,7 @@ pub fn rewrite_umbrella_for_split(
 }
 
 /// The pure half of [`rewrite_umbrella_for_split`].
+#[allow(clippy::too_many_lines)] // One template per generated unit; splitting it is a refactor, not part of this lint pass.
 pub fn rewrite_umbrella_for_split_str(
     manifest: &str,
     provider: &str,
@@ -861,26 +863,23 @@ pub fn rewrite_umbrella_for_split_str(
         // have the same dependency for their own `shared` module). It is
         // optional because the shim is gated on the base feature; a wasm
         // `workers`-only build never compiles it.
-        match deps.get_mut("foundation_cloudflare_types") {
-            Some(existing) => {
-                let is_optional = existing
-                    .as_inline_table()
-                    .and_then(|t| t.get("optional"))
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false);
-                if !is_optional {
-                    if let Some(table) = existing.as_inline_table_mut() {
-                        table.insert("optional", true.into());
-                    }
+        if let Some(existing) = deps.get_mut("foundation_cloudflare_types") {
+            let is_optional = existing
+                .as_inline_table()
+                .and_then(|t| t.get("optional"))
+                .and_then(toml_edit::Value::as_bool)
+                .unwrap_or(false);
+            if !is_optional {
+                if let Some(table) = existing.as_inline_table_mut() {
+                    table.insert("optional", true.into());
                 }
             }
-            None => {
-                let mut entry = toml_edit::InlineTable::new();
-                entry.insert("path", "../foundation_cloudflare_types".into());
-                entry.insert("version", "0.1.0".into());
-                entry.insert("optional", true.into());
-                deps.insert("foundation_cloudflare_types", toml_edit::value(entry));
-            }
+        } else {
+            let mut entry = toml_edit::InlineTable::new();
+            entry.insert("path", "../foundation_cloudflare_types".into());
+            entry.insert("version", "0.1.0".into());
+            entry.insert("optional", true.into());
+            deps.insert("foundation_cloudflare_types", toml_edit::value(entry));
         }
         // The shared module (with its `JsonHash` derives) now lives in the
         // shared types crate and the per-group crates. The umbrella only
@@ -1049,7 +1048,7 @@ pub struct UnifiedGenerator {
     output_dir: PathBuf,
     /// Optional override: write files directly to this directory instead of
     /// `output_dir.join(provider)`. Used for providers split into their own
-    /// crate (e.g. cloudflare → foundation_deployment_cloudflare/src).
+    /// crate (e.g. cloudflare → `foundation_deployment_cloudflare/src`).
     provider_dir_override: Option<PathBuf>,
     /// Per-group crate split: one crate per group is created under this
     /// directory (a workspace `backends/` root). The umbrella crate keeps only
@@ -1106,6 +1105,7 @@ impl From<std::fmt::Error> for GenError {
 }
 
 impl UnifiedGenerator {
+    #[must_use]
     pub fn new(output_dir: PathBuf) -> Self {
         Self {
             output_dir,
@@ -1162,6 +1162,9 @@ impl UnifiedGenerator {
     }
 
     /// Generate all artifacts for a provider as cohesive per-endpoint units.
+    ///
+    /// # Errors
+    /// [`GenError`] when the analysis fails, a file cannot be written, or `rustfmt` fails.
     pub fn generate(
         &self,
         provider: &str,
@@ -1212,7 +1215,7 @@ impl UnifiedGenerator {
             return self.write_split(
                 provider,
                 &analysis.groups,
-                modules,
+                &modules,
                 groups_dir,
                 shared_crate_dir,
                 &generated_dir,
@@ -1258,11 +1261,10 @@ impl UnifiedGenerator {
         let cargo_toml_path = if self.provider_dir_override.is_some() {
             self.output_dir.join("Cargo.toml")
         } else {
-            self.output_dir
-                .ancestors()
-                .nth(2)
-                .map(|p| p.join("Cargo.toml"))
-                .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"))
+            self.output_dir.ancestors().nth(2).map_or_else(
+                || PathBuf::from("backends/foundation_deployment/Cargo.toml"),
+                |p| p.join("Cargo.toml"),
+            )
         };
 
         if cargo_toml_path.exists() {
@@ -1287,12 +1289,12 @@ impl UnifiedGenerator {
         &self,
         provider: &str,
         groups: &[ApiGroup],
-        modules: Vec<ModuleFile>,
+        modules: &[ModuleFile],
         groups_dir: &Path,
         shared_crate_dir: &Path,
         generated_dir: &Path,
     ) -> Result<(), GenError> {
-        let provider_safe = provider.replace('-', "_").replace('/', "_");
+        let provider_safe = provider.replace(['-', '/'], "_");
 
         // 1. Shared types crate: `src/generated.rs` (the shared module, minus the
         //    common re-export header, which each group crate re-declares itself).
@@ -1354,6 +1356,8 @@ impl UnifiedGenerator {
 
     /// Emit one group crate: manifest, `lib.rs` (a `shared` re-export module +
     /// the group module), and the group module file itself.
+    #[allow(clippy::too_many_lines)] // One template per generated unit; splitting it is a refactor, not part of this lint pass.
+    #[allow(clippy::unused_self)] // Kept on `self` so it sits with the other generator methods.
     fn write_group_crate(
         &self,
         crate_name: &str,
@@ -1489,6 +1493,7 @@ impl UnifiedGenerator {
     /// shim for every group crate, plus a `shared` module mirroring the group
     /// crates' own, so `foundation_deployment_cloudflare::generated::*` keeps its
     /// old shape.
+    #[allow(clippy::unused_self)] // Kept on `self` so it sits with the other generator methods.
     fn write_umbrella_shim(
         &self,
         provider: &str,
@@ -1496,7 +1501,7 @@ impl UnifiedGenerator {
         generated_dir: &Path,
     ) -> Result<(), GenError> {
         use std::fmt::Write as _;
-        let provider_safe = provider.replace('-', "_").replace('/', "_");
+        let provider_safe = provider.replace(['-', '/'], "_");
 
         fs::create_dir_all(generated_dir)?;
         let mut out = String::new();
@@ -1581,6 +1586,7 @@ impl UnifiedGenerator {
     }
 
     /// Generate a single group module with per-endpoint cohesive units.
+    #[allow(clippy::too_many_lines)] // One template per generated unit; splitting it is a refactor, not part of this lint pass.
     fn generate_group_module(
         &self,
         provider: &str,
@@ -1597,7 +1603,7 @@ impl UnifiedGenerator {
         let mut out = String::new();
 
         // File header
-        let provider_safe = provider.replace('-', "_").replace('/', "_");
+        let provider_safe = provider.replace(['-', '/'], "_");
         writeln!(
             out,
             "//! Auto-generated API module for {} {}.",
@@ -1614,13 +1620,9 @@ impl UnifiedGenerator {
         // (and its doc line) do not exist; the crate is pulled in by the feature
         // on the umbrella manifest instead.
         if self.groups_dir.is_none() {
-            writeln!(out, "//! Feature flag: `{}_{} `", provider_safe, safe_name)?;
+            writeln!(out, "//! Feature flag: `{provider_safe}_{safe_name} `")?;
             writeln!(out)?;
-            writeln!(
-                out,
-                "#![cfg(feature = \"{}_{}\")]",
-                provider_safe, safe_name
-            )?;
+            writeln!(out, "#![cfg(feature = \"{provider_safe}_{safe_name}\")]")?;
         }
         writeln!(
             out,
@@ -1656,8 +1658,7 @@ impl UnifiedGenerator {
             if !type_name
                 .chars()
                 .next()
-                .map(|c| c.is_alphabetic() || c == '_')
-                .unwrap_or(false)
+                .is_some_and(|c| c.is_alphabetic() || c == '_')
             {
                 continue;
             }
@@ -2217,7 +2218,7 @@ impl UnifiedGenerator {
         })
     }
 
-    /// Convert an OpenAPI schema to a Rust type string.
+    /// Convert an `OpenAPI` schema to a Rust type string.
     fn schema_to_rust_type(
         &self,
         schema: &crate::spec::Schema,
@@ -2263,7 +2264,7 @@ impl UnifiedGenerator {
             Some("array") => {
                 if let Some(items) = &schema.items {
                     let item_type = self.schema_to_rust_type(items, schemas);
-                    format!("Vec<{}>", item_type)
+                    format!("Vec<{item_type}>")
                 } else {
                     "Vec<serde_json::Value>".to_string()
                 }
@@ -2283,6 +2284,8 @@ impl UnifiedGenerator {
     }
 
     /// Generate client functions for a single endpoint.
+    #[allow(clippy::too_many_lines)] // One template per generated unit; splitting it is a refactor, not part of this lint pass.
+    #[allow(clippy::unused_self)] // Kept on `self` so it sits with the other generator methods.
     fn generate_endpoint_client_functions(
         &self,
         out: &mut String,
@@ -2378,8 +2381,7 @@ impl UnifiedGenerator {
         writeln!(out, "/// ```ignore")?;
         writeln!(
             out,
-            "/// let response = {}_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {{",
-            fn_prefix
+            "/// let response = {fn_prefix}_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {{"
         )?;
         writeln!(out, "///     b.header(\"X-Custom-Header\", \"value\");")?;
         writeln!(out, "/// }})).await?;")?;
@@ -2390,12 +2392,12 @@ impl UnifiedGenerator {
         let args_uses =
             !ep.path_params.is_empty() || !ep.query_params.is_empty() || ep.request_type.is_some();
         let args_binding = if args_uses { "args" } else { "_args" };
-        writeln!(out, "pub async fn {}_request<F>(", fn_prefix)?;
+        writeln!(out, "pub async fn {fn_prefix}_request<F>(")?;
         // `impl Into<ApiClient>`: a bare `DynNetClient` still works (with the
         // default `BodyLimits`), and a client that configures its own limits
         // passes an `ApiClient` carrying them down to the shared senders.
         writeln!(out, "    client: impl Into<super::shared::ApiClient>,")?;
-        writeln!(out, "    {}: &{},", args_binding, args_name)?;
+        writeln!(out, "    {args_binding}: &{args_name},")?;
         // WHY: The base URL (e.g. "http://localhost/v1.53") is configurable so
         // callers can point at remote Docker daemons, not just Unix-socket-local.
         // For providers whose spec declares an explicit baseUrl, the caller
@@ -2418,8 +2420,7 @@ impl UnifiedGenerator {
         writeln!(out, "    builder_mod: Option<F>,")?;
         writeln!(
             out,
-            ") -> Result<ApiResponse<{}>, super::shared::ApiError>",
-            return_type
+            ") -> Result<ApiResponse<{return_type}>, super::shared::ApiError>"
         )?;
         writeln!(out, "where")?;
         writeln!(out, "    F: FnOnce(&mut PreparedRequestBuilder),")?;
@@ -2429,7 +2430,7 @@ impl UnifiedGenerator {
         // (e.g. "http://localhost/v1.53"); we format the path separately then
         // join — avoids nested format!() indentation issues.
         let (escaped_path, params_in_url_order) = escape_url_for_format(&ep.path, &ep.path_params);
-        writeln!(out, "    let path = format!(\"{}\",", escaped_path)?;
+        writeln!(out, "    let path = format!(\"{escaped_path}\",")?;
         for param_name in &params_in_url_order {
             let safe_param = escape_rust_keyword(param_name);
             writeln!(out, "        args.{safe_param},")?;
@@ -2445,8 +2446,7 @@ impl UnifiedGenerator {
         let method_lower = ep.method.to_lowercase();
         writeln!(
             out,
-            "    let mut builder = PreparedRequestBuilder::{}(&endpoint_url)",
-            method_lower
+            "    let mut builder = PreparedRequestBuilder::{method_lower}(&endpoint_url)"
         )?;
         writeln!(
             out,
@@ -2537,11 +2537,11 @@ impl UnifiedGenerator {
         Ok(())
     }
 
-    /// Resolve a PascalCase type name to the original OpenAPI spec schema key.
+    /// Resolve a `PascalCase` type name to the original `OpenAPI` spec schema key.
     ///
     /// The `schemas` map uses the spec's original keys (typically `snake_case`),
     /// but `shared_resources` stores `PascalCase` names. Try direct lookup first
-    /// (some specs use PascalCase keys), then convert to snake_case.
+    /// (some specs use `PascalCase` keys), then convert to `snake_case`.
     fn resolve_schema_key<'a>(
         type_name: &str,
         schemas: &'a std::collections::BTreeMap<String, crate::spec::Schema>,
@@ -2584,12 +2584,13 @@ impl UnifiedGenerator {
 
     /// Generate shared module for cross-group types.
     ///
-    /// WHY: Types used by multiple groups (shared_resources) must live in one place so
+    /// WHY: Types used by multiple groups (`shared_resources`) must live in one place so
     /// group modules can import them via `super::shared::`. The OLD behaviour was to emit
     /// a `HashMap<String, Value>` stub for every shared type regardless of the actual
-    /// OpenAPI schema. The NEW behaviour resolves each type's schema and generates a
-    /// properly typed struct with real fields, only falling back to HashMap when the
+    /// `OpenAPI` schema. The NEW behaviour resolves each type's schema and generates a
+    /// properly typed struct with real fields, only falling back to `HashMap` when the
     /// schema truly cannot be resolved.
+    #[allow(clippy::too_many_lines)] // One template per generated unit; splitting it is a refactor, not part of this lint pass.
     fn generate_shared_module(
         &self,
         analysis: &super::analyzer::AnalysisResult,
@@ -2706,8 +2707,7 @@ impl UnifiedGenerator {
             if !type_name
                 .chars()
                 .next()
-                .map(|c| c.is_alphabetic() || c == '_')
-                .unwrap_or(false)
+                .is_some_and(|c| c.is_alphabetic() || c == '_')
             {
                 continue;
             }
@@ -2767,6 +2767,7 @@ impl UnifiedGenerator {
 
     /// Generate provider mod.rs with feature guards.
     /// Generate `mod.rs` inside `generated/` that declares all sub-modules.
+    #[allow(clippy::unused_self)] // Kept on `self` so it sits with the other generator methods.
     fn generate_provider_mod(
         &self,
         provider: &str,
@@ -2774,10 +2775,10 @@ impl UnifiedGenerator {
         _shared_resources: &[String],
         generated_dir: &Path,
     ) -> Result<(), GenError> {
-        let feature_name = provider.replace('-', "_").replace('/', "_");
+        let feature_name = provider.replace(['-', '/'], "_");
 
         let mut out = String::new();
-        writeln!(out, "//! Auto-generated module for {provider}.",)?;
+        writeln!(out, "//! Auto-generated module for {provider}.")?;
         writeln!(out, "//!")?;
         writeln!(out, "//! Generated by `cargo run --bin genapi generate`.")?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;

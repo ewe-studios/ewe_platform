@@ -109,6 +109,7 @@ fn streamed_responses_and_raw_request_bodies_are_classified() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)] // One scenario per test; splitting it hides the sequence under test.
 fn generated_functions_stream_their_bodies() {
     let out = std::env::temp_dir().join(format!(
         "foundation_openapi_streaming_{}_{}",
