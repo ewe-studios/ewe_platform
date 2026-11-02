@@ -326,6 +326,7 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
         method: SimpleMethod::POST,
     };
     let stream = H2Transport::new()
+        .with_read_timeout(timeout)
         .open(out_request)
         .map_err(|e| format!("open h2 health upstream {url}: {e}"))?;
     let outbound = GrpcClient
@@ -407,25 +408,16 @@ async fn grpc_health_check(url: String, timeout: Duration) -> Result<bool, Strin
 
 /// gRPC health probe: `true` = the backend reported `SERVING`.
 ///
-/// The check is driven on a dedicated thread and bounded by a hard
-/// [`std::sync::mpsc::Receiver::recv_timeout`]. `grpc_health_check` already races
-/// its pump against an internal timer, but a stuck timer (or an in-flight probe
-/// racing proxy shutdown) must not be allowed to hang this probe thread — a hung
-/// probe would block [`HealthMonitor::join`] and stall `ProxyServer::shutdown`.
-/// The inner future still owns the normal path (and, on timeout, drops the H2
-/// pump so the connection is closed); the outer deadline is a backstop only.
-fn probe_grpc_health(base_url: &str, timeout: Duration) -> bool {
+/// The whole exchange is bounded twice: `grpc_health_check` races its pump
+/// against an internal timer, and the transport's read timeout
+/// ([`H2Transport::with_read_timeout`]) fails a peer that accepts the
+/// connection but then sends nothing. Both bounds resolve the call, so the probe
+/// runs inline on the probe thread with no throwaway thread and no
+/// `recv_timeout` backstop — an abandoned inner future and its H2 connection no
+/// longer leak per probe.
+pub fn probe_grpc_health(base_url: &str, timeout: Duration) -> bool {
     let url = join_url(base_url, "/grpc.health.v1.Health/Check");
-    let (tx, rx) = std::sync::mpsc::channel();
-    std::thread::spawn(move || {
-        let _ = tx.send(block_on_future(grpc_health_check(url, timeout)));
-    });
-    // A margin over `timeout` so the inner timer + H2 open settle before the
-    // outer deadline fires; the outer deadline only trips on a stuck inner timer.
-    rx.recv_timeout(timeout + Duration::from_millis(250))
-        .ok()
-        .and_then(std::result::Result::ok)
-        .unwrap_or(false)
+    block_on_future(grpc_health_check(url, timeout)).unwrap_or(false)
 }
 
 /// Join a base URL and a health path, avoiding a doubled slash.

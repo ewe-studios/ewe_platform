@@ -117,6 +117,10 @@ pub struct H2Transport {
     /// Longest the call waits for the peer's h2 SETTINGS. See
     /// [`Self::with_handshake_timeout`].
     handshake_timeout: Duration,
+    /// Longest the pump waits for the next bytes from the peer once the request
+    /// is out. `Duration::ZERO` disables the check (the default). See
+    /// [`Self::with_read_timeout`].
+    read_timeout: Duration,
 }
 
 impl Default for H2Transport {
@@ -126,6 +130,7 @@ impl Default for H2Transport {
             unix_path: None,
             connect_timeout: Self::DEFAULT_CONNECT_TIMEOUT,
             handshake_timeout: Self::DEFAULT_HANDSHAKE_TIMEOUT,
+            read_timeout: Self::DEFAULT_READ_TIMEOUT,
         }
     }
 }
@@ -140,6 +145,12 @@ impl H2Transport {
     /// (`TLSHandshakeTimeout`): the connection is up but the peer has not
     /// finished its preamble.
     pub const DEFAULT_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
+
+    /// Default for [`Self::with_read_timeout`]: `Duration::ZERO`, which disables
+    /// the check. A disabled read timeout keeps this transport's old behaviour,
+    /// where a peer that stops answering leaves the call hanging on the peer's
+    /// own idle timeout.
+    pub const DEFAULT_READ_TIMEOUT: Duration = Duration::ZERO;
 
     #[must_use]
     pub fn new() -> Self { Self::default() }
@@ -168,6 +179,17 @@ impl H2Transport {
     #[must_use]
     pub fn with_handshake_timeout(mut self, timeout: Duration) -> Self {
         self.handshake_timeout = timeout;
+        self
+    }
+
+    /// Set how long the pump waits for the next bytes from the peer once the
+    /// request is out. A peer that accepts the connection but then sends nothing
+    /// fails the call with [`TransportError::Timeout`] instead of hanging it on
+    /// the peer's own idle timeout. `Duration::ZERO` (the default) disables the
+    /// check. See [`Self::DEFAULT_READ_TIMEOUT`].
+    #[must_use]
+    pub fn with_read_timeout(mut self, timeout: Duration) -> Self {
+        self.read_timeout = timeout;
         self
     }
 }
@@ -251,6 +273,8 @@ impl Transport for H2Transport {
             channel,
             state: PumpPhase::Handshaking,
             handshake_deadline: Instant::now() + self.handshake_timeout,
+            read_timeout: self.read_timeout,
+            last_progress: Instant::now(),
             pending_out: Vec::new(),
             send_rx,
             head_tx,
@@ -302,6 +326,12 @@ struct H2Pump {
     state: PumpPhase,
     /// When `Handshaking` gives up on the peer's SETTINGS.
     handshake_deadline: Instant,
+    /// Longest the pump waits for the next bytes from the peer once the request
+    /// is out. `Duration::ZERO` disables the check.
+    read_timeout: Duration,
+    /// When the peer last sent bytes or the socket last took our bytes. The
+    /// read timeout measures from here.
+    last_progress: Instant,
     /// Bytes drained from `channel` that the non-blocking socket has not taken
     /// yet. Written ahead of any later output so frames are never split or lost.
     pending_out: Vec<u8>,
@@ -436,6 +466,7 @@ impl H2Pump {
                 }
                 Ok(n) => {
                     self.pending_out.drain(..n);
+                    self.last_progress = Instant::now();
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => return Ok(false),
                 Err(ref e) if e.kind() == io::ErrorKind::Interrupted => {}
@@ -466,6 +497,26 @@ impl TaskIterator for H2Pump {
         self.stream.set_nonblocking(true).ok();
 
         loop {
+            // ── Idle read timeout ──────────────────────────────────────
+            // Once the request is out, the peer must keep making progress. A
+            // peer that accepts the connection but then sends nothing trips this
+            // before its own (often 60 s+) idle timeout. The handshake has its
+            // own deadline, so it is skipped here.
+            if !self.read_timeout.is_zero()
+                && !matches!(self.state, PumpPhase::Handshaking)
+                && self.last_progress.elapsed() >= self.read_timeout
+            {
+                if self.response_head_sent {
+                    // The head is already out. End the response stream here;
+                    // there is no head pipe left to publish the error on.
+                    self.body_tx.close();
+                    self.trailer_tx.close();
+                    return None;
+                }
+                self.fail_before_head(TransportError::Timeout);
+                return None;
+            }
+
             // ── Read from socket, feed to channel ──────────────────────
             let mut buf = [0u8; 8192];
             let mut read_some = false;
@@ -495,6 +546,7 @@ impl TaskIterator for H2Pump {
                 }
                 Ok(n) => {
                     self.channel.feed_input(&buf[..n]);
+                    self.last_progress = Instant::now();
                     read_some = true;
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {

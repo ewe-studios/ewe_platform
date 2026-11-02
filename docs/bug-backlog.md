@@ -86,10 +86,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   long-lived handler parks instead of holding a worker. The proxy still relays on
   a throwaway thread and returns `Take`. It can move to `Async` later once its
   relay future is `'static`.
-- **gRPC health probe leaks a thread + H2 connection when its inner timeout hangs.**
-  - `health.rs::probe_grpc_health` drives `grpc_health_check` on a throwaway thread and bounds it with `recv_timeout` as a backstop, because the inner `select` + valtron `sleep_async` timer could fail to fire (fixed on `fix/foundational-backlog`: `sleep_async` now runs on valtron's timer thread) and `H2Transport`'s pump parks on the socket read with no read timeout.
-  - When the backstop trips, the inner `block_on_future` (and its H2 pump task) is abandoned — a per-occurrence thread/connection leak. Rare (the timer only fails under pool contention, e.g. proxy shutdown), but a flapping or non-responsive backend could repeat it every probe interval.
-  - Likely fix: give `H2Transport` a real read/keepalive timeout so the pump self-terminates, then drop the backstop thread (the timer half of the cause is gone).
 - **Backend-state persistence can lose an update.** Each control-socket
   connection runs on its own thread, and `ProxyStateStore::save_backend_state`
   / `save_tls_cert` (`src/persistence.rs`) load the whole persisted state,
