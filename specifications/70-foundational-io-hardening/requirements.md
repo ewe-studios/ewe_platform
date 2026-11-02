@@ -304,7 +304,7 @@ fixed in code but not deleted.
 | 39 | D1 non-finite REAL silently stored as NULL | found in 52 | 56 |
 | 40 | D1 `/query` response read whole with no cap | found in 52 | 56 |
 | 41 | Cloudflare wire-type check takes ~160 s | found in 52 | 55 |
-| 42 | hosted D1 REST acceptance of number/null params unproven (needs the owner's Cloudflare account) | found in 52 | owner: opt-in test with real credentials |
+| 42 | hosted D1 REST acceptance of number/null params unproven (needs the owner's Cloudflare account) | found in 52 | 56 E8 (owner decision: local wrangler is the check) |
 | 43 | proxy upgrade, TCP tunnel, gRPC-Web/Connect relays still use a thread per connection | found in 45 | 65 |
 | 44 | `TcpPassthrough` thread per client; poll sleeps | found in 45 | 65 |
 | 45 | proxy thread sleeps in production polling loops | found in 45 | 65 |
