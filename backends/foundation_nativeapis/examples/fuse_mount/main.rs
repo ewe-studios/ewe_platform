@@ -10,6 +10,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_nativeapis::VfsFileSystem;
 use foundation_nativeapis::shared::vfs::memory_fs::MemoryFs;
 use foundation_nativeapis::shared::vfs::overlay_fs::OverlayFileSystem;
 #[cfg(feature = "vfs-fuse")]
@@ -17,7 +18,7 @@ use foundation_nativeapis::shared::vfs::SyncFs;
 use foundation_nativeapis::shared::vfs::memory_delta::MemoryDelta;
 
 #[cfg(feature = "vfs-fuse")]
-use foundation_nativeapis::native::vfs::fuse::FuseMount;
+use foundation_nativeapis::native::vfs::fuse::{FuseMount, FuseMountOptions};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== FUSE Mount Example ===\n");
@@ -49,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // FUSE calls the file system synchronously, so the async overlay goes
         // in through `SyncFs`.
-        let fuse = FuseMount::new(SyncFs::new(overlay));
+        let fuse = FuseMount::new(SyncFs::new(overlay), FuseMountOptions::default());
         // In a real scenario this would block until unmount:
         // fuse.mount(&mount_point)?;
         println!("FUSE mount would start here. Full implementation requires:");
