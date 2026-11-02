@@ -124,6 +124,11 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
   server writes milliseconds for its own rows. Fix: pick one unit per column,
   document it in the migrations, and make cleanup follow it.
+- **Raw `QueryStore::query` on `LibsqlStore` / `TursoStorage` takes the write
+  guard, so read-only raw `SELECT` streams run one at a time.** The connection
+  lock (feature 51) cannot know that raw SQL only reads. Fix: add a read-only
+  query method (or a statement check) that takes the read guard, and move the
+  hot read paths (`rate_limit::sql_check`, document reads) to it.
 
 ## 12. foundation_auth
 

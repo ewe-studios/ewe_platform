@@ -12,6 +12,7 @@ use crate::core::storage_provider::{
     AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
     RateLimiterStore, SqlRow,
 };
+use crate::native::conn_gate::{ConnGate, ReadGuard, WriteGuard};
 use async_stream::try_stream;
 use base64::{engine::general_purpose::STANDARD, Engine};
 use futures_core::Stream as AsyncStream;
@@ -23,9 +24,20 @@ use turso::Builder;
 ///
 /// When an encryption key is provided, all values are encrypted at rest
 /// using ChaCha20-Poly1305 before being stored in the database.
+///
+/// The store keeps one connection and an async read/write lock (shared by
+/// clones): reads run together; a write, a raw statement or a batch (`BEGIN` to
+/// `COMMIT`/`ROLLBACK`) has the connection to itself.
+///
+/// Row streams hold their guard until they end or are dropped. A batch or write
+/// waits until open row streams from this store end; do not start a batch or a
+/// write on the same task while you hold a row stream from this store (it would
+/// wait for itself). The raw `QueryStore::query` stream holds the write guard,
+/// because raw SQL can write.
 #[derive(Clone)]
 pub struct TursoStorage {
     conn: Arc<turso::Connection>,
+    gate: ConnGate,
     encryption_key: Option<EncryptionKey>,
 }
 
@@ -71,6 +83,7 @@ impl TursoStorage {
             .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
+            gate: ConnGate::new(),
             encryption_key,
         })
     }
@@ -96,6 +109,7 @@ impl TursoStorage {
     ///
     /// Returns a `StorageError` if migration execution fails.
     pub async fn migrate(&self, migrations: &[(&str, &str)]) -> StorageResult<()> {
+        let _guard = self.write().await?;
         self.conn
             .execute_batch(
                 "CREATE TABLE IF NOT EXISTS _migrations (
@@ -202,6 +216,76 @@ impl TursoStorage {
     }
 
     // ========================================================================
+    // Connection gate
+    // ========================================================================
+
+    /// Shared guard for an operation that only reads. Waits while a write or a
+    /// batch is open. If an earlier rollback failed, the connection is checked
+    /// first.
+    async fn read(&self) -> StorageResult<ReadGuard> {
+        loop {
+            let guard = self.gate.read().await;
+            if !self.gate.needs_check() {
+                return Ok(guard);
+            }
+            drop(guard);
+            let _writer = self.write().await?;
+        }
+    }
+
+    /// Exclusive guard for a write, a raw statement or a batch. If an earlier
+    /// rollback failed, the connection is checked first.
+    async fn write(&self) -> StorageResult<WriteGuard> {
+        let guard = self.gate.write().await;
+        if self.gate.needs_check() {
+            // Backend check: `turso::Connection::is_autocommit`. A connection
+            // that is not in autocommit mode is still inside a transaction.
+            let in_transaction = !self
+                .conn
+                .is_autocommit()
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            if in_transaction {
+                self.conn.execute_batch("ROLLBACK").await.map_err(|e| {
+                    StorageError::Backend(format!(
+                        "connection is inside a transaction and rollback failed: {e}"
+                    ))
+                })?;
+            }
+            self.gate.clear_needs_check();
+        }
+        Ok(guard)
+    }
+
+    /// Roll back after `cause` failed a batch. The caller holds the write
+    /// guard. Returns the error for the caller: the statement error, with the
+    /// rollback error attached when the rollback failed too. A failed rollback
+    /// marks the store so the next operation checks for an open transaction.
+    async fn rollback_after(&self, cause: String) -> StorageError {
+        let rollback = if self.gate.take_injected_rollback_failure() {
+            Err("injected rollback failure".to_string())
+        } else {
+            self.conn
+                .execute_batch("ROLLBACK")
+                .await
+                .map_err(|e| e.to_string())
+        };
+        match rollback {
+            Ok(()) => StorageError::Backend(cause),
+            Err(rollback_error) => {
+                self.gate.mark_needs_check();
+                StorageError::Backend(format!("{cause}; rollback also failed: {rollback_error}"))
+            }
+        }
+    }
+
+    /// Test hook: make the next batch rollback fail without running it, so the
+    /// transaction stays open. Not part of the stable API.
+    #[doc(hidden)]
+    pub fn inject_rollback_failure(&self) {
+        self.gate.inject_rollback_failure();
+    }
+
+    // ========================================================================
     // Async-First internal methods (source of truth for all operations)
     // ========================================================================
 
@@ -210,6 +294,7 @@ impl TursoStorage {
         &self,
         key: &str,
     ) -> StorageResult<Option<V>> {
+        let _guard = self.read().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         let storage = self.clone();
@@ -243,6 +328,7 @@ impl TursoStorage {
 
     /// Async KV set: serialize → encrypt → upsert.
     async fn set_async_internal<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let serialized = serde_json::to_string(&value)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let stored_value = self.maybe_encrypt(&serialized)?;
@@ -260,6 +346,7 @@ impl TursoStorage {
 
     /// Async KV delete.
     async fn delete_async_internal(&self, key: &str) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         conn.execute("DELETE FROM kv_store WHERE key = ?", [key])
@@ -270,6 +357,7 @@ impl TursoStorage {
 
     /// Async KV exists.
     async fn exists_async_internal(&self, key: &str) -> StorageResult<bool> {
+        let _guard = self.read().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         let exists = conn
@@ -288,6 +376,7 @@ impl TursoStorage {
 
     /// Async blob put.
     async fn put_blob_async_internal(&self, key: &str, data: &[u8]) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let encoded = STANDARD.encode(data);
         let key = key.to_string();
         #[allow(clippy::cast_possible_wrap)]
@@ -306,6 +395,7 @@ impl TursoStorage {
 
     /// Async blob get.
     async fn get_blob_async_internal(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
+        let _guard = self.read().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         let opt = conn
@@ -334,6 +424,7 @@ impl TursoStorage {
 
     /// Async blob delete.
     async fn delete_blob_async_internal(&self, key: &str) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         conn.execute("DELETE FROM blobs WHERE key = ?", [key])
@@ -344,6 +435,7 @@ impl TursoStorage {
 
     /// Async blob exists.
     async fn blob_exists_async_internal(&self, key: &str) -> StorageResult<bool> {
+        let _guard = self.read().await?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
         let exists = conn
@@ -368,12 +460,14 @@ impl TursoStorage {
     /// generator state machine.
     ///
     /// `query` wraps it in an `AsyncQueryStream` that the caller polls.
-    fn query_rows_stream(
+    fn query_rows_stream<G: Send + 'static>(
         conn: Arc<turso::Connection>,
+        guard: G,
         sql: String,
         params: Vec<turso::Value>,
     ) -> impl AsyncStream<Item = StorageResult<SqlRow>> + Send {
         try_stream! {
+            let _guard = guard;
             let mut stmt = conn.prepare(&sql).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut rows = stmt.query(params).await
@@ -400,12 +494,14 @@ impl TursoStorage {
     /// The `.await` calls inside are deferred until the stream is polled.
     ///
     /// `list_keys` wraps it in an `AsyncListStream`.
-    fn list_keys_stream(
+    fn list_keys_stream<G: Send + 'static>(
         conn: Arc<turso::Connection>,
+        guard: G,
         sql: String,
         params: Vec<turso::Value>,
     ) -> impl AsyncStream<Item = StorageResult<String>> + Send {
         try_stream! {
+            let _guard = guard;
             let mut stmt = conn.prepare(&sql).await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut rows = stmt.query(params).await
@@ -422,6 +518,7 @@ impl TursoStorage {
 
     /// Async execute (returns rows affected).
     async fn execute_async_internal(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+        let _guard = self.write().await?;
         let turso_params = Self::to_turso_params(params);
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
@@ -432,6 +529,7 @@ impl TursoStorage {
 
     /// Async `execute_batch`.
     async fn execute_batch_async_internal(&self, sql: &str) -> StorageResult<()> {
+        let _guard = self.write().await?;
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
         conn.execute_batch(&sql)
@@ -475,8 +573,9 @@ impl KeyValueStore for TursoStorage {
             ),
             None => ("SELECT key FROM kv_store ORDER BY key", Vec::new()),
         };
+        let guard = self.read().await?;
         let conn = Arc::clone(&self.conn);
-        let stream = Self::list_keys_stream(conn, sql.to_string(), params);
+        let stream = Self::list_keys_stream(conn, guard, sql.to_string(), params);
         Ok(AsyncListStream::new(stream))
     }
 }
@@ -484,10 +583,13 @@ impl KeyValueStore for TursoStorage {
 #[async_trait::async_trait]
 impl QueryStore for TursoStorage {
     async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+        // Raw SQL can write (`INSERT ... RETURNING`), so the stream holds the
+        // write guard until it ends or is dropped.
+        let guard = self.write().await?;
         let conn = Arc::clone(&self.conn);
         let sql = sql.to_string();
         let params = Self::to_turso_params(params);
-        let stream = Self::query_rows_stream(conn, sql, params);
+        let stream = Self::query_rows_stream(conn, guard, sql, params);
         Ok(AsyncQueryStream::new(stream))
     }
 
@@ -503,6 +605,9 @@ impl QueryStore for TursoStorage {
         &self,
         statements: &[(String, Vec<DataValue>)],
     ) -> StorageResult<()> {
+        // The write guard covers BEGIN .. COMMIT/ROLLBACK, so no other task
+        // can run a statement inside this transaction.
+        let _guard = self.write().await?;
         let conn = Arc::clone(&self.conn);
         conn.execute_batch("BEGIN")
             .await
@@ -510,13 +615,13 @@ impl QueryStore for TursoStorage {
         for (sql, params) in statements {
             let params = Self::to_turso_params(params);
             if let Err(e) = conn.execute(sql, params).await {
-                let _ = conn.execute_batch("ROLLBACK").await;
-                return Err(StorageError::Backend(e.to_string()));
+                return Err(self.rollback_after(e.to_string()).await);
             }
         }
-        conn.execute_batch("COMMIT")
-            .await
-            .map_err(|e| StorageError::Backend(e.to_string()))
+        if let Err(e) = conn.execute_batch("COMMIT").await {
+            return Err(self.rollback_after(e.to_string()).await);
+        }
+        Ok(())
     }
 }
 
