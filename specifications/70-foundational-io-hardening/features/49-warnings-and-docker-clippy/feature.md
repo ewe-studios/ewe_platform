@@ -4,7 +4,7 @@ status: "pending"
 lane: "A"
 model: "haiku"
 branch: "fix/io-41-50-lane-a"
-crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc"]
+crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc", "foundation_netio", "foundation_deployment"]
 catalogue_rows: [13, 14, 15, 31]
 ---
 
@@ -40,6 +40,14 @@ the §8 entry (lane B removes the rest).
 `similar_names`, `unused_async` in examples. Fix all; mechanical only (a cast becomes
 `try_from` with the error handled, or carries an `#[allow]` with a one-line reason where the
 value is proven in range). Delete the §1 entry. Verify the same command prints 0 warnings.
+
+## E5. `foundation_netio` and `foundation_deployment` warnings (seen in feature 42)
+
+- `foundation_netio`: the unused `rustls-pemfile` dependency and the remaining lib clippy
+  warnings (`cargo clippy -p foundation_netio --profile dev --all-targets`). Remove the
+  dependency if nothing uses it (check every feature), fix the lints.
+- `foundation_deployment`: "unused `self` argument" (clippy). Fix it.
+Verify both crates' clippy print 0 warnings.
 
 ## Verify
 

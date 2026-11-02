@@ -17,10 +17,10 @@ related_specs:
   - "specifications/50-valtron-async-readiness"
   - "specifications/65-agent-rpc-serving-system"
 tasks:
-  completed: 41
+  completed: 42
   uncompleted: 21
-  total: 62
-  completion_percentage: 66%
+  total: 63
+  completion_percentage: 67%
 ---
 
 # Spec 70: Foundational I/O hardening
@@ -183,6 +183,7 @@ done
 | 60 | [Stale backlog entries and bookkeeping](./features/60-backlog-and-spec-bookkeeping/feature.md) | §8 catalogue row 30 (haiku) | — | S |
 | 61 | [Shared response writer; idle send timeout](./features/61-http-shared-response-writer/feature.md) | §8 catalogue rows 32, 33 (sonnet) | 41 | M |
 | 62 | [Idle HTTP/2 CPU test is reliable](./features/62-h2-idle-cpu-test/feature.md) | §8 catalogue row 34 (sonnet) | — | S |
+| 63 | [Retire the truncating sync `respond::*` path](./features/63-respond-async-migration/feature.md) | §8 catalogue rows 35, 36 (sonnet) | 61, both lanes merged | M |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -291,6 +292,8 @@ fixed in code but not deleted.
 | 32 | `StaticAssetHandler` and `respond::*` truncate responses after a partial write | found in 41 | 61 |
 | 33 | feature 41 `write_timeout` is a total deadline; nginx `send_timeout` is idle time | review of 41 | 61 |
 | 34 | `idle_h2_connection_uses_no_cpu` flaky (measures the whole process) | found in 41 | 62 |
+| 35 | sync `respond::*` still truncates for its remaining callers (proxy, templates, wello, server internals) | found in 61 | 63 |
+| 36 | `ResponseWriter::flush` does not restart the idle timer when the stream buffer drains | review of 61 | 63 |
 
 ### 8.1 Lanes, branches and models
 
@@ -312,6 +315,8 @@ the choice.
 - Shared files (`Cargo.lock`, `docs/bug-backlog.md`, `progress.md`, `learnings.md`): on a
   conflict keep both sides.
 - One commit or more per feature. One PR per lane at the end, base `master`.
+- Feature 63 runs after both lane PRs merge, on its own branch, because it edits crates of both
+  lanes.
 
 ### 8.2 Rules added for features 41–60
 
