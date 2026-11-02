@@ -86,12 +86,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   long-lived handler parks instead of holding a worker. The proxy still relays on
   a throwaway thread and returns `Take`. It can move to `Async` later once its
   relay future is `'static`.
-- **Backend-state persistence can lose an update.** Each control-socket
-  connection runs on its own thread, and `ProxyStateStore::save_backend_state`
-  / `save_tls_cert` (`src/persistence.rs`) load the whole persisted state,
-  change one entry and save it back. Two admin commands at once can each save
-  over the other's change. Fix: serialise the read-modify-write behind a
-  mutex in `ProxyStateStore` (or store each backend's state as its own record).
 - **The ACME client does not follow RFC 8555's account flow** (`src/acme.rs`).
   `create_account` returns the newAccount directory URL instead of the
   account URL from the `Location` header (it only checks that the answer has

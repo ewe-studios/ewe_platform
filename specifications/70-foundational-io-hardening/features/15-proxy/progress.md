@@ -35,12 +35,22 @@ standard ASD-STE100.
     `health_probe_tests` green (6 s); `rpc_health_tests` green;
     `h2_integration_tests` green (7). No new clippy warnings from this change.
   - Backlog 9 "gRPC health probe leaks a thread + H2 connection..." entry deleted.
+- E2 (backend-state persistence lost update):
+  - `ProxyStateStore` gained a `futures_util::lock::Mutex<()>` `write_lock`. Both
+    `save_backend_state` and `save_tls_cert` hold it across their
+    load-change-save, so concurrent control-socket writes no longer save over
+    each other. The store keeps its one-document shape (old state files stay
+    loadable), so a mutex is the smallest fix. (`src/persistence.rs`.)
+  - Test: `foundation_proxy/tests/persistence_tests.rs`
+    `concurrent_backend_saves_keep_every_update` — 16 threads each save a
+    different backend 50 times; the final load holds every backend's last value.
+    It fails 3/3 without the lock and passes with it.
+  - Validation under `--profile uat`: `persistence_tests` green. No new clippy
+    warnings from this change.
+  - Backlog 9 "Backend-state persistence can lose an update." entry deleted.
 
 ## Next
 
-- E2: serialise `ProxyStateStore` read-modify-write behind a mutex, or store one
-  record per backend and certificate. Test
-  `concurrent_backend_saves_keep_every_update`.
 - E3: follow RFC 8555 in `src/acme.rs` (account `Location` as `kid`, carry
   `Replay-Nonce`, async DNS wait). Make the mock CA strict. Three tests.
 - E4: move the redirect head buffer, read timeout and accept poll into the
