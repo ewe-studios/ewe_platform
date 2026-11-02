@@ -58,3 +58,14 @@
   the payload as `serde_json::Value` and reading the first array element. The
   old test had been wasm-gated and never ran, so the bug shipped silently.
 
+## E8. Drop the unused `worker::Error` import
+
+- The inline test in `durable_object.rs` stays in place. It constructs a
+  `worker::WebSocket` with `std::mem::zeroed()`, which only works inside the
+  Workers runtime, so it cannot move to a native `tests/` file.
+- The wasm check also surfaces five `unused_dependencies` manifest lints in the
+  same crate (`base85rs`, `sha2`, `foundation_errstacks`, `foundation_netio`
+  twice). They are not the `worker::Error` warning: `base85rs` and `sha2` are
+  used nowhere, and the other three are used only in native-gated modules.
+  Recorded in the backlog; fixing them is out of E8 scope.
+

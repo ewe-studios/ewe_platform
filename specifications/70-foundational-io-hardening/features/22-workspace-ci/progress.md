@@ -34,6 +34,11 @@ Branch: `fix/io-20-vfs-process-ipc`.
   bumps to 0.1.3 for the new public API. The §21 keychain backlog entry is
   deleted in the same commit; a new entry records the `keychain.rs` recursion
   lint.
+- **E8.** The unused `worker::Error` import in
+  `foundation_deployment_cloudflare/src/workers/durable_object.rs` is dropped.
+  The §21 cloudflare entry is replaced with a new entry for the five
+  `unused_dependencies` manifest lints the wasm check surfaces (out of E8
+  scope; recorded per rule 9).
 
 ## In progress
 
@@ -41,5 +46,4 @@ Branch: `fix/io-20-vfs-process-ipc`.
 
 ## Next
 
-- E8: fix the `foundation_deployment_cloudflare` wasm warning.
 - E4 and E3 stay for a later pass.

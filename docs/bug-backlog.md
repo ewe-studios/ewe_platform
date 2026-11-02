@@ -269,8 +269,14 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
 
-- **`foundation_deployment_cloudflare`**: `src/workers/durable_object.rs:24`
-  imports `worker::Error` without using it. Fix: drop it.
+- **`foundation_deployment_cloudflare` has five `unused_dependencies` manifest
+  lints under wasm32** (cargo nightly 1.100.0): `base85rs`, `sha2`,
+  `foundation_errstacks`, and two `foundation_netio` entries. `base85rs` and
+  `sha2` are used nowhere. `foundation_errstacks` (types.rs) and
+  `foundation_netio` (client.rs, dns_ops.rs, generated/*) are used only in
+  `#[cfg(not(target_family = "wasm"))]` modules, so the wasm build flags them.
+  Fix: delete the truly-unused deps and move the native-only ones into the
+  native target section.
 
 ## 22. foundation_keychain
 
