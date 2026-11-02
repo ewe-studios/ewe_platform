@@ -11,6 +11,7 @@
 
 use std::sync::{Arc, Mutex};
 
+use foundation_core::io::readers::Data;
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_huggingface::{
     client, repository, AddSource, CommitOperation, HFClientBuilder, HuggingFaceError,
@@ -46,6 +47,51 @@ fn temp_dir(name: &str) -> std::path::PathBuf {
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).expect("create temp dir");
     dir
+}
+
+/// The exact multipart body the commit path must produce, built independently
+/// of the crate so the test pins the wire format.
+fn expected_commit_body(
+    boundary: &str,
+    message: &str,
+    description: Option<&str>,
+    files: &[(&str, &[u8])],
+    deletes: &[&str],
+) -> Vec<u8> {
+    let summary = serde_json::json!({
+        "type": "commit",
+        "summary": message,
+        "description": description,
+        "hub": "huggingface.co",
+    })
+    .to_string();
+
+    let mut body = Vec::new();
+    body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+    body.extend_from_slice(b"Content-Disposition: form-data; name=\"summary\"\r\n\r\n");
+    body.extend_from_slice(summary.as_bytes());
+    body.extend_from_slice(b"\r\n");
+
+    for (path, content) in files {
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(
+            format!("Content-Disposition: form-data; name=\"files\"; filename=\"{path}\"\r\n")
+                .as_bytes(),
+        );
+        body.extend_from_slice(b"Content-Type: application/octet-stream\r\n\r\n");
+        body.extend_from_slice(content);
+        body.extend_from_slice(b"\r\n");
+    }
+
+    for path in deletes {
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(b"Content-Disposition: form-data; name=\"deletedFiles\"\r\n\r\n");
+        body.extend_from_slice(path.as_bytes());
+        body.extend_from_slice(b"\r\n");
+    }
+
+    body.extend_from_slice(format!("--{boundary}--\r\n").as_bytes());
+    body
 }
 
 #[valtron_test]
@@ -283,4 +329,121 @@ async fn commit_keeps_binary_file_bytes_intact() {
         body.windows(binary.len()).any(|w| w == binary.as_slice()),
         "the multipart body must carry the file's bytes unchanged"
     );
+}
+
+#[valtron_test]
+async fn hub_commit_streams_multipart() {
+    let content: Vec<u8> = (0..=255u8).cycle().take(64 * 1024).collect();
+    let received = Arc::new(Mutex::new(Vec::<u8>::new()));
+    let received_in = Arc::clone(&received);
+    let server = TestHttpServer::with_response(move |req| {
+        *received_in.lock().unwrap() = body_bytes(&req.body);
+        json("{}")
+    });
+
+    let dir = temp_dir("commit-stream");
+    let file_path = dir.join("weights.bin");
+    std::fs::write(&file_path, &content).expect("write file");
+
+    let hf = HFClientBuilder::new()
+        .endpoint(server.base_url())
+        .token("hf_test")
+        .upload_chunk_size(4096)
+        .build()
+        .expect("client");
+
+    repository::repo_create_commit(
+        &hf.model("owner", "model"),
+        &RepoCreateCommitParams {
+            operations: vec![CommitOperation::Add {
+                path_in_repo: "weights.bin".to_string(),
+                source: AddSource::File(file_path),
+            }],
+            commit_message: "add weights".to_string(),
+            commit_description: None,
+            revision: None,
+            create_pr: None,
+        },
+    )
+    .await
+    .expect("commit");
+
+    let expected = expected_commit_body(
+        repository::COMMIT_BOUNDARY,
+        "add weights",
+        None,
+        &[("weights.bin", content.as_slice())],
+        &[],
+    );
+    assert_eq!(
+        *received.lock().unwrap(),
+        expected,
+        "the streamed multipart body must be byte-exact"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[valtron_test]
+async fn commit_multipart_streams_file_in_chunks() {
+    let content: Vec<u8> = (0..=255u8).cycle().take(3 * 256 + 17).collect();
+    let dir = temp_dir("multipart-chunks");
+    let file_path = dir.join("blob.bin");
+    std::fs::write(&file_path, &content).expect("write file");
+
+    let params = RepoCreateCommitParams {
+        operations: vec![CommitOperation::Add {
+            path_in_repo: "blob.bin".to_string(),
+            source: AddSource::File(file_path),
+        }],
+        commit_message: "add chunked file".to_string(),
+        commit_description: None,
+        revision: None,
+        create_pr: None,
+    };
+
+    let multipart =
+        repository::commit_multipart(&params, repository::COMMIT_BOUNDARY, 256).expect("multipart");
+    let expected = expected_commit_body(
+        repository::COMMIT_BOUNDARY,
+        "add chunked file",
+        None,
+        &[("blob.bin", content.as_slice())],
+        &[],
+    );
+    assert_eq!(
+        usize::try_from(multipart.len).expect("the body fits in usize"),
+        expected.len(),
+        "the length is computed up front"
+    );
+
+    let SendSafeBody::Stream(Some(iter)) = multipart.body else {
+        panic!("the commit body must be a stream");
+    };
+
+    let mut got = Vec::new();
+    let mut full_chunks = 0usize;
+    for item in iter {
+        match item {
+            Ok(Data::Bytes(chunk)) => {
+                assert!(
+                    chunk.len() <= 256,
+                    "a chunk of {} bytes exceeds the 256-byte chunk size",
+                    chunk.len()
+                );
+                if chunk.len() == 256 {
+                    full_chunks += 1;
+                }
+                got.extend_from_slice(&chunk);
+            }
+            Ok(Data::Retry) => {}
+            Err(e) => panic!("stream error: {e}"),
+        }
+    }
+
+    assert_eq!(got, expected, "the stream reassembles the exact body");
+    assert_eq!(
+        full_chunks, 3,
+        "the 785-byte file must be read in three full 256-byte chunks"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
 }

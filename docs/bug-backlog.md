@@ -322,10 +322,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 20. foundation_deployment_huggingface
 
-- **Uploads are buffered whole.** `repo_create_commit` reads each added file
-  into memory (`std::fs::read`) and builds the whole multipart body before
-  sending it. Fix: a streamed multipart body (`SendSafeBody::Stream` over the
-  file chunks) with the length computed up front.
 - **`list_*` and `repo_list_tree` read one page only.** They ignore the Hub's
   `Link: rel="next"` pagination header, so a listing stops at the first page
   (the docs say "with pagination"). Fix: follow `Link` lazily as the stream

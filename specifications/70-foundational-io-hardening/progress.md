@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 25 (foundation_deployment_huggingface) E2 done on
+  `fix/io-20-vfs-process-ipc`. E2 replaces the buffered commit body with a
+  streamed multipart body. `repo_create_commit` no longer calls
+  `std::fs::read`; it builds a `SendSafeBody::Stream` via
+  `repository::commit_multipart`, opening each added file and reading it in
+  `upload_chunk_size` chunks (default 32 KiB, cited against Go `net/http`
+  `io.Copy`). The total body length is computed up front from the part headers
+  and `file.metadata().len()`. New tests `hub_commit_streams_multipart` (a
+  64 KiB binary file round-trips byte-exact) and
+  `commit_multipart_streams_file_in_chunks` (a 785-byte file is read in three
+  full 256-byte chunks) land. The second §20 backlog entry (buffered uploads)
+  is removed.
+
 - 2026-11-02: feature 25 (foundation_deployment_huggingface) E1 done on
   `fix/io-20-vfs-process-ipc`. E1 turns the Hub client and repository API into
   `async fn`s over `send_async`/`send_raw_async`; the sync `send`/`send_raw`/

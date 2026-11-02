@@ -40,10 +40,28 @@ STE standard ASD-STE100.
     ignored integration tests are converted to the same async form.
   - Backlog 20 "The Hub client API is sync." entry deleted.
 
+- E2 (uploads are buffered whole):
+  - `repo_create_commit` no longer reads files with `std::fs::read` or builds a
+    whole `Vec<u8>` multipart body. It builds a `SendSafeBody::Stream` multipart
+    body (`repository::commit_multipart`), where added files are opened and
+    streamed in chunks. No file is read whole into memory.
+  - Config `upload_chunk_size` lands on `HFClientBuilder` (default
+    `DEFAULT_UPLOAD_CHUNK_SIZE`, 32 KiB, cited against Go `net/http` `io.Copy`).
+    `HFClient` exposes it crate-internally and `repo_create_commit` passes it to
+    `commit_multipart`.
+  - The total body length is computed up front from the part headers and the
+    file sizes (`file.metadata().len()`), never from reading the file.
+  - Tests: `hub_commit_streams_multipart` (a 64 KiB binary file commits through
+    the mock server and the collected body is byte-exact) and
+    `commit_multipart_streams_file_in_chunks` (a 785-byte file is read in three
+    full 256-byte chunks and reassembles the exact body).
+  - Backlog 20 "Uploads are buffered whole." entry deleted.
+
 ## In progress
 
-- E2 (streamed multipart upload body) and E3 (Link pagination).
+- E3 (Link pagination).
 
 ## Done
 
 - E1.
+- E2.

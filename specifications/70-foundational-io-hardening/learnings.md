@@ -2,6 +2,14 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 25 E2, foundation_deployment_huggingface): the netio
+  client always chunk-frames a `SendSafeBody::Stream` request body — its
+  `SimpleIncomingRequest::build()` removes any `Content-Length` and adds
+  `Transfer-Encoding: chunked`. So a streamed upload computes and exposes its
+  length up front, but the wire uses chunked framing, not `Content-Length`.
+  The local `TestHttpServer` reads both sized and chunked request bodies to
+  completion before the handler runs, so body-exact assertions still work.
+
 - 2026-11-02 (feature 19 E3, foundation_nativeapis): the shim only compiles on
   Linux (`target_os = "linux"` gate in `native/vfs/mod.rs`), so macOS cannot
   type-check it. `cargo check --target x86_64-unknown-linux-gnu` fails on the

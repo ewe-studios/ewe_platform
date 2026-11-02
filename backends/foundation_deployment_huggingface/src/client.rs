@@ -45,6 +45,11 @@ use std::sync::Arc;
 /// `net/http` drains from a response body it discards.
 pub const DEFAULT_MAX_ERROR_BODY: usize = 64 * 1024;
 
+/// Default for [`HFClientBuilder::upload_chunk_size`]: 32 KiB, the buffer Go
+/// `net/http` allocates for `io.Copy` when it streams a request body to the
+/// wire.
+pub const DEFAULT_UPLOAD_CHUNK_SIZE: usize = 32 * 1024;
+
 /// Hugging Face Hub API client.
 ///
 /// Cheap to clone — uses Arc internally.
@@ -58,6 +63,7 @@ struct HFClientInner {
     endpoint: String,
     token: Option<String>,
     max_error_body: usize,
+    upload_chunk_size: usize,
 }
 
 /// Builder for `HFClient`.
@@ -66,6 +72,7 @@ pub struct HFClientBuilder {
     token: Option<String>,
     client: Option<DynNetClient>,
     max_error_body: usize,
+    upload_chunk_size: usize,
 }
 
 impl Default for HFClientBuilder {
@@ -83,6 +90,7 @@ impl HFClientBuilder {
             token: None,
             client: None,
             max_error_body: DEFAULT_MAX_ERROR_BODY,
+            upload_chunk_size: DEFAULT_UPLOAD_CHUNK_SIZE,
         }
     }
 
@@ -103,6 +111,14 @@ impl HFClientBuilder {
     #[must_use]
     pub fn max_error_body(mut self, bytes: usize) -> Self {
         self.max_error_body = bytes;
+        self
+    }
+
+    /// Read each uploaded file in chunks of at most `bytes` when a commit
+    /// body is streamed. Default [`DEFAULT_UPLOAD_CHUNK_SIZE`].
+    #[must_use]
+    pub fn upload_chunk_size(mut self, bytes: usize) -> Self {
+        self.upload_chunk_size = bytes;
         self
     }
 
@@ -149,6 +165,7 @@ impl HFClientBuilder {
                 endpoint,
                 token,
                 max_error_body: self.max_error_body,
+                upload_chunk_size: self.upload_chunk_size,
             }),
         })
     }
@@ -239,6 +256,11 @@ impl HFClient {
     /// Get the endpoint URL.
     pub(crate) fn endpoint(&self) -> &str {
         &self.inner.endpoint
+    }
+
+    /// The chunk size used when a commit streams an uploaded file from disk.
+    pub(crate) fn upload_chunk_size(&self) -> usize {
+        self.inner.upload_chunk_size
     }
 
     /// Check if implicit token is disabled.
