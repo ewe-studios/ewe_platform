@@ -34,8 +34,10 @@ pub use overlay_fs::OverlayFileSystem;
 pub use async_traits::{
     AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
 };
-pub use exec_async::exec_async;
-pub use sync_bridge::{LocalSeekableFile, SyncDirectory, SyncFile, SyncFs};
+foundation_core::blocking_boundary! {
+    pub use exec_async::exec_async;
+    pub use sync_bridge::{LocalSeekableFile, SyncDirectory, SyncFile, SyncFs};
+}
 pub use traits::{DeltaStore, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
 pub use types::{
     Checksum, OpenMode, SeekFrom, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType,

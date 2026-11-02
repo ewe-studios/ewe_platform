@@ -12,11 +12,14 @@
 
 use std::sync::{Arc, Mutex};
 
-use crate::shared::vfs::async_traits::AsyncVfsFileSystem;
 use crate::shared::vfs::error::VfsResult;
-use crate::shared::vfs::sync_bridge::SyncFs;
 use crate::shared::vfs::traits::{SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
 use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
+
+foundation_core::blocking_boundary! {
+    use crate::shared::vfs::async_traits::AsyncVfsFileSystem;
+    use crate::shared::vfs::sync_bridge::SyncFs;
+}
 
 // ── Minimal blanket impls for Box<dyn ...> ──
 
@@ -248,9 +251,11 @@ impl DynFs {
         Self { inner: Arc::new(FsOpsAdapter(fs)) }
     }
 
-    /// Erases an async file system for a sync consumer, through `SyncFs`.
-    pub fn from_async<A: AsyncVfsFileSystem + 'static>(fs: A) -> Self {
-        Self::new(Arc::new(SyncFs::new(fs)))
+    foundation_core::blocking_boundary! {
+        /// Erases an async file system for a sync consumer, through `SyncFs`.
+        pub fn from_async<A: AsyncVfsFileSystem + 'static>(fs: A) -> Self {
+            Self::new(Arc::new(SyncFs::new(fs)))
+        }
     }
 
     pub fn capabilities(&self) -> VfsCapabilities { self.inner.capabilities() }

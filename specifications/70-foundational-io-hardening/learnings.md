@@ -2,6 +2,26 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 19 E10, foundation_nativeapis):
+  `foundation_core::blocking_boundary!` evaluates `foundation_core`'s own
+  `js-wasmbindgen`/`js-foundation-wasm` features (after feature unification),
+  not the dependent crate's `cfg`, so a dependent crate must not write its
+  own `cfg(wasm ...)`; it just wraps items in the macro. The macro keeps
+  items on native and plain wasm and drops them on JS-hosted wasm. Put `///`
+  doc comments INSIDE the macro, not just before it — a doc comment on a
+  macro invocation trips `unused_doc_comments`. The macro wraps a whole
+  module body and also a single method inside an `impl` block. When you gate
+  a module, gate every reference too: `pub use` re-exports, crate-root
+  re-exports, and callers (here `DynFs::from_async`). Move imports that only
+  the gated code uses inside the macro, or the JS-hosted wasm build warns
+  about unused imports. To verify a JS-hosted wasm build of a crate that
+  does not forward the js features, use a scratch crate outside the repo
+  that depends on both the crate and `foundation_core` with
+  `js-wasmbindgen`, and set `RUSTUP_TOOLCHAIN` to the repo toolchain: outside
+  the repo the `rust-toolchain.toml` override does not apply, and stable
+  cargo then fails on the `CARGO_PROFILE_DEV_CODEGEN_BACKEND=cranelift` env
+  var.
+
 - 2026-11-02 (feature 19 E9, foundation_nativeapis): a per-store copy chunk
   size is a defaulted trait method `copy_chunk_size()` (32 KiB, Go
   `net/http` `io.Copy`), not a const; a config-backed store overrides it.

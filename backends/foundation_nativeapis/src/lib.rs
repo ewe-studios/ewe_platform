@@ -59,9 +59,15 @@ pub use valtron::FdMonitorTask;
 // VFS types when the vfs feature is enabled.
 #[cfg(feature = "vfs")]
 pub use shared::vfs::{
-    AsyncVfsFileSystem, ObservableFs, ObservableFile, ObservableSeekableFile, SyncFs, VfsEvent,
-    VfsError, VfsResult, VfsFileSystem, MemoryFs,
+    AsyncVfsFileSystem, ObservableFs, ObservableFile, ObservableSeekableFile, VfsEvent, VfsError,
+    VfsResult, VfsFileSystem, MemoryFs,
 };
+
+// The sync bridge exists only where valtron can block (not JS-hosted wasm).
+#[cfg(feature = "vfs")]
+foundation_core::blocking_boundary! {
+    pub use shared::vfs::SyncFs;
+}
 
 // VFS search types when the vfs-search feature is enabled.
 #[cfg(feature = "vfs-search")]

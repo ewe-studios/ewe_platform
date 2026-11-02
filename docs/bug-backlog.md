@@ -159,10 +159,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   shim's `turso` backend). A Turso cloud database still works through
   `LibsqlDelta` with `TursoRemoteConfig`. Fix: rebuild it on the `turso` crate as
   an async-only store; tracked in ewe-studios/ewe_platform#142.
-- **`SyncFs` is not gated as a blocking boundary.** `exec_async`
-  (`src/shared/vfs/exec_async.rs`) uses `collect_one` when a future is
-  pending, without `blocking_boundary!`, so on JS-hosted wasm it would spin.
-  Fix: gate `SyncFs` and `exec_async` with `blocking_boundary!`.
 
 ## 16. Workspace / process
 

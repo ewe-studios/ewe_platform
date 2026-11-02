@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 19 (foundation_nativeapis) E10 done on
+  `fix/io-20-vfs-process-ipc`. E10 gates the VFS sync boundary behind
+  `foundation_core::blocking_boundary!`. `exec_async` is wrapped in the
+  macro, and the whole `sync_bridge` module (`SyncFile`, `SyncDirectory`,
+  `LocalSeekableFile`, `SyncFs`) is compiled only where valtron can block.
+  The `exec_async` and sync-bridge re-exports in `shared/vfs/mod.rs`, the
+  crate-root `SyncFs` re-export in `lib.rs`, and `DynFs::from_async` in
+  `dynfs.rs` are gated the same way. Verified with `cargo check --target
+  wasm32-unknown-unknown --no-default-features --features vfs` (plain wasm)
+  and with a scratch crate that enables `foundation_core/js-wasmbindgen`
+  (JS-hosted wasm): the build passes and `SyncFs`/`exec_async` are absent.
+  All VFS tests pass under `--profile uat`. The `SyncFs` §13 backlog entry
+  is removed.
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E9 done on
   `fix/io-20-vfs-process-ipc`. E9 makes the VFS `copy` and `copy_async`
   default methods stream in chunks. The four traits (`VfsFileSystem`,
