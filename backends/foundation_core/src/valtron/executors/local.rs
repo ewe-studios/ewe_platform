@@ -303,6 +303,9 @@ pub struct NotifyQueue<T> {
     /// One-shot callbacks for a producer waiting on a full queue, fired when
     /// an item is taken through this queue and on `close`.
     space: Arc<WakeRegistry>,
+    /// True while a callback may be registered in `space`: lets `pop` skip the
+    /// registry lock when no producer waits. Shared across clones.
+    space_armed: Arc<AtomicBool>,
 }
 
 impl<T> Clone for NotifyQueue<T> {
@@ -314,6 +317,7 @@ impl<T> Clone for NotifyQueue<T> {
             max_spins: AtomicUsize::new(self.max_spins.load(Ordering::Relaxed)),
             wake: self.wake.clone(),
             space: self.space.clone(),
+            space_armed: self.space_armed.clone(),
         }
     }
 }
@@ -328,6 +332,7 @@ impl<T> NotifyQueue<T> {
             max_spins: AtomicUsize::new(DEFAULT_NOTIFY_QUEUE_MAX_SPINS),
             wake: Arc::new(WakeRegistry::new()),
             space: Arc::new(WakeRegistry::new()),
+            space_armed: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -340,6 +345,7 @@ impl<T> NotifyQueue<T> {
             max_spins: AtomicUsize::new(DEFAULT_NOTIFY_QUEUE_MAX_SPINS),
             wake: Arc::new(WakeRegistry::new()),
             space: Arc::new(WakeRegistry::new()),
+            space_armed: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -367,8 +373,26 @@ impl<T> NotifyQueue<T> {
     /// producer waiting for space ([`Self::register_space_wake`]).
     pub fn pop(&self) -> Result<T, PopError> {
         let item = self.queue.pop()?;
-        self.space.fire();
+        self.fire_space();
         Ok(item)
+    }
+
+    /// Fires the space callbacks, if any may be registered. The fast path is
+    /// one atomic load, no lock.
+    ///
+    /// Ordering (the race with `register_space_wake`): the producer registers
+    /// its callback, sets `space_armed`, then re-checks `is_full`. The
+    /// consumer removes the item, then reads `space_armed`. Both sides use
+    /// `SeqCst` for the flag with a `SeqCst` fence between the queue operation
+    /// and the flag access, so the two cannot both miss each other: either the
+    /// producer's re-check sees the freed slot and fires itself, or the
+    /// consumer sees the flag and fires.
+    fn fire_space(&self) {
+        atomic::fence(Ordering::SeqCst);
+        if self.space_armed.load(Ordering::SeqCst) && self.space_armed.swap(false, Ordering::SeqCst)
+        {
+            self.space.fire();
+        }
     }
 
     /// Registers a one-shot callback for a producer whose `push` found the
@@ -377,9 +401,26 @@ impl<T> NotifyQueue<T> {
     /// Items taken straight from [`Self::queue`] do not fire it.
     pub fn register_space_wake(&self, cb: WakeCallback) {
         self.space.register(cb);
+        self.space_armed.store(true, Ordering::SeqCst);
+        atomic::fence(Ordering::SeqCst);
         if !self.queue.is_full() || self.queue.is_closed() {
+            self.space_armed.store(false, Ordering::SeqCst);
             self.space.fire();
         }
+    }
+
+    /// Number of stream-wake callbacks registered and not yet fired. For
+    /// diagnostics and tests (a leak shows as growth here).
+    #[must_use]
+    pub fn registered_wakes(&self) -> usize {
+        self.wake.len()
+    }
+
+    /// Number of space-wake callbacks registered and not yet fired. For
+    /// diagnostics and tests.
+    #[must_use]
+    pub fn registered_space_wakes(&self) -> usize {
+        self.space.len()
     }
 
     /// Waits for an item, blocking efficiently via CondVar.
@@ -463,6 +504,7 @@ impl<T> NotifyQueue<T> {
             // close. No-op if the queue was already closed (nothing new to observe).
             self.wake.fire();
             // And a producer waiting for space, which will now see `Closed`.
+            self.space_armed.store(false, Ordering::SeqCst);
             self.space.fire();
         }
         closed
@@ -739,6 +781,10 @@ where
         self.chan.register_wake(cb);
         WakeResult::Successful
     }
+
+    fn announce_async_consumer(&mut self) {
+        self.woken_consumer = true;
+    }
 }
 
 #[cfg(not(feature = "multi"))]
@@ -751,6 +797,10 @@ where
         self.woken_consumer = true;
         self.chan.register_wake(cb);
         WakeResult::Successful
+    }
+
+    fn announce_async_consumer(&mut self) {
+        self.woken_consumer = true;
     }
 }
 

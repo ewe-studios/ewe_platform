@@ -1108,6 +1108,14 @@ where
             }
         }
     }
+
+    fn announce_async_consumer(&mut self) {
+        // The pool's worker threads run the tasks and push into this queue,
+        // so a queue wake is a real readiness signal here.
+        if let Some(inner) = self.0.as_mut() {
+            inner.announce_async_consumer();
+        }
+    }
 }
 
 pub struct DrivenRecvIterator<T>(

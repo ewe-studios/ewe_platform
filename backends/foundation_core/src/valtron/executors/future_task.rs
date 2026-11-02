@@ -687,20 +687,35 @@ impl std::task::Wake for ThreadUnpark {
 /// consumer takes an item (or the queue closes), checking again at least every
 /// `max_wait` when one is set. Returns `false` once the queue is closed — the
 /// consumer is gone.
+///
+/// `registered` is shared by every push of one producer: it is set when a
+/// space wake is registered and cleared by that wake when it fires. While it
+/// is set a callback is still pending in the queue, so the loop (which wakes
+/// every `max_wait`) does not register another one — a stalled consumer must
+/// not make the registry grow. Registering stays register-then-recheck (see
+/// [`NotifyQueue::register_space_wake`]), so no wake is lost.
 #[cfg(feature = "multi")]
-fn push_waiting<T>(
+pub fn push_waiting<T>(
     queue: &NotifyQueue<T>,
     mut value: T,
     max_wait: Option<std::time::Duration>,
+    registered: &Arc<std::sync::atomic::AtomicBool>,
 ) -> bool {
+    use std::sync::atomic::Ordering;
     loop {
         match queue.push(value) {
             Ok(()) => return true,
             Err(PushError::Closed(_)) => return false,
             Err(PushError::Full(v)) => {
                 value = v;
-                let thread = std::thread::current();
-                queue.register_space_wake(Box::new(move || thread.unpark()));
+                if !registered.swap(true, Ordering::SeqCst) {
+                    let thread = std::thread::current();
+                    let flag = Arc::clone(registered);
+                    queue.register_space_wake(Box::new(move || {
+                        flag.store(false, Ordering::SeqCst);
+                        thread.unpark();
+                    }));
+                }
                 match max_wait {
                     Some(wait) => std::thread::park_timeout(wait),
                     None => std::thread::park(),
@@ -770,6 +785,7 @@ where
             // The worker thread parks while the future is pending; the
             // future's waker unparks it. (It used to poll with a no-op waker
             // and a yield loop, spinning a whole thread.)
+            let space_registered = Arc::new(std::sync::atomic::AtomicBool::new(false));
             let thread = std::thread::current();
             let waker = Waker::from(Arc::new(ThreadUnpark(thread.clone())));
             let mut cx = Context::from_waker(&waker);
@@ -780,7 +796,7 @@ where
                 match future.as_mut().poll(&mut cx) {
                     Poll::Ready(Ok(iter)) => break Some(iter),
                     Poll::Ready(Err(e)) => {
-                        if !push_waiting(&worker_queue, ThreadedValue::Value(Err(e)), backpressure_sleep) {
+                        if !push_waiting(&worker_queue, ThreadedValue::Value(Err(e)), backpressure_sleep, &space_registered) {
                             tracing::debug!("ThreadedIterFuture: consumer gone; dropping the error");
                         }
                         break None;
@@ -792,7 +808,7 @@ where
             // Stream iterator results through the channel
             if let Some(iter) = iterator {
                 for result in iter {
-                    if !push_waiting(&worker_queue, ThreadedValue::Value(result), backpressure_sleep) {
+                    if !push_waiting(&worker_queue, ThreadedValue::Value(result), backpressure_sleep, &space_registered) {
                         return;
                     }
                 }

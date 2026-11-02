@@ -42,6 +42,19 @@ pub type WakeCallback = Box<dyn Fn() + 'static>;
 /// can actually deliver a wake signal override it. The `StreamIterator` blanket impl
 /// is intentionally left in place, and this trait has **no** blanket impl of its own.
 pub trait WakeableStream: StreamIterator {
+    /// Tell the stream, once and before the first pull, that an async consumer
+    /// pulls it and will park on [`WakeableStream::wake`] when a pull comes
+    /// back empty. A queue-backed stream then answers an empty pull with
+    /// `Wait` at once instead of blocking the polling thread for timed waits.
+    ///
+    /// This registers nothing, so it is safe to call on every poll (a task
+    /// calling it on each executor poll adds no callback). The default does
+    /// nothing; queue-backed streams override it and per-item combinators
+    /// forward it to their inner stream. A stream that drives its own engine
+    /// (the single-thread `DrivenStreamIterator`) keeps the default: it must
+    /// keep blocking, see its `wake`.
+    fn announce_async_consumer(&mut self) {}
+
     /// Register `cb` to be called once when the stream becomes ready (an item is
     /// available, or the queue closes). Returns [`WakeResult::Successful`] if the
     /// stream can deliver the signal, [`WakeResult::NotSupported`] otherwise.
@@ -61,6 +74,16 @@ pub struct WakeRegistry {
 }
 
 impl WakeRegistry {
+    /// Number of callbacks registered and not yet fired (for diagnostics).
+    pub fn len(&self) -> usize {
+        self.callbacks.lock().unwrap().len()
+    }
+
+    /// Whether no callback is registered.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     /// Creates an empty registry.
     pub fn new() -> Self {
         Self {
