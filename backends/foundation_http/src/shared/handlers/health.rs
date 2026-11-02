@@ -8,6 +8,15 @@ use std::sync::Arc;
 use crate::shared::context::ContextBag;
 use crate::shared::serve::{respond, ConnectionResult, ServeWriter, ServeWriterFactory};
 
+/// The JSON body for a health `path`.
+fn health_body(path: &str) -> serde_json::Value {
+    if path == "/health/live" || path == "/health/ready" {
+        json!({ "status": "ok" })
+    } else {
+        json!({ "status": "ok", "path": path })
+    }
+}
+
 /// Health check handler.
 pub struct HealthHandler;
 
@@ -27,29 +36,26 @@ impl ServeWriter for HealthHandler {
         let full_url = &req.request_url.url;
         let path = full_url.split('?').next().unwrap_or("/");
 
-        let body = if path == "/health/live" || path == "/health/ready" {
-            json!({ "status": "ok" })
-        } else {
-            json!({ "status": "ok", "path": path })
-        };
-
-        respond::json(&mut conn, 200, &body)
+        respond::json(&mut conn, 200, &health_body(path))
             .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
     }
 }
 
-/// Native Serve impl (delegates to ServeWriter).
+/// Native Serve impl: writes through the shared `ResponseWriter`.
 #[cfg(not(target_family = "wasm"))]
 impl crate::shared::serve::Serve for HealthHandler {
     fn serve(
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
-        mut conn: foundation_core::io::ioutils::SharedByteBufferStream<
+        conn: foundation_core::io::ioutils::SharedByteBufferStream<
             foundation_netio::netcap::RawStream,
         >,
     ) -> ConnectionResult {
-        <Self as ServeWriter>::serve_writer(self, &bag, req, &mut conn)
+        let _ = bag;
+        let full_url = &req.request_url.url;
+        let path = full_url.split('?').next().unwrap_or("/");
+        crate::native::writer::send_json(conn, 200, &health_body(path))
     }
 }
 

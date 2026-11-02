@@ -124,7 +124,7 @@ pub trait ServeWriterFactory: ServeWriter + Sized {
 // respond helpers
 
 /// Convert a u16 status code to a `Status` enum.
-fn status_from_code(code: u16) -> Status {
+pub(crate) fn status_from_code(code: u16) -> Status {
     match code {
         100 => Status::Continue,
         101 => Status::SwitchingProtocols,
@@ -186,6 +186,13 @@ fn render_response(
 }
 
 /// Quick-response helpers for common HTTP patterns.
+///
+/// These write synchronously to any `impl Write` (memory buffers, blocking
+/// sockets, wasm). They are not safe for a body larger than the send buffer of
+/// a **non-blocking** connection socket: the write fails with `WouldBlock`
+/// after a partial write. For a native `Serve` handler, return
+/// `native::writer::send_text` / `send_json` / `send_bytes` instead;
+/// they write through `ResponseWriter`.
 pub mod respond {
     use serde::Serialize;
 

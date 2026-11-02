@@ -27,14 +27,17 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 3. foundation_http
 
-- `backends/foundation_http/src/native/handlers/static_asset.rs` (`StaticAssetHandler::serve`) and
-  `src/shared/serve/mod.rs` (`respond::*` via `render_response`): both write the whole response
-  with `write_all`-style rendering on the non-blocking connection socket. A response larger than
-  the socket send buffer, or a slow peer, makes the write fail with `WouldBlock` after a partial
-  write and the connection is closed with a truncated response. Likely fix: return
-  `ConnectionResult::Async` and write with the offset-tracking, writability-parking loop that
-  `StaticFileHandler` now uses (`SendFile::write_all`); extract that loop into a shared
-  helper so `respond::*` and `StaticAssetHandler` use it.
+- `backends/foundation_http/src/shared/serve/mod.rs` (`respond::*`, `render_response`): the
+  synchronous helpers write with `write_all` to any `impl Write`. On a non-blocking socket a body
+  larger than the send buffer, or a slow peer, fails with `WouldBlock` after a partial write and
+  the response is truncated. In `foundation_http` the handlers (`StaticFileHandler`,
+  `StaticAssetHandler`, `HealthHandler`) now use `native::writer::send_*`. Still on the
+  synchronous path: callers in other crates (`foundation_proxy/src/handler.rs`, the web-app and
+  static-html-app templates, `examples/web/wello`), and the small closing or rejection writes in
+  `native/server/{connection,protocol_detect,mod}.rs` and the upgrade heads in
+  `native/upgrade/mod.rs`, which write a few hundred bytes into an empty send buffer. Likely fix:
+  move each handler caller to `native::writer::send_*` (or `ResponseWriter`), then deprecate the
+  synchronous `respond::*` for sockets.
 - `backends/foundation_http/tests/h2_parking_tests.rs` (`idle_h2_connection_uses_no_cpu`): fails
   about half the runs on the dev VM, on master as well (54 ms of process CPU in 1 s against a
   50 ms cap). The cap measures the whole process, so any other thread's work counts. Likely

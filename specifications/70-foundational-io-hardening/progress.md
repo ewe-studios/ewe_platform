@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 61 (shared response writer, idle send timeout) done on
+  `fix/io-41-50-lane-a`. New `native::writer`: `ResponseWriter` (offset-tracking write and
+  flush that parks on write readiness), `WriterConfig`, and `send_bytes`/`send_text`/
+  `send_json`/`send_html`/`send_not_found`/`send_server_error`, which return
+  `ConnectionResult::Async`. `StaticFileHandler`, `StaticAssetHandler` (body written from its
+  shared slice, no copy) and the native `HealthHandler` use it. `send_timeout` (was
+  `write_timeout`, kept as a deprecated builder) now means nginx `send_timeout`: the timer
+  restarts after every write that takes at least one byte. The reactor watch registers on
+  the first `WouldBlock` and `FdReadiness` deregisters in its `Drop`. The synchronous
+  `respond::*` keep their `impl Write` signature (other crates and wasm call them); the
+  backlog entry (section 3) stays, narrowed to those callers and the small closing writes.
+  New tests: `respond_large_body_is_byte_exact`, `static_asset_large_body_is_byte_exact`,
+  `send_timeout_is_idle_not_total`, `send_timeout_closes_stalled_client`.
+
 - 2026-11-02: feature 41 (static file handler streams correctly) done on
   `fix/io-41-50-lane-a`. T0: open on master. `StaticFileHandler` now returns
   `ConnectionResult::Async`. It reads the file in `StaticFileConfig::chunk_size` chunks

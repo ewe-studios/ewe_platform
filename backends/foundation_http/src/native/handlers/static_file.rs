@@ -16,25 +16,19 @@
 //! aborted or broken connection ends the future at once.
 
 use std::fs::File;
-use std::future::{poll_fn, Future};
-use std::io::{self, Read, Write};
+use std::io::{self, Read};
 use std::path::{Path, PathBuf};
-use std::pin::Pin;
 use std::sync::Arc;
-use std::task::{Context, Poll};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::timer::{self, Sleep};
-use foundation_iogate::FdReadiness;
-use foundation_netio::native::connection::{ConnReadiness, ConnWaker};
-use foundation_netio::native::readiness::IoInterest;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::shared::http::{
-    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod,
-    SimpleOutgoingResponse, Status,
-};
+use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
+use crate::native::writer::{
+    log_write_failure, render_head, send_not_found, send_server_error, send_text, ResponseWriter,
+    WriterConfig,
+};
 use crate::shared::context::ContextBag;
 use crate::shared::serve::{ConnectionResult, Serve, ServeFactory};
 
@@ -71,10 +65,12 @@ pub struct StaticFileConfig {
     /// 64 KiB, the order of nginx's `output_buffers` (2 x 32 KiB) and of Go's
     /// `io.Copy` buffer. A value of 0 is raised to 1.
     pub chunk_size: usize,
-    /// The longest a whole response may take to write, head and body. A client
-    /// that reads slower than this is closed. Default 60 s, nginx's
-    /// `send_timeout`.
-    pub write_timeout: Duration,
+    /// The longest the socket may take no byte of the response. The timer
+    /// restarts after every write that takes at least one byte, so a long
+    /// download to a slow but live client is not cut; a client that stops
+    /// reading is closed. Default 60 s, nginx's `send_timeout` (the time between
+    /// two successive writes).
+    pub send_timeout: Duration,
     /// How often the handler retries a write on a transport that cannot report
     /// write readiness (a completion socket, the openssl or native-tls
     /// backends). The wait is a timer wake, never a thread sleep. Default
@@ -86,7 +82,7 @@ impl Default for StaticFileConfig {
     fn default() -> Self {
         Self {
             chunk_size: 64 * 1024,
-            write_timeout: Duration::from_secs(60),
+            send_timeout: Duration::from_secs(60),
             poll_fallback_interval: Duration::from_millis(10),
         }
     }
@@ -106,11 +102,25 @@ impl StaticFileConfig {
         self
     }
 
-    /// Set [`Self::write_timeout`].
+    /// Set [`Self::send_timeout`].
     #[must_use]
-    pub fn with_write_timeout(mut self, timeout: Duration) -> Self {
-        self.write_timeout = timeout;
+    pub fn with_send_timeout(mut self, timeout: Duration) -> Self {
+        self.send_timeout = timeout;
         self
+    }
+
+    /// Old name of [`Self::with_send_timeout`]. The setting was a total
+    /// deadline; it is now an idle timeout.
+    #[must_use]
+    #[deprecated(note = "use `with_send_timeout`; the setting is now an idle timeout")]
+    pub fn with_write_timeout(self, timeout: Duration) -> Self {
+        self.with_send_timeout(timeout)
+    }
+
+    fn writer_config(&self) -> WriterConfig {
+        WriterConfig::new()
+            .with_send_timeout(self.send_timeout)
+            .with_poll_fallback_interval(self.poll_fallback_interval)
     }
 
     /// Set [`Self::poll_fallback_interval`].
@@ -156,20 +166,17 @@ impl StaticFileHandler {
         head_only: bool,
         conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let mut conn = conn;
         // Prevent path traversal
         let safe_path = path.trim_start_matches('/');
         if safe_path.contains("..") {
-            return crate::shared::serve::respond::text(&mut conn, 403, "Forbidden")
-                .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep);
+            return send_text(conn, 403, "Forbidden");
         }
 
         let file_path = self.root.join(safe_path);
 
         // Verify the resolved path is still under root
         if !file_path.starts_with(&self.root) {
-            return crate::shared::serve::respond::text(&mut conn, 403, "Forbidden")
-                .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep);
+            return send_text(conn, 403, "Forbidden");
         }
 
         // Check if it's a directory — try index.html
@@ -185,7 +192,7 @@ impl StaticFileHandler {
         &self,
         path: &Path,
         head_only: bool,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let opened = File::open(path).and_then(|file| {
             let meta = file.metadata()?;
@@ -194,68 +201,36 @@ impl StaticFileHandler {
         let (file, meta) = match opened {
             Ok((file, meta)) if meta.is_file() => (file, meta),
             Ok(_) => {
-                return crate::shared::serve::respond::not_found(&mut conn)
-                    .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep);
+                return send_not_found(conn);
             }
             Err(e) if e.kind() == io::ErrorKind::NotFound => {
-                return crate::shared::serve::respond::not_found(&mut conn)
-                    .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep);
+                return send_not_found(conn);
             }
             Err(e) => {
                 tracing::error!("Failed to open static file {path:?}: {e}");
-                return crate::shared::serve::respond::server_error(&mut conn, None)
-                    .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep);
+                return send_server_error(conn, None);
             }
         };
         let len = meta.len();
 
         // The head is small; render it now so a render failure closes the
         // connection before any byte is written.
-        let response = SimpleOutgoingResponse::builder()
-            .with_status(Status::OK)
-            .add_header(SimpleHeader::CONTENT_TYPE, mime_type(path).to_string())
-            .add_header(SimpleHeader::CONTENT_LENGTH, len.to_string())
-            .with_body(SendSafeBody::None)
-            .build();
-        let response = match response {
-            Ok(response) => response,
+        let headers = [(SimpleHeader::CONTENT_TYPE, mime_type(path).to_string())];
+        let head = match render_head(200, &headers, usize::try_from(len).unwrap_or(usize::MAX)) {
+            Ok(head) => head,
             Err(e) => {
-                tracing::error!("Failed to build static file response: {e}");
+                tracing::error!("Failed to render static file head: {e}");
                 return ConnectionResult::Close(None);
             }
         };
-        let mut head = Vec::new();
-        match Http11::response(response).http_render() {
-            Ok(chunks) => {
-                for chunk in chunks {
-                    match chunk {
-                        Ok(bytes) => head.extend_from_slice(&bytes),
-                        Err(e) => {
-                            tracing::error!("Failed to render static file head: {e}");
-                            return ConnectionResult::Close(None);
-                        }
-                    }
-                }
-            }
-            Err(e) => {
-                tracing::error!("Failed to render static file response: {e}");
-                return ConnectionResult::Close(None);
-            }
-        }
 
-        let waiter = WriteWaiter::new(
-            &conn,
-            Instant::now() + self.config.write_timeout,
-            self.config.poll_fallback_interval,
-        );
+        let writer = ResponseWriter::new(conn, self.config.writer_config());
         let job = SendFile {
-            conn,
-            waiter,
+            writer,
             head,
             file,
             len: if head_only { 0 } else { len },
             chunk_size: self.config.chunk_size,
-            path: path.to_path_buf(),
         };
         ConnectionResult::Async(Box::pin(job.run()))
     }
@@ -286,14 +261,12 @@ impl Serve for StaticFileHandler {
 
 /// One response in flight: the head, then `len` bytes of `file`.
 struct SendFile {
-    conn: SharedByteBufferStream<RawStream>,
-    waiter: WriteWaiter,
+    writer: ResponseWriter,
     head: Vec<u8>,
     file: File,
     /// Body bytes to send (0 for a `HEAD` request).
     len: u64,
     chunk_size: usize,
-    path: PathBuf,
 }
 
 impl SendFile {
@@ -301,17 +274,7 @@ impl SendFile {
         match self.send().await {
             Ok(()) => ConnectionResult::Keep,
             Err(e) => {
-                match e.kind() {
-                    io::ErrorKind::ConnectionReset
-                    | io::ErrorKind::BrokenPipe
-                    | io::ErrorKind::ConnectionAborted => {
-                        tracing::debug!(path = ?self.path, "static file: peer closed: {e}");
-                    }
-                    io::ErrorKind::TimedOut => {
-                        tracing::debug!(path = ?self.path, "static file: write deadline passed: {e}");
-                    }
-                    _ => tracing::error!(path = ?self.path, "static file: write failed: {e}"),
-                }
+                log_write_failure(&e);
                 ConnectionResult::Close(None)
             }
         }
@@ -319,7 +282,7 @@ impl SendFile {
 
     async fn send(&mut self) -> io::Result<()> {
         let head = std::mem::take(&mut self.head);
-        self.write_all(&head).await?;
+        self.writer.write_all(&head).await?;
 
         // The file is read inline, one chunk at a time. A chunk read hits the
         // page cache and returns in microseconds; the crate has no file I/O
@@ -341,151 +304,9 @@ impl SendFile {
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
                 Err(e) => return Err(e),
             };
-            self.write_all(&buf[..n]).await?;
+            self.writer.write_all(&buf[..n]).await?;
             remaining -= n as u64;
         }
-        self.flush().await
-    }
-
-    /// Write all of `buf`. The offset advances by what the socket took, so a
-    /// partial write never repeats bytes. `WouldBlock` parks on write readiness.
-    async fn write_all(&mut self, buf: &[u8]) -> io::Result<()> {
-        let mut offset = 0;
-        while offset < buf.len() {
-            match self.conn.write(&buf[offset..]) {
-                Ok(0) => return Err(io::ErrorKind::WriteZero.into()),
-                Ok(n) => offset += n,
-                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    self.waiter.writable().await?;
-                }
-                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
-                Err(e) => return Err(e),
-            }
-        }
-        Ok(())
-    }
-
-    /// Flush the stream's own buffer. `WouldBlock` parks on write readiness; the
-    /// buffer keeps what is unwritten, so a retry resumes where it stopped.
-    async fn flush(&mut self) -> io::Result<()> {
-        loop {
-            match self.conn.flush() {
-                Ok(()) => return Ok(()),
-                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    self.waiter.writable().await?;
-                }
-                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
-                Err(e) => return Err(e),
-            }
-        }
-    }
-}
-
-/// Waits for a connection to become writable, bounded by one deadline for the
-/// whole response.
-///
-/// A kernel-fd transport parks on the shared reactor through [`FdReadiness`];
-/// the overlay parks on a one-shot wake callback its driver fires; a transport
-/// that cannot report readiness parks on the valtron timer for one
-/// `poll_fallback_interval` and lets the caller retry the write.
-struct WriteWaiter {
-    readiness: Option<ConnReadiness>,
-    fd_ready: Option<FdReadiness>,
-    deadline: Sleep,
-    deadline_at: Instant,
-    poll_fallback_interval: Duration,
-    fallback: Option<Sleep>,
-}
-
-impl WriteWaiter {
-    fn new(
-        conn: &SharedByteBufferStream<RawStream>,
-        deadline_at: Instant,
-        poll_fallback_interval: Duration,
-    ) -> Self {
-        let readiness = conn.with_inner_ref(RawStream::conn_readiness);
-        let fd_ready = match &readiness {
-            Some(ConnReadiness::Fd(fd, _)) => match FdReadiness::register(*fd) {
-                Ok(r) => Some(r),
-                Err(e) => {
-                    tracing::debug!("static file: cannot watch the socket on the reactor: {e}");
-                    None
-                }
-            },
-            _ => None,
-        };
-        // Without a reactor registration the kernel-fd transport falls back to
-        // timer-paced retries, like a transport that reports no readiness.
-        let readiness = match (&readiness, &fd_ready) {
-            (Some(ConnReadiness::Fd(..)), None) => None,
-            _ => readiness,
-        };
-        Self {
-            readiness,
-            fd_ready,
-            deadline: timer::sleep_until(deadline_at),
-            deadline_at,
-            poll_fallback_interval,
-            fallback: None,
-        }
-    }
-
-    /// Wait until the connection is writable (or failed, so the next write sees
-    /// why). Fails with `TimedOut` once the response deadline passes.
-    async fn writable(&mut self) -> io::Result<()> {
-        poll_fn(|cx| self.poll_writable(cx)).await
-    }
-
-    fn poll_writable(&mut self, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        if Instant::now() >= self.deadline_at || Pin::new(&mut self.deadline).poll(cx).is_ready() {
-            return Poll::Ready(Err(io::Error::new(
-                io::ErrorKind::TimedOut,
-                "the client did not read the response within the write timeout",
-            )));
-        }
-        if let Some(readiness) = &self.readiness {
-            // Register before the readiness probe, so an edge between the
-            // two still wakes this task.
-            match readiness {
-                ConnReadiness::Fd(..) => {
-                    let (Some(fd_ready), Some((_, corrected))) =
-                        (&self.fd_ready, readiness.poll_fd(IoInterest::Writable))
-                    else {
-                        return Poll::Ready(Err(io::Error::new(
-                            io::ErrorKind::Unsupported,
-                            "this transport cannot report write readiness",
-                        )));
-                    };
-                    fd_ready.clear();
-                    if let Err(e) = fd_ready.set_writable(corrected == IoInterest::Writable) {
-                        return Poll::Ready(Err(e));
-                    }
-                    fd_ready.register_waker(cx.waker());
-                }
-                ConnReadiness::Overlay(_) => {
-                    let waker = cx.waker().clone();
-                    let wake: ConnWaker = Arc::new(move || waker.wake_by_ref());
-                    readiness.register_waker(IoInterest::Writable, wake);
-                }
-            }
-            match readiness.ready_now(IoInterest::Writable) {
-                Ok(true) => Poll::Ready(Ok(())),
-                Ok(false) => Poll::Pending,
-                Err(e) => Poll::Ready(Err(e)),
-            }
-        } else {
-            // No readiness source: park on the timer for one interval,
-            // then let the caller retry its write.
-            let interval = self.poll_fallback_interval;
-            let fallback = self
-                .fallback
-                .get_or_insert_with(|| timer::sleep_for(interval));
-            if Pin::new(fallback).poll(cx).is_ready() {
-                self.fallback = None;
-                Poll::Ready(Ok(()))
-            } else {
-                Poll::Pending
-            }
-        }
+        self.writer.flush().await
     }
 }

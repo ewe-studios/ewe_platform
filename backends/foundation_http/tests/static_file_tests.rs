@@ -15,8 +15,10 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::native::handlers::static_asset::StaticAssetHandler;
 use foundation_http::native::handlers::static_file::{StaticFileConfig, StaticFileHandler};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
+use foundation_http::native::writer::send_bytes;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{respond, ConnectionResult, Serve};
@@ -130,6 +132,15 @@ impl Harness {
 
 /// Serve `root` on `/*` (observed) and `GET /ping` on the same server.
 fn start_server(root: &Path, config: StaticFileConfig) -> Harness {
+    start_server_with(root, config, |_| {})
+}
+
+/// As [`start_server`], with `extra` adding more routes.
+fn start_server_with(
+    root: &Path,
+    config: StaticFileConfig,
+    extra: impl FnOnce(&mut HttpApp<Arc<dyn Serve>>),
+) -> Harness {
     let seen = Arc::new(Mutex::new(Observed::default()));
     let files: Arc<dyn Serve> = Arc::new(Observing {
         inner: StaticFileHandler::with_config(root, config),
@@ -140,6 +151,7 @@ fn start_server(root: &Path, config: StaticFileConfig) -> Harness {
     let mut app = HttpApp::new_serve();
     app.router.add_route_any("/*", &files);
     app.router.add_route_any("/ping", &ping);
+    extra(&mut app);
 
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
@@ -349,13 +361,13 @@ fn static_file_limits_come_from_config() {
     // Defaults: 64 KiB chunks (nginx output_buffers order), 60 s (nginx send_timeout).
     let default = StaticFileConfig::new();
     assert_eq!(default.chunk_size, 64 * 1024);
-    assert_eq!(default.write_timeout, Duration::from_secs(60));
+    assert_eq!(default.send_timeout, Duration::from_secs(60));
 
     let tuned = StaticFileConfig::new()
         .with_chunk_size(1000)
-        .with_write_timeout(Duration::from_millis(400));
+        .with_send_timeout(Duration::from_millis(400));
     assert_eq!(tuned.chunk_size, 1000);
-    assert_eq!(tuned.write_timeout, Duration::from_millis(400));
+    assert_eq!(tuned.send_timeout, Duration::from_millis(400));
     // A zero chunk size would never make progress: it is raised to 1.
     assert_eq!(StaticFileConfig::new().with_chunk_size(0).chunk_size, 1);
 
@@ -450,5 +462,152 @@ fn static_file_head_has_no_body_and_connection_is_kept() {
     // A missing file is a 404.
     let (head, _) = request_head(&mut stream, "/missing.bin");
     assert!(head.starts_with("HTTP/1.1 404"), "head: {head:?}");
+    h.stop();
+}
+
+/// A handler that answers with a large in-memory body through the shared writer.
+struct BigBody(Vec<u8>);
+
+impl Serve for BigBody {
+    fn serve(
+        &self,
+        _bag: Arc<ContextBag>,
+        _req: SimpleIncomingRequest,
+        conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        send_bytes(conn, 200, "application/octet-stream", self.0.clone())
+    }
+}
+
+/// Read a response from `path` slowly (16 KiB per read, 1 ms between reads)
+/// and return its body.
+fn slow_get(addr: std::net::SocketAddr, path: &str) -> Vec<u8> {
+    let mut stream = TcpStream::connect(addr).expect("connect");
+    let (head, mut body) = request_head(&mut stream, path);
+    assert!(head.starts_with("HTTP/1.1 200"), "head: {head:?}");
+    let want = content_length(&head);
+    let mut buf = vec![0u8; 16 * 1024];
+    while body.len() < want {
+        let n = stream.read(&mut buf).expect("read body");
+        assert!(n > 0, "closed after {} of {want} bytes", body.len());
+        body.extend_from_slice(&buf[..n]);
+        std::thread::sleep(Duration::from_millis(1));
+    }
+    assert_eq!(body.len(), want, "received more bytes than Content-Length");
+    body
+}
+
+/// A 4 MiB body written through the shared writer arrives byte for byte at a
+/// slow client. (The synchronous `respond::*` path truncates it.)
+#[test]
+#[foundation_macros::timeout(120000)]
+#[serial(http_test)]
+fn respond_large_body_is_byte_exact() {
+    let _pool = initialize_pool(305, Some(3));
+    let dir = TempDir::new("respond");
+    let data = pattern(4 * 1024 * 1024);
+    let big: Arc<dyn Serve> = Arc::new(BigBody(data.clone()));
+    let h = start_server_with(dir.path(), StaticFileConfig::new(), |app| {
+        app.router.add_route_any("/big", &big);
+    });
+    let body = slow_get(h.addr, "/big");
+    assert_eq!(sha256(&body), sha256(&data), "body differs from the source");
+    h.stop();
+}
+
+/// The same for `StaticAssetHandler`.
+#[test]
+#[foundation_macros::timeout(120000)]
+#[serial(http_test)]
+fn static_asset_large_body_is_byte_exact() {
+    let _pool = initialize_pool(306, Some(3));
+    let dir = TempDir::new("asset");
+    let data = pattern(4 * 1024 * 1024);
+    let asset: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(
+        data.clone(),
+        "application/octet-stream",
+    ));
+    let h = start_server_with(dir.path(), StaticFileConfig::new(), |app| {
+        app.router.add_route_any("/asset", &asset);
+    });
+    let body = slow_get(h.addr, "/asset");
+    assert_eq!(sha256(&body), sha256(&data), "body differs from the source");
+    h.stop();
+}
+
+/// `send_timeout` is the time between two writes, not the length of the whole
+/// response: a client that reads up to 512 KiB every 100 ms (the socket is writable again every few hundred ms), with a 1 s
+/// `send_timeout`, receives the whole file.
+#[test]
+#[foundation_macros::timeout(120000)]
+#[serial(http_test)]
+fn send_timeout_is_idle_not_total() {
+    let _pool = initialize_pool(307, Some(3));
+    let dir = TempDir::new("idle");
+    let data = pattern(16 * 1024 * 1024);
+    std::fs::write(dir.path().join("slow.bin"), &data).expect("write file");
+    let h = start_server(
+        dir.path(),
+        StaticFileConfig::new().with_send_timeout(Duration::from_secs(1)),
+    );
+
+    let mut stream = TcpStream::connect(h.addr).expect("connect");
+    let started = Instant::now();
+    let (head, mut body) = request_head(&mut stream, "/slow.bin");
+    let want = content_length(&head);
+    let mut buf = vec![0u8; 512 * 1024];
+    while body.len() < want {
+        let n = stream.read(&mut buf).expect("read body");
+        assert!(n > 0, "closed after {} of {want} bytes", body.len());
+        body.extend_from_slice(&buf[..n]);
+        std::thread::sleep(Duration::from_millis(100));
+    }
+    let took = started.elapsed();
+    assert!(
+        took > Duration::from_millis(1500),
+        "the download took only {took:?}; the test did not exercise the idle timer"
+    );
+    assert_eq!(sha256(&body), sha256(&data), "body differs from the file");
+    assert!(
+        !h.seen.lock().expect("lock").closed,
+        "the connection must not close"
+    );
+    h.stop();
+}
+
+/// A client that stops reading is closed after about `send_timeout`.
+#[test]
+#[foundation_macros::timeout(120000)]
+#[serial(http_test)]
+fn send_timeout_closes_stalled_client() {
+    let _pool = initialize_pool(308, Some(3));
+    let dir = TempDir::new("stalled");
+    let file = std::fs::File::create(dir.path().join("huge.bin")).expect("create");
+    file.set_len(64 * 1024 * 1024).expect("sparse file");
+    drop(file);
+    let h = start_server(
+        dir.path(),
+        StaticFileConfig::new().with_send_timeout(Duration::from_millis(300)),
+    );
+
+    let mut stalled = TcpStream::connect(h.addr).expect("connect");
+    let (head, _) = request_head(&mut stalled, "/huge.bin");
+    assert!(head.starts_with("HTTP/1.1 200"), "head: {head:?}");
+    let started = Instant::now();
+    let deadline = started + Duration::from_secs(10);
+    let finished_at = loop {
+        if let Some(t) = h.seen.lock().expect("lock").finished_at {
+            break t;
+        }
+        assert!(Instant::now() < deadline, "the send timeout never fired");
+        std::thread::sleep(Duration::from_millis(10));
+    };
+    let took = finished_at.duration_since(started);
+    assert!(
+        took < Duration::from_secs(3),
+        "the stalled client closed after {took:?}, expected about 300 ms"
+    );
+    assert!(h.seen.lock().expect("lock").closed, "timeout must close");
+    drop(stalled);
     h.stop();
 }
