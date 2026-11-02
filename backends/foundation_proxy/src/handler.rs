@@ -21,7 +21,6 @@
 //! client. Each of those is a real blocking boundary; see `docs/bug-backlog.md`
 //! section 9 for the async plan. Responses carry `Connection: close`.
 
-use std::io::Write;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -31,12 +30,13 @@ use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleIncomingR
 
 use foundation_http::native::writer::{render_head, send_not_found, send_text, ResponseWriter};
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 
 use crate::config::BackendProtocol;
-use crate::forward::{forward_http, forward_upgrade, is_upgrade_request, ForwardContext};
-use crate::passthrough::splice_bidirectional;
-use crate::runtime::BackendLease;
+use crate::forward::{
+    forward_http, forward_upgrade, is_upgrade_request, ForwardContext, ForwardError,
+};
+use crate::rpc_relay::RpcContext;
 use crate::runtime::STICKY_COOKIE;
 use crate::state::ProxyState;
 
@@ -158,55 +158,78 @@ impl Serve for ProxyHandler {
             );
         };
 
-        if needs_blocking_relay(protocol, &req) {
-            // A blocking boundary (see the module docs): relay on a dedicated
-            // thread so the pool worker stays free. The lease moves into the
-            // thread so the in-flight count is held for the whole exchange.
-            std::thread::spawn(move || {
-                relay_blocking(
-                    conn,
-                    req,
-                    lease,
-                    protocol,
-                    &BlockingRelay {
-                        client_ip: &client_ip,
-                        scheme: &scheme,
-                        sticky_header: sticky_header.as_ref(),
-                        io_mode,
-                    },
-                );
-                log_access();
-            });
-            return ConnectionResult::Take;
-        }
-
         // The relay is a `'static` future: it owns the connection, the request,
         // the lease and the cloned state. The lease is held for the whole
         // exchange and drops with the future, even if the future is dropped
         // unfinished (shutdown).
+        let upgrade = is_upgrade_request(&req);
+        let is_grpc_web = is_grpc_web_request(&req);
+        let is_connect = is_connect_request(&req);
         ConnectionResult::Async(Box::pin(async move {
             let backend = Arc::clone(lease.backend());
-            let mut writer = ResponseWriter::new(conn, writer_config);
-            let ctx = ForwardContext {
-                client_ip: &client_ip,
-                scheme: &scheme,
-                client: &client,
-                extra_headers: sticky_header.as_ref(),
-                client_read_wake,
-                max_request_body,
-            };
-            let result = forward_http(&mut writer, &backend, req, &ctx).await;
-            if let Err(e) = result {
-                if e.response_started {
-                    // The client has part of a response: only close.
-                    tracing::warn!(url = %backend.url(), "forward failed mid-response: {e}");
-                } else {
-                    // The upstream was unreachable or misbehaved: never close
-                    // silently, answer a well-formed 502 so the client sees a
-                    // real response.
-                    tracing::warn!(url = %backend.url(), "forward failed, sending {}: {e}", e.answer_status);
-                    let _ = write_error_page(&mut writer, e.answer_status).await;
+            if matches!(protocol, BackendProtocol::Tcp) {
+                // HTTP-fronted raw backend: tunnel the connection through. The
+                // bytes already parsed as the HTTP request are not replayed. The
+                // dedicated raw entry point is `passthrough::TcpPassthrough`.
+                relay_tcp_tunnel(conn, &backend, io_mode, writer_config).await;
+            } else if upgrade {
+                // The splice owns the connection until either side closes. A
+                // failure before it starts leaves the connection ours: answer.
+                let outcome = forward_upgrade(
+                    &conn,
+                    &backend,
+                    &req,
+                    &client_ip,
+                    &scheme,
+                    io_mode,
+                    writer_config,
+                )
+                .await;
+                if let Err(e) = outcome {
+                    tracing::warn!(url = %backend.url(), "upgrade relay failed, sending 502: {e}");
+                    let mut writer = ResponseWriter::new(conn, writer_config);
+                    let _ = write_error_page(&mut writer, 502).await;
                 }
+            } else if matches!(protocol, BackendProtocol::Grpc) && is_grpc_web {
+                // D leg (spec 63): a `grpc://` backend speaks native gRPC over
+                // H2. An inbound gRPC-Web request (H1) is translated at the
+                // frame level.
+                let mut writer = ResponseWriter::new(conn, writer_config);
+                let ctx = RpcContext {
+                    client_ip: &client_ip,
+                    scheme: &scheme,
+                    sticky_header: sticky_header.as_ref(),
+                    client_read_wake,
+                    max_request_body,
+                };
+                let result =
+                    crate::rpc_relay::relay_grpc_web_to_grpc(&mut writer, &backend, req, &ctx)
+                        .await;
+                finish_relay(&mut writer, &backend, result, "grpc-web").await;
+            } else if matches!(protocol, BackendProtocol::Grpc) && is_connect {
+                let mut writer = ResponseWriter::new(conn, writer_config);
+                let ctx = RpcContext {
+                    client_ip: &client_ip,
+                    scheme: &scheme,
+                    sticky_header: sticky_header.as_ref(),
+                    client_read_wake,
+                    max_request_body,
+                };
+                let result =
+                    crate::rpc_relay::relay_connect_to_grpc(&mut writer, &backend, req, &ctx).await;
+                finish_relay(&mut writer, &backend, result, "connect").await;
+            } else {
+                let mut writer = ResponseWriter::new(conn, writer_config);
+                let ctx = ForwardContext {
+                    client_ip: &client_ip,
+                    scheme: &scheme,
+                    client: &client,
+                    extra_headers: sticky_header.as_ref(),
+                    client_read_wake,
+                    max_request_body,
+                };
+                let result = forward_http(&mut writer, &backend, req, &ctx).await;
+                finish_relay(&mut writer, &backend, result, "forward").await;
             }
             log_access();
             // `lease` drops here, decrementing the backend's in-flight count.
@@ -216,20 +239,41 @@ impl Serve for ProxyHandler {
     }
 }
 
-/// Whether this exchange must run on a dedicated thread: it ends in a byte
-/// splice or drives a blocking client (see the module docs).
-fn needs_blocking_relay(protocol: BackendProtocol, req: &SimpleIncomingRequest) -> bool {
-    match protocol {
-        BackendProtocol::Tcp => true,
-        // UDP is answered before this point; it never relays.
-        BackendProtocol::Udp => false,
-        BackendProtocol::Grpc => {
-            is_grpc_web_request(req) || is_connect_request(req) || is_upgrade_request(req)
+/// Tunnel a taken connection to a raw TCP backend.
+async fn relay_tcp_tunnel(
+    conn: SharedByteBufferStream<RawStream>,
+    backend: &Arc<crate::runtime::BackendRuntime>,
+    io_mode: foundation_iogate::ServerIo,
+    writer_config: foundation_http::native::writer::WriterConfig,
+) {
+    let authority = backend.target().authority();
+    match crate::aio::dial_tcp(&authority, io_mode).await {
+        Ok(upstream) => crate::aio::splice(conn, upstream, writer_config).await,
+        Err(e) => {
+            // The connection is untouched: answer so the client sees a response.
+            tracing::warn!(url = %backend.url(), "tcp tunnel failed, sending 502: {e}");
+            let mut writer = ResponseWriter::new(conn, writer_config);
+            let _ = write_error_page(&mut writer, 502).await;
         }
-        BackendProtocol::Http
-        | BackendProtocol::Https
-        | BackendProtocol::Connect
-        | BackendProtocol::GrpcWeb => is_upgrade_request(req),
+    }
+}
+
+/// Log a failed relay and, when the client has no byte of a response yet,
+/// answer it: a `502` for an upstream failure, a `413` for a body over the limit.
+/// Never close silently.
+async fn finish_relay(
+    writer: &mut ResponseWriter,
+    backend: &Arc<crate::runtime::BackendRuntime>,
+    result: Result<(), ForwardError>,
+    what: &str,
+) {
+    let Err(e) = result else { return };
+    if e.response_started {
+        // The client has part of a response: only close.
+        tracing::warn!(url = %backend.url(), "{what} failed mid-response: {e}");
+    } else {
+        tracing::warn!(url = %backend.url(), "{what} failed, sending {}: {e}", e.answer_status);
+        let _ = write_error_page(writer, e.answer_status).await;
     }
 }
 
@@ -249,94 +293,6 @@ async fn write_error_page(writer: &mut ResponseWriter, status: u16) -> std::io::
     writer.write_all(&head).await?;
     writer.write_all(body.as_bytes()).await?;
     writer.flush().await
-}
-
-/// What a blocking relay needs besides the connection, request and lease.
-struct BlockingRelay<'a> {
-    client_ip: &'a str,
-    scheme: &'a str,
-    sticky_header: Option<&'a foundation_netio::shared::http::SimpleHeaders>,
-    io_mode: foundation_iogate::ServerIo,
-}
-
-/// Relay one taken connection on a dedicated thread: the exchanges
-/// [`needs_blocking_relay`] selects.
-fn relay_blocking(
-    conn: SharedByteBufferStream<RawStream>,
-    req: SimpleIncomingRequest,
-    lease: BackendLease,
-    protocol: BackendProtocol,
-    ctx: &BlockingRelay<'_>,
-) {
-    let BlockingRelay {
-        client_ip,
-        scheme,
-        sticky_header,
-        io_mode,
-    } = *ctx;
-    let backend = Arc::clone(lease.backend());
-    let mut conn = conn;
-    if matches!(protocol, BackendProtocol::Tcp) {
-        // HTTP-fronted raw backend: tunnel the connection through. The bytes
-        // already parsed as the HTTP request are not replayed — this path is
-        // meaningful after a takeover (e.g. a WebSocket→raw tunnel). The
-        // dedicated raw entry point is `passthrough::TcpPassthrough`. The
-        // connection is consumed by the splice, so a failure can only be
-        // logged, not answered.
-        if let Err(e) = tunnel_tcp(conn, &backend) {
-            tracing::warn!(url = %backend.url(), "tcp tunnel failed: {e}");
-        }
-    } else if matches!(protocol, BackendProtocol::Grpc) && is_grpc_web_request(&req) {
-        // D leg (spec 63): a `grpc://` backend speaks native gRPC over H2. An
-        // inbound gRPC-Web request (H1) is translated at the frame level.
-        if let Err(e) = crate::rpc_relay::relay_grpc_web_to_grpc(
-            &mut conn,
-            &backend,
-            req,
-            client_ip,
-            scheme,
-            sticky_header,
-        ) {
-            tracing::warn!(url = %backend.url(), "grpc-web relay failed, sending 502: {e}");
-            let _ = respond::text(&mut conn, 502, "Bad Gateway");
-            let _ = conn.flush();
-        }
-    } else if matches!(protocol, BackendProtocol::Grpc) && is_connect_request(&req) {
-        if let Err(e) = crate::rpc_relay::relay_connect_to_grpc(
-            &mut conn,
-            &backend,
-            req,
-            client_ip,
-            scheme,
-            sticky_header,
-        ) {
-            tracing::warn!(url = %backend.url(), "connect relay failed, sending 502: {e}");
-            let _ = respond::text(&mut conn, 502, "Bad Gateway");
-            let _ = conn.flush();
-        }
-    } else {
-        // A protocol upgrade: the splice consumes the connection; log on failure.
-        if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme, io_mode) {
-            tracing::warn!(url = %backend.url(), "upgrade relay failed: {e}");
-        }
-    }
-    // `lease` drops here, decrementing the backend's in-flight count.
-    drop(lease);
-}
-
-/// Tunnel a taken connection to a raw TCP backend.
-fn tunnel_tcp(
-    conn: SharedByteBufferStream<RawStream>,
-    backend: &Arc<crate::runtime::BackendRuntime>,
-) -> Result<(), String> {
-    let authority = backend.target().authority();
-    let upstream = std::net::TcpStream::connect(&authority)
-        .map_err(|e| format!("connect tcp backend {authority}: {e}"))?;
-    upstream
-        .set_nonblocking(true)
-        .map_err(|e| format!("set upstream nonblocking: {e}"))?;
-    splice_bidirectional(conn, upstream);
-    Ok(())
 }
 
 /// First value of a header, if present.

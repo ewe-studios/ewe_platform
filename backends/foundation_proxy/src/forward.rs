@@ -19,28 +19,23 @@
 //! re-serialized onto a raw upstream socket and both directions are spliced.
 
 use std::collections::HashSet;
-use std::io::{ErrorKind, Write};
-use std::net::ToSocketAddrs;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_http::native::writer::ResponseWriter;
+use foundation_http::native::writer::{ResponseWriter, WriterConfig};
 use foundation_iogate::ServerIo;
 use foundation_netio::http::{ClientRequestBuilder, NativeHttpClient};
-use foundation_netio::netcap::{Connection, RawStream};
+use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, ReadWakeSource};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{
     pushable_request_body_with_readiness, BodyReadiness, Http11, Http11Chunk, Proto,
     PushableRequestBody, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders,
-    SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, SimpleResponse, Status,
-    DEFAULT_PUSHABLE_DEPTH,
+    SimpleIncomingRequest, SimpleMethod, SimpleResponse, Status, DEFAULT_PUSHABLE_DEPTH,
 };
 use futures_util::{FutureExt, StreamExt};
 
-use crate::passthrough::splice_bidirectional;
 use crate::runtime::BackendRuntime;
 
 /// The shared, pooled HTTP client type used for all upstream forwarding.
@@ -250,7 +245,7 @@ impl std::fmt::Display for ForwardError {
 impl std::error::Error for ForwardError {}
 
 impl ForwardError {
-    fn before_response(message: String) -> Self {
+    pub(crate) fn before_response(message: String) -> Self {
         Self {
             message,
             response_started: false,
@@ -258,7 +253,7 @@ impl ForwardError {
         }
     }
 
-    fn too_large(limit: usize) -> Self {
+    pub(crate) fn too_large(limit: usize) -> Self {
         Self {
             message: format!("request body over the {limit} byte limit"),
             response_started: false,
@@ -266,7 +261,7 @@ impl ForwardError {
         }
     }
 
-    fn mid_response(message: String) -> Self {
+    pub(crate) fn mid_response(message: String) -> Self {
         Self {
             message,
             response_started: true,
@@ -476,16 +471,77 @@ async fn exchange(
         body = body.with_read_wake(source);
     }
 
+    write_streamed_response(
+        writer,
+        status,
+        &headers,
+        body,
+        &ResponseShape {
+            extra_headers,
+            head_only,
+            chunk_ok,
+        },
+        started,
+    )
+    .await?;
+
+    // Return the upstream socket to the pool for reuse only when the connection
+    // is still alive (streaming requests). For non-streaming requests the
+    // upstream was told to close, so dropping `upstream_conn` closes the socket.
+    if reuse {
+        if let (Some(pool), Some(mut stream)) = (pool, upstream_conn) {
+            stream.drain_stream();
+            pool.return_to_pool(stream);
+        }
+    }
+    Ok(())
+}
+
+/// How a streamed response is framed on the client connection.
+pub(crate) struct ResponseShape<'a> {
+    /// Headers added after hop-by-hop stripping (the sticky cookie).
+    pub extra_headers: Option<&'a SimpleHeaders>,
+    /// The request was `HEAD`: send a head only.
+    pub head_only: bool,
+    /// The client speaks HTTP/1.1, so a body of unknown length may be chunked.
+    pub chunk_ok: bool,
+}
+
+/// Write a response whose body is a stream, one piece at a time.
+///
+/// WHY: shared by the transparent relay and the gRPC-Web and Connect
+/// translators, so every relayed response gets the same framing and the same
+/// no-buffering behaviour.
+///
+/// WHAT: strips hop-by-hop headers, adds `shape.extra_headers`, sets
+/// `Connection: close`, keeps a `Content-Length` the headers carry and otherwise
+/// frames the body `chunked`. `started` is set just before the first byte is
+/// written. The body is never held whole.
+///
+/// # Errors
+/// [`ForwardError`]; `response_started` tells whether a byte was written.
+pub(crate) async fn write_streamed_response<S, E>(
+    writer: &mut ResponseWriter,
+    status: Status,
+    headers: &SimpleHeaders,
+    mut body: S,
+    shape: &ResponseShape<'_>,
+    started: &AtomicBool,
+) -> Result<(), ForwardError>
+where
+    S: futures_util::Stream<Item = Result<Vec<u8>, E>> + Unpin,
+    E: std::fmt::Display,
+{
     let code = status.clone().into_usize();
-    let no_body = head_only || matches!(code, 100..=199 | 204 | 304);
-    let mut out = strip_hop_by_hop(&headers);
-    if let Some(extras) = extra_headers {
+    let no_body = shape.head_only || matches!(code, 100..=199 | 204 | 304);
+    let mut out = strip_hop_by_hop(headers);
+    if let Some(extras) = shape.extra_headers {
         for (name, values) in extras {
             out.insert(name.clone(), values.clone());
         }
     }
     out.insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
-    let chunked = !no_body && chunk_ok && !out.contains_key(&SimpleHeader::CONTENT_LENGTH);
+    let chunked = !no_body && shape.chunk_ok && !out.contains_key(&SimpleHeader::CONTENT_LENGTH);
     if chunked {
         out.insert(SimpleHeader::TRANSFER_ENCODING, vec!["chunked".to_string()]);
     }
@@ -501,7 +557,7 @@ async fn exchange(
     if !no_body {
         while let Some(piece) = body.next().await {
             let bytes = piece
-                .map_err(|e| ForwardError::mid_response(format!("read upstream body: {e}")))?;
+                .map_err(|e| ForwardError::mid_response(format!("read response body: {e}")))?;
             if bytes.is_empty() {
                 // An empty chunk would end a chunked body early.
                 continue;
@@ -528,18 +584,7 @@ async fn exchange(
     writer
         .flush()
         .await
-        .map_err(|e| ForwardError::mid_response(format!("flush response: {e}")))?;
-
-    // Return the upstream socket to the pool for reuse only when the connection
-    // is still alive (streaming requests). For non-streaming requests the
-    // upstream was told to close, so dropping `upstream_conn` closes the socket.
-    if reuse {
-        if let (Some(pool), Some(mut stream)) = (pool, upstream_conn) {
-            stream.drain_stream();
-            pool.return_to_pool(stream);
-        }
-    }
-    Ok(())
+        .map_err(|e| ForwardError::mid_response(format!("flush response: {e}")))
 }
 
 /// Render one part of a response (head, trailers) to wire bytes.
@@ -554,67 +599,34 @@ fn render_stream(part: Http11) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-/// Render a proxied response onto the client connection. Injects any
-/// `extra_headers` (e.g. sticky cookie) after stripping hop-by-hop.
+/// Relay a WebSocket / `Upgrade` request by splicing the two sockets.
 ///
-/// Shared with the D-leg RPC relay ([`crate::rpc_relay`]) so a translated
-/// response is written back to the H1 client connection exactly like a
-/// transparently-forwarded one.
-pub(crate) fn write_response(
-    conn: &mut SharedByteBufferStream<RawStream>,
-    status: Status,
-    headers: &SimpleHeaders,
-    body: SendSafeBody,
-    extra_headers: Option<&SimpleHeaders>,
-) -> Result<(), String> {
-    let mut out = strip_hop_by_hop(headers);
-    if let Some(extras) = extra_headers {
-        for (name, values) in extras {
-            out.insert(name.clone(), values.clone());
-        }
-    }
-    out.insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
-
-    let response = SimpleOutgoingResponse::builder()
-        .with_status(status)
-        .with_headers(out)
-        .with_body(body)
-        .build()
-        .map_err(|e| format!("build response: {e}"))?;
-
-    Http11::response(response)
-        .http_render_to_writer(conn)
-        .map_err(|e| format!("write response: {e}"))?;
-    conn.flush().map_err(|e| format!("flush response: {e}"))?;
-    Ok(())
-}
-
-/// Relay a WebSocket / `Upgrade` request by splicing raw sockets.
+/// WHAT: Dials the backend, writes the re-serialized request head to it, then
+/// relays bytes in both directions until either side closes: the backend
+/// performs the `101` handshake and everything after is opaque frames.
 ///
-/// WHAT: Re-serializes the request onto a fresh raw TCP socket to the backend,
-/// then shuttles bytes in both directions until either side closes — the
-/// backend performs the `101` handshake and everything after is opaque frames.
+/// HOW: Everything awaits. The dial parks on write readiness, the head write
+/// parks through [`ResponseWriter`], and [`crate::aio::splice`] parks on read and
+/// write readiness, so an open tunnel holds no thread.
 ///
 /// # Errors
-/// Returns `Err(String)` if the upstream socket cannot be opened or the request
-/// cannot be written.
-pub fn forward_upgrade(
-    conn: SharedByteBufferStream<RawStream>,
+/// Returns `Err(String)` if the upstream cannot be dialed or the request head
+/// cannot be written. The client connection is untouched then, so the caller can
+/// still answer `502`.
+pub async fn forward_upgrade(
+    conn: &SharedByteBufferStream<RawStream>,
     backend: &Arc<BackendRuntime>,
     req: &SimpleIncomingRequest,
     client_ip: &str,
     scheme: &str,
     io_mode: ServerIo,
+    writer_config: WriterConfig,
 ) -> Result<(), String> {
     let authority = backend.target().authority();
-    let addr = authority
-        .to_socket_addrs()
-        .map_err(|e| format!("resolve upstream {authority}: {e}"))?
-        .next()
-        .ok_or_else(|| format!("no address for upstream {authority}"))?;
     // Dial through iogate (F50): `Completion` reads the upstream from the io_uring
     // inbox and writes via `IORING_OP_SEND`; `Std` is a plain non-blocking socket.
-    let mut upstream = foundation_iogate::connect_completion(addr, io_mode)
+    let upstream = crate::aio::dial_tcp(&authority, io_mode)
+        .await
         .map_err(|e| format!("connect upstream {authority}: {e}"))?;
 
     // Preserve the upgrade-relevant headers (Connection/Upgrade must survive),
@@ -629,46 +641,19 @@ pub fn forward_upgrade(
 
     let request_bytes =
         serialize_request_head(&req.method.to_string(), &req.request_url.url, &headers);
-    // The dialed upstream is non-blocking; write the head tolerating `WouldBlock`
-    // (in `Completion` mode `flush` parks until the SEND's CQE lands).
-    write_head_blocking(&mut upstream, request_bytes.as_bytes())?;
+    let mut writer = ResponseWriter::new(upstream.clone(), writer_config);
+    writer
+        .write_all(request_bytes.as_bytes())
+        .await
+        .map_err(|e| format!("write upgrade request: {e}"))?;
+    writer
+        .flush()
+        .await
+        .map_err(|e| format!("flush upgrade request: {e}"))?;
 
     // From here the connection is opaque: splice both directions.
-    splice_bidirectional(conn, upstream);
+    crate::aio::splice(conn.clone(), upstream, writer_config).await;
     Ok(())
-}
-
-/// Write `bytes` in full to a non-blocking upstream and flush, retrying on
-/// `WouldBlock` up to a bounded deadline. `flush` on a completion socket returns
-/// `WouldBlock` until its SEND completes; on a plain socket it is a no-op.
-fn write_head_blocking(upstream: &mut Connection, bytes: &[u8]) -> Result<(), String> {
-    let deadline = Instant::now() + Duration::from_secs(5);
-    let mut written = 0;
-    while written < bytes.len() {
-        match upstream.write(&bytes[written..]) {
-            Ok(0) => return Err("upstream closed during upgrade write".to_string()),
-            Ok(n) => written += n,
-            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
-                if Instant::now() > deadline {
-                    return Err("upgrade request write timed out".to_string());
-                }
-                std::thread::sleep(Duration::from_millis(1));
-            }
-            Err(e) => return Err(format!("write upgrade request: {e}")),
-        }
-    }
-    loop {
-        match upstream.flush() {
-            Ok(()) => return Ok(()),
-            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
-                if Instant::now() > deadline {
-                    return Err("upgrade request flush timed out".to_string());
-                }
-                std::thread::sleep(Duration::from_millis(1));
-            }
-            Err(e) => return Err(format!("flush upgrade request: {e}")),
-        }
-    }
 }
 
 /// Serialize an HTTP/1.1 request head (request line + headers + blank line).
