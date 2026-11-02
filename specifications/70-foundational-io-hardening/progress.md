@@ -3,7 +3,7 @@
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
 - 2026-11-02: feature 39 (rustfmt version pin) done on
-  `fix/io-20-vfs-process-ipc`. `rust-toolchain.toml` names the pinned channel
+  `fix/io-35-turso-async-trait-overflow`. `rust-toolchain.toml` names the pinned channel
   `nightly-2026-09-20`. That channel gives rustfmt `1.10.0-nightly
   (feaadeeaca 2026-09-19)`, the same rustfmt the CI image uses. The file also
   adds `clippy` to the components. One repo-wide `cargo fmt --all` reformats
@@ -16,7 +16,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   non-fmt-clean shims.
 
 - 2026-11-02: feature 22 (workspace, process and CI) done on
-  `fix/io-20-vfs-process-ipc`. E1–E8 landed. E1 gives `scripts/ci/ci.py` a
+  `fix/io-35-turso-async-trait-overflow`. E1–E8 landed. E1 gives `scripts/ci/ci.py` a
   per-worktree target directory. E2 deletes the unused `crates/ewe_deployables`.
   E3 splits the generated Cloudflare groups into 43 per-group crates
   (`foundation_cloudflare_<group>`); the umbrella re-exports them behind
@@ -28,7 +28,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   entries record the remaining lints.
 
 - 2026-11-02: feature 23 (foundation_vectors) done on
-  `fix/io-20-vfs-process-ipc`. E1–E8 landed. E1 offloads `FjallVectorStore`
+  `fix/io-35-turso-async-trait-overflow`. E1–E8 landed. E1 offloads `FjallVectorStore`
   blocking work to a valtron pool; E2 builds the vendored sqlite-vec extension;
   E3 migrates old-shape `vec0` tables on open; E4 adds an opt-in live
   TurboPuffer test; E5 retries HTTP 429/503 with backoff; E6 builds the
@@ -38,7 +38,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `SendWrapper`. Linux CI is green (199 tests plus the three wasm runs).
 
 - 2026-11-02: feature 19 (foundation_nativeapis) E4 done on
-  `fix/io-20-vfs-process-ipc`. E4 rebuilds `TursoDelta` on the `turso` crate
+  `fix/io-35-turso-async-trait-overflow`. E4 rebuilds `TursoDelta` on the `turso` crate
   0.8.3 (local engine, `default-features = false`). The store is async-only:
   `AsyncVfsFileSystem` plus `AsyncDeltaStore`, with `TursoFile`,
   `SeekableTursoFile` and `TursoDirectory`. It lives under
@@ -55,7 +55,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   is removed.
 
 - 2026-11-02: feature 19 (foundation_nativeapis) E10 done on
-  `fix/io-20-vfs-process-ipc`. E10 gates the VFS sync boundary behind
+  `fix/io-35-turso-async-trait-overflow`. E10 gates the VFS sync boundary behind
   `foundation_core::blocking_boundary!`. `exec_async` is wrapped in the
   macro, and the whole `sync_bridge` module (`SyncFile`, `SyncDirectory`,
   `LocalSeekableFile`, `SyncFs`) is compiled only where valtron can block.
@@ -69,7 +69,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   is removed.
 
 - 2026-11-02: feature 19 (foundation_nativeapis) E9 done on
-  `fix/io-20-vfs-process-ipc`. E9 makes the VFS `copy` and `copy_async`
+  `fix/io-35-turso-async-trait-overflow`. E9 makes the VFS `copy` and `copy_async`
   default methods stream in chunks. The four traits (`VfsFileSystem`,
   `VfsDirectory`, `AsyncVfsFileSystem`, `AsyncVfsDirectory`) gain a
   `copy_chunk_size` method with a documented 32 KiB default (Go `net/http`
@@ -86,7 +86,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   whole-file-reads §13 backlog entry is removed.
 
 - 2026-11-02: feature 19 (foundation_nativeapis) E8 done on
-  `fix/io-20-vfs-process-ipc`. E8 makes `VfsNfs::readdir` honor the NFS v3
+  `fix/io-35-turso-async-trait-overflow`. E8 makes `VfsNfs::readdir` honor the NFS v3
   `start_after` cookie: it resolves the fileid of every entry in list order
   first, then skips up to the entry whose fileid equals the cookie and takes
   the next `max_entries`. A `to_nfstime3` helper maps `VfsMetadata` times to
@@ -99,7 +99,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   removed.
 
 - 2026-11-02: feature 19 (foundation_nativeapis) E7 done on
-  `fix/io-20-vfs-process-ipc`. E7 renames the constructors to
+  `fix/io-35-turso-async-trait-overflow`. E7 renames the constructors to
   `InodeFs::new()` and `InodeDelta::new()` (infallible, no path or config).
   It drops `InodeFsConfig` and the `FjallFs` / `FjallDelta` /
   `FjallVfsConfig` aliases and their re-exports. It adds the async face like
@@ -117,7 +117,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   backlog entry is removed.
 
 - 2026-11-02: feature 19 (foundation_nativeapis) E6 done on
-  `fix/io-20-vfs-process-ipc`. E6 switches `FjallDocumentStore` from
+  `fix/io-35-turso-async-trait-overflow`. E6 switches `FjallDocumentStore` from
   `V: VfsFileSystem` to `V: AsyncVfsFileSystem` and awaits every VFS call, so
   an I/O-backed store (wrapped in `SyncFs`) no longer blocks the calling
   thread inside the async `DocumentStore` methods. To keep the async futures
@@ -132,7 +132,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   uat`. The fourth §13 backlog entry (sync VFS traits) is removed.
 
 - 2026-11-02: feature 25 (foundation_deployment_huggingface) E3 done on
-  `fix/io-20-vfs-process-ipc`. E3 makes `list_models`, `list_datasets`,
+  `fix/io-35-turso-async-trait-overflow`. E3 makes `list_models`, `list_datasets`,
   `list_spaces` and `repo_list_tree` follow the Hub's `Link: rel="next"`
   pagination. The first page is fetched eagerly; later pages are fetched
   lazily by a `LazyPageIterator` when the previous page's items are pulled
@@ -144,7 +144,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   removed, closing the section.
 
 - 2026-11-02: feature 25 (foundation_deployment_huggingface) E2 done on
-  `fix/io-20-vfs-process-ipc`. E2 replaces the buffered commit body with a
+  `fix/io-35-turso-async-trait-overflow`. E2 replaces the buffered commit body with a
   streamed multipart body. `repo_create_commit` no longer calls
   `std::fs::read`; it builds a `SendSafeBody::Stream` via
   `repository::commit_multipart`, opening each added file and reading it in
@@ -157,7 +157,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   is removed.
 
 - 2026-11-02: feature 25 (foundation_deployment_huggingface) E1 done on
-  `fix/io-20-vfs-process-ipc`. E1 turns the Hub client and repository API into
+  `fix/io-35-turso-async-trait-overflow`. E1 turns the Hub client and repository API into
   `async fn`s over `send_async`/`send_raw_async`; the sync `send`/`send_raw`/
   `send_json` helpers and `LimitedWriter` are gone (no sync twins).
   `repo_download_file` streams the body chunk by chunk to a `.part` file and
@@ -172,7 +172,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   backlog entry (sync Hub API) is removed.
 
 - 2026-11-02: feature 19 (foundation_nativeapis) E5 done on
-  `fix/io-20-vfs-process-ipc`. E5 makes `scan`, `scan_all` and `scan_from`
+  `fix/io-35-turso-async-trait-overflow`. E5 makes `scan`, `scan_all` and `scan_from`
   lazy: no row `Vec` is collected and `scan_all` no longer buffers the whole
   collection. A producer thread walks the fjall index range (which is not
   `Send`) and pushes decoded offsets through a bounded valtron `Pipe`; the
@@ -185,7 +185,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   removed.
 
 - 2026-11-02: feature 19 (foundation_nativeapis) E3 done on
-  `fix/io-20-vfs-process-ipc`. E3 makes the shim build the real D1/R2 deltas
+  `fix/io-35-turso-async-trait-overflow`. E3 makes the shim build the real D1/R2 deltas
   instead of falling back to the memory delta. `DeltaBackend::D1` builds
   `D1Delta` and `DeltaBackend::R2` builds `R2Delta`; each panics when the
   feature is missing or init fails (no memory fallback). Both branches
@@ -199,7 +199,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   The third §13 backlog entry (shim never uses D1/R2) is removed.
 
 - 2026-11-02: feature 19 (foundation_nativeapis) E2 done on
-  `fix/io-20-vfs-process-ipc`. E2 replaces the whole-file blob rewrite with
+  `fix/io-35-turso-async-trait-overflow`. E2 replaces the whole-file blob rewrite with
   chunked storage: a file's content lives in `vfs/data/{path}/{chunk}` and
   `replace_chunks` writes only the chunks whose bytes change. The chunk size
   is `BlobDeltaConfig::chunk_size` (default 64 KiB, documented against Go's
@@ -212,7 +212,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   §13 backlog entry (whole-file rewrite) is removed.
 
 - 2026-11-02: feature 19 (foundation_nativeapis) E1 done on
-  `fix/io-20-vfs-process-ipc`. E1 adds `BlobStore::list_blobs_after` to
+  `fix/io-35-turso-async-trait-overflow`. E1 adds `BlobStore::list_blobs_after` to
   `D1Store` (delegates to `list_keys` and enforces the literal prefix, because
   SQL `LIKE` widens `%`/`_`). `BlobDelta` now lists a directory from meta keys,
   lists whiteouts from whiteout keys, and resets by deleting every `vfs/` key.
@@ -223,7 +223,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   list) is removed.
 
 - 2026-11-02: bug-backlog §15 (foundation_cedar) clippy cleanup on
-  `fix/io-20-vfs-process-ipc`. Cleared the 24 pre-existing `pedantic` warnings
+  `fix/io-35-turso-async-trait-overflow`. Cleared the 24 pre-existing `pedantic` warnings
   and deleted both §15 backlog entries (the warnings list and the stale
   `recursion_depth_exceeding_limit` note, which no longer reproduces). Nine
   `missing_errors_doc` sites gain `# Errors` sections, the redundant `#[must_use]`
@@ -241,7 +241,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   [--features db]` (17 default / 25 `db` tests green).
 
 - 2026-11-02: bug-backlog §7 (foundation_deployment_platform) `vms` clippy
-  follow-up on `fix/io-20-vfs-process-ipc`. The first pass (commit `ab014f58a`)
+  follow-up on `fix/io-35-turso-async-trait-overflow`. The first pass (commit `ab014f58a`)
   left 28 warnings: the check grep missed colorized clippy output, so it saw
   none. Commit `614de3710` clears all 28. Seven `cast_precision_loss` allows
   sat on `println!`/`eprintln!` macro calls; rustc ignores an allow on a macro
@@ -254,7 +254,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   `fullfp16` note); 125 non-Docker tests pass.
 
 - 2026-11-02: bug-backlog §7 (foundation_deployment_platform) `vms` clippy
-  warnings zeroed on `fix/io-20-vfs-process-ipc`. After the first-pass
+  warnings zeroed on `fix/io-35-turso-async-trait-overflow`. After the first-pass
   `cargo clippy --fix` (commit `abbe0c039`, 625 to 307), three subagents fixed
   the remaining 285 code warnings in disjoint file groups (edit-only), and the
   main session fixed the 3 manifest `unused_crate_dependencies` warnings:
@@ -265,7 +265,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   one remaining item: extend the CI clippy run to the `vms` feature.
 
 - 2026-11-02: bug-backlog §7 (foundation_deployment_platform) cleaned on
-  `fix/io-20-vfs-process-ipc`. The three stale entries are removed: the
+  `fix/io-35-turso-async-trait-overflow`. The three stale entries are removed: the
   `docker/wireguard.rs` inline tests already moved to `tests/wireguard_tests.rs`,
   the deprecated `SimpleHttpClient` is gone (`wait_for.rs` now uses
   `HttpClientBuilder`), and `PortMapping` is now used. The lib and every
@@ -283,14 +283,14 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   10+ minutes and look hung.
 
 - 2026-11-02: bug-backlog §6 (foundation_deployment_cloudflare) fixed on
-  `fix/io-20-vfs-process-ipc`. The unused `urlencoding` dependency is removed
+  `fix/io-35-turso-async-trait-overflow`. The unused `urlencoding` dependency is removed
   from `foundation_deployment_cloudflare/Cargo.toml`. It appears nowhere in the
   crate's source or tests. `cargo check --profile uat` passes. The full test
   build is skipped: this generated crate's `--all-targets` twin peaks near
   7 GB, and the local disk is 97% full. The backlog entry is removed.
 
 - 2026-11-02: bug-backlog §2 (foundation_netio) fixed on
-  `fix/io-20-vfs-process-ipc`. The unused `thiserror` dependency is removed from
+  `fix/io-35-turso-async-trait-overflow`. The unused `thiserror` dependency is removed from
   `foundation_netio/Cargo.toml`. Nothing in the crate uses it; netio builds
   errors with `derive_more`. The two remaining manifest warnings (`flate2`,
   `rustls-pemfile`) are false positives: both are optional and used under their
@@ -298,7 +298,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   the wasm-fetch check passes. The backlog entry is removed.
 
 - 2026-11-02: bug-backlog §12 (foundation_auth) fixed on
-  `fix/io-20-vfs-process-ipc`. Two entries are cleared. First, the dead
+  `fix/io-35-turso-async-trait-overflow`. Two entries are cleared. First, the dead
   `WebAuthnService.config` field is dropped from both the `server-native` and
   the non-`server-native` variants; the `config` argument is used only locally
   in `new()`. Second, the five `shared` clients (`discovery`, `jwks`,
@@ -313,7 +313,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   the 200+ clippy warnings in the `server`/`server-native` feature tree.
 
 - 2026-11-02: bug-backlog §10 gemm-f16 fullfp16 (foundation_ai) fixed on
-  `fix/io-20-vfs-process-ipc`. `cargo test` with candle failed to assemble
+  `fix/io-35-turso-async-trait-overflow`. `cargo test` with candle failed to assemble
   `gemm-f16` on Apple Silicon because `aarch64-apple-darwin` does not enable
   the `fullfp16` target feature. `.cargo/config.toml` now enables `fullfp16`
   for that target. Apple M-series chips all support it in hardware. The
@@ -321,7 +321,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   backlog entry is removed.
 
 - 2026-11-02: bug-backlog §10 clippy-warnings (foundation_ai) fixed on
-  `fix/io-20-vfs-process-ipc`. Eight clippy lints are cleared: one
+  `fix/io-35-turso-async-trait-overflow`. Eight clippy lints are cleared: one
   `needless_pass_by_value` (agent_loop), one `wrong_self_convention` (turn),
   one `arc_with_non_send_sync` (llamacpp), two `cast_possible_truncation`
   (candle), one `must_use_candidate` (testing), and two `large_enum_variant`.
@@ -333,7 +333,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   assemble `gemm-f16` on Apple Silicon without the `fullfp16` target feature.
 
 - 2026-11-02: bug-backlog §10 flaky-test fix (foundation_ai) done on
-  `fix/io-20-vfs-process-ipc`. `openai_provider::test_provider_streaming_tool_calls`
+  `fix/io-35-turso-async-trait-overflow`. `openai_provider::test_provider_streaming_tool_calls`
   flaked when the mock SSE response stayed open. The SSE client then hit its
   100 ms idle timeout, reconnected, and replayed tool-call deltas. The replayed
   deltas corrupted the accumulated arguments JSON. The fix adds
@@ -342,7 +342,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   test passes 25/25 in a loop. The backlog entry is removed.
 
 - 2026-11-02: bug-backlog §10 `recursion_depth_exceeding_limit`
-  (foundation_ai) fixed on `fix/io-20-vfs-process-ipc`. The `agentic_tests`
+  (foundation_ai) fixed on `fix/io-35-turso-async-trait-overflow`. The `agentic_tests`
   and `foundation_ai_tests` test crates both warned on the deep `Send`
   auto-trait resolution in `tests/agentic/session_mock_tests.rs`
   (`build_and_run_a_turn_on_sql_backed_stores`). The two crate roots are now
@@ -356,7 +356,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   suite still passes 329/329. The backlog entry is removed.
 
 - 2026-11-02: bug-backlog §10 candle-gemm (foundation_ai) fixed on
-  `fix/io-20-vfs-process-ipc`. Seventeen candle tests panicked in `gemm-f32`
+  `fix/io-35-turso-async-trait-overflow`. Seventeen candle tests panicked in `gemm-f32`
   on the Linux CI. gemm-common picked the `fma` kernel on `fma` alone, but
   that kernel needs AVX2. The emulated linux/amd64 CPU has `fma` and not
   `avx2`, so `V3::try_new()` returned `None` and the `.unwrap()` panicked.
@@ -365,7 +365,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   entry is removed.
 
 - 2026-11-02: bug-backlog §10 (foundation_ai) fixed on
-  `fix/io-20-vfs-process-ipc`. The wasm32 `--no-default-features` check failed
+  `fix/io-35-turso-async-trait-overflow`. The wasm32 `--no-default-features` check failed
   with three `Send` errors because the cloud providers awaited valtron's
   non-Send `sleep_async` inside their async-trait futures. Each provider now
   wraps the sleep future in `foundation_compact::SendWrapper`. The backlog
@@ -374,19 +374,19 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   04febe2cf.
 
 - 2026-11-02: feature 16 E8 follow-up (foundation_ai) done on
-  `fix/io-20-vfs-process-ipc`. The pub/sub `Appended` event id now reuses the
+  `fix/io-35-turso-async-trait-overflow`. The pub/sub `Appended` event id now reuses the
   record's own id for WorkingMemory / Observation / Reflection, matching the
   stored `doc_id`. A test asserts the event id and the append return value equal
   the record id.
 
 - 2026-11-02: feature 16 E8 (foundation_ai) done on
-  `fix/io-20-vfs-process-ipc`. Memory records (WorkingMemory, Observation,
+  `fix/io-35-turso-async-trait-overflow`. Memory records (WorkingMemory, Observation,
   Reflection) now write through `append_promotable_with_id` with the record's
   own scru128 id, so a retried write is a no-op. Two idempotency tests are
   added. The conversation arm already used `append_with_id`. Commit 87fe96a67.
 
 - 2026-11-02: bug-backlog §13 (`vfs_search` panic) fixed on
-  `fix/io-20-vfs-process-ipc`. `detect_tool()` used `Command::status().is_ok()`
+  `fix/io-35-turso-async-trait-overflow`. `detect_tool()` used `Command::status().is_ok()`
   to pick `rg` or `grep`. On the Linux CI nightly toolchain a missing binary
   returns `Ok(127)`, not an error, so the probe picked `rg` though it was
   absent, and the search returned zero matches. The new `probe_tool()` helper
@@ -395,7 +395,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   51320ad9a.
 
 - 2026-11-02: bug-backlog §13 (`fuse_vfs` compile) fixed on
-  `fix/io-20-vfs-process-ipc`. `fuser` 0.15 default features include `libfuse`,
+  `fix/io-35-turso-async-trait-overflow`. `fuser` 0.15 default features include `libfuse`,
   which probes for a system fuse3 via pkg-config and panics in its build script
   when it is absent. The fix disables `fuser` default features on the workspace
   dependency so it uses the pure-Rust mount implementation. The `fuse_vfs` test
@@ -403,7 +403,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   backlog entry is removed. Commit d98c9f12a.
 
 - 2026-11-01: feature 13 (foundation_deployment_platform) E1 done on
-  `fix/io-20-vfs-process-ipc`. E1 rewrites `wait_for_stdout` to follow the log
+  `fix/io-35-turso-async-trait-overflow`. E1 rewrites `wait_for_stdout` to follow the log
   stream once (`follow=true`, stdout only, stderr=false), match a message
   across frame boundaries with a rolling buffer sized `message.len() +
   client.limits().max_log_frame`, and race the next frame against the
@@ -421,7 +421,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   before the build ran.
 
 - 2026-11-01: feature 13 (foundation_deployment_platform) E2 done on
-  `fix/io-20-vfs-process-ipc`. E2 adds one shared Docker-daemon helper:
+  `fix/io-35-turso-async-trait-overflow`. E2 adds one shared Docker-daemon helper:
   `foundation_deployment_platform::testing::docker_available()`. It connects
   with `DockerClient::connect_with_defaults()` and pings the daemon with
   `negotiate_version()`. The helper is gated on the `docker` feature. Six
@@ -439,7 +439,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   compiles; the skip path was proven with a dead `DOCKER_HOST`.
 
 - 2026-11-01: feature 13 (foundation_deployment_platform) E3 done on
-  `fix/io-20-vfs-process-ipc`. E3 rewrites `query_vagrant_cloud` to use the
+  `fix/io-35-turso-async-trait-overflow`. E3 rewrites `query_vagrant_cloud` to use the
   `foundation_netio` HTTP client instead of a `curl` subprocess. The lookup is
   now an async function (`send_async` plus `collect_bytes_async`, streamed and
   never buffered whole by hand); its sync caller drives it with
@@ -457,7 +457,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   --profile dev` green (6/6). The §7 Vagrant backlog entry is removed.
 
 - 2026-11-01: feature 17 (foundation_db) PR 2 of 2 (E7–E12) done on
-  `fix/io-20-vfs-process-ipc` (committed as `28f951edf`). E7 moves the auth-table cleanup
+  `fix/io-35-turso-async-trait-overflow` (committed as `28f951edf`). E7 moves the auth-table cleanup
   to Unix milliseconds (migration 026 converts legacy whole-second rows with an
   idempotent `< 10000000000` guard; `rate_limits` stays in seconds;
   `run_full_cleanup` reads both clocks). E8 makes the SQL rate-limit record one
@@ -478,7 +478,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   profile) after the disk was freed; the Linux CI gate is the remaining check.
 
 - 2026-11-01: bug-backlog §13 (kqueue waker) fixed on
-  `fix/io-20-vfs-process-ipc`. The macOS kqueue waker (`EVFILT_USER`) returned
+  `fix/io-35-turso-async-trait-overflow`. The macOS kqueue waker (`EVFILT_USER`) returned
   `Token(0)` because `wake` triggered `NOTE_TRIGGER` with a null `udata` while
   `register_waker` stored the token as the `EV_ADD` `udata`; XNU copies the
   trigger's `udata` onto the knote. Fix: `wake` now passes the stored token as
@@ -498,7 +498,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   and a `tomllib` scan reports zero mismatches.
 
 - 2026-11-01: feature 12 (Docker client and foundation_deployment) done on
-  `fix/io-20-vfs-process-ipc`. E1 routes the seven hand-written client methods
+  `fix/io-35-turso-async-trait-overflow`. E1 routes the seven hand-written client methods
   through the generated request/response types, streams the upload tar, caps
   error bodies, and returns typed `system_data_usage`. E2 adds `max_json_body`
   to `BodyLimits`. E3 adds a CI run that builds the `docker,integration-tests`
@@ -508,7 +508,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   entries are removed; one new test-infra entry (SUN_LEN) is added.
 
 - 2026-11-01: feature 20 (foundation_nativeapis process side) done on
-  `fix/io-20-vfs-process-ipc` (commit 869572cd4). E5 makes the IPC client
+  `fix/io-35-turso-async-trait-overflow` (commit 869572cd4). E5 makes the IPC client
   receive on an async future; the join and poll timeouts move to
   `VfsIpcConfig` (defaults 30 s join, 1 s poll). E6 adds a request id to
   `VfsRequest`/`VfsResponse`; the client matches responses by id, drops the
@@ -523,7 +523,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   15 green, and the combined VFS feature check is clean.
 
 - 2026-11-01: feature 17 (foundation_db) PR 1 of 2 (E1–E6) done on
-  `fix/io-20-vfs-process-ipc`. E1 makes `StateStore::set` key by `resource_id`
+  `fix/io-35-turso-async-trait-overflow`. E1 makes `StateStore::set` key by `resource_id`
   (the stored state's `id` is set from it, whatever `state.id` holds). E2 moves
   the Cloudflare D1/R2 wire types into a new leaf crate
   `foundation_cloudflare_types` and uses them in `R2Store` (rule 5: the old
@@ -539,7 +539,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   foundation_nativeapis).
 
 - 2026-11-01: feature 16 (foundation_ai) done in the working tree on
-  `fix/io-20-vfs-process-ipc` (not committed). E1 adds an async
+  `fix/io-35-turso-async-trait-overflow` (not committed). E1 adds an async
   `Model::generate_async` (async-first, default falls back to the sync
   `generate`) with async retry back-off over the valtron timer; the HTTP
   providers implement it over `send_async`. E2 makes the `agent` tool report
@@ -567,7 +567,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   runs in a row; E9 builds with `tools/llama.cpp` moved away. PR: see the PR.
 
 - 2026-11-01: feature 24 (tokio boundaries and apps) done on
-  `fix/io-20-vfs-process-ipc`. Removed tokio and axum from `bin/platform`,
+  `fix/io-35-turso-async-trait-overflow`. Removed tokio and axum from `bin/platform`,
   its templates, the examples and the `ewe_channels` and `ewe_domain` crates. The
   platform binary now uses `#[valtron(seed = 100)]`. Inline tests moved to `tests/`.
   The `deno_core` tokio boundary in `foundation_testbed` is documented. New backlog
@@ -575,7 +575,7 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   CI gate is green (fmt, build, clippy, test, wasm; the templates test passed), so
   issue #137 can close. Commit c18df9490.
 
-- 2026-11-01: feature 21 done on `fix/io-20-vfs-process-ipc` (commit
+- 2026-11-01: feature 21 done on `fix/io-35-turso-async-trait-overflow` (commit
   95838a4a8). `foundation_cronjobs` parses each `cron_expr` with
   `saffron` (five-field Quartz), rejects an invalid expression at `register`
   with a typed error, computes the real next fire, and runs one valtron task per
