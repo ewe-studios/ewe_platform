@@ -130,6 +130,25 @@ _Written in ASD-STE100 Simplified Technical English._
   `foundation_core/multi`, which is native-only. Turning the default features
   off on `target_family = "wasm"` is enough.
 
+## Wasm turbopuffer Send fix
+
+- **The wasm32 fetch client returns a future that is not `Send`.** On wasm32
+  the client runs on one thread and its request future holds single-threaded
+  JavaScript values. On native the `DynNetClient` future is already `Send`.
+- **The `VectorStore` trait boxes each method future as `dyn Future + Send`.**
+  `#[async_trait]` requires the boxed future to be `Send`. The five
+  `TurboPufferVectorStore` methods (`insert`, `delete`, `search`, `get`, `len`)
+  failed to compile on wasm32 because they awaited `post`.
+- **Wrap the `post` future in `foundation_compact::SendWrapper`.** The wrapper
+  is `unsafe impl Send` on single-threaded wasm32. `query` and `write` wrap
+  `self.post(..)` in `SendWrapper::new(..).await`, so their futures become
+  `Send`. On native the wrapper is a zero-cost pass-through: the inner future
+  is already `Send`, so `Send` auto-derives.
+- **The Linux CI wasm gate caught it.** The command
+  `cargo check --target wasm32-unknown-unknown -p foundation_vectors
+  --features turbopuffer` failed with five "future cannot be sent between
+  threads safely" errors before the fix.
+
 ## Dead ends
 
 - **`f32::from(i32)` does not exist.** `f32` implements `From` for small

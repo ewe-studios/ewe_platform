@@ -280,6 +280,10 @@ impl TurboPufferVectorStore {
     /// [`TurboPufferConfig::retry_attempts`]. A `Retry-After` header is honoured
     /// in place of the computed wait. The wait uses the valtron timer, never a
     /// thread sleep.
+    ///
+    /// The returned future is not `Send` on wasm32 (the fetch client's future is
+    /// single-threaded). Callers that must return a `Send` future wrap it in
+    /// [`foundation_compact::SendWrapper`].
     async fn post(&self, url: &str, body: &serde_json::Value) -> Result<Reply, VectorStoreError> {
         let mut attempt: u32 = 0;
         loop {
@@ -347,7 +351,7 @@ impl TurboPufferVectorStore {
         body: &serde_json::Value,
     ) -> Result<Option<QueryResponse>, VectorStoreError> {
         let url = self.namespace_url(namespace, "/query")?;
-        match self.post(&url, body).await? {
+        match foundation_compact::SendWrapper::new(self.post(&url, body)).await? {
             Reply::NotFound => Ok(None),
             Reply::Ok(text) => serde_json::from_str(&text)
                 .map(Some)
@@ -362,7 +366,7 @@ impl TurboPufferVectorStore {
         body: &serde_json::Value,
     ) -> Result<Option<WriteResponse>, VectorStoreError> {
         let url = self.namespace_url(namespace, "")?;
-        match self.post(&url, body).await? {
+        match foundation_compact::SendWrapper::new(self.post(&url, body)).await? {
             Reply::NotFound => Ok(None),
             Reply::Ok(text) => serde_json::from_str(&text)
                 .map(Some)

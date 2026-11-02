@@ -57,6 +57,12 @@ _Written in ASD-STE100 Simplified Technical English._
   `wasm-runs`. Verified with
   `cargo check --target wasm32-unknown-unknown -p foundation_vectors
   --features sql-store`.
+- **Wasm turbopuffer Send fix.** The `turbopuffer` feature now checks on
+  wasm32. `query` and `write` wrap the `post` future in
+  `foundation_compact::SendWrapper`, so the five `TurboPufferVectorStore`
+  trait methods satisfy the `VectorStore` `dyn Future + Send` bound. Verified
+  with `cargo check --target wasm32-unknown-unknown -p foundation_vectors
+  --features turbopuffer`.
 
 ## In progress
 
