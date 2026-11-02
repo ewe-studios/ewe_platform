@@ -57,6 +57,13 @@
   `[msg_type, ..]`, not a scalar, so the decode always failed. Fixed by decoding
   the payload as `serde_json::Value` and reading the first array element. The
   old test had been wasm-gated and never ran, so the bug shipped silently.
+- The move also made the helpers reachable by the native clippy gate for the
+  first time. That surfaced 13 pedantic warnings in the new code (`doc_markdown`
+  backticks, `must_use_candidate`, `cast_possible_truncation`). Fixed with a
+  follow-up commit: backticks in the doc comments, `#[must_use]` on the three
+  pure helpers, and `try_from` in place of the three truncating `as` casts. The
+  wasm CI step runs `cargo check`, not clippy, so the old wasm-gated copy was
+  never linted.
 
 ## E8. Drop the unused `worker::Error` import
 

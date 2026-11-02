@@ -33,7 +33,8 @@ Branch: `fix/io-20-vfs-process-ipc`.
   payload as a scalar instead of the array's first element. `foundation_keychain`
   bumps to 0.1.3 for the new public API. The §21 keychain backlog entry is
   deleted in the same commit; a new entry records the `keychain.rs` recursion
-  lint.
+  lint. A follow-up commit cleans the 13 pedantic clippy warnings the native
+  clippy gate now surfaces for the moved helpers.
 - **E8.** The unused `worker::Error` import in
   `foundation_deployment_cloudflare/src/workers/durable_object.rs` is dropped.
   The §21 cloudflare entry is replaced with a new entry for the five

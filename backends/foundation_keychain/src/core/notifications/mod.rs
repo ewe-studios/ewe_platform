@@ -74,7 +74,8 @@ pub fn serialize_msgpack<T: Serialize>(value: &T) -> Result<Vec<u8>, rmp_serde::
     rmp_serde::encode::to_vec_named(value)
 }
 
-/// Decode a VarInt (up to 5 bytes) from the start of a byte slice.
+/// Decode a `VarInt` (up to 5 bytes) from the start of a byte slice.
+#[must_use]
 pub fn decode_varint(data: &[u8]) -> Option<(u64, usize)> {
     let mut value: u64 = 0;
     let mut shift = 0;
@@ -91,7 +92,8 @@ pub fn decode_varint(data: &[u8]) -> Option<(u64, usize)> {
     None
 }
 
-/// Encode a u32 as a VarInt byte vector.
+/// Encode a u32 as a `VarInt` byte vector.
+#[must_use]
 pub fn encode_varint(mut value: u32) -> Vec<u8> {
     let mut buf = Vec::with_capacity(5);
     loop {
@@ -108,23 +110,25 @@ pub fn encode_varint(mut value: u32) -> Vec<u8> {
     buf
 }
 
-/// Decode a SignalR MessagePack frame into `(message_type, payload_bytes)`.
+/// Decode a `SignalR` `MessagePack` frame into `(message_type, payload_bytes)`.
+#[must_use]
 pub fn decode_signalr_frame(data: &[u8]) -> Option<(u8, &[u8])> {
     let (len, consumed) = decode_varint(data)?;
-    let payload = data.get(consumed..consumed + len as usize)?;
+    let len = usize::try_from(len).ok()?;
+    let payload = data.get(consumed..consumed + len)?;
     // The payload is a MessagePack array `[msg_type, ..]`. Its first element
     // is the hub invocation message type.
     let value: serde_json::Value = rmp_serde::from_slice(payload).ok()?;
-    let msg_type = value.as_array()?.first()?.as_u64()? as u8;
+    let msg_type = u8::try_from(value.as_array()?.first()?.as_u64()?).ok()?;
     Some((msg_type, payload))
 }
 
-/// Encode a [`Notification`] as a complete SignalR WebSocket binary frame:
-/// a VarInt length prefix and `[1, {Target: "...", Arguments: [payload_json]}]`.
+/// Encode a [`Notification`] as a complete `SignalR` WebSocket binary frame:
+/// a `VarInt` length prefix and `[1, {Target: "...", Arguments: [payload_json]}]`.
 ///
 /// # Errors
 ///
-/// Returns a [`String`] error when the MessagePack serialization fails.
+/// Returns a [`String`] error when the `MessagePack` serialization fails.
 pub fn encode_signalr_notification(notif: &Notification) -> Result<Vec<u8>, String> {
     let payload_json = notif
         .payload
@@ -162,7 +166,8 @@ pub fn encode_signalr_notification(notif: &Notification) -> Result<Vec<u8>, Stri
     ))
     .map_err(|e| e.to_string())?;
 
-    let mut frame = encode_varint(invocation.len() as u32);
+    let frame_len = u32::try_from(invocation.len()).map_err(|e| e.to_string())?;
+    let mut frame = encode_varint(frame_len);
     frame.extend_from_slice(&invocation);
     Ok(frame)
 }
