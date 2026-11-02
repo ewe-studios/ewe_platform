@@ -2,6 +2,21 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 19 E3, foundation_nativeapis): the shim only compiles on
+  Linux (`target_os = "linux"` gate in `native/vfs/mod.rs`), so macOS cannot
+  type-check it. `cargo check --target x86_64-unknown-linux-gnu` fails on the
+  `ring` crate's build script (no `x86_64-linux-gnu-gcc`), not only on the
+  shim's own C file, so a local Linux cross-check is not possible. Validate the
+  Linux-only code by manual review plus a macOS `--test vfs_shim_vfs --no-run`
+  (the `#![cfg(target_os = "linux")]` file still parses). Also: the D1/R2 shim
+  branches must `initialize_pool` and keep the `PoolGuard`, exactly like the
+  sqlite branch — `DynFs::from_async` is `SyncFs` over `exec_async`, which
+  fast-paths ready-once futures (memory delta) but drives pending HTTP futures
+  through the valtron pool. The standard CI `runs` for foundation_nativeapis
+  do not include `vfs-preload`, so `vfs_shim_vfs` (and the shim) are not built
+  there; the D1 test needs `--features vfs-preload,vfs-d1` and a local
+  Cloudflare emulator.
+
 - 2026-11-02 (feature 19 E2, foundation_nativeapis): the `d1_delta::chunking`
   module was gated `#![cfg(feature = "vfs-d1")]` inside `d1_delta`, but
   `blob_delta` compiles for both `vfs-d1` and `vfs-r2`, so the chunking logic

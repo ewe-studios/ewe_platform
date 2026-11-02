@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 19 (foundation_nativeapis) E3 done on
+  `fix/io-20-vfs-process-ipc`. E3 makes the shim build the real D1/R2 deltas
+  instead of falling back to the memory delta. `DeltaBackend::D1` builds
+  `D1Delta` and `DeltaBackend::R2` builds `R2Delta`; each panics when the
+  feature is missing or init fails (no memory fallback). Both branches
+  initialize a valtron pool so the async HTTP store can be driven from the
+  sync libc handlers, and wrap the delta as
+  `DynFs::from_async(OverlayFileSystem::new(base, delta))`. A
+  `LOCAL_CF_API_BASE` override makes the shim reach a local Cloudflare
+  emulator (test credentials are defaulted in that mode). Test
+  `shim_config_d1_uses_d1_delta` writes a file through the `LD_PRELOAD` shim
+  with `FOUNDATION_VFS_DELTA=d1` and reads it back from the same D1 emulator.
+  The third §13 backlog entry (shim never uses D1/R2) is removed.
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E2 done on
   `fix/io-20-vfs-process-ipc`. E2 replaces the whole-file blob rewrite with
   chunked storage: a file's content lives in `vfs/data/{path}/{chunk}` and

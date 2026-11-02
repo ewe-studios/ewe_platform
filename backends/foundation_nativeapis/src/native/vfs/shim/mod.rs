@@ -61,8 +61,8 @@ mod shim_exports {
     ///
     /// The delta backend is selected via `FOUNDATION_VFS_DELTA` env var.
     /// Supported: `memory` (default), `sqlite`, `dir`, `d1`, `r2`.
-    /// Each falls back to `memory` if the required feature flag is not enabled
-    /// or if initialization fails.
+    /// `sqlite` and `dir` fall back to `memory` if init fails. `d1` and `r2`
+    /// never fall back; they panic if the feature is missing or init fails.
     static VFS: Lazy<VfsRuntime> = Lazy::new(|| {
         let root = CONFIG.root_dir.clone().unwrap_or_else(|| ".".to_string());
         let base = NativeFs::new(root.clone()).unwrap_or_else(|_| NativeFs::new(".").unwrap());
@@ -130,19 +130,75 @@ mod shim_exports {
                 }
             }
             super::config::DeltaBackend::D1 => {
-                tracing::warn!("[vfs-shim] D1Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
-                let delta = MemoryDelta::new();
-                let overlay = OverlayFileSystem::new(base, delta);
-                VfsRuntime { fs: DynFs::from_async(overlay), guard: None }
+                #[cfg(feature = "vfs-d1")]
+                {
+                    use foundation_core::valtron::initialize_pool;
+                    let guard = initialize_pool(42, Some(4));
+                    let delta = build_d1_delta().unwrap_or_else(|e| {
+                        drop(guard);
+                        panic!("[vfs-shim] D1 delta init failed: {e}")
+                    });
+                    let overlay = OverlayFileSystem::new(base, delta);
+                    VfsRuntime {
+                        fs: DynFs::from_async(overlay),
+                        guard: Some(guard),
+                    }
+                }
+                #[cfg(not(feature = "vfs-d1"))]
+                panic!("[vfs-shim] DeltaBackend::D1 needs the vfs-d1 feature");
             }
             super::config::DeltaBackend::R2 => {
-                tracing::warn!("[vfs-shim] R2Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
-                let delta = MemoryDelta::new();
-                let overlay = OverlayFileSystem::new(base, delta);
-                VfsRuntime { fs: DynFs::from_async(overlay), guard: None }
+                #[cfg(feature = "vfs-r2")]
+                {
+                    use foundation_core::valtron::initialize_pool;
+                    let guard = initialize_pool(42, Some(4));
+                    let delta = build_r2_delta().unwrap_or_else(|e| {
+                        drop(guard);
+                        panic!("[vfs-shim] R2 delta init failed: {e}")
+                    });
+                    let overlay = OverlayFileSystem::new(base, delta);
+                    VfsRuntime {
+                        fs: DynFs::from_async(overlay),
+                        guard: Some(guard),
+                    }
+                }
+                #[cfg(not(feature = "vfs-r2"))]
+                panic!("[vfs-shim] DeltaBackend::R2 needs the vfs-r2 feature");
             }
         }
     });
+
+    /// A D1 delta for the shim. Reads the Cloudflare credential variables.
+    /// When `LOCAL_CF_API_BASE` is set (local emulator mode), the database id
+    /// may come from `LOCAL_D1_DATABASE_ID` and test credentials are defaulted.
+    #[cfg(feature = "vfs-d1")]
+    fn build_d1_delta() -> crate::shared::vfs::error::VfsResult<crate::native::vfs::d1_delta::D1Delta> {
+        use crate::native::vfs::d1_delta::D1Delta;
+        let Some(base) = std::env::var("LOCAL_CF_API_BASE").ok() else {
+            return D1Delta::from_env();
+        };
+        let token = std::env::var("CF_API_TOKEN").unwrap_or_else(|_| "test-token".to_string());
+        let account = std::env::var("CF_ACCOUNT_ID").unwrap_or_else(|_| "test-account".to_string());
+        let db = std::env::var("LOCAL_D1_DATABASE_ID")
+            .or_else(|_| std::env::var("CF_D1_DATABASE_ID"))
+            .unwrap_or_else(|_| "test-db".to_string());
+        D1Delta::new_with_base_url(&token, &account, &db, Some(&base))
+    }
+
+    /// An R2 delta for the shim. Reads the Cloudflare credential variables.
+    /// When `LOCAL_CF_API_BASE` is set (local emulator mode), test credentials
+    /// are defaulted.
+    #[cfg(feature = "vfs-r2")]
+    fn build_r2_delta() -> crate::shared::vfs::error::VfsResult<crate::native::vfs::r2_delta::R2Delta> {
+        use crate::native::vfs::r2_delta::R2Delta;
+        let Some(base) = std::env::var("LOCAL_CF_API_BASE").ok() else {
+            return R2Delta::from_env();
+        };
+        let token = std::env::var("CF_API_TOKEN").unwrap_or_else(|_| "test-token".to_string());
+        let account = std::env::var("CF_ACCOUNT_ID").unwrap_or_else(|_| "test-account".to_string());
+        let bucket = std::env::var("CF_R2_BUCKET").unwrap_or_else(|_| "test-bucket".to_string());
+        R2Delta::new_with_base_url(&token, &account, &bucket, Some(&base))
+    }
 
     static FD_TABLE: Lazy<VirtualFdTable> = Lazy::new(VirtualFdTable::new);
 

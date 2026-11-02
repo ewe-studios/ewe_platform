@@ -150,11 +150,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **The VFS shim never uses the D1/R2 deltas.** `src/native/vfs/shim/mod.rs`
-  logs "impls pending" and falls back to the memory delta for
-  `DeltaBackend::D1` / `R2`. The overlay is async now, so the deltas plug in
-  directly (`DynFs::from_async(OverlayFileSystem::new(base, d1_delta))`).
-  Fix: build them from the shim config.
 - **`FjallDocumentStore` scans buffer their rows.** `scan`,
   `scan_all` and `scan_from` collect the matching rows into a
   `Vec` before streaming them (`src/shared/vfs/fjall_document_store.rs`);
