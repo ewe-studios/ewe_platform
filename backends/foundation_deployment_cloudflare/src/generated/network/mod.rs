@@ -3938,8 +3938,8 @@ pub struct GetEventAggregateArgs {
     pub start_date: Option<String>,
     /// Query parameter: `endDate`.
     pub end_date: Option<String>,
-    /// Query parameter: `groupByDate`.
-    pub group_by_date: Option<String>,
+    /// Query parameter: `groupByDate` (true/false).
+    pub group_by_date: Option<bool>,
     /// Query parameter: `limit`.
     pub limit: Option<String>,
 }
@@ -4058,8 +4058,8 @@ pub struct ListSlotsArgs {
     pub site: Option<String>,
     /// Query parameter: `speed`.
     pub speed: Option<String>,
-    /// Query parameter: `occupied`.
-    pub occupied: Option<String>,
+    /// Query parameter: `occupied` (true/false).
+    pub occupied: Option<bool>,
     /// Query parameter: `cursor`.
     pub cursor: Option<String>,
     /// Query parameter: `limit`.
@@ -4610,8 +4610,8 @@ pub struct TunnelRouteListTunnelRoutesArgs {
     pub account_id: String,
     /// Query parameter: `comment`.
     pub comment: Option<String>,
-    /// Query parameter: `is_deleted`.
-    pub is_deleted: Option<String>,
+    /// Query parameter: `is_deleted` (true/false).
+    pub is_deleted: Option<bool>,
     /// Query parameter: `network_subset`.
     pub network_subset: Option<String>,
     /// Query parameter: `network_superset`.
@@ -4650,8 +4650,8 @@ pub struct TunnelRouteGetTunnelRouteByIpArgs {
     pub account_id: String,
     /// Query parameter: `virtual_network_id`.
     pub virtual_network_id: Option<String>,
-    /// Query parameter: `default_virtual_network_fallback`.
-    pub default_virtual_network_fallback: Option<String>,
+    /// Query parameter: `default_virtual_network_fallback` (true/false).
+    pub default_virtual_network_fallback: Option<bool>,
 }
 
 /// Arguments for [`tunnel-route-get-tunnel-route_request`].
@@ -4688,12 +4688,12 @@ pub struct TunnelVirtualNetworkListVirtualNetworksArgs {
     pub id: Option<String>,
     /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: `is_default`.
-    pub is_default: Option<String>,
-    /// Query parameter: `is_default_network`.
-    pub is_default_network: Option<String>,
-    /// Query parameter: `is_deleted`.
-    pub is_deleted: Option<String>,
+    /// Query parameter: `is_default` (true/false).
+    pub is_default: Option<bool>,
+    /// Query parameter: `is_default_network` (true/false).
+    pub is_default_network: Option<bool>,
+    /// Query parameter: `is_deleted` (true/false).
+    pub is_deleted: Option<bool>,
 }
 
 /// Arguments for [`tunnel-virtual-network-create-a-virtual-network_request`].
@@ -4898,8 +4898,8 @@ pub struct RadarGetBgpIpsTimeseriesArgs {
     pub location: Vec<String>,
     /// Query parameter: `ipVersion` (one per value).
     pub ip_version: Vec<String>,
-    /// Query parameter: `includeDelay`.
-    pub include_delay: Option<String>,
+    /// Query parameter: `includeDelay` (true/false).
+    pub include_delay: Option<bool>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -4955,8 +4955,8 @@ pub struct RadarGetBgpPfx2AsMoasArgs {
     pub origin: Option<String>,
     /// Query parameter: `prefix`.
     pub prefix: Option<String>,
-    /// Query parameter: `invalid_only`.
-    pub invalid_only: Option<String>,
+    /// Query parameter: `invalid_only` (true/false).
+    pub invalid_only: Option<bool>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -4970,8 +4970,8 @@ pub struct RadarGetBgpPfx2AsArgs {
     pub origin: Option<String>,
     /// Query parameter: `rpkiStatus`.
     pub rpki_status: Option<String>,
-    /// Query parameter: `longestPrefixMatch`.
-    pub longest_prefix_match: Option<String>,
+    /// Query parameter: `longestPrefixMatch` (true/false).
+    pub longest_prefix_match: Option<bool>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -4996,8 +4996,8 @@ pub struct RadarGetBgpRpkiAspaChangesArgs {
     pub date_end: Option<String>,
     /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: `includeAsnInfo`.
-    pub include_asn_info: Option<String>,
+    /// Query parameter: `includeAsnInfo` (true/false).
+    pub include_asn_info: Option<bool>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -5011,8 +5011,8 @@ pub struct RadarGetBgpRpkiAspaSnapshotArgs {
     pub provider_asn: Option<String>,
     /// Query parameter: `date`.
     pub date: Option<String>,
-    /// Query parameter: `includeAsnInfo`.
-    pub include_asn_info: Option<String>,
+    /// Query parameter: `includeAsnInfo` (true/false).
+    pub include_asn_info: Option<bool>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -5154,8 +5154,8 @@ pub struct RadarGetQualityIndexTimeseriesGroupArgs {
     pub location: Vec<String>,
     /// Query parameter: `continent` (one per value).
     pub continent: Vec<String>,
-    /// Query parameter: `interpolation`.
-    pub interpolation: Option<String>,
+    /// Query parameter: `interpolation` (true/false).
+    pub interpolation: Option<bool>,
     /// Query parameter: `metric`.
     pub metric: Option<String>,
     /// Query parameter: `format`.
@@ -5458,7 +5458,10 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("is_deleted", args.is_deleted.as_deref());
+    builder = builder.query(
+        "is_deleted",
+        args.is_deleted.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("existed_at", args.existed_at.as_deref());
     builder = builder.query("uuid", args.uuid.as_deref());
     builder = builder.query("was_active_at", args.was_active_at.as_deref());
@@ -6054,7 +6057,10 @@ where
     }
     builder = builder.query("startDate", args.start_date.as_deref());
     builder = builder.query("endDate", args.end_date.as_deref());
-    builder = builder.query("groupByDate", args.group_by_date.as_deref());
+    builder = builder.query(
+        "groupByDate",
+        args.group_by_date.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("limit", args.limit.as_deref());
 
     if let Some(f) = builder_mod {
@@ -6714,7 +6720,10 @@ where
     builder = builder.query("address_contains", args.address_contains.as_deref());
     builder = builder.query("site", args.site.as_deref());
     builder = builder.query("speed", args.speed.as_deref());
-    builder = builder.query("occupied", args.occupied.as_deref());
+    builder = builder.query(
+        "occupied",
+        args.occupied.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("cursor", args.cursor.as_deref());
     builder = builder.query("limit", args.limit.as_deref());
 
@@ -9553,7 +9562,10 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("comment", args.comment.as_deref());
-    builder = builder.query("is_deleted", args.is_deleted.as_deref());
+    builder = builder.query(
+        "is_deleted",
+        args.is_deleted.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("network_subset", args.network_subset.as_deref());
     builder = builder.query("network_superset", args.network_superset.as_deref());
     builder = builder.query("existed_at", args.existed_at.as_deref());
@@ -9662,7 +9674,8 @@ where
     builder = builder.query("virtual_network_id", args.virtual_network_id.as_deref());
     builder = builder.query(
         "default_virtual_network_fallback",
-        args.default_virtual_network_fallback.as_deref(),
+        args.default_virtual_network_fallback
+            .map(|b| if b { "true" } else { "false" }),
     );
 
     if let Some(f) = builder_mod {
@@ -9856,9 +9869,19 @@ where
 
     builder = builder.query("id", args.id.as_deref());
     builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("is_default", args.is_default.as_deref());
-    builder = builder.query("is_default_network", args.is_default_network.as_deref());
-    builder = builder.query("is_deleted", args.is_deleted.as_deref());
+    builder = builder.query(
+        "is_default",
+        args.is_default.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "is_default_network",
+        args.is_default_network
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "is_deleted",
+        args.is_deleted.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -10102,7 +10125,10 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("is_deleted", args.is_deleted.as_deref());
+    builder = builder.query(
+        "is_deleted",
+        args.is_deleted.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("existed_at", args.existed_at.as_deref());
     builder = builder.query("uuid", args.uuid.as_deref());
     builder = builder.query("was_active_at", args.was_active_at.as_deref());
@@ -10915,7 +10941,10 @@ where
     for value in &args.ip_version {
         builder = builder.query("ipVersion", Some(value.as_str()));
     }
-    builder = builder.query("includeDelay", args.include_delay.as_deref());
+    builder = builder.query(
+        "includeDelay",
+        args.include_delay.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
@@ -11071,7 +11100,10 @@ where
 
     builder = builder.query("origin", args.origin.as_deref());
     builder = builder.query("prefix", args.prefix.as_deref());
-    builder = builder.query("invalid_only", args.invalid_only.as_deref());
+    builder = builder.query(
+        "invalid_only",
+        args.invalid_only.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
@@ -11121,7 +11153,11 @@ where
     builder = builder.query("prefix", args.prefix.as_deref());
     builder = builder.query("origin", args.origin.as_deref());
     builder = builder.query("rpkiStatus", args.rpki_status.as_deref());
-    builder = builder.query("longestPrefixMatch", args.longest_prefix_match.as_deref());
+    builder = builder.query(
+        "longestPrefixMatch",
+        args.longest_prefix_match
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
@@ -11219,7 +11255,11 @@ where
     builder = builder.query("dateStart", args.date_start.as_deref());
     builder = builder.query("dateEnd", args.date_end.as_deref());
     builder = builder.query("asn", args.asn.as_deref());
-    builder = builder.query("includeAsnInfo", args.include_asn_info.as_deref());
+    builder = builder.query(
+        "includeAsnInfo",
+        args.include_asn_info
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
@@ -11269,7 +11309,11 @@ where
     builder = builder.query("customerAsn", args.customer_asn.as_deref());
     builder = builder.query("providerAsn", args.provider_asn.as_deref());
     builder = builder.query("date", args.date.as_deref());
-    builder = builder.query("includeAsnInfo", args.include_asn_info.as_deref());
+    builder = builder.query(
+        "includeAsnInfo",
+        args.include_asn_info
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
@@ -11712,7 +11756,10 @@ where
     for value in &args.continent {
         builder = builder.query("continent", Some(value.as_str()));
     }
-    builder = builder.query("interpolation", args.interpolation.as_deref());
+    builder = builder.query(
+        "interpolation",
+        args.interpolation.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("metric", args.metric.as_deref());
     builder = builder.query("format", args.format.as_deref());
 

@@ -489,12 +489,12 @@ pub struct ServiceUpdateArgs {
 pub struct SwarmUpdateArgs {
     /// Query parameter: `version`.
     pub version: Option<String>,
-    /// Query parameter: `rotateWorkerToken`.
-    pub rotate_worker_token: Option<String>,
-    /// Query parameter: `rotateManagerToken`.
-    pub rotate_manager_token: Option<String>,
-    /// Query parameter: `rotateManagerUnlockKey`.
-    pub rotate_manager_unlock_key: Option<String>,
+    /// Query parameter: `rotateWorkerToken` (true/false).
+    pub rotate_worker_token: Option<bool>,
+    /// Query parameter: `rotateManagerToken` (true/false).
+    pub rotate_manager_token: Option<bool>,
+    /// Query parameter: `rotateManagerUnlockKey` (true/false).
+    pub rotate_manager_unlock_key: Option<bool>,
     /// Request body.
     pub body: SwarmSpec,
 }
@@ -791,11 +791,20 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("version", args.version.as_deref());
-    builder = builder.query("rotateWorkerToken", args.rotate_worker_token.as_deref());
-    builder = builder.query("rotateManagerToken", args.rotate_manager_token.as_deref());
+    builder = builder.query(
+        "rotateWorkerToken",
+        args.rotate_worker_token
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "rotateManagerToken",
+        args.rotate_manager_token
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query(
         "rotateManagerUnlockKey",
-        args.rotate_manager_unlock_key.as_deref(),
+        args.rotate_manager_unlock_key
+            .map(|b| if b { "true" } else { "false" }),
     );
 
     builder = builder

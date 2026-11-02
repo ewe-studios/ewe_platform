@@ -10559,7 +10559,10 @@ where
         builder = builder.query("continent", Some(value.as_str()));
     }
     builder = builder.query("orderBy", args.order_by.as_deref());
-    builder = builder.query("reverse", args.reverse.as_deref());
+    builder = builder.query(
+        "reverse",
+        args.reverse.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
@@ -10623,7 +10626,10 @@ where
         builder = builder.query("continent", Some(value.as_str()));
     }
     builder = builder.query("orderBy", args.order_by.as_deref());
-    builder = builder.query("reverse", args.reverse.as_deref());
+    builder = builder.query(
+        "reverse",
+        args.reverse.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {

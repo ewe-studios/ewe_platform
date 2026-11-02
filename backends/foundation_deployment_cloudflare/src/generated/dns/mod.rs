@@ -1534,8 +1534,8 @@ pub struct ZeroTrustNetworksRouteHostnameListArgs {
     pub comment: Option<String>,
     /// Query parameter: `existed_at`.
     pub existed_at: Option<String>,
-    /// Query parameter: `is_deleted`.
-    pub is_deleted: Option<String>,
+    /// Query parameter: `is_deleted` (true/false).
+    pub is_deleted: Option<bool>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
     /// Query parameter: `page`.
@@ -3642,7 +3642,10 @@ where
     builder = builder.query("tunnel_id", args.tunnel_id.as_deref());
     builder = builder.query("comment", args.comment.as_deref());
     builder = builder.query("existed_at", args.existed_at.as_deref());
-    builder = builder.query("is_deleted", args.is_deleted.as_deref());
+    builder = builder.query(
+        "is_deleted",
+        args.is_deleted.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("page", args.page.as_deref());
 

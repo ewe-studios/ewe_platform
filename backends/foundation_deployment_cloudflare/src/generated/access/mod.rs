@@ -4938,8 +4938,8 @@ pub struct AccessApplicationsListAccessApplicationsArgs {
     pub aud: Option<String>,
     /// Query parameter: `target_attributes`.
     pub target_attributes: Option<String>,
-    /// Query parameter: `exact`.
-    pub exact: Option<String>,
+    /// Query parameter: `exact` (true/false).
+    pub exact: Option<bool>,
     /// Query parameter: `search`.
     pub search: Option<String>,
     /// Query parameter: `page`.
@@ -5302,8 +5302,8 @@ pub struct AccessAuthenticationLogsGetAccessAuthenticationLogsArgs {
     pub per_page: Option<String>,
     /// Query parameter: `email`.
     pub email: Option<String>,
-    /// Query parameter: `email_exact`.
-    pub email_exact: Option<String>,
+    /// Query parameter: `email_exact` (true/false).
+    pub email_exact: Option<bool>,
     /// Query parameter: `user_id`.
     pub user_id: Option<String>,
     /// Query parameter: `allowedOp`.
@@ -5406,8 +5406,8 @@ pub struct ZeroTrustOrganizationUpdateYourZeroTrustOrganizationDohSettingsArgs {
 pub struct ZeroTrustOrganizationRevokeAllAccessTokensForAUserArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: `devices`.
-    pub devices: Option<String>,
+    /// Query parameter: `devices` (true/false).
+    pub devices: Option<bool>,
     /// Request body.
     pub body: ZeroTrustOrganizationRevokeAllAccessTokensForAUserRequest,
 }
@@ -6362,8 +6362,8 @@ pub struct UserEditUserArgs {
 pub struct AuditLogsGetUserAuditLogsArgs {
     /// Query parameter: `id`.
     pub id: Option<String>,
-    /// Query parameter: `export`.
-    pub export: Option<String>,
+    /// Query parameter: `export` (true/false).
+    pub export: Option<bool>,
     /// Query parameter: `action.type`.
     pub action_type: Option<String>,
     /// Query parameter: `actor.ip`.
@@ -6382,8 +6382,8 @@ pub struct AuditLogsGetUserAuditLogsArgs {
     pub per_page: Option<String>,
     /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: `hide_user_logs`.
-    pub hide_user_logs: Option<String>,
+    /// Query parameter: `hide_user_logs` (true/false).
+    pub hide_user_logs: Option<bool>,
 }
 
 /// Arguments for [`user'-s-invites-list-invitations_request`].
@@ -6551,8 +6551,8 @@ pub struct LoadBalancerHealthcheckEventsListHealthcheckEventsArgs {
     pub since: Option<String>,
     /// Query parameter: `origin_name`.
     pub origin_name: Option<String>,
-    /// Query parameter: `pool_healthy`.
-    pub pool_healthy: Option<String>,
+    /// Query parameter: `pool_healthy` (true/false).
+    pub pool_healthy: Option<bool>,
 }
 
 /// Arguments for [`user-subscription-get-user-subscriptions_request`].
@@ -7375,7 +7375,10 @@ where
     builder = builder.query("domain", args.domain.as_deref());
     builder = builder.query("aud", args.aud.as_deref());
     builder = builder.query("target_attributes", args.target_attributes.as_deref());
-    builder = builder.query("exact", args.exact.as_deref());
+    builder = builder.query(
+        "exact",
+        args.exact.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("search", args.search.as_deref());
     builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
@@ -9460,7 +9463,10 @@ where
     builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("email", args.email.as_deref());
-    builder = builder.query("email_exact", args.email_exact.as_deref());
+    builder = builder.query(
+        "email_exact",
+        args.email_exact.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("user_id", args.user_id.as_deref());
     builder = builder.query("allowedOp", args.allowed_op.as_deref());
     builder = builder.query("country_codeOp", args.country_code_op.as_deref());
@@ -9817,7 +9823,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("devices", args.devices.as_deref());
+    builder = builder.query(
+        "devices",
+        args.devices.map(|b| if b { "true" } else { "false" }),
+    );
 
     builder = builder
         .body_json(&args.body)
@@ -14976,7 +14985,10 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("id", args.id.as_deref());
-    builder = builder.query("export", args.export.as_deref());
+    builder = builder.query(
+        "export",
+        args.export.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("action.type", args.action_type.as_deref());
     builder = builder.query("actor.ip", args.actor_ip.as_deref());
     builder = builder.query("actor.email", args.actor_email.as_deref());
@@ -14986,7 +14998,11 @@ where
     builder = builder.query("direction", args.direction.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("page", args.page.as_deref());
-    builder = builder.query("hide_user_logs", args.hide_user_logs.as_deref());
+    builder = builder.query(
+        "hide_user_logs",
+        args.hide_user_logs
+            .map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -16051,7 +16067,10 @@ where
     builder = builder.query("pool_id", args.pool_id.as_deref());
     builder = builder.query("since", args.since.as_deref());
     builder = builder.query("origin_name", args.origin_name.as_deref());
-    builder = builder.query("pool_healthy", args.pool_healthy.as_deref());
+    builder = builder.query(
+        "pool_healthy",
+        args.pool_healthy.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);

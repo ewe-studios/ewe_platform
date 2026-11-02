@@ -1161,10 +1161,10 @@ pub struct ListNamespacesArgs {
     pub page_size: Option<String>,
     /// Query parameter: `parent`.
     pub parent: Option<String>,
-    /// Query parameter: `return_uuids`.
-    pub return_uuids: Option<String>,
-    /// Query parameter: `return_details`.
-    pub return_details: Option<String>,
+    /// Query parameter: `return_uuids` (true/false).
+    pub return_uuids: Option<bool>,
+    /// Query parameter: `return_details` (true/false).
+    pub return_details: Option<bool>,
 }
 
 /// Arguments for [`list-tables_request`].
@@ -1180,10 +1180,10 @@ pub struct ListTablesArgs {
     pub page_token: Option<String>,
     /// Query parameter: `page_size`.
     pub page_size: Option<String>,
-    /// Query parameter: `return_uuids`.
-    pub return_uuids: Option<String>,
-    /// Query parameter: `return_details`.
-    pub return_details: Option<String>,
+    /// Query parameter: `return_uuids` (true/false).
+    pub return_uuids: Option<bool>,
+    /// Query parameter: `return_details` (true/false).
+    pub return_details: Option<bool>,
 }
 
 /// Arguments for [`get-table-maintenance-config_request`].
@@ -2234,8 +2234,15 @@ where
     builder = builder.query("page_token", args.page_token.as_deref());
     builder = builder.query("page_size", args.page_size.as_deref());
     builder = builder.query("parent", args.parent.as_deref());
-    builder = builder.query("return_uuids", args.return_uuids.as_deref());
-    builder = builder.query("return_details", args.return_details.as_deref());
+    builder = builder.query(
+        "return_uuids",
+        args.return_uuids.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "return_details",
+        args.return_details
+            .map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -2286,8 +2293,15 @@ where
 
     builder = builder.query("page_token", args.page_token.as_deref());
     builder = builder.query("page_size", args.page_size.as_deref());
-    builder = builder.query("return_uuids", args.return_uuids.as_deref());
-    builder = builder.query("return_details", args.return_details.as_deref());
+    builder = builder.query(
+        "return_uuids",
+        args.return_uuids.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "return_details",
+        args.return_details
+            .map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);

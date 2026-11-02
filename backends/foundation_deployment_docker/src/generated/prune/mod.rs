@@ -101,8 +101,8 @@ pub struct BuildPruneArgs {
     pub max_used_space: Option<String>,
     /// Query parameter: `min-free-space`.
     pub min_free_space: Option<String>,
-    /// Query parameter: `all`.
-    pub all: Option<String>,
+    /// Query parameter: `all` (true/false).
+    pub all: Option<bool>,
     /// Query parameter: `filters`.
     pub filters: Option<String>,
 }
@@ -171,7 +171,7 @@ where
     builder = builder.query("reserved-space", args.reserved_space.as_deref());
     builder = builder.query("max-used-space", args.max_used_space.as_deref());
     builder = builder.query("min-free-space", args.min_free_space.as_deref());
-    builder = builder.query("all", args.all.as_deref());
+    builder = builder.query("all", args.all.map(|b| if b { "true" } else { "false" }));
     builder = builder.query("filters", args.filters.as_deref());
 
     if let Some(f) = builder_mod {

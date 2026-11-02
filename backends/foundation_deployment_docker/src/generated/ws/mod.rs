@@ -76,11 +76,23 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("detachKeys", args.detach_keys.as_deref());
-    builder = builder.query("logs", args.logs.as_deref());
-    builder = builder.query("stream", args.stream.as_deref());
-    builder = builder.query("stdin", args.stdin.as_deref());
-    builder = builder.query("stdout", args.stdout.as_deref());
-    builder = builder.query("stderr", args.stderr.as_deref());
+    builder = builder.query("logs", args.logs.map(|b| if b { "true" } else { "false" }));
+    builder = builder.query(
+        "stream",
+        args.stream.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "stdin",
+        args.stdin.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "stdout",
+        args.stdout.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "stderr",
+        args.stderr.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);

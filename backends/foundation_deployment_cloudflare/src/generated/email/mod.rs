@@ -1477,10 +1477,10 @@ pub struct EmailSecurityInvestigateArgs {
     pub end: Option<String>,
     /// Query parameter: `query`.
     pub query: Option<String>,
-    /// Query parameter: `detections_only`.
-    pub detections_only: Option<String>,
-    /// Query parameter: `action_log`.
-    pub action_log: Option<String>,
+    /// Query parameter: `detections_only` (true/false).
+    pub detections_only: Option<bool>,
+    /// Query parameter: `action_log` (true/false).
+    pub action_log: Option<bool>,
     /// Query parameter: `final_disposition`.
     pub final_disposition: Option<String>,
     /// Query parameter: `metric`.
@@ -1501,8 +1501,8 @@ pub struct EmailSecurityInvestigateArgs {
     pub subject: Option<String>,
     /// Query parameter: `exact_subject`.
     pub exact_subject: Option<String>,
-    /// Query parameter: `submissions`.
-    pub submissions: Option<String>,
+    /// Query parameter: `submissions` (true/false).
+    pub submissions: Option<bool>,
     /// Query parameter: `cursor`.
     pub cursor: Option<String>,
     /// Query parameter: `per_page`.
@@ -1611,20 +1611,20 @@ pub struct EmailSecurityListAllowPoliciesArgs {
     pub direction: Option<String>,
     /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: `is_sender`.
-    pub is_sender: Option<String>,
-    /// Query parameter: `is_trusted_sender`.
-    pub is_trusted_sender: Option<String>,
-    /// Query parameter: `is_recipient`.
-    pub is_recipient: Option<String>,
-    /// Query parameter: `is_exempt_recipient`.
-    pub is_exempt_recipient: Option<String>,
-    /// Query parameter: `is_spoof`.
-    pub is_spoof: Option<String>,
-    /// Query parameter: `is_acceptable_sender`.
-    pub is_acceptable_sender: Option<String>,
-    /// Query parameter: `verify_sender`.
-    pub verify_sender: Option<String>,
+    /// Query parameter: `is_sender` (true/false).
+    pub is_sender: Option<bool>,
+    /// Query parameter: `is_trusted_sender` (true/false).
+    pub is_trusted_sender: Option<bool>,
+    /// Query parameter: `is_recipient` (true/false).
+    pub is_recipient: Option<bool>,
+    /// Query parameter: `is_exempt_recipient` (true/false).
+    pub is_exempt_recipient: Option<bool>,
+    /// Query parameter: `is_spoof` (true/false).
+    pub is_spoof: Option<bool>,
+    /// Query parameter: `is_acceptable_sender` (true/false).
+    pub is_acceptable_sender: Option<bool>,
+    /// Query parameter: `verify_sender` (true/false).
+    pub verify_sender: Option<bool>,
     /// Query parameter: `pattern_type`.
     pub pattern_type: Option<String>,
     /// Query parameter: `pattern`.
@@ -1821,8 +1821,8 @@ pub struct EmailRoutingDestinationAddressesListDestinationAddressesArgs {
     pub per_page: Option<String>,
     /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: `verified`.
-    pub verified: Option<String>,
+    /// Query parameter: `verified` (true/false).
+    pub verified: Option<bool>,
 }
 
 /// Arguments for [`email-routing-destination-addresses-create-a-destination-address_request`].
@@ -2409,8 +2409,15 @@ where
     builder = builder.query("start", args.start.as_deref());
     builder = builder.query("end", args.end.as_deref());
     builder = builder.query("query", args.query.as_deref());
-    builder = builder.query("detections_only", args.detections_only.as_deref());
-    builder = builder.query("action_log", args.action_log.as_deref());
+    builder = builder.query(
+        "detections_only",
+        args.detections_only
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "action_log",
+        args.action_log.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("final_disposition", args.final_disposition.as_deref());
     builder = builder.query("metric", args.metric.as_deref());
     builder = builder.query("message_action", args.message_action.as_deref());
@@ -2421,7 +2428,10 @@ where
     builder = builder.query("message_id", args.message_id.as_deref());
     builder = builder.query("subject", args.subject.as_deref());
     builder = builder.query("exact_subject", args.exact_subject.as_deref());
-    builder = builder.query("submissions", args.submissions.as_deref());
+    builder = builder.query(
+        "submissions",
+        args.submissions.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("cursor", args.cursor.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("page", args.page.as_deref());
@@ -3016,13 +3026,37 @@ where
     builder = builder.query("order", args.order.as_deref());
     builder = builder.query("direction", args.direction.as_deref());
     builder = builder.query("search", args.search.as_deref());
-    builder = builder.query("is_sender", args.is_sender.as_deref());
-    builder = builder.query("is_trusted_sender", args.is_trusted_sender.as_deref());
-    builder = builder.query("is_recipient", args.is_recipient.as_deref());
-    builder = builder.query("is_exempt_recipient", args.is_exempt_recipient.as_deref());
-    builder = builder.query("is_spoof", args.is_spoof.as_deref());
-    builder = builder.query("is_acceptable_sender", args.is_acceptable_sender.as_deref());
-    builder = builder.query("verify_sender", args.verify_sender.as_deref());
+    builder = builder.query(
+        "is_sender",
+        args.is_sender.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "is_trusted_sender",
+        args.is_trusted_sender
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "is_recipient",
+        args.is_recipient.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "is_exempt_recipient",
+        args.is_exempt_recipient
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "is_spoof",
+        args.is_spoof.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "is_acceptable_sender",
+        args.is_acceptable_sender
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "verify_sender",
+        args.verify_sender.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("pattern_type", args.pattern_type.as_deref());
     builder = builder.query("pattern", args.pattern.as_deref());
 
@@ -3932,7 +3966,10 @@ where
     builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("direction", args.direction.as_deref());
-    builder = builder.query("verified", args.verified.as_deref());
+    builder = builder.query(
+        "verified",
+        args.verified.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);

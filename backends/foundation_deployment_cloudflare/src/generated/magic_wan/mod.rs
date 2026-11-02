@@ -3087,12 +3087,12 @@ pub struct OnrampsListArgs {
     pub account_id: String,
     /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: `desc`.
-    pub desc: Option<String>,
-    /// Query parameter: `status`.
-    pub status: Option<String>,
-    /// Query parameter: `vpcs`.
-    pub vpcs: Option<String>,
+    /// Query parameter: `desc` (true/false).
+    pub desc: Option<bool>,
+    /// Query parameter: `status` (true/false).
+    pub status: Option<bool>,
+    /// Query parameter: `vpcs` (true/false).
+    pub vpcs: Option<bool>,
 }
 
 /// Arguments for [`onramps-create_request`].
@@ -3130,14 +3130,14 @@ pub struct OnrampsReadArgs {
     pub account_id: String,
     /// Path parameter: `onramp_id`.
     pub onramp_id: String,
-    /// Query parameter: `status`.
-    pub status: Option<String>,
-    /// Query parameter: `vpcs`.
-    pub vpcs: Option<String>,
-    /// Query parameter: `post_apply_resources`.
-    pub post_apply_resources: Option<String>,
-    /// Query parameter: `planned_resources`.
-    pub planned_resources: Option<String>,
+    /// Query parameter: `status` (true/false).
+    pub status: Option<bool>,
+    /// Query parameter: `vpcs` (true/false).
+    pub vpcs: Option<bool>,
+    /// Query parameter: `post_apply_resources` (true/false).
+    pub post_apply_resources: Option<bool>,
+    /// Query parameter: `planned_resources` (true/false).
+    pub planned_resources: Option<bool>,
 }
 
 /// Arguments for [`onramps-update_request`].
@@ -3163,10 +3163,10 @@ pub struct OnrampsDeleteArgs {
     pub account_id: String,
     /// Path parameter: `onramp_id`.
     pub onramp_id: String,
-    /// Query parameter: `destroy`.
-    pub destroy: Option<String>,
-    /// Query parameter: `force`.
-    pub force: Option<String>,
+    /// Query parameter: `destroy` (true/false).
+    pub destroy: Option<bool>,
+    /// Query parameter: `force` (true/false).
+    pub force: Option<bool>,
 }
 
 /// Arguments for [`onramps-apply_request`].
@@ -3189,14 +3189,14 @@ pub type OnrampsPlanArgs = super::shared::AccountIdOnrampIdArgs;
 pub struct ProvidersListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: `status`.
-    pub status: Option<String>,
+    /// Query parameter: `status` (true/false).
+    pub status: Option<bool>,
     /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: `desc`.
-    pub desc: Option<String>,
-    /// Query parameter: `cloudflare`.
-    pub cloudflare: Option<String>,
+    /// Query parameter: `desc` (true/false).
+    pub desc: Option<bool>,
+    /// Query parameter: `cloudflare` (true/false).
+    pub cloudflare: Option<bool>,
 }
 
 /// Arguments for [`providers-create_request`].
@@ -3220,8 +3220,8 @@ pub struct ProvidersReadArgs {
     pub account_id: String,
     /// Path parameter: `provider_id`.
     pub provider_id: String,
-    /// Query parameter: `status`.
-    pub status: Option<String>,
+    /// Query parameter: `status` (true/false).
+    pub status: Option<bool>,
 }
 
 /// Arguments for [`providers-update_request`].
@@ -3252,8 +3252,8 @@ pub struct ProvidersDiscoverArgs {
     pub account_id: String,
     /// Path parameter: `provider_id`.
     pub provider_id: String,
-    /// Query parameter: `v2`.
-    pub v2: Option<String>,
+    /// Query parameter: `v2` (true/false).
+    pub v2: Option<bool>,
 }
 
 /// Arguments for [`providers-initial-setup_request`].
@@ -5600,9 +5600,12 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("order_by", args.order_by.as_deref());
-    builder = builder.query("desc", args.desc.as_deref());
-    builder = builder.query("status", args.status.as_deref());
-    builder = builder.query("vpcs", args.vpcs.as_deref());
+    builder = builder.query("desc", args.desc.map(|b| if b { "true" } else { "false" }));
+    builder = builder.query(
+        "status",
+        args.status.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query("vpcs", args.vpcs.map(|b| if b { "true" } else { "false" }));
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -5848,10 +5851,21 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("status", args.status.as_deref());
-    builder = builder.query("vpcs", args.vpcs.as_deref());
-    builder = builder.query("post_apply_resources", args.post_apply_resources.as_deref());
-    builder = builder.query("planned_resources", args.planned_resources.as_deref());
+    builder = builder.query(
+        "status",
+        args.status.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query("vpcs", args.vpcs.map(|b| if b { "true" } else { "false" }));
+    builder = builder.query(
+        "post_apply_resources",
+        args.post_apply_resources
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "planned_resources",
+        args.planned_resources
+            .map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -6002,8 +6016,14 @@ where
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("destroy", args.destroy.as_deref());
-    builder = builder.query("force", args.force.as_deref());
+    builder = builder.query(
+        "destroy",
+        args.destroy.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "force",
+        args.force.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -6195,10 +6215,16 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("status", args.status.as_deref());
+    builder = builder.query(
+        "status",
+        args.status.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("order_by", args.order_by.as_deref());
-    builder = builder.query("desc", args.desc.as_deref());
-    builder = builder.query("cloudflare", args.cloudflare.as_deref());
+    builder = builder.query("desc", args.desc.map(|b| if b { "true" } else { "false" }));
+    builder = builder.query(
+        "cloudflare",
+        args.cloudflare.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -6342,7 +6368,10 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("status", args.status.as_deref());
+    builder = builder.query(
+        "status",
+        args.status.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -6540,7 +6569,7 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("v2", args.v2.as_deref());
+    builder = builder.query("v2", args.v2.map(|b| if b { "true" } else { "false" }));
 
     if let Some(f) = builder_mod {
         f(&mut builder);

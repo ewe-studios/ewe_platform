@@ -6808,8 +6808,8 @@ pub struct GetEventListGetArgs {
     pub order: Option<String>,
     /// Query parameter: `datasetId` (one per value).
     pub dataset_id: Vec<String>,
-    /// Query parameter: `forceRefresh`.
-    pub force_refresh: Option<String>,
+    /// Query parameter: `forceRefresh` (true/false).
+    pub force_refresh: Option<bool>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -7008,8 +7008,8 @@ pub struct PostEventCopyToNewDSArgs {
     pub account_id: String,
     /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Query parameter: `keepRawData`.
-    pub keep_raw_data: Option<String>,
+    /// Query parameter: `keepRawData` (true/false).
+    pub keep_raw_data: Option<bool>,
     /// Request body.
     pub body: PostEventCopyToNewDsRequest,
 }
@@ -7093,8 +7093,8 @@ pub struct PostEventMoveToNewDSArgs {
     pub account_id: String,
     /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Query parameter: `keepRawData`.
-    pub keep_raw_data: Option<String>,
+    /// Query parameter: `keepRawData` (true/false).
+    pub keep_raw_data: Option<bool>,
     /// Request body.
     pub body: PostEventMoveToNewDsRequest,
 }
@@ -7227,10 +7227,10 @@ pub struct GetIndicatorListArgs {
     pub created_before: Option<String>,
     /// Query parameter: `relatedEventsLimit`.
     pub related_events_limit: Option<String>,
-    /// Query parameter: `includeTags`.
-    pub include_tags: Option<String>,
-    /// Query parameter: `includeTotalCount`.
-    pub include_total_count: Option<String>,
+    /// Query parameter: `includeTags` (true/false).
+    pub include_tags: Option<bool>,
+    /// Query parameter: `includeTotalCount` (true/false).
+    pub include_total_count: Option<bool>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -7568,8 +7568,8 @@ pub struct GetEventRelationshipsArgs {
     pub indicator_type_ids: Vec<String>,
     /// Query parameter: `datasetId`.
     pub dataset_id: Option<String>,
-    /// Query parameter: `includeParent`.
-    pub include_parent: Option<String>,
+    /// Query parameter: `includeParent` (true/false).
+    pub include_parent: Option<bool>,
     /// Query parameter: `page`.
     pub page: Option<String>,
     /// Query parameter: `pageSize`.
@@ -9477,7 +9477,10 @@ where
     for value in &args.dataset_id {
         builder = builder.query("datasetId", Some(value.as_str()));
     }
-    builder = builder.query("forceRefresh", args.force_refresh.as_deref());
+    builder = builder.query(
+        "forceRefresh",
+        args.force_refresh.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
@@ -10751,7 +10754,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("keepRawData", args.keep_raw_data.as_deref());
+    builder = builder.query(
+        "keepRawData",
+        args.keep_raw_data.map(|b| if b { "true" } else { "false" }),
+    );
 
     builder = builder
         .body_json(&args.body)
@@ -11196,7 +11202,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("keepRawData", args.keep_raw_data.as_deref());
+    builder = builder.query(
+        "keepRawData",
+        args.keep_raw_data.map(|b| if b { "true" } else { "false" }),
+    );
 
     builder = builder
         .body_json(&args.body)
@@ -11812,8 +11821,15 @@ where
     builder = builder.query("createdAfter", args.created_after.as_deref());
     builder = builder.query("createdBefore", args.created_before.as_deref());
     builder = builder.query("relatedEventsLimit", args.related_events_limit.as_deref());
-    builder = builder.query("includeTags", args.include_tags.as_deref());
-    builder = builder.query("includeTotalCount", args.include_total_count.as_deref());
+    builder = builder.query(
+        "includeTags",
+        args.include_tags.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "includeTotalCount",
+        args.include_total_count
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("format", args.format.as_deref());
 
     if let Some(f) = builder_mod {
@@ -13556,7 +13572,11 @@ where
         builder = builder.query("indicatorTypeIds", Some(value.as_str()));
     }
     builder = builder.query("datasetId", args.dataset_id.as_deref());
-    builder = builder.query("includeParent", args.include_parent.as_deref());
+    builder = builder.query(
+        "includeParent",
+        args.include_parent
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("page", args.page.as_deref());
     builder = builder.query("pageSize", args.page_size.as_deref());
 

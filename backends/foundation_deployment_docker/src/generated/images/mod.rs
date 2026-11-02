@@ -34,10 +34,10 @@ use super::shared::ApiResponse;
 pub struct ImageDeleteArgs {
     /// Path parameter: `name`.
     pub name: String,
-    /// Query parameter: `force`.
-    pub force: Option<String>,
-    /// Query parameter: `noprune`.
-    pub noprune: Option<String>,
+    /// Query parameter: `force` (true/false).
+    pub force: Option<bool>,
+    /// Query parameter: `noprune` (true/false).
+    pub noprune: Option<bool>,
     /// Query parameter: `platforms` (one per value).
     pub platforms: Vec<String>,
 }
@@ -83,8 +83,14 @@ where
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("force", args.force.as_deref());
-    builder = builder.query("noprune", args.noprune.as_deref());
+    builder = builder.query(
+        "force",
+        args.force.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "noprune",
+        args.noprune.map(|b| if b { "true" } else { "false" }),
+    );
     for value in &args.platforms {
         builder = builder.query("platforms", Some(value.as_str()));
     }

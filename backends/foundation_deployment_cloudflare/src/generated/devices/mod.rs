@@ -3759,10 +3759,10 @@ pub struct ZeroTrustNetworksSubnetsListArgs {
     pub existed_at: Option<String>,
     /// Query parameter: `address_family`.
     pub address_family: Option<String>,
-    /// Query parameter: `is_default_network`.
-    pub is_default_network: Option<String>,
-    /// Query parameter: `is_deleted`.
-    pub is_deleted: Option<String>,
+    /// Query parameter: `is_default_network` (true/false).
+    pub is_default_network: Option<bool>,
+    /// Query parameter: `is_deleted` (true/false).
+    pub is_deleted: Option<bool>,
     /// Query parameter: `sort_order`.
     pub sort_order: Option<String>,
     /// Query parameter: `subnet_types`.
@@ -8628,8 +8628,15 @@ where
     builder = builder.query("network", args.network.as_deref());
     builder = builder.query("existed_at", args.existed_at.as_deref());
     builder = builder.query("address_family", args.address_family.as_deref());
-    builder = builder.query("is_default_network", args.is_default_network.as_deref());
-    builder = builder.query("is_deleted", args.is_deleted.as_deref());
+    builder = builder.query(
+        "is_default_network",
+        args.is_default_network
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "is_deleted",
+        args.is_deleted.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("sort_order", args.sort_order.as_deref());
     builder = builder.query("subnet_types", args.subnet_types.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());

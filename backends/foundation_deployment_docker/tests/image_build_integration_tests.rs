@@ -77,7 +77,7 @@ async fn builds_an_inline_dockerfile_and_tags_it() {
         .image_build(
             &context,
             &ImageBuildOptions {
-                tag: Some(t.clone()),
+                tags: vec![t.clone()],
                 ..Default::default()
             },
         )
@@ -123,7 +123,7 @@ async fn context_directory_files_are_uploaded_and_copyable() {
         .image_build(
             &context,
             &ImageBuildOptions {
-                tag: Some(t.clone()),
+                tags: vec![t.clone()],
                 ..Default::default()
             },
         )
@@ -159,7 +159,7 @@ async fn build_args_reach_the_build() {
         .image_build(
             &context,
             &ImageBuildOptions {
-                tag: Some(t.clone()),
+                tags: vec![t.clone()],
                 build_args: vec![("GREETING".to_string(), "delivered".to_string())],
                 no_cache: true,
                 ..Default::default()
@@ -196,7 +196,7 @@ async fn a_failing_build_is_an_error_not_a_success() {
         .image_build(
             &context,
             &ImageBuildOptions {
-                tag: Some(t.clone()),
+                tags: vec![t.clone()],
                 no_cache: true,
                 // Nothing here will inspect the failed layer, so do not leave a
                 // dead intermediate container behind for every run.

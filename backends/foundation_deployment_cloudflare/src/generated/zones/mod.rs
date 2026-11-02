@@ -10865,8 +10865,8 @@ pub struct ApiShieldApiDiscoveryRetrieveDiscoveredOperationsOnAZoneArgs {
     pub direction: Option<String>,
     /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: `diff`.
-    pub diff: Option<String>,
+    /// Query parameter: `diff` (true/false).
+    pub diff: Option<bool>,
     /// Query parameter: `origin`.
     pub origin: Option<String>,
     /// Query parameter: `state`.
@@ -10919,8 +10919,8 @@ pub struct ApiShieldLabelsGetLabelsArgs {
     pub source: Option<String>,
     /// Query parameter: `filter`.
     pub filter: Option<String>,
-    /// Query parameter: `with_mapped_resource_counts`.
-    pub with_mapped_resource_counts: Option<String>,
+    /// Query parameter: `with_mapped_resource_counts` (true/false).
+    pub with_mapped_resource_counts: Option<bool>,
 }
 
 /// Arguments for [`api-shield-labels-get-managed-label_request`].
@@ -11505,8 +11505,8 @@ pub struct CustomHostnameForAZoneListCustomHostnamesArgs {
     pub hostname_status: Option<String>,
     /// Query parameter: `certificate_authority`.
     pub certificate_authority: Option<String>,
-    /// Query parameter: `wildcard`.
-    pub wildcard: Option<String>,
+    /// Query parameter: `wildcard` (true/false).
+    pub wildcard: Option<bool>,
     /// Query parameter: `custom_origin_server`.
     pub custom_origin_server: Option<String>,
     /// Query parameter: `ssl`.
@@ -11891,8 +11891,8 @@ pub struct EmailRoutingRoutingRulesListRoutingRulesArgs {
     pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: `enabled`.
-    pub enabled: Option<String>,
+    /// Query parameter: `enabled` (true/false).
+    pub enabled: Option<bool>,
 }
 
 /// Arguments for [`email-routing-routing-rules-create-routing-rule_request`].
@@ -12164,8 +12164,8 @@ pub struct UserAgentBlockingRulesListUserAgentBlockingRulesArgs {
     pub per_page: Option<String>,
     /// Query parameter: `user_agent`.
     pub user_agent: Option<String>,
-    /// Query parameter: `paused`.
-    pub paused: Option<String>,
+    /// Query parameter: `paused` (true/false).
+    pub paused: Option<bool>,
 }
 
 /// Arguments for [`user-agent-blocking-rules-create-a-user-agent-blocking-rule_request`].
@@ -12277,8 +12277,8 @@ pub type Zones0HoldGetArgs = super::shared::ZoneIdArgs;
 pub struct Zones0HoldPostArgs {
     /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: `include_subdomains`.
-    pub include_subdomains: Option<String>,
+    /// Query parameter: `include_subdomains` (true/false).
+    pub include_subdomains: Option<bool>,
 }
 
 /// Arguments for [`zones-0-hold-patch_request`].
@@ -12761,10 +12761,10 @@ pub struct PageShieldListConnectionsArgs {
     pub order_by: Option<String>,
     /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: `prioritize_malicious`.
-    pub prioritize_malicious: Option<String>,
-    /// Query parameter: `exclude_cdn_cgi`.
-    pub exclude_cdn_cgi: Option<String>,
+    /// Query parameter: `prioritize_malicious` (true/false).
+    pub prioritize_malicious: Option<bool>,
+    /// Query parameter: `exclude_cdn_cgi` (true/false).
+    pub exclude_cdn_cgi: Option<bool>,
     /// Query parameter: `status`.
     pub status: Option<String>,
     /// Query parameter: `page_url`.
@@ -12803,10 +12803,10 @@ pub struct PageShieldListCookiesArgs {
     pub export: Option<String>,
     /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: `secure`.
-    pub secure: Option<String>,
-    /// Query parameter: `http_only`.
-    pub http_only: Option<String>,
+    /// Query parameter: `secure` (true/false).
+    pub secure: Option<bool>,
+    /// Query parameter: `http_only` (true/false).
+    pub http_only: Option<bool>,
     /// Query parameter: `same_site`.
     pub same_site: Option<String>,
     /// Query parameter: `type`.
@@ -12876,12 +12876,12 @@ pub struct PageShieldListScriptsArgs {
     pub order_by: Option<String>,
     /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: `prioritize_malicious`.
-    pub prioritize_malicious: Option<String>,
-    /// Query parameter: `exclude_cdn_cgi`.
-    pub exclude_cdn_cgi: Option<String>,
-    /// Query parameter: `exclude_duplicates`.
-    pub exclude_duplicates: Option<String>,
+    /// Query parameter: `prioritize_malicious` (true/false).
+    pub prioritize_malicious: Option<bool>,
+    /// Query parameter: `exclude_cdn_cgi` (true/false).
+    pub exclude_cdn_cgi: Option<bool>,
+    /// Query parameter: `exclude_duplicates` (true/false).
+    pub exclude_duplicates: Option<bool>,
     /// Query parameter: `status`.
     pub status: Option<String>,
     /// Query parameter: `page_url`.
@@ -13088,10 +13088,10 @@ pub struct SchemaValidationListSchemasPaginatedArgs {
     pub page: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: `omit_source`.
-    pub omit_source: Option<String>,
-    /// Query parameter: `validation_enabled`.
-    pub validation_enabled: Option<String>,
+    /// Query parameter: `omit_source` (true/false).
+    pub omit_source: Option<bool>,
+    /// Query parameter: `validation_enabled` (true/false).
+    pub validation_enabled: Option<bool>,
 }
 
 /// Arguments for [`schema-validation-create-schema_request`].
@@ -13111,8 +13111,8 @@ pub struct SchemaValidationGetSchemaArgs {
     pub zone_id: String,
     /// Path parameter: `schema_id`.
     pub schema_id: String,
-    /// Query parameter: `omit_source`.
-    pub omit_source: Option<String>,
+    /// Query parameter: `omit_source` (true/false).
+    pub omit_source: Option<bool>,
 }
 
 /// Arguments for [`schema-validation-edit-schema_request`].
@@ -17614,7 +17614,7 @@ where
     builder = builder.query("endpoint", args.endpoint.as_deref());
     builder = builder.query("direction", args.direction.as_deref());
     builder = builder.query("order", args.order.as_deref());
-    builder = builder.query("diff", args.diff.as_deref());
+    builder = builder.query("diff", args.diff.map(|b| if b { "true" } else { "false" }));
     builder = builder.query("origin", args.origin.as_deref());
     builder = builder.query("state", args.state.as_deref());
 
@@ -17820,7 +17820,8 @@ where
     builder = builder.query("filter", args.filter.as_deref());
     builder = builder.query(
         "with_mapped_resource_counts",
-        args.with_mapped_resource_counts.as_deref(),
+        args.with_mapped_resource_counts
+            .map(|b| if b { "true" } else { "false" }),
     );
 
     if let Some(f) = builder_mod {
@@ -17872,7 +17873,8 @@ where
 
     builder = builder.query(
         "with_mapped_resource_counts",
-        args.with_mapped_resource_counts.as_deref(),
+        args.with_mapped_resource_counts
+            .map(|b| if b { "true" } else { "false" }),
     );
 
     if let Some(f) = builder_mod {
@@ -18070,7 +18072,8 @@ where
 
     builder = builder.query(
         "with_mapped_resource_counts",
-        args.with_mapped_resource_counts.as_deref(),
+        args.with_mapped_resource_counts
+            .map(|b| if b { "true" } else { "false" }),
     );
 
     if let Some(f) = builder_mod {
@@ -21256,7 +21259,10 @@ where
         "certificate_authority",
         args.certificate_authority.as_deref(),
     );
-    builder = builder.query("wildcard", args.wildcard.as_deref());
+    builder = builder.query(
+        "wildcard",
+        args.wildcard.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("custom_origin_server", args.custom_origin_server.as_deref());
     builder = builder.query("ssl", args.ssl.as_deref());
 
@@ -23095,7 +23101,10 @@ where
 
     builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
-    builder = builder.query("enabled", args.enabled.as_deref());
+    builder = builder.query(
+        "enabled",
+        args.enabled.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -24630,7 +24639,10 @@ where
     builder = builder.query("description", args.description.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("user_agent", args.user_agent.as_deref());
-    builder = builder.query("paused", args.paused.as_deref());
+    builder = builder.query(
+        "paused",
+        args.paused.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -25441,7 +25453,11 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("include_subdomains", args.include_subdomains.as_deref());
+    builder = builder.query(
+        "include_subdomains",
+        args.include_subdomains
+            .map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -28426,8 +28442,16 @@ where
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("order_by", args.order_by.as_deref());
     builder = builder.query("direction", args.direction.as_deref());
-    builder = builder.query("prioritize_malicious", args.prioritize_malicious.as_deref());
-    builder = builder.query("exclude_cdn_cgi", args.exclude_cdn_cgi.as_deref());
+    builder = builder.query(
+        "prioritize_malicious",
+        args.prioritize_malicious
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "exclude_cdn_cgi",
+        args.exclude_cdn_cgi
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("status", args.status.as_deref());
     builder = builder.query("page_url", args.page_url.as_deref());
     builder = builder.query("export", args.export.as_deref());
@@ -28531,8 +28555,14 @@ where
     builder = builder.query("page_url", args.page_url.as_deref());
     builder = builder.query("export", args.export.as_deref());
     builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("secure", args.secure.as_deref());
-    builder = builder.query("http_only", args.http_only.as_deref());
+    builder = builder.query(
+        "secure",
+        args.secure.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "http_only",
+        args.http_only.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("same_site", args.same_site.as_deref());
     builder = builder.query("type", args.r#type.as_deref());
     builder = builder.query("path", args.path.as_deref());
@@ -28869,9 +28899,21 @@ where
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("order_by", args.order_by.as_deref());
     builder = builder.query("direction", args.direction.as_deref());
-    builder = builder.query("prioritize_malicious", args.prioritize_malicious.as_deref());
-    builder = builder.query("exclude_cdn_cgi", args.exclude_cdn_cgi.as_deref());
-    builder = builder.query("exclude_duplicates", args.exclude_duplicates.as_deref());
+    builder = builder.query(
+        "prioritize_malicious",
+        args.prioritize_malicious
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "exclude_cdn_cgi",
+        args.exclude_cdn_cgi
+            .map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "exclude_duplicates",
+        args.exclude_duplicates
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("status", args.status.as_deref());
     builder = builder.query("page_url", args.page_url.as_deref());
     builder = builder.query("export", args.export.as_deref());
@@ -30167,8 +30209,15 @@ where
 
     builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
-    builder = builder.query("omit_source", args.omit_source.as_deref());
-    builder = builder.query("validation_enabled", args.validation_enabled.as_deref());
+    builder = builder.query(
+        "omit_source",
+        args.omit_source.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "validation_enabled",
+        args.validation_enabled
+            .map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -30308,7 +30357,10 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("omit_source", args.omit_source.as_deref());
+    builder = builder.query(
+        "omit_source",
+        args.omit_source.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);

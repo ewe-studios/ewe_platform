@@ -5680,8 +5680,8 @@ pub struct WorkerAccountSettingsCreateWorkerAccountSettingsArgs {
 pub struct WorkerAssetsUploadArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: `base64`.
-    pub base64: Option<String>,
+    /// Query parameter: `base64` (true/false).
+    pub base64: Option<bool>,
 }
 
 /// Arguments for [`namespace-worker-list_request`].
@@ -5782,8 +5782,8 @@ pub struct NamespaceWorkerScriptDeleteWorkerArgs {
     pub dispatch_namespace: String,
     /// Path parameter: `script_name`.
     pub script_name: String,
-    /// Query parameter: `force`.
-    pub force: Option<String>,
+    /// Query parameter: `force` (true/false).
+    pub force: Option<bool>,
 }
 
 /// Arguments for [`namespace-worker-script-update-create-assets-upload-session_request`].
@@ -6072,8 +6072,8 @@ pub struct WorkerScriptDeleteWorkerArgs {
     pub account_id: String,
     /// Path parameter: `script_name`.
     pub script_name: String,
-    /// Query parameter: `force`.
-    pub force: Option<String>,
+    /// Query parameter: `force` (true/false).
+    pub force: Option<bool>,
 }
 
 /// Arguments for [`worker-script-update-create-assets-upload-session_request`].
@@ -6109,8 +6109,8 @@ pub struct WorkerDeploymentsCreateDeploymentArgs {
     pub account_id: String,
     /// Path parameter: `script_name`.
     pub script_name: String,
-    /// Query parameter: `force`.
-    pub force: Option<String>,
+    /// Query parameter: `force` (true/false).
+    pub force: Option<bool>,
     /// Request body.
     pub body: WorkersDeployment,
 }
@@ -6253,8 +6253,8 @@ pub struct WorkerVersionsListVersionsArgs {
     pub account_id: String,
     /// Path parameter: `script_name`.
     pub script_name: String,
-    /// Query parameter: `deployable`.
-    pub deployable: Option<String>,
+    /// Query parameter: `deployable` (true/false).
+    pub deployable: Option<bool>,
     /// Query parameter: `page`.
     pub page: Option<String>,
     /// Query parameter: `per_page`.
@@ -6403,8 +6403,8 @@ pub struct CreateWorkerVersionArgs {
     pub account_id: String,
     /// Path parameter: `worker_id`.
     pub worker_id: String,
-    /// Query parameter: `deploy`.
-    pub deploy: Option<String>,
+    /// Query parameter: `deploy` (true/false).
+    pub deploy: Option<bool>,
     /// Request body.
     pub body: WorkersVersion,
 }
@@ -11204,7 +11204,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("base64", args.base64.as_deref());
+    builder = builder.query(
+        "base64",
+        args.base64.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -11736,7 +11739,10 @@ where
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("force", args.force.as_deref());
+    builder = builder.query(
+        "force",
+        args.force.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -13595,7 +13601,10 @@ where
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("force", args.force.as_deref());
+    builder = builder.query(
+        "force",
+        args.force.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -13841,7 +13850,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("force", args.force.as_deref());
+    builder = builder.query(
+        "force",
+        args.force.map(|b| if b { "true" } else { "false" }),
+    );
 
     builder = builder
         .body_json(&args.body)
@@ -14811,7 +14823,10 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("deployable", args.deployable.as_deref());
+    builder = builder.query(
+        "deployable",
+        args.deployable.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
 
@@ -15634,7 +15649,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("deploy", args.deploy.as_deref());
+    builder = builder.query(
+        "deploy",
+        args.deploy.map(|b| if b { "true" } else { "false" }),
+    );
 
     builder = builder
         .body_json(&args.body)

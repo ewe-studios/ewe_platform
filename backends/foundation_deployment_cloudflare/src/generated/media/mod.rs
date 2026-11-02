@@ -3268,8 +3268,8 @@ pub struct FetchAllLivestreamsArgs {
     pub account_id: String,
     /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Query parameter: `exclude_meetings`.
-    pub exclude_meetings: Option<String>,
+    /// Query parameter: `exclude_meetings` (true/false).
+    pub exclude_meetings: Option<bool>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
     /// Query parameter: `page_no`.
@@ -3518,8 +3518,8 @@ pub struct GetAllRecordingsArgs {
     pub page_no: Option<String>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: `expired`.
-    pub expired: Option<String>,
+    /// Query parameter: `expired` (true/false).
+    pub expired: Option<bool>,
     /// Query parameter: `search`.
     pub search: Option<String>,
     /// Query parameter: `sort_by`.
@@ -3624,8 +3624,8 @@ pub struct GetSessionDetailsArgs {
     pub app_id: String,
     /// Path parameter: `session_id`.
     pub session_id: String,
-    /// Query parameter: `include_breakout_rooms`.
-    pub include_breakout_rooms: Option<String>,
+    /// Query parameter: `include_breakout_rooms` (true/false).
+    pub include_breakout_rooms: Option<bool>,
 }
 
 /// Arguments for [`get-v2-livestreamsession-session-meetingId-active-livestream_request`].
@@ -3662,8 +3662,8 @@ pub struct GetSessionParticipantsArgs {
     pub sort_order: Option<String>,
     /// Query parameter: `sort_by`.
     pub sort_by: Option<String>,
-    /// Query parameter: `include_peer_events`.
-    pub include_peer_events: Option<String>,
+    /// Query parameter: `include_peer_events` (true/false).
+    pub include_peer_events: Option<bool>,
     /// Query parameter: `view`.
     pub view: Option<String>,
 }
@@ -3681,8 +3681,8 @@ pub struct GetParticipantDetailsArgs {
     pub session_id: String,
     /// Query parameter: `filters`.
     pub filters: Option<String>,
-    /// Query parameter: `include_peer_events`.
-    pub include_peer_events: Option<String>,
+    /// Query parameter: `include_peer_events` (true/false).
+    pub include_peer_events: Option<bool>,
 }
 
 /// Arguments for [`GetSessionSummary_request`].
@@ -5841,7 +5841,11 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("exclude_meetings", args.exclude_meetings.as_deref());
+    builder = builder.query(
+        "exclude_meetings",
+        args.exclude_meetings
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("page_no", args.page_no.as_deref());
     builder = builder.query("status", args.status.as_deref());
@@ -7286,7 +7290,10 @@ where
     builder = builder.query("meeting_id", args.meeting_id.as_deref());
     builder = builder.query("page_no", args.page_no.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
-    builder = builder.query("expired", args.expired.as_deref());
+    builder = builder.query(
+        "expired",
+        args.expired.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("search", args.search.as_deref());
     builder = builder.query("sort_by", args.sort_by.as_deref());
     builder = builder.query("sort_order", args.sort_order.as_deref());
@@ -7691,7 +7698,8 @@ where
 
     builder = builder.query(
         "include_breakout_rooms",
-        args.include_breakout_rooms.as_deref(),
+        args.include_breakout_rooms
+            .map(|b| if b { "true" } else { "false" }),
     );
 
     if let Some(f) = builder_mod {
@@ -7799,7 +7807,11 @@ where
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("sort_order", args.sort_order.as_deref());
     builder = builder.query("sort_by", args.sort_by.as_deref());
-    builder = builder.query("include_peer_events", args.include_peer_events.as_deref());
+    builder = builder.query(
+        "include_peer_events",
+        args.include_peer_events
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("view", args.view.as_deref());
 
     if let Some(f) = builder_mod {
@@ -7850,7 +7862,11 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("filters", args.filters.as_deref());
-    builder = builder.query("include_peer_events", args.include_peer_events.as_deref());
+    builder = builder.query(
+        "include_peer_events",
+        args.include_peer_events
+            .map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);

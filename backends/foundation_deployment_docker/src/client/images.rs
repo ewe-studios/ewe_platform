@@ -24,8 +24,8 @@
 /// request body, not a parameter.
 #[derive(Debug, Clone, Default)]
 pub struct ImageBuildOptions {
-    /// `name:tag` to apply to the built image.
-    pub tag: Option<String>,
+    /// `name:tag` values to apply to the built image (several allowed).
+    pub tags: Vec<String>,
     /// Path of the Dockerfile *within the context* (default: `Dockerfile`).
     pub dockerfile: Option<String>,
     /// `ARG` values for the build.
@@ -106,10 +106,10 @@ impl DockerClient {
         digests: Option<bool>,
     ) -> Result<serde_json::Value, DockerError> {
         let args = ImageListArgs {
-            all: all.map(|v| v.to_string()),
+            all,
             filters: filters.map(str::to_string),
-            shared_size: shared_size.map(|v| v.to_string()),
-            digests: digests.map(|v| v.to_string()),
+            shared_size,
+            digests,
             manifests: None,
         };
         let response =
@@ -185,8 +185,8 @@ impl DockerClient {
     ) -> Result<serde_json::Value, DockerError> {
         let args = ImageDeleteArgs {
             name: name.to_string(),
-            force: force.map(|v| v.to_string()),
-            noprune: noprune.map(|v| v.to_string()),
+            force,
+            noprune,
             platforms: Vec::new(),
         };
         let response =
@@ -234,7 +234,7 @@ impl DockerClient {
         quiet: Option<bool>,
     ) -> Result<ProgressStream<BuildInfo>, DockerError> {
         let args = ImageLoadArgs {
-            quiet: quiet.map(|v| v.to_string()),
+            quiet,
             platform: Vec::new(),
         };
         let response = image_load_request(
@@ -260,7 +260,7 @@ impl DockerClient {
             tag: opts.tag.clone(),
             comment: opts.comment.clone(),
             author: opts.author.clone(),
-            pause: opts.pause.map(|v| v.to_string()),
+            pause: opts.pause,
             changes: opts.changes.clone(),
             body: ContainerConfig::default(),
         };
@@ -317,15 +317,15 @@ impl DockerClient {
         };
         let args = ImageBuildArgs {
             dockerfile: opts.dockerfile.clone(),
-            t: opts.tag.clone(),
+            t: opts.tags.clone(),
             target: opts.target.clone(),
             platform: opts.platform.clone(),
-            nocache: Some(opts.no_cache.to_string()),
+            nocache: Some(opts.no_cache),
             pull: Some(opts.pull.to_string()),
             // Remove intermediate containers from a successful build; `forcerm`
             // also removes them when it fails (see `ImageBuildOptions::force_rm`).
-            rm: Some("true".to_string()),
-            forcerm: opts.force_rm.then(|| "true".to_string()),
+            rm: Some(true),
+            forcerm: opts.force_rm.then_some(true),
             buildargs: json_map("buildargs", &opts.build_args)?,
             labels: json_map("labels", &opts.labels)?,
             ..ImageBuildArgs::default()
@@ -481,7 +481,7 @@ impl DockerClient {
             reserved_space: reserved_space.map(|v| v.to_string()),
             max_used_space: max_used_space.map(|v| v.to_string()),
             min_free_space: None,
-            all: all.map(|v| v.to_string()),
+            all,
             filters: filters.map(str::to_string),
         };
         build_prune_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;

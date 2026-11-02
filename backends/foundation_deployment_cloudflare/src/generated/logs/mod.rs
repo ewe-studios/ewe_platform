@@ -766,8 +766,8 @@ pub struct AuditLogsGetAccountAuditLogsArgs {
     pub account_id: String,
     /// Query parameter: `id`.
     pub id: Option<String>,
-    /// Query parameter: `export`.
-    pub export: Option<String>,
+    /// Query parameter: `export` (true/false).
+    pub export: Option<bool>,
     /// Query parameter: `action.type`.
     pub action_type: Option<String>,
     /// Query parameter: `actor.ip`.
@@ -786,8 +786,8 @@ pub struct AuditLogsGetAccountAuditLogsArgs {
     pub per_page: Option<String>,
     /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: `hide_user_logs`.
-    pub hide_user_logs: Option<String>,
+    /// Query parameter: `hide_user_logs` (true/false).
+    pub hide_user_logs: Option<bool>,
 }
 
 /// Arguments for [`dlp-payload-log-get_request`].
@@ -1071,8 +1071,8 @@ pub struct CatalogSyncsDeleteArgs {
     pub account_id: String,
     /// Path parameter: `sync_id`.
     pub sync_id: String,
-    /// Query parameter: `delete_destination`.
-    pub delete_destination: Option<String>,
+    /// Query parameter: `delete_destination` (true/false).
+    pub delete_destination: Option<bool>,
 }
 
 /// Arguments for [`catalog-syncs-refresh_request`].
@@ -1095,22 +1095,22 @@ pub struct ResourcesCatalogListArgs {
     pub region: Option<String>,
     /// Query parameter: `resource_group`.
     pub resource_group: Option<String>,
-    /// Query parameter: `managed`.
-    pub managed: Option<String>,
+    /// Query parameter: `managed` (true/false).
+    pub managed: Option<bool>,
     /// Query parameter: `search` (one per value).
     pub search: Vec<String>,
     /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: `desc`.
-    pub desc: Option<String>,
+    /// Query parameter: `desc` (true/false).
+    pub desc: Option<bool>,
     /// Query parameter: `per_page`.
     pub per_page: Option<String>,
     /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: `cloudflare`.
-    pub cloudflare: Option<String>,
-    /// Query parameter: `v2`.
-    pub v2: Option<String>,
+    /// Query parameter: `cloudflare` (true/false).
+    pub cloudflare: Option<bool>,
+    /// Query parameter: `v2` (true/false).
+    pub v2: Option<bool>,
 }
 
 /// Arguments for [`resources-catalog-export_request`].
@@ -1132,10 +1132,10 @@ pub struct ResourcesCatalogExportArgs {
     pub search: Vec<String>,
     /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: `desc`.
-    pub desc: Option<String>,
-    /// Query parameter: `v2`.
-    pub v2: Option<String>,
+    /// Query parameter: `desc` (true/false).
+    pub desc: Option<bool>,
+    /// Query parameter: `v2` (true/false).
+    pub v2: Option<bool>,
 }
 
 /// Arguments for [`resources-catalog-policy-preview_request`].
@@ -1154,8 +1154,8 @@ pub struct ResourcesCatalogReadArgs {
     pub account_id: String,
     /// Path parameter: `resource_id`.
     pub resource_id: String,
-    /// Query parameter: `v2`.
-    pub v2: Option<String>,
+    /// Query parameter: `v2` (true/false).
+    pub v2: Option<bool>,
 }
 
 /// Arguments for [`slurper-get-job-logs_request`].
@@ -1213,7 +1213,10 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("id", args.id.as_deref());
-    builder = builder.query("export", args.export.as_deref());
+    builder = builder.query(
+        "export",
+        args.export.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("action.type", args.action_type.as_deref());
     builder = builder.query("actor.ip", args.actor_ip.as_deref());
     builder = builder.query("actor.email", args.actor_email.as_deref());
@@ -1223,7 +1226,11 @@ where
     builder = builder.query("direction", args.direction.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("page", args.page.as_deref());
-    builder = builder.query("hide_user_logs", args.hide_user_logs.as_deref());
+    builder = builder.query(
+        "hide_user_logs",
+        args.hide_user_logs
+            .map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -2537,7 +2544,11 @@ where
     let mut builder = PreparedRequestBuilder::delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("delete_destination", args.delete_destination.as_deref());
+    builder = builder.query(
+        "delete_destination",
+        args.delete_destination
+            .map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -2639,16 +2650,22 @@ where
     }
     builder = builder.query("region", args.region.as_deref());
     builder = builder.query("resource_group", args.resource_group.as_deref());
-    builder = builder.query("managed", args.managed.as_deref());
+    builder = builder.query(
+        "managed",
+        args.managed.map(|b| if b { "true" } else { "false" }),
+    );
     for value in &args.search {
         builder = builder.query("search", Some(value.as_str()));
     }
     builder = builder.query("order_by", args.order_by.as_deref());
-    builder = builder.query("desc", args.desc.as_deref());
+    builder = builder.query("desc", args.desc.map(|b| if b { "true" } else { "false" }));
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("page", args.page.as_deref());
-    builder = builder.query("cloudflare", args.cloudflare.as_deref());
-    builder = builder.query("v2", args.v2.as_deref());
+    builder = builder.query(
+        "cloudflare",
+        args.cloudflare.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query("v2", args.v2.map(|b| if b { "true" } else { "false" }));
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -2712,8 +2729,8 @@ where
         builder = builder.query("search", Some(value.as_str()));
     }
     builder = builder.query("order_by", args.order_by.as_deref());
-    builder = builder.query("desc", args.desc.as_deref());
-    builder = builder.query("v2", args.v2.as_deref());
+    builder = builder.query("desc", args.desc.map(|b| if b { "true" } else { "false" }));
+    builder = builder.query("v2", args.v2.map(|b| if b { "true" } else { "false" }));
 
     if let Some(f) = builder_mod {
         f(&mut builder);
@@ -2813,7 +2830,7 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("v2", args.v2.as_deref());
+    builder = builder.query("v2", args.v2.map(|b| if b { "true" } else { "false" }));
 
     if let Some(f) = builder_mod {
         f(&mut builder);

@@ -67,7 +67,7 @@ impl DockerClient {
     ) -> Result<NetworkInspect, DockerError> {
         let args = NetworkInspectArgs {
             id: id.to_string(),
-            verbose: verbose.map(|v| v.to_string()),
+            verbose,
             scope: scope.map(str::to_string),
         };
         let response =

@@ -1340,8 +1340,8 @@ pub struct CloudflareTunnelListAllTunnelsArgs {
     pub account_id: String,
     /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: `is_deleted`.
-    pub is_deleted: Option<String>,
+    /// Query parameter: `is_deleted` (true/false).
+    pub is_deleted: Option<bool>,
     /// Query parameter: `existed_at`.
     pub existed_at: Option<String>,
     /// Query parameter: `uuid`.
@@ -2017,7 +2017,10 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("is_deleted", args.is_deleted.as_deref());
+    builder = builder.query(
+        "is_deleted",
+        args.is_deleted.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("existed_at", args.existed_at.as_deref());
     builder = builder.query("uuid", args.uuid.as_deref());
     builder = builder.query("was_active_at", args.was_active_at.as_deref());

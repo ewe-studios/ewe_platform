@@ -22,6 +22,8 @@ use std::sync::{mpsc, Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::valtron_test;
+use foundation_deployment_docker::client::build_context::ContextTar;
+use foundation_deployment_docker::client::images::ImageBuildOptions;
 use foundation_deployment_docker::{DockerClient, DockerError, DockerLimits};
 
 fn temp_socket_path(tag: &str) -> PathBuf {
@@ -30,7 +32,7 @@ fn temp_socket_path(tag: &str) -> PathBuf {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let path = std::env::temp_dir().join(format!("ewe_docker_images_{tag}_{pid}_{nanos}.sock"));
+    let path = std::path::PathBuf::from("/tmp").join(format!("ewe_docker_images_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path
 }
@@ -414,4 +416,78 @@ async fn a_configured_error_body_cap_is_the_one_enforced() {
     }
 
     mock_socket::stop(&socket, &stop);
+}
+
+/// `image_build` sends several tags as repeated `t=` query parameters.
+///
+/// WHY: The Docker spec declares `t` as one string, but the daemon accepts
+/// several `t` parameters — one per `name:tag`. The generator now types it as
+/// `Vec<String>` and this proves the hand-written client sends each tag as its
+/// own `t=` pair.
+#[valtron_test]
+async fn image_build_sends_two_tags() {
+    // A short socket path: `TMPDIR` on macOS is deep enough that the usual
+    // `temp_socket_path` exceeds `SUN_LEN` (backlog §6).
+    let socket = std::path::PathBuf::from(format!(
+        "/tmp/ewe_bt_{}_{}.sock",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |d| d.as_nanos())
+    ));
+    let _ = std::fs::remove_file(&socket);
+    let stop = Arc::new(AtomicBool::new(false));
+    let targets = Arc::new(Mutex::new(Vec::new()));
+    let seen = Arc::clone(&targets);
+    mock_socket::serve(&socket, stop.clone(), move |stream| {
+        let seen = Arc::clone(&seen);
+        std::thread::spawn(move || {
+            let mut stream = stream;
+            let Some(req) = mock_socket::read_request(&mut stream) else {
+                return;
+            };
+            let (status, body) = if req.method == "GET" && req.target == "/version" {
+                (200, r#"{"ApiVersion":"1.53","MinAPIVersion":"1.24"}"#.to_string())
+            } else if req.method == "POST" && req.target.contains("/build") {
+                seen.lock().expect("targets lock").push(req.target.clone());
+                (200, String::new())
+            } else {
+                (404, format!(r#"{{"message":"no route for {} {}"}}"#, req.method, req.target))
+            };
+            let reason = if status == 200 { "OK" } else { "Not Found" };
+            let response = format!(
+                "HTTP/1.1 {status} {reason}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                body.len(),
+                body
+            );
+            let _ = stream.write_all(response.as_bytes());
+            let _ = stream.flush();
+        });
+    });
+
+    let client = DockerClient::connect_unix(&socket);
+    let context = ContextTar::from_inline_dockerfile("Dockerfile", "FROM alpine:3\n")
+        .expect("tar the inline Dockerfile");
+    let _build = client
+        .image_build(
+            &context,
+            &ImageBuildOptions {
+                tags: vec!["tagone".to_string(), "tagtwo".to_string()],
+                ..Default::default()
+            },
+        )
+        .await
+        .expect("image_build should start");
+
+    mock_socket::stop(&socket, &stop);
+
+    let targets = targets.lock().expect("targets lock");
+    let build = targets
+        .iter()
+        .find(|t| t.contains("/build"))
+        .expect("the build request was received");
+    assert!(
+        build.contains("t=tagone") && build.contains("t=tagtwo"),
+        "both tags must be sent as repeated t= parameters, got: {build}"
+    );
 }

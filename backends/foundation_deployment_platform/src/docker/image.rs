@@ -170,7 +170,7 @@ impl DockerFileConfig {
             .image_build(
                 &context,
                 &ImageBuildOptions {
-                    tag: Some(self.tag.clone()),
+                    tags: vec![self.tag.clone()],
                     build_args: self.build_args.clone(),
                     platform: self.platform.clone(),
                     // A failed build's intermediate container is kept by default

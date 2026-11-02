@@ -5226,8 +5226,8 @@ pub struct AigConfigListDatasetArgs {
     pub per_page: Option<String>,
     /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: `enable`.
-    pub enable: Option<String>,
+    /// Query parameter: `enable` (true/false).
+    pub enable: Option<bool>,
     /// Query parameter: `search`.
     pub search: Option<String>,
 }
@@ -5279,8 +5279,8 @@ pub struct AigConfigListEvaluationsArgs {
     pub per_page: Option<String>,
     /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: `processed`.
-    pub processed: Option<String>,
+    /// Query parameter: `processed` (true/false).
+    pub processed: Option<bool>,
     /// Query parameter: `search`.
     pub search: Option<String>,
 }
@@ -5325,8 +5325,8 @@ pub struct AigConfigListGatewayLogsArgs {
     pub order_by_direction: Option<String>,
     /// Query parameter: `filters` (one per value).
     pub filters: Vec<String>,
-    /// Query parameter: `meta_info`.
-    pub meta_info: Option<String>,
+    /// Query parameter: `meta_info` (true/false).
+    pub meta_info: Option<bool>,
     /// Query parameter: `direction`.
     pub direction: Option<String>,
     /// Query parameter: `start_date`.
@@ -5355,10 +5355,10 @@ pub struct AigConfigListGatewayLogsArgs {
     pub max_duration: Option<String>,
     /// Query parameter: `feedback`.
     pub feedback: Option<String>,
-    /// Query parameter: `success`.
-    pub success: Option<String>,
-    /// Query parameter: `cached`.
-    pub cached: Option<String>,
+    /// Query parameter: `success` (true/false).
+    pub success: Option<bool>,
+    /// Query parameter: `cached` (true/false).
+    pub cached: Option<bool>,
     /// Query parameter: `model`.
     pub model: Option<String>,
     /// Query parameter: `model_type`.
@@ -5797,8 +5797,8 @@ pub struct WorkersAiSearchModelArgs {
     pub author: Option<String>,
     /// Query parameter: `source`.
     pub source: Option<String>,
-    /// Query parameter: `hide_experimental`.
-    pub hide_experimental: Option<String>,
+    /// Query parameter: `hide_experimental` (true/false).
+    pub hide_experimental: Option<bool>,
     /// Query parameter: `search`.
     pub search: Option<String>,
 }
@@ -7666,7 +7666,10 @@ where
     builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("enable", args.enable.as_deref());
+    builder = builder.query(
+        "enable",
+        args.enable.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("search", args.search.as_deref());
 
     if let Some(f) = builder_mod {
@@ -7915,7 +7918,10 @@ where
     builder = builder.query("page", args.page.as_deref());
     builder = builder.query("per_page", args.per_page.as_deref());
     builder = builder.query("name", args.name.as_deref());
-    builder = builder.query("processed", args.processed.as_deref());
+    builder = builder.query(
+        "processed",
+        args.processed.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("search", args.search.as_deref());
 
     if let Some(f) = builder_mod {
@@ -8118,7 +8124,10 @@ where
     for value in &args.filters {
         builder = builder.query("filters", Some(value.as_str()));
     }
-    builder = builder.query("meta_info", args.meta_info.as_deref());
+    builder = builder.query(
+        "meta_info",
+        args.meta_info.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("direction", args.direction.as_deref());
     builder = builder.query("start_date", args.start_date.as_deref());
     builder = builder.query("end_date", args.end_date.as_deref());
@@ -8133,8 +8142,14 @@ where
     builder = builder.query("min_duration", args.min_duration.as_deref());
     builder = builder.query("max_duration", args.max_duration.as_deref());
     builder = builder.query("feedback", args.feedback.as_deref());
-    builder = builder.query("success", args.success.as_deref());
-    builder = builder.query("cached", args.cached.as_deref());
+    builder = builder.query(
+        "success",
+        args.success.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "cached",
+        args.cached.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("model", args.model.as_deref());
     builder = builder.query("model_type", args.model_type.as_deref());
     builder = builder.query("provider", args.provider.as_deref());
@@ -10468,7 +10483,11 @@ where
     builder = builder.query("task", args.task.as_deref());
     builder = builder.query("author", args.author.as_deref());
     builder = builder.query("source", args.source.as_deref());
-    builder = builder.query("hide_experimental", args.hide_experimental.as_deref());
+    builder = builder.query(
+        "hide_experimental",
+        args.hide_experimental
+            .map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("search", args.search.as_deref());
 
     if let Some(f) = builder_mod {

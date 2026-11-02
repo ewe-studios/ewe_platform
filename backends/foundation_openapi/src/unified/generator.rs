@@ -1289,8 +1289,11 @@ impl UnifiedGenerator {
             }
             for param in &ep.query_params {
                 let name = escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
-                // An array is sent as one `name=value` pair per value.
-                let (doc, ty) = if ep.array_query_params.contains(param) {
+                // A boolean is sent as `true`/`false`; an array is sent as one
+                // `name=value` pair per value.
+                let (doc, ty) = if ep.boolean_query_params.contains(param) {
+                    (format!("Query parameter: `{param}` (true/false)."), "Option<bool>")
+                } else if ep.array_query_params.contains(param) {
                     (format!("Query parameter: `{param}` (one per value)."), "Vec<String>")
                 } else {
                     (format!("Query parameter: `{param}`."), "Option<String>")
@@ -1684,7 +1687,12 @@ impl UnifiedGenerator {
         // Structured query params from args (None values are skipped).
         for qp in &ep.query_params {
             let safe_qp = escape_rust_keyword(&to_snake_case(&sanitize_identifier(qp)));
-            if ep.array_query_params.contains(qp) {
+            if ep.boolean_query_params.contains(qp) {
+                writeln!(
+                    out,
+                    "    builder = builder.query(\"{qp}\", args.{safe_qp}.map(|b| if b {{ \"true\" }} else {{ \"false\" }}));"
+                )?;
+            } else if ep.array_query_params.contains(qp) {
                 writeln!(out, "    for value in &args.{safe_qp} {{")?;
                 writeln!(out, "        builder = builder.query(\"{qp}\", Some(value.as_str()));")?;
                 writeln!(out, "    }}")?;

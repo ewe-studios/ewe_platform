@@ -120,7 +120,7 @@ impl DockerClient {
     ) -> Result<(), DockerError> {
         let args = VolumeDeleteArgs {
             name: name.to_string(),
-            force: force.map(|f| f.to_string()),
+            force,
         };
         volume_delete_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())

@@ -58,12 +58,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   waiting for the interim response in the HTTP transport's
   `GetRequestIntroTask` path.
 
-- **`docker_restart_container_defaults` fails on macOS under the `uat` profile.**
-  The mock Docker daemon binds a Unix socket under `target/uat`'s deep directory;
-  the path is longer than `SUN_LEN` (104 bytes), so the bind fails. This is test
-  infrastructure, not feature 12's code. Fix: bind the mock socket in a short
-  path, such as a per-test temp directory.
-
 ## 7. foundation_deployment_platform
 
 - **CI does not lint the `vms` feature tree.** The CI clippy and build steps run
@@ -82,9 +76,14 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `D1ReadReplicationDetails`. Code that turns read replication on (`mode: auto`)
   would have to write untyped JSON (rule 5). Fix the generator so the update
   bodies use the same typed struct, then regenerate.
-- **Boolean query parameters are generated as `Option<String>`** (for example `ContainerStatsArgs.stream` / `one_shot`), probably for every endpoint.
-  - Generate `Option<bool>` and serialise it.
-  - Related: Docker `image_build` can only send one tag, because `t` isn't treated as an array.
+- **Pre-existing clippy warnings.** `cargo clippy` reports ~112 lints in
+  `foundation_openapi` (mostly `unified/generator.rs` and `unified/analyzer.rs`:
+  docs missing backticks, `too_many_lines`, `map(...).unwrap_or(false)`, an
+  unused `self`, consecutive `str::replace`, trailing commas) and ~231 in
+  `foundation_deployment_docker` (`format!` inline variables, trailing commas,
+  `::default()` calls, missing `# Errors` sections). None come from feature 14's
+  change; a dedicated clippy-cleanup pass should clear them, then keep them at
+  zero.
 - **Inline tests remain** in `unified/emit.rs` and `unified/analyzer.rs` (rule 7).
 - **genapi's flags are ignored in two places.**
   - Its post-step `cargo fix` always runs in the dev profile, ignoring `--profile`.

@@ -276,12 +276,12 @@ impl DockerClient {
     ) -> Result<LogStream, DockerError> {
         let args = ContainerLogsArgs {
             id: id.to_string(),
-            follow: Some(opts.follow.to_string()),
-            stdout: Some(opts.stdout.to_string()),
-            stderr: Some(opts.stderr.to_string()),
+            follow: Some(opts.follow),
+            stdout: Some(opts.stdout),
+            stderr: Some(opts.stderr),
             since: opts.since.clone(),
             until: opts.until.clone(),
-            timestamps: Some(opts.timestamps.to_string()),
+            timestamps: Some(opts.timestamps),
             tail: opts.tail.clone(),
         };
         let response =
@@ -351,8 +351,8 @@ impl DockerClient {
     ) -> Result<StatsStream, DockerError> {
         let args = ContainerStatsArgs {
             id: id.to_string(),
-            stream: Some(stream.to_string()),
-            one_shot: Some(one_shot.to_string()),
+            stream: Some(stream),
+            one_shot: Some(one_shot),
         };
         let response =
             container_stats_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
@@ -425,11 +425,11 @@ impl DockerClient {
         let args = ContainerAttachArgs {
             id: id.to_string(),
             detach_keys: opts.detach_keys.clone(),
-            logs: Some(opts.logs.to_string()),
-            stream: Some(opts.stream.to_string()),
-            stdin: Some(opts.stdin.to_string()),
-            stdout: Some(opts.stdout.to_string()),
-            stderr: Some(opts.stderr.to_string()),
+            logs: Some(opts.logs),
+            stream: Some(opts.stream),
+            stdin: Some(opts.stdin),
+            stdout: Some(opts.stdout),
+            stderr: Some(opts.stderr),
         };
         let response =
             container_attach_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
@@ -451,9 +451,9 @@ impl DockerClient {
         filters: Option<&str>,
     ) -> Result<serde_json::Value, DockerError> {
         let args = ContainerListArgs {
-            all: Some(all.to_string()),
+            all: Some(all),
             limit: limit.map(|v| v.to_string()),
-            size: Some(size.to_string()),
+            size: Some(size),
             filters: filters.map(str::to_string),
         };
         let response = container_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;

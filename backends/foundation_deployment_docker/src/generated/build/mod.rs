@@ -40,24 +40,24 @@ use super::shared::ApiResponse;
 pub struct ImageBuildArgs {
     /// Query parameter: `dockerfile`.
     pub dockerfile: Option<String>,
-    /// Query parameter: `t`.
-    pub t: Option<String>,
+    /// Query parameter: `t` (one per value).
+    pub t: Vec<String>,
     /// Query parameter: `extrahosts`.
     pub extrahosts: Option<String>,
     /// Query parameter: `remote`.
     pub remote: Option<String>,
-    /// Query parameter: `q`.
-    pub q: Option<String>,
-    /// Query parameter: `nocache`.
-    pub nocache: Option<String>,
+    /// Query parameter: `q` (true/false).
+    pub q: Option<bool>,
+    /// Query parameter: `nocache` (true/false).
+    pub nocache: Option<bool>,
     /// Query parameter: `cachefrom`.
     pub cachefrom: Option<String>,
     /// Query parameter: `pull`.
     pub pull: Option<String>,
-    /// Query parameter: `rm`.
-    pub rm: Option<String>,
-    /// Query parameter: `forcerm`.
-    pub forcerm: Option<String>,
+    /// Query parameter: `rm` (true/false).
+    pub rm: Option<bool>,
+    /// Query parameter: `forcerm` (true/false).
+    pub forcerm: Option<bool>,
     /// Query parameter: `memory`.
     pub memory: Option<String>,
     /// Query parameter: `memswap`.
@@ -74,8 +74,8 @@ pub struct ImageBuildArgs {
     pub buildargs: Option<String>,
     /// Query parameter: `shmsize`.
     pub shmsize: Option<String>,
-    /// Query parameter: `squash`.
-    pub squash: Option<String>,
+    /// Query parameter: `squash` (true/false).
+    pub squash: Option<bool>,
     /// Query parameter: `labels`.
     pub labels: Option<String>,
     /// Query parameter: `networkmode`.
@@ -139,15 +139,23 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder = builder.query("dockerfile", args.dockerfile.as_deref());
-    builder = builder.query("t", args.t.as_deref());
+    for value in &args.t {
+        builder = builder.query("t", Some(value.as_str()));
+    }
     builder = builder.query("extrahosts", args.extrahosts.as_deref());
     builder = builder.query("remote", args.remote.as_deref());
-    builder = builder.query("q", args.q.as_deref());
-    builder = builder.query("nocache", args.nocache.as_deref());
+    builder = builder.query("q", args.q.map(|b| if b { "true" } else { "false" }));
+    builder = builder.query(
+        "nocache",
+        args.nocache.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("cachefrom", args.cachefrom.as_deref());
     builder = builder.query("pull", args.pull.as_deref());
-    builder = builder.query("rm", args.rm.as_deref());
-    builder = builder.query("forcerm", args.forcerm.as_deref());
+    builder = builder.query("rm", args.rm.map(|b| if b { "true" } else { "false" }));
+    builder = builder.query(
+        "forcerm",
+        args.forcerm.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("memory", args.memory.as_deref());
     builder = builder.query("memswap", args.memswap.as_deref());
     builder = builder.query("cpushares", args.cpushares.as_deref());
@@ -156,7 +164,10 @@ where
     builder = builder.query("cpuquota", args.cpuquota.as_deref());
     builder = builder.query("buildargs", args.buildargs.as_deref());
     builder = builder.query("shmsize", args.shmsize.as_deref());
-    builder = builder.query("squash", args.squash.as_deref());
+    builder = builder.query(
+        "squash",
+        args.squash.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("labels", args.labels.as_deref());
     builder = builder.query("networkmode", args.networkmode.as_deref());
     builder = builder.query("platform", args.platform.as_deref());

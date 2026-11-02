@@ -1655,10 +1655,10 @@ pub struct EmailSecurityListTrustedDomainsArgs {
     pub direction: Option<String>,
     /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: `is_recent`.
-    pub is_recent: Option<String>,
-    /// Query parameter: `is_similarity`.
-    pub is_similarity: Option<String>,
+    /// Query parameter: `is_recent` (true/false).
+    pub is_recent: Option<bool>,
+    /// Query parameter: `is_similarity` (true/false).
+    pub is_similarity: Option<bool>,
     /// Query parameter: `pattern`.
     pub pattern: Option<String>,
 }
@@ -1946,8 +1946,8 @@ pub struct RadarGetRankingDomainDetailsArgs {
     pub ranking_type: Option<String>,
     /// Query parameter: `name` (one per value).
     pub name: Vec<String>,
-    /// Query parameter: `includeTopLocations`.
-    pub include_top_locations: Option<String>,
+    /// Query parameter: `includeTopLocations` (true/false).
+    pub include_top_locations: Option<bool>,
     /// Query parameter: `date` (one per value).
     pub date: Vec<String>,
     /// Query parameter: `format`.
@@ -2700,8 +2700,14 @@ where
     builder = builder.query("order", args.order.as_deref());
     builder = builder.query("direction", args.direction.as_deref());
     builder = builder.query("search", args.search.as_deref());
-    builder = builder.query("is_recent", args.is_recent.as_deref());
-    builder = builder.query("is_similarity", args.is_similarity.as_deref());
+    builder = builder.query(
+        "is_recent",
+        args.is_recent.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "is_similarity",
+        args.is_similarity.map(|b| if b { "true" } else { "false" }),
+    );
     builder = builder.query("pattern", args.pattern.as_deref());
 
     if let Some(f) = builder_mod {
@@ -3926,7 +3932,11 @@ where
     for value in &args.name {
         builder = builder.query("name", Some(value.as_str()));
     }
-    builder = builder.query("includeTopLocations", args.include_top_locations.as_deref());
+    builder = builder.query(
+        "includeTopLocations",
+        args.include_top_locations
+            .map(|b| if b { "true" } else { "false" }),
+    );
     for value in &args.date {
         builder = builder.query("date", Some(value.as_str()));
     }

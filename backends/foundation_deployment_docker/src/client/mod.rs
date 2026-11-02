@@ -810,7 +810,7 @@ impl DockerClient {
         let args = ContainerDeleteArgs {
             id: id.to_string(),
             v: None,
-            force: Some(force.to_string()),
+            force: Some(force),
             link: None,
         };
         container_delete_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;

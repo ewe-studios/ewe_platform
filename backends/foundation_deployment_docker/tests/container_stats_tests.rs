@@ -52,7 +52,7 @@ fn temp_socket_path(tag: &str) -> PathBuf {
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.as_nanos());
-    let path = std::env::temp_dir().join(format!("ewe_docker_stats_{tag}_{pid}_{nanos}.sock"));
+    let path = std::path::PathBuf::from("/tmp").join(format!("ewe_docker_stats_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path
 }

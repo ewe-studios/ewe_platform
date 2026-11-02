@@ -3998,8 +3998,8 @@ pub struct CloudflareTunnelListCloudflareTunnelsArgsShape {
     pub account_id: String,
     /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: `is_deleted`.
-    pub is_deleted: Option<String>,
+    /// Query parameter: `is_deleted` (true/false).
+    pub is_deleted: Option<bool>,
     /// Query parameter: `existed_at`.
     pub existed_at: Option<String>,
     /// Query parameter: `uuid`.
@@ -7729,8 +7729,8 @@ pub struct RadarGetQualitySpeedTopAsesArgsShape {
     pub continent: Vec<String>,
     /// Query parameter: `orderBy`.
     pub order_by: Option<String>,
-    /// Query parameter: `reverse`.
-    pub reverse: Option<String>,
+    /// Query parameter: `reverse` (true/false).
+    pub reverse: Option<bool>,
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
@@ -8922,8 +8922,8 @@ pub struct ZoneIdNameWithMappedResourceCountsArgs {
     pub zone_id: String,
     /// Path parameter: `name`.
     pub name: String,
-    /// Query parameter: `with_mapped_resource_counts`.
-    pub with_mapped_resource_counts: Option<String>,
+    /// Query parameter: `with_mapped_resource_counts` (true/false).
+    pub with_mapped_resource_counts: Option<bool>,
 }
 
 /// A shape 4 generated types share.

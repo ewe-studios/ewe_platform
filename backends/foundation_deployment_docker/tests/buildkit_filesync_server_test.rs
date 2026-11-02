@@ -155,7 +155,7 @@ async fn ssh_agent_proxy_forwards_bytes() {
     // Fake "agent": a unix socket that echoes each chunk back prefixed with
     // "agent:". Proves ForwardAgent pumps both directions through a real
     // socket, without needing ssh-agent.
-    let sock_path = std::env::temp_dir().join(format!("ewe-fake-agent-{}.sock", std::process::id()));
+    let sock_path = std::path::PathBuf::from("/tmp").join(format!("ewe-fake-agent-{}.sock", std::process::id()));
     let _ = std::fs::remove_file(&sock_path);
     let agent_listener = std::os::unix::net::UnixListener::bind(&sock_path).unwrap();
     std::thread::spawn(move || {
