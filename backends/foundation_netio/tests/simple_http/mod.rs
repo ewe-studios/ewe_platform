@@ -67,6 +67,7 @@ mod tls_tests;
 mod transfer_encoding_case_tests;
 mod try_clone_tests;
 mod unix_socket_tests;
+mod unsolicited_interim_tests;
 mod url_authority_tests;
 mod url_mod_tests;
 mod url_path_tests;

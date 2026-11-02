@@ -23,7 +23,14 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
-(no open entries)
+- **Clippy `semicolon_if_nothing_returned` in `native/connection.rs`.** File:
+  `backends/foundation_netio/src/native/connection.rs:1440`. Problem: the last statement of a
+  block has no `;`, and clippy warns (`cargo clippy -p foundation_netio --no-deps --all-targets`).
+  Likely fix: apply the suggestion (add the `;`). Found in feature 69 (spec 70); not changed there.
+- **Clippy `needless_pass_by_value` in `expect_continue_timeout_tests.rs`.** File:
+  `backends/foundation_netio/tests/simple_http/expect_continue_timeout_tests.rs:89`. Problem: `check`
+  takes `status: Status` by value and does not use it by move. Likely fix: take `&Status`. Found in
+  feature 69; not changed there (feature 43 file).
 
 ## 3. foundation_http
 

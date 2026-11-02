@@ -35,9 +35,9 @@ fn find(hay: &[u8], needle: &[u8]) -> Option<usize> {
     hay.windows(needle.len()).position(|w| w == needle)
 }
 
-/// Read one request and answer it. Never sends `100 Continue`. Reports the head of every
-/// `POST` on `heads`.
-fn serve_one(mut stream: UnixStream, heads: &mpsc::Sender<String>) {
+/// Read one request and answer it. Never sends `100 Continue` unless `interim` is set.
+/// Reports the head of every `POST` on `heads`.
+fn serve_one(mut stream: UnixStream, heads: &mpsc::Sender<String>, interim: &'static str) {
     let mut buf = Vec::new();
     let mut chunk = [0u8; 4096];
     let head_end = loop {
@@ -75,13 +75,13 @@ fn serve_one(mut stream: UnixStream, heads: &mpsc::Sender<String>) {
         "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
         body.len()
     );
-    let _ = stream.write_all(reply.as_bytes());
+    let _ = stream.write_all(format!("{interim}{reply}").as_bytes());
     let _ = stream.flush();
 }
 
 /// Run `create_container` against the mock daemon; return the POST head and how long the
-/// call took.
-async fn create_against_mock(tag: &str) -> (String, Duration) {
+/// call took. `interim` is written before every reply (empty for the silent daemon).
+async fn create_against_mock(tag: &str, interim: &'static str) -> (String, Duration) {
     let socket = temp_socket_path(tag);
     let listener = UnixListener::bind(&socket).expect("bind mock daemon");
     let (tx, rx) = mpsc::channel();
@@ -89,7 +89,7 @@ async fn create_against_mock(tag: &str) -> (String, Duration) {
         for conn in listener.incoming() {
             let Ok(stream) = conn else { break };
             let tx = tx.clone();
-            std::thread::spawn(move || serve_one(stream, &tx));
+            std::thread::spawn(move || serve_one(stream, &tx, interim));
         }
     });
 
@@ -109,7 +109,7 @@ async fn create_against_mock(tag: &str) -> (String, Duration) {
 
 #[valtron_test(timeout = 60_000)]
 async fn docker_client_sends_no_expect_header() {
-    let (head, _) = create_against_mock("header").await;
+    let (head, _) = create_against_mock("header", "").await;
     assert!(
         !head.to_lowercase().contains("expect:"),
         "the Docker client must not send Expect: 100-continue; head was:\n{head}"
@@ -118,9 +118,24 @@ async fn docker_client_sends_no_expect_header() {
 
 #[valtron_test(timeout = 60_000)]
 async fn docker_post_with_body_does_not_wait_for_continue() {
-    let (_, elapsed) = create_against_mock("timing").await;
+    let (_, elapsed) = create_against_mock("timing", "").await;
     assert!(
         elapsed < Duration::from_secs(1),
         "POST /containers/create took {elapsed:?}; it waited for a `100 Continue`"
+    );
+}
+
+/// The daemon sends an unsolicited `100 Continue` before the JSON reply to the POST. RFC
+/// 9110 section 15.2 says the client must skip it, even with `Expect` off (feature 69).
+#[valtron_test(timeout = 60_000)]
+async fn docker_client_skips_unsolicited_100() {
+    let (head, elapsed) = create_against_mock("interim", "HTTP/1.1 100 Continue\r\n\r\n").await;
+    assert!(
+        !head.to_lowercase().contains("expect:"),
+        "the Docker client must not send Expect: 100-continue; head was:\n{head}"
+    );
+    assert!(
+        elapsed < Duration::from_secs(5),
+        "POST /containers/create took {elapsed:?} with an unsolicited 100"
     );
 }

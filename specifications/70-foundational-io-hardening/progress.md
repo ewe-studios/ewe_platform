@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 69 (unsolicited 1xx interim responses skipped with `Expect` off) done on
+  `fix/io-41-50-lane-a`. T0: open (no client bug; the skip logic in `request_redirect.rs` was
+  already correct). Six new tests, all passed on the first run, so no client change was made:
+  five in `foundation_netio` (`simple_http/unsolicited_interim_tests.rs`: 100 before 200 over TCP
+  and Unix socket, 103 with `Link` skipped, 100 then 102 then 200, 100 on GET) and one in
+  `foundation_deployment_docker` (`tests/expect_continue_tests.rs`:
+  `docker_client_skips_unsolicited_100`). Each test has a hard time limit (`valtron_test`
+  timeout, server read limit 10 s). Flake check: 20 of 20 for each of the six. Correction to the
+  feature verify commands: the netio test binary is `foundation_netio_tests` (feature `multi`),
+  not `simple_http`. `python3 scripts/ci/ci.py run foundation_netio --profile dev` exit 0 (the
+  run had two clippy warnings in the new test file; fixed, and the six tests pass again). Two
+  older clippy warnings in other files are logged in `docs/bug-backlog.md` section 2. Limitation:
+  the tests prove the skip path; they were not shown to fail on the old code because no old code
+  path was changed.
+
 - 2026-11-02: feature 65 (the rest of the proxy's threads and polling loops) done on
   `fix/io-41-50-lane-a`. T0: open. E1: no exchange starts a thread. The upgrade splice, the raw
   TCP tunnel and the gRPC-Web and Connect translators run in the `Async` future (new `aio.rs`:
