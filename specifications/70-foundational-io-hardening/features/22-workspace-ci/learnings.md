@@ -43,3 +43,18 @@
   `false`; the two wasm tasks appear only under `MISE_ENV=wasm`; the base
   `mise tasks` no longer lists them.
 
+## E7. Portable SignalR framing in `core::notifications`
+
+- The four frame helpers lived in `server/signalr_do.rs`, a
+  `#[cfg(target_family = "wasm")]` module, so their inline tests never ran on a
+  native host. Rule 7 forces a move to `tests/`, and the helpers must become
+  public in the portable `core::notifications` module to be reachable.
+- The backlog said `rmpv` is unused on wasm. That is stale: the crate depends on
+  `rmp-serde`, and `core::notifications` uses it on wasm too. No MessagePack
+  dependency moves.
+- Moving the test exposed a real bug: `decode_signalr_frame` called
+  `rmp_serde::from_slice::<u8>(payload)`, but the payload is a MessagePack array
+  `[msg_type, ..]`, not a scalar, so the decode always failed. Fixed by decoding
+  the payload as `serde_json::Value` and reading the first array element. The
+  old test had been wasm-gated and never ran, so the bug shipped silently.
+

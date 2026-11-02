@@ -269,11 +269,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
 
-- **`foundation_keychain`**: `rmpv` is an unused dependency on wasm32
-  (`Cargo.toml`; only native code uses it), and `src/server/signalr_do.rs:29`
-  imports `notifications::self` without using it, and binds `mut resp` at
-  line 74 that is never mutated. Fix: move `rmpv` to the native target
-  section, drop the `self` import and the `mut`.
 - **`foundation_deployment_cloudflare`**: `src/workers/durable_object.rs:24`
   imports `worker::Error` without using it. Fix: drop it.
 
@@ -287,6 +282,10 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   channel wait) panics at runtime. Fix: return `ConnectionResult::Async`
   wrapping `async move { … route(..).await … }`, and delete `poll_ready` and
   `noop_waker`, so the executor polls with a real waker.
+- **`src/bin/keychain.rs` hits the `recursion_depth_exceeding_limit` lint.**
+  The `future_incompatible` lint warns on `DrivenStreamIterator<FutureTask<..>>:
+  IntoIterator` at `src/bin/keychain.rs:28`. Fix: raise the crate recursion
+  limit, or break the valtron stream chain into a smaller type.
 
 ## 23. examples/todo
 

@@ -25,6 +25,15 @@ Branch: `fix/io-20-vfs-process-ipc`.
   now installs only deno and wasm-bindgen instead of the whole toolchain. The
   backlog entry "Running a wasm mise task installs every tool" is deleted in the
   same commit.
+- **E7.** The four SignalR frame helpers move from `server/signalr_do.rs` (wasm
+  only) to the portable `core::notifications` module as public functions. The
+  unused `notifications::self` import and the unneeded `mut resp` are dropped,
+  and both inline test modules move to `tests/notifications.rs` (rule 7). Moving
+  the test exposed and fixed a real bug: `decode_signalr_frame` decoded the whole
+  payload as a scalar instead of the array's first element. `foundation_keychain`
+  bumps to 0.1.3 for the new public API. The §21 keychain backlog entry is
+  deleted in the same commit; a new entry records the `keychain.rs` recursion
+  lint.
 
 ## In progress
 
@@ -32,6 +41,5 @@ Branch: `fix/io-20-vfs-process-ipc`.
 
 ## Next
 
-- E7: fix the `foundation_keychain` wasm warnings.
 - E8: fix the `foundation_deployment_cloudflare` wasm warning.
 - E4 and E3 stay for a later pass.
