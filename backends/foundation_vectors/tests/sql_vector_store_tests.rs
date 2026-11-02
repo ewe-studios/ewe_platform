@@ -1,7 +1,7 @@
 #[macro_use]
 mod contract;
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use foundation_core::valtron::valtron_test;
 use foundation_db::TursoStorage;
@@ -10,8 +10,11 @@ use foundation_vectors::store::{
     VectorStore, VectorEntry, VectorMetadata, VectorStoreConfig, VectorStoreError,
 };
 use foundation_vectors::vector::Vector;
-use foundation_vectors::SqlVectorStore;
+use foundation_vectors::{SqlVectorStore, SqlVectorStoreConfig};
 use tempfile::TempDir;
+use tracing::Level;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::Layer;
 
 async fn make_store() -> (TempDir, SqlVectorStore<TursoStorage>) {
     let dir = TempDir::new().unwrap();
@@ -177,4 +180,70 @@ async fn persistence_across_reopen() {
         let results = store.search(NS, &[1.0, 0.0, 0.0], 1).await.unwrap();
         assert_eq!(results[0].id, "p1");
     }
+}
+
+/// Records the target of every WARN event it sees. Used to prove a scan over
+/// the warning threshold emits exactly one warning per namespace.
+struct WarnCapture {
+    targets: Arc<Mutex<Vec<String>>>,
+}
+
+impl<S> Layer<S> for WarnCapture
+where
+    S: tracing::Subscriber,
+{
+    fn on_event(
+        &self,
+        event: &tracing::Event<'_>,
+        _ctx: tracing_subscriber::layer::Context<'_, S>,
+    ) {
+        if event.metadata().level() == &Level::WARN {
+            self.targets
+                .lock()
+                .unwrap()
+                .push(event.metadata().target().to_string());
+        }
+    }
+}
+
+/// A scan over the threshold writes one warning per namespace, then stays
+/// quiet on later scans of that namespace. The store is driven with
+/// `futures_lite::future::block_on` so the capture subscriber sees the event
+/// on this thread.
+#[test]
+fn sql_store_warns_above_scan_threshold() {
+    let targets: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+
+    tracing::subscriber::with_default(
+        tracing_subscriber::registry().with(WarnCapture {
+            targets: targets.clone(),
+        }),
+        || {
+            futures_lite::future::block_on(async {
+                let dir = TempDir::new().unwrap();
+                let url = dir.path().join("vectors.db").to_string_lossy().into_owned();
+                let storage = Arc::new(TursoStorage::new(&url).await.unwrap());
+                let config = VectorStoreConfig::new(3, DistanceMetric::Cosine);
+                let scan = SqlVectorStoreConfig::default().with_scan_warning_threshold(10);
+                let store = SqlVectorStore::with_scan_config(storage, config, scan)
+                    .await
+                    .unwrap();
+                for i in 0..11 {
+                    store
+                        .insert(NS, entry(&format!("v{i}"), vec![1.0, 0.0, 0.0]))
+                        .await
+                        .unwrap();
+                }
+                store.search(NS, &[1.0, 0.0, 0.0], 3).await.unwrap();
+                store.search(NS, &[1.0, 0.0, 0.0], 3).await.unwrap();
+            });
+        },
+    );
+
+    let seen = targets.lock().unwrap();
+    let count = seen
+        .iter()
+        .filter(|t| t.starts_with("foundation_vectors"))
+        .count();
+    assert_eq!(count, 1, "one warning, once per namespace: {seen:?}");
 }

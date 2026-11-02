@@ -9,6 +9,11 @@
 //!
 //! HOW: Pure `f32` arithmetic, `libm::sqrtf` for portability, bounded
 //! min-heap for top-k, higher-is-better score convention throughout.
+//!
+//! The `sql-store` feature's `SqlVectorStore` is the portable fallback: it
+//! scans a whole namespace per search (O(n·d) time). Use `LibsqlVectorStore`
+//! or a dedicated vector backend for large namespaces; `SqlVectorStoreConfig`
+//! sets the size at which one scan writes a `tracing` warning.
 
 #[allow(
     clippy::cast_possible_truncation,
@@ -66,7 +71,7 @@ pub use store::{
     VectorStoreError,
 };
 #[cfg(feature = "sql-store")]
-pub use sql_store::SqlVectorStore;
+pub use sql_store::{SqlVectorStore, SqlVectorStoreConfig};
 #[cfg(feature = "sql-store")]
 pub use libsql_vector_store::{LibsqlVectorStore, NamespaceStrategy};
 #[cfg(all(feature = "fjall-store", not(target_arch = "wasm32")))]

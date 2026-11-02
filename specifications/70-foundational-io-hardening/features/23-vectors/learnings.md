@@ -100,6 +100,20 @@ _Written in ASD-STE100 Simplified Technical English._
   candidates unchanged.** The test then asserts the recorded text order equals
   the fused order, not just that the call happened.
 
+## E8
+
+- **The scan-cost warning is captured with a `Layer`, not a global subscriber.**
+  A `tracing::subscriber::with_default` closure drives the store with
+  `futures_lite::future::block_on`, so the warn event lands on the test thread
+  and the layer records it. `#[valtron_test]` would poll the store on a pool
+  worker whose dispatcher was pinned before the test body, so `with_default`
+  would miss it.
+- **The warning is once per namespace, not once per search.** A
+  `Mutex<HashSet<String>>` on the store records which namespaces already
+  warned; a later scan of the same namespace stays quiet.
+- **`TursoStorage` works under `futures_lite::future::block_on`.** The local
+  turso backend needs no valtron pool, so a plain `#[test]` can drive it.
+
 ## Dead ends
 
 - **`f32::from(i32)` does not exist.** `f32` implements `From` for small

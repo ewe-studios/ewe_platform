@@ -43,6 +43,13 @@ _Written in ASD-STE100 Simplified Technical English._
   so the text list stays aligned with the candidate list. New test
   `hybrid_search_passes_texts_to_reranker` records the texts a reranker sees
   and asserts one text per candidate, in order.
+- **E8.** `SqlVectorStore` documents its O(n·d) scan cost in the module and
+  crate docs, with the advice to use `LibsqlVectorStore` or a vector backend
+  for large namespaces. The new `SqlVectorStoreConfig` holds the warning
+  threshold (default 100 000); one scan past it writes one `tracing::warn!`
+  per namespace, then stays quiet. New test
+  `sql_store_warns_above_scan_threshold` (threshold 10, 11 vectors, one
+  warning) captures the warn with a subscriber layer.
 
 ## In progress
 
@@ -50,5 +57,4 @@ _Written in ASD-STE100 Simplified Technical English._
 
 ## Next
 
-- E8: `SqlVectorStore` scan-cost docs and threshold warning.
 - E6 (last): `sql-store` on wasm32 + CI wasm run.

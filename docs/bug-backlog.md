@@ -215,10 +215,14 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   native, so it does not see it. Fix: take `foundation_db` without default
   features on wasm32, then add `sql-store` to the crate's `wasm-runs` in
   `ci/packages.toml`.
-- **The SQL-backed stores scan a whole namespace per search**
-  (`SqlVectorStore::search`): memory is bounded (`TopK`), but time is
-  O(n·d) per query. Expected for the portable fallback; large namespaces
-  should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
+- **The SQL store test tree hits `recursion_depth_exceeding_limit`.**
+  `tests/contract/mod.rs` plus `make_store` over `TursoStorage` forces a
+  `Send` check through the `turso` crate's deeply nested async chain, so
+  `sql_vector_store_tests`, `libsql_vector_store_tests` and
+  `sqlite_vec_store_tests` each emit the future-incompatible warning. It
+  becomes a hard error in a later Rust release. Fix: add
+  `#![recursion_limit = "256"]` to those test crates, the same as
+  `foundation_db/tests/turso_storage_tests.rs`.
 - **Pre-existing clippy deny in the `code-graph` test tree.**
   `tests/lang_config_tests.rs:123` uses `assert!(ext.raw_calls.len() >= 0)`
   (`clippy::absurd_extreme_comparisons`, a deny-by-default lint), so
