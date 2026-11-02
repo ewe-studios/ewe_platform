@@ -10,6 +10,12 @@ _Written in ASD-STE100 Simplified Technical English._
   now await a worker; `flush` is `async`. Small reads and writes stay inline.
   New test `index_rebuild_does_not_hold_worker` shows a ticker keeps ticking
   during the first search on a reopened store with 100 000 vectors.
+- **E2.** `build.rs` compiles the vendored `vendor/sqlite-vec.c` into the
+  sqlite-vec loadable extension for the current target when the `sqlite-vec`
+  feature is on. It sets `VEC0_SO` to the built path. The prebuilt
+  `vendor/vec0.so` is deleted; `sqlite_vec_store.rs` now embeds the built
+  extension. The vendored `sqlite3ext.h` is the standard SQLite 3.45.1 header
+  (the one `libsql-ffi` 0.5.0 forks). Tested with the `sqlite-vec` feature on.
 
 ## In progress
 
@@ -17,7 +23,7 @@ _Written in ASD-STE100 Simplified Technical English._
 
 ## Next
 
-- E2: build sqlite-vec from source in `build.rs`; delete `vendor/vec0.so`.
+- E3: migrate old `vec0` tables.
 - E3: migrate old `vec0` tables.
 - E4: opt-in live TurboPuffer test.
 - E5: TurboPuffer 429/503 retry.

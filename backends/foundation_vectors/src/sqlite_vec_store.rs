@@ -1,9 +1,9 @@
 //! SQLite vector store via **sqlite-vec** loaded as a dynamic extension (F29).
 //!
 //! WHY: `sqlite-vec` provides native `vec0` virtual tables with k-nearest
-//! neighbour (KNN) queries on SQLite-compatible engines. The extension is
-//! loaded at runtime from a bundled `.so` (written to a temp dir), so no system
-//! install is needed.
+//! neighbour (KNN) queries on SQLite-compatible engines. `build.rs` compiles
+//! the vendored `vendor/sqlite-vec.c` into a loadable extension for the
+//! current target; no system install is needed.
 //!
 //! WHAT: [`SqliteVecVectorStore`] implements the async [`VectorStore`] over a
 //! local libSQL/SQLite file. Each namespace is a separate `vec0` virtual table
@@ -14,8 +14,8 @@
 //! `metadata` column (JSON text). The methods await libSQL's async API
 //! directly, the same as `LibsqlStore` in `foundation_db`.
 //!
-//! Sync boundary: [`SqliteVecVectorStore::open`] writes the bundled `.so` to a
-//! temp file and loads it. `std::fs::write` and libSQL's `load_extension`
+//! Sync boundary: [`SqliteVecVectorStore::open`] writes the built extension to
+//! a temp file and loads it. `std::fs::write` and libSQL's `load_extension`
 //! are sync calls. They run once, when the store opens.
 //!
 //! Limits of `vec0`:
@@ -35,9 +35,10 @@ use crate::store::{
 };
 use crate::vector::Vector;
 
-/// Prebuilt sqlite-vec loadable extension (linux-x86_64, v0.1.9).
-/// Loaded at init time into the SQLite connection via `load_extension`.
-const VEC0_SO: &[u8] = include_bytes!("../vendor/vec0.so");
+/// Prebuilt sqlite-vec loadable extension, compiled from `vendor/sqlite-vec.c`
+/// by `build.rs` for the current target. Loaded at init time into the SQLite
+/// connection via `load_extension`.
+const VEC0_SO: &[u8] = include_bytes!(env!("VEC0_SO"));
 
 /// The longest namespace name, in bytes. It keeps the table name well inside
 /// SQLite's identifier rules; this is a format rule, not a tuning limit.
@@ -207,11 +208,7 @@ impl SqliteVecVectorStore {
 
 #[async_trait::async_trait]
 impl VectorStore for SqliteVecVectorStore {
-    async fn insert(
-        &self,
-        namespace: &str,
-        entry: VectorEntry,
-    ) -> Result<(), VectorStoreError> {
+    async fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(entry.vector.dimension(), entry.vector.is_zero())?;
         let table = table_name(namespace)?;
         self.ensure_table(&table).await?;

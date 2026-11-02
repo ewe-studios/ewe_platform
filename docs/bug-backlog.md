@@ -242,9 +242,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 17. foundation_vectors
 
-- **`SqliteVecVectorStore` ships only a linux-x86_64 `vec0.so`**
-  (`vendor/vec0.so`). `open` fails on every other platform. Fix: vendor the
-  extension for each supported target, or build sqlite-vec from source.
 - **`SqliteVecVectorStore` tables from before spec 50 F05 T1 do not work.**
   T1 changed the `vec0` schema (text primary key, `metadata` column, distance
   metric). An old `vec0_{ns}` table gives SQL errors. Fix: detect the old
