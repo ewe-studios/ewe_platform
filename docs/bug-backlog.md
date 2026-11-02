@@ -112,10 +112,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   tests `load_balancer_tests.rs` (unused `Arc`, `Duration`, `STICKY_COOKIE`) and
   `h2_integration_tests.rs:318` (unused `mut`) warn on build. Scheduled as
   feature 49 E7.
-- **`passthrough::splice_bidirectional` is a polling splice that only a test
-  calls.** It sleeps 1 ms when idle. `completion_splice_tests.rs` uses it on two
-  io_uring completion sockets. Fix: wrap the completion sockets as `RawStream`,
-  run the test through `aio::splice`, and delete the function.
 - **The io_uring upstream dial is blocking.** `aio::dial_tcp` uses
   `foundation_iogate::connect_completion` for the non-`Std` modes, whose `connect`
   blocks the worker for one round trip. Fix: an async connect in iogate.

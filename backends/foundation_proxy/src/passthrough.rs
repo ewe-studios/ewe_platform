@@ -8,19 +8,14 @@
 //!
 //! WHAT: [`TcpPassthrough`] (a standalone raw TCP listener that splices every
 //! accepted client to a fixed backend authority), [`UdpPassthrough`] (the same
-//! for datagrams) and [`splice_bidirectional`] (a blocking two-way copy over
-//! any `Read + Write` pair; the proxy itself no longer calls it).
+//! for datagrams).
 //!
 //! HOW: The listeners are futures on the valtron pool. The accept loop parks on
 //! the listener's read readiness, each client is its own future that runs
 //! [`crate::aio::splice`], and the UDP loop parks on the socket's read readiness.
 //! No thread is started per client or per listener, and none sleeps. A loop
 //! also wakes on a timer every `shutdown_poll` to see the shutdown signal.
-//! [`splice_bidirectional`] keeps its polling loop: it serves generic
-//! `Read + Write` pairs such as io_uring completion sockets, and only tests
-//! call it (backlog section 9).
 
-use std::io::{ErrorKind, Read, Write};
 use std::net::{SocketAddr, TcpListener, UdpSocket};
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::Arc;
@@ -123,127 +118,6 @@ fn spawn_loop(
 fn stop_loop(shutdown: &OnSignal, done: &Receiver<()>, poll: Duration) {
     shutdown.turn_on();
     let _ = done.recv_timeout(poll.saturating_mul(4) + Duration::from_secs(1));
-}
-
-/// One direction of a bidirectional splice: bytes read from a source and being
-/// relayed to a sink, with the backpressure state that keeps the relay correct
-/// on both readiness (`Std`) and completion (io_uring `SEND`) sinks.
-struct HalfRelay {
-    /// Bytes read from the source, awaiting write to the sink.
-    pending: Vec<u8>,
-    /// How many bytes of `pending` have already been accepted by the sink.
-    written: usize,
-    /// The sink has an un-acked write. On a completion sink `flush` returns
-    /// `WouldBlock` ("send still in flight"); that is not an error, and the
-    /// relay must drain it to completion before submitting the next chunk so
-    /// separate `IORING_OP_SEND`s cannot land out of order.
-    flushing: bool,
-}
-
-/// The outcome of pumping one direction for one tick.
-enum Pump {
-    /// Bytes moved (read, written, or a flush completed) — keep spinning hot.
-    Progressed,
-    /// Nothing to do this tick (source empty, or a send still draining).
-    Idle,
-    /// EOF or a hard error — the splice is over.
-    Closed,
-}
-
-impl HalfRelay {
-    fn new() -> Self {
-        Self {
-            pending: Vec::new(),
-            written: 0,
-            flushing: false,
-        }
-    }
-
-    /// Move one step of `src → dst`: finish an outstanding flush, drain buffered
-    /// bytes, then read more. Ordering is preserved by never writing new bytes
-    /// while a previous completion-mode send is still in flight.
-    fn pump<S: Read, D: Write>(&mut self, src: &mut S, dst: &mut D, buf: &mut [u8]) -> Pump {
-        // 1. A prior write is still draining — finish it before anything else.
-        if self.flushing {
-            match dst.flush() {
-                Ok(()) => self.flushing = false,
-                Err(ref e) if e.kind() == ErrorKind::WouldBlock => return Pump::Idle,
-                Err(_) => return Pump::Closed,
-            }
-        }
-
-        // 2. Drain buffered bytes into the sink.
-        if self.written < self.pending.len() {
-            match dst.write(&self.pending[self.written..]) {
-                Ok(0) => return Pump::Closed,
-                Ok(n) => {
-                    self.written += n;
-                    if self.written >= self.pending.len() {
-                        self.pending.clear();
-                        self.written = 0;
-                        // Kick the flush; a completion sink reports the send as
-                        // still in flight (`WouldBlock`) — drain it next tick.
-                        match dst.flush() {
-                            Ok(()) => {}
-                            Err(ref e) if e.kind() == ErrorKind::WouldBlock => self.flushing = true,
-                            Err(_) => return Pump::Closed,
-                        }
-                    }
-                    return Pump::Progressed;
-                }
-                Err(ref e) if e.kind() == ErrorKind::WouldBlock => return Pump::Idle,
-                Err(_) => return Pump::Closed,
-            }
-        }
-
-        // 3. Buffer is empty — read the next chunk from the source.
-        match src.read(buf) {
-            Ok(0) => Pump::Closed,
-            Ok(n) => {
-                self.pending.extend_from_slice(&buf[..n]);
-                Pump::Progressed
-            }
-            Err(ref e) if e.kind() == ErrorKind::WouldBlock => Pump::Idle,
-            Err(_) => Pump::Closed,
-        }
-    }
-}
-
-/// Copy bytes in both directions between `a` and `b` until one side closes.
-///
-/// WHAT: Reads whatever is available on each side and writes it to the other,
-/// looping until an EOF (`Ok(0)`) or a non-`WouldBlock` error on either side.
-///
-/// # Preconditions
-/// Both streams must already be in non-blocking mode; otherwise a read on an
-/// idle side blocks the other direction. Callers own that setup because the two
-/// stream types differ.
-///
-/// The sinks may be readiness sockets (`flush` is synchronous) or io_uring
-/// completion sockets (`flush` is a barrier that reports `WouldBlock` while a
-/// `SEND` is still in flight). Both are handled: a `WouldBlock` from `write` or
-/// `flush` is backpressure, not failure.
-pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(mut a: A, mut b: B) {
-    let mut buf = [0u8; 16 * 1024];
-    let mut a_to_b = HalfRelay::new();
-    let mut b_to_a = HalfRelay::new();
-
-    loop {
-        let ab = a_to_b.pump(&mut a, &mut b, &mut buf);
-        let ba = b_to_a.pump(&mut b, &mut a, &mut buf);
-
-        if matches!(ab, Pump::Closed) || matches!(ba, Pump::Closed) {
-            break;
-        }
-        // Neither direction moved: nothing buffered, nothing readable, no send
-        // draining — sleep briefly rather than burn the core.
-        if matches!(ab, Pump::Idle) && matches!(ba, Pump::Idle) {
-            // Kept: this is the blocking helper for generic `Read + Write` pairs
-            // (io_uring completion sockets). Only tests call it; the proxy uses
-            // `crate::aio::splice`. Backlog section 9: move the test, delete this.
-            std::thread::sleep(Duration::from_millis(1));
-        }
-    }
 }
 
 /// A raw TCP passthrough listener: every accepted client is spliced to
