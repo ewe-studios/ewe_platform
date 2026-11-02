@@ -297,6 +297,10 @@ fixed in code but not deleted.
 | 36 | `ResponseWriter::flush` does not restart the idle timer when the stream buffer drains | review of 61 | 63 |
 | 37 | keychain `ServeAdapter` reads the whole request body synchronously before the async part | found in 44 | 64 |
 | 38 | keychain clippy debt (174) | found in 44 | 49 |
+| 39 | D1 non-finite REAL silently stored as NULL | found in 52 | 56 |
+| 40 | D1 `/query` response read whole with no cap | found in 52 | 56 |
+| 41 | Cloudflare wire-type check takes ~160 s | found in 52 | 55 |
+| 42 | hosted D1 REST acceptance of number/null params unproven (needs the owner's Cloudflare account) | found in 52 | owner: opt-in test with real credentials |
 
 ### 8.1 Lanes, branches and models
 
