@@ -73,6 +73,23 @@ Defence Industries Association of Europe (ASD), the owner of the STE standard AS
   older tests initialised the pool in the same process. Each test must set up
   its own pool.
 
+## E4. SSL redirect limits are config, not constants
+
+- The redirect loop cut a head that spanned reads, because it did one `read`
+  and answered whatever that read returned. The fix reads into a reusable
+  buffer until the blank line (`\r\n\r\n`) or the head limit, then answers.
+- A head that reaches the limit without its blank line gets a 431. The check
+  order matters: look for the blank line first, then the limit, so a head that
+  ends exactly at the limit still redirects.
+- The accepted socket must be set blocking before the read. On BSD/macOS an
+  accepted socket inherits the listener's non-blocking mode, so without
+  `set_nonblocking(false)` the read would return `WouldBlock` at once and never
+  wait for the rest of a split head.
+- The accept loop parks on listener readiness via `foundation_iogate::FdReadiness`
+  (re-exported from `foundation_reactor`) and links `ShutdownSignal::register_wake`,
+  the same pattern the HTTP front end uses. On non-unix, or when the fd cannot
+  be registered, it falls back to sleeping the configured accept poll.
+
 ## Dead ends
 
-- None for E1, E2 or E3.
+- None for E1, E2, E3 or E4.

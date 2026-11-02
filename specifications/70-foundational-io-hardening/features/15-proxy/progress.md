@@ -72,11 +72,26 @@ standard ASD-STE100.
     new clippy warnings from this change.
   - Backlog 9 "The ACME client does not follow RFC 8555's account flow" entry
     deleted.
+- E4 (SSL redirect limits are config, not constants):
+  - `ProxyConfig` gained `redirect_head_limit` (4096 bytes),
+    `redirect_read_timeout` (2 s) and `redirect_accept_poll` (10 ms) with
+    documented defaults and builders `redirect_head_limit`,
+    `redirect_read_timeout`, `redirect_accept_poll`. (`src/config.rs`.)
+  - `ssl_redirect_loop` reads the head until its blank line or the head limit
+    (a head split over reads is no longer cut), answers 431 for a head past the
+    limit, sets the accepted socket blocking so the read timeout governs, and
+    parks the accept loop on listener readiness (`FdReadiness`) instead of a
+    fixed sleep on unix. (`src/server.rs`.)
+  - Version bump: `foundation_proxy` 0.1.4 -> 0.1.5 (new public config fields
+    and builders). No consumers to bump (leaf crate).
+  - Tests: `redirect_handles_head_split_over_reads` and
+    `redirect_rejects_head_over_limit` in `tests/proxy_features_tests.rs`.
+  - Validation under `--profile uat`: `proxy_features_tests` green (6). No new
+    clippy warnings from this change.
+  - Backlog 9 "The SSL redirect listener hard-codes its limits" entry deleted.
 
 ## Next
 
-- E4: move the redirect head buffer, read timeout and accept poll into the
-  redirect config. Two tests.
 - E5: make `tests/diag_client_tap.rs` a real `forward_http` test or delete it.
 - E6: build `h3_local_addr` from a `cfg`-gated expression; verify the
   no-default-features check is warning-free.

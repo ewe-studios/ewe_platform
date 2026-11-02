@@ -86,10 +86,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   long-lived handler parks instead of holding a worker. The proxy still relays on
   a throwaway thread and returns `Take`. It can move to `Async` later once its
   relay future is `'static`.
-- **The SSL redirect listener hard-codes its limits** (`src/server.rs`,
-  `ssl_redirect_loop`): a 4096-byte head buffer, a 2 s read timeout and a
-  10 ms accept poll are constants, and a head longer than one read is cut
-  (rule 8). Fix: fields on the redirect config with documented defaults.
 - **`tests/diag_client_tap.rs` is a "TEMPORARY diagnostic", not a test.**
   It is `#[ignore]`d, only `eprintln!`s what the client sent and received, and
   asserts nothing, so it can never fail. Fix: turn it into a real test of

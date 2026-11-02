@@ -238,6 +238,83 @@ fn ssl_redirect_301_to_https() {
     proxy.shutdown();
 }
 
+/// The redirect listener must accumulate the head across reads, not answer the
+/// first chunk. A client that sends the head in two writes still gets a 301 to
+/// the right https URL.
+#[test]
+fn redirect_handles_head_split_over_reads() {
+    let _guard = initialize_pool(64, Some(12));
+    let (pa, _a) = start_id_backend("SECURE");
+    let (cert, key) = write_certs();
+
+    let svc = ServiceConfig::new("echo", "test.local").backend(&format!("http://127.0.0.1:{pa}"));
+    let proxy = ProxyServer::start(
+        ProxyConfig::new("test.local", "127.0.0.1")
+            .bind("127.0.0.1:0")
+            .ssl(SslConfig::static_cert(&cert, &key))
+            .redirect_bind("127.0.0.1:0")
+            .service(svc),
+    ).block()
+    .expect("start proxy with TLS");
+    let redirect_addr = proxy.redirect_local_addr().expect("redirect listener bound");
+    std::thread::sleep(Duration::from_millis(150));
+
+    // Write the head in two parts. The blank line arrives only with part two,
+    // so a single-read redirect would answer (or drop) before seeing the path.
+    let mut stream = TcpStream::connect(redirect_addr).expect("connect");
+    stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
+    stream.write_all(b"GET /login HTTP/1.1\r\nHost: test.local\r\n").expect("write part one");
+    stream.flush().ok();
+    std::thread::sleep(Duration::from_millis(150));
+    stream.write_all(b"X-Split: 1\r\n\r\n").expect("write part two");
+    stream.flush().ok();
+
+    let mut raw = Vec::new();
+    stream.read_to_end(&mut raw).ok();
+    let r = parse(&raw);
+    assert_eq!(r.status, 301, "split head must still redirect: {raw:?}");
+    assert_eq!(r.header("location"), Some("https://test.local/login"));
+
+    proxy.shutdown();
+}
+
+/// A head that passes the configured redirect head limit before its blank line
+/// gets a `431 Request Header Fields Too Large`, not a silent drop.
+#[test]
+fn redirect_rejects_head_over_limit() {
+    let _guard = initialize_pool(65, Some(12));
+    let (pa, _a) = start_id_backend("SECURE");
+    let (cert, key) = write_certs();
+
+    let svc = ServiceConfig::new("echo", "test.local").backend(&format!("http://127.0.0.1:{pa}"));
+    let proxy = ProxyServer::start(
+        ProxyConfig::new("test.local", "127.0.0.1")
+            .bind("127.0.0.1:0")
+            .ssl(SslConfig::static_cert(&cert, &key))
+            .redirect_bind("127.0.0.1:0")
+            .redirect_head_limit(64)
+            .service(svc),
+    ).block()
+    .expect("start proxy with TLS");
+    let redirect_addr = proxy.redirect_local_addr().expect("redirect listener bound");
+    std::thread::sleep(Duration::from_millis(150));
+
+    // A head with a 200-byte header and no blank line passes the 64-byte limit.
+    let mut stream = TcpStream::connect(redirect_addr).expect("connect");
+    stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
+    let long_header = format!("X-Long: {}\r\n", "a".repeat(200));
+    let head = format!("GET / HTTP/1.1\r\nHost: test.local\r\n{long_header}");
+    stream.write_all(head.as_bytes()).expect("write over-limit head");
+    stream.flush().ok();
+
+    let mut raw = Vec::new();
+    stream.read_to_end(&mut raw).ok();
+    let r = parse(&raw);
+    assert_eq!(r.status, 431, "head over the limit must get a 431: {raw:?}");
+
+    proxy.shutdown();
+}
+
 // ── WebSocket / Upgrade relay ────────────────────────────────────────────
 
 /// A backend that completes a `101 Switching Protocols` handshake and then
