@@ -1317,6 +1317,9 @@ impl UnifiedGenerator {
             let crate_name = format!("foundation_{provider_safe}_{safe}");
             let crate_dir = groups_dir.join(&crate_name);
             self.write_group_crate(&crate_name, &safe, module, &crate_dir)?;
+            // The shim `lib.rs` is formatted too: it carries the `#![allow]`
+            // attributes and the `pub use` lists that rustfmt wraps and sorts.
+            written.push(crate_dir.join("src/lib.rs"));
             written.push(crate_dir.join("src").join(format!("{safe}/mod.rs")));
         }
 

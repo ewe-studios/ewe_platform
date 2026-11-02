@@ -1,55 +1,12 @@
 # Generated code is never reformatted by hand.
 #
 # The Cloudflare per-group crates are written by `cargo run --bin genapi
-# generate`. Their build script (`backends/foundation_deployment_cloudflare/
-# build.rs`) compares the committed files against a fresh generation and
-# regenerates on any difference. Reformatting them here would mark them stale
-# and undo itself on the next build. Keep them exactly as the generator
-# writes them.
+# generate`, which formats them with rustfmt (empty config) before writing. They
+# are rustfmt-clean, so they are not ignored here. Their build script
+# (`backends/foundation_deployment_cloudflare/build.rs`) compares the committed
+# files against a fresh generation and regenerates on any difference: edit the
+# generator, never the output.
 ignore = [
     # Vendored fork of upstream boringtun: keep its diff from upstream minimal.
     "backends/foundation_boringtun",
-    "backends/foundation_cloudflare_access",
-    "backends/foundation_cloudflare_accounts",
-    "backends/foundation_cloudflare_ai",
-    "backends/foundation_cloudflare_analytics",
-    "backends/foundation_cloudflare_apps",
-    "backends/foundation_cloudflare_billing",
-    "backends/foundation_cloudflare_cache",
-    "backends/foundation_cloudflare_certificates",
-    "backends/foundation_cloudflare_data",
-    "backends/foundation_cloudflare_devices",
-    "backends/foundation_cloudflare_dns",
-    "backends/foundation_cloudflare_domains",
-    "backends/foundation_cloudflare_email",
-    "backends/foundation_cloudflare_entitlements",
-    "backends/foundation_cloudflare_events",
-    "backends/foundation_cloudflare_ips",
-    "backends/foundation_cloudflare_load_balancers",
-    "backends/foundation_cloudflare_logs",
-    "backends/foundation_cloudflare_magic_wan",
-    "backends/foundation_cloudflare_media",
-    "backends/foundation_cloudflare_migration",
-    "backends/foundation_cloudflare_network",
-    "backends/foundation_cloudflare_profile",
-    "backends/foundation_cloudflare_queues",
-    "backends/foundation_cloudflare_radar",
-    "backends/foundation_cloudflare_reports",
-    "backends/foundation_cloudflare_resources",
-    "backends/foundation_cloudflare_routes",
-    "backends/foundation_cloudflare_rules",
-    "backends/foundation_cloudflare_secrets",
-    "backends/foundation_cloudflare_security",
-    "backends/foundation_cloudflare_security_center",
-    "backends/foundation_cloudflare_shares",
-    "backends/foundation_cloudflare_storage",
-    "backends/foundation_cloudflare_stream",
-    "backends/foundation_cloudflare_targets",
-    "backends/foundation_cloudflare_tasks",
-    "backends/foundation_cloudflare_tenants",
-    "backends/foundation_cloudflare_tokens",
-    "backends/foundation_cloudflare_tracer",
-    "backends/foundation_cloudflare_waiting_rooms",
-    "backends/foundation_cloudflare_workers",
-    "backends/foundation_cloudflare_zones",
 ]

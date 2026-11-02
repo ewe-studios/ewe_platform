@@ -82,16 +82,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `too_many_lines`, missing `# Errors`/`# Panics` sections). None come from
   feature 14's change; a dedicated clippy-cleanup pass should clear them, then
   keep them at zero.
-- **The Cloudflare per-group generator emits `lib.rs` shims that are not
-  rustfmt-clean.** The 43 `backends/foundation_cloudflare_*/src/lib.rs` shims
-  have one long `#![allow(...)]` attribute and `pub use` items that rustfmt
-  would wrap and reorder. The build script in
-  `foundation_deployment_cloudflare` byte-compares the committed files against
-  a fresh generation and regenerates on any difference, so the shims cannot be
-  reformatted by hand. Feature 39 excludes them with the `ignore` list in
-  `rustfmt.toml`. Fix: make the generator emit rustfmt-clean shims (wrap the
-  `allow` attribute, sort the `use` items), regenerate, and drop the `ignore`
-  entries.
 
 ## 9. foundation_proxy
 
