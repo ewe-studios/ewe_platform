@@ -2,6 +2,23 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 19 (foundation_nativeapis) E9 done on
+  `fix/io-20-vfs-process-ipc`. E9 makes the VFS `copy` and `copy_async`
+  default methods stream in chunks. The four traits (`VfsFileSystem`,
+  `VfsDirectory`, `AsyncVfsFileSystem`, `AsyncVfsDirectory`) gain a
+  `copy_chunk_size` method with a documented 32 KiB default (Go `net/http`
+  `io.Copy`); an implementation overrides it to read its own config. Each
+  copy loops with `read_at`/`read_at_async`, advances by the returned byte
+  count, and stops on a short read, so no whole-file `Vec` is built.
+  `read_file` and `read_file_async` stay whole-file by contract and are now
+  documented as such; `copy` no longer calls them. The `InodeFs::copy`
+  override is removed so it uses the chunked default. New tests
+  `vfs_copy_streams_in_chunks` (sync) and `vfs_copy_async_streams_in_chunks`
+  (async) wrap `MemoryFs` in a counting VFS, set the chunk to 256 bytes, and
+  assert a 1000-byte copy issues several reads with none over 256 bytes.
+  The crate bumps 0.0.4 to 0.0.5, and the five consumers pin 0.0.5. The
+  whole-file-reads §13 backlog entry is removed.
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E8 done on
   `fix/io-20-vfs-process-ipc`. E8 makes `VfsNfs::readdir` honor the NFS v3
   `start_after` cookie: it resolves the fileid of every entry in list order

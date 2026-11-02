@@ -113,13 +113,32 @@ pub trait AsyncVfsDirectory: Send + Sync {
         Ok(())
     }
 
+    /// Chunk size for `copy_async`.
+    ///
+    /// The default is 32 KiB, matching Go `net/http` `io.Copy`. Override this
+    /// method to read the size from a store's config.
+    fn copy_chunk_size(&self) -> usize {
+        32 * 1024
+    }
+
     async fn copy_async(&self, from: String, to: String) -> VfsResult<()> {
         let src = self.open_async(from, OpenMode::Read).await?;
         let size = src.size_async().await?;
-        let data = src.read_at_async(usize::try_from(size).unwrap_or(usize::MAX), 0).await?;
         let meta = src.metadata_async().await?;
         let dst = self.create_file_async(to, meta.permissions).await?;
-        dst.write_at_async(data, 0).await?;
+        let chunk_size = self.copy_chunk_size().max(1);
+        let mut offset = 0u64;
+        while offset < size {
+            let remaining = size - offset;
+            let to_read = usize::try_from(remaining.min(chunk_size as u64)).unwrap_or(usize::MAX);
+            let data = src.read_at_async(to_read, offset).await?;
+            if data.is_empty() {
+                break;
+            }
+            let n = data.len() as u64;
+            dst.write_at_async(data, offset).await?;
+            offset += n;
+        }
         Ok(())
     }
 }
@@ -175,6 +194,11 @@ pub trait AsyncVfsFileSystem: Send + Sync {
         }))
     }
 
+    /// Reads the whole file into memory.
+    ///
+    /// The whole file fits in one buffer. Use this method only for a small
+    /// file whose contents the next step needs. `copy_async` does not use this
+    /// method; it streams the file in chunks.
     async fn read_file_async(&self, path: String) -> VfsResult<Vec<u8>> {
         let file = self.open_async(path, OpenMode::Read).await?;
         let size = file.size_async().await?;
@@ -193,11 +217,32 @@ pub trait AsyncVfsFileSystem: Send + Sync {
         Ok(())
     }
 
+    /// Chunk size for `copy_async`.
+    ///
+    /// The default is 32 KiB, matching Go `net/http` `io.Copy`. Override this
+    /// method to read the size from a store's config.
+    fn copy_chunk_size(&self) -> usize {
+        32 * 1024
+    }
+
     async fn copy_async(&self, from: String, to: String) -> VfsResult<()> {
-        let data = self.read_file_async(from.clone()).await?;
+        let src = self.open_async(from.clone(), OpenMode::Read).await?;
+        let size = src.size_async().await?;
         let meta = self.stat_async(from).await?;
-        let file = self.create_async(to, meta.permissions).await?;
-        file.write_at_async(data, 0).await?;
+        let dst = self.create_async(to, meta.permissions).await?;
+        let chunk_size = self.copy_chunk_size().max(1);
+        let mut offset = 0u64;
+        while offset < size {
+            let remaining = size - offset;
+            let to_read = usize::try_from(remaining.min(chunk_size as u64)).unwrap_or(usize::MAX);
+            let data = src.read_at_async(to_read, offset).await?;
+            if data.is_empty() {
+                break;
+            }
+            let n = data.len() as u64;
+            dst.write_at_async(data, offset).await?;
+            offset += n;
+        }
         Ok(())
     }
 

@@ -400,12 +400,6 @@ impl VfsFileSystem for InodeFs {
         file.write_at(data, 0)?;
         Ok(())
     }
-    fn copy(&self, from: &str, to: &str) -> VfsResult<()> {
-        let data = self.read_file(from)?;
-        let file = self.create(to, 0o644)?;
-        file.write_at(&data, 0)?;
-        Ok(())
-    }
     fn remove_all(&self, path: &str) -> VfsResult<()> { self.remove(path) }
     fn mkdir_all(&self, path: &str) -> VfsResult<()> {
         let parts: Vec<&str> = path.trim_start_matches('/').split('/').filter(|p| !p.is_empty()).collect();

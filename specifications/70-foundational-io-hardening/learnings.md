@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 19 E9, foundation_nativeapis): a per-store copy chunk
+  size is a defaulted trait method `copy_chunk_size()` (32 KiB, Go
+  `net/http` `io.Copy`), not a const; a config-backed store overrides it.
+  `read_at`/`read_at_async` may return fewer bytes than asked at end of
+  file, so the copy loop must advance by the returned count and stop on zero
+  (or an empty `Vec`), never assume a full read. A counting VFS that observes
+  read sizes must wrap the `File` type (reads happen on the file handle);
+  changing `File` forces the `Directory` associated type to change too, so
+  stub the unused `Directory` with `unimplemented!()` methods, because the
+  default `copy` never opens a directory. `usize::try_from(...).unwrap_or(usize::MAX)`
+  avoids the clippy `cast_possible_truncation` warning when a `u64` size is
+  narrowed to `usize`.
+
 - 2026-11-02 (feature 19 E8, foundation_nativeapis): the NFS v3 READDIR
   cookie is the previous entry's `fileid`, so `start_after` must be matched
   against the entry fileids, not against an index into the raw list. Resolve

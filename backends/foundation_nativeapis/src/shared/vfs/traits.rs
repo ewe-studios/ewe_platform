@@ -82,15 +82,32 @@ pub trait VfsDirectory: Send + Sync {
         Ok(())
     }
 
+    /// Chunk size for `copy`.
+    ///
+    /// The default is 32 KiB, matching Go `net/http` `io.Copy`. Override this
+    /// method to read the size from a store's config.
+    fn copy_chunk_size(&self) -> usize {
+        32 * 1024
+    }
+
     fn copy(&self, from: &str, to: &str) -> VfsResult<()> {
         let src = self.open(from, OpenMode::Read)?;
         let size = src.size()?;
-        let mut buf = vec![0u8; size as usize];
-        src.read_at(&mut buf, 0)?;
-
         let meta = src.metadata()?;
         let dst = self.create_file(to, meta.permissions)?;
-        dst.write_at(&buf, 0)?;
+        let chunk_size = self.copy_chunk_size().max(1);
+        let mut offset = 0u64;
+        while offset < size {
+            let remaining = size - offset;
+            let to_read = usize::try_from(remaining.min(chunk_size as u64)).unwrap_or(usize::MAX);
+            let mut buf = vec![0u8; to_read];
+            let n = src.read_at(&mut buf, offset)?;
+            if n == 0 {
+                break;
+            }
+            dst.write_at(&buf[..n], offset)?;
+            offset += n as u64;
+        }
         Ok(())
     }
 }
@@ -120,6 +137,11 @@ pub trait VfsFileSystem: Send + Sync {
     fn path_by_inode(&self, ino: u64) -> VfsResult<String>;
     fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata>;
 
+    /// Reads the whole file into memory.
+    ///
+    /// The whole file fits in one buffer. Use this method only for a small
+    /// file whose contents the next step needs. `copy` does not use this
+    /// method; it streams the file in chunks.
     fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
         let file = self.open(path, OpenMode::Read)?;
         let size = file.size()?;
@@ -140,11 +162,32 @@ pub trait VfsFileSystem: Send + Sync {
         Ok(())
     }
 
+    /// Chunk size for `copy`.
+    ///
+    /// The default is 32 KiB, matching Go `net/http` `io.Copy`. Override this
+    /// method to read the size from a store's config.
+    fn copy_chunk_size(&self) -> usize {
+        32 * 1024
+    }
+
     fn copy(&self, from: &str, to: &str) -> VfsResult<()> {
-        let data = self.read_file(from)?;
+        let src = self.open(from, OpenMode::Read)?;
+        let size = src.size()?;
         let meta = self.stat(from)?;
-        let file = self.create(to, meta.permissions)?;
-        file.write_at(&data, 0)?;
+        let dst = self.create(to, meta.permissions)?;
+        let chunk_size = self.copy_chunk_size().max(1);
+        let mut offset = 0u64;
+        while offset < size {
+            let remaining = size - offset;
+            let to_read = usize::try_from(remaining.min(chunk_size as u64)).unwrap_or(usize::MAX);
+            let mut buf = vec![0u8; to_read];
+            let n = src.read_at(&mut buf, offset)?;
+            if n == 0 {
+                break;
+            }
+            dst.write_at(&buf[..n], offset)?;
+            offset += n as u64;
+        }
         Ok(())
     }
 

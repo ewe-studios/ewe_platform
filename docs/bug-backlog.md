@@ -159,9 +159,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   shim's `turso` backend). A Turso cloud database still works through
   `LibsqlDelta` with `TursoRemoteConfig`. Fix: rebuild it on the `turso` crate as
   an async-only store; tracked in ewe-studios/ewe_platform#142.
-- **Whole-file reads in the VFS defaults.** `read_file`, `copy` and
-  `copy_async` on the VFS traits read the whole file into one `Vec`
-  **(rule 4)**. Fix: copy in chunks of a configured size.
 - **`SyncFs` is not gated as a blocking boundary.** `exec_async`
   (`src/shared/vfs/exec_async.rs`) uses `collect_one` when a future is
   pending, without `blocking_boundary!`, so on JS-hosted wasm it would spin.
@@ -227,10 +224,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 17. foundation_vectors
 
-- **`SqliteVecVectorStore` tables from before spec 50 F05 T1 do not work.**
-  T1 changed the `vec0` schema (text primary key, `metadata` column, distance
-  metric). An old `vec0_{ns}` table gives SQL errors. Fix: detect the old
-  schema on `open` and migrate it, or fail with a clear message.
 - **`TurboPufferVectorStore` is tested only against a mock.** The mock
   follows the request and response types of the official Python client
   (`turbopuffer` 2.14.0), because the documentation site was not reachable.
