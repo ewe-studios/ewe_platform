@@ -1,6 +1,6 @@
 ---
 feature: "Docker POST requests no longer stall 2 minutes on Expect: 100-continue"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -65,5 +65,5 @@ Flake check: 20 runs of the new netio tests.
 
 ## Done when
 
-- [ ] Root cause named in the PR body with the line. Netio tests fail on master, pass now.
-- [ ] Backlog §6 entry deleted.
+- [x] Root cause named in the PR body with the line. Netio tests fail on master, pass now.
+- [x] Backlog §6 entry deleted.

@@ -143,11 +143,17 @@ impl ClientConfig {
     /// WHY: the body iterators (`body_reader::collect_string`, the
     /// `RequestIntro::Success` stream) rely on blocking reads. Their
     /// `WouldBlock`/`TimedOut` retry budget assumes each retry waited a read
-    /// timeout. The blocking client always left the expect-continue read timeout
-    /// on the socket at this point, so the handoff restores exactly that.
+    /// timeout. The blocking client left a read timeout on the socket at this
+    /// point, so the handoff restores one: the larger of the expect-continue wait
+    /// and the configured minimum read timeout. The builder's `read_timeout` sets
+    /// the minimum, so a long `read_timeout` still gives long body reads without
+    /// also lengthening the `Expect: 100-continue` wait (spec 70 feature 43).
     #[must_use]
     pub fn blocking_body_read_timeout(&self) -> Duration {
-        self.expect_continue_read_timeout
+        std::cmp::max(
+            self.expect_continue_read_timeout,
+            self.timeout_calculator.config().min_read_timeout,
+        )
     }
 
     #[must_use]

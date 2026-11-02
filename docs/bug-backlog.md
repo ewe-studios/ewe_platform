@@ -63,19 +63,7 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 6. foundation_deployment_docker / foundation_deployment
 
-- **Docker POST requests with a body stall ~2 minutes on `100 Continue`.**
-  Seen against OrbStack 29.8.2: `containers/create` logs "Connecting to URL
-  .../containers/create" and then nothing for exactly 2 minutes, until
-  "Received intro for request: (Continue, HTTP11, ...)" arrives and the body
-  is sent. Every daemon-backed POST (`containers/create`, `containers/start`)
-  pays the same 2-minute stall, so the Docker integration tests
-  (`docker_macro_tests`, `container_integration`, `image_build_integration`,
-  `docker_provider_tests`) take 10+ minutes each and look hung — their
-  `redis:7-alpine` containers sit in `Created` state. GET requests
-  (`/version`, image inspect) are fast. Fix: do not send
-  `Expect: 100-continue`, or send the request body immediately instead of
-  waiting for the interim response in the HTTP transport's
-  `GetRequestIntroTask` path.
+(no open entries)
 
 ## 7. foundation_deployment_platform
 

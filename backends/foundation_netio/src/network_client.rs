@@ -175,12 +175,16 @@ impl HttpClientBuilder {
         if c.max_read_timeout < timeout {
             c.max_read_timeout = timeout;
         }
-        // Also set the header-wait timeout (expect-continue): Docker's
-        // blocking endpoints (stop, wait, restart) may not send response
-        // headers until the operation completes.
+        // Also set the header-wait timeout: Docker's blocking endpoints (stop,
+        // wait, restart) may not send response headers until the operation
+        // completes.
+        //
+        // This must NOT change the `Expect: 100-continue` wait. It did once, and a
+        // client built with `read_timeout(120 s)` waited 120 s for a `100` before it
+        // sent any POST body (spec 70 feature 43). Use `expect_continue_timeout`
+        // for that wait.
         c.ttfb_timeout = std::cmp::min(timeout, Duration::from_secs(120));
         self.config.timeout_calculator = TimeoutCalculator::with_config(c);
-        self.config = self.config.set_expect_continue_read_timeout(timeout);
         self
     }
 

@@ -31,6 +31,7 @@ mod dns_async_tests;
 mod dns_tests;
 mod eof_handling_tests;
 mod errors_tests;
+mod expect_continue_timeout_tests;
 mod f51_unified_client_tests;
 mod framing_tests;
 mod header_lowercase_tests;

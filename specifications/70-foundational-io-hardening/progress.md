@@ -2,6 +2,23 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 43 (Docker `100 Continue` stall) done on `fix/io-41-50-lane-a`. T0:
+  open. Root cause: `HttpClientBuilder::read_timeout` in
+  `foundation_netio/src/network_client.rs` (the line `set_expect_continue_read_timeout(timeout)`,
+  old line 183) also set the `Expect: 100-continue` wait. `DockerClient::connect_unix` builds its
+  client with `read_timeout(120 s)`, so the wait became 120 s; the state machine
+  (`park_for_continue`, `request_redirect.rs` ~1188) was correct and always parks on the
+  send-body deadline. Fix: `read_timeout` no longer touches the handshake wait
+  (`expect_continue_timeout` is the only setter); `ClientConfig::blocking_body_read_timeout`
+  now returns the larger of the handshake wait and `min_read_timeout`, so sync body reads keep
+  their long timeout. The Docker client (unix, tcp, tls, ssh) also calls `expect_continue(false)`.
+  New tests: netio `expect_continue_timeout_tests` (4: timer over TCP and Unix, and
+  `read_timeout` does not lengthen the wait over TCP and Unix); docker `expect_continue_tests`
+  (2: no `Expect` header, POST does not wait). The two `read_timeout_...` netio tests failed
+  before the fix (body arrived 10.0 s after the head) and pass now; the timer-only tests pass
+  on the old code, which proves the state machine is correct. 20/20 runs of each. No Docker
+  daemon was available here, so no real-daemon timing.
+
 - 2026-11-02: feature 42 (netio dead wait loops) done on `fix/io-41-50-lane-a`. T0: no
   real caller of `collect_exchange`, `drain_exchange_head` or `QuicListener` anywhere in the
   repo (only definitions, the `pub mod` line, a deprecation note and a comment). Deleted
