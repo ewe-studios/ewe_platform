@@ -150,12 +150,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 13. foundation_nativeapis
 
-- **The blob-backed D1/R2 deltas can't list.** `BlobDelta`
-  (`src/native/vfs/blob_delta.rs`, behind `D1Delta`/`R2Delta`) keeps each
-  file, its metadata and its whiteout as separate blobs, and a blob store has
-  no key listing: `list_async` and `list_whiteouts_async` return nothing and
-  `reset_async` is unsupported. Fix: keep a per-directory index blob (or use
-  D1's key-value listing, `list_keys`, for the D1 delta).
 - **A blob-delta write rewrites the whole file.** Each `write_at_async` reads
   the blob, splices the bytes in and writes it back, so a large file written
   in small pieces is O(n²). Fix: chunked storage (the unused

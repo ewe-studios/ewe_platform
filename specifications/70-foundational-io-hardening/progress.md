@@ -2,6 +2,17 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 19 (foundation_nativeapis) E1 done on
+  `fix/io-20-vfs-process-ipc`. E1 adds `BlobStore::list_blobs_after` to
+  `D1Store` (delegates to `list_keys` and enforces the literal prefix, because
+  SQL `LIKE` widens `%`/`_`). `BlobDelta` now lists a directory from meta keys,
+  lists whiteouts from whiteout keys, and resets by deleting every `vfs/` key.
+  Two tests land in `tests/blob_delta_vfs/`: `blob_delta_lists_files_and_whiteouts`
+  and `blob_delta_reset_clears_everything` (14 tests green under `--profile uat`).
+  The `vfs-d1`/`vfs-r2` features gain `dep:futures-lite` so `BlobDelta` can
+  drain the listing stream. The first §13 backlog entry (blob deltas cannot
+  list) is removed.
+
 - 2026-11-02: bug-backlog §15 (foundation_cedar) clippy cleanup on
   `fix/io-20-vfs-process-ipc`. Cleared the 24 pre-existing `pedantic` warnings
   and deleted both §15 backlog entries (the warnings list and the stale

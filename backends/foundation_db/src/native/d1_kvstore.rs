@@ -25,7 +25,7 @@ use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{status_column_value, ResourceState, StateStatus};
 use crate::core::crypto::ZeroizingString;
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, AsyncQueryStream, QueryStore,
+    BlobStore, BlobListStream, KeyValueStore, AsyncListStream, AsyncQueryStream, QueryStore,
     RateLimiterStore, DataValue, SqlRow,
 };
 
@@ -680,5 +680,22 @@ impl BlobStore for D1Store {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
         let response = self.execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())]).await?;
         Ok(!Self::extract_rows(&response).is_empty())
+    }
+
+    async fn list_blobs_after(
+        &self,
+        prefix: &str,
+        start_after: Option<&str>,
+        limit: Option<usize>,
+    ) -> StorageResult<BlobListStream> {
+        // `list_keys` matches with SQL `LIKE`; `%` and `_` in blob keys widen
+        // that match, so keep the literal prefix here. `list_keys` already
+        // sorts (`ORDER BY key`).
+        let mut keys = self.list_keys(Some(prefix)).await?.collect_all().await?;
+        keys.retain(|k| k.starts_with(prefix) && start_after.is_none_or(|s| k.as_str() > s));
+        if let Some(limit) = limit {
+            keys.truncate(limit);
+        }
+        Ok(Box::pin(stream::iter(keys.into_iter().map(Ok))))
     }
 }

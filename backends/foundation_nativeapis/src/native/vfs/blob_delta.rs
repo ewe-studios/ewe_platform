@@ -15,8 +15,8 @@
 //!   `u64`).
 //!
 //! HOW: a file is one blob, so a write reads the blob, splices the bytes in at
-//! the offset and writes it back. Blob stores can't list keys, so directory
-//! listing and `list_whiteouts` return nothing (backlog §13).
+//! the offset and writes it back. Directory listing, whiteout listing and
+//! reset walk the store through [`BlobStore::list_blobs_after`].
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -27,6 +27,7 @@ use std::time::SystemTime;
 use async_trait::async_trait;
 use foundation_db::{BlobStore, StorageError};
 use foundation_errstacks::ErrorTrace;
+use futures_lite::StreamExt;
 
 use crate::shared::vfs::async_traits::{
     AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
@@ -65,6 +66,14 @@ fn to_usize(n: u64) -> VfsResult<usize> {
             message: format!("offset {n} does not fit in memory"),
         })
     })
+}
+
+/// Decode the little-endian `u64` version stored in a whiteout blob.
+fn whiteout_version(bytes: &[u8]) -> u64 {
+    bytes
+        .get(..8)
+        .and_then(|b| <[u8; 8]>::try_from(b).ok())
+        .map_or(0, u64::from_le_bytes)
 }
 
 fn join(dir: &str, name: &str) -> String {
@@ -149,6 +158,45 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
         format!("vfs/whiteout/{}", path.trim_start_matches('/'))
     }
 
+    /// The meta-key prefix for every direct child of `path`.
+    fn meta_dir_prefix(path: &str) -> String {
+        let trimmed = path.trim_start_matches('/');
+        if trimmed.is_empty() {
+            "vfs/meta/".to_string()
+        } else if trimmed.ends_with('/') {
+            format!("vfs/meta/{trimmed}")
+        } else {
+            format!("vfs/meta/{trimmed}/")
+        }
+    }
+
+    /// The whiteout-key prefix for every path under `dir`.
+    fn whiteout_dir_prefix(dir: &str) -> String {
+        let trimmed = dir.trim_start_matches('/');
+        if trimmed.is_empty() {
+            "vfs/whiteout/".to_string()
+        } else if trimmed.ends_with('/') {
+            format!("vfs/whiteout/{trimmed}")
+        } else {
+            format!("vfs/whiteout/{trimmed}/")
+        }
+    }
+
+    /// All blob keys that start with `prefix`, in sorted order.
+    async fn list_keys_after(&self, prefix: &str) -> VfsResult<Vec<String>> {
+        let stream = self
+            .store
+            .list_blobs_after(prefix, None, None)
+            .await
+            .map_err(serr)?;
+        stream
+            .collect::<Vec<_>>()
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(serr)
+    }
+
     async fn read_data(&self, path: &str) -> VfsResult<Option<Vec<u8>>> {
         self.store.get_blob(&Self::data_key(path)).await.map_err(serr)
     }
@@ -198,13 +246,7 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
             .await
             .map_err(serr)?
         {
-            Some(bytes) => {
-                let version = bytes
-                    .get(..8)
-                    .and_then(|b| <[u8; 8]>::try_from(b).ok())
-                    .map_or(0, u64::from_le_bytes);
-                Ok(Some(version))
-            }
+            Some(bytes) => Ok(Some(whiteout_version(&bytes))),
             None => Ok(None),
         }
     }
@@ -451,8 +493,26 @@ impl<S: BlobStore + 'static> AsyncVfsDirectory for BlobDirectory<S> {
     }
 
     async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
-        // Blob stores can't list keys (backlog §13).
-        Ok(Vec::new())
+        let prefix = BlobDelta::<S>::meta_dir_prefix(&self.path);
+        let mut entries = Vec::new();
+        for key in self.delta.list_keys_after(&prefix).await? {
+            let Some(name) = key.strip_prefix(&prefix) else {
+                continue;
+            };
+            // Only direct children; nested names carry a `/`.
+            if name.is_empty() || name.contains('/') {
+                continue;
+            }
+            let child = join(&self.path, name);
+            if let Ok(meta) = self.delta.stat(&child).await {
+                entries.push(VfsDirEntry {
+                    inode: meta.inode,
+                    name: name.to_string(),
+                    file_type: meta.file_type,
+                });
+            }
+        }
+        Ok(entries)
     }
 
     async fn get_entry_async(&self, name: String) -> VfsResult<Option<VfsDirEntry>> {
@@ -595,9 +655,21 @@ impl<S: BlobStore + 'static> AsyncDeltaStore for BlobDelta<S> {
             .map_err(serr)
     }
 
-    async fn list_whiteouts_async(&self, _dir: String) -> VfsResult<Vec<(String, u64)>> {
-        // Blob stores can't list keys (backlog §13).
-        Ok(Vec::new())
+    async fn list_whiteouts_async(&self, dir: String) -> VfsResult<Vec<(String, u64)>> {
+        let prefix = Self::whiteout_dir_prefix(&dir);
+        let mut out = Vec::new();
+        for key in self.list_keys_after(&prefix).await? {
+            let Some(rel) = key.strip_prefix("vfs/whiteout/") else {
+                continue;
+            };
+            let path = format!("/{rel}");
+            let version = match self.store.get_blob(&key).await.map_err(serr)? {
+                Some(bytes) => whiteout_version(&bytes),
+                None => 0,
+            };
+            out.push((path, version));
+        }
+        Ok(out)
     }
 
     async fn flush_async(&self) -> VfsResult<()> {
@@ -606,6 +678,9 @@ impl<S: BlobStore + 'static> AsyncDeltaStore for BlobDelta<S> {
     }
 
     async fn reset_async(&self) -> VfsResult<()> {
-        Err(unsupported("reset (blob stores can't list keys to delete)"))
+        for key in self.list_keys_after("vfs/").await? {
+            self.store.delete_blob(&key).await.map_err(serr)?;
+        }
+        Ok(())
     }
 }

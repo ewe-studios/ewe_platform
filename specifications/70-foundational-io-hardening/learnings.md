@@ -2,6 +2,16 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 19 E1, foundation_nativeapis): `BlobStore::list_blobs_after`
+  returns a bare `BlobListStream` (`Pin<Box<dyn Stream<Item = StorageResult<String>> + Send>>`)
+  with no `collect_all`, so a consumer needs a `StreamExt` in scope.
+  `foundation_db` already depends on `futures-lite`; `foundation_nativeapis` had
+  it only behind `vfs-fjall`. Add `dep:futures-lite` to `vfs-d1`/`vfs-r2`
+  rather than reaching into `foundation_core::valtron::StreamExt`. Also: D1
+  `list_keys` matches with SQL `LIKE`, so `%` and `_` in blob keys widen the
+  match; `list_blobs_after` must re-filter with `starts_with(prefix)` to keep
+  the literal contract.
+
 - 2026-11-02 (backlog §15 clippy cleanup, foundation_cedar): the
   `assert_is_empty` fix has three more traps beyond the earlier `[] as [T; 0]`
   note. (1) A plain `vec![]` in `assert_ne!(x, vec![])` fails E0282 ("type

@@ -136,6 +136,53 @@ async fn directories_create_and_look_up_children() {
 }
 
 #[valtron_test]
+async fn blob_delta_lists_files_and_whiteouts() {
+    let d = delta();
+    d.mkdir_async("/d".into()).await.unwrap();
+    d.create_async("/d/a.txt".into(), 0o644).await.unwrap();
+    d.create_async("/d/b.txt".into(), 0o644).await.unwrap();
+    d.mkdir_async("/d/sub".into()).await.unwrap();
+    d.create_async("/d/gone.txt".into(), 0o644).await.unwrap();
+    d.remove_async("/d/gone.txt".into()).await.unwrap();
+    d.add_whiteout_async("/d/removed".into(), 5).await.unwrap();
+
+    let dir = d.open_directory_async("/d".into()).await.unwrap();
+    let mut names: Vec<String> = dir
+        .list_async()
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|e| e.name)
+        .collect();
+    names.sort();
+    assert_eq!(names, vec!["a.txt", "b.txt", "sub"]);
+
+    let mut whiteouts = d.list_whiteouts_async("/d".into()).await.unwrap();
+    whiteouts.sort();
+    assert_eq!(
+        whiteouts,
+        vec![
+            ("/d/gone.txt".to_string(), 0),
+            ("/d/removed".to_string(), 5),
+        ]
+    );
+}
+
+#[valtron_test]
+async fn blob_delta_reset_clears_everything() {
+    let d = delta();
+    d.mkdir_async("/d".into()).await.unwrap();
+    d.create_async("/d/a".into(), 0o644).await.unwrap();
+    d.add_whiteout_async("/w".into(), 1).await.unwrap();
+
+    d.reset_async().await.unwrap();
+
+    assert!(!d.exists_async("/d/a".into()).await.unwrap());
+    assert!(!d.exists_async("/d".into()).await.unwrap());
+    assert!(d.list_whiteouts_async("/".into()).await.unwrap().is_empty());
+}
+
+#[valtron_test]
 async fn chmod_updates_permissions() {
     let d = delta();
     d.create_async("/c".into(), 0o644).await.unwrap();
