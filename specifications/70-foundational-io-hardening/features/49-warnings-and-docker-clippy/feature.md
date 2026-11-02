@@ -4,7 +4,7 @@ status: "pending"
 lane: "A"
 model: "haiku"
 branch: "fix/io-41-50-lane-a"
-crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc", "foundation_netio", "foundation_deployment", "foundation_keychain", "foundation_proxy"]
+crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc", "foundation_netio", "foundation_deployment", "foundation_keychain", "foundation_proxy", "foundation_wireguard"]
 catalogue_rows: [13, 14, 15, 31]
 ---
 
@@ -58,6 +58,12 @@ Fix all; mechanical only. Delete the §22 clippy entry.
 
 About 50 lib warnings, plus `load_balancer_tests` unused imports and
 `h2_integration_tests.rs:318` unused `mut`. Fix all; mechanical only. Delete the §9 entry.
+
+## E8. `foundation_wireguard` unused dependency and wasm manifest warnings (found in feature 54)
+
+`foundation_errstacks` is unused; there are a few other manifest warnings on wasm32
+(`cargo check -p foundation_wireguard --target wasm32-unknown-unknown`). Remove or
+target-gate each dependency; 0 warnings native and wasm32.
 
 ## Verify
 
