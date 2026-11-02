@@ -320,13 +320,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   Limits are configuration, not constants (rule 8). Fix: move it to a config
   field with a documented default.
 
-## 20. foundation_deployment_huggingface
-
-- **`list_*` and `repo_list_tree` read one page only.** They ignore the Hub's
-  `Link: rel="next"` pagination header, so a listing stops at the first page
-  (the docs say "with pagination"). Fix: follow `Link` lazily as the stream
-  is pulled.
-
 ## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
 
 - **`foundation_keychain`**: `rmpv` is an unused dependency on wasm32

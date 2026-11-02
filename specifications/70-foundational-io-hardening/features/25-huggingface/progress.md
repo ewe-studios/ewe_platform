@@ -57,11 +57,22 @@ STE standard ASD-STE100.
     full 256-byte chunks and reassembles the exact body).
   - Backlog 20 "Uploads are buffered whole." entry deleted.
 
-## In progress
-
-- E3 (Link pagination).
+- E3 (listings read one page only):
+  - `list_models`, `list_datasets`, `list_spaces` and `repo_list_tree` now
+    follow the Hub's `Link: rel="next"` pagination. The first page is fetched
+    eagerly; every later page is fetched lazily, only when the previous page's
+    items are pulled past (`LazyPageIterator` in `src/client.rs`).
+  - `send_json_async_with_headers` returns the response headers alongside the
+    parsed JSON, and `next_link` extracts the `rel="next"` URL.
+  - Config `max_list_pages` lands on `HFClientBuilder` (default
+    `DEFAULT_MAX_LIST_PAGES`, 10 000 pages) and guards against a loop in a
+    broken `Link` header.
+  - Tests: `hub_list_follows_link_pages` (three pages; page 2 is requested only
+    after page 1's items are pulled) and `hub_list_stops_without_next_link`.
+  - Backlog 20's third entry (one page only) deleted; the whole section is gone.
 
 ## Done
 
 - E1.
 - E2.
+- E3.

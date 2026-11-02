@@ -2,6 +2,18 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 25 (foundation_deployment_huggingface) E3 done on
+  `fix/io-20-vfs-process-ipc`. E3 makes `list_models`, `list_datasets`,
+  `list_spaces` and `repo_list_tree` follow the Hub's `Link: rel="next"`
+  pagination. The first page is fetched eagerly; later pages are fetched
+  lazily by a `LazyPageIterator` when the previous page's items are pulled
+  past. `send_json_async_with_headers` returns the response headers and
+  `next_link` extracts the next URL. Config `max_list_pages` (default
+  10 000) guards against a loop. New tests `hub_list_follows_link_pages`
+  (three pages, page 2 fetched only after page 1's items are pulled) and
+  `hub_list_stops_without_next_link` land. The third §20 backlog entry is
+  removed, closing the section.
+
 - 2026-11-02: feature 25 (foundation_deployment_huggingface) E2 done on
   `fix/io-20-vfs-process-ipc`. E2 replaces the buffered commit body with a
   streamed multipart body. `repo_create_commit` no longer calls

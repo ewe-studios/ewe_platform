@@ -51,7 +51,22 @@ STE standard ASD-STE100.
 - The chunked file reader yields `Data::Bytes` only (never `Data::Retry`), but
   callers must still handle `Retry` because it is a valid `Data` variant.
 
+## E3. Listings read one page only
+
+- `LazyPageIterator` is a sync `Iterator` whose `next()` fetches the next page
+  with `block_on_future`. That blocks the calling thread and parks the fetch on
+  the pool, so it is safe only because the crate's `multi` feature (the
+  default) runs at least two task workers. Do not consume the iterator on a
+  single-threaded valtron worker.
+- The `rel="next"` URL comes straight from the `Link` header, so the mock
+  server sets the absolute next URL and the client follows it without
+  rebuilding query strings. The test server's `HttpRequest` exposes the
+  `Host` header, which lets a handler build that absolute URL.
+- `SimpleHeader::LINK` may hold several values; `next_link` scans every value
+  for the first `rel="next"` link.
+
 ## Dead ends
 
 - None for E1.
 - None for E2.
+- None for E3.

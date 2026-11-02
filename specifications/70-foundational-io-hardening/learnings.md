@@ -2,6 +2,14 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 25 E3, foundation_deployment_huggingface): a lazy
+  pagination iterator over async page fetches must drive each fetch with
+  `block_on_future` inside `Iterator::next`. That blocks the calling thread
+  and parks the fetch on the valtron pool, so it is safe only with the crate's
+  `multi` feature (the default, at least two task workers). The next page URL
+  is taken verbatim from the `Link` header, so the mock server builds the
+  absolute URL from the request's `Host` header.
+
 - 2026-11-02 (feature 25 E2, foundation_deployment_huggingface): the netio
   client always chunk-frames a `SendSafeBody::Stream` request body — its
   `SimpleIncomingRequest::build()` removes any `Content-Length` and adds

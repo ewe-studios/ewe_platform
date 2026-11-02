@@ -5,7 +5,7 @@
 
 #![allow(clippy::too_many_lines)]
 
-use crate::client::{is_success_status, HFClient};
+use crate::client::{into_lazy_pages, is_success_status, HFClient};
 use crate::error::{HuggingFaceError, Result};
 use crate::types::{
     AddSource, CommitInfo, CommitOperation, RepoCreateCommitParams, RepoDeleteFileParams,
@@ -236,13 +236,9 @@ pub async fn repo_list_tree(
     let client = &repo.inner.client;
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
     let page = client
-        .send_json_async::<Vec<RepoTreeEntry>>(request, &url)
+        .send_json_async_with_headers::<Vec<RepoTreeEntry>>(request, &url)
         .await;
-    let items: Vec<Stream<Result<RepoTreeEntry>, ()>> = match page {
-        Ok(entries) => entries.into_iter().map(|e| Stream::Next(Ok(e))).collect(),
-        Err(e) => vec![Stream::Next(Err(e))],
-    };
-    Ok(items.into_iter())
+    Ok(into_lazy_pages(client, true, page))
 }
 
 /// Download a file, handling `HuggingFace`'s CDN redirect.

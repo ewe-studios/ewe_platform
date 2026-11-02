@@ -12,9 +12,9 @@
 use std::sync::{Arc, Mutex};
 
 use foundation_core::io::readers::Data;
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, Stream};
 use foundation_deployment_huggingface::{
-    client, repository, AddSource, CommitOperation, HFClientBuilder, HuggingFaceError,
+    client, repository, types, AddSource, CommitOperation, HFClientBuilder, HuggingFaceError,
     RepoCreateCommitParams, RepoDownloadFileParams,
 };
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
@@ -446,4 +446,109 @@ async fn commit_multipart_streams_file_in_chunks() {
         "the 785-byte file must be read in three full 256-byte chunks"
     );
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[valtron_test]
+async fn hub_list_follows_link_pages() {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    let requests = Arc::new(AtomicUsize::new(0));
+    let requests_in = Arc::clone(&requests);
+    let server = TestHttpServer::with_response(move |req| {
+        requests_in.fetch_add(1, Ordering::SeqCst);
+        let host = req
+            .headers
+            .get(&SimpleHeader::HOST)
+            .and_then(|v| v.first().cloned())
+            .expect("Host header");
+        let base = format!("http://{host}");
+        let page = if req.path.url.contains("page=3") {
+            3
+        } else if req.path.url.contains("page=2") {
+            2
+        } else {
+            1
+        };
+        let (items, next) = match page {
+            1 => (
+                r#"[{"id":"a"},{"id":"b"}]"#,
+                Some(format!("<{base}/api/models?page=2>; rel=\"next\"")),
+            ),
+            2 => (
+                r#"[{"id":"c"},{"id":"d"}]"#,
+                Some(format!("<{base}/api/models?page=3>; rel=\"next\"")),
+            ),
+            _ => (r#"[{"id":"e"}]"#, None),
+        };
+        let mut response = json(items);
+        if let Some(link) = next {
+            response.headers.push(("Link".to_string(), link));
+        }
+        response
+    });
+
+    let hf = HFClientBuilder::new()
+        .endpoint(server.base_url())
+        .build()
+        .expect("client");
+
+    let listing = client::list_models(&hf, &types::ListModelsParams::default())
+        .await
+        .expect("list");
+
+    assert_eq!(
+        requests.load(Ordering::SeqCst),
+        1,
+        "only the first page is fetched up front"
+    );
+
+    let mut ids = Vec::new();
+    for item in listing {
+        match item {
+            Stream::Next(Ok(model)) => ids.push(model.id),
+            other => panic!("unexpected listing item: {other:?}"),
+        }
+    }
+
+    assert_eq!(ids, vec!["a", "b", "c", "d", "e"]);
+    assert_eq!(
+        requests.load(Ordering::SeqCst),
+        3,
+        "all three pages are fetched"
+    );
+}
+
+#[valtron_test]
+async fn hub_list_stops_without_next_link() {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    let requests = Arc::new(AtomicUsize::new(0));
+    let requests_in = Arc::clone(&requests);
+    let server = TestHttpServer::with_response(move |_req| {
+        requests_in.fetch_add(1, Ordering::SeqCst);
+        json(r#"[{"id":"only"}]"#)
+    });
+
+    let hf = HFClientBuilder::new()
+        .endpoint(server.base_url())
+        .build()
+        .expect("client");
+
+    let listing = client::list_models(&hf, &types::ListModelsParams::default())
+        .await
+        .expect("list");
+
+    let ids: Vec<String> = listing
+        .filter_map(|item| match item {
+            Stream::Next(Ok(model)) => Some(model.id),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(ids, vec!["only"]);
+    assert_eq!(
+        requests.load(Ordering::SeqCst),
+        1,
+        "no next page is requested"
+    );
 }
