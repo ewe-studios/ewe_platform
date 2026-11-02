@@ -23,6 +23,11 @@ Association of Europe (ASD), the owner of the STE standard ASD-STE100.
 - The first `cargo fmt --all -- --check` counted 7292 `Diff in` lines. That is
   diff hunks, not files. It flags 1372 files. Count distinct `Diff in` paths
   when you want a file count.
+- Generated code must stay byte-identical to the generator output. The
+  Cloudflare per-group build script compares committed files against a fresh
+  generation and regenerates on any difference. Reformatting the 43 generated
+  `lib.rs` shims marked them stale, and `cargo check` regenerated them
+  unformatted. The fix is a `rustfmt.toml` `ignore` list, not reformatting.
 - The feature 08 learning ("format only the files you changed, the repo is not
   fmt-clean") is now resolved. The repo is fmt-clean under the pinned
-  toolchain.
+  toolchain, except the generated Cloudflare shims (excluded on purpose).

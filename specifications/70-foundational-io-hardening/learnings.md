@@ -12,8 +12,11 @@ _What an agent learned that the next agent needs. Newest first._
   on a few long `format!` calls inside `match` arms: the first `cargo fmt
   --all` left one file flagged and a second run settled it. Run `cargo fmt
   --all` and then `--check` until clean. The first `--check` counted 7292
-  `Diff in` lines. That is diff hunks across 1372 files, not 7292 files. The
-  feature 08 learning "the repo is not fmt-clean" is now resolved.
+  `Diff in` lines. That is diff hunks across 1372 files, not 7292 files.
+  Generated code must stay byte-identical to the generator output: the
+  Cloudflare per-group build script regenerates on any difference, so those
+  43 shims are excluded with a `rustfmt.toml` `ignore` list, not reformatted.
+  The feature 08 learning "the repo is not fmt-clean" is now resolved.
 
 - 2026-11-02 (feature 19 E4, foundation_nativeapis): the local `turso`
   engine (crate `turso` 0.8.3) can back a local delta store. It is not the

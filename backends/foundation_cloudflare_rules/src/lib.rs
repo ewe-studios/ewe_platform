@@ -4,15 +4,10 @@
 //! DO NOT EDIT MANUALLY.
 
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
-#![allow(
-    clippy::missing_errors_doc,
-    clippy::doc_markdown,
-    clippy::useless_format
-)]
+#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
 #![allow(unused_imports)]
 
 pub mod shared {
-    pub use foundation_cloudflare_types::generated::*;
     pub use foundation_deployment::providers::common::{
         read_error_body, send_bytes, send_checked, send_json, send_json_lines, send_without_body,
         with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream,
@@ -20,6 +15,7 @@ pub mod shared {
     pub use foundation_deployment::providers::common::{
         ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation,
     };
+    pub use foundation_cloudflare_types::generated::*;
 }
 
 pub mod rules;
