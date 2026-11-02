@@ -70,14 +70,20 @@ struct StateFileLock {
 
 const PROXY_STATE_ID: &str = "proxy_state";
 
-/// Try to take an exclusive `flock` on `file` without blocking. `Ok(false)`
+/// Try to take a shared (`shared`) or exclusive `flock` on `file` without blocking. `Ok(false)`
 /// means another holder has it.
-fn try_flock(file: &File) -> std::io::Result<bool> {
+fn try_flock(file: &File, shared: bool) -> std::io::Result<bool> {
     use std::os::fd::AsRawFd;
     loop {
         // SAFETY: `flock` reads no memory; the descriptor is open for the
         // lifetime of `file`.
-        if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } == 0 {
+        if unsafe {
+            libc::flock(
+                file.as_raw_fd(),
+                (if shared { libc::LOCK_SH } else { libc::LOCK_EX }) | libc::LOCK_NB,
+            )
+        } == 0
+        {
             return Ok(true);
         }
         let err = std::io::Error::last_os_error();
@@ -136,7 +142,7 @@ impl ProxyStateStore {
     ///
     /// HOW: a try-lock loop that waits on the valtron timer between tries, so a
     /// busy lock parks the task and holds no thread.
-    async fn lock_state_file(&self) -> Result<StateFileLock, StorageError> {
+    async fn lock_state_file(&self, shared: bool) -> Result<StateFileLock, StorageError> {
         if let Some(dir) = self.lock_path.parent() {
             std::fs::create_dir_all(dir)
                 .map_err(|e| StorageError::Backend(format!("create {}: {e}", dir.display())))?;
@@ -151,7 +157,7 @@ impl ProxyStateStore {
             })?;
         let deadline = Instant::now() + self.lock_timeout;
         loop {
-            match try_flock(&file) {
+            match try_flock(&file, shared) {
                 Ok(true) => return Ok(StateFileLock { _file: file }),
                 Ok(false) => {
                     if Instant::now() >= deadline {
@@ -179,6 +185,14 @@ impl ProxyStateStore {
     ///
     /// Returns `StorageError` if the state can't be read or decoded.
     pub async fn load(&self) -> Result<Option<PersistedProxyState>, StorageError> {
+        // A shared lock excludes a writer (which holds the exclusive lock while
+        // it writes the file in place), so a load never reads a torn file.
+        let _file_lock = self.lock_state_file(true).await?;
+        self.load_unlocked().await
+    }
+
+    /// Load without taking the state-file lock; the caller holds it.
+    async fn load_unlocked(&self) -> Result<Option<PersistedProxyState>, StorageError> {
         match self.store.get(PROXY_STATE_ID).await? {
             Some(resource) => serde_json::from_value(resource.output)
                 .map(Some)
@@ -222,8 +236,8 @@ impl ProxyStateStore {
         state: &str,
     ) -> Result<(), StorageError> {
         let _guard = self.write_lock.lock().await;
-        let _file_lock = self.lock_state_file().await?;
-        let mut persisted = self.load().await?.unwrap_or_default();
+        let _file_lock = self.lock_state_file(false).await?;
+        let mut persisted = self.load_unlocked().await?.unwrap_or_default();
         persisted
             .backend_states
             .insert(format!("{service}/{backend_url}"), state.to_string());
@@ -254,8 +268,8 @@ impl ProxyStateStore {
     /// Returns `StorageError` if the state can't be loaded or saved.
     pub async fn save_tls_cert(&self, cert_pem: &str, key_pem: &str) -> Result<(), StorageError> {
         let _guard = self.write_lock.lock().await;
-        let _file_lock = self.lock_state_file().await?;
-        let mut state = self.load().await?.unwrap_or_default();
+        let _file_lock = self.lock_state_file(false).await?;
+        let mut state = self.load_unlocked().await?.unwrap_or_default();
         state.cert_pem = Some(cert_pem.to_string());
         state.key_pem = Some(key_pem.to_string());
         state.cert_renewed_at = Some(
