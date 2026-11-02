@@ -23,6 +23,15 @@ use super::shared::AccessApiResponseSingle;
 use super::shared::AccessComponentsSchemasIdResponse;
 use super::shared::AccessUuid;
 use super::shared::AddressingApiResponseCommon;
+use super::shared::D1ApiResponseCommon;
+use super::shared::D1BatchQuery;
+use super::shared::D1QueryDatabaseResponse;
+use super::shared::D1QueryMeta;
+use super::shared::D1QueryResultResponse;
+use super::shared::D1ServedByColo;
+use super::shared::D1ServedByRegion;
+use super::shared::D1SingleQuery;
+use super::shared::D1Sql;
 use super::shared::ObservatoryApiResponseCommon;
 use super::shared::ObservatoryApiResponseSingle;
 use super::shared::ObservatoryCountResponse;
@@ -1083,14 +1092,6 @@ pub type CustomPagesTimestamp = String;
 /// `CustomPagesUrl` type.
 pub type CustomPagesUrl = String;
 
-/// `D1ApiResponseCommon` type.
-///
-/// Same shape as `super::shared::ApiEnvelope<serde_json::Value>`.
-pub type D1ApiResponseCommon = super::shared::ApiEnvelope<serde_json::Value>;
-
-/// `D1BatchQuery` type.
-pub type D1BatchQuery = serde_json::Value;
-
 /// `D1CreateDatabaseRequest` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1CreateDatabaseRequest {
@@ -1235,53 +1236,10 @@ pub type D1ListDatabasesResponse =
 pub type D1Messages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `D1Params` type.
-pub type D1Params = Vec<String>;
+pub type D1Params = Vec<serde_json::Value>;
 
 /// `D1PrimaryLocationHint` type.
 pub type D1PrimaryLocationHint = String;
-
-/// `D1QueryDatabaseResponse` type.
-///
-/// Same shape as `super::shared::ApiEnvelope<Vec<D1QueryResultResponse>>`.
-pub type D1QueryDatabaseResponse = super::shared::ApiEnvelope<Vec<D1QueryResultResponse>>;
-
-/// `D1QueryMeta` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1QueryMeta {
-    /// `changed_db` property.
-    pub changed_db: Option<bool>,
-    /// `changes` property.
-    pub changes: Option<f64>,
-    /// `duration` property.
-    pub duration: Option<f64>,
-    /// `last_row_id` property.
-    pub last_row_id: Option<f64>,
-    /// `rows_read` property.
-    pub rows_read: Option<f64>,
-    /// `rows_written` property.
-    pub rows_written: Option<f64>,
-    /// `served_by_colo` property.
-    pub served_by_colo: Option<String>,
-    /// `served_by_primary` property.
-    pub served_by_primary: Option<bool>,
-    /// `served_by_region` property.
-    pub served_by_region: Option<String>,
-    /// `size_after` property.
-    pub size_after: Option<f64>,
-    /// `timings` property.
-    pub timings: Option<std::collections::HashMap<String, serde_json::Value>>,
-}
-
-/// `D1QueryResultResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1QueryResultResponse {
-    /// `meta` property.
-    pub meta: Option<D1QueryMeta>,
-    /// `results` property.
-    pub results: Option<Vec<serde_json::Value>>,
-    /// `success` property.
-    pub success: Option<bool>,
-}
 
 /// `D1RawDatabaseQueryResponse` type.
 ///
@@ -1308,24 +1266,6 @@ pub struct D1ReadReplicationDetails {
 
 /// `D1ReadReplicationMode` type.
 pub type D1ReadReplicationMode = String;
-
-/// `D1ServedByColo` type.
-pub type D1ServedByColo = String;
-
-/// `D1ServedByRegion` type.
-pub type D1ServedByRegion = String;
-
-/// `D1SingleQuery` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1SingleQuery {
-    /// `params` property.
-    pub params: Option<Vec<String>>,
-    /// `sql` property.
-    pub sql: String,
-}
-
-/// `D1Sql` type.
-pub type D1Sql = String;
 
 /// `D1TableCount` type.
 pub type D1TableCount = f64;

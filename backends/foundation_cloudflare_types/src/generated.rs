@@ -97,6 +97,30 @@ pub struct BillSubsApiSubscriptionV2 {
     pub zone: Option<BillSubsApiZone>,
 }
 
+/// `D1BatchQuery` type.
+///
+/// A single query object or a batch query object
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[serde(untagged)]
+pub enum D1BatchQuery {
+    D1SingleQuery(D1SingleQuery),
+    MultipleQueries {
+        /// `batch` property.
+        batch: Vec<D1SingleQuery>,
+    },
+}
+
+impl Default for D1BatchQuery {
+    fn default() -> Self {
+        Self::D1SingleQuery(Default::default())
+    }
+}
+
+/// `D1QueryDatabaseResponse` type.
+///
+/// Same shape as `ApiEnvelope<Vec<D1QueryResultResponse>>`.
+pub type D1QueryDatabaseResponse = ApiEnvelope<Vec<D1QueryResultResponse>>;
+
 /// `DosApiResponseCommon` type.
 ///
 /// Same shape as `ErrorsMessagesSuccessObject`.
@@ -370,6 +394,21 @@ pub struct OrganizationsApiProfile {
     pub external_metadata: String,
 }
 
+/// `R2ListObjectsResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2ListObjectsResponse {
+    /// `errors` property.
+    pub errors: Vec<serde_json::Value>,
+    /// `messages` property.
+    pub messages: Vec<serde_json::Value>,
+    /// `result` property.
+    pub result: Vec<R2ObjectInfo>,
+    /// `result_info` property.
+    pub result_info: Option<R2ListObjectsResultInfo>,
+    /// `success` property.
+    pub success: bool,
+}
+
 /// `ResourceSharingShareResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingShareResponseCollection {
@@ -532,6 +571,67 @@ pub type BillSubsApiState = String;
 ///
 /// Same shape as `IdNameObject`.
 pub type BillSubsApiZone = IdNameObject;
+
+/// `D1ApiResponseCommon` type.
+///
+/// Same shape as `ApiEnvelope<serde_json::Value>`.
+pub type D1ApiResponseCommon = ApiEnvelope<serde_json::Value>;
+
+/// `D1QueryMeta` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct D1QueryMeta {
+    /// `changed_db` property.
+    pub changed_db: Option<bool>,
+    /// `changes` property.
+    pub changes: Option<i64>,
+    /// `duration` property.
+    pub duration: Option<f64>,
+    /// `last_row_id` property.
+    pub last_row_id: Option<f64>,
+    /// `rows_read` property.
+    pub rows_read: Option<f64>,
+    /// `rows_written` property.
+    pub rows_written: Option<i64>,
+    /// `served_by_colo` property.
+    pub served_by_colo: Option<String>,
+    /// `served_by_primary` property.
+    pub served_by_primary: Option<bool>,
+    /// `served_by_region` property.
+    pub served_by_region: Option<String>,
+    /// `size_after` property.
+    pub size_after: Option<f64>,
+    /// `timings` property.
+    pub timings: Option<std::collections::HashMap<String, serde_json::Value>>,
+}
+
+/// `D1QueryResultResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct D1QueryResultResponse {
+    /// `meta` property.
+    pub meta: Option<D1QueryMeta>,
+    /// `results` property.
+    pub results: Option<Vec<serde_json::Value>>,
+    /// `success` property.
+    pub success: Option<bool>,
+}
+
+/// `D1ServedByColo` type.
+pub type D1ServedByColo = String;
+
+/// `D1ServedByRegion` type.
+pub type D1ServedByRegion = String;
+
+/// `D1SingleQuery` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct D1SingleQuery {
+    /// `params` property.
+    pub params: Option<Vec<serde_json::Value>>,
+    /// `sql` property.
+    pub sql: String,
+}
+
+/// `D1Sql` type.
+pub type D1Sql = String;
 
 /// `FirewallApiResponseCollection` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
@@ -1294,6 +1394,34 @@ pub type ObservatoryApiResponseCommon = ErrorsMessagesSuccessObject;
 ///
 /// Same shape as `ErrorsMessagesSuccessObject`.
 pub type ObservatoryApiResponseSingle = ErrorsMessagesSuccessObject;
+
+/// `R2ListObjectsResultInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2ListObjectsResultInfo {
+    /// `cursor` property.
+    pub cursor: Option<String>,
+    /// `is_truncated` property.
+    pub is_truncated: Option<bool>,
+}
+
+/// `R2ObjectInfo` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct R2ObjectInfo {
+    /// `custom_metadata` property.
+    pub custom_metadata: Option<serde_json::Value>,
+    /// `etag` property.
+    pub etag: Option<String>,
+    /// `http_metadata` property.
+    pub http_metadata: Option<serde_json::Value>,
+    /// `key` property.
+    pub key: String,
+    /// `size` property.
+    pub size: Option<i64>,
+    /// `uploaded` property.
+    pub uploaded: Option<String>,
+    /// `version` property.
+    pub version: Option<String>,
+}
 
 /// `ResourceSharingAccountId` type.
 pub type ResourceSharingAccountId = String;
