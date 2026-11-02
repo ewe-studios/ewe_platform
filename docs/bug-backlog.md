@@ -86,12 +86,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   long-lived handler parks instead of holding a worker. The proxy still relays on
   a throwaway thread and returns `Take`. It can move to `Async` later once its
   relay future is `'static`.
-- **`tests/diag_client_tap.rs` is a "TEMPORARY diagnostic", not a test.**
-  It is `#[ignore]`d, only `eprintln!`s what the client sent and received, and
-  asserts nothing, so it can never fail. Fix: turn it into a real test of
-  `forward_http`'s outgoing request (assert the `Host`, `X-Forwarded-*` and
-  `Connection` headers the fake upstream receives and the 200 status) and run
-  it un-ignored, or delete it if `proxy_integration_tests.rs` already covers it.
 - **The `mut` on `h3_local_addr` warns without the `h3` feature**
   (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
   expression instead of assigning inside the `cfg` block.

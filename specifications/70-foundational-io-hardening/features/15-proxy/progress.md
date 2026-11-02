@@ -89,9 +89,19 @@ standard ASD-STE100.
   - Validation under `--profile uat`: `proxy_features_tests` green (6). No new
     clippy warnings from this change.
   - Backlog 9 "The SSL redirect listener hard-codes its limits" entry deleted.
+- E5 (`forward_http` outgoing request is a real test):
+  - `tests/diag_client_tap.rs` (a print-only `#[ignore]`d diagnostic) became
+    `tests/forward_http_outgoing_tests.rs`. It starts a fake upstream, sends a
+    request whose headers pass through the real `forward_request_headers`, and
+    asserts the upstream received the original `Host`, an appended
+    `X-Forwarded-For`, `X-Forwarded-Proto`, and `Connection: close`, plus a 200.
+  - No public API change, so no version bump.
+  - Validation under `--profile uat`: `forward_http_outgoing_tests` green. No
+    new clippy warnings from this change.
+  - Backlog 9 "`tests/diag_client_tap.rs` is a 'TEMPORARY diagnostic'..." entry
+    deleted.
 
 ## Next
 
-- E5: make `tests/diag_client_tap.rs` a real `forward_http` test or delete it.
 - E6: build `h3_local_addr` from a `cfg`-gated expression; verify the
   no-default-features check is warning-free.

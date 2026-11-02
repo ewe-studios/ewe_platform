@@ -90,6 +90,18 @@ Defence Industries Association of Europe (ASD), the owner of the STE standard AS
   the same pattern the HTTP front end uses. On non-unix, or when the fd cannot
   be registered, it falls back to sleeping the configured accept poll.
 
+## E5. `forward_http` outgoing request is a real test
+
+- The old diagnostic built its header map by hand, so it could drift from the
+  real code. The test now calls `forward_request_headers`, the exact function
+  `forward_http` runs, then sends through the same pooled client.
+- The fake upstream must read the head up to its blank line before answering,
+  so the captured bytes are complete even when the head spans TCP reads.
+- Assert header lines by lower-casing the captured head and matching the full
+  `\r\nname: value\r\n` form. Matching `host: app.local` alone would also hit
+  the `x-forwarded-host: app.local` line; the `\r\n` prefix keeps the check on
+  the real `Host` line.
+
 ## Dead ends
 
-- None for E1, E2, E3 or E4.
+- None for E1, E2, E3, E4 or E5.
