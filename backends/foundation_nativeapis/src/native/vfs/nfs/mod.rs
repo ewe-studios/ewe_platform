@@ -11,7 +11,7 @@ use nfsserve::nfs::*;
 use nfsserve::vfs::{NFSFileSystem, VFSCapabilities, ReadDirResult, DirEntry};
 
 use crate::shared::vfs::async_traits::{AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem};
-use crate::shared::vfs::types::{OpenMode, VfsFileType};
+use crate::shared::vfs::types::{OpenMode, VfsDirEntry, VfsFileType};
 
 struct IdMapper {
     next_id: std::sync::atomic::AtomicU64,
@@ -57,8 +57,14 @@ fn to_nfs_ftype(ft: VfsFileType) -> ftype3 {
     }
 }
 
-fn now_ns() -> nfstime3 {
-    nfstime3 { seconds: 0, nseconds: 0 }
+fn to_nfstime3(t: Option<std::time::SystemTime>) -> nfstime3 {
+    match t.and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()) {
+        Some(d) => nfstime3 {
+            seconds: u32::try_from(d.as_secs()).unwrap_or(u32::MAX),
+            nseconds: d.subsec_nanos(),
+        },
+        None => nfstime3 { seconds: 0, nseconds: 0 },
+    }
 }
 
 fn child_of(dir_path: &str, name: &str) -> String {
@@ -82,9 +88,9 @@ async fn to_fattr3(fs: &impl AsyncVfsFileSystem, path: &str, id: u64) -> Result<
         rdev: specdata3 { specdata1: 0, specdata2: 0 },
         fsid: 1,
         fileid: id,
-        atime: now_ns(),
-        mtime: now_ns(),
-        ctime: now_ns(),
+        atime: to_nfstime3(meta.accessed),
+        mtime: to_nfstime3(meta.modified),
+        ctime: to_nfstime3(meta.modified),
     })
 }
 
@@ -211,31 +217,48 @@ impl<F: AsyncVfsFileSystem> NFSFileSystem for VfsNfs<F> {
         Ok(())
     }
 
-    async fn readdir(&self, dirid: fileid3, _start_after: fileid3, max_entries: usize) -> Result<ReadDirResult, nfsstat3> {
+    async fn readdir(&self, dirid: fileid3, start_after: fileid3, max_entries: usize) -> Result<ReadDirResult, nfsstat3> {
         let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
         let dir = self.fs.open_directory_async(dir_path.clone()).await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
         let entries = dir.list_async().await.map_err(|_| nfsstat3::NFS3ERR_IO)?;
 
-        let mut result = Vec::new();
-        let mut eof = true;
-
-        for entry in entries.iter().take(max_entries) {
+        // Resolve the fileid of every entry in list order, so the fileids match
+        // the cookies the client sends back.
+        let mut resolved: Vec<(u64, &VfsDirEntry)> = Vec::with_capacity(entries.len());
+        for entry in &entries {
             let child_path = child_of(&dir_path, &entry.name);
             let id = self.mapper.get_id(&child_path).unwrap_or_else(|| {
                 let id = self.mapper.next_id();
                 self.mapper.register(&child_path, id);
                 id
             });
+            resolved.push((id, entry));
+        }
+
+        // Resume after the entry whose fileid equals the cookie.
+        let mut start = 0;
+        if start_after != 0 {
+            for (i, (id, _)) in resolved.iter().enumerate() {
+                if *id == start_after {
+                    start = i + 1;
+                    break;
+                }
+            }
+        }
+
+        let end = start + max_entries;
+        let eof = end >= resolved.len();
+        let page = &resolved[start..resolved.len().min(end)];
+
+        let mut result = Vec::with_capacity(page.len());
+        for &(id, entry) in page {
+            let child_path = child_of(&dir_path, &entry.name);
             let attr = to_fattr3(&self.fs, &child_path, id).await?;
             result.push(DirEntry {
                 fileid: id,
                 name: nfsstring(entry.name.clone().into_bytes()),
                 attr,
             });
-        }
-
-        if entries.len() > max_entries {
-            eof = false;
         }
 
         Ok(ReadDirResult { entries: result, end: eof })

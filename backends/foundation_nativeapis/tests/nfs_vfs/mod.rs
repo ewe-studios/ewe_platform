@@ -246,3 +246,69 @@ fn test_nfs_remove_and_rename_in_subdirectory() {
         Err(nfsstat3::NFS3ERR_NOENT)
     ));
 }
+
+// ── E8: readdir pagination and attribute times ──
+
+#[test]
+#[foundation_macros::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn nfs_readdir_pages_without_repeats() {
+    let _guard = init_pool();
+    let fs = MemoryFs::new();
+    fs.mkdir("/dir").unwrap();
+    for i in 0..1000 {
+        fs.create(&format!("/dir/file_{i:04}"), 0o644).unwrap();
+    }
+
+    let nfs = Arc::new(VfsNfs::new(fs));
+    let dir_id = run_nfs_async({
+        let nfs = nfs.clone();
+        async move { nfs.path_to_id(b"/dir").await }
+    }).unwrap();
+
+    let mut seen = std::collections::HashSet::new();
+    let mut cookie = 0u64;
+    loop {
+        let result = run_nfs_async({
+            let nfs = nfs.clone();
+            async move { nfs.readdir(dir_id, cookie, 100).await }
+        }).unwrap();
+
+        for entry in &result.entries {
+            let name = String::from_utf8_lossy(&entry.name).to_string();
+            assert!(seen.insert(name.clone()), "repeated entry: {name}");
+        }
+        if result.entries.is_empty() {
+            break;
+        }
+        cookie = result.entries.last().unwrap().fileid;
+        if result.end {
+            break;
+        }
+    }
+    assert_eq!(seen.len(), 1000);
+}
+
+#[test]
+#[foundation_macros::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn nfs_attrs_have_mtime() {
+    let _guard = init_pool();
+    let fs = MemoryFs::new();
+    fs.create("/file.txt", 0o644).unwrap();
+    fs.write_file("/file.txt", b"data").unwrap();
+
+    let nfs = Arc::new(VfsNfs::new(fs));
+    let id = run_nfs_async({
+        let nfs = nfs.clone();
+        async move { nfs.path_to_id(b"/file.txt").await }
+    }).unwrap();
+
+    let attr = run_nfs_async({
+        let nfs = nfs.clone();
+        async move { nfs.getattr(id).await }
+    }).unwrap();
+    assert!(attr.mtime.seconds > 0, "mtime must come from VfsMetadata");
+}

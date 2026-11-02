@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 19 (foundation_nativeapis) E8 done on
+  `fix/io-20-vfs-process-ipc`. E8 makes `VfsNfs::readdir` honor the NFS v3
+  `start_after` cookie: it resolves the fileid of every entry in list order
+  first, then skips up to the entry whose fileid equals the cookie and takes
+  the next `max_entries`. A `to_nfstime3` helper maps `VfsMetadata` times to
+  `nfstime3`, saturating the 64-bit seconds into the NFS 32-bit field with
+  `u32::try_from(...).unwrap_or(u32::MAX)`; `to_fattr3` now sets `atime` from
+  `accessed` and `mtime`/`ctime` from `modified`. New tests
+  `nfs_readdir_pages_without_repeats` (a 1000-entry directory, page 100,
+  every name seen exactly once) and `nfs_attrs_have_mtime` land. All 13 NFS
+  tests pass under `--profile uat`. The NFS `readdir` §13 backlog entry is
+  removed.
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E7 done on
   `fix/io-20-vfs-process-ipc`. E7 renames the constructors to
   `InodeFs::new()` and `InodeDelta::new()` (infallible, no path or config).

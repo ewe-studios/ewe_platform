@@ -159,10 +159,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   shim's `turso` backend). A Turso cloud database still works through
   `LibsqlDelta` with `TursoRemoteConfig`. Fix: rebuild it on the `turso` crate as
   an async-only store; tracked in ewe-studios/ewe_platform#142.
-- **NFS `readdir` ignores `start_after`.** `VfsNfs::readdir`
-  (`src/native/vfs/nfs/mod.rs`) always starts at the first entry, so a
-  directory larger than one page repeats; the attribute times are always 0.
-  Fix: skip entries up to `start_after`, and map `VfsMetadata` times.
 - **Whole-file reads in the VFS defaults.** `read_file`, `copy` and
   `copy_async` on the VFS traits read the whole file into one `Vec`
   **(rule 4)**. Fix: copy in chunks of a configured size.

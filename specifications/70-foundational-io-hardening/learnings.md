@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 19 E8, foundation_nativeapis): the NFS v3 READDIR
+  cookie is the previous entry's `fileid`, so `start_after` must be matched
+  against the entry fileids, not against an index into the raw list. Resolve
+  every entry's fileid in list order before paginating, so the ids equal the
+  cookies the client sends back. `MemoryFs` lists children in name order, so
+  paging through it is deterministic. nfsserve's `nfstime3.seconds` is 32
+  bits; convert 64-bit seconds with
+  `u32::try_from(d.as_secs()).unwrap_or(u32::MAX)` to saturate without the
+  clippy `cast_possible_truncation` warning. In one test binary, manual
+  `initialize_pool` and `#[valtron_test]` cannot coexist (the valtron pool is
+  process-wide), so tests added to a file that already uses manual
+  `init_pool` must reuse the file's manual `run_*_async` pattern.
+
 - 2026-11-02 (feature 19 E7, foundation_nativeapis): when one type implements
   both `VfsFileSystem` and `AsyncVfsFileSystem`, `capabilities` is the only
   method name the two traits share (every other async method has an `_async`
