@@ -100,8 +100,21 @@ standard ASD-STE100.
     new clippy warnings from this change.
   - Backlog 9 "`tests/diag_client_tap.rs` is a 'TEMPORARY diagnostic'..." entry
     deleted.
+- E6 (warning-free without default features):
+  - `h3_local_addr` is now declared by a `cfg`-gated pair: `mut` only under the
+    `quic` feature, a plain `None` binding otherwise. The `unused_mut` warning
+    is gone. (`src/server.rs`.)
+  - Removed a dead `let start = Instant::now()` in `ProxyHandler::serve`
+    (`unused variable` warning). (`src/handler.rs`.)
+  - No public API change, so no version bump.
+  - Validation: `cargo check -p foundation_proxy --no-default-features`
+    (dev) is warning-free; the same check under `--profile uat` has no warning
+    that points at `foundation_proxy` source (only the workspace-wide
+    `fullfp16` target-feature warning, tracked under foundation_ai §10).
+  - Backlog 9 "The `mut` on `h3_local_addr` warns without the `h3` feature"
+    entry deleted.
 
-## Next
+## Done
 
-- E6: build `h3_local_addr` from a `cfg`-gated expression; verify the
-  no-default-features check is warning-free.
+E1 through E6 all landed, each in its own commit. The proxy feature 15 work is
+complete.

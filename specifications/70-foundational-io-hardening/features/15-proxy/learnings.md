@@ -102,6 +102,14 @@ Defence Industries Association of Europe (ASD), the owner of the STE standard AS
   the `x-forwarded-host: app.local` line; the `\r\n` prefix keeps the check on
   the real `Host` line.
 
+## E6. Warning-free without default features
+
+- `h3_local_addr` is assigned only under `#[cfg(feature = "quic")]`, so a single
+  `let mut` binding warns (`unused_mut`) when the feature is off. Declare it as
+  a `cfg`-gated pair: `mut` under the feature, a plain `None` otherwise.
+- A `let start = Instant::now()` that was never read sat in `ProxyHandler::serve`.
+  It was dead code, so the fix is to delete it, not to rename it.
+
 ## Dead ends
 
-- None for E1, E2, E3, E4 or E5.
+- None for E1, E2, E3, E4, E5 or E6.

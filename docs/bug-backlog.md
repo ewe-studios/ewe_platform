@@ -86,9 +86,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   long-lived handler parks instead of holding a worker. The proxy still relays on
   a throwaway thread and returns `Take`. It can move to `Async` later once its
   relay future is `'static`.
-- **The `mut` on `h3_local_addr` warns without the `h3` feature**
-  (`src/server.rs`, `ProxyServer::start`). Fix: build it from a `cfg`-gated
-  expression instead of assigning inside the `cfg` block.
 
 ## 10. foundation_ai
 
