@@ -145,6 +145,46 @@ pub fn generate() -> Codegen {
     Codegen::default()
 }
 
+/// Load a [`Selection`] from a JSON file — the machine-readable twin of the
+/// declaration a `build.rs` carries (spec-56 feature 00 §4).
+///
+/// A split-out provider crate commits one as `codegen.json`, so
+/// `genapi generate <provider>` honours the same slice its build script checks,
+/// without the `--include-*` flags having to be retyped from the crate's doc
+/// comment (`generate hetzner` used to ignore the crate's six declared
+/// operations and regenerate all 151 endpoints).
+///
+/// The file is a JSON object with optional string arrays `paths`, `tags` and
+/// `operations`. An omitted or empty array contributes nothing — an empty object
+/// means "generate everything", exactly like an absent selection.
+///
+/// # Errors
+/// [`CodegenError::Io`] when the file is unreadable, or not a JSON object whose
+/// arrays hold strings.
+pub fn selection_from_file(path: impl AsRef<Path>) -> Result<Selection, CodegenError> {
+    let path = path.as_ref();
+    let raw = std::fs::read_to_string(path).map_err(|source| CodegenError::Io {
+        path: path.to_path_buf(),
+        source,
+    })?;
+    let value: serde_json::Value = serde_json::from_str(&raw).map_err(|e| CodegenError::Io {
+        path: path.to_path_buf(),
+        source: std::io::Error::new(std::io::ErrorKind::InvalidData, format!("{e}")),
+    })?;
+
+    let mut selection = Selection::all();
+    if let Some(items) = value.get("paths").and_then(serde_json::Value::as_array) {
+        selection = selection.paths(items.iter().filter_map(serde_json::Value::as_str));
+    }
+    if let Some(items) = value.get("tags").and_then(serde_json::Value::as_array) {
+        selection = selection.tags(items.iter().filter_map(serde_json::Value::as_str));
+    }
+    if let Some(items) = value.get("operations").and_then(serde_json::Value::as_array) {
+        selection = selection.operations(items.iter().filter_map(serde_json::Value::as_str));
+    }
+    Ok(selection)
+}
+
 /// What a crate generates, declared once.
 #[derive(Debug, Clone)]
 pub struct Codegen {
@@ -811,7 +851,7 @@ const BUILD_DEP: &str = "foundation_codegentools";
 /// Kept in step with this crate's own `version` — a generated manifest entry that
 /// names a version we do not publish would break `cargo package` for every
 /// provider at once.
-const BUILD_DEP_VERSION: &str = "0.1.0";
+const BUILD_DEP_VERSION: &str = "0.1.3";
 
 /// `spec`, expressed relative to `crate_dir`.
 ///

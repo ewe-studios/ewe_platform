@@ -1,0 +1,10 @@
+{
+  "operations": [
+    "create_server",
+    "get_server",
+    "list_servers",
+    "delete_server",
+    "list_ssh_keys",
+    "create_ssh_key"
+  ]
+}

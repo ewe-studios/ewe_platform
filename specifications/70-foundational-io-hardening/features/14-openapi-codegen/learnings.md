@@ -133,6 +133,27 @@ Industries Association of Europe (ASD), the owner of the STE standard.
 - New public API means a version bump: `foundation_openapi` 0.0.3 → 0.0.4, and its only consumer
   `foundation_codegentools` requirement 0.0.3 → 0.0.4.
 
+## E4. `genapi` honours its flags
+
+- The `cargo fix` post-step built its command inline, so its `--profile` pass-through could not be
+  tested. The fix extracts a public `cli::gen_api::cargo_fix_args(crate, feature, profile)`, which
+  returns the argument list; the test pins that `Some("uat")` yields `--profile uat` and `None` omits
+  it. `cargo fix` accepts `--profile <PROFILE-NAME>` (verified on this toolchain).
+- `generate hetzner` ignored its crate's `build.rs` declaration, so a plain run regenerated the full
+  151 endpoints. The declaration has no machine-readable form, and parsing the Rust `build.rs` is
+  fragile. The fix is a `codegen.json` per split-out crate — a JSON `{paths,tags,operations}`
+  allowlist — plus auto-discovery in `generate`: when the user names no `--include-*` flag and no
+  `--selection-file`, a split-out crate's `codegen.json` is loaded. `Selection` needs no serde: the
+  loader builds it through the public `paths`/`tags`/`operations` methods.
+- Six operations collapse to three paths (`/servers`, `/servers/{id}`, `/ssh_keys`) and two groups
+  (`servers`, `ssh_keys`), 118 schemas after the closure. `generate hetzner --check` is the proof
+  that `codegen.json` and `build.rs` agree: it reports "Up to date" against the committed tree, which
+  the `build.rs` selected with the same six operations.
+- `CodegenError` already coerces into the CLI's `BoxedError` (the pre-existing `codegen.write()?`
+  proves it), so the new `selection_from_file(path)?` in `run()` needed no extra conversion.
+- `BUILD_DEP_VERSION` in `codegen.rs` was stale (`0.1.0` against a crate already at `0.1.2`); it only
+  mattered when a fresh crate got its build-dependency added. Bumped to `0.1.3` in the same change.
+
 ## Dead ends
 
 - Regenerating `digitalocean`/`hetzner` without the selection wasted a full generation pass and

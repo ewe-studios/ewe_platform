@@ -71,14 +71,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 - **Pre-existing clippy warnings.** `cargo clippy` reports ~112 lints in
   `foundation_openapi` (mostly `unified/generator.rs` and `unified/analyzer.rs`:
   docs missing backticks, `too_many_lines`, `map(...).unwrap_or(false)`, an
-  unused `self`, consecutive `str::replace`, trailing commas) and ~231 in
+  unused `self`, consecutive `str::replace`, trailing commas), ~231 in
   `foundation_deployment_docker` (`format!` inline variables, trailing commas,
-  `::default()` calls, missing `# Errors` sections). None come from feature 14's
-  change; a dedicated clippy-cleanup pass should clear them, then keep them at
-  zero.
-- **genapi's flags are ignored in two places.**
-  - Its post-step `cargo fix` always runs in the dev profile, ignoring `--profile`.
-  - A plain `generate hetzner` ignores the crate's declared operation selection and generates the full API.
+  `::default()` calls, missing `# Errors` sections), and ~67 in
+  `foundation_codegentools` (`format!` inline variables, redundant closures,
+  `too_many_lines`, missing `# Errors`/`# Panics` sections). None come from
+  feature 14's change; a dedicated clippy-cleanup pass should clear them, then
+  keep them at zero.
 
 ## 9. foundation_proxy
 

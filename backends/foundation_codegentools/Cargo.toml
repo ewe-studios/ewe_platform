@@ -1,6 +1,6 @@
 [package]
 name = "foundation_codegentools"
-version = "0.1.2"
+version = "0.1.3"
 description = "Code generation tooling: WASM binary generation, schema codegen, crate scanning, and build tooling for the ewe platform"
 edition.workspace = true
 rust-version.workspace = true

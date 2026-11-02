@@ -59,9 +59,31 @@ and Defence Industries Association of Europe (ASD), the owner of the STE standar
   - Validation under `--profile uat`: openapi tests green (incl. the 8 moved tests); clippy
     shows no new warnings from the change.
   - Backlog §8 "Inline tests remain" entry deleted.
+- E4 (`genapi` honours its flags):
+  - `genapi generate` gained a `--profile <PROFILE>` flag, passed through to the
+    `cargo fix` post-step (was hard-coded to the dev profile). The post-step is now
+    built by the public `cli::gen_api::cargo_fix_args`, so its argument list is a
+    testable unit.
+  - `genapi generate` gained `--selection-file <PATH>` (a JSON `{paths,tags,operations}`
+    allowlist), and a split-out provider's committed `codegen.json` is honoured when the
+    user names no `--include-*` flag. A plain `generate hetzner` now regenerates its six
+    declared operations (3 paths, 2 groups) instead of the full 151 endpoints; `--check`
+    reports the committed tree up to date. `backends/foundation_deployment_hetzner/codegen.json`
+    is the machine-readable twin of its `build.rs` declaration.
+  - Public API: `codegen::selection_from_file` (re-exported), `cli::gen_api::cargo_fix_args`.
+    `foundation_codegentools` 0.1.2 → 0.1.3; the three split-out provider crates' build-dep
+    requirement 0.1.2 → 0.1.3; `BUILD_DEP_VERSION` 0.1.0 → 0.1.3 (a stale const, fixed in passing).
+  - Tests: `tests/codegen.rs` `a_selection_file_limits_what_generate_emits`; new
+    `tests/gen_api_tests.rs` (`cargo_fix_passes_the_profile_through`,
+    `generate_declares_a_profile_flag`, `generate_declares_a_selection_file_flag`).
+  - Validation under `--profile uat`: codegentools tests green (22+7+3+8+3+1);
+    `generate hetzner --check` reports "Up to date"; `cargo check` of hetzner green. No new
+    clippy warnings from the change.
+  - Backlog §8 "genapi's flags are ignored in two places" entry deleted; the pre-existing
+    clippy-warnings entry now also names `foundation_codegentools` (~67).
 
 ## Next
 
-- E4 — `genapi` `--profile` pass-through and `generate hetzner` selection honour.
-- Recorded (backlog §8): a dedicated clippy-cleanup pass for `foundation_openapi` (~112 lints)
-  and `foundation_deployment_docker` (~231 lints), none from this feature.
+- Feature complete. Recorded (backlog §8): a dedicated clippy-cleanup pass for
+  `foundation_openapi` (~112 lints), `foundation_deployment_docker` (~231 lints) and
+  `foundation_codegentools` (~67 lints), none from this feature.
