@@ -4,7 +4,7 @@
 // foundation_db D1 / R2 integration tests run against a local wrangler dev
 // instance. The Rust clients call:
 //
-//   POST   /accounts/:a/d1/database/:d/query          (D1)
+//   POST   /accounts/:a/d1/database/:d/query          (D1: `{sql, params}` or `{batch: [...]}`)
 //   PUT    /accounts/:a/r2/buckets/:b/objects/:key    (R2)
 //   GET    /accounts/:a/r2/buckets/:b/objects/:key
 //   DELETE /accounts/:a/r2/buckets/:b/objects/:key
@@ -62,6 +62,13 @@ async function handleD1Query(request, env) {
     return cfError(400, `invalid JSON body: ${e}`);
   }
 
+  // The D1 REST `batch` shape: `{ "batch": [ { sql, params? }, ... ] }`. The
+  // D1 binding's `batch()` runs the statements in one transaction, so a failed
+  // statement rolls all of them back, as Cloudflare documents for the REST API.
+  if (Array.isArray(body.batch)) {
+    return handleD1Batch(body.batch, env);
+  }
+
   const sql = body.sql;
   const params = Array.isArray(body.params) ? body.params : [];
 
@@ -94,6 +101,42 @@ async function handleD1Query(request, env) {
     });
   } catch (e) {
     return cfError(400, `D1 execution failed: ${e?.message || e}`);
+  }
+}
+
+async function handleD1Batch(batch, env) {
+  for (const entry of batch) {
+    if (!entry || typeof entry.sql !== "string") {
+      return cfError(400, "missing 'sql' field in a batch entry");
+    }
+  }
+
+  try {
+    const statements = batch.map((entry) => {
+      const params = Array.isArray(entry.params) ? entry.params : [];
+      const stmt = env.DB.prepare(entry.sql);
+      return params.length > 0 ? stmt.bind(...params) : stmt;
+    });
+    const results = await env.DB.batch(statements);
+
+    return new Response(
+      JSON.stringify({
+        result: results.map((result) => ({
+          results: result.results || [],
+          meta: result.meta || {},
+          success: true,
+        })),
+        success: true,
+        errors: [],
+        messages: [],
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      },
+    );
+  } catch (e) {
+    return cfError(400, `D1 batch failed: ${e?.message || e}`);
   }
 }
 

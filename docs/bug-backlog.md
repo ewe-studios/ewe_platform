@@ -124,6 +124,33 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
   server writes milliseconds for its own rows. Fix: pick one unit per column,
   document it in the migrations, and make cleanup follow it.
+- **D1 request parameters are sent as JSON numbers and null; the hosted D1
+  REST endpoint is not proven to accept them.** Cloudflare's `OpenAPI` spec types
+  `d1_params` as an array of strings. `foundation_db` binds `DataValue::Integer`,
+  `Real` and `Null` as JSON numbers and `null`, and the overlay
+  `artefacts/cloud_providers/cloudflare/overlays/d1-query.json` widens the
+  generated type to match. The local wrangler worker (`worker-stub.js`) accepts
+  both, but that is the D1 *binding*, not Cloudflare's hosted REST API (it also
+  binds a whole JS number as a `REAL`). Fix: an opt-in test against a real
+  Cloudflare account that sends an integer, a real and null to `/query` and reads
+  back `typeof()`; if the hosted API rejects them, drop the overlay and convert
+  values to strings in `d1_kvstore.rs`.
+- **D1 `Real` parameters that are NaN or infinite silently become `NULL`.**
+  `data_value_to_json` in `src/native/d1_kvstore.rs` maps `serde_json::Number::
+  from_f64` failure to `Value::Null`, so `execute(sql, [Real(NaN)])` writes NULL
+  without an error. Fix: return `StorageError::SqlConversion` for a non-finite
+  value (and give `data_value_to_json` a `Result` type).
+- **D1 `/query` responses are read whole, with no size cap.**
+  `D1Store::post_query` calls `collect_string_async` on the body, so a large
+  `SELECT` is buffered in memory in full (CLAUDE.md rule 4). Fix: add a response
+  limit field on the store's config (rule 8; nginx's `proxy_buffer` and Go's
+  `http.MaxBytesReader` use finite caps), read under it, and return a clear
+  error when it is exceeded; stream rows when the D1 API allows.
+- **The Cloudflare wire-type check takes about 160 s in a `dev` build.**
+  `foundation_codegentools/tests/cloudflare_types.rs::cloudflare_types_are_generated`
+  regenerates all 43 group crates into a scratch tree, like the build script
+  does. Fix: let `Codegen::check` compare only the shared types crate when asked
+  (`check_shared_only`), and keep the full compare in the build script.
 
 ## 12. foundation_auth
 

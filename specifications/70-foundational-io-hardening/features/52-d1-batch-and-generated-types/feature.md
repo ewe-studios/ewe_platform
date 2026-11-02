@@ -1,6 +1,6 @@
 ---
 feature: "D1: real batch request with per-statement params, proven atomic; D1 and R2 wire types generated, not hand-written"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
@@ -75,5 +75,5 @@ rg -n 'json!\(' backends/foundation_db/src/native/d1_kvstore.rs     # no request
 
 ## Done when
 
-- [ ] No hand-written Cloudflare wire type left; generator and overlays committed.
-- [ ] Batch test fails on master, passes now; wrangler result (or its backlog entry) reported.
+- [x] No hand-written Cloudflare wire type left; generator and overlays committed.
+- [x] Batch test fails on master, passes now; wrangler result (or its backlog entry) reported.

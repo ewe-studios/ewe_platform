@@ -12,7 +12,7 @@
 //!   - `D1Store::new_state()` — `StateStore` (table: `{project}_{stage}_resources`)
 
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_cloudflare_types::D1QueryDatabaseResponse;
+use foundation_cloudflare_types::{D1BatchQuery, D1QueryDatabaseResponse, D1SingleQuery};
 use foundation_netio::shared::client::body_reader::collect_string_async;
 use foundation_netio::shared::http::{SimpleHeader, Status};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
@@ -307,14 +307,29 @@ impl D1Store {
         format!("Bearer {}", self.api_token.as_str())
     }
 
-    /// Run a SQL statement through the D1 HTTP API (`send_async`, no
-    /// blocking) and return the parsed JSON response.
+    /// Run one SQL statement through the D1 HTTP API and return the parsed
+    /// response.
     async fn execute_sql_async(
         &self,
         sql: &str,
         params: &[serde_json::Value],
     ) -> Result<D1QueryDatabaseResponse, StorageError> {
-        let body = serde_json::json!({ "sql": sql, "params": params });
+        self.post_query(&D1BatchQuery::D1SingleQuery(D1SingleQuery {
+            sql: sql.to_string(),
+            params: Some(params.to_vec()),
+        }))
+        .await
+    }
+
+    /// POST a generated `/query` request body (`send_async`, no blocking) and
+    /// return the parsed response. A single query and a batch share this path:
+    /// the body type says which one it is.
+    async fn post_query(
+        &self,
+        query: &D1BatchQuery,
+    ) -> Result<D1QueryDatabaseResponse, StorageError> {
+        let body = serde_json::to_string(query)
+            .map_err(|e| StorageError::Serialization(format!("D1 request encode failed: {e}")))?;
         let response = self
             .client
             .send_async(
@@ -322,7 +337,7 @@ impl D1Store {
                     .map_err(|e| StorageError::Backend(format!("D1 request build failed: {e}")))?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header())
                     .header(SimpleHeader::CONTENT_TYPE, "application/json")
-                    .body_text(body.to_string())
+                    .body_text(body)
                     .build(),
             )
             .await
@@ -680,17 +695,7 @@ impl KeyValueStore for D1Store {
 #[async_trait::async_trait]
 impl QueryStore for D1Store {
     async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
-        let json_params: Vec<serde_json::Value> = params
-            .iter()
-            .map(|v| match v {
-                DataValue::Null => serde_json::Value::Null,
-                DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
-                DataValue::Real(f) => serde_json::Number::from_f64(*f)
-                    .map_or(serde_json::Value::Null, serde_json::Value::Number),
-                DataValue::Text(s) => serde_json::Value::String(s.clone()),
-                DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
-            })
-            .collect();
+        let json_params: Vec<serde_json::Value> = params.iter().map(data_value_to_json).collect();
         let response = self.execute_sql_async(sql, &json_params).await?;
         let rows: Vec<SqlRow> = Self::extract_rows(&response)
             .iter()
@@ -756,18 +761,26 @@ impl QueryStore for D1Store {
         &self,
         statements: &[(String, Vec<DataValue>)],
     ) -> StorageResult<()> {
-        // D1 runs all statements in one `/query` call; params bind positionally
-        // across the joined SQL. Any failed statement fails the whole batch.
-        let mut sql_parts = Vec::with_capacity(statements.len());
-        let mut all_params: Vec<serde_json::Value> = Vec::new();
-        for (sql, params) in statements {
-            sql_parts.push(sql.trim().trim_end_matches(';').to_string());
-            all_params.extend(params.iter().map(data_value_to_json));
+        if statements.is_empty() {
+            return Ok(());
         }
-        let combined_sql = sql_parts.join("; ");
-        let response = self.execute_sql_async(&combined_sql, &all_params).await?;
+        // One `/query` call with a `batch` of statements, each with its own
+        // parameter list (numbered `?1` parameters restart per statement).
+        // Cloudflare runs a batch as one transaction: if a statement fails, the
+        // whole batch rolls back.
+        let batch = statements
+            .iter()
+            .map(|(sql, params)| D1SingleQuery {
+                sql: sql.clone(),
+                params: Some(params.iter().map(data_value_to_json).collect()),
+            })
+            .collect();
+        let response = self
+            .post_query(&D1BatchQuery::MultipleQueries { batch })
+            .await?;
         let any_failed = !response.success
             || !response.errors.is_empty()
+            || response.result.len() != statements.len()
             || response
                 .result
                 .iter()

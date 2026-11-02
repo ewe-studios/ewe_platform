@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::{D1Store, QueryStore, StorageError};
+use foundation_db::{D1Store, DataValue, QueryStore, StorageError};
 use serde_json::json;
 
 type Rows = Arc<Mutex<BTreeMap<String, String>>>;
@@ -26,14 +26,12 @@ fn respond(stream: &mut TcpStream, status: &str, body: &[u8]) {
     stream.flush().unwrap();
 }
 
-/// Split the joined SQL and record the literal `INSERT INTO batch_test` rows.
-/// Any statement the mock does not recognise fails the whole batch, and then
-/// nothing is applied.
-fn handle(mut stream: TcpStream, rows: &Rows) {
+/// Read one HTTP request and return its JSON body.
+fn read_json_body(stream: &mut TcpStream) -> Option<serde_json::Value> {
     let mut reader = BufReader::new(stream.try_clone().unwrap());
     let mut request_line = String::new();
     if reader.read_line(&mut request_line).unwrap() == 0 {
-        return;
+        return None;
     }
     let mut content_length = 0usize;
     let mut expects_continue = false;
@@ -60,14 +58,37 @@ fn handle(mut stream: TcpStream, rows: &Rows) {
     }
     let mut body = vec![0; content_length];
     reader.read_exact(&mut body).unwrap();
+    Some(serde_json::from_slice(&body).unwrap())
+}
 
-    let req: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    let sql = req["sql"].as_str().unwrap_or_default();
-    let statements: Vec<&str> = sql
+/// The SQL statements of a `/query` request: one per `batch` entry, or the
+/// single `sql` string split on `;` (the single-statement shape).
+fn request_statements(req: &serde_json::Value) -> Vec<String> {
+    if let Some(batch) = req["batch"].as_array() {
+        return batch
+            .iter()
+            .map(|entry| entry["sql"].as_str().unwrap_or_default().trim().to_string())
+            .collect();
+    }
+    req["sql"]
+        .as_str()
+        .unwrap_or_default()
         .split(';')
         .map(str::trim)
         .filter(|s| !s.is_empty())
-        .collect();
+        .map(str::to_string)
+        .collect()
+}
+
+/// Record the literal `INSERT INTO batch_test` rows of the request. Any
+/// statement the mock does not recognise fails the whole batch, and then
+/// nothing is applied.
+fn handle(mut stream: TcpStream, rows: &Rows) {
+    let Some(req) = read_json_body(&mut stream) else {
+        return;
+    };
+    let statements = request_statements(&req);
+    let statements: Vec<&str> = statements.iter().map(String::as_str).collect();
 
     let mut pending: Vec<(String, String)> = Vec::new();
     let mut failed = false;
@@ -175,4 +196,69 @@ async fn batch_statements_apply_when_all_succeed() {
     let map = rows.lock().unwrap();
     assert_eq!(map.get("a").map(String::as_str), Some("1"));
     assert_eq!(map.get("b").map(String::as_str), Some("2"));
+}
+
+/// A mock that records every request body and answers with one successful
+/// result per statement it sees.
+fn recording_store() -> (D1Store, Arc<Mutex<Vec<serde_json::Value>>>) {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let base = format!("http://{}", listener.local_addr().unwrap());
+    let bodies: Arc<Mutex<Vec<serde_json::Value>>> = Arc::default();
+    let served = Arc::clone(&bodies);
+    thread::spawn(move || {
+        for stream in listener.incoming() {
+            let Ok(mut stream) = stream else { break };
+            let served = Arc::clone(&served);
+            thread::spawn(move || {
+                let Some(req) = read_json_body(&mut stream) else {
+                    return;
+                };
+                let count = request_statements(&req).len();
+                served.lock().unwrap().push(req);
+                let reply = json!({
+                    "success": true,
+                    "errors": [],
+                    "messages": [],
+                    "result": (0..count).map(|_| json!({ "results": [], "success": true, "meta": {} })).collect::<Vec<_>>(),
+                });
+                respond(&mut stream, "200 OK", reply.to_string().as_bytes());
+            });
+        }
+    });
+    let store = D1Store::new_kv_with_base_url("token", "acct", "db", "app", &base);
+    (store, bodies)
+}
+
+#[valtron_test]
+async fn d1_batch_sends_one_entry_per_statement() {
+    let (store, bodies) = recording_store();
+
+    // Both statements use `?1`: numbered parameters restart per statement, so
+    // the two parameter lists must stay separate.
+    let statements = vec![
+        (
+            "INSERT INTO t (k) VALUES (?1)".to_string(),
+            vec![DataValue::Text("first".to_string())],
+        ),
+        (
+            "UPDATE t SET n = ?2 WHERE k = ?1".to_string(),
+            vec![DataValue::Text("second".to_string()), DataValue::Integer(7)],
+        ),
+    ];
+    store.execute_batch_statements(&statements).await.unwrap();
+
+    let bodies = bodies.lock().unwrap();
+    assert_eq!(bodies.len(), 1, "one /query request for the whole batch");
+    let batch = bodies[0]["batch"]
+        .as_array()
+        .unwrap_or_else(|| panic!("request has no `batch` array: {}", bodies[0]));
+    assert_eq!(batch.len(), 2, "one batch entry per statement");
+    assert_eq!(batch[0]["sql"], "INSERT INTO t (k) VALUES (?1)");
+    assert_eq!(batch[0]["params"], json!(["first"]));
+    assert_eq!(batch[1]["sql"], "UPDATE t SET n = ?2 WHERE k = ?1");
+    assert_eq!(batch[1]["params"], json!(["second", 7]));
+    assert!(
+        bodies[0].get("sql").is_none(),
+        "the batch shape carries no top-level `sql`"
+    );
 }

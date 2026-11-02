@@ -1,127 +1,35 @@
 //! Shared Cloudflare D1/R2 wire types.
 //!
-//! WHY: `foundation_db` parses Cloudflare D1 and R2 REST responses. It cannot
+//! WHY: `foundation_db` speaks the Cloudflare D1 and R2 REST APIs. It cannot
 //! depend on `foundation_deployment_cloudflare` for those types: that crate
 //! depends on `foundation_deployment`, which depends on `foundation_db`. This
 //! leaf crate depends on neither, so both storage crates can use it.
 //!
-//! WHAT: The D1 `/query` response types and the R2 object-listing response
-//! types.
+//! WHAT: Every type here is generated. [`generated`] holds the cross-group
+//! shared resource types the Cloudflare generator hoists out of the per-group
+//! crates, plus the D1 `/query` request and response types and the R2
+//! object-listing types that `foundation_db` needs. The names `foundation_db`
+//! uses are re-exported at the crate root.
 //!
-//! HOW: Plain `serde` structs. The D1 types match the generated
-//! `foundation_deployment_cloudflare` output exactly. The R2 object-listing
-//! endpoint is absent from the vendored Cloudflare `OpenAPI` spec, so those
-//! types are defined here by hand to the shape the R2 REST API returns.
+//! HOW: Nothing in this crate is written by hand. Change a type by changing the
+//! generator or an overlay, then run `genapi generate cloudflare`:
 //!
-//! `generated` holds the cross-group shared resource types the Cloudflare
-//! generator hoists out of the per-group crates (feature 22 E3). It is a
-//! generated file; edit it by running `genapi generate cloudflare`.
+//! - The D1 `/query` request is `D1BatchQuery`, an untagged enum for the spec's
+//!   `oneOf` (a single query, or `{ "batch": [...] }`). The generator emits it
+//!   because `d1_batch_query` is named in `CLOUDFLARE_TYPED_UNIONS`.
+//! - The R2 listing endpoint is absent from the vendored `OpenAPI` spec. The
+//!   overlay `artefacts/cloud_providers/cloudflare/overlays/r2-list-objects.json`
+//!   adds it, so the generator produces `R2ListObjectsResponse` and its parts.
+//! - `d1-query.json` in the same directory widens the D1 parameter type to any
+//!   JSON scalar and types the two row counters as integers.
+//!
+//! `foundation_codegentools::codegen::CLOUDFLARE_HOISTED_SCHEMAS` names the
+//! schemas that are emitted here although only one group uses them.
 
-/// Generated Cloudflare shared resource types (feature 22 E3).
+/// Generated Cloudflare shared resource types (feature 22 E3, feature 52).
 pub mod generated;
 
-use std::collections::HashMap;
-
-use serde::{Deserialize, Serialize};
-
-// ---------------------------------------------------------------------------
-// D1 `/query`
-// ---------------------------------------------------------------------------
-
-/// One statement's result inside a D1 `/query` response.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct D1QueryResultResponse {
-    /// `meta` property.
-    pub meta: Option<D1QueryMeta>,
-    /// `results` property: the returned rows.
-    pub results: Option<Vec<serde_json::Value>>,
-    /// `success` property.
-    pub success: Option<bool>,
-}
-
-/// The `meta` object of a D1 statement result.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct D1QueryMeta {
-    /// `changed_db` property.
-    pub changed_db: Option<bool>,
-    /// `changes` property: the number of changed rows (an integer in D1).
-    pub changes: Option<i64>,
-    /// `duration` property.
-    pub duration: Option<f64>,
-    /// `last_row_id` property.
-    pub last_row_id: Option<f64>,
-    /// `rows_read` property.
-    pub rows_read: Option<f64>,
-    /// `rows_written` property: the number of written rows (an integer in D1).
-    pub rows_written: Option<i64>,
-    /// `served_by_colo` property.
-    pub served_by_colo: Option<String>,
-    /// `served_by_primary` property.
-    pub served_by_primary: Option<bool>,
-    /// `served_by_region` property.
-    pub served_by_region: Option<String>,
-    /// `size_after` property.
-    pub size_after: Option<f64>,
-    /// `timings` property.
-    pub timings: Option<HashMap<String, serde_json::Value>>,
-}
-
-/// A D1 `/query` response: `result` holds one entry per statement.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct D1QueryDatabaseResponse {
-    /// `errors` property.
-    pub errors: Vec<HashMap<String, serde_json::Value>>,
-    /// `messages` property.
-    pub messages: Vec<HashMap<String, serde_json::Value>>,
-    /// The per-statement results.
-    pub result: Vec<D1QueryResultResponse>,
-    /// `success` property.
-    pub success: bool,
-}
-
-// ---------------------------------------------------------------------------
-// R2 object listing
-// ---------------------------------------------------------------------------
-
-/// One object in an R2 object-listing page.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct R2ObjectInfo {
-    /// `key` property: the object key.
-    pub key: String,
-    /// `size` property, in bytes.
-    pub size: Option<u64>,
-    /// `etag` property.
-    pub etag: Option<String>,
-    /// `uploaded` property: RFC 3339 timestamp.
-    pub uploaded: Option<String>,
-    /// `version` property.
-    pub version: Option<String>,
-    /// `http_metadata` property.
-    pub http_metadata: Option<HashMap<String, String>>,
-    /// `custom_metadata` property.
-    pub custom_metadata: Option<HashMap<String, String>>,
-}
-
-/// The `result_info` of an R2 object listing.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct R2ListObjectsResultInfo {
-    /// `is_truncated` property: true when more pages follow.
-    pub is_truncated: Option<bool>,
-    /// `cursor` property: the cursor of the next page.
-    pub cursor: Option<String>,
-}
-
-/// An R2 object-listing response.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct R2ListObjectsResponse {
-    /// `errors` property.
-    pub errors: Vec<HashMap<String, serde_json::Value>>,
-    /// `messages` property.
-    pub messages: Vec<HashMap<String, serde_json::Value>>,
-    /// `result` property: the objects on this page.
-    pub result: Vec<R2ObjectInfo>,
-    /// `result_info` property.
-    pub result_info: Option<R2ListObjectsResultInfo>,
-    /// `success` property.
-    pub success: bool,
-}
+pub use generated::{
+    D1BatchQuery, D1QueryDatabaseResponse, D1QueryMeta, D1QueryResultResponse, D1SingleQuery,
+    R2ListObjectsResponse, R2ListObjectsResultInfo, R2ObjectInfo,
+};
