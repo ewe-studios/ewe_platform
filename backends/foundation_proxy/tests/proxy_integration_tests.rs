@@ -287,6 +287,7 @@ fn test_no_healthy_backend_returns_503() {
         timeout: Duration::from_secs(1),
         healthy_threshold: 1,
         unhealthy_threshold: 2,
+        ..HealthCheckConfig::default()
     };
     let proxy = start_proxy(vec![ServiceConfig::new("app", "app.local")
         .backend(&url)
@@ -412,6 +413,7 @@ fn test_health_ejects_and_readmits_backend() {
         timeout: Duration::from_secs(1),
         healthy_threshold: 1,
         unhealthy_threshold: 2,
+        ..HealthCheckConfig::default()
     };
     let proxy = start_proxy(vec![ServiceConfig::new("app", "app.local")
         .backend(&url)

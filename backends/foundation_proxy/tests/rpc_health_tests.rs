@@ -175,6 +175,7 @@ fn proxy_config_grpc_health(backend_port: u16) -> ProxyConfig {
             timeout: Duration::from_millis(500),
             healthy_threshold: 1,
             unhealthy_threshold: 1,
+            ..HealthCheckConfig::default()
         });
     ProxyConfig::new("127.0.0.1", "127.0.0.1")
         .bind("127.0.0.1:0")

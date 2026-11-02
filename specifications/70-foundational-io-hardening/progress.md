@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 65 (the rest of the proxy's threads and polling loops) done on
+  `fix/io-41-50-lane-a`. T0: open. E1: no exchange starts a thread. The upgrade splice, the raw
+  TCP tunnel and the gRPC-Web and Connect translators run in the `Async` future (new `aio.rs`:
+  `AsyncFd`, `splice`, `dial_tcp`); errors before the first byte answer through the async writer.
+  E2: `TcpPassthrough` and `UdpPassthrough` are futures parked on socket readiness
+  (`PassthroughConfig`). E3: the H2 plain forward is async (no feeder thread, no sleeps); the H3
+  waits are timer parks; the remaining thread and sleep sites are justified in comments with config
+  intervals (`HealthCheckConfig::shutdown_check_millis`, `ProxyConfig::drain_poll`,
+  `redirect_accept_poll`). E4: the control socket is futures (`ControlConfig`). E5: a slow client
+  upload used to fail with "body truncated" (502); the body now streams through a pipe, capped by
+  `ProxyConfig::max_request_body` (default 1 MiB, 0 = none; 413). E6: `load` takes `LOCK_SH`. Each
+  new test failed on the old code (thread counts 13 to 63, 11 to 61, 12 to 62; control socket
+  unanswered; upload 502; torn read). E1 and E2 share one commit.
+
 - 2026-11-02: feature 45 (proxy async relay, state lock, unused feature dependency) done on
   `fix/io-41-50-lane-a`. T0: open (all three). E1: `ProxyHandler::serve` returns
   `ConnectionResult::Async` for an ordinary HTTP exchange. The future owns the connection (in a

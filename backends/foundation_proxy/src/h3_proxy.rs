@@ -7,8 +7,7 @@
 //! writes the response back as H3 HEADERS + DATA frames.
 //!
 //! HOW: read the request pseudo-headers + body from the `H3Request`, build a
-//! client request, send it (blocking; runs on a valtron worker while the QUIC
-//! driver pumps elsewhere), then stream the response back out as H3 frames.
+//! client request, send it (async; parks while the QUIC driver pumps elsewhere), then stream the response back out as H3 frames.
 
 #![cfg(all(feature = "quic", not(target_family = "wasm")))]
 
@@ -17,16 +16,15 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{sleep_async, Stream};
 use foundation_netio::http::ClientRequestBuilder;
 use foundation_netio::http3::H3Request;
 use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::quic::QuinnBidiStream;
-use foundation_netio::shared::client::body_reader::{
-    SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
-};
+use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use futures_util::StreamExt;
 
 use foundation_http::native::serve::{BoxFuture, H3Serve};
 use foundation_http::shared::context::ContextBag;
@@ -34,6 +32,9 @@ use foundation_http::shared::context::ContextBag;
 use crate::forward::{forward_request_headers, strip_hop_by_hop, upstream_url, SharedHttpClient};
 use crate::state::ProxyState;
 
+/// The wait, on the valtron timer, between two tries of an H3 stream operation
+/// that has no waker yet (`poll_*` on the QUIC stream). A timer park, not a thread
+/// sleep.
 const POLL_BACKOFF: Duration = Duration::from_millis(1);
 
 pub struct H3ProxyHandler {
@@ -65,22 +66,22 @@ impl H3Serve for H3ProxyHandler {
 
         Box::pin(async move {
             // Read the request head + body off the H3 stream.
-            let fields = match read_headers(&mut request) {
+            let fields = match read_headers(&mut request).await {
                 Some(f) => f,
                 None => return Ok(()),
             };
             let method = pseudo(&fields, b":method").unwrap_or_default();
             let host = pseudo(&fields, b":authority").unwrap_or_default();
             let path = pseudo(&fields, b":path").unwrap_or_else(|| "/".to_string());
-            let body = read_body(&mut request);
+            let body = read_body(&mut request).await;
 
             // Route + pick a backend.
             let Some(service) = state.router().route(&host, &path) else {
-                let _ = respond(&mut request, 404, &[], Bytes::new());
+                let _ = respond(&mut request, 404, &[], Bytes::new()).await;
                 return Ok(());
             };
             let Some((lease, _idx)) = service.pick_sticky(None) else {
-                let _ = respond(&mut request, 503, &[], Bytes::new());
+                let _ = respond(&mut request, 503, &[], Bytes::new()).await;
                 return Ok(());
             };
 
@@ -90,7 +91,7 @@ impl H3Serve for H3ProxyHandler {
                 forward_request_headers(&request_headers(&fields), &client_ip, &scheme);
             headers.insert(SimpleHeader::HOST, vec![host]);
 
-            let outcome = forward(&client, &method, &url, headers, body);
+            let outcome = forward(&client, &method, &url, headers, body).await;
             drop(lease);
 
             match outcome {
@@ -104,11 +105,11 @@ impl H3Serve for H3ProxyHandler {
                         .collect();
                     let hdr_refs: Vec<(&str, &str)> =
                         hdrs.iter().map(|(n, v)| (n.as_str(), v.as_str())).collect();
-                    let _ = respond(&mut request, status, &hdr_refs, resp_body);
+                    let _ = respond(&mut request, status, &hdr_refs, resp_body).await;
                 }
                 Err(e) => {
                     tracing::warn!(%url, "H3 upstream forward failed: {e}");
-                    let _ = respond(&mut request, 502, &[], Bytes::new());
+                    let _ = respond(&mut request, 502, &[], Bytes::new()).await;
                 }
             }
             Ok(())
@@ -118,7 +119,7 @@ impl H3Serve for H3ProxyHandler {
 
 /// Blocking upstream forward via the shared client. Returns the response status,
 /// headers, and fully-collected body.
-fn forward(
+async fn forward(
     client: &SharedHttpClient,
     method: &str,
     url: &str,
@@ -131,23 +132,24 @@ fn forward(
         .body(SendSafeBody::Bytes(body));
     let response = client
         .request(builder)
-        .and_then(|req| req.send())
+        .map_err(|e| format!("prepare upstream request: {e}"))?
+        .send_async()
+        .await
         .map_err(|e| format!("send upstream request: {e}"))?;
     let (status, resp_headers, resp_body, pool, conn) = response.into_parts();
 
-    // Collect the response body via the shared body iterator (Content-Length,
-    // chunked, or close-delimited — the client already handles all three).
+    // Collect the response body as an async stream that parks on the upstream
+    // socket (Content-Length, chunked, or close-delimited — the client already
+    // handles all three).
     let mut collected = Vec::new();
-    let mut chunks = SendSafeBodyBytesIterator::new(resp_body);
-    loop {
-        match chunks.next() {
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
-                collected.extend_from_slice(&bytes)
-            }
-            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(_))) => break,
-            Some(Stream::Delayed(d)) => std::thread::sleep(d),
-            Some(_) => std::thread::sleep(POLL_BACKOFF),
-            None => break,
+    let mut chunks = AsyncSendSafeBody::from(resp_body);
+    if let Some(source) = conn.as_ref().and_then(|c| c.read_wake_source()) {
+        chunks = chunks.with_read_wake(source);
+    }
+    while let Some(piece) = chunks.next().await {
+        match piece {
+            Ok(bytes) => collected.extend_from_slice(&bytes),
+            Err(_) => break,
         }
     }
 
@@ -163,30 +165,30 @@ fn forward(
 // ── H3 stream helpers ─────────────────────────────────────────────────────
 
 /// Read the request HEADERS field list off the stream.
-fn read_headers(request: &mut H3Request<QuinnBidiStream>) -> Option<Vec<(Bytes, Bytes)>> {
+async fn read_headers(request: &mut H3Request<QuinnBidiStream>) -> Option<Vec<(Bytes, Bytes)>> {
     loop {
         match request.poll_headers() {
             Stream::Next(Ok(fields)) => return Some(fields),
             Stream::Next(Err(_)) => return None,
-            _ => std::thread::sleep(POLL_BACKOFF),
+            _ => sleep_async(POLL_BACKOFF).await,
         }
     }
 }
 
 /// Read the request body to end-of-stream.
-fn read_body(request: &mut H3Request<QuinnBidiStream>) -> Vec<u8> {
+async fn read_body(request: &mut H3Request<QuinnBidiStream>) -> Vec<u8> {
     let mut body = Vec::new();
     loop {
         match request.poll_body() {
             Stream::Next(Ok(Some(chunk))) => body.extend_from_slice(&chunk),
             Stream::Next(Ok(None)) | Stream::Next(Err(_)) => return body,
-            _ => std::thread::sleep(POLL_BACKOFF),
+            _ => sleep_async(POLL_BACKOFF).await,
         }
     }
 }
 
 /// Write a full response (QPACK HEADERS + DATA + FIN) to the request stream.
-fn respond(
+async fn respond(
     request: &mut H3Request<QuinnBidiStream>,
     status: u16,
     extra_headers: &[(&str, &str)],
@@ -198,11 +200,11 @@ fn respond(
         fields.push((k.as_bytes(), v.as_bytes()));
     }
     let header_frame = H3Request::<QuinnBidiStream>::encode_headers(&fields);
-    send_all(request, header_frame, true)?;
+    send_all(request, header_frame, true).await?;
 
     if !body.is_empty() {
         let data_frame = H3Request::<QuinnBidiStream>::encode_data(body);
-        send_all(request, data_frame, false)?;
+        send_all(request, data_frame, false).await?;
     }
 
     let deadline = std::time::Instant::now() + Duration::from_secs(10);
@@ -213,14 +215,14 @@ fn respond(
                 if std::time::Instant::now() >= deadline {
                     return Ok(());
                 }
-                std::thread::sleep(POLL_BACKOFF);
+                sleep_async(POLL_BACKOFF).await;
             }
         }
     }
 }
 
 /// Drain a fully-encoded frame to the send half.
-fn send_all(
+async fn send_all(
     request: &mut H3Request<QuinnBidiStream>,
     mut pending: Bytes,
     headers: bool,
@@ -241,7 +243,7 @@ fn send_all(
                 if std::time::Instant::now() >= deadline {
                     return Err(io::Error::other("h3 send timed out"));
                 }
-                std::thread::sleep(POLL_BACKOFF);
+                sleep_async(POLL_BACKOFF).await;
             }
         }
     }

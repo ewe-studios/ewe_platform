@@ -328,7 +328,9 @@ impl ProxyServer {
                 tracing::warn!(inflight, "drain timed out after {:?}", timeout);
                 return false;
             }
-            std::thread::sleep(Duration::from_millis(50));
+            // A sync call on the caller's thread (an operator or a test), not on
+            // a pool worker; the interval is `ProxyConfig::drain_poll`.
+            std::thread::sleep(self.config.drain_poll);
         }
     }
 
@@ -529,6 +531,9 @@ fn ssl_redirect_loop(
                         continue;
                     }
                 }
+                // No reactor registration (non-unix, or registration failed):
+                // fall back to the configured poll on this dedicated accept
+                // thread. The interval is `ProxyConfig::redirect_accept_poll`.
                 std::thread::sleep(accept_poll);
             }
             Err(e) => {

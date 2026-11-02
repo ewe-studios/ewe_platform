@@ -238,6 +238,9 @@ pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(mut a: A, mut b: B
         // Neither direction moved: nothing buffered, nothing readable, no send
         // draining — sleep briefly rather than burn the core.
         if matches!(ab, Pump::Idle) && matches!(ba, Pump::Idle) {
+            // Kept: this is the blocking helper for generic `Read + Write` pairs
+            // (io_uring completion sockets). Only tests call it; the proxy uses
+            // `crate::aio::splice`. Backlog section 9: move the test, delete this.
             std::thread::sleep(Duration::from_millis(1));
         }
     }

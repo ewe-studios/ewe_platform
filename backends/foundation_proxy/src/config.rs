@@ -111,6 +111,10 @@ pub struct ProxyConfig {
     /// streaming uploads. Defaults to 1 MiB (nginx `client_max_body_size`).
     #[serde(default = "default_max_request_body")]
     pub max_request_body: usize,
+    /// How often [`crate::ProxyServer::drain_complete`] re-checks the in-flight
+    /// count. Defaults to 50 ms.
+    #[serde(default = "default_drain_poll", with = "duration_millis")]
+    pub drain_poll: Duration,
 }
 
 impl ProxyConfig {
@@ -133,7 +137,15 @@ impl ProxyConfig {
             io_mode: ServerIo::default(),
             relay_send_timeout: default_relay_send_timeout(),
             max_request_body: default_max_request_body(),
+            drain_poll: default_drain_poll(),
         }
+    }
+
+    /// Set [`Self::drain_poll`]. Default 50 ms.
+    #[must_use]
+    pub fn drain_poll(mut self, poll: Duration) -> Self {
+        self.drain_poll = poll;
+        self
     }
 
     /// Set [`Self::max_request_body`]. `0` means no limit. Default 1 MiB (nginx
@@ -283,6 +295,11 @@ const fn default_redirect_head_limit() -> usize {
 /// Caddy uses).
 fn default_redirect_read_timeout() -> Duration {
     Duration::from_secs(2)
+}
+
+/// The default drain poll: 50 milliseconds.
+fn default_drain_poll() -> Duration {
+    Duration::from_millis(50)
 }
 
 /// The default request body limit: 1 MiB (nginx `client_max_body_size`).
@@ -596,6 +613,15 @@ pub struct HealthCheckConfig {
     pub timeout: Duration,
     pub healthy_threshold: u32,
     pub unhealthy_threshold: u32,
+    /// How often a probe thread that is waiting out its `interval` wakes to
+    /// check for shutdown, in milliseconds. Defaults to 100 ms.
+    #[serde(default = "default_shutdown_check_millis")]
+    pub shutdown_check_millis: u64,
+}
+
+/// The default shutdown check of an idle probe thread: 100 milliseconds.
+const fn default_shutdown_check_millis() -> u64 {
+    100
 }
 
 impl Default for HealthCheckConfig {
@@ -606,6 +632,7 @@ impl Default for HealthCheckConfig {
             timeout: Duration::from_secs(2),
             healthy_threshold: 2,
             unhealthy_threshold: 3,
+            shutdown_check_millis: default_shutdown_check_millis(),
         }
     }
 }

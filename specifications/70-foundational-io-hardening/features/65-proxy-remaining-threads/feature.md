@@ -1,6 +1,6 @@
 ---
 feature: "foundation_proxy: no thread per connection and no sleep-poll loops (upgrade, TCP tunnel, gRPC-Web/Connect relays, TCP passthrough, control socket); locked state reads"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -75,5 +75,5 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] No thread per connection; no sleep-poll on a worker; remaining dedicated threads justified.
-- [ ] The six §9 entries above deleted. CI green.
+- [x] No thread per connection; no sleep-poll on a worker; remaining dedicated threads justified.
+- [x] The six §9 entries above deleted. CI green.
