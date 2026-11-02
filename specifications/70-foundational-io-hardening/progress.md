@@ -1019,3 +1019,4 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   verified; correctness fixes; CI green). Readiness work in progress is on branch
   `fix/foundational-readiness` (commits `31467ebd4`, `ed13119db`, and a work-in-progress commit
   `fcbf523fa` with one hanging test).
+- 2026-11-02: feature 60 E1 (first pass, lane B, branch `fix/io-51-60-lane-b`): checked the four §11 entries against code and deleted them (D1 `RateLimiterStore` is one atomic upsert with `RETURNING`; KV documents best effort; migration 027 rebuilds old `rate_limits`; no public wasm `*_async` left; `[packages.examples]` in `ci/packages.toml`). Kept the §16 `foundation_reactor` publish note: crates.io latest `foundation_core` is 0.0.6, so 0.0.7 is not published. Feature 60 stays pending (E3 at the end of lane B).
