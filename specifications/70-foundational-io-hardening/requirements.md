@@ -171,7 +171,7 @@ done
 | 48 | [Two ignored condvar tests run](./features/48-nostd-condvar-ignored-tests/feature.md) | §8 catalogue row 12 (sonnet) | — | M |
 | 49 | [Reactor/testbed warnings; docker clippy debt](./features/49-warnings-and-docker-clippy/feature.md) | §8 catalogue row 13–15 (haiku) | — | S |
 | 50 | [Inline tests out of lane A crates](./features/50-lane-a-inline-tests/feature.md) | §8 catalogue row 16 (haiku) | — | S |
-| 51 | [libsql/Turso batches isolated on the shared connection](./features/51-sql-batch-connection-gate/feature.md) | §8 catalogue row 17 (sonnet) | — | M |
+| 51 | [libsql/Turso connection pool; batches isolated](./features/51-sql-connection-pool/feature.md) | §8 catalogue row 17 (sonnet) | — | M |
 | 52 | [D1 batch request; generated D1/R2 types](./features/52-d1-batch-and-generated-types/feature.md) | §8 catalogue row 18 (sonnet) | — | M |
 | 53 | [Auth leftovers and key rotation](./features/53-auth-leftovers/feature.md) | §8 catalogue row 19 (sonnet) | — | M |
 | 54 | [Vendored patches reach published users; fp16](./features/54-vendored-patches-and-fp16/feature.md) | §8 catalogue row 20, 21 (sonnet) | — | M |
@@ -285,6 +285,7 @@ fixed in code but not deleted.
 | 28 | todo example dead code and deps; web-app template dead code; `vms` not linted | B §23, §24, §7 | 58 |
 | 29 | inline `#[cfg(test)]` in lane B crates | R | 59 |
 | 30 | stale backlog entries (§11 ×4, §16 publish note) | S | 60 |
+| 31 | `foundation_connectrpc` clippy debt | B §1 | 49 |
 
 ### 8.1 Lanes, branches and models
 

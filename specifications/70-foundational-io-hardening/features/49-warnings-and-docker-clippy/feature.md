@@ -4,8 +4,8 @@ status: "pending"
 lane: "A"
 model: "haiku"
 branch: "fix/io-41-50-lane-a"
-crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker"]
-catalogue_rows: [13, 14, 15]
+crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc"]
+catalogue_rows: [13, 14, 15, 31]
 ---
 
 # Feature 49: warnings and clippy debt in lane A
@@ -32,6 +32,15 @@ fixes only; no behaviour change. Then add the crate's `--all-features` clippy ru
 `ci/packages.toml` if the CI does not lint it, so it stays at zero. Remove the docker part of
 the §8 entry (lane B removes the rest).
 
+## E4. `foundation_connectrpc` clippy debt (backlog §1)
+
+`cargo clippy -p foundation_connectrpc --profile uat --all-targets --all-features` reports
+`doc_markdown` (most), cast lints in `tests/` and `src/shared/transport/conn.rs`,
+`src/shared/client.rs`, and `needless_pass_by_value`, `must_use`, `struct_excessive_bools`,
+`similar_names`, `unused_async` in examples. Fix all; mechanical only (a cast becomes
+`try_from` with the error handled, or carries an `#[allow]` with a one-line reason where the
+value is proven in range). Delete the §1 entry. Verify the same command prints 0 warnings.
+
 ## Verify
 
 ```bash
@@ -40,6 +49,7 @@ cargo clippy -p foundation_deployment_docker --profile dev --all-targets --all-f
 python3 scripts/ci/ci.py run foundation_deployment_docker --profile dev
 python3 scripts/ci/ci.py run foundation_reactor --profile dev
 python3 scripts/ci/ci.py run foundation_testbed --profile dev
+python3 scripts/ci/ci.py run foundation_connectrpc --profile dev
 ```
 
 ## Done when
