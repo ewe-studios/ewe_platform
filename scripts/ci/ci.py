@@ -33,6 +33,22 @@ ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = ROOT / "ci" / "packages.toml"
 IN_GITHUB = bool(os.environ.get("GITHUB_ACTIONS"))
 
+
+def target_dir() -> str:
+    """The cargo target directory for this worktree.
+
+    Parallel worktrees must not share one ``CARGO_TARGET_DIR``. They build
+    crates with the same hashes and overwrite each other's artifacts mid-run.
+    Use ``<repo>/target`` by default. When ``CARGO_TARGET_DIR`` is set, use
+    ``<CARGO_TARGET_DIR>/<checkout-name>`` instead, where ``<checkout-name>``
+    is the basename of the repository root. Each worktree has its own checkout
+    name, so its target directory stays separate.
+    """
+    base = os.environ.get("CARGO_TARGET_DIR")
+    if base:
+        return str(Path(base) / ROOT.name)
+    return str(ROOT / "target")
+
 # Crates whose build compiles the `tools/llama.cpp` submodule.
 LLAMA_CRATES = {"infrastructure_llama_bindings", "infrastructure_llama_cpp"}
 
@@ -344,8 +360,10 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
     # The package's `env` applies to every step. A value already set in the
     # environment wins, so a bigger machine can still override it locally.
     env = {**s.env, **os.environ}
+    env["CARGO_TARGET_DIR"] = target_dir()
     if s.env:
         print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(s.env.items())), flush=True)
+    print(f"{name}: target dir {env['CARGO_TARGET_DIR']}", flush=True)
     failures: list[str] = []
     # One hard deadline for the whole package. GitHub gives the same job
     # `timeout-minutes`; a local run had no kill switch, so a step that looped

@@ -169,8 +169,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 16. Workspace / process
 
-- **Shared target dir clobbering.** When parallel worktrees share one `CARGO_TARGET_DIR`, crates such as foundation_core and foundation_macros build with the same hashes and overwrite each other's test binaries and proc-macro artifacts mid-run. That gives stale results and `E0460` doctest failures.
-  - Give each worktree its own target dir, or `RUSTFLAGS=-Cmetadata=<id>`. Note that the latter rebuilds all dependencies.
 - **`cargo fmt --check` diverges between local and CI.** The Linux CI image's
   `rustfmt` reformats whole crates differently (64 files in foundation_auth,
   91 in foundation_netio). CI treats fmt as report-only, so scripts still exit
