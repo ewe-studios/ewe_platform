@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 42
-  uncompleted: 23
-  total: 65
+  uncompleted: 24
+  total: 66
   completion_percentage: 66%
 ---
 
@@ -186,6 +186,7 @@ done
 | 63 | [Retire the truncating sync `respond::*` path](./features/63-respond-async-migration/feature.md) | §8 catalogue rows 35, 36 (sonnet) | 61, both lanes merged | M |
 | 64 | [keychain reads the request body as a bounded stream](./features/64-keychain-streamed-request-body/feature.md) | §8 catalogue row 37 (sonnet) | 44 | S |
 | 65 | [Proxy: no thread per connection, no sleep-poll loops](./features/65-proxy-remaining-threads/feature.md) | §8 catalogue rows 43–48 (sonnet) | 45 | L |
+| 66 | [Auth: no security stubs; direct session lookup](./features/66-auth-stubs-and-session-lookup/feature.md) | §8 catalogue rows 51–53 (sonnet) | 53 | M |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -310,6 +311,9 @@ fixed in code but not deleted.
 | 48 | proxy plain `load` not under the cross-process lock | review of 45 | 65 |
 | 49 | proxy clippy and test warnings | found in 45 | 49 |
 | 50 | `FileStateStore::set` not atomic | found in 45 | 56 |
+| 51 | `TosService::verify_tos_code` always returns true; codes not bound to the user | found in 53 | 66 |
+| 52 | `dev_register` has no dev-mode check | found in 53 | 66 |
+| 53 | `SessionManager::get_session` scans every session key (stub cache) | found in 53 | 66 |
 
 ### 8.1 Lanes, branches and models
 
@@ -323,7 +327,7 @@ the choice.
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
 | A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
-| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
+| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → … → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
   reports to the main session. (Feature 54 may change only the boringtun line of
