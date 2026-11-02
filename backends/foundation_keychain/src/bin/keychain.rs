@@ -4,6 +4,14 @@
 //! and serves the Bitwarden API. Config via env: `LISTEN_ADDR`
 //! (default `0.0.0.0:8080`), `KEYCHAIN_DB` (default `/data/keychain.db`).
 
+// The valtron stream chain behind `block_on_future` nests past the default
+// trait-solver recursion limit (128) when the compiler checks
+// `DrivenStreamIterator<FutureTask<..>>: IntoIterator`
+// (`recursion_depth_exceeding_limit`, a future-incompatible lint). Raise the
+// limit, as `foundation_db/src/lib.rs` does for its `turso` async chain: the
+// depth is in the generic stream types, not in this binary.
+#![recursion_limit = "256"]
+
 #[cfg(not(target_family = "wasm"))]
 fn main() {
     use std::sync::Arc;

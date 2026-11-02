@@ -5777,6 +5777,7 @@ name = "foundation_keychain"
 version = "0.1.4"
 dependencies = [
  "age",
+ "async-trait",
  "base32",
  "base64 0.22.1",
  "chrono",

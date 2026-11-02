@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 44 (keychain async serve) done on `fix/io-41-50-lane-a`. T0: open.
+  `ServeAdapter::serve` now returns `ConnectionResult::Async`. The future owns the method,
+  path, body, bearer, master key, a clone of `KeychainContext` (all `Arc` fields) and the
+  connection; it runs `provisioning_route` / `route` with `.await` and writes the JSON with
+  `render_head` + `write_response` (the feature 61 non-blocking writer). `poll_ready`,
+  `noop_waker`, `status_code` and the sync `write_json` are deleted. The recursion lint is
+  fixed with `#![recursion_limit = "256"]` in `src/bin/keychain.rs` (same cause and fix as
+  `foundation_db`); the 12 keychain test files that warned for the same lint got the same
+  attribute. New test `tests/async_serve.rs::keychain_handler_that_awaits_does_not_panic`
+  (a store that yields `Pending` once with a real wake): before, panic at
+  `native.rs:272` "did not complete in a single poll"; after, 200. Two new backlog entries
+  (sync `read_body`, keychain clippy debt); both §22 entries deleted.
+
 - 2026-11-02: feature 43 (Docker `100 Continue` stall) done on `fix/io-41-50-lane-a`. T0:
   open. Root cause: `HttpClientBuilder::read_timeout` in
   `foundation_netio/src/network_client.rs` (the line `set_expect_continue_read_timeout(timeout)`,

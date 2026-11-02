@@ -1,29 +1,26 @@
 //! Native backend transport (spec-57, F008 Stage 2).
 //!
 //! WHY: wires the portable [`core::router::route`](crate::core::router::route) to
-//! a real HTTP server for the native (Docker/VPS) deployment. `foundation_http`'s
-//! `Serve` trait is synchronous and runs on valtron workers; the keychain handlers
-//! are `async` but complete in a single poll over a local Turso database (no real
-//! I/O wait), so — like `foundation_auth`'s IdP server — we drive them with a
-//! single noop-waker poll rather than a nested executor.
+//! a real HTTP server for the native (Docker/VPS) deployment. The keychain
+//! handlers are `async` and may wait on the store, so they must run on the
+//! executor with a real waker, never be polled once by hand.
 //!
 //! WHAT: [`KeychainServer`] builds an [`HttpApp`] routing the Bitwarden API paths
-//! to [`ServeAdapter`], which extracts (method, path, body, bearer), single-polls
-//! the shared router, and renders a JSON response.
+//! to [`ServeAdapter`], which extracts (method, path, body, bearer) and returns
+//! [`ConnectionResult::Async`]. The future owns that data and a clone of the
+//! context, runs the router, and writes the JSON response with the shared
+//! non-blocking response writer.
 
-use std::future::Future;
 use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_errstacks::ErrorTrace;
+use foundation_http::native::writer::{render_head, write_response, ResponseWriter, WriterConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeError, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 use foundation_http::{RawStream, SimpleIncomingRequest, SimpleMethod};
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
-use foundation_netio::shared::http::{
-    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleOutgoingResponse, Status,
-};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 
 use crate::core::context::KeychainContext;
 use crate::core::error::AppError;
@@ -202,8 +199,10 @@ impl Serve for ServeAdapter {
         &self,
         _bag: Arc<ContextBag>,
         mut req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
+        conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
+        // Take everything the handlers need out of the request now: the future
+        // returned below is `'static` and cannot borrow `self` or `req`.
         let method = format!("{:?}", req.method);
         let path = req
             .request_url
@@ -212,7 +211,6 @@ impl Serve for ServeAdapter {
             .next()
             .unwrap_or("")
             .to_string();
-        let segments: Vec<&str> = path.trim_matches('/').split('/').collect();
         let body = read_body(req.body.take());
         let bearer = req
             .headers
@@ -222,28 +220,35 @@ impl Serve for ServeAdapter {
             .map(|t| t.trim().to_string());
         let master_key = std::env::var("KEYCHAIN_MASTER_KEY")
             .unwrap_or_else(|_| "insecure-dev-master-key".to_string());
+        // `KeychainContext` holds only `Arc`s, so this clone is cheap.
+        let ctx = self.ctx.clone();
 
-        // Feature-009 provisioning routes take precedence; else the vault router.
-        let outcome = match poll_ready(provisioning_route(
-            &self.ctx,
-            &master_key,
-            &method,
-            &segments,
-            &body,
-            bearer.as_deref(),
-        )) {
-            Some(result) => result,
-            None => poll_ready(route(&self.ctx, &method, &path, &body, bearer.as_deref())),
-        };
-        let (status, json) = match outcome {
-            Ok((status, json)) => (status, json),
-            Err(err) => (err.status(), err.to_json()),
-        };
+        ConnectionResult::Async(Box::pin(async move {
+            let (status, json) =
+                handle(&ctx, &master_key, &method, &path, &body, bearer.as_deref()).await;
+            write_json(conn, status, &json).await
+        }))
+    }
+}
 
-        match write_json(&mut conn, status, &json) {
-            Ok(()) => ConnectionResult::Keep,
-            Err(e) => ConnectionResult::Close(Some(e)),
-        }
+/// Run the handlers for one request and return the status and JSON body.
+async fn handle(
+    ctx: &KeychainContext,
+    master_key: &str,
+    method: &str,
+    path: &str,
+    body: &str,
+    bearer: Option<&str>,
+) -> (u16, serde_json::Value) {
+    let segments: Vec<&str> = path.trim_matches('/').split('/').collect();
+    // Feature-009 provisioning routes take precedence; else the vault router.
+    let outcome = match provisioning_route(ctx, master_key, method, &segments, body, bearer).await {
+        Some(result) => result,
+        None => route(ctx, method, path, body, bearer).await,
+    };
+    match outcome {
+        Ok((status, json)) => (status, json),
+        Err(err) => (err.status(), err.to_json()),
     }
 }
 
@@ -260,73 +265,29 @@ fn read_body(body: Option<SendSafeBody>) -> String {
     }
 }
 
-/// Drive an `async` handler via a single poll and return its output — safe
-/// because the handlers finish synchronously over a local Turso DB (verified).
-fn poll_ready<O>(fut: impl Future<Output = O>) -> O {
-    let mut fut = core::pin::pin!(fut);
-    let waker = noop_waker();
-    let mut cx = core::task::Context::from_waker(&waker);
-    match fut.as_mut().poll(&mut cx) {
-        core::task::Poll::Ready(output) => output,
-        core::task::Poll::Pending => {
-            panic!("keychain handler did not complete in a single poll (unexpected async I/O)")
-        }
-    }
-}
-
-fn noop_waker() -> core::task::Waker {
-    use core::task::{RawWaker, RawWakerVTable};
-    fn no_op(_: *const ()) {}
-    fn clone(p: *const ()) -> RawWaker {
-        RawWaker::new(p, &VTABLE)
-    }
-    const VTABLE: RawWakerVTable = RawWakerVTable::new(clone, no_op, no_op, no_op);
-    unsafe { core::task::Waker::from_raw(RawWaker::new(core::ptr::null(), &VTABLE)) }
-}
-
-fn status_code(code: u16) -> Status {
-    match code {
-        200 => Status::OK,
-        400 => Status::BadRequest,
-        401 => Status::Unauthorized,
-        403 => Status::Forbidden,
-        404 => Status::NotFound,
-        409 => Status::Conflict,
-        429 => Status::TooManyRequests,
-        500 => Status::InternalServerError,
-        n => Status::Numbered(n as usize, String::new()),
-    }
-}
-
-fn write_json(
-    conn: &mut impl std::io::Write,
+/// Write `body` as a complete `application/json` response. The write is
+/// non-blocking: the connection task parks until the socket can take more.
+async fn write_json(
+    conn: SharedByteBufferStream<RawStream>,
     status: u16,
     body: &serde_json::Value,
-) -> Result<(), ErrorTrace<ServeError>> {
-    let bytes = serde_json::to_vec(body).map_err(|e| {
-        ErrorTrace::new(ServeError::InternalError {
-            status: 500,
-            reason: e.to_string(),
-        })
-    })?;
-    let response = SimpleOutgoingResponse::builder()
-        .with_status(status_code(status))
-        .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
-        .with_body(SendSafeBody::Bytes(bytes))
-        .build()
-        .map_err(|e| {
-            ErrorTrace::new(ServeError::InternalError {
-                status: 500,
-                reason: e.to_string(),
-            })
-        })?;
-    Http11::response(response)
-        .http_render_to_writer(conn)
-        .map(|_| ())
-        .map_err(|e| {
-            ErrorTrace::new(ServeError::InternalError {
-                status: 500,
-                reason: e.to_string(),
-            })
-        })
+) -> ConnectionResult {
+    let bytes = match serde_json::to_vec(body) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            tracing::error!("keychain response JSON encode failed: {e}");
+            return ConnectionResult::Close(None);
+        }
+    };
+    let headers = [(SimpleHeader::CONTENT_TYPE, "application/json".to_string())];
+    match render_head(status, &headers, bytes.len()) {
+        Ok(head) => {
+            let writer = ResponseWriter::new(conn, WriterConfig::default());
+            write_response(writer, head, bytes).await
+        }
+        Err(e) => {
+            tracing::error!("keychain response build failed: {e}");
+            ConnectionResult::Close(None)
+        }
+    }
 }

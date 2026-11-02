@@ -1,6 +1,6 @@
 ---
 feature: "foundation_keychain: handlers run as ConnectionResult::Async with a real waker; bin recursion lint"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -49,4 +49,4 @@ rg -n 'noop_waker|fn poll_ready' backends/foundation_keychain/src           # no
 
 ## Done when
 
-- [ ] New test fails on master (panic) and passes now. Both §22 entries deleted. CI green.
+- [x] New test fails on master (panic) and passes now. Both §22 entries deleted. CI green.

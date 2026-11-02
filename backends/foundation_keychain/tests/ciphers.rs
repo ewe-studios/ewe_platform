@@ -3,6 +3,10 @@
 //! CRUD + soft-delete/restore + ownership over a real Turso store, verifying the
 //! client-encrypted content round-trips through the `data` JSON column.
 
+// The valtron stream chain (`execute(from_future(..))`) nests past the default
+// trait-solver recursion limit (128); see `foundation_db/src/lib.rs`.
+#![recursion_limit = "256"]
+
 use std::sync::Arc;
 
 use foundation_core::valtron::{

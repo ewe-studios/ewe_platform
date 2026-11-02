@@ -249,18 +249,16 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 22. foundation_keychain
 
-- **`poll_ready` single-polls a handler future with a noop waker.**
-  `src/server/native.rs` `poll_ready` (called from `Serve::serve`) drives the
-  async `provisioning_route` and `route` handlers by one `poll` with a noop
-  waker, and panics on `Poll::Pending`. It works only while the handlers finish
-  without yielding. Any real async I/O (a Turso query that is not ready, a
-  channel wait) panics at runtime. Fix: return `ConnectionResult::Async`
-  wrapping `async move { … route(..).await … }`, and delete `poll_ready` and
-  `noop_waker`, so the executor polls with a real waker.
-- **`src/bin/keychain.rs` hits the `recursion_depth_exceeding_limit` lint.**
-  The `future_incompatible` lint warns on `DrivenStreamIterator<FutureTask<..>>:
-  IntoIterator` at `src/bin/keychain.rs:28`. Fix: raise the crate recursion
-  limit, or break the valtron stream chain into a smaller type.
+- **`ServeAdapter::serve` collects the request body synchronously.**
+  `src/server/native.rs` `read_body` calls `try_collect_bytes` on a lazy body
+  variant before the async handler starts. That blocks a worker thread until the
+  whole body has arrived, and it holds the whole body in memory. Fix: read the
+  body inside the returned `ConnectionResult::Async` future as a bounded stream
+  (size limit as a config field).
+- **`foundation_keychain` clippy debt.** `cargo clippy -p foundation_keychain
+  --profile dev --no-deps` reports 174 warnings in the lib (for example
+  `manual_let_else` in `provisioning_route`) and more in the tests. Fix: follow
+  the per-crate clippy workflow in `.agents/AGENTS.md`.
 
 ## 23. examples/todo
 
