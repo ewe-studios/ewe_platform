@@ -44,7 +44,6 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
         app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/oidc/logout");
         // F03 — registration endpoints
         app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/users/register");
-        app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/dev/register");
         // F04 — password reset endpoints
         app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/users/request_reset");
         app.route::<ServeAdapter<KV>>(SimpleMethod::PUT, "/auth/v1/users/{id}/reset");
@@ -75,14 +74,28 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
         app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/tos/accept");
     }
 
+    /// Register the routes that exist only in development mode
+    /// ([`IdpConfig::dev_mode`]). `http_app` calls this when the flag is on.
+    pub fn register_dev_routes(app: &mut HttpApp<Arc<dyn Serve>>) {
+        app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/dev/register");
+    }
+
     #[must_use]
     pub fn http_app(self) -> HttpApp<Arc<dyn Serve>> {
         let mut app = HttpApp::new_serve();
+        let dev_mode = self.config.dev_mode;
         app.ctx.store(self.config);
         // Stored as `Arc<HandlerStorage<KV>>`; `ServeAdapter::create` looks up
         // exactly that type.
         app.ctx.store(self.storage);
         Self::register_routes(&mut app, "/idp");
+        if dev_mode {
+            eprintln!(
+                "WARNING: IdP dev_mode is on: POST /auth/v1/dev/register is served. \
+                 Do not use dev_mode in production."
+            );
+            Self::register_dev_routes(&mut app);
+        }
         app
     }
 

@@ -147,10 +147,6 @@ impl<S> SessionManager<S> {
         *self.signer.lock().expect("signer lock") = TokenSigner::new(keys);
     }
 
-    fn get_cached_session(_token: &str) -> Option<SessionDataCache> {
-        None
-    }
-
     #[allow(clippy::cast_sign_loss)]
     fn make_cookies(&self, token: &str, user_id: &str) -> Result<Vec<Cookie>, SessionError> {
         let mut cookies = Vec::new();
@@ -209,8 +205,7 @@ impl<S: CredentialStore> SessionManager<S> {
         let token = generate_token();
         let now = Utc::now();
         let expires_at = now + self.config.max_session_age;
-        let token_prefix = token[..8].to_string();
-        let session_id = format!("session:{user_id}:{token_prefix}");
+        let session_id = session_key(&token);
 
         let signed_token = self.signer.lock().expect("signer lock").sign(&token);
 
@@ -231,6 +226,13 @@ impl<S: CredentialStore> SessionManager<S> {
             .await
             .map_err(SessionError::Storage)?;
 
+        // Index entry for "revoke all sessions of a user". One key per session,
+        // so two sessions created at the same time never overwrite each other.
+        self.store
+            .set(&user_index_key(user_id, &session_id), session_id.clone())
+            .await
+            .map_err(SessionError::Storage)?;
+
         let cookies = self.make_cookies(&token, user_id)?;
 
         Ok((session, cookies))
@@ -248,59 +250,33 @@ impl<S: CredentialStore> SessionManager<S> {
     /// Panics if the signer lock is poisoned. The `expect("signer lock")` call
     /// fails then.
     pub async fn get_session(&self, token: &str) -> Result<Option<Session>, SessionError> {
-        let cache = Self::get_cached_session(token);
-        if let Some(ref cache_data) = cache {
-            if !cache_data.user_id.is_empty() {
-                let token_prefix = token[..token.len().min(8)].to_string();
-                let key = format!("session:{}:{}", cache_data.user_id, token_prefix);
-                if let Some(session) = self
-                    .store
-                    .get::<Session>(&key)
-                    .await
-                    .map_err(SessionError::Storage)?
-                {
-                    if session.is_valid() {
-                        if self.config.sliding_expiration {
-                            self.extend_session(&session).await?;
-                        }
-                        return Ok(Some(session));
-                    }
-                    return Ok(None);
-                }
-            }
-        }
-
-        let keys = self
+        // The store key is derived from the token: one `get`, no listing.
+        let Some(session) = self
             .store
-            .list_keys(Some("session:"))
+            .get::<Session>(&session_key(token))
             .await
-            .map_err(SessionError::Storage)?;
-        for key in &keys {
-            if let Some(session) = self
-                .store
-                .get::<Session>(key)
-                .await
-                .map_err(SessionError::Storage)?
-            {
-                if !session.revoked
-                    && self
-                        .signer
-                        .lock()
-                        .expect("signer lock")
-                        .verify(&session.token.get(), token)
-                {
-                    if session.is_valid() {
-                        if self.config.sliding_expiration {
-                            self.extend_session(&session).await?;
-                        }
-                        return Ok(Some(session));
-                    }
-                    return Ok(None);
-                }
-            }
+            .map_err(SessionError::Storage)?
+        else {
+            return Ok(None);
+        };
+        // The stored signed token must also verify, so a key that left the
+        // ring (see [`KeyRing`]) ends the sessions it signed.
+        if session.revoked
+            || !self
+                .signer
+                .lock()
+                .expect("signer lock")
+                .verify(&session.token.get(), token)
+        {
+            return Ok(None);
         }
-
-        Ok(None)
+        if !session.is_valid() {
+            return Ok(None);
+        }
+        if self.config.sliding_expiration {
+            self.extend_session(&session).await?;
+        }
+        Ok(Some(session))
     }
 
     /// Revoke a single session (async).
@@ -335,22 +311,41 @@ impl<S: CredentialStore> SessionManager<S> {
     ///
     /// Returns `SessionError::Storage` if the store fails.
     pub async fn revoke_all_sessions(&self, user_id: &str) -> Result<usize, SessionError> {
-        let prefix = format!("session:{user_id}:");
-        let keys = self
+        // Index entries hold the session ids of this user. Keys of the old
+        // format (`session:{user_id}:{prefix}`) are revoked too, so no old
+        // session stays alive.
+        let mut ids = Vec::new();
+        for index_key in self
             .store
-            .list_keys(Some(&prefix))
+            .list_keys(Some(&format!("user_session:{user_id}:")))
             .await
-            .map_err(SessionError::Storage)?;
+            .map_err(SessionError::Storage)?
+        {
+            if let Some(id) = self
+                .store
+                .get::<String>(&index_key)
+                .await
+                .map_err(SessionError::Storage)?
+            {
+                ids.push(id);
+            }
+        }
+        ids.extend(
+            self.store
+                .list_keys(Some(&format!("session:{user_id}:")))
+                .await
+                .map_err(SessionError::Storage)?,
+        );
 
         let mut count = 0;
-        for key in &keys {
+        for key in &ids {
             if let Some(session) = self
                 .store
                 .get::<Session>(key)
                 .await
                 .map_err(SessionError::Storage)?
             {
-                if !session.revoked {
+                if !session.revoked && session.user_id == user_id {
                     let mut updated = session;
                     updated.revoked = true;
                     let sid = updated.id.clone();
@@ -580,6 +575,25 @@ impl TokenSigner {
         let matched = key.mac(plain).verify_slice(&tag_bytes).is_ok();
         matched && usable
     }
+}
+
+/// Store key of a session: `session:{base64url(SHA-256(token))}`.
+///
+/// The key holds a hash, never the token, so a read of the store does not give
+/// out a usable token. Keys of the old format `session:{user_id}:{prefix}`
+/// cannot be found this way: sessions made before this change are logged out
+/// (see [`SessionManager::revoke_all_sessions`], which still revokes them).
+fn session_key(token: &str) -> String {
+    use sha2::Digest;
+    format!(
+        "session:{}",
+        URL_SAFE_NO_PAD.encode(Sha256::digest(token.as_bytes()))
+    )
+}
+
+/// Index key for [`SessionManager::revoke_all_sessions`].
+fn user_index_key(user_id: &str, session_id: &str) -> String {
+    format!("user_session:{user_id}:{session_id}")
 }
 
 /// Generate a cryptographically random session token.

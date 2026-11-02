@@ -1,6 +1,6 @@
 ---
 feature: "foundation_auth: no security stubs (ToS codes, dev register) and a direct session lookup"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
@@ -61,5 +61,5 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] No pretend check left; dev register gated; session lookup direct. Three §12 entries
+- [x] No pretend check left; dev register gated; session lookup direct. Three §12 entries
       deleted. CI green.

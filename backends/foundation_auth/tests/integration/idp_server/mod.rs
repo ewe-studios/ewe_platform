@@ -829,3 +829,44 @@ fn register_duplicate_email_is_409() {
     shutdown.turn_on();
     let _ = handle.join();
 }
+
+// ============================================================================
+// Dev register route: served only when `dev_mode` is on.
+// ============================================================================
+
+fn dev_register(client: &DynNetClient, email: &str) -> SimpleResponse<SendSafeBody> {
+    let request = PreparedRequestBuilder::post("http://testserver/auth/v1/dev/register")
+        .unwrap()
+        .body_text(serde_json::json!({ "email": email, "password": "ValidPass123!" }).to_string())
+        .header(SimpleHeader::CONTENT_TYPE, "application/json")
+        .build();
+    client.send(request).unwrap()
+}
+
+#[valtron_test(threads = 8)]
+fn dev_register_is_404_when_dev_mode_is_off() {
+    assert!(!test_config().dev_mode, "dev_mode defaults to false");
+    let (addr, shutdown, handle) = start_idp(test_config());
+    let client = make_client(addr);
+
+    let resp = dev_register(&client, "dev-off@example.com");
+    let (status, _, _) = resp.into_parts();
+    assert_eq!(status_code(&status), 404);
+
+    shutdown.turn_on();
+    let _ = handle.join();
+}
+
+#[valtron_test(threads = 8)]
+fn dev_register_works_when_dev_mode_is_on() {
+    let (addr, shutdown, handle) = start_idp(test_config().with_dev_mode(true));
+    let client = make_client(addr);
+
+    let resp = dev_register(&client, "dev-on@example.com");
+    let (status, _, body) = resp.into_parts();
+    assert_eq!(status_code(&status), 200);
+    assert_eq!(parse_json(&read_body(body))["status"], "created");
+
+    shutdown.turn_on();
+    let _ = handle.join();
+}

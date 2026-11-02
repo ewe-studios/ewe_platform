@@ -3,6 +3,7 @@
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{Duration, Utc};
 use foundation_auth::shared::credential_store::CredentialStorage;
+use foundation_auth::shared::credential_store::CredentialStoreError;
 use foundation_auth::shared::session::{
     KeyRing, Session, SessionConfig, SessionManager, SigningKey, TokenSigner,
 };
@@ -260,4 +261,158 @@ async fn session_survives_key_rotation() {
     // Drop the old key: the session no longer validates.
     mgr.rotate_keys(KeyRing::new(key("k2", 2)));
     assert!(mgr.get_session(&token).await.unwrap().is_none());
+}
+
+/// A store that counts `get` and `list_keys` calls and passes the rest on.
+struct CountingStore {
+    inner: CredentialStorage,
+    gets: std::sync::atomic::AtomicUsize,
+    lists: std::sync::atomic::AtomicUsize,
+}
+
+impl CountingStore {
+    fn new() -> Self {
+        Self {
+            inner: CredentialStorage::memory(),
+            gets: std::sync::atomic::AtomicUsize::new(0),
+            lists: std::sync::atomic::AtomicUsize::new(0),
+        }
+    }
+
+    fn reset(&self) {
+        self.gets.store(0, std::sync::atomic::Ordering::SeqCst);
+        self.lists.store(0, std::sync::atomic::Ordering::SeqCst);
+    }
+}
+
+#[async_trait::async_trait]
+impl CredentialStore for CountingStore {
+    async fn get<V: for<'de> serde::Deserialize<'de> + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> Result<Option<V>, CredentialStoreError> {
+        self.gets.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        self.inner.get(key).await
+    }
+
+    async fn set<V: serde::Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> Result<(), CredentialStoreError> {
+        self.inner.set(key, value).await
+    }
+
+    async fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
+        self.inner.delete(key).await
+    }
+
+    async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
+        self.inner.exists(key).await
+    }
+
+    async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
+        self.lists.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        self.inner.list_keys(prefix).await
+    }
+}
+
+fn token_of(cookies: &[foundation_netio::shared::client::Cookie]) -> String {
+    cookies
+        .iter()
+        .find(|c| c.name == "session_token")
+        .expect("token cookie")
+        .value
+        .clone()
+}
+
+#[valtron_test]
+async fn get_session_is_a_direct_lookup() {
+    let mgr = SessionManager::new(
+        CountingStore::new(),
+        SessionConfig {
+            sliding_expiration: false,
+            ..SessionConfig::default()
+        },
+        &[0xAB; 32],
+    )
+    .expect("manager");
+    // Many other sessions must not change the cost of one lookup.
+    for i in 0..5 {
+        mgr.create_session(&format!("other_{i}"), None, None)
+            .await
+            .unwrap();
+    }
+    let (_session, cookies) = mgr.create_session("user_1", None, None).await.unwrap();
+    let token = token_of(&cookies);
+
+    mgr.store().reset();
+    let found = mgr.get_session(&token).await.unwrap();
+    assert!(found.is_some_and(|s| s.user_id == "user_1"));
+    assert_eq!(
+        mgr.store().gets.load(std::sync::atomic::Ordering::SeqCst),
+        1
+    );
+    assert_eq!(
+        mgr.store().lists.load(std::sync::atomic::Ordering::SeqCst),
+        0
+    );
+
+    // An unknown token is also one `get`.
+    mgr.store().reset();
+    assert!(mgr.get_session("not-a-token").await.unwrap().is_none());
+    assert_eq!(
+        mgr.store().gets.load(std::sync::atomic::Ordering::SeqCst),
+        1
+    );
+    assert_eq!(
+        mgr.store().lists.load(std::sync::atomic::Ordering::SeqCst),
+        0
+    );
+}
+
+#[valtron_test]
+async fn session_key_does_not_contain_the_token() {
+    let mgr = make_manager();
+    let (session, cookies) = mgr.create_session("user_1", None, None).await.unwrap();
+    let token = token_of(&cookies);
+    assert!(!session.id.contains(&token));
+    assert!(mgr.get_session(&token).await.unwrap().is_some());
+}
+
+#[valtron_test]
+async fn revoke_all_ends_lookups_and_counts_each_session() {
+    let mgr = make_manager();
+    let (_s1, c1) = mgr.create_session("user_1", None, None).await.unwrap();
+    let (_s2, c2) = mgr.create_session("user_1", None, None).await.unwrap();
+    let (_s3, c3) = mgr.create_session("user_2", None, None).await.unwrap();
+
+    assert_eq!(mgr.revoke_all_sessions("user_1").await.unwrap(), 2);
+    assert!(mgr.get_session(&token_of(&c1)).await.unwrap().is_none());
+    assert!(mgr.get_session(&token_of(&c2)).await.unwrap().is_none());
+    assert!(mgr.get_session(&token_of(&c3)).await.unwrap().is_some());
+    // A second call finds nothing new.
+    assert_eq!(mgr.revoke_all_sessions("user_1").await.unwrap(), 0);
+}
+
+#[valtron_test]
+async fn session_in_the_old_key_format_is_logged_out_and_revoked_by_revoke_all() {
+    let mgr = make_manager();
+    let (session, cookies) = mgr.create_session("user_9", None, None).await.unwrap();
+    let token = token_of(&cookies);
+    // Re-store the session under the old key format `session:{user}:{prefix}`.
+    let old_key = format!("session:user_9:{}", &token[..8]);
+    let mut old = session.clone();
+    old.id = old_key.clone();
+    mgr.store().set(&old_key, old).await.unwrap();
+    mgr.store().delete(&session.id).await.unwrap();
+
+    assert!(
+        mgr.get_session(&token).await.unwrap().is_none(),
+        "logged out"
+    );
+    let revoked = mgr.revoke_all_sessions("user_9").await.unwrap();
+    assert_eq!(revoked, 1);
+    let stored = mgr.store().get::<Session>(&old_key).await.unwrap();
+    assert!(stored.is_some_and(|s| s.revoked));
 }

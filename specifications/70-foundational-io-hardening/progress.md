@@ -2,6 +2,19 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 66 (auth stubs and session lookup) done on `fix/io-51-60-lane-b`. E1:
+  `generate_tos_code` and `verify_tos_code` are deleted. Evidence: no code calls them; the login
+  handler never issues a `tos_await_code` (that is only in the spec 48 sketch); `tos_accept`
+  records acceptance of the latest version without a code. E2: `IdpConfig::dev_mode` (default
+  `false`, `with_dev_mode`); `POST /auth/v1/dev/register` is registered only when it is on
+  (with a start-up warning) and the handler returns 404 when it is off. E3: sessions are stored
+  under `session:{base64url(SHA-256(token))}`; `get_session` does one `get` (and still verifies
+  the signed token, so a key that leaves the ring ends its sessions). The stub cache is
+  deleted. Revoke-all uses one index key per session, `user_session:{user_id}:{session_id}`,
+  and also revokes old-format keys. Existing sessions (old key `session:{user}:{prefix}`) are
+  logged out: they cannot be found by hash; users sign in again. The three section 12 entries
+  are deleted.
+
 - 2026-11-02: feature 53 (auth leftovers) done on `fix/io-51-60-lane-b`. E1 deletes the dead
   `foundation_db/src/wasm/session.rs`. E2 renames `NativeOAuth::{exchange_code, client_credentials,
   refresh_token}` (no `_async`); no other crate called the old names. E3 adds `KeyRing` and

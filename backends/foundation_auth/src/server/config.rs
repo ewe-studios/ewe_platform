@@ -47,6 +47,10 @@ pub struct IdpConfig {
     /// larger is rejected with 413 before more of it is read. Default 1 MiB,
     /// nginx's `client_max_body_size` default.
     pub max_request_body_bytes: usize,
+    /// Development mode. Default `false`. When `true`, the `IdP` serves
+    /// `POST /auth/v1/dev/register`, a registration route without the
+    /// proof-of-work step. Never turn it on in production.
+    pub dev_mode: bool,
 }
 
 /// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
@@ -68,6 +72,7 @@ impl IdpConfig {
             require_pkce: true,
             password_policy: PasswordPolicy::default(),
             max_request_body_bytes: DEFAULT_MAX_REQUEST_BODY_BYTES,
+            dev_mode: false,
         }
     }
 
@@ -107,6 +112,13 @@ impl IdpConfig {
         self
     }
 
+    /// Turn development mode on or off (see [`dev_mode`](Self::dev_mode)).
+    #[must_use]
+    pub fn with_dev_mode(mut self, dev_mode: bool) -> Self {
+        self.dev_mode = dev_mode;
+        self
+    }
+
     /// Set the largest request body the `IdP` endpoints read (see
     /// [`max_request_body_bytes`](Self::max_request_body_bytes)).
     #[must_use]
@@ -125,6 +137,7 @@ impl core::fmt::Debug for IdpConfig {
             .field("session_ttl", &self.session_ttl)
             .field("require_pkce", &self.require_pkce)
             .field("max_request_body_bytes", &self.max_request_body_bytes)
+            .field("dev_mode", &self.dev_mode)
             .finish_non_exhaustive()
     }
 }

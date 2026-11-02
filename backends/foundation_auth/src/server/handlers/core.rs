@@ -874,19 +874,22 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         })))
     }
 
-    /// Dev-mode registration: POST /auth/v1/dev/register
+    /// Dev-mode registration: `POST /auth/v1/dev/register`.
     /// Simplified — no `PoW` required.
     ///
     /// # Errors
     ///
-    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
+    /// Returns [`IdpError::NotFound`] (404) if [`IdpConfig::dev_mode`] is off.
+    /// Otherwise returns [`IdpError`] if the request is not valid or a storage
+    /// or service call fails.
     pub async fn dev_register(
         &self,
         bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        // In a real implementation, check IS_DEV flag.
-        // For now, delegate to the regular registration.
+        if !self.config.dev_mode {
+            return Err(IdpError::NotFound("not found".into()));
+        }
         self.register(bag, req).await
     }
 

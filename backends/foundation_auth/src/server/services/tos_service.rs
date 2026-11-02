@@ -87,16 +87,4 @@ impl<KV: KeyValueStore> TosService<KV> {
 
         storage::store_tos_acceptance(self.storage.query_store.as_ref(), &acceptance).await
     }
-
-    /// Generate a `ToS` acceptance code for the login flow.
-    pub fn generate_tos_code(&self, _user_id: &str) -> String {
-        uuid::Uuid::new_v4().to_string()
-    }
-
-    /// Verify a `ToS` acceptance code.
-    pub fn verify_tos_code(&self, _code: &str, user_id: &str) -> bool {
-        // In production, look up the code and verify it matches the user.
-        let _ = user_id;
-        true
-    }
 }
