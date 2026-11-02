@@ -48,9 +48,7 @@ use serde::de::DeserializeOwned;
 use crate::network_client::DynNetClient;
 use crate::shared::client::request_builder::PreparedRequestBuilder;
 use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
-use crate::shared::http::{
-    HttpClientError, SimpleHeaders, Status, DEFAULT_PUSHABLE_DEPTH,
-};
+use crate::shared::http::{HttpClientError, SimpleHeaders, Status, DEFAULT_PUSHABLE_DEPTH};
 
 // ============================================================================
 // Error Types
