@@ -29,10 +29,13 @@ ran first, the traced test panicked with `SetGlobalDefaultError`.
 `use tracing_test::traced_test;` import. The valtron subscriber covers the process. The
 sync test checks chunk sizes only; it emits no tracing events.
 
-## Noticed (not fixed here)
+### The `fjall_vfs` test had the same tracing double-init
 
-- **`tests/fjall_vfs/mod.rs` mixes the same two attributes.** It has 28 sync tests with
-  `#[traced_test]` and six async tests with `#[valtron_test]`. The sync tests are
-  registered first, so the first sync test usually installs the subscriber before the
-  async tests run. The CI has not failed on it. The same fix applies: drop
-  `#[traced_test]` from the sync tests and the `tracing_test` import.
+**Root cause.** `tests/fjall_vfs/mod.rs` mixed `#[traced_test]` on 29 sync tests with
+`#[valtron_test]` on six async tests in one binary. This is the same double-init as
+`copy_vfs`. The test run order changes, so the panic was latent and did not fail the CI
+reliably.
+
+**Fix.** Remove `#[traced_test]` from the 29 sync tests and remove the
+`use tracing_test::traced_test;` import. The sync tests do not assert on tracing output,
+so the valtron subscriber is enough for the process.

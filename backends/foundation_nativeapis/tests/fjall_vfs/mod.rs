@@ -6,12 +6,10 @@ use foundation_nativeapis::shared::vfs::{
     AsyncDeltaStore, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem, DeltaStore, OpenMode,
     SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem, VfsFileType,
 };
-use tracing_test::traced_test;
 
 // ── InodeFs: File Operations ──
 
 #[test]
-#[traced_test]
 fn test_fjall_create_and_read_file() {
     let fs = InodeFs::new();
     let file = fs.create("/hello.txt", 0o644).unwrap();
@@ -23,7 +21,6 @@ fn test_fjall_create_and_read_file() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_create_file_in_nonexistent_dir() {
     let fs = InodeFs::new();
     let result = fs.create("/no/such/dir/file.txt", 0o644);
@@ -31,7 +28,6 @@ fn test_fjall_create_file_in_nonexistent_dir() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_open_nonexistent_file() {
     let fs = InodeFs::new();
     let result = fs.open("/nope.txt", OpenMode::Read);
@@ -39,7 +35,6 @@ fn test_fjall_open_nonexistent_file() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_write_to_read_only_file() {
     let fs = InodeFs::new();
     let file = fs.create("/readonly.txt", 0o644).unwrap();
@@ -50,7 +45,6 @@ fn test_fjall_write_to_read_only_file() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_file_read_at_offset() {
     let fs = InodeFs::new();
     let file = fs.create("/data.bin", 0o644).unwrap();
@@ -62,7 +56,6 @@ fn test_fjall_file_read_at_offset() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_file_write_at_offset() {
     let fs = InodeFs::new();
     let file = fs.create("/sparse.bin", 0o644).unwrap();
@@ -75,7 +68,6 @@ fn test_fjall_file_write_at_offset() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_file_truncate() {
     let fs = InodeFs::new();
     let file = fs.create("/trunc.txt", 0o644).unwrap();
@@ -88,7 +80,6 @@ fn test_fjall_file_truncate() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_seekable_sequential_read() {
     let fs = InodeFs::new();
     let file = fs.create("/seq.txt", 0o644).unwrap();
@@ -101,7 +92,6 @@ fn test_fjall_seekable_sequential_read() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_seekable_seek_and_read() {
     let fs = InodeFs::new();
     let file = fs.create("/seek.txt", 0o644).unwrap();
@@ -116,7 +106,6 @@ fn test_fjall_seekable_seek_and_read() {
 // ── InodeFs: Directory Operations ──
 
 #[test]
-#[traced_test]
 fn test_fjall_mkdir_and_list() {
     let fs = InodeFs::new();
     fs.mkdir("/src").unwrap();
@@ -127,7 +116,6 @@ fn test_fjall_mkdir_and_list() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_mkdir_nested() {
     let fs = InodeFs::new();
     fs.mkdir("/a/b/c").unwrap();
@@ -135,7 +123,6 @@ fn test_fjall_mkdir_nested() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_remove_empty_dir() {
     let fs = InodeFs::new();
     fs.mkdir("/empty").unwrap();
@@ -144,7 +131,6 @@ fn test_fjall_remove_empty_dir() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_readdir_mixed() {
     let fs = InodeFs::new();
     fs.mkdir("/dir").unwrap();
@@ -156,7 +142,6 @@ fn test_fjall_readdir_mixed() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_stat_returns_correct_metadata() {
     let fs = InodeFs::new();
     let file = fs.create("/stat.txt", 0o644).unwrap();
@@ -167,7 +152,6 @@ fn test_fjall_stat_returns_correct_metadata() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_chmod_updates_permissions() {
     let fs = InodeFs::new();
     fs.create("/perm.txt", 0o644).unwrap();
@@ -177,7 +161,6 @@ fn test_fjall_chmod_updates_permissions() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_symlink_create_and_readlink() {
     let fs = InodeFs::new();
     fs.symlink("/target", "/link").unwrap();
@@ -188,7 +171,6 @@ fn test_fjall_symlink_create_and_readlink() {
 // ── InodeFs: Convenience Operations ──
 
 #[test]
-#[traced_test]
 fn test_fjall_read_file_convenience() {
     let fs = InodeFs::new();
     let file = fs.create("/rf.txt", 0o644).unwrap();
@@ -198,7 +180,6 @@ fn test_fjall_read_file_convenience() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_write_file_convenience() {
     let fs = InodeFs::new();
     fs.create("/wf.txt", 0o644).unwrap();
@@ -208,7 +189,6 @@ fn test_fjall_write_file_convenience() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_mkdir_all() {
     let fs = InodeFs::new();
     fs.mkdir_all("/a/b/c/d").unwrap();
@@ -216,7 +196,6 @@ fn test_fjall_mkdir_all() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_remove_all() {
     let fs = InodeFs::new();
     fs.mkdir_all("/parent/child").unwrap();
@@ -228,7 +207,6 @@ fn test_fjall_remove_all() {
 // ── InodeDelta: Whiteout Operations ──
 
 #[test]
-#[traced_test]
 fn test_fjall_whiteout_add_and_check() {
     let delta = InodeDelta::new();
     delta.add_whiteout("/hidden.txt", 1).unwrap();
@@ -236,7 +214,6 @@ fn test_fjall_whiteout_add_and_check() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_whiteout_remove() {
     let delta = InodeDelta::new();
     delta.add_whiteout("/gone.txt", 1).unwrap();
@@ -245,7 +222,6 @@ fn test_fjall_whiteout_remove() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_whiteout_list() {
     let delta = InodeDelta::new();
     delta.add_whiteout("/dir/a.txt", 1).unwrap();
@@ -256,7 +232,6 @@ fn test_fjall_whiteout_list() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_whiteout_reset_clears_all() {
     let delta = InodeDelta::new();
     delta.add_whiteout("/a.txt", 1).unwrap();
@@ -266,7 +241,6 @@ fn test_fjall_whiteout_reset_clears_all() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_delta_create_and_read() {
     let delta = InodeDelta::new();
     delta.create("/delta.txt", 0o644).unwrap();
@@ -277,7 +251,6 @@ fn test_fjall_delta_create_and_read() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_delta_exists_respects_whiteout() {
     let delta = InodeDelta::new();
     delta.create("/visible.txt", 0o644).unwrap();
@@ -289,7 +262,6 @@ fn test_fjall_delta_exists_respects_whiteout() {
 // ── InodeFs: Inode Operations ──
 
 #[test]
-#[traced_test]
 fn test_fjall_inode() {
     let fs = InodeFs::new();
     fs.create("/inode.txt", 0o644).unwrap();
@@ -299,7 +271,6 @@ fn test_fjall_inode() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_path_by_inode() {
     let fs = InodeFs::new();
     fs.create("/path_lookup.txt", 0o644).unwrap();
@@ -310,7 +281,6 @@ fn test_fjall_path_by_inode() {
 }
 
 #[test]
-#[traced_test]
 fn test_fjall_stat_by_inode() {
     let fs = InodeFs::new();
     fs.create("/stat_ino.txt", 0o644).unwrap();
