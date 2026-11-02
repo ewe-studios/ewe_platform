@@ -1,6 +1,6 @@
 ---
 feature: "foundation_proxy: forward_http relays as ConnectionResult::Async; cross-process state safety; cloudflare feature dependency"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -58,5 +58,5 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] E1–E3 done; the two §9 entries deleted; new entries for any thread site kept as a
+- [x] E1–E3 done; the two §9 entries deleted; new entries for any thread site kept as a
       problem. CI green.

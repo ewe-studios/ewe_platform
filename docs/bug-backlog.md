@@ -98,16 +98,38 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 9. foundation_proxy
 
-- **`forward_http` relays on a dedicated thread and returns `Take`.** Feature 08
-  made the h1 `Serve` handler able to return `ConnectionResult::Async`, so a
-  long-lived handler parks instead of holding a worker. The proxy still relays on
-  a throwaway thread and returns `Take`. It can move to `Async` later once its
-  relay future is `'static`.
-- **The `cloudflare` feature pulls in `foundation_deployment_cloudflare` but no
-  code uses it.** The dependency is named only in doc comments (`config.rs`,
-  `tls.rs`, `acme.rs`), so `cargo check --features cloudflare` reports an
-  `unused_dependencies` lint. Fix: use the dependency (for example, drive the
-  ACME DNS-01 Cloudflare path through it) or drop the feature.
+- **Four proxy exchanges still relay on a throwaway OS thread.** `handler.rs`
+  `relay_blocking` serves a protocol upgrade (WebSocket), a raw TCP tunnel, and the
+  gRPC-Web and Connect translators to a `grpc://` backend on a `std::thread` and
+  returns `Take`. The upgrade and tunnel end in `splice_bidirectional`, which polls
+  with a 1 ms thread sleep; the translators drive a blocking H2 client and answer
+  errors with the sync `respond::text` (feature 63). Fix: an async splice that parks
+  on both sockets' readiness, and async translators; then return `Async` for all.
+- **`TcpPassthrough` starts one OS thread per client, and its loops poll with thread
+  sleeps.** `passthrough.rs` `accept_loop` spawns a thread per accepted client
+  (running the polling splice above) and sleeps 5 ms / 20 ms between accepts;
+  `relay_udp` sleeps 5 ms. Fix: run the splice as a future and park the accept loop
+  on listener readiness.
+- **Thread sleeps in production polling loops.** `forward.rs` `write_head_blocking`
+  (1 ms), `h2_proxy.rs` (`POLL_BACKOFF`, lines ~219, 226, 304, 305, 866), `h3_proxy.rs`
+  (lines ~148 to 244), `health.rs` (~444), `control.rs` (~105) and `server.rs`
+  `drain_complete` (~326) sleep a thread to retry. Fix: park on readiness or the
+  valtron timer.
+- **The control socket starts a thread per connection.** `control.rs` ~102. Fix:
+  serve each control connection as a future.
+- **`foundation_proxy` clippy and test warnings are open.** `cargo clippy -p
+  foundation_proxy --all-targets` reports about 50 warnings (for example
+  `acme.rs`, `h2_proxy.rs`, `server.rs`, `control.rs`; doc backticks, `must_use`,
+  redundant closures, `format!` appended to a `String` at `forward.rs` ~525). The
+  tests `load_balancer_tests.rs` (unused `Arc`, `Duration`, `STICKY_COOKIE`) and
+  `h2_integration_tests.rs:318` (unused `mut`) warn on build. Fix: clear them per
+  the crate-hygiene process in `.agents/AGENTS.md`.
+- **The upstream request body is read by the upstream client task.** When the client
+  sends a request body, `forward_http` passes the client connection's `SendSafeBody`
+  to the upstream client, whose writer task pulls it synchronously on a pool worker.
+  A slow uploader can hold that worker. Not measured; the response direction is fully
+  async. Fix: feed the upstream request from an `AsyncSendSafeBody` with the client
+  connection's read-wake source.
 
 ## 10. foundation_ai
 
@@ -122,6 +144,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 ## 11. foundation_db and its sync callers
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
+- **`FileStateStore::set` writes in place, so a reader can see a torn file.**
+  `core/state/file.rs` calls `std::fs::write`, which truncates and then writes. A
+  `get` from another store object or process in that gap reads empty or partial JSON
+  and fails to decode. `foundation_proxy` now locks its read-modify-write (feature 45),
+  but its plain `load` is not locked. Fix: write to a temp file in the same directory
+  and `rename` it over the target. The trait also has no conditional write (version or
+  etag), which is why the proxy uses a lock file.
 - **Auth tables mix timestamp units.** The `created_at` defaults in the core
   migrations are milliseconds (`strftime('%s','now') * 1000`), while
   `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP

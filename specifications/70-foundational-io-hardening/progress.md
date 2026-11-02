@@ -2,6 +2,25 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 45 (proxy async relay, state lock, unused feature dependency) done on
+  `fix/io-41-50-lane-a`. T0: open (all three). E1: `ProxyHandler::serve` returns
+  `ConnectionResult::Async` for an ordinary HTTP exchange. The future owns the connection (in a
+  `ResponseWriter`), request, backend lease and cloned state, awaits `send_async` upstream, reads the
+  upstream body as an `AsyncSendSafeBody` with the upstream socket's read-wake source and writes each
+  piece with the feature 61 writer (a `Content-Length` body is kept; any other is re-framed chunk by
+  chunk). A failure before the head sends 502 through the writer; after it, only a close. The
+  handler's early 404/503 answers use `send_text`/`send_not_found`. Upgrade, raw TCP and the gRPC-Web
+  and Connect translators stay on a thread (blocking boundary, backlog §9). New
+  `ProxyConfig::relay_send_timeout` (default 60 s, nginx `send_timeout`). Test
+  `proxy_relay_does_not_spawn_threads` failed on the old code (12 to 62 threads with 50 open
+  relays); `proxy_relay_holds_no_worker` passes before and after (the thread relay did not hold a
+  worker either); three streaming tests added. E2: `ProxyStateStore` takes a `flock` on a lock file
+  in the state directory for each load-change-save (the state store has no conditional write); test
+  `two_stores_on_one_backend_do_not_lose_updates` failed before, passes after. E3: the Cloudflare
+  DNS-01 path does not exist (the ACME flow takes a caller-made setter), so the unused dependency was
+  removed; the feature name stays (`cloudflare = []`). Backlog §9: two entries deleted, six added;
+  §11: one added.
+
 - 2026-11-02: feature 64 (keychain streamed request body) done on `fix/io-41-50-lane-a`. T0:
   open. `ServeAdapter::serve` no longer reads the body; the async future reads it with
   `AsyncSendSafeBody` plus the connection's `read_wake_source`, through `collect_bytes_bounded`

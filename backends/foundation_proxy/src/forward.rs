@@ -8,7 +8,7 @@
 //! backend can reconstruct the original request. WebSocket upgrades are relayed
 //! by splicing the two TCP connections byte-for-byte after the handshake.
 //!
-//! WHAT: [`forward_http`] (ordinary requests, via the shared pooled client),
+//! WHAT: [`forward_http`] (ordinary requests, an async relay via the shared pooled client),
 //! [`forward_upgrade`] (WebSocket/other `Upgrade`), plus the header helpers
 //! [`strip_hop_by_hop`] and [`is_upgrade_request`].
 //!
@@ -25,14 +25,17 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_http::native::writer::ResponseWriter;
 use foundation_iogate::ServerIo;
 use foundation_netio::http::{ClientRequestBuilder, NativeHttpClient};
 use foundation_netio::netcap::{Connection, RawStream};
+use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{
-    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
-    SimpleOutgoingResponse, Status,
+    Http11, Http11Chunk, Proto, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders,
+    SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, SimpleResponse, Status,
 };
+use futures_util::StreamExt;
 
 use crate::passthrough::splice_bidirectional;
 use crate::runtime::BackendRuntime;
@@ -221,62 +224,157 @@ pub(crate) fn upstream_url(backend_url: &str, path: &str) -> String {
     }
 }
 
-/// Forward an ordinary HTTP request to `backend` and relay the response.
-///
-/// WHAT: Sends the request through the pooled `client`, then renders the
-/// upstream response back onto `conn` with hop-by-hop headers stripped and
-/// `Connection: close` set (the proxied client connection is single-shot).
-///
-/// # Errors
-/// Returns `Err(String)` describing any failure to reach the backend or write
-/// the response; the caller logs it and closes the connection.
-pub fn forward_http(
-    conn: &mut SharedByteBufferStream<RawStream>,
-    backend: &Arc<BackendRuntime>,
-    req: SimpleIncomingRequest,
-    client_ip: &str,
-    scheme: &str,
-    client: &SharedHttpClient,
-) -> Result<(), String> {
-    forward_http_with_headers(conn, backend, req, client_ip, scheme, client, None)
+/// Why [`forward_http`] failed, and whether the client already has a byte of the
+/// response.
+#[derive(Debug)]
+pub struct ForwardError {
+    /// What failed.
+    pub message: String,
+    /// True when the response head is already on the wire. The caller must then
+    /// only close the connection: a second response would corrupt the first.
+    pub response_started: bool,
 }
 
-/// Forward a request, injecting `extra_headers` into the response (Decision 23:
-/// writer-affinity cookies, security headers, etc.).
-pub fn forward_http_with_headers(
-    conn: &mut SharedByteBufferStream<RawStream>,
+impl std::fmt::Display for ForwardError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl std::error::Error for ForwardError {}
+
+impl ForwardError {
+    fn before_response(message: String) -> Self {
+        Self {
+            message,
+            response_started: false,
+        }
+    }
+
+    fn mid_response(message: String) -> Self {
+        Self {
+            message,
+            response_started: true,
+        }
+    }
+}
+
+/// Forward an ordinary HTTP request to `backend` and relay the response,
+/// injecting `extra_headers` into the response (Decision 23: writer-affinity
+/// cookies, security headers, etc.).
+///
+/// WHAT: Sends the request through the pooled `client`, then streams the
+/// upstream response onto `writer` with hop-by-hop headers stripped and
+/// `Connection: close` set (the proxied client connection is single-shot).
+///
+/// HOW: Everything awaits. The upstream request is sent with `send_async`; the
+/// upstream body is read as an [`AsyncSendSafeBody`] that parks on the upstream
+/// socket's readiness; each piece is written with the [`ResponseWriter`], which
+/// parks on the client socket's write readiness. No piece of the body is kept
+/// after it is written, so a large body costs one chunk of memory (rule 4:
+/// stream bodies). A body with a `Content-Length` keeps it; any other body is
+/// sent `Transfer-Encoding: chunked` (HTTP/1.1 clients) or ends at the close
+/// (HTTP/1.0 clients).
+///
+/// # Errors
+/// [`ForwardError`] for any failure to reach the backend or write the response.
+/// When `response_started` is false the caller should answer `502`; otherwise it
+/// should only close the connection.
+pub async fn forward_http(
+    writer: &mut ResponseWriter,
     backend: &Arc<BackendRuntime>,
     req: SimpleIncomingRequest,
     client_ip: &str,
     scheme: &str,
     client: &SharedHttpClient,
     extra_headers: Option<&SimpleHeaders>,
-) -> Result<(), String> {
+) -> Result<(), ForwardError> {
     // `forward_request_headers` asks the upstream to `Connection: close` for
     // non-streaming requests (their single-shot exchange is EOF-delimited on the
     // way back). Such a connection must not be returned to the pool: the upstream
     // will drop it after responding, so a subsequent pooled send would time out.
     let reuse = is_streaming_request(&req.headers);
+    let head_only = matches!(req.method, SimpleMethod::HEAD);
+    let chunk_ok = matches!(req.proto, Proto::HTTP11);
 
     let url = upstream_url(backend.url(), &req.request_url.url);
     let headers = forward_request_headers(&req.headers, client_ip, scheme);
     let body = req.body.unwrap_or(SendSafeBody::None);
 
     let builder = ClientRequestBuilder::<SystemDnsResolver>::new(req.method.clone(), &url)
-        .map_err(|e| format!("build upstream request for {url}: {e}"))?
+        .map_err(|e| {
+            ForwardError::before_response(format!("build upstream request for {url}: {e}"))
+        })?
         .headers(headers)
         .body(body);
 
     let request = client
         .request(builder)
-        .map_err(|e| format!("prepare upstream request: {e}"))?;
+        .map_err(|e| ForwardError::before_response(format!("prepare upstream request: {e}")))?;
 
-    let response = request
-        .send()
-        .map_err(|e| format!("send upstream request to {url}: {e}"))?;
+    let response = request.send_async().await.map_err(|e| {
+        ForwardError::before_response(format!("send upstream request to {url}: {e}"))
+    })?;
 
     let (status, headers, body, pool, upstream_conn) = response.into_parts();
-    write_response(conn, status, &headers, body, extra_headers)?;
+    let read_wake = upstream_conn.as_ref().and_then(|c| c.read_wake_source());
+    let mut body = AsyncSendSafeBody::from(body);
+    if let Some(source) = read_wake {
+        body = body.with_read_wake(source);
+    }
+
+    let code = status.clone().into_usize();
+    let no_body = head_only || matches!(code, 100..=199 | 204 | 304);
+    let mut out = strip_hop_by_hop(&headers);
+    if let Some(extras) = extra_headers {
+        for (name, values) in extras {
+            out.insert(name.clone(), values.clone());
+        }
+    }
+    out.insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
+    let chunked = !no_body && chunk_ok && !out.contains_key(&SimpleHeader::CONTENT_LENGTH);
+    if chunked {
+        out.insert(SimpleHeader::TRANSFER_ENCODING, vec!["chunked".to_string()]);
+    }
+
+    let head = render_stream(Http11::ResponseHead(SimpleResponse::no_body(status, out)))
+        .map_err(ForwardError::before_response)?;
+    writer
+        .write_all(&head)
+        .await
+        .map_err(|e| ForwardError::before_response(format!("write response head: {e}")))?;
+
+    if !no_body {
+        while let Some(piece) = body.next().await {
+            let bytes = piece
+                .map_err(|e| ForwardError::mid_response(format!("read upstream body: {e}")))?;
+            if bytes.is_empty() {
+                // An empty chunk would end a chunked body early.
+                continue;
+            }
+            let wire = if chunked {
+                Http11Chunk::Chunked(bytes).render()
+            } else {
+                bytes
+            };
+            writer
+                .write_all(&wire)
+                .await
+                .map_err(|e| ForwardError::mid_response(format!("write response body: {e}")))?;
+        }
+        if chunked {
+            let end = render_stream(Http11::ResponseTrailers(SimpleHeaders::new()))
+                .map_err(ForwardError::mid_response)?;
+            writer
+                .write_all(&end)
+                .await
+                .map_err(|e| ForwardError::mid_response(format!("write response end: {e}")))?;
+        }
+    }
+    writer
+        .flush()
+        .await
+        .map_err(|e| ForwardError::mid_response(format!("flush response: {e}")))?;
 
     // Return the upstream socket to the pool for reuse only when the connection
     // is still alive (streaming requests). For non-streaming requests the
@@ -288,6 +386,18 @@ pub fn forward_http_with_headers(
         }
     }
     Ok(())
+}
+
+/// Render one part of a response (head, trailers) to wire bytes.
+fn render_stream(part: Http11) -> Result<Vec<u8>, String> {
+    let mut out = Vec::new();
+    for piece in part
+        .http_render()
+        .map_err(|e| format!("render response: {e}"))?
+    {
+        out.extend_from_slice(&piece.map_err(|e| format!("render response: {e}"))?);
+    }
+    Ok(out)
 }
 
 /// Render a proxied response onto the client connection. Injects any
@@ -305,7 +415,7 @@ pub(crate) fn write_response(
 ) -> Result<(), String> {
     let mut out = strip_hop_by_hop(headers);
     if let Some(extras) = extra_headers {
-        for (name, values) in extras.iter() {
+        for (name, values) in extras {
             out.insert(name.clone(), values.clone());
         }
     }

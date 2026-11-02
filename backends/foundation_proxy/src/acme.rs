@@ -7,8 +7,8 @@
 //! 4. Solve DNS-01 challenges (create TXT records, verify, clean up)
 //! 5. Finalize order with CSR → get certificate
 //!
-//! DNS-01 challenges are set via a caller-provided callback (typically
-//! foundation_deployment_cloudflare for Cloudflare-hosted zones).
+//! DNS-01 challenges are set via a caller-provided callback (for a
+//! Cloudflare-hosted zone, one that calls the Cloudflare DNS API).
 
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};

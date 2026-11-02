@@ -25,6 +25,7 @@ use std::time::{Duration, Instant};
 use foundation_iogate::FdReadiness;
 
 use foundation_http::native::server::{HttpServer, ServerConfig};
+use foundation_http::native::writer::WriterConfig;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::ShutdownSignal;
 use foundation_netio::http::HttpConnectionPool;
@@ -154,7 +155,10 @@ impl ProxyServer {
         }
 
         let mut h1_app = HttpApp::new_serve();
-        let mut proxy_state_value = ProxyState::new(router, client.clone(), "http", config.io_mode);
+        let mut proxy_state_value = ProxyState::new(router, client.clone(), "http", config.io_mode)
+            .with_writer_config(
+                WriterConfig::default().with_send_timeout(config.relay_send_timeout),
+            );
         if let Some(store) = &store {
             proxy_state_value = proxy_state_value.with_store(Arc::clone(store));
         }
@@ -201,6 +205,8 @@ impl ProxyServer {
                 Ok(listener) => {
                     redirect_local_addr = listener.local_addr().ok();
                     let redirect_shutdown = shutdown.clone();
+                    // Kept: the accept loop of the plain-HTTP redirect listener, one
+                    // thread per proxy. Its poll interval is `redirect_accept_poll`.
                     _redirect_thread = Some(std::thread::spawn(move || {
                         ssl_redirect_loop(
                             listener,
@@ -232,6 +238,8 @@ impl ProxyServer {
 
         // Serve on a dedicated thread with the pre-bound listener.
         let serve_shutdown = shutdown.clone();
+        // Kept: the accept loop of the HTTP front end, one thread per proxy. It
+        // submits each connection to the valtron pool and holds none itself.
         let server_thread = std::thread::spawn(move || {
             if use_tls {
                 server.serve_tls_with_listener(&listener, &serve_shutdown);
@@ -349,6 +357,8 @@ impl ProxyServer {
     pub async fn shutdown_async(mut self) {
         let teardown = self.begin_teardown();
         let (done_tx, done_rx) = foundation_core::valtron::Pipe::<()>::with_depth(1);
+        // Kept: a real blocking boundary. The joins below block until the accept
+        // loop drains, so they must not run on a pool worker (see above).
         let spawned = std::thread::Builder::new()
             .name("proxy-shutdown".to_string())
             .spawn(move || {

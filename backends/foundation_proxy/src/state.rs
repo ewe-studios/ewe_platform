@@ -11,6 +11,7 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
+use foundation_http::native::writer::WriterConfig;
 use foundation_iogate::ServerIo;
 
 use crate::config::BackendState;
@@ -33,6 +34,8 @@ pub struct ProxyState {
     /// changes (drain/pause/activate) are written through so they survive a
     /// restart. `None` disables persistence.
     store: Option<Arc<ProxyStateStore>>,
+    /// Limits for the response writer of each relayed connection.
+    writer: WriterConfig,
 }
 
 impl std::fmt::Debug for ProxyState {
@@ -63,7 +66,22 @@ impl ProxyState {
             io_mode,
             draining: AtomicBool::new(false),
             store: None,
+            writer: WriterConfig::default(),
         }
+    }
+
+    /// Set the limits of the response writer each relay uses (the send
+    /// timeout).
+    #[must_use]
+    pub fn with_writer_config(mut self, writer: WriterConfig) -> Self {
+        self.writer = writer;
+        self
+    }
+
+    /// The limits of the response writer each relay uses.
+    #[must_use]
+    pub fn writer_config(&self) -> WriterConfig {
+        self.writer
     }
 
     /// Attach a persistence store (Decision 21). Admin state changes are then

@@ -20,7 +20,7 @@ use std::time::Duration;
 /// Runtime hooks for ACME provisioning (Decision 18, F15).
 ///
 /// Not part of the serialisable config: the DNS-01 setter is a callback (publish
-/// a TXT record for a domain), typically backed by `foundation_deployment_cloudflare`.
+/// a TXT record for a domain), for example one that calls the Cloudflare DNS API.
 #[derive(Clone)]
 pub struct AcmeRuntime {
     /// Override the CA directory URL (defaults to Let's Encrypt production). A
@@ -99,6 +99,12 @@ pub struct ProxyConfig {
     /// serialised — set it via the programmatic builder.
     #[serde(skip)]
     pub io_mode: ServerIo,
+    /// The longest a proxied client may take no byte of a relayed response
+    /// before the relay closes the connection. The timer restarts after every
+    /// write that takes at least one byte, so a long download to a slow but
+    /// live client is not cut. Defaults to 60 seconds (nginx `send_timeout`).
+    #[serde(default = "default_relay_send_timeout", with = "duration_millis")]
+    pub relay_send_timeout: Duration,
 }
 
 impl ProxyConfig {
@@ -119,7 +125,16 @@ impl ProxyConfig {
             redirect_read_timeout: default_redirect_read_timeout(),
             redirect_accept_poll: default_redirect_accept_poll(),
             io_mode: ServerIo::default(),
+            relay_send_timeout: default_relay_send_timeout(),
         }
+    }
+
+    /// Set [`Self::relay_send_timeout`]. Default 60 seconds (nginx
+    /// `send_timeout`).
+    #[must_use]
+    pub fn relay_send_timeout(mut self, timeout: Duration) -> Self {
+        self.relay_send_timeout = timeout;
+        self
     }
 
     /// Set the I/O mode for the front end and the dialed upstream legs (F50).
@@ -253,6 +268,11 @@ const fn default_redirect_head_limit() -> usize {
 /// Caddy uses).
 fn default_redirect_read_timeout() -> Duration {
     Duration::from_secs(2)
+}
+
+/// The default relay send timeout: 60 seconds (nginx `send_timeout`).
+fn default_relay_send_timeout() -> Duration {
+    Duration::from_secs(60)
 }
 
 /// The default redirect accept poll: 10 milliseconds (the `accept_shutdown_poll`

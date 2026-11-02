@@ -98,8 +98,7 @@ impl CertManager for StaticCertManager {
 /// key + CSR, then drives the full [`AcmeClient`] flow (account → order →
 /// DNS-01 challenge → finalize → download). The provisioned PEM chain plus the
 /// generated private key become the [`CertPair`] the acceptor is built from. The
-/// DNS-01 TXT records are published through a caller-supplied setter (typically
-/// `foundation_deployment_cloudflare`).
+/// DNS-01 TXT records are published through a caller-supplied setter.
 pub struct AcmeCertManager {
     domains: Vec<String>,
     email: String,

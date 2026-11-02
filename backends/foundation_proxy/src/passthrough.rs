@@ -174,6 +174,9 @@ impl TcpPassthrough {
         let backend = backend_authority.to_string();
 
         let loop_shutdown = Arc::clone(&shutdown);
+        // Kept: the accept loop of a standalone raw-TCP listener. One thread per
+        // listener (not per connection) is the accepted boundary. Its 5 ms poll
+        // sleep is a backlog entry (section 9 of docs/bug-backlog.md).
         let accept_thread = std::thread::spawn(move || {
             accept_loop(&listener, &backend, &loop_shutdown);
         });
@@ -218,6 +221,9 @@ fn accept_loop(listener: &TcpListener, backend_authority: &str, shutdown: &Arc<O
         match listener.accept() {
             Ok((client, _addr)) => {
                 let backend = backend_authority.to_string();
+                // Problem, not kept: one OS thread per raw-TCP client, running a
+                // polling splice. Recorded in docs/bug-backlog.md section 9; the
+                // fix is an async splice that parks on socket readiness.
                 std::thread::spawn(move || {
                     if let Err(e) = splice_client_to_backend(client, &backend) {
                         tracing::warn!(%backend, "tcp passthrough failed: {e}");
@@ -276,6 +282,8 @@ impl UdpPassthrough {
         let backend = backend_authority.to_string();
 
         let loop_shutdown = Arc::clone(&shutdown);
+        // Kept: one relay loop thread per UDP listener (not per datagram). Its
+        // poll sleep is a backlog entry (section 9 of docs/bug-backlog.md).
         let relay_thread = std::thread::spawn(move || {
             relay_udp(socket, &backend, &loop_shutdown);
         });
