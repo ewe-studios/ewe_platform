@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use foundation_db::traits::{DocumentStore, PromotableDocument};
-use foundation_nativeapis::shared::vfs::fjall_fs::InodeFs;
+use foundation_nativeapis::shared::vfs::async_traits::AsyncVfsFileSystem;
 use foundation_nativeapis::shared::vfs::{OpenMode, VfsCapabilities, VfsMetadata};
 use foundation_nativeapis::{
     DurabilityWriteConfig, FjallDocumentStore, MemoryFs, VfsFileSystem, VfsResult,
@@ -14,11 +14,17 @@ use foundation_core::valtron::valtron_test;
 use futures_lite::StreamExt;
 use serde::{Deserialize, Serialize};
 
-fn make_store() -> FjallDocumentStore<InodeFs> {
-    let fs = InodeFs::in_memory().unwrap();
+fn make_store() -> FjallDocumentStore<MemoryFs> {
+    let fs = MemoryFs::new();
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig::default());
-    FjallDocumentStore::open(fs, "/data".to_string(), tmpdir.path(), durability).unwrap()
+    futures_lite::future::block_on(FjallDocumentStore::open(
+        fs,
+        "/data".to_string(),
+        tmpdir.path(),
+        durability,
+    ))
+    .unwrap()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -280,16 +286,15 @@ async fn scan_all_empty_collection_returns_empty() {
 
 #[valtron_test]
 async fn batched_durability_accumulates_then_flushes() {
-    let fs = InodeFs::in_memory().unwrap();
+    let fs = MemoryFs::new();
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig {
         batch_size_bytes: 1024,
         flush_timeout: std::time::Duration::from_secs(60),
     });
-    let store = FjallDocumentStore::open(
-        fs, "/data".to_string(), tmpdir.path(), durability,
-    )
-    .unwrap();
+    let store = FjallDocumentStore::open(fs, "/data".to_string(), tmpdir.path(), durability)
+        .await
+        .unwrap();
 
     store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
     store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
@@ -299,7 +304,7 @@ async fn batched_durability_accumulates_then_flushes() {
     assert_eq!(results.len(), 2);
 
     // Explicit flush
-    store.flush("col").unwrap();
+    store.flush("col").await.unwrap();
 
     // Still readable after flush
     let results: Vec<TestRecord> = collect_stream(store.scan_all("col").await.unwrap()).await;
@@ -310,7 +315,7 @@ async fn batched_durability_accumulates_then_flushes() {
 
 #[valtron_test]
 async fn tail_rebuild_recovers_unindexed_records() {
-    let fs = InodeFs::in_memory().unwrap();
+    let fs = MemoryFs::new();
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig::default());
 
@@ -322,6 +327,7 @@ async fn tail_rebuild_recovers_unindexed_records() {
             tmpdir.path(),
             durability.clone(),
         )
+        .await
         .unwrap();
 
         store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
@@ -349,6 +355,7 @@ async fn tail_rebuild_recovers_unindexed_records() {
         tmpdir.path(),
         durability,
     )
+    .await
     .unwrap();
 
     assert_eq!(store2.count("col").await.unwrap(), 3);
@@ -406,14 +413,15 @@ struct CountingFs<F> {
     read_opens: Arc<AtomicUsize>,
 }
 
-impl<F> CountingFs<F> {
+impl<F: AsyncVfsFileSystem> CountingFs<F> {
     fn new(inner: F) -> (Self, Arc<AtomicUsize>) {
         let read_opens = Arc::new(AtomicUsize::new(0));
         (Self { inner, read_opens: read_opens.clone() }, read_opens)
     }
 }
 
-impl<F: VfsFileSystem> VfsFileSystem for CountingFs<F> {
+#[async_trait::async_trait]
+impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for CountingFs<F> {
     type File = F::File;
     type SeekableFile = F::SeekableFile;
     type Directory = F::Directory;
@@ -421,69 +429,78 @@ impl<F: VfsFileSystem> VfsFileSystem for CountingFs<F> {
     fn capabilities(&self) -> VfsCapabilities {
         self.inner.capabilities()
     }
-    fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
-        self.inner.stat(path)
+
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        self.inner.stat_async(path).await
     }
-    fn exists(&self, path: &str) -> VfsResult<bool> {
-        self.inner.exists(path)
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        self.inner.exists_async(path).await
     }
-    fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
-        self.inner.chmod(path, mode)
+
+    async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> {
+        self.inner.chmod_async(path, mode).await
     }
-    fn symlink(&self, target: &str, link: &str) -> VfsResult<()> {
-        self.inner.symlink(target, link)
+
+    async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> {
+        self.inner.symlink_async(target, link).await
     }
-    fn readlink(&self, path: &str) -> VfsResult<String> {
-        self.inner.readlink(path)
+
+    async fn readlink_async(&self, path: String) -> VfsResult<String> {
+        self.inner.readlink_async(path).await
     }
-    fn rename(&self, from: &str, to: &str) -> VfsResult<()> {
-        self.inner.rename(from, to)
+
+    async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
+        self.inner.rename_async(from, to).await
     }
-    fn remove(&self, path: &str) -> VfsResult<()> {
-        self.inner.remove(path)
+
+    async fn remove_async(&self, path: String) -> VfsResult<()> {
+        self.inner.remove_async(path).await
     }
-    fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
         if matches!(mode, OpenMode::Read) {
             self.read_opens.fetch_add(1, Ordering::Relaxed);
         }
-        self.inner.open(path, mode)
+        self.inner.open_async(path, mode).await
     }
-    fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
-        self.inner.open_seekable(path, mode)
+
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
+        self.inner.open_seekable_async(path, mode).await
     }
-    fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
-        self.inner.open_directory(path)
+
+    async fn open_directory_async(&self, path: String) -> VfsResult<Self::Directory> {
+        self.inner.open_directory_async(path).await
     }
-    fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File> {
-        self.inner.create(path, mode)
+
+    async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> {
+        self.inner.create_async(path, mode).await
     }
-    fn mkdir(&self, path: &str) -> VfsResult<()> {
-        self.inner.mkdir(path)
-    }
-    fn inode(&self, path: &str) -> VfsResult<u64> {
-        self.inner.inode(path)
-    }
-    fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
-        self.inner.path_by_inode(ino)
-    }
-    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
-        self.inner.stat_by_inode(ino)
+
+    async fn mkdir_async(&self, path: String) -> VfsResult<()> {
+        self.inner.mkdir_async(path).await
     }
 }
 
 #[valtron_test]
 async fn fjall_scan_yields_before_reading_all() {
-    let (fs, opens) = CountingFs::new(InodeFs::in_memory().unwrap());
+    let (fs, opens) = CountingFs::new(MemoryFs::new());
     let tmpdir = tempfile::tempdir().unwrap();
     let durability = Arc::new(DurabilityWriteConfig::default());
-    let store = FjallDocumentStore::open(fs, "/data".to_string(), tmpdir.path(), durability).unwrap();
+    let store = FjallDocumentStore::open(fs, "/data".to_string(), tmpdir.path(), durability)
+        .await
+        .unwrap();
 
     for i in 0..50 {
         store
             .append("col", TestRecord { name: format!("item-{i}"), value: i }).await
             .unwrap();
     }
-    store.flush("col").unwrap();
+    store.flush("col").await.unwrap();
 
     // Creating the stream must not read any document.
     opens.store(0, Ordering::Relaxed);

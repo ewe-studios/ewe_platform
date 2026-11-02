@@ -9,7 +9,7 @@ use foundation_db::traits::{DocumentStore, Document, PromotableDocument};
 use foundation_db::{AsyncStorageItemStream, StorageError, StorageResult};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use super::traits::{VfsDirectory, VfsFile, VfsFileSystem};
+use super::async_traits::{AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem};
 
 const HWM_KEY_PREFIX: &[u8] = b"__hwm\x00";
 const KEY_SEP: u8 = 0x00;
@@ -83,7 +83,7 @@ struct CollectionState {
     first_unflushed_at: Option<Instant>,
 }
 
-pub struct FjallDocumentStore<V: VfsFileSystem> {
+pub struct FjallDocumentStore<V: AsyncVfsFileSystem> {
     vfs: V,
     root: String,
     #[allow(dead_code)]
@@ -103,7 +103,7 @@ pub struct FjallDocumentStore<V: VfsFileSystem> {
 /// # Panics
 ///
 /// If the index directory can't be created or opened.
-impl<V: VfsFileSystem + Default> Default for FjallDocumentStore<V> {
+impl<V: AsyncVfsFileSystem + Default> Default for FjallDocumentStore<V> {
     fn default() -> Self {
         static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
         let unique = format!(
@@ -115,12 +115,12 @@ impl<V: VfsFileSystem + Default> Default for FjallDocumentStore<V> {
             NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
         );
         let index_path = std::env::temp_dir().join(unique);
-        Self::open(
+        futures_lite::future::block_on(Self::open(
             V::default(),
             "/documents".to_string(),
             &index_path,
             Arc::new(DurabilityWriteConfig::default()),
-        )
+        ))
         .unwrap_or_else(|e| {
             panic!(
                 "FjallDocumentStore::default: can't open an index at {}: {e}",
@@ -130,16 +130,17 @@ impl<V: VfsFileSystem + Default> Default for FjallDocumentStore<V> {
     }
 }
 
-impl<V: VfsFileSystem> FjallDocumentStore<V> {
+impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
     /// # Errors
     /// Returns an error if the fjall keyspace or VFS root cannot be opened.
-    pub fn open(
+    pub async fn open(
         vfs: V,
         root: String,
         index_path: impl AsRef<std::path::Path>,
         durability: Arc<DurabilityWriteConfig>,
     ) -> StorageResult<Self> {
-        vfs.mkdir_all(&root)
+        vfs.mkdir_all_async(root.clone())
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let keyspace = fjall::Config::new(index_path)
@@ -164,7 +165,7 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
             durability,
         };
 
-        store.rebuild_stale_indexes()?;
+        store.rebuild_stale_indexes().await?;
 
         Ok(store)
     }
@@ -215,27 +216,45 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
         k
     }
 
-    fn get_or_create_collection(&self, key: &str) -> Arc<RwLock<CollectionState>> {
-        let mut map = self.collections.lock().unwrap();
-        map.entry(key.to_string())
-            .or_insert_with(|| {
-                let hwm = self.read_hwm(key).unwrap_or(0);
-                let file_path = self.collection_file_path(key);
-                let file_size = if self.vfs.exists(&file_path).unwrap_or(false) {
-                    self.vfs
-                        .open(&file_path, super::types::OpenMode::Read)
-                        .and_then(|f| f.size())
-                        .unwrap_or(0)
-                } else {
-                    0
-                };
-                Arc::new(RwLock::new(CollectionState {
-                    file_high_water_mark: file_size.max(hwm),
-                    batch: Vec::new(),
-                    accumulated_batch_bytes: 0,
-                    first_unflushed_at: None,
-                }))
-            })
+    async fn get_or_create_collection(&self, key: &str) -> Arc<RwLock<CollectionState>> {
+        if let Some(col) = self.collections.lock().unwrap().get(key) {
+            return col.clone();
+        }
+
+        let hwm = self.read_hwm(key).unwrap_or(0);
+        let file_path = self.collection_file_path(key);
+        let file_size = if self
+            .vfs
+            .exists_async(file_path.clone())
+            .await
+            .unwrap_or(false)
+        {
+            match self
+                .vfs
+                .open_async(file_path, super::types::OpenMode::Read)
+                .await
+            {
+                Ok(f) => f.size_async().await.unwrap_or(0),
+                Err(_) => 0,
+            }
+        } else {
+            0
+        };
+
+        let col = Arc::new(RwLock::new(CollectionState {
+            file_high_water_mark: file_size.max(hwm),
+            batch: Vec::new(),
+            accumulated_batch_bytes: 0,
+            first_unflushed_at: None,
+        }));
+
+        // Racing insertions build the same state from the same VFS snapshot, so
+        // keeping the first one is safe.
+        self.collections
+            .lock()
+            .unwrap()
+            .entry(key.to_string())
+            .or_insert(col)
             .clone()
     }
 
@@ -254,17 +273,23 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
             })
     }
 
-    fn ensure_file_exists(&self, key: &str) -> StorageResult<()> {
+    async fn ensure_file_exists(&self, key: &str) -> StorageResult<()> {
         let path = self.collection_file_path(key);
-        if !self.vfs.exists(&path).map_err(|e| StorageError::Backend(e.to_string()))? {
+        if !self
+            .vfs
+            .exists_async(path.clone())
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+        {
             self.vfs
-                .create(&path, 0o644)
+                .create_async(path, 0o644)
+                .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
         }
         Ok(())
     }
 
-    fn put(
+    async fn put(
         &self,
         key: &str,
         doc_id: String,
@@ -273,7 +298,7 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
         summary: Option<String>,
         record_type: Option<String>,
     ) -> StorageResult<Document> {
-        self.ensure_file_exists(key)?;
+        self.ensure_file_exists(key).await?;
 
         let row = NdjsonRow {
             id: doc_id.clone(),
@@ -291,33 +316,38 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
         let document = row.to_document();
         let line_len = line.len() as u64;
 
-        let col = self.get_or_create_collection(key);
-        let mut state = col.write().unwrap();
+        let col = self.get_or_create_collection(key).await;
 
-        let offset = state.file_high_water_mark + state.accumulated_batch_bytes;
+        // Mutate the batch state under the lock, then drop the guard before
+        // any await so the append futures stay `Send` (a `std::sync` write
+        // guard is not `Send`).
+        let (offset, should_flush) = {
+            let mut state = col.write().unwrap();
+            let offset = state.file_high_water_mark + state.accumulated_batch_bytes;
 
-        state.batch.push(BatchEntry { line });
-        state.accumulated_batch_bytes += line_len;
+            state.batch.push(BatchEntry { line });
+            state.accumulated_batch_bytes += line_len;
 
-        if state.first_unflushed_at.is_none() {
-            state.first_unflushed_at = Some(Instant::now());
-        }
+            if state.first_unflushed_at.is_none() {
+                state.first_unflushed_at = Some(Instant::now());
+            }
 
-        let should_flush = if self.durability.batch_size_bytes == 0 {
-            true
-        } else if state.accumulated_batch_bytes >= self.durability.batch_size_bytes {
-            true
-        } else if let Some(first) = state.first_unflushed_at {
-            first.elapsed() >= self.durability.flush_timeout
-        } else {
-            false
+            let should_flush = if self.durability.batch_size_bytes == 0 {
+                true
+            } else if state.accumulated_batch_bytes >= self.durability.batch_size_bytes {
+                true
+            } else if let Some(first) = state.first_unflushed_at {
+                first.elapsed() >= self.durability.flush_timeout
+            } else {
+                false
+            };
+
+            (offset, should_flush)
         };
 
         if should_flush {
-            self.flush_locked(key, &mut state)?;
+            self.flush_locked(key, &col).await?;
         }
-
-        drop(state);
 
         // Insert into primary index
         let idx_key = Self::composite_key(key, &document.id);
@@ -342,18 +372,30 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
         Ok(document)
     }
 
-    fn flush_locked(
+    async fn flush_locked(
         &self,
         key: &str,
-        state: &mut CollectionState,
+        col: &Arc<RwLock<CollectionState>>,
     ) -> StorageResult<()> {
-        if state.batch.is_empty() {
-            return Ok(());
-        }
+        // Extract the pending batch and advance the accounting under the lock,
+        // so a concurrent `put` computes a fresh offset. The bytes are written
+        // after the guard is dropped, so the future stays `Send`.
+        let (batch, batch_bytes, write_offset) = {
+            let mut state = col.write().unwrap();
+            if state.batch.is_empty() {
+                return Ok(());
+            }
 
-        let batch = std::mem::take(&mut state.batch);
-        let batch_bytes = state.accumulated_batch_bytes;
-        let write_offset = state.file_high_water_mark;
+            let batch = std::mem::take(&mut state.batch);
+            let batch_bytes = state.accumulated_batch_bytes;
+            let write_offset = state.file_high_water_mark;
+
+            state.file_high_water_mark += batch_bytes;
+            state.accumulated_batch_bytes = 0;
+            state.first_unflushed_at = None;
+
+            (batch, batch_bytes, write_offset)
+        };
 
         let mut combined = Vec::with_capacity(batch_bytes as usize);
         for entry in &batch {
@@ -363,24 +405,23 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
         let file_path = self.collection_file_path(key);
         let file = self
             .vfs
-            .open(&file_path, super::types::OpenMode::ReadWrite)
+            .open_async(file_path, super::types::OpenMode::ReadWrite)
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        file.write_at(&combined, write_offset)
+        file.write_at_async(combined, write_offset)
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        file.sync_data()
+        file.sync_data_async()
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        state.file_high_water_mark += batch_bytes;
-        state.accumulated_batch_bytes = 0;
-        state.first_unflushed_at = None;
-        state.batch = Vec::new();
-
-        // Update HWM in fjall
+        // Persist the advanced high water mark in fjall.
+        let hwm = col.read().unwrap().file_high_water_mark;
         let hwm_key = Self::hwm_key(key);
         self.primary
-            .insert(&hwm_key, &state.file_high_water_mark.to_le_bytes())
+            .insert(&hwm_key, &hwm.to_le_bytes())
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         Ok(())
@@ -390,50 +431,51 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
     ///
     /// # Errors
     /// Returns storage errors from VFS writes or fjall index updates.
-    pub fn flush(&self, key: &str) -> StorageResult<()> {
-        let col = self.get_or_create_collection(key);
-        let mut state = col.write().unwrap();
-        self.flush_locked(key, &mut state)
+    pub async fn flush(&self, key: &str) -> StorageResult<()> {
+        let col = self.get_or_create_collection(key).await;
+        self.flush_locked(key, &col).await
     }
 
-    fn read_document_at(&self, key: &str, offset: u64, len: u32) -> StorageResult<NdjsonRow> {
+    async fn read_document_at(&self, key: &str, offset: u64, len: u32) -> StorageResult<NdjsonRow> {
         let file_path = self.collection_file_path(key);
 
-        let col = self.get_or_create_collection(key);
-        let state = col.read().unwrap();
+        let col = self.get_or_create_collection(key).await;
 
-        // Check if the offset falls within the unflushed batch
-        let batch_start = state.file_high_water_mark;
-        if offset >= batch_start {
-            let batch_offset = (offset - batch_start) as usize;
-            let mut pos = 0usize;
-            for entry in &state.batch {
-                if pos == batch_offset {
-                    let line_str = std::str::from_utf8(&entry.line)
-                        .map_err(|e| StorageError::Deserialization(e.to_string()))?;
-                    let row: NdjsonRow = serde_json::from_str(line_str.trim_end())
-                        .map_err(|e| StorageError::Deserialization(e.to_string()))?;
-                    return Ok(row);
+        // Check the unflushed batch first. The read guard is scoped so it is
+        // dropped before any await below, keeping the future `Send`.
+        {
+            let state = col.read().unwrap();
+            let batch_start = state.file_high_water_mark;
+            if offset >= batch_start {
+                let batch_offset = (offset - batch_start) as usize;
+                let mut pos = 0usize;
+                for entry in &state.batch {
+                    if pos == batch_offset {
+                        let line_str = std::str::from_utf8(&entry.line)
+                            .map_err(|e| StorageError::Deserialization(e.to_string()))?;
+                        let row: NdjsonRow = serde_json::from_str(line_str.trim_end())
+                            .map_err(|e| StorageError::Deserialization(e.to_string()))?;
+                        return Ok(row);
+                    }
+                    pos += entry.line.len();
                 }
-                pos += entry.line.len();
+                return Err(StorageError::NotFound(format!(
+                    "offset {offset} not found in batch"
+                )));
             }
-            return Err(StorageError::NotFound(format!(
-                "offset {offset} not found in batch"
-            )));
         }
-        drop(state);
 
         // Read from persisted file
         let file = self
             .vfs
-            .open(&file_path, super::types::OpenMode::Read)
+            .open_async(file_path, super::types::OpenMode::Read)
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        let mut buf = vec![0u8; len as usize];
-        let n = file
-            .read_at(&mut buf, offset)
+        let buf = file
+            .read_at_async(len as usize, offset)
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
-        buf.truncate(n);
 
         let line_str = std::str::from_utf8(&buf)
             .map_err(|e| StorageError::Deserialization(e.to_string()))?;
@@ -442,7 +484,7 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
         Ok(row)
     }
 
-    fn collect_rows(
+    async fn collect_rows(
         &self,
         key: &str,
         newest_first: bool,
@@ -450,7 +492,6 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
         limit: Option<usize>,
     ) -> StorageResult<Vec<NdjsonRow>> {
         let prefix = Self::collection_prefix(key);
-        let mut rows = Vec::new();
 
         let range_start = if let Some(fid) = from_id {
             Self::composite_key(key, fid)
@@ -464,50 +505,41 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
             *last = last.saturating_add(1);
         }
 
-        if newest_first {
-            for item in self.primary.range(range_start..range_end).rev() {
-                let (k, v) = item.map_err(|e| StorageError::Backend(e.to_string()))?;
+        // Collect the matching index entries first. The fjall range iterator
+        // is not `Send`, so it cannot be held across the document reads below.
+        let range = self.primary.range(range_start..range_end);
+        let mapped = range.map(|item| item.map(|(k, v)| (k.to_vec(), v.to_vec())));
+        let iter: FjallRange = if newest_first {
+            Box::new(mapped.rev())
+        } else {
+            Box::new(mapped)
+        };
 
-                // Skip HWM keys
-                if k.starts_with(HWM_KEY_PREFIX) {
-                    continue;
-                }
+        let mut index_entries = Vec::new();
+        for item in iter {
+            let (k, v) = item.map_err(|e| StorageError::Backend(e.to_string()))?;
 
-                let idx: IndexValue = serde_json::from_slice(&v)
-                    .map_err(|e| StorageError::Deserialization(e.to_string()))?;
+            if k.starts_with(HWM_KEY_PREFIX) {
+                continue;
+            }
 
-                match self.read_document_at(key, idx.offset, idx.len) {
-                    Ok(row) => rows.push(row),
-                    Err(_) => continue,
-                }
+            let idx: IndexValue = serde_json::from_slice(&v)
+                .map_err(|e| StorageError::Deserialization(e.to_string()))?;
 
-                if let Some(n) = limit {
-                    if rows.len() >= n {
-                        break;
-                    }
+            index_entries.push(idx);
+
+            if let Some(n) = limit {
+                if index_entries.len() >= n {
+                    break;
                 }
             }
-        } else {
-            for item in self.primary.range(range_start..range_end) {
-                let (k, v) = item.map_err(|e| StorageError::Backend(e.to_string()))?;
+        }
 
-                if k.starts_with(HWM_KEY_PREFIX) {
-                    continue;
-                }
-
-                let idx: IndexValue = serde_json::from_slice(&v)
-                    .map_err(|e| StorageError::Deserialization(e.to_string()))?;
-
-                match self.read_document_at(key, idx.offset, idx.len) {
-                    Ok(row) => rows.push(row),
-                    Err(_) => continue,
-                }
-
-                if let Some(n) = limit {
-                    if rows.len() >= n {
-                        break;
-                    }
-                }
+        let mut rows = Vec::with_capacity(index_entries.len());
+        for idx in index_entries {
+            match self.read_document_at(key, idx.offset, idx.len).await {
+                Ok(row) => rows.push(row),
+                Err(_) => continue,
             }
         }
 
@@ -588,7 +620,7 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
                         ScanIndexItem::Entry(idx) => idx,
                         ScanIndexItem::Error(e) => return Some((Err(e), (rx, key, remaining))),
                     };
-                    let Ok(row) = self.read_document_at(&key, idx.offset, idx.len) else {
+                    let Ok(row) = self.read_document_at(&key, idx.offset, idx.len).await else {
                         continue;
                     };
                     let doc: C = match serde_json::from_str(&row.content) {
@@ -609,15 +641,17 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
         ))
     }
 
-    fn rebuild_stale_indexes(&self) -> StorageResult<()> {
+    async fn rebuild_stale_indexes(&self) -> StorageResult<()> {
         // Scan all .jsonl files in root directory
         let dir = self
             .vfs
-            .open_directory(&self.root)
+            .open_directory_async(self.root.clone())
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         let entries = dir
-            .list()
+            .list_async()
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         for entry in entries {
@@ -636,21 +670,25 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
 
             let hwm = self.read_hwm(&collection_key).unwrap_or(0);
             let file_path = self.collection_file_path(&collection_key);
-            let file_size = self
+            let file = self
                 .vfs
-                .open(&file_path, super::types::OpenMode::Read)
-                .and_then(|f| f.size())
+                .open_async(file_path, super::types::OpenMode::Read)
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let file_size = file
+                .size_async()
+                .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
 
             if file_size > hwm {
-                self.rebuild_tail(&collection_key, hwm, file_size)?;
+                self.rebuild_tail(&collection_key, hwm, file_size).await?;
             }
         }
 
         Ok(())
     }
 
-    fn rebuild_tail(
+    async fn rebuild_tail(
         &self,
         key: &str,
         from_offset: u64,
@@ -661,14 +699,14 @@ impl<V: VfsFileSystem> FjallDocumentStore<V> {
 
         let file = self
             .vfs
-            .open(&file_path, super::types::OpenMode::Read)
+            .open_async(file_path, super::types::OpenMode::Read)
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        let mut buf = vec![0u8; remaining];
-        let n = file
-            .read_at(&mut buf, from_offset)
+        let buf = file
+            .read_at_async(remaining, from_offset)
+            .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
-        buf.truncate(n);
 
         let text =
             std::str::from_utf8(&buf).map_err(|e| StorageError::Deserialization(e.to_string()))?;
@@ -724,15 +762,10 @@ fn backend(e: impl std::fmt::Display) -> StorageError {
     StorageError::Backend(e.to_string())
 }
 
-/// The fjall operations are local and synchronous; the async impl runs them
-/// inline, so every future is ready on its first poll.
+/// The fjall operations are local; the async impl awaits the VFS calls so an
+/// I/O-backed store (`SyncFs`-wrapped) does not block the calling thread.
 #[async_trait::async_trait]
-impl<V: VfsFileSystem + Send + Sync> DocumentStore for FjallDocumentStore<V>
-where
-    V::File: Send + Sync,
-    V::SeekableFile: Send + Sync,
-    V::Directory: Send + Sync,
-{
+impl<V: AsyncVfsFileSystem> DocumentStore for FjallDocumentStore<V> {
     async fn append<C: Serialize + Send + 'static>(
         &self,
         key: &str,
@@ -741,7 +774,7 @@ where
         let doc_id = foundation_compact::ids::new_scru128_string();
         let content_json = serde_json::to_string(&content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        self.put(key, doc_id, content_json, None, None, None)
+        self.put(key, doc_id, content_json, None, None, None).await
     }
 
     async fn append_with_id<C: Serialize + Send + 'static>(
@@ -753,6 +786,7 @@ where
         let content_json = serde_json::to_string(&content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         self.put(key, doc_id.to_string(), content_json, None, None, None)
+            .await
     }
 
     async fn append_promotable<C: Serialize + PromotableDocument + Send + 'static>(
@@ -764,7 +798,7 @@ where
         let (t, s, rt) = (content.title(), content.summary(), content.record_type());
         let content_json = serde_json::to_string(&content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        self.put(key, doc_id, content_json, t, s, rt)
+        self.put(key, doc_id, content_json, t, s, rt).await
     }
 
     async fn append_promotable_with_id<C: Serialize + PromotableDocument + Send + 'static>(
@@ -777,10 +811,11 @@ where
         let content_json = serde_json::to_string(&content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         self.put(key, doc_id.to_string(), content_json, t, s, rt)
+            .await
     }
 
     async fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
-        let rows = self.collect_rows(key, true, None, Some(limit))?;
+        let rows = self.collect_rows(key, true, None, Some(limit)).await?;
         Ok(rows.iter().map(NdjsonRow::to_document).collect())
     }
 
@@ -790,7 +825,9 @@ where
         from_id: &str,
         limit: usize,
     ) -> StorageResult<Vec<Document>> {
-        let rows = self.collect_rows(key, false, Some(from_id), limit_opt(limit))?;
+        let rows = self
+            .collect_rows(key, false, Some(from_id), limit_opt(limit))
+            .await?;
         Ok(rows.iter().map(NdjsonRow::to_document).collect())
     }
 
@@ -825,7 +862,7 @@ where
         if let Some(val) = self.primary.get(&idx_key).map_err(backend)? {
             let idx = serde_json::from_slice::<IndexValue>(&val)
                 .map_err(|e| StorageError::Deserialization(e.to_string()))?;
-            let row = self.read_document_at(key, idx.offset, idx.len)?;
+            let row = self.read_document_at(key, idx.offset, idx.len).await?;
             if let Some(ref rt) = row.record_type {
                 let type_key = Self::type_composite_key(key, rt, doc_id);
                 self.by_type.remove(&type_key).map_err(backend)?;

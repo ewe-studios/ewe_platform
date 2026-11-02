@@ -2,6 +2,22 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 19 E6, foundation_nativeapis): `async_trait` boxes the
+  `DocumentStore` futures as `Send`, so an async VFS store must never hold a
+  `std::sync` lock guard across an `.await` (the guards are not `Send`). Two
+  patterns: for writes, mutate the batch and advance the high water mark under
+  the lock, drop the guard, then await the VFS write; for reads, scope the
+  read guard to a block that returns before the VFS await. The fjall range
+  iterator is not `Send`, so a `Vec`-returning helper (`collect_rows`) must
+  collect the decoded index entries first and await the document reads
+  afterwards. Calling `read_at_async`/`write_at_async`/`sync_data_async`/
+  `size_async` on `<V as AsyncVfsFileSystem>::File`, and `list_async` on its
+  `Directory`, needs the `AsyncVfsFile` and `AsyncVfsDirectory` traits in
+  scope (not just `AsyncVfsFileSystem`), or method resolution fails with
+  E0599. `MemoryFs` implements both the sync and async VFS traits, so the
+  tests move to it, and the read-open counting wrapper now implements
+  `AsyncVfsFileSystem` and counts `open_async(Read)`.
+
 - 2026-11-02 (feature 19 E5, foundation_nativeapis): fjall's `range` returns
   a `!Send` iterator (`Box<dyn DoubleEndedIterator + 'static>` with no `Send`
   bound, from lsm-tree), so it cannot live in an `AsyncStorageItemStream`

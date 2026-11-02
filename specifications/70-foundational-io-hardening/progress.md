@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 19 (foundation_nativeapis) E6 done on
+  `fix/io-20-vfs-process-ipc`. E6 switches `FjallDocumentStore` from
+  `V: VfsFileSystem` to `V: AsyncVfsFileSystem` and awaits every VFS call, so
+  an I/O-backed store (wrapped in `SyncFs`) no longer blocks the calling
+  thread inside the async `DocumentStore` methods. To keep the async futures
+  `Send`, no `std::sync` lock guard is held across an await: `put` mutates the
+  batch and `flush_locked` advances the high water mark under the lock before
+  the guard is dropped, and `read_document_at` scopes its read guard to a
+  block before the file read. `collect_rows` collects the fjall index entries
+  first and then awaits the document reads, because the fjall range iterator
+  is not `Send`. The tests move from `InodeFs` to `MemoryFs`; the read-open
+  counting wrapper now implements `AsyncVfsFileSystem` and counts
+  `open_async(Read)`. 20 fjall document-store tests pass under `--profile
+  uat`. The fourth §13 backlog entry (sync VFS traits) is removed.
+
 - 2026-11-02: feature 25 (foundation_deployment_huggingface) E3 done on
   `fix/io-20-vfs-process-ipc`. E3 makes `list_models`, `list_datasets`,
   `list_spaces` and `repo_list_tree` follow the Hub's `Link: rel="next"`
