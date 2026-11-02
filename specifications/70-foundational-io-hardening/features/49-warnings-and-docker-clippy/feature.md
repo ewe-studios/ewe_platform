@@ -4,7 +4,7 @@ status: "pending"
 lane: "A"
 model: "haiku"
 branch: "fix/io-41-50-lane-a"
-crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc", "foundation_netio", "foundation_deployment", "foundation_keychain"]
+crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc", "foundation_netio", "foundation_deployment", "foundation_keychain", "foundation_proxy"]
 catalogue_rows: [13, 14, 15, 31]
 ---
 
@@ -53,6 +53,11 @@ Verify both crates' clippy print 0 warnings.
 
 174 lib warnings (for example `manual_let_else` in `provisioning_route`) plus test warnings.
 Fix all; mechanical only. Delete the §22 clippy entry.
+
+## E7. `foundation_proxy` clippy and test warnings (found in feature 45)
+
+About 50 lib warnings, plus `load_balancer_tests` unused imports and
+`h2_integration_tests.rs:318` unused `mut`. Fix all; mechanical only. Delete the §9 entry.
 
 ## Verify
 
