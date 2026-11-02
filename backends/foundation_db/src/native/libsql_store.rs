@@ -27,7 +27,7 @@ use crate::core::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit;
 use crate::core::schema::{MigrationRunner, MIGRATIONS};
-use crate::native::conn_gate::{ConnGate, ReadGuard, WriteGuard};
+use crate::native::conn_gate::{is_read_only_sql, ConnGate, ReadGuard, WriteGuard};
 
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::{status_column_value, ResourceState, StateStatus};
@@ -213,8 +213,14 @@ enum LibsqlMode {
 /// Row streams hold their guard until they end or are dropped. A batch or write
 /// waits until open row streams from this store end; do not start a batch or a
 /// write on the same task while you hold a row stream from this store (it would
-/// wait for itself). The raw `QueryStore::query` stream holds the write guard,
-/// because raw SQL can write.
+/// wait for itself). The raw `QueryStore::query` stream holds the read guard
+/// when the SQL is a single `SELECT` or `EXPLAIN`, and the write guard for any
+/// other statement (raw SQL can write, for example `INSERT ... RETURNING`).
+///
+/// The lock prefers writers, so a nested call on the same task can wait for a
+/// writer that waits for your stream. Every wait ends after `lock_timeout`
+/// (default 30 s, see `with_lock_timeout`) with `StorageError::LockTimeout`
+/// naming the read or write side, so the mistake fails instead of hanging.
 #[derive(Clone)]
 pub struct LibsqlStore {
     conn: Arc<libsql::Connection>,
@@ -459,6 +465,18 @@ impl LibsqlStore {
         }
     }
 
+    /// Set how long a call waits for the connection lock before it fails with
+    /// [`StorageError::LockTimeout`]. Default: 30 s, the default acquire
+    /// timeout of the `sqlx` pool. A task that holds a row stream and calls
+    /// another operation on the same store waits for itself; this limit turns
+    /// that mistake into an error instead of a hang. Call it before the first
+    /// operation; clones made afterwards share the new limit.
+    #[must_use]
+    pub fn with_lock_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.gate = self.gate.with_timeout(timeout);
+        self
+    }
+
     // ========== Connection gate ==========
 
     /// Shared guard for an operation that only reads. Waits while a write or a
@@ -466,7 +484,7 @@ impl LibsqlStore {
     /// first.
     async fn read(&self) -> StorageResult<ReadGuard> {
         loop {
-            let guard = self.gate.read().await;
+            let guard = self.gate.read().await?;
             if !self.gate.needs_check() {
                 return Ok(guard);
             }
@@ -478,7 +496,7 @@ impl LibsqlStore {
     /// Exclusive guard for a write, a raw statement or a batch. If an earlier
     /// rollback failed, the connection is checked first.
     async fn write(&self) -> StorageResult<WriteGuard> {
-        let guard = self.gate.write().await;
+        let guard = self.gate.write().await?;
         if self.gate.needs_check() {
             // Backend check: `libsql::Connection::is_autocommit`. A connection
             // that is not in autocommit mode is still inside a transaction.
@@ -519,6 +537,7 @@ impl LibsqlStore {
 
     /// Test hook: make the next batch rollback fail without running it, so the
     /// transaction stays open. Not part of the stable API.
+    #[cfg(feature = "test-hooks")]
     #[doc(hidden)]
     pub fn inject_rollback_failure(&self) {
         self.gate.inject_rollback_failure();
@@ -1078,9 +1097,14 @@ impl KeyValueStore for LibsqlStore {
 #[async_trait::async_trait]
 impl QueryStore for LibsqlStore {
     async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
-        // Raw SQL can write (`INSERT ... RETURNING`), so the stream holds the
-        // write guard until it ends or is dropped.
-        let guard = self.write().await?;
+        // A statement that can only read shares the connection. Anything else
+        // (raw SQL can write, e.g. `INSERT ... RETURNING`) holds the write
+        // guard until the stream ends or is dropped.
+        let guard: Box<dyn Send> = if is_read_only_sql(sql) {
+            Box::new(self.read().await?)
+        } else {
+            Box::new(self.write().await?)
+        };
         let conn = Arc::clone(&self.conn);
         let sql = sql.to_string();
         let params = Self::to_libsql_params(params);

@@ -191,6 +191,9 @@ impl<'a> MigrationRunner<'a> {
                 }
                 None => false,
             };
+            // Release the row stream (and the store's lock on it) before the
+            // next call on the same store, or that call waits for the stream.
+            drop(rows);
 
             if !exists {
                 // Apply migration

@@ -173,6 +173,11 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
             }
         }
 
+        // End the scan before writing: a SQL store keeps its connection locked
+        // while a scan stream is open, so a write on the same store would wait
+        // for the stream.
+        drop(records);
+
         for tier in missing {
             if let Some(record) = tier_ref(&memory, tier).cloned() {
                 self.memory.set(session, &record).await?;

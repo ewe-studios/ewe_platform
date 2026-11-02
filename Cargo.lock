@@ -5431,6 +5431,7 @@ dependencies = [
  "foundation_cloudflare_types",
  "foundation_compact",
  "foundation_core",
+ "foundation_db",
  "foundation_netio",
  "futures-core",
  "futures-lite",

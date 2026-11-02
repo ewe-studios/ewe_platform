@@ -10,7 +10,7 @@
 #![recursion_limit = "256"]
 #![cfg(unix)]
 
-use foundation_db::{DataValue, KeyValueStore, QueryStore};
+use foundation_db::{DataValue, KeyValueStore, LockMode, QueryStore, StorageError};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
@@ -56,9 +56,10 @@ fn thread_cpu_nanos() -> u64 {
     };
     // SAFETY: `ts` is a valid out pointer; CLOCK_THREAD_CPUTIME_ID is supported
     // on every unix target this crate tests on.
-    let rc = unsafe { libc::clock_gettime(libc::CLOCK_THREAD_CPUTIME_ID, &mut ts) };
+    let rc =
+        unsafe { libc::clock_gettime(libc::CLOCK_THREAD_CPUTIME_ID, std::ptr::addr_of_mut!(ts)) };
     assert_eq!(rc, 0, "clock_gettime(CLOCK_THREAD_CPUTIME_ID) failed");
-    ts.tv_sec as u64 * 1_000_000_000 + ts.tv_nsec as u64
+    u64::try_from(ts.tv_sec).unwrap() * 1_000_000_000 + u64::try_from(ts.tv_nsec).unwrap()
 }
 
 #[cfg(feature = "turso")]
@@ -206,7 +207,7 @@ macro_rules! lock_tests {
                     futures_lite::future::block_on(writer_store.set("k", 1_i64)).unwrap();
                     writer_events.lock().unwrap().push("write");
                 });
-                thread::sleep(Duration::from_millis(200));
+                thread::sleep(Duration::from_millis(300));
                 assert!(events.lock().unwrap().is_empty(), "write ran during a read");
 
                 let reader_store = store.clone();
@@ -217,7 +218,7 @@ macro_rules! lock_tests {
                     reader_events.lock().unwrap().push("read");
                     value
                 });
-                thread::sleep(Duration::from_millis(200));
+                thread::sleep(Duration::from_millis(300));
                 assert!(
                     events.lock().unwrap().is_empty(),
                     "a new read ran while a write was waiting"
@@ -226,7 +227,10 @@ macro_rules! lock_tests {
                 drop(open_read);
                 writer.join().unwrap();
                 let value = reader.join().unwrap();
-                assert_eq!(*events.lock().unwrap(), vec!["write", "read"]);
+                // Both threads push after they finish, so their push order is
+                // not the lock order. The read saw the write's value, which
+                // proves it ran after the write.
+                assert_eq!(events.lock().unwrap().len(), 2);
                 assert_eq!(value, Some(1), "the read must see the write");
             }
 
@@ -260,6 +264,114 @@ macro_rules! lock_tests {
                     cpu < 20_000_000,
                     "the waiting batch used {cpu} ns of CPU in 300 ms: it spins"
                 );
+            }
+
+            /// A nested call on the same task, while a raw SELECT stream is
+            /// open, fails with `LockTimeout` (write side) instead of hanging.
+            #[valtron_test(threads = 3, timeout = 60_000)]
+            async fn nested_write_inside_stream_times_out() {
+                let store = memory_store()
+                    .await
+                    .with_lock_timeout(Duration::from_millis(200));
+                let open_stream = store.query("SELECT key FROM lock_test", &[]).await.unwrap();
+                let started = Instant::now();
+                let error = store.set("k", 1_i64).await.expect_err("must not hang");
+                assert!(
+                    matches!(
+                        error,
+                        StorageError::LockTimeout {
+                            mode: LockMode::Write,
+                            ..
+                        }
+                    ),
+                    "unexpected error: {error}"
+                );
+                assert!(started.elapsed() < Duration::from_secs(10));
+                drop(open_stream);
+                // The lock is free again.
+                store.set("k", 1_i64).await.unwrap();
+            }
+
+            /// While a raw write stream is open (it holds the write guard), a
+            /// nested read on the same task fails with `LockTimeout` (read side).
+            #[valtron_test(threads = 3, timeout = 60_000)]
+            async fn nested_read_inside_write_stream_times_out() {
+                let store = memory_store()
+                    .await
+                    .with_lock_timeout(Duration::from_millis(200));
+                let open_stream = store
+                    .query(
+                        "INSERT INTO lock_test (key, value) VALUES ('r', '1') RETURNING key",
+                        &[],
+                    )
+                    .await
+                    .unwrap();
+                let error = store.get::<i64>("k").await.expect_err("must not hang");
+                assert!(
+                    matches!(
+                        error,
+                        StorageError::LockTimeout {
+                            mode: LockMode::Read,
+                            ..
+                        }
+                    ),
+                    "unexpected error: {error}"
+                );
+                drop(open_stream);
+            }
+
+            /// Two raw SELECT streams (each holds a read guard) coexist.
+            #[valtron_test(threads = 3, timeout = 60_000)]
+            async fn raw_select_query_takes_read_guard() {
+                let store = memory_store().await;
+                let (tx, rx) = mpsc::channel();
+                let reader_store = store.clone();
+                let reader = thread::spawn(move || {
+                    futures_lite::future::block_on(async {
+                        let first = reader_store
+                            .query("  /* note */ select key FROM lock_test", &[])
+                            .await
+                            .unwrap();
+                        let second = reader_store
+                            .query("-- note\nSELECT value FROM lock_test;", &[])
+                            .await
+                            .unwrap();
+                        tx.send(()).unwrap();
+                        drop((first, second));
+                    });
+                });
+                rx.recv_timeout(Duration::from_secs(10))
+                    .expect("a second raw SELECT waited for the first");
+                reader.join().unwrap();
+            }
+
+            /// A raw `INSERT ... RETURNING` stream holds the write guard: a read
+            /// waits until the stream is dropped.
+            #[valtron_test(threads = 3, timeout = 60_000)]
+            async fn raw_insert_returning_takes_write_guard() {
+                let store = memory_store().await;
+                let open_stream = store
+                    .query(
+                        "INSERT INTO lock_test (key, value) VALUES ('r', '1') RETURNING key",
+                        &[],
+                    )
+                    .await
+                    .unwrap();
+                let (tx, rx) = mpsc::channel();
+                let reader_store = store.clone();
+                let reader = thread::spawn(move || {
+                    let value = futures_lite::future::block_on(reader_store.get::<i64>("k"));
+                    tx.send(()).unwrap();
+                    value
+                });
+                assert!(
+                    rx.recv_timeout(Duration::from_millis(300)).is_err(),
+                    "a read ran while a raw write stream was open"
+                );
+                drop(open_stream);
+                rx.recv_timeout(Duration::from_secs(10))
+                    .expect("the read did not run after the stream was dropped");
+                reader.join().unwrap().unwrap();
             }
 
             /// A failed rollback leaves the transaction open. The next

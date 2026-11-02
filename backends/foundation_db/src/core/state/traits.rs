@@ -198,9 +198,13 @@ pub trait StateStore: Send + Sync {
         // Collect the IDs first: deleting while a listing is open would mutate
         // what the listing reads.
         let mut ids = Vec::new();
-        let mut stream = self.list_by_prefix(prefix).await?;
-        while let Some(id) = stream.next().await {
-            ids.push(id?);
+        {
+            // The stream ends here, before the deletes: a store that locks
+            // its connection for a stream would make `delete` wait for it.
+            let mut stream = self.list_by_prefix(prefix).await?;
+            while let Some(id) = stream.next().await {
+                ids.push(id?);
+            }
         }
         for id in &ids {
             self.delete(id).await?;

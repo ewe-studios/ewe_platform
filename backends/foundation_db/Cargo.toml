@@ -71,9 +71,14 @@ serial_test = { workspace = true }
 ntest = { workspace = true }
 futures-util = "0.3"
 libc = "0.2"
+# Turns on the `test-hooks` feature for this crate's own test targets only.
+foundation_db = { path = ".", features = ["test-hooks"] }
 foundation_core = { path = "../foundation_core", features = ["std", "multi"] }
 
 [features]
+# Test-only hooks (for example `inject_rollback_failure`). Off by default; the
+# crate's own tests turn it on through the self dev-dependency below.
+test-hooks = []
 default = ["turso", "d1", "r2"]
 turso = ["dep:turso", "multi"]
 libsql = ["dep:libsql", "multi"]

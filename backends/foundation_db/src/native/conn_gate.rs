@@ -17,15 +17,28 @@
 //! stream, and the stream waits for the task.
 //!
 //! The lock is `async_lock::RwLock`: a waiting task parks and is woken when the
-//! lock is free (no spin, no sleep, no tokio).
+//! lock is free (no spin, no sleep, no tokio). It prefers writers: once a writer
+//! waits, new readers wait too. So a task that holds a row stream (a read guard)
+//! and then calls another operation on the same store can wait forever for a
+//! writer that waits for the stream. To make that mistake fail instead of hang,
+//! every wait has a deadline (`lock_timeout`, 30 s by default, the same as the
+//! `sqlx` pool acquire timeout) and ends with [`StorageError::LockTimeout`].
 //!
 //! If a `ROLLBACK` fails, the connection can stay inside the transaction. The
 //! gate then records that the connection needs a check; the store runs the check
 //! (see the `recover` method of each store) before its next operation.
 
+use crate::core::errors::{LockMode, StorageError, StorageResult};
 use async_lock::{RwLock, RwLockReadGuardArc, RwLockWriteGuardArc};
+use foundation_core::valtron::timer::sleep_for;
+use futures_lite::future::or;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
+
+/// How long a call waits for the connection lock before it fails with
+/// `LockTimeout`. 30 s is the default acquire timeout of the `sqlx` pool.
+pub const DEFAULT_LOCK_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Owned read guard: held while one statement, or one row stream, uses the connection.
 pub(crate) type ReadGuard = RwLockReadGuardArc<()>;
@@ -34,13 +47,28 @@ pub(crate) type ReadGuard = RwLockReadGuardArc<()>;
 pub(crate) type WriteGuard = RwLockWriteGuardArc<()>;
 
 /// The gate. Cloning it shares the same lock and flags.
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub(crate) struct ConnGate {
     lock: Arc<RwLock<()>>,
+    /// How long a call waits for the lock.
+    timeout: Duration,
     /// Set when a `ROLLBACK` failed: the connection may still be in a transaction.
     needs_check: Arc<AtomicBool>,
     /// Test hook: the next rollback is not run and counts as failed.
+    #[cfg(feature = "test-hooks")]
     inject_rollback_failure: Arc<AtomicBool>,
+}
+
+impl Default for ConnGate {
+    fn default() -> Self {
+        Self {
+            lock: Arc::default(),
+            timeout: DEFAULT_LOCK_TIMEOUT,
+            needs_check: Arc::default(),
+            #[cfg(feature = "test-hooks")]
+            inject_rollback_failure: Arc::default(),
+        }
+    }
 }
 
 impl ConnGate {
@@ -49,14 +77,47 @@ impl ConnGate {
         Self::default()
     }
 
+    /// The same lock and flags, with a different wait limit.
+    pub(crate) fn with_timeout(mut self, timeout: Duration) -> Self {
+        self.timeout = timeout;
+        self
+    }
+
     /// Wait until no multi-statement sequence is open, then share the connection.
-    pub(crate) async fn read(&self) -> ReadGuard {
-        self.lock.read_arc().await
+    ///
+    /// # Errors
+    ///
+    /// `LockTimeout` if the lock is not free within the wait limit.
+    pub(crate) async fn read(&self) -> StorageResult<ReadGuard> {
+        let lock = Arc::clone(&self.lock);
+        or(
+            async move { Ok(lock.read_arc().await) },
+            self.expire(LockMode::Read),
+        )
+        .await
     }
 
     /// Wait until no other statement or sequence uses the connection, then own it.
-    pub(crate) async fn write(&self) -> WriteGuard {
-        self.lock.write_arc().await
+    ///
+    /// # Errors
+    ///
+    /// `LockTimeout` if the lock is not free within the wait limit.
+    pub(crate) async fn write(&self) -> StorageResult<WriteGuard> {
+        let lock = Arc::clone(&self.lock);
+        or(
+            async move { Ok(lock.write_arc().await) },
+            self.expire(LockMode::Write),
+        )
+        .await
+    }
+
+    /// Completes with `LockTimeout` once the wait limit has passed.
+    async fn expire<G>(&self, mode: LockMode) -> StorageResult<G> {
+        sleep_for(self.timeout).await;
+        Err(StorageError::LockTimeout {
+            mode,
+            waited: self.timeout,
+        })
     }
 
     /// Record that the connection may be inside a transaction.
@@ -75,12 +136,54 @@ impl ConnGate {
     }
 
     /// Arm the test hook.
+    #[cfg(feature = "test-hooks")]
     pub(crate) fn inject_rollback_failure(&self) {
         self.inject_rollback_failure.store(true, Ordering::SeqCst);
     }
 
-    /// Consume the test hook: true once after it was armed.
+    /// Consume the test hook: true once after it was armed. Always false when
+    /// the `test-hooks` feature is off.
     pub(crate) fn take_injected_rollback_failure(&self) -> bool {
-        self.inject_rollback_failure.swap(false, Ordering::SeqCst)
+        #[cfg(feature = "test-hooks")]
+        {
+            self.inject_rollback_failure.swap(false, Ordering::SeqCst)
+        }
+        #[cfg(not(feature = "test-hooks"))]
+        {
+            false
+        }
+    }
+}
+
+/// Whether a raw statement can only read, so it may share the connection.
+///
+/// Neither `libsql` nor `turso` exposes SQLite's `sqlite3_stmt_readonly` on a
+/// prepared statement, so this is a conservative text rule: after whitespace
+/// and comments, the statement starts with `SELECT` or `EXPLAIN`, and it holds
+/// no second statement. Everything else (`WITH`, which can wrap an `INSERT`;
+/// `PRAGMA`; `INSERT ... RETURNING`; DDL) takes the write guard.
+pub(crate) fn is_read_only_sql(sql: &str) -> bool {
+    let mut rest = sql;
+    loop {
+        rest = rest.trim_start();
+        if let Some(after) = rest.strip_prefix("--") {
+            rest = after.split_once('\n').map_or("", |(_, tail)| tail);
+        } else if let Some(after) = rest.strip_prefix("/*") {
+            rest = after.split_once("*/").map_or("", |(_, tail)| tail);
+        } else {
+            break;
+        }
+    }
+    let word_end = rest
+        .find(|c: char| !c.is_ascii_alphabetic())
+        .unwrap_or(rest.len());
+    let word = &rest[..word_end];
+    if !(word.eq_ignore_ascii_case("select") || word.eq_ignore_ascii_case("explain")) {
+        return false;
+    }
+    // One statement only: a `;` may end it, but nothing may follow.
+    match rest.find(';') {
+        Some(at) => rest[at + 1..].trim().is_empty(),
+        None => true,
     }
 }
