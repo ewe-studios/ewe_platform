@@ -108,13 +108,17 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 10. foundation_ai
 
-- **The `fullfp16` target feature is unstable in rustc.** `.cargo/config.toml`
-  sets `-C target-feature=+fullfp16` for `aarch64-apple-darwin` (the gemm-f16
-  candle fix). Clippy/rustc warns the feature name is "unknown and unstable",
-  will become a hard error in a future release, and suggests `fp16`. Fix: use
-  the stable feature name — verify that `fp16` still enables full half-precision
-  arithmetic (`vfmaq_laneq_f16`) on Apple Silicon — or gate the flag behind the
-  rustc version that accepts it.
+- **Published `foundation_ai` panics in gemm on a CPU with `fma` but no `avx2`.**
+  `gemm-common` 0.19.0 chooses its `fma` kernel from the `fma` CPU feature alone,
+  but that kernel needs AVX2. On emulated CPUs (Docker Desktop `linux/amd64`)
+  `V3::try_new()` returns `None` and the unwrap panics. We fix it with
+  `patches/gemm-common` and `[patch.crates-io]`, which applies only inside this
+  workspace, so a user of the published `foundation_ai` still gets the panic. We
+  cannot rename `gemm-common` (candle depends on it). Fix: send the two-line patch
+  in `patches/gemm-common/UPSTREAM.md` to https://github.com/sarah-ek/gemm/, then
+  drop the patch when a fixed release is out and candle accepts it. (The wasm32
+  `boringtun` patch no longer exists: `backends/foundation_boringtun` is a
+  published fork.)
 
 ## 11. foundation_db and its sync callers
 
@@ -153,6 +157,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   (`check_shared_only`), and keep the full compare in the build script.
 
 ## 16. Workspace / process
+
+- **`foundation_boringtun` (fork of upstream boringtun) keeps upstream's inline tests and nine bare `#[ignore]`s.**
+  `src/device/integration_tests/mod.rs` has nine `#[ignore]` tests (lines 466, 475,
+  543, 590, 625, 661, 700, 750, 801) that need root, a TUN device or the `wg` tool,
+  and other source files carry `#[cfg(test)] mod tests`. They are upstream's, left
+  unchanged so the fork diff stays small. Fix: move the tests into
+  `backends/foundation_boringtun/tests/` (made runnable in CI, with the root-only
+  ones gated by a runtime check and not by `#[ignore]`) when we next change that
+  source.
 
 - **`foundation_testbed` declares `deno_v8` as an unused dependency** (cargo
   nightly 1.100.0 `unused_dependencies` lint, `Cargo.toml:118`). `deno_v8` is

@@ -7,6 +7,8 @@
 # and undo itself on the next build. Keep them exactly as the generator
 # writes them.
 ignore = [
+    # Vendored fork of upstream boringtun: keep its diff from upstream minimal.
+    "backends/foundation_boringtun",
     "backends/foundation_cloudflare_access",
     "backends/foundation_cloudflare_accounts",
     "backends/foundation_cloudflare_ai",
