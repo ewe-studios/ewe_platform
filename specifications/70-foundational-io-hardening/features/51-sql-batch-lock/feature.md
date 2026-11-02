@@ -1,5 +1,5 @@
 ---
-feature: "foundation_db: libsql and Turso stores keep one connection per store instance; a lock makes batches exclusive"
+feature: "foundation_db: libsql and Turso stores keep one connection per store instance behind an RwLock: many readers, one writer (writes and batches exclusive)"
 status: "pending"
 lane: "B"
 model: "sonnet"
@@ -13,8 +13,8 @@ catalogue_rows: [17]
 _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they are. Follow [requirements.md](../../requirements.md) sections 3, 4 and 8._
 
 **Owner decision (2026-11-02, final): keep it simple.** Each store instance owns one
-connection. A lock gives a batch exclusive use of that connection from `BEGIN` to the end of
-`COMMIT`/`ROLLBACK`. **No connection pool.**
+connection. An `RwLock` guards it: many readers, one writer. Every write, and every batch from `BEGIN`
+to the end of `COMMIT`/`ROLLBACK`, has exclusive use. **No connection pool.**
 
 ## Problem (review finding)
 
@@ -37,10 +37,16 @@ connection, so that statement joins the batch:
   in the dependency tree and does not need tokio (check `Cargo.lock`: `async-lock`,
   `futures-util`'s lock, or a `foundation_core` primitive). It parks while it waits (no spin,
   no sleep). Clones of the store share the connection and the lock (both in `Arc`).
-- **Single statements** (every non-batch operation) hold a **read** guard while they use the
-  connection. They still run concurrently with each other, as today.
+- **RwLock rule: many readers, one writer.** Reads take the **read** guard: every
+  operation that only reads (`get`, `list`, `query`/`SELECT`, existence checks). Writes take
+  the **write** guard: every operation that changes data or schema (`set`, `delete`,
+  `execute`, `INSERT`/`UPDATE`/`DELETE`, DDL, migrations, `INSERT … RETURNING` even when it goes
+  through a query method) and every batch. Reads still run concurrently with each other; a
+  write waits for current reads and blocks new ones until it ends. Classify each store method in
+  a short table in the PR body; if a method can do both (a raw `execute`/`query` taking any SQL),
+  it takes the write guard.
 - **Batches** (`execute_batch_statements`, and any other `BEGIN` sequence: search both files
-  for `BEGIN` and `execute_batch(`) hold the **write** guard from before `BEGIN` until after
+  for `BEGIN` and `execute_batch(`) hold the write guard from before `BEGIN` until after
   `COMMIT`/`ROLLBACK`.
 - **Row streams** (`libsql_rows` and the Turso equivalent) hold a read guard inside the stream
   until it ends or is dropped. Document on each store type: "a batch waits until open row
@@ -59,6 +65,9 @@ connection, so that statement joins the batch:
   (a test barrier or a long batch), task B inserts a row, A's 3rd statement fails; assert B's
   row exists.
 - `concurrent_batches_both_commit`: two batches at once both commit.
+- `reads_run_concurrently`: two slow reads overlap in time (both start before either ends).
+- `write_waits_for_reads_and_blocks_new_reads`: a write issued during a read starts after
+  it; a read issued during the write starts after the write.
 - `batch_waits_for_open_row_stream`: hold a row stream, start a batch on another task, assert
   the batch completes only after the stream is dropped (and does not spin: thread CPU time
   under 20 ms while it waits 300 ms).
@@ -78,6 +87,6 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] Batches exclusive through the lock; single statements still concurrent; failed rollback
-      handled.
+- [ ] Reads concurrent; writes and batches exclusive; method table in the PR body; failed
+      rollback handled.
 - [ ] First two tests fail on master and pass now (show both). 20/20 flake runs. CI green.
