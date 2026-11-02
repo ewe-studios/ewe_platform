@@ -64,18 +64,17 @@ version = "0.0.7"
 path = "../foundation_deployment"
 version = "0.0.3"
 
-[dependencies.foundation_errstacks]
-path = "../foundation_errstacks"
-version = "0.0.3"
-
 [dependencies.foundation_macros]
 path = "../foundation_macros"
 version = "0.0.7"
 
-[dependencies.foundation_netio]
-default-features = false
-path = "../foundation_netio"
-version = "0.0.4"
+# Native only: `types.rs` (errstacks) and the REST API client `client.rs` and
+# `dns_ops.rs` (netio) sit behind `cfg(not(target_family = "wasm"))`, so on wasm32
+# these would be unused. The wasm-fetch entry for netio is dropped: nothing on
+# wasm32 uses it.
+[target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_errstacks]
+path = "../foundation_errstacks"
+version = "0.0.3"
 
 # Native: SSL + multi for the REST API client.
 [target.'cfg(not(target_family = "wasm"))'.dependencies.foundation_netio]
@@ -84,13 +83,6 @@ features = [
     "ssl",
     "multi",
 ]
-path = "../foundation_netio"
-version = "0.0.4"
-
-# wasm32: wasm-fetch for the Workers runtime (no SSL/multi threads).
-[target.'cfg(target_family = "wasm")'.dependencies.foundation_netio]
-default-features = false
-features = ["wasm-fetch"]
 path = "../foundation_netio"
 version = "0.0.4"
 

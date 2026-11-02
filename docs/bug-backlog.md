@@ -209,17 +209,23 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   Limits are configuration, not constants (rule 8). Fix: move it to a config
   field with a documented default.
 
-## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
+## 21. foundation_deployment_cloudflare on wasm32
 
-- **`foundation_deployment_cloudflare` has three `unused_dependencies` manifest
-  lints under wasm32** (cargo nightly 1.100.0): `foundation_errstacks` and two
-  `foundation_netio` entries. `foundation_errstacks` (types.rs) and
-  `foundation_netio` (client.rs, dns_ops.rs) are used only in
-  `#[cfg(not(target_family = "wasm"))]` modules, so the wasm build flags them.
-  The two truly-unused deps (`base85rs`, `sha2`) were removed when the generated
-  Cloudflare groups split into per-group crates (feature 22 E3). Fix: move the
-  native-only deps into the native target section and drop the wasm-only
-  `foundation_netio` entry (nothing uses it on wasm).
+- **The default-feature wasm32 check fails in `foundation_core`.** `cargo check -p
+  foundation_deployment_cloudflare --target wasm32-unknown-unknown` stops at
+  `foundation_core/src/valtron/executors/multi/mod.rs:887` (`idle_wake` is native-only)
+  and at a `PoisonError` closure bound on line 214. The default features compile every
+  Cloudflare group crate. Each group manifest (`write_group_crate`) depends on
+  `foundation_deployment` with default features, which enables `foundation_db/multi` and
+  `foundation_netio/multi`, and so `foundation_core/multi`, on wasm32. Fix: gate the group
+  dependencies (in the generated group manifests and in the umbrella's `rewrite_umbrella_for_split`)
+  to native targets, make the group code build without them on wasm32, and fix the two wasm
+  errors in `foundation_core` itself.
+- **`chrono` and `foundation_core` are unused on wasm32 with `--no-default-features`.** Both are
+  used only behind `cfg(not(target_family = "wasm"))`. Fix: move both to the native target
+  section. That also makes cargo's unused-dependency lint report `derive_more`,
+  `foundation_macros`, `js-sys`, `serde`, `serde_json` and `tracing` in that configuration.
+  Each needs a decision: native-only, or needed by the `workers` feature.
 
 ## 22. foundation_keychain
 
