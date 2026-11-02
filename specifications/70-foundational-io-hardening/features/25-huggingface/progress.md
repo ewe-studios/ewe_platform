@@ -76,3 +76,19 @@ STE standard ASD-STE100.
 - E1.
 - E2.
 - E3.
+
+## Linux CI
+
+`scripts/ci/linux.sh` passes for all three crates on `ewestudios/ewe-platform-ci:latest`
+(linux/amd64, `--profile uat`), run in order on the shared Docker volume:
+
+- `foundation_deployment_huggingface`: 12 tests passed.
+- `foundation_testing`: 82 tests passed.
+- `foundation_ai`: 2835 tests passed (fresh llama.cpp/candle/gguf linux/amd64 build;
+  the `--no-default-features --features testing` run and the wasm gate also passed).
+
+No hang; `Cargo.lock` is unchanged. Non-fatal, pre-existing findings (report-only, not
+enforced): `fmt` drift in `foundation_testing` and `foundation_ai`; pre-existing
+clippy/rustc warnings in `foundation_ai`/`foundation_testing` and their dependencies;
+50 C++ warnings in `infrastructure_llama_bindings`; and a valtron `[DEPENDS]`
+"already-ready signal" runtime warning (84 occurrences) during `foundation_ai` tests.

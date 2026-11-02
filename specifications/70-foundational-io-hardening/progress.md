@@ -15,6 +15,28 @@ _Newest first. One entry per feature PR: date, feature, PR, result._
   backlog entry is removed; a §8 entry records the generator emitting
   non-fmt-clean shims.
 
+- 2026-11-02: feature 22 (workspace, process and CI) done on
+  `fix/io-20-vfs-process-ipc`. E1–E8 landed. E1 gives `scripts/ci/ci.py` a
+  per-worktree target directory. E2 deletes the unused `crates/ewe_deployables`.
+  E3 splits the generated Cloudflare groups into 43 per-group crates
+  (`foundation_cloudflare_<group>`); the umbrella re-exports them behind
+  `cloudflare_<group>` features, so old callers do not change. The umbrella
+  bumps to 0.2.0, `foundation_keychain` to 0.1.4 and `foundation_proxy` to 0.1.6.
+  E4 adds a synthetic `wasm-tests` CI package that checks every crate with wasm
+  tests and runs the two Deno wasm suites. E5–E8 clear the wasm-only warnings
+  and the mise over-install. The §16 and §21 backlog entries are removed; new
+  entries record the remaining lints.
+
+- 2026-11-02: feature 23 (foundation_vectors) done on
+  `fix/io-20-vfs-process-ipc`. E1–E8 landed. E1 offloads `FjallVectorStore`
+  blocking work to a valtron pool; E2 builds the vendored sqlite-vec extension;
+  E3 migrates old-shape `vec0` tables on open; E4 adds an opt-in live
+  TurboPuffer test; E5 retries HTTP 429/503 with backoff; E6 builds the
+  `sql-store` feature on wasm32; E7 passes texts to the reranker; E8 documents
+  the O(n·d) scan cost. `foundation_vectors` bumps to 0.0.4 and `foundation_ai`'s
+  requirement follows. The turbopuffer wasm `Send` failure is fixed with
+  `SendWrapper`. Linux CI is green (199 tests plus the three wasm runs).
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E4 done on
   `fix/io-20-vfs-process-ipc`. E4 rebuilds `TursoDelta` on the `turso` crate
   0.8.3 (local engine, `default-features = false`). The store is async-only:

@@ -1,6 +1,7 @@
 ---
 feature: "Workspace, process and CI: per-worktree target dirs, ewe_deployables ported or deleted, Cloudflare crate split, wasm runtime tests in CI, testbed and mise fixes, wasm-only warnings"
-status: "pending"
+status: "done"
+note: "E1–E8 landed; E3 split generated groups into 43 per-group crates (umbrella 0.1.4→0.2.0, keychain 0.1.3→0.1.4, proxy 0.1.5→0.1.6); E4 wasm runtime test suites in CI"
 priority: "high"
 depends_on: ["10-tests-hermetic"]
 branch: "fix/io-22-workspace-ci"

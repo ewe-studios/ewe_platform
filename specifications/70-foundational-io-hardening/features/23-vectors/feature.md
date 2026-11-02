@@ -1,6 +1,7 @@
 ---
 feature: "foundation_vectors: fjall off the worker, sqlite-vec per platform and schema migration, TurboPuffer live test and 429 retry, sql-store on wasm, reranker texts, documented scan cost"
-status: "pending"
+status: "done"
+note: "E1–E8 landed; foundation_vectors 0.0.3→0.0.4, foundation_ai consumer bumped"
 priority: "medium"
 depends_on: ["01-valtron-parking", "17-db"]
 branch: "fix/io-23-vectors"

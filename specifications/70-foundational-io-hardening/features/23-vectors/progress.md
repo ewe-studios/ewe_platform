@@ -70,10 +70,5 @@ _Written in ASD-STE100 Simplified Technical English._
 
 ## Next
 
-- **Version bump follow-up.** The feature adds new public API (`TextLookup`,
-  `SqlVectorStoreConfig`, `TurboPufferConfig`, `VectorStoreError::SchemaMismatch`,
-  async `flush`). The version-bump rule needs one change that bumps
-  `foundation_vectors` to 0.0.4 and moves `foundation_ai`'s requirement to
-  0.0.4. This agent could not make that change, because feature 25 owns
-  `foundation_ai`. The orchestrator or the feature 25 owner makes the single
-  `chore` commit.
+- None. The version bump landed in `c1b0abebe`: `foundation_vectors` bumps to
+  0.0.4 and `foundation_ai`'s requirement moves to 0.0.4.
