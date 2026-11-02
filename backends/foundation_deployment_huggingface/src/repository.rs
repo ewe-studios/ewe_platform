@@ -13,8 +13,8 @@ use crate::types::{
     RepoUploadFileParams,
 };
 use foundation_core::valtron::Stream;
-use foundation_netio::shared::client::body_reader::collect_bytes_into;
 use foundation_netio::shared::http::{SimpleHeader, SimpleMethod};
+use futures_lite::StreamExt;
 
 use foundation_macros::JsonHash;
 use serde::Serialize;
@@ -102,7 +102,7 @@ impl HFRepository {
 /// status (e.g., 404 if the repo or revision does not exist),
 /// `HuggingFaceError::Json` if the response cannot be deserialized into
 /// `RepoInfo`, or `HuggingFaceError::Backend` for a transport failure.
-pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInfo> {
+pub async fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInfo> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
             "{}/api/datasets/{}",
@@ -129,7 +129,7 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
 
     let client = &repo.inner.client;
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
-    client.send_json(request, &url)
+    client.send_json_async(request, &url).await
 }
 
 /// Check if repository exists.
@@ -139,7 +139,7 @@ pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInf
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built or
 /// the request fails in transport (the Hub could not be asked). Any non-2xx
 /// answer from the Hub is `Ok(false)`.
-pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
+pub async fn repo_exists(repo: &HFRepository) -> Result<bool> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
             "{}/api/datasets/{}",
@@ -163,7 +163,7 @@ pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
     // dropped unread.
     let client = &repo.inner.client;
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
-    let (status, _body) = client.send_raw(request)?;
+    let (status, _headers, _body) = client.send_raw_async(request).await?;
     Ok(is_success_status(&status))
 }
 
@@ -174,7 +174,7 @@ pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built or
 /// the request fails in transport. Any non-2xx answer (missing revision) is
 /// `Ok(false)`.
-pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool> {
+pub async fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool> {
     let url = match repo.inner.repo_type {
         RepoType::Dataset => format!(
             "{}/api/datasets/{}/revision/{}",
@@ -201,7 +201,7 @@ pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool>
     // dropped unread.
     let client = &repo.inner.client;
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
-    let (status, _body) = client.send_raw(request)?;
+    let (status, _headers, _body) = client.send_raw_async(request).await?;
     Ok(is_success_status(&status))
 }
 
@@ -212,7 +212,7 @@ pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool>
 /// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built. Per-page
 /// errors (HTTP failures, JSON parse failures) surface as `Err` items inside
 /// the returned stream.
-pub fn repo_list_tree(
+pub async fn repo_list_tree(
     repo: &HFRepository,
     params: &RepoListTreeParams,
 ) -> Result<impl Iterator<Item = Stream<Result<RepoTreeEntry>, ()>> + Send + 'static> {
@@ -232,7 +232,9 @@ pub fn repo_list_tree(
 
     let client = &repo.inner.client;
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
-    let page = client.send_json::<Vec<RepoTreeEntry>>(request, &url);
+    let page = client
+        .send_json_async::<Vec<RepoTreeEntry>>(request, &url)
+        .await;
     let items: Vec<Stream<Result<RepoTreeEntry>, ()>> = match page {
         Ok(entries) => entries.into_iter().map(|e| Stream::Next(Ok(e))).collect(),
         Err(e) => vec![Stream::Next(Err(e))],
@@ -250,7 +252,10 @@ pub fn repo_list_tree(
 ///
 /// Returns an error if the HTTP request fails, the redirect URL is malformed,
 /// or the file cannot be written to the destination directory.
-pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) -> Result<PathBuf> {
+pub async fn repo_download_file(
+    repo: &HFRepository,
+    params: &RepoDownloadFileParams,
+) -> Result<PathBuf> {
     tracing::debug!("Starting download of file from huggingface={:?}", &params);
 
     let revision = params.revision.as_deref().unwrap_or("main");
@@ -271,13 +276,10 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
 
     tracing::debug!("Call endpoint for huggingface={:?}", &params);
 
-    // Status first: an error answer (404 for a missing file, 401/403 for a
-    // gated model) must never be written to disk as the file.
-    let (status, body) = client.send_raw(request)?;
-    tracing::debug!("Received response with status={}", &status);
-    if !is_success_status(&status) {
-        return Err(client.http_error(&status, &url, body));
-    }
+    // `send_async` checks the status first: an error answer (404 for a missing
+    // file, 401/403 for a gated model) must never be written to disk as the
+    // file. Only a 2xx answer is returned as a body.
+    let mut body = client.send_async(request, &url).await?;
 
     // Stream the body to a temporary `.part` file and only rename it into place
     // once the full download succeeds. This prevents a failed/partial download
@@ -288,10 +290,18 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
     let temp_destination = PathBuf::from(temp_os);
 
     let mut file = std::fs::File::create(&temp_destination).map_err(HuggingFaceError::Io)?;
-    if let Err(e) = collect_bytes_into(body, &mut file) {
+    let result = async {
+        while let Some(chunk) = body.next().await {
+            let chunk = chunk.map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
+            std::io::Write::write_all(&mut file, &chunk).map_err(HuggingFaceError::Io)?;
+        }
+        Ok::<(), HuggingFaceError>(())
+    }
+    .await;
+    if let Err(e) = result {
         drop(file);
         let _ = std::fs::remove_file(&temp_destination);
-        return Err(HuggingFaceError::Backend(e.to_string()));
+        return Err(e);
     }
     drop(file);
 
@@ -305,7 +315,10 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
 /// # Errors
 ///
 /// Returns an error if the upload request fails or the commit cannot be created.
-pub fn repo_upload_file(repo: &HFRepository, params: &RepoUploadFileParams) -> Result<CommitInfo> {
+pub async fn repo_upload_file(
+    repo: &HFRepository,
+    params: &RepoUploadFileParams,
+) -> Result<CommitInfo> {
     let commit_params = RepoCreateCommitParams {
         operations: vec![CommitOperation::Add {
             path_in_repo: params.path_in_repo.clone(),
@@ -319,7 +332,7 @@ pub fn repo_upload_file(repo: &HFRepository, params: &RepoUploadFileParams) -> R
         revision: params.revision.clone(),
         create_pr: None,
     };
-    repo_create_commit(repo, &commit_params)
+    repo_create_commit(repo, &commit_params).await
 }
 
 /// Delete a file.
@@ -327,7 +340,10 @@ pub fn repo_upload_file(repo: &HFRepository, params: &RepoUploadFileParams) -> R
 /// # Errors
 ///
 /// Returns an error if the delete request fails or the commit cannot be created.
-pub fn repo_delete_file(repo: &HFRepository, params: &RepoDeleteFileParams) -> Result<CommitInfo> {
+pub async fn repo_delete_file(
+    repo: &HFRepository,
+    params: &RepoDeleteFileParams,
+) -> Result<CommitInfo> {
     let commit_params = RepoCreateCommitParams {
         operations: vec![CommitOperation::Delete {
             path_in_repo: params.path_in_repo.clone(),
@@ -340,7 +356,7 @@ pub fn repo_delete_file(repo: &HFRepository, params: &RepoDeleteFileParams) -> R
         revision: params.revision.clone(),
         create_pr: None,
     };
-    repo_create_commit(repo, &commit_params)
+    repo_create_commit(repo, &commit_params).await
 }
 
 /// Create a commit with multiple operations.
@@ -351,7 +367,7 @@ pub fn repo_delete_file(repo: &HFRepository, params: &RepoDeleteFileParams) -> R
 /// `HuggingFaceError::Json` if the embedded summary cannot be serialised,
 /// `HuggingFaceError::Http` if the Hub responds with a non-2xx status, or
 /// `HuggingFaceError::Backend` for transport failures.
-pub fn repo_create_commit(
+pub async fn repo_create_commit(
     repo: &HFRepository,
     params: &RepoCreateCommitParams,
 ) -> Result<CommitInfo> {
@@ -430,5 +446,5 @@ pub fn repo_create_commit(
         .header(SimpleHeader::CONTENT_TYPE, content_type)
         .body_bytes(body)
         .build();
-    client.send_json(request, &url)
+    client.send_json_async(request, &url).await
 }

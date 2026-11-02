@@ -2,6 +2,21 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 25 (foundation_deployment_huggingface) E1 done on
+  `fix/io-20-vfs-process-ipc`. E1 turns the Hub client and repository API into
+  `async fn`s over `send_async`/`send_raw_async`; the sync `send`/`send_raw`/
+  `send_json` helpers and `LimitedWriter` are gone (no sync twins).
+  `repo_download_file` streams the body chunk by chunk to a `.part` file and
+  renames it into place, never `collect_bytes_async` for files. The crate bumps
+  0.1.2 -> 0.1.3, and `foundation_ai`/`foundation_testing` require 0.1.3; their
+  sync callers wrap the async Hub calls with `block_on_future` at the boundary
+  (the `ModelProvider` trait stays sync). `foundation_testing`'s inline tests
+  move to `tests/huggingface_tests.rs` and `TestHarness` gains a public
+  `artefacts_dir` accessor. New tests `hub_whoami_awaits_without_blocking` (a
+  300 ms delay plus a zipped ticker) and `hub_download_streams_to_file` land,
+  and the older tests convert to `#[valtron_test] async fn`. The first §20
+  backlog entry (sync Hub API) is removed.
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E3 done on
   `fix/io-20-vfs-process-ipc`. E3 makes the shim build the real D1/R2 deltas
   instead of falling back to the memory delta. `DeltaBackend::D1` builds

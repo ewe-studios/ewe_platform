@@ -322,12 +322,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 20. foundation_deployment_huggingface
 
-- **The Hub client API is sync.** `client::{whoami, list_*, create_repo, …}`
-  and `repository::*` (`src/client.rs`, `src/repository.rs`) block on the
-  native client's sync `HttpClient::send`, so they freeze a valtron worker
-  and cannot run on wasm. Fix: async functions over `send_async`
-  (`collect_bytes_async` for the downloads), with `.block()` at the callers
-  (`foundation_ai`'s candle/gguf providers, `foundation_testing`).
 - **Uploads are buffered whole.** `repo_create_commit` reads each added file
   into memory (`std::fs::read`) and builds the whole multipart body before
   sending it. Fix: a streamed multipart body (`SendSafeBody::Stream` over the

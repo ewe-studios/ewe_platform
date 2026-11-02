@@ -17,6 +17,17 @@ _What an agent learned that the next agent needs. Newest first._
   there; the D1 test needs `--features vfs-preload,vfs-d1` and a local
   Cloudflare emulator.
 
+- 2026-11-02 (feature 25 E1, foundation_deployment_huggingface): the async
+  seam is `send_async` -> `into_async_parts()` (not `into_parts()`, which drops
+  the body's read-wake source). `AsyncSendSafeBody` is `Unpin`, so
+  `futures_lite::StreamExt::next().await` drains it without a manual `Pin`.
+  Sync callers at the boundary use
+  `block_on_future({ let x = x.clone(); async move { f(&x).await } })` because
+  the future must be `Send + 'static`. A `#[valtron_test] async fn` returning
+  `Result<(), Box<dyn std::error::Error>>` fails the `Send` bound
+  (`Box<dyn Error>` is `!Send`); return the concrete error or
+  `Box<dyn Error + Send + Sync>`.
+
 - 2026-11-02 (feature 19 E2, foundation_nativeapis): the `d1_delta::chunking`
   module was gated `#![cfg(feature = "vfs-d1")]` inside `d1_delta`, but
   `blob_delta` compiles for both `vfs-d1` and `vfs-r2`, so the chunking logic

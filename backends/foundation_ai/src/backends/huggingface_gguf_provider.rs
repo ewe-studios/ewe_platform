@@ -5,6 +5,7 @@
 
 use std::path::PathBuf;
 
+use foundation_core::valtron::block_on_future;
 use foundation_deployment_huggingface::{HFClient, HFRepository, RepoDownloadFileParams};
 
 use crate::backends::llamacpp::{LlamaBackendConfig, LlamaBackends, LlamaModels};
@@ -506,11 +507,13 @@ impl HuggingFaceGGUFProvider {
         };
 
         tracing::trace!("------------download model file");
-        let downloaded_path = repository::repo_download_file(&repo, &params).map_err(|e| {
-            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
-                "Failed to download model: {e}"
-            ))))
-        })?;
+        let downloaded_path =
+            block_on_future(async move { repository::repo_download_file(&repo, &params).await })
+                .map_err(|e| {
+                    ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
+                        "Failed to download model: {e}"
+                    ))))
+                })?;
 
         tracing::info!("Downloaded model to: {:?}", downloaded_path);
         Ok(downloaded_path)
@@ -643,12 +646,15 @@ fn find_gguf_file_in_repo(
     };
 
     // List files in the repository
-    let tree = foundation_deployment_huggingface::repository::repo_list_tree(repo, &params)
-        .map_err(|e| {
-            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
-                "Failed to list repository files: {e}"
-            ))))
-        })?;
+    let repo = repo.clone();
+    let tree = block_on_future(async move {
+        foundation_deployment_huggingface::repository::repo_list_tree(&repo, &params).await
+    })
+    .map_err(|e| {
+        ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
+            "Failed to list repository files: {e}"
+        ))))
+    })?;
 
     // Collect all entries from the stream
     let entries: Vec<_> = tree

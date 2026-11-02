@@ -31,11 +31,11 @@ use crate::types::{
     ListSpacesParams, ModelInfo, MoveRepoParams, RepoType, RepoUrl, SpaceInfo, User,
 };
 use foundation_core::valtron::Stream;
-use foundation_netio::shared::client::body_reader::{collect_bytes_into, try_collect_bytes};
-use foundation_netio::shared::client::request::PreparedRequest;
-use foundation_netio::shared::http::{
-    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
+use foundation_netio::shared::client::body_reader::{
+    collect_bytes_async, collect_bytes_bounded, AsyncSendSafeBody,
 };
+use foundation_netio::shared::client::request::PreparedRequest;
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod, Status};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::de::DeserializeOwned;
 use std::path::PathBuf;
@@ -263,54 +263,60 @@ impl HFClient {
         })
     }
 
-    /// Send `request`. A transport failure is an error; the status is
-    /// returned as is and the body is not read.
-    pub(crate) fn send_raw(&self, request: PreparedRequest) -> Result<(Status, SendSafeBody)> {
+    /// Send `request`. A transport failure is an error; the status and
+    /// headers are returned as is and the body is not read.
+    pub(crate) async fn send_raw_async(
+        &self,
+        request: PreparedRequest,
+    ) -> Result<(Status, SimpleHeaders, AsyncSendSafeBody)> {
         let response = self
             .inner
             .client
-            .send(request)
+            .send_async(request)
+            .await
             .map_err(|e| HuggingFaceError::Backend(format!("Request failed: {e}")))?;
-        let (status, _headers, body) = response.into_parts();
-        Ok((status, body))
+        Ok(response.into_async_parts())
     }
 
     /// Send `request` and return its body; an error unless the status is
     /// 2xx. The body of an error answer is read only up to `max_error_body`.
-    pub(crate) fn send(&self, request: PreparedRequest, url: &str) -> Result<SendSafeBody> {
-        let (status, body) = self.send_raw(request)?;
+    pub(crate) async fn send_async(
+        &self,
+        request: PreparedRequest,
+        url: &str,
+    ) -> Result<AsyncSendSafeBody> {
+        let (status, _headers, body) = self.send_raw_async(request).await?;
         if !is_success_status(&status) {
-            return Err(self.http_error(&status, url, body));
+            return Err(self.http_error(&status, url, body).await);
         }
         Ok(body)
     }
 
     /// Send `request` and parse its (small) JSON answer.
-    pub(crate) fn send_json<T: DeserializeOwned>(
+    pub(crate) async fn send_json_async<T: DeserializeOwned>(
         &self,
         request: PreparedRequest,
         url: &str,
     ) -> Result<T> {
-        let body = self.send(request, url)?;
-        let bytes = try_collect_bytes(body)
+        let body = self.send_async(request, url).await?;
+        let bytes = collect_bytes_async(body)
+            .await
             .map_err(|e| HuggingFaceError::Backend(format!("read body from {url}: {e}")))?;
         serde_json::from_slice(&bytes).map_err(HuggingFaceError::Json)
     }
 
     /// The error for a non-2xx answer, with at most `max_error_body` bytes
     /// of its body.
-    pub(crate) fn http_error(
+    pub(crate) async fn http_error(
         &self,
         status: &Status,
         url: &str,
-        body: SendSafeBody,
+        body: AsyncSendSafeBody,
     ) -> HuggingFaceError {
         let code = status_code(status);
-        let mut limited = LimitedWriter::new(self.inner.max_error_body);
-        // The writer refuses bytes past the limit, which ends the read early;
-        // that error is expected and what was read is kept.
-        let _ = collect_bytes_into(body, &mut limited);
-        let message = String::from_utf8_lossy(&limited.buf);
+        // Read only up to the limit; the rest of the body is never read.
+        let buf = collect_bytes_bounded(body, self.inner.max_error_body).await;
+        let message = String::from_utf8_lossy(&buf);
         HuggingFaceError::Http {
             status: code,
             url: url.to_string(),
@@ -406,17 +412,15 @@ impl HFClient {
 
 /// Get authenticated user info.
 ///
-/// Blocks until the answer arrives (native client, sync `send`).
-///
 /// # Errors
 ///
 /// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status,
 /// `HuggingFaceError::Json` if the response body cannot be deserialized into
 /// a `User`, or `HuggingFaceError::Backend` if the HTTP request fails.
-pub fn whoami(client: &HFClient) -> Result<User> {
+pub async fn whoami(client: &HFClient) -> Result<User> {
     let url = format!("{}{}", client.inner.endpoint, HF_API_WHOAMI);
     let request = client.request(SimpleMethod::GET, &url, true)?.build();
-    client.send_json(request, &url)
+    client.send_json_async(request, &url).await
 }
 
 /// Check if token is valid.
@@ -426,65 +430,66 @@ pub fn whoami(client: &HFClient) -> Result<User> {
 /// Returns the same errors as `whoami` — a non-2xx HTTP response (typically
 /// 401 if the token is invalid or missing), a transport failure, or a
 /// deserialization failure on the user payload.
-pub fn auth_check(client: &HFClient) -> Result<()> {
-    whoami(client).map(|_| ())
+pub async fn auth_check(client: &HFClient) -> Result<()> {
+    whoami(client).await.map(|_| ())
 }
 
 /// List models with pagination.
 ///
-/// The page is fetched before this returns; the iterator yields its entries.
+/// The first page is fetched before this returns; the iterator yields its
+/// entries.
 ///
 /// # Errors
 ///
-/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
-///. Per-page
-/// errors (HTTP failures, JSON parse failures) surface as `Err` items inside
-/// the returned stream.
-pub fn list_models(
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built.
+/// Per-page errors (HTTP failures, JSON parse failures) surface as `Err` items
+/// inside the returned stream.
+pub async fn list_models(
     client: &HFClient,
     params: &ListModelsParams,
 ) -> Result<impl Iterator<Item = Stream<Result<ModelInfo>, ()>> + Send + 'static> {
     let url = build_list_url(&client.inner.endpoint, HF_API_MODELS, params);
     let request = client.request(SimpleMethod::GET, &url, false)?.build();
-    Ok(page_items(
-        client.send_json::<Vec<ModelInfo>>(request, &url),
-    ))
+    let page = client
+        .send_json_async::<Vec<ModelInfo>>(request, &url)
+        .await;
+    Ok(page_items(page))
 }
 
 /// List datasets with pagination.
 ///
 /// # Errors
 ///
-/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
-///. Per-page
-/// errors surface as `Err` items inside the returned stream.
-pub fn list_datasets(
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built.
+/// Per-page errors surface as `Err` items inside the returned stream.
+pub async fn list_datasets(
     client: &HFClient,
     params: &ListDatasetsParams,
 ) -> Result<impl Iterator<Item = Stream<Result<DatasetInfo>, ()>> + Send + 'static> {
     let url = build_list_url(&client.inner.endpoint, HF_API_DATASETS, params);
     let request = client.request(SimpleMethod::GET, &url, false)?.build();
-    Ok(page_items(
-        client.send_json::<Vec<DatasetInfo>>(request, &url),
-    ))
+    let page = client
+        .send_json_async::<Vec<DatasetInfo>>(request, &url)
+        .await;
+    Ok(page_items(page))
 }
 
 /// List spaces with pagination.
 ///
 /// # Errors
 ///
-/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built
-///. Per-page
-/// errors surface as `Err` items inside the returned stream.
-pub fn list_spaces(
+/// Returns `HuggingFaceError::Backend` if the HTTP request cannot be built.
+/// Per-page errors surface as `Err` items inside the returned stream.
+pub async fn list_spaces(
     client: &HFClient,
     params: &ListSpacesParams,
 ) -> Result<impl Iterator<Item = Stream<Result<SpaceInfo>, ()>> + Send + 'static> {
     let url = build_list_url(&client.inner.endpoint, HF_API_SPACES, params);
     let request = client.request(SimpleMethod::GET, &url, false)?.build();
-    Ok(page_items(
-        client.send_json::<Vec<SpaceInfo>>(request, &url),
-    ))
+    let page = client
+        .send_json_async::<Vec<SpaceInfo>>(request, &url)
+        .await;
+    Ok(page_items(page))
 }
 
 /// Create a repository.
@@ -495,7 +500,7 @@ pub fn list_spaces(
 /// (e.g., 409 if the repo already exists and `exist_ok` is `false`),
 /// `HuggingFaceError::Json` on malformed response bodies, or
 /// `HuggingFaceError::Backend` for transport failures.
-pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoUrl> {
+pub async fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoUrl> {
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_CREATE);
 
     let body_json = serde_json::json!({
@@ -516,7 +521,7 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
         .body_json(&body_json)
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
         .build();
-    client.send_json(request, &url)
+    client.send_json_async(request, &url).await
 }
 
 /// Delete a repository.
@@ -526,7 +531,7 @@ pub fn create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoU
 /// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status
 /// (e.g., 404 when the repo does not exist and `missing_ok` is `false`), or
 /// `HuggingFaceError::Backend` for transport failures.
-pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
+pub async fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_DELETE);
 
     let body_json = serde_json::json!({
@@ -546,7 +551,7 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
         .build();
     // The answer has no content we use; the body is dropped unread.
-    client.send(request, &url).map(drop)
+    client.send_async(request, &url).await.map(drop)
 }
 
 /// Move/rename a repository.
@@ -556,7 +561,7 @@ pub fn delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()> {
 /// Returns `HuggingFaceError::Http` if the API responds with a non-2xx status,
 /// `HuggingFaceError::Json` on malformed response bodies, or
 /// `HuggingFaceError::Backend` for transport failures.
-pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> {
+pub async fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> {
     let url = format!("{}{}", client.inner.endpoint, HF_API_REPOS_MOVE);
 
     let body_json = serde_json::json!({
@@ -575,7 +580,7 @@ pub fn move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl> 
         .body_json(&body_json)
         .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
         .build();
-    client.send_json(request, &url)
+    client.send_json_async(request, &url).await
 }
 
 /// One page of a listing as stream items: each entry, or the page's error.
@@ -585,40 +590,6 @@ fn page_items<T>(page: Result<Vec<T>>) -> std::vec::IntoIter<Stream<Result<T>, (
         Err(e) => vec![Stream::Next(Err(e))],
     };
     items.into_iter()
-}
-
-/// A writer that keeps at most `limit` bytes and refuses the rest.
-struct LimitedWriter {
-    buf: Vec<u8>,
-    limit: usize,
-}
-
-impl LimitedWriter {
-    fn new(limit: usize) -> Self {
-        Self {
-            buf: Vec::new(),
-            limit,
-        }
-    }
-}
-
-impl std::io::Write for LimitedWriter {
-    fn write(&mut self, data: &[u8]) -> std::io::Result<usize> {
-        let room = self.limit - self.buf.len();
-        if room == 0 {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::WriteZero,
-                "limit reached",
-            ));
-        }
-        let n = data.len().min(room);
-        self.buf.extend_from_slice(&data[..n]);
-        Ok(n)
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        Ok(())
-    }
 }
 
 /// Build URL for listing operations.
