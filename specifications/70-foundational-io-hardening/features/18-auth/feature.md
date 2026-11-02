@@ -1,6 +1,7 @@
 ---
 feature: "foundation_auth: proof-of-work check, constant-time tags, register status, header compare, integer casts, OpenSSL, wasm deps, duplicate stores, streamed bodies, async-only OAuth"
-status: "pending"
+status: "done"
+note: "code landed; Linux CI check passed (192 tests + wasm32 check)"
 priority: "critical"
 depends_on: ["03-client-body-readiness"]
 branch: "fix/io-18-auth"

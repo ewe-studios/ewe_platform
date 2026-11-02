@@ -1,6 +1,7 @@
 ---
 feature: "foundation_proxy: health probe leak, state race, ACME account flow, redirect limits, diagnostic test, warning"
-status: "pending"
+status: "in_progress"
+note: "E1–E6 being implemented"
 priority: "high"
 depends_on: ["04-nonblocking-connect-tls", "13-deployment-platform"]
 branch: "fix/io-15-proxy"

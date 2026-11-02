@@ -1,6 +1,6 @@
 ---
 feature: "foundation_ai: async generate and embed, agent tool busy loop, capped error bodies, flush races, names, test deps"
-status: "in_progress"
+status: "done"
 priority: "high"
 depends_on: ["03-client-body-readiness"]
 branch: "fix/io-16-ai"

@@ -44,8 +44,11 @@
   They are now `i64` (Unix seconds); the casts are gone and the `#[allow]` on
   `AuthToken::is_expired` is removed. `foundation_connectrpc` and
   `foundation_ai` call sites were updated to the new type.
+- **Linux Docker CI check.** `scripts/ci/linux.sh foundation_auth` passed:
+  192 tests green (169 unit/integration, 4 jwt, 7 oauth, 12 two-factor) and
+  the `wasm32-unknown-unknown` `cargo check` passed. `foundation_netio` needs
+  no check for this feature: it does not depend on `foundation_auth`.
 
 ## Next
 
-1. Run the Linux Docker CI check (`scripts/ci/linux.sh foundation_auth` and
-   `foundation_netio`) after the commit.
+- Feature complete.

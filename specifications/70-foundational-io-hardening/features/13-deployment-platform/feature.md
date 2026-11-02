@@ -1,6 +1,6 @@
 ---
 feature: "foundation_deployment_platform: log waits, Docker-gated tests, Vagrant lookup, inline tests, warnings"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: ["12-docker-deployment"]
 branch: "fix/io-13-deployment-platform"
