@@ -4,7 +4,7 @@ status: "pending"
 lane: "A"
 model: "haiku"
 branch: "fix/io-41-50-lane-a"
-crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc", "foundation_netio", "foundation_deployment"]
+crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc", "foundation_netio", "foundation_deployment", "foundation_keychain"]
 catalogue_rows: [13, 14, 15, 31]
 ---
 
@@ -48,6 +48,11 @@ value is proven in range). Delete the §1 entry. Verify the same command prints 
   dependency if nothing uses it (check every feature), fix the lints.
 - `foundation_deployment`: "unused `self` argument" (clippy). Fix it.
 Verify both crates' clippy print 0 warnings.
+
+## E6. `foundation_keychain` clippy debt (found in feature 44)
+
+174 lib warnings (for example `manual_let_else` in `provisioning_route`) plus test warnings.
+Fix all; mechanical only. Delete the §22 clippy entry.
 
 ## Verify
 
