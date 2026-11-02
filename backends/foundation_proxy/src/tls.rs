@@ -145,8 +145,8 @@ impl AcmeCertManager {
             .serialize_request(&cert_key)
             .map_err(|e| ProxyError::Ssl(format!("serialize CSR: {e}")))?;
 
-        // Drive the ACME flow. Its I/O is the shared client's blocking send, so
-        // the future resolves in a single poll.
+        // Drive the ACME flow. Its client I/O and the DNS wait are async; the
+        // flow yields during the DNS wait and block_on polls it again on wake.
         let dns_setter = Arc::clone(&self.dns_setter);
         let acme = AcmeClient::with_directory(DynNetClient::clone(&self.client), self.directory_url.clone())
             .with_jwk(jwk)

@@ -48,11 +48,33 @@ standard ASD-STE100.
   - Validation under `--profile uat`: `persistence_tests` green. No new clippy
     warnings from this change.
   - Backlog 9 "Backend-state persistence can lose an update." entry deleted.
+- E3 (ACME RFC 8555 account flow):
+  - `AcmeClient` gained a `Session` (`key_id`, `nonce`). `create_account` reads
+    the account URL from the newAccount `Location` header and stores it as the
+    `kid`; every later JWS signs with the `kid`, never the `jwk`. Each answer's
+    `Replay-Nonce` is stored and carried to the next request; a fresh nonce is
+    fetched only when none is stored or the CA answers `badNonce`. One
+    `post_signed` helper replaced `post_json`/`post_json_typed`/`post_json_raw`.
+    The DNS wait in `provision` is an async loop under `dns_wait_timeout` and
+    `dns_wait_interval` (`sleep_async`); no `std::thread::sleep`. New public
+    builders `with_dns_wait_timeout`/`with_dns_wait_interval` and defaults
+    `DEFAULT_DNS_WAIT_TIMEOUT`/`DEFAULT_DNS_WAIT_INTERVAL`. (`src/acme.rs`.)
+  - Version bump: `foundation_proxy` 0.1.3 -> 0.1.4 (new public API). No
+    consumers to bump (leaf crate).
+  - Tests: the mock CA is strict (single-use nonces, `kid` equals the account
+    URL, no `jwk` after account creation, `Location` on newAccount). Three new
+    tests: `acme_uses_kid_after_account_creation`,
+    `acme_reuses_replay_nonce`, and
+    `acme_challenge_wait_does_not_block_the_executor` (drives the DNS wait and a
+    heartbeat together on one thread; a blocking sleep serialises them to about
+    4 s, the async wait overlaps to about 2 s).
+  - Validation under `--profile uat`: `acme_provisioning_tests` green (5). No
+    new clippy warnings from this change.
+  - Backlog 9 "The ACME client does not follow RFC 8555's account flow" entry
+    deleted.
 
 ## Next
 
-- E3: follow RFC 8555 in `src/acme.rs` (account `Location` as `kid`, carry
-  `Replay-Nonce`, async DNS wait). Make the mock CA strict. Three tests.
 - E4: move the redirect head buffer, read timeout and accept poll into the
   redirect config. Two tests.
 - E5: make `tests/diag_client_tap.rs` a real `forward_http` test or delete it.

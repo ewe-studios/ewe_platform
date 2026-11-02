@@ -86,20 +86,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   long-lived handler parks instead of holding a worker. The proxy still relays on
   a throwaway thread and returns `Take`. It can move to `Async` later once its
   relay future is `'static`.
-- **The ACME client does not follow RFC 8555's account flow** (`src/acme.rs`).
-  `create_account` returns the newAccount directory URL instead of the
-  account URL from the `Location` header (it only checks that the answer has
-  an `orders` field), and `provision` discards it, so `key_id` is never set
-  and every later request is signed with the `jwk` instead of the `kid`
-  (§6.2 requires the `kid` once the account exists). The nonce is fetched
-  fresh for every request instead of taken from each answer's
-  `Replay-Nonce`. `provision` waits for DNS with `std::thread::sleep(5s)`
-  inside an `async fn` (it blocks the executor; the 5 s is a constant, not a
-  setting). The mock CA in `tests/acme_provisioning_tests.rs` sends no
-  `Location`, so the tests miss all of this. Fix: return and use the account
-  URL as the `kid`, carry the nonce from each answer, wait with an async
-  sleep (or poll the challenge status) under a configured timeout, and make
-  the mock CA strict.
 - **The SSL redirect listener hard-codes its limits** (`src/server.rs`,
   `ssl_redirect_loop`): a 4096-byte head buffer, a 2 s read timeout and a
   10 ms accept poll are constants, and a head longer than one read is cut

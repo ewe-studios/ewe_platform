@@ -50,6 +50,29 @@ Defence Industries Association of Europe (ASD), the owner of the STE standard AS
 - The test proves the fix: 16 threads each save a different backend 50 times. It
   fails on every run without the lock and passes with it.
 
+## E3. ACME RFC 8555 account flow
+
+- The newAccount answer's `Location` header is the account URL (RFC 8555 7.3).
+  The client must store it and sign every later JWS with it as the `kid`
+  (RFC 8555 6.2). Signing with the `jwk` after the account exists is wrong.
+- Each answer carries a single-use `Replay-Nonce`. The client must store that
+  nonce and send it on the next request. A fresh nonce is fetched only when no
+  nonce is stored or the CA answers `badNonce`.
+- `std::thread::sleep` inside an `async fn` blocks the thread that drives the
+  future. `sleep_async` (the valtron timer) yields, so other futures on the
+  same thread run. The regression test drives the DNS wait and a heartbeat
+  together with `futures_lite::future::zip` on one thread: a blocking sleep
+  serialises them (about 4 s), an async sleep overlaps them (about 2 s).
+- The strict mock CA must not validate a JWS nonce twice. The first `/finalize`
+  handler called `validate_jws` and then `serve_acme_post`, which validated the
+  same nonce again and answered "unknown or reused nonce". The fix renders a
+  validated 2xx answer with a helper that does not re-validate.
+- The three new plain `#[test]`s each need `initialize_pool`, because the
+  `DynNetClient` send path spawns tasks on the valtron pool. One test run alone
+  failed with "pool not initialized"; the full suite passed because the two
+  older tests initialised the pool in the same process. Each test must set up
+  its own pool.
+
 ## Dead ends
 
-- None for E1 or E2.
+- None for E1, E2 or E3.
