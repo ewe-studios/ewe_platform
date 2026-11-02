@@ -1,18 +1,19 @@
 #![cfg(feature = "vfs-fjall")]
 
-use foundation_nativeapis::shared::vfs::fjall_fs::{FjallFs, FjallDelta, FjallVfsConfig};
+use foundation_core::valtron::valtron_test;
+use foundation_nativeapis::shared::vfs::fjall_fs::{InodeDelta, InodeFs};
 use foundation_nativeapis::shared::vfs::{
-    DeltaStore, OpenMode, SeekFrom, SeekableVfsFile, VfsDirectory, VfsFile,
-    VfsFileSystem, VfsFileType,
+    AsyncDeltaStore, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem, DeltaStore, OpenMode,
+    SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem, VfsFileType,
 };
 use tracing_test::traced_test;
 
-// ── FjallFs: File Operations ──
+// ── InodeFs: File Operations ──
 
 #[test]
 #[traced_test]
 fn test_fjall_create_and_read_file() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let file = fs.create("/hello.txt", 0o644).unwrap();
     file.write_at(b"hello world", 0).unwrap();
     let mut buf = vec![0u8; 11];
@@ -24,7 +25,7 @@ fn test_fjall_create_and_read_file() {
 #[test]
 #[traced_test]
 fn test_fjall_create_file_in_nonexistent_dir() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let result = fs.create("/no/such/dir/file.txt", 0o644);
     assert!(result.is_err());
 }
@@ -32,7 +33,7 @@ fn test_fjall_create_file_in_nonexistent_dir() {
 #[test]
 #[traced_test]
 fn test_fjall_open_nonexistent_file() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let result = fs.open("/nope.txt", OpenMode::Read);
     assert!(result.is_err());
 }
@@ -40,7 +41,7 @@ fn test_fjall_open_nonexistent_file() {
 #[test]
 #[traced_test]
 fn test_fjall_write_to_read_only_file() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let file = fs.create("/readonly.txt", 0o644).unwrap();
     file.write_at(b"initial", 0).unwrap();
     let ro = fs.open("/readonly.txt", OpenMode::Read).unwrap();
@@ -51,7 +52,7 @@ fn test_fjall_write_to_read_only_file() {
 #[test]
 #[traced_test]
 fn test_fjall_file_read_at_offset() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let file = fs.create("/data.bin", 0o644).unwrap();
     file.write_at(b"ABCDEFGHIJ", 0).unwrap();
     let mut buf = [0u8; 3];
@@ -63,7 +64,7 @@ fn test_fjall_file_read_at_offset() {
 #[test]
 #[traced_test]
 fn test_fjall_file_write_at_offset() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let file = fs.create("/sparse.bin", 0o644).unwrap();
     file.write_at(b"XYZ", 10).unwrap();
     assert_eq!(file.size().unwrap(), 13);
@@ -76,7 +77,7 @@ fn test_fjall_file_write_at_offset() {
 #[test]
 #[traced_test]
 fn test_fjall_file_truncate() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let file = fs.create("/trunc.txt", 0o644).unwrap();
     file.write_at(b"123456789", 0).unwrap();
     file.truncate(3).unwrap();
@@ -89,7 +90,7 @@ fn test_fjall_file_truncate() {
 #[test]
 #[traced_test]
 fn test_fjall_seekable_sequential_read() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let file = fs.create("/seq.txt", 0o644).unwrap();
     file.write_at(b"ABCDEFGHIJ", 0).unwrap();
     let mut sf = fs.open_seekable("/seq.txt", OpenMode::Read).unwrap();
@@ -102,7 +103,7 @@ fn test_fjall_seekable_sequential_read() {
 #[test]
 #[traced_test]
 fn test_fjall_seekable_seek_and_read() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let file = fs.create("/seek.txt", 0o644).unwrap();
     file.write_at(b"ABCDEFGHIJ", 0).unwrap();
     let mut sf = fs.open_seekable("/seek.txt", OpenMode::Read).unwrap();
@@ -112,12 +113,12 @@ fn test_fjall_seekable_seek_and_read() {
     assert_eq!(&buf, b"FGH");
 }
 
-// ── FjallFs: Directory Operations ──
+// ── InodeFs: Directory Operations ──
 
 #[test]
 #[traced_test]
 fn test_fjall_mkdir_and_list() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.mkdir("/src").unwrap();
     fs.create("/src/main.rs", 0o644).unwrap();
     let dir = fs.open_directory("/").unwrap();
@@ -128,7 +129,7 @@ fn test_fjall_mkdir_and_list() {
 #[test]
 #[traced_test]
 fn test_fjall_mkdir_nested() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.mkdir("/a/b/c").unwrap();
     assert!(fs.exists("/a/b/c").unwrap());
 }
@@ -136,7 +137,7 @@ fn test_fjall_mkdir_nested() {
 #[test]
 #[traced_test]
 fn test_fjall_remove_empty_dir() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.mkdir("/empty").unwrap();
     fs.remove("/empty").unwrap();
     assert!(!fs.exists("/empty").unwrap());
@@ -145,7 +146,7 @@ fn test_fjall_remove_empty_dir() {
 #[test]
 #[traced_test]
 fn test_fjall_readdir_mixed() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.mkdir("/dir").unwrap();
     fs.create("/dir/file.txt", 0o644).unwrap();
     fs.mkdir("/dir/sub").unwrap();
@@ -157,7 +158,7 @@ fn test_fjall_readdir_mixed() {
 #[test]
 #[traced_test]
 fn test_fjall_stat_returns_correct_metadata() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let file = fs.create("/stat.txt", 0o644).unwrap();
     file.write_at(b"hello", 0).unwrap();
     let meta = fs.stat("/stat.txt").unwrap();
@@ -168,7 +169,7 @@ fn test_fjall_stat_returns_correct_metadata() {
 #[test]
 #[traced_test]
 fn test_fjall_chmod_updates_permissions() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.create("/perm.txt", 0o644).unwrap();
     fs.chmod("/perm.txt", 0o755).unwrap();
     let meta = fs.stat("/perm.txt").unwrap();
@@ -178,18 +179,18 @@ fn test_fjall_chmod_updates_permissions() {
 #[test]
 #[traced_test]
 fn test_fjall_symlink_create_and_readlink() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.symlink("/target", "/link").unwrap();
     let target = fs.readlink("/link").unwrap();
     assert_eq!(target, "/target");
 }
 
-// ── FjallFs: Convenience Operations ──
+// ── InodeFs: Convenience Operations ──
 
 #[test]
 #[traced_test]
 fn test_fjall_read_file_convenience() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     let file = fs.create("/rf.txt", 0o644).unwrap();
     file.write_at(b"data", 0).unwrap();
     let data = fs.read_file("/rf.txt").unwrap();
@@ -199,7 +200,7 @@ fn test_fjall_read_file_convenience() {
 #[test]
 #[traced_test]
 fn test_fjall_write_file_convenience() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.create("/wf.txt", 0o644).unwrap();
     fs.write_file("/wf.txt", b"written").unwrap();
     let data = fs.read_file("/wf.txt").unwrap();
@@ -209,7 +210,7 @@ fn test_fjall_write_file_convenience() {
 #[test]
 #[traced_test]
 fn test_fjall_mkdir_all() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.mkdir_all("/a/b/c/d").unwrap();
     assert!(fs.exists("/a/b/c/d").unwrap());
 }
@@ -217,19 +218,19 @@ fn test_fjall_mkdir_all() {
 #[test]
 #[traced_test]
 fn test_fjall_remove_all() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.mkdir_all("/parent/child").unwrap();
     fs.create("/parent/child/file.txt", 0o644).unwrap();
     fs.remove_all("/parent").unwrap();
     assert!(!fs.exists("/parent").unwrap());
 }
 
-// ── FjallDelta: Whiteout Operations ──
+// ── InodeDelta: Whiteout Operations ──
 
 #[test]
 #[traced_test]
 fn test_fjall_whiteout_add_and_check() {
-    let delta = FjallDelta::in_memory().unwrap();
+    let delta = InodeDelta::new();
     delta.add_whiteout("/hidden.txt", 1).unwrap();
     assert!(delta.is_whiteout("/hidden.txt").unwrap().is_some());
 }
@@ -237,7 +238,7 @@ fn test_fjall_whiteout_add_and_check() {
 #[test]
 #[traced_test]
 fn test_fjall_whiteout_remove() {
-    let delta = FjallDelta::in_memory().unwrap();
+    let delta = InodeDelta::new();
     delta.add_whiteout("/gone.txt", 1).unwrap();
     delta.remove_whiteout("/gone.txt").unwrap();
     assert!(delta.is_whiteout("/gone.txt").unwrap().is_none());
@@ -246,7 +247,7 @@ fn test_fjall_whiteout_remove() {
 #[test]
 #[traced_test]
 fn test_fjall_whiteout_list() {
-    let delta = FjallDelta::in_memory().unwrap();
+    let delta = InodeDelta::new();
     delta.add_whiteout("/dir/a.txt", 1).unwrap();
     delta.add_whiteout("/dir/b.txt", 2).unwrap();
     delta.add_whiteout("/other.txt", 3).unwrap();
@@ -257,7 +258,7 @@ fn test_fjall_whiteout_list() {
 #[test]
 #[traced_test]
 fn test_fjall_whiteout_reset_clears_all() {
-    let delta = FjallDelta::in_memory().unwrap();
+    let delta = InodeDelta::new();
     delta.add_whiteout("/a.txt", 1).unwrap();
     delta.add_whiteout("/b.txt", 2).unwrap();
     delta.reset().unwrap();
@@ -267,7 +268,7 @@ fn test_fjall_whiteout_reset_clears_all() {
 #[test]
 #[traced_test]
 fn test_fjall_delta_create_and_read() {
-    let delta = FjallDelta::in_memory().unwrap();
+    let delta = InodeDelta::new();
     delta.create("/delta.txt", 0o644).unwrap();
     let file = delta.open("/delta.txt", OpenMode::Write).unwrap();
     file.write_at(b"delta content", 0).unwrap();
@@ -278,19 +279,19 @@ fn test_fjall_delta_create_and_read() {
 #[test]
 #[traced_test]
 fn test_fjall_delta_exists_respects_whiteout() {
-    let delta = FjallDelta::in_memory().unwrap();
+    let delta = InodeDelta::new();
     delta.create("/visible.txt", 0o644).unwrap();
     assert!(delta.exists("/visible.txt").unwrap());
     delta.add_whiteout("/visible.txt", 1).unwrap();
     assert!(!delta.exists("/visible.txt").unwrap());
 }
 
-// ── FjallFs: Inode Operations ──
+// ── InodeFs: Inode Operations ──
 
 #[test]
 #[traced_test]
 fn test_fjall_inode() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.create("/inode.txt", 0o644).unwrap();
     fs.write_file("/inode.txt", b"data").unwrap();
     let ino = fs.inode("/inode.txt").unwrap();
@@ -300,7 +301,7 @@ fn test_fjall_inode() {
 #[test]
 #[traced_test]
 fn test_fjall_path_by_inode() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.create("/path_lookup.txt", 0o644).unwrap();
     fs.write_file("/path_lookup.txt", b"data").unwrap();
     let ino = fs.inode("/path_lookup.txt").unwrap();
@@ -311,10 +312,112 @@ fn test_fjall_path_by_inode() {
 #[test]
 #[traced_test]
 fn test_fjall_stat_by_inode() {
-    let fs = FjallFs::in_memory().unwrap();
+    let fs = InodeFs::new();
     fs.create("/stat_ino.txt", 0o644).unwrap();
     fs.write_file("/stat_ino.txt", b"data").unwrap();
     let ino = fs.inode("/stat_ino.txt").unwrap();
     let meta = fs.stat_by_inode(ino).unwrap();
     assert_eq!(meta.size, 4);
+}
+
+// ── InodeFs: Async Contract ──
+
+#[valtron_test]
+async fn async_inodefs_mkdir_stat_exists() {
+    let fs = InodeFs::new();
+
+    fs.mkdir_async("/src".to_string()).await.unwrap();
+    let meta = fs.stat_async("/src".to_string()).await.unwrap();
+    assert_eq!(meta.size, 0);
+    assert!(fs.exists_async("/src".to_string()).await.unwrap());
+}
+
+#[valtron_test]
+async fn async_inodefs_create_write_read() {
+    let fs = InodeFs::new();
+
+    let file = fs.create_async("/test.txt".to_string(), 0o644).await.unwrap();
+    file.write_at_async(b"hello".to_vec(), 0).await.unwrap();
+    let data = file.read_at_async(5, 0).await.unwrap();
+    assert_eq!(&data, b"hello");
+}
+
+#[valtron_test]
+async fn async_inodefs_open_read() {
+    let fs = InodeFs::new();
+
+    fs.write_file_async("/open.txt".to_string(), b"open me".to_vec())
+        .await
+        .unwrap();
+    let file = fs
+        .open_async("/open.txt".to_string(), OpenMode::Read)
+        .await
+        .unwrap();
+    let data = file.read_at_async(7, 0).await.unwrap();
+    assert_eq!(&data, b"open me");
+}
+
+#[valtron_test]
+async fn async_inodefs_directory_list() {
+    let fs = InodeFs::new();
+
+    fs.mkdir_async("/dir".to_string()).await.unwrap();
+    fs.write_file_async("/dir/a.txt".to_string(), b"a".to_vec())
+        .await
+        .unwrap();
+    fs.write_file_async("/dir/b.txt".to_string(), b"bb".to_vec())
+        .await
+        .unwrap();
+
+    let dir = fs.open_directory_async("/dir".to_string()).await.unwrap();
+    let entries = dir.list_async().await.unwrap();
+    assert_eq!(entries.len(), 2);
+}
+
+#[valtron_test]
+async fn async_inodedelta_whiteouts() {
+    let delta = InodeDelta::new();
+
+    delta
+        .add_whiteout_async("/hidden.txt".to_string(), 1)
+        .await
+        .unwrap();
+    assert_eq!(
+        delta
+            .is_whiteout_async("/hidden.txt".to_string())
+            .await
+            .unwrap(),
+        Some(1)
+    );
+
+    delta
+        .remove_whiteout_async("/hidden.txt".to_string())
+        .await
+        .unwrap();
+    assert_eq!(
+        delta
+            .is_whiteout_async("/hidden.txt".to_string())
+            .await
+            .unwrap(),
+        None
+    );
+}
+
+#[valtron_test]
+async fn async_inodedelta_flush_and_reset() {
+    let delta = InodeDelta::new();
+
+    delta
+        .add_whiteout_async("/hidden.txt".to_string(), 1)
+        .await
+        .unwrap();
+    delta.flush_async().await.unwrap();
+    delta.reset_async().await.unwrap();
+    assert_eq!(
+        delta
+            .is_whiteout_async("/hidden.txt".to_string())
+            .await
+            .unwrap(),
+        None
+    );
 }

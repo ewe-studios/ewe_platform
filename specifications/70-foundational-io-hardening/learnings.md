@@ -2,6 +2,20 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 19 E7, foundation_nativeapis): when one type implements
+  both `VfsFileSystem` and `AsyncVfsFileSystem`, `capabilities` is the only
+  method name the two traits share (every other async method has an `_async`
+  suffix). A call such as `self.inner.capabilities()` in the sync
+  `VfsFileSystem` impl then fails with E0034; qualify it as
+  `VfsFileSystem::capabilities(&self.inner)`. The async face is sync-native:
+  each async method delegates to the sync trait method. Re-wrap the
+  `Box<dyn VfsDirectory>` results of `create_dir` / `open_directory` in an
+  `AsyncInodeDirectory` wrapper (the same shape as `AsyncMemoryDirectory`).
+  A private helper that is never called (here `InodeDir::new`, replaced by
+  struct literals) trips `dead_code`, so delete it. The `#[valtron_test]`
+  macro drives an `async fn` directly with `.await`; no manual
+  `initialize_pool` is needed.
+
 - 2026-11-02 (feature 19 E6, foundation_nativeapis): `async_trait` boxes the
   `DocumentStore` futures as `Send`, so an async VFS store must never hold a
   `std::sync` lock guard across an `.await` (the guards are not `Send`). Two

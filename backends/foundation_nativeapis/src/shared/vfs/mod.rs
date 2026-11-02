@@ -56,10 +56,7 @@ pub use search::{CliSearcher, SearchConfig, native_vfs_searcher};
 pub mod fjall_fs;
 
 #[cfg(feature = "vfs-fjall")]
-pub use fjall_fs::{InodeFs, InodeDelta, InodeFsConfig};
-
-#[cfg(feature = "vfs-fjall")]
-pub use fjall_fs::{FjallFs, FjallDelta, FjallVfsConfig};
+pub use fjall_fs::{InodeDelta, InodeFs};
 
 #[cfg(feature = "vfs-fjall")]
 pub mod fjall_document_store;

@@ -2,6 +2,24 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 19 (foundation_nativeapis) E7 done on
+  `fix/io-20-vfs-process-ipc`. E7 renames the constructors to
+  `InodeFs::new()` and `InodeDelta::new()` (infallible, no path or config).
+  It drops `InodeFsConfig` and the `FjallFs` / `FjallDelta` /
+  `FjallVfsConfig` aliases and their re-exports. It adds the async face like
+  `MemoryFs`: `AsyncVfsFile` for `InodeFile` and `SeekableInodeFile`,
+  `AsyncSeekableVfsFile`, `AsyncVfsDirectory` for `InodeDir` and the
+  `AsyncInodeDirectory` wrapper, `AsyncVfsFileSystem` for `InodeFs`, and
+  `AsyncVfsFileSystem` plus `AsyncDeltaStore` for `InodeDelta`. The
+  never-read `InodeEntry.name` field and the dead `InodeDir::new` are
+  removed, so the module compiles with zero warnings. `InodeDelta`'s sync
+  `capabilities` now calls `VfsFileSystem::capabilities(&self.inner)`;
+  `capabilities` is the only method name shared by the two traits. The 29
+  sync tests move from `FjallFs` / `FjallDelta` to `InodeFs` / `InodeDelta`,
+  and 6 async contract tests land via `#[valtron_test]`. 35 fjall VFS tests
+  and 20 fjall document-store tests pass under `--profile uat`. The §13
+  backlog entry is removed.
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E6 done on
   `fix/io-20-vfs-process-ipc`. E6 switches `FjallDocumentStore` from
   `V: VfsFileSystem` to `V: AsyncVfsFileSystem` and awaits every VFS call, so

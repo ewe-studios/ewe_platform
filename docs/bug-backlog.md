@@ -159,12 +159,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   shim's `turso` backend). A Turso cloud database still works through
   `LibsqlDelta` with `TursoRemoteConfig`. Fix: rebuild it on the `turso` crate as
   an async-only store; tracked in ewe-studios/ewe_platform#142.
-- **`InodeFs` / `InodeDelta` ignore their path.** `src/shared/vfs/fjall_fs/`
-  keeps everything in memory; `InodeFs::open(path)` and `open_with_config`
-  ignore the path and the config, and the `FjallFs` / `FjallDelta` aliases
-  suggest a disk store. They implement only the sync traits. Fix: rename the
-  constructors (`InodeFs::new()`), drop the aliases, and add the async face
-  like `MemoryFs`.
 - **NFS `readdir` ignores `start_after`.** `VfsNfs::readdir`
   (`src/native/vfs/nfs/mod.rs`) always starts at the first entry, so a
   directory larger than one page repeats; the attribute times are always 0.

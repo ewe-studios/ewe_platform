@@ -1,15 +1,20 @@
 #![cfg(feature = "vfs-fjall")]
 
-//! InodeFs / InodeDelta — inode-based in-memory VFS.
+//! `InodeFs` / `InodeDelta` — an inode-based in-memory VFS.
 //!
-//! Originally named `InodeFs` (misleading — no fjall involvement). Renamed to
-//! reflect what it actually is: a POSIX-like in-memory filesystem with inode
-//! tracking, symlinks, and seekable files. Backward-compatible type aliases
-//! (`InodeFs`, `InodeDelta`, `InodeFsConfig`) are provided below.
+//! These stores keep every node in memory; they are not backed by fjall. The
+//! module keeps its historical `fjall_fs` name so existing imports do not move,
+//! but the types are named after what they are: a POSIX-like in-memory file
+//! system with inode tracking, symlinks, and seekable files.
 
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
+use async_trait::async_trait;
+
+use crate::shared::vfs::async_traits::{
+    AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
+};
 use crate::shared::vfs::error::{VfsError, VfsResult};
 use crate::shared::vfs::traits::{DeltaStore, VfsFile, VfsDirectory, VfsFileSystem, SeekableVfsFile};
 use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType, VfsMetadata, Checksum};
@@ -21,7 +26,6 @@ fn now_ms() -> u64 {
 #[derive(Clone)]
 struct InodeEntry {
     path: String,
-    name: String,
     file_type: VfsFileType,
     size: u64,
     permissions: u32,
@@ -58,7 +62,7 @@ impl InodeFsInner {
         });
         let root_ino = inner.next_ino.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         inner.inodes.write().unwrap().insert(root_ino, InodeEntry {
-            path: "/".to_string(), name: "/".to_string(), file_type: VfsFileType::Directory,
+            path: "/".to_string(), file_type: VfsFileType::Directory,
             size: 0, permissions: 0o755, owner: (0, 0), version: 0,
             created_at: now_ms(), updated_at: now_ms(), content: Vec::new(), symlink_target: None,
         });
@@ -71,32 +75,30 @@ impl InodeFsInner {
     }
 }
 
-/// InodeFs — VfsFileSystem with in-memory storage.
+/// `InodeFs` — an in-memory `VfsFileSystem` with inode tracking.
 #[derive(Clone)]
 pub struct InodeFs {
     inner: Arc<InodeFsInner>,
 }
 
-/// InodeFsConfig — placeholder config.
-#[derive(Clone, Debug, Default)]
-pub struct InodeFsConfig;
-
 impl InodeFs {
-    pub fn open(_path: impl AsRef<std::path::Path>) -> VfsResult<Self> {
-        Ok(Self { inner: InodeFsInner::new() })
+    /// Creates a new empty in-memory file system with a root directory.
+    pub fn new() -> Self {
+        Self { inner: InodeFsInner::new() }
     }
-    pub fn open_with_config(_path: impl AsRef<std::path::Path>, _config: InodeFsConfig) -> VfsResult<Self> {
-        Self::open("/tmp")
+}
+
+impl Default for InodeFs {
+    fn default() -> Self {
+        Self::new()
     }
-    pub fn in_memory() -> VfsResult<Self> { Self::open("/tmp") }
 }
 
 pub struct InodeFile { path: String, mode: OpenMode, inner: Arc<InodeFsInner> }
 pub struct SeekableInodeFile { file: InodeFile, pos: Arc<RwLock<u64>> }
 pub struct InodeDir { path: String, inner: Arc<InodeFsInner> }
 
-impl SeekableInodeFile { pub fn new(file: InodeFile) -> Self { Self { file, pos: Arc::new(RwLock::new(0)) } } }
-impl InodeDir { pub fn new(path: String, inner: Arc<InodeFsInner>) -> Self { Self { path, inner } } }
+impl SeekableInodeFile { fn new(file: InodeFile) -> Self { Self { file, pos: Arc::new(RwLock::new(0)) } } }
 
 impl VfsFile for InodeFile {
     fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
@@ -222,7 +224,7 @@ impl VfsDirectory for InodeDir {
         let path = if self.path.ends_with('/') { format!("{}{}", self.path, name) } else { format!("{}/{}", self.path, name) };
         let ino = self.inner.next_ino();
         self.inner.inodes.write().unwrap().insert(ino, InodeEntry {
-            path: path.clone(), name: name.to_string(), file_type: VfsFileType::Regular,
+            path: path.clone(), file_type: VfsFileType::Regular,
             size: 0, permissions: mode, owner: (0, 0), version: 0,
             created_at: now_ms(), updated_at: now_ms(), content: Vec::new(), symlink_target: None,
         });
@@ -233,7 +235,7 @@ impl VfsDirectory for InodeDir {
         let path = if self.path.ends_with('/') { format!("{}{}", self.path, name) } else { format!("{}/{}", self.path, name) };
         let ino = self.inner.next_ino();
         self.inner.inodes.write().unwrap().insert(ino, InodeEntry {
-            path: path.clone(), name: name.to_string(), file_type: VfsFileType::Directory,
+            path: path.clone(), file_type: VfsFileType::Directory,
             size: 0, permissions: 0o755, owner: (0, 0), version: 0,
             created_at: now_ms(), updated_at: now_ms(), content: Vec::new(), symlink_target: None,
         });
@@ -312,7 +314,7 @@ impl VfsFileSystem for InodeFs {
     fn symlink(&self, target: &str, link: &str) -> VfsResult<()> {
         let ino = self.inner.next_ino();
         self.inner.inodes.write().unwrap().insert(ino, InodeEntry {
-            path: link.to_string(), name: link.rsplit_once('/').map(|(_, n)| n).unwrap_or(link).to_string(),
+            path: link.to_string(),
             file_type: VfsFileType::Symlink, size: target.len() as u64, permissions: 0o777,
             owner: (0, 0), version: 0, created_at: now_ms(), updated_at: now_ms(),
             content: Vec::new(), symlink_target: Some(target.to_string()),
@@ -371,8 +373,7 @@ impl VfsFileSystem for InodeFs {
         }
         let ino = self.inner.next_ino();
         self.inner.inodes.write().unwrap().insert(ino, InodeEntry {
-            path: path.to_string(), name: path.rsplit_once('/').map(|(_, n)| n).unwrap_or(path).to_string(),
-            file_type: VfsFileType::Regular, size: 0, permissions: mode, owner: (0, 0),
+            path: path.to_string(), file_type: VfsFileType::Regular, size: 0, permissions: mode, owner: (0, 0),
             version: 0, created_at: now_ms(), updated_at: now_ms(), content: Vec::new(), symlink_target: None,
         });
         self.inner.paths.write().unwrap().insert(path.to_string(), ino);
@@ -381,8 +382,7 @@ impl VfsFileSystem for InodeFs {
     fn mkdir(&self, path: &str) -> VfsResult<()> {
         let ino = self.inner.next_ino();
         self.inner.inodes.write().unwrap().insert(ino, InodeEntry {
-            path: path.to_string(), name: path.rsplit_once('/').map(|(_, n)| n).unwrap_or(path).to_string(),
-            file_type: VfsFileType::Directory, size: 0, permissions: 0o755, owner: (0, 0),
+            path: path.to_string(), file_type: VfsFileType::Directory, size: 0, permissions: 0o755, owner: (0, 0),
             version: 0, created_at: now_ms(), updated_at: now_ms(), content: Vec::new(), symlink_target: None,
         });
         self.inner.paths.write().unwrap().insert(path.to_string(), ino);
@@ -430,18 +430,21 @@ impl VfsFileSystem for InodeFs {
 pub struct InodeDelta { inner: InodeFs, whiteouts: Arc<RwLock<HashMap<String, u64>>> }
 
 impl InodeDelta {
-    pub fn open(path: impl AsRef<std::path::Path>) -> VfsResult<Self> {
-        Ok(Self { inner: InodeFs::open(path)?, whiteouts: Arc::new(RwLock::new(HashMap::new())) })
+    /// Creates a new empty in-memory delta store.
+    pub fn new() -> Self {
+        Self { inner: InodeFs::new(), whiteouts: Arc::new(RwLock::new(HashMap::new())) }
     }
-    pub fn open_with_config(path: impl AsRef<std::path::Path>, config: InodeFsConfig) -> VfsResult<Self> {
-        Ok(Self { inner: InodeFs::open_with_config(path, config)?, whiteouts: Arc::new(RwLock::new(HashMap::new())) })
+}
+
+impl Default for InodeDelta {
+    fn default() -> Self {
+        Self::new()
     }
-    pub fn in_memory() -> VfsResult<Self> { Self::open("/tmp") }
 }
 
 impl VfsFileSystem for InodeDelta {
     type File = InodeFile; type SeekableFile = SeekableInodeFile; type Directory = InodeDir;
-    fn capabilities(&self) -> VfsCapabilities { self.inner.capabilities() }
+    fn capabilities(&self) -> VfsCapabilities { VfsFileSystem::capabilities(&self.inner) }
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> { self.inner.stat(path) }
     fn exists(&self, path: &str) -> VfsResult<bool> {
         if self.whiteouts.read().unwrap().contains_key(path) { return Ok(false); }
@@ -484,7 +487,386 @@ impl DeltaStore for InodeDelta {
     fn reset(&self) -> VfsResult<()> { self.whiteouts.write().unwrap().clear(); Ok(()) }
 }
 
-// Backward-compatible type aliases (old misleading names).
-pub type FjallFs = InodeFs;
-pub type FjallDelta = InodeDelta;
-pub type FjallVfsConfig = InodeFsConfig;
+// ──────────────────────────────────────────────
+// Async trait implementations (sync-native: delegate to sync)
+// ──────────────────────────────────────────────
+
+#[async_trait]
+impl AsyncVfsFile for InodeFile {
+    async fn read_at_async(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>> {
+        let mut buf = vec![0; len];
+        let n = VfsFile::read_at(self, &mut buf, offset)?;
+        buf.truncate(n);
+        Ok(buf)
+    }
+
+    async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize> {
+        VfsFile::write_at(self, &data, offset)
+    }
+
+    async fn sync_data_async(&self) -> VfsResult<()> {
+        VfsFile::sync_data(self)
+    }
+
+    async fn size_async(&self) -> VfsResult<u64> {
+        VfsFile::size(self)
+    }
+
+    async fn truncate_async(&self, size: u64) -> VfsResult<()> {
+        VfsFile::truncate(self, size)
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        VfsFile::metadata(self)
+    }
+}
+
+#[async_trait]
+impl AsyncVfsFile for SeekableInodeFile {
+    async fn read_at_async(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>> {
+        let mut buf = vec![0; len];
+        let n = VfsFile::read_at(self, &mut buf, offset)?;
+        buf.truncate(n);
+        Ok(buf)
+    }
+
+    async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize> {
+        VfsFile::write_at(self, &data, offset)
+    }
+
+    async fn sync_data_async(&self) -> VfsResult<()> {
+        VfsFile::sync_data(self)
+    }
+
+    async fn size_async(&self) -> VfsResult<u64> {
+        VfsFile::size(self)
+    }
+
+    async fn truncate_async(&self, size: u64) -> VfsResult<()> {
+        VfsFile::truncate(self, size)
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        VfsFile::metadata(self)
+    }
+}
+
+#[async_trait]
+impl AsyncSeekableVfsFile for SeekableInodeFile {
+    async fn read_async(&mut self, len: usize) -> VfsResult<Vec<u8>> {
+        let mut buf = vec![0; len];
+        let n = SeekableVfsFile::read(self, &mut buf)?;
+        buf.truncate(n);
+        Ok(buf)
+    }
+
+    async fn write_async(&mut self, data: Vec<u8>) -> VfsResult<usize> {
+        SeekableVfsFile::write(self, &data)
+    }
+
+    async fn seek_async(&mut self, pos: std::io::SeekFrom) -> VfsResult<u64> {
+        SeekableVfsFile::seek(self, pos)
+    }
+
+    fn position_async(&self) -> u64 {
+        SeekableVfsFile::position(self)
+    }
+}
+
+#[async_trait]
+impl AsyncVfsDirectory for InodeDir {
+    type File = InodeFile;
+    type SeekableFile = SeekableInodeFile;
+
+    fn path(&self) -> String {
+        VfsDirectory::path(self).to_string()
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        VfsDirectory::metadata(self)
+    }
+
+    async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
+        VfsDirectory::list(self)
+    }
+
+    async fn get_entry_async(&self, name: String) -> VfsResult<Option<VfsDirEntry>> {
+        VfsDirectory::get_entry(self, &name)
+    }
+
+    async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<Self::File> {
+        VfsDirectory::create_file(self, &name, mode)
+    }
+
+    async fn create_dir_async(
+        &self,
+        name: String,
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
+        let dir = VfsDirectory::create_dir(self, &name)?;
+        Ok(Box::new(AsyncInodeDirectory::from_sync(dir)))
+    }
+
+    async fn remove_entry_async(&self, name: String) -> VfsResult<()> {
+        VfsDirectory::remove_entry(self, &name)
+    }
+
+    async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> {
+        VfsDirectory::rename_entry(self, &old_name, &new_name)
+    }
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
+        VfsDirectory::open(self, &path, mode)
+    }
+
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        VfsDirectory::open_seekable(self, &path, mode)
+    }
+
+    async fn open_directory_async(
+        &self,
+        path: String,
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
+        let dir = VfsDirectory::open_directory(self, &path)?;
+        Ok(Box::new(AsyncInodeDirectory::from_sync(dir)))
+    }
+
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        VfsDirectory::stat(self, &path)
+    }
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        VfsDirectory::exists(self, &path)
+    }
+}
+
+/// Thin wrapper that makes a `Box<dyn VfsDirectory>` implement
+/// `AsyncVfsDirectory`. Used when the sync-native `InodeDir` creates child
+/// directories — the returned `Box<dyn VfsDirectory>` must be re-wrapped as an
+/// async directory.
+pub struct AsyncInodeDirectory {
+    inner: Box<dyn VfsDirectory<File = InodeFile, SeekableFile = SeekableInodeFile>>,
+    cached_path: String,
+}
+
+impl AsyncInodeDirectory {
+    fn from_sync(dir: Box<dyn VfsDirectory<File = InodeFile, SeekableFile = SeekableInodeFile>>) -> Self {
+        let cached_path = dir.path().to_string();
+        Self { inner: dir, cached_path }
+    }
+}
+
+#[async_trait]
+impl AsyncVfsDirectory for AsyncInodeDirectory {
+    type File = InodeFile;
+    type SeekableFile = SeekableInodeFile;
+
+    fn path(&self) -> String {
+        self.cached_path.clone()
+    }
+
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
+        self.inner.metadata()
+    }
+
+    async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> {
+        self.inner.list()
+    }
+
+    async fn get_entry_async(&self, name: String) -> VfsResult<Option<VfsDirEntry>> {
+        self.inner.get_entry(&name)
+    }
+
+    async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<Self::File> {
+        self.inner.create_file(&name, mode)
+    }
+
+    async fn create_dir_async(
+        &self,
+        name: String,
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
+        let dir = self.inner.create_dir(&name)?;
+        Ok(Box::new(Self::from_sync(dir)))
+    }
+
+    async fn remove_entry_async(&self, name: String) -> VfsResult<()> {
+        self.inner.remove_entry(&name)
+    }
+
+    async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> {
+        self.inner.rename_entry(&old_name, &new_name)
+    }
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
+        self.inner.open(&path, mode)
+    }
+
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        self.inner.open_seekable(&path, mode)
+    }
+
+    async fn open_directory_async(
+        &self,
+        path: String,
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>
+    {
+        let dir = self.inner.open_directory(&path)?;
+        Ok(Box::new(Self::from_sync(dir)))
+    }
+
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        self.inner.stat(&path)
+    }
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        self.inner.exists(&path)
+    }
+}
+
+#[async_trait]
+impl AsyncVfsFileSystem for InodeFs {
+    type File = InodeFile;
+    type SeekableFile = SeekableInodeFile;
+    type Directory = AsyncInodeDirectory;
+
+    fn capabilities(&self) -> VfsCapabilities {
+        VfsFileSystem::capabilities(self)
+    }
+
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        VfsFileSystem::stat(self, &path)
+    }
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        VfsFileSystem::exists(self, &path)
+    }
+
+    async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> {
+        VfsFileSystem::chmod(self, &path, mode)
+    }
+
+    async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> {
+        VfsFileSystem::symlink(self, &target, &link)
+    }
+
+    async fn readlink_async(&self, path: String) -> VfsResult<String> {
+        VfsFileSystem::readlink(self, &path)
+    }
+
+    async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
+        VfsFileSystem::rename(self, &from, &to)
+    }
+
+    async fn remove_async(&self, path: String) -> VfsResult<()> {
+        VfsFileSystem::remove(self, &path)
+    }
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
+        VfsFileSystem::open(self, &path, mode)
+    }
+
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        VfsFileSystem::open_seekable(self, &path, mode)
+    }
+
+    async fn open_directory_async(&self, path: String) -> VfsResult<Self::Directory> {
+        let dir = VfsFileSystem::open_directory(self, &path)?;
+        Ok(AsyncInodeDirectory::from_sync(Box::new(dir)))
+    }
+
+    async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> {
+        VfsFileSystem::create(self, &path, mode)
+    }
+
+    async fn mkdir_async(&self, path: String) -> VfsResult<()> {
+        VfsFileSystem::mkdir(self, &path)
+    }
+}
+
+#[async_trait]
+impl AsyncVfsFileSystem for InodeDelta {
+    type File = InodeFile;
+    type SeekableFile = SeekableInodeFile;
+    type Directory = AsyncInodeDirectory;
+
+    fn capabilities(&self) -> VfsCapabilities {
+        VfsFileSystem::capabilities(self)
+    }
+
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> {
+        VfsFileSystem::stat(self, &path)
+    }
+
+    async fn exists_async(&self, path: String) -> VfsResult<bool> {
+        VfsFileSystem::exists(self, &path)
+    }
+
+    async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> {
+        VfsFileSystem::chmod(self, &path, mode)
+    }
+
+    async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> {
+        VfsFileSystem::symlink(self, &target, &link)
+    }
+
+    async fn readlink_async(&self, path: String) -> VfsResult<String> {
+        VfsFileSystem::readlink(self, &path)
+    }
+
+    async fn rename_async(&self, from: String, to: String) -> VfsResult<()> {
+        VfsFileSystem::rename(self, &from, &to)
+    }
+
+    async fn remove_async(&self, path: String) -> VfsResult<()> {
+        VfsFileSystem::remove(self, &path)
+    }
+
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
+        VfsFileSystem::open(self, &path, mode)
+    }
+
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        VfsFileSystem::open_seekable(self, &path, mode)
+    }
+
+    async fn open_directory_async(&self, path: String) -> VfsResult<Self::Directory> {
+        <InodeFs as AsyncVfsFileSystem>::open_directory_async(&self.inner, path).await
+    }
+
+    async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> {
+        VfsFileSystem::create(self, &path, mode)
+    }
+
+    async fn mkdir_async(&self, path: String) -> VfsResult<()> {
+        VfsFileSystem::mkdir(self, &path)
+    }
+}
+
+#[async_trait]
+impl AsyncDeltaStore for InodeDelta {
+    async fn add_whiteout_async(&self, path: String, version: u64) -> VfsResult<()> {
+        DeltaStore::add_whiteout(self, &path, version)
+    }
+
+    async fn is_whiteout_async(&self, path: String) -> VfsResult<Option<u64>> {
+        DeltaStore::is_whiteout(self, &path)
+    }
+
+    async fn remove_whiteout_async(&self, path: String) -> VfsResult<()> {
+        DeltaStore::remove_whiteout(self, &path)
+    }
+
+    async fn list_whiteouts_async(&self, dir: String) -> VfsResult<Vec<(String, u64)>> {
+        DeltaStore::list_whiteouts(self, &dir)
+    }
+
+    async fn flush_async(&self) -> VfsResult<()> {
+        DeltaStore::flush(self)
+    }
+
+    async fn reset_async(&self) -> VfsResult<()> {
+        DeltaStore::reset(self)
+    }
+}
