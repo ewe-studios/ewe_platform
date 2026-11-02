@@ -29,14 +29,18 @@ fn cloudflare_declaration() -> foundation_codegentools::Codegen {
     cloudflare_wire_types(codegen, &root).expect("read the cloudflare overlays")
 }
 
-/// Regenerate Cloudflare into a scratch tree and compare it with what is
-/// committed: the shim, every group crate, and `foundation_cloudflare_types`'s
-/// `src/generated.rs`.
+/// Regenerate the shared Cloudflare types and compare them with
+/// `foundation_cloudflare_types`'s committed `src/generated.rs`.
+///
+/// This uses `check_shared_types`, which skips the 43 group crates and the
+/// umbrella shim, so the test stays fast in a dev build. The build script of
+/// `foundation_deployment_cloudflare` still runs the full `check()` on every
+/// build, which covers those files.
 #[test]
 fn cloudflare_types_are_generated() {
     cloudflare_declaration()
-        .check()
-        .expect("the committed Cloudflare output is what the generator writes");
+        .check_shared_types()
+        .expect("the committed Cloudflare wire types are what the generator writes");
 }
 
 /// The D1 request body and the R2 listing types are in the generated file, not

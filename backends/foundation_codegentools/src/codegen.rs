@@ -557,6 +557,7 @@ impl Codegen {
             provider_dir.clone(),
             self.groups_dir.clone(),
             self.shared_crate_dir.clone(),
+            false,
         )?;
 
         let generated_dir = self.provider_root(output, &provider_dir)?.join("generated");
@@ -655,6 +656,7 @@ impl Codegen {
                 scratch_provider_dir,
                 Some(scratch_groups.clone()),
                 Some(scratch_shared.clone()),
+                false,
             )?;
 
             merge_prefixed(
@@ -719,6 +721,7 @@ impl Codegen {
                 scratch_provider_dir.clone(),
                 None,
                 None,
+                false,
             )?;
             let fresh_dir = self
                 .provider_root(scratch.path().to_path_buf(), &scratch_provider_dir)?
@@ -755,6 +758,68 @@ impl Codegen {
         }
     }
 
+    /// Like [`Codegen::check`], but compares only the shared types crate's
+    /// `generated.rs`.
+    ///
+    /// The shared module holds every hoisted schema, which is the part of the
+    /// Cloudflare wire types that the D1 and R2 code depends on, so the
+    /// wire-type test uses this. The hoisting depends on every group, so every
+    /// group is still analysed and built. Only the rendering, writing and
+    /// formatting of the group crates and the umbrella shim are skipped. The
+    /// build script keeps the full [`Codegen::check`].
+    ///
+    /// # Errors
+    /// [`CodegenError::Incomplete`] when the declaration is not in split mode
+    /// (see [`Codegen::split_groups`]); [`CodegenError::Stale`] when the shared
+    /// module differs; otherwise anything [`Codegen::check`] can return.
+    pub fn check_shared_types(&self) -> Result<(), CodegenError> {
+        const REL: &str = "src/generated.rs";
+        let (Some(_), Some(shared_crate_dir)) = (&self.groups_dir, &self.shared_crate_dir) else {
+            return Err(CodegenError::Incomplete {
+                missing: "split_groups",
+            });
+        };
+        let resolved = self.resolve()?;
+        let scratch = tempfile::tempdir().map_err(|source| CodegenError::Io {
+            path: PathBuf::from("<temp>"),
+            source,
+        })?;
+        let scratch_shared = scratch.path().join("shared_crate");
+        self.run_generator(
+            &resolved,
+            scratch.path().to_path_buf(),
+            Some(scratch.path().join("src")),
+            Some(scratch.path().join("groups")),
+            Some(scratch_shared.clone()),
+            true,
+        )?;
+
+        let fresh = read_file_tree(&scratch_shared.join(REL), REL)?;
+        let committed = read_file_tree(&shared_crate_dir.join(REL), REL)?;
+        match (fresh.get(REL), committed.get(REL)) {
+            (Some(f), Some(c)) if f == c => Ok(()),
+            (Some(_), None) => Err(CodegenError::Stale {
+                generated_dir: shared_crate_dir.join("src"),
+                added: vec![REL.to_string()],
+                removed: Vec::new(),
+                changed: Vec::new(),
+            }),
+            (None, Some(_)) => Err(CodegenError::Stale {
+                generated_dir: shared_crate_dir.join("src"),
+                added: Vec::new(),
+                removed: vec![REL.to_string()],
+                changed: Vec::new(),
+            }),
+            (Some(_), Some(_)) => Err(CodegenError::Stale {
+                generated_dir: shared_crate_dir.join("src"),
+                added: Vec::new(),
+                removed: Vec::new(),
+                changed: vec![REL.to_string()],
+            }),
+            (None, None) => Ok(()),
+        }
+    }
+
     /// Hand the **resolved** spec to the generator — never the vendor's document.
     fn run_generator(
         &self,
@@ -763,6 +828,7 @@ impl Codegen {
         provider_dir: Option<PathBuf>,
         groups_dir: Option<PathBuf>,
         shared_crate_dir: Option<PathBuf>,
+        shared_only: bool,
     ) -> Result<(), CodegenError> {
         let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
             missing: "provider",
@@ -775,6 +841,9 @@ impl Codegen {
         }
         if let (Some(groups_dir), Some(shared_crate_dir)) = (groups_dir, shared_crate_dir) {
             generator = generator.split_group_crates(groups_dir, shared_crate_dir);
+        }
+        if shared_only {
+            generator = generator.shared_types_only();
         }
         let body = serde_json::to_string(resolved).expect("a resolved spec serializes");
         generator

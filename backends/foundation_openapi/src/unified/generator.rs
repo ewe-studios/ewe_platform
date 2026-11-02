@@ -21,6 +21,91 @@ use super::emit::{
 /// guard against a reference cycle, far past any real spec's nesting.
 const MAX_ALL_OF_DEPTH: usize = 16;
 
+/// The spec's schemas, with the lookups the generator makes on top of them.
+///
+/// `resolve` tries the same four guesses the generator always made. The last one
+/// compares `PascalCase` names. Scanning every schema for it on each miss made
+/// generation quadratic: Cloudflare has 11,937 schemas and spent most of its
+/// time there. The index keeps, for each `PascalCase` name, the first schema in
+/// key order, which is the one that scan returned. The dependency graph is built
+/// once here as well, not once per group.
+pub(crate) struct SchemaIndex<'a> {
+    schemas: &'a std::collections::BTreeMap<String, crate::spec::Schema>,
+    by_pascal: std::collections::HashMap<String, &'a crate::spec::Schema>,
+    type_deps: std::collections::HashMap<String, std::collections::HashSet<String>>,
+}
+
+impl<'a> SchemaIndex<'a> {
+    /// Index `schemas`, which must be the analysed spec's schema map.
+    pub(crate) fn new(
+        schemas: &'a std::collections::BTreeMap<String, crate::spec::Schema>,
+    ) -> Self {
+        let mut by_pascal = std::collections::HashMap::with_capacity(schemas.len());
+        for (key, schema) in schemas {
+            by_pascal
+                .entry(crate::to_pascal_case(key))
+                .or_insert(schema);
+        }
+        Self {
+            schemas,
+            by_pascal,
+            type_deps: build_type_dependencies(schemas),
+        }
+    }
+
+    /// The schema stored under exactly `key`.
+    pub(crate) fn get(&self, key: &str) -> Option<&'a crate::spec::Schema> {
+        self.schemas.get(key)
+    }
+
+    /// Which generated type names each type refers to.
+    pub(crate) fn type_deps(
+        &self,
+    ) -> &std::collections::HashMap<String, std::collections::HashSet<String>> {
+        &self.type_deps
+    }
+
+    /// Resolve a `PascalCase` type name to the original `OpenAPI` spec schema key.
+    ///
+    /// The `schemas` map uses the spec's original keys (typically `snake_case`),
+    /// but `shared_resources` stores `PascalCase` names. Try direct lookup first
+    /// (some specs use `PascalCase` keys), then convert to `snake_case`.
+    pub(crate) fn resolve(&self, type_name: &str) -> Option<&'a crate::spec::Schema> {
+        // 1. Direct lookup — the spec's key already matches the type name.
+        if let Some(s) = self.get(type_name) {
+            return Some(s);
+        }
+        // 2. Convert to snake_case (Cloudflare's spec uses snake_case keys).
+        let snake = crate::to_snake_case(type_name);
+        if let Some(s) = self.get(&snake) {
+            return Some(s);
+        }
+        // 3. Lowercase the first char (e.g. "FooBar" → "fooBar").
+        if let Some(first) = type_name.chars().next() {
+            let lower_first =
+                first.to_lowercase().collect::<String>() + &type_name[first.len_utf8()..];
+            if let Some(s) = self.get(&lower_first) {
+                return Some(s);
+            }
+        }
+        // 4. Match on the *pascal-cased* key.
+        //
+        // The three guesses above try to invert pascal-casing, and pascal-casing
+        // is not invertible: Hetzner keys a schema `CreateServerResponseServerPublic_net`
+        // (its property is `public_net`), which the generator refers to as
+        // `…PublicNet`. No amount of snake-casing that name gets back to the
+        // original, so the lookup missed and the type fell back to an opaque
+        // `HashMap<String, Value>` blob — 52 of Hetzner's 100 types, including
+        // `public_net`, which is where the server's IP address lives.
+        //
+        // Comparing in the pascal-cased space is the direction that *is* well
+        // defined: it is exactly the transform the reference site applies.
+        self.by_pascal
+            .get(&crate::to_pascal_case(type_name))
+            .copied()
+    }
+}
+
 /// Merge one `allOf` member's properties (and required names) into the
 /// composed type's.
 ///
@@ -31,7 +116,7 @@ const MAX_ALL_OF_DEPTH: usize = 16;
 /// field of the type it extends.
 fn collect_all_of_member(
     member: &crate::spec::Schema,
-    schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+    schemas: &SchemaIndex<'_>,
     properties: &mut std::collections::BTreeMap<String, (String, crate::spec::Schema)>,
     required: &mut std::collections::HashSet<String>,
     depth: usize,
@@ -132,10 +217,7 @@ fn field_ident(prop_name: &str) -> String {
 ///
 /// Bounded rather than recursive: a `$ref` to a `$ref` is already unusual, and a
 /// cycle here would hang the generator rather than fail it.
-fn is_nullable(
-    schema: &crate::spec::Schema,
-    schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
-) -> bool {
+fn is_nullable(schema: &crate::spec::Schema, schemas: &SchemaIndex<'_>) -> bool {
     let mut current = schema;
     for _ in 0..8 {
         if current.nullable == Some(true) {
@@ -147,7 +229,7 @@ fn is_nullable(
         let name = ref_path
             .trim_start_matches("#/components/schemas/")
             .trim_start_matches("#/schemas/");
-        match UnifiedGenerator::resolve_schema_key(name, schemas) {
+        match schemas.resolve(name) {
             Some(target) => current = target,
             None => return false,
         }
@@ -1064,6 +1146,8 @@ pub struct UnifiedGenerator {
     /// single right Rust shape, and turning every one into an enum would change
     /// the public types of every provider.
     typed_unions: std::collections::BTreeSet<String>,
+    /// Shared-types-only mode (see [`UnifiedGenerator::shared_types_only`]).
+    shared_types_only: bool,
 }
 
 /// Error type for generation failures.
@@ -1113,6 +1197,7 @@ impl UnifiedGenerator {
             groups_dir: None,
             shared_crate_dir: None,
             typed_unions: std::collections::BTreeSet::new(),
+            shared_types_only: false,
         }
     }
 
@@ -1161,6 +1246,20 @@ impl UnifiedGenerator {
         self
     }
 
+    /// Write only the shared types module, not the group crates.
+    ///
+    /// Split mode normally writes three things: the shared types crate's
+    /// `generated.rs`, one crate per group, and the umbrella shim. With this set,
+    /// [`UnifiedGenerator::generate`] still analyses the spec and builds every
+    /// group, because the hoisted shared types depend on all of them. It then
+    /// writes and formats `generated.rs` alone and stops. It exists for
+    /// `Codegen::check_shared_types`, which compares that one file.
+    #[must_use]
+    pub fn shared_types_only(mut self) -> Self {
+        self.shared_types_only = true;
+        self
+    }
+
     /// Generate all artifacts for a provider as cohesive per-endpoint units.
     ///
     /// # Errors
@@ -1191,13 +1290,14 @@ impl UnifiedGenerator {
         let shared_names = shared.type_names();
 
         // Generate one module per group.
+        let index = SchemaIndex::new(&analysis.schemas);
         let mut modules = vec![shared];
         for group in &analysis.groups {
             let module = self.generate_group_module(
                 provider,
                 group,
                 &analysis.shared_resources,
-                &analysis.schemas,
+                &index,
                 &shared_names,
             )?;
             modules.push(module);
@@ -1304,6 +1404,13 @@ impl UnifiedGenerator {
             fs::create_dir_all(dir)?;
         }
         fs::write(&shared_src, shared_module.render()?)?;
+
+        // Shared-types-only mode stops here: the shared module is the one file
+        // the caller compares, so the group crates are neither rendered nor written.
+        if self.shared_types_only {
+            format_files(std::slice::from_ref(&shared_src))?;
+            return Ok(());
+        }
 
         // 2. One crate per group. The group module's `super::shared` resolves to
         //    the `shared` module we emit in the crate root, so the module body is
@@ -1592,7 +1699,7 @@ impl UnifiedGenerator {
         provider: &str,
         group: &ApiGroup,
         shared_resources: &[String],
-        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+        schemas: &SchemaIndex<'_>,
         actual_shared_types: &HashSet<String>,
     ) -> Result<ModuleFile, GenError> {
         // Sanitize group name for use as directory/file name
@@ -1725,7 +1832,7 @@ impl UnifiedGenerator {
             if already_traversed.contains(&type_name.to_lowercase()) {
                 continue;
             }
-            if let Some(schema) = Self::resolve_schema_key(&type_name, schemas) {
+            if let Some(schema) = schemas.resolve(&type_name) {
                 already_traversed.insert(type_name.to_lowercase());
                 collect_referenced_type_names(schema, &mut all_types, &mut types_to_process);
             }
@@ -1738,7 +1845,7 @@ impl UnifiedGenerator {
             let before = all_types.len();
             let snapshot: Vec<String> = all_types.iter().cloned().collect();
             for type_name in &snapshot {
-                if let Some(schema) = Self::resolve_schema_key(type_name, schemas) {
+                if let Some(schema) = schemas.resolve(type_name) {
                     collect_referenced_type_names(schema, &mut all_types, &mut types_to_process);
                 }
             }
@@ -1746,7 +1853,7 @@ impl UnifiedGenerator {
                 if already_traversed.contains(&type_name.to_lowercase()) {
                     continue;
                 }
-                if let Some(schema) = Self::resolve_schema_key(&type_name, schemas) {
+                if let Some(schema) = schemas.resolve(&type_name) {
                     already_traversed.insert(type_name.to_lowercase());
                     collect_referenced_type_names(schema, &mut all_types, &mut types_to_process);
                 }
@@ -1814,8 +1921,8 @@ impl UnifiedGenerator {
         module.raw(std::mem::take(&mut out));
 
         // Build dependency graph to detect recursive types (types that reference themselves)
-        let type_deps = build_type_dependencies(schemas);
-        let recursive_types = find_recursive_types(&type_deps);
+        let type_deps = schemas.type_deps();
+        let recursive_types = find_recursive_types(type_deps);
 
         // Generate types from schemas - skip types that are already in shared module
         for type_name in &all_types {
@@ -1836,7 +1943,7 @@ impl UnifiedGenerator {
 
             // Try to find the schema for this type (may be PascalCase while
             // schemas use the original spec key convention)
-            let def = match Self::resolve_schema_key(type_name, schemas) {
+            let def = match schemas.resolve(type_name) {
                 Some(schema) => {
                     self.type_def_from_schema(&safe_type_name, schema, schemas, &recursive_types)
                 }
@@ -1955,7 +2062,7 @@ impl UnifiedGenerator {
         &self,
         type_name: &str,
         schema: &crate::spec::Schema,
-        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+        schemas: &SchemaIndex<'_>,
         recursive_types: &std::collections::HashSet<String>,
     ) -> TypeDef {
         use crate::spec::Schema as SpecSchema;
@@ -2058,7 +2165,7 @@ impl UnifiedGenerator {
         prop_name: &str,
         prop_schema: &crate::spec::Schema,
         required: bool,
-        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+        schemas: &SchemaIndex<'_>,
         recursive_types: &std::collections::HashSet<String>,
     ) -> Field {
         let rust_type = self.schema_to_rust_type(prop_schema, schemas);
@@ -2094,7 +2201,7 @@ impl UnifiedGenerator {
         type_name: &str,
         doc: &str,
         schema: &crate::spec::Schema,
-        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+        schemas: &SchemaIndex<'_>,
         recursive_types: &std::collections::HashSet<String>,
     ) -> Option<TypeDef> {
         let members = schema.one_of.as_ref().filter(|m| m.len() >= 2)?;
@@ -2196,7 +2303,7 @@ impl UnifiedGenerator {
     fn plain_rust_type(
         &self,
         schema: &crate::spec::Schema,
-        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+        schemas: &SchemaIndex<'_>,
     ) -> Option<String> {
         if schema.all_of.is_some() {
             return None;
@@ -2222,7 +2329,7 @@ impl UnifiedGenerator {
     fn schema_to_rust_type(
         &self,
         schema: &crate::spec::Schema,
-        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+        schemas: &SchemaIndex<'_>,
     ) -> String {
         // Check for $ref first
         if let Some(ref_path) = &schema.ref_path {
@@ -2537,51 +2644,6 @@ impl UnifiedGenerator {
         Ok(())
     }
 
-    /// Resolve a `PascalCase` type name to the original `OpenAPI` spec schema key.
-    ///
-    /// The `schemas` map uses the spec's original keys (typically `snake_case`),
-    /// but `shared_resources` stores `PascalCase` names. Try direct lookup first
-    /// (some specs use `PascalCase` keys), then convert to `snake_case`.
-    fn resolve_schema_key<'a>(
-        type_name: &str,
-        schemas: &'a std::collections::BTreeMap<String, crate::spec::Schema>,
-    ) -> Option<&'a crate::spec::Schema> {
-        // 1. Direct lookup — the spec's key already matches the type name.
-        if let Some(s) = schemas.get(type_name) {
-            return Some(s);
-        }
-        // 2. Convert to snake_case (Cloudflare's spec uses snake_case keys).
-        let snake = crate::to_snake_case(type_name);
-        if let Some(s) = schemas.get(&snake) {
-            return Some(s);
-        }
-        // 3. Lowercase the first char (e.g. "FooBar" → "fooBar").
-        if let Some(first) = type_name.chars().next() {
-            let lower_first =
-                first.to_lowercase().collect::<String>() + &type_name[first.len_utf8()..];
-            if let Some(s) = schemas.get(&lower_first) {
-                return Some(s);
-            }
-        }
-        // 4. Match on the *pascal-cased* key.
-        //
-        // The three guesses above try to invert pascal-casing, and pascal-casing
-        // is not invertible: Hetzner keys a schema `CreateServerResponseServerPublic_net`
-        // (its property is `public_net`), which the generator refers to as
-        // `…PublicNet`. No amount of snake-casing that name gets back to the
-        // original, so the lookup missed and the type fell back to an opaque
-        // `HashMap<String, Value>` blob — 52 of Hetzner's 100 types, including
-        // `public_net`, which is where the server's IP address lives.
-        //
-        // Comparing in the pascal-cased space is the direction that *is* well
-        // defined: it is exactly the transform the reference site applies.
-        let target = crate::to_pascal_case(type_name);
-        schemas
-            .iter()
-            .find(|(key, _)| crate::to_pascal_case(key) == target)
-            .map(|(_, schema)| schema)
-    }
-
     /// Generate shared module for cross-group types.
     ///
     /// WHY: Types used by multiple groups (`shared_resources`) must live in one place so
@@ -2595,12 +2657,13 @@ impl UnifiedGenerator {
         &self,
         analysis: &super::analyzer::AnalysisResult,
     ) -> Result<ModuleFile, GenError> {
+        let index = SchemaIndex::new(&analysis.schemas);
         let mut module = ModuleFile::new("shared/mod.rs");
 
         // Build dependency graph across ALL schemas (including shared ones) so we
         // detect mutually recursive types that need Box wrapping.
-        let type_deps = build_type_dependencies(&analysis.schemas);
-        let recursive_types = find_recursive_types(&type_deps);
+        let type_deps = index.type_deps();
+        let recursive_types = find_recursive_types(type_deps);
 
         let mut out = String::new();
         writeln!(
@@ -2678,7 +2741,7 @@ impl UnifiedGenerator {
                     continue;
                 }
                 traversed.insert(key);
-                if let Some(schema) = Self::resolve_schema_key(&type_name, &analysis.schemas) {
+                if let Some(schema) = index.resolve(&type_name) {
                     let mut discovered: Vec<String> = Vec::new();
                     collect_referenced_type_names(schema, &mut seen, &mut discovered);
                     to_process.extend(discovered);
@@ -2735,7 +2798,7 @@ impl UnifiedGenerator {
             // Array schemas inline to `Vec<Item>` at field positions, so they
             // must not be emitted as standalone structs (the element type is
             // emitted instead, having been collected transitively).
-            if let Some(schema) = Self::resolve_schema_key(type_name, &analysis.schemas) {
+            if let Some(schema) = index.resolve(type_name) {
                 if schema.schema_type.as_deref() == Some("array") {
                     continue;
                 }
@@ -2745,13 +2808,10 @@ impl UnifiedGenerator {
             // Schemas are keyed by original spec names (usually snake_case);
             // shared_resources stores PascalCase names. resolve_schema_key
             // tries multiple naming conventions.
-            let def = match Self::resolve_schema_key(type_name, &analysis.schemas) {
-                Some(schema) => self.type_def_from_schema(
-                    &safe_name,
-                    schema,
-                    &analysis.schemas,
-                    &recursive_types,
-                ),
+            let def = match index.resolve(type_name) {
+                Some(schema) => {
+                    self.type_def_from_schema(&safe_name, schema, &index, &recursive_types)
+                }
                 // No schema to say what it is: any JSON value.
                 None => TypeDef::alias(
                     &safe_name,

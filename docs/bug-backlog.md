@@ -134,11 +134,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   limit field on the store's config (rule 8; nginx's `proxy_buffer` and Go's
   `http.MaxBytesReader` use finite caps), read under it, and return a clear
   error when it is exceeded; stream rows when the D1 API allows.
-- **The Cloudflare wire-type check takes about 160 s in a `dev` build.**
-  `foundation_codegentools/tests/cloudflare_types.rs::cloudflare_types_are_generated`
-  regenerates all 43 group crates into a scratch tree, like the build script
-  does. Fix: let `Codegen::check` compare only the shared types crate when asked
-  (`check_shared_only`), and keep the full compare in the build script.
 
 ## 16. Workspace / process
 
