@@ -3,7 +3,7 @@ description: "Fix every open entry in docs/bug-backlog.md (sections 1–21), fou
 status: "in-progress"
 priority: "critical"
 created: 2026-10-28
-updated: 2026-10-28
+updated: 2026-11-02
 author: "Main Agent"
 metadata:
   version: "2.0"
@@ -17,10 +17,10 @@ related_specs:
   - "specifications/50-valtron-async-readiness"
   - "specifications/65-agent-rpc-serving-system"
 tasks:
-  completed: 0
-  uncompleted: 28
-  total: 28
-  completion_percentage: 0%
+  completed: 40
+  uncompleted: 20
+  total: 60
+  completion_percentage: 67%
 ---
 
 # Spec 70: Foundational I/O hardening
@@ -150,6 +150,37 @@ done
 | 27 | [`SleepIterator` returns `Done` for a reached deadline](./features/27-valtron-sleep-iterator/feature.md) | §4 zero-duration deadline | — | S |
 | 28 | [QUIC driver parks on its UDP socket](./features/28-quic-driver-fd-readiness/feature.md) | §2 QUIC driver 1 ms poll | 02 | M |
 | 29 | [Client body reader reaches a Waker-capable readiness source](./features/29-client-reactor-bridge/feature.md) | §2 client body reader cannot reach the reactor | 02 | M |
+| 30 | [Remaining valtron limits become configuration](./features/30-remaining-valtron-limits/feature.md) | §4 limits | — | S |
+| 31 | [Wake-capable shutdown signal](./features/31-wake-capable-shutdown-signal/feature.md) | §3 accept loop | — | S |
+| 32 | [Reactor drain poll timeout becomes configuration](./features/32-reactor-drain-timeout-config/feature.md) | §2 reactor | — | S |
+| 33 | [QUIC driver wakes on outgoing stream data](./features/33-quic-driver-wake-on-outgoing/feature.md) | §2 QUIC | — | S |
+| 34 | [`valtron_test` recursion-depth limit](./features/34-valtron-test-recursion-limit/feature.md) | §4 | — | S |
+| 35 | [`TursoStorage::set` async-trait overflow](./features/35-turso-async-trait-overflow/feature.md) | §11 | — | S |
+| 36 | [DNS resolution no longer blocks the client task](./features/36-netio-async-dns/feature.md) | §2 | — | S |
+| 37 | [Completion sockets stop answering Unsupported](./features/37-completion-socket-readiness/feature.md) | §1 | — | S |
+| 38 | [Delete the dead `tls_verification` module](./features/38-netio-tls-verification-dead-module/feature.md) | §2 | — | S |
+| 39 | [Pin rustfmt to the CI version](./features/39-rustfmt-version-pin/feature.md) | §16 | — | S |
+| 40 | [`OverlayStream.owner` is never read](./features/40-nativeapis-dead-owner/feature.md) | §13 | — | S |
+| 41 | [Static file handler: async, streamed, byte-exact](./features/41-static-file-streamed-write/feature.md) | §8 catalogue row 1 (sonnet) | — | M |
+| 42 | [Remove netio dead code that spins or sleeps](./features/42-netio-dead-wait-loops/feature.md) | §8 catalogue row 2, 3 (haiku) | — | S |
+| 43 | [Docker POST `100 Continue` 2-minute stall](./features/43-docker-expect-continue-stall/feature.md) | §8 catalogue row 4 (sonnet) | — | M |
+| 44 | [keychain handlers run as `ConnectionResult::Async`](./features/44-keychain-async-serve/feature.md) | §8 catalogue row 5, 6 (sonnet) | — | M |
+| 45 | [proxy relay async; cross-process state; unused feature dep](./features/45-proxy-async-relay/feature.md) | §8 catalogue row 7–9 (sonnet) | — | M |
+| 46 | [`DrivenStreamIterator` can park an async consumer](./features/46-driven-stream-async-wake/feature.md) | §8 catalogue row 10 (sonnet) | — | M |
+| 47 | [Seven ignored ptrace tests run again](./features/47-ptrace-ignored-tests/feature.md) | §8 catalogue row 11 (sonnet) | — | M |
+| 48 | [Two ignored condvar tests run](./features/48-nostd-condvar-ignored-tests/feature.md) | §8 catalogue row 12 (sonnet) | — | M |
+| 49 | [Reactor/testbed warnings; docker clippy debt](./features/49-warnings-and-docker-clippy/feature.md) | §8 catalogue row 13–15 (haiku) | — | S |
+| 50 | [Inline tests out of lane A crates](./features/50-lane-a-inline-tests/feature.md) | §8 catalogue row 16 (haiku) | — | S |
+| 51 | [libsql/Turso batches isolated on the shared connection](./features/51-sql-batch-connection-gate/feature.md) | §8 catalogue row 17 (sonnet) | — | M |
+| 52 | [D1 batch request; generated D1/R2 types](./features/52-d1-batch-and-generated-types/feature.md) | §8 catalogue row 18 (sonnet) | — | M |
+| 53 | [Auth leftovers and key rotation](./features/53-auth-leftovers/feature.md) | §8 catalogue row 19 (sonnet) | — | M |
+| 54 | [Vendored patches reach published users; fp16](./features/54-vendored-patches-and-fp16/feature.md) | §8 catalogue row 20, 21 (sonnet) | — | M |
+| 55 | [Generator rustfmt, clippy debt, Cloudflare wasm deps](./features/55-generator-hygiene/feature.md) | §8 catalogue row 22–24 (haiku) | — | S |
+| 56 | [db and vectors leftovers](./features/56-db-vectors-leftovers/feature.md) | §8 catalogue row 25, 26 (haiku) | — | S |
+| 57 | [channels and domain fixes](./features/57-channels-domain/feature.md) | §8 catalogue row 27 (haiku) | — | S |
+| 58 | [todo example, web-app template, vms lint](./features/58-examples-templates-ci/feature.md) | §8 catalogue row 28 (haiku) | — | S |
+| 59 | [Inline tests out of lane B crates](./features/59-lane-b-inline-tests/feature.md) | §8 catalogue row 29 (haiku) | — | S |
+| 60 | [Stale backlog entries and bookkeeping](./features/60-backlog-and-spec-bookkeeping/feature.md) | §8 catalogue row 30 (haiku) | — | S |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -214,3 +245,77 @@ _The diagram shows which feature must finish before another starts._
 - [ ] No `#[ignore]` in `foundation_netio/tests` without a written reason and a backlog entry.
 - [ ] No `#[cfg(test)]` module in the source files of these crates.
 - [ ] CI green on every feature PR.
+
+## 8. Post-merge features 41–60 (after PR #172)
+
+Spec 70 merged in PR #172. Its review found bugs that were not in `docs/bug-backlog.md`; the
+backlog also kept open entries, and entries that are fixed but were never deleted. Features
+41–60 cover all of them. Source: R = PR #172 review; B = open backlog entry; S = backlog entry
+fixed in code but not deleted.
+
+| # | Bug | Source | Feature |
+|---|---|---|---|
+| 1 | Static file handler duplicates bytes after a partial write, sleeps on a worker, reads the whole file | R | 41 |
+| 2 | `collect_exchange` / `drain_exchange_head` spin on `yield_now` (no callers) | R | 42 |
+| 3 | `QuicListener::accept_timeout` polls with 1 ms sleeps; 30 s constant (no callers) | R | 42 |
+| 4 | Docker POST with a body stalls 2 minutes on `100 Continue` | B §6 | 43 |
+| 5 | keychain `poll_ready` polls once with a no-op waker and panics on `Pending` | B §22 | 44 |
+| 6 | keychain bin recursion-depth lint | B §22 | 44 |
+| 7 | proxy `forward_http` relays on a throwaway thread and returns `Take` | B §9 | 45 |
+| 8 | proxy state lock is per process; two proxies on one store race | R | 45 |
+| 9 | proxy `cloudflare` feature has an unused dependency | B §9 | 45 |
+| 10 | single-thread `DrivenStreamIterator` cannot park an async consumer | B §4 | 46 |
+| 11 | seven ptrace tests ignored for a CI-kernel deadlock, not in the backlog | R | 47 |
+| 12 | two `foundation_nostd` condvar tests ignored with a wrong reason | R | 48 |
+| 13 | `foundation_reactor` wasm dead code `rearm_readable` | B §16 | 49 |
+| 14 | `foundation_testbed` unused `deno_v8` lint | B §16 | 49 |
+| 15 | `foundation_deployment_docker` clippy debt | B §8 | 49 |
+| 16 | inline `#[cfg(test)]` in lane A crates | R | 50 |
+| 17 | libsql and Turso batches share the store's one connection with other operations | R | 51 |
+| 18 | D1 batch joins statements into one string; atomicity unproven; hand-written D1/R2 types | R | 52 |
+| 19 | auth: dead wasm `session.rs`, `_async` OAuth names, no key id in `TokenSigner`, server clippy not in CI | R, B §12 | 53 |
+| 20 | `[patch.crates-io]` does not reach users of published crates | R | 54 |
+| 21 | `fullfp16` is an unstable target feature name | B §10 | 54 |
+| 22 | Cloudflare per-group shims are not rustfmt-clean | B §8 | 55 |
+| 23 | `foundation_openapi` / `foundation_codegentools` clippy debt | B §8 | 55 |
+| 24 | `foundation_deployment_cloudflare` wasm unused dependencies | B §21 | 55 |
+| 25 | db timestamp units; rate-limit dead code | B §11, §16 | 56 |
+| 26 | vectors recursion lint; `code-graph` clippy deny | B §17 | 56 |
+| 27 | channels `println!`, constant capacities, `is_closed`; domain capacity | B §18, §19 | 57 |
+| 28 | todo example dead code and deps; web-app template dead code; `vms` not linted | B §23, §24, §7 | 58 |
+| 29 | inline `#[cfg(test)]` in lane B crates | R | 59 |
+| 30 | stale backlog entries (§11 ×4, §16 publish note) | S | 60 |
+
+### 8.1 Lanes, branches and models
+
+Two lanes run at the same time. Each lane runs **one agent at a time**, one feature per agent,
+in feature order. The model per feature follows its complexity: **Sonnet 5.5** where the work
+needs diagnosis or design (concurrency, async control flow, protocol behaviour, security,
+generators); **Haiku 5.5** where it is mechanical (deleting dead code, clippy and warning
+fixes, moving tests, small config changes). The `model` field in each feature's frontmatter is
+the choice.
+
+| Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
+|---|---|---|---|
+| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 50 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
+| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
+
+- A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
+  reports to the main session. (Feature 54 may change only the boringtun line of
+  `foundation_wireguard/Cargo.toml`.)
+- Shared files (`Cargo.lock`, `docs/bug-backlog.md`, `progress.md`, `learnings.md`): on a
+  conflict keep both sides.
+- One commit or more per feature. One PR per lane at the end, base `master`.
+
+### 8.2 Rules added for features 41–60
+
+1. **Check first (T0).** Confirm the bug is still open on `master`; write one line in the PR
+   body (`open` / `already fixed by <commit>`). If already fixed, delete its backlog entry and
+   stop.
+2. **Disk.** Two lanes build on one disk (about 14 GB free). Always
+   `export CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0`; build only the crates you change;
+   run `cargo check --workspace --all-targets --profile dev` once, before the PR. If
+   `df -h /home/user` shows under 3 GB, `cargo clean -p` crates you finished, then report.
+3. **Report** to the main session after each feature: what changed, before/after test results,
+   commands and results. The main session reviews against the feature's "Done when" list
+   before the next feature starts.

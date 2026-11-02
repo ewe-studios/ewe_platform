@@ -2,6 +2,12 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: features 41–60 added by the main session after PR #172 merged: the PR review
+  findings, the open backlog entries and the stale ones (requirements.md section 8). Two lanes
+  (A: I/O and runtime, `fix/io-41-50-lane-a`; B: data, auth and hygiene,
+  `fix/io-51-60-lane-b`); Sonnet 5.5 for diagnosis and design work, Haiku 5.5 for mechanical
+  work. Frontmatter and features table now list all 60.
+
 - 2026-11-02: feature 39 (rustfmt version pin) done on
   `fix/io-35-turso-async-trait-overflow`. `rust-toolchain.toml` names the pinned channel
   `nightly-2026-09-20`. That channel gives rustfmt `1.10.0-nightly

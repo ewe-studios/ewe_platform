@@ -1,0 +1,39 @@
+---
+feature: "Move inline #[cfg(test)] modules out of lane B crates (rule 7)"
+status: "pending"
+lane: "B"
+model: "haiku"
+branch: "fix/io-51-60-lane-b"
+crates: ["lane B crates"]
+catalogue_rows: [29]
+---
+
+# Feature 59: inline tests out (lane B)
+
+_Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they are. Follow [requirements.md](../../requirements.md) sections 3, 4 and 8._
+
+Same method as feature 50 (read `../50-lane-a-inline-tests/feature.md`), for lane B crates.
+Known files: `foundation_packager/src/{package,files}.rs`, `foundation_html/src/{markup,parsers}.rs`,
+`foundation_logging/src/lib.rs`, `foundation_wasmtime/src/lib.rs`,
+`foundation_codegen/src/module_path.rs`, `foundation_connectrpc_codegen/src/generator.rs`,
+`foundation_testing/src/{netcap/mod.rs,http/sse_server.rs}`,
+`foundation_macros/src/{wasm_modes,wasm_logs,connectrpc_service}.rs` and
+`foundation_macros/src/html_macro/{scoped_css,parser}.rs`,
+`foundation_platform/src/{ipc/mod.rs,ipc/streaming.rs,ewe.rs,multi_app.rs,backend/ipc_dispatch.rs,worker.rs,ota.rs,overlay.rs}`,
+`foundation_repl/src/shared/history.rs`, `foundation_deployment_cloudflare/src/workers/durable_object.rs`,
+`crates/{template-macro,html-macro}/src/lib.rs`, `crates/watchers/src/config.rs`,
+`infrastructure/llama-cpp/src/{llama_backend,log}.rs`. Also check `foundation_jsonschema`
+(about 40 files): if it is a vendored copy of an upstream crate, do **not** move its tests;
+record that it is vendored in the PR and in `docs/bug-backlog.md` as an accepted exception
+the owner must confirm.
+
+Proc-macro crates (`foundation_macros`, `crates/*-macro`) can only test public macros from
+`tests/`; test internal helpers through macro expansion, or move the helper into a normal
+library crate if it needs direct tests. Say which per file.
+
+## Verify
+
+```bash
+rg -l '#\[cfg\(test\)\]' backends/<each lane B crate>/src crates/*/src infrastructure/*/src   # only jsonschema, if accepted
+```
+Test counts per crate before and after in the PR body. CI green.
