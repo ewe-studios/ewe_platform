@@ -392,7 +392,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_compact"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "cfg-if",
  "foldhash",
@@ -400,13 +400,15 @@ dependencies = [
  "libc",
  "rand_chacha",
  "rand_core",
+ "tracing",
  "tracing-subscriber",
+ "uuid",
  "zeroize",
 ]
 
 [[package]]
 name = "foundation_core"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "bytes",
  "concurrent-queue",
@@ -438,7 +440,7 @@ dependencies = [
 
 [[package]]
 name = "foundation_macros"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "base85rs",
  "brotli",
@@ -471,7 +473,6 @@ dependencies = [
  "clap",
  "concurrent-queue",
  "foundation_codegen",
- "foundation_macros",
  "foundation_nostd",
  "toml",
  "toml_edit 0.22.27",
