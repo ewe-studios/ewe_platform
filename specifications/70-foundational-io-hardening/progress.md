@@ -2,6 +2,20 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 42 (netio dead wait loops) done on `fix/io-41-50-lane-a`. T0: no
+  real caller of `collect_exchange`, `drain_exchange_head` or `QuicListener` anywhere in the
+  repo (only definitions, the `pub mod` line, a deprecation note and a comment). Deleted
+  `collect_exchange` and `drain_exchange_head` from `shared/client/body_reader.rs` (about 80
+  lines, including the `yield_now` loops and the now-unused `BytesMut` and `SimpleResponse`
+  imports), and `native/quic_listener.rs` (101 lines, `QuicListener`, `QuicBind`, its 1 ms
+  sleep and 30 s constant) with its `pub mod` line. Deprecation note in
+  `foundation_deployment/src/providers/common/api_types.rs` now names
+  `split_exchange`/`send_and_split`. `split_exchange` and `send_and_split` are kept. No
+  `yield_now` remains in netio `src`. Verified: `ci.py run foundation_netio --profile dev`
+  EXIT=0 (lib, unit, integration and doc suites ok, 13 test result blocks, no unused-import
+  warnings); `ci.py run foundation_deployment --profile dev` EXIT=0 (5 test result blocks ok).
+  The `collect_exchange_parks_while_waiting` test is not needed on the delete branch.
+
 - 2026-11-02: feature 61 (shared response writer, idle send timeout) done on
   `fix/io-41-50-lane-a`. New `native::writer`: `ResponseWriter` (offset-tracking write and
   flush that parks on write readiness), `WriterConfig`, and `send_bytes`/`send_text`/

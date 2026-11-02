@@ -36,7 +36,7 @@ use crate::shared::http::{
 };
 use std::sync::Arc;
 
-use bytes::{Bytes, BytesMut};
+use bytes::Bytes;
 use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::io::readers::{Data, DataBytesIterator};
 use foundation_core::valtron::{
@@ -49,7 +49,7 @@ use crate::network_client::DynNetClient;
 use crate::shared::client::request_builder::PreparedRequestBuilder;
 use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
 use crate::shared::http::{
-    HttpClientError, SimpleHeaders, SimpleResponse, Status, DEFAULT_PUSHABLE_DEPTH,
+    HttpClientError, SimpleHeaders, Status, DEFAULT_PUSHABLE_DEPTH,
 };
 
 // ============================================================================
@@ -2179,8 +2179,9 @@ pub async fn collect_bytes_bounded(mut body: AsyncSendSafeBody, limit: usize) ->
 // pattern so generated code and hand-written streaming clients don't reimplement
 // it.
 //
-// WHAT: `split_exchange()` (split, caller sends), `send_and_split()` (split +
-// send), and `collect_exchange()` (split + send + collect a full response).
+// WHAT: `split_exchange()` (split, caller sends) and `send_and_split()` (split +
+// send). Callers that want a full collected response drive the observers in
+// async code; there is no blocking collect helper.
 //
 // HOW: `builder.send(client)` → `split_collect_until_map` (head) →
 // `split_collector_map` (body) → the continuation is returned (or sent).
@@ -2299,79 +2300,4 @@ pub fn send_and_split(
     valtron::send(task.map_ready(|_| ()))
         .map_err(|e| HttpClientError::Reason(format!("valtron::send failed: {e}")))?;
     Ok((head, body))
-}
-
-/// Split, send, and collect a full (non-streaming) response.
-///
-/// WHY: Non-streaming callers that want a single collected response without
-/// touching the streaming observers.
-///
-/// WHAT: Drains the head observer (status + headers), then accumulates every body
-/// chunk into a `BytesMut`, returning `SimpleResponse<SendSafeBody::Bytes>`.
-///
-/// HOW: [`send_and_split`], then drain head then body. Non-data stream signals
-/// (`Wait`/`Pending`) yield the thread and keep draining.
-///
-/// **Caveat:** this blocks the calling thread until the exchange completes. Do
-/// not call it from inside a valtron worker task (it would block that worker);
-/// use [`split_exchange`] + async draining there. Generated non-streaming code
-/// uses `HttpClient::send_async()` instead of this helper.
-///
-/// # Errors
-///
-/// Returns the exchange's [`ExchangeError`] on a pre-head or mid-body failure, or
-/// a wrapped [`HttpClientError`] if `valtron::send()` fails or no head arrives.
-///
-/// # Panics
-///
-/// This function does not panic.
-pub fn collect_exchange(
-    client: &DynNetClient,
-    builder: PreparedRequestBuilder,
-) -> Result<SimpleResponse<SendSafeBody>, ExchangeError> {
-    let (head, mut body) =
-        send_and_split(client, builder).map_err(|e| Arc::new(e) as ExchangeError)?;
-
-    let (status, headers) = drain_exchange_head(head)?;
-
-    let mut collected = BytesMut::new();
-    loop {
-        match body.next() {
-            Some(Stream::Next(Ok(chunk))) => collected.extend_from_slice(&chunk),
-            Some(Stream::Next(Err(e))) => return Err(e),
-            // Wait/Pending/Ignore — the queue is channel-backed; keep draining.
-            Some(_) => std::thread::yield_now(),
-            None => break,
-        }
-    }
-
-    Ok(SimpleResponse::new(
-        status,
-        headers,
-        SendSafeBody::Bytes(collected.to_vec()),
-    ))
-}
-
-/// Drain the single head item from an [`ExchangeHeadObserver`].
-///
-/// # Errors
-///
-/// Returns the pre-head [`ExchangeError`], or a wrapped [`HttpClientError`] if the
-/// observer closes without a head.
-fn drain_exchange_head(
-    mut head: ExchangeHeadObserver,
-) -> Result<(Status, SimpleHeaders), ExchangeError> {
-    loop {
-        match head.next() {
-            Some(Stream::Next(Ok(pair))) => return Ok(pair),
-            Some(Stream::Next(Err(e))) => return Err(e),
-            Some(_) => std::thread::yield_now(),
-            None => {
-                return Err(
-                    Arc::new(HttpClientError::Reason("no response head".to_string()))
-                        as ExchangeError,
-                )
-            }
-        }
-    }
 }

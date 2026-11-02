@@ -1,6 +1,6 @@
 ---
 feature: "foundation_netio: remove collect_exchange/drain_exchange_head and QuicListener (dead code that spins or sleeps)"
-status: "pending"
+status: "done"
 lane: "A"
 model: "haiku"
 branch: "fix/io-41-50-lane-a"
@@ -60,5 +60,5 @@ rg -n 'thread::sleep' backends/foundation_netio/src/native  # each hit has a com
 
 ## Done when
 
-- [ ] T0 line (callers found or not). Deleted or fixed as the decision rule says.
-- [ ] No `yield_now` in netio `src`. CI green.
+- [x] T0 line (callers found or not). Deleted or fixed as the decision rule says.
+- [x] No `yield_now` in netio `src`. CI green.

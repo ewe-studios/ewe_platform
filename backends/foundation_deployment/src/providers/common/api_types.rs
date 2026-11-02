@@ -20,7 +20,7 @@ use super::body::{read_error_body, BodyLimits, ByteStream, JsonLinesStream};
 pub use foundation_core::valtron::BoxedSendExecutionAction;
 #[deprecated(
     note = "RequestIntro is native-only; use HttpClient::open_exchange() + HttpExchange \
-            (or body_reader::split_exchange/collect_exchange) instead"
+            (or body_reader::split_exchange/send_and_split) instead"
 )]
 pub use foundation_netio::http::RequestIntro;
 
