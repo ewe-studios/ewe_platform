@@ -118,3 +118,12 @@ standard ASD-STE100.
 
 E1 through E6 all landed, each in its own commit. The proxy feature 15 work is
 complete.
+
+## Linux CI
+
+`scripts/ci/linux.sh foundation_connectrpc` and `scripts/ci/linux.sh
+foundation_proxy` both pass on `ewestudios/ewe-platform-ci:latest` (linux/amd64,
+`--profile uat`): connectrpc 477 tests passed (2 ignored), proxy 117 tests
+passed. The first run failed (exit 125) because the host disk was full (the
+OrbStack virtual machine cargo volume); after the disk was cleared and the image
+and volume were rebuilt, both runs are green.
