@@ -285,6 +285,7 @@ fixed in code but not deleted.
 | 28 | todo example dead code and deps; web-app template dead code; `vms` not linted | B §23, §24, §7 | 58 |
 | 29 | inline `#[cfg(test)]` in lane B crates | R | 59 |
 | 30 | stale backlog entries (§11 ×4, §16 publish note) | S | 60 |
+| 31 | `foundation_connectrpc` clippy debt | B §1 | 49 |
 
 ### 8.1 Lanes, branches and models
 
