@@ -40,5 +40,6 @@ pub use foundation_reactor::ShutdownSignal;
 
 #[cfg(all(not(target_family = "wasm"), unix))]
 pub use native::{
-    accept_connection, connect_completion, init_reactor_for, CompletionSocket, FdReadiness,
+    accept_connection, adopt_connected, connect_completion, init_reactor_for, CompletionSocket,
+    FdReadiness,
 };

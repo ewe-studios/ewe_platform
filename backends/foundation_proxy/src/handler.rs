@@ -123,6 +123,7 @@ impl Serve for ProxyHandler {
         let io_mode = self.state.io_mode();
         let writer_config = self.state.writer_config();
         let max_request_body = self.state.max_request_body();
+        let connect_timeout = self.state.connect_timeout();
         // Only a request with a body needs the client's read readiness.
         let client_read_wake = if matches!(req.body, None | Some(SendSafeBody::None)) {
             None
@@ -171,7 +172,7 @@ impl Serve for ProxyHandler {
                 // HTTP-fronted raw backend: tunnel the connection through. The
                 // bytes already parsed as the HTTP request are not replayed. The
                 // dedicated raw entry point is `passthrough::TcpPassthrough`.
-                relay_tcp_tunnel(conn, &backend, io_mode, writer_config).await;
+                relay_tcp_tunnel(conn, &backend, io_mode, connect_timeout, writer_config).await;
             } else if upgrade {
                 // The splice owns the connection until either side closes. A
                 // failure before it starts leaves the connection ours: answer.
@@ -182,6 +183,7 @@ impl Serve for ProxyHandler {
                     &client_ip,
                     &scheme,
                     io_mode,
+                    connect_timeout,
                     writer_config,
                 )
                 .await;
@@ -244,10 +246,11 @@ async fn relay_tcp_tunnel(
     conn: SharedByteBufferStream<RawStream>,
     backend: &Arc<crate::runtime::BackendRuntime>,
     io_mode: foundation_iogate::ServerIo,
+    connect_timeout: std::time::Duration,
     writer_config: foundation_http::native::writer::WriterConfig,
 ) {
     let authority = backend.target().authority();
-    match crate::aio::dial_tcp(&authority, io_mode).await {
+    match crate::aio::dial_tcp(&authority, io_mode, connect_timeout).await {
         Ok(upstream) => crate::aio::splice(conn, upstream, writer_config).await,
         Err(e) => {
             // The connection is untouched: answer so the client sees a response.

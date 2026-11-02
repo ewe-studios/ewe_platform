@@ -184,6 +184,29 @@ fn connect_completion_dials_a_completion_backed_upstream() {
     server.join().ok();
 }
 
+#[test]
+#[serial]
+#[traced_test]
+fn adopt_connected_registers_an_already_connected_upstream() {
+    // `adopt_connected` is `connect_completion` minus the blocking connect: the
+    // async dial connects non-blocking, then hands the socket here.
+    if foundation_iogate::init_reactor_for(ServerIo::Completion).is_err() {
+        tracing::warn!("io_uring unavailable — skipping adopt_connected test");
+        return;
+    }
+
+    let (addr, server) = one_shot_writer(b"adopted upstream");
+    let tcp = TcpStream::connect(addr).expect("connect");
+
+    let mut conn =
+        foundation_iogate::adopt_connected(tcp, addr, ServerIo::Completion).expect("adopt");
+    assert!(matches!(conn, Connection::Completion(_)));
+
+    let got = read_until(&mut conn, b"adopted upstream".len(), Duration::from_secs(5));
+    assert_eq!(&got, b"adopted upstream");
+    server.join().ok();
+}
+
 /// The SEND_ZC relay entry point exists on Linux. It sat behind a `uring`
 /// feature the crate never declared, so it could not be compiled in at all;
 /// io_uring is a Linux target property here, not a feature.

@@ -105,6 +105,11 @@ pub struct ProxyConfig {
     /// live client is not cut. Defaults to 60 seconds (nginx `send_timeout`).
     #[serde(default = "default_relay_send_timeout", with = "duration_millis")]
     pub relay_send_timeout: Duration,
+    /// The longest the proxy waits for a TCP connect to a backend (the tunnel
+    /// and upgrade relays) to finish. The wait parks the task; it holds no
+    /// thread. Defaults to 60 seconds (nginx `proxy_connect_timeout`).
+    #[serde(default = "default_connect_timeout", with = "duration_millis")]
+    pub connect_timeout: Duration,
     /// The largest request body, in bytes, the proxy relays to a backend. A
     /// larger declared `Content-Length`, or a streamed body that passes the
     /// limit, is answered `413 Payload Too Large`. `0` turns the limit off, for
@@ -136,6 +141,7 @@ impl ProxyConfig {
             redirect_accept_poll: default_redirect_accept_poll(),
             io_mode: ServerIo::default(),
             relay_send_timeout: default_relay_send_timeout(),
+            connect_timeout: default_connect_timeout(),
             max_request_body: default_max_request_body(),
             drain_poll: default_drain_poll(),
         }
@@ -161,6 +167,14 @@ impl ProxyConfig {
     #[must_use]
     pub fn relay_send_timeout(mut self, timeout: Duration) -> Self {
         self.relay_send_timeout = timeout;
+        self
+    }
+
+    /// Set [`Self::connect_timeout`]. Default 60 seconds (nginx
+    /// `proxy_connect_timeout`).
+    #[must_use]
+    pub fn connect_timeout(mut self, timeout: Duration) -> Self {
+        self.connect_timeout = timeout;
         self
     }
 
@@ -309,6 +323,12 @@ const fn default_max_request_body() -> usize {
 
 /// The default relay send timeout: 60 seconds (nginx `send_timeout`).
 fn default_relay_send_timeout() -> Duration {
+    Duration::from_secs(60)
+}
+
+/// The default backend connect timeout: 60 seconds (nginx
+/// `proxy_connect_timeout`).
+fn default_connect_timeout() -> Duration {
     Duration::from_secs(60)
 }
 

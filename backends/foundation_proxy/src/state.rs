@@ -10,6 +10,7 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
 use foundation_http::native::writer::WriterConfig;
 use foundation_iogate::ServerIo;
@@ -38,6 +39,8 @@ pub struct ProxyState {
     writer: WriterConfig,
     /// The largest relayed request body in bytes; 0 means no limit.
     max_request_body: usize,
+    /// The longest a backend TCP connect may take.
+    connect_timeout: Duration,
 }
 
 impl std::fmt::Debug for ProxyState {
@@ -70,6 +73,7 @@ impl ProxyState {
             store: None,
             writer: WriterConfig::default(),
             max_request_body: 1024 * 1024,
+            connect_timeout: Duration::from_secs(60),
         }
     }
 
@@ -85,6 +89,20 @@ impl ProxyState {
     #[must_use]
     pub fn max_request_body(&self) -> usize {
         self.max_request_body
+    }
+
+    /// Set the longest a backend TCP connect may take. Default 60 seconds
+    /// (nginx `proxy_connect_timeout`).
+    #[must_use]
+    pub fn with_connect_timeout(mut self, timeout: Duration) -> Self {
+        self.connect_timeout = timeout;
+        self
+    }
+
+    /// The longest a backend TCP connect may take.
+    #[must_use]
+    pub fn connect_timeout(&self) -> Duration {
+        self.connect_timeout
     }
 
     /// Set the limits of the response writer each relay uses (the send

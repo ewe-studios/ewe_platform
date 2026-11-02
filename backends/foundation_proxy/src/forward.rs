@@ -620,12 +620,13 @@ pub async fn forward_upgrade(
     client_ip: &str,
     scheme: &str,
     io_mode: ServerIo,
+    connect_timeout: std::time::Duration,
     writer_config: WriterConfig,
 ) -> Result<(), String> {
     let authority = backend.target().authority();
     // Dial through iogate (F50): `Completion` reads the upstream from the io_uring
     // inbox and writes via `IORING_OP_SEND`; `Std` is a plain non-blocking socket.
-    let upstream = crate::aio::dial_tcp(&authority, io_mode)
+    let upstream = crate::aio::dial_tcp(&authority, io_mode, connect_timeout)
         .await
         .map_err(|e| format!("connect upstream {authority}: {e}"))?;
 

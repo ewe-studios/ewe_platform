@@ -130,17 +130,20 @@ pub fn wrap_tcp(stream: TcpStream) -> io::Result<SharedByteBufferStream<RawStrea
 /// Resolve `authority` (`host:port`) and connect to it without blocking a
 /// thread.
 ///
-/// WHAT: the lookup runs through the async [`SystemDnsResolver`]. In `Std` mode
-/// the connect is a non-blocking `connect(2)` that parks on write readiness. The
-/// io_uring modes dial through `foundation_iogate::connect_completion`, whose
-/// connect is blocking (a loopback or LAN connect takes one round trip; the
-/// io_uring dial has no async form yet).
+/// WHAT: the lookup runs through the async [`SystemDnsResolver`]. The connect is
+/// a non-blocking `connect(2)` that parks on write readiness for every
+/// `io_mode`. A `Std` dial wraps the connected socket as it is; the `io_uring`
+/// modes then hand the connected socket to
+/// `foundation_iogate::adopt_connected`, which registers it with the reactor.
+/// The wait for the connect to finish ends after `connect_timeout`.
 ///
 /// # Errors
-/// The name did not resolve, or the connect failed.
+/// The name did not resolve, the connect failed, or it did not finish within
+/// `connect_timeout` (`TimedOut`).
 pub async fn dial_tcp(
     authority: &str,
     io_mode: ServerIo,
+    connect_timeout: Duration,
 ) -> io::Result<SharedByteBufferStream<RawStream>> {
     let (host, port) = authority
         .rsplit_once(':')
@@ -166,12 +169,6 @@ pub async fn dial_tcp(
         )
     })?;
 
-    if io_mode != ServerIo::Std {
-        let conn = foundation_iogate::connect_completion(addr, io_mode)?;
-        let raw = RawStream::from_connection(conn).map_err(|e| io::Error::other(e.to_string()))?;
-        return Ok(SharedByteBufferStream::rwrite(raw));
-    }
-
     let pending = PendingConnect::start(addr)?;
     let ready = FdReadiness::register(pending.as_raw_fd())?;
     ready.set_writable(true)?;
@@ -179,7 +176,7 @@ pub async fn dial_tcp(
     // armed before the zero-timeout `poll`, so a connect that finishes between
     // the two still wakes this task.
     let fd = pending.as_raw_fd();
-    poll_fn(|cx| {
+    let writable = poll_fn(|cx| {
         ready.clear();
         ready.register_waker(cx.waker());
         let mut pfd = libc::pollfd {
@@ -194,10 +191,24 @@ pub async fn dial_tcp(
         } else {
             Poll::Pending
         }
-    })
-    .await;
+    });
+    match select(Box::pin(writable), Box::pin(sleep_async(connect_timeout))).await {
+        Either::Left(((), _)) => {}
+        Either::Right(((), _)) => {
+            return Err(io::Error::new(
+                io::ErrorKind::TimedOut,
+                format!("connect to {authority} timed out after {connect_timeout:?}"),
+            ));
+        }
+    }
     drop(ready);
-    wrap_tcp(pending.check()?)
+    let tcp = pending.check()?;
+    if io_mode == ServerIo::Std {
+        return wrap_tcp(tcp);
+    }
+    let conn = foundation_iogate::adopt_connected(tcp, addr, io_mode)?;
+    let raw = RawStream::from_connection(conn).map_err(|e| io::Error::other(e.to_string()))?;
+    Ok(SharedByteBufferStream::rwrite(raw))
 }
 
 /// Read once from `src`: returns the bytes read (0 at end of stream). A read

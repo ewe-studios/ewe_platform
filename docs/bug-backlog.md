@@ -112,9 +112,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   tests `load_balancer_tests.rs` (unused `Arc`, `Duration`, `STICKY_COOKIE`) and
   `h2_integration_tests.rs:318` (unused `mut`) warn on build. Scheduled as
   feature 49 E7.
-- **The io_uring upstream dial is blocking.** `aio::dial_tcp` uses
-  `foundation_iogate::connect_completion` for the non-`Std` modes, whose `connect`
-  blocks the worker for one round trip. Fix: an async connect in iogate.
 - **The H3 proxy forward collects the whole response body.** `h3_proxy.rs`
   `forward` reads the upstream body into one `Vec` before it answers, which breaks
   rule 4 (stream bodies). Its waits are now timer parks, not thread sleeps. Fix:

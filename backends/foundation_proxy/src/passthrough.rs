@@ -41,6 +41,9 @@ pub struct PassthroughConfig {
     pub udp_response_timeout: Duration,
     /// How the backend leg is dialed. Default `Std`.
     pub io_mode: ServerIo,
+    /// The longest the backend TCP connect may take. Default 60 seconds (nginx
+    /// `proxy_connect_timeout`).
+    pub connect_timeout: Duration,
     /// Write limits for the spliced connections (`send_timeout` is nginx's 60 s).
     pub writer: WriterConfig,
 }
@@ -51,6 +54,7 @@ impl Default for PassthroughConfig {
             shutdown_poll: Duration::from_millis(50),
             udp_response_timeout: Duration::from_secs(5),
             io_mode: ServerIo::default(),
+            connect_timeout: Duration::from_secs(60),
             writer: WriterConfig::default(),
         }
     }
@@ -81,6 +85,13 @@ impl PassthroughConfig {
     #[must_use]
     pub fn with_io_mode(mut self, mode: ServerIo) -> Self {
         self.io_mode = mode;
+        self
+    }
+
+    /// Set [`Self::connect_timeout`].
+    #[must_use]
+    pub fn with_connect_timeout(mut self, timeout: Duration) -> Self {
+        self.connect_timeout = timeout;
         self
     }
 
@@ -236,7 +247,7 @@ async fn splice_client_to_backend(
     config: PassthroughConfig,
 ) -> std::io::Result<()> {
     let client = wrap_tcp(client)?;
-    let backend = dial_tcp(backend_authority, config.io_mode).await?;
+    let backend = dial_tcp(backend_authority, config.io_mode, config.connect_timeout).await?;
     splice(client, backend, config.writer).await;
     Ok(())
 }

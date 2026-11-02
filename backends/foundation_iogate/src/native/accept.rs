@@ -138,7 +138,32 @@ pub fn accept_connection(
 /// # Panics
 /// Never panics.
 pub fn connect_completion(addr: SocketAddr, mode: ServerIo) -> io::Result<Connection> {
-    let tcp = TcpStream::connect(addr)?;
+    // Blocking: waits for the whole connect. An async caller uses
+    // `adopt_connected` after a non-blocking connect instead.
+    adopt_connected(TcpStream::connect(addr)?, addr, mode)
+}
+
+/// Build the netio [`Connection`] for an already connected upstream `tcp` under
+/// `mode` — the second half of [`connect_completion`], without the blocking
+/// connect.
+///
+/// WHY: the `io_uring` dial must not hold a worker thread while the connect is in
+/// flight. A caller starts a non-blocking `connect(2)`, parks on write
+/// readiness until it finishes, and then hands the connected socket here to be
+/// registered with the shared reactor.
+///
+/// WHAT: `Std` yields a plain `Connection::Tcp`; every other mode registers the
+/// fd with the reactor and yields `Connection::Completion` (see
+/// [`connect_completion`]). `addr` is the captured peer address. `tcp` is set
+/// non-blocking.
+///
+/// # Errors
+/// The socket mode could not be set, the reactor could not start, or the socket
+/// could not be registered.
+///
+/// # Panics
+/// Never panics.
+pub fn adopt_connected(tcp: TcpStream, addr: SocketAddr, mode: ServerIo) -> io::Result<Connection> {
     // A dialed upstream is always spliced non-blocking (the reactor read paths
     // require it, and the `Std` splice loop expects `WouldBlock` too).
     tcp.set_nonblocking(true)?;
