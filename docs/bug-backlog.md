@@ -90,6 +90,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   long-lived handler parks instead of holding a worker. The proxy still relays on
   a throwaway thread and returns `Take`. It can move to `Async` later once its
   relay future is `'static`.
+- **The `cloudflare` feature pulls in `foundation_deployment_cloudflare` but no
+  code uses it.** The dependency is named only in doc comments (`config.rs`,
+  `tls.rs`, `acme.rs`), so `cargo check --features cloudflare` reports an
+  `unused_dependencies` lint. Fix: use the dependency (for example, drive the
+  ACME DNS-01 Cloudflare path through it) or drop the feature.
 
 ## 10. foundation_ai
 
@@ -160,7 +165,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   0, but the repo is not fmt-clean under the CI toolchain. Fix: pin one rustfmt
   version (a `rust-toolchain.toml` with the rustfmt component) and format the
   repo with it.
-- **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
 - **`foundation_testbed` declares `deno_v8` as an unused dependency** (cargo
   nightly 1.100.0 `unused_dependencies` lint, `Cargo.toml:118`). `deno_v8` is
   listed only to enable its V8 backend for `deno_core` (feature unification);
@@ -234,14 +238,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
 
-- **`foundation_deployment_cloudflare` has five `unused_dependencies` manifest
-  lints under wasm32** (cargo nightly 1.100.0): `base85rs`, `sha2`,
-  `foundation_errstacks`, and two `foundation_netio` entries. `base85rs` and
-  `sha2` are used nowhere. `foundation_errstacks` (types.rs) and
-  `foundation_netio` (client.rs, dns_ops.rs, generated/*) are used only in
+- **`foundation_deployment_cloudflare` has three `unused_dependencies` manifest
+  lints under wasm32** (cargo nightly 1.100.0): `foundation_errstacks` and two
+  `foundation_netio` entries. `foundation_errstacks` (types.rs) and
+  `foundation_netio` (client.rs, dns_ops.rs) are used only in
   `#[cfg(not(target_family = "wasm"))]` modules, so the wasm build flags them.
-  Fix: delete the truly-unused deps and move the native-only ones into the
-  native target section.
+  The two truly-unused deps (`base85rs`, `sha2`) were removed when the generated
+  Cloudflare groups split into per-group crates (feature 22 E3). Fix: move the
+  native-only deps into the native target section and drop the wasm-only
+  `foundation_netio` entry (nothing uses it on wasm).
 
 ## 22. foundation_keychain
 

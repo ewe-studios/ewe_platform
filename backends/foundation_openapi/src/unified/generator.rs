@@ -649,7 +649,7 @@ fn update_cargo_toml(
     Ok(())
 }
 
-/// Errors from [`rewrite_features_for_groups`].
+/// Errors from [`rewrite_features_for_groups`] and [`rewrite_umbrella_for_split`].
 #[derive(Debug, derive_more::Display)]
 pub enum FeatureRewriteError {
     /// The manifest is not valid TOML.
@@ -658,6 +658,14 @@ pub enum FeatureRewriteError {
     /// The manifest has no `[features]` table to add the group features to.
     #[display("Cargo.toml has no [features] table")]
     MissingFeatures,
+    /// The manifest could not be read or written.
+    #[display("{}: {}", path.display(), source)]
+    Io {
+        /// The manifest path.
+        path: std::path::PathBuf,
+        /// The underlying error.
+        source: std::io::Error,
+    },
 }
 
 impl std::error::Error for FeatureRewriteError {}
@@ -782,6 +790,179 @@ pub fn rewrite_features_for_groups(
     Ok(doc.to_string())
 }
 
+/// Rewrite the umbrella manifest for a per-group-crate split (feature 22 E3).
+///
+/// The old layout had one crate with `cloudflare_<group> = []` marker features
+/// gating modules in `src/generated/`. The split layout keeps the feature names
+/// but makes each one pull its own crate:
+/// `cloudflare_<group> = ["dep:foundation_cloudflare_<group>"]`, with the
+/// optional dependency added beside it. The `cloudflare` and `cloudflare_all`
+/// umbrellas keep listing every group, so a caller enabling `cloudflare` (or
+/// `default`) still gets every group, exactly as before.
+///
+/// # Errors
+/// [`FeatureRewriteError`] when the manifest does not parse or has no
+/// `[features]` table.
+pub fn rewrite_umbrella_for_split(
+    manifest_path: &Path,
+    provider: &str,
+    groups: &[ApiGroup],
+) -> Result<(), FeatureRewriteError> {
+    let raw = fs::read_to_string(manifest_path).map_err(|e| FeatureRewriteError::Io {
+        path: manifest_path.to_path_buf(),
+        source: e,
+    })?;
+    let updated = rewrite_umbrella_for_split_str(&raw, provider, groups)?;
+    if updated != raw {
+        fs::write(manifest_path, updated).map_err(|e| FeatureRewriteError::Io {
+            path: manifest_path.to_path_buf(),
+            source: e,
+        })?;
+    }
+    Ok(())
+}
+
+/// The pure half of [`rewrite_umbrella_for_split`].
+pub fn rewrite_umbrella_for_split_str(
+    manifest: &str,
+    provider: &str,
+    groups: &[ApiGroup],
+) -> Result<String, FeatureRewriteError> {
+    let mut doc: toml_edit::DocumentMut = manifest.parse().map_err(FeatureRewriteError::Parse)?;
+
+    let provider_feature = provider.replace(['-', '/'], "_");
+    let all_feature = format!("{provider_feature}_all");
+    let group_prefix = format!("{provider_feature}_");
+
+    // Group features in a stable order, deduplicated by sanitised name.
+    let mut group_entries: Vec<(String, String)> = Vec::new(); // (feature, crate)
+    let mut seen = std::collections::HashSet::new();
+    for group in groups {
+        let safe = sanitize_module_name(&sanitize_group_name(&group.name));
+        if !seen.insert(safe.clone()) {
+            continue;
+        }
+        group_entries.push((
+            format!("{provider_feature}_{safe}"),
+            format!("foundation_{provider_feature}_{safe}"),
+        ));
+    }
+
+    // Optional dependencies: one per group crate. Scoped first so the later
+    // `features` borrow of `doc` does not overlap it.
+    {
+        let deps = doc["dependencies"]
+            .or_insert(toml_edit::table())
+            .as_table_like_mut()
+            .ok_or(FeatureRewriteError::MissingFeatures)?;
+        // The umbrella shim's `shared` module re-exports the shared types crate
+        // directly, so the umbrella depends on it too (the group crates each
+        // have the same dependency for their own `shared` module). It is
+        // optional because the shim is gated on the base feature; a wasm
+        // `workers`-only build never compiles it.
+        match deps.get_mut("foundation_cloudflare_types") {
+            Some(existing) => {
+                let is_optional = existing
+                    .as_inline_table()
+                    .and_then(|t| t.get("optional"))
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
+                if !is_optional {
+                    if let Some(table) = existing.as_inline_table_mut() {
+                        table.insert("optional", true.into());
+                    }
+                }
+            }
+            None => {
+                let mut entry = toml_edit::InlineTable::new();
+                entry.insert("path", "../foundation_cloudflare_types".into());
+                entry.insert("version", "0.1.0".into());
+                entry.insert("optional", true.into());
+                deps.insert("foundation_cloudflare_types", toml_edit::value(entry));
+            }
+        }
+        // The shared module (with its `JsonHash` derives) now lives in the
+        // shared types crate and the per-group crates. The umbrella only
+        // re-exports them, so it no longer needs the hash dependencies itself.
+        deps.remove("base85rs");
+        deps.remove("sha2");
+        for (_, crate_name) in &group_entries {
+            if deps.get(crate_name).is_none() {
+                let mut entry = toml_edit::InlineTable::new();
+                entry.insert("path", format!("../{crate_name}").into());
+                entry.insert("version", "0.1.0".into());
+                entry.insert("optional", true.into());
+                deps.insert(crate_name, toml_edit::value(entry));
+            }
+        }
+    }
+
+    let features = doc
+        .get_mut("features")
+        .and_then(toml_edit::Item::as_table_like_mut)
+        .ok_or(FeatureRewriteError::MissingFeatures)?;
+
+    // One feature per group, enabling its crate. A single-string array.
+    let str_array = |items: &[String]| -> toml_edit::Item {
+        let mut array = toml_edit::Array::new();
+        for item in items {
+            let mut value = toml_edit::Value::from(item.as_str());
+            value.decor_mut().set_prefix("\n    ");
+            array.push_formatted(value);
+        }
+        if !items.is_empty() {
+            array.set_trailing("\n");
+            array.set_trailing_comma(true);
+        }
+        toml_edit::value(array)
+    };
+
+    // Each group feature now enables its crate. The `<provider>_<group>` key
+    // stays exactly the same name callers already pass.
+    for (feature, crate_name) in &group_entries {
+        set_feature(features, feature, str_array(&[format!("dep:{crate_name}")]));
+    }
+
+    // Drop stale group features whose group no longer exists.
+    let stale: Vec<String> = features
+        .iter()
+        .map(|(k, _)| k.to_string())
+        .filter(|k| {
+            k.starts_with(&group_prefix)
+                && *k != all_feature
+                && !group_entries.iter().any(|(f, _)| f == k)
+        })
+        .collect();
+    for key in stale {
+        features.remove(&key);
+    }
+
+    // The umbrellas keep listing every group, plus any hand-written entries.
+    let group_features: Vec<String> = group_entries.iter().map(|(f, _)| f.clone()).collect();
+    for umbrella in [&provider_feature, &all_feature] {
+        let mut entries: Vec<String> = features
+            .get(umbrella)
+            .and_then(toml_edit::Item::as_array)
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str())
+                    .filter(|e| !e.starts_with(&group_prefix))
+                    .map(str::to_string)
+                    .collect()
+            })
+            .unwrap_or_default();
+        entries.extend(group_features.iter().cloned());
+        // The shim's `shared` module (compiled only when the base feature is on)
+        // re-exports the shared types crate, so the base feature pulls it in.
+        if *umbrella == provider_feature && !entries.iter().any(|e| e == "dep:foundation_cloudflare_types") {
+            entries.push("dep:foundation_cloudflare_types".to_string());
+        }
+        set_feature(features, umbrella, str_array(&entries));
+    }
+
+    Ok(doc.to_string())
+}
+
 /// Set a feature, assigning in place when the key exists: `insert` would
 /// replace the key too, and with it any comment written above the feature.
 ///
@@ -848,6 +1029,15 @@ pub struct UnifiedGenerator {
     /// `output_dir.join(provider)`. Used for providers split into their own
     /// crate (e.g. cloudflare → foundation_deployment_cloudflare/src).
     provider_dir_override: Option<PathBuf>,
+    /// Per-group crate split: one crate per group is created under this
+    /// directory (a workspace `backends/` root). The umbrella crate keeps only
+    /// a re-export shim, so its compile cost drops to the groups a caller
+    /// enables. See [`UnifiedGenerator::split_group_crates`].
+    groups_dir: Option<PathBuf>,
+    /// The shared types crate (`foundation_cloudflare_types`) that the group
+    /// crates import their cross-group types from. In split mode the shared
+    /// module is written here instead of `generated/shared/mod.rs`.
+    shared_crate_dir: Option<PathBuf>,
 }
 
 /// Error type for generation failures.
@@ -890,7 +1080,12 @@ impl From<std::fmt::Error> for GenError {
 
 impl UnifiedGenerator {
     pub fn new(output_dir: PathBuf) -> Self {
-        Self { output_dir, provider_dir_override: None }
+        Self {
+            output_dir,
+            provider_dir_override: None,
+            groups_dir: None,
+            shared_crate_dir: None,
+        }
     }
 
     /// Override the provider output directory. When set, `generate()` writes
@@ -898,6 +1093,24 @@ impl UnifiedGenerator {
     #[must_use]
     pub fn with_provider_dir(mut self, dir: PathBuf) -> Self {
         self.provider_dir_override = Some(dir);
+        self
+    }
+
+    /// Split the generated groups into one crate per group.
+    ///
+    /// WHY: one provider crate compiling every generated group at once made a
+    /// single `rustc` need ~12 GB and get OOM-killed in CI (feature 22 E3). One
+    /// crate per group lets rustc compile the groups in parallel and lets a
+    /// caller pay only for the groups it enables.
+    ///
+    /// WHAT: `groups_dir` names the workspace root the group crates are created
+    /// under (one `foundation_<provider>_<group>/` per group); `shared_crate_dir`
+    /// names the crate that receives the cross-group `shared` types. The umbrella
+    /// crate keeps only a feature-gated re-export shim.
+    #[must_use]
+    pub fn split_group_crates(mut self, groups_dir: PathBuf, shared_crate_dir: PathBuf) -> Self {
+        self.groups_dir = Some(groups_dir);
+        self.shared_crate_dir = Some(shared_crate_dir);
         self
     }
 
@@ -942,6 +1155,23 @@ impl UnifiedGenerator {
 
         // Collapse the duplicates (see `emit`), then write and format.
         emit::shrink(&mut modules, 0);
+
+        // Split mode: one crate per group, plus a shared types crate and a thin
+        // re-export shim in the umbrella crate. The single-crate layout below is
+        // the monolith (and existing split-out-provider) path.
+        if let (Some(groups_dir), Some(shared_crate_dir)) =
+            (&self.groups_dir, &self.shared_crate_dir)
+        {
+            return self.write_split(
+                provider,
+                &analysis.groups,
+                modules,
+                groups_dir,
+                shared_crate_dir,
+                &generated_dir,
+            );
+        }
+
         let mut written = Vec::with_capacity(modules.len());
         for module in &modules {
             let path = generated_dir.join(&module.rel_path);
@@ -995,6 +1225,278 @@ impl UnifiedGenerator {
         Ok(())
     }
 
+    /// Split mode: emit the shared types crate, one crate per group, and the
+    /// umbrella's re-export shim. See [`UnifiedGenerator::split_group_crates`].
+    ///
+    /// `modules[0]` is the shared module (after `emit::shrink` hoisted every
+    /// cross-group shape into it); `modules[1..]` are the per-group modules, in
+    /// the same order as `groups`.
+    fn write_split(
+        &self,
+        provider: &str,
+        groups: &[ApiGroup],
+        modules: Vec<ModuleFile>,
+        groups_dir: &Path,
+        shared_crate_dir: &Path,
+        generated_dir: &Path,
+    ) -> Result<(), GenError> {
+        let provider_safe = provider.replace('-', "_").replace('/', "_");
+
+        // 1. Shared types crate: `src/generated.rs` (the shared module, minus the
+        //    common re-export header, which each group crate re-declares itself).
+        let shared_module = &modules[0];
+        let shared_src = shared_crate_dir.join("src/generated.rs");
+        if let Some(dir) = shared_src.parent() {
+            fs::create_dir_all(dir)?;
+        }
+        fs::write(&shared_src, shared_module.render()?)?;
+
+        // 2. One crate per group. The group module's `super::shared` resolves to
+        //    the `shared` module we emit in the crate root, so the module body is
+        //    the same as the single-crate layout — only the feature gate is gone.
+        let group_modules = &modules[1..];
+        let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+        let mut written = vec![shared_src.clone()];
+        for (group, module) in groups.iter().zip(group_modules) {
+            let safe = sanitize_module_name(&sanitize_group_name(&group.name));
+            if !seen.insert(safe.clone()) {
+                continue; // two groups sanitising to one name — keep the first
+            }
+            let crate_name = format!("foundation_{provider_safe}_{safe}");
+            let crate_dir = groups_dir.join(&crate_name);
+            self.write_group_crate(&crate_name, &safe, module, &crate_dir)?;
+            written.push(crate_dir.join("src").join(format!("{safe}/mod.rs")));
+        }
+
+        // 3. Umbrella re-export shim replaces the old per-group modules. Clear
+        //    the generated directory first: the monolith layout left one module
+        //    directory per group (plus `shared/`), and a group that disappears
+        //    or renames must not leave dead modules behind.
+        if generated_dir.exists() {
+            fs::remove_dir_all(generated_dir).map_err(|e| GenError::WriteFile {
+                path: generated_dir.display().to_string(),
+                source: e,
+            })?;
+        }
+        self.write_umbrella_shim(provider, groups, generated_dir)?;
+        written.push(generated_dir.join("mod.rs"));
+        format_files(&written)?;
+
+        // 4. The umbrella manifest now turns each group feature into an optional
+        //    dependency on its group crate.
+        let umbrella_manifest = self.output_dir.join("Cargo.toml");
+        if umbrella_manifest.exists() {
+            rewrite_umbrella_for_split(&umbrella_manifest, provider, groups).map_err(|e| {
+                GenError::WriteFile {
+                    path: umbrella_manifest.display().to_string(),
+                    source: std::io::Error::new(std::io::ErrorKind::InvalidData, e),
+                }
+            })?;
+        }
+
+        Ok(())
+    }
+
+    /// Emit one group crate: manifest, `lib.rs` (a `shared` re-export module +
+    /// the group module), and the group module file itself.
+    fn write_group_crate(
+        &self,
+        crate_name: &str,
+        safe: &str,
+        module: &ModuleFile,
+        crate_dir: &Path,
+    ) -> Result<(), GenError> {
+        use std::fmt::Write as _;
+
+        fs::create_dir_all(crate_dir.join("src"))?;
+
+        // The generated manifest is deterministic and self-contained. Its deps
+        // mirror what the group module imports directly.
+        let mut manifest = String::new();
+        writeln!(manifest, "[package]").unwrap();
+        writeln!(manifest, "name = \"{crate_name}\"").unwrap();
+        writeln!(manifest, "version = \"0.1.0\"").unwrap();
+        writeln!(manifest, "edition.workspace = true").unwrap();
+        writeln!(manifest, "rust-version.workspace = true").unwrap();
+        writeln!(manifest, "license.workspace = true").unwrap();
+        writeln!(manifest, "authors.workspace = true").unwrap();
+        writeln!(manifest, "repository.workspace = true").unwrap();
+        writeln!(
+            manifest,
+            "description = \"Generated Cloudflare API client: {safe} group\""
+        )
+        .unwrap();
+        writeln!(manifest).unwrap();
+        writeln!(manifest, "[dependencies]").unwrap();
+        writeln!(
+            manifest,
+            "foundation_cloudflare_types = {{ path = \"../foundation_cloudflare_types\", version = \"0.1.0\" }}"
+        )
+        .unwrap();
+        writeln!(
+            manifest,
+            "foundation_deployment = {{ path = \"../foundation_deployment\", version = \"0.0.3\" }}"
+        )
+        .unwrap();
+        writeln!(
+            manifest,
+            "foundation_macros = {{ path = \"../foundation_macros\", version = \"0.0.7\" }}"
+        )
+        .unwrap();
+        writeln!(
+            manifest,
+            "foundation_netio = {{ path = \"../foundation_netio\", version = \"0.0.4\", default-features = false, features = [\"ssl\", \"multi\"] }}"
+        )
+        .unwrap();
+        writeln!(manifest, "serde = {{ workspace = true }}").unwrap();
+        writeln!(manifest, "serde_json = {{ workspace = true }}").unwrap();
+        // The generated module derives `foundation_macros::JsonHash`, whose
+        // expansion uses `sha2` for the digest and `base85rs` for the encoding.
+        writeln!(manifest, "base85rs = \"0.1\"").unwrap();
+        writeln!(manifest, "sha2 = \"0.10\"").unwrap();
+        writeln!(manifest).unwrap();
+        writeln!(manifest, "[lints]").unwrap();
+        writeln!(manifest, "workspace = true").unwrap();
+        fs::write(crate_dir.join("Cargo.toml"), manifest)?;
+
+        // lib.rs: the `shared` module the group module imports via `super::shared`,
+        // then the group module itself.
+        let mut lib = String::new();
+        writeln!(
+            lib,
+            "//! Generated Cloudflare API client for the `{safe}` group."
+        )
+        .unwrap();
+        writeln!(lib, "//!").unwrap();
+        writeln!(lib, "//! Generated by `cargo run --bin genapi generate`.").unwrap();
+        writeln!(lib, "//! DO NOT EDIT MANUALLY.").unwrap();
+        writeln!(lib).unwrap();
+        writeln!(lib, "#![allow(clippy::too_many_arguments, clippy::type_complexity)]").unwrap();
+        writeln!(
+            lib,
+            "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]"
+        )
+        .unwrap();
+        writeln!(lib, "#![allow(unused_imports)]").unwrap();
+        writeln!(lib).unwrap();
+        writeln!(lib, "pub mod shared {{").unwrap();
+        writeln!(lib, "    pub use foundation_deployment::providers::common::{{").unwrap();
+        writeln!(
+            lib,
+            "        read_error_body, send_bytes, send_checked, send_json, send_json_lines, send_without_body,"
+        )
+        .unwrap();
+        writeln!(
+            lib,
+            "        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream,"
+        )
+        .unwrap();
+        writeln!(lib, "    }};").unwrap();
+        writeln!(lib, "    pub use foundation_deployment::providers::common::{{").unwrap();
+        writeln!(
+            lib,
+            "        ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation,"
+        )
+        .unwrap();
+        writeln!(lib, "    }};").unwrap();
+        writeln!(lib, "    pub use foundation_cloudflare_types::generated::*;").unwrap();
+        writeln!(lib, "}}").unwrap();
+        writeln!(lib).unwrap();
+        writeln!(lib, "pub mod {safe};").unwrap();
+        fs::write(crate_dir.join("src/lib.rs"), lib)?;
+
+        // The group module itself, verbatim (its `super::shared` resolves to the
+        // `shared` module above).
+        let mod_path = crate_dir.join("src").join(safe).join("mod.rs");
+        fs::create_dir_all(mod_path.parent().expect("group module has a parent"))?;
+        fs::write(&mod_path, module.render()?)?;
+
+        Ok(())
+    }
+
+    /// The umbrella's `generated/mod.rs` in split mode: a feature-gated re-export
+    /// shim for every group crate, plus a `shared` module mirroring the group
+    /// crates' own, so `foundation_deployment_cloudflare::generated::*` keeps its
+    /// old shape.
+    fn write_umbrella_shim(
+        &self,
+        provider: &str,
+        groups: &[ApiGroup],
+        generated_dir: &Path,
+    ) -> Result<(), GenError> {
+        use std::fmt::Write as _;
+        let provider_safe = provider.replace('-', "_").replace('/', "_");
+
+        fs::create_dir_all(generated_dir)?;
+        let mut out = String::new();
+        writeln!(out, "//! Auto-generated module for {provider}.").unwrap();
+        writeln!(out, "//!").unwrap();
+        writeln!(out, "//! Generated by `cargo run --bin genapi generate`.").unwrap();
+        writeln!(out, "//! DO NOT EDIT MANUALLY.").unwrap();
+        writeln!(out).unwrap();
+        writeln!(out, "#![cfg(feature = \"{provider_safe}\")]").unwrap();
+        writeln!(out, "#![allow(clippy::too_many_arguments, clippy::type_complexity)]").unwrap();
+        writeln!(
+            out,
+            "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]"
+        )
+        .unwrap();
+        writeln!(out, "#![allow(unused_imports)]").unwrap();
+        writeln!(out).unwrap();
+        writeln!(out, "pub mod shared {{").unwrap();
+        writeln!(out, "    pub use foundation_deployment::providers::common::{{").unwrap();
+        writeln!(
+            out,
+            "        read_error_body, send_bytes, send_checked, send_json, send_json_lines, send_without_body,"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "        with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream,"
+        )
+        .unwrap();
+        writeln!(out, "    }};").unwrap();
+        writeln!(out, "    pub use foundation_deployment::providers::common::{{").unwrap();
+        writeln!(
+            out,
+            "        ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation,"
+        )
+        .unwrap();
+        writeln!(out, "    }};").unwrap();
+        writeln!(out, "    pub use foundation_cloudflare_types::generated::*;").unwrap();
+        writeln!(out, "}}").unwrap();
+        writeln!(out).unwrap();
+
+        let mut seen = std::collections::HashSet::new();
+        for group in groups {
+            let safe = sanitize_module_name(&sanitize_group_name(&group.name));
+            if !seen.insert(safe.clone()) {
+                continue;
+            }
+            // A module, not a bare `pub use … as {safe}`: the monolith layout had
+            // `generated::<safe>` be the group module itself, so its types live at
+            // `generated::<safe>::<Type>`. The group crate wraps that module one
+            // level deeper (`foundation_<provider>_<safe>::<safe>`); re-exporting
+            // the module's contents here keeps every existing `generated::<safe>`
+            // path unchanged.
+            writeln!(
+                out,
+                "#[cfg(feature = \"{provider_safe}_{safe}\")]"
+            )
+            .unwrap();
+            writeln!(out, "pub mod {safe} {{").unwrap();
+            writeln!(
+                out,
+                "    pub use foundation_{provider_safe}_{safe}::{safe}::*;"
+            )
+            .unwrap();
+            writeln!(out, "}}").unwrap();
+        }
+
+        fs::write(generated_dir.join("mod.rs"), out)?;
+        Ok(())
+    }
+
     /// Generate a single group module with per-endpoint cohesive units.
     fn generate_group_module(
         &self,
@@ -1025,13 +1527,18 @@ impl UnifiedGenerator {
         )?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out, "//!")?;
-        writeln!(out, "//! Feature flag: `{}_{} `", provider_safe, safe_name)?;
-        writeln!(out)?;
-        writeln!(
-            out,
-            "#![cfg(feature = \"{}_{}\")]",
-            provider_safe, safe_name
-        )?;
+        // In split mode the group is its own crate, so the umbrella feature gate
+        // (and its doc line) do not exist; the crate is pulled in by the feature
+        // on the umbrella manifest instead.
+        if self.groups_dir.is_none() {
+            writeln!(out, "//! Feature flag: `{}_{} `", provider_safe, safe_name)?;
+            writeln!(out)?;
+            writeln!(
+                out,
+                "#![cfg(feature = \"{}_{}\")]",
+                provider_safe, safe_name
+            )?;
+        }
         writeln!(
             out,
             "#![allow(clippy::too_many_arguments, clippy::type_complexity)]"
@@ -1837,23 +2344,32 @@ impl UnifiedGenerator {
         )?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out)?;
-        // For split-out providers (provider_dir_override set), the shared
-        // module lives in its own crate so it must import from
-        // foundation_deployment rather than crate::providers::common.
-        let common_path = if self.provider_dir_override.is_some() {
-            "foundation_deployment::providers::common"
-        } else {
-            "crate::providers::common"
-        };
-        writeln!(
-            out,
-            "// Re-export common API types from foundation_deployment"
-        )?;
-        writeln!(out, "pub use {common_path}::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation}};")?;
-        // Sending, streaming bodies and the bounded error-body read the
-        // `*_request` functions use (see `generate_endpoint_client_functions`).
-        writeln!(out, "pub use {common_path}::{{read_error_body, send_bytes, send_checked, send_json, send_json_lines, send_without_body, with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream}};")?;
-        writeln!(out)?;
+        // The common re-export header is only written in the single-crate
+        // layouts. In split mode the shared types move to their own leaf crate
+        // (`foundation_cloudflare_types`) which must NOT depend on
+        // `foundation_deployment` (that would cycle: foundation_deployment →
+        // foundation_db → foundation_cloudflare_types). Each group crate (and
+        // the umbrella shim) re-declares the `shared` module with the common
+        // re-exports, so the group modules still see `super::shared::*`.
+        if self.groups_dir.is_none() {
+            // For split-out providers (provider_dir_override set), the shared
+            // module lives in its own crate so it must import from
+            // foundation_deployment rather than crate::providers::common.
+            let common_path = if self.provider_dir_override.is_some() {
+                "foundation_deployment::providers::common"
+            } else {
+                "crate::providers::common"
+            };
+            writeln!(
+                out,
+                "// Re-export common API types from foundation_deployment"
+            )?;
+            writeln!(out, "pub use {common_path}::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation}};")?;
+            // Sending, streaming bodies and the bounded error-body read the
+            // `*_request` functions use (see `generate_endpoint_client_functions`).
+            writeln!(out, "pub use {common_path}::{{read_error_body, send_bytes, send_checked, send_json, send_json_lines, send_without_body, with_raw_body, ApiClient, BodyLimits, ByteStream, JsonLinesStream}};")?;
+            writeln!(out)?;
+        }
         writeln!(out, "// Imports for shared resource types")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
         writeln!(out, "use serde::{{Deserialize, Serialize}};")?;

@@ -55,6 +55,25 @@ Branch: `fix/io-20-vfs-process-ipc`.
   `mise.toml [tools]` (the CI image version check needs it). The two §16
   wasm-runtime backlog entries are deleted in the same commit; a new entry
   records the foundation_reactor wasm dead-code warning.
+- **E3.** The generated Cloudflare groups split into one crate per group (43
+  crates: `foundation_cloudflare_<group>`). The generator now writes them:
+  `foundation_codegentools` gained `split_groups` plus a `check()` that stages
+  the split trees in a scratch dir and merges them, and `foundation_openapi`
+  gained `write_split`, `write_group_crate`, `write_umbrella_shim` and
+  `rewrite_umbrella_for_split_str`. The shared resource types live in
+  `foundation_cloudflare_types` (feature 17 E2); each group crate's local
+  `shared` module re-exports them and `foundation_deployment::providers::common`.
+  The umbrella re-exports every group behind `cloudflare_<group>` features, so
+  `cloudflare`, `cloudflare_all`, `default` and `full` keep the old callers
+  unchanged (`generated::<group>::<Type>`). The umbrella bumps to 0.2.0;
+  `foundation_keychain` bumps to 0.1.4 and `foundation_proxy` to 0.1.6 for the
+  new requirement. The §16 "Cloudflare crate size" backlog entry is deleted, and
+  the §21 entry is corrected (the split removed `base85rs` and `sha2`). Build:
+  `cargo build -p foundation_deployment_cloudflare --profile uat` drops from
+  103.8 s to 60.8 s (warm); the umbrella rlib shrinks from 88,171,184 to
+  978,392 bytes, the 43 group crates total 84,422,184 bytes, and the shared
+  types crate is 9,122,824 bytes. Umbrella tests pass (17), and the proxy and
+  keychain build unchanged on native and wasm.
 
 ## In progress
 
@@ -62,4 +81,4 @@ Branch: `fix/io-20-vfs-process-ipc`.
 
 ## Next
 
-- E3 (the Cloudflare crate split) stays for a later pass.
+- None.

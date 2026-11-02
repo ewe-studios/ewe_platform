@@ -1,6 +1,6 @@
 [package]
 name = "foundation_keychain"
-version = "0.1.3"
+version = "0.1.4"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -62,7 +62,7 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.5", default-feat
 foundation_netio = { path = "../foundation_netio", version = "0.0.4", default-features = false, features = ["wasm-fetch"] }
 # Workers DO/WebSocket machinery (spec-57 F010). Pulls the general DurableObject
 # helpers + WebSocket accept primitives built in foundation_deployment_cloudflare.
-foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", version = "0.1.4", default-features = false, features = ["workers"] }
+foundation_deployment_cloudflare = { path = "../foundation_deployment_cloudflare", version = "0.2.0", default-features = false, features = ["workers"] }
 
 # Native — Docker/VPS
 [target.'cfg(not(target_family = "wasm"))'.dependencies]

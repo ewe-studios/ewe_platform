@@ -114,3 +114,38 @@
   call site is a native poll/kqueue path). Recorded in the backlog; not fixed
   here because foundation_reactor is outside feature 22's crates.
 
+## E3. Split the Cloudflare groups into per-group crates
+
+- The split keeps every caller's path. The umbrella shim emits
+  `pub mod <group> { pub use foundation_cloudflare_<group>::<group>::*; }`, not
+  a flat `pub use foundation_cloudflare_<group> as <group>`. A flat alias would
+  turn `generated::zones::Zones0GetArgs` into `generated::zones::zones::Zones0GetArgs`.
+- Each group crate has a local `shared` module in `src/lib.rs` that re-exports
+  `foundation_cloudflare_types::generated::*` and
+  `foundation_deployment::providers::common::*`. The generated group body is
+  unchanged: its `super::shared` resolves to the crate root, so the shared
+  content does not move into every group file.
+- The `JsonHash` derive expands to `use sha2::{Digest, Sha256}` and
+  `use base85rs::encode`. Any crate that derives it needs `sha2`, `base85rs`
+  and `serde_json` as dependencies. After the split, only the types crate and
+  the group crates derive it, so the umbrella drops those two deps.
+- The types crate must stay a leaf. `foundation_deployment` depends on
+  `foundation_db`, which depends on `foundation_cloudflare_types`; making the
+  types crate depend on `foundation_deployment` would cycle. The group crates
+  sit above both, so their local `shared` module is the seam.
+- The umbrella depends on the types crate as an optional dependency, and the
+  base `cloudflare` feature lists `dep:foundation_cloudflare_types`. A wasm
+  `workers`-only build never compiles the shim, so a non-optional dep would
+  surface as an `unused_dependencies` lint there.
+- `check()` stages split output in a scratch dir (`groups/`, `shared_crate/`)
+  and merges prefixed trees against the committed tree. The committed group
+  scan must exclude the shared types crate by path, because its
+  `foundation_cloudflare_` prefix collides with the group-crate prefix.
+- A broken generated manifest is a chicken-and-egg: cargo cannot build the
+  generator to fix a manifest it cannot parse. One manual repair is enough;
+  after it, the generator reproduces the correct manifest idempotently
+  (`genapi generate cloudflare --check` reports "output matches").
+- The build script renderer must emit `.split_groups(..)` before `.crate_dir(..)`
+  with no trailing semicolon. Emitting it after a terminated chain produces a
+  parse error (`expected expression, found .`).
+

@@ -12,6 +12,13 @@
 //! `foundation_deployment_cloudflare` output exactly. The R2 object-listing
 //! endpoint is absent from the vendored Cloudflare `OpenAPI` spec, so those
 //! types are defined here by hand to the shape the R2 REST API returns.
+//!
+//! `generated` holds the cross-group shared resource types the Cloudflare
+//! generator hoists out of the per-group crates (feature 22 E3). It is a
+//! generated file; edit it by running `genapi generate cloudflare`.
+
+/// Generated Cloudflare shared resource types (feature 22 E3).
+pub mod generated;
 
 use std::collections::HashMap;
 

@@ -197,6 +197,11 @@ pub struct Codegen {
     crate_dir: Option<PathBuf>,
     provider_dir: Option<PathBuf>,
     output_dir: Option<PathBuf>,
+    /// Split mode (feature 22 E3): one crate per generated group, created
+    /// under this directory (a workspace `backends/` root).
+    groups_dir: Option<PathBuf>,
+    /// Split mode: the crate that receives the cross-group shared types.
+    shared_crate_dir: Option<PathBuf>,
     options: AnalysisOptions,
 }
 
@@ -212,6 +217,8 @@ impl Default for Codegen {
             crate_dir: None,
             provider_dir: None,
             output_dir: None,
+            groups_dir: None,
+            shared_crate_dir: None,
             // The thresholds `genapi generate` has always defaulted to; a
             // declaration that says nothing about grouping gets what the CLI gives.
             options: AnalysisOptions {
@@ -338,6 +345,19 @@ impl Codegen {
         self
     }
 
+    /// Split the generated groups into one crate per group (feature 22 E3).
+    ///
+    /// `groups_dir` names the workspace root the group crates are created under
+    /// (one `foundation_<provider>_<group>/` per group); `shared_crate_dir` names
+    /// the leaf crate that receives the cross-group shared types. The provider
+    /// crate keeps only a feature-gated re-export shim.
+    #[must_use]
+    pub fn split_groups(mut self, groups_dir: impl Into<PathBuf>, shared_crate_dir: impl Into<PathBuf>) -> Self {
+        self.groups_dir = Some(groups_dir.into());
+        self.shared_crate_dir = Some(shared_crate_dir.into());
+        self
+    }
+
     /// The slice of the spec this declaration generates: select → canonicalise →
     /// prune, with the pins verified.
     ///
@@ -419,18 +439,59 @@ impl Codegen {
     pub fn write(&self) -> Result<CodegenReport, CodegenError> {
         let resolved = self.resolve()?;
         let (output, provider_dir) = self.roots()?;
-        self.run_generator(&resolved, output.clone(), provider_dir.clone())?;
+        self.run_generator(
+            &resolved,
+            output.clone(),
+            provider_dir.clone(),
+            self.groups_dir.clone(),
+            self.shared_crate_dir.clone(),
+        )?;
 
         let generated_dir = self.provider_root(output, &provider_dir)?.join("generated");
+        let files = if let (Some(groups_dir), Some(_)) = (&self.groups_dir, &self.shared_crate_dir) {
+            self.count_split_files(groups_dir, &generated_dir)?
+        } else {
+            read_tree(&generated_dir)?.len()
+        };
         Ok(CodegenReport {
             paths_selected: resolved
                 .get("paths")
                 .and_then(serde_json::Value::as_object)
                 .map_or(0, serde_json::Map::len),
             schemas: foundation_openapi::component_count(&resolved, "schemas"),
-            files: read_tree(&generated_dir)?.len(),
+            files,
             generated_dir,
         })
+    }
+
+    /// How many files split mode wrote: the umbrella shim, the shared crate's
+    /// single `generated.rs`, and every generated group crate under
+    /// `groups_dir`. Only crates whose name carries this provider's prefix are
+    /// counted, so hand-written neighbours in a shared `backends/` root do not
+    /// inflate the report.
+    fn count_split_files(&self, groups_dir: &Path, generated_dir: &Path) -> Result<usize, CodegenError> {
+        let provider = self
+            .provider
+            .as_deref()
+            .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+        let provider_safe = provider.replace('-', "_").replace('/', "_");
+        let prefix = format!("foundation_{provider_safe}_");
+        let mut count = read_tree(generated_dir)?.len() + 1; // shim + shared/generated.rs
+        let entries = std::fs::read_dir(groups_dir).map_err(|source| CodegenError::Io {
+            path: groups_dir.to_path_buf(),
+            source,
+        })?;
+        for entry in entries {
+            let entry = entry.map_err(|source| CodegenError::Io {
+                path: groups_dir.to_path_buf(),
+                source,
+            })?;
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if name.starts_with(&prefix) && entry.path().is_dir() {
+                count += read_tree(&entry.path())?.len();
+            }
+        }
+        Ok(count)
     }
 
     /// Resolve, generate into a temporary directory, and compare against what is
@@ -457,17 +518,95 @@ impl Codegen {
         })?;
         let (_, provider_dir) = self.roots()?;
         let scratch_provider_dir = provider_dir.as_ref().map(|_| scratch.path().join("src"));
-        self.run_generator(
-            &resolved,
-            scratch.path().to_path_buf(),
-            scratch_provider_dir.clone(),
-        )?;
-        let fresh_dir = self
-            .provider_root(scratch.path().to_path_buf(), &scratch_provider_dir)?
-            .join("generated");
 
-        let fresh = read_tree(&fresh_dir)?;
-        let committed = read_tree(&generated_dir)?;
+        let mut fresh = BTreeMap::new();
+        let mut committed = BTreeMap::new();
+
+        if let (Some(groups_dir), Some(shared_crate_dir)) =
+            (&self.groups_dir, &self.shared_crate_dir)
+        {
+            // Split mode writes three places: the umbrella shim, the shared types
+            // crate, and one crate per group. Redirect all three into the scratch
+            // tree, then compare each against its committed counterpart. The
+            // shared types crate also holds hand-written `lib.rs`/`Cargo.toml`,
+            // so only its single generated file is compared.
+            let scratch_groups = scratch.path().join("groups");
+            let scratch_shared = scratch.path().join("shared_crate");
+            self.run_generator(
+                &resolved,
+                scratch.path().to_path_buf(),
+                scratch_provider_dir,
+                Some(scratch_groups.clone()),
+                Some(scratch_shared.clone()),
+            )?;
+
+            merge_prefixed(
+                "shim",
+                &read_tree(&scratch.path().join("src/generated"))?,
+                &mut fresh,
+            );
+            merge_prefixed("shim", &read_tree(&generated_dir)?, &mut committed);
+
+            merge_prefixed(
+                "shared",
+                &read_file_tree(&scratch_shared.join("src/generated.rs"), "src/generated.rs")?,
+                &mut fresh,
+            );
+            merge_prefixed(
+                "shared",
+                &read_file_tree(&shared_crate_dir.join("src/generated.rs"), "src/generated.rs")?,
+                &mut committed,
+            );
+
+            // Group crates: the fresh tree under the scratch root is exactly the
+            // set this declaration produces. The committed side is read from the
+            // real `groups_dir`, but only for crates carrying this provider's
+            // prefix — a shared `backends/` root holds many other crates.
+            let provider = self
+                .provider
+                .as_deref()
+                .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+            let provider_safe = provider.replace('-', "_").replace('/', "_");
+            let prefix = format!("foundation_{provider_safe}_");
+
+            for (rel, body) in read_tree(&scratch_groups)? {
+                fresh.insert(format!("groups/{rel}"), body);
+            }
+            let entries = std::fs::read_dir(groups_dir).map_err(|source| CodegenError::Io {
+                path: groups_dir.clone(),
+                source,
+            })?;
+            for entry in entries {
+                let entry = entry.map_err(|source| CodegenError::Io {
+                    path: groups_dir.clone(),
+                    source,
+                })?;
+                let name = entry.file_name().to_string_lossy().into_owned();
+                // The shared types crate also carries the `foundation_<provider>_`
+                // prefix but is not a group crate; it is compared separately above.
+                if name.starts_with(&prefix)
+                    && entry.path().as_path() != shared_crate_dir.as_path()
+                    && entry.path().is_dir()
+                {
+                    for (sub, body) in read_tree(&entry.path())? {
+                        committed.insert(format!("groups/{name}/{sub}"), body);
+                    }
+                }
+            }
+        } else {
+            self.run_generator(
+                &resolved,
+                scratch.path().to_path_buf(),
+                scratch_provider_dir.clone(),
+                None,
+                None,
+            )?;
+            let fresh_dir = self
+                .provider_root(scratch.path().to_path_buf(), &scratch_provider_dir)?
+                .join("generated");
+            fresh = read_tree(&fresh_dir)?;
+            committed = read_tree(&generated_dir)?;
+        }
 
         let added: Vec<String> = fresh
             .keys()
@@ -503,6 +642,8 @@ impl Codegen {
         resolved: &serde_json::Value,
         output: PathBuf,
         provider_dir: Option<PathBuf>,
+        groups_dir: Option<PathBuf>,
+        shared_crate_dir: Option<PathBuf>,
     ) -> Result<(), CodegenError> {
         let provider = self
             .provider
@@ -512,6 +653,9 @@ impl Codegen {
         let mut generator = UnifiedGenerator::new(output);
         if let Some(dir) = provider_dir {
             generator = generator.with_provider_dir(dir);
+        }
+        if let (Some(groups_dir), Some(shared_crate_dir)) = (groups_dir, shared_crate_dir) {
+            generator = generator.split_group_crates(groups_dir, shared_crate_dir);
         }
         let body = serde_json::to_string(resolved).expect("a resolved spec serializes");
         generator
@@ -532,6 +676,33 @@ fn read_tree(dir: &Path) -> Result<BTreeMap<String, String>, CodegenError> {
     }
     walk(dir, dir, &mut files)?;
     Ok(files)
+}
+
+/// Read a single file into a one-entry tree keyed by `rel`. A missing file
+/// reads as empty — the same "not generated yet" convention as [`read_tree`].
+fn read_file_tree(path: &Path, rel: &str) -> Result<BTreeMap<String, String>, CodegenError> {
+    let mut tree = BTreeMap::new();
+    if path.exists() {
+        let body = std::fs::read_to_string(path).map_err(|source| CodegenError::Io {
+            path: path.to_path_buf(),
+            source,
+        })?;
+        tree.insert(rel.to_string(), body);
+    }
+    Ok(tree)
+}
+
+/// Copy every `(rel, body)` of `tree` into `out` under the `prefix/` namespace,
+/// so several generated trees can share one comparison without their relative
+/// paths colliding.
+fn merge_prefixed(
+    prefix: &str,
+    tree: &BTreeMap<String, String>,
+    out: &mut BTreeMap<String, String>,
+) {
+    for (rel, body) in tree {
+        out.insert(format!("{prefix}/{rel}"), body.clone());
+    }
 }
 
 fn walk(root: &Path, dir: &Path, out: &mut BTreeMap<String, String>) -> Result<(), CodegenError> {
@@ -776,6 +947,17 @@ impl Codegen {
                 }
                 writeln!(out, "        ])").unwrap();
             }
+        }
+        if let (Some(groups_dir), Some(shared_crate_dir)) =
+            (&self.groups_dir, &self.shared_crate_dir)
+        {
+            let groups_from_crate = relative_to(crate_dir, groups_dir);
+            let shared_from_crate = relative_to(crate_dir, shared_crate_dir);
+            writeln!(
+                out,
+                "        .split_groups(Path::new(&manifest).join({groups_from_crate:?}), Path::new(&manifest).join({shared_from_crate:?}))"
+            )
+            .unwrap();
         }
         writeln!(out, "        .crate_dir(&manifest);").unwrap();
         writeln!(out).unwrap();

@@ -45,6 +45,10 @@ fn main() {
     let codegen = foundation_codegentools::generate()
         .provider("cloudflare")
         .spec(&spec)
+        .split_groups(
+            Path::new(&manifest).join("../../backends"),
+            Path::new(&manifest).join("../../backends/foundation_cloudflare_types"),
+        )
         .crate_dir(&manifest);
 
     match codegen.check() {

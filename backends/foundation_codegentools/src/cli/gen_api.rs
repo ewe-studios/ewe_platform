@@ -1065,6 +1065,15 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     // alongside hand-written client.rs, types.rs, dns_ops.rs.
                     codegen = codegen.provider_dir(actual_provider_dir.clone());
                 }
+                if provider == "cloudflare" {
+                    // Feature 22 E3: one crate per generated group. The umbrella
+                    // crate keeps only the feature-gated re-export shim; the
+                    // cross-group shared types land in the shared types crate.
+                    codegen = codegen.split_groups(
+                        "backends",
+                        "backends/foundation_cloudflare_types",
+                    );
+                }
                 if let Some(v) = &spec_version {
                     codegen = codegen.spec_version(v);
                 }
