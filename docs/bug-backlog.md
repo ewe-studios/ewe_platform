@@ -183,10 +183,11 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   `wasm-embedded-js` testbed stopped building (deno_v8 had no JS engine selected)
   unnoticed. Add a CI job that runs `mise run test:wasm-testbed:deno` (embedded
   Deno; no browser needed) and `mise run test:wasm-bindgen:deno`.
-- **`wasm-testbed` warns on `Command::Bindgen(args)`** (`foundation_testbed/src/bin/wasm-testbed.rs:37`):
-  `args` is unused unless the `wasm-bindgen-test` feature is on (e.g. under
-  `--no-default-features --features wasm-embedded-js`). Gate the binding with the
-  same `cfg` as its use, or prefix it with `_` in the other arm.
+- **`foundation_testbed` declares `deno_v8` as an unused dependency** (cargo
+  nightly 1.100.0 `unused_dependencies` lint, `Cargo.toml:118`). `deno_v8` is
+  listed only to enable its V8 backend for `deno_core` (feature unification);
+  no source `use`s it. Fix: silence the lint for that dependency (for example
+  a `[lints.cargo]` override or a `use` that marks it used).
 - **Running a wasm mise task installs every tool in `mise.toml`.** `mise exec`/`mise run`
   first installs all pinned tools (bacon, cargo-nextest, cargo-audit, python…),
   building several from source. On a small disk that fills it, and where the

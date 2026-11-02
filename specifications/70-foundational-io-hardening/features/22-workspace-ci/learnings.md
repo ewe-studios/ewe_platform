@@ -21,3 +21,14 @@
   submodule. That submodule shares its working tree with rules 11 and 13 that
   the main session is still drafting, so this pass does not commit there.
 
+## E5. Gate the `Bindgen` command binding
+
+- The warning came from binding `args` in the match arm and using it only in
+  the `#[cfg(feature = "wasm-bindgen-test")]` branch. A `run_bindgen_command`
+  helper, one per cfg arm, removes the warning: the `wasm-bindgen-test` arm
+  uses `args`, the other arm takes `_args`.
+- cargo nightly 1.100.0 surfaces a new `unused_dependencies` manifest lint.
+  `foundation_testbed` declares `deno_v8` only to enable its V8 backend for
+  `deno_core` (feature unification), so the lint flags it. This is not the E5
+  warning; it is recorded in the backlog.
+
