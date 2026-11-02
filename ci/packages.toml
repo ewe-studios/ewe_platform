@@ -261,3 +261,22 @@ build = "enforce"
 clippy = "off"
 test = "off"
 wasm = "off"
+
+# ---------------------------------------------------------------------------
+# Wasm runtime test suites (feature 22 E4).
+
+[packages.wasm-tests]
+# The wasm `wasm_bindgen_test` / `#[wasm_test]` suites are wasm32-only test
+# targets, and the standalone wasm_tests crate sits outside the root workspace,
+# so cargo metadata's library-only wasm gate never compiled them. This synthetic
+# package (see `wasm_tests_commands` in scripts/ci/ci.py) compile-checks those
+# tests with `--tests --target wasm32-unknown-unknown` and then runs the two
+# embedded-Deno harnesses. The env selects mise.wasm.toml, which pins only
+# deno + wasm-bindgen and turns off auto_install (E6).
+fmt = "off"
+build = "enforce"
+clippy = "off"
+test = "enforce"
+wasm = "off"
+timeout-minutes = 90
+env = { MISE_ENV = "wasm" }

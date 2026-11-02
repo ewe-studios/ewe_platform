@@ -40,6 +40,21 @@ Branch: `fix/io-20-vfs-process-ipc`.
   The §21 cloudflare entry is replaced with a new entry for the five
   `unused_dependencies` manifest lints the wasm check surfaces (out of E8
   scope; recorded per rule 9).
+- **E4.** A synthetic `wasm-tests` CI package (in `scripts/ci/ci.py` and
+  `ci/packages.toml`) checks every crate with wasm tests. Its build step runs
+  `cargo check --tests --target wasm32-unknown-unknown` for foundation_core
+  (`std,js-wasmbindgen`), foundation_netio (`wasm-fetch`), foundation_wireguard
+  (`wasm-bindgen-test`) and the standalone `foundation_core/integration/wasm_tests`
+  crate. Its test step runs `mise run test:wasm-testbed:deno` and
+  `mise run test:wasm-bindgen:deno` under `MISE_ENV=wasm`. To make those checks
+  pass, this pass also gates the native-only `stream_future` test module out of
+  the wasm build, fixes the rotted netio and wireguard wasm tests, moves
+  testbed's `foundation_core/multi` feature to a native-only target table,
+  gates `qemu_control` out of wasm, and vendors a boringtun patch that adds the
+  missing wasm32 sleepyinstant backend. `wasm-bindgen` is restored to
+  `mise.toml [tools]` (the CI image version check needs it). The two §16
+  wasm-runtime backlog entries are deleted in the same commit; a new entry
+  records the foundation_reactor wasm dead-code warning.
 
 ## In progress
 
@@ -47,4 +62,4 @@ Branch: `fix/io-20-vfs-process-ipc`.
 
 ## Next
 
-- E4 and E3 stay for a later pass.
+- E3 (the Cloudflare crate split) stays for a later pass.

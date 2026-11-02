@@ -161,29 +161,18 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   version (a `rust-toolchain.toml` with the rustfmt component) and format the
   repo with it.
 - **Cloudflare crate size.** Split the generated Cloudflare groups into per-group crates (task #28).
-- **Wasm runtime tests never run in CI** (spec 68 T4). CI's wasm step is a
-  compile gate only (`scripts/ci/ci.py --step wasm` → `cargo check --target
-  wasm32-unknown-unknown`). The runtime suites (`foundation_core/integration/wasm_tests`
-  via `wasm-testbed deno`/`web`, the bindgen-deno path, `cf-cloud-provider` under
-  miniflare) are local mise tasks, and `integration/wasm_tests` is a standalone
-  crate outside the root workspace, so not even its compile is gated. That is how
-  the feature 06 T5 isolate freeze shipped behind green CI, and how the
-  `wasm-embedded-js` testbed stopped building (deno_v8 had no JS engine selected)
-  unnoticed. Add a CI job that runs `mise run test:wasm-testbed:deno` (embedded
-  Deno; no browser needed) and `mise run test:wasm-bindgen:deno`.
 - **`foundation_testbed` declares `deno_v8` as an unused dependency** (cargo
   nightly 1.100.0 `unused_dependencies` lint, `Cargo.toml:118`). `deno_v8` is
   listed only to enable its V8 backend for `deno_core` (feature unification);
   no source `use`s it. Fix: silence the lint for that dependency (for example
   a `[lints.cargo]` override or a `use` that marks it used).
 
-- **Wasm runtime tests never run in CI.** `foundation_core`'s
-  `tests/valtron/wasm_js_yield_integration.rs` (and the other
-  `wasm_bindgen_test` suites) need `wasm-testbed` + Deno; the CI wasm step
-  only runs `cargo check --target wasm32` on the library, so these tests are
-  not even compiled there. Fix: a CI step that at least builds them
-  (`cargo check --tests --target wasm32-unknown-unknown`) and, where a
-  runner is available, runs them.
+- **`foundation_reactor` wasm dead-code warning: `rearm_readable` is never used.**
+  `Poll::rearm_readable` (`src/poll/mod.rs:322`) is `pub(crate)` and only called
+  from `src/reactor.rs:565`, which is a native (kqueue/poll) path. On wasm32 the
+  call site is compiled out, so `cargo check --tests --target wasm32` on
+  foundation_wireguard/foundation_netio emits `method rearm_readable is never
+  used`. Fix: gate the method on the same `cfg` as its call site.
 - **`foundation_db` dead-code warnings in test builds**: `core/rate_limit.rs`
   `CREATE_TABLE_SQL`, `RECORD_SQL`, `SELECT_SQL`, `sql_check`, `sql_record`,
   `sql_reset` are unused in the feature set the connectrpc test builds pull

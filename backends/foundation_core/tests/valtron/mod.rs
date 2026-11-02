@@ -32,6 +32,7 @@ mod spread_drain;
 // Blocking sync-boundary helpers do not exist on JS-hosted wasm.
 #[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
 mod state_task;
+#[cfg(not(target_family = "wasm"))]
 mod stream_future;
 mod stream_iterators;
 // Blocking sync-boundary helpers do not exist on JS-hosted wasm.

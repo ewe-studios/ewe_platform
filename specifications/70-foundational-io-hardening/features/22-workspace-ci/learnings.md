@@ -76,3 +76,41 @@
   used nowhere, and the other three are used only in native-gated modules.
   Recorded in the backlog; fixing them is out of E8 scope.
 
+## E4. Wasm runtime tests in CI
+
+- The library-only wasm gate (`cargo check --target wasm32 -p <crate>`) never
+  compiled the `wasm_bindgen_test` suites. They live in wasm32-only test targets
+  and in a standalone crate outside the root workspace. `cargo check --tests
+  --target wasm32-unknown-unknown` is the check that compiles them.
+- The wasm test code rotted under that gate:
+  - foundation_netio: `WasmSseIterator` moved to `wasm::client::stream`,
+    `error_with_e` now returns `()`, and the `Stream` match is non-exhaustive.
+  - foundation_wireguard: `JsDevice::poll` was removed (the smoltcp `Device`
+    trait's `receive` replaces it), and `valtron::is_pool_initialized` is
+    `valtron::single::is_initialized` on wasm.
+  - foundation_testbed forced `foundation_core/multi` on every target. `multi`
+    is native-only (its `idle_wake` module is `cfg(not(target_family = "wasm"))`),
+    so it broke every wasm test consumer. Moving it to a
+    `cfg(not(target_family = "wasm"))` target table fixes it.
+- boringtun 0.7.1 upstream has no wasm32 sleepyinstant backend (only unix and
+  windows), so foundation_wireguard's wasm tests did not compile. The Cargo.toml
+  comment claimed a patch that did not exist. A vendored patch
+  (`patches/boringtun`) adds a wall-clock `Instant` on `js_sys::Date::now()`.
+  boringtun uses `Instant` only for handshake timers, RTT and rate limiting, so
+  a wall clock is sound for the tests; the wrapped `duration_since` clamps a
+  negative difference to zero. The patch also silences boringtun's eight
+  upstream warnings (deprecated ring/base64 calls, an unused `KeyBytes`, an
+  elided-lifetime nit).
+- The E6 image regression: the CI image's `version_checks` reads the main
+  `mise.toml [tools]` and fails when `wasm-bindgen` is absent. E6 moved the tool
+  to `mise.wasm.toml` only, so the image build broke. The pin is restored to
+  `mise.toml [tools]`; the wasm env still overlays its own copy, and
+  `auto_install = false` still isolates the wasm tasks.
+- foundation_core's `stream_future` test module is native-only (its three inner
+  modules are all `cfg(not(target_family = "wasm"))`), but `tests/valtron/mod.rs`
+  did not gate the module itself, so its top-level imports and waker helpers
+  became dead code on wasm. Gating the module removes four warnings.
+- foundation_reactor's `Poll::rearm_readable` is dead code on wasm (its only
+  call site is a native poll/kqueue path). Recorded in the backlog; not fixed
+  here because foundation_reactor is outside feature 22's crates.
+

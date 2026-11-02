@@ -94,6 +94,10 @@ fuser = { version = "0.15", default-features = false }
 # check. See specifications/70-foundational-io-hardening/learnings.md.
 [patch.crates-io]
 gemm-common = { path = "patches/gemm-common" }
+# Vendored patch of boringtun 0.7.1: adds a wasm32 backend for its sleepyinstant
+# clock (upstream ships only unix/windows), so foundation_wireguard's wasm32
+# browser tests compile. See patches/boringtun/src/sleepyinstant/wasm.rs.
+boringtun = { path = "patches/boringtun" }
 
 [workspace.lints.rust]
 missing_docs = { level = "allow" }

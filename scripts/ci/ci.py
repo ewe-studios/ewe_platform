@@ -165,6 +165,17 @@ def load_workspace() -> dict[str, Package]:
         dir="examples",
         needs_llama=packages["answerme-agent"].needs_llama,
     )
+
+    # The wasm runtime test suites live in wasm32-only test targets and in a
+    # self-contained crate outside the root workspace, so cargo metadata's
+    # library-only view never exercises them. Add one synthetic package whose
+    # build step compiles those tests and whose test step runs the embedded-Deno
+    # harnesses (feature 22 E4). See `wasm_tests_commands`.
+    packages["wasm-tests"] = Package(
+        name="wasm-tests",
+        dir="backends/foundation_core/integration/wasm_tests",
+        needs_llama=False,
+    )
     return packages
 
 
@@ -308,9 +319,40 @@ def examples_commands(profile: str) -> dict[str, list[list[str]]]:
     return plan
 
 
+def wasm_tests_commands() -> dict[str, list[list[str]]]:
+    """Commands for the synthetic `wasm-tests` package (feature 22 E4).
+
+    (1) Compile every crate with wasm tests, plus the standalone wasm_tests
+    crate outside the root workspace, with `--tests --target wasm32` so the
+    test code itself is checked (the default wasm gate checks libraries only,
+    which let the `wasm_bindgen_test` suites rot). (2) Run the two embedded-Deno
+    runtime suites. `MISE_ENV=wasm` (set in `ci/packages.toml`) selects
+    `mise.wasm.toml`, which pins only deno + wasm-bindgen and turns off
+    auto_install.
+    """
+    plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
+    plan["build"] = [
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_core", *feature_flags("--no-default-features --features std,js-wasmbindgen")],
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_netio", *feature_flags("--no-default-features --features wasm-fetch")],
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_wireguard", *feature_flags("--no-default-features --features wasm-bindgen-test")],
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_core/integration/wasm_tests/Cargo.toml"],
+    ]
+    plan["test"] = [
+        ["mise", "run", "test:wasm-testbed:deno"],
+        ["mise", "run", "test:wasm-bindgen:deno"],
+    ]
+    return plan
+
+
 def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]:
     if name == "examples":
         return examples_commands(profile)
+    if name == "wasm-tests":
+        return wasm_tests_commands()
     plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
     if s.fmt != "off":
         plan["fmt"].append(["cargo", "fmt", "-p", name, "--check"])

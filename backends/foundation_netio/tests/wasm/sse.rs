@@ -15,7 +15,7 @@
 
 use foundation_core::valtron::Stream;
 use foundation_netio::shared::client::http_client::SseProgress;
-use foundation_netio::wasm::client::WasmSseIterator;
+use foundation_netio::wasm::client::stream::WasmSseIterator;
 use foundation_testbed::bindgen::wasm_bindgen::closure::Closure;
 use foundation_testbed::bindgen::wasm_bindgen::{JsCast, JsValue};
 use foundation_testbed::bindgen::{js_sys, wasm_bindgen_futures, web_sys};
@@ -52,8 +52,7 @@ fn stream_that_errors_after_one_event() -> web_sys::ReadableStream {
                     .expect("enqueue the event");
             } else {
                 controller
-                    .error_with_e(&JsValue::from_str("synthetic SSE read error"))
-                    .expect("error the stream");
+                    .error_with_e(&JsValue::from_str("synthetic SSE read error"));
             }
         })
     };
@@ -85,7 +84,9 @@ async fn sse_read_error_surfaces_failed_not_a_clean_end() {
                 break;
             }
             Some(Stream::Next(_)) => saw_event = true,
-            Some(Stream::Wait) | Some(Stream::Pending(_)) => yield_now().await,
+            // Wait, other pending states, and the Init/Ignore/Delayed/Spread
+            // states all mean "keep polling after yielding to the JS loop".
+            Some(_) => yield_now().await,
             None => panic!("the stream ended without surfacing the read error"),
         }
     }

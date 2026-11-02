@@ -69,6 +69,11 @@ protoc = "36.2"
 sccache = "0.18.0"
 cargo-binstall = "1.25.2"
 "github:wasm-bindgen/wasm-pack" = "0.15.0"
+# wasm-bindgen CLI stays pinned here so the CI image bakes it (the image's
+# version_checks reads this [tools] table and drifts-check it against
+# Cargo.lock). The wasm runtime tasks themselves live in mise.wasm.toml, which
+# pins only deno + wasm-bindgen, so a wasm task never installs every tool here.
+"github:wasm-bindgen/wasm-bindgen" = "0.2.126"
 "github:WebAssembly/binaryen" = "version_133"
 wasmtime = "49.0.2"
 actionlint = "1.7.12"
