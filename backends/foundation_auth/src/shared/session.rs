@@ -112,17 +112,39 @@ impl<S> SessionManager<S> {
         &self.config
     }
 
-    /// Create a new session manager.
+    /// Create a new session manager with one signing key (key id
+    /// [`DEFAULT_KEY_ID`]). Use [`SessionManager::with_key_ring`] to rotate keys.
     ///
     /// # Errors
     ///
-    /// Returns `SessionError` if the signer cannot be initialized.
+    /// Returns `SessionError` if the signing key is shorter than 32 bytes.
     pub fn new(store: S, config: SessionConfig, signing_key: &[u8]) -> Result<Self, SessionError> {
-        Ok(Self {
+        Ok(Self::with_key_ring(
             store,
             config,
-            signer: Arc::new(Mutex::new(TokenSigner::new(signing_key)?)),
-        })
+            KeyRing::single(signing_key)?,
+        ))
+    }
+
+    /// Create a new session manager with a key ring (key rotation).
+    #[must_use]
+    pub fn with_key_ring(store: S, config: SessionConfig, keys: KeyRing) -> Self {
+        Self {
+            store,
+            config,
+            signer: Arc::new(Mutex::new(TokenSigner::new(keys))),
+        }
+    }
+
+    /// Replace the key ring at run time (key rotation).
+    ///
+    /// Sessions signed with a key that is in the new ring stay valid.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the signer lock is poisoned.
+    pub fn rotate_keys(&self, keys: KeyRing) {
+        *self.signer.lock().expect("signer lock") = TokenSigner::new(keys);
     }
 
     fn get_cached_session(_token: &str) -> Option<SessionDataCache> {
@@ -265,7 +287,7 @@ impl<S: CredentialStore> SessionManager<S> {
                         .signer
                         .lock()
                         .expect("signer lock")
-                        .verify(&session.token.get(), token)?
+                        .verify(&session.token.get(), token)
                 {
                     if session.is_valid() {
                         if self.config.sliding_expiration {
@@ -361,69 +383,202 @@ impl<S: CredentialStore> SessionManager<S> {
     }
 }
 
-/// HMAC-SHA256 token signer for session tokens.
-pub struct TokenSigner {
+/// Longest key id, in bytes.
+///
+/// The id is stored in every token, so a short id keeps the cookie small.
+pub const MAX_KEY_ID_LEN: usize = 16;
+
+/// Key id the single-key convenience constructors use.
+pub const DEFAULT_KEY_ID: &str = "0";
+
+/// One named HMAC key.
+///
+/// The key bytes are zeroized when the value drops and never appear in
+/// `Debug` output.
+#[derive(Clone)]
+pub struct SigningKey {
+    id: String,
     key: Zeroizing<Vec<u8>>,
 }
 
-impl TokenSigner {
-    /// Create a signer from a raw key of at least 32 bytes.
+impl SigningKey {
+    /// Create a named key.
+    ///
+    /// The id must be 1 to [`MAX_KEY_ID_LEN`] characters from `A-Z a-z 0-9 - _`
+    /// (it cannot hold a `.`, because `.` separates the token parts).
     ///
     /// # Errors
     ///
-    /// Returns [`SessionError::InvalidSigningKey`] if the key is shorter than 32 bytes.
-    pub fn new(key: &[u8]) -> Result<Self, SessionError> {
-        if key.len() < 32 {
+    /// Returns [`SessionError::InvalidSigningKey`] if the key is shorter than 32
+    /// bytes or the id is not valid.
+    pub fn new(id: &str, key: &[u8]) -> Result<Self, SessionError> {
+        let id_ok = !id.is_empty()
+            && id.len() <= MAX_KEY_ID_LEN
+            && id
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_');
+        if key.len() < 32 || !id_ok {
             return Err(SessionError::InvalidSigningKey);
         }
         Ok(Self {
+            id: id.to_string(),
             key: Zeroizing::new(key.to_vec()),
         })
     }
 
-    /// Sign a raw session token, returning `"{token}.{base64(signature)}"`.
+    /// The key id.
+    #[must_use]
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn mac(&self, plain: &str) -> HmacSha256 {
+        let mut mac = HmacSha256::new_from_slice(&self.key).expect("HMAC can take key of any size");
+        mac.update(plain.as_bytes());
+        mac
+    }
+}
+
+impl core::fmt::Debug for SigningKey {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("SigningKey")
+            .field("id", &self.id)
+            .field("key", &"<redacted>")
+            .finish()
+    }
+}
+
+/// The keys a [`TokenSigner`] uses: one **current** key that signs and verifies,
+/// and zero or more **previous** keys that only verify.
+///
+/// To rotate: make a new key current and move the old current key to the
+/// previous list. Sessions signed with the old key stay valid. Remove the old
+/// key from the ring when those sessions have expired (after
+/// [`SessionConfig::max_session_age`]).
+///
+/// `allow_legacy_tokens` (default `true`) is the migration window for tokens
+/// made before key ids existed (`token.sig`, two parts). They verify with the
+/// current key. Set it to `false` once all such sessions have expired.
+#[derive(Clone, Debug)]
+pub struct KeyRing {
+    current: SigningKey,
+    previous: Vec<SigningKey>,
+    allow_legacy_tokens: bool,
+}
+
+impl KeyRing {
+    /// A ring with only a current key.
+    #[must_use]
+    pub fn new(current: SigningKey) -> Self {
+        Self {
+            current,
+            previous: Vec::new(),
+            allow_legacy_tokens: true,
+        }
+    }
+
+    /// A ring from one raw key, with the id [`DEFAULT_KEY_ID`].
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// Panics if the HMAC key setup fails. The
-    /// `expect("HMAC can take key of any size")` call fails then. This cannot
-    /// happen because HMAC accepts a key of any size.
+    /// Returns [`SessionError::InvalidSigningKey`] if the key is shorter than 32 bytes.
+    pub fn single(key: &[u8]) -> Result<Self, SessionError> {
+        Ok(Self::new(SigningKey::new(DEFAULT_KEY_ID, key)?))
+    }
+
+    /// Add a previous key (verify only).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionError::InvalidSigningKey`] if the id is already in the ring.
+    pub fn with_previous(mut self, key: SigningKey) -> Result<Self, SessionError> {
+        if key.id == self.current.id || self.previous.iter().any(|k| k.id == key.id) {
+            return Err(SessionError::InvalidSigningKey);
+        }
+        self.previous.push(key);
+        Ok(self)
+    }
+
+    /// Accept (`true`, default) or reject (`false`) tokens without a key id.
+    #[must_use]
+    pub fn allow_legacy_tokens(mut self, allow: bool) -> Self {
+        self.allow_legacy_tokens = allow;
+        self
+    }
+
+    /// The id of the key that signs new tokens.
+    #[must_use]
+    pub fn current_id(&self) -> &str {
+        &self.current.id
+    }
+
+    fn find(&self, kid: &str) -> Option<&SigningKey> {
+        if self.current.id == kid {
+            return Some(&self.current);
+        }
+        self.previous.iter().find(|k| k.id == kid)
+    }
+}
+
+/// HMAC-SHA256 token signer for session tokens, with key rotation.
+///
+/// Token format: `{token}.{kid}.{tag}`
+///
+/// - `token`: the random session token (base64url, no `.`).
+/// - `kid`: the id of the signing key (see [`SigningKey::new`]).
+/// - `tag`: `base64url(HMAC-SHA256(key, token))`, no padding.
+///
+/// The old format `{token}.{tag}` (no key id) still verifies with the current key
+/// while [`KeyRing::allow_legacy_tokens`] is `true`.
+pub struct TokenSigner {
+    ring: KeyRing,
+}
+
+impl TokenSigner {
+    /// Create a signer from a key ring.
+    #[must_use]
+    pub fn new(keys: KeyRing) -> Self {
+        Self { ring: keys }
+    }
+
+    /// Sign a raw session token with the current key, returning
+    /// `"{token}.{kid}.{base64(signature)}"`.
     #[must_use]
     pub fn sign(&self, token: &str) -> String {
-        let mut mac = HmacSha256::new_from_slice(&self.key).expect("HMAC can take key of any size");
-        mac.update(token.as_bytes());
-        let result = mac.finalize().into_bytes();
-        format!("{token}.{}", URL_SAFE_NO_PAD.encode(result))
+        let result = self.ring.current.mac(token).finalize().into_bytes();
+        format!(
+            "{token}.{}.{}",
+            self.ring.current.id,
+            URL_SAFE_NO_PAD.encode(result)
+        )
     }
 
     /// Verify a signed token against its plain text.
     ///
-    /// The tag comparison runs in constant time through [`Mac::verify_slice`],
-    /// which also compares the lengths first, so a truncated tag is rejected.
+    /// The key is chosen by the key id in the signed token. The tag comparison
+    /// runs in constant time through [`Mac::verify_slice`], which also compares
+    /// the lengths first, so a truncated tag is rejected.
     ///
-    /// # Errors
-    ///
-    /// Returns [`SessionError::InvalidToken`] if the signature is not valid base64.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the HMAC key setup fails. The
-    /// `expect("HMAC can take key of any size")` call fails then. This cannot
-    /// happen because HMAC accepts a key of any size.
-    pub fn verify(&self, signed: &str, plain: &str) -> Result<bool, SessionError> {
+    /// Every failure (wrong format, unknown key id, bad base64, wrong tag, legacy
+    /// token while legacy tokens are off) returns `false`. The caller cannot tell
+    /// which check failed, so a key id does not show which keys exist.
+    #[must_use]
+    pub fn verify(&self, signed: &str, plain: &str) -> bool {
         let parts: Vec<&str> = signed.split('.').collect();
-        if parts.len() != 2 {
-            return Ok(false);
-        }
+        let (key, tag) = match parts.as_slice() {
+            [_, tag] if self.ring.allow_legacy_tokens => (Some(&self.ring.current), *tag),
+            [_, kid, tag] => (self.ring.find(kid), *tag),
+            _ => (None, ""),
+        };
 
-        let mut mac = HmacSha256::new_from_slice(&self.key).expect("HMAC can take key of any size");
-        mac.update(plain.as_bytes());
-
-        let actual = URL_SAFE_NO_PAD
-            .decode(parts[1])
-            .map_err(|_| SessionError::InvalidToken)?;
-
-        Ok(mac.verify_slice(&actual).is_ok())
+        // Always do one HMAC and one compare, so an unknown key id takes
+        // about as long as a wrong tag. A bad base64 tag becomes an empty tag,
+        // which `verify_slice` rejects on length.
+        let usable = key.is_some();
+        let key = key.unwrap_or(&self.ring.current);
+        let tag_bytes = URL_SAFE_NO_PAD.decode(tag).unwrap_or_default();
+        let matched = key.mac(plain).verify_slice(&tag_bytes).is_ok();
+        matched && usable
     }
 }
 
