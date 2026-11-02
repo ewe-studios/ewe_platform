@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 42
-  uncompleted: 26
-  total: 68
+  uncompleted: 27
+  total: 69
   completion_percentage: 66%
 ---
 
@@ -189,6 +189,7 @@ done
 | 66 | [Auth: no security stubs; direct session lookup](./features/66-auth-stubs-and-session-lookup/feature.md) | §8 catalogue rows 51–53 (sonnet) | 53 | M |
 | 67 | [One error standard: `foundation_errstacks`, no `thiserror`](./features/67-errstacks-error-standard/feature.md) | §8 catalogue rows 54, 55 (sonnet) | both lanes merged | L |
 | 68 | [ToS gate at login; bound single-use code; no body user id](./features/68-tos-login-gate/feature.md) | §8 catalogue rows 57, 58 (sonnet) | 66 | M |
+| 69 | [Unsolicited 1xx interim responses are skipped](./features/69-unsolicited-interim-responses/feature.md) | §8 catalogue row 59 (haiku) | 43 | S |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -321,6 +322,7 @@ fixed in code but not deleted.
 | 56 | `foundation_boringtun` library still named `boringtun` | owner decision | 54 E4 |
 | 57 | login has no ToS gate (spec 48 F02 step 7 / F07 never built) | owner decision, review of 66 | 68 |
 | 58 | `tos/accept` records acceptance for any `user_id` in the body, unauthenticated (security) | review of 66 | 68 |
+| 59 | no end-to-end test that an unsolicited 1xx is skipped with Expect off (Docker client) | owner question on 43 | 69 |
 
 ### 8.1 Lanes, branches and models
 
@@ -333,7 +335,7 @@ the choice.
 
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
-| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
+| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
 | B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 68 → 54 E4 → 56 → … → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
