@@ -50,6 +50,13 @@ _Written in ASD-STE100 Simplified Technical English._
   per namespace, then stays quiet. New test
   `sql_store_warns_above_scan_threshold` (threshold 10, 11 vectors, one
   warning) captures the warn with a subscriber layer.
+- **E6.** The `sql-store` feature builds for wasm32. `foundation_db` is now a
+  target-specific dependency: native keeps the default features, wasm takes
+  `default-features = false` (the shared `QueryStore` core only, no
+  `foundation_core/multi`). `ci/packages.toml` adds `sql-store` to the crate's
+  `wasm-runs`. Verified with
+  `cargo check --target wasm32-unknown-unknown -p foundation_vectors
+  --features sql-store`.
 
 ## In progress
 
@@ -57,4 +64,4 @@ _Written in ASD-STE100 Simplified Technical English._
 
 ## Next
 
-- E6 (last): `sql-store` on wasm32 + CI wasm run.
+- None.

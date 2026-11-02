@@ -114,6 +114,22 @@ _Written in ASD-STE100 Simplified Technical English._
 - **`TursoStorage` works under `futures_lite::future::block_on`.** The local
   turso backend needs no valtron pool, so a plain `#[test]` can drive it.
 
+## E6
+
+- **A target-specific dependency table closes the `[dependencies]` table in
+  TOML.** The first fix put `[target.'cfg(..)'.dependencies.foundation_db]`
+  between two plain dependencies, so every dependency after it was silently
+  outside `[dependencies]` and `dep:futures-lite` stopped resolving. The target
+  tables must come after all plain dependencies.
+- **`foundation_db` without default features still provides `QueryStore` and
+  `DataValue`.** Those types live in the always-compiled `core` module and are
+  re-exported at the top level, so the wasm `sql-store` build needs no backend
+  feature.
+- **The wasm failure came from `foundation_db`'s default features
+  (`turso`/`d1`/`r2`), not from `sql_store.rs`.** Each default feature turns on
+  `foundation_core/multi`, which is native-only. Turning the default features
+  off on `target_family = "wasm"` is enough.
+
 ## Dead ends
 
 - **`f32::from(i32)` does not exist.** `f32` implements `From` for small

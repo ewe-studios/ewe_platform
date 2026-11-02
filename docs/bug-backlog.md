@@ -206,15 +206,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 17. foundation_vectors
 
-- **The `sql-store` feature does not build for wasm32.**
-  `cargo check --target wasm32-unknown-unknown -p foundation_vectors
-  --features sql-store` fails in `foundation_core` (`idle_wake` missing, a
-  `NoopMutex` `PoisonError` mismatch). The crate takes `foundation_db` with
-  its default features on every target, so `foundation_core/multi` is on for
-  wasm. This was so before spec 50 F05 T1. CI builds `sql-store` only for
-  native, so it does not see it. Fix: take `foundation_db` without default
-  features on wasm32, then add `sql-store` to the crate's `wasm-runs` in
-  `ci/packages.toml`.
 - **The SQL store test tree hits `recursion_depth_exceeding_limit`.**
   `tests/contract/mod.rs` plus `make_store` over `TursoStorage` forces a
   `Send` check through the `turso` crate's deeply nested async chain, so

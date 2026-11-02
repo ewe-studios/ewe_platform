@@ -211,7 +211,8 @@ wasm-runs = ["--no-default-features --features wasm-fetch"]
 runs = ["", "sql-store"]
 wasm = "enforce"
 # `turbopuffer` takes the fetch client on wasm32 (foundation_netio `wasm-fetch`).
-wasm-runs = ["", "turbopuffer"]
+# `sql-store` is the portable full-scan store over foundation_db's shared core.
+wasm-runs = ["", "turbopuffer", "sql-store"]
 
 [packages.foundation_keychain]
 # Runs on Cloudflare Workers (D1 + the fetch client for the icon proxy, #140);
