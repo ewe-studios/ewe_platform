@@ -132,7 +132,13 @@ impl GateUpstream {
 }
 
 fn start_proxy(services: Vec<ServiceConfig>) -> ProxyServer {
-    let mut config = ProxyConfig::new("relay.local", "127.0.0.1").bind("127.0.0.1:0");
+    start_proxy_with_limit(services, 1024 * 1024)
+}
+
+fn start_proxy_with_limit(services: Vec<ServiceConfig>, limit: usize) -> ProxyServer {
+    let mut config = ProxyConfig::new("relay.local", "127.0.0.1")
+        .bind("127.0.0.1:0")
+        .max_request_body(limit);
     for svc in services {
         config = config.service(svc);
     }
@@ -332,4 +338,155 @@ fn proxy_relay_answers_502_when_the_upstream_hangs_up() {
 
     assert!(reply.starts_with("HTTP/1.1 502"), "502 answer: {reply}");
     assert!(reply.ends_with("Bad Gateway"), "502 body: {reply}");
+}
+
+/// An upstream that answers `200` once it has read a request head and the whole
+/// body (`Content-Length` or chunked). It starts one thread per connection (test code).
+fn body_reading_upstream() -> u16 {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind body upstream");
+    let port = listener.local_addr().expect("addr").port();
+    std::thread::spawn(move || {
+        while let Ok((mut sock, _)) = listener.accept() {
+            std::thread::spawn(move || {
+                let mut data = Vec::new();
+                let mut buf = [0u8; 1024];
+                loop {
+                    if let Some(end) = data.windows(4).position(|w| w == b"\r\n\r\n") {
+                        let head = String::from_utf8_lossy(&data[..end]).to_lowercase();
+                        let want = head
+                            .lines()
+                            .find_map(|l| l.strip_prefix("content-length:"))
+                            .and_then(|v| v.trim().parse::<usize>().ok())
+                            .unwrap_or(0);
+                        let chunked = head.contains("transfer-encoding: chunked");
+                        if chunked && data.ends_with(b"0\r\n\r\n") {
+                            break;
+                        }
+                        if !chunked && data.len() >= end + 4 + want {
+                            break;
+                        }
+                    }
+                    match sock.read(&mut buf) {
+                        Ok(0) | Err(_) => return,
+                        Ok(n) => data.extend_from_slice(&buf[..n]),
+                    }
+                }
+                let _ = sock.write_all(response().as_bytes());
+            });
+        }
+    });
+    port
+}
+
+#[valtron_test(seed = 50, threads = 2, timeout = 60000)]
+fn slow_client_upload_does_not_hold_worker() {
+    let _serial = one_at_a_time();
+    let upload_port = body_reading_upstream();
+    let fast = GateUpstream::start(false);
+    let proxy = start_proxy(vec![
+        ServiceConfig::new("up", "up.local").backend(&format!("http://127.0.0.1:{upload_port}")),
+        ServiceConfig::new("fast", "fast.local").backend(&fast.url()),
+    ]);
+    let addr = proxy.local_addr();
+
+    // Two uploads of 40 bytes, one byte every 50 ms (2 s each): one per worker.
+    let uploads: Vec<_> = (0..2)
+        .map(|_| {
+            std::thread::spawn(move || {
+                let mut s = TcpStream::connect(addr).expect("connect");
+                s.set_read_timeout(Some(Duration::from_secs(20))).ok();
+                s.write_all(
+                    b"POST / HTTP/1.1\r\nHost: up.local\r\nContent-Length: 40\r\nConnection: close\r\n\r\n",
+                )
+                .expect("head");
+                for _ in 0..40 {
+                    if s.write_all(b"x").is_err() {
+                        break;
+                    }
+                    std::thread::sleep(Duration::from_millis(50));
+                }
+                read_all(s)
+            })
+        })
+        .collect();
+    std::thread::sleep(Duration::from_millis(400));
+
+    // A complete request must answer while both uploads are open.
+    let started = Instant::now();
+    let fast_reply = read_all(open_request(addr, "fast.local"));
+    let waited = started.elapsed();
+    assert!(
+        fast_reply.starts_with("HTTP/1.1 200"),
+        "fast reply: {fast_reply}"
+    );
+    assert!(
+        waited < Duration::from_millis(500),
+        "a second request waited {waited:?} behind slow uploads"
+    );
+
+    // The slow bodies must arrive whole and be answered.
+    for upload in uploads {
+        let reply = upload.join().expect("upload client");
+        assert!(
+            reply.starts_with("HTTP/1.1 200") && reply.ends_with(BODY),
+            "upload reply: {reply}"
+        );
+    }
+    proxy.shutdown();
+}
+
+fn post_raw(addr: SocketAddr, head_extra: &str, body: &[u8]) -> String {
+    let mut s = TcpStream::connect(addr).expect("connect");
+    s.set_read_timeout(Some(Duration::from_secs(20))).ok();
+    s.write_all(
+        format!("POST / HTTP/1.1\r\nHost: up.local\r\nConnection: close\r\n{head_extra}\r\n")
+            .as_bytes(),
+    )
+    .expect("head");
+    let _ = s.write_all(body);
+    read_all(s)
+}
+
+#[valtron_test(seed = 51, threads = 2, timeout = 60000)]
+fn request_body_over_the_limit_is_413() {
+    let _serial = one_at_a_time();
+    let port = body_reading_upstream();
+    let proxy = start_proxy_with_limit(
+        vec![ServiceConfig::new("up", "up.local").backend(&format!("http://127.0.0.1:{port}"))],
+        100,
+    );
+    let addr = proxy.local_addr();
+
+    // A declared length over the limit is refused before the body is read.
+    let declared = post_raw(addr, "Content-Length: 1000\r\n", &[b'x'; 1000]);
+    assert!(declared.starts_with("HTTP/1.1 413"), "declared: {declared}");
+
+    // A chunked body that passes the limit while streaming is refused too.
+    let mut chunked = Vec::new();
+    for _ in 0..3 {
+        chunked.extend_from_slice(b"64\r\n");
+        chunked.extend_from_slice(&[b'y'; 100]);
+        chunked.extend_from_slice(b"\r\n");
+    }
+    chunked.extend_from_slice(b"0\r\n\r\n");
+    let streamed = post_raw(addr, "Transfer-Encoding: chunked\r\n", &chunked);
+    assert!(streamed.starts_with("HTTP/1.1 413"), "streamed: {streamed}");
+
+    // A body at the limit passes; a limit of 0 turns the check off.
+    let at_limit = post_raw(addr, "Content-Length: 100\r\n", &[b'z'; 100]);
+    assert!(at_limit.starts_with("HTTP/1.1 200"), "at limit: {at_limit}");
+    proxy.shutdown();
+
+    let port = body_reading_upstream();
+    let open = start_proxy_with_limit(
+        vec![ServiceConfig::new("up", "up.local").backend(&format!("http://127.0.0.1:{port}"))],
+        0,
+    );
+    let big = post_raw(
+        open.local_addr(),
+        "Content-Length: 300000\r\n",
+        &[b'q'; 300_000],
+    );
+    assert!(big.starts_with("HTTP/1.1 200"), "no limit: {big}");
+    open.shutdown();
 }

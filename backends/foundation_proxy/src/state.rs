@@ -36,6 +36,8 @@ pub struct ProxyState {
     store: Option<Arc<ProxyStateStore>>,
     /// Limits for the response writer of each relayed connection.
     writer: WriterConfig,
+    /// The largest relayed request body in bytes; 0 means no limit.
+    max_request_body: usize,
 }
 
 impl std::fmt::Debug for ProxyState {
@@ -67,7 +69,22 @@ impl ProxyState {
             draining: AtomicBool::new(false),
             store: None,
             writer: WriterConfig::default(),
+            max_request_body: 1024 * 1024,
         }
+    }
+
+    /// Set the largest relayed request body in bytes (0 = no limit). Default
+    /// 1 MiB (nginx `client_max_body_size`).
+    #[must_use]
+    pub fn with_max_request_body(mut self, limit: usize) -> Self {
+        self.max_request_body = limit;
+        self
+    }
+
+    /// The largest relayed request body in bytes; 0 means no limit.
+    #[must_use]
+    pub fn max_request_body(&self) -> usize {
+        self.max_request_body
     }
 
     /// Set the limits of the response writer each relay uses (the send

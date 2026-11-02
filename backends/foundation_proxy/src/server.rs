@@ -158,7 +158,8 @@ impl ProxyServer {
         let mut proxy_state_value = ProxyState::new(router, client.clone(), "http", config.io_mode)
             .with_writer_config(
                 WriterConfig::default().with_send_timeout(config.relay_send_timeout),
-            );
+            )
+            .with_max_request_body(config.max_request_body);
         if let Some(store) = &store {
             proxy_state_value = proxy_state_value.with_store(Arc::clone(store));
         }

@@ -21,6 +21,7 @@
 use std::collections::HashSet;
 use std::io::{ErrorKind, Write};
 use std::net::ToSocketAddrs;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -29,13 +30,15 @@ use foundation_http::native::writer::ResponseWriter;
 use foundation_iogate::ServerIo;
 use foundation_netio::http::{ClientRequestBuilder, NativeHttpClient};
 use foundation_netio::netcap::{Connection, RawStream};
-use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
+use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, ReadWakeSource};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{
-    Http11, Http11Chunk, Proto, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders,
+    pushable_request_body_with_readiness, BodyReadiness, Http11, Http11Chunk, Proto,
+    PushableRequestBody, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, SimpleResponse, Status,
+    DEFAULT_PUSHABLE_DEPTH,
 };
-use futures_util::StreamExt;
+use futures_util::{FutureExt, StreamExt};
 
 use crate::passthrough::splice_bidirectional;
 use crate::runtime::BackendRuntime;
@@ -233,6 +236,9 @@ pub struct ForwardError {
     /// True when the response head is already on the wire. The caller must then
     /// only close the connection: a second response would corrupt the first.
     pub response_started: bool,
+    /// The status the caller answers when `response_started` is false: `502`
+    /// for an upstream failure, `413` for a request body over the limit.
+    pub answer_status: u16,
 }
 
 impl std::fmt::Display for ForwardError {
@@ -248,6 +254,15 @@ impl ForwardError {
         Self {
             message,
             response_started: false,
+            answer_status: 502,
+        }
+    }
+
+    fn too_large(limit: usize) -> Self {
+        Self {
+            message: format!("request body over the {limit} byte limit"),
+            response_started: false,
+            answer_status: 413,
         }
     }
 
@@ -255,6 +270,7 @@ impl ForwardError {
         Self {
             message,
             response_started: true,
+            answer_status: 502,
         }
     }
 }
@@ -283,12 +299,147 @@ impl ForwardError {
 pub async fn forward_http(
     writer: &mut ResponseWriter,
     backend: &Arc<BackendRuntime>,
-    req: SimpleIncomingRequest,
-    client_ip: &str,
-    scheme: &str,
-    client: &SharedHttpClient,
-    extra_headers: Option<&SimpleHeaders>,
+    mut req: SimpleIncomingRequest,
+    ctx: &ForwardContext<'_>,
 ) -> Result<(), ForwardError> {
+    let limit = ctx.max_request_body;
+    // A declared length over the limit is refused before any byte is read
+    // (nginx `client_max_body_size`).
+    if limit != 0 {
+        let declared = req
+            .headers
+            .get(&SimpleHeader::CONTENT_LENGTH)
+            .and_then(|v| v.first())
+            .and_then(|v| v.trim().parse::<usize>().ok());
+        if declared.is_some_and(|len| len > limit) {
+            return Err(ForwardError::too_large(limit));
+        }
+    }
+    let body = req.body.take().unwrap_or(SendSafeBody::None);
+    if matches!(body, SendSafeBody::None) {
+        return exchange(
+            writer,
+            backend,
+            req,
+            SendSafeBody::None,
+            None,
+            ctx,
+            &AtomicBool::new(false),
+        )
+        .await;
+    }
+
+    // The client's body is read as an async stream (parked on the client
+    // socket's read readiness) and pushed through a bounded pipe into the
+    // upstream request, so a slow upload holds no worker thread and no whole
+    // body is buffered.
+    let (producer, upstream_body, readiness) =
+        pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
+    let pump = pump_request_body(body, ctx.client_read_wake.clone(), producer, limit).fuse();
+    let started = AtomicBool::new(false);
+    let exchange = exchange(
+        writer,
+        backend,
+        req,
+        upstream_body,
+        Some(readiness),
+        ctx,
+        &started,
+    )
+    .fuse();
+    futures_util::pin_mut!(pump, exchange);
+    loop {
+        futures_util::select! {
+            done = exchange => return done,
+            pumped = pump => {
+                // A body that ends cleanly closed the pipe; the exchange goes on.
+                // A body that failed or passed the limit must stop the exchange:
+                // closing the pipe would look like a complete body to the
+                // upstream. Dropping the exchange drops the upstream request.
+                if let Err(e) = pumped {
+                    let mut err = match e {
+                        PumpError::TooLarge => ForwardError::too_large(limit),
+                        PumpError::Read => ForwardError::before_response(
+                            "client request body read failed".to_string(),
+                        ),
+                    };
+                    err.response_started = started.load(Ordering::SeqCst);
+                    return Err(err);
+                }
+            }
+        }
+    }
+}
+
+/// Why the request-body pump stopped early.
+enum PumpError {
+    /// The body is larger than the limit.
+    TooLarge,
+    /// The client connection failed while the body was read.
+    Read,
+}
+
+/// Move the client's request body into the upstream request pipe, at most
+/// `limit` bytes (0 = no limit). Ends the pipe when the body ends or fails, so
+/// the upstream request finishes or fails and is never left waiting.
+async fn pump_request_body(
+    body: SendSafeBody,
+    read_wake: Option<ReadWakeSource>,
+    producer: PushableRequestBody,
+    limit: usize,
+) -> Result<(), PumpError> {
+    let mut stream = AsyncSendSafeBody::from(body);
+    if let Some(source) = read_wake {
+        stream = stream.with_read_wake(source);
+    }
+    let mut total = 0usize;
+    while let Some(piece) = stream.next().await {
+        let bytes = piece.map_err(|e| {
+            tracing::debug!("client request body read failed: {e}");
+            PumpError::Read
+        })?;
+        total = total.saturating_add(bytes.len());
+        if limit != 0 && total > limit {
+            return Err(PumpError::TooLarge);
+        }
+        if producer.push(bytes).await.is_err() {
+            // The upstream request is done with the body (it answered early).
+            return Ok(());
+        }
+    }
+    producer.close();
+    Ok(())
+}
+
+/// What [`forward_http`] needs besides the writer, backend and request.
+pub struct ForwardContext<'a> {
+    /// The client's IP, appended to `X-Forwarded-For`.
+    pub client_ip: &'a str,
+    /// The scheme the client used, set as `X-Forwarded-Proto`.
+    pub scheme: &'a str,
+    /// The pooled upstream client.
+    pub client: &'a SharedHttpClient,
+    /// Headers added to the response (sticky cookie, ...).
+    pub extra_headers: Option<&'a SimpleHeaders>,
+    /// Registers a waker for read readiness of the client connection, so the
+    /// request body read parks instead of spinning. `None` polls.
+    pub client_read_wake: Option<ReadWakeSource>,
+    /// The largest request body in bytes; 0 means no limit.
+    pub max_request_body: usize,
+}
+
+/// Send the request upstream and relay the response. See [`forward_http`].
+async fn exchange(
+    writer: &mut ResponseWriter,
+    backend: &Arc<BackendRuntime>,
+    req: SimpleIncomingRequest,
+    body: SendSafeBody,
+    body_readiness: Option<BodyReadiness>,
+    ctx: &ForwardContext<'_>,
+    started: &AtomicBool,
+) -> Result<(), ForwardError> {
+    let (client_ip, scheme, client, extra_headers) =
+        (ctx.client_ip, ctx.scheme, ctx.client, ctx.extra_headers);
     // `forward_request_headers` asks the upstream to `Connection: close` for
     // non-streaming requests (their single-shot exchange is EOF-delimited on the
     // way back). Such a connection must not be returned to the pool: the upstream
@@ -299,14 +450,16 @@ pub async fn forward_http(
 
     let url = upstream_url(backend.url(), &req.request_url.url);
     let headers = forward_request_headers(&req.headers, client_ip, scheme);
-    let body = req.body.unwrap_or(SendSafeBody::None);
 
-    let builder = ClientRequestBuilder::<SystemDnsResolver>::new(req.method.clone(), &url)
+    let mut builder = ClientRequestBuilder::<SystemDnsResolver>::new(req.method.clone(), &url)
         .map_err(|e| {
             ForwardError::before_response(format!("build upstream request for {url}: {e}"))
         })?
         .headers(headers)
         .body(body);
+    if let Some(readiness) = body_readiness {
+        builder = builder.with_body_readiness(readiness);
+    }
 
     let request = client
         .request(builder)
@@ -339,6 +492,7 @@ pub async fn forward_http(
 
     let head = render_stream(Http11::ResponseHead(SimpleResponse::no_body(status, out)))
         .map_err(ForwardError::before_response)?;
+    started.store(true, Ordering::SeqCst);
     writer
         .write_all(&head)
         .await

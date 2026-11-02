@@ -105,6 +105,12 @@ pub struct ProxyConfig {
     /// live client is not cut. Defaults to 60 seconds (nginx `send_timeout`).
     #[serde(default = "default_relay_send_timeout", with = "duration_millis")]
     pub relay_send_timeout: Duration,
+    /// The largest request body, in bytes, the proxy relays to a backend. A
+    /// larger declared `Content-Length`, or a streamed body that passes the
+    /// limit, is answered `413 Payload Too Large`. `0` turns the limit off, for
+    /// streaming uploads. Defaults to 1 MiB (nginx `client_max_body_size`).
+    #[serde(default = "default_max_request_body")]
+    pub max_request_body: usize,
 }
 
 impl ProxyConfig {
@@ -126,7 +132,16 @@ impl ProxyConfig {
             redirect_accept_poll: default_redirect_accept_poll(),
             io_mode: ServerIo::default(),
             relay_send_timeout: default_relay_send_timeout(),
+            max_request_body: default_max_request_body(),
         }
+    }
+
+    /// Set [`Self::max_request_body`]. `0` means no limit. Default 1 MiB (nginx
+    /// `client_max_body_size`).
+    #[must_use]
+    pub fn max_request_body(mut self, limit: usize) -> Self {
+        self.max_request_body = limit;
+        self
     }
 
     /// Set [`Self::relay_send_timeout`]. Default 60 seconds (nginx
@@ -268,6 +283,11 @@ const fn default_redirect_head_limit() -> usize {
 /// Caddy uses).
 fn default_redirect_read_timeout() -> Duration {
     Duration::from_secs(2)
+}
+
+/// The default request body limit: 1 MiB (nginx `client_max_body_size`).
+const fn default_max_request_body() -> usize {
+    1024 * 1024
 }
 
 /// The default relay send timeout: 60 seconds (nginx `send_timeout`).

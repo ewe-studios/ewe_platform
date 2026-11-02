@@ -27,14 +27,14 @@ use std::time::Instant;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleIncomingRequest};
 
 use foundation_http::native::writer::{render_head, send_not_found, send_text, ResponseWriter};
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
 
 use crate::config::BackendProtocol;
-use crate::forward::{forward_http, forward_upgrade, is_upgrade_request};
+use crate::forward::{forward_http, forward_upgrade, is_upgrade_request, ForwardContext};
 use crate::passthrough::splice_bidirectional;
 use crate::runtime::BackendLease;
 use crate::runtime::STICKY_COOKIE;
@@ -122,6 +122,13 @@ impl Serve for ProxyHandler {
         let protocol = lease.backend().protocol();
         let io_mode = self.state.io_mode();
         let writer_config = self.state.writer_config();
+        let max_request_body = self.state.max_request_body();
+        // Only a request with a body needs the client's read readiness.
+        let client_read_wake = if matches!(req.body, None | Some(SendSafeBody::None)) {
+            None
+        } else {
+            conn.with_inner_ref(RawStream::read_wake_source)
+        };
 
         // UDP is connectionless — traffic enters via `UdpPassthrough`, not the
         // HTTP front end. Reaching it here means a UDP backend was matched via
@@ -180,16 +187,15 @@ impl Serve for ProxyHandler {
         ConnectionResult::Async(Box::pin(async move {
             let backend = Arc::clone(lease.backend());
             let mut writer = ResponseWriter::new(conn, writer_config);
-            let result = forward_http(
-                &mut writer,
-                &backend,
-                req,
-                &client_ip,
-                &scheme,
-                &client,
-                sticky_header.as_ref(),
-            )
-            .await;
+            let ctx = ForwardContext {
+                client_ip: &client_ip,
+                scheme: &scheme,
+                client: &client,
+                extra_headers: sticky_header.as_ref(),
+                client_read_wake,
+                max_request_body,
+            };
+            let result = forward_http(&mut writer, &backend, req, &ctx).await;
             if let Err(e) = result {
                 if e.response_started {
                     // The client has part of a response: only close.
@@ -198,8 +204,8 @@ impl Serve for ProxyHandler {
                     // The upstream was unreachable or misbehaved: never close
                     // silently, answer a well-formed 502 so the client sees a
                     // real response.
-                    tracing::warn!(url = %backend.url(), "forward failed, sending 502: {e}");
-                    let _ = write_bad_gateway(&mut writer).await;
+                    tracing::warn!(url = %backend.url(), "forward failed, sending {}: {e}", e.answer_status);
+                    let _ = write_error_page(&mut writer, e.answer_status).await;
                 }
             }
             log_access();
@@ -227,17 +233,21 @@ fn needs_blocking_relay(protocol: BackendProtocol, req: &SimpleIncomingRequest) 
     }
 }
 
-/// Write a complete `502 Bad Gateway` answer.
-async fn write_bad_gateway(writer: &mut ResponseWriter) -> std::io::Result<()> {
-    const BODY: &str = "Bad Gateway";
+/// Write a complete `502 Bad Gateway` (or `413 Payload Too Large`) answer.
+async fn write_error_page(writer: &mut ResponseWriter, status: u16) -> std::io::Result<()> {
+    let body = if status == 413 {
+        "Payload Too Large"
+    } else {
+        "Bad Gateway"
+    };
     let headers = [
         (SimpleHeader::CONTENT_TYPE, "text/plain".to_string()),
         (SimpleHeader::CONNECTION, "close".to_string()),
     ];
-    let head = render_head(502, &headers, BODY.len())
+    let head = render_head(status, &headers, body.len())
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
     writer.write_all(&head).await?;
-    writer.write_all(BODY.as_bytes()).await?;
+    writer.write_all(body.as_bytes()).await?;
     writer.flush().await
 }
 
