@@ -13,7 +13,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use super::analyzer::ApiGroup;
-use super::emit::{self, Field, ModuleFile, TypeDef, ARGS_DERIVES, SCHEMA_DERIVES};
+use super::emit::{
+    self, Field, ModuleFile, TypeDef, Variant, VariantShape, ARGS_DERIVES, SCHEMA_DERIVES,
+};
 
 /// How deep `allOf` members are followed through `$ref`s before giving up — a
 /// guard against a reference cycle, far past any real spec's nesting.
@@ -1007,15 +1009,32 @@ fn set_feature(features: &mut dyn toml_edit::TableLike, key: &str, item: toml_ed
 /// `async fn` does not parse — so every run used to fail, and the failure was
 /// discarded (`let _ = …output()`), leaving the code unformatted without anyone
 /// knowing. A formatter that cannot run is now an error.
+///
+/// `rustfmt` runs with an **empty configuration**, not the repository's
+/// `rustfmt.toml`. That file lists the generated Cloudflare crates under
+/// `ignore` (so `cargo fmt` leaves them alone), and `rustfmt` honours `ignore`
+/// even for a file named on the command line: an in-tree run then wrote
+/// unformatted code, while `Codegen::check`, which generates in a scratch tree
+/// the file does not reach, compared against formatted code. One configuration
+/// for both means a regeneration is byte-for-byte what `check` expects.
 fn format_files(paths: &[PathBuf]) -> Result<(), GenError> {
     if paths.is_empty() {
         return Ok(());
     }
+    let config_dir = std::env::temp_dir().join(format!(
+        "ewe-openapi-rustfmt-{}-{:?}",
+        std::process::id(),
+        std::thread::current().id()
+    ));
+    fs::create_dir_all(&config_dir)?;
+    fs::write(config_dir.join("rustfmt.toml"), "")?;
     let output = std::process::Command::new("rustfmt")
-        .args(["--edition", "2021"])
+        .args(["--edition", "2021", "--config-path"])
+        .arg(&config_dir)
         .args(paths)
-        .output()
-        .map_err(|e| GenError::Rustfmt(format!("could not run rustfmt: {e}")))?;
+        .output();
+    let _ = fs::remove_dir_all(&config_dir);
+    let output = output.map_err(|e| GenError::Rustfmt(format!("could not run rustfmt: {e}")))?;
     if output.status.success() {
         Ok(())
     } else {
@@ -1041,6 +1060,11 @@ pub struct UnifiedGenerator {
     /// crates import their cross-group types from. In split mode the shared
     /// module is written here instead of `generated/shared/mod.rs`.
     shared_crate_dir: Option<PathBuf>,
+    /// Schemas (`PascalCase` type names) whose `oneOf` is emitted as an untagged
+    /// enum instead of `serde_json::Value`. Opt-in per schema: a `oneOf` has no
+    /// single right Rust shape, and turning every one into an enum would change
+    /// the public types of every provider.
+    typed_unions: std::collections::BTreeSet<String>,
 }
 
 /// Error type for generation failures.
@@ -1088,7 +1112,27 @@ impl UnifiedGenerator {
             provider_dir_override: None,
             groups_dir: None,
             shared_crate_dir: None,
+            typed_unions: std::collections::BTreeSet::new(),
         }
+    }
+
+    /// Emit the named schemas' `oneOf` as untagged enums.
+    ///
+    /// WHY: a `oneOf` request body such as D1's `d1_batch_query` (one query, or
+    /// a batch of them) generated as `serde_json::Value`, so callers built the
+    /// body by hand with `json!`. Names are the spec's schema names
+    /// (`d1_batch_query`); a name that is no `oneOf` schema is ignored.
+    #[must_use]
+    pub fn with_typed_unions<I, S>(mut self, names: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
+        self.typed_unions = names
+            .into_iter()
+            .map(|n| rename_std_type_conflict(&crate::to_pascal_case(n.as_ref())))
+            .collect();
+        self
     }
 
     /// Override the provider output directory. When set, `generate()` writes
@@ -1914,6 +1958,11 @@ impl UnifiedGenerator {
         use std::collections::BTreeMap;
 
         let doc = format!("`{type_name}` type.");
+        if self.typed_unions.contains(type_name) {
+            if let Some(def) = self.union_def(type_name, &doc, schema, schemas, recursive_types) {
+                return def;
+            }
+        }
         if let Some(target) = self.plain_rust_type(schema, schemas) {
             // `type A = Vec<A>` is an infinitely sized alias; such a schema can
             // only be described as JSON.
@@ -1932,28 +1981,14 @@ impl UnifiedGenerator {
         // specs like Docker (ApiVersion + architecture in the same schema).
         let field =
             |field_name: &str, prop_name: &str, prop_schema: &SpecSchema, required: bool| {
-                let rust_type = self.schema_to_rust_type(prop_schema, schemas);
-                let rust_type = maybe_box_type(&rust_type, recursive_types);
-                // `required` and `nullable` say different things: the first that
-                // the key is always present, the second that its value may be
-                // null. A field can be both — Hetzner's pagination `next_page`
-                // is always there and is null on the last page. Only a field
-                // that is required AND not nullable can be a bare T.
-                let is_required = required && !is_nullable(prop_schema, schemas);
-                Field {
-                    doc: format!("`{prop_name}` property."),
-                    attrs: if prop_name == field_name {
-                        Vec::new()
-                    } else {
-                        vec![format!("#[serde(rename = \"{prop_name}\")]")]
-                    },
-                    name: field_name.to_string(),
-                    ty: if is_required {
-                        rust_type
-                    } else {
-                        format!("Option<{rust_type}>")
-                    },
-                }
+                self.field_of(
+                    field_name,
+                    prop_name,
+                    prop_schema,
+                    required,
+                    schemas,
+                    recursive_types,
+                )
             };
 
         let mut fields = Vec::new();
@@ -1997,6 +2032,155 @@ impl UnifiedGenerator {
         }
 
         TypeDef::structure(type_name, &doc, SCHEMA_DERIVES, fields)
+    }
+
+    /// One struct field for property `prop_name` of a schema.
+    ///
+    /// WHY: `OpenAPI` specs use mixed naming conventions (`PascalCase`,
+    /// `camelCase`, `snake_case`). We convert all property names to `snake_case`
+    /// for Rust fields, so we must emit per-field `#[serde(rename)]` when the
+    /// original name differs from the `snake_cased` field name. A single
+    /// `rename_all` can't handle mixed specs like Docker (`ApiVersion` +
+    /// `architecture` in the same schema).
+    ///
+    /// `required` and `nullable` say different things: the first that the key is
+    /// always present, the second that its value may be null. A field can be
+    /// both — Hetzner's pagination `next_page` is always there and is null on
+    /// the last page. Only a field that is required AND not nullable can be a
+    /// bare T.
+    fn field_of(
+        &self,
+        field_name: &str,
+        prop_name: &str,
+        prop_schema: &crate::spec::Schema,
+        required: bool,
+        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+        recursive_types: &std::collections::HashSet<String>,
+    ) -> Field {
+        let rust_type = self.schema_to_rust_type(prop_schema, schemas);
+        let rust_type = maybe_box_type(&rust_type, recursive_types);
+        let is_required = required && !is_nullable(prop_schema, schemas);
+        Field {
+            doc: format!("`{prop_name}` property."),
+            attrs: if prop_name == field_name {
+                Vec::new()
+            } else {
+                vec![format!("#[serde(rename = \"{prop_name}\")]")]
+            },
+            name: field_name.to_string(),
+            ty: if is_required {
+                rust_type
+            } else {
+                format!("Option<{rust_type}>")
+            },
+        }
+    }
+
+    /// An untagged enum for a `oneOf` schema, or `None` when the schema is not
+    /// one (so the caller falls back to the plain type).
+    ///
+    /// A `$ref` member becomes `Name(Name)`; an inline object becomes a struct
+    /// variant named after its `title` (or `VariantN`); a scalar or list becomes
+    /// a newtype variant named after its type. serde tries the variants in spec
+    /// order, so a spec that lists the permissive member first would shadow the
+    /// specific one; D1 lists the single query first and it requires `sql`, which
+    /// the batch object lacks.
+    fn union_def(
+        &self,
+        type_name: &str,
+        doc: &str,
+        schema: &crate::spec::Schema,
+        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+        recursive_types: &std::collections::HashSet<String>,
+    ) -> Option<TypeDef> {
+        let members = schema.one_of.as_ref().filter(|m| m.len() >= 2)?;
+        let mut taken: std::collections::HashSet<String> = std::collections::HashSet::new();
+        let mut variants = Vec::with_capacity(members.len());
+        for (index, member) in members.iter().enumerate() {
+            let (base, shape) = if let Some(ref_path) = &member.ref_path {
+                let ref_name = ref_path
+                    .trim_start_matches("#/components/schemas/")
+                    .trim_start_matches("#/schemas/");
+                let ty = self.schema_to_rust_type(member, schemas);
+                (
+                    rename_std_type_conflict(&crate::to_pascal_case(ref_name)),
+                    VariantShape::Newtype(ty),
+                )
+            } else if let Some(properties) = member.properties.as_ref().filter(|p| !p.is_empty()) {
+                let required: std::collections::HashSet<&String> = member.required.iter().collect();
+                let mut seen_fields: HashSet<String> = HashSet::new();
+                let mut fields = Vec::new();
+                for (prop_name, prop_schema) in properties {
+                    let field_name = field_ident(prop_name);
+                    if !seen_fields.insert(field_name.clone()) {
+                        continue;
+                    }
+                    fields.push(self.field_of(
+                        &field_name,
+                        prop_name,
+                        prop_schema,
+                        required.contains(prop_name),
+                        schemas,
+                        recursive_types,
+                    ));
+                }
+                let base = member
+                    .title
+                    .as_deref()
+                    .map(|title| {
+                        // A title is prose ("multiple queries"): one word per
+                        // alphanumeric run, each capitalised.
+                        title
+                            .split(|c: char| !c.is_alphanumeric())
+                            .filter(|w| !w.is_empty())
+                            .map(|w| {
+                                let mut chars = w.chars();
+                                chars.next().map_or_else(String::new, |first| {
+                                    first.to_uppercase().collect::<String>() + chars.as_str()
+                                })
+                            })
+                            .collect::<String>()
+                    })
+                    .filter(|n| n.chars().next().is_some_and(char::is_alphabetic))
+                    .unwrap_or_else(|| format!("Variant{index}"));
+                (base, VariantShape::Struct(fields))
+            } else {
+                let ty = self.schema_to_rust_type(member, schemas);
+                let base = match member.schema_type.as_deref() {
+                    Some("string") => "Text".to_string(),
+                    Some("integer") => "Integer".to_string(),
+                    Some("number") => "Number".to_string(),
+                    Some("boolean") => "Boolean".to_string(),
+                    Some("array") => "List".to_string(),
+                    _ => format!("Variant{index}"),
+                };
+                (base, VariantShape::Newtype(ty))
+            };
+            let mut name = base.clone();
+            let mut n = 2;
+            while !taken.insert(name.clone()) {
+                name = format!("{base}{n}");
+                n += 1;
+            }
+            variants.push(Variant {
+                doc: member
+                    .description
+                    .clone()
+                    .unwrap_or_default()
+                    .lines()
+                    .next()
+                    .unwrap_or_default()
+                    .to_string(),
+                name,
+                shape,
+            });
+        }
+        let mut def = TypeDef::union(type_name, doc, variants);
+        if let Some(d) = &schema.description {
+            def.doc.push(String::new());
+            def.doc.extend(d.lines().map(str::to_string));
+        }
+        Some(def)
     }
 
     /// The Rust type for a schema that does not generate a struct, or `None`
@@ -2054,7 +2238,8 @@ impl UnifiedGenerator {
                 // rather than an alias name, and structs made of such fields
                 // compare equal across modules (see `emit`). A `$ref` to a `$ref`
                 // keeps the name: following chains could loop.
-                if target.ref_path.is_none() {
+                let pascal_name = rename_std_type_conflict(&crate::to_pascal_case(ref_name));
+                if target.ref_path.is_none() && !self.typed_unions.contains(&pascal_name) {
                     if let Some(plain) = self.plain_rust_type(target, schemas) {
                         return plain;
                     }

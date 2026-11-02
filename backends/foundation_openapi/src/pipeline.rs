@@ -77,6 +77,8 @@ pub enum PipelineError {
         /// Refs that resolved in the vendor's document and do not resolve in ours.
         introduced: Vec<String>,
     },
+    /// An overlay file could not be read, parsed or applied.
+    Overlay(crate::overlay::OverlayError),
     /// `check` found the committed output no longer matches the declaration.
     Stale {
         /// What differs.
@@ -119,6 +121,7 @@ impl std::fmt::Display for PipelineError {
                 introduced.len(),
                 &introduced[..introduced.len().min(5)]
             ),
+            Self::Overlay(e) => write!(f, "{e}"),
             Self::Stale { detail } => write!(f, "generated output is stale: {detail}"),
         }
     }
@@ -135,6 +138,7 @@ pub struct Pipeline {
     spec_version: Option<String>,
     base_url: Option<String>,
     selection: Selection,
+    overlays: Vec<PathBuf>,
 }
 
 impl Pipeline {
@@ -148,7 +152,21 @@ impl Pipeline {
             spec_version: None,
             base_url: None,
             selection: Selection::all(),
+            overlays: Vec::new(),
         }
+    }
+
+    /// Add an overlay: a vendored patch merged into the spec before anything
+    /// else reads it. See [`crate::overlay`] for the file format.
+    ///
+    /// WHY: a vendor's spec can lack an endpoint a crate needs (Cloudflare R2
+    /// object listing). The patch lives in a reviewed file next to the spec
+    /// rather than in the generated code, so the generator still produces every
+    /// type. Overlays apply in the order added.
+    #[must_use]
+    pub fn overlay(mut self, path: impl Into<PathBuf>) -> Self {
+        self.overlays.push(path.into());
+        self
     }
 
     /// Pin the vendor's API version (Linode `v4`, DigitalOcean `v2`, Hetzner `v1`).
@@ -222,6 +240,10 @@ impl Pipeline {
             })?;
 
         self.verify_spec_version(&spec)?;
+
+        for path in &self.overlays {
+            crate::overlay::apply_file(&mut spec, path).map_err(PipelineError::Overlay)?;
+        }
 
         // What was already broken before we touched it. A vendor's spec can
         // reference a schema it never bundles (Cloudflare: 57), and refusing to

@@ -8,4 +8,6 @@ pub mod cli;
 pub mod codegen;
 pub mod schema_gen;
 
-pub use codegen::{generate, selection_from_file, Codegen, CodegenError, CodegenReport};
+pub use codegen::{
+    cloudflare_wire_types, generate, selection_from_file, Codegen, CodegenError, CodegenReport,
+};

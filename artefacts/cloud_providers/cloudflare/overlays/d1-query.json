@@ -1,0 +1,22 @@
+{
+  "description": "D1 /query corrections. (1) `d1_params` items accept any JSON scalar, not only strings: foundation_db binds integers, reals and NULL as JSON numbers and null. (2) `d1_query_meta` `changes` and `rows_written` are integers: they are SQLite row counts.",
+  "source": "(1) The vendored spec types d1_params as an array of string. The local wrangler worker (worker-stub.js) binds JSON numbers and null through the D1 binding (checked 2026-11-02 with wrangler 4: null binds as NULL, a number as a number). That is the Worker binding, not Cloudflare's hosted REST endpoint, so the hosted endpoint is not proven by it; docs/bug-backlog.md tracks checking it with a real account. (2) D1 responses carry whole numbers for these two counters; the spec's `number` is looser than the wire.",
+  "patch": {
+    "components": {
+      "schemas": {
+        "d1_params": {
+          "items": {
+            "type": null,
+            "description": "One bound value: a JSON string, number, boolean or null."
+          }
+        },
+        "d1_query_meta": {
+          "properties": {
+            "changes": { "type": "integer" },
+            "rows_written": { "type": "integer" }
+          }
+        }
+      }
+    }
+  }
+}

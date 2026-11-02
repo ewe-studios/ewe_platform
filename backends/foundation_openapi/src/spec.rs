@@ -281,6 +281,10 @@ pub struct Schema {
     #[serde(default)]
     pub format: Option<String>,
 
+    /// The schema's `title`. Names an inline `oneOf` member's enum variant.
+    #[serde(default)]
+    pub title: Option<String>,
+
     #[serde(default)]
     pub description: Option<String>,
 

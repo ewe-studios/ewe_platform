@@ -822,6 +822,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let options = AnalysisOptions {
                 min_group_size,
                 max_group_size,
+                ..AnalysisOptions::default()
             };
 
             let analysis = analyze_spec(&spec_content, provider, &options)
@@ -903,6 +904,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let options = AnalysisOptions {
                 min_group_size,
                 max_group_size,
+                ..AnalysisOptions::default()
             };
 
             println!("\n=== Generating for '{}' ===", provider);
@@ -1079,6 +1081,9 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     // cross-group shared types land in the shared types crate.
                     codegen =
                         codegen.split_groups("backends", "backends/foundation_cloudflare_types");
+                    // Feature 52: the D1 and R2 wire types `foundation_db` needs
+                    // come from the generator, not from hand-written code.
+                    codegen = crate::codegen::cloudflare_wire_types(codegen, Path::new("."))?;
                 }
                 if let Some(v) = &spec_version {
                     codegen = codegen.spec_version(v);

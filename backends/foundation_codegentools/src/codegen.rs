@@ -188,6 +188,41 @@ pub fn selection_from_file(path: impl AsRef<Path>) -> Result<Selection, CodegenE
     Ok(selection)
 }
 
+/// Where the vendored Cloudflare spec patches live, relative to the workspace
+/// root (`overlays_in` reads every `*.json` there, in name order).
+pub const CLOUDFLARE_OVERLAYS_DIR: &str = "artefacts/cloud_providers/cloudflare/overlays";
+
+/// Cloudflare schemas that land in `foundation_cloudflare_types` even though one
+/// group alone uses them: the D1 `/query` request and response, and the R2
+/// object listing (added by `overlays/r2-list-objects.json`). `foundation_db`
+/// depends on that leaf crate, not on a group crate.
+pub const CLOUDFLARE_HOISTED_SCHEMAS: &[&str] = &[
+    "d1_batch_query",
+    "d1_query_database_response",
+    "r2_list_objects_response",
+];
+
+/// Cloudflare `oneOf` schemas generated as untagged enums: D1's one-query-or-
+/// a-batch request body.
+pub const CLOUDFLARE_TYPED_UNIONS: &[&str] = &["d1_batch_query"];
+
+/// Apply the Cloudflare wire-type settings to `codegen`: the overlays, the
+/// hoisted schemas and the typed unions above. One function, so the CLI and the
+/// crate's `build.rs` declare the same thing. `workspace_root` is the directory
+/// that holds `artefacts/`.
+///
+/// # Errors
+/// [`CodegenError::Io`] when the overlay directory cannot be listed.
+pub fn cloudflare_wire_types(
+    codegen: Codegen,
+    workspace_root: &Path,
+) -> Result<Codegen, CodegenError> {
+    Ok(codegen
+        .overlays_in(workspace_root.join(CLOUDFLARE_OVERLAYS_DIR))?
+        .hoist_to_shared(CLOUDFLARE_HOISTED_SCHEMAS.iter().copied())
+        .typed_unions(CLOUDFLARE_TYPED_UNIONS.iter().copied()))
+}
+
 /// What a crate generates, declared once.
 #[derive(Debug, Clone)]
 pub struct Codegen {
@@ -206,6 +241,10 @@ pub struct Codegen {
     /// Split mode: the crate that receives the cross-group shared types.
     shared_crate_dir: Option<PathBuf>,
     options: AnalysisOptions,
+    /// Vendored spec patches merged before generation, in order.
+    overlays: Vec<PathBuf>,
+    /// Schemas whose `oneOf` is emitted as an untagged enum.
+    typed_unions: Vec<String>,
 }
 
 impl Default for Codegen {
@@ -227,7 +266,10 @@ impl Default for Codegen {
             options: AnalysisOptions {
                 min_group_size: 10,
                 max_group_size: 200,
+                hoist_to_shared: Vec::new(),
             },
+            overlays: Vec::new(),
+            typed_unions: Vec::new(),
         }
     }
 }
@@ -341,10 +383,68 @@ impl Codegen {
     /// Grouping thresholds handed to the analyzer.
     #[must_use]
     pub fn group_sizes(mut self, min: usize, max: usize) -> Self {
-        self.options = AnalysisOptions {
-            min_group_size: min,
-            max_group_size: max,
-        };
+        self.options.min_group_size = min;
+        self.options.max_group_size = max;
+        self
+    }
+
+    /// Merge a vendored overlay file into the spec before generation.
+    ///
+    /// Overlays apply in the order added. See `foundation_openapi::overlay` for
+    /// the file format: it must say what it adds and where that came from.
+    #[must_use]
+    pub fn overlay(mut self, path: impl Into<PathBuf>) -> Self {
+        self.overlays.push(path.into());
+        self
+    }
+
+    /// Merge every `*.json` overlay in `dir`, in file-name order. A missing
+    /// directory adds nothing.
+    ///
+    /// # Errors
+    /// [`CodegenError::Io`] when `dir` exists and cannot be listed.
+    pub fn overlays_in(mut self, dir: impl AsRef<Path>) -> Result<Self, CodegenError> {
+        let dir = dir.as_ref();
+        if !dir.is_dir() {
+            return Ok(self);
+        }
+        let mut files: Vec<PathBuf> = std::fs::read_dir(dir)
+            .map_err(|source| CodegenError::Io {
+                path: dir.to_path_buf(),
+                source,
+            })?
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|p| p.extension().is_some_and(|e| e == "json"))
+            .collect();
+        files.sort();
+        self.overlays.extend(files);
+        Ok(self)
+    }
+
+    /// Emit these spec schemas (`d1_batch_query`) and everything they reference
+    /// into the shared types module, even when one group alone uses them.
+    #[must_use]
+    pub fn hoist_to_shared<I, S>(mut self, names: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.options
+            .hoist_to_shared
+            .extend(names.into_iter().map(Into::into));
+        self
+    }
+
+    /// Emit the `oneOf` of these spec schemas as untagged enums instead of
+    /// `serde_json::Value`.
+    #[must_use]
+    pub fn typed_unions<I, S>(mut self, names: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.typed_unions.extend(names.into_iter().map(Into::into));
         self
     }
 
@@ -385,6 +485,9 @@ impl Codegen {
             .ok_or(CodegenError::Incomplete { missing: "spec" })?;
 
         let mut pipeline = Pipeline::new(provider, spec).select(self.selection.clone());
+        for overlay in &self.overlays {
+            pipeline = pipeline.overlay(overlay);
+        }
         if let Some(v) = &self.api_version {
             pipeline = pipeline.api_version(v);
         }
@@ -663,7 +766,8 @@ impl Codegen {
             missing: "provider",
         })?;
 
-        let mut generator = UnifiedGenerator::new(output);
+        let mut generator =
+            UnifiedGenerator::new(output).with_typed_unions(self.typed_unions.iter());
         if let Some(dir) = provider_dir {
             generator = generator.with_provider_dir(dir);
         }
