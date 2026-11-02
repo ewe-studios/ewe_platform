@@ -153,7 +153,9 @@ pub struct PipeSender<T> {
 impl<T> Clone for PipeSender<T> {
     fn clone(&self) -> Self {
         self.inner.sender_count.fetch_add(1, Ordering::Relaxed);
-        Self { inner: self.inner.clone() }
+        Self {
+            inner: self.inner.clone(),
+        }
     }
 }
 
@@ -380,7 +382,9 @@ pub struct PipeReceiver<T> {
 impl<T> Clone for PipeReceiver<T> {
     fn clone(&self) -> Self {
         self.inner.receiver_count.fetch_add(1, Ordering::Relaxed);
-        Self { inner: self.inner.clone() }
+        Self {
+            inner: self.inner.clone(),
+        }
     }
 }
 
@@ -616,4 +620,3 @@ impl<T> fmt::Display for SendError<T> {
 
 #[cfg(feature = "std")]
 impl<T> std::error::Error for SendError<T> {}
-

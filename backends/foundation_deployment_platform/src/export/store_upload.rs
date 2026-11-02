@@ -49,7 +49,11 @@ fn upload_rclone(store: &ImageStore, image_path: &Path, manifest_path: &Path) ->
 fn upload_aws(store: &ImageStore, image_path: &Path, manifest_path: &Path) -> Result<()> {
     ensure_tool("aws", "pip install awscli")?;
 
-    let s3_path = format!("s3://{}/{}", store.destination, store_destination(store, image_path));
+    let s3_path = format!(
+        "s3://{}/{}",
+        store.destination,
+        store_destination(store, image_path)
+    );
 
     let status = Command::new("aws")
         .args(["s3", "cp", &image_path.to_string_lossy(), &s3_path])
@@ -65,7 +69,11 @@ fn upload_aws(store: &ImageStore, image_path: &Path, manifest_path: &Path) -> Re
     }
 
     // Upload manifest too
-    let manifest_s3 = format!("s3://{}/{}", store.destination, store_destination(store, manifest_path));
+    let manifest_s3 = format!(
+        "s3://{}/{}",
+        store.destination,
+        store_destination(store, manifest_path)
+    );
     Command::new("aws")
         .args(["s3", "cp", &manifest_path.to_string_lossy(), &manifest_s3])
         .status()
@@ -93,7 +101,11 @@ fn upload_local(store: &ImageStore, image_path: &Path, manifest_path: &Path) -> 
 
 fn upload_http(store: &ImageStore, image_path: &Path, _manifest_path: &Path) -> Result<()> {
     // Simple HTTP PUT — assumes the server accepts raw file uploads
-    let url = format!("{}/{}", store.destination, store_destination(store, image_path));
+    let url = format!(
+        "{}/{}",
+        store.destination,
+        store_destination(store, image_path)
+    );
 
     // Use curl for the PUT
     let status = Command::new("curl")
@@ -113,7 +125,10 @@ fn upload_http(store: &ImageStore, image_path: &Path, _manifest_path: &Path) -> 
 }
 
 fn store_destination(store: &ImageStore, path: &Path) -> String {
-    let filename = path.file_name().map_or_else(|| "export.qcow2".to_string(), |n| n.to_string_lossy().to_string());
+    let filename = path.file_name().map_or_else(
+        || "export.qcow2".to_string(),
+        |n| n.to_string_lossy().to_string(),
+    );
 
     if let Some(ref prefix) = store.key_prefix {
         format!("{prefix}/{filename}")

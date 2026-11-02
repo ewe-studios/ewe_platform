@@ -9,7 +9,10 @@
 //! Builder methods let callers override specific fields without touching
 //! the others.
 
-use foundation_ui_traits::{RouteDecision, RouteSource, Presentation, ViewKind, ProtocolHint, CachePolicy, Profile, CapabilityId};
+use foundation_ui_traits::{
+    CachePolicy, CapabilityId, Presentation, Profile, ProtocolHint, RouteDecision, RouteSource,
+    ViewKind,
+};
 
 // ── Constructors (free functions) ───────────────────────────────────────────
 

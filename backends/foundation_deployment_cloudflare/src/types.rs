@@ -48,7 +48,13 @@ pub struct Zone {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum ZoneStatus { Active, Pending, Initializing, Moved, Deleted }
+pub enum ZoneStatus {
+    Active,
+    Pending,
+    Initializing,
+    Moved,
+    Deleted,
+}
 
 // ── DNS Record ──
 
@@ -93,11 +99,21 @@ pub enum DnsRecordType {
 impl DnsRecordType {
     pub fn as_str(&self) -> &'static str {
         match self {
-            Self::A => "A", Self::Aaaa => "AAAA", Self::Cname => "CNAME",
-            Self::Txt => "TXT", Self::Mx => "MX", Self::Ns => "NS",
-            Self::Soa => "SOA", Self::Srv => "SRV", Self::Caa => "CAA",
-            Self::Ptr => "PTR", Self::Loc => "LOC", Self::Ds => "DS",
-            Self::Dnskey => "DNSKEY", Self::Https => "HTTPS", Self::Svcb => "SVCB",
+            Self::A => "A",
+            Self::Aaaa => "AAAA",
+            Self::Cname => "CNAME",
+            Self::Txt => "TXT",
+            Self::Mx => "MX",
+            Self::Ns => "NS",
+            Self::Soa => "SOA",
+            Self::Srv => "SRV",
+            Self::Caa => "CAA",
+            Self::Ptr => "PTR",
+            Self::Loc => "LOC",
+            Self::Ds => "DS",
+            Self::Dnskey => "DNSKEY",
+            Self::Https => "HTTPS",
+            Self::Svcb => "SVCB",
         }
     }
 }
@@ -180,4 +196,3 @@ pub struct ResultInfo {
     pub count: u32,
     pub total_count: u32,
 }
-

@@ -32,7 +32,11 @@ enum HeaderPhase {
     /// Reading the 2 base header bytes into `base_hdr[pos..]`.
     Base { pos: usize },
     /// Reading a 2- or 8-byte extended payload length.
-    ExtLen { need: usize, buf: [u8; 8], pos: usize },
+    ExtLen {
+        need: usize,
+        buf: [u8; 8],
+        pos: usize,
+    },
     /// Reading the 4-byte mask key.
     Mask { buf: [u8; 4], pos: usize },
     /// Header complete. `payload_len` bytes of payload expected.
@@ -145,9 +149,7 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                         let n = view.len();
                         self.base_hdr[pos..pos + n].copy_from_slice(&view[..n]);
                         self.buffer.advance(n);
-                        self.phase = HeaderPhase::Base {
-                            pos: pos + n,
-                        };
+                        self.phase = HeaderPhase::Base { pos: pos + n };
                         return Ok(DecodeStep::Pending);
                     }
                     self.base_hdr[pos..2].copy_from_slice(&view[..need]);
@@ -218,10 +220,7 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                         let n = view.len();
                         buf[pos..pos + n].copy_from_slice(&view[..n]);
                         self.buffer.advance(n);
-                        self.phase = HeaderPhase::Mask {
-                            buf,
-                            pos: pos + n,
-                        };
+                        self.phase = HeaderPhase::Mask { buf, pos: pos + n };
                         return Ok(DecodeStep::Pending);
                     }
                     buf[pos..4].copy_from_slice(&view[..need]);

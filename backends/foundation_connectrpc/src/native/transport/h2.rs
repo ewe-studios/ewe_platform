@@ -21,15 +21,14 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::valtron::{Ctx, 
-    self, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
-    TryRecvError,
-};
-use foundation_netio::shared::http::{
-    Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, Status,
+use foundation_core::valtron::{
+    self, Ctx, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus, TryRecvError,
 };
 use foundation_netio::http2::channel::{H2Channel, H2StreamEvent};
 use foundation_netio::http2::connection::H2Request;
+use foundation_netio::shared::http::{
+    Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, Status,
+};
 
 use crate::shared::transport::{
     body_stream_from_pipe, BodyStream, HeadStream, Transport, TransportCapabilities,
@@ -153,7 +152,9 @@ impl H2Transport {
     pub const DEFAULT_READ_TIMEOUT: Duration = Duration::ZERO;
 
     #[must_use]
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     /// An `H2Transport` that dials the given Unix domain socket for every
     /// call — h2c-over-Unix, the shape `buildkitd` listens on by default
@@ -161,7 +162,10 @@ impl H2Transport {
     #[cfg(unix)]
     #[must_use]
     pub fn unix(path: impl Into<std::path::PathBuf>) -> Self {
-        Self { unix_path: Some(path.into()), ..Self::default() }
+        Self {
+            unix_path: Some(path.into()),
+            ..Self::default()
+        }
     }
 
     /// Set how long `open()` waits for the TCP (or Unix socket) dial.
@@ -210,7 +214,9 @@ impl Transport for H2Transport {
     }
 
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
-        let host = request.request_uri.host_str()
+        let host = request
+            .request_uri
+            .host_str()
             .map(|s| s.to_string())
             .unwrap_or_else(|| "localhost".into());
         let port = request.request_uri.port_or_default();
@@ -232,7 +238,9 @@ impl Transport for H2Transport {
                 let addr = format!("{host}:{port}");
                 H2Socket::Tcp(
                     TcpStream::connect_timeout(
-                        &addr.parse().map_err(|e| TransportError::Connect(Arc::new(e)))?,
+                        &addr
+                            .parse()
+                            .map_err(|e| TransportError::Connect(Arc::new(e)))?,
                         self.connect_timeout,
                     )
                     .map_err(|e| TransportError::Connect(Arc::new(e)))?,
@@ -244,7 +252,9 @@ impl Transport for H2Transport {
             let addr = format!("{host}:{port}");
             H2Socket::Tcp(
                 TcpStream::connect_timeout(
-                    &addr.parse().map_err(|e| TransportError::Connect(Arc::new(e)))?,
+                    &addr
+                        .parse()
+                        .map_err(|e| TransportError::Connect(Arc::new(e)))?,
                     self.connect_timeout,
                 )
                 .map_err(|e| TransportError::Connect(Arc::new(e)))?,
@@ -294,9 +304,8 @@ impl Transport for H2Transport {
             response_ended: false,
         };
 
-        valtron::send(pump).map_err(|e| {
-            TransportError::Connect(Arc::new(io::Error::other(e.to_string())))
-        })?;
+        valtron::send(pump)
+            .map_err(|e| TransportError::Connect(Arc::new(io::Error::other(e.to_string()))))?;
 
         // The head pipe carries `Result`s so a handshake failure reaches the
         // caller as `Err(TransportError)`, as it did when `open()` returned it.
@@ -305,7 +314,12 @@ impl Transport for H2Transport {
         }));
         let recv_body: BodyStream = body_stream_from_pipe(body_rx);
 
-        Ok(TransportStream { send_body: Arc::new(send_tx), head, recv_body, trailers: trailer_rx })
+        Ok(TransportStream {
+            send_body: Arc::new(send_tx),
+            head,
+            recv_body,
+            trailers: trailer_rx,
+        })
     }
 }
 
@@ -660,7 +674,9 @@ impl TaskIterator for H2Pump {
                                 self.request_ended = no_body;
                             }
                             Err(_e) => {
-                                let _ = self.head_tx.try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
+                                let _ = self
+                                    .head_tx
+                                    .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
                                 self.head_tx.close();
                                 self.body_tx.close();
                                 return None;
@@ -706,7 +722,9 @@ impl TaskIterator for H2Pump {
                         Ok(true) => {}
                         Ok(false) => return Some(TaskStatus::Delayed(POLL_DELAY)),
                         Err(_e) => {
-                            let _ = self.head_tx.try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
+                            let _ = self
+                                .head_tx
+                                .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
                             self.head_tx.close();
                             self.body_tx.close();
                             return None;
@@ -752,11 +770,14 @@ impl TaskIterator for H2Pump {
                             for (name, value) in &resp.headers {
                                 let n = String::from_utf8_lossy(name);
                                 if n == ":status" {
-                                    if let Ok(code) = String::from_utf8_lossy(value).trim().parse::<u16>() {
+                                    if let Ok(code) =
+                                        String::from_utf8_lossy(value).trim().parse::<u16>()
+                                    {
                                         status = status_from_u16(code);
                                     }
                                 } else {
-                                    resp_headers.entry(SimpleHeader::from(n.to_string()))
+                                    resp_headers
+                                        .entry(SimpleHeader::from(n.to_string()))
                                         .or_default()
                                         .push(String::from_utf8_lossy(value).to_string());
                                 }
@@ -789,7 +810,9 @@ impl TaskIterator for H2Pump {
                         }
                         Ok(None) => {
                             // GOAWAY or connection closed
-                            let _ = self.head_tx.try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
+                            let _ = self
+                                .head_tx
+                                .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
                             self.head_tx.close();
                             self.body_tx.close();
                             return None;
@@ -804,7 +827,9 @@ impl TaskIterator for H2Pump {
                             return Some(TaskStatus::Delayed(POLL_DELAY));
                         }
                         Err(_e) => {
-                            let _ = self.head_tx.try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
+                            let _ = self
+                                .head_tx
+                                .try_send(Ok((Status::BadGateway, SimpleHeaders::new())));
                             self.head_tx.close();
                             self.body_tx.close();
                             return None;
@@ -845,7 +870,14 @@ impl TaskIterator for H2Pump {
                     }
 
                     match self.channel.recv_stream_event() {
-                        Ok(Some((_sid, H2StreamEvent::Data { data, end_stream: end, .. }))) => {
+                        Ok(Some((
+                            _sid,
+                            H2StreamEvent::Data {
+                                data,
+                                end_stream: end,
+                                ..
+                            },
+                        ))) => {
                             if !data.is_empty() {
                                 self.pending_body.push_back(data);
                             }
@@ -957,4 +989,3 @@ fn status_from_u16(code: u16) -> Status {
         _ => Status::InternalServerError,
     }
 }
-

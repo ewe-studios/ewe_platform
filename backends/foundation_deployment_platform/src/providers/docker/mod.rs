@@ -10,8 +10,12 @@ impl Provider for DockerProvider {
     type Config = ContainerConfig;
     type Error = foundation_errstacks::ErrorTrace<crate::docker::DockerError>;
 
-    fn name(&self) -> &'static str { "docker" }
-    fn id(&self) -> ProviderId { ProviderId::Docker }
+    fn name(&self) -> &'static str {
+        "docker"
+    }
+    fn id(&self) -> ProviderId {
+        ProviderId::Docker
+    }
 
     fn launch(&self, config: &ContainerConfig) -> DockerResult<Self::Handle> {
         ContainerHandle::start(config.clone())

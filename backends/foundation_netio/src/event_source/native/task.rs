@@ -466,10 +466,7 @@ where
                 // This ensures HTTP headers are not parsed as SSE events
                 // stream is already SharedByteBufferStream<RawStream>, so we use new() directly
                 let reader = HttpSendResponseReader::from(
-                    crate::shared::http::HttpResponseReader::new(
-                        stream,
-                        SimpleHttpBody::default(),
-                    ),
+                    crate::shared::http::HttpResponseReader::new(stream, SimpleHttpBody::default()),
                 );
 
                 self.state = Some(EventSourceState::AwaitingHeaders {

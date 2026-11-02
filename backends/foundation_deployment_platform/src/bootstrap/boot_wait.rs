@@ -47,9 +47,9 @@ pub fn wait_for_ssh(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
 /// # Errors
 /// Returns an error if no `WinRM` port is set or the port does not respond before the timeout.
 pub fn wait_for_winrm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
-    let port = profile.winrm_port.ok_or_else(|| {
-        TestbedError::WinrmNotReachable { port: 0 }
-    })?;
+    let port = profile
+        .winrm_port
+        .ok_or_else(|| TestbedError::WinrmNotReachable { port: 0 })?;
     let deadline = Instant::now() + Duration::from_secs(timeout_secs);
     let pb = ProgressBar::new_spinner();
     pb.set_message(format!("Waiting for WinRM on port {port}..."));
@@ -83,4 +83,3 @@ pub fn wait_for_vm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
     }
     Ok(())
 }
-

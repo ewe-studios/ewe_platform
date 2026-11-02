@@ -26,5 +26,5 @@ pub use core::models::cipher::{
 pub use core::models::folder::{Folder, FolderCreateRequest, FolderUpdateRequest};
 pub use core::models::org::{Organization, OrganizationCreateRequest, OrganizationUserType};
 pub use core::models::send::{Send, SendCreateRequest, SendType, SendUpdateRequest};
-pub use core::models::user::{KdfType, PreloginResponse, RegisterRequest, UserAccount};
 pub use core::models::sync::SyncData;
+pub use core::models::user::{KdfType, PreloginResponse, RegisterRequest, UserAccount};

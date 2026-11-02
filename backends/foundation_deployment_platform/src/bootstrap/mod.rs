@@ -11,8 +11,8 @@ use std::time::Duration;
 
 use crate::config::{GuestOs, Result, VmProfile};
 use crate::ssh::VmSession;
-use crate::winrm::elevated::ProgressCallback;
 use crate::winrm::WinRM;
+use crate::winrm::elevated::ProgressCallback;
 
 pub mod boot_wait;
 pub mod linux;
@@ -43,8 +43,9 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
             }
             // Fall back to SSH
             if let Ok(mut session) = crate::ssh::connect(profile) {
-                let result = crate::ssh::exec_ps_windows(&mut session,
-                    &format!("if (Test-Path '{WINDOWS_MARKER}') {{ 'YES' }} else {{ 'NO' }}")
+                let result = crate::ssh::exec_ps_windows(
+                    &mut session,
+                    &format!("if (Test-Path '{WINDOWS_MARKER}') {{ 'YES' }} else {{ 'NO' }}"),
                 );
                 if let Ok((output, _)) = result {
                     return output.trim() == "YES";
@@ -54,7 +55,10 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
         }
         GuestOs::Linux => {
             if let Ok(mut session) = crate::ssh::connect(profile) {
-                let result = crate::ssh::exec(&mut session, &format!("[ -f {LINUX_MARKER} ] && echo YES || echo NO"));
+                let result = crate::ssh::exec(
+                    &mut session,
+                    &format!("[ -f {LINUX_MARKER} ] && echo YES || echo NO"),
+                );
                 if let Ok(output) = result {
                     return output.trim() == "YES";
                 }
@@ -63,7 +67,10 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
         }
         GuestOs::MacOS => {
             if let Ok(mut session) = crate::ssh::connect(profile) {
-                let result = crate::ssh::exec(&mut session, &format!("[ -f {MACOS_MARKER} ] && echo YES || echo NO"));
+                let result = crate::ssh::exec(
+                    &mut session,
+                    &format!("[ -f {MACOS_MARKER} ] && echo YES || echo NO"),
+                );
                 if let Ok(output) = result {
                     return output.trim() == "YES";
                 }
@@ -86,7 +93,12 @@ pub fn is_bootstrapped(profile: &VmProfile) -> bool {
 ///
 /// # Errors
 /// Returns an error if a bootstrap step fails or the VM does not become bootstrapped.
-pub fn bootstrap(profile: &VmProfile, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
+pub fn bootstrap(
+    profile: &VmProfile,
+    session: &mut VmSession,
+    logger: &BootstrapLogger,
+    progress: ProgressCallback<'_>,
+) -> Result<()> {
     if is_bootstrapped(profile) {
         logger.message("already bootstrapped, skipping");
         return Ok(());
@@ -121,7 +133,9 @@ pub fn bootstrap(profile: &VmProfile, session: &mut VmSession, logger: &Bootstra
             *session = crate::ssh::connect(profile)?;
 
             // Phase 2: SSH-required (installs dev tools)
-            windows::bootstrap_windows_ssh_phase(profile, &winrm, session, logger, progress, false)?;
+            windows::bootstrap_windows_ssh_phase(
+                profile, &winrm, session, logger, progress, false,
+            )?;
         }
         GuestOs::Linux => {
             linux::bootstrap_linux(profile, session, logger)?;
@@ -143,7 +157,11 @@ pub fn bootstrap(profile: &VmProfile, session: &mut VmSession, logger: &Bootstra
 }
 
 /// Bootstrap a macOS VM with development tools via SSH.
-fn bootstrap_macos(profile: &crate::config::VmProfile, session: &mut VmSession, logger: &BootstrapLogger) -> Result<()> {
+fn bootstrap_macos(
+    profile: &crate::config::VmProfile,
+    session: &mut VmSession,
+    logger: &BootstrapLogger,
+) -> Result<()> {
     macos::bootstrap_macos(profile, session, logger)
 }
 
@@ -151,4 +169,3 @@ fn bootstrap_macos(profile: &crate::config::VmProfile, session: &mut VmSession, 
 ///
 /// Installed during initial VM setup to provide the dev toolchain.
 pub const BOOTSTRAP_MISE_TOML: &str = include_str!("../../scripts/bootstrap_mise.toml");
-

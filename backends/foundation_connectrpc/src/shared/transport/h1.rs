@@ -19,11 +19,11 @@ use std::sync::Arc;
 
 use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
 use foundation_netio::shared::client::request_task::HttpExchange;
-use foundation_netio::DynNetClient;
 use foundation_netio::shared::http::{
-    pushable_request_body_with_readiness, HttpClientError, Proto, RequestDescriptor,
-    SimpleHeader, SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
+    pushable_request_body_with_readiness, HttpClientError, Proto, RequestDescriptor, SimpleHeader,
+    SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
 };
+use foundation_netio::DynNetClient;
 use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 
 use super::{

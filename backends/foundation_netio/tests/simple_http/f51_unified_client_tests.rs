@@ -13,23 +13,21 @@ use std::net::TcpListener;
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_core::valtron::{Ctx, self, valtron_test, Stream, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{self, valtron_test, Ctx, Stream, TaskIterator, TaskIteratorExt};
 use foundation_netio::http::NativeHttpClient;
 use foundation_netio::network_client::HttpClientBuilder;
 use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_netio::shared::client::request_task::{
     HttpExchange, HttpExchangeClientTask, HttpExchangePending,
 };
-use foundation_netio::shared::client::{
-    ClientConfig, PreparedRequest, SystemDnsResolver,
-};
+use foundation_netio::shared::client::{ClientConfig, PreparedRequest, SystemDnsResolver};
 use foundation_netio::shared::http::{
     Extensions, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
 };
 use foundation_netio::websocket::shared::client::{WebSocketConnectConfig, WebSocketEvent};
 use foundation_netio::websocket::shared::connector::WebSocketConnector;
-use foundation_netio::websocket::shared::message::WebSocketMessage;
 use foundation_netio::websocket::shared::handshake::compute_accept_key;
+use foundation_netio::websocket::shared::message::WebSocketMessage;
 
 // ============================================================================
 // Helpers
@@ -259,7 +257,7 @@ fn open_exchange_yields_head_then_body() {
             Some(Stream::Next(HttpExchange::Failed(e))) => {
                 panic!("unexpected Failed: {e}");
             }
-            Some(_) => {},
+            Some(_) => {}
             None => break,
         }
     }
@@ -289,7 +287,7 @@ fn open_exchange_reports_failure() {
                 break;
             }
             None => break,
-            _ => {},
+            _ => {}
         }
     }
     assert!(saw_failed, "should have seen Failed for dead server");
@@ -323,7 +321,7 @@ fn poll_for_message(
     for _ in 0..max_polls {
         match client.messages().next() {
             Some(Ok(WebSocketEvent::Message(m))) => return Some(m),
-            Some(Ok(WebSocketEvent::Skip)) => {},
+            Some(Ok(WebSocketEvent::Skip)) => {}
             Some(Err(_)) | None => return None,
         }
     }

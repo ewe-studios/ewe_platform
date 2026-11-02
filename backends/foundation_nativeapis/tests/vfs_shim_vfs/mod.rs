@@ -50,7 +50,10 @@ fn find_shim_so() -> String {
         ])
         .status()
         .expect("failed to run cargo build for the vfs-preload shim");
-    assert!(status.success(), "cargo build --lib failed for the vfs-preload shim");
+    assert!(
+        status.success(),
+        "cargo build --lib failed for the vfs-preload shim"
+    );
 
     existing_shim(&target_dir).unwrap_or_else(|| {
         panic!("shim .so still not found in {target_dir:?} after building the cdylib")
@@ -75,7 +78,9 @@ fn test_shim_writes_to_virtual_path() {
     let tmpdir = std::env::temp_dir();
     let c_path = tmpdir.join("shim_test.c");
     let exe_path = tmpdir.join("shim_test");
-    std::fs::write(&c_path, r#"
+    std::fs::write(
+        &c_path,
+        r#"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -93,11 +98,16 @@ int main() {
     close(fd);
     return 0;
 }
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     let status = std::process::Command::new("gcc")
-        .arg(&c_path).arg("-o").arg(&exe_path)
-        .status().unwrap();
+        .arg(&c_path)
+        .arg("-o")
+        .arg(&exe_path)
+        .status()
+        .unwrap();
     assert!(status.success(), "gcc failed");
 
     let output = std::process::Command::new(&exe_path)
@@ -107,8 +117,13 @@ int main() {
         .output()
         .expect("command failed");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(output.status.success(), "exit: {:?}, stdout: {}, stderr: {}",
-        output.status, stdout, String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "exit: {:?}, stdout: {}, stderr: {}",
+        output.status,
+        stdout,
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(stdout.contains("hello"), "stdout: {}", stdout);
 
     let _ = std::fs::remove_file(&c_path);
@@ -161,9 +176,13 @@ fn build_shim_d1() -> String {
         ])
         .status()
         .expect("failed to run cargo build for the vfs-preload,vfs-d1 shim");
-    assert!(status.success(), "cargo build --lib failed for the vfs-preload,vfs-d1 shim");
-    existing_shim(&target_dir)
-        .unwrap_or_else(|| panic!("shim .so still not found in {target_dir:?} after building the cdylib"))
+    assert!(
+        status.success(),
+        "cargo build --lib failed for the vfs-preload,vfs-d1 shim"
+    );
+    existing_shim(&target_dir).unwrap_or_else(|| {
+        panic!("shim .so still not found in {target_dir:?} after building the cdylib")
+    })
 }
 
 /// The local Cloudflare emulator endpoint and database id, when reachable.
@@ -173,8 +192,8 @@ fn local_d1() -> Option<(String, String)> {
     if std::env::var("CF_INTEGRATION_TEST").ok().as_deref() != Some("1") {
         return None;
     }
-    let base = std::env::var("LOCAL_CF_API_BASE")
-        .unwrap_or_else(|_| "http://localhost:8789".to_string());
+    let base =
+        std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
     let db_id = std::env::var("LOCAL_D1_DATABASE_ID").unwrap_or_else(|_| "test-db".to_string());
     let up = Command::new("curl")
         .args(["-s", "-o", "/dev/null", "-w", "%{http_code}", &base])
@@ -185,14 +204,20 @@ fn local_d1() -> Option<(String, String)> {
             matches!(code.trim(), "200" | "404")
         })
         .unwrap_or(false);
-    if up { Some((base, db_id)) } else { None }
+    if up {
+        Some((base, db_id))
+    } else {
+        None
+    }
 }
 
 /// A write through the shim with `FOUNDATION_VFS_DELTA=d1` lands in D1.
 #[cfg(feature = "vfs-d1")]
 #[test]
 fn shim_config_d1_uses_d1_delta() {
-    let Some((base, db_id)) = local_d1() else { return; };
+    let Some((base, db_id)) = local_d1() else {
+        return;
+    };
     let _guard = foundation_core::valtron::initialize_pool(42, Some(3));
     let so = build_shim_d1();
 
@@ -202,7 +227,9 @@ fn shim_config_d1_uses_d1_delta() {
     let tmpdir = std::env::temp_dir();
     let c_path = tmpdir.join("shim_d1_test.c");
     let exe_path = tmpdir.join("shim_d1_test");
-    std::fs::write(&c_path, r#"
+    std::fs::write(
+        &c_path,
+        r#"
 #include <fcntl.h>
 #include <unistd.h>
 int main(int argc, char **argv) {
@@ -214,9 +241,16 @@ int main(int argc, char **argv) {
     close(fd);
     return 0;
 }
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
-    let status = Command::new("gcc").arg(&c_path).arg("-o").arg(&exe_path).status().unwrap();
+    let status = Command::new("gcc")
+        .arg(&c_path)
+        .arg("-o")
+        .arg(&exe_path)
+        .status()
+        .unwrap();
     assert!(status.success(), "gcc failed");
 
     let output = Command::new(&exe_path)
@@ -230,15 +264,20 @@ int main(int argc, char **argv) {
         .env("CF_ACCOUNT_ID", "test-account")
         .output()
         .expect("command failed");
-    assert!(output.status.success(),
-        "exit: {:?}, stderr: {}", output.status, String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "exit: {:?}, stderr: {}",
+        output.status,
+        String::from_utf8_lossy(&output.stderr)
+    );
 
     use foundation_nativeapis::native::vfs::d1_delta::D1Delta;
     use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
     use foundation_nativeapis::shared::vfs::VfsFileSystem;
     let delta = D1Delta::new_with_base_url("test-token", "test-account", &db_id, Some(&base))
         .expect("D1Delta::new_with_base_url");
-    let read = SyncFs::new(delta).read_file(&key)
+    let read = SyncFs::new(delta)
+        .read_file(&key)
         .unwrap_or_else(|e| panic!("read back failed: {e}"));
     assert_eq!(String::from_utf8_lossy(&read).as_ref(), "shim-to-d1\n");
 

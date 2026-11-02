@@ -105,4 +105,3 @@ fn parse_os(triple: &str) -> Result<TargetOs, String> {
 
     Err(triple.to_string())
 }
-

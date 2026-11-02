@@ -65,9 +65,8 @@ impl WebConn {
         let init = web_sys::ResponseInit::new();
         init.set_status(self.status);
 
-        let web_headers = web_sys::Headers::new().map_err(|e| {
-            wasm_bindgen::JsError::new(&format!("failed to create headers: {e:?}"))
-        })?;
+        let web_headers = web_sys::Headers::new()
+            .map_err(|e| wasm_bindgen::JsError::new(&format!("failed to create headers: {e:?}")))?;
         for (k, v) in &self.headers {
             let _ = web_headers.append(k, v);
         }
@@ -75,9 +74,8 @@ impl WebConn {
 
         let body = self.body.unwrap_or_default();
         let mut body_mut = body;
-        web_sys::Response::new_with_opt_u8_array_and_init(Some(&mut body_mut), &init).map_err(|e| {
-            wasm_bindgen::JsError::new(&format!("failed to create response: {e:?}"))
-        })
+        web_sys::Response::new_with_opt_u8_array_and_init(Some(&mut body_mut), &init)
+            .map_err(|e| wasm_bindgen::JsError::new(&format!("failed to create response: {e:?}")))
     }
 }
 
@@ -86,4 +84,3 @@ impl Default for WebConn {
         Self::new()
     }
 }
-

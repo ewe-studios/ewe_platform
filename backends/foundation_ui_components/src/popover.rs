@@ -91,7 +91,11 @@ pub struct PopoverSlots {
 
 impl Default for PopoverSlots {
     fn default() -> Self {
-        Self { trigger: Vec::new(), children: Vec::new(), arrow: None }
+        Self {
+            trigger: Vec::new(),
+            children: Vec::new(),
+            arrow: None,
+        }
     }
 }
 
@@ -112,8 +116,16 @@ pub fn popover(
     let modal = config.modal;
     let describe = config.describe;
 
-    let trigger_html: Vec<Html> = slots.trigger.into_iter().map(|s| s.render(ctx, rcv)).collect();
-    let popup_html: Vec<Html> = slots.children.into_iter().map(|s| s.render(ctx, rcv)).collect();
+    let trigger_html: Vec<Html> = slots
+        .trigger
+        .into_iter()
+        .map(|s| s.render(ctx, rcv))
+        .collect();
+    let popup_html: Vec<Html> = slots
+        .children
+        .into_iter()
+        .map(|s| s.render(ctx, rcv))
+        .collect();
     let arrow_html = slots.arrow.map(|s| s.render(ctx, rcv));
 
     // Click toggles (popover); hover triggers use the hidden hover actions.
@@ -147,10 +159,12 @@ pub fn popover(
     let align_attr: Cow<'static, str> = Cow::Borrowed(config.align.as_str());
     let offset_attr: Cow<'static, str> = Cow::Owned(alloc::format!("{}", config.offset));
 
-    let hover_delay: Option<Cow<'static, str>> =
-        config.hover.map(|h| Cow::Owned(alloc::format!("{}", h.delay)));
-    let hover_close_delay: Option<Cow<'static, str>> =
-        config.hover.map(|h| Cow::Owned(alloc::format!("{}", h.close_delay)));
+    let hover_delay: Option<Cow<'static, str>> = config
+        .hover
+        .map(|h| Cow::Owned(alloc::format!("{}", h.delay)));
+    let hover_close_delay: Option<Cow<'static, str>> = config
+        .hover
+        .map(|h| Cow::Owned(alloc::format!("{}", h.close_delay)));
     let is_hover = config.hover.is_some();
 
     // Reactive attrs (one getter clone each).
@@ -219,16 +233,22 @@ pub fn tooltip(
     slots: PopoverSlots,
 ) -> Html {
     popover(
-        ctx, rcv,
+        ctx,
+        rcv,
         PopoverConfig {
             side: PlacementSide::Top,
             role: Cow::Borrowed("tooltip"),
             describe: true,
-            hover: Some(HoverConfig { delay: 600, close_delay: 0 }),
+            hover: Some(HoverConfig {
+                delay: 600,
+                close_delay: 0,
+            }),
             class: Some(Cow::Borrowed("tooltip")),
             ..PopoverConfig::default()
         },
-        open, set_open, slots,
+        open,
+        set_open,
+        slots,
     )
 }
 
@@ -243,12 +263,18 @@ pub fn preview_card(
     slots: PopoverSlots,
 ) -> Html {
     popover(
-        ctx, rcv,
+        ctx,
+        rcv,
         PopoverConfig {
-            hover: Some(HoverConfig { delay: 600, close_delay: 300 }),
+            hover: Some(HoverConfig {
+                delay: 600,
+                close_delay: 300,
+            }),
             class: Some(Cow::Borrowed("preview-card")),
             ..PopoverConfig::default()
         },
-        open, set_open, slots,
+        open,
+        set_open,
+        slots,
     )
 }

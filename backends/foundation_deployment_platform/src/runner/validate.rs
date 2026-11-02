@@ -34,15 +34,11 @@ pub fn validate(
     diff_output: Option<&Path>,
 ) -> Result<ValidationResult> {
     // Load images
-    let golden_img = image::open(golden).map_err(|e| {
-        crate::config::TestbedError::Qcow2Error {
-            message: format!("loading golden image {}: {e}", golden.display()),
-        }
+    let golden_img = image::open(golden).map_err(|e| crate::config::TestbedError::Qcow2Error {
+        message: format!("loading golden image {}: {e}", golden.display()),
     })?;
-    let actual_img = image::open(actual).map_err(|e| {
-        crate::config::TestbedError::Qcow2Error {
-            message: format!("loading actual image {}: {e}", actual.display()),
-        }
+    let actual_img = image::open(actual).map_err(|e| crate::config::TestbedError::Qcow2Error {
+        message: format!("loading actual image {}: {e}", actual.display()),
     })?;
 
     // Resize actual to match golden dimensions
@@ -68,9 +64,10 @@ pub fn validate(
             let ap = actual_rgba.get_pixel(x, y);
 
             // Simple threshold-based comparison (allow 16/255 per channel drift)
-            let matches = gp.0.iter().zip(ap.0.iter()).all(|(g, a)| {
-                (i16::from(*g) - i16::from(*a)).abs() < 16
-            });
+            let matches =
+                gp.0.iter()
+                    .zip(ap.0.iter())
+                    .all(|(g, a)| (i16::from(*g) - i16::from(*a)).abs() < 16);
 
             if matches {
                 matching_pixels += 1;
@@ -93,11 +90,10 @@ pub fn validate(
         None
     } else if let (Some(diff), Some(out_path)) = (diff_img, diff_output) {
         let path_str = out_path.to_string_lossy().to_string();
-        diff.save(out_path).map_err(|e| {
-            crate::config::TestbedError::Qcow2Error {
+        diff.save(out_path)
+            .map_err(|e| crate::config::TestbedError::Qcow2Error {
                 message: format!("saving diff image {}: {e}", out_path.display()),
-            }
-        })?;
+            })?;
         Some(path_str)
     } else {
         None
@@ -109,4 +105,3 @@ pub fn validate(
         diff_path,
     })
 }
-

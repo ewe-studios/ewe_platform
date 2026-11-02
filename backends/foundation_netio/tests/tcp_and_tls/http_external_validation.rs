@@ -90,9 +90,7 @@ fn test_local_https_get() {
     let request = PreparedRequestBuilder::get("https://localhost/get")
         .unwrap()
         .build();
-    let response = client
-        .send(request)
-        .expect("HTTPS request should succeed");
+    let response = client.send(request).expect("HTTPS request should succeed");
 
     assert_eq!(response.get_status().into_usize(), 200);
 }

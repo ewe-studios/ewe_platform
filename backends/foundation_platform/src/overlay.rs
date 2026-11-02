@@ -12,8 +12,8 @@
 //! `OverlayCapability` provides a programmatic API for route handlers to
 //! show/hide/configure the toolbar without calling `window.eval()` directly.
 
-use foundation_wasm::{CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability};
 use foundation_ui_traits::{CapabilityId, Profile};
+use foundation_wasm::{CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability};
 
 use crate::capability::PlatformCapability;
 

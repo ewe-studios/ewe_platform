@@ -6,11 +6,10 @@
 //!
 //! HOW: mock handlers that echo or transform the request.
 
-use foundation_wasm::{
-    CapabilityError, CapabilityContentType, CapabilityRequest, CapabilityResponse,
-    TriggerRegistry,
-};
 use foundation_wasm::ipc::{IpcContentType, IpcError, IpcRequest, IpcResponse};
+use foundation_wasm::{
+    CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse, TriggerRegistry,
+};
 
 // ── Capability trigger tests ───────────────────────────────────────────
 

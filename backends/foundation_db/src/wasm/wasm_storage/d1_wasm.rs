@@ -10,15 +10,15 @@ use std::sync::Arc;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit;
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
-    RateLimiterStore, DataValue, SqlRow,
+    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
+    RateLimiterStore, SqlRow,
 };
 use crate::wasm::bindgen::D1Database;
 use base64::{engine::general_purpose::STANDARD, Engine};
+use foundation_compact::SendWrapper;
 use js_sys::{Array, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
-use foundation_compact::SendWrapper;
 
 // ===========================================================================
 // D1WasmStorage
@@ -362,9 +362,9 @@ impl KeyValueStore for D1WasmStorage {
     }
 
     async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
-        let keys = foundation_compact::SendWrapper::new(async move {
-            self.list_keys_async(prefix).await
-        }).await?;
+        let keys =
+            foundation_compact::SendWrapper::new(async move { self.list_keys_async(prefix).await })
+                .await?;
         Ok(AsyncListStream::new(futures_lite::stream::iter(
             keys.into_iter().map(Ok),
         )))
@@ -404,11 +404,7 @@ impl D1WasmStorage {
     }
 
     /// Execute a SQL statement and return the number of rows affected.
-    async fn execute_async(
-        &self,
-        sql: &str,
-        params: &[DataValue],
-    ) -> Result<u64, StorageError> {
+    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> Result<u64, StorageError> {
         Self::do_execute_async(&self.db, sql, params).await
     }
 
@@ -437,20 +433,24 @@ impl D1WasmStorage {
 #[async_trait::async_trait]
 impl QueryStore for D1WasmStorage {
     async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
-        let rows = foundation_compact::SendWrapper::new(async move {
-            self.query_async(sql, params).await
-        }).await?;
+        let rows =
+            foundation_compact::SendWrapper::new(
+                async move { self.query_async(sql, params).await },
+            )
+            .await?;
         Ok(AsyncQueryStream::new(futures_lite::stream::iter(
             rows.into_iter().map(Ok),
         )))
     }
 
     async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
-        foundation_compact::SendWrapper::new(async move { self.execute_async(sql, params).await }).await
+        foundation_compact::SendWrapper::new(async move { self.execute_async(sql, params).await })
+            .await
     }
 
     async fn execute_batch(&self, sql: &str) -> StorageResult<()> {
-        foundation_compact::SendWrapper::new(async move { self.execute_batch_async(sql).await }).await
+        foundation_compact::SendWrapper::new(async move { self.execute_batch_async(sql).await })
+            .await
     }
 }
 
@@ -466,11 +466,18 @@ impl RateLimiterStore for D1WasmStorage {
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        foundation_compact::SendWrapper::new(rate_limit::sql_check(self, key, max_count, window_seconds)).await
+        foundation_compact::SendWrapper::new(rate_limit::sql_check(
+            self,
+            key,
+            max_count,
+            window_seconds,
+        ))
+        .await
     }
 
     async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
-        foundation_compact::SendWrapper::new(rate_limit::sql_record(self, key, window_seconds)).await
+        foundation_compact::SendWrapper::new(rate_limit::sql_record(self, key, window_seconds))
+            .await
     }
 
     async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
@@ -551,7 +558,9 @@ impl D1WasmStorage {
                     .get("data")
                     .and_then(|v| v.as_str())
                     .ok_or_else(|| {
-                        StorageError::Serialization("missing data field in blob wrapper".to_string())
+                        StorageError::Serialization(
+                            "missing data field in blob wrapper".to_string(),
+                        )
                     })?;
 
                 let decoded = STANDARD
@@ -599,7 +608,8 @@ impl D1WasmStorage {
 #[async_trait::async_trait]
 impl BlobStore for D1WasmStorage {
     async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
+        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await })
+            .await
     }
 
     async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {

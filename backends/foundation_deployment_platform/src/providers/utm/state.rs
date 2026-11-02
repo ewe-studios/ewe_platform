@@ -7,7 +7,7 @@ use crate::config::Result;
 use crate::state;
 
 /// Re-export the global load/save/delete/list for UTM-specific callers.
-pub use crate::state::{load, delete, list};
+pub use crate::state::{delete, list, load};
 
 /// Check if a UTM VM has state.
 #[must_use]
@@ -32,11 +32,10 @@ pub fn save_from_runtime(
         crate::providers::ProviderId::Utm,
         uuid,
         ssh_port,
-        None,  // winrm_port
-        None,  // rdp_port
-        0,     // vnc_port (UTM uses different display)
+        None, // winrm_port
+        None, // rdp_port
+        0,    // vnc_port (UTM uses different display)
         bootstrapped,
     );
     state::save(&vm_state)
 }
-

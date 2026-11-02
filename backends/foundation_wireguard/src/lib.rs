@@ -37,8 +37,8 @@ pub use foundation_macros::wireguard_main;
 
 pub use shared::bootstrap::{BootstrapFlags, BootstrapToken, TokenSecret, WgBootstrap};
 pub use shared::config::{
-    DataPlaneConfig, DataPlaneMode, NetworkConfig, NodeConfig, RelayConfig,
-    WgConfig, WgConfigBuilder,
+    DataPlaneConfig, DataPlaneMode, NetworkConfig, NodeConfig, RelayConfig, WgConfig,
+    WgConfigBuilder,
 };
 pub use shared::error::{WgError, WgResult};
 pub use shared::keys::{

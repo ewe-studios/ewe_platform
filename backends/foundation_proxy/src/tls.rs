@@ -15,8 +15,8 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use foundation_netio::DynNetClient;
 use foundation_netio::netcap::ssl::SSLAcceptor;
+use foundation_netio::DynNetClient;
 
 use crate::acme::{AcmeClient, Dns01Setter, ACME_PRODUCTION};
 use crate::config::{ProxyConfig, ProxyError, SslConfig, SslProvider};
@@ -49,7 +49,11 @@ pub struct StaticCertManager {
 
 impl StaticCertManager {
     pub fn new(cert: impl Into<PathBuf>, key: impl Into<PathBuf>) -> Self {
-        Self { cert_path: cert.into(), key_path: key.into(), cached: Mutex::new(None) }
+        Self {
+            cert_path: cert.into(),
+            key_path: key.into(),
+            cached: Mutex::new(None),
+        }
     }
 
     fn load_from_disk(&self) -> Result<CertPair, ProxyError> {
@@ -57,7 +61,10 @@ impl StaticCertManager {
             .map_err(|e| ProxyError::Ssl(format!("read cert {}: {e}", self.cert_path.display())))?;
         let private_key = std::fs::read(&self.key_path)
             .map_err(|e| ProxyError::Ssl(format!("read key {}: {e}", self.key_path.display())))?;
-        Ok(CertPair { cert_chain, private_key })
+        Ok(CertPair {
+            cert_chain,
+            private_key,
+        })
     }
 }
 
@@ -148,10 +155,13 @@ impl AcmeCertManager {
         // Drive the ACME flow. Its client I/O and the DNS wait are async; the
         // flow yields during the DNS wait and block_on polls it again on wake.
         let dns_setter = Arc::clone(&self.dns_setter);
-        let acme = AcmeClient::with_directory(DynNetClient::clone(&self.client), self.directory_url.clone())
-            .with_jwk(jwk)
-            .with_signer(signer)
-            .with_dns_setter(move |name, value| dns_setter(name, value));
+        let acme = AcmeClient::with_directory(
+            DynNetClient::clone(&self.client),
+            self.directory_url.clone(),
+        )
+        .with_jwk(jwk)
+        .with_signer(signer)
+        .with_dns_setter(move |name, value| dns_setter(name, value));
 
         let (cert_pem, _raw) = futures_lite::future::block_on(acme.provision(
             &self.domains,
@@ -279,20 +289,16 @@ pub fn build_acceptor(config: &SslConfig) -> Result<Arc<SSLAcceptor>, ProxyError
                 .map_err(|e| ProxyError::Ssl(format!("build TLS acceptor: {e}")))?;
             Ok(Arc::new(acceptor))
         }
-        SslProvider::LetsEncrypt { email } => {
-            Err(ProxyError::Ssl(format!(
-                "Let's Encrypt ACME configured for {email}. \
+        SslProvider::LetsEncrypt { email } => Err(ProxyError::Ssl(format!(
+            "Let's Encrypt ACME configured for {email}. \
                  Set ACME_SIGNER_KEY_PATH to your account private key (PEM) \
                  or ACME_SIGNER_CMD to a JWS-signing subprocess."
-            )))
-        }
-        SslProvider::Cloudflare { zone_id } => {
-            Err(ProxyError::Ssl(format!(
-                "Cloudflare Origin CA configured for zone {zone_id}. \
+        ))),
+        SslProvider::Cloudflare { zone_id } => Err(ProxyError::Ssl(format!(
+            "Cloudflare Origin CA configured for zone {zone_id}. \
                  Use the cloudflare API to provision an Origin CA certificate \
                  and configure it via the Static provider."
-            )))
-        }
+        ))),
         SslProvider::None => Err(ProxyError::Ssl(
             "TLS requested but no SSL provider configured".into(),
         )),

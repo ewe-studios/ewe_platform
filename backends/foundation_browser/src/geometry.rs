@@ -43,6 +43,11 @@ impl Rect {
         let max_x = xs.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
         let min_y = ys.iter().cloned().fold(f64::INFINITY, f64::min);
         let max_y = ys.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-        Some(Self { x: min_x, y: min_y, width: max_x - min_x, height: max_y - min_y })
+        Some(Self {
+            x: min_x,
+            y: min_y,
+            width: max_x - min_x,
+            height: max_y - min_y,
+        })
     }
 }

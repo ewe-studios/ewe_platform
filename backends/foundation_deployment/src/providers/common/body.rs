@@ -326,10 +326,7 @@ impl<T: DeserializeOwned> JsonLinesStream<T> {
     /// The error for a line longer than `max_line`; it ends the stream.
     fn line_too_long(&mut self) -> ApiError {
         self.done = true;
-        ApiError::ParseFailed(format!(
-            "response line longer than {} bytes",
-            self.max_line
-        ))
+        ApiError::ParseFailed(format!("response line longer than {} bytes", self.max_line))
     }
 
     /// Parse one line into the next item; a failure ends the stream.

@@ -53,8 +53,8 @@ use io_uring::{cqueue, opcode, types, IoUring};
 
 use super::super::super::super::event::{Event, Events};
 use super::bufring::{BufRing, ProvidedBuf};
-use crate::send_pool::{SendBuf, SendPool};
 use crate::poll::{Interest, Token};
+use crate::send_pool::{SendBuf, SendPool};
 
 /// The raw fd type on Linux.
 pub type RawFd = std::os::unix::io::RawFd;
@@ -178,7 +178,10 @@ impl std::fmt::Debug for Selector {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("uring_completion::Selector")
             .field("ring_fd", &self.ring.as_raw_fd())
-            .field("registered", &self.entries.lock().map(|e| e.len()).unwrap_or(0))
+            .field(
+                "registered",
+                &self.entries.lock().map(|e| e.len()).unwrap_or(0),
+            )
             .field("bufring", &self.bufring)
             .finish()
     }
@@ -538,7 +541,10 @@ impl Selector {
     /// # Panics
     /// Panics if the starved lock is poisoned.
     pub fn starved_tokens(&self) -> usize {
-        self.starved.lock().expect("uring starved lock poisoned").len()
+        self.starved
+            .lock()
+            .expect("uring starved lock poisoned")
+            .len()
     }
 
     /// WHY: Decision 14 OQ#14.1 committed to revisiting per-worker rings once
@@ -579,8 +585,9 @@ impl Selector {
         // queue, and `sqe` is a fully initialised entry.
         unsafe {
             let mut sq = self.ring.submission_shared();
-            sq.push(sqe)
-                .map_err(|_| io::Error::new(io::ErrorKind::WouldBlock, "io_uring submission queue full"))?;
+            sq.push(sqe).map_err(|_| {
+                io::Error::new(io::ErrorKind::WouldBlock, "io_uring submission queue full")
+            })?;
             sq.sync();
         }
         self.ring.submitter().submit()?;
@@ -614,7 +621,9 @@ impl Selector {
             Mode::Recv => token.0 as u64,
             Mode::Poll => token.0 as u64 | POLL_TAG,
         };
-        let sqe = opcode::AsyncCancel::new(user_data).build().user_data(TRACKING_USER_DATA);
+        let sqe = opcode::AsyncCancel::new(user_data)
+            .build()
+            .user_data(TRACKING_USER_DATA);
         if let Err(e) = self.push_and_submit(&sqe) {
             tracing::warn!(token = token.0, error = %e, "io_uring cancel submission failed");
         }
@@ -642,7 +651,8 @@ impl Selector {
     /// # Panics
     /// Panics if an internal lock is poisoned.
     pub fn register_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
-        self.register_with_mode(fd, token, interest, Mode::Poll).map(|_| ())
+        self.register_with_mode(fd, token, interest, Mode::Poll)
+            .map(|_| ())
     }
 
     /// WHY: the opt-in half. A transport that will consume through
@@ -695,7 +705,10 @@ impl Selector {
         if token.0 as u64 > MAX_TOKEN {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                format!("token {} exceeds the completion selector's tag space", token.0),
+                format!(
+                    "token {} exceeds the completion selector's tag space",
+                    token.0
+                ),
             ));
         }
 
@@ -739,14 +752,23 @@ impl Selector {
     /// Panics if an internal lock is poisoned.
     pub fn deregister_fd(&self, fd: RawFd) -> io::Result<()> {
         let mut entries = self.entries.lock().expect("uring entries lock poisoned");
-        let found = entries.iter().find(|(_, e)| e.fd == fd).map(|(t, e)| (*t, e.mode));
+        let found = entries
+            .iter()
+            .find(|(_, e)| e.fd == fd)
+            .map(|(t, e)| (*t, e.mode));
         if let Some((token, mode)) = found {
             self.disarm(token, mode);
             entries.remove(&token);
             drop(entries);
 
-            self.starved.lock().expect("uring starved lock poisoned").remove(&token);
-            self.inboxes.lock().expect("uring inbox lock poisoned").remove(&token);
+            self.starved
+                .lock()
+                .expect("uring starved lock poisoned")
+                .remove(&token);
+            self.inboxes
+                .lock()
+                .expect("uring inbox lock poisoned")
+                .remove(&token);
         }
         Ok(())
     }
@@ -784,12 +806,19 @@ impl Selector {
     pub fn wake(&self, _token: Token) -> io::Result<()> {
         let guard = self.waker_fd.lock().expect("waker_fd lock poisoned");
         let Some(ref fd) = *guard else {
-            return Err(io::Error::new(io::ErrorKind::NotFound, "io_uring waker not registered"));
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                "io_uring waker not registered",
+            ));
         };
         let val: u64 = 1;
         // SAFETY: writing exactly 8 bytes from a valid u64 to an eventfd.
         let r = unsafe {
-            libc::write(fd.as_raw_fd(), std::ptr::from_ref(&val).cast(), std::mem::size_of_val(&val))
+            libc::write(
+                fd.as_raw_fd(),
+                std::ptr::from_ref(&val).cast(),
+                std::mem::size_of_val(&val),
+            )
         };
         if r < 0 {
             return Err(io::Error::last_os_error());
@@ -807,7 +836,11 @@ impl Selector {
             let mut val: u64 = 0;
             // SAFETY: reading exactly 8 bytes into a valid u64 from an eventfd.
             let r = unsafe {
-                libc::read(fd.as_raw_fd(), std::ptr::from_mut(&mut val).cast(), std::mem::size_of_val(&val))
+                libc::read(
+                    fd.as_raw_fd(),
+                    std::ptr::from_mut(&mut val).cast(),
+                    std::mem::size_of_val(&val),
+                )
             };
             if r < 0 {
                 let err = io::Error::last_os_error();
@@ -823,7 +856,10 @@ impl Selector {
     /// # Errors
     /// Always `Unsupported`.
     pub fn register_vnode(&self, _fd: RawFd, _token: Token) -> io::Result<()> {
-        Err(io::Error::new(io::ErrorKind::Unsupported, "EVFILT_VNODE not supported on io_uring"))
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "EVFILT_VNODE not supported on io_uring",
+        ))
     }
 
     /// No-op counterpart to [`Selector::register_vnode`].
@@ -1147,7 +1183,10 @@ impl Selector {
                     match errno {
                         // Pool exhausted: park the token until a buffer returns.
                         libc::ENOBUFS => {
-                            self.starved.lock().expect("uring starved lock poisoned").insert(token);
+                            self.starved
+                                .lock()
+                                .expect("uring starved lock poisoned")
+                                .insert(token);
                             tracing::debug!(token = token.0, "recv starved: buffer pool empty");
                             continue;
                         }

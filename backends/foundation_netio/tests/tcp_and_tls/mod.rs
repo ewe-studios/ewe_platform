@@ -13,16 +13,16 @@ mod nonblocking_connect_tls;
 mod rustls_opposite_direction;
 
 // Moved inline tests (CLAUDE.md rule 7).
-#[cfg(unix)]
-mod tcp_stream_wrapper;
 #[cfg(all(unix, feature = "ssl-rustls"))]
 mod rustls_connector;
+#[cfg(unix)]
+mod tcp_stream_wrapper;
 
 // Feature 10: HTTP client integration tests against the local `TestHttpServer`.
 #[cfg(unix)]
-mod http_server_integration;
-#[cfg(unix)]
 mod http_external_validation;
+#[cfg(unix)]
+mod http_server_integration;
 // Feature 10: TLS backend integration tests against a local TLS server.
 #[cfg(all(unix, feature = "ssl-rustls"))]
 mod tls_integration;

@@ -68,4 +68,3 @@ fn push_dir(session: &mut VmSession, dir: &Path, _remote: &str) -> Result<()> {
 
     Ok(())
 }
-

@@ -62,9 +62,7 @@ impl Slot {
     /// (coherence: a blanket `Fn` impl would overlap `impl Render for
     /// Html`). `Fn`, not `FnOnce`: slots are re-invokable templates;
     /// closures clone from their captures into each output.
-    pub fn lazy(
-        f: impl Fn(&Context, &SharedInstructionReceiver) -> Html + 'static,
-    ) -> Self {
+    pub fn lazy(f: impl Fn(&Context, &SharedInstructionReceiver) -> Html + 'static) -> Self {
         struct FnRender<F>(F);
         impl<F> Render for FnRender<F>
         where
@@ -317,7 +315,14 @@ fn build_subtree(
     // Grouping node: children splice directly into the parent, each one a
     // TOP-LEVEL node of this fragment.
     for child in &node.children {
-        build_subtree(child, parent_id, attach, rcv, next, top_level.as_deref_mut());
+        build_subtree(
+            child,
+            parent_id,
+            attach,
+            rcv,
+            next,
+            top_level.as_deref_mut(),
+        );
     }
 }
 

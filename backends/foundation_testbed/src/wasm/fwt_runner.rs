@@ -134,7 +134,10 @@ fn cases_json(cases: &[FwtCase]) -> String {
     out
 }
 
-fn staged_temp(crate_path: &Path, args: &OwnedRunArgs) -> Result<(tempfile::TempDir, Vec<FwtCase>)> {
+fn staged_temp(
+    crate_path: &Path,
+    args: &OwnedRunArgs,
+) -> Result<(tempfile::TempDir, Vec<FwtCase>)> {
     let dir = tempfile::TempDir::new().map_err(|e| WasmTestbedError::Io(e).trace())?;
     let cases = stage(crate_path, args, dir.path())?;
     Ok((dir, cases))
@@ -185,7 +188,10 @@ pub fn run_web(args: &OwnedRunArgs) -> Result<RunOutcome> {
     preflight(&[
         ("cargo", "builds the test crate to wasm32"),
         ("node", "runs the Playwright driver script"),
-        ("npm", "installs Playwright for the driver (or run `mise run setup:playwright` once)"),
+        (
+            "npm",
+            "installs Playwright for the driver (or run `mise run setup:playwright` once)",
+        ),
         ("npx", "launches the Playwright browser installer"),
     ])?;
     let crate_path = canonical(&args.crate_path)?;

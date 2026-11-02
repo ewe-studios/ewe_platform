@@ -51,17 +51,17 @@ pub use buffa;
 pub use shared::client::{BidiStream, Client, ClientOptions, ClientStream, ServerStream};
 
 #[cfg(not(target_family = "wasm"))]
-pub use native::server::{ConnectRpcServe, ServeTimeouts};
-#[cfg(not(target_family = "wasm"))]
 pub use native::h2_serve::ConnectRpcServeH2;
+#[cfg(not(target_family = "wasm"))]
+pub use native::server::{ConnectRpcServe, ServeTimeouts};
 
+pub use shared::protocol::connect::{ConnectClient, ConnectHandler};
+pub use shared::protocol::grpc::{GrpcClient, GrpcHandler};
+pub use shared::protocol::grpc_web::{GrpcWebClient, GrpcWebHandler};
 pub use shared::protocol::{
     canonicalize_content_type, parse_connect_content_type, ClientExchange, ClientExchangeConfig,
     ExchangeConfig, HandlerExchange, ProtocolClient, ProtocolHandler,
 };
-pub use shared::protocol::connect::{ConnectClient, ConnectHandler};
-pub use shared::protocol::grpc::{GrpcClient, GrpcHandler};
-pub use shared::protocol::grpc_web::{GrpcWebClient, GrpcWebHandler};
 
 pub use shared::interceptor::{
     Interceptor, InterceptorChain, RecoverInterceptor, StreamCall, StreamingClientFunc,
@@ -71,24 +71,24 @@ pub use shared::interceptor::{
 #[cfg(feature = "auth")]
 pub use shared::auth::{
     authenticate_request, bearer_token, get_auth_artifact, get_auth_info, infer_procedure,
-    infer_protocol, AuthFunc, AuthInfo, AuthzInterceptor, CompositeAuthenticator,
-    JwtAuthenticator, PerProcedureAuth,
+    infer_protocol, AuthFunc, AuthInfo, AuthzInterceptor, CompositeAuthenticator, JwtAuthenticator,
+    PerProcedureAuth,
 };
 
 pub use shared::transport::{
-    check_compatible, requirements, CallRequirements, ClientConn, ConnReceiver, ConnSender,
-    Frame, HandlerConn, MessageSink, MessageSource, ProtocolKind, Transport, TransportCapabilities,
+    check_compatible, requirements, CallRequirements, ClientConn, ConnReceiver, ConnSender, Frame,
+    HandlerConn, MessageSink, MessageSource, ProtocolKind, Transport, TransportCapabilities,
     TransportError,
 };
 
 // H1 + WS transports are cross-platform (they ride foundation_netio's
 // platform-selecting client/websocket wrappers), so they are exported on wasm too.
-pub use shared::transport::h1::H1Transport;
-pub use shared::transport::ws::WsTransport;
 #[cfg(not(target_family = "wasm"))]
 pub use native::transport::h2::H2Transport;
 #[cfg(all(not(target_family = "wasm"), feature = "h3"))]
 pub use native::transport::h3::H3Transport;
+pub use shared::transport::h1::H1Transport;
+pub use shared::transport::ws::WsTransport;
 
 pub use shared::envelope::{
     decode_grpc_timeout, encode_grpc_timeout, Envelope, EnvelopeError, EnvelopeReader,

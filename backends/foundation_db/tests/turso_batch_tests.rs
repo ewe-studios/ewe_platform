@@ -20,9 +20,18 @@ async fn batch_statements_apply_atomically() {
         .unwrap();
 
     let stmts = vec![
-        ("INSERT INTO batch_test (key, value) VALUES ('a', '1')".to_string(), vec![]),
-        ("INSERT INTO batch_test (key, value) VALUES ('b', '2')".to_string(), vec![]),
-        ("INSERT INTO missing_table (key, value) VALUES ('c', '3')".to_string(), vec![]),
+        (
+            "INSERT INTO batch_test (key, value) VALUES ('a', '1')".to_string(),
+            vec![],
+        ),
+        (
+            "INSERT INTO batch_test (key, value) VALUES ('b', '2')".to_string(),
+            vec![],
+        ),
+        (
+            "INSERT INTO missing_table (key, value) VALUES ('c', '3')".to_string(),
+            vec![],
+        ),
     ];
     assert!(storage.execute_batch_statements(&stmts).await.is_err());
 

@@ -9,9 +9,9 @@ use crate::config::DisplayMode;
 /// Available QEMU display backends, in preference order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DisplayBackend {
-    Spice,  // -display spice-app (best: clipboard, resize, audio)
-    Gtk,    // -display gtk (good: native window, no separate viewer)
-    Vnc,    // -display vnc=:N (needs external viewer)
+    Spice, // -display spice-app (best: clipboard, resize, audio)
+    Gtk,   // -display gtk (good: native window, no separate viewer)
+    Vnc,   // -display vnc=:N (needs external viewer)
 }
 
 impl DisplayBackend {
@@ -21,10 +21,7 @@ impl DisplayBackend {
         match self {
             DisplayBackend::Spice => vec!["-display".to_string(), "spice-app".to_string()],
             DisplayBackend::Gtk => vec!["-display".to_string(), "gtk".to_string()],
-            DisplayBackend::Vnc => vec![
-                "-display".to_string(),
-                format!("vnc=:{}", vnc_offset),
-            ],
+            DisplayBackend::Vnc => vec!["-display".to_string(), format!("vnc=:{}", vnc_offset)],
         }
     }
 }
@@ -110,23 +107,17 @@ pub fn launch_viewer(backend: DisplayBackend, vnc_port: u16) -> Option<String> {
 #[must_use]
 pub fn connection_info(mode: DisplayMode, backend: DisplayBackend, vnc_port: u16) -> String {
     match mode {
-        DisplayMode::Headless => {
-            match backend {
-                DisplayBackend::Vnc => format!("VNC server on 127.0.0.1:{vnc_port}"),
-                _ => format!("{backend:?} display on 127.0.0.1:{vnc_port}"),
+        DisplayMode::Headless => match backend {
+            DisplayBackend::Vnc => format!("VNC server on 127.0.0.1:{vnc_port}"),
+            _ => format!("{backend:?} display on 127.0.0.1:{vnc_port}"),
+        },
+        DisplayMode::Headful => match backend {
+            DisplayBackend::Spice => "SPICE window will open automatically".to_string(),
+            DisplayBackend::Gtk => "GTK window will open automatically".to_string(),
+            DisplayBackend::Vnc => {
+                let viewer = find_viewer(backend, vnc_port).map_or("none", |(name, _)| name);
+                format!("Launching {viewer} for VNC on 127.0.0.1:{vnc_port}")
             }
-        }
-        DisplayMode::Headful => {
-            match backend {
-                DisplayBackend::Spice => "SPICE window will open automatically".to_string(),
-                DisplayBackend::Gtk => "GTK window will open automatically".to_string(),
-                DisplayBackend::Vnc => {
-                    let viewer = find_viewer(backend, vnc_port)
-                        .map_or("none", |(name, _)| name);
-                    format!("Launching {viewer} for VNC on 127.0.0.1:{vnc_port}")
-                }
-            }
-        }
+        },
     }
 }
-

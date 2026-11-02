@@ -71,7 +71,13 @@ pub struct DialogConfig {
 
 impl Default for DialogConfig {
     fn default() -> Self {
-        Self { modal: true, dismissable: true, alert: false, class: None, aria_label: None }
+        Self {
+            modal: true,
+            dismissable: true,
+            alert: false,
+            class: None,
+            aria_label: None,
+        }
     }
 }
 
@@ -89,7 +95,12 @@ pub struct DialogSlots {
 
 impl Default for DialogSlots {
     fn default() -> Self {
-        Self { title: None, description: None, children: Vec::new(), close_label: None }
+        Self {
+            title: None,
+            description: None,
+            children: Vec::new(),
+            close_label: None,
+        }
     }
 }
 
@@ -166,10 +177,23 @@ pub fn drawer_with_snap(
             set_snap_point.set(n);
         }
     });
-    dialog_impl(ctx, rcv, config, open, set_open, slots, Some(side), Some((snap_points, sequential, on_snap)))
+    dialog_impl(
+        ctx,
+        rcv,
+        config,
+        open,
+        set_open,
+        slots,
+        Some(side),
+        Some((snap_points, sequential, on_snap)),
+    )
 }
 
-#[allow(clippy::too_many_lines, clippy::too_many_arguments, clippy::type_complexity)]
+#[allow(
+    clippy::too_many_lines,
+    clippy::too_many_arguments,
+    clippy::type_complexity
+)]
 fn dialog_impl(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
@@ -180,25 +204,39 @@ fn dialog_impl(
     drawer_side: Option<DrawerSide>,
     snap: Option<(Vec<f64>, bool, foundation_signals::Callback)>,
 ) -> Html {
-    let class = config
-        .class
-        .unwrap_or(if config.alert { Cow::Borrowed("alert-dialog") } else { Cow::Borrowed("dialog") });
-    let role: Cow<'static, str> =
-        if config.alert { Cow::Borrowed("alertdialog") } else { Cow::Borrowed("dialog") };
-    let mode: Cow<'static, str> =
-        if config.modal { Cow::Borrowed("modal") } else { Cow::Borrowed("nonmodal") };
+    let class = config.class.unwrap_or(if config.alert {
+        Cow::Borrowed("alert-dialog")
+    } else {
+        Cow::Borrowed("dialog")
+    });
+    let role: Cow<'static, str> = if config.alert {
+        Cow::Borrowed("alertdialog")
+    } else {
+        Cow::Borrowed("dialog")
+    };
+    let mode: Cow<'static, str> = if config.modal {
+        Cow::Borrowed("modal")
+    } else {
+        Cow::Borrowed("nonmodal")
+    };
     let id_n = ctx.allocate_id_block(1);
     let title_id = alloc::format!("dialog-title-{id_n}");
     let desc_id = alloc::format!("dialog-desc-{id_n}");
 
     let labelledby: Option<Cow<'static, str>> =
         slots.title.as_ref().map(|_| Cow::Owned(title_id.clone()));
-    let describedby: Option<Cow<'static, str>> =
-        slots.description.as_ref().map(|_| Cow::Owned(desc_id.clone()));
+    let describedby: Option<Cow<'static, str>> = slots
+        .description
+        .as_ref()
+        .map(|_| Cow::Owned(desc_id.clone()));
 
     let title_html = slots.title.map(|s| s.render(ctx, rcv));
     let description_html = slots.description.map(|s| s.render(ctx, rcv));
-    let body_html: Vec<Html> = slots.children.into_iter().map(|s| s.render(ctx, rcv)).collect();
+    let body_html: Vec<Html> = slots
+        .children
+        .into_iter()
+        .map(|s| s.render(ctx, rcv))
+        .collect();
     let close_label_html = slots.close_label.map(|s| s.render(ctx, rcv));
 
     let close = {

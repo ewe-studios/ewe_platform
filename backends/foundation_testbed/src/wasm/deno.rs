@@ -50,9 +50,9 @@ pub fn run(integration_dir: &Path, entry_file: &str) -> Result<DenoOutput> {
 
     debug!("Executing: {:?}", cmd);
 
-    let output = cmd.output().map_err(|e| {
-        WasmTestbedError::DenoExecFailed(e).trace()
-    })?;
+    let output = cmd
+        .output()
+        .map_err(|e| WasmTestbedError::DenoExecFailed(e).trace())?;
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();

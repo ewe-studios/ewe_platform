@@ -14,7 +14,9 @@
 use std::path::Path;
 use std::time::Duration;
 
-use foundation_netio::shared::client::body_reader::{collect_bytes_into, collect_strings_from_send_safe};
+use foundation_netio::shared::client::body_reader::{
+    collect_bytes_into, collect_strings_from_send_safe,
+};
 use foundation_netio::shared::client::request::PreparedRequest;
 use foundation_netio::shared::http::{SendSafeBody, SimpleResponse};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
@@ -51,7 +53,12 @@ pub fn http_get(url: &str, read_timeout_secs: u64) -> Result<String> {
 /// # Errors
 /// Returns an error if the request fails. Returns an error if the download cannot be
 /// written. Returns an error if the downloaded file is too small.
-pub fn http_download(url: &str, dest: &Path, _progress_label: &str, read_timeout_secs: u64) -> Result<()> {
+pub fn http_download(
+    url: &str,
+    dest: &Path,
+    _progress_label: &str,
+    read_timeout_secs: u64,
+) -> Result<()> {
     let resp = get(url, read_timeout_secs)?;
 
     let tmp = dest.with_extension("downloading");
@@ -81,9 +88,13 @@ pub fn http_download(url: &str, dest: &Path, _progress_label: &str, read_timeout
 /// `GET url`; an error unless the status is 2xx. The body is not read here.
 fn get(url: &str, read_timeout_secs: u64) -> Result<SimpleResponse<SendSafeBody>> {
     let request = get_request(url)?;
-    let resp = http_client(read_timeout_secs)
-        .send(request)
-        .map_err(|e| TestbedError::DownloadFailed { status: 0, url: format!("{url}: {e}") })?;
+    let resp =
+        http_client(read_timeout_secs)
+            .send(request)
+            .map_err(|e| TestbedError::DownloadFailed {
+                status: 0,
+                url: format!("{url}: {e}"),
+            })?;
     let status: usize = resp.get_status().into();
     if !(200..=299).contains(&status) {
         return Err(TestbedError::DownloadFailed {
@@ -97,7 +108,10 @@ fn get(url: &str, read_timeout_secs: u64) -> Result<SimpleResponse<SendSafeBody>
 fn get_request(url: &str) -> Result<PreparedRequest> {
     PreparedRequestBuilder::get(url)
         .map(PreparedRequestBuilder::build)
-        .map_err(|e| TestbedError::DownloadFailed { status: 0, url: format!("{url}: {e}") })
+        .map_err(|e| TestbedError::DownloadFailed {
+            status: 0,
+            url: format!("{url}: {e}"),
+        })
 }
 
 fn http_client(read_timeout_secs: u64) -> DynNetClient {

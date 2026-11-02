@@ -41,9 +41,21 @@ fn rejects_ip_literals_and_internal_hosts() {
 #[valtron_test]
 fn rejects_malformed_domains() {
     assert!(matches!(fetch(""), Err(AppError::BadRequest(_))));
-    assert!(matches!(fetch("has/slash.com"), Err(AppError::BadRequest(_))));
-    assert!(matches!(fetch("user@evil.com"), Err(AppError::BadRequest(_))));
-    assert!(matches!(fetch("evil.com:8080"), Err(AppError::BadRequest(_))));
+    assert!(matches!(
+        fetch("has/slash.com"),
+        Err(AppError::BadRequest(_))
+    ));
+    assert!(matches!(
+        fetch("user@evil.com"),
+        Err(AppError::BadRequest(_))
+    ));
+    assert!(matches!(
+        fetch("evil.com:8080"),
+        Err(AppError::BadRequest(_))
+    ));
     assert!(matches!(fetch("no-dot-host"), Err(AppError::BadRequest(_))));
-    assert!(matches!(fetch("double..dot.com"), Err(AppError::BadRequest(_))));
+    assert!(matches!(
+        fetch("double..dot.com"),
+        Err(AppError::BadRequest(_))
+    ));
 }

@@ -1,6 +1,7 @@
 ---
 feature: "cargo fmt --check diverges between local and CI (rustfmt version drift)"
-status: "pending"
+status: "done"
+note: "E1 landed; rustfmt pinned to nightly-2026-09-20 (rustfmt 1.10.0-nightly feaadeeaca, matches the CI image); repo-wide cargo fmt --all reformat committed; §16 entry deleted"
 priority: "medium"
 depends_on: []
 branch: "fix/io-39-rustfmt-version-pin"

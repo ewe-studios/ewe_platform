@@ -1,4 +1,8 @@
-#![cfg(all(target_os = "linux", feature = "vfs-ptrace-nix", feature = "vfs-native"))]
+#![cfg(all(
+    target_os = "linux",
+    feature = "vfs-ptrace-nix",
+    feature = "vfs-native"
+))]
 
 /// Integration tests for the nix-based ptrace backend.
 ///
@@ -9,16 +13,15 @@
 /// 4. NixInterceptor spawns a child under ptrace and waits for exit
 /// 5. Non-filesystem syscalls pass through unmodified
 /// 6. The traced child process executes correctly
-
 use std::sync::Arc;
 
 use foundation_nativeapis::native::vfs::ptrace::{
     nix_backend::NixInterceptor,
     syscall_dispatch::{on_syscall_entry, SyscallAction, SyscallArgs},
-    DynFs, ErasedFile, MountTable, VirtualFdEntry, VirtualFdTable, SyscallInterceptor,
+    DynFs, ErasedFile, MountTable, SyscallInterceptor, VirtualFdEntry, VirtualFdTable,
 };
-use foundation_nativeapis::shared::vfs::types::OpenMode;
 use foundation_nativeapis::native::vfs::NativeFs;
+use foundation_nativeapis::shared::vfs::types::OpenMode;
 use foundation_nativeapis::shared::vfs::MemoryFs;
 use foundation_nativeapis::shared::vfs::VfsFileSystem;
 
@@ -39,11 +42,15 @@ impl TempDir {
         std::fs::create_dir_all(&path).unwrap();
         Self(path)
     }
-    fn path(&self) -> &std::path::Path { &self.0 }
+    fn path(&self) -> &std::path::Path {
+        &self.0
+    }
 }
 
 impl Drop for TempDir {
-    fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); }
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
 }
 
 // ── Dispatch: non-filesystem syscalls passthrough ──
@@ -56,9 +63,20 @@ fn test_non_fs_syscalls_passthrough() {
 
     // getpid, mmap, nanosleep, clone, fork, exit
     for nr in [39, 9, 35, 56, 57, 60] {
-        let args = SyscallArgs { nr, arg0: 0, arg1: 0, arg2: 0, arg3: 0, arg4: 0, arg5: 0 };
+        let args = SyscallArgs {
+            nr,
+            arg0: 0,
+            arg1: 0,
+            arg2: 0,
+            arg3: 0,
+            arg4: 0,
+            arg5: 0,
+        };
         assert!(
-            matches!(on_syscall_entry(pid, &args, &mt, &fd), SyscallAction::Passthrough),
+            matches!(
+                on_syscall_entry(pid, &args, &mt, &fd),
+                SyscallAction::Passthrough
+            ),
             "syscall {nr} should passthrough"
         );
     }
@@ -72,9 +90,20 @@ fn test_real_fd_passthrough() {
 
     // read(5), write(5), close(5), fstat(5) — all on real FD < 10000
     for (nr, name) in [(0, "read"), (1, "write"), (3, "close"), (5, "fstat")] {
-        let args = SyscallArgs { nr, arg0: 5, arg1: 0, arg2: 0, arg3: 0, arg4: 0, arg5: 0 };
+        let args = SyscallArgs {
+            nr,
+            arg0: 5,
+            arg1: 0,
+            arg2: 0,
+            arg3: 0,
+            arg4: 0,
+            arg5: 0,
+        };
         assert!(
-            matches!(on_syscall_entry(pid, &args, &mt, &fd), SyscallAction::Passthrough),
+            matches!(
+                on_syscall_entry(pid, &args, &mt, &fd),
+                SyscallAction::Passthrough
+            ),
             "{name} on real FD 5 should passthrough"
         );
     }
@@ -87,9 +116,20 @@ fn test_virtual_fd_intercepted() {
     let pid = nix::unistd::Pid::from_raw(1);
 
     // read on FD 10000 — should be intercepted
-    let args = SyscallArgs { nr: 0, arg0: 10_000, arg1: 0x1000, arg2: 64, arg3: 0, arg4: 0, arg5: 0 };
+    let args = SyscallArgs {
+        nr: 0,
+        arg0: 10_000,
+        arg1: 0x1000,
+        arg2: 64,
+        arg3: 0,
+        arg4: 0,
+        arg5: 0,
+    };
     assert!(
-        !matches!(on_syscall_entry(pid, &args, &mt, &fd), SyscallAction::Passthrough),
+        !matches!(
+            on_syscall_entry(pid, &args, &mt, &fd),
+            SyscallAction::Passthrough
+        ),
         "read on virtual FD 10000 should be intercepted"
     );
 }
@@ -191,13 +231,17 @@ fn test_virtual_fd_insert_and_read() {
     let file = fs.open("/hello.txt", OpenMode::Read).unwrap();
     let erased = ErasedFile::new(file);
     let vfd = fd_table.alloc_fd();
-    fd_table.insert(1, vfd, VirtualFdEntry::File {
-        handle: erased,
-        path: "/hello.txt".into(),
-        offset: Arc::new(Mutex::new(0)),
-        mode: OpenMode::Read,
-        flags: 0,
-    });
+    fd_table.insert(
+        1,
+        vfd,
+        VirtualFdEntry::File {
+            handle: erased,
+            path: "/hello.txt".into(),
+            offset: Arc::new(Mutex::new(0)),
+            mode: OpenMode::Read,
+            flags: 0,
+        },
+    );
 
     let entry = fd_table.get(1, vfd).expect("should have entry");
     match entry {
@@ -222,13 +266,17 @@ fn test_virtual_fd_write_and_readback() {
     let erased = ErasedFile::new(file);
     let fd_table = VirtualFdTable::new();
     let vfd = fd_table.alloc_fd();
-    fd_table.insert(1, vfd, VirtualFdEntry::File {
-        handle: erased,
-        path: "/dir/out.txt".into(),
-        offset: Arc::new(Mutex::new(0)),
-        mode: OpenMode::ReadWrite,
-        flags: 0,
-    });
+    fd_table.insert(
+        1,
+        vfd,
+        VirtualFdEntry::File {
+            handle: erased,
+            path: "/dir/out.txt".into(),
+            offset: Arc::new(Mutex::new(0)),
+            mode: OpenMode::ReadWrite,
+            flags: 0,
+        },
+    );
 
     let entry = fd_table.get(1, vfd).unwrap();
     match entry {
@@ -249,7 +297,10 @@ fn test_virtual_fd_range_no_collision() {
     for _ in 0..100 {
         let vfd = fd_table.alloc_fd();
         assert!(vfd >= 10_000, "virtual FD {vfd} below base");
-        assert!(!((0..1000).contains(&(vfd as u32))), "virtual FD {vfd} in real range");
+        assert!(
+            !((0..1000).contains(&(vfd as u32))),
+            "virtual FD {vfd} in real range"
+        );
     }
 }
 
@@ -270,19 +321,25 @@ fn test_fork_inherits_virtual_fds() {
     let parent_pid = 100u32;
     let child_pid = 200u32;
 
-    fd_table.insert(parent_pid, vfd, VirtualFdEntry::File {
-        handle: erased,
-        path: "/shared.txt".into(),
-        offset: Arc::new(Mutex::new(0)),
-        mode: OpenMode::Read,
-        flags: 0,
-    });
+    fd_table.insert(
+        parent_pid,
+        vfd,
+        VirtualFdEntry::File {
+            handle: erased,
+            path: "/shared.txt".into(),
+            offset: Arc::new(Mutex::new(0)),
+            mode: OpenMode::Read,
+            flags: 0,
+        },
+    );
 
     // Simulate fork: clone parent's FDs to child
     fd_table.clone_for_child(parent_pid, child_pid);
 
     // Child should see the same FD
-    let child_entry = fd_table.get(child_pid, vfd).expect("child should have inherited FD");
+    let child_entry = fd_table
+        .get(child_pid, vfd)
+        .expect("child should have inherited FD");
     match child_entry {
         VirtualFdEntry::File { handle, path, .. } => {
             assert_eq!(path, "/shared.txt");
@@ -315,29 +372,43 @@ fn test_fork_cloexec_not_inherited_on_exec() {
 
     let f1 = fs.open("/cloexec.txt", OpenMode::Read).unwrap();
     let fd1 = fd_table.alloc_fd();
-    fd_table.insert(pid, fd1, VirtualFdEntry::File {
-        handle: ErasedFile::new(f1),
-        path: "/cloexec.txt".into(),
-        offset: Arc::new(Mutex::new(0)),
-        mode: OpenMode::Read,
-        flags: libc::O_CLOEXEC,
-    });
+    fd_table.insert(
+        pid,
+        fd1,
+        VirtualFdEntry::File {
+            handle: ErasedFile::new(f1),
+            path: "/cloexec.txt".into(),
+            offset: Arc::new(Mutex::new(0)),
+            mode: OpenMode::Read,
+            flags: libc::O_CLOEXEC,
+        },
+    );
 
     let f2 = fs.open("/persist.txt", OpenMode::Read).unwrap();
     let fd2 = fd_table.alloc_fd();
-    fd_table.insert(pid, fd2, VirtualFdEntry::File {
-        handle: ErasedFile::new(f2),
-        path: "/persist.txt".into(),
-        offset: Arc::new(Mutex::new(0)),
-        mode: OpenMode::Read,
-        flags: 0,
-    });
+    fd_table.insert(
+        pid,
+        fd2,
+        VirtualFdEntry::File {
+            handle: ErasedFile::new(f2),
+            path: "/persist.txt".into(),
+            offset: Arc::new(Mutex::new(0)),
+            mode: OpenMode::Read,
+            flags: 0,
+        },
+    );
 
     // Simulate exec: close O_CLOEXEC FDs
     fd_table.close_cloexec(pid);
 
-    assert!(fd_table.get(pid, fd1).is_none(), "O_CLOEXEC fd should be closed");
-    assert!(fd_table.get(pid, fd2).is_some(), "non-CLOEXEC fd should survive exec");
+    assert!(
+        fd_table.get(pid, fd1).is_none(),
+        "O_CLOEXEC fd should be closed"
+    );
+    assert!(
+        fd_table.get(pid, fd2).is_some(),
+        "non-CLOEXEC fd should survive exec"
+    );
 }
 
 // ── NixInterceptor: spawn + wait ──
@@ -347,7 +418,9 @@ fn test_fork_cloexec_not_inherited_on_exec() {
 fn test_spawn_true_exits_zero() {
     let i = NixInterceptor::new();
     let mt = MountTable::new();
-    let h = i.spawn(mt, "/bin/true", &[]).expect("spawn /bin/true failed");
+    let h = i
+        .spawn(mt, "/bin/true", &[])
+        .expect("spawn /bin/true failed");
     assert!(h.pid() > 0);
     assert_eq!(h.wait().expect("wait failed"), 0);
 }
@@ -357,7 +430,9 @@ fn test_spawn_true_exits_zero() {
 fn test_spawn_echo_with_args() {
     let i = NixInterceptor::new();
     let mt = MountTable::new();
-    let h = i.spawn(mt, "/bin/echo", &["hello", "world"]).expect("spawn failed");
+    let h = i
+        .spawn(mt, "/bin/echo", &["hello", "world"])
+        .expect("spawn failed");
     assert_eq!(h.wait().expect("wait failed"), 0);
 }
 
@@ -390,8 +465,14 @@ fn test_spawn_pipe_chain() {
     // Verify non-fs syscalls (pipe, dup, etc.) pass through normally
     let i = NixInterceptor::new();
     let mt = MountTable::new();
-    let h = i.spawn(mt, "/bin/sh", &["-c", "echo hello | cat"]).expect("spawn failed");
-    assert_eq!(h.wait().expect("wait failed"), 0, "pipe chain should succeed");
+    let h = i
+        .spawn(mt, "/bin/sh", &["-c", "echo hello | cat"])
+        .expect("spawn failed");
+    assert_eq!(
+        h.wait().expect("wait failed"),
+        0,
+        "pipe chain should succeed"
+    );
 }
 
 #[test]
@@ -401,7 +482,9 @@ fn test_spawn_can_write_to_real_fs() {
     let i = NixInterceptor::new();
     let mt = MountTable::new();
     let tmpfile = format!("/tmp/ptrace_test_{}", std::process::id());
-    let h = i.spawn(mt, "/bin/sh", &["-c", &format!("echo test > {tmpfile}")]).expect("spawn failed");
+    let h = i
+        .spawn(mt, "/bin/sh", &["-c", &format!("echo test > {tmpfile}")])
+        .expect("spawn failed");
     assert_eq!(h.wait().expect("wait failed"), 0);
 
     let content = std::fs::read_to_string(&tmpfile).unwrap();

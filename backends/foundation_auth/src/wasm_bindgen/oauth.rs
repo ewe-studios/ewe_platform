@@ -51,7 +51,10 @@ impl WasmOAuth {
                 "redirect_uri={}",
                 urlencoding::encode(&self.inner.config.redirect_uri)
             ),
-            format!("client_id={}", urlencoding::encode(&self.inner.config.client_id)),
+            format!(
+                "client_id={}",
+                urlencoding::encode(&self.inner.config.client_id)
+            ),
         ];
 
         if let Some(ref secret) = self.inner.config.client_secret {
@@ -94,7 +97,10 @@ impl WasmOAuth {
 
         let mut body_parts = vec![
             format!("grant_type={}", urlencoding::encode("client_credentials")),
-            format!("client_id={}", urlencoding::encode(&self.inner.config.client_id)),
+            format!(
+                "client_id={}",
+                urlencoding::encode(&self.inner.config.client_id)
+            ),
             format!("client_secret={}", urlencoding::encode(client_secret)),
         ];
 
@@ -113,16 +119,16 @@ impl WasmOAuth {
     /// # Errors
     ///
     /// Returns an `OAuthError` if the refresh request fails or the response cannot be parsed.
-    pub async fn refresh_token(
-        &self,
-        refresh_token: &str,
-    ) -> Result<OAuthToken, OAuthError> {
+    pub async fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
         self.inner.config.validate()?;
 
         let mut body_parts = vec![
             format!("grant_type={}", urlencoding::encode("refresh_token")),
             format!("refresh_token={}", urlencoding::encode(refresh_token)),
-            format!("client_id={}", urlencoding::encode(&self.inner.config.client_id)),
+            format!(
+                "client_id={}",
+                urlencoding::encode(&self.inner.config.client_id)
+            ),
         ];
 
         if let Some(ref secret) = self.inner.config.client_secret {
@@ -193,12 +199,15 @@ async fn parse_token_response(resp: Response) -> Result<OAuthToken, OAuthError> 
     let status = resp.status();
     if !resp.ok() {
         let body = response_text(&resp).await.unwrap_or_default();
-        return Err(OAuthError::TokenEndpointError { status, message: body });
+        return Err(OAuthError::TokenEndpointError {
+            status,
+            message: body,
+        });
     }
 
     let body = response_text(&resp).await?;
-    let token_response: TokenResponse = serde_json::from_str(&body)
-        .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
+    let token_response: TokenResponse =
+        serde_json::from_str(&body).map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 
     Ok(OAuthToken {
         access_token: token_response.access_token,
@@ -211,16 +220,22 @@ async fn parse_token_response(resp: Response) -> Result<OAuthToken, OAuthError> 
 }
 
 /// Parse a refresh token response, preserving the old refresh token if no new one is returned.
-async fn parse_refresh_response(resp: Response, old_refresh: &str) -> Result<OAuthToken, OAuthError> {
+async fn parse_refresh_response(
+    resp: Response,
+    old_refresh: &str,
+) -> Result<OAuthToken, OAuthError> {
     let status = resp.status();
     if !resp.ok() {
         let body = response_text(&resp).await.unwrap_or_default();
-        return Err(OAuthError::TokenEndpointError { status, message: body });
+        return Err(OAuthError::TokenEndpointError {
+            status,
+            message: body,
+        });
     }
 
     let body = response_text(&resp).await?;
-    let token_response: TokenResponse = serde_json::from_str(&body)
-        .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
+    let token_response: TokenResponse =
+        serde_json::from_str(&body).map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 
     Ok(OAuthToken {
         access_token: token_response.access_token,
@@ -236,7 +251,8 @@ async fn parse_refresh_response(resp: Response, old_refresh: &str) -> Result<OAu
 
 /// Extract response body as text.
 async fn response_text(resp: &Response) -> Result<String, OAuthError> {
-    let promise = resp.text()
+    let promise = resp
+        .text()
         .map_err(|e| OAuthError::TokenParseError(format!("response.text() failed: {e:?}")))?;
     let js_value = JsFuture::from(promise)
         .await

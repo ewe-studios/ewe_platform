@@ -15,7 +15,7 @@
 // Ported & adapted from `wasmbin` v0.9.2 (https://github.com/RReverser/wasmbin)
 // for ewe_platform (feature 15); modifications are listed in src/wasm/README.md.
 
-use crate::wasm::io::{DecodeError, encode_decode_as};
+use crate::wasm::io::{encode_decode_as, DecodeError};
 use crate::wasm::visit::Visit;
 
 encode_decode_as!(bool, {

@@ -2,9 +2,9 @@
 
 #![cfg(feature = "vms")]
 
+use foundation_deployment_platform::build::logs::{ERROR_PATTERNS, extract_errors};
+use foundation_deployment_platform::build::multiarch::{CROSS_DEPS, cross_compile_env};
 use foundation_deployment_platform::build::{guest_project_path, target_triple};
-use foundation_deployment_platform::build::logs::{extract_errors, ERROR_PATTERNS};
-use foundation_deployment_platform::build::multiarch::{cross_compile_env, CROSS_DEPS};
 use foundation_deployment_platform::config::GuestOs;
 
 // From build/mod.rs
@@ -17,7 +17,10 @@ fn test_target_triple() {
 #[test]
 fn test_guest_project_path() {
     assert_eq!(guest_project_path(GuestOs::Linux), "/mnt/project");
-    assert_eq!(guest_project_path(GuestOs::Windows), "C:\\Users\\vagrant\\project");
+    assert_eq!(
+        guest_project_path(GuestOs::Windows),
+        "C:\\Users\\vagrant\\project"
+    );
     assert_eq!(guest_project_path(GuestOs::MacOS), "/Volumes/project");
 }
 

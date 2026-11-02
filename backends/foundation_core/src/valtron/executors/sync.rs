@@ -76,10 +76,11 @@ where
             match self.stream.next()? {
                 Stream::Next(value) => return Some(value),
                 Stream::Spread(items) => {
-                    self.spread.extend(items.into_iter().filter_map(|item| match item {
-                        StreamSpread::Done(value) => Some(value),
-                        StreamSpread::Pending(_) => None,
-                    }));
+                    self.spread
+                        .extend(items.into_iter().filter_map(|item| match item {
+                            StreamSpread::Done(value) => Some(value),
+                            StreamSpread::Pending(_) => None,
+                        }));
                 }
                 Stream::Pending(_)
                 | Stream::Wait

@@ -363,7 +363,10 @@ where
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
         debug!(?name, "Adding custom header");
         if let Some(WebSocketState::Init(Some(ref mut info))) = self.state {
-            info.extra_headers.entry(name).or_default().push(value.into());
+            info.extra_headers
+                .entry(name)
+                .or_default()
+                .push(value.into());
         }
         self
     }

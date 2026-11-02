@@ -225,9 +225,6 @@ fn all_ten_kinds_roundtrip() {
         hdr.copy_from_slice(&buf[..9]);
         let (parsed, plen) = Head::parse_with_len(&hdr);
         assert_eq!(parsed.kind, *kind, "kind mismatch for {kind:?}");
-        assert_eq!(
-            plen, *payload_len,
-            "payload len mismatch for {kind:?}"
-        );
+        assert_eq!(plen, *payload_len, "payload len mismatch for {kind:?}");
     }
 }

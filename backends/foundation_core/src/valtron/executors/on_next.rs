@@ -7,8 +7,7 @@ use std::{any::Any, marker::PhantomData};
 use crate::synca::Entry;
 use crate::valtron::{
     BoxedExecutionEngine, BoxedExecutionIterator, BoxedPanicHandler, BoxedSendExecutionIterator,
-    Ctx, ExecutionAction, ExecutionIterator, State, TaskIterator,
-    TaskReadyResolver, TaskStatus,
+    Ctx, ExecutionAction, ExecutionIterator, State, TaskIterator, TaskReadyResolver, TaskStatus,
 };
 
 use crate::compati::Mutex;
@@ -89,8 +88,7 @@ where
     }
 }
 
-impl<Task, Resolver, Done, Pending> ExecutionIterator
-    for OnNext<Resolver, Task, Done, Pending>
+impl<Task, Resolver, Done, Pending> ExecutionIterator for OnNext<Resolver, Task, Done, Pending>
 where
     Resolver: TaskReadyResolver<Done, Pending>,
     Task: TaskIterator<Pending = Pending, Ready = Done>,

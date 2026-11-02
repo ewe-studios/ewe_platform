@@ -1,5 +1,5 @@
-use foundation_core::valtron::{Ctx, FutureTask, TaskStatus, from_future};
 use foundation_core::valtron::TaskIterator;
+use foundation_core::valtron::{from_future, Ctx, FutureTask, TaskStatus};
 
 /// WHY: `FutureTask` must poll and complete a simple future
 /// WHAT: Future that returns Ready immediately should complete on first poll
@@ -271,13 +271,22 @@ fn test_mixed_self_wake_then_external_park() {
 
     let mut task = FutureTask::new(MixedFuture { stage: 0 });
 
-    assert!(matches!(task.next_status(ctx.clone()), Some(TaskStatus::Ignore)));
-    assert!(matches!(task.next_status(ctx.clone()), Some(TaskStatus::Ignore)));
+    assert!(matches!(
+        task.next_status(ctx.clone()),
+        Some(TaskStatus::Ignore)
+    ));
+    assert!(matches!(
+        task.next_status(ctx.clone()),
+        Some(TaskStatus::Ignore)
+    ));
 
     // Third poll: no self-wake → Depends(not-ready).
     match task.next_status(ctx.clone()) {
         Some(TaskStatus::Depends(signal)) => {
-            assert!(!signal.is_ready(None), "stashed waker, no external event → not ready");
+            assert!(
+                !signal.is_ready(None),
+                "stashed waker, no external event → not ready"
+            );
         }
         other => panic!("expected Depends(not-ready), got {other:?}"),
     }
@@ -300,8 +309,8 @@ fn test_external_wake_makes_depends_ready() {
     use core::future::Future;
     use core::pin::Pin;
     use core::task::{Context, Poll};
-    use std::sync::Arc;
     use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc;
 
     let ctx = Ctx::new();
     struct GateFuture {

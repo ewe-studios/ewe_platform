@@ -500,7 +500,9 @@ impl AsyncVfsDirectory for RemoteDirectory {
         )
         .await?
         {
-            VfsResponseBody::DirEntries(entries) => Ok(entries.into_iter().map(Into::into).collect()),
+            VfsResponseBody::DirEntries(entries) => {
+                Ok(entries.into_iter().map(Into::into).collect())
+            }
             _ => Err(unexpected()),
         }
     }

@@ -7,15 +7,15 @@
 /// `PTRACE_SEIZE` with `PTRACE_O_TRACESYSGOOD` is used. The execve transition:
 /// SEIZE → waitpid (SIGTRAP) → SYSCALL → waitpid (PtraceSyscall, execve entry) →
 /// SYSCALL → waitpid (PTRACE_EVENT_EXEC) → SYSCALL → ptrace_loop handles the rest.
-
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use nix::libc::{PTRACE_O_TRACECLONE, PTRACE_O_TRACEEXEC, PTRACE_O_TRACEEXIT,
-                PTRACE_O_TRACEFORK, PTRACE_O_TRACESYSGOOD, PTRACE_O_TRACEVFORK,
-                PTRACE_O_TRACEVFORKDONE};
+use nix::libc::{
+    PTRACE_O_TRACECLONE, PTRACE_O_TRACEEXEC, PTRACE_O_TRACEEXIT, PTRACE_O_TRACEFORK,
+    PTRACE_O_TRACESYSGOOD, PTRACE_O_TRACEVFORK, PTRACE_O_TRACEVFORKDONE,
+};
 use nix::sys::ptrace::{self, Options};
-use nix::sys::wait::{WaitStatus, waitpid};
+use nix::sys::wait::{waitpid, WaitStatus};
 use nix::unistd::Pid;
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
@@ -28,29 +28,39 @@ use super::{InterceptorHandle, MountTable, SyscallInterceptor, VirtualFdTable};
 /// after a vfork exec/exit sequence.
 const PTRACE_OPTIONS: Options = Options::from_bits_truncate(
     PTRACE_O_TRACESYSGOOD
-    | PTRACE_O_TRACEFORK
-    | PTRACE_O_TRACEVFORK
-    | PTRACE_O_TRACEVFORKDONE
-    | PTRACE_O_TRACECLONE
-    | PTRACE_O_TRACEEXEC
-    | PTRACE_O_TRACEEXIT,
+        | PTRACE_O_TRACEFORK
+        | PTRACE_O_TRACEVFORK
+        | PTRACE_O_TRACEVFORKDONE
+        | PTRACE_O_TRACECLONE
+        | PTRACE_O_TRACEEXEC
+        | PTRACE_O_TRACEEXIT,
 );
 
 /// Read registers using raw libc::ptrace (PTRACE_GETREGS).
 fn get_regs(pid: Pid) -> Option<libc::user_regs_struct> {
     let mut regs: libc::user_regs_struct = unsafe { std::mem::zeroed() };
     let ret = unsafe {
-        libc::ptrace(libc::PTRACE_GETREGS, pid.as_raw(), std::ptr::null_mut::<libc::c_void>(),
-                     &mut regs as *mut _ as *mut libc::c_void)
+        libc::ptrace(
+            libc::PTRACE_GETREGS,
+            pid.as_raw(),
+            std::ptr::null_mut::<libc::c_void>(),
+            &mut regs as *mut _ as *mut libc::c_void,
+        )
     };
-    if ret == 0 { Some(regs) } else { None }
+    if ret == 0 {
+        Some(regs)
+    } else {
+        None
+    }
 }
 
 /// nix-based raw ptrace interceptor.
 pub struct NixInterceptor;
 
 impl NixInterceptor {
-    pub fn new() -> Self { Self }
+    pub fn new() -> Self {
+        Self
+    }
 }
 
 impl SyscallInterceptor for NixInterceptor {
@@ -66,9 +76,7 @@ impl SyscallInterceptor for NixInterceptor {
         let mount_table = Arc::new(mount_table);
         let fd_table = Arc::new(VirtualFdTable::new());
 
-        let join_handle = std::thread::spawn(move || {
-            ptrace_loop(child, &mount_table, &fd_table)
-        });
+        let join_handle = std::thread::spawn(move || ptrace_loop(child, &mount_table, &fd_table));
 
         Ok(InterceptorHandle::new(child_pid, join_handle))
     }
@@ -78,7 +86,8 @@ fn spawn_child(command: &str, args: &[&str]) -> VfsResult<Pid> {
     let child = match unsafe { nix::unistd::fork() } {
         Ok(nix::unistd::ForkResult::Child) => {
             let command_c = std::ffi::CString::new(command).unwrap();
-            let args_c: Vec<std::ffi::CString> = args.iter()
+            let args_c: Vec<std::ffi::CString> = args
+                .iter()
                 .map(|s| std::ffi::CString::new(*s).unwrap())
                 .collect();
 
@@ -89,9 +98,12 @@ fn spawn_child(command: &str, args: &[&str]) -> VfsResult<Pid> {
             std::process::exit(1);
         }
         Ok(nix::unistd::ForkResult::Parent { child, .. }) => child,
-        Err(e) => return Err(VfsError::Backend {
-            message: format!("fork failed: {e}"),
-        }.into()),
+        Err(e) => {
+            return Err(VfsError::Backend {
+                message: format!("fork failed: {e}"),
+            }
+            .into())
+        }
     };
 
     // PTRACE_SEIZE stops the child immediately with a SIGTRAP.
@@ -157,7 +169,8 @@ fn ptrace_loop(
             Err(e) => {
                 return Err(VfsError::Backend {
                     message: format!("waitpid failed: {e}"),
-                }.into());
+                }
+                .into());
             }
         };
 
@@ -245,8 +258,7 @@ fn ptrace_loop(
                         // unblocked. Resume the parent with syscall tracing.
                         ptrace::syscall(pid, None).ok();
                     }
-                    libc::PTRACE_EVENT_FORK
-                    | libc::PTRACE_EVENT_CLONE => {
+                    libc::PTRACE_EVENT_FORK | libc::PTRACE_EVENT_CLONE => {
                         if let Ok(new_pid_raw) = ptrace::getevent(pid) {
                             let new_pid = Pid::from_raw(new_pid_raw as i32);
                             fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);

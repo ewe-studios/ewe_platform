@@ -2,7 +2,7 @@
 
 #![cfg(feature = "vms")]
 
-use foundation_deployment_platform::state::{from_qemu, is_process_alive, state_dir, VmState};
+use foundation_deployment_platform::state::{VmState, from_qemu, is_process_alive, state_dir};
 
 #[test]
 fn test_is_process_alive_check() {

@@ -2,23 +2,31 @@
 
 #![cfg(feature = "vms")]
 
-use foundation_deployment_platform::host_bootstrap::{host_mise_config_path, ToolStatus};
 use foundation_deployment_platform::host_bootstrap::install::find_mise_bin;
+use foundation_deployment_platform::host_bootstrap::{ToolStatus, host_mise_config_path};
 
 // From host_bootstrap/mod.rs
 #[test]
 fn test_tool_status_is_available() {
-    let present = ToolStatus::AlreadyPresent { version: "1.0".into() };
+    let present = ToolStatus::AlreadyPresent {
+        version: "1.0".into(),
+    };
     assert!(present.is_available());
-    let missing = ToolStatus::Missing { error: "not found".into() };
+    let missing = ToolStatus::Missing {
+        error: "not found".into(),
+    };
     assert!(!missing.is_available());
 }
 
 #[test]
 fn test_tool_status_version() {
-    let present = ToolStatus::AlreadyPresent { version: "2.0.0".into() };
+    let present = ToolStatus::AlreadyPresent {
+        version: "2.0.0".into(),
+    };
     assert_eq!(present.version(), Some("2.0.0"));
-    let missing = ToolStatus::Missing { error: "nope".into() };
+    let missing = ToolStatus::Missing {
+        error: "nope".into(),
+    };
     assert_eq!(missing.version(), None);
 }
 

@@ -2,7 +2,6 @@
 ///
 /// Every message carries a version header. Endpoints refuse to communicate
 /// with incompatible versions, preventing silent data corruption.
-
 use std::fmt::{self, Display, Formatter};
 
 use once_cell::sync::Lazy;

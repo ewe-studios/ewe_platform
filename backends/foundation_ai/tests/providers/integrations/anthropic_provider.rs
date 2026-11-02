@@ -21,8 +21,8 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
-use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 use std::sync::Arc;
 use std::time::Duration;
 

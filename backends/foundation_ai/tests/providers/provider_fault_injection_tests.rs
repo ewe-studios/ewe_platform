@@ -42,7 +42,6 @@ use futures_lite::future::zip;
 // Helpers
 // ---------------------------------------------------------------------------
 
-
 /// True for a generation request; false for the background `models/{name}`
 /// metadata lookup `get_model` starts, which these tests do not count.
 fn is_generation(req: &foundation_testing::http::HttpRequest) -> bool {
@@ -81,7 +80,9 @@ fn json_error(status: u16, status_text: &str, body: &[u8]) -> HttpResponse {
 /// Retries default to 3 with exponential backoff; the failure tests pass 0 so a
 /// non-recoverable status fails immediately instead of sleeping.
 fn model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
-    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(server_addr(server)).build();
+    let http_client: DynNetClient = HttpClientBuilder::new()
+        .resolve_to(server_addr(server))
+        .build();
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)
@@ -309,8 +310,7 @@ fn a_retry_eventually_succeeds() {
     }"#;
 
     let server = TestHttpServer::with_response(move |req| {
-        let first_generation =
-            is_generation(req) && counter.fetch_add(1, Ordering::SeqCst) == 0;
+        let first_generation = is_generation(req) && counter.fetch_add(1, Ordering::SeqCst) == 0;
         if first_generation {
             json_error(
                 503,
@@ -364,8 +364,7 @@ async fn generate_async_retries_with_async_backoff() {
     }"#;
 
     let server = TestHttpServer::with_response(move |req| {
-        let first_generation =
-            is_generation(req) && counter.fetch_add(1, Ordering::SeqCst) == 0;
+        let first_generation = is_generation(req) && counter.fetch_add(1, Ordering::SeqCst) == 0;
         if first_generation {
             let mut resp = json_error(
                 503,
@@ -422,7 +421,9 @@ async fn generate_async_retries_with_async_backoff() {
 // ---------------------------------------------------------------------------
 
 fn anthropic_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
-    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(server_addr(server)).build();
+    let http_client: DynNetClient = HttpClientBuilder::new()
+        .resolve_to(server_addr(server))
+        .build();
     let config = AnthropicConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)
@@ -430,9 +431,10 @@ fn anthropic_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model 
             "test-key".to_string(),
         )));
 
-    let provider = AnthropicMessagesProvider::with_http_client_and_config(http_client, config.clone())
-        .create(Some(config))
-        .expect("provider builds");
+    let provider =
+        AnthropicMessagesProvider::with_http_client_and_config(http_client, config.clone())
+            .create(Some(config))
+            .expect("provider builds");
 
     provider
         .get_model(ModelId::Name("claude-3-5-sonnet".into(), None))
@@ -469,10 +471,7 @@ fn anthropic_overloaded_surfaces_an_error() {
 
 #[valtron_test]
 fn anthropic_malformed_json_on_a_200_is_an_error() {
-    let msg = expect_anthropic_error(
-        response(200, "OK", "application/json", b"{broken"),
-        0,
-    );
+    let msg = expect_anthropic_error(response(200, "OK", "application/json", b"{broken"), 0);
     assert!(
         !msg.is_empty(),
         "a malformed 200 body must not be treated as a valid completion"
@@ -505,11 +504,7 @@ fn anthropic_non_retryable_status_is_not_retried() {
     hits.store(0, Ordering::SeqCst);
 
     assert!(model.generate(interaction(), None).is_err());
-    assert_eq!(
-        hits.load(Ordering::SeqCst),
-        1,
-        "a 400 must not be retried"
-    );
+    assert_eq!(hits.load(Ordering::SeqCst), 1, "a 400 must not be retried");
 }
 
 // ---------------------------------------------------------------------------
@@ -517,7 +512,9 @@ fn anthropic_non_retryable_status_is_not_retried() {
 // ---------------------------------------------------------------------------
 
 fn responses_model_for(server: &TestHttpServer, max_retries: u32) -> impl Model + use<'_> {
-    let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(server_addr(server)).build();
+    let http_client: DynNetClient = HttpClientBuilder::new()
+        .resolve_to(server_addr(server))
+        .build();
     let config = ResponsesConfig::new()
         .with_base_url(server.base_url())
         .with_max_retries(max_retries)
@@ -643,7 +640,9 @@ const EMBEDDING_BODY: &[u8] = br#"{
 
 /// An interaction carrying the embedding marker plus the text to embed.
 fn embedding_interaction(texts: &[&str]) -> ModelInteraction {
-    use foundation_ai::types::{ModelOutput, ModelProviders, StopReason, UsageCosting, UsageReport};
+    use foundation_ai::types::{
+        ModelOutput, ModelProviders, StopReason, UsageCosting, UsageReport,
+    };
 
     let mut messages: Vec<Messages> = texts
         .iter()
@@ -723,7 +722,10 @@ fn an_embedding_marker_routes_to_the_embeddings_endpoint() {
         !paths.iter().any(|path| path.contains("chat/completions")),
         "an embedding request must not go to chat: {paths:?}"
     );
-    assert!(!out.is_empty(), "an embedding response must yield a message");
+    assert!(
+        !out.is_empty(),
+        "an embedding response must yield a message"
+    );
 }
 
 #[valtron_test]
@@ -758,9 +760,8 @@ fn an_embedding_response_with_no_data_is_an_error() {
     // An empty `data` array must not be reported as a successful embedding —
     // the caller would get no vector and no explanation.
     let empty = br#"{"object":"list","model":"m","data":[],"usage":null}"#;
-    let server = TestHttpServer::with_response(move |_req| {
-        response(200, "OK", "application/json", empty)
-    });
+    let server =
+        TestHttpServer::with_response(move |_req| response(200, "OK", "application/json", empty));
     let model = model_for(&server, 0);
 
     let err = model
@@ -850,7 +851,10 @@ fn system_prompt_and_soul_are_combined() {
         interaction_with(Some("SYSTEM_MARKER"), Some("SOUL_MARKER")),
         None,
     );
-    assert!(body.contains("SYSTEM_MARKER"), "system prompt must be sent: {body}");
+    assert!(
+        body.contains("SYSTEM_MARKER"),
+        "system prompt must be sent: {body}"
+    );
     assert!(
         body.contains("SOUL_MARKER"),
         "soul must not be dropped — it carries the agent's persona: {body}"
@@ -972,7 +976,12 @@ fn assert_error_body_capped(msg: &str) {
 #[valtron_test]
 fn openai_error_body_is_capped() {
     let msg = expect_generate_error(
-        response(500, "Internal Server Error", "text/plain", &big_error_body()),
+        response(
+            500,
+            "Internal Server Error",
+            "text/plain",
+            &big_error_body(),
+        ),
         0,
     );
     assert_error_body_capped(&msg);
@@ -981,7 +990,12 @@ fn openai_error_body_is_capped() {
 #[valtron_test]
 fn anthropic_error_body_is_capped() {
     let msg = expect_anthropic_error(
-        response(500, "Internal Server Error", "text/plain", &big_error_body()),
+        response(
+            500,
+            "Internal Server Error",
+            "text/plain",
+            &big_error_body(),
+        ),
         0,
     );
     assert_error_body_capped(&msg);
@@ -990,7 +1004,12 @@ fn anthropic_error_body_is_capped() {
 #[valtron_test]
 fn responses_error_body_is_capped() {
     let msg = expect_responses_error(
-        response(500, "Internal Server Error", "text/plain", &big_error_body()),
+        response(
+            500,
+            "Internal Server Error",
+            "text/plain",
+            &big_error_body(),
+        ),
         0,
     );
     assert_error_body_capped(&msg);

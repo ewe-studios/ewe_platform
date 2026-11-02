@@ -4,7 +4,6 @@
 /// to provide `VfsTransport` for the VFS client, and a `listen()` loop for the
 /// daemon. Every request carries an id; the daemon copies the id into the
 /// response, so the client matches responses to requests by id, not by order.
-
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
@@ -159,10 +158,10 @@ impl ClientTransport {
     /// timeout for this one connect.
     pub fn connect_with_config(config: VfsIpcConfig, timeout: Option<Duration>) -> VfsResult<Self> {
         let join_timeout = timeout.unwrap_or_else(|| config.join_timeout());
-        let opts = Options::new(config.identifier(), Label::new("vfs-client"))
-            .controller_affinity(false);
-        let (sender, receiver) =
-            join::<VfsRequest, VfsResponse>(opts, Some(join_timeout)).map_err(|e| {
+        let opts =
+            Options::new(config.identifier(), Label::new("vfs-client")).controller_affinity(false);
+        let (sender, receiver) = join::<VfsRequest, VfsResponse>(opts, Some(join_timeout))
+            .map_err(|e| {
                 ErrorTrace::new(VfsError::Backend {
                     message: format!("failed to join VFS bus as client: {e}"),
                 })
@@ -193,7 +192,9 @@ impl ClientTransport {
 
     fn send(&self, req: VfsRequest) -> Result<(), String> {
         let msg = Message::new(Selector::multicast(ipc::LabelOp::True), req);
-        self.sender.send(msg).map_err(|e| format!("send failed: {e}"))
+        self.sender
+            .send(msg)
+            .map_err(|e| format!("send failed: {e}"))
     }
 }
 
@@ -247,10 +248,10 @@ impl DaemonTransport {
 
     /// Register as the VFS daemon server with a config.
     pub fn serve_with_config(config: VfsIpcConfig) -> VfsResult<Self> {
-        let opts = Options::new(config.identifier(), Label::new("vfs-daemon"))
-            .controller_affinity(true);
-        let (sender, receiver) =
-            join::<VfsResponse, VfsRequest>(opts, Some(config.join_timeout())).map_err(|e| {
+        let opts =
+            Options::new(config.identifier(), Label::new("vfs-daemon")).controller_affinity(true);
+        let (sender, receiver) = join::<VfsResponse, VfsRequest>(opts, Some(config.join_timeout()))
+            .map_err(|e| {
                 ErrorTrace::new(VfsError::Backend {
                     message: format!("failed to join VFS bus as server: {e}"),
                 })
@@ -323,7 +324,8 @@ where
                 let body = msg.payload.body;
                 let daemon = Arc::clone(daemon);
                 let result = exec_async(async move { Ok(daemon.dispatch(body).await) })?;
-                transport.send_response(VfsResponse { id, body: result }, response_selector.clone())?;
+                transport
+                    .send_response(VfsResponse { id, body: result }, response_selector.clone())?;
             }
             Ok(None) => {
                 // Timeout — check the running flag and loop again.

@@ -21,7 +21,9 @@ impl ZstdCompressor {
 
 impl Default for ZstdCompressor {
     fn default() -> Self {
-        Self { level: DEFAULT_LEVEL }
+        Self {
+            level: DEFAULT_LEVEL,
+        }
     }
 }
 
@@ -38,12 +40,11 @@ impl Compressor for ZstdCompressor {
     }
 
     fn decompress(&self, input: &[u8], max_bytes: usize) -> Result<Vec<u8>, CompressionError> {
-        let decoder = zstd::stream::read::Decoder::new(input).map_err(|e| {
-            CompressionError::Decompress {
+        let decoder =
+            zstd::stream::read::Decoder::new(input).map_err(|e| CompressionError::Decompress {
                 algorithm: NAME,
                 message: e.to_string(),
-            }
-        })?;
+            })?;
         read_to_limit(decoder, max_bytes, NAME)
     }
 }

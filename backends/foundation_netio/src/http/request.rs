@@ -2,8 +2,8 @@
 //!
 //! This module provides `ClientRequestBuilder` — the fluent API for building requests.
 
-use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver};
 use crate::http::{ClientRequest, HttpConnectionPool};
+use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver};
 use crate::shared::http::Extensions;
 use crate::shared::http::{
     BodyReadiness, HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,

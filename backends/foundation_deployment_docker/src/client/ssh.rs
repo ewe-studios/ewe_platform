@@ -20,9 +20,7 @@
 use std::io::{Read, Write};
 use std::sync::Arc;
 
-use foundation_netio::netcap::connection::{
-    ConnWaker, Connection, Connector, OverlayReadWrite,
-};
+use foundation_netio::netcap::connection::{ConnWaker, Connection, Connector, OverlayReadWrite};
 use foundation_sshkit::{ChannelStream, Dialer, Host};
 
 /// The remote command whose stdio is the Docker socket.
@@ -122,7 +120,10 @@ impl Connector for SshConnector {
         _timeout: Option<std::time::Duration>,
     ) -> std::io::Result<Connection> {
         let channel = self.dialer.dial(DIAL_STDIO).map_err(|e| {
-            std::io::Error::new(std::io::ErrorKind::ConnectionRefused, format!("ssh dial: {e}"))
+            std::io::Error::new(
+                std::io::ErrorKind::ConnectionRefused,
+                format!("ssh dial: {e}"),
+            )
         })?;
         Ok(Connection::Overlay(Box::new(SshOverlay(channel))))
     }

@@ -271,9 +271,16 @@ impl std::fmt::Display for NotCanonical {
         match self {
             Self::NoServers => write!(f, "no `servers` entry — clients would have no base URL"),
             Self::NoComponentSchemas => {
-                write!(f, "`components/schemas` is missing or empty — nothing to $ref")
+                write!(
+                    f,
+                    "`components/schemas` is missing or empty — nothing to $ref"
+                )
             }
-            Self::InlineSchema { path, method, location } => write!(
+            Self::InlineSchema {
+                path,
+                method,
+                location,
+            } => write!(
                 f,
                 "{method} {path} ({location}) still has an inline object schema — \
                  it would generate as an anonymous blob, since types are named from $ref"
@@ -315,7 +322,9 @@ pub fn validate_canonical(spec: &Value) -> Result<(), Vec<NotCanonical>> {
 
     if let Some(paths) = spec.get("paths").and_then(Value::as_object) {
         for (path, item) in paths {
-            let Some(item) = item.as_object() else { continue };
+            let Some(item) = item.as_object() else {
+                continue;
+            };
             for (method, op) in item {
                 if !is_http_method(method) {
                     continue;
@@ -463,12 +472,16 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
     };
 
     for (path, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         for (method, op) in item.iter_mut() {
             if !is_http_method(method) {
                 continue;
             }
-            let Some(op) = op.as_object_mut() else { continue };
+            let Some(op) = op.as_object_mut() else {
+                continue;
+            };
 
             let base = operation_type_base(op, path, method);
 
@@ -478,7 +491,13 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
                 .and_then(Value::as_object_mut)
                 .and_then(first_media_schema_mut)
             {
-                hoist(schema, &format!("{base}Request"), &mut hoisted, &reserved, &mut stats);
+                hoist(
+                    schema,
+                    &format!("{base}Request"),
+                    &mut hoisted,
+                    &reserved,
+                    &mut stats,
+                );
             }
 
             if let Some(responses) = op.get_mut("responses").and_then(Value::as_object_mut) {
@@ -719,7 +738,9 @@ pub fn resolve_parameter_refs(spec: &mut Value) -> ParameterRefStats {
     };
 
     for (_, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         for (method, op) in item.iter_mut() {
             // A path item can carry `parameters` shared by every method on it, so
             // that key is walked too — not only the HTTP methods.
@@ -801,7 +822,11 @@ pub fn resolve_response_refs(spec: &mut Value) -> ResponseRefStats {
     let reserved: BTreeSet<String> = spec
         .pointer("/components/schemas")
         .and_then(Value::as_object)
-        .map(|s| s.keys().map(|k| crate::api_catalog::to_pascal_case_from_any(k)).collect())
+        .map(|s| {
+            s.keys()
+                .map(|k| crate::api_catalog::to_pascal_case_from_any(k))
+                .collect()
+        })
         .unwrap_or_default();
 
     let mut hoisted: Map<String, Value> = Map::new();
@@ -873,15 +898,14 @@ pub fn resolve_response_refs(spec: &mut Value) -> ResponseRefStats {
     };
 
     for (_, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         for (method, op) in item.iter_mut() {
             if !is_http_method(method) {
                 continue;
             }
-            let Some(responses) = op
-                .get_mut("responses")
-                .and_then(Value::as_object_mut)
-            else {
+            let Some(responses) = op.get_mut("responses").and_then(Value::as_object_mut) else {
                 continue;
             };
 

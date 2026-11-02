@@ -64,7 +64,10 @@ pub struct H2Conn {
 
 /// The peer closed the connection: no more frames will arrive.
 fn peer_closed() -> io::Error {
-    io::Error::new(io::ErrorKind::UnexpectedEof, "h2: the peer closed the connection")
+    io::Error::new(
+        io::ErrorKind::UnexpectedEof,
+        "h2: the peer closed the connection",
+    )
 }
 
 /// Nothing is readable yet — the caller should park and retry.
@@ -206,7 +209,9 @@ impl H2Conn {
                     if head.flag & ping_flags::ACK == 0 {
                         let ack = PingFrame::ack(
                             PingFrame::parse(&head, &payload)
-                                .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "bad PING"))?
+                                .map_err(|_| {
+                                    io::Error::new(io::ErrorKind::InvalidData, "bad PING")
+                                })?
                                 .opaque_data,
                         );
                         let mut buf = BytesMut::new();
@@ -258,7 +263,8 @@ impl H2Conn {
     // foundation_http); changing to a reference would break that crate.
     #[allow(clippy::needless_pass_by_value)]
     pub fn register_read_waker(&self, waker: crate::native::connection::ConnWaker) -> bool {
-        self.stream.with_inner_ref(|raw| raw.register_read_waker(waker.clone()))
+        self.stream
+            .with_inner_ref(|raw| raw.register_read_waker(waker.clone()))
     }
 
     /// Whether frames are queued but not yet written (a flush hit
@@ -299,13 +305,12 @@ impl H2Conn {
     /// Call [`flush`](Self::flush) to send it over the socket.
     pub fn encode_frame(&mut self, stream_id: u32, frame: &H2Frame) {
         let tag = match frame {
-            H2Frame::Headers { status, end_stream, .. } =>
-                format!("HEADERS(status={status} end={end_stream})"),
-            H2Frame::Data { end_stream, .. } =>
-                format!("DATA(end={end_stream})"),
+            H2Frame::Headers {
+                status, end_stream, ..
+            } => format!("HEADERS(status={status} end={end_stream})"),
+            H2Frame::Data { end_stream, .. } => format!("DATA(end={end_stream})"),
             H2Frame::Trailers { .. } => "TRAILERS(end=true)".to_string(),
-            H2Frame::Reset { error_code } =>
-                format!("RST_STREAM({error_code:?})"),
+            H2Frame::Reset { error_code } => format!("RST_STREAM({error_code:?})"),
         };
         tracing::trace!(stream = stream_id, frame = %tag, "h2 conn: send frame");
         match frame {

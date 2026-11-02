@@ -3,13 +3,11 @@
 use std::sync::Arc;
 
 use foundation_nativeapis::native::vfs::NativeFs;
-use foundation_nativeapis::shared::vfs::ipc_client::{DirectTransport, VfsClient};
-use foundation_nativeapis::shared::vfs::ipc_daemon::VfsDaemon;
 use foundation_nativeapis::shared::vfs::exec_async::exec_async;
 use foundation_nativeapis::shared::vfs::ipc_client::VfsTransport;
-use foundation_nativeapis::shared::vfs::{
-    OpenMode, SyncFs, VfsDirectory, VfsFile, VfsFileSystem,
-};
+use foundation_nativeapis::shared::vfs::ipc_client::{DirectTransport, VfsClient};
+use foundation_nativeapis::shared::vfs::ipc_daemon::VfsDaemon;
+use foundation_nativeapis::shared::vfs::{OpenMode, SyncFs, VfsDirectory, VfsFile, VfsFileSystem};
 
 /// Connects a client and wraps it in `SyncFs` for these sync tests.
 fn connect(transport: Arc<dyn VfsTransport>) -> SyncFs<VfsClient> {
@@ -23,7 +21,8 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(name: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "vfs_ipc_test_{name}_{}_{}", std::process::id(),
+            "vfs_ipc_test_{name}_{}_{}",
+            std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
@@ -62,21 +61,29 @@ fn test_open_read_write_close() {
     let client = make_client(&tmp);
 
     // Read through IPC client
-    let file = client.open("/test.txt", OpenMode::Read).expect("open failed");
+    let file = client
+        .open("/test.txt", OpenMode::Read)
+        .expect("open failed");
     let mut buf = vec![0u8; 64];
     let n = file.read_at(&mut buf, 0).expect("read failed");
     assert_eq!(&buf[..n], b"hello world");
 
     // Write through IPC client
-    let wfile = client.open("/test.txt", OpenMode::Write).expect("open write failed");
+    let wfile = client
+        .open("/test.txt", OpenMode::Write)
+        .expect("open write failed");
     let n = wfile.write_at(b"new content", 0).expect("write failed");
     assert_eq!(n, 11);
 
     // Read back
     drop(wfile);
-    let file2 = client.open("/test.txt", OpenMode::Read).expect("open after write failed");
+    let file2 = client
+        .open("/test.txt", OpenMode::Read)
+        .expect("open after write failed");
     let mut buf2 = vec![0u8; 64];
-    let n2 = file2.read_at(&mut buf2, 0).expect("read after write failed");
+    let n2 = file2
+        .read_at(&mut buf2, 0)
+        .expect("read after write failed");
     assert_eq!(&buf2[..n2], b"new content");
 }
 
@@ -119,14 +126,18 @@ fn test_multiple_clients_shared_daemon() {
     let client_b = connect(Arc::new(transport_b));
 
     // Client A creates a file
-    client_a.write_file("/shared.txt", b"from client A").unwrap();
+    client_a
+        .write_file("/shared.txt", b"from client A")
+        .unwrap();
 
     // Client B reads it
     let data = client_b.read_file("/shared.txt").unwrap();
     assert_eq!(data, b"from client A");
 
     // Client B modifies
-    client_b.write_file("/shared.txt", b"from client B").unwrap();
+    client_b
+        .write_file("/shared.txt", b"from client B")
+        .unwrap();
 
     // Client A reads the modification
     let data = client_a.read_file("/shared.txt").unwrap();
@@ -147,7 +158,9 @@ fn test_directory_operations() {
     assert!(client.exists("/subdir").expect("exists failed"));
 
     // Create a file in the directory
-    client.write_file("/subdir/nested.txt", b"nested content").unwrap();
+    client
+        .write_file("/subdir/nested.txt", b"nested content")
+        .unwrap();
 
     // Read it back
     let data = client.read_file("/subdir/nested.txt").unwrap();
@@ -168,7 +181,9 @@ fn test_create_and_remove() {
     let client = make_client(&tmp);
 
     // Create file
-    let file = client.create("/new_file.txt", 0o644).expect("create failed");
+    let file = client
+        .create("/new_file.txt", 0o644)
+        .expect("create failed");
     drop(file);
 
     assert!(client.exists("/new_file.txt").unwrap());
@@ -187,7 +202,9 @@ fn test_rename() {
 
     let client = make_client(&tmp);
 
-    client.rename("/old.txt", "/new.txt").expect("rename failed");
+    client
+        .rename("/old.txt", "/new.txt")
+        .expect("rename failed");
     assert!(!client.exists("/old.txt").unwrap());
     assert!(client.exists("/new.txt").unwrap());
 
@@ -204,7 +221,9 @@ fn test_symlink_and_readlink() {
 
     let client = make_client(&tmp);
 
-    client.symlink("/target.txt", "/link.txt").expect("symlink failed");
+    client
+        .symlink("/target.txt", "/link.txt")
+        .expect("symlink failed");
     let target = client.readlink("/link.txt").expect("readlink failed");
     assert_eq!(target, "/target.txt");
 }

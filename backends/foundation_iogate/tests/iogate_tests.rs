@@ -172,11 +172,14 @@ fn connect_completion_dials_a_completion_backed_upstream() {
 
     let (addr, server) = one_shot_writer(b"from a completion upstream");
 
-    let mut conn =
-        foundation_iogate::connect_completion(addr, ServerIo::Completion).expect("dial");
+    let mut conn = foundation_iogate::connect_completion(addr, ServerIo::Completion).expect("dial");
     assert!(matches!(conn, Connection::Completion(_)));
 
-    let got = read_until(&mut conn, b"from a completion upstream".len(), Duration::from_secs(5));
+    let got = read_until(
+        &mut conn,
+        b"from a completion upstream".len(),
+        Duration::from_secs(5),
+    );
     assert_eq!(&got, b"from a completion upstream");
     server.join().ok();
 }

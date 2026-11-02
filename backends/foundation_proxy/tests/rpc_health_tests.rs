@@ -20,15 +20,13 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_http::ShutdownSignal;
-use foundation_core::valtron::{valtron_test, sleep_async, PipeReceiver, PipeSender};
+use foundation_core::valtron::{sleep_async, valtron_test, PipeReceiver, PipeSender};
 use foundation_http::native::serve::{BoxFuture, H2Serve};
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
 use foundation_http::shared::context::ContextBag;
-use foundation_netio::http2::types::{
-    H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader,
-};
+use foundation_http::ShutdownSignal;
+use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
 use futures_util::FutureExt;
 
 use foundation_connectrpc::shared::transport::Transport;
@@ -218,7 +216,9 @@ where
 async fn grpc_health_gate_excludes_and_restores_backend() {
     let serving = Arc::new(AtomicBool::new(true));
     let (backend_port, backend_shutdown) = start_health_gated_backend(Arc::clone(&serving));
-    let proxy = ProxyServer::start(proxy_config_grpc_health(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config_grpc_health(backend_port))
+        .await
+        .expect("start proxy");
     let addr = format!("127.0.0.1:{}", proxy.local_addr().port());
 
     let client = connect_h2_client(&addr, UNARY);
@@ -244,7 +244,12 @@ async fn grpc_health_gate_excludes_and_restores_backend() {
     serving.store(false, Ordering::SeqCst);
     let ejected = wait_until(Duration::from_secs(5), || {
         let client = &client;
-        async move { client.unary(ctx(), Request::new(Msg::of("probe"))).await.is_err() }
+        async move {
+            client
+                .unary(ctx(), Request::new(Msg::of("probe")))
+                .await
+                .is_err()
+        }
     })
     .await;
     assert!(ejected, "backend must be ejected when NOT_SERVING");

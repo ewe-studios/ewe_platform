@@ -13,13 +13,13 @@
 use std::collections::VecDeque;
 
 use foundation_cloudflare_types::R2ListObjectsResponse;
-use futures_lite::{StreamExt, stream};
 use foundation_netio::shared::client::body_reader::{
-    AsyncSendSafeBody, collect_bytes_async, collect_string_async,
+    collect_bytes_async, collect_string_async, AsyncSendSafeBody,
 };
 use foundation_netio::shared::http::pushable_body::pushable_request_body;
-use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::shared::http::{SimpleHeader, Status};
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
+use futures_lite::{stream, StreamExt};
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::state::traits::{StateStore, StateStoreStream};
@@ -38,7 +38,11 @@ enum R2Mode {
     /// `BlobStore`. Keys prefixed with `{prefix}/` (slashes replaced by colons).
     Blob { bucket: String, prefix: String },
     /// `StateStore`. Keys prefixed with `{project}/{stage}/`, stored as `{id}.json`.
-    State { bucket: String, project: String, stage: String },
+    State {
+        bucket: String,
+        project: String,
+        stage: String,
+    },
 }
 
 // ---- R2Store ----
@@ -64,14 +68,21 @@ impl R2Store {
     /// `BlobStore` with custom base URL (for tests).
     #[must_use]
     pub fn new_blob_with_base_url(
-        api_token: &str, account_id: &str, bucket_name: &str, prefix: &str, base_url: &str,
+        api_token: &str,
+        account_id: &str,
+        bucket_name: &str,
+        prefix: &str,
+        base_url: &str,
     ) -> Self {
         Self {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
             client: HttpClientBuilder::new().build(),
-            mode: R2Mode::Blob { bucket: bucket_name.to_string(), prefix: prefix.to_string() },
+            mode: R2Mode::Blob {
+                bucket: bucket_name.to_string(),
+                prefix: prefix.to_string(),
+            },
         }
     }
 
@@ -99,21 +110,43 @@ impl R2Store {
 
     /// `StateStore` at production Cloudflare API.
     #[must_use]
-    pub fn new_state(api_token: &str, account_id: &str, bucket_name: &str, project: &str, stage: &str) -> Self {
-        Self::new_state_with_base_url(api_token, account_id, bucket_name, project, stage, CF_API_BASE)
+    pub fn new_state(
+        api_token: &str,
+        account_id: &str,
+        bucket_name: &str,
+        project: &str,
+        stage: &str,
+    ) -> Self {
+        Self::new_state_with_base_url(
+            api_token,
+            account_id,
+            bucket_name,
+            project,
+            stage,
+            CF_API_BASE,
+        )
     }
 
     /// `StateStore` with custom base URL (for tests).
     #[must_use]
     pub fn new_state_with_base_url(
-        api_token: &str, account_id: &str, bucket_name: &str, project: &str, stage: &str, base_url: &str,
+        api_token: &str,
+        account_id: &str,
+        bucket_name: &str,
+        project: &str,
+        stage: &str,
+        base_url: &str,
     ) -> Self {
         Self {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
             client: HttpClientBuilder::new().build(),
-            mode: R2Mode::State { bucket: bucket_name.to_string(), project: project.to_string(), stage: stage.to_string() },
+            mode: R2Mode::State {
+                bucket: bucket_name.to_string(),
+                project: project.to_string(),
+                stage: stage.to_string(),
+            },
         }
     }
 
@@ -162,7 +195,9 @@ impl R2Store {
 
     fn object_url(&self, key: &str) -> String {
         let (bucket, account_id, base_url) = match &self.mode {
-            R2Mode::Blob { bucket, .. } | R2Mode::State { bucket, .. } => (bucket, &self.account_id, &self.base_url),
+            R2Mode::Blob { bucket, .. } | R2Mode::State { bucket, .. } => {
+                (bucket, &self.account_id, &self.base_url)
+            }
         };
         format!("{base_url}/accounts/{account_id}/r2/buckets/{bucket}/objects/{key}")
     }
@@ -189,7 +224,9 @@ impl R2Store {
             .client
             .send_async(
                 PreparedRequestBuilder::get(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 GET request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 GET request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .build(),
             )
@@ -200,7 +237,10 @@ impl R2Store {
             return Ok(None);
         }
         if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("R2 GET failed with status {}", response.get_status())));
+            return Err(StorageError::Backend(format!(
+                "R2 GET failed with status {}",
+                response.get_status()
+            )));
         }
         let (_, _, body) = response.into_async_parts();
         let bytes = collect_bytes_async(body)
@@ -210,13 +250,20 @@ impl R2Store {
     }
 
     /// Async PUT — stores data at the given key.
-    async fn put_object_async(&self, key: &str, data: &[u8], content_type: &str) -> Result<(), StorageError> {
+    async fn put_object_async(
+        &self,
+        key: &str,
+        data: &[u8],
+        content_type: &str,
+    ) -> Result<(), StorageError> {
         let url = self.object_url(key);
         let response = self
             .client
             .send_async(
                 PreparedRequestBuilder::put(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 PUT request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 PUT request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .header(SimpleHeader::CONTENT_TYPE, content_type)
                     .body_bytes(data.to_vec())
@@ -227,7 +274,10 @@ impl R2Store {
 
         let status: usize = response.get_status().into();
         if status >= 400 {
-            return Err(StorageError::Backend(format!("R2 PUT failed with status {}", response.get_status())));
+            return Err(StorageError::Backend(format!(
+                "R2 PUT failed with status {}",
+                response.get_status()
+            )));
         }
         Ok(())
     }
@@ -239,7 +289,9 @@ impl R2Store {
             .client
             .send_async(
                 PreparedRequestBuilder::delete(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 DELETE request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 DELETE request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .header(SimpleHeader::CONNECTION, "close")
                     .build(),
@@ -249,7 +301,10 @@ impl R2Store {
 
         let status: usize = response.get_status().into();
         if status >= 400 && response.get_status() != Status::NotFound {
-            return Err(StorageError::Backend(format!("R2 DELETE failed with status {}", response.get_status())));
+            return Err(StorageError::Backend(format!(
+                "R2 DELETE failed with status {}",
+                response.get_status()
+            )));
         }
         Ok(())
     }
@@ -261,7 +316,9 @@ impl R2Store {
             .client
             .send_async(
                 PreparedRequestBuilder::head(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 HEAD request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 HEAD request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .header(SimpleHeader::CONNECTION, "close")
                     .build(),
@@ -279,7 +336,9 @@ impl R2Store {
             .client
             .send_async(
                 PreparedRequestBuilder::head(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 HEAD request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 HEAD request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .header(SimpleHeader::CONNECTION, "close")
                     .build(),
@@ -303,7 +362,9 @@ impl R2Store {
             .client
             .send_async(
                 PreparedRequestBuilder::get(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 GET request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 GET request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .build(),
             )
@@ -314,20 +375,29 @@ impl R2Store {
             return Ok(None);
         }
         if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("R2 GET failed with status {}", response.get_status())));
+            return Err(StorageError::Backend(format!(
+                "R2 GET failed with status {}",
+                response.get_status()
+            )));
         }
         let (_, _, body) = response.into_async_parts();
         Ok(Some(body_to_blob_stream(body)))
     }
 
     /// Async ranged GET — returns one byte range as a stream.
-    async fn get_object_range_async(&self, key: &str, range: BlobRange) -> Result<BlobStream, StorageError> {
+    async fn get_object_range_async(
+        &self,
+        key: &str,
+        range: BlobRange,
+    ) -> Result<BlobStream, StorageError> {
         let url = self.object_url(key);
         let response = self
             .client
             .send_async(
                 PreparedRequestBuilder::get(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 GET request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 GET request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .header(SimpleHeader::RANGE, range_header_value(range))
                     .build(),
@@ -381,7 +451,9 @@ impl R2Store {
         }
         let status_code: usize = status.into();
         if status_code >= 400 {
-            return Err(StorageError::Backend(format!("R2 PUT failed with status {status_code}")));
+            return Err(StorageError::Backend(format!(
+                "R2 PUT failed with status {status_code}"
+            )));
         }
         Ok(())
     }
@@ -421,8 +493,8 @@ impl R2Store {
         };
 
         let (push_result, send_result) = futures_lite::future::zip(push_fut, send_fut).await;
-        let response =
-            send_result.map_err(|e| StorageError::Backend(format!("R2 PUT request failed: {e}")))?;
+        let response = send_result
+            .map_err(|e| StorageError::Backend(format!("R2 PUT request failed: {e}")))?;
         let status = response.get_status();
         if status == Status::PreconditionFailed {
             return Err(StorageError::PreconditionFailed(key.to_string()));
@@ -430,7 +502,9 @@ impl R2Store {
         push_result?;
         let status_code: usize = status.into();
         if status_code >= 400 {
-            return Err(StorageError::Backend(format!("R2 PUT failed with status {status_code}")));
+            return Err(StorageError::Backend(format!(
+                "R2 PUT failed with status {status_code}"
+            )));
         }
         Ok(())
     }
@@ -458,7 +532,9 @@ impl R2Store {
             .client
             .send_async(
                 PreparedRequestBuilder::get(&url)
-                    .map_err(|e| StorageError::Backend(format!("R2 LIST request build failed: {e}")))?
+                    .map_err(|e| {
+                        StorageError::Backend(format!("R2 LIST request build failed: {e}"))
+                    })?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header_bearer())
                     .build(),
             )
@@ -466,7 +542,10 @@ impl R2Store {
             .map_err(|e| StorageError::Backend(format!("R2 LIST request failed: {e}")))?;
 
         if response.get_status() != Status::OK {
-            return Err(StorageError::Backend(format!("R2 LIST failed with status {}", response.get_status())));
+            return Err(StorageError::Backend(format!(
+                "R2 LIST failed with status {}",
+                response.get_status()
+            )));
         }
         let (_, _, body) = response.into_async_parts();
         let text = collect_string_async(body)
@@ -491,7 +570,9 @@ impl R2Store {
                 .as_ref()
                 .and_then(|info| info.cursor.as_deref())
                 .filter(|c| !c.is_empty())
-                .ok_or_else(|| StorageError::Serialization("R2 LIST: truncated page has no cursor".to_string()))?;
+                .ok_or_else(|| {
+                    StorageError::Serialization("R2 LIST: truncated page has no cursor".to_string())
+                })?;
             Some(cursor.to_string())
         } else {
             None
@@ -509,7 +590,11 @@ impl R2Store {
         let store = self.clone();
         let store_prefix = self.state_prefix();
         let list_prefix = format!("{store_prefix}{}", id_prefix.replace('/', ":"));
-        let seed = PageState::Pending { pending: VecDeque::new(), cursor: None, done: false };
+        let seed = PageState::Pending {
+            pending: VecDeque::new(),
+            cursor: None,
+            done: false,
+        };
         Box::pin(stream::unfold(seed, move |state| {
             let store = store.clone();
             let store_prefix = store_prefix.clone();
@@ -517,14 +602,28 @@ impl R2Store {
             async move {
                 match state {
                     PageState::Done => None,
-                    PageState::Pending { mut pending, mut cursor, mut done } => loop {
+                    PageState::Pending {
+                        mut pending,
+                        mut cursor,
+                        mut done,
+                    } => loop {
                         if let Some(id) = pending.pop_front() {
-                            return Some((Ok(id), PageState::Pending { pending, cursor, done }));
+                            return Some((
+                                Ok(id),
+                                PageState::Pending {
+                                    pending,
+                                    cursor,
+                                    done,
+                                },
+                            ));
                         }
                         if done {
                             return None;
                         }
-                        match store.list_objects_page(&list_prefix, cursor.as_deref()).await {
+                        match store
+                            .list_objects_page(&list_prefix, cursor.as_deref())
+                            .await
+                        {
                             Err(e) => return Some((Err(e), PageState::Done)),
                             Ok((keys, next)) => {
                                 pending = keys
@@ -641,7 +740,8 @@ fn range_header_value(range: BlobRange) -> String {
 #[async_trait::async_trait]
 impl BlobStore for R2Store {
     async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        self.put_object_async(&self.blob_object_key(key), data, "application/octet-stream").await
+        self.put_object_async(&self.blob_object_key(key), data, "application/octet-stream")
+            .await
     }
 
     async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
@@ -657,7 +757,10 @@ impl BlobStore for R2Store {
     }
 
     async fn get_blob_stream(&self, key: &str) -> StorageResult<BlobStream> {
-        match self.get_object_stream_async(&self.blob_object_key(key)).await? {
+        match self
+            .get_object_stream_async(&self.blob_object_key(key))
+            .await?
+        {
             Some(stream) => Ok(stream),
             None => Ok(empty_blob_stream()),
         }
@@ -669,19 +772,26 @@ impl BlobStore for R2Store {
         length: Option<u64>,
         chunks: BlobStream,
     ) -> StorageResult<()> {
-        self.put_object_stream_async(&self.blob_object_key(key), "application/octet-stream", length, chunks)
-            .await
+        self.put_object_stream_async(
+            &self.blob_object_key(key),
+            "application/octet-stream",
+            length,
+            chunks,
+        )
+        .await
     }
 
     async fn blob_etag(&self, key: &str) -> StorageResult<Option<String>> {
-        self.head_object_etag_async(&self.blob_object_key(key)).await
+        self.head_object_etag_async(&self.blob_object_key(key))
+            .await
     }
 
     async fn get_blob_range(&self, key: &str, range: BlobRange) -> StorageResult<BlobStream> {
         if range.end.is_some_and(|end| end <= range.start) {
             return Ok(empty_blob_stream());
         }
-        self.get_object_range_async(&self.blob_object_key(key), range).await
+        self.get_object_range_async(&self.blob_object_key(key), range)
+            .await
     }
 
     async fn put_blob_conditionally(
@@ -718,7 +828,9 @@ impl BlobStore for R2Store {
         let mut keys: Vec<String> = Vec::new();
         let mut cursor: Option<String> = None;
         loop {
-            let (page, next) = self.list_objects_page(&list_prefix, cursor.as_deref()).await?;
+            let (page, next) = self
+                .list_objects_page(&list_prefix, cursor.as_deref())
+                .await?;
             keys.extend(page.into_iter().filter_map(|object_key| {
                 object_key
                     .strip_prefix(&strip)
@@ -761,7 +873,10 @@ impl StateStore for R2Store {
     }
 
     async fn get(&self, resource_id: &str) -> StorageResult<Option<ResourceState>> {
-        let Some(bytes) = self.get_object_async(&self.state_object_key(resource_id)).await? else {
+        let Some(bytes) = self
+            .get_object_async(&self.state_object_key(resource_id))
+            .await?
+        else {
             return Ok(None);
         };
         let state = serde_json::from_slice(&bytes)
@@ -779,13 +894,15 @@ impl StateStore for R2Store {
 
     async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
         let state = state.with_id(resource_id);
-        let body = serde_json::to_vec_pretty(&state).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let body = serde_json::to_vec_pretty(&state)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
         self.put_object_async(&self.state_object_key(&state.id), &body, "application/json")
             .await
     }
 
     async fn delete(&self, resource_id: &str) -> StorageResult<()> {
-        self.delete_object_async(&self.state_object_key(resource_id)).await
+        self.delete_object_async(&self.state_object_key(resource_id))
+            .await
     }
 
     async fn list_by_prefix(&self, prefix: &str) -> StorageResult<StateStoreStream<String>> {

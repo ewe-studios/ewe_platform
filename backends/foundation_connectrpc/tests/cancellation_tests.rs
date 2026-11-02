@@ -17,12 +17,12 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{valtron_test, Pipe, PipeReceiver, PipeSender};
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 use foundation_netio::http2::frame::ErrorCode;
 use foundation_netio::http2::types::{header_from_hpack, H2Frame, H2IncomingFrame};
 use foundation_netio::netcap::ConnectionContext;
@@ -240,7 +240,11 @@ fn h2_reset_lets_a_streaming_handler_observe_its_cancellation() {
         },
         HandlerOptions::new(),
     );
-    let stream = open_h2(Arc::new(router.into_handler()), CLIENT_STREAM, &[STREAMING_JSON]);
+    let stream = open_h2(
+        Arc::new(router.into_handler()),
+        CLIENT_STREAM,
+        &[STREAMING_JSON],
+    );
 
     stream
         .body

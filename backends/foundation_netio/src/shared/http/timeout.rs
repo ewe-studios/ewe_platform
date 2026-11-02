@@ -656,10 +656,8 @@ impl TimeoutCalculator {
             let read_timeout = self.calculate_read_timeout(ctx);
             // Sleep should be fraction of expected timeout, clamped to min/max
             let fraction = self.config.sleep_timeout_fraction.max(1);
-            let sleep_ms = (millis_u64(read_timeout) / fraction).clamp(
-                base_sleep_ms,
-                millis_u64(self.config.max_sleep_duration),
-            );
+            let sleep_ms = (millis_u64(read_timeout) / fraction)
+                .clamp(base_sleep_ms, millis_u64(self.config.max_sleep_duration));
             return Duration::from_millis(sleep_ms);
         }
 

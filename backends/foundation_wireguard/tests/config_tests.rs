@@ -62,7 +62,10 @@ fn builder_full_config_round_trips() {
     assert_eq!(cfg.dataplane.keepalive_secs, 30);
     assert!(cfg.relay.advertise);
     assert_eq!(cfg.relay.max_sessions, 512);
-    assert_eq!(cfg.node.identity_path.as_deref(), Some("/ewe/wg/identity.key"));
+    assert_eq!(
+        cfg.node.identity_path.as_deref(),
+        Some("/ewe/wg/identity.key")
+    );
 }
 
 #[traced_test]
@@ -70,7 +73,10 @@ fn builder_full_config_round_trips() {
 fn builder_requires_seed_no_silent_default() {
     let err = WgConfig::builder().build().unwrap_err();
     let msg = format!("{err}");
-    assert!(msg.contains("seed"), "expected seed-related error, got: {msg}");
+    assert!(
+        msg.contains("seed"),
+        "expected seed-related error, got: {msg}"
+    );
 }
 
 #[traced_test]
@@ -127,7 +133,10 @@ fn load_file_succeeds_on_valid_toml() {
 fn load_file_fails_on_missing_file() {
     let err = WgConfig::load_file("/nonexistent/wireguard.toml").unwrap_err();
     let msg = format!("{err}");
-    assert!(msg.contains("cannot read"), "expected file error, got: {msg}");
+    assert!(
+        msg.contains("cannot read"),
+        "expected file error, got: {msg}"
+    );
 }
 
 #[traced_test]
@@ -139,7 +148,10 @@ fn load_file_fails_on_malformed_toml() {
 
     let err = WgConfig::load_file(tmp.path()).unwrap_err();
     let msg = format!("{err}");
-    assert!(msg.contains("invalid TOML"), "expected TOML error, got: {msg}");
+    assert!(
+        msg.contains("invalid TOML"),
+        "expected TOML error, got: {msg}"
+    );
 }
 
 // ---------------------------------------------------------------------------

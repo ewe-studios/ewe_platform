@@ -19,8 +19,8 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 use foundation_core::valtron::{
-    sync_one, task, valtron_test, AsyncStateTask, AsyncTransition, Ctx, StateTask,
-    TaskIterator, TaskStatus,
+    sync_one, task, valtron_test, AsyncStateTask, AsyncTransition, Ctx, StateTask, TaskIterator,
+    TaskStatus,
 };
 
 // ============================================================================
@@ -58,12 +58,11 @@ fn sync_state_task_drives_a_multi_state_machine() {
 #[test]
 fn sync_state_task_passes_non_ready_statuses_through() {
     let ctx = Ctx::new();
-    let mut task: StateTask<u32, u32, &'static str, _> =
-        StateTask::new(0, |_ctx, n| match n {
-            0 => Some((1, TaskStatus::Pending("waiting"))),
-            1 => Some((2, TaskStatus::Ready(42))),
-            _ => None,
-        });
+    let mut task: StateTask<u32, u32, &'static str, _> = StateTask::new(0, |_ctx, n| match n {
+        0 => Some((1, TaskStatus::Pending("waiting"))),
+        1 => Some((2, TaskStatus::Ready(42))),
+        _ => None,
+    });
 
     assert_eq!(
         task.next_status(ctx.clone()),
@@ -137,7 +136,9 @@ fn async_state_task_parks_then_resumes_on_wake() {
             let ready = ready.clone();
             let waker_slot = waker_slot.clone();
             Box::pin(async move {
-                let RunOnce::Run(value) = state else { return None };
+                let RunOnce::Run(value) = state else {
+                    return None;
+                };
                 WakeParkFuture {
                     poll_count,
                     ready,
@@ -156,26 +157,49 @@ fn async_state_task_parks_then_resumes_on_wake() {
         Some(TaskStatus::Depends(signal)) => signal,
         other => panic!("expected Depends on first poll, got {other:?}"),
     };
-    assert_eq!(poll_count.load(Ordering::SeqCst), 1, "polled once, then parks");
+    assert_eq!(
+        poll_count.load(Ordering::SeqCst),
+        1,
+        "polled once, then parks"
+    );
 
     // Park predicate stays false while blocked — the executor would NOT re-run
     // the task, so the turn count is flat (no busy-poll).
     for _ in 0..1000 {
-        assert!(!signal.is_ready(None), "parked signal must remain not-ready");
+        assert!(
+            !signal.is_ready(None),
+            "parked signal must remain not-ready"
+        );
     }
-    assert_eq!(poll_count.load(Ordering::SeqCst), 1, "no re-poll while parked");
+    assert_eq!(
+        poll_count.load(Ordering::SeqCst),
+        1,
+        "no re-poll while parked"
+    );
 
     // Wake: set the result and fire the stashed waker — the signal flips ready.
     ready.store(true, Ordering::SeqCst);
-    waker_slot.lock().unwrap().take().expect("waker stashed").wake();
-    assert!(signal.is_ready(None), "wake() makes the signal ready to re-run");
+    waker_slot
+        .lock()
+        .unwrap()
+        .take()
+        .expect("waker stashed")
+        .wake();
+    assert!(
+        signal.is_ready(None),
+        "wake() makes the signal ready to re-run"
+    );
 
     // The unparked re-run drains the stale token, re-polls, and completes.
     match task.next_status(ctx.clone()) {
         Some(TaskStatus::Ready(42)) => {}
         other => panic!("expected Ready(42) after wake, got {other:?}"),
     }
-    assert_eq!(poll_count.load(Ordering::SeqCst), 2, "exactly two polls total");
+    assert_eq!(
+        poll_count.load(Ordering::SeqCst),
+        2,
+        "exactly two polls total"
+    );
     assert_eq!(task.next_status(ctx.clone()), None, "task is complete");
 }
 
@@ -205,10 +229,7 @@ fn task_macro_sync_drives_to_ready_and_stays_callable() {
     let ctx = Ctx::new();
 
     // The transition itself remains directly callable (value namespace).
-    assert_eq!(
-        count_down(ctx.clone(), 5),
-        Some((4, TaskStatus::Ignore))
-    );
+    assert_eq!(count_down(ctx.clone(), 5), Some((4, TaskStatus::Ignore)));
 
     // The generated struct drives the machine through its states.
     let mut task = count_down::new(3);
@@ -252,10 +273,7 @@ impl Future for YieldOnce {
 /// An async countdown: awaits `YieldOnce` across each intermediate step, then
 /// returns a final `Ready(1)` (the `None` that follows terminates it).
 #[task]
-async fn async_count_down(
-    ctx: Ctx,
-    n: u32,
-) -> Option<(u32, TaskStatus<u32, ()>)> {
+async fn async_count_down(ctx: Ctx, n: u32) -> Option<(u32, TaskStatus<u32, ()>)> {
     let _ = ctx;
     match n {
         0 => None,

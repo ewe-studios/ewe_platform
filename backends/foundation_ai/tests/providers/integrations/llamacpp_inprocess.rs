@@ -98,7 +98,9 @@ fn qwen_generate_is_coherent() {
         eprintln!("[skip] local qwen GGUF not present");
         return;
     };
-    let out = model.generate(greeting(), Some(params())).expect("generate");
+    let out = model
+        .generate(greeting(), Some(params()))
+        .expect("generate");
     let text = text_of(&out);
     assert!(
         text.trim().chars().filter(|c| c.is_alphanumeric()).count() >= 2,
@@ -142,7 +144,8 @@ fn qwen_generate_and_stream_agree() {
         eprintln!("[skip] local qwen GGUF not present");
         return;
     };
-    let gen_has_text = !text_of(&model.generate(greeting(), Some(params())).expect("gen")).is_empty();
+    let gen_has_text =
+        !text_of(&model.generate(greeting(), Some(params())).expect("gen")).is_empty();
     let stream = model.stream(greeting(), Some(params())).expect("stream");
     let stream_has_text = stream.into_iter().any(|i| {
         matches!(
@@ -153,6 +156,9 @@ fn qwen_generate_and_stream_agree() {
             })
         )
     });
-    assert_eq!(gen_has_text, stream_has_text, "both APIs must agree on text");
+    assert_eq!(
+        gen_has_text, stream_has_text,
+        "both APIs must agree on text"
+    );
     assert!(gen_has_text);
 }

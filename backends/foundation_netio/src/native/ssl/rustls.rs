@@ -366,16 +366,17 @@ where
 #[cfg(unix)]
 impl<T, D> RustlsStream<T>
 where
-    T: core::ops::Deref<Target = rustls::ConnectionCommon<D>> + Send + Sync + std::fmt::Debug + 'static,
+    T: core::ops::Deref<Target = rustls::ConnectionCommon<D>>
+        + Send
+        + Sync
+        + std::fmt::Debug
+        + 'static,
 {
     #[must_use]
     pub fn conn_readiness(&self) -> crate::native::connection::ConnReadiness {
         use std::os::fd::AsRawFd;
         let fd = self.as_raw_fd();
-        crate::native::connection::ConnReadiness::Fd(
-            fd,
-            Some(std::sync::Arc::new(self.clone())),
-        )
+        crate::native::connection::ConnReadiness::Fd(fd, Some(std::sync::Arc::new(self.clone())))
     }
 }
 #[cfg(unix)]
@@ -388,7 +389,10 @@ where
         interest: crate::native::readiness::IoInterest,
     ) -> crate::native::readiness::IoInterest {
         use crate::native::readiness::IoInterest;
-        let guard = self.0.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        let guard = self
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         if guard.conn.wants_write() {
             IoInterest::Writable
         } else if guard.conn.is_handshaking() {

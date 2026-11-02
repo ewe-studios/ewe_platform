@@ -63,7 +63,10 @@ impl NativeOAuth {
                 "redirect_uri={}",
                 urlencoding::encode(&self.inner.config.redirect_uri)
             ),
-            format!("client_id={}", urlencoding::encode(&self.inner.config.client_id)),
+            format!(
+                "client_id={}",
+                urlencoding::encode(&self.inner.config.client_id)
+            ),
         ];
 
         if let Some(ref secret) = self.inner.config.client_secret {
@@ -106,7 +109,10 @@ impl NativeOAuth {
 
         let mut body_parts = vec![
             format!("grant_type={}", urlencoding::encode("client_credentials")),
-            format!("client_id={}", urlencoding::encode(&self.inner.config.client_id)),
+            format!(
+                "client_id={}",
+                urlencoding::encode(&self.inner.config.client_id)
+            ),
             format!("client_secret={}", urlencoding::encode(client_secret)),
         ];
 
@@ -125,16 +131,16 @@ impl NativeOAuth {
     /// # Errors
     ///
     /// Returns an `OAuthError` if the request fails or the response can't be parsed.
-    pub async fn refresh_token_async(
-        &self,
-        refresh_token: &str,
-    ) -> Result<OAuthToken, OAuthError> {
+    pub async fn refresh_token_async(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
         self.inner.config.validate()?;
 
         let mut body_parts = vec![
             format!("grant_type={}", urlencoding::encode("refresh_token")),
             format!("refresh_token={}", urlencoding::encode(refresh_token)),
-            format!("client_id={}", urlencoding::encode(&self.inner.config.client_id)),
+            format!(
+                "client_id={}",
+                urlencoding::encode(&self.inner.config.client_id)
+            ),
         ];
 
         if let Some(ref secret) = self.inner.config.client_secret {
@@ -160,7 +166,10 @@ async fn do_post_async(
 ) -> Result<HttpResponse, OAuthError> {
     let request = PreparedRequestBuilder::post(url)
         .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
         .body_text(body)
         .build();
     let response = client
@@ -188,8 +197,8 @@ async fn parse_token_response(
     let body_text = read_body_text(resp.take_async_body())
         .await
         .map_err(OAuthError::TokenRequestFailed)?;
-    let token_response: TokenResponse = serde_json::from_str(&body_text)
-        .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
+    let token_response: TokenResponse =
+        serde_json::from_str(&body_text).map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 
     Ok(OAuthToken {
         access_token: token_response.access_token,
@@ -219,8 +228,8 @@ async fn parse_refresh_response(
     let body_text = read_body_text(resp.take_async_body())
         .await
         .map_err(OAuthError::TokenRequestFailed)?;
-    let token_response: TokenResponse = serde_json::from_str(&body_text)
-        .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
+    let token_response: TokenResponse =
+        serde_json::from_str(&body_text).map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 
     Ok(OAuthToken {
         access_token: token_response.access_token,

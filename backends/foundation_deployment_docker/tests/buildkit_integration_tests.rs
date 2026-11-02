@@ -20,13 +20,14 @@
 use std::sync::Arc;
 
 use foundation_core::valtron::valtron_test;
-use foundation_deployment_docker::buildkit::BuildKitClient;
-use foundation_deployment_docker::buildkit::types::BytesMessage;
 use foundation_deployment_docker::buildkit::services::{filesync, health};
+use foundation_deployment_docker::buildkit::types::BytesMessage;
+use foundation_deployment_docker::buildkit::BuildKitClient;
 
 /// Resolve the buildkitd address, or `None` to skip (no daemon available).
 fn buildkitd_addr() -> Option<String> {
-    let addr = std::env::var("EWE_BUILDKITD_ADDR").unwrap_or_else(|_| "127.0.0.1:13434".to_string());
+    let addr =
+        std::env::var("EWE_BUILDKITD_ADDR").unwrap_or_else(|_| "127.0.0.1:13434".to_string());
     // Skip unless the TCP port actually accepts a connection.
     match std::net::TcpStream::connect(&addr) {
         Ok(_) => Some(addr),
@@ -43,8 +44,14 @@ async fn info_returns_version() {
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
     let info = client.info().await.expect("Info RPC");
-    let version = info.buildkitVersion.into_option().expect("buildkitVersion present");
-    assert!(!version.version.is_empty(), "version string should be non-empty");
+    let version = info
+        .buildkitVersion
+        .into_option()
+        .expect("buildkitVersion present");
+    assert!(
+        !version.version.is_empty(),
+        "version string should be non-empty"
+    );
     eprintln!("buildkitd version: {}", version.version);
 }
 
@@ -53,8 +60,14 @@ async fn list_workers_reports_a_worker() {
     let Some(addr) = buildkitd_addr() else { return };
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
-    let workers = client.list_workers(Vec::new()).await.expect("ListWorkers RPC");
-    assert!(!workers.record.is_empty(), "buildkitd should report >=1 worker");
+    let workers = client
+        .list_workers(Vec::new())
+        .await
+        .expect("ListWorkers RPC");
+    assert!(
+        !workers.record.is_empty(),
+        "buildkitd should report >=1 worker"
+    );
     // Each worker advertises at least one platform.
     let first = &workers.record[0];
     assert!(!first.ID.is_empty(), "worker id should be non-empty");
@@ -79,7 +92,8 @@ async fn solve_probe_reports_what_buildkit_needs() {
     use foundation_deployment_docker::buildkit::types::SolveRequest;
     let mut req = SolveRequest::default();
     req.Frontend = "dockerfile.v0".into();
-    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.FrontendAttrs
+        .insert("filename".into(), "Dockerfile".into());
 
     match client.solve(req).await {
         Ok(_) => eprintln!("SOLVE OK (unexpected without a context)"),
@@ -102,14 +116,27 @@ async fn session_bidi_manual_response() {
         ProcedureCodecs::defaults(),
         ClientOptions::new()
             .with_grpc()
-            .with_header("x-docker-expose-session-uuid".to_string(), "manual-response-test")
+            .with_header(
+                "x-docker-expose-session-uuid".to_string(),
+                "manual-response-test",
+            )
             .with_header("x-docker-expose-session-name".to_string(), "ewe-manual")
-            .with_header("x-docker-expose-session-grpc-method".to_string(), filesync::procedure::DIFF_COPY)
-            .with_header("x-docker-expose-session-grpc-method".to_string(), health::procedure::CHECK),
-    ).unwrap();
+            .with_header(
+                "x-docker-expose-session-grpc-method".to_string(),
+                filesync::procedure::DIFF_COPY,
+            )
+            .with_header(
+                "x-docker-expose-session-grpc-method".to_string(),
+                health::procedure::CHECK,
+            ),
+    )
+    .unwrap();
 
     let mut bidi = session_client
-        .bidi_stream(Ctx::background(), futures::stream::pending::<BytesMessage>())
+        .bidi_stream(
+            Ctx::background(),
+            futures::stream::pending::<BytesMessage>(),
+        )
         .await
         .expect("open bidi");
 
@@ -118,16 +145,25 @@ async fn session_bidi_manual_response() {
     // Read H2 preface from buildkitd
     let preface = match receiver.receive().await {
         Ok(Some(msg)) => msg.data,
-        other => { eprintln!("[manual] expected preface, got {other:?}"); return; }
+        other => {
+            eprintln!("[manual] expected preface, got {other:?}");
+            return;
+        }
     };
     eprintln!("[manual] got preface: {} bytes", preface.len());
 
     // Read client SETTINGS
     let client_settings = match receiver.receive().await {
         Ok(Some(msg)) => msg.data,
-        other => { eprintln!("[manual] expected SETTINGS, got {other:?}"); return; }
+        other => {
+            eprintln!("[manual] expected SETTINGS, got {other:?}");
+            return;
+        }
     };
-    eprintln!("[manual] got client SETTINGS: {} bytes", client_settings.len());
+    eprintln!(
+        "[manual] got client SETTINGS: {} bytes",
+        client_settings.len()
+    );
 
     // Send back minimal H2 server response: empty SETTINGS + SETTINGS ACK
     // This is exactly what grpc-go expects from the server
@@ -135,21 +171,33 @@ async fn session_bidi_manual_response() {
     // SETTINGS ACK frame: 9 bytes
     let server_settings: Vec<u8> = vec![
         0x00, 0x00, 0x00, // length = 0
-        0x04,             // type = SETTINGS
-        0x00,             // flags = none
+        0x04, // type = SETTINGS
+        0x00, // flags = none
         0x00, 0x00, 0x00, 0x00, // stream 0
     ];
     let settings_ack: Vec<u8> = vec![
         0x00, 0x00, 0x00, // length = 0
-        0x04,             // type = SETTINGS
-        0x01,             // flags = ACK
+        0x04, // type = SETTINGS
+        0x01, // flags = ACK
         0x00, 0x00, 0x00, 0x00, // stream 0
     ];
 
     eprintln!("[manual] sending server SETTINGS (9b)...");
-    sender.send(&BytesMessage { data: server_settings, ..Default::default() }).await.unwrap();
+    sender
+        .send(&BytesMessage {
+            data: server_settings,
+            ..Default::default()
+        })
+        .await
+        .unwrap();
     eprintln!("[manual] sending SETTINGS ACK (9b)...");
-    sender.send(&BytesMessage { data: settings_ack, ..Default::default() }).await.unwrap();
+    sender
+        .send(&BytesMessage {
+            data: settings_ack,
+            ..Default::default()
+        })
+        .await
+        .unwrap();
 
     eprintln!("[manual] waiting for buildkitd's SETTINGS ACK...");
     // buildkitd should now send SETTINGS ACK
@@ -206,15 +254,28 @@ async fn session_bidi_raw_no_pump() {
         ProcedureCodecs::defaults(),
         ClientOptions::new()
             .with_grpc()
-            .with_header("x-docker-expose-session-uuid".to_string(), "raw-test-no-pump")
+            .with_header(
+                "x-docker-expose-session-uuid".to_string(),
+                "raw-test-no-pump",
+            )
             .with_header("x-docker-expose-session-name".to_string(), "ewe-raw")
-            .with_header("x-docker-expose-session-grpc-method".to_string(), filesync::procedure::DIFF_COPY)
-            .with_header("x-docker-expose-session-grpc-method".to_string(), health::procedure::CHECK),
-    ).unwrap();
+            .with_header(
+                "x-docker-expose-session-grpc-method".to_string(),
+                filesync::procedure::DIFF_COPY,
+            )
+            .with_header(
+                "x-docker-expose-session-grpc-method".to_string(),
+                health::procedure::CHECK,
+            ),
+    )
+    .unwrap();
 
     eprintln!("[raw] opening Session bidi (no pump)...");
     let mut bidi = session_client
-        .bidi_stream(Ctx::background(), futures::stream::pending::<BytesMessage>())
+        .bidi_stream(
+            Ctx::background(),
+            futures::stream::pending::<BytesMessage>(),
+        )
         .await
         .expect("open bidi");
     eprintln!("[raw] Session bidi opened, reading first message...");
@@ -255,7 +316,9 @@ async fn session_stays_alive_without_solve() {
     std::fs::create_dir_all(&dir).expect("mkdir ctx");
     std::fs::write(dir.join("Dockerfile"), b"FROM alpine:latest\n").expect("write Dockerfile");
 
-    let session = SessionServer::start(&addr, &dir).await.expect("start session");
+    let session = SessionServer::start(&addr, &dir)
+        .await
+        .expect("start session");
     eprintln!("[test] session={} started, waiting 2s...", session.id);
 
     // Keep the session alive for 2 seconds — enough time for buildkitd's
@@ -277,21 +340,33 @@ async fn build_dockerfile_end_to_end() {
     let dir = std::env::temp_dir().join(format!("ewe-bk-ctx-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).expect("mkdir ctx");
-    std::fs::write(dir.join("Dockerfile"), b"FROM alpine:latest\nRUN echo hello-from-ewe\n")
-        .expect("write Dockerfile");
+    std::fs::write(
+        dir.join("Dockerfile"),
+        b"FROM alpine:latest\nRUN echo hello-from-ewe\n",
+    )
+    .expect("write Dockerfile");
 
     // Serve the build context back to buildkitd over the session.
-    let session = SessionServer::start(&addr, &dir).await.expect("start session");
+    let session = SessionServer::start(&addr, &dir)
+        .await
+        .expect("start session");
 
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
     let mut req = SolveRequest::default();
     req.Frontend = "dockerfile.v0".into();
-    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.FrontendAttrs
+        .insert("filename".into(), "Dockerfile".into());
     req.Session = session.id.clone();
 
-    let resp = client.solve(req).await.expect("dockerfile.v0 solve with session");
-    eprintln!("BUILD OK — dockerfile.v0 solved with session {} → {resp:?}", session.id);
+    let resp = client
+        .solve(req)
+        .await
+        .expect("dockerfile.v0 solve with session");
+    eprintln!(
+        "BUILD OK — dockerfile.v0 solved with session {} → {resp:?}",
+        session.id
+    );
 
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -314,14 +389,17 @@ async fn build_with_status_stream() {
     )
     .expect("write Dockerfile");
 
-    let session = SessionServer::start(&addr, &dir).await.expect("start session");
+    let session = SessionServer::start(&addr, &dir)
+        .await
+        .expect("start session");
     let client = BuildKitClient::connect_tcp(&addr).expect("connect_tcp");
 
     let build_ref = new_build_ref();
     let mut req = SolveRequest::default();
     req.Ref = build_ref.clone();
     req.Frontend = "dockerfile.v0".into();
-    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.FrontendAttrs
+        .insert("filename".into(), "Dockerfile".into());
     req.Session = session.id.clone();
 
     // Solve and Status run concurrently, like buildx: Status(Ref) attaches to
@@ -349,8 +427,14 @@ async fn build_with_status_stream() {
     let (solve_res, (updates, vertexes, logs)) = futures::join!(solve_fut, status_fut);
     solve_res.expect("solve with status ref");
     eprintln!("STATUS OK — {updates} updates, {vertexes} vertex reports, {logs} log chunks");
-    assert!(updates > 0, "expected at least one StatusResponse during the build");
-    assert!(vertexes > 0, "expected vertex progress reports during the build");
+    assert!(
+        updates > 0,
+        "expected at least one StatusResponse during the build"
+    );
+    assert!(
+        vertexes > 0,
+        "expected vertex progress reports during the build"
+    );
 
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -365,8 +449,11 @@ async fn build_with_oci_export() {
     let dir = std::env::temp_dir().join(format!("ewe-bk-export-ctx-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).expect("mkdir ctx");
-    std::fs::write(dir.join("Dockerfile"), b"FROM alpine:latest\nRUN echo exported-by-ewe\n")
-        .expect("write Dockerfile");
+    std::fs::write(
+        dir.join("Dockerfile"),
+        b"FROM alpine:latest\nRUN echo exported-by-ewe\n",
+    )
+    .expect("write Dockerfile");
     let tar_path = std::env::temp_dir().join(format!("ewe-bk-export-{}.tar", std::process::id()));
     let _ = std::fs::remove_file(&tar_path);
 
@@ -382,20 +469,36 @@ async fn build_with_oci_export() {
 
     let mut req = SolveRequest::default();
     req.Frontend = "dockerfile.v0".into();
-    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.FrontendAttrs
+        .insert("filename".into(), "Dockerfile".into());
     req.Session = session.id.clone();
-    req.Exporters.push(Exporter { Type: "oci".into(), ..Default::default() });
+    req.Exporters.push(Exporter {
+        Type: "oci".into(),
+        ..Default::default()
+    });
 
     let resp = client.solve(req).await.expect("solve with oci exporter");
     eprintln!("EXPORT OK — {resp:?}");
 
     let meta = std::fs::metadata(&tar_path).expect("exported tar exists");
-    assert!(meta.len() > 1024, "exported oci tar should be non-trivial, got {} bytes", meta.len());
+    assert!(
+        meta.len() > 1024,
+        "exported oci tar should be non-trivial, got {} bytes",
+        meta.len()
+    );
     // An OCI layout tar starts with a plain ustar member header; check the
     // magic at offset 257 ("ustar") to prove we got a real tar, not noise.
     let bytes = std::fs::read(&tar_path).expect("read exported tar");
-    assert_eq!(&bytes[257..262], b"ustar", "exported file should be a tar archive");
-    eprintln!("EXPORT OK — oci tar {} bytes at {}", meta.len(), tar_path.display());
+    assert_eq!(
+        &bytes[257..262],
+        b"ustar",
+        "exported file should be a tar archive"
+    );
+    eprintln!(
+        "EXPORT OK — oci tar {} bytes at {}",
+        meta.len(),
+        tar_path.display()
+    );
 
     let _ = std::fs::remove_file(&tar_path);
     let _ = std::fs::remove_dir_all(&dir);
@@ -424,7 +527,8 @@ async fn build_inline_dockerfile_no_context_file() {
 
     let mut req = SolveRequest::default();
     req.Frontend = "dockerfile.v0".into();
-    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.FrontendAttrs
+        .insert("filename".into(), "Dockerfile".into());
     req.Session = session.id.clone();
 
     let resp = client.solve(req).await.expect("inline dockerfile solve");
@@ -451,7 +555,8 @@ async fn build_with_registry_auth_provider() {
 
     let mut req = SolveRequest::default();
     req.Frontend = "dockerfile.v0".into();
-    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.FrontendAttrs
+        .insert("filename".into(), "Dockerfile".into());
     req.Session = session.id.clone();
 
     let resp = client.solve(req).await.expect("solve with auth provider");
@@ -472,9 +577,7 @@ async fn build_with_secret_mount() {
 
     // The RUN asserts the secret's CONTENT — the build fails unless our
     // Secrets/GetSecret served exactly these bytes.
-    let secrets = Arc::new(
-        StaticSecrets::new().with_secret("apikey", b"s3cr3t-from-ewe".to_vec()),
-    );
+    let secrets = Arc::new(StaticSecrets::new().with_secret("apikey", b"s3cr3t-from-ewe".to_vec()));
     let session = SessionServer::builder_inline(
         "FROM alpine:latest\nRUN --mount=type=secret,id=apikey \
          [ \"$(cat /run/secrets/apikey)\" = \"s3cr3t-from-ewe\" ]\n",
@@ -488,7 +591,8 @@ async fn build_with_secret_mount() {
 
     let mut req = SolveRequest::default();
     req.Frontend = "dockerfile.v0".into();
-    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.FrontendAttrs
+        .insert("filename".into(), "Dockerfile".into());
     req.Session = session.id.clone();
 
     let resp = client.solve(req).await.expect("solve with secret mount");
@@ -518,6 +622,7 @@ async fn build_history_lists_completed_builds() {
 
 #[valtron_test]
 async fn gateway_build_ping_resolve_and_return() {
+    use foundation_connectrpc::{Ctx, Request};
     use foundation_deployment_docker::buildkit::generated::google::rpc::Status as GoogleStatus;
     use foundation_deployment_docker::buildkit::generated::moby::buildkit::v1::frontend::{
         PingRequest, ResolveImageConfigRequest, ReturnRequest,
@@ -526,7 +631,6 @@ async fn gateway_build_ping_resolve_and_return() {
     use foundation_deployment_docker::buildkit::services::gateway::LLBBridgeClientExt;
     use foundation_deployment_docker::buildkit::session::SessionServer;
     use foundation_deployment_docker::buildkit::types::SolveRequest;
-    use foundation_connectrpc::{Ctx, Request};
 
     let Some(addr) = buildkitd_addr() else { return };
 
@@ -546,7 +650,9 @@ async fn gateway_build_ping_resolve_and_return() {
     req.Session = session.id.clone();
     // Frontend stays empty — the client IS the frontend.
 
-    let gateway = client.gateway_for_build(&build_ref).expect("gateway client");
+    let gateway = client
+        .gateway_for_build(&build_ref)
+        .expect("gateway client");
     let solve_fut = client.solve(req);
     let frontend_fut = async {
         // Ping proves routing; buildkitd fills in its frontend API caps.
@@ -581,9 +687,14 @@ async fn gateway_build_ping_resolve_and_return() {
     // We aborted via a Return error, so the Solve reports that error — the
     // frontend RPCs (Ping/ResolveImageConfig) are what this test validates.
     let solve_msg = solve_res.err().map(|e| e.to_string()).unwrap_or_default();
-    eprintln!("GATEWAY OK — {caps} frontend API caps, alpine digest {digest}; solve ended: {solve_msg}");
+    eprintln!(
+        "GATEWAY OK — {caps} frontend API caps, alpine digest {digest}; solve ended: {solve_msg}"
+    );
     assert!(caps > 0, "Pong should carry frontend API caps");
-    assert!(digest.starts_with("sha256:"), "resolved digest should be sha256, got {digest:?}");
+    assert!(
+        digest.starts_with("sha256:"),
+        "resolved digest should be sha256, got {digest:?}"
+    );
 }
 
 /// Resolve a unix-socket buildkitd, or `None` to skip (no daemon available).
@@ -613,8 +724,14 @@ async fn info_over_unix_socket() {
     let client = BuildKitClient::connect(&path).expect("connect unix");
 
     let info = client.info().await.expect("Info RPC over unix socket");
-    let version = info.buildkitVersion.into_option().expect("buildkitVersion present");
-    assert!(!version.version.is_empty(), "version string should be non-empty");
+    let version = info
+        .buildkitVersion
+        .into_option()
+        .expect("buildkitVersion present");
+    assert!(
+        !version.version.is_empty(),
+        "version string should be non-empty"
+    );
     eprintln!("buildkitd (unix) version: {}", version.version);
 }
 
@@ -628,8 +745,11 @@ async fn build_dockerfile_end_to_end_unix() {
     let dir = std::env::temp_dir().join(format!("ewe-bk-unix-ctx-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).expect("mkdir ctx");
-    std::fs::write(dir.join("Dockerfile"), b"FROM alpine:latest\nRUN echo hello-from-ewe-unix\n")
-        .expect("write Dockerfile");
+    std::fs::write(
+        dir.join("Dockerfile"),
+        b"FROM alpine:latest\nRUN echo hello-from-ewe-unix\n",
+    )
+    .expect("write Dockerfile");
 
     let client = BuildKitClient::connect(&path).expect("connect unix");
 
@@ -641,10 +761,14 @@ async fn build_dockerfile_end_to_end_unix() {
 
     let mut req = SolveRequest::default();
     req.Frontend = "dockerfile.v0".into();
-    req.FrontendAttrs.insert("filename".into(), "Dockerfile".into());
+    req.FrontendAttrs
+        .insert("filename".into(), "Dockerfile".into());
     req.Session = session.id.clone();
 
-    let resp = client.solve(req).await.expect("dockerfile.v0 solve over unix socket");
+    let resp = client
+        .solve(req)
+        .await
+        .expect("dockerfile.v0 solve over unix socket");
     eprintln!("UNIX BUILD OK — session {} → {resp:?}", session.id);
 
     let _ = std::fs::remove_dir_all(&dir);

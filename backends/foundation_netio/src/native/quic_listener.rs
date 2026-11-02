@@ -21,9 +21,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 #[cfg(all(feature = "quic", not(target_family = "wasm")))]
-use foundation_core::valtron::{Ctx, TaskIterator};
-#[cfg(all(feature = "quic", not(target_family = "wasm")))]
 use crate::quic::{QuicDriver, QuinnConnection, ServerConfig};
+#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+use foundation_core::valtron::{Ctx, TaskIterator};
 
 #[cfg(all(feature = "quic", not(target_family = "wasm")))]
 pub struct QuicListener {
@@ -77,7 +77,10 @@ impl QuicBind for crate::native::connection::ConfigListenAddr {
         let addr = match &self {
             crate::native::connection::ConfigListenAddr::IP(addrs) => {
                 addrs.first().copied().ok_or_else(|| {
-                    io::Error::new(io::ErrorKind::InvalidInput, "no address in ConfigListenAddr")
+                    io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "no address in ConfigListenAddr",
+                    )
                 })?
             }
             #[cfg(unix)]

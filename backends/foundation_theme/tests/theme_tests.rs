@@ -30,7 +30,10 @@ fn root_custom_properties_and_utilities() {
     // Dark block: explicit override + auto-derived (~80% luminance).
     assert!(css.contains("@media (prefers-color-scheme: dark)"));
     assert!(css.contains("--color-primary: #60a5fa;"), "explicit dark");
-    assert!(css.contains("--color-secondary: #0d9467;"), "auto dark: {css}");
+    assert!(
+        css.contains("--color-secondary: #0d9467;"),
+        "auto dark: {css}"
+    );
 
     // Per-category utility classes.
     assert!(css.contains(".bg-primary { background-color: var(--color-primary); }"));
@@ -101,10 +104,8 @@ fn const_from_static_is_inspectable() {
         "#3b82f6",
         Some("#60a5fa"),
     )];
-    const THEME: GeneratedTheme = GeneratedTheme::from_static(
-        ":root {\n  --color-primary: #3b82f6;\n}\n",
-        TOKENS,
-    );
+    const THEME: GeneratedTheme =
+        GeneratedTheme::from_static(":root {\n  --color-primary: #3b82f6;\n}\n", TOKENS);
     assert_eq!(THEME.value("color", "primary"), Some("#3b82f6"));
     assert!(THEME.to_css().contains("--color-primary"));
     assert_eq!(THEME.tokens().len(), 1);

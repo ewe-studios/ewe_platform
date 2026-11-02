@@ -117,8 +117,12 @@ pub fn parse_raw(bytes: &[u8]) -> ParsedResponse {
             }
             if let Some(colon_pos) = line.iter().position(|b| *b == b':') {
                 if colon_pos + 1 < line.len() && line[colon_pos + 1] == b' ' {
-                    let name = std::str::from_utf8(&line[..colon_pos]).unwrap_or("").to_string();
-                    let value = std::str::from_utf8(&line[colon_pos + 2..]).unwrap_or("").to_string();
+                    let name = std::str::from_utf8(&line[..colon_pos])
+                        .unwrap_or("")
+                        .to_string();
+                    let value = std::str::from_utf8(&line[colon_pos + 2..])
+                        .unwrap_or("")
+                        .to_string();
                     headers.push((name, value));
                 }
             }

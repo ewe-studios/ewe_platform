@@ -203,9 +203,14 @@ impl HttpApp<Arc<dyn crate::shared::serve::ServeWriter>> {
     }
 
     /// Register a writer handler for a specific HTTP method and path.
-    pub fn route_writer<H: ServeWriterFactory>(&mut self, method: SimpleMethod, path: &str) -> &mut Self {
+    pub fn route_writer<H: ServeWriterFactory>(
+        &mut self,
+        method: SimpleMethod,
+        path: &str,
+    ) -> &mut Self {
         let handler = H::create(&self.ctx);
-        self.router.add_route_writer(method, path, Arc::new(handler));
+        self.router
+            .add_route_writer(method, path, Arc::new(handler));
         self
     }
 
@@ -253,11 +258,18 @@ pub enum ServerApp {
     Http2(H2App),
     #[cfg(all(feature = "quic", not(target_family = "wasm")))]
     Http3(H3App),
-    Both { http1: H1App, http2: H2App },
+    Both {
+        http1: H1App,
+        http2: H2App,
+    },
     /// HTTP/1.1 + HTTP/2 + HTTP/3 multiplexed on one port (h1 + h2c-negotiated +
     /// Alt-Svc-advertised QUIC). Only available with the `quic` feature (F35).
     #[cfg(all(feature = "quic", not(target_family = "wasm")))]
-    Any { http1: H1App, http2: H2App, http3: H3App },
+    Any {
+        http1: H1App,
+        http2: H2App,
+        http3: H3App,
+    },
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -310,8 +322,7 @@ impl ServerApp {
     #[must_use]
     pub fn get_h1(&self) -> Option<&H1App> {
         match self {
-            ServerApp::Http1(a)
-            | ServerApp::Both { http1: a, .. } => Some(a),
+            ServerApp::Http1(a) | ServerApp::Both { http1: a, .. } => Some(a),
             #[cfg(all(feature = "quic", not(target_family = "wasm")))]
             ServerApp::Any { http1: a, .. } => Some(a),
             ServerApp::Http2(_) => None,
@@ -326,8 +337,7 @@ impl ServerApp {
     #[must_use]
     pub fn get_h2(&self) -> Option<&H2App> {
         match self {
-            ServerApp::Http2(a)
-            | ServerApp::Both { http2: a, .. } => Some(a),
+            ServerApp::Http2(a) | ServerApp::Both { http2: a, .. } => Some(a),
             #[cfg(all(feature = "quic", not(target_family = "wasm")))]
             ServerApp::Any { http2: a, .. } => Some(a),
             ServerApp::Http1(_) => None,

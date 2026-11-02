@@ -63,7 +63,10 @@ fn main() {
         // The selection or the spec's shape moved — regenerate.
         Err(foundation_codegentools::CodegenError::Stale { .. }) => {
             codegen.write().expect("regenerate hetzner's API surface");
-            println!("cargo:warning=regenerated hetzner's src/generated/ from {}", spec.display());
+            println!(
+                "cargo:warning=regenerated hetzner's src/generated/ from {}",
+                spec.display()
+            );
         }
         // A moved pin, an unreadable spec, a spec that will not canonicalise.
         Err(e) => panic!("{e}"),

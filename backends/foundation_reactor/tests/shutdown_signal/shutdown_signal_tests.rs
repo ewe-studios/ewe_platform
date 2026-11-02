@@ -73,5 +73,8 @@ fn turn_on_wakes_a_parked_waiter() {
         park_elapsed < Duration::from_millis(500),
         "parked thread slept {park_elapsed:?}; it should wake at once, not sleep out 10 s"
     );
-    assert_ne!(observed, since, "generation must advance past `since` on wake");
+    assert_ne!(
+        observed, since,
+        "generation must advance past `since` on wake"
+    );
 }

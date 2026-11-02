@@ -10,25 +10,23 @@ use std::time::Duration;
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{sleep_async, Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
-use foundation_netio::DynNetClient;
-#[cfg(not(target_family = "wasm"))]
-use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
     body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},
     http_client::BoxedSseIterator,
     request::PreparedRequest,
 };
-use foundation_netio::shared::http::{
-    SimpleHeader, SimpleHeaders, SimpleMethod,
-};
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use serde::{Deserialize, Serialize};
 
-use crate::backends::model_info::{self, ModelInfoCache};
-use crate::backends::openai_provider::{parse_openai_error, OpenAIModelInfo, OpenAIModelResponse};
 use crate::backends::backend_utils::{
     capped_error_body, empty_usage_report, flatten_tools, model_id_to_string, prepared_request,
     sleep, tool_arguments_from_str,
 };
+use crate::backends::model_info::{self, ModelInfoCache};
+use crate::backends::openai_provider::{parse_openai_error, OpenAIModelInfo, OpenAIModelResponse};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
     AuthProvider, CostStatus, GenerationMetadata, Messages, Model, ModelId, ModelInteraction,
@@ -419,10 +417,7 @@ impl ResponsesProvider {
 
     /// [`Self::with_http_client`] with a config.
     #[must_use]
-    pub fn with_http_client_and_config(
-        client: DynNetClient,
-        config: ResponsesConfig,
-    ) -> Self {
+    pub fn with_http_client_and_config(client: DynNetClient, config: ResponsesConfig) -> Self {
         Self {
             config,
             api_key: None,
@@ -650,9 +645,9 @@ impl ModelProvider for ResponsesProvider {
             http_client: self.http_client.clone(),
             models_cache: Arc::clone(&self.models_cache),
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-            cumulative_cost: Arc::new(std::sync::Mutex::new(
-                crate::costing::CostAccumulator::new(),
-            )),
+            cumulative_cost: Arc::new(
+                std::sync::Mutex::new(crate::costing::CostAccumulator::new()),
+            ),
         })
     }
 

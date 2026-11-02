@@ -102,4 +102,3 @@ impl<E: Send + 'static> Broadcast<E> {
         }
     }
 }
-

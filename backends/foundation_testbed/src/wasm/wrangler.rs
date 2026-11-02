@@ -35,18 +35,22 @@ pub struct WranglerOutput {
 ///      reads until EOF or timeout.
 fn http_get(host: &str, port: u16) -> Result<(u16, String)> {
     let addr = format!("{host}:{port}");
-    let mut stream = TcpStream::connect(&addr)
-        .map_err(|e| WasmTestbedError::WranglerHttpFailed(format!("connect {addr}: {e}")).trace())?;
+    let mut stream = TcpStream::connect(&addr).map_err(|e| {
+        WasmTestbedError::WranglerHttpFailed(format!("connect {addr}: {e}")).trace()
+    })?;
 
-    stream.set_read_timeout(Some(Duration::from_secs(1)))
+    stream
+        .set_read_timeout(Some(Duration::from_secs(1)))
         .map_err(|e| WasmTestbedError::WranglerHttpFailed(format!("set timeout: {e}")).trace())?;
 
     let request = format!("GET / HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n");
-    stream.write_all(request.as_bytes())
+    stream
+        .write_all(request.as_bytes())
         .map_err(|e| WasmTestbedError::WranglerHttpFailed(format!("write: {e}")).trace())?;
 
     let mut response = String::new();
-    stream.read_to_string(&mut response)
+    stream
+        .read_to_string(&mut response)
         .map_err(|e| WasmTestbedError::WranglerHttpFailed(format!("read: {e}")).trace())?;
 
     // Parse status code from first line: "HTTP/1.1 200 OK"
@@ -80,8 +84,8 @@ fn http_get(host: &str, port: u16) -> Result<(u16, String)> {
 pub fn run(integration_dir: &Path, _config_path: Option<&Path>) -> Result<WranglerOutput> {
     which::which("wrangler").map_err(|_| WasmTestbedError::WranglerNotFound.trace())?;
 
-    let port = portpicker::pick_unused_port()
-        .ok_or_else(|| WasmTestbedError::NoPortAvailable.trace())?;
+    let port =
+        portpicker::pick_unused_port().ok_or_else(|| WasmTestbedError::NoPortAvailable.trace())?;
 
     info!("Starting wrangler dev on port {port}...");
 

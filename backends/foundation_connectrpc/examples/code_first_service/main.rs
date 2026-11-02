@@ -21,10 +21,10 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
@@ -75,7 +75,9 @@ impl GreetService for Greeter {
         _ctx: Ctx,
         req: Request<GreetRequest>,
     ) -> ConnectResult<Response<GreetResponse>> {
-        Ok(Response::new(GreetResponse { message: format!("Hello, {}!", req.msg.name) }))
+        Ok(Response::new(GreetResponse {
+            message: format!("Hello, {}!", req.msg.name),
+        }))
     }
 }
 
@@ -94,8 +96,11 @@ fn start_server() -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind loopback");
     let addr = listener.local_addr().expect("local addr");
-    let server =
-        HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), ServerConfig::defaults());
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
 
     let shutdown = Arc::new(ShutdownSignal::new());
     let shutdown_thread = shutdown.clone();
@@ -111,14 +116,24 @@ async fn main() {
 
     // Client: the generated typed `GreetServiceClient`. `new` takes a base URL;
     // it appends each procedure path internally. Code-first JSON → select "json".
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
+    let transport: Arc<dyn Transport> =
+        Arc::new(H1Transport::new(HttpClientBuilder::new().build()));
     let base_url = format!("http://127.0.0.1:{}", addr.port());
-    let client = GreetServiceClient::new(transport, &base_url, ClientOptions::new().with_codec("json"))
-        .expect("build client");
+    let client = GreetServiceClient::new(
+        transport,
+        &base_url,
+        ClientOptions::new().with_codec("json"),
+    )
+    .expect("build client");
 
     let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
     let resp = client
-        .greet(ctx, Request::new(GreetRequest { name: "code-first".into() }))
+        .greet(
+            ctx,
+            Request::new(GreetRequest {
+                name: "code-first".into(),
+            }),
+        )
         .await
         .expect("greet call");
 

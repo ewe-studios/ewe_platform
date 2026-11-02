@@ -71,7 +71,10 @@ fn poll_next<S: FuturesStream + Unpin>(s: &mut S, waker: &Waker) -> Poll<Option<
 /// Builds a waking `NotifyQueueStreamIterator` whose empty `next()` yields
 /// `Stream::Wait` after one short CondVar wait, returning the iterator and a
 /// producer handle (a clone of the same underlying queue) for `push`/`close`.
-fn waking_iter<D, P>() -> (NotifyQueueStreamIterator<D, P>, Arc<NotifyQueue<Stream<D, P>>>) {
+fn waking_iter<D, P>() -> (
+    NotifyQueueStreamIterator<D, P>,
+    Arc<NotifyQueue<Stream<D, P>>>,
+) {
     let queue: Arc<NotifyQueue<Stream<D, P>>> = Arc::new(NotifyQueue::unbounded());
     queue.set_max_spins(1);
     let iterator = NotifyQueueStreamIterator::new(Arc::clone(&queue), 5, Duration::from_micros(50));
@@ -121,7 +124,11 @@ fn collect_future_parks_then_wakes_on_push() {
     queue.push(Stream::Next(8)).unwrap();
     // Both pushes fire the (single) registered callback — the registry fires then
     // clears, so the second `push` sees an empty registry and fires nothing.
-    assert_eq!(count.load(Ordering::SeqCst), 1, "only the first push fires the registered wake");
+    assert_eq!(
+        count.load(Ordering::SeqCst),
+        1,
+        "only the first push fires the registered wake"
+    );
 
     // Re-poll drains both items, then parks again on the empty queue.
     assert!(matches!(poll(&mut future, &waker), Poll::Pending));
@@ -232,7 +239,11 @@ fn pending_future_spurious_wake_reparks_and_reregisters() {
 
     // Spurious wake: `Next` is not the `Pending` target.
     queue.push(Stream::Next(99)).unwrap();
-    assert_eq!(count.load(Ordering::SeqCst), 1, "spurious push fired the wake");
+    assert_eq!(
+        count.load(Ordering::SeqCst),
+        1,
+        "spurious push fired the wake"
+    );
 
     // Re-poll consumes the spurious Next, re-parks, and re-registers — no self-wake.
     assert!(matches!(poll(&mut future, &waker), Poll::Pending));
@@ -244,7 +255,11 @@ fn pending_future_spurious_wake_reparks_and_reregisters() {
 
     // The real target fires the re-registered callback.
     queue.push(Stream::Pending("ctx")).unwrap();
-    assert_eq!(count.load(Ordering::SeqCst), 2, "re-registered callback fired");
+    assert_eq!(
+        count.load(Ordering::SeqCst),
+        2,
+        "re-registered callback fired"
+    );
 
     match poll(&mut future, &waker) {
         Poll::Ready(Some(("ctx", _))) => {}
@@ -291,9 +306,7 @@ fn register_wake_fires_at_once_when_items_are_queued_or_the_queue_is_closed() {
 
 /// Builds a closed queue holding `items`, the state a fast producer leaves
 /// behind when it finishes before the consumer's first poll.
-fn finished_iter<D, P>(
-    items: Vec<Stream<D, P>>,
-) -> NotifyQueueStreamIterator<D, P> {
+fn finished_iter<D, P>(items: Vec<Stream<D, P>>) -> NotifyQueueStreamIterator<D, P> {
     let (iterator, queue) = waking_iter::<D, P>();
     for item in items {
         assert!(queue.push(item).is_ok(), "push");
@@ -495,7 +508,10 @@ fn future_stream_on_a_finished_producer_is_woken_through_delayed() {
 
     assert!(matches!(poll_next(&mut stream, &waker), Poll::Pending));
     assert!(count.load(Ordering::SeqCst) >= 1, "the wake was delivered");
-    assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(Some(Stream::Next(5))));
+    assert_eq!(
+        poll_next(&mut stream, &waker),
+        Poll::Ready(Some(Stream::Next(5)))
+    );
     assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(None));
 }
 
@@ -504,9 +520,10 @@ fn future_stream_on_a_finished_producer_is_woken_through_delayed() {
 /// full-enum item type is preserved.
 #[test]
 fn future_stream_yields_spread_as_is() {
-    let iterator = finished_iter(vec![
-        Stream::Spread(vec![StreamSpread::Done(2), StreamSpread::Pending("p")]),
-    ]);
+    let iterator = finished_iter(vec![Stream::Spread(vec![
+        StreamSpread::Done(2),
+        StreamSpread::Pending("p"),
+    ])]);
     let mut stream = StreamParkingFutureStream::new(iterator);
     let (waker, count) = counting_waker();
 
@@ -519,6 +536,10 @@ fn future_stream_yields_spread_as_is() {
         other => panic!("expected Ready(Some(Stream::Spread(..))), got {other:?}"),
     }
     // A `Spread` is a target item: it is yielded at once with no wake.
-    assert_eq!(count.load(Ordering::SeqCst), 0, "Spread yields without waking");
+    assert_eq!(
+        count.load(Ordering::SeqCst),
+        0,
+        "Spread yields without waking"
+    );
     assert_eq!(poll_next(&mut stream, &waker), Poll::Ready(None));
 }

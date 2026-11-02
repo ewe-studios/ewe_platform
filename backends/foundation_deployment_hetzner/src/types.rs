@@ -141,7 +141,10 @@ impl ServerStatus {
     /// server that failed to build.
     #[must_use]
     pub fn is_settled(self) -> bool {
-        matches!(self, Self::Running | Self::Off | Self::Unknown | Self::Other)
+        matches!(
+            self,
+            Self::Running | Self::Off | Self::Unknown | Self::Other
+        )
     }
 }
 

@@ -65,12 +65,7 @@ where
                         }
                     }
                 }
-                Some(
-                    Stream::Pending(_)
-                    | Stream::Delayed(_)
-                    | Stream::Init
-                    | Stream::Wait,
-                ) => {
+                Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Wait) => {
                     let waker = cx.waker().clone();
                     match iter.wake(Box::new(move || waker.wake_by_ref())) {
                         WakeResult::Successful => {

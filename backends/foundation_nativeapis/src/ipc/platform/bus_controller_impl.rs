@@ -2,15 +2,18 @@
 ///
 /// Platform-agnostic: uses `EncodedMessage`, `IoHub`, and `Remote` which are
 /// re-exported per-platform from the parent module.
-
-use std::{mem, sync::mpsc::Sender, thread, time::{Duration, Instant}};
-
-use crate::ipc::{
-    decode, version::version,
-    ConnectMessage, ConnectMessageAck, Message,
-    EndpointID, Error, Label, SelectorMode,
+use std::{
+    mem,
+    sync::mpsc::Sender,
+    thread,
+    time::{Duration, Instant},
 };
-use super::{Remote, EncodedMessage, IoHub};
+
+use super::{EncodedMessage, IoHub, Remote};
+use crate::ipc::{
+    decode, version::version, ConnectMessage, ConnectMessageAck, EndpointID, Error, Label, Message,
+    SelectorMode,
+};
 use foundation_core::type_uuid::TypeUuid;
 
 struct Endpoint {

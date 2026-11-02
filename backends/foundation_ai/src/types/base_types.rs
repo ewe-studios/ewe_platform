@@ -1323,7 +1323,10 @@ impl Tool {
             Tool::SingleCommand(d) => prop_keys(&d.arguments.schema),
             Tool::MultiCommands(_, cmds) => format!(
                 "command: {}",
-                cmds.iter().map(|c| c.name.as_str()).collect::<Vec<_>>().join("|")
+                cmds.iter()
+                    .map(|c| c.name.as_str())
+                    .collect::<Vec<_>>()
+                    .join("|")
             ),
         }
     }
@@ -1381,9 +1384,9 @@ impl Tool {
                 // For MultiCommands, the per-command `returns` schemas (if any)
                 // are collected; the first non-None wins as the tool-level
                 // return schema.
-                let returns = cmds.iter().find_map(|c| {
-                    c.returns.as_ref().map(|r| r.schema.clone())
-                });
+                let returns = cmds
+                    .iter()
+                    .find_map(|c| c.returns.as_ref().map(|r| r.schema.clone()));
 
                 ToolFunctionSpec {
                     name: name.clone(),

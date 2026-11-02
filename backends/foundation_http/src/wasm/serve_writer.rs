@@ -3,10 +3,8 @@
 
 use std::sync::Arc;
 
-use foundation_netio::shared::http::{
-    SendSafeBody, SimpleIncomingRequest,
-};
 use foundation_errstacks::ErrorTrace;
+use foundation_netio::shared::http::{SendSafeBody, SimpleIncomingRequest};
 
 use crate::shared::app::HttpApp;
 use crate::shared::context::ContextBag;
@@ -40,7 +38,9 @@ pub fn handle_request_with_bag(
     }
 
     // Dispatch to router
-    let handler = app.router().dispatch(&method, &path)
+    let handler = app
+        .router()
+        .dispatch(&method, &path)
         .ok_or_else(|| ServeError::BadRequest {
             status: 404,
             reason: format!("no route for {method:?} {path}"),
@@ -83,13 +83,18 @@ pub fn run_middleware_writer(
                     Some(SendSafeBody::Bytes(b)) => b.clone(),
                     _ => Vec::new(),
                 };
-                return (req, Some(WasmResponse {
-                    status: status_code as u16,
-                    body: Some(body_bytes),
-                    headers: response.headers.iter().map(|(k, v)| {
-                        (k.to_string(), v.join(", "))
-                    }).collect(),
-                }));
+                return (
+                    req,
+                    Some(WasmResponse {
+                        status: status_code as u16,
+                        body: Some(body_bytes),
+                        headers: response
+                            .headers
+                            .iter()
+                            .map(|(k, v)| (k.to_string(), v.join(", ")))
+                            .collect(),
+                    }),
+                );
             }
             MiddlewareResult::InterimResponse(_) => {}
         }

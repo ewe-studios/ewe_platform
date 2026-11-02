@@ -68,7 +68,9 @@ fn handle(mut stream: TcpStream, rows: &Rows) {
             if name.eq_ignore_ascii_case("content-length") {
                 content_length = value.trim().parse().unwrap();
             }
-            if name.eq_ignore_ascii_case("expect") && value.trim().eq_ignore_ascii_case("100-continue") {
+            if name.eq_ignore_ascii_case("expect")
+                && value.trim().eq_ignore_ascii_case("100-continue")
+            {
                 expects_continue = true;
             }
         }

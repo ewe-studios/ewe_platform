@@ -81,7 +81,9 @@ pub(crate) type RawTurnItems<D, M> = foundation_compact::SendWrapper<
 >;
 
 /// The next raw item of `items`.
-async fn next_item<D, M>(items: &mut RawTurnItems<D, M>) -> Option<Stream<SessionRecord, AgentProgress>>
+async fn next_item<D, M>(
+    items: &mut RawTurnItems<D, M>,
+) -> Option<Stream<SessionRecord, AgentProgress>>
 where
     D: DocumentStore + 'static,
     M: MemoryStore + 'static,
@@ -344,8 +346,7 @@ impl TurnText {
 
     fn flush(&mut self) {
         let pieces: Vec<&str> = self.run.iter().map(String::as_str).collect();
-        self.done
-            .push_str(&join_text_chunks(&pieces));
+        self.done.push_str(&join_text_chunks(&pieces));
         self.run.clear();
     }
 
@@ -692,10 +693,7 @@ where
 {
     type Item = TurnTextEvent;
 
-    fn poll_next(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<TurnTextEvent>> {
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<TurnTextEvent>> {
         let this = self.get_mut();
         loop {
             match Pin::new(&mut this.events).poll_next(cx) {
@@ -738,15 +736,10 @@ where
     finished: bool,
 }
 
-impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AsyncStream
-    for TurnEvents<D, M>
-{
+impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AsyncStream for TurnEvents<D, M> {
     type Item = TurnEvent;
 
-    fn poll_next(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<TurnEvent>> {
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<TurnEvent>> {
         let this = self.get_mut();
         loop {
             if this.finished {

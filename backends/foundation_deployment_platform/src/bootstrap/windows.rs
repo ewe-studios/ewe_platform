@@ -9,8 +9,8 @@ use std::thread;
 use std::time::Duration;
 use tracing::{debug, warn};
 
-use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};
 use crate::bootstrap::BootstrapLogger;
+use crate::bootstrap::{BOOTSTRAP_MISE_TOML, logger};
 use crate::config::{Result, TestbedError, VmProfile};
 use crate::ssh::VmSession;
 use crate::winrm::WinRM;
@@ -18,34 +18,48 @@ use crate::winrm::elevated::{self, ProgressCallback};
 
 const CHECK_VIRTIO_PS1: &str = include_str!("../../scripts/windows/check_virtio.ps1");
 const INSTALL_VIRTIO_PS1: &str = include_str!("../../scripts/windows/install_virtio.ps1");
-const REGISTER_VIRTIOFS_STARTUP_PS1: &str = include_str!("../../scripts/windows/register_virtiofs_startup.ps1");
+const REGISTER_VIRTIOFS_STARTUP_PS1: &str =
+    include_str!("../../scripts/windows/register_virtiofs_startup.ps1");
 const INSTALL_OPENSSH_PS1: &str = include_str!("../../scripts/windows/install_openssh.ps1");
 const CONFIGURE_SSHD_PS1: &str = include_str!("../../scripts/windows/configure_sshd.ps1");
 const SETUP_SSH_KEYS_PS1: &str = include_str!("../../scripts/windows/setup_ssh_keys.ps1");
-const SET_LOCAL_ACCOUNT_TOKEN_FILTER_PS1: &str = include_str!("../../scripts/windows/set_local_account_token_filter.ps1");
+const SET_LOCAL_ACCOUNT_TOKEN_FILTER_PS1: &str =
+    include_str!("../../scripts/windows/set_local_account_token_filter.ps1");
 const SET_AUTOLOGIN_PS1: &str = include_str!("../../scripts/windows/set_autologin.ps1");
 const INSTALL_MISE_PS1: &str = include_str!("../../scripts/windows/install_mise.ps1");
-const INSTALL_CARGO_BINSTALL_PS1: &str = include_str!("../../scripts/windows/install_cargo_binstall.ps1");
-const CONFIGURE_MISE_CARGO_BINSTALL_PS1: &str = include_str!("../../scripts/windows/configure_mise_cargo_binstall.ps1");
-const CHECK_VS_BUILD_TOOLS_PS1: &str = include_str!("../../scripts/windows/check_vs_build_tools.ps1");
-const INSTALL_VS_BUILD_TOOLS_PS1: &str = include_str!("../../scripts/windows/install_vs_build_tools.ps1");
+const INSTALL_CARGO_BINSTALL_PS1: &str =
+    include_str!("../../scripts/windows/install_cargo_binstall.ps1");
+const CONFIGURE_MISE_CARGO_BINSTALL_PS1: &str =
+    include_str!("../../scripts/windows/configure_mise_cargo_binstall.ps1");
+const CHECK_VS_BUILD_TOOLS_PS1: &str =
+    include_str!("../../scripts/windows/check_vs_build_tools.ps1");
+const INSTALL_VS_BUILD_TOOLS_PS1: &str =
+    include_str!("../../scripts/windows/install_vs_build_tools.ps1");
 const INSTALL_WEBVIEW2_PS1: &str = include_str!("../../scripts/windows/install_webview2.ps1");
 const CHECK_WEBVIEW2_PS1: &str = include_str!("../../scripts/windows/check_webview2.ps1");
 const DEBLOAT_PS1: &str = include_str!("../../scripts/windows/debloat.ps1");
 const DEBLOAT_ACTION_PS1: &str = include_str!("../../scripts/windows/debloat_action.ps1");
-const SET_DEFENDER_EXCLUSIONS_PS1: &str = include_str!("../../scripts/windows/set_defender_exclusions.ps1");
+const SET_DEFENDER_EXCLUSIONS_PS1: &str =
+    include_str!("../../scripts/windows/set_defender_exclusions.ps1");
 const CLEAN_MAIN_PS1: &str = include_str!("../../scripts/windows/clean/main.ps1");
 const CLEAN_ACTION_PS1: &str = include_str!("../../scripts/windows/clean/action.ps1");
 const CLEAN_DEEP_PS1: &str = include_str!("../../scripts/windows/clean/deep.ps1");
-const CLEAN_COMPACTOS_PS1: &str = include_str!("../../scripts/windows/clean/aggressive_compactos.ps1");
-const CLEAN_HIBERNATION_PS1: &str = include_str!("../../scripts/windows/clean/aggressive_hibernation.ps1");
+const CLEAN_COMPACTOS_PS1: &str =
+    include_str!("../../scripts/windows/clean/aggressive_compactos.ps1");
+const CLEAN_HIBERNATION_PS1: &str =
+    include_str!("../../scripts/windows/clean/aggressive_hibernation.ps1");
 const CLEAN_VSS_PS1: &str = include_str!("../../scripts/windows/clean/aggressive_vss.ps1");
-const CLEAN_EVENT_LOGS_PS1: &str = include_str!("../../scripts/windows/clean/aggressive_event_logs.ps1");
-const CLEAN_PAGEFILE_PS1: &str = include_str!("../../scripts/windows/clean/aggressive_pagefile.ps1");
-const CONFIGURE_RUSTUP_ARM64_PS1: &str = include_str!("../../scripts/windows/configure_rustup_arm64.ps1");
+const CLEAN_EVENT_LOGS_PS1: &str =
+    include_str!("../../scripts/windows/clean/aggressive_event_logs.ps1");
+const CLEAN_PAGEFILE_PS1: &str =
+    include_str!("../../scripts/windows/clean/aggressive_pagefile.ps1");
+const CONFIGURE_RUSTUP_ARM64_PS1: &str =
+    include_str!("../../scripts/windows/configure_rustup_arm64.ps1");
 const INSTALL_TOOLS_MISE_PS1: &str = include_str!("../../scripts/windows/install_tools_mise.ps1");
-const SET_NUSHELL_DEFAULT_SHELL_PS1: &str = include_str!("../../scripts/windows/set_nushell_default_shell.ps1");
-const WRITE_BOOTSTRAP_MARKER_PS1: &str = include_str!("../../scripts/windows/write_bootstrap_marker.ps1");
+const SET_NUSHELL_DEFAULT_SHELL_PS1: &str =
+    include_str!("../../scripts/windows/set_nushell_default_shell.ps1");
+const WRITE_BOOTSTRAP_MARKER_PS1: &str =
+    include_str!("../../scripts/windows/write_bootstrap_marker.ps1");
 const INSTALL_WINFSP_PS1: &str = include_str!("../../scripts/windows/install_winfsp.ps1");
 const CHECK_PROJECT_MOUNT_PS1: &str = include_str!("../../scripts/windows/check_project_mount.ps1");
 const INTERACTIVE_LAUNCH_PS1: &str = include_str!("../../scripts/windows/interactive_launch.ps1");
@@ -69,7 +83,11 @@ struct PsResult {
 /// resilient — `WinRM` is available as a safety net.
 fn ssh_ps(session: &mut VmSession, winrm: &WinRM, script: &str) -> Result<PsResult> {
     if let Ok((stdout, exit_code)) = crate::ssh::exec_ps_windows(session, script) {
-        return Ok(PsResult { stdout, stderr: String::new(), exit_code });
+        return Ok(PsResult {
+            stdout,
+            stderr: String::new(),
+            exit_code,
+        });
     }
     debug!("SSH exec failed, falling back to WinRM for PowerShell");
     let cmd = winrm.run_ps_quiet(script)?;
@@ -87,7 +105,14 @@ fn ssh_ps(session: &mut VmSession, winrm: &WinRM, script: &str) -> Result<PsResu
 ///
 /// # Errors
 /// Returns an error if a bootstrap step fails.
-pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>, force_vsbuild: bool) -> Result<()> {
+pub fn bootstrap_windows(
+    profile: &VmProfile,
+    winrm: &WinRM,
+    session: &mut VmSession,
+    logger: &BootstrapLogger,
+    progress: ProgressCallback<'_>,
+    force_vsbuild: bool,
+) -> Result<()> {
     // Phase 1: WinRM-only steps (no SSH required)
     logger::step(logger, "install OpenSSH Server", || {
         install_openssh_server(winrm, progress)
@@ -120,9 +145,7 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
     thread::sleep(std::time::Duration::from_secs(5));
 
     // Phase 5+: SSH-required steps
-    logger::step(logger, "install mise", || {
-        install_mise(session)
-    })?;
+    logger::step(logger, "install mise", || install_mise(session))?;
 
     logger::step(logger, "install cargo-binstall", || {
         install_cargo_binstall(session, winrm)
@@ -136,9 +159,7 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
         install_vs_build_tools(session, winrm, progress, force_vsbuild)
     })?;
 
-    logger::step(logger, "install WinFsp", || {
-        install_winfsp(winrm)
-    })?;
+    logger::step(logger, "install WinFsp", || install_winfsp(winrm))?;
 
     logger::step(logger, "install virtio drivers", || {
         install_virtio_drivers(session, winrm)
@@ -156,13 +177,13 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
         set_defender_exclusions(session)
     })?;
 
-    logger::step(logger, "configure rustup for x86_64 (ARM64 workaround)", || {
-        configure_rustup_arm64(session)
-    })?;
+    logger::step(
+        logger,
+        "configure rustup for x86_64 (ARM64 workaround)",
+        || configure_rustup_arm64(session),
+    )?;
 
-    logger::step(logger, "install tools via mise", || {
-        install_tools(session)
-    })?;
+    logger::step(logger, "install tools via mise", || install_tools(session))?;
 
     logger::step(logger, "set nushell as default shell", || {
         set_nushell_default_shell(session)
@@ -183,7 +204,12 @@ pub fn bootstrap_windows(profile: &VmProfile, winrm: &WinRM, session: &mut VmSes
 ///
 /// # Errors
 /// Returns an error if a `WinRM` bootstrap step fails.
-pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM, logger: &BootstrapLogger, progress: ProgressCallback<'_>) -> Result<()> {
+pub fn bootstrap_windows_winrm_phase(
+    profile: &VmProfile,
+    winrm: &WinRM,
+    logger: &BootstrapLogger,
+    progress: ProgressCallback<'_>,
+) -> Result<()> {
     logger::step(logger, "install OpenSSH Server", || {
         install_openssh_server(winrm, progress)
     })?;
@@ -221,10 +247,15 @@ pub fn bootstrap_windows_winrm_phase(profile: &VmProfile, winrm: &WinRM, logger:
 ///
 /// # Errors
 /// Returns an error if an SSH bootstrap step fails.
-pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: &mut VmSession, logger: &BootstrapLogger, progress: ProgressCallback<'_>, force_vsbuild: bool) -> Result<()> {
-    logger::step(logger, "install mise", || {
-        install_mise(session)
-    })?;
+pub fn bootstrap_windows_ssh_phase(
+    profile: &VmProfile,
+    winrm: &WinRM,
+    session: &mut VmSession,
+    logger: &BootstrapLogger,
+    progress: ProgressCallback<'_>,
+    force_vsbuild: bool,
+) -> Result<()> {
+    logger::step(logger, "install mise", || install_mise(session))?;
 
     logger::step(logger, "install cargo-binstall", || {
         install_cargo_binstall(session, winrm)
@@ -238,9 +269,7 @@ pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: 
         install_vs_build_tools(session, winrm, progress, force_vsbuild)
     })?;
 
-    logger::step(logger, "install WinFsp", || {
-        install_winfsp(winrm)
-    })?;
+    logger::step(logger, "install WinFsp", || install_winfsp(winrm))?;
 
     logger::step(logger, "install virtio drivers", || {
         install_virtio_drivers(session, winrm)
@@ -258,13 +287,13 @@ pub fn bootstrap_windows_ssh_phase(profile: &VmProfile, winrm: &WinRM, session: 
         set_defender_exclusions(session)
     })?;
 
-    logger::step(logger, "configure rustup for x86_64 (ARM64 workaround)", || {
-        configure_rustup_arm64(session)
-    })?;
+    logger::step(
+        logger,
+        "configure rustup for x86_64 (ARM64 workaround)",
+        || configure_rustup_arm64(session),
+    )?;
 
-    logger::step(logger, "install tools via mise", || {
-        install_tools(session)
-    })?;
+    logger::step(logger, "install tools via mise", || install_tools(session))?;
 
     logger::step(logger, "set nushell as default shell", || {
         set_nushell_default_shell(session)
@@ -308,7 +337,9 @@ fn setup_ssh_keys(winrm: &WinRM) {
 
     for key_name in key_names {
         let path = home.join(".ssh").join(key_name);
-        if path.exists() && let Ok(key) = std::fs::read_to_string(&path) {
+        if path.exists()
+            && let Ok(key) = std::fs::read_to_string(&path)
+        {
             pub_key = key.trim().to_string();
             break;
         }
@@ -385,7 +416,10 @@ pub fn reboot_and_wait(winrm: &WinRM, logger: &BootstrapLogger) -> Result<()> {
 
 /// Install mise on Windows — downloads binary on host, SCPs to VM.
 fn install_mise(session: &mut VmSession) -> Result<()> {
-    let (check, _) = crate::ssh::exec_ps_windows(session, "Get-Command mise -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name")?;
+    let (check, _) = crate::ssh::exec_ps_windows(
+        session,
+        "Get-Command mise -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name",
+    )?;
     if !check.trim().is_empty() {
         return Ok(());
     }
@@ -418,7 +452,10 @@ fn install_cargo_binstall(session: &mut VmSession, winrm: &WinRM) -> Result<()> 
 
 /// Download a file to `$HOME/.testbed/` if not already cached, return the local path.
 fn cache_or_download(filename: &str, url: &str) -> Result<PathBuf> {
-    let cache_dir = dirs::home_dir().map_or_else(|| PathBuf::from("/tmp/.testbed/windows"), |h| h.join(".testbed/windows"));
+    let cache_dir = dirs::home_dir().map_or_else(
+        || PathBuf::from("/tmp/.testbed/windows"),
+        |h| h.join(".testbed/windows"),
+    );
     std::fs::create_dir_all(&cache_dir).map_err(|e| TestbedError::BootstrapFailed {
         step: format!("create cache dir {}", cache_dir.display()),
         message: e.to_string(),
@@ -426,15 +463,26 @@ fn cache_or_download(filename: &str, url: &str) -> Result<PathBuf> {
 
     let dest = cache_dir.join(filename);
     if dest.exists() {
-        debug!("using cached: {} ({} bytes)", filename, dest.metadata().unwrap().len());
+        debug!(
+            "using cached: {} ({} bytes)",
+            filename,
+            dest.metadata().unwrap().len()
+        );
         return Ok(dest);
     }
 
     debug!("downloading {filename} from {url} to {cache_dir:?}...");
     let status = Command::new("curl")
         .args([
-            "-fSL", "--retry", "3", "--retry-delay", "5", "-C", "-",
-            "-o", dest.to_str().ok_or_else(|| TestbedError::BootstrapFailed {
+            "-fSL",
+            "--retry",
+            "3",
+            "--retry-delay",
+            "5",
+            "-C",
+            "-",
+            "-o",
+            dest.to_str().ok_or_else(|| TestbedError::BootstrapFailed {
                 step: format!("download {filename}"),
                 message: "cache path is not valid UTF-8".to_string(),
             })?,
@@ -467,7 +515,12 @@ fn configure_mise_cargo_binstall(session: &mut VmSession) -> Result<()> {
 }
 
 /// Install VS Build Tools with C++ workload.
-fn install_vs_build_tools(session: &mut VmSession, winrm: &WinRM, progress: ProgressCallback<'_>, force: bool) -> Result<()> {
+fn install_vs_build_tools(
+    session: &mut VmSession,
+    winrm: &WinRM,
+    progress: ProgressCallback<'_>,
+    force: bool,
+) -> Result<()> {
     if force {
         debug!("--force-vsbuild-install: skipping precheck, running installer");
     } else {
@@ -575,19 +628,42 @@ fn set_defender_exclusions(session: &mut VmSession) -> Result<()> {
 /// Returns an error if the elevated cleanup script fails.
 pub fn debloat_windows(winrm: &WinRM) -> Result<()> {
     const DEBLOAT_PREFIXES: &[&str] = &[
-        "Microsoft.BingWeather", "Microsoft.GetHelp", "Microsoft.Getstarted",
-        "Microsoft.MicrosoftSolitaireCollection", "Microsoft.MicrosoftStickyNotes",
-        "Microsoft.MixedReality.Portal", "Microsoft.Office.OneNote",
-        "Microsoft.OneDriveSync", "Microsoft.People", "Microsoft.PowerAutomateDesktop",
-        "Microsoft.ScreenSketch", "Microsoft.SkypeApp", "Microsoft.Todos",
-        "Microsoft.WindowsAlarms", "Microsoft.WindowsCamera", "Microsoft.WindowsFeedbackHub",
-        "Microsoft.WindowsMaps", "Microsoft.WindowsSoundRecorder", "Microsoft.Xbox.TCUI",
-        "Microsoft.XboxApp", "Microsoft.XboxGameOverlay", "Microsoft.XboxGamingOverlay",
-        "Microsoft.XboxIdentityProvider", "Microsoft.XboxSpeechToTextOverlay",
-        "Microsoft.YourPhone", "Microsoft.ZuneMusic", "Microsoft.ZuneVideo",
-        "Clipchamp.Clipchamp", "MicrosoftTeams", "SpotifyAB.SpotifyMusic",
+        "Microsoft.BingWeather",
+        "Microsoft.GetHelp",
+        "Microsoft.Getstarted",
+        "Microsoft.MicrosoftSolitaireCollection",
+        "Microsoft.MicrosoftStickyNotes",
+        "Microsoft.MixedReality.Portal",
+        "Microsoft.Office.OneNote",
+        "Microsoft.OneDriveSync",
+        "Microsoft.People",
+        "Microsoft.PowerAutomateDesktop",
+        "Microsoft.ScreenSketch",
+        "Microsoft.SkypeApp",
+        "Microsoft.Todos",
+        "Microsoft.WindowsAlarms",
+        "Microsoft.WindowsCamera",
+        "Microsoft.WindowsFeedbackHub",
+        "Microsoft.WindowsMaps",
+        "Microsoft.WindowsSoundRecorder",
+        "Microsoft.Xbox.TCUI",
+        "Microsoft.XboxApp",
+        "Microsoft.XboxGameOverlay",
+        "Microsoft.XboxGamingOverlay",
+        "Microsoft.XboxIdentityProvider",
+        "Microsoft.XboxSpeechToTextOverlay",
+        "Microsoft.YourPhone",
+        "Microsoft.ZuneMusic",
+        "Microsoft.ZuneVideo",
+        "Clipchamp.Clipchamp",
+        "MicrosoftTeams",
+        "SpotifyAB.SpotifyMusic",
     ];
-    let prefixes_ps = DEBLOAT_PREFIXES.iter().map(|p| format!("'{p}'")).collect::<Vec<_>>().join(", ");
+    let prefixes_ps = DEBLOAT_PREFIXES
+        .iter()
+        .map(|p| format!("'{p}'"))
+        .collect::<Vec<_>>()
+        .join(", ");
     let script = DEBLOAT_PS1
         .replace("__PREFIXES__", &prefixes_ps)
         .replace("__ACTION__", DEBLOAT_ACTION_PS1);
@@ -617,7 +693,9 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
         debug!("virtiofs process starting, waiting for completion...");
         let deadline = std::time::Instant::now() + Duration::from_secs(30);
         loop {
-            if std::time::Instant::now() > deadline { break; }
+            if std::time::Instant::now() > deadline {
+                break;
+            }
             thread::sleep(Duration::from_secs(3));
             let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
             if check.stdout.starts_with("mounted|") {
@@ -634,7 +712,9 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
     // Wait for virtiofs mount to appear
     let deadline = std::time::Instant::now() + Duration::from_secs(90);
     loop {
-        if std::time::Instant::now() > deadline { break; }
+        if std::time::Instant::now() > deadline {
+            break;
+        }
         thread::sleep(Duration::from_secs(5));
         let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
         let stdout = check.stdout.trim();
@@ -656,15 +736,27 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
         }
         if stdout == "missing" {
             // Check if virtiofs.exe is installed
-            let virtio_check = ssh_ps(session, winrm, "if (Test-Path 'C:\\Program Files\\Virtio-Win\\VioFS\\virtiofs.exe') { 'EXISTS' } else { 'MISSING' }")?;
+            let virtio_check = ssh_ps(
+                session,
+                winrm,
+                "if (Test-Path 'C:\\Program Files\\Virtio-Win\\VioFS\\virtiofs.exe') { 'EXISTS' } else { 'MISSING' }",
+            )?;
             debug!("virtiofs.exe check: {}", virtio_check.stdout.trim());
 
             // Check VirtIO-FS driver status
-            let driver_check = ssh_ps(session, winrm, "Get-PnpDevice -Class System -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like '*VirtIO*' } | Select-Object -First 3 | ForEach-Object { $_.FriendlyName }")?;
+            let driver_check = ssh_ps(
+                session,
+                winrm,
+                "Get-PnpDevice -Class System -ErrorAction SilentlyContinue | Where-Object { $_.FriendlyName -like '*VirtIO*' } | Select-Object -First 3 | ForEach-Object { $_.FriendlyName }",
+            )?;
             debug!("VirtIO drivers found: {}", driver_check.stdout.trim());
 
             // Check WinFsp service
-            let winfsp_check = ssh_ps(session, winrm, "Get-Service -Name 'WinFsp.Launcher' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status")?;
+            let winfsp_check = ssh_ps(
+                session,
+                winrm,
+                "Get-Service -Name 'WinFsp.Launcher' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Status",
+            )?;
             debug!("WinFsp.Launcher status: {}", winfsp_check.stdout.trim());
         }
     }
@@ -675,7 +767,9 @@ fn setup_project_mount(session: &mut VmSession, winrm: &WinRM, _methods: &[&str]
 
     let deadline = std::time::Instant::now() + Duration::from_secs(60);
     loop {
-        if std::time::Instant::now() > deadline { break; }
+        if std::time::Instant::now() > deadline {
+            break;
+        }
         thread::sleep(Duration::from_secs(5));
         let check = ssh_ps(session, winrm, CHECK_PROJECT_MOUNT_PS1)?;
         if check.stdout.starts_with("mounted|") {
@@ -798,7 +892,11 @@ pub fn run_interactive_windows(winrm: &WinRM, bin_path: &str, args: &[String]) -
     let arglist = if args.is_empty() {
         String::new()
     } else {
-        let quoted = args.iter().map(|a| format!("'{a}'")).collect::<Vec<_>>().join(",");
+        let quoted = args
+            .iter()
+            .map(|a| format!("'{a}'"))
+            .collect::<Vec<_>>()
+            .join(",");
         format!(" -ArgumentList @({quoted})")
     };
     let script = INTERACTIVE_LAUNCH_PS1
@@ -815,7 +913,11 @@ pub fn run_interactive_windows(winrm: &WinRM, bin_path: &str, args: &[String]) -
 ///
 /// # Errors
 /// Returns an error if the screenshot or download fails.
-pub fn screenshot_windows(winrm: &WinRM, session: &mut VmSession, output: &std::path::Path) -> Result<()> {
+pub fn screenshot_windows(
+    winrm: &WinRM,
+    session: &mut VmSession,
+    output: &std::path::Path,
+) -> Result<()> {
     let vm_path = "$env:USERPROFILE\\.testbed-screenshot.png";
     let script = SCREENSHOT_WINDOWS_PS1.replace("__OUTPUT_PATH__", vm_path);
 
@@ -826,11 +928,17 @@ pub fn screenshot_windows(winrm: &WinRM, session: &mut VmSession, output: &std::
     thread::sleep(std::time::Duration::from_secs(3));
 
     // Download to host
-    crate::ssh::download(session, "C:\\Users\\vagrant\\.testbed-screenshot.png", output)?;
+    crate::ssh::download(
+        session,
+        "C:\\Users\\vagrant\\.testbed-screenshot.png",
+        output,
+    )?;
 
     // Clean up on VM
-    crate::ssh::exec_ps_windows(session, "Remove-Item 'C:\\Users\\vagrant\\.testbed-screenshot.png' -Force -ErrorAction SilentlyContinue")?;
+    crate::ssh::exec_ps_windows(
+        session,
+        "Remove-Item 'C:\\Users\\vagrant\\.testbed-screenshot.png' -Force -ErrorAction SilentlyContinue",
+    )?;
 
     Ok(())
 }
-

@@ -64,8 +64,14 @@ async fn l2_scores_are_negative_squared_distance() {
     let store = SqliteVecVectorStore::open(cfg, dir.path().join("v.db"))
         .await
         .unwrap();
-    store.insert("ns", entry("near", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert("ns", entry("far", [3.0, 0.0, 0.0])).await.unwrap();
+    store
+        .insert("ns", entry("near", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert("ns", entry("far", [3.0, 0.0, 0.0]))
+        .await
+        .unwrap();
     let m = store.search("ns", &[0.0, 0.0, 0.0], 2).await.unwrap();
     assert_eq!(m[0].id, "near");
     assert!((m[0].score - -1.0).abs() < 1e-4, "score {}", m[0].score);

@@ -7,8 +7,8 @@ use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 
-use crate::ConfidentialText;
 use crate::shared::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
+use crate::ConfidentialText;
 
 /// MFA type supported by the `IdP`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -166,10 +166,7 @@ impl PasswordAuthClient {
     }
 
     /// Internal: execute the login request.
-    async fn do_login(
-        &self,
-        request: LoginRequest<'_>,
-    ) -> Result<LoginResult, PasswordAuthError> {
+    async fn do_login(&self, request: LoginRequest<'_>) -> Result<LoginResult, PasswordAuthError> {
         let url = format!("{}/auth/v1/login", self.base_url);
         let body = serde_json::to_string(&request)
             .map_err(|e| PasswordAuthError::ParseError(e.to_string()))?;
@@ -221,15 +218,12 @@ impl PasswordAuthClient {
         let body = read_body_text(resp.take_async_body())
             .await
             .map_err(PasswordAuthError::ConnectionFailed)?;
-        serde_json::from_str(&body)
-            .map_err(|e| PasswordAuthError::ParseError(e.to_string()))
+        serde_json::from_str(&body).map_err(|e| PasswordAuthError::ParseError(e.to_string()))
     }
 }
 
 /// Parse the raw JSON response into a `LoginResult`.
-fn parse_login_response(
-    value: &serde_json::Value,
-) -> Result<LoginResult, PasswordAuthError> {
+fn parse_login_response(value: &serde_json::Value) -> Result<LoginResult, PasswordAuthError> {
     let status = value
         .get("status")
         .and_then(|v| v.as_str())
@@ -243,7 +237,10 @@ fn parse_login_response(
                 .and_then(|v| v.as_str())
                 .unwrap_or_default()
                 .to_string(),
-            mfa_required: value.get("mfa_required").and_then(serde_json::Value::as_bool).unwrap_or(false),
+            mfa_required: value
+                .get("mfa_required")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false),
         }),
         "mfa_required" => {
             let challenge_id = value
@@ -265,7 +262,10 @@ fn parse_login_response(
                 .get("attempts_remaining")
                 .and_then(serde_json::Value::as_u64)
                 .and_then(|n| u32::try_from(n).ok()),
-            locked: value.get("locked").and_then(serde_json::Value::as_bool).unwrap_or(false),
+            locked: value
+                .get("locked")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(false),
         }),
         other => Err(PasswordAuthError::ParseError(format!(
             "unknown login status: {other}"

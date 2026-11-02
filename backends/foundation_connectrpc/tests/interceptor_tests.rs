@@ -126,10 +126,7 @@ fn chain_runs_first_interceptor_outermost_and_carries_codec_name() {
 
     assert_eq!(&reply.frame[..], b"x");
     // First-in-list runs outermost: A:in, B:in, B:out, A:out.
-    assert_eq!(
-        *log.lock().unwrap(),
-        vec!["A:in", "B:in", "B:out", "A:out"]
-    );
+    assert_eq!(*log.lock().unwrap(), vec!["A:in", "B:in", "B:out", "A:out"]);
     assert_eq!(*seen_codec.lock().unwrap(), "proto");
 }
 
@@ -257,7 +254,10 @@ fn panic_in_handler_becomes_internal_via_recover() {
     });
 
     let recover = RecoverInterceptor::new(
-        |_ctx: &Ctx, _spec: &Spec, _headers: &SimpleHeaders, payload: Box<dyn std::any::Any + Send>| {
+        |_ctx: &Ctx,
+         _spec: &Spec,
+         _headers: &SimpleHeaders,
+         payload: Box<dyn std::any::Any + Send>| {
             let msg = payload
                 .downcast_ref::<&str>()
                 .map(|s| (*s).to_string())

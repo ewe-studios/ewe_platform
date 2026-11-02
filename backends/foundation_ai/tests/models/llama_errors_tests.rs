@@ -3,10 +3,8 @@
 //! Pure and offline; this module was 0% covered.
 
 use foundation_ai::errors::llama::LlamaError;
+use foundation_ai::errors::llama::{DecodeError, EmbeddingsError, EncodeError, LlamaCppError};
 use foundation_ai::errors::{GenerationError, ModelErrors};
-use foundation_ai::errors::llama::{
-    DecodeError, EmbeddingsError, EncodeError, LlamaCppError,
-};
 
 #[test]
 fn llama_error_display_covers_each_variant() {
@@ -139,7 +137,9 @@ fn every_source_error_converts_into_generation_error() {
 
 #[test]
 fn source_errors_convert_into_model_errors() {
-    use foundation_ai::errors::llama::{EmbeddingsError, LlamaContextLoadError, LlamaModelLoadError};
+    use foundation_ai::errors::llama::{
+        EmbeddingsError, LlamaContextLoadError, LlamaModelLoadError,
+    };
 
     // The direct From<SourceError> for ModelErrors arms.
     let m: ModelErrors = LlamaModelLoadError::NullResult.into();

@@ -145,18 +145,26 @@ pub fn check_host() -> HostHealth {
     let disk_target = if cache_dir.exists() {
         cache_dir
     } else {
-        cache_dir.ancestors().find(|p| p.exists()).map_or_else(|| std::path::PathBuf::from("/"), std::path::Path::to_path_buf)
+        cache_dir.ancestors().find(|p| p.exists()).map_or_else(
+            || std::path::PathBuf::from("/"),
+            std::path::Path::to_path_buf,
+        )
     };
     let disk_msg = match fs2::available_space(&disk_target) {
         Ok(bytes) => {
-            #[allow(clippy::cast_precision_loss)] // size in bytes to f64 for display; precision loss is acceptable.
+            #[allow(clippy::cast_precision_loss)]
+            // size in bytes to f64 for display; precision loss is acceptable.
             let gb = bytes as f64 / 1_073_741_824.0;
             let ok = gb > 10.0;
             Check {
                 name: "disk_space",
                 ok,
                 message: format!("{:.1} GB available on {}", gb, disk_target.display()),
-                suggestion: if ok { None } else { Some("free up disk space or expand partition") },
+                suggestion: if ok {
+                    None
+                } else {
+                    Some("free up disk space or expand partition")
+                },
             }
         }
         Err(_) => Check {
@@ -175,7 +183,10 @@ pub fn check_host() -> HostHealth {
             checks.push(Check {
                 name: "port_check",
                 ok: false,
-                message: format!("default SSH port {} (profile '{}') is in use", profile.ssh_port, profile.name),
+                message: format!(
+                    "default SSH port {} (profile '{}') is in use",
+                    profile.ssh_port, profile.name
+                ),
                 suggestion: Some("stop the running VM or override the port in testbed.toml"),
             });
         }
@@ -299,4 +310,3 @@ pub fn find_ssh_key() -> Option<std::path::PathBuf> {
 fn is_port_free(port: u16) -> bool {
     std::net::TcpListener::bind(("127.0.0.1", port)).is_ok()
 }
-

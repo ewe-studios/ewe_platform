@@ -50,20 +50,20 @@ pub trait AsyncVfsDirectory: Send + Sync {
     async fn create_dir_async(
         &self,
         name: String,
-    ) -> VfsResult<
-        Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>,
-    >;
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>;
     async fn remove_entry_async(&self, name: String) -> VfsResult<()>;
     async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()>;
 
     async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File>;
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile>;
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile>;
     async fn open_directory_async(
         &self,
         path: String,
-    ) -> VfsResult<
-        Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>,
-    >;
+    ) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>;
     async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata>;
     async fn exists_async(&self, path: String) -> VfsResult<bool>;
 
@@ -164,7 +164,11 @@ pub trait AsyncVfsFileSystem: Send + Sync {
     async fn remove_async(&self, path: String) -> VfsResult<()>;
 
     async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File>;
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile>;
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile>;
     async fn open_directory_async(&self, path: String) -> VfsResult<Self::Directory>;
     async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File>;
     async fn mkdir_async(&self, path: String) -> VfsResult<()>;
@@ -202,7 +206,8 @@ pub trait AsyncVfsFileSystem: Send + Sync {
     async fn read_file_async(&self, path: String) -> VfsResult<Vec<u8>> {
         let file = self.open_async(path, OpenMode::Read).await?;
         let size = file.size_async().await?;
-        file.read_at_async(usize::try_from(size).unwrap_or(usize::MAX), 0).await
+        file.read_at_async(usize::try_from(size).unwrap_or(usize::MAX), 0)
+            .await
     }
 
     async fn write_file_async(&self, path: String, data: Vec<u8>) -> VfsResult<()> {

@@ -120,7 +120,7 @@ fn extended_length_64bit() {
     let frame = loop {
         match dec.step(&mut cursor).expect("step") {
             DecodeStep::Frame(f) => break f,
-            DecodeStep::Pending => {},
+            DecodeStep::Pending => {}
         }
     };
     assert_eq!(frame.payload.len(), 70000);

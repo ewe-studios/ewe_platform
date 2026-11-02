@@ -54,7 +54,7 @@ use std::sync::Arc;
 
 use deno_core::convert::Uint8Array;
 use deno_core::{
-    op2, Extension, FsModuleLoader, JsRuntime, OpState, PollEventLoopOptions, RuntimeOptions,
+    Extension, FsModuleLoader, JsRuntime, OpState, PollEventLoopOptions, RuntimeOptions, op2,
 };
 use deno_error::JsErrorBox;
 
@@ -372,7 +372,9 @@ async fn evaluate(
 #[must_use]
 pub fn spike_eval_addition() -> f64 {
     let mut rt = JsRuntime::new(RuntimeOptions::default());
-    let value = rt.execute_script("<spike>", "1 + 1").expect("execute_script");
+    let value = rt
+        .execute_script("<spike>", "1 + 1")
+        .expect("execute_script");
     deno_core::scope!(scope, rt);
     let local = deno_core::v8::Local::new(scope, value);
     local.number_value(scope).unwrap_or(f64::NAN)
@@ -389,7 +391,9 @@ pub fn spike_wasm_instantiate() -> bool {
         const i = new WebAssembly.Instance(m);\
         return typeof i === 'object';\
     })()";
-    let value = rt.execute_script("<spike-wasm>", src).expect("execute_script");
+    let value = rt
+        .execute_script("<spike-wasm>", src)
+        .expect("execute_script");
     deno_core::scope!(scope, rt);
     let local = deno_core::v8::Local::new(scope, value);
     local.boolean_value(scope)

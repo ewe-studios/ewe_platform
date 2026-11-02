@@ -1,5 +1,4 @@
 /// Integration test: Full valtron multi-threaded executor exercise.
-
 use std::fs::File;
 use std::path::PathBuf;
 use std::thread;
@@ -70,8 +69,15 @@ fn file_watcher_task_multi_executor() {
     let stream = execute(task, Some(Duration::from_millis(100))).expect("execute failed");
     let event = collect_one(stream).expect("expected at least one event");
 
-    assert!(event.path.starts_with(dir.path()), "expected event in watched dir, got {:?}", event.path);
-    assert!(rx.recv_timeout(Duration::from_secs(5)).is_ok(), "subscriber missed event");
+    assert!(
+        event.path.starts_with(dir.path()),
+        "expected event in watched dir, got {:?}",
+        event.path
+    );
+    assert!(
+        rx.recv_timeout(Duration::from_secs(5)).is_ok(),
+        "subscriber missed event"
+    );
 }
 
 /// Test: Multiple FileWatcherTask instances run concurrently.
@@ -117,9 +123,23 @@ fn multiple_watchers_concurrent_multi_executor() {
     let event1 = collect_one(stream1).expect("task1 expected at least one event");
     let event2 = collect_one(stream2).expect("task2 expected at least one event");
 
-    assert!(event1.path.starts_with(dir1.path()), "task1 event path: {:?}", event1.path);
-    assert!(event2.path.starts_with(dir2.path()), "task2 event path: {:?}", event2.path);
+    assert!(
+        event1.path.starts_with(dir1.path()),
+        "task1 event path: {:?}",
+        event1.path
+    );
+    assert!(
+        event2.path.starts_with(dir2.path()),
+        "task2 event path: {:?}",
+        event2.path
+    );
 
-    assert!(rx1.recv_timeout(Duration::from_secs(5)).is_ok(), "subscriber 1 missed event");
-    assert!(rx2.recv_timeout(Duration::from_secs(5)).is_ok(), "subscriber 2 missed event");
+    assert!(
+        rx1.recv_timeout(Duration::from_secs(5)).is_ok(),
+        "subscriber 1 missed event"
+    );
+    assert!(
+        rx2.recv_timeout(Duration::from_secs(5)).is_ok(),
+        "subscriber 2 missed event"
+    );
 }

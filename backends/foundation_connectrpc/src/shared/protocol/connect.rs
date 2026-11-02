@@ -20,18 +20,18 @@ use std::time::Duration;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine as _;
 use bytes::{Bytes, BytesMut};
-use futures::StreamExt;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };
+use futures::StreamExt;
 
 use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
 use crate::shared::context::{CancelSignal, Peer, Spec, StreamType};
-use crate::shared::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireError};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
+use crate::shared::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireError};
 use crate::shared::transport::{
     fail_stream, race, BodyStream, ByteSink, ByteSource, Frame, HeadStream, PipeClientConn,
     PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
@@ -303,10 +303,9 @@ async fn read_connect_response(
             Ok(())
         }
         Ok(None) => {
-            let e = ConnectError::internal(
-                "the response stream ended without an EndStreamResponse",
-            )
-            .into();
+            let e =
+                ConnectError::internal("the response stream ended without an EndStreamResponse")
+                    .into();
             fail_stream(&resp_tx, &e, &cancel).await;
             Err(e)
         }
@@ -523,8 +522,11 @@ impl ProtocolHandler for ConnectHandler {
             config.cancel,
         ));
         let writer_impl = EnvelopeWriter::new(negotiated.response_compressor, 0, 0);
-        let writer: BoxedTask =
-            Box::pin(write_response_frames(ends.response_rx, responder, writer_impl));
+        let writer: BoxedTask = Box::pin(write_response_frames(
+            ends.response_rx,
+            responder,
+            writer_impl,
+        ));
 
         Ok(HandlerExchange {
             conn: Box::new(conn),
@@ -548,8 +550,8 @@ impl ProtocolHandler for ConnectHandler {
     ) -> ConnectResult<Option<Bytes>> {
         // An uncompressed `EndStreamResponse`: valid whatever the stream
         // negotiated, as each envelope carries its own compressed flag.
-        let frame = EnvelopeWriter::new(None, 0, 0)
-            .write_end_stream(Some(error), &SimpleHeaders::new())?;
+        let frame =
+            EnvelopeWriter::new(None, 0, 0).write_end_stream(Some(error), &SimpleHeaders::new())?;
         Ok(Some(Bytes::from(frame)))
     }
 
@@ -608,8 +610,8 @@ impl ProtocolHandler for ConnectHandler {
 
         // Response compression is negotiated from the request's Accept-Encoding.
         let accept = header(&request.headers, "accept-encoding");
-        let compressor = negotiate_compression(compression, None, accept.as_deref())?
-            .response_compressor;
+        let compressor =
+            negotiate_compression(compression, None, accept.as_deref())?.response_compressor;
         let (body, encoding) = match compressor {
             Some(c) if !outcome.frame.is_empty() => {
                 (c.compress(&outcome.frame)?, Some(c.name().to_string()))
@@ -618,7 +620,10 @@ impl ProtocolHandler for ConnectHandler {
         };
 
         let mut headers = outcome.headers;
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec![unary_content_type(codec_name)]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![unary_content_type(codec_name)],
+        );
         if let Some(enc) = encoding {
             headers.insert(
                 SimpleHeader::from("content-encoding".to_string()),
@@ -729,7 +734,10 @@ impl ProtocolClient for ConnectClient {
                     constants::HEADER_STREAMING_ACCEPT_ENCODING.to_string(),
                 )
             } else {
-                ("content-encoding".to_string(), "accept-encoding".to_string())
+                (
+                    "content-encoding".to_string(),
+                    "accept-encoding".to_string(),
+                )
             };
             headers.insert(SimpleHeader::from(ce), vec![algo.to_string()]);
             headers.insert(SimpleHeader::from(ae), vec![algo.to_string()]);
@@ -765,8 +773,11 @@ impl ProtocolClient for ConnectClient {
         // No compression on the client tasks here (negotiation resolves from the
         // response head in the client core, F24); identity by default.
         let writer_impl = EnvelopeWriter::new(None, 0, 0);
-        let writer: BoxedTask =
-            Box::pin(write_request_frames(ends.request_rx, Arc::clone(&stream.send_body), writer_impl));
+        let writer: BoxedTask = Box::pin(write_request_frames(
+            ends.request_rx,
+            Arc::clone(&stream.send_body),
+            writer_impl,
+        ));
         let reader: BoxedTask = Box::pin(read_connect_response(
             stream.head,
             stream.recv_body,

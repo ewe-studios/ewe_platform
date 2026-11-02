@@ -39,7 +39,12 @@ impl BlobDelta<R2Store> {
         let account_id = env("CF_ACCOUNT_ID")?;
         let api_token = env("CF_API_TOKEN")?;
         let bucket = env("CF_R2_BUCKET")?;
-        Ok(Self::from_store(R2Store::new_blob(&api_token, &account_id, &bucket, "vfs")))
+        Ok(Self::from_store(R2Store::new_blob(
+            &api_token,
+            &account_id,
+            &bucket,
+            "vfs",
+        )))
     }
 
     /// An R2 delta over the given bucket (Cloudflare's API endpoint).

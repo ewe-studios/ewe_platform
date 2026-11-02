@@ -21,7 +21,6 @@ use foundation_netio::{DynNetClient, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-
 // ── Constants ──────────────────────────────────────────────────────────
 
 /// Let's Encrypt staging directory URL (untrusted certs, high rate limits).
@@ -124,7 +123,11 @@ pub fn build_jws(
     };
 
     let protected_b64 = base64_url(&serde_json::to_string(&protected).unwrap_or_default());
-    let payload_b64 = if payload.is_empty() { "".to_string() } else { base64_url(payload) };
+    let payload_b64 = if payload.is_empty() {
+        "".to_string()
+    } else {
+        base64_url(payload)
+    };
 
     // Signing: the caller provides a signature callback that takes
     // `protected_b64.payload_b64` and returns the base64url-encoded signature.
@@ -218,10 +221,7 @@ impl AcmeClient {
     /// Create a client targeting an explicit directory URL (a private/enterprise
     /// ACME CA, or a local test server such as Pebble / the mock in the F15
     /// integration test).
-    pub fn with_directory(
-        client: DynNetClient,
-        directory_url: impl Into<String>,
-    ) -> Self {
+    pub fn with_directory(client: DynNetClient, directory_url: impl Into<String>) -> Self {
         Self {
             client,
             max_error_body: DEFAULT_MAX_ERROR_BODY,
@@ -281,7 +281,10 @@ impl AcmeClient {
 
     /// Set the DNS-01 TXT record callback.
     #[must_use]
-    pub fn with_dns_setter(mut self, setter: impl Fn(&str, &str) -> Result<(), String> + Send + Sync + 'static) -> Self {
+    pub fn with_dns_setter(
+        mut self,
+        setter: impl Fn(&str, &str) -> Result<(), String> + Send + Sync + 'static,
+    ) -> Self {
         self.dns_setter = Some(Arc::new(setter));
         self
     }
@@ -289,10 +292,7 @@ impl AcmeClient {
     /// Fetch the ACME directory and create an account. Returns the account URL
     /// from the answer's `Location` header (RFC 8555 §7.3) and stores it as
     /// the key ID (kid) for later requests.
-    pub async fn create_account(
-        &self,
-        email: &str,
-    ) -> Result<String, String> {
+    pub async fn create_account(&self, email: &str) -> Result<String, String> {
         let dir = self.fetch_directory().await?;
         let nonce = match self.take_nonce() {
             Some(nonce) => nonce,
@@ -338,10 +338,7 @@ impl AcmeClient {
 
     /// Place an order for the given domains.
     /// Returns `(finalize_url, authorization_urls)`.
-    pub async fn place_order(
-        &self,
-        domains: &[String],
-    ) -> Result<(String, Vec<String>), String> {
+    pub async fn place_order(&self, domains: &[String]) -> Result<(String, Vec<String>), String> {
         let dir = self.fetch_directory().await?;
 
         let identifiers: Vec<Identifier> = domains
@@ -367,17 +364,18 @@ impl AcmeClient {
         let authorizations: Vec<String> = resp
             .get("authorizations")
             .and_then(|a| a.as_array())
-            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
             .unwrap_or_default();
 
         Ok((finalize_url, authorizations))
     }
 
     /// Fetch an authorization and return its DNS-01 challenge.
-    async fn get_dns01_challenge(
-        &self,
-        auth_url: &str,
-    ) -> Result<ChallengeResponse, String> {
+    async fn get_dns01_challenge(&self, auth_url: &str) -> Result<ChallengeResponse, String> {
         let (_headers, bytes) = self.post_signed(auth_url, "").await?;
         let resp: AuthorizationResponse = serde_json::from_slice(&bytes)
             .map_err(|e| format!("parse JSON from {auth_url}: {e}"))?;
@@ -395,11 +393,13 @@ impl AcmeClient {
     }
 
     /// Finalize an order with a CSR (DER-encoded PKCS#10, base64url).
-    pub async fn finalize_order(&self, finalize_url: &str, csr_der: &[u8]) -> Result<String, String> {
-        let csr_b64 = base64::Engine::encode(
-            &base64::engine::general_purpose::URL_SAFE_NO_PAD,
-            csr_der,
-        );
+    pub async fn finalize_order(
+        &self,
+        finalize_url: &str,
+        csr_der: &[u8],
+    ) -> Result<String, String> {
+        let csr_b64 =
+            base64::Engine::encode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, csr_der);
         let payload = serde_json::to_string(&FinalizeRequest { csr: csr_b64 })
             .map_err(|e| format!("serialize finalize: {e}"))?;
         let (_headers, bytes) = self.post_signed(finalize_url, &payload).await?;
@@ -435,9 +435,8 @@ impl AcmeClient {
         let (finalize_url, authorizations) = self.place_order(domains).await?;
 
         // 3. Solve DNS-01 challenges.
-        let thumbprint = Self::account_thumbprint(
-            &self.jwk.as_ref().map(|j| j.to_string()).unwrap_or_default(),
-        );
+        let thumbprint =
+            Self::account_thumbprint(&self.jwk.as_ref().map(|j| j.to_string()).unwrap_or_default());
         let dns = self.dns_setter.as_ref().ok_or("no DNS setter configured")?;
 
         for auth_url in &authorizations {
@@ -553,7 +552,13 @@ impl AcmeClient {
                 None => self.fetch_nonce_nopost().await?,
             };
 
-            let jws = build_jws(url, &nonce, payload, self.kid().as_deref(), self.jwk.as_ref());
+            let jws = build_jws(
+                url,
+                &nonce,
+                payload,
+                self.kid().as_deref(),
+                self.jwk.as_ref(),
+            );
             let signed = self.sign_jws(&jws)?;
             let request = jose_post(url, &signed)?;
             let response = self
@@ -581,7 +586,11 @@ impl AcmeClient {
 
     /// The account key ID (kid) from the newAccount `Location` answer, if set.
     fn kid(&self) -> Option<String> {
-        self.session.lock().expect("acme session lock").key_id.clone()
+        self.session
+            .lock()
+            .expect("acme session lock")
+            .key_id
+            .clone()
     }
 
     /// Store the account key ID (kid).
@@ -643,7 +652,6 @@ impl AcmeClient {
 }
 
 // ── Module helpers ──────────────────────────────────────────────────────
-
 
 /// A `POST` of `body` as `application/jose+json` (RFC 8555 §6.2).
 fn jose_post(url: &str, body: &Value) -> Result<PreparedRequest, String> {

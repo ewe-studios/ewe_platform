@@ -4,8 +4,8 @@
 
 use foundation_core::valtron;
 use foundation_core::valtron::PoolGuard;
-use foundation_netio::shared::client::*;
 use foundation_netio::http::*;
+use foundation_netio::shared::client::*;
 use foundation_netio::shared::http::HttpClientError;
 use serial_test::serial;
 use std::io::{Read, Write};

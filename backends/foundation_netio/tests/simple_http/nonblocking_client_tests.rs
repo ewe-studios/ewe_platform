@@ -28,9 +28,8 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx,
-    self, valtron_test, Stream, StreamIteratorExt, TaskIterator,
-    TaskStatus,
+use foundation_core::valtron::{
+    self, valtron_test, Ctx, Stream, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use foundation_netio::http::{HttpConnectionPool, HttpExchangeTask};
 use foundation_netio::shared::client::request_task::HttpExchange;
@@ -267,9 +266,7 @@ impl<T: TaskIterator> TaskIterator for Counting<T> {
 }
 
 /// Drain a poll-counting exchange into (status, body), like [`collect`].
-fn collect_counting(
-    task: Counting<HttpExchangeTask<SystemDnsResolver>>,
-) -> (Status, Vec<u8>) {
+fn collect_counting(task: Counting<HttpExchangeTask<SystemDnsResolver>>) -> (Status, Vec<u8>) {
     let mut status = None;
     let mut body = Vec::new();
     for item in valtron::execute(task, None).expect("execute") {
@@ -673,8 +670,12 @@ fn pushed_body_producer_drop_ends_the_body() {
     let url = format!("http://127.0.0.1:{}/drop", addr.port());
 
     let (pushable, body, readiness) = pushable_request_body_with_readiness(4);
-    pushable.try_push(Bytes::from_static(b"head")).expect("push");
-    pushable.try_push(Bytes::from_static(b"tail")).expect("push");
+    pushable
+        .try_push(Bytes::from_static(b"head"))
+        .expect("push");
+    pushable
+        .try_push(Bytes::from_static(b"tail"))
+        .expect("push");
     drop(pushable); // no close()
 
     let mut request = post(&url, body, None);

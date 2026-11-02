@@ -26,10 +26,10 @@ fn service(name: &str, backends: Vec<BackendTarget>) -> ServiceRuntime {
 
 #[test]
 fn sticky_pick_routes_to_preferred_backend() {
-    let svc = service("test", vec![
-        backend("http://a:8080", 1),
-        backend("http://b:8081", 1),
-    ]);
+    let svc = service(
+        "test",
+        vec![backend("http://a:8080", 1), backend("http://b:8081", 1)],
+    );
     for _ in 0..10 {
         let (lease, idx) = svc.pick_sticky(Some(1)).expect("lease");
         assert_eq!(idx, 1);
@@ -39,10 +39,10 @@ fn sticky_pick_routes_to_preferred_backend() {
 
 #[test]
 fn sticky_falls_back_when_preferred_ineligible() {
-    let svc = service("test", vec![
-        backend("http://a:8080", 1),
-        backend("http://b:8081", 1),
-    ]);
+    let svc = service(
+        "test",
+        vec![backend("http://a:8080", 1), backend("http://b:8081", 1)],
+    );
     svc.backends()[1].set_healthy(false);
     let (lease, idx) = svc.pick_sticky(Some(1)).expect("lease");
     assert_eq!(idx, 0, "should fall back to healthy backend");
@@ -59,40 +59,58 @@ fn single_backend_returns_idx_zero() {
 
 #[test]
 fn pick_round_robins_across_backends() {
-    let svc = service("test", vec![
-        backend("http://a:8080", 1),
-        backend("http://b:8081", 1),
-        backend("http://c:8082", 1),
-    ]);
+    let svc = service(
+        "test",
+        vec![
+            backend("http://a:8080", 1),
+            backend("http://b:8081", 1),
+            backend("http://c:8082", 1),
+        ],
+    );
     let mut counts = vec![0usize; 3];
     for _ in 0..30 {
         let lease = svc.pick().expect("lease");
         let url = lease.backend().url().to_string();
-        if url == "http://a:8080" { counts[0] += 1; }
-        else if url == "http://b:8081" { counts[1] += 1; }
-        else if url == "http://c:8082" { counts[2] += 1; }
+        if url == "http://a:8080" {
+            counts[0] += 1;
+        } else if url == "http://b:8081" {
+            counts[1] += 1;
+        } else if url == "http://c:8082" {
+            counts[2] += 1;
+        }
     }
     // With smooth WRR and equal weights, each should get ~10 (±5)
-    assert!(counts[0] >= 5, "backend A should get some traffic: got {}", counts[0]);
-    assert!(counts[1] >= 5, "backend B should get some traffic: got {}", counts[1]);
-    assert!(counts[2] >= 5, "backend C should get some traffic: got {}", counts[2]);
+    assert!(
+        counts[0] >= 5,
+        "backend A should get some traffic: got {}",
+        counts[0]
+    );
+    assert!(
+        counts[1] >= 5,
+        "backend B should get some traffic: got {}",
+        counts[1]
+    );
+    assert!(
+        counts[2] >= 5,
+        "backend C should get some traffic: got {}",
+        counts[2]
+    );
 }
 
 #[test]
 fn unhealthy_backend_is_not_picked() {
-    let svc = service("test", vec![
-        backend("http://a:8080", 1),
-    ]);
+    let svc = service("test", vec![backend("http://a:8080", 1)]);
     svc.backends()[0].set_healthy(false);
-    assert!(svc.pick().is_none(), "unhealthy backend should not be picked");
+    assert!(
+        svc.pick().is_none(),
+        "unhealthy backend should not be picked"
+    );
 }
 
 #[test]
 fn paused_backend_is_not_picked() {
     use foundation_proxy::config::BackendState;
-    let svc = service("test", vec![
-        backend("http://a:8080", 1),
-    ]);
+    let svc = service("test", vec![backend("http://a:8080", 1)]);
     svc.backends()[0].set_state(BackendState::Paused);
     assert!(svc.pick().is_none(), "paused backend should not be picked");
 }

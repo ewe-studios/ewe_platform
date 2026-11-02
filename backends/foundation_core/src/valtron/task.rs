@@ -1377,14 +1377,17 @@ pub trait TaskReadyResolver<D, P> {
 }
 
 pub trait IntoBoxedSendTaskReadyResolver<D, P> {
-    fn into_box_send_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static>;
+    fn into_box_send_task_ready_resolver(self)
+        -> Box<dyn TaskReadyResolver<D, P> + Send + 'static>;
 }
 
 impl<F, D, P> IntoBoxedSendTaskReadyResolver<D, P> for F
 where
     F: TaskReadyResolver<D, P> + Send + 'static,
 {
-    fn into_box_send_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static> {
+    fn into_box_send_task_ready_resolver(
+        self,
+    ) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static> {
         Box::new(self)
     }
 }
@@ -1547,7 +1550,6 @@ where
         }
     }
 }
-
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ReadyValue<P> {

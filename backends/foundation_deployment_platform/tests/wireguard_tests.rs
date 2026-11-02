@@ -6,8 +6,8 @@
 use std::net::SocketAddr;
 
 use foundation_deployment_platform::docker::wireguard::{
-    designate_relay, generate_network_secret, WireguardInjector, ENV_WG_NETWORK, ENV_WG_RELAY,
-    ENV_WG_SECRET, ENV_WG_SEED_ENDPOINTS,
+    ENV_WG_NETWORK, ENV_WG_RELAY, ENV_WG_SECRET, ENV_WG_SEED_ENDPOINTS, WireguardInjector,
+    designate_relay, generate_network_secret,
 };
 use foundation_deployment_platform::docker::{ContainerConfig, PortProtocol};
 use foundation_wireguard::SeedBits;

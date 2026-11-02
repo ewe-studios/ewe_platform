@@ -3,8 +3,8 @@
 //! in-memory + sync-SQL semantics (scru128 ordering, inclusive `scan_from`,
 //! promoted columns) and that scans are pulled lazily via `.next().await`.
 
-use foundation_db::traits::DocumentStore;
 use foundation_core::valtron::BlockingFutureExt;
+use foundation_db::traits::DocumentStore;
 use foundation_db::{SqlDocumentStore, StorageError, TursoStorage};
 use futures_lite::StreamExt;
 use std::sync::Mutex;
@@ -55,8 +55,14 @@ impl foundation_db::traits::PromotableDocument for Note {
 fn append_async_orders_by_scru128_and_counts() {
     let (_dir, store) = make_store();
     futures_lite::future::block_on(async {
-        let a = store.append("k", serde_json::json!({"n": 0})).await.unwrap();
-        let b = store.append("k", serde_json::json!({"n": 1})).await.unwrap();
+        let a = store
+            .append("k", serde_json::json!({"n": 0}))
+            .await
+            .unwrap();
+        let b = store
+            .append("k", serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
         assert_eq!(a.id.len(), 25);
         assert!(b.id > a.id, "later async append → greater scru128 id");
         assert_eq!(store.count("k").await.unwrap(), 2);
@@ -69,7 +75,13 @@ fn scan_from_async_streams_inclusive_oldest_first() {
     futures_lite::future::block_on(async {
         let mut ids = Vec::new();
         for n in 0..5 {
-            ids.push(store.append("k", serde_json::json!({ "n": n })).await.unwrap().id);
+            ids.push(
+                store
+                    .append("k", serde_json::json!({ "n": n }))
+                    .await
+                    .unwrap()
+                    .id,
+            );
         }
 
         // Pull the stream item-by-item (no Vec materialization).
@@ -103,7 +115,10 @@ fn promotable_round_trips_and_scan_documents() {
         let doc = store
             .append_promotable(
                 "k",
-                Note { kind: "observation".into(), text: "saw a cat".into() },
+                Note {
+                    kind: "observation".into(),
+                    text: "saw a cat".into(),
+                },
             )
             .await
             .unwrap();
@@ -123,7 +138,10 @@ fn promotable_round_trips_and_scan_documents() {
 fn plain_append_async_leaves_promoted_columns_null() {
     let (_dir, store) = make_store();
     futures_lite::future::block_on(async {
-        store.append("k", serde_json::json!({"n": 1})).await.unwrap();
+        store
+            .append("k", serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
         let docs = store.scan_documents("k", 10).await.unwrap();
         assert_eq!(docs[0].record_type, None);
         assert_eq!(docs[0].title, None);
@@ -135,8 +153,14 @@ fn plain_append_async_leaves_promoted_columns_null() {
 fn delete_async_removes() {
     let (_dir, store) = make_store();
     futures_lite::future::block_on(async {
-        let a = store.append("k", serde_json::json!({"n": 0})).await.unwrap();
-        store.append("k", serde_json::json!({"n": 1})).await.unwrap();
+        let a = store
+            .append("k", serde_json::json!({"n": 0}))
+            .await
+            .unwrap();
+        store
+            .append("k", serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
         store.delete("k", &a.id).await.unwrap();
         assert_eq!(store.count("k").await.unwrap(), 1);
     });

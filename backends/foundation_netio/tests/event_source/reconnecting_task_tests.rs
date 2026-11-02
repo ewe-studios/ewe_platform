@@ -75,7 +75,10 @@ fn test_reconnecting_task_exhausts_after_max_retries() {
     }
 
     // Should be exhausted now
-    assert!(task.next_status(Ctx::new()).is_none(), "Task should stay exhausted");
+    assert!(
+        task.next_status(Ctx::new()).is_none(),
+        "Task should stay exhausted"
+    );
 }
 
 /// WHY: When DNS has no configured response, initial connection fails.

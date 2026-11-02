@@ -54,4 +54,3 @@ fn generate_client_secret() -> String {
     foundation_compact::rng::rng().fill_bytes(&mut bytes);
     URL_SAFE_NO_PAD.encode(bytes)
 }
-

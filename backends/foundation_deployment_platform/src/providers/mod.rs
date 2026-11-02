@@ -4,11 +4,11 @@
 //! backends (QEMU on Linux, UTM on macOS) to be swapped transparently.
 
 #[cfg(feature = "vms")]
-use std::path::PathBuf;
-#[cfg(feature = "vms")]
 use crate::config::{DisplayMode, Result, VmProfile};
 #[cfg(feature = "vms")]
 use crate::doctor::HostHealth;
+#[cfg(feature = "vms")]
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
@@ -152,7 +152,10 @@ pub trait Provider: Send + Sync {
     fn is_running(&self, handle: &Self::Handle) -> bool;
     /// # Errors
     /// Returns an error when the backend cannot resolve the running ports.
-    fn resolved_ports(&self, handle: &Self::Handle) -> std::result::Result<ResolvedPorts, Self::Error>;
+    fn resolved_ports(
+        &self,
+        handle: &Self::Handle,
+    ) -> std::result::Result<ResolvedPorts, Self::Error>;
     fn host_health(&self) -> Vec<(String, bool, String)>;
 }
 
@@ -165,4 +168,3 @@ pub mod http;
 pub mod qemu;
 #[cfg(feature = "vms")]
 pub mod utm;
-

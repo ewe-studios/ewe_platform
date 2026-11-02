@@ -23,11 +23,16 @@ pub fn exec_streaming(profile: &VmProfile, cmd: &str) -> Result<i32> {
     let mut ssh_cmd = Command::new("ssh");
     ssh_cmd
         .args([
-            "-o", "StrictHostKeyChecking=no",
-            "-o", "UserKnownHostsFile=/dev/null",
-            "-o", "LogLevel=ERROR",
-            "-p", &profile.ssh_port.to_string(),
-            "-i", "vagrant", // username
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-o",
+            "LogLevel=ERROR",
+            "-p",
+            &profile.ssh_port.to_string(),
+            "-i",
+            "vagrant", // username
         ])
         .arg(format!("{}@127.0.0.1", profile.user))
         .arg(&wrapped)
@@ -65,12 +70,18 @@ pub fn exec_streaming_session(session: &VmSession, cmd: &str) -> Result<i32> {
     let mut ssh_cmd = Command::new("ssh");
     ssh_cmd
         .args([
-            "-o", "StrictHostKeyChecking=no",
-            "-o", "UserKnownHostsFile=/dev/null",
-            "-o", "LogLevel=ERROR",
-            "-o", "BatchMode=yes",
-            "-p", &session.port.to_string(),
-            "-i", &key_path,
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-o",
+            "LogLevel=ERROR",
+            "-o",
+            "BatchMode=yes",
+            "-p",
+            &session.port.to_string(),
+            "-i",
+            &key_path,
         ])
         .arg(format!("{}@127.0.0.1", session.user))
         .arg(cmd)
@@ -137,4 +148,3 @@ fn find_ssh_key() -> Option<String> {
 
     None
 }
-

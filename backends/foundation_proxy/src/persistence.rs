@@ -9,9 +9,9 @@
 use std::collections::HashMap;
 use std::path::Path;
 
-use foundation_db::core::state::{FileStateStore, StateStore};
-use foundation_db::core::state::types::ResourceState;
 use foundation_db::core::errors::StorageError;
+use foundation_db::core::state::types::ResourceState;
+use foundation_db::core::state::{FileStateStore, StateStore};
 use futures_util::lock::Mutex as AsyncMutex;
 use serde::{Deserialize, Serialize};
 
@@ -72,8 +72,8 @@ impl ProxyStateStore {
     ///
     /// Returns `StorageError` if the state can't be encoded or written.
     pub async fn save(&self, state: &PersistedProxyState) -> Result<(), StorageError> {
-        let data = serde_json::to_value(state)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let data =
+            serde_json::to_value(state).map_err(|e| StorageError::Serialization(e.to_string()))?;
         let resource = ResourceState {
             id: PROXY_STATE_ID.to_string(),
             kind: "proxy_state".to_string(),
@@ -144,4 +144,3 @@ impl ProxyStateStore {
         self.save(&state).await
     }
 }
-

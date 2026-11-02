@@ -42,7 +42,9 @@ impl std::fmt::Display for ProfileError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ProfileError::AccessDenied => write!(f, "access denied for profile"),
-            ProfileError::StrippedInProduction => write!(f, "devtools profile stripped in production"),
+            ProfileError::StrippedInProduction => {
+                write!(f, "devtools profile stripped in production")
+            }
         }
     }
 }
@@ -62,7 +64,7 @@ impl ProfileGate {
 
     /// Check whether the active profile permits the given service access.
     /// Returns `Ok(())` if allowed, `Err(ProfileError)` if denied.
-#[allow(clippy::match_same_arms)]
+    #[allow(clippy::match_same_arms)]
     /// Check if a profile is allowed to access a service.
     ///
     /// # Errors
@@ -72,8 +74,8 @@ impl ProfileGate {
     pub fn check(&self, service: Service, access: Access) -> Result<(), ProfileError> {
         use Access::{Execute, Read, Write};
         use Service::{
-            Arrow, Auth as SvcAuth, CustomProtocol, Database, Http,
-            NativeApi, Signals, TauriCommand, TauriEvent,
+            Arrow, Auth as SvcAuth, CustomProtocol, Database, Http, NativeApi, Signals,
+            TauriCommand, TauriEvent,
         };
 
         match self.profile {
@@ -106,9 +108,13 @@ impl ProfileGate {
 
             Profile::Devtools => {
                 #[cfg(debug_assertions)]
-                { Ok(()) }
+                {
+                    Ok(())
+                }
                 #[cfg(not(debug_assertions))]
-                { Err(ProfileError::StrippedInProduction) }
+                {
+                    Err(ProfileError::StrippedInProduction)
+                }
             }
         }
     }

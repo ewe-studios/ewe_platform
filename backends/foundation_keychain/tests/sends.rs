@@ -6,7 +6,9 @@
 use std::sync::Arc;
 
 use chrono::{Duration, Utc};
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::sends;
@@ -70,7 +72,12 @@ fn create_list_get_and_password_not_echoed() {
     assert!(created.password.is_none(), "password must never be echoed");
 
     let c = ctx.clone();
-    assert_eq!(drive(async move { sends::list(&c, USER_A).await }).expect("list").len(), 1);
+    assert_eq!(
+        drive(async move { sends::list(&c, USER_A).await })
+            .expect("list")
+            .len(),
+        1
+    );
 
     let id = created.id.clone();
     let c = ctx.clone();
@@ -131,7 +138,8 @@ fn disabled_and_expired_sends_are_gone() {
     let c = ctx.clone();
     let mut req = text_send("Expired");
     req.deletion_date = Some((Utc::now() - Duration::hours(1)).to_rfc3339());
-    let expired = drive(async move { sends::create(&c, USER_A, req).await }).expect("create expired");
+    let expired =
+        drive(async move { sends::create(&c, USER_A, req).await }).expect("create expired");
     let c = ctx.clone();
     let id = expired.id.clone();
     assert!(matches!(
@@ -144,8 +152,8 @@ fn disabled_and_expired_sends_are_gone() {
 fn update_delete_and_ownership() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
-    let created = drive(async move { sends::create(&c, USER_A, text_send("Orig")).await })
-        .expect("create");
+    let created =
+        drive(async move { sends::create(&c, USER_A, text_send("Orig")).await }).expect("create");
     let id = created.id.clone();
 
     // Update.

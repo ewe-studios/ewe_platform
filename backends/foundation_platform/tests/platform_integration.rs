@@ -35,13 +35,17 @@ fn multi_handler_route_resolution() {
 
     // Register routes for different surfaces
     session.route("/app/*", webview_app().with_profile(Profile::App));
-    session.route("/remote/*", remote_fetch()
-        .with_profile(Profile::TrustedRemote)
-        .with_cache_policy(CachePolicy::NetworkFirst));
-    session.route("/cached/*", remote_fetch()
-        .with_cache_policy(CachePolicy::CacheFirst));
-    session.route("/auth/*", remote_fetch()
-        .with_profile(Profile::Auth));
+    session.route(
+        "/remote/*",
+        remote_fetch()
+            .with_profile(Profile::TrustedRemote)
+            .with_cache_policy(CachePolicy::NetworkFirst),
+    );
+    session.route(
+        "/cached/*",
+        remote_fetch().with_cache_policy(CachePolicy::CacheFirst),
+    );
+    session.route("/auth/*", remote_fetch().with_profile(Profile::Auth));
 
     // Each URL resolves to the correct source and profile
     let d = session.resolve_route(&intent("/app/dashboard"));
@@ -68,7 +72,9 @@ fn cache_connectivity_lifecycle() {
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     // Cache content while "online"
-    session.cache().store(Profile::App, "/data", b"live-data", "text/html");
+    session
+        .cache()
+        .store(Profile::App, "/data", b"live-data", "text/html");
 
     // Online: don't serve cache
     let d = webview_app().with_cache_policy(CachePolicy::CacheFirst);
@@ -97,15 +103,19 @@ fn offline_mutation_replay_on_reconnect() {
 
     // Go offline, enqueue mutations
     session.set_online(false);
-    let _id1 = session.mutation_queue().enqueue("create", serde_json::json!({"item": "x"}));
-    let _id2 = session.mutation_queue().enqueue("update", serde_json::json!({"id": 1, "name": "y"}));
+    let _id1 = session
+        .mutation_queue()
+        .enqueue("create", serde_json::json!({"item": "x"}));
+    let _id2 = session
+        .mutation_queue()
+        .enqueue("update", serde_json::json!({"id": 1, "name": "y"}));
     assert_eq!(session.mutation_queue().pending_count(), 2);
 
     // Come back online, replay
     session.set_online(true);
-    let result = session.mutation_queue().replay(|m| {
-        Ok(serde_json::Value::String(format!("ok-{}", m.mutation_type)))
-    });
+    let result = session
+        .mutation_queue()
+        .replay(|m| Ok(serde_json::Value::String(format!("ok-{}", m.mutation_type))));
 
     assert_eq!(result.applied.len(), 2);
     assert_eq!(session.mutation_queue().pending_count(), 0);
@@ -117,16 +127,20 @@ fn offline_mutation_replay_on_reconnect() {
 fn capability_invocation_with_profile_gating() {
     use foundation_platform::capability::PlatformCapability;
     use foundation_wasm::{
-        CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse, WasmCapability,
+        CapabilityContentType, CapabilityError, CapabilityRequest, CapabilityResponse,
+        WasmCapability,
     };
 
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     struct Cam;
     impl WasmCapability for Cam {
-        fn name(&self) -> &str { "camera" }
+        fn name(&self) -> &str {
+            "camera"
+        }
         fn invoke_capability(
-            &self, request: &CapabilityRequest<Vec<u8>>,
+            &self,
+            request: &CapabilityRequest<Vec<u8>>,
         ) -> Result<CapabilityResponse<Vec<u8>>, CapabilityError> {
             let action = &request.action;
             Ok(CapabilityResponse {
@@ -141,7 +155,9 @@ fn capability_invocation_with_profile_gating() {
         fn capability_id(&self) -> &CapabilityId {
             Box::leak(Box::new(CapabilityId("camera".into())))
         }
-        fn min_profile(&self) -> Profile { Profile::TrustedRemote }
+        fn min_profile(&self) -> Profile {
+            Profile::TrustedRemote
+        }
     }
 
     session.capabilities().register(Cam);
@@ -154,10 +170,15 @@ fn capability_invocation_with_profile_gating() {
         .with_allowed_capabilities(&[CapabilityId("camera".into())]);
 
     let req = CapabilityRequest {
-        capability: "camera".into(), action: "capture".into(),
-        payload: vec![], content_type: CapabilityContentType::Json,
+        capability: "camera".into(),
+        action: "capture".into(),
+        payload: vec![],
+        content_type: CapabilityContentType::Json,
     };
-    assert!(session.capabilities().invoke(&session, &req, &page, Some(&route)).is_ok());
+    assert!(session
+        .capabilities()
+        .invoke(&session, &req, &page, Some(&route))
+        .is_ok());
 
     // UntrustedRemote profile → denied
     let bad_route = remote_fetch()
@@ -165,26 +186,44 @@ fn capability_invocation_with_profile_gating() {
         .with_allowed_capabilities(&[CapabilityId("camera".into())]);
     session.record_navigation("/bad");
     let page2 = session.active_page_identity().unwrap();
-    assert!(session.capabilities().invoke(&session, &req, &page2, Some(&bad_route)).is_err());
+    assert!(session
+        .capabilities()
+        .invoke(&session, &req, &page2, Some(&bad_route))
+        .is_err());
 
     // Stale page → denied
     session.record_navigation("/other");
-    assert!(session.capabilities().invoke(&session, &req, &page, Some(&route)).is_err());
+    assert!(session
+        .capabilities()
+        .invoke(&session, &req, &page, Some(&route))
+        .is_err());
 }
 
 // ── WebView stack navigation ─────────────────────────────────────────
 
 #[test]
 fn webview_stack_navigation_cycle() {
-    struct WV { navs: Mutex<Vec<String>>, reloads: Mutex<usize> }
+    struct WV {
+        navs: Mutex<Vec<String>>,
+        reloads: Mutex<usize>,
+    }
     impl WebViewOps for WV {
-        fn navigate(&self, url: &str) { self.navs.lock().unwrap().push(url.to_string()); }
-        fn screenshot(&self) -> Vec<u8> { vec![1, 2, 3] }
+        fn navigate(&self, url: &str) {
+            self.navs.lock().unwrap().push(url.to_string());
+        }
+        fn screenshot(&self) -> Vec<u8> {
+            vec![1, 2, 3]
+        }
         fn eval(&self, _: &str) {}
-        fn reload(&self) { *self.reloads.lock().unwrap() += 1; }
+        fn reload(&self) {
+            *self.reloads.lock().unwrap() += 1;
+        }
     }
 
-    let wv = WV { navs: Mutex::new(vec![]), reloads: Mutex::new(0) };
+    let wv = WV {
+        navs: Mutex::new(vec![]),
+        reloads: Mutex::new(0),
+    };
     let mut stack = WebViewStack::new(StackConfig::default());
 
     // Start → push → push → pop → pop → can't pop root
@@ -244,13 +283,25 @@ fn pattern_router_in_session_chain() {
     });
 
     // Pattern wins for /app
-    assert_eq!(session.resolve_route(&intent("/app/items")).source, RouteSource::WebviewApp);
+    assert_eq!(
+        session.resolve_route(&intent("/app/items")).source,
+        RouteSource::WebviewApp
+    );
     // Pattern wins for /remote
-    assert_eq!(session.resolve_route(&intent("/remote/dash")).source, RouteSource::RemoteServer);
+    assert_eq!(
+        session.resolve_route(&intent("/remote/dash")).source,
+        RouteSource::RemoteServer
+    );
     // Closure claims /special
-    assert_eq!(session.resolve_route(&intent("/special/debug")).profile, Profile::Devtools);
+    assert_eq!(
+        session.resolve_route(&intent("/special/debug")).profile,
+        Profile::Devtools
+    );
     // Nothing claims /other → default
-    assert_eq!(session.resolve_route(&intent("/other")).profile, Profile::UntrustedRemote);
+    assert_eq!(
+        session.resolve_route(&intent("/other")).profile,
+        Profile::UntrustedRemote
+    );
 }
 
 // ── Profile gate full matrix ─────────────────────────────────────────
@@ -259,9 +310,17 @@ fn pattern_router_in_session_chain() {
 fn profile_gate_full_matrix() {
     // App: everything
     let g = ProfileGate::new(Profile::App);
-    for svc in &[Service::Database, Service::Auth, Service::NativeApi, Service::Http] {
+    for svc in &[
+        Service::Database,
+        Service::Auth,
+        Service::NativeApi,
+        Service::Http,
+    ] {
         for acc in &[Access::Read, Access::Write, Access::Execute] {
-            assert!(g.check(*svc, *acc).is_ok(), "App should allow {svc:?}/{acc:?}");
+            assert!(
+                g.check(*svc, *acc).is_ok(),
+                "App should allow {svc:?}/{acc:?}"
+            );
         }
     }
 
@@ -291,7 +350,7 @@ fn protocol_selection_integration() {
     let decision = session.resolve_route(&intent);
 
     let proto = select_protocol(
-        &decision.protocol,       // Default
+        &decision.protocol,        // Default
         Some(&"json".to_string()), // ?proto=json → selects Json
         b"hello",
     );
@@ -334,7 +393,6 @@ impl RouteResponder for TestResponder {
     }
 }
 
-
 #[test]
 fn presentation_push_creates_new_stack_slot() {
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
@@ -342,9 +400,12 @@ fn presentation_push_creates_new_stack_slot() {
     // Register a push-mode route with a responder.
     session.register_route_with(
         "/nav_push",
-        webview_app().with_presentation(Presentation::Push)
+        webview_app()
+            .with_presentation(Presentation::Push)
             .with_handler("__route_/nav_push"),
-        TestResponder { body: "push".into() },
+        TestResponder {
+            body: "push".into(),
+        },
     );
 
     // Execute the decision — this should call record_presentation(Push)
@@ -354,7 +415,11 @@ fn presentation_push_creates_new_stack_slot() {
 
     // Verify: Push should have added a slot.
     let stack = session.webview_stack();
-    assert_eq!(stack.depth(), 1, "Push should initialize the stack with one slot");
+    assert_eq!(
+        stack.depth(),
+        1,
+        "Push should initialize the stack with one slot"
+    );
     assert!(stack.active_route().is_some());
 }
 
@@ -365,9 +430,12 @@ fn presentation_morph_does_not_create_new_slot() {
     // Root first to have one slot
     session.register_route_with(
         "/nav_root",
-        webview_app().with_presentation(Presentation::Root)
+        webview_app()
+            .with_presentation(Presentation::Root)
             .with_handler("__route_/nav_root"),
-        TestResponder { body: "root".into() },
+        TestResponder {
+            body: "root".into(),
+        },
     );
     let d = session.resolve_route(&intent("/nav_root"));
     let _ = session.execute_decision(&d, &intent("/nav_root"));
@@ -377,15 +445,21 @@ fn presentation_morph_does_not_create_new_slot() {
     // Now morph — should keep same depth
     session.register_route_with(
         "/nav_morph",
-        webview_app().with_presentation(Presentation::Morph)
+        webview_app()
+            .with_presentation(Presentation::Morph)
             .with_handler("__route_/nav_morph"),
-        TestResponder { body: "morph".into() },
+        TestResponder {
+            body: "morph".into(),
+        },
     );
     let d = session.resolve_route(&intent("/nav_morph"));
     let _ = session.execute_decision(&d, &intent("/nav_morph"));
 
     let after = session.webview_stack().depth();
-    assert_eq!(after, before, "Morph should not create a new slot (before={before}, after={after})");
+    assert_eq!(
+        after, before,
+        "Morph should not create a new slot (before={before}, after={after})"
+    );
 }
 
 #[test]
@@ -395,9 +469,12 @@ fn presentation_replace_swaps_content_in_place() {
     // Push then replace
     session.register_route_with(
         "/nav_push",
-        webview_app().with_presentation(Presentation::Push)
+        webview_app()
+            .with_presentation(Presentation::Push)
             .with_handler("__route_/nav_push"),
-        TestResponder { body: "push".into() },
+        TestResponder {
+            body: "push".into(),
+        },
     );
     let d = session.resolve_route(&intent("/nav_push"));
     let _ = session.execute_decision(&d, &intent("/nav_push"));
@@ -406,21 +483,31 @@ fn presentation_replace_swaps_content_in_place() {
     // Replace at the same depth
     session.register_route_with(
         "/nav_replace",
-        webview_app().with_presentation(Presentation::Replace)
+        webview_app()
+            .with_presentation(Presentation::Replace)
             .with_handler("__route_/nav_replace"),
-        TestResponder { body: "replace".into() },
+        TestResponder {
+            body: "replace".into(),
+        },
     );
     let d = session.resolve_route(&intent("/nav_replace"));
     let _ = session.execute_decision(&d, &intent("/nav_replace"));
 
     let depth_after_replace = session.webview_stack().depth();
-    assert_eq!(depth_after_replace, depth_after_push,
-        "Replace should keep same depth");
+    assert_eq!(
+        depth_after_replace, depth_after_push,
+        "Replace should keep same depth"
+    );
     // Active route should now be the replaced one
-    let active = session.webview_stack().active_route()
+    let active = session
+        .webview_stack()
+        .active_route()
         .map(|s| s.to_string())
         .unwrap_or_default();
-    assert!(active.contains("nav_replace"), "Active route should be nav_replace, got: {active}");
+    assert!(
+        active.contains("nav_replace"),
+        "Active route should be nav_replace, got: {active}"
+    );
 }
 
 #[test]
@@ -429,9 +516,13 @@ fn presentation_root_clears_the_whole_stack() {
 
     // Root first as base
     session.register_route_with(
-        "/home", webview_app().with_presentation(Presentation::Root)
+        "/home",
+        webview_app()
+            .with_presentation(Presentation::Root)
             .with_handler("__route_/home"),
-        TestResponder { body: "home".into() },
+        TestResponder {
+            body: "home".into(),
+        },
     );
     let d = session.resolve_route(&intent("/home"));
     let _ = session.execute_decision(&d, &intent("/home"));
@@ -439,7 +530,9 @@ fn presentation_root_clears_the_whole_stack() {
 
     // Push 1
     session.register_route_with(
-        "/push1", webview_app().with_presentation(Presentation::Push)
+        "/push1",
+        webview_app()
+            .with_presentation(Presentation::Push)
             .with_handler("__route_/push1"),
         TestResponder { body: "p1".into() },
     );
@@ -449,7 +542,9 @@ fn presentation_root_clears_the_whole_stack() {
 
     // Push 2
     session.register_route_with(
-        "/push2", webview_app().with_presentation(Presentation::Push)
+        "/push2",
+        webview_app()
+            .with_presentation(Presentation::Push)
             .with_handler("__route_/push2"),
         TestResponder { body: "p2".into() },
     );
@@ -459,9 +554,13 @@ fn presentation_root_clears_the_whole_stack() {
 
     // Root clears back to 1
     session.register_route_with(
-        "/login", webview_app().with_presentation(Presentation::Root)
+        "/login",
+        webview_app()
+            .with_presentation(Presentation::Root)
             .with_handler("__route_/login"),
-        TestResponder { body: "login".into() },
+        TestResponder {
+            body: "login".into(),
+        },
     );
     let d = session.resolve_route(&intent("/login"));
     let _ = session.execute_decision(&d, &intent("/login"));
@@ -477,9 +576,12 @@ fn presentation_external_does_not_affect_stack() {
     // Push first to set base
     session.register_route_with(
         "/nav_push",
-        webview_app().with_presentation(Presentation::Push)
+        webview_app()
+            .with_presentation(Presentation::Push)
             .with_handler("__route_/nav_push"),
-        TestResponder { body: "push".into() },
+        TestResponder {
+            body: "push".into(),
+        },
     );
     let d = session.resolve_route(&intent("/nav_push"));
     let _ = session.execute_decision(&d, &intent("/nav_push"));
@@ -489,15 +591,21 @@ fn presentation_external_does_not_affect_stack() {
     // External should NOT change the stack (it goes to the system browser)
     session.register_route_with(
         "/nav_external",
-        webview_app().with_presentation(Presentation::External)
+        webview_app()
+            .with_presentation(Presentation::External)
             .with_handler("__route_/nav_external"),
-        TestResponder { body: "external".into() },
+        TestResponder {
+            body: "external".into(),
+        },
     );
     let d = session.resolve_route(&intent("/nav_external"));
     let _ = session.execute_decision(&d, &intent("/nav_external"));
 
-    assert_eq!(session.webview_stack().depth(), depth_before,
-        "External navigation should not change the stack");
+    assert_eq!(
+        session.webview_stack().depth(),
+        depth_before,
+        "External navigation should not change the stack"
+    );
 }
 
 #[test]
@@ -507,9 +615,13 @@ fn all_six_presentation_modes_execute_decision_pipeline() {
     // Sequence: Root → Push → Morph → Modal → Replace → External
     // Root: depth 1
     session.register_route_with(
-        "/root", webview_app().with_presentation(Presentation::Root)
+        "/root",
+        webview_app()
+            .with_presentation(Presentation::Root)
             .with_handler("__route_/root"),
-        TestResponder { body: "root".into() },
+        TestResponder {
+            body: "root".into(),
+        },
     );
     let d = session.resolve_route(&intent("/root"));
     let _ = session.execute_decision(&d, &intent("/root"));
@@ -517,9 +629,13 @@ fn all_six_presentation_modes_execute_decision_pipeline() {
 
     // Push: depth 2
     session.register_route_with(
-        "/push", webview_app().with_presentation(Presentation::Push)
+        "/push",
+        webview_app()
+            .with_presentation(Presentation::Push)
             .with_handler("__route_/push"),
-        TestResponder { body: "push".into() },
+        TestResponder {
+            body: "push".into(),
+        },
     );
     let d = session.resolve_route(&intent("/push"));
     let _ = session.execute_decision(&d, &intent("/push"));
@@ -527,9 +643,13 @@ fn all_six_presentation_modes_execute_decision_pipeline() {
 
     // Morph: depth stays 2
     session.register_route_with(
-        "/morph", webview_app().with_presentation(Presentation::Morph)
+        "/morph",
+        webview_app()
+            .with_presentation(Presentation::Morph)
             .with_handler("__route_/morph"),
-        TestResponder { body: "morph".into() },
+        TestResponder {
+            body: "morph".into(),
+        },
     );
     let d = session.resolve_route(&intent("/morph"));
     let _ = session.execute_decision(&d, &intent("/morph"));
@@ -537,9 +657,13 @@ fn all_six_presentation_modes_execute_decision_pipeline() {
 
     // Modal: depth 3
     session.register_route_with(
-        "/modal", webview_app().with_presentation(Presentation::Modal)
+        "/modal",
+        webview_app()
+            .with_presentation(Presentation::Modal)
             .with_handler("__route_/modal"),
-        TestResponder { body: "modal".into() },
+        TestResponder {
+            body: "modal".into(),
+        },
     );
     let d = session.resolve_route(&intent("/modal"));
     let _ = session.execute_decision(&d, &intent("/modal"));
@@ -547,23 +671,39 @@ fn all_six_presentation_modes_execute_decision_pipeline() {
 
     // Replace: depth stays 3
     session.register_route_with(
-        "/replace", webview_app().with_presentation(Presentation::Replace)
+        "/replace",
+        webview_app()
+            .with_presentation(Presentation::Replace)
             .with_handler("__route_/replace"),
-        TestResponder { body: "replace".into() },
+        TestResponder {
+            body: "replace".into(),
+        },
     );
     let d = session.resolve_route(&intent("/replace"));
     let _ = session.execute_decision(&d, &intent("/replace"));
-    assert_eq!(session.webview_stack().depth(), 3, "Replace: depth unchanged");
+    assert_eq!(
+        session.webview_stack().depth(),
+        3,
+        "Replace: depth unchanged"
+    );
 
     // External: depth stays 3 (no stack change)
     session.register_route_with(
-        "/external", webview_app().with_presentation(Presentation::External)
+        "/external",
+        webview_app()
+            .with_presentation(Presentation::External)
             .with_handler("__route_/external"),
-        TestResponder { body: "external".into() },
+        TestResponder {
+            body: "external".into(),
+        },
     );
     let d = session.resolve_route(&intent("/external"));
     let _ = session.execute_decision(&d, &intent("/external"));
-    assert_eq!(session.webview_stack().depth(), 3, "External: depth unchanged");
+    assert_eq!(
+        session.webview_stack().depth(),
+        3,
+        "External: depth unchanged"
+    );
 }
 
 #[test]
@@ -573,9 +713,12 @@ fn presentation_modal_adds_slot_and_pool_label_like_push() {
     // Push for base slot
     session.register_route_with(
         "/nav_push",
-        webview_app().with_presentation(Presentation::Push)
+        webview_app()
+            .with_presentation(Presentation::Push)
             .with_handler("__route_/nav_push"),
-        TestResponder { body: "push".into() },
+        TestResponder {
+            body: "push".into(),
+        },
     );
     let d = session.resolve_route(&intent("/nav_push"));
     let _ = session.execute_decision(&d, &intent("/nav_push"));
@@ -588,7 +731,9 @@ fn presentation_modal_adds_slot_and_pool_label_like_push() {
             .with_presentation(Presentation::Modal)
             .with_target("modal_settings")
             .with_handler("__route_/nav_modal"),
-        TestResponder { body: "modal".into() },
+        TestResponder {
+            body: "modal".into(),
+        },
     );
     let d = session.resolve_route(&intent("/nav_modal"));
     let _ = session.execute_decision(&d, &intent("/nav_modal"));
@@ -597,7 +742,10 @@ fn presentation_modal_adds_slot_and_pool_label_like_push() {
     assert_eq!(stack.depth(), 2, "Modal should add a slot");
     // Pool should have the modal label if pool is enabled
     if let Some(pool) = stack.pool() {
-        assert!(pool.get("modal_settings").is_some(), "Pool should have modal_settings entry");
+        assert!(
+            pool.get("modal_settings").is_some(),
+            "Pool should have modal_settings entry"
+        );
     }
 }
 
@@ -608,10 +756,22 @@ fn presentation_decisions_flow_through_handler_chain_correctly() {
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
 
     // Register multiple patterns with different presentations
-    session.route("/app/*", webview_app().with_presentation(Presentation::Morph));
-    session.route("/push/*", webview_app().with_presentation(Presentation::Push));
-    session.route("/modal/*", webview_app().with_presentation(Presentation::Modal));
-    session.route("/replace/*", webview_app().with_presentation(Presentation::Replace));
+    session.route(
+        "/app/*",
+        webview_app().with_presentation(Presentation::Morph),
+    );
+    session.route(
+        "/push/*",
+        webview_app().with_presentation(Presentation::Push),
+    );
+    session.route(
+        "/modal/*",
+        webview_app().with_presentation(Presentation::Modal),
+    );
+    session.route(
+        "/replace/*",
+        webview_app().with_presentation(Presentation::Replace),
+    );
 
     // These don't have responders (no handle_id), so execute_decision would fail.
     // But resolve_route works regardless — test the resolve path independently.
@@ -666,9 +826,12 @@ fn record_presentation_directly_works_for_all_modes() {
     // Init via Root
     session.register_route_with(
         "/home",
-        webview_app().with_presentation(Presentation::Root)
+        webview_app()
+            .with_presentation(Presentation::Root)
             .with_handler("__route_/home"),
-        TestResponder { body: "home".into() },
+        TestResponder {
+            body: "home".into(),
+        },
     );
     let d = session.resolve_route(&intent("/home"));
     let _ = session.execute_decision(&d, &intent("/home"));
@@ -678,9 +841,12 @@ fn record_presentation_directly_works_for_all_modes() {
     // Push — should go to depth 2
     session.register_route_with(
         "/push1",
-        webview_app().with_presentation(Presentation::Push)
+        webview_app()
+            .with_presentation(Presentation::Push)
             .with_handler("__route_/push1"),
-        TestResponder { body: "push1".into() },
+        TestResponder {
+            body: "push1".into(),
+        },
     );
     let d = session.resolve_route(&intent("/push1"));
     let _ = session.execute_decision(&d, &intent("/push1"));
@@ -690,9 +856,12 @@ fn record_presentation_directly_works_for_all_modes() {
     // Push again — should go to depth 3
     session.register_route_with(
         "/push2",
-        webview_app().with_presentation(Presentation::Push)
+        webview_app()
+            .with_presentation(Presentation::Push)
             .with_handler("__route_/push2"),
-        TestResponder { body: "push2".into() },
+        TestResponder {
+            body: "push2".into(),
+        },
     );
     let d = session.resolve_route(&intent("/push2"));
     let _ = session.execute_decision(&d, &intent("/push2"));
@@ -702,9 +871,12 @@ fn record_presentation_directly_works_for_all_modes() {
     // Replace — same depth, different route
     session.register_route_with(
         "/replace_me",
-        webview_app().with_presentation(Presentation::Replace)
+        webview_app()
+            .with_presentation(Presentation::Replace)
             .with_handler("__route_/replace_me"),
-        TestResponder { body: "replace".into() },
+        TestResponder {
+            body: "replace".into(),
+        },
     );
     let d = session.resolve_route(&intent("/replace_me"));
     let _ = session.execute_decision(&d, &intent("/replace_me"));
@@ -714,9 +886,12 @@ fn record_presentation_directly_works_for_all_modes() {
     // Root — resets to 1
     session.register_route_with(
         "/login",
-        webview_app().with_presentation(Presentation::Root)
+        webview_app()
+            .with_presentation(Presentation::Root)
             .with_handler("__route_/login"),
-        TestResponder { body: "login".into() },
+        TestResponder {
+            body: "login".into(),
+        },
     );
     let d = session.resolve_route(&intent("/login"));
     let _ = session.execute_decision(&d, &intent("/login"));

@@ -84,7 +84,9 @@ pub fn wrap_if_context(err: &(dyn StdError + 'static)) -> Option<Code> {
 #[must_use]
 pub fn wrap_if_rst(err: &(dyn StdError + 'static)) -> Option<Code> {
     let text = chain_text(err);
-    if text.contains("rst_stream") || text.contains("stream reset") || text.contains("stream closed")
+    if text.contains("rst_stream")
+        || text.contains("stream reset")
+        || text.contains("stream closed")
     {
         Some(Code::Canceled)
     } else {

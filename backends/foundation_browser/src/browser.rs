@@ -50,7 +50,11 @@ impl BrowserDriver {
         if browser == Browser::Firefox {
             crate::bidi::new_session(&engine)?;
         }
-        Ok(Self { engine, browser, process })
+        Ok(Self {
+            engine,
+            browser,
+            process,
+        })
     }
 
     /// Open a fresh page (a CDP target session, or a BiDi browsing context).

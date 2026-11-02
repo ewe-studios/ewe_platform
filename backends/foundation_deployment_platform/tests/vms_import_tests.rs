@@ -8,7 +8,7 @@ use std::net::TcpListener;
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_platform::config::TestbedError;
 use foundation_deployment_platform::import::{
-    vagrant_cloud_lookup, validate_image, MIN_IMAGE_SIZE,
+    MIN_IMAGE_SIZE, vagrant_cloud_lookup, validate_image,
 };
 use foundation_netio::HttpClientBuilder;
 
@@ -93,27 +93,37 @@ fn serve_once(status: u16, body: String) -> String {
 #[valtron_test]
 async fn vagrant_lookup_parses_metadata() {
     let url = serve_once(200, VAGRANT_METADATA.to_string());
-    let client = HttpClientBuilder::new().max_body_size(Some(64 * 1024)).build();
+    let client = HttpClientBuilder::new()
+        .max_body_size(Some(64 * 1024))
+        .build();
 
     let result = vagrant_cloud_lookup(&client, &url)
         .await
         .expect("the metadata should parse");
 
-    assert_eq!(result.as_deref(), Some("https://dl.example/ubuntu-libvirt.box"));
+    assert_eq!(
+        result.as_deref(),
+        Some("https://dl.example/ubuntu-libvirt.box")
+    );
 }
 
 /// A non-2xx response is a structured HTTP error, not a silent miss.
 #[valtron_test]
 async fn vagrant_lookup_reports_http_error() {
     let url = serve_once(404, "not found".to_string());
-    let client = HttpClientBuilder::new().max_body_size(Some(64 * 1024)).build();
+    let client = HttpClientBuilder::new()
+        .max_body_size(Some(64 * 1024))
+        .build();
 
     let err = vagrant_cloud_lookup(&client, &url)
         .await
         .expect_err("a 404 should be reported");
 
     match err {
-        TestbedError::DownloadFailed { status, url: failed_url } => {
+        TestbedError::DownloadFailed {
+            status,
+            url: failed_url,
+        } => {
             assert_eq!(status, 404);
             assert_eq!(failed_url, url);
         }

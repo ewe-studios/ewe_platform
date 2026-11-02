@@ -27,11 +27,7 @@ use crate::jsonrpc::WireProtocol;
 /// Protocol errors from `Target.createTarget`/`attachToTarget`, or a malformed
 /// response.
 pub(crate) fn attach_page<P: WireProtocol>(proto: &P) -> Result<String> {
-    let created = proto.call(
-        "Target.createTarget",
-        json!({ "url": "about:blank" }),
-        None,
-    )?;
+    let created = proto.call("Target.createTarget", json!({ "url": "about:blank" }), None)?;
     let target_id = created
         .get("targetId")
         .and_then(Value::as_str)

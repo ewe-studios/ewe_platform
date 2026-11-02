@@ -254,10 +254,7 @@ impl RawStream {
     /// read and never park. A reader task uses this to decide between
     /// `TaskStatus::Depends` (park) and failing on a `WouldBlock`.
     #[must_use]
-    pub fn register_read_waker(
-        &self,
-        waker: crate::native::connection::ConnWaker,
-    ) -> bool {
+    pub fn register_read_waker(&self, waker: crate::native::connection::ConnWaker) -> bool {
         match self {
             Self::AsPlain(inner, _) => inner.get_core_ref().register_read_waker(waker),
             #[cfg(any(
@@ -299,7 +296,11 @@ impl RawStream {
             #[cfg(all(unix, feature = "ssl-rustls"))]
             Self::AsClientTls(inner, _) => inner.get_core_ref().supports_nonblocking_io(),
             #[cfg(all(
-                any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"),
+                any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                ),
                 not(all(unix, feature = "ssl-rustls"))
             ))]
             Self::AsServerTls(..) | Self::AsClientTls(..) => false,
@@ -406,9 +407,7 @@ impl RawStream {
     /// `io_uring` inbox, not fd readability) and a TLS backend that cannot be
     /// driven non-blocking.
     #[must_use]
-    pub fn read_wake_source(
-        &self,
-    ) -> Option<crate::shared::client::body_reader::ReadWakeSource> {
+    pub fn read_wake_source(&self) -> Option<crate::shared::client::body_reader::ReadWakeSource> {
         use std::sync::Arc;
 
         // Overlay: only `AsPlain` wraps a `Connection` that may be an overlay.

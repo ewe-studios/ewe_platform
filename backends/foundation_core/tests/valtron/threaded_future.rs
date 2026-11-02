@@ -12,7 +12,6 @@ use foundation_core::valtron::{valtron_test, ThreadedIterFuture, ThreadedValue};
 
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_basic() {
-
     let threaded = ThreadedIterFuture::new(|| async {
         Ok::<_, ()>(vec![Ok::<i32, ()>(1), Ok(2), Ok(3)].into_iter())
     });
@@ -30,7 +29,6 @@ fn test_threaded_future_basic() {
 
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_future_error() {
-
     let threaded = ThreadedIterFuture::new(|| async {
         Err::<std::vec::IntoIter<Result<i32, &'static str>>, &'static str>("future failed")
     });
@@ -49,7 +47,6 @@ fn test_threaded_future_future_error() {
 
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_empty_iterator() {
-
     let threaded = ThreadedIterFuture::new(|| async { Ok::<_, ()>(vec![].into_iter()) });
 
     let iter = threaded.execute().expect("should submit job");
@@ -65,7 +62,6 @@ fn test_threaded_future_empty_iterator() {
 
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_custom_queue_size() {
-
     // Use a queue size of 100 to hold all items, avoiding backpressure issues
     // in the test environment where thread scheduling may differ from production
     let threaded = ThreadedIterFuture::with_queue_size(
@@ -93,7 +89,6 @@ fn test_threaded_future_custom_queue_size() {
 /// backpressure cycles
 #[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_backpressure() {
-
     // Small queue forces backpressure: 100 items with queue size 4
     // means ~96 backpressure cycles
     let threaded = ThreadedIterFuture::with_queue_size(
@@ -169,7 +164,10 @@ struct WakeLater {
 impl std::future::Future for WakeLater {
     type Output = ();
 
-    fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<()> {
+    fn poll(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<()> {
         use std::sync::atomic::Ordering;
         self.polls.fetch_add(1, Ordering::SeqCst);
         if self.done.load(Ordering::SeqCst) {
@@ -220,7 +218,10 @@ fn test_threaded_future_parks_while_pending() {
 
     assert_eq!(results, vec![7]);
     let polls = polls.load(Ordering::SeqCst);
-    assert!(polls <= 5, "the pending future was polled {polls} times: busy-polling");
+    assert!(
+        polls <= 5,
+        "the pending future was polled {polls} times: busy-polling"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -230,7 +231,10 @@ fn test_threaded_future_parks_while_pending() {
 /// CPU time used so far by the calling thread, in nanoseconds.
 #[cfg(unix)]
 fn thread_cpu_nanos() -> u64 {
-    let mut ts = libc::timespec { tv_sec: 0, tv_nsec: 0 };
+    let mut ts = libc::timespec {
+        tv_sec: 0,
+        tv_nsec: 0,
+    };
     // SAFETY: `ts` is a valid out pointer; CLOCK_THREAD_CPUTIME_ID is supported
     // on every unix target this crate tests on.
     let rc = unsafe { libc::clock_gettime(libc::CLOCK_THREAD_CPUTIME_ID, &mut ts) };
@@ -252,7 +256,10 @@ struct SlowWake {
 impl std::future::Future for SlowWake {
     type Output = ();
 
-    fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<()> {
+    fn poll(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<()> {
         use std::sync::atomic::Ordering;
         let now = thread_cpu_nanos();
         if !self.started {
@@ -310,7 +317,10 @@ fn threaded_iter_future_does_not_spin_while_pending() {
     assert_eq!(results, vec![7]);
 
     let used_ms = (cpu_last.load(Ordering::SeqCst) - cpu_first.load(Ordering::SeqCst)) / 1_000_000;
-    assert!(used_ms < 50, "the worker thread used {used_ms} ms of CPU while its future was pending");
+    assert!(
+        used_ms < 50,
+        "the worker thread used {used_ms} ms of CPU while its future was pending"
+    );
 }
 
 /// Yields 5 items, then records the CPU time of the polling thread when it is
@@ -359,7 +369,12 @@ fn threaded_iter_future_backpressure_parks_until_space() {
 
     let threaded = ThreadedIterFuture::with_backpressure_wait(
         move || async move {
-            Ok::<_, ()>(FiveItems { next: 0, cpu_start: 0, cpu_end: end, cpu_begin: begin })
+            Ok::<_, ()>(FiveItems {
+                next: 0,
+                cpu_start: 0,
+                cpu_end: end,
+                cpu_begin: begin,
+            })
         },
         2,
         None,
@@ -375,7 +390,10 @@ fn threaded_iter_future_backpressure_parks_until_space() {
     assert_eq!(got, vec![1, 2, 3, 4, 5]);
 
     let used_ms = (cpu_end.load(Ordering::SeqCst) - cpu_begin.load(Ordering::SeqCst)) / 1_000_000;
-    assert!(used_ms < 50, "the producer used {used_ms} ms of CPU while the queue was full");
+    assert!(
+        used_ms < 50,
+        "the producer used {used_ms} ms of CPU while the queue was full"
+    );
 }
 
 /// An `Err` from the future reaches the consumer even when the consumer is slow
@@ -386,7 +404,9 @@ fn threaded_iter_future_backpressure_parks_until_space() {
 #[valtron_test(seed = 42, threads = 4, timeout = 20_000)]
 fn threaded_iter_future_error_reaches_consumer_when_queue_full() {
     let threaded = ThreadedIterFuture::with_backpressure_wait(
-        || async { Err::<std::vec::IntoIter<Result<i32, &'static str>>, &'static str>("future failed") },
+        || async {
+            Err::<std::vec::IntoIter<Result<i32, &'static str>>, &'static str>("future failed")
+        },
         2,
         None,
     );

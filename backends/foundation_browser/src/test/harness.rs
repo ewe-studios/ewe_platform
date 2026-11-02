@@ -57,7 +57,8 @@ impl Default for TestConfig {
         Self {
             host: "127.0.0.1".into(),
             port: 0,
-            html: "<!doctype html><html><head><meta charset=utf-8></head><body></body></html>".into(),
+            html: "<!doctype html><html><head><meta charset=utf-8></head><body></body></html>"
+                .into(),
             file: None,
             static_dir: None,
             static_mount: "/assets".into(),
@@ -86,7 +87,11 @@ impl TestConfig {
             extra_args.push("--ignore-certificate-errors".into());
             extra_args.push("--allow-insecure-localhost".into());
         }
-        LaunchConfig { browser: self.browser, headless: self.headless, extra_args }
+        LaunchConfig {
+            browser: self.browser,
+            headless: self.headless,
+            extra_args,
+        }
     }
 
     fn page(&self) -> PageSource {
@@ -99,7 +104,12 @@ impl TestConfig {
     fn statics(&self) -> Vec<StaticMount> {
         self.static_dir
             .as_ref()
-            .map(|dir| vec![StaticMount { mount: self.static_mount.clone(), dir: dir.clone() }])
+            .map(|dir| {
+                vec![StaticMount {
+                    mount: self.static_mount.clone(),
+                    dir: dir.clone(),
+                }]
+            })
             .unwrap_or_default()
     }
 }

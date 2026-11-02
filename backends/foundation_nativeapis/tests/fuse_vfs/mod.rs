@@ -1,7 +1,9 @@
 use foundation_nativeapis::native::vfs::fuse::{
     flags_to_open_mode, vfs_error_to_errno, FuseMount, FuseMountOptions, ROOT_INO,
 };
-use foundation_nativeapis::shared::vfs::{MemoryFs, OpenMode, VfsDirectory, VfsError, VfsFileSystem, VfsFileType, VfsMetadata};
+use foundation_nativeapis::shared::vfs::{
+    MemoryFs, OpenMode, VfsDirectory, VfsError, VfsFileSystem, VfsFileType, VfsMetadata,
+};
 
 use std::time::Duration;
 
@@ -9,18 +11,55 @@ use std::time::Duration;
 
 #[test]
 fn test_vfs_error_to_errno_mapping() {
-    assert_eq!(vfs_error_to_errno(&VfsError::NotFound { path: "/x".into() }), libc::ENOENT);
-    assert_eq!(vfs_error_to_errno(&VfsError::AlreadyExists { path: "/x".into() }), libc::EEXIST);
-    assert_eq!(vfs_error_to_errno(&VfsError::PermissionDenied { path: "/x".into() }), libc::EACCES);
-    assert_eq!(vfs_error_to_errno(&VfsError::NotAFile { path: "/x".into() }), libc::EISDIR);
-    assert_eq!(vfs_error_to_errno(&VfsError::NotADirectory { path: "/x".into() }), libc::ENOTDIR);
-    assert_eq!(vfs_error_to_errno(&VfsError::Unsupported { operation: "op".into() }), libc::ENOSYS);
-    assert_eq!(vfs_error_to_errno(&VfsError::InvalidPath { path: "/x".into() }), libc::EINVAL);
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::NotFound { path: "/x".into() }),
+        libc::ENOENT
+    );
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::AlreadyExists { path: "/x".into() }),
+        libc::EEXIST
+    );
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::PermissionDenied { path: "/x".into() }),
+        libc::EACCES
+    );
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::NotAFile { path: "/x".into() }),
+        libc::EISDIR
+    );
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::NotADirectory { path: "/x".into() }),
+        libc::ENOTDIR
+    );
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::Unsupported {
+            operation: "op".into()
+        }),
+        libc::ENOSYS
+    );
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::InvalidPath { path: "/x".into() }),
+        libc::EINVAL
+    );
     assert_eq!(vfs_error_to_errno(&VfsError::ReadOnly), libc::EROFS);
-    assert_eq!(vfs_error_to_errno(&VfsError::EntryPending { path: "/x".into() }), libc::EAGAIN);
-    assert_eq!(vfs_error_to_errno(&VfsError::SymlinkLoop { path: "/x".into() }), libc::ELOOP);
-    assert_eq!(vfs_error_to_errno(&VfsError::DirectoryNotEmpty { path: "/x".into() }), libc::ENOTEMPTY);
-    assert_eq!(vfs_error_to_errno(&VfsError::Backend { message: "err".into() }), libc::EIO);
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::EntryPending { path: "/x".into() }),
+        libc::EAGAIN
+    );
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::SymlinkLoop { path: "/x".into() }),
+        libc::ELOOP
+    );
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::DirectoryNotEmpty { path: "/x".into() }),
+        libc::ENOTEMPTY
+    );
+    assert_eq!(
+        vfs_error_to_errno(&VfsError::Backend {
+            message: "err".into()
+        }),
+        libc::EIO
+    );
 }
 
 // ── Flags / Options ──
@@ -250,7 +289,8 @@ fn test_fuse_mount_and_read_file() {
     let fs = MemoryFs::new();
     fs.write_file("/hello.txt", b"hello from VFS").unwrap();
     fs.mkdir("/subdir").unwrap();
-    fs.write_file("/subdir/nested.txt", b"nested content").unwrap();
+    fs.write_file("/subdir/nested.txt", b"nested content")
+        .unwrap();
 
     let mountpoint = create_temp_mountpoint();
     let mount = FuseMount::new(fs, FuseMountOptions::default());

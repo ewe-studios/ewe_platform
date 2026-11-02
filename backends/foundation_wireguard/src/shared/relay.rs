@@ -197,10 +197,15 @@ impl RelaySelector {
         // Sort: by strategy (load ascending, RTT ascending, or shuffle).
         match self.strategy {
             RelayStrategy::LowestLoad => {
-                self.candidates.sort_by(|a, b| a.load.partial_cmp(&b.load).unwrap_or(std::cmp::Ordering::Equal));
+                self.candidates.sort_by(|a, b| {
+                    a.load
+                        .partial_cmp(&b.load)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
             }
             RelayStrategy::LowestRtt => {
-                self.candidates.sort_by_key(|c| c.rtt_us.unwrap_or(u64::MAX));
+                self.candidates
+                    .sort_by_key(|c| c.rtt_us.unwrap_or(u64::MAX));
             }
             RelayStrategy::Random => {
                 // Deterministic-ish shuffle: sort by peer_id bytes for reproducibility.
@@ -269,8 +274,8 @@ impl RelaySelector {
             }
             // Update the candidate's RTT.
             if let Some(c) = self.candidates.iter_mut().find(|c| c.peer_id == peer) {
-                let avg: u64 = self.recent_rtts.iter().sum::<u64>()
-                    / self.recent_rtts.len().max(1) as u64;
+                let avg: u64 =
+                    self.recent_rtts.iter().sum::<u64>() / self.recent_rtts.len().max(1) as u64;
                 c.rtt_us = Some(avg);
             }
         }

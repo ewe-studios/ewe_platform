@@ -26,8 +26,8 @@
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use foundation_wireguard::{WgConfig, WgSeed};
 use foundation_wireguard::native::WgNode;
+use foundation_wireguard::{WgConfig, WgSeed};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
@@ -64,7 +64,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             tracing::info!("👥 {} peers in mesh:", members.len() - 1);
             for m in &members {
                 if m.identity != handle.identity() {
-                    tracing::info!("  peer {} at {} (relay={})", m.identity, m.tunnel_ip, m.caps.relay);
+                    tracing::info!(
+                        "  peer {} at {} (relay={})",
+                        m.identity,
+                        m.tunnel_ip,
+                        m.caps.relay
+                    );
                 }
             }
             break;

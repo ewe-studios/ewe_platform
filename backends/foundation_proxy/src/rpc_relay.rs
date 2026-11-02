@@ -42,7 +42,9 @@ use bytes::Bytes;
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{block_on_future, from_future, send, Pipe, PipeReceiver, PipeSender};
+use foundation_core::valtron::{
+    block_on_future, from_future, send, Pipe, PipeReceiver, PipeSender,
+};
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
 use foundation_netio::shared::http::{
@@ -51,9 +53,7 @@ use foundation_netio::shared::http::{
 };
 
 use foundation_connectrpc::shared::protocol::connect::constants as connect_consts;
-use foundation_connectrpc::shared::protocol::connect::{
-    streaming_content_type as connect_streaming_content_type,
-};
+use foundation_connectrpc::shared::protocol::connect::streaming_content_type as connect_streaming_content_type;
 use foundation_connectrpc::shared::protocol::grpc::constants as grpc_consts;
 use foundation_connectrpc::shared::protocol::grpc::content_type as grpc_content_type;
 use foundation_connectrpc::shared::protocol::grpc_web::{
@@ -101,7 +101,6 @@ pub(crate) fn translate_connect_deadline_to_grpc(out_headers: &mut SimpleHeaders
     }
 }
 
-
 /// Relay a gRPC-Web request from the HTTP/1.1 front end to a native-gRPC
 /// backend, translating at the frame level. Runs on the caller's thread (the
 /// H1 relay thread); drives the async relay on the valtron pool and streams the
@@ -130,8 +129,8 @@ pub(crate) fn relay_grpc_web_to_grpc(
         .and_then(|v| v.first())
         .cloned()
         .unwrap_or_else(|| "application/grpc-web+proto".to_string());
-    let (codec, text) = parse_grpc_web_content_type(&inbound_ct)
-        .unwrap_or_else(|| ("proto".to_string(), false));
+    let (codec, text) =
+        parse_grpc_web_content_type(&inbound_ct).unwrap_or_else(|| ("proto".to_string(), false));
     let out_content_type = grpc_content_type(&codec);
     let resp_content_type = grpc_web_content_type(&codec, text);
 
@@ -161,8 +160,7 @@ pub(crate) fn relay_grpc_web_to_grpc(
 
     // Drive the relay on the pool, non-blocking: it re-envelopes frames and
     // pushes the framed gRPC-Web response body into the responder pipe.
-    send(from_future(driver))
-        .map_err(|e| format!("grpc-web→grpc relay spawn failed: {e}"))?;
+    send(from_future(driver)).map_err(|e| format!("grpc-web→grpc relay spawn failed: {e}"))?;
 
     // Stream the framed response body back, chunk by chunk, blocking only on
     // the response pipe (never buffering the whole server-stream).
@@ -234,8 +232,7 @@ pub(crate) fn relay_connect_to_grpc(
         let (driver, responder_rx) =
             setup_streaming_relay_to_grpc(ConnectHandler, req, req_body, url, out_headers)
                 .map_err(|e| format!("connect→grpc relay setup failed: {e}"))?;
-        send(from_future(driver))
-            .map_err(|e| format!("connect→grpc relay spawn failed: {e}"))?;
+        send(from_future(driver)).map_err(|e| format!("connect→grpc relay spawn failed: {e}"))?;
 
         let mut headers = SimpleHeaders::new();
         headers.insert(SimpleHeader::CONTENT_TYPE, vec![resp_content_type]);
@@ -249,7 +246,11 @@ pub(crate) fn relay_connect_to_grpc(
         // The round trip is shared with the H2 front end; only the response
         // rendering differs (H1 `write_response` vs H2 frames).
         let response = block_on_future(connect_unary_roundtrip(
-            req, req_body, codec, url, out_headers,
+            req,
+            req_body,
+            codec,
+            url,
+            out_headers,
         ))
         .map_err(|e| format!("connect unary→grpc relay failed: {e}"))?;
         write_response(
@@ -573,7 +574,13 @@ fn setup_streaming_relay_to_grpc<H: ProtocolHandler>(
     req_body: Bytes,
     url: String,
     out_headers: SimpleHeaders,
-) -> Result<(futures_util::future::BoxFuture<'static, ()>, PipeReceiver<Bytes>), String> {
+) -> Result<
+    (
+        futures_util::future::BoxFuture<'static, ()>,
+        PipeReceiver<Bytes>,
+    ),
+    String,
+> {
     let (body_tx, body_rx) = Pipe::<Bytes>::with_depth(DEFAULT_PIPE_DEPTH);
     let (responder_tx, responder_rx) = Pipe::<Bytes>::with_depth(DEFAULT_PIPE_DEPTH);
 

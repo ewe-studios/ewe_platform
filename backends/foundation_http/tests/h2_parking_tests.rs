@@ -16,10 +16,10 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::WaitGroup;
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{initialize_pool, Ctx, TaskIterator, TaskStatus};
 use foundation_http::native::server::H2ConnectionHandler;
 use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 use foundation_netio::http2::channel::H2Channel;
 use foundation_netio::http2::conn::H2Conn;
 use foundation_netio::http2::connection::{H2Request, CLIENT_PREFACE};
@@ -51,7 +51,9 @@ fn an_idle_h2_connection_parks_on_its_socket() {
 
     let mut last = None;
     for _ in 0..50 {
-        let status = handler.next_status(Ctx::new()).expect("the connection stays open");
+        let status = handler
+            .next_status(Ctx::new())
+            .expect("the connection stays open");
         let parked = matches!(status, TaskStatus::Depends(_));
         assert!(
             !matches!(status, TaskStatus::Delayed(_)),
@@ -75,10 +77,10 @@ fn process_cpu_ns() -> u128 {
         let mut usage: libc::rusage = std::mem::zeroed();
         let rc = libc::getrusage(libc::RUSAGE_SELF, &mut usage);
         assert_eq!(rc, 0, "getrusage failed");
-        let user = usage.ru_utime.tv_sec as u128 * 1_000_000_000
-            + usage.ru_utime.tv_usec as u128 * 1_000;
-        let system = usage.ru_stime.tv_sec as u128 * 1_000_000_000
-            + usage.ru_stime.tv_usec as u128 * 1_000;
+        let user =
+            usage.ru_utime.tv_sec as u128 * 1_000_000_000 + usage.ru_utime.tv_usec as u128 * 1_000;
+        let system =
+            usage.ru_stime.tv_sec as u128 * 1_000_000_000 + usage.ru_stime.tv_usec as u128 * 1_000;
         user + system
     }
 }

@@ -104,10 +104,12 @@ fn multi_commands_collects_first_returns() {
                     "properties": {"id": {"type": "string"}},
                     "required": ["id"]
                 }))),
-                returns: Some(Args::new(ValidationOptions::with_schema(serde_json::json!({
-                    "type": "object",
-                    "properties": {"state": {"type": "string"}}
-                })))),
+                returns: Some(Args::new(ValidationOptions::with_schema(
+                    serde_json::json!({
+                        "type": "object",
+                        "properties": {"state": {"type": "string"}}
+                    }),
+                ))),
             },
         ],
     );

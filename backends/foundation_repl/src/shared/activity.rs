@@ -301,5 +301,7 @@ fn spawn_animation(
 /// cannot leave any of them in a state that makes the next writer wrong, so the
 /// data is worth more than the poison flag.
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
-    mutex.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
+    mutex
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }

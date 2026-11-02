@@ -25,7 +25,11 @@ use crate::jsonrpc::{RpcEngine, WireProtocol};
 /// Protocol error from `session.new`.
 pub(crate) fn new_session(engine: &RpcEngine) -> Result<String> {
     let res = engine.call("session.new", json!({ "capabilities": {} }), None)?;
-    Ok(res.get("sessionId").and_then(Value::as_str).unwrap_or_default().to_string())
+    Ok(res
+        .get("sessionId")
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+        .to_string())
 }
 
 /// The first (default) top-level browsing context — Firefox opens one on start.
@@ -40,5 +44,8 @@ pub(crate) fn default_context(engine: &RpcEngine) -> Result<String> {
         .and_then(|c| c.get("context"))
         .and_then(Value::as_str)
         .map(ToString::to_string)
-        .ok_or_else(|| BrowserError::Protocol { code: 0, message: "BiDi: no browsing context".into() })
+        .ok_or_else(|| BrowserError::Protocol {
+            code: 0,
+            message: "BiDi: no browsing context".into(),
+        })
 }

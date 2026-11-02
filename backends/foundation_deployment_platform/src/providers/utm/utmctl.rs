@@ -79,17 +79,20 @@ pub fn ensure_utm() -> Result<Vec<String>> {
     // Check utmctl exists
     if !std::path::Path::new(UTMCTL).exists() {
         return Err(TestbedError::Qcow2Error {
-            message: "UTM not installed at /Applications/UTM.app. Install via: brew install --cask utm".to_string(),
+            message:
+                "UTM not installed at /Applications/UTM.app. Install via: brew install --cask utm"
+                    .to_string(),
         });
     }
 
     // Check that utmctl is responsive
-    let output = Command::new(UTMCTL)
-        .args(["list"])
-        .output()
-        .map_err(|e| TestbedError::Qcow2Error {
-            message: format!("utmctl list failed: {e}"),
-        })?;
+    let output =
+        Command::new(UTMCTL)
+            .args(["list"])
+            .output()
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("utmctl list failed: {e}"),
+            })?;
 
     if !output.status.success() {
         // UTM may not be running — try launching it
@@ -116,12 +119,13 @@ pub fn ensure_utm() -> Result<Vec<String>> {
         }
 
         // Verify
-        let output = Command::new(UTMCTL)
-            .args(["list"])
-            .output()
-            .map_err(|e| TestbedError::Qcow2Error {
-                message: format!("utmctl list failed after launch: {e}"),
-            })?;
+        let output =
+            Command::new(UTMCTL)
+                .args(["list"])
+                .output()
+                .map_err(|e| TestbedError::Qcow2Error {
+                    message: format!("utmctl list failed after launch: {e}"),
+                })?;
 
         if !output.status.success() {
             return Err(TestbedError::Qcow2Error {
@@ -143,12 +147,13 @@ pub fn ensure_utm() -> Result<Vec<String>> {
 /// # Errors
 /// Returns an error if utmctl list fails.
 pub fn list_vms() -> Result<Vec<VmEntry>> {
-    let output = Command::new(UTMCTL)
-        .args(["list"])
-        .output()
-        .map_err(|e| TestbedError::Qcow2Error {
-            message: format!("utmctl list failed: {e}"),
-        })?;
+    let output =
+        Command::new(UTMCTL)
+            .args(["list"])
+            .output()
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("utmctl list failed: {e}"),
+            })?;
 
     if !output.status.success() {
         return Err(TestbedError::Qcow2Error {
@@ -350,4 +355,3 @@ pub fn version_is_older(actual: &str, min: &str) -> bool {
     let (m1, m2, m3) = parse(min);
     (a1, a2, a3) < (m1, m2, m3)
 }
-

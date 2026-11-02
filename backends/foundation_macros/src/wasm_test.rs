@@ -192,7 +192,9 @@ fn parse_flags(attr: TokenStream) -> Result<Flags, syn::Error> {
             other => {
                 return Err(syn::Error::new(
                     ident.span(),
-                    format!("unknown #[wasm_test] flag `{other}` (expected `should_panic` or `ignore`)"),
+                    format!(
+                        "unknown #[wasm_test] flag `{other}` (expected `should_panic` or `ignore`)"
+                    ),
                 ))
             }
         }
@@ -223,8 +225,11 @@ pub(crate) fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
         Err(err) => return err.to_compile_error(),
     };
     if !case.sig.inputs.is_empty() {
-        return syn::Error::new_spanned(&case.sig.inputs, "#[wasm_test] functions take no arguments")
-            .to_compile_error();
+        return syn::Error::new_spanned(
+            &case.sig.inputs,
+            "#[wasm_test] functions take no arguments",
+        )
+        .to_compile_error();
     }
 
     let fw = foundation_wasm_path();
@@ -339,9 +344,15 @@ pub(crate) fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenSt
     let ignore = flags.ignore;
 
     let mut manifest_flags = String::new();
-    if is_async { manifest_flags.push('a'); }
-    if flags.should_panic { manifest_flags.push('p'); }
-    if ignore { manifest_flags.push('i'); }
+    if is_async {
+        manifest_flags.push('a');
+    }
+    if flags.should_panic {
+        manifest_flags.push('p');
+    }
+    if ignore {
+        manifest_flags.push('i');
+    }
     let manifest_line = format!("{name_str}|{manifest_flags}\n");
     let manifest_bytes = syn::LitByteStr::new(manifest_line.as_bytes(), name.span());
     let manifest_len = manifest_line.len();

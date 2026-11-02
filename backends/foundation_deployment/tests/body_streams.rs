@@ -185,11 +185,18 @@ fn the_default_limits_are_the_documented_ones() {
         .with_max_json_line(20)
         .with_max_json_body(30);
     assert_eq!(
-        (tuned.max_error_body, tuned.max_json_line, tuned.max_json_body),
+        (
+            tuned.max_error_body,
+            tuned.max_json_line,
+            tuned.max_json_body
+        ),
         (10, 20, 30)
     );
     // Zero is a valid (if useless) limit, not a sentinel.
-    assert_eq!(BodyLimits::default().with_max_error_body(0).max_error_body, 0);
+    assert_eq!(
+        BodyLimits::default().with_max_error_body(0).max_error_body,
+        0
+    );
 }
 
 #[test]
@@ -223,7 +230,10 @@ fn a_line_exactly_at_the_limit_is_accepted() {
 #[test]
 fn a_bare_transport_reads_under_the_default_limits() {
     let http = foundation_netio::HttpClientBuilder::new().build();
-    assert_eq!(ApiClient::from(http.clone()).limits(), BodyLimits::default());
+    assert_eq!(
+        ApiClient::from(http.clone()).limits(),
+        BodyLimits::default()
+    );
     let limits = BodyLimits::default().with_max_error_body(1);
     assert_eq!(ApiClient::new(http).with_limits(limits).limits(), limits);
 }
@@ -233,7 +243,11 @@ fn an_error_body_is_cut_at_the_configured_limit() {
     let reads = Arc::new(AtomicUsize::new(0));
     let body = counted_stream(vec![b"0123", b"4567", b"89"], Arc::clone(&reads));
     assert_eq!(block_on(read_error_body(body, 5)).as_deref(), Some("01234"));
-    assert_eq!(reads.load(Ordering::SeqCst), 2, "the third chunk is never read");
+    assert_eq!(
+        reads.load(Ordering::SeqCst),
+        2,
+        "the third chunk is never read"
+    );
     // A zero limit reads nothing, which reads as no body at all.
     let body = counted_stream(vec![b"0123"], Arc::new(AtomicUsize::new(0)));
     assert_eq!(block_on(read_error_body(body, 0)), None);
@@ -278,10 +292,11 @@ async fn send_json_rejects_body_over_cap() {
     // `max_json_body`, naming the limit, instead of buffering it whole.
     let port = spawn_json_server();
     let http = HttpClientBuilder::new().build();
-    let client =
-        ApiClient::new(http).with_limits(BodyLimits::default().with_max_json_body(1024));
+    let client = ApiClient::new(http).with_limits(BodyLimits::default().with_max_json_body(1024));
     let url = format!("http://127.0.0.1:{port}/big");
-    let request = PreparedRequestBuilder::get(&url).expect("build GET").build();
+    let request = PreparedRequestBuilder::get(&url)
+        .expect("build GET")
+        .build();
 
     let result = send_json::<serde_json::Value>(client, request).await;
     match result {

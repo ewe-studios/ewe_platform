@@ -168,11 +168,7 @@ pub async fn delete(ctx: &KeychainContext, user_uuid: &str, id: &str) -> AppResu
 /// Enforces disabled / deletion / expiry / max-access-count / password, then
 /// increments the access counter and returns the send (a "not found" is returned
 /// for any access-denied case so a probe can't distinguish reasons).
-pub async fn access(
-    ctx: &KeychainContext,
-    id: &str,
-    password: Option<&str>,
-) -> AppResult<Send> {
+pub async fn access(ctx: &KeychainContext, id: &str, password: Option<&str>) -> AppResult<Send> {
     let mut row = store::find(ctx.db(), id)
         .await?
         .ok_or_else(|| AppError::NotFound("send not found".into()))?;

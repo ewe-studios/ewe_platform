@@ -3,9 +3,7 @@
 //! Uses `foundation_wasm::abi::web::register_schedule` for timer scheduling.
 
 use crate::valtron::{ProgressIndicator, State};
-use foundation_nostd::primitives::cooperative_spin_waiter::{
-    CooperativeSpinWaiter, WaitStatus,
-};
+use foundation_nostd::primitives::cooperative_spin_waiter::{CooperativeSpinWaiter, WaitStatus};
 use std::sync::Mutex;
 use std::time;
 
@@ -61,15 +59,12 @@ pub fn request_resume() {
 fn foundation_wasm_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()>) {
     // Wrap FnOnce in Mutex<Option> so it can satisfy Fn bound
     let resume = Mutex::new(Some(resume));
-    foundation_wasm::abi::web::register_schedule(
-        dur.as_millis() as f64,
-        move || {
-            if let Some(r) = resume.lock().unwrap().take() {
-                r();
-            }
-            js_yield_and_continue();
-        },
-    );
+    foundation_wasm::abi::web::register_schedule(dur.as_millis() as f64, move || {
+        if let Some(r) = resume.lock().unwrap().take() {
+            r();
+        }
+        js_yield_and_continue();
+    });
 }
 
 /// JS thread yielder using foundation_wasm FFI.

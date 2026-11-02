@@ -34,7 +34,11 @@ impl SqrtStrategy {
         match self {
             Self::NormalizedVectors | Self::Libm => {
                 let s = libm::sqrtf(x);
-                if s == 0.0 { 0.0 } else { 1.0 / s }
+                if s == 0.0 {
+                    0.0
+                } else {
+                    1.0 / s
+                }
             }
             Self::FastInvSqrt => {
                 if x <= 0.0 {

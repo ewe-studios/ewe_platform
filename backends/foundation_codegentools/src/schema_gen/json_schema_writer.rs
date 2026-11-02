@@ -8,7 +8,10 @@ pub fn build_json_schema(struct_name: &str, fields: &[StructField]) -> Value {
     let mut required = Vec::new();
 
     for field in fields {
-        properties.insert(field.name.clone(), rust_type_to_json_schema(&field.rust_type));
+        properties.insert(
+            field.name.clone(),
+            rust_type_to_json_schema(&field.rust_type),
+        );
         if !field.nullable {
             required.push(Value::String(field.name.clone()));
         }

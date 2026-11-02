@@ -142,7 +142,10 @@ impl DnsResolver for SlowDnsResolver {
     }
 }
 
-fn slow_resolver() -> (SlowDnsResolver, PipeSender<Result<Vec<SocketAddr>, DnsError>>) {
+fn slow_resolver() -> (
+    SlowDnsResolver,
+    PipeSender<Result<Vec<SocketAddr>, DnsError>>,
+) {
     let (tx, rx) = Pipe::new();
     (SlowDnsResolver { rx }, tx)
 }
@@ -217,7 +220,13 @@ fn dns_slow_resolver_does_not_block_the_worker() {
     }
 
     let ticks = Arc::new(AtomicUsize::new(0));
-    let ticker = valtron::execute(Ticker { ticks: ticks.clone() }, None).expect("execute ticker");
+    let ticker = valtron::execute(
+        Ticker {
+            ticks: ticks.clone(),
+        },
+        None,
+    )
+    .expect("execute ticker");
 
     // While the lookups are pending, the ticker must keep ticking.
     let deadline = Instant::now() + Duration::from_secs(3);

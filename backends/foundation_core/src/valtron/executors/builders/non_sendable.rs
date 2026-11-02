@@ -12,9 +12,9 @@ use crate::synca::Entry;
 use crate::valtron::executors::DEFAULT_MAX_TURNS;
 use crate::valtron::AnyResult;
 use crate::valtron::{
-    BoxedExecutionEngine, ConsumingIter, ExecutorError, NotifyQueue,
-    NotifyQueueStreamIterator, NotifyRecvIterator, SpawnInfo, Stream, StreamConsumingIter,
-    TaskIterator, TaskReadyResolver, TaskStatus,
+    BoxedExecutionEngine, ConsumingIter, ExecutorError, NotifyQueue, NotifyQueueStreamIterator,
+    NotifyRecvIterator, SpawnInfo, Stream, StreamConsumingIter, TaskIterator, TaskReadyResolver,
+    TaskStatus,
 };
 
 use super::{
@@ -50,7 +50,8 @@ where
         None => NotifyQueue::unbounded(),
     });
     let iter = ConsumingIter::new(task, iter_chan.clone());
-    dispatch(&config.engine, iter, parent).map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait))
+    dispatch(&config.engine, iter, parent)
+        .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait))
 }
 
 /// Build a `StreamConsumingIter` delivery and dispatch it, returning a `stream`.
@@ -102,9 +103,12 @@ macro_rules! delivery_terminals {
             pub fn recv(
                 self,
                 wait: time::Duration,
-            ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError>
-            {
-                let capacity = if $bounded { self.config.delivery_capacity } else { None };
+            ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
+                let capacity = if $bounded {
+                    self.config.delivery_capacity
+                } else {
+                    None
+                };
                 recv_via(self.config, wait, capacity, $recv)
             }
 
@@ -123,7 +127,11 @@ macro_rules! delivery_terminals {
                 wait: time::Duration,
                 max_turns: usize,
             ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
-                let capacity = if $bounded { self.config.delivery_capacity } else { None };
+                let capacity = if $bounded {
+                    self.config.delivery_capacity
+                } else {
+                    None
+                };
                 stream_via(self.config, wait, max_turns, capacity, $stream)
             }
         }
@@ -178,11 +186,8 @@ macro_rules! action_terminal {
                 let task = self.config.task.expect("task required");
                 let channel: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
                     Arc::new(NotifyQueue::unbounded());
-                let action = crate::valtron::InlineAction::from_parts(
-                    $behaviour,
-                    task,
-                    channel.clone(),
-                );
+                let action =
+                    crate::valtron::InlineAction::from_parts($behaviour, task, channel.clone());
                 let receiver = NotifyRecvIterator::from_notify_queue(channel, wait);
                 (action, receiver)
             }
@@ -194,10 +199,7 @@ action_terminal!(
     ScheduleBuilder,
     crate::valtron::InlineActionBehaviour::Schedule
 );
-action_terminal!(
-    LiftBuilder,
-    crate::valtron::InlineActionBehaviour::Lift
-);
+action_terminal!(LiftBuilder, crate::valtron::InlineActionBehaviour::Lift);
 action_terminal!(
     SequenceBuilder,
     crate::valtron::InlineActionBehaviour::Sequenced
@@ -235,12 +237,18 @@ where
             LocalFallback::Sequence => self.config.delivery_capacity,
             LocalFallback::Lift => None,
         };
-        recv_via(self.config, wait, capacity, move |e, it, parent| match fallback {
-            LocalFallback::Lift => e.lift(it.into(), parent),
-            LocalFallback::Sequence => {
-                e.sequenced(it.into(), parent.ok_or(ExecutorError::ParentMustBeSupplied)?)
-            }
-        })
+        recv_via(
+            self.config,
+            wait,
+            capacity,
+            move |e, it, parent| match fallback {
+                LocalFallback::Lift => e.lift(it.into(), parent),
+                LocalFallback::Sequence => e.sequenced(
+                    it.into(),
+                    parent.ok_or(ExecutorError::ParentMustBeSupplied)?,
+                ),
+            },
+        )
     }
 
     pub fn stream(
@@ -260,14 +268,19 @@ where
             LocalFallback::Sequence => self.config.delivery_capacity,
             LocalFallback::Lift => None,
         };
-        stream_via(self.config, wait, max_turns, capacity, move |e, it, parent| {
-            match fallback {
+        stream_via(
+            self.config,
+            wait,
+            max_turns,
+            capacity,
+            move |e, it, parent| match fallback {
                 LocalFallback::Lift => e.lift(it.into(), parent),
-                LocalFallback::Sequence => {
-                    e.sequenced(it.into(), parent.ok_or(ExecutorError::ParentMustBeSupplied)?)
-                }
-            }
-        })
+                LocalFallback::Sequence => e.sequenced(
+                    it.into(),
+                    parent.ok_or(ExecutorError::ParentMustBeSupplied)?,
+                ),
+            },
+        )
     }
 
     pub fn action(

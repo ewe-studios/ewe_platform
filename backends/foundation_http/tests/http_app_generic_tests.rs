@@ -10,7 +10,7 @@ use std::sync::Arc;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::middleware::{MiddlewareResult, RequestMiddleware};
-use foundation_http::shared::serve::{ServeWriter, ServeWriterFactory, ConnectionResult};
+use foundation_http::shared::serve::{ConnectionResult, ServeWriter, ServeWriterFactory};
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
@@ -126,9 +126,18 @@ fn test_http_app_cf_route_registration() {
 fn test_http_app_cf_route_any() {
     let mut app = HttpApp::<Arc<dyn foundation_http::wasm::serve_cf::CfServe>>::new_cf();
     app.route_any_cf::<TestCfHandler>("/cf-all");
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/cf-all").is_some());
-    assert!(app.router().dispatch(&SimpleMethod::POST, "/cf-all").is_some());
-    assert!(app.router().dispatch(&SimpleMethod::DELETE, "/cf-all").is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/cf-all")
+        .is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::POST, "/cf-all")
+        .is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::DELETE, "/cf-all")
+        .is_some());
 }
 
 #[test]
@@ -142,17 +151,32 @@ fn test_http_app_cf_middleware_pass_through() {
 fn test_http_app_cf_param_route() {
     let mut app = HttpApp::<Arc<dyn foundation_http::wasm::serve_cf::CfServe>>::new_cf();
     app.route_cf::<TestCfHandler>(SimpleMethod::GET, "/cf/users/:id");
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/cf/users/123").is_some());
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/cf/users/abc").is_some());
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/cf/users").is_none());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/cf/users/123")
+        .is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/cf/users/abc")
+        .is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/cf/users")
+        .is_none());
 }
 
 #[test]
 fn test_http_app_cf_wildcard_route() {
     let mut app = HttpApp::<Arc<dyn foundation_http::wasm::serve_cf::CfServe>>::new_cf();
     app.route_cf::<TestCfHandler>(SimpleMethod::GET, "/cf/*");
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/cf/anything").is_some());
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/cf/a/b/c").is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/cf/anything")
+        .is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/cf/a/b/c")
+        .is_some());
 }
 
 // -----------------------------------------------------------------------
@@ -170,9 +194,18 @@ fn test_http_app_web_route_registration() {
 fn test_http_app_web_route_any() {
     let mut app = HttpApp::<Arc<dyn foundation_http::shared::serve_web::WebServe>>::new_web();
     app.route_any_web::<TestWebHandler>("/web-all");
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/web-all").is_some());
-    assert!(app.router().dispatch(&SimpleMethod::POST, "/web-all").is_some());
-    assert!(app.router().dispatch(&SimpleMethod::PUT, "/web-all").is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/web-all")
+        .is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::POST, "/web-all")
+        .is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::PUT, "/web-all")
+        .is_some());
 }
 
 #[test]
@@ -194,16 +227,28 @@ fn test_http_app_web_middleware_short_circuit() {
 fn test_http_app_web_param_route() {
     let mut app = HttpApp::<Arc<dyn foundation_http::shared::serve_web::WebServe>>::new_web();
     app.route_web::<TestWebHandler>(SimpleMethod::GET, "/web/items/:id");
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/web/items/42").is_some());
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/web/items").is_none());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/web/items/42")
+        .is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/web/items")
+        .is_none());
 }
 
 #[test]
 fn test_http_app_web_wildcard_route() {
     let mut app = HttpApp::<Arc<dyn foundation_http::shared::serve_web::WebServe>>::new_web();
     app.route_web::<TestWebHandler>(SimpleMethod::GET, "/web/*");
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/web/anything").is_some());
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/web/a/b/c").is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/web/anything")
+        .is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/web/a/b/c")
+        .is_some());
 }
 
 // -----------------------------------------------------------------------
@@ -213,6 +258,12 @@ fn test_http_app_web_wildcard_route() {
 fn test_serve_writer_app_route_registration() {
     let mut app = HttpApp::<Arc<dyn ServeWriter>>::new_writer();
     app.route_writer::<TestWriterHandler>(SimpleMethod::GET, "/writer");
-    assert!(app.router().dispatch(&SimpleMethod::GET, "/writer").is_some());
-    assert!(app.router().dispatch(&SimpleMethod::POST, "/writer").is_none());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::GET, "/writer")
+        .is_some());
+    assert!(app
+        .router()
+        .dispatch(&SimpleMethod::POST, "/writer")
+        .is_none());
 }

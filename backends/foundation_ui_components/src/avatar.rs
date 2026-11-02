@@ -107,7 +107,8 @@ pub fn avatar(
     };
 
     let alt = config.alt.unwrap_or(Cow::Borrowed(""));
-    let delay_style: String = alloc::format!("--avatar-fallback-delay: {}ms", config.fallback_delay_ms);
+    let delay_style: String =
+        alloc::format!("--avatar-fallback-delay: {}ms", config.fallback_delay_ms);
     let (status, set_status) = ctx.signal(ImageLoadingStatus::Loading);
 
     // load/error carry no value → Callback escape hatch flips the status.

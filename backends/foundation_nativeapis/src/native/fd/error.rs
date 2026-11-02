@@ -1,5 +1,4 @@
 /// Error types for FD registration.
-
 use std::io;
 
 /// Error when FdRegistration fails.
@@ -13,9 +12,7 @@ pub enum FdRegistrationError<T: std::os::unix::io::AsRawFd> {
 impl<T: std::os::unix::io::AsRawFd> std::fmt::Debug for FdRegistrationError<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            FdRegistrationError::Registration(e) => {
-                f.debug_tuple("Registration").field(e).finish()
-            }
+            FdRegistrationError::Registration(e) => f.debug_tuple("Registration").field(e).finish(),
             FdRegistrationError::Failed { error, .. } => {
                 f.debug_struct("Failed").field("error", error).finish()
             }

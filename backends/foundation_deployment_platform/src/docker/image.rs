@@ -25,12 +25,12 @@
 
 use std::path::PathBuf;
 
+use foundation_deployment_docker::DockerClient;
 use foundation_deployment_docker::client::build_context::ContextTar;
 use foundation_deployment_docker::client::images::ImageBuildOptions;
-use foundation_deployment_docker::DockerClient;
 
 use crate::docker::error::{
-    classify_docker_client_err, docker_err, map_docker_client_err, DockerError, DockerResult,
+    DockerError, DockerResult, classify_docker_client_err, docker_err, map_docker_client_err,
 };
 
 /// Which builder runs the Dockerfile.
@@ -266,7 +266,7 @@ impl DockerFileConfig {
     async fn build_buildkit(&self, addr: &str) -> DockerResult<ImageBuildResult> {
         use foundation_deployment_docker::buildkit::session::SessionServer;
         use foundation_deployment_docker::buildkit::types::SolveRequest;
-        use foundation_deployment_docker::buildkit::{new_build_ref, BuildKitClient};
+        use foundation_deployment_docker::buildkit::{BuildKitClient, new_build_ref};
 
         // Named fn, not a closure returning a closure: the latter cannot express
         // that `what` outlives the returned mapper.

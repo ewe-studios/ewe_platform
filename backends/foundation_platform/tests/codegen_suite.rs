@@ -8,21 +8,31 @@ fn scan_detects_platform_annotations() {
     std::fs::create_dir_all(&tmp).unwrap();
 
     let file = tmp.join("test.rs");
-    std::fs::write(&file, r#"
+    std::fs::write(
+        &file,
+        r#"
 #[wasm_bin] fn my_app() {}
 
 #[platform_bin] fn main_setup(session: PlatformSession) {}
 
 fn not_annotated() {}
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     let annotations = scan_for_annotations(&tmp);
     assert_eq!(annotations.len(), 2);
 
-    let wasm_bin = annotations.iter().find(|a| a.kind == AnnotationKind::WasmBin).unwrap();
+    let wasm_bin = annotations
+        .iter()
+        .find(|a| a.kind == AnnotationKind::WasmBin)
+        .unwrap();
     assert_eq!(wasm_bin.name, "my_app");
 
-    let plat_bin = annotations.iter().find(|a| a.kind == AnnotationKind::PlatformBin).unwrap();
+    let plat_bin = annotations
+        .iter()
+        .find(|a| a.kind == AnnotationKind::PlatformBin)
+        .unwrap();
     assert_eq!(plat_bin.name, "main_setup");
 
     std::fs::remove_dir_all(&tmp).ok();
@@ -44,7 +54,11 @@ fn generate_creates_generated_dir() {
 
     // Write a marker file so we can test
     let src_file = tmp.join("src").join("main.rs");
-    std::fs::write(&src_file, "#[platform_bin]\nfn main(session: PlatformSession) {}\n").unwrap();
+    std::fs::write(
+        &src_file,
+        "#[platform_bin]\nfn main(session: PlatformSession) {}\n",
+    )
+    .unwrap();
 
     // We can't actually call generate_platform_code() in tests easily
     // because it reads CARGO_MANIFEST_DIR. But we document the API here.

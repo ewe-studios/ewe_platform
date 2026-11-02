@@ -51,7 +51,7 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
     // Build curl command targeting the partial file
     let mut cmd = std::process::Command::new("curl");
     cmd.args([
-        "-L", // follow redirects
+        "-L",     // follow redirects
         "--fail", // exit non-zero on HTTP error
         "--create-dirs",
         "-o",
@@ -59,10 +59,11 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
     ]);
 
     if let Some(offset) = start_byte
-        && offset > 0 {
-            // Resume: use Range header
-            cmd.args(["-C", "-"]);
-        }
+        && offset > 0
+    {
+        // Resume: use Range header
+        cmd.args(["-C", "-"]);
+    }
 
     cmd.args(["-s", "--show-error", url]);
     cmd.stdout(Stdio::piped());
@@ -135,8 +136,5 @@ pub fn download(url: &str, dest: &Path) -> Result<()> {
 /// Check if a cached image exists and is valid (non-empty).
 #[must_use]
 pub fn is_cached(dest: &Path) -> bool {
-    dest.exists()
-        && std::fs::metadata(dest)
-            .is_ok_and(|m| m.len() > 0)
+    dest.exists() && std::fs::metadata(dest).is_ok_and(|m| m.len() > 0)
 }
-

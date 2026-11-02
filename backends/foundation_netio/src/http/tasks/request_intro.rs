@@ -20,12 +20,12 @@ use std::time::Duration;
 use derive_more::From;
 
 use super::nonblocking::{self, IdleDeadline, Park};
+use crate::http::HttpClientConnection;
 use crate::native::readiness::IoInterest;
-use crate::shared::client::ClientConfig;
 use crate::netcap::RawStream;
 use crate::shared::client::body_reader::drain_stream_iterator_from_send_safe;
+use crate::shared::client::ClientConfig;
 use crate::shared::client::ResponseIntro;
-use crate::http::HttpClientConnection;
 use crate::shared::http::IncomingResponseParts;
 use crate::shared::http::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
@@ -106,10 +106,20 @@ pub enum GetRequestIntroState {
     /// (non-blocking transport returned `WouldBlock`). The reader is resumable, so
     /// it is parked here and re-driven when the read waker fires. See F11
     /// "Non-blocking transport integration".
-    IntroReading(Box<(HttpResponseReader<SimpleHttpBody, RawStream>, HttpClientConnection)>),
+    IntroReading(
+        Box<(
+            HttpResponseReader<SimpleHttpBody, RawStream>,
+            HttpClientConnection,
+        )>,
+    ),
     /// A 1xx interim response was read; drain the rest of it (headers/body) before
     /// branching the reader and re-reading the next response's intro. Parking-aware.
-    DrainingInterim(Box<(HttpResponseReader<SimpleHttpBody, RawStream>, HttpClientConnection)>),
+    DrainingInterim(
+        Box<(
+            HttpResponseReader<SimpleHttpBody, RawStream>,
+            HttpClientConnection,
+        )>,
+    ),
     WithIntro(WithIntroData),
 }
 
@@ -219,7 +229,9 @@ impl TaskIterator for GetRequestIntroTask {
                     // Defer the first read to `IntroReading` so a non-blocking
                     // `WouldBlock` there can park and resume on the *same* reader
                     // (F11 non-blocking parking).
-                    self.state = Some(GetRequestIntroState::IntroReading(Box::new((reader, stream))));
+                    self.state = Some(GetRequestIntroState::IntroReading(Box::new((
+                        reader, stream,
+                    ))));
                     Some(TaskStatus::Pending(()))
                 }
                 None => None,
@@ -237,8 +249,7 @@ impl TaskIterator for GetRequestIntroTask {
                     // its state (nothing consumed), so park and retry when readable.
                     Err(HttpReaderError::WouldBlock) => {
                         let waker_conn = stream.clone();
-                        let resume =
-                            GetRequestIntroState::IntroReading(Box::new((reader, stream)));
+                        let resume = GetRequestIntroState::IntroReading(Box::new((reader, stream)));
                         return Some(self.park_on_would_block(&waker_conn, resume));
                     }
                     Err(err) => {
@@ -247,47 +258,46 @@ impl TaskIterator for GetRequestIntroTask {
                     }
                 };
 
-                    let IncomingResponseParts::Intro(status, proto, text) = intro
-                    else {
-                        tracing::info!("Failed to read intro from stream");
-                        return Some(TaskStatus::Ready(RequestIntro::Failed(
-                            HttpReaderError::ReadFailed.into(),
-                        )));
-                    };
+                let IncomingResponseParts::Intro(status, proto, text) = intro else {
+                    tracing::info!("Failed to read intro from stream");
+                    return Some(TaskStatus::Ready(RequestIntro::Failed(
+                        HttpReaderError::ReadFailed.into(),
+                    )));
+                };
 
+                tracing::info!(
+                    "[INTRO] Received intro for request: {:?}",
+                    (&status, &proto, &text)
+                );
+
+                // Skip 1xx interim responses (100 Continue, 102 Processing, 103
+                // Early Hints). RFC 9110 §15.2: a client must parse and discard any
+                // 1xx received before the final response. 101 Switching Protocols is
+                // terminal (a protocol upgrade) and is NOT skipped. The interim is
+                // drained in the parking-aware `DrainingInterim` state, after which
+                // we branch the reader and re-read the next intro — so a not-yet-
+                // arrived interim body or final status simply parks.
+                let code = status.clone().into_usize();
+                if (100..200).contains(&code) && code != 101 {
                     tracing::info!(
-                        "[INTRO] Received intro for request: {:?}",
+                        "[INTRO] skipping 1xx interim response {:?}; draining then re-reading",
                         (&status, &proto, &text)
                     );
+                    self.state = Some(GetRequestIntroState::DrainingInterim(Box::new((
+                        reader, stream,
+                    ))));
+                    return Some(TaskStatus::Pending(()));
+                }
 
-                    // Skip 1xx interim responses (100 Continue, 102 Processing, 103
-                    // Early Hints). RFC 9110 §15.2: a client must parse and discard any
-                    // 1xx received before the final response. 101 Switching Protocols is
-                    // terminal (a protocol upgrade) and is NOT skipped. The interim is
-                    // drained in the parking-aware `DrainingInterim` state, after which
-                    // we branch the reader and re-read the next intro — so a not-yet-
-                    // arrived interim body or final status simply parks.
-                    let code = status.clone().into_usize();
-                    if (100..200).contains(&code) && code != 101 {
-                        tracing::info!(
-                            "[INTRO] skipping 1xx interim response {:?}; draining then re-reading",
-                            (&status, &proto, &text)
-                        );
-                        self.state = Some(GetRequestIntroState::DrainingInterim(Box::new((
-                            reader, stream,
-                        ))));
-                        return Some(TaskStatus::Pending(()));
-                    }
+                let _ = self
+                    .state
+                    .replace(GetRequestIntroState::WithIntro(Box::new(Some((
+                        reader,
+                        (status, proto, text),
+                        stream,
+                    )))));
 
-                    let _ = self
-                        .state
-                        .replace(GetRequestIntroState::WithIntro(Box::new(Some((
-                            reader,
-                            (status, proto, text),
-                            stream,
-                        )))));
-
-                    Some(TaskStatus::Pending(()))
+                Some(TaskStatus::Pending(()))
             }
             GetRequestIntroState::DrainingInterim(inner) => {
                 let (mut reader, stream) = *inner;
@@ -315,9 +325,8 @@ impl TaskIterator for GetRequestIntroTask {
                         }
                         Some(Err(HttpReaderError::WouldBlock)) => {
                             let waker_conn = stream.clone();
-                            let resume = GetRequestIntroState::DrainingInterim(Box::new((
-                                reader, stream,
-                            )));
+                            let resume =
+                                GetRequestIntroState::DrainingInterim(Box::new((reader, stream)));
                             return Some(self.park_on_would_block(&waker_conn, resume));
                         }
                         Some(Err(err)) => {
@@ -333,7 +342,9 @@ impl TaskIterator for GetRequestIntroTask {
                 // Reset the reader to read the next response's status line, then
                 // re-enter the parking-aware intro path.
                 let branched = reader.branch_reader();
-                self.state = Some(GetRequestIntroState::IntroReading(Box::new((branched, stream))));
+                self.state = Some(GetRequestIntroState::IntroReading(Box::new((
+                    branched, stream,
+                ))));
                 Some(TaskStatus::Pending(()))
             }
             GetRequestIntroState::WithIntro(inner) => match *inner {

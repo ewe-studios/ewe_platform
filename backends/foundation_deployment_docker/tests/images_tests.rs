@@ -32,7 +32,8 @@ fn temp_socket_path(tag: &str) -> PathBuf {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let path = std::path::PathBuf::from("/tmp").join(format!("ewe_docker_images_{tag}_{pid}_{nanos}.sock"));
+    let path = std::path::PathBuf::from("/tmp")
+        .join(format!("ewe_docker_images_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path
 }
@@ -42,10 +43,7 @@ fn images_route(method: &str, path: &str) -> (u16, String) {
     // Strip API version prefix: /v1.53/images/json -> images/json
     let p = path
         .split_once("/v1.")
-        .map(|(_, rest)| {
-            rest.split_once('/')
-                .map_or(rest, |(_, r)| r)
-        })
+        .map(|(_, rest)| rest.split_once('/').map_or(rest, |(_, r)| r))
         .unwrap_or(path);
 
     match (method, p) {
@@ -124,7 +122,9 @@ fn serve(mut stream: UnixStream, gate: &Mutex<Option<mpsc::Receiver<()>>>) {
         // A chunked progress stream that stalls after its first line until the
         // test, having received that line, opens the gate — or 5s pass, in
         // which case the stream says so.
-        let _ = stream.write_all(b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n");
+        let _ = stream.write_all(
+            b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n",
+        );
         write_chunk(&mut stream, b"{\"status\":\"first\"}\n");
         let opened = gate
             .lock()
@@ -142,7 +142,8 @@ fn serve(mut stream: UnixStream, gate: &Mutex<Option<mpsc::Receiver<()>>>) {
         return;
     }
 
-    if method == "POST" && path.contains("images/create?") && path.contains("fromImage=huge-error") {
+    if method == "POST" && path.contains("images/create?") && path.contains("fromImage=huge-error")
+    {
         // A 500 whose body never ends in practice: the client must answer from
         // the status and a bounded read, not wait for (or buffer) the body.
         let total = HUGE_ERROR_BODY;
@@ -264,7 +265,11 @@ async fn image_pull_checks_the_status_before_the_body() {
                 message.len(),
                 DockerLimits::default().max_error_body
             );
-            assert!(message.starts_with("eeee"), "{}", &message[..message.len().min(64)]);
+            assert!(
+                message.starts_with("eeee"),
+                "{}",
+                &message[..message.len().min(64)]
+            );
         }
         other => panic!("expected Api, got {other:?}"),
     }
@@ -295,7 +300,9 @@ async fn image_pull_hands_out_items_before_the_body_has_ended() {
 
     let first = progress.next().await.expect("a first item").expect("valid");
     assert_eq!(first.status.as_deref(), Some("first"));
-    open_gate.send(()).expect("the daemon is waiting on the gate");
+    open_gate
+        .send(())
+        .expect("the daemon is waiting on the gate");
 
     let mut rest = Vec::new();
     while let Some(item) = progress.next().await {
@@ -410,7 +417,11 @@ async fn a_configured_error_body_cap_is_the_one_enforced() {
     match err {
         DockerError::Api { status, message } => {
             assert_eq!(status, 500);
-            assert_eq!(message, "e".repeat(100), "exactly the configured cap is read");
+            assert_eq!(
+                message,
+                "e".repeat(100),
+                "exactly the configured cap is read"
+            );
         }
         other => panic!("expected Api, got {other:?}"),
     }
@@ -447,12 +458,21 @@ async fn image_build_sends_two_tags() {
                 return;
             };
             let (status, body) = if req.method == "GET" && req.target == "/version" {
-                (200, r#"{"ApiVersion":"1.53","MinAPIVersion":"1.24"}"#.to_string())
+                (
+                    200,
+                    r#"{"ApiVersion":"1.53","MinAPIVersion":"1.24"}"#.to_string(),
+                )
             } else if req.method == "POST" && req.target.contains("/build") {
                 seen.lock().expect("targets lock").push(req.target.clone());
                 (200, String::new())
             } else {
-                (404, format!(r#"{{"message":"no route for {} {}"}}"#, req.method, req.target))
+                (
+                    404,
+                    format!(
+                        r#"{{"message":"no route for {} {}"}}"#,
+                        req.method, req.target
+                    ),
+                )
             };
             let reason = if status == 200 { "OK" } else { "Not Found" };
             let response = format!(

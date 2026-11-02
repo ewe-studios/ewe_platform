@@ -127,4 +127,3 @@ impl From<AuthCredential> for AuthToken {
         }
     }
 }
-

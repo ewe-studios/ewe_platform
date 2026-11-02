@@ -19,7 +19,13 @@ impl DistanceMetric {
     /// Dimension mismatch panics in debug, returns `f32::NEG_INFINITY` in release.
     #[must_use]
     pub fn score(self, a: &[f32], b: &[f32]) -> f32 {
-        debug_assert_eq!(a.len(), b.len(), "dimension mismatch: {} vs {}", a.len(), b.len());
+        debug_assert_eq!(
+            a.len(),
+            b.len(),
+            "dimension mismatch: {} vs {}",
+            a.len(),
+            b.len()
+        );
         if a.len() != b.len() {
             return f32::NEG_INFINITY;
         }
@@ -53,7 +59,11 @@ pub struct DimensionMismatch {
 
 impl core::fmt::Display for DimensionMismatch {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "dimension mismatch: expected {}, got {}", self.expected, self.got)
+        write!(
+            f,
+            "dimension mismatch: expected {}, got {}",
+            self.expected, self.got
+        )
     }
 }
 
@@ -74,10 +84,14 @@ fn cosine_similarity(a: &[f32], b: &[f32]) -> f32 {
 }
 
 fn neg_squared_l2(a: &[f32], b: &[f32]) -> f32 {
-    let sum: f32 = a.iter().zip(b.iter()).map(|(x, y)| {
-        let d = x - y;
-        d * d
-    }).sum();
+    let sum: f32 = a
+        .iter()
+        .zip(b.iter())
+        .map(|(x, y)| {
+            let d = x - y;
+            d * d
+        })
+        .sum();
     -sum
 }
 

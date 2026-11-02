@@ -17,7 +17,6 @@ use std::net::SocketAddr;
 
 use foundation_wireguard::{NetworkId, SeedBits, WgSeed};
 
-
 use super::config::{ContainerConfig, PortProtocol};
 
 // ---------------------------------------------------------------------------
@@ -140,12 +139,8 @@ pub fn generate_network_secret() -> WgNetworkSecret {
 /// Panics if the OS random source is unavailable.
 #[must_use]
 pub fn generate_network_secret_with_id(network_id: NetworkId) -> WgNetworkSecret {
-    let seed = WgSeed::generate(SeedBits::Bits256)
-        .expect("OS random source unavailable");
-    WgNetworkSecret {
-        seed,
-        network_id,
-    }
+    let seed = WgSeed::generate(SeedBits::Bits256).expect("OS random source unavailable");
+    WgNetworkSecret { seed, network_id }
 }
 
 // ---------------------------------------------------------------------------
@@ -178,25 +173,20 @@ impl WireguardInjector for ContainerConfig {
         seed_endpoints: &[SocketAddr],
         relay_enabled: bool,
     ) -> Self {
-        self.env.push((
-            ENV_WG_SECRET.to_string(),
-            secret.seed_base64url(),
-        ));
-        self.env.push((
-            ENV_WG_NETWORK.to_string(),
-            secret.network_id_hex(),
-        ));
+        self.env
+            .push((ENV_WG_SECRET.to_string(), secret.seed_base64url()));
+        self.env
+            .push((ENV_WG_NETWORK.to_string(), secret.network_id_hex()));
 
         if !seed_endpoints.is_empty() {
             let eps: Vec<String> = seed_endpoints.iter().map(ToString::to_string).collect();
-            self.env.push((
-                ENV_WG_SEED_ENDPOINTS.to_string(),
-                eps.join(","),
-            ));
+            self.env
+                .push((ENV_WG_SEED_ENDPOINTS.to_string(), eps.join(",")));
         }
 
         if relay_enabled {
-            self.env.push((ENV_WG_RELAY.to_string(), "true".to_string()));
+            self.env
+                .push((ENV_WG_RELAY.to_string(), "true".to_string()));
         }
 
         self
@@ -235,7 +225,9 @@ pub fn designate_relay(config: &mut ContainerConfig, relay_port: u16, wg_port: u
         host_port: None,
         protocol: PortProtocol::Udp,
     });
-    config.env.push((ENV_WG_RELAY.to_string(), "true".to_string()));
+    config
+        .env
+        .push((ENV_WG_RELAY.to_string(), "true".to_string()));
 }
 
 // (WireGuard tests live in `tests/wireguard_tests.rs`, rule 7.)

@@ -72,7 +72,11 @@ impl CancelSignal {
     #[must_use]
     pub fn is_canceled(&self) -> bool {
         self.0.canceled.load(Ordering::Acquire)
-            || self.0.parent.as_ref().is_some_and(CancelSignal::is_canceled)
+            || self
+                .0
+                .parent
+                .as_ref()
+                .is_some_and(CancelSignal::is_canceled)
     }
 
     /// Resolve once this signal fires (race it against other work in `select!`).

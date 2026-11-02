@@ -164,11 +164,15 @@ fn answer(state: &mut MockState, path: &str, body: &Value) -> (u16, String) {
     }
 
     let Some((metric, rows)) = state.namespaces.get(&ns) else {
-        return (404, json!({"status": "error", "error": "namespace not found"}).to_string());
+        return (
+            404,
+            json!({"status": "error", "error": "namespace not found"}).to_string(),
+        );
     };
 
     if body.get("aggregate_by").is_some() {
-        let reply = json!({ "aggregations": { "count": rows.len() }, "billing": {}, "performance": {} });
+        let reply =
+            json!({ "aggregations": { "count": rows.len() }, "billing": {}, "performance": {} });
         return (200, reply.to_string());
     }
 
@@ -312,9 +316,13 @@ fn start_mock() -> Mock {
 
 fn store_for(mock: &Mock, metric: DistanceMetric) -> TurboPufferVectorStore {
     let client: DynNetClient = HttpClientBuilder::new().build();
-    TurboPufferVectorStore::with_client(client, "test-key".into(), VectorStoreConfig::new(3, metric))
-        .unwrap()
-        .with_base_url(format!("http://{}", mock.addr))
+    TurboPufferVectorStore::with_client(
+        client,
+        "test-key".into(),
+        VectorStoreConfig::new(3, metric),
+    )
+    .unwrap()
+    .with_base_url(format!("http://{}", mock.addr))
 }
 
 async fn make_store() -> (Mock, TurboPufferVectorStore) {
@@ -336,7 +344,10 @@ fn entry(id: &str, v: [f32; 3]) -> VectorEntry {
 #[valtron_test]
 async fn insert_sends_v2_upsert_with_auth_and_metric() {
     let (mock, store) = make_store().await;
-    store.insert("ns1", entry("a", [1.0, 0.0, 0.0])).await.unwrap();
+    store
+        .insert("ns1", entry("a", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
 
     let seen = mock.seen();
     assert_eq!(seen.len(), 1);
@@ -353,10 +364,16 @@ async fn insert_sends_v2_upsert_with_auth_and_metric() {
 #[valtron_test]
 async fn validation_errors_send_nothing() {
     let (mock, store) = make_store().await;
-    assert!(store.insert("ns", entry("a", [0.0, 0.0, 0.0])).await.is_err());
+    assert!(store
+        .insert("ns", entry("a", [0.0, 0.0, 0.0]))
+        .await
+        .is_err());
     assert!(store.search("ns", &[1.0], 1).await.is_err());
     assert!(matches!(
-        store.insert("bad/ns", entry("a", [1.0, 0.0, 0.0])).await.unwrap_err(),
+        store
+            .insert("bad/ns", entry("a", [1.0, 0.0, 0.0]))
+            .await
+            .unwrap_err(),
         VectorStoreError::Unsupported(_)
     ));
     assert!(mock.seen().is_empty(), "no HTTP on a validation failure");
@@ -365,7 +382,10 @@ async fn validation_errors_send_nothing() {
 #[valtron_test]
 async fn search_get_and_len_use_v2_queries() {
     let (mock, store) = make_store().await;
-    store.insert("ns", entry("a", [1.0, 0.0, 0.0])).await.unwrap();
+    store
+        .insert("ns", entry("a", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
     store.search("ns", &[1.0, 0.0, 0.0], 2).await.unwrap();
     store.get("ns", "a").await.unwrap();
     store.len("ns").await.unwrap();
@@ -373,10 +393,16 @@ async fn search_get_and_len_use_v2_queries() {
     let seen = mock.seen();
     let (search, get, len) = (&seen[1], &seen[2], &seen[3]);
     assert_eq!(search.path, "/v2/namespaces/ns/query");
-    assert_eq!(search.body["rank_by"], json!(["vector", "ANN", [1.0, 0.0, 0.0]]));
+    assert_eq!(
+        search.body["rank_by"],
+        json!(["vector", "ANN", [1.0, 0.0, 0.0]])
+    );
     assert_eq!(search.body["top_k"], json!(2));
     assert_eq!(get.body["filters"], json!(["id", "Eq", "a"]));
-    assert_eq!(get.body["include_attributes"], json!(["vector", "metadata"]));
+    assert_eq!(
+        get.body["include_attributes"],
+        json!(["vector", "metadata"])
+    );
     assert_eq!(len.body["aggregate_by"], json!({"count": ["Count"]}));
 }
 
@@ -384,13 +410,22 @@ async fn search_get_and_len_use_v2_queries() {
 async fn l2_uses_euclidean_squared_and_negative_scores() {
     let mock = start_mock();
     let store = store_for(&mock, DistanceMetric::L2);
-    store.insert("ns", entry("near", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert("ns", entry("far", [3.0, 0.0, 0.0])).await.unwrap();
+    store
+        .insert("ns", entry("near", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert("ns", entry("far", [3.0, 0.0, 0.0]))
+        .await
+        .unwrap();
     let m = store.search("ns", &[0.0, 0.0, 1.0], 2).await.unwrap();
     assert_eq!(m[0].id, "near");
     assert!((m[0].score - -2.0).abs() < 1e-5, "score {}", m[0].score);
     assert!((m[1].score - -10.0).abs() < 1e-5, "score {}", m[1].score);
-    assert_eq!(mock.seen()[0].body["distance_metric"], json!("euclidean_squared"));
+    assert_eq!(
+        mock.seen()[0].body["distance_metric"],
+        json!("euclidean_squared")
+    );
 }
 
 #[valtron_test]
@@ -413,9 +448,10 @@ async fn new_builds_the_default_client() {
             .expect("cosine and L2 are accepted");
     assert_eq!(store.config().metric, DistanceMetric::L2);
 
-    let err = TurboPufferVectorStore::new("k".into(), VectorStoreConfig::new(3, DistanceMetric::Dot))
-        .err()
-        .expect("dot is refused");
+    let err =
+        TurboPufferVectorStore::new("k".into(), VectorStoreConfig::new(3, DistanceMetric::Dot))
+            .err()
+            .expect("dot is refused");
     assert!(matches!(err, VectorStoreError::Unsupported(_)));
 }
 
@@ -430,7 +466,11 @@ async fn error_status_is_an_error_with_a_bounded_message() {
         panic!("expected a backend error, got {err:?}");
     };
     assert!(msg.starts_with("HTTP 500: "), "{msg}");
-    assert_eq!(msg.len(), "HTTP 500: ".len() + 10, "only 10 bytes read: {msg}");
+    assert_eq!(
+        msg.len(),
+        "HTTP 500: ".len() + 10,
+        "only 10 bytes read: {msg}"
+    );
 }
 
 #[valtron_test]

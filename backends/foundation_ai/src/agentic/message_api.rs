@@ -16,7 +16,7 @@ use concurrent_queue::ConcurrentQueue;
 use foundation_compact::SendWrapper;
 pub use foundation_core::synca::mpp::Receiver;
 use foundation_core::synca::mpp::TrackedBroadcaster;
-use foundation_db::traits::{DocumentStore, Document};
+use foundation_db::traits::{Document, DocumentStore};
 use foundation_db::{StorageError, StorageResult};
 use futures_lite::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -263,7 +263,6 @@ impl<D: DocumentStore> MessageInner<D> {
         }
         Ok(())
     }
-
 }
 
 // ---------------------------------------------------------------------------
@@ -365,7 +364,10 @@ impl<D> MessageApi<D> {
                 "message buffer refused a record"
             );
             self.inner.broadcaster.broadcast(MessageEvent::Error {
-                msg: format!("buffering a record for session {}: {error}", self.inner.session_id),
+                msg: format!(
+                    "buffering a record for session {}: {error}",
+                    self.inner.session_id
+                ),
             });
             return id;
         }

@@ -51,9 +51,12 @@ impl<KV: KeyValueStore> TosService<KV> {
         let Some(latest) = self.latest() else {
             return Ok(false);
         };
-        let accepted =
-            storage::find_tos_acceptance(self.storage.query_store.as_ref(), user_id, &latest.version)
-                .await?;
+        let accepted = storage::find_tos_acceptance(
+            self.storage.query_store.as_ref(),
+            user_id,
+            &latest.version,
+        )
+        .await?;
         Ok(accepted.is_none())
     }
 
@@ -62,7 +65,11 @@ impl<KV: KeyValueStore> TosService<KV> {
     /// # Errors
     ///
     /// Returns [`StorageOpError`] if the acceptance can't be stored.
-    pub async fn accept(&self, user_id: &str, ip_address: Option<&str>) -> Result<(), StorageOpError> {
+    pub async fn accept(
+        &self,
+        user_id: &str,
+        ip_address: Option<&str>,
+    ) -> Result<(), StorageOpError> {
         let Some(latest) = self.latest() else {
             return Ok(());
         };

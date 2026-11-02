@@ -57,7 +57,11 @@ fn auth_mod(token: &str) -> impl FnOnce(&mut PreparedRequestBuilder) {
 /// `invalid_input` — rather than only a number.
 pub(crate) fn map_api_error(err: ApiError) -> HetznerError {
     match err {
-        ApiError::HttpStatus { code, headers, body } => match code {
+        ApiError::HttpStatus {
+            code,
+            headers,
+            body,
+        } => match code {
             401 | 403 => HetznerError::Unauthorized,
             429 => HetznerError::RateLimited {
                 retry_after_secs: rate_limit_reset_in(&headers),

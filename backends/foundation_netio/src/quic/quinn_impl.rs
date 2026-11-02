@@ -200,9 +200,9 @@ impl QuicConnection for QuinnConnection {
 
     fn send_datagram(&mut self, data: &[u8]) -> Stream<Result<(), QuicStreamError>, ()> {
         let Ok(mut guard) = lock(&self.state) else {
-            return Stream::Next(Err(QuicStreamError::ConnClosed(
-                QuicConnError::Internal("state poisoned".into()),
-            )));
+            return Stream::Next(Err(QuicStreamError::ConnClosed(QuicConnError::Internal(
+                "state poisoned".into(),
+            ))));
         };
         let max_size = guard.max_datagram_size;
         if let Some(max) = max_size {

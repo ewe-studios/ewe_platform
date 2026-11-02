@@ -1,5 +1,4 @@
 /// Options for joining an IPC bus.
-
 use super::Label;
 
 /// Configuration for joining a message bus.
@@ -35,4 +34,3 @@ impl Options {
         self
     }
 }
-

@@ -68,11 +68,23 @@ async fn append_orders_by_scru128_and_counts() {
         return;
     };
     let key = unique("order");
-    let a = store.append(&key, serde_json::json!({"n": 0})).await.unwrap();
-    let b = store.append(&key, serde_json::json!({"n": 1})).await.unwrap();
-    let c = store.append(&key, serde_json::json!({"n": 2})).await.unwrap();
+    let a = store
+        .append(&key, serde_json::json!({"n": 0}))
+        .await
+        .unwrap();
+    let b = store
+        .append(&key, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    let c = store
+        .append(&key, serde_json::json!({"n": 2}))
+        .await
+        .unwrap();
     assert_eq!(a.id.len(), 25, "scru128 id");
-    assert!(b.id > a.id && c.id > b.id, "appends produce ascending scru128 ids");
+    assert!(
+        b.id > a.id && c.id > b.id,
+        "appends produce ascending scru128 ids"
+    );
     assert_eq!(store.count(&key).await.unwrap(), 3);
 
     let docs = store.scan_documents(&key, 10).await.unwrap();
@@ -90,9 +102,18 @@ async fn scan_from_is_inclusive_and_ascending() {
         return;
     };
     let key = unique("from");
-    let _a = store.append(&key, serde_json::json!({"n": 0})).await.unwrap();
-    let b = store.append(&key, serde_json::json!({"n": 1})).await.unwrap();
-    let _c = store.append(&key, serde_json::json!({"n": 2})).await.unwrap();
+    let _a = store
+        .append(&key, serde_json::json!({"n": 0}))
+        .await
+        .unwrap();
+    let b = store
+        .append(&key, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    let _c = store
+        .append(&key, serde_json::json!({"n": 2}))
+        .await
+        .unwrap();
 
     let from_b: Vec<serde_json::Value> = store
         .scan_from::<serde_json::Value>(&key, &b.id, 0)

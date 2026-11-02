@@ -8,10 +8,10 @@ use std::time::Duration;
 
 use bytes::Bytes;
 
-use foundation_connectrpc::shared::envelope::{decode_grpc_timeout, encode_grpc_timeout, TimeoutError};
-use foundation_connectrpc::{
-    Envelope, EnvelopeReader, EnvelopeWriter, GzipCompressor,
+use foundation_connectrpc::shared::envelope::{
+    decode_grpc_timeout, encode_grpc_timeout, TimeoutError,
 };
+use foundation_connectrpc::{Envelope, EnvelopeReader, EnvelopeWriter, GzipCompressor};
 
 /// A `Read` source that hands out at most `chunk` bytes per call — models a
 /// non-blocking socket delivering a frame across several reads.
@@ -23,7 +23,11 @@ struct ChunkedReader {
 
 impl ChunkedReader {
     fn new(data: Vec<u8>, chunk: usize) -> Self {
-        Self { data, pos: 0, chunk }
+        Self {
+            data,
+            pos: 0,
+            chunk,
+        }
     }
 }
 
@@ -84,7 +88,9 @@ fn envelope_decode_is_zero_copy_slice_of_source() {
 #[test]
 fn reader_reassembles_frame_spanning_many_reads() {
     let writer = EnvelopeWriter::new(None, 0, 0);
-    let frame = writer.write(Bytes::from_static(b"a message that spans reads")).unwrap();
+    let frame = writer
+        .write(Bytes::from_static(b"a message that spans reads"))
+        .unwrap();
 
     // 3 bytes per read forces the 5-byte header + body across many reads.
     let mut reader = EnvelopeReader::new(ChunkedReader::new(frame, 3), None, 0);
@@ -100,8 +106,14 @@ fn reader_yields_two_frames_then_end() {
     body.extend(writer.write(Bytes::from_static(b"two")).unwrap());
 
     let mut reader = EnvelopeReader::new(ChunkedReader::new(body, 4), None, 0);
-    assert_eq!(reader.read().unwrap().unwrap().data, Bytes::from_static(b"one"));
-    assert_eq!(reader.read().unwrap().unwrap().data, Bytes::from_static(b"two"));
+    assert_eq!(
+        reader.read().unwrap().unwrap().data,
+        Bytes::from_static(b"one")
+    );
+    assert_eq!(
+        reader.read().unwrap().unwrap().data,
+        Bytes::from_static(b"two")
+    );
     assert!(reader.read().unwrap().is_none());
 }
 
@@ -110,7 +122,10 @@ fn reader_rejects_frame_over_read_max() {
     let writer = EnvelopeWriter::new(None, 0, 0);
     let frame = writer.write(Bytes::from(vec![0u8; 1000])).unwrap();
     let mut reader = EnvelopeReader::new(ChunkedReader::new(frame, 64), None, 100);
-    assert!(reader.read().is_err(), "1000-byte frame exceeds read_max 100");
+    assert!(
+        reader.read().is_err(),
+        "1000-byte frame exceeds read_max 100"
+    );
 }
 
 // ── Per-envelope compression ──────────────────────────────────────────────────
@@ -122,7 +137,10 @@ fn compressed_frame_roundtrips_through_reader() {
     let payload = b"compress me ".repeat(20);
     let frame = writer.write(Bytes::from(payload.clone())).unwrap();
     // Flag bit 0 set (compressed).
-    assert_eq!(frame[0] & Envelope::FLAG_COMPRESSED, Envelope::FLAG_COMPRESSED);
+    assert_eq!(
+        frame[0] & Envelope::FLAG_COMPRESSED,
+        Envelope::FLAG_COMPRESSED
+    );
 
     let mut reader = EnvelopeReader::new(ChunkedReader::new(frame, 7), Some(gz), 0);
     let env = reader.read().unwrap().unwrap();
@@ -135,7 +153,11 @@ fn compress_min_leaves_small_frames_uncompressed() {
     // compress_min 1000 → a small frame is sent uncompressed.
     let writer = EnvelopeWriter::new(Some(gz), 1000, 0);
     let frame = writer.write(Bytes::from_static(b"tiny")).unwrap();
-    assert_eq!(frame[0] & Envelope::FLAG_COMPRESSED, 0, "below compress_min");
+    assert_eq!(
+        frame[0] & Envelope::FLAG_COMPRESSED,
+        0,
+        "below compress_min"
+    );
 }
 
 #[test]
@@ -152,10 +174,16 @@ fn write_end_stream_frame() {
     use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
     let writer = EnvelopeWriter::new(None, 0, 0);
     let mut trailers = SimpleHeaders::new();
-    trailers.insert(SimpleHeader::from("x-trailer".to_string()), vec!["v".to_string()]);
+    trailers.insert(
+        SimpleHeader::from("x-trailer".to_string()),
+        vec!["v".to_string()],
+    );
 
     let frame = writer.write_end_stream(None, &trailers).unwrap();
-    assert_eq!(frame[0] & Envelope::FLAG_END_STREAM, Envelope::FLAG_END_STREAM);
+    assert_eq!(
+        frame[0] & Envelope::FLAG_END_STREAM,
+        Envelope::FLAG_END_STREAM
+    );
 
     // Body is the EndStreamResponse JSON.
     let bytes = Bytes::from(frame);
@@ -170,7 +198,10 @@ fn write_trailer_frame_grpc_web() {
     use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
     let writer = EnvelopeWriter::new(None, 0, 0);
     let mut trailers = SimpleHeaders::new();
-    trailers.insert(SimpleHeader::from("grpc-status".to_string()), vec!["0".to_string()]);
+    trailers.insert(
+        SimpleHeader::from("grpc-status".to_string()),
+        vec!["0".to_string()],
+    );
 
     let frame = writer.write_trailer_frame(&trailers).unwrap();
     assert_eq!(frame[0] & Envelope::FLAG_TRAILER, Envelope::FLAG_TRAILER);

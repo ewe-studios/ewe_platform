@@ -134,12 +134,10 @@ impl CredentialStore for CredentialStorage {
         &self,
         key: &str,
     ) -> Result<Option<V>, CredentialStoreError> {
-        self.storage.get(key)
-            .await
-            .map_err(|e| match e {
-                StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
-                other => CredentialStoreError::Storage(other),
-            })
+        self.storage.get(key).await.map_err(|e| match e {
+            StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
+            other => CredentialStoreError::Storage(other),
+        })
     }
 
     async fn set<V: Serialize + Send + 'static>(
@@ -147,25 +145,29 @@ impl CredentialStore for CredentialStorage {
         key: &str,
         value: V,
     ) -> Result<(), CredentialStoreError> {
-        self.storage.set(key, value)
+        self.storage
+            .set(key, value)
             .await
             .map_err(CredentialStoreError::Storage)
     }
 
     async fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        self.storage.delete(key)
+        self.storage
+            .delete(key)
             .await
             .map_err(CredentialStoreError::Storage)
     }
 
     async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        self.storage.exists(key)
+        self.storage
+            .exists(key)
             .await
             .map_err(CredentialStoreError::Storage)
     }
 
     async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        self.storage.list_keys(prefix)
+        self.storage
+            .list_keys(prefix)
             .await
             .map_err(CredentialStoreError::Storage)?
             .collect_all()
@@ -198,7 +200,10 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// Returns [`CredentialStoreError`] if the storage operation or
     /// deserialization fails.
-    async fn get_oauth_token(&self, provider: &str) -> Result<Option<OAuthToken>, CredentialStoreError> {
+    async fn get_oauth_token(
+        &self,
+        provider: &str,
+    ) -> Result<Option<OAuthToken>, CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
         self.get(&key).await
     }
@@ -238,7 +243,10 @@ pub trait OAuthTokenStore: CredentialStore {
     ///
     /// Returns [`CredentialStoreError`] if the storage operation or
     /// deserialization fails.
-    async fn get_oauth_state(&self, state: &str) -> Result<Option<OAuthState>, CredentialStoreError> {
+    async fn get_oauth_state(
+        &self,
+        state: &str,
+    ) -> Result<Option<OAuthState>, CredentialStoreError> {
         let key = format!("oauth:state:{state}");
         self.get(&key).await
     }

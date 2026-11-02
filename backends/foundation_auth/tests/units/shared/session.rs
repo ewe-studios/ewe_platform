@@ -17,7 +17,8 @@ fn make_manager() -> SessionManager<CredentialStorage> {
 async fn test_create_session() {
     let mgr = make_manager();
     let (session, cookies) = mgr
-        .create_session("user_1", Some("127.0.0.1"), Some("TestAgent")).await
+        .create_session("user_1", Some("127.0.0.1"), Some("TestAgent"))
+        .await
         .unwrap();
 
     assert_eq!(session.user_id, "user_1");

@@ -55,8 +55,8 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<'a: 'static, Task, Done: Send + 'a, Pending: Send + 'a>
-    Into<BoxedSendExecutionIterator> for CollectNext<'a, Task, Done, Pending>
+impl<'a: 'static, Task, Done: Send + 'a, Pending: Send + 'a> Into<BoxedSendExecutionIterator>
+    for CollectNext<'a, Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'a,
 {

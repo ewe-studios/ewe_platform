@@ -37,7 +37,11 @@ pub struct AccordionConfig {
 
 impl Default for AccordionConfig {
     fn default() -> Self {
-        Self { multiple: false, disabled: false, class: None }
+        Self {
+            multiple: false,
+            disabled: false,
+            class: None,
+        }
     }
 }
 

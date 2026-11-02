@@ -2,9 +2,7 @@
 //! traits (it implements only the `Async*` ones; see `blocking_tests.rs` for
 //! the sync view).
 
-use foundation_db::{
-    KeyValueStore, QueryStore, RateLimiterStore, JsonFileStorage, StorageError,
-};
+use foundation_db::{JsonFileStorage, KeyValueStore, QueryStore, RateLimiterStore, StorageError};
 use futures_lite::future::block_on;
 use tempfile::TempDir;
 
@@ -57,8 +55,14 @@ fn test_json_file_storage_list_keys() {
     let storage = JsonFileStorage::new(&path).unwrap();
 
     let keys = block_on(async {
-        storage.set::<String>("key1", "v1".to_string()).await.unwrap();
-        storage.set::<String>("key2", "v2".to_string()).await.unwrap();
+        storage
+            .set::<String>("key1", "v1".to_string())
+            .await
+            .unwrap();
+        storage
+            .set::<String>("key2", "v2".to_string())
+            .await
+            .unwrap();
         storage
             .list_keys(None)
             .await

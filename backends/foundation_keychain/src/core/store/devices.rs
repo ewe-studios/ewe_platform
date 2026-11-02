@@ -7,7 +7,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -25,7 +25,8 @@ pub struct DeviceRow {
     pub updated_at: DateTime<Utc>,
 }
 
-const COLUMNS: &str = "uuid, user_uuid, identifier, name, atype, refresh_token, created_at, updated_at";
+const COLUMNS: &str =
+    "uuid, user_uuid, identifier, name, atype, refresh_token, created_at, updated_at";
 
 fn map_row(row: &SqlRow) -> AppResult<DeviceRow> {
     let created_at: String = row.get_by_name("created_at").map_err(store_err)?;

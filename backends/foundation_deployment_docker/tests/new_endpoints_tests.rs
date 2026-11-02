@@ -66,9 +66,15 @@ async fn upload_and_download_archive_round_trips() {
     .await;
     assert!(!tar.is_empty(), "downloaded tar should be non-empty");
 
-    c.upload_to_container(&id, "/tmp", SendSafeBody::Bytes(tar.clone()), Some(false), Some(false))
-        .await
-        .expect("upload tar into /tmp");
+    c.upload_to_container(
+        &id,
+        "/tmp",
+        SendSafeBody::Bytes(tar.clone()),
+        Some(false),
+        Some(false),
+    )
+    .await
+    .expect("upload tar into /tmp");
 
     let back = read_all(
         c.container_archive(&id, "/tmp/hostname")
@@ -96,9 +102,7 @@ async fn get_container_archive_info_ok() {
     assert!(!stat.is_empty(), "stat header should be non-empty");
 
     // A missing path must error, not silently succeed.
-    let missing = c
-        .get_container_archive_info(&id, "/no/such/path")
-        .await;
+    let missing = c.get_container_archive_info(&id, "/no/such/path").await;
     assert!(missing.is_err(), "missing path should error");
 
     let _ = c.remove_container(&id, true).await;

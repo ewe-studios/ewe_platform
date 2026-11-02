@@ -8,11 +8,11 @@
 //! HOW: cloud presets and `RouterMix` over Anthropic providers construct
 //! offline, so every check here builds a real session without network.
 
-use foundation_core::valtron::valtron_test;
 use foundation_ai::agentic::{AgentSession, AgenticError};
 use foundation_ai::backends::anthropic_messages_provider::AnthropicMessagesProvider;
 use foundation_ai::harness::{RouterMix, RouterPreset, CLAUDE_OPUS, CLAUDE_SONNET};
 use foundation_ai::types::{ModelId, ProviderRouter};
+use foundation_core::valtron::valtron_test;
 
 fn named(id: &str) -> ModelId {
     ModelId::Name(id.to_string(), None)

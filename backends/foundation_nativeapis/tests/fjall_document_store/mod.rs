@@ -63,15 +63,32 @@ async fn collect_stream<T>(mut stream: foundation_db::AsyncStorageItemStream<'_,
 async fn append_and_scan_returns_documents() {
     let store = make_store();
     let doc1 = store
-        .append("col", TestRecord { name: "first".into(), value: 1 }).await
+        .append(
+            "col",
+            TestRecord {
+                name: "first".into(),
+                value: 1,
+            },
+        )
+        .await
         .unwrap();
     let doc2 = store
-        .append("col", TestRecord { name: "second".into(), value: 2 }).await
+        .append(
+            "col",
+            TestRecord {
+                name: "second".into(),
+                value: 2,
+            },
+        )
+        .await
         .unwrap();
 
     assert!(!doc1.id.is_empty());
     assert!(!doc2.id.is_empty());
-    assert!(doc1.id < doc2.id, "scru128 ids should be chronologically ordered");
+    assert!(
+        doc1.id < doc2.id,
+        "scru128 ids should be chronologically ordered"
+    );
 
     let results: Vec<TestRecord> = collect_stream(store.scan("col", 10).await.unwrap()).await;
     assert_eq!(results.len(), 2);
@@ -82,9 +99,36 @@ async fn append_and_scan_returns_documents() {
 #[valtron_test]
 async fn scan_all_returns_oldest_first() {
     let store = make_store();
-    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
-    store.append("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "a".into(),
+                value: 1,
+            },
+        )
+        .await
+        .unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "b".into(),
+                value: 2,
+            },
+        )
+        .await
+        .unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "c".into(),
+                value: 3,
+            },
+        )
+        .await
+        .unwrap();
 
     let results: Vec<TestRecord> = collect_stream(store.scan_all("col").await.unwrap()).await;
     assert_eq!(results.len(), 3);
@@ -96,9 +140,36 @@ async fn scan_all_returns_oldest_first() {
 #[valtron_test]
 async fn scan_from_returns_from_given_id() {
     let store = make_store();
-    let _d1 = store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    let d2 = store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
-    let _d3 = store.append("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
+    let _d1 = store
+        .append(
+            "col",
+            TestRecord {
+                name: "a".into(),
+                value: 1,
+            },
+        )
+        .await
+        .unwrap();
+    let d2 = store
+        .append(
+            "col",
+            TestRecord {
+                name: "b".into(),
+                value: 2,
+            },
+        )
+        .await
+        .unwrap();
+    let _d3 = store
+        .append(
+            "col",
+            TestRecord {
+                name: "c".into(),
+                value: 3,
+            },
+        )
+        .await
+        .unwrap();
 
     let results: Vec<TestRecord> =
         collect_stream(store.scan_from("col", &d2.id, 0).await.unwrap()).await;
@@ -110,10 +181,46 @@ async fn scan_from_returns_from_given_id() {
 #[valtron_test]
 async fn scan_from_with_limit() {
     let store = make_store();
-    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    let d2 = store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
-    store.append("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
-    store.append("col", TestRecord { name: "d".into(), value: 4 }).await.unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "a".into(),
+                value: 1,
+            },
+        )
+        .await
+        .unwrap();
+    let d2 = store
+        .append(
+            "col",
+            TestRecord {
+                name: "b".into(),
+                value: 2,
+            },
+        )
+        .await
+        .unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "c".into(),
+                value: 3,
+            },
+        )
+        .await
+        .unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "d".into(),
+                value: 4,
+            },
+        )
+        .await
+        .unwrap();
 
     let results: Vec<TestRecord> =
         collect_stream(store.scan_from("col", &d2.id, 2).await.unwrap()).await;
@@ -129,7 +236,15 @@ async fn append_with_id_uses_provided_id() {
     let store = make_store();
     let custom_id = foundation_compact::ids::new_scru128_string();
     let doc = store
-        .append_with_id("col", &custom_id, TestRecord { name: "custom".into(), value: 42 }).await
+        .append_with_id(
+            "col",
+            &custom_id,
+            TestRecord {
+                name: "custom".into(),
+                value: 42,
+            },
+        )
+        .await
         .unwrap();
     assert_eq!(doc.id, custom_id);
 
@@ -146,8 +261,12 @@ async fn append_promotable_populates_promoted_columns() {
     let doc = store
         .append_promotable(
             "col",
-            TypedRecord { name: "obs-1".into(), kind: "observation".into() },
-        ).await
+            TypedRecord {
+                name: "obs-1".into(),
+                kind: "observation".into(),
+            },
+        )
+        .await
         .unwrap();
 
     assert_eq!(doc.title.as_deref(), Some("obs-1"));
@@ -162,8 +281,12 @@ async fn append_promotable_with_id_works() {
         .append_promotable_with_id(
             "col",
             &custom_id,
-            TypedRecord { name: "refl-1".into(), kind: "reflection".into() },
-        ).await
+            TypedRecord {
+                name: "refl-1".into(),
+                kind: "reflection".into(),
+            },
+        )
+        .await
         .unwrap();
 
     assert_eq!(doc.id, custom_id);
@@ -179,14 +302,22 @@ async fn scan_documents_returns_full_document_views() {
     store
         .append_promotable(
             "col",
-            TypedRecord { name: "item-1".into(), kind: "conversation".into() },
-        ).await
+            TypedRecord {
+                name: "item-1".into(),
+                kind: "conversation".into(),
+            },
+        )
+        .await
         .unwrap();
     store
         .append_promotable(
             "col",
-            TypedRecord { name: "item-2".into(), kind: "observation".into() },
-        ).await
+            TypedRecord {
+                name: "item-2".into(),
+                kind: "observation".into(),
+            },
+        )
+        .await
         .unwrap();
 
     let docs = store.scan_documents("col", 10).await.unwrap();
@@ -198,8 +329,26 @@ async fn scan_documents_returns_full_document_views() {
 #[valtron_test]
 async fn scan_documents_from_returns_from_id() {
     let store = make_store();
-    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    let d2 = store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "a".into(),
+                value: 1,
+            },
+        )
+        .await
+        .unwrap();
+    let d2 = store
+        .append(
+            "col",
+            TestRecord {
+                name: "b".into(),
+                value: 2,
+            },
+        )
+        .await
+        .unwrap();
 
     let docs = store.scan_documents_from("col", &d2.id, 0).await.unwrap();
     assert_eq!(docs.len(), 1);
@@ -211,8 +360,26 @@ async fn scan_documents_from_returns_from_id() {
 #[valtron_test]
 async fn delete_removes_document_from_index() {
     let store = make_store();
-    let d1 = store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    let d1 = store
+        .append(
+            "col",
+            TestRecord {
+                name: "a".into(),
+                value: 1,
+            },
+        )
+        .await
+        .unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "b".into(),
+                value: 2,
+            },
+        )
+        .await
+        .unwrap();
 
     store.delete("col", &d1.id).await.unwrap();
 
@@ -224,9 +391,36 @@ async fn delete_removes_document_from_index() {
 #[valtron_test]
 async fn delete_all_removes_everything() {
     let store = make_store();
-    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
-    store.append("col", TestRecord { name: "c".into(), value: 3 }).await.unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "a".into(),
+                value: 1,
+            },
+        )
+        .await
+        .unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "b".into(),
+                value: 2,
+            },
+        )
+        .await
+        .unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "c".into(),
+                value: 3,
+            },
+        )
+        .await
+        .unwrap();
 
     let count = store.delete_all("col").await.unwrap();
     assert_eq!(count, 3);
@@ -242,10 +436,28 @@ async fn count_returns_number_of_documents() {
     let store = make_store();
     assert_eq!(store.count("col").await.unwrap(), 0);
 
-    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "a".into(),
+                value: 1,
+            },
+        )
+        .await
+        .unwrap();
     assert_eq!(store.count("col").await.unwrap(), 1);
 
-    store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "b".into(),
+                value: 2,
+            },
+        )
+        .await
+        .unwrap();
     assert_eq!(store.count("col").await.unwrap(), 2);
 }
 
@@ -254,8 +466,26 @@ async fn count_returns_number_of_documents() {
 #[valtron_test]
 async fn separate_collections_are_independent() {
     let store = make_store();
-    store.append("alpha", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    store.append("beta", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    store
+        .append(
+            "alpha",
+            TestRecord {
+                name: "a".into(),
+                value: 1,
+            },
+        )
+        .await
+        .unwrap();
+    store
+        .append(
+            "beta",
+            TestRecord {
+                name: "b".into(),
+                value: 2,
+            },
+        )
+        .await
+        .unwrap();
 
     let alpha: Vec<TestRecord> = collect_stream(store.scan_all("alpha").await.unwrap()).await;
     let beta: Vec<TestRecord> = collect_stream(store.scan_all("beta").await.unwrap()).await;
@@ -296,8 +526,26 @@ async fn batched_durability_accumulates_then_flushes() {
         .await
         .unwrap();
 
-    store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-    store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "a".into(),
+                value: 1,
+            },
+        )
+        .await
+        .unwrap();
+    store
+        .append(
+            "col",
+            TestRecord {
+                name: "b".into(),
+                value: 2,
+            },
+        )
+        .await
+        .unwrap();
 
     // Data should still be scannable from the batch
     let results: Vec<TestRecord> = collect_stream(store.scan_all("col").await.unwrap()).await;
@@ -330,8 +578,26 @@ async fn tail_rebuild_recovers_unindexed_records() {
         .await
         .unwrap();
 
-        store.append("col", TestRecord { name: "a".into(), value: 1 }).await.unwrap();
-        store.append("col", TestRecord { name: "b".into(), value: 2 }).await.unwrap();
+        store
+            .append(
+                "col",
+                TestRecord {
+                    name: "a".into(),
+                    value: 1,
+                },
+            )
+            .await
+            .unwrap();
+        store
+            .append(
+                "col",
+                TestRecord {
+                    name: "b".into(),
+                    value: 2,
+                },
+            )
+            .await
+            .unwrap();
     }
 
     // Simulate crash: write more data to the NDJSON file directly (bypassing index)
@@ -349,14 +615,9 @@ async fn tail_rebuild_recovers_unindexed_records() {
     fs.write_file(&extra_path, &new_data).unwrap();
 
     // Re-open: tail rebuild should recover the orphan
-    let store2 = FjallDocumentStore::open(
-        fs,
-        "/data".to_string(),
-        tmpdir.path(),
-        durability,
-    )
-    .await
-    .unwrap();
+    let store2 = FjallDocumentStore::open(fs, "/data".to_string(), tmpdir.path(), durability)
+        .await
+        .unwrap();
 
     assert_eq!(store2.count("col").await.unwrap(), 3);
 }
@@ -369,7 +630,14 @@ async fn ordering_is_chronological_by_scru128() {
     let mut ids = Vec::new();
     for i in 0..5 {
         let doc = store
-            .append("col", TestRecord { name: format!("item-{i}"), value: i }).await
+            .append(
+                "col",
+                TestRecord {
+                    name: format!("item-{i}"),
+                    value: i,
+                },
+            )
+            .await
             .unwrap();
         ids.push(doc.id);
     }
@@ -393,10 +661,23 @@ async fn ordering_is_chronological_by_scru128() {
 async fn default_store_is_usable_and_starts_empty() {
     let store = FjallDocumentStore::<MemoryFs>::default();
     store
-        .append("col", TestRecord { name: "first".into(), value: 1 }).await
+        .append(
+            "col",
+            TestRecord {
+                name: "first".into(),
+                value: 1,
+            },
+        )
+        .await
         .unwrap();
     let docs = collect_stream(store.scan_all::<TestRecord>("col").await.unwrap()).await;
-    assert_eq!(docs, vec![TestRecord { name: "first".into(), value: 1 }]);
+    assert_eq!(
+        docs,
+        vec![TestRecord {
+            name: "first".into(),
+            value: 1
+        }]
+    );
 
     // A second default store gets its own index, so it doesn't see the first's data.
     let other = FjallDocumentStore::<MemoryFs>::default();
@@ -416,7 +697,13 @@ struct CountingFs<F> {
 impl<F: AsyncVfsFileSystem> CountingFs<F> {
     fn new(inner: F) -> (Self, Arc<AtomicUsize>) {
         let read_opens = Arc::new(AtomicUsize::new(0));
-        (Self { inner, read_opens: read_opens.clone() }, read_opens)
+        (
+            Self {
+                inner,
+                read_opens: read_opens.clone(),
+            },
+            read_opens,
+        )
     }
 }
 
@@ -497,7 +784,14 @@ async fn fjall_scan_yields_before_reading_all() {
 
     for i in 0..50 {
         store
-            .append("col", TestRecord { name: format!("item-{i}"), value: i }).await
+            .append(
+                "col",
+                TestRecord {
+                    name: format!("item-{i}"),
+                    value: i,
+                },
+            )
+            .await
             .unwrap();
     }
     store.flush("col").await.unwrap();
@@ -505,7 +799,11 @@ async fn fjall_scan_yields_before_reading_all() {
     // Creating the stream must not read any document.
     opens.store(0, Ordering::Relaxed);
     let mut stream = store.scan::<TestRecord>("col", 50).await.unwrap();
-    assert_eq!(opens.load(Ordering::Relaxed), 0, "scan read eagerly while being created");
+    assert_eq!(
+        opens.load(Ordering::Relaxed),
+        0,
+        "scan read eagerly while being created"
+    );
 
     // Draining one item must not read the whole collection.
     let first = stream.next().await.expect("first item").expect("scan item");

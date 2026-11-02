@@ -29,24 +29,26 @@ use futures::{Stream, StreamExt};
 
 use crate::shared::codec::{CodecFor, ProcedureCodecs};
 use crate::shared::compression::{CompressionRegistry, Compressor};
-use crate::shared::context::{CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec, StreamType};
+use crate::shared::context::{
+    CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec, StreamType,
+};
 use crate::shared::envelope::encode_grpc_timeout;
 use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::interceptor::{Interceptor, InterceptorChain, UnaryCall, UnaryFunc, UnaryReply};
 use crate::shared::message::{Request, Response};
 use crate::shared::protocol::connect::constants as connect_consts;
-use crate::shared::protocol::grpc_web::constants as grpc_web_consts;
 use crate::shared::protocol::grpc::parse_grpc_error_trailer;
+use crate::shared::protocol::grpc_web::constants as grpc_web_consts;
 use crate::shared::protocol::{ClientExchange, ClientExchangeConfig, ProtocolClient};
-use crate::ConnectClient;
-use crate::GrpcClient;
-use crate::GrpcWebClient;
 use crate::shared::transport::{
     capabilities::{check_compatible, requirements, ProtocolKind},
     conn::{ClientReceiver, ClientSender},
     frame::BoxFuture,
     Transport, TransportStream, DEFAULT_PIPE_DEPTH,
 };
+use crate::ConnectClient;
+use crate::GrpcClient;
+use crate::GrpcWebClient;
 
 // ============================================================================
 // ProtocolSelection
@@ -451,7 +453,10 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let config = if url.is_empty() {
             config
         } else {
-            ClientConfig { url: url.to_string(), ..config }
+            ClientConfig {
+                url: url.to_string(),
+                ..config
+            }
         };
 
         // 1. Validate codec name.
@@ -509,7 +514,9 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
         // Check GET eligibility.
         if self.enable_http_get && idempotency == IdempotencyLevel::NoSideEffects {
-            return self.call_unary_get_or_fallback(call_ctx, request, url).await;
+            return self
+                .call_unary_get_or_fallback(call_ctx, request, url)
+                .await;
         }
 
         self.call_unary_post(call_ctx, request, url).await
@@ -542,8 +549,11 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         // Marshal the request.
         let req_codec = self.codecs.for_request(&self.config.codec_name)?;
         let encoded = req_codec.marshal(&request.msg)?;
-        let (body, content_encoding) =
-            compress_if(&self.config.compression, &self.config.send_compression, &encoded)?;
+        let (body, content_encoding) = compress_if(
+            &self.config.compression,
+            &self.config.send_compression,
+            &encoded,
+        )?;
 
         // Build headers.
         let mut headers = request.headers().clone();
@@ -568,16 +578,18 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 
         // Build transport request.
         let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
-        let transport_stream = self
-            .transport
-            .open(desc)
-            .map_err(ConnectError::from)?;
+        let transport_stream = self.transport.open(desc).map_err(ConnectError::from)?;
 
         // Build the ClientExchange with linked cancel.
-        let exchange = self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
+        let exchange =
+            self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
 
         // Spawn reader/writer tasks.
-        spawn_reader_writer(exchange.reader_task, exchange.writer_task, call_ctx.cancel_signal())?;
+        spawn_reader_writer(
+            exchange.reader_task,
+            exchange.writer_task,
+            call_ctx.cancel_signal(),
+        )?;
 
         let (mut sender, mut receiver) = exchange.conn.split();
 
@@ -645,13 +657,15 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         }
 
         let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
-        let transport_stream = self
-            .transport
-            .open(desc)
-            .map_err(ConnectError::from)?;
+        let transport_stream = self.transport.open(desc).map_err(ConnectError::from)?;
 
-        let exchange = self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
-        spawn_reader_writer(exchange.reader_task, exchange.writer_task, call_ctx.cancel_signal())?;
+        let exchange =
+            self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
+        spawn_reader_writer(
+            exchange.reader_task,
+            exchange.writer_task,
+            call_ctx.cancel_signal(),
+        )?;
 
         let (mut sender, mut receiver) = exchange.conn.split();
         let req_codec = self.codecs.for_request(&self.config.codec_name)?;
@@ -732,13 +746,15 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         }
 
         let desc = build_request_descriptor(&url, &headers, SimpleMethod::POST);
-        let transport_stream = self
-            .transport
-            .open(desc)
-            .map_err(ConnectError::from)?;
+        let transport_stream = self.transport.open(desc).map_err(ConnectError::from)?;
 
-        let exchange = self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
-        spawn_reader_writer(exchange.reader_task, exchange.writer_task, call_ctx.cancel_signal())?;
+        let exchange =
+            self.build_streaming_exchange(&spec, headers, transport_stream, &call_ctx)?;
+        spawn_reader_writer(
+            exchange.reader_task,
+            exchange.writer_task,
+            call_ctx.cancel_signal(),
+        )?;
 
         let (sender, receiver) = exchange.conn.split();
         let req_codec = self.codecs.for_request(&self.config.codec_name)?;
@@ -821,8 +837,11 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         // Marshal the request.
         let req_codec = self.codecs.for_request(&self.config.codec_name)?;
         let encoded = req_codec.marshal(&request.msg)?;
-        let (body, content_encoding) =
-            compress_if(&self.config.compression, &self.config.send_compression, &encoded)?;
+        let (body, content_encoding) = compress_if(
+            &self.config.compression,
+            &self.config.send_compression,
+            &encoded,
+        )?;
 
         // Build headers: caller's request headers + protocol headers.
         let mut headers = request.headers().clone();
@@ -1015,9 +1034,11 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let req_codec = self.codecs.for_request(&self.config.codec_name)?;
         let stable = req_codec.marshal_stable(&request.msg)?;
 
-        let compressor = self.config.send_compression.as_ref().and_then(|name| {
-            self.config.compression.get(name).cloned()
-        });
+        let compressor = self
+            .config
+            .send_compression
+            .as_ref()
+            .and_then(|name| self.config.compression.get(name).cloned());
 
         let query = encode_get_query(
             &self.config.codec_name,
@@ -1328,7 +1349,11 @@ fn build_url(base_url: &str, procedure: &str) -> String {
 }
 
 /// Build a [`RequestDescriptor`] for a transport `open` call.
-fn build_request_descriptor(url: &str, headers: &SimpleHeaders, method: SimpleMethod) -> RequestDescriptor {
+fn build_request_descriptor(
+    url: &str,
+    headers: &SimpleHeaders,
+    method: SimpleMethod,
+) -> RequestDescriptor {
     let uri = Uri::parse(url).unwrap_or_else(|_| {
         // Fallback: construct a minimal URI from just the path portion.
         Uri::parse(&format!("http://localhost{url}")).expect("fallback URI")
@@ -1416,10 +1441,16 @@ fn spawn_reader_writer(
     writer_task: BoxFuture<'static, ConnectResult<()>>,
     cancel: &CancelSignal,
 ) -> ConnectResult<()> {
-    valtron::send(valtron::from_future(until_cancelled(reader_task, cancel.clone())))
-        .map_err(|e| ConnectError::internal(format!("failed to spawn reader task: {e}")))?;
-    valtron::send(valtron::from_future(until_cancelled(writer_task, cancel.clone())))
-        .map_err(|e| ConnectError::internal(format!("failed to spawn writer task: {e}")))?;
+    valtron::send(valtron::from_future(until_cancelled(
+        reader_task,
+        cancel.clone(),
+    )))
+    .map_err(|e| ConnectError::internal(format!("failed to spawn reader task: {e}")))?;
+    valtron::send(valtron::from_future(until_cancelled(
+        writer_task,
+        cancel.clone(),
+    )))
+    .map_err(|e| ConnectError::internal(format!("failed to spawn writer task: {e}")))?;
     Ok(())
 }
 
@@ -1485,8 +1516,10 @@ fn add_timeout_header(
 /// retried as a POST (Decision 07 fallback case 2).
 fn is_method_not_allowed(err: &ErrorTrace<ConnectError>) -> bool {
     let msg = err.to_string().to_lowercase();
-    msg.contains("405") || msg.contains("method not allowed")
-        || msg.contains("415") || msg.contains("unsupported media type")
+    msg.contains("405")
+        || msg.contains("method not allowed")
+        || msg.contains("415")
+        || msg.contains("unsupported media type")
 }
 
 /// Map an HTTP status to an RPC error [`Code`] (Decision 03).

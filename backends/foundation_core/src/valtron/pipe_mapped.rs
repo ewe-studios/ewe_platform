@@ -11,9 +11,9 @@ use core::task::{Context, Poll};
 
 use std::sync::Mutex;
 
-use concurrent_queue::{PopError, PushError};
-use crate::valtron::pipe::{PipeSender, PipeReceiver, SendError};
+use crate::valtron::pipe::{PipeReceiver, PipeSender, SendError};
 use crate::valtron::{QueueReadiness, QueueVacancyReadiness};
+use concurrent_queue::{PopError, PushError};
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MappedSender — PipeSender<Inner> → PipeSender<Outer> via &Outer → Inner
@@ -69,14 +69,28 @@ where
         }
     }
 
-    pub fn close(&self) -> bool { self.inner.close() }
-    pub fn is_full(&self) -> bool { self.inner.is_full() }
-    pub fn is_closed(&self) -> bool { self.inner.is_closed() }
-    pub fn len(&self) -> usize { self.inner.len() }
-    pub fn capacity(&self) -> usize { self.inner.capacity() }
+    pub fn close(&self) -> bool {
+        self.inner.close()
+    }
+    pub fn is_full(&self) -> bool {
+        self.inner.is_full()
+    }
+    pub fn is_closed(&self) -> bool {
+        self.inner.is_closed()
+    }
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+    pub fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
 
     pub fn vacancy(&self) -> QueueVacancyReadiness<Inner>
-    where Inner: Send { self.inner.vacancy() }
+    where
+        Inner: Send,
+    {
+        self.inner.vacancy()
+    }
 }
 
 impl<Inner, Outer, F: Clone> Clone for MappedSender<Inner, Outer, F> {
@@ -99,10 +113,7 @@ impl<T> PipeSender<T> {
     /// byte_tx.try_send(&bytes)?;
     /// byte_tx.send(bytes).await?;
     /// ```
-    pub fn map_to<Outer, F: Fn(&Outer) -> T>(
-        self,
-        f: F,
-    ) -> MappedSender<T, Outer, F> {
+    pub fn map_to<Outer, F: Fn(&Outer) -> T>(self, f: F) -> MappedSender<T, Outer, F> {
         MappedSender {
             inner: self,
             f,
@@ -194,18 +205,34 @@ where
         FilterMapRecvFuture { receiver: self }
     }
 
-    pub fn close(&self) -> bool { self.inner.close() }
-    pub fn is_empty(&self) -> bool { self.inner.is_empty() }
-    pub fn is_closed(&self) -> bool { self.inner.is_closed() }
-    pub fn len(&self) -> usize { self.inner.len() }
+    pub fn close(&self) -> bool {
+        self.inner.close()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+    pub fn is_closed(&self) -> bool {
+        self.inner.is_closed()
+    }
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
 
     pub fn readiness(&self) -> QueueReadiness<Inner>
-    where Inner: Send { self.inner.readiness() }
+    where
+        Inner: Send,
+    {
+        self.inner.readiness()
+    }
 }
 
 impl<Inner, Outer, F: Clone> Clone for FilterMapReceiver<Inner, Outer, F> {
     fn clone(&self) -> Self {
-        Self { inner: self.inner.clone(), f: self.f.clone(), _p: core::marker::PhantomData }
+        Self {
+            inner: self.inner.clone(),
+            f: self.f.clone(),
+            _p: core::marker::PhantomData,
+        }
     }
 }
 
@@ -221,11 +248,12 @@ impl<T> PipeReceiver<T> {
     /// body_rx.try_recv()?;    // Bytes
     /// body_rx.receive().await; // Option<Bytes>
     /// ```
-    pub fn filter_map_to<Outer, F>(
-        self,
-        f: F,
-    ) -> FilterMapReceiver<T, Outer, F> {
-        FilterMapReceiver { inner: self, f, _p: core::marker::PhantomData }
+    pub fn filter_map_to<Outer, F>(self, f: F) -> FilterMapReceiver<T, Outer, F> {
+        FilterMapReceiver {
+            inner: self,
+            f,
+            _p: core::marker::PhantomData,
+        }
     }
 }
 

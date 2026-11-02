@@ -4,8 +4,7 @@ use std::time::Duration;
 
 use foundation_core::valtron::valtron_test;
 use foundation_db::{
-    QueryStore, StorageCleanup, CleanupConfig, CleanupStats, DataValue, MemoryStorage,
-    TursoStorage,
+    CleanupConfig, CleanupStats, DataValue, MemoryStorage, QueryStore, StorageCleanup, TursoStorage,
 };
 
 /// A migrated Turso store in a temp dir (the auth tables cleanup targets).
@@ -89,7 +88,10 @@ fn test_cleanup_stats_default() {
 async fn test_run_full_cleanup_without_the_tables_is_an_error() {
     // The in-memory store has no auth tables, so the cleanup queries fail.
     let storage = MemoryStorage::new();
-    assert!(storage.run_full_cleanup(&CleanupConfig::default()).await.is_err());
+    assert!(storage
+        .run_full_cleanup(&CleanupConfig::default())
+        .await
+        .is_err());
 }
 
 #[valtron_test]
@@ -117,11 +119,15 @@ async fn run_full_cleanup_honours_the_configured_retention() {
     insert_jwt(&store, "stale", now - 2 * 24 * 60 * 60 * 1000).await;
 
     // Default retention (30 days) keeps both.
-    let stats = store.run_full_cleanup(&CleanupConfig::default()).await.unwrap();
+    let stats = store
+        .run_full_cleanup(&CleanupConfig::default())
+        .await
+        .unwrap();
     assert_eq!(stats.jwt_tokens_deleted, 0);
 
     // A 1-day retention removes only the one that expired 2 days ago.
-    let config = CleanupConfig::default().with_jwt_token_retention(Duration::from_secs(24 * 60 * 60));
+    let config =
+        CleanupConfig::default().with_jwt_token_retention(Duration::from_secs(24 * 60 * 60));
     let stats = store.run_full_cleanup(&config).await.unwrap();
     assert_eq!(stats.jwt_tokens_deleted, 1);
     assert_eq!(jwt_ids(&store).await, vec!["recent".to_string()]);

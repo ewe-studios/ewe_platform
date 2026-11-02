@@ -70,7 +70,9 @@ fn prune_paths(spec: &mut Value, selection: &Selection, stats: &mut PruneStats) 
     let doomed: Vec<String> = paths
         .iter()
         .filter(|(path, item)| {
-            let Some(item) = item.as_object() else { return false };
+            let Some(item) = item.as_object() else {
+                return false;
+            };
             !item
                 .iter()
                 .any(|(key, op)| is_http_method(key) && selection.includes_value(path, op))
@@ -85,7 +87,9 @@ fn prune_paths(spec: &mut Value, selection: &Selection, stats: &mut PruneStats) 
 
     // 2. Unselected operations on the paths that survived.
     for (path, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         let drop: Vec<String> = item
             .iter()
             .filter(|(key, op)| is_http_method(key) && !selection.includes_value(path, op))
@@ -172,7 +176,9 @@ fn prune_components(spec: &mut Value, reachable: &BTreeSet<String>, stats: &mut 
     };
 
     for (kind, entries) in components.iter_mut() {
-        let Some(entries) = entries.as_object_mut() else { continue };
+        let Some(entries) = entries.as_object_mut() else {
+            continue;
+        };
         let drop: Vec<String> = entries
             .keys()
             .filter(|name| !reachable.contains(&format!("#/components/{kind}/{name}")))
@@ -238,7 +244,9 @@ pub fn unreachable_components(spec: &Value) -> Vec<String> {
     let mut orphans = Vec::new();
     if let Some(components) = spec.get("components").and_then(Value::as_object) {
         for (kind, entries) in components {
-            let Some(entries) = entries.as_object() else { continue };
+            let Some(entries) = entries.as_object() else {
+                continue;
+            };
             for name in entries.keys() {
                 let pointer = format!("#/components/{kind}/{name}");
                 if !reachable.contains(&pointer) {

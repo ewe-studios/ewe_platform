@@ -135,9 +135,17 @@ struct Args {
 }
 
 const KNOWN_ARGS: &[&str] = &[
-    "seed", "threads", "timeout", "shutdown_grace",
-    "tracing", "tracing_targets", "tracing_ids",
-    "tracing_names", "tracing_files", "tracing_lines", "tracing_ansi",
+    "seed",
+    "threads",
+    "timeout",
+    "shutdown_grace",
+    "tracing",
+    "tracing_targets",
+    "tracing_ids",
+    "tracing_names",
+    "tracing_files",
+    "tracing_lines",
+    "tracing_ansi",
     "tracing_writer",
 ];
 
@@ -181,18 +189,17 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
             "tracing_lines" => args.tracing_lines = Some(pair.value),
             "tracing_ansi" => args.tracing_ansi = Some(pair.value),
             "tracing_writer" => {
-                let lit = match pair.value {
-                    syn::Expr::Lit(syn::ExprLit {
-                        lit: syn::Lit::Str(s),
-                        ..
-                    }) => s.value(),
-                    other => {
-                        return Err(syn::Error::new_spanned(
+                let lit =
+                    match pair.value {
+                        syn::Expr::Lit(syn::ExprLit {
+                            lit: syn::Lit::Str(s),
+                            ..
+                        }) => s.value(),
+                        other => return Err(syn::Error::new_spanned(
                             other,
                             "tracing_writer expects a string literal: \"console\" or \"stdout\"",
-                        ))
-                    }
-                };
+                        )),
+                    };
                 args.tracing_writer = Some(match lit.as_str() {
                     "console" => true,
                     "stdout" => false,
@@ -224,10 +231,15 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
 /// For `#[valtron_test]` (is_test=true): tracing is always on (defaults to "info").
 /// For `#[valtron]` (is_test=false): tracing is OFF unless explicitly requested
 /// via `tracing = "debug"` or similar.
-fn expand_tracing_init(args: &Args, fc: &proc_macro2::TokenStream, is_test: bool) -> proc_macro2::TokenStream {
+fn expand_tracing_init(
+    args: &Args,
+    fc: &proc_macro2::TokenStream,
+    is_test: bool,
+) -> proc_macro2::TokenStream {
     // For #[valtron] (non-test), skip tracing unless explicitly requested.
     // For #[valtron_test], always initialize with defaults.
-    if !is_test && args.tracing.is_none()
+    if !is_test
+        && args.tracing.is_none()
         && args.tracing_targets.is_none()
         && args.tracing_ids.is_none()
         && args.tracing_names.is_none()
@@ -294,11 +306,8 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
     // keeps today's expansion byte-for-byte.
     let is_async = func.sig.asyncness.is_some();
     if !func.sig.inputs.is_empty() {
-        return syn::Error::new_spanned(
-            &func.sig.inputs,
-            "#[valtron] functions take no arguments",
-        )
-        .to_compile_error();
+        return syn::Error::new_spanned(&func.sig.inputs, "#[valtron] functions take no arguments")
+            .to_compile_error();
     }
 
     let fc = foundation_core_path();

@@ -16,7 +16,7 @@
 use foundation_deployment_docker::DockerClient;
 use tracing::warn;
 
-use crate::docker::error::{docker_err, DockerError, DockerResult};
+use crate::docker::error::{DockerError, DockerResult, docker_err};
 
 /// A handle to a Docker network.
 #[derive(Clone)]

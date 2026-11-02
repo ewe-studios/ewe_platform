@@ -26,7 +26,10 @@ fn embedded_v8_evaluates_js() {
 /// W1: the embedded V8 isolate compiles + instantiates a wasm module.
 #[test]
 fn embedded_v8_runs_webassembly() {
-    assert!(spike_wasm_instantiate(), "in-process V8 instantiated a wasm module");
+    assert!(
+        spike_wasm_instantiate(),
+        "in-process V8 instantiated a wasm module"
+    );
 }
 
 /// W2: the FS module loader resolves a relative-import ESM graph, and the deno_web
@@ -162,10 +165,19 @@ fn embedded_runs_sample_fixture_end_to_end() {
     assert_eq!(report.exit_code(), 1);
     assert!(report.output.contains("FAILED  fails_with_assertion"));
     assert!(report.output.contains("ok      passes_simple"));
-    assert!(report.output.contains("ok      panics_as_expected"), "should_panic is inverted");
-    assert!(report.output.contains("ok      async_completes_after_yield"));
+    assert!(
+        report.output.contains("ok      panics_as_expected"),
+        "should_panic is inverted"
+    );
+    assert!(
+        report
+            .output
+            .contains("ok      async_completes_after_yield")
+    );
     assert!(report.output.contains("ignored ignored_case"));
-    assert!(report
-        .output
-        .contains("test result: FAILED. 3 passed; 1 failed; 1 ignored"));
+    assert!(
+        report
+            .output
+            .contains("test result: FAILED. 3 passed; 1 failed; 1 ignored")
+    );
 }

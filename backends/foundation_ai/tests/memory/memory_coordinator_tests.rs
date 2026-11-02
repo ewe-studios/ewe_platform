@@ -73,10 +73,7 @@ fn set_overwrites_with_latest_per_tier() {
     block_on(async {
         let coord = new_coordinator();
         let session = SessionId::new();
-        coord
-            .record(&session, &observation("first"))
-            .await
-            .unwrap();
+        coord.record(&session, &observation("first")).await.unwrap();
         let latest = observation("second");
         coord.record(&session, &latest).await.unwrap();
 

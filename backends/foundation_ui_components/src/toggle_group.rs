@@ -108,7 +108,10 @@ pub fn toggle_group(
     // Per-item render: live data-pressed (reads `values`) + click that updates
     // the Vec (toggle off if present; single mode replaces, multiple appends).
     let values_for_render = values.clone();
-    let render = move |c: &Context, r: &SharedInstructionReceiver, item: &ToggleGroupItem| -> Html {
+    let render = move |c: &Context,
+                       r: &SharedInstructionReceiver,
+                       item: &ToggleGroupItem|
+          -> Html {
         let value: Cow<'static, str> = Cow::Owned(item.value.clone());
         let content = item.content.clone();
         let disabled = group_disabled || item.disabled;

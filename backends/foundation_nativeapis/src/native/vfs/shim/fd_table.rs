@@ -72,7 +72,11 @@ impl VirtualFdTable {
 
     /// Get the path for a virtual FD.
     pub fn path(&self, fd: c_int) -> Option<String> {
-        self.entries.lock().unwrap().get(&fd).map(|e| e.path.clone())
+        self.entries
+            .lock()
+            .unwrap()
+            .get(&fd)
+            .map(|e| e.path.clone())
     }
 
     /// Read from a virtual FD.

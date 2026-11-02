@@ -29,7 +29,10 @@ pub struct Locator<'p> {
 
 impl<'p> Locator<'p> {
     pub(crate) fn new(page: &'p Page<'p>, selector: impl Into<String>) -> Self {
-        Self { page, selector: selector.into() }
+        Self {
+            page,
+            selector: selector.into(),
+        }
     }
 
     /// A JS string literal of the selector, safe to inline in an `eval` snippet.
@@ -49,7 +52,12 @@ impl<'p> Locator<'p> {
             return Ok(None);
         }
         let f = |k: &str| v.get(k).and_then(Value::as_f64).unwrap_or(0.0);
-        Ok(Some(Rect { x: f("x"), y: f("y"), width: f("width"), height: f("height") }))
+        Ok(Some(Rect {
+            x: f("x"),
+            y: f("y"),
+            width: f("width"),
+            height: f("height"),
+        }))
     }
 
     /// Focus the element; `Err(SelectorNotFound)` if it doesn't match.
@@ -71,7 +79,9 @@ impl<'p> Locator<'p> {
     /// # Errors
     /// Protocol/evaluate error.
     pub fn count(&self) -> Result<usize> {
-        let v = self.page.eval(&format!("document.querySelectorAll({}).length", self.sel()))?;
+        let v = self
+            .page
+            .eval(&format!("document.querySelectorAll({}).length", self.sel()))?;
         Ok(usize::try_from(v.as_u64().unwrap_or(0)).unwrap_or(0))
     }
 
@@ -80,7 +90,8 @@ impl<'p> Locator<'p> {
     /// # Errors
     /// [`BrowserError::SelectorNotFound`] or an evaluate error.
     pub fn bounding_box(&self) -> Result<Rect> {
-        self.box_opt()?.ok_or_else(|| BrowserError::SelectorNotFound(self.selector.clone()))
+        self.box_opt()?
+            .ok_or_else(|| BrowserError::SelectorNotFound(self.selector.clone()))
     }
 
     /// The element's `textContent`.
@@ -109,7 +120,9 @@ impl<'p> Locator<'p> {
         if v.get("found").and_then(Value::as_bool) != Some(true) {
             return Err(BrowserError::SelectorNotFound(self.selector.clone()));
         }
-        Ok(v.get("value").and_then(Value::as_str).map(ToString::to_string))
+        Ok(v.get("value")
+            .and_then(Value::as_str)
+            .map(ToString::to_string))
     }
 
     /// A computed-style property value.
@@ -183,7 +196,10 @@ impl<'p> Locator<'p> {
     /// Start an assertion chain.
     #[must_use]
     pub fn expect(&self) -> LocatorAssertions<'_, 'p> {
-        LocatorAssertions { locator: self, deadline: Duration::from_secs(5) }
+        LocatorAssertions {
+            locator: self,
+            deadline: Duration::from_secs(5),
+        }
     }
 }
 
@@ -265,7 +281,10 @@ impl LocatorAssertions<'_, '_> {
     pub fn to_have_attribute(&self, name: &str, expected: &str) -> Result<()> {
         self.retry(&format!("[{name}] == {expected:?}"), || {
             let a = self.locator.attribute(name)?;
-            Ok((a.as_deref() == Some(expected), a.unwrap_or_else(|| "(absent)".into())))
+            Ok((
+                a.as_deref() == Some(expected),
+                a.unwrap_or_else(|| "(absent)".into()),
+            ))
         })
     }
 

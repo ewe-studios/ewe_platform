@@ -7,7 +7,7 @@ use foundation_core::valtron::valtron_test;
 use foundation_db::TursoStorage;
 use foundation_vectors::metric::DistanceMetric;
 use foundation_vectors::store::{
-    VectorStore, VectorEntry, VectorMetadata, VectorStoreConfig, VectorStoreError,
+    VectorEntry, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
 };
 use foundation_vectors::vector::Vector;
 use foundation_vectors::{SqlVectorStore, SqlVectorStoreConfig};
@@ -40,7 +40,10 @@ const NS: &str = "test";
 #[valtron_test]
 async fn insert_and_get() {
     let (_dir, store) = make_store().await;
-    store.insert(NS, entry("a", vec![1.0, 0.0, 0.0])).await.unwrap();
+    store
+        .insert(NS, entry("a", vec![1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
     let got = store.get(NS, "a").await.unwrap().unwrap();
     assert_eq!(got.id, "a");
     assert_eq!(got.vector.data, vec![1.0, 0.0, 0.0]);
@@ -49,7 +52,10 @@ async fn insert_and_get() {
 #[valtron_test]
 async fn dimension_mismatch_rejected() {
     let (_dir, store) = make_store().await;
-    let err = store.insert(NS, entry("bad", vec![1.0, 0.0])).await.unwrap_err();
+    let err = store
+        .insert(NS, entry("bad", vec![1.0, 0.0]))
+        .await
+        .unwrap_err();
     assert!(matches!(
         err,
         VectorStoreError::DimensionMismatch {
@@ -63,7 +69,8 @@ async fn dimension_mismatch_rejected() {
 async fn zero_vector_rejected() {
     let (_dir, store) = make_store().await;
     let err = store
-        .insert(NS, entry("zero", vec![0.0, 0.0, 0.0])).await
+        .insert(NS, entry("zero", vec![0.0, 0.0, 0.0]))
+        .await
         .unwrap_err();
     assert!(matches!(err, VectorStoreError::ZeroVector));
 }
@@ -71,9 +78,18 @@ async fn zero_vector_rejected() {
 #[valtron_test]
 async fn search_top_k() {
     let (_dir, store) = make_store().await;
-    store.insert(NS, entry("x", vec![1.0, 0.0, 0.0])).await.unwrap();
-    store.insert(NS, entry("y", vec![0.0, 1.0, 0.0])).await.unwrap();
-    store.insert(NS, entry("z", vec![0.9, 0.1, 0.0])).await.unwrap();
+    store
+        .insert(NS, entry("x", vec![1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert(NS, entry("y", vec![0.0, 1.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert(NS, entry("z", vec![0.9, 0.1, 0.0]))
+        .await
+        .unwrap();
 
     let results = store.search(NS, &[1.0, 0.0, 0.0], 2).await.unwrap();
     assert_eq!(results.len(), 2);
@@ -85,10 +101,12 @@ async fn search_top_k() {
 async fn namespace_isolation() {
     let (_dir, store) = make_store().await;
     store
-        .insert("ns_a", entry("v1", vec![1.0, 0.0, 0.0])).await
+        .insert("ns_a", entry("v1", vec![1.0, 0.0, 0.0]))
+        .await
         .unwrap();
     store
-        .insert("ns_b", entry("v2", vec![0.0, 1.0, 0.0])).await
+        .insert("ns_b", entry("v2", vec![0.0, 1.0, 0.0]))
+        .await
         .unwrap();
 
     assert_eq!(store.len("ns_a").await.unwrap(), 1);
@@ -105,7 +123,10 @@ async fn namespace_isolation() {
 #[valtron_test]
 async fn delete_entry() {
     let (_dir, store) = make_store().await;
-    store.insert(NS, entry("a", vec![1.0, 0.0, 0.0])).await.unwrap();
+    store
+        .insert(NS, entry("a", vec![1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
     assert_eq!(store.len(NS).await.unwrap(), 1);
     store.delete(NS, "a").await.unwrap();
     assert_eq!(store.len(NS).await.unwrap(), 0);
@@ -122,8 +143,14 @@ async fn delete_not_found() {
 #[valtron_test]
 async fn overwrite_on_insert() {
     let (_dir, store) = make_store().await;
-    store.insert(NS, entry("a", vec![1.0, 0.0, 0.0])).await.unwrap();
-    store.insert(NS, entry("a", vec![0.0, 1.0, 0.0])).await.unwrap();
+    store
+        .insert(NS, entry("a", vec![1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert(NS, entry("a", vec![0.0, 1.0, 0.0]))
+        .await
+        .unwrap();
     let got = store.get(NS, "a").await.unwrap().unwrap();
     assert_eq!(got.vector.data, vec![0.0, 1.0, 0.0]);
     assert_eq!(store.len(NS).await.unwrap(), 1);
@@ -166,8 +193,14 @@ async fn persistence_across_reopen() {
     {
         let storage = Arc::new(TursoStorage::new(url).await.unwrap());
         let store = SqlVectorStore::new(storage, config.clone()).await.unwrap();
-        store.insert(NS, entry("p1", vec![1.0, 0.0, 0.0])).await.unwrap();
-        store.insert(NS, entry("p2", vec![0.0, 1.0, 0.0])).await.unwrap();
+        store
+            .insert(NS, entry("p1", vec![1.0, 0.0, 0.0]))
+            .await
+            .unwrap();
+        store
+            .insert(NS, entry("p2", vec![0.0, 1.0, 0.0]))
+            .await
+            .unwrap();
     }
 
     {

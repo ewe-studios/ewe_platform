@@ -251,4 +251,3 @@ impl<E: Send + 'static> Executor<E> {
         }
     }
 }
-

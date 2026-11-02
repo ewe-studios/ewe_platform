@@ -168,7 +168,8 @@ fn echo_router() -> Router {
         ECHO,
         ProcedureCodecs::<TestMsg, TestMsg>::defaults(),
         |_ctx, req: Request<TestMsg>| async move { Ok(Response::new(req.msg)) },
-        HandlerOptions::new().with_idempotency(foundation_connectrpc::IdempotencyLevel::NoSideEffects),
+        HandlerOptions::new()
+            .with_idempotency(foundation_connectrpc::IdempotencyLevel::NoSideEffects),
     );
     router
 }
@@ -196,14 +197,22 @@ fn wrong_method_is_405_with_allow() {
     assert_eq!(response.status, Status::MethodNotAllowed);
     let allow = header(&response, "allow").expect("Allow header present");
     assert!(allow.contains("POST"), "Allow lists POST: {allow}");
-    assert!(allow.contains("GET"), "Allow lists GET (Connect unary): {allow}");
+    assert!(
+        allow.contains("GET"),
+        "Allow lists GET (Connect unary): {allow}"
+    );
 }
 
 #[test]
 fn unknown_codec_is_415_with_accept_post() {
     let handler = echo_router().into_handler();
     // `application/xml` parses as the Connect codec name "xml" — not registered.
-    let req = request(ECHO, SimpleMethod::POST, Some("application/xml"), Some(vec![]));
+    let req = request(
+        ECHO,
+        SimpleMethod::POST,
+        Some("application/xml"),
+        Some(vec![]),
+    );
     let response = block_on(handler.dispatch(bag(), req));
     assert_eq!(response.status, Status::UnsupportedMediaType);
     let accept = header(&response, "accept-post").expect("Accept-Post present");
@@ -276,7 +285,11 @@ fn unary_get_is_routed_and_decoded() {
     );
     let req = request(&url, SimpleMethod::GET, None, None);
     let response = block_on(handler.dispatch(bag(), req));
-    assert_eq!(response.status, Status::OK, "unary GET routes to the handler");
+    assert_eq!(
+        response.status,
+        Status::OK,
+        "unary GET routes to the handler"
+    );
     let echoed: TestMsg = JsonCodec
         .unmarshal(Bytes::from(body_bytes(&response)))
         .expect("decode echo");

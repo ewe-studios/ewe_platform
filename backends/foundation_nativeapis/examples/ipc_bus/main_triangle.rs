@@ -44,7 +44,10 @@ fn main() {
             for seq in 0..2 {
                 let mut msg = Message::new(
                     Selector::multicast(targets.clone()),
-                    Ping { from: name.into(), seq },
+                    Ping {
+                        from: name.into(),
+                        seq,
+                    },
                 );
                 if let Some(mut region) = MemoryRegion::new(64) {
                     let buf = region.map(..).unwrap();

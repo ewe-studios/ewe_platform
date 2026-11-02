@@ -19,14 +19,13 @@
 use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 
-use foundation_db::{QueryStore, DataValue};
+use foundation_db::{DataValue, QueryStore};
 use futures_lite::StreamExt;
 
 use crate::flat::TopK;
 use crate::schema;
 use crate::store::{
-    VectorStore, VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig,
-    VectorStoreError,
+    VectorEntry, VectorMatch, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
 };
 use crate::vector::Vector;
 
@@ -237,7 +236,11 @@ impl<Q: QueryStore + 'static> VectorStore for SqlVectorStore<Q> {
         Ok(top.finish())
     }
 
-    async fn get(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
+    async fn get(
+        &self,
+        namespace: &str,
+        id: &str,
+    ) -> Result<Option<VectorEntry>, VectorStoreError> {
         let mut rows = self
             .backend
             .query(
@@ -290,6 +293,9 @@ pub(crate) async fn count_rows<Q: QueryStore + ?Sized>(
     let Some(row) = rows.next().await else {
         return Ok(0);
     };
-    let n: i64 = row.map_err(backend_err("row error"))?.get(0).map_err(backend_err("read count"))?;
+    let n: i64 = row
+        .map_err(backend_err("row error"))?
+        .get(0)
+        .map_err(backend_err("read count"))?;
     usize::try_from(n).map_err(backend_err("count out of range"))
 }

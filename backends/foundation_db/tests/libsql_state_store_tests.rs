@@ -39,7 +39,9 @@ fn ids(states: &[ResourceState]) -> Vec<&str> {
 async fn seeded() -> (LibsqlStore, tempfile::TempDir) {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("state.db").to_string_lossy().into_owned();
-    let store = LibsqlStore::new_state(&path, "my-proj", "dev").await.unwrap();
+    let store = LibsqlStore::new_state(&path, "my-proj", "dev")
+        .await
+        .unwrap();
     store.init().await.unwrap();
     let failed = || StateStatus::Failed {
         error: "boom: quota".to_string(),
@@ -68,7 +70,10 @@ async fn set_get_and_upsert() {
         .set("ns/d", &state("ns/d", "bucket", StateStatus::Deleting))
         .await
         .unwrap();
-    assert_eq!(store.get("ns/d").await.unwrap().unwrap().status, StateStatus::Deleting);
+    assert_eq!(
+        store.get("ns/d").await.unwrap().unwrap().status,
+        StateStatus::Deleting
+    );
     assert!(store.get("missing").await.unwrap().is_none());
 }
 
@@ -76,9 +81,15 @@ async fn set_get_and_upsert() {
 async fn list_count_and_prefixes() {
     let (store, _dir) = seeded().await;
 
-    assert_eq!(collect(store.list().await.unwrap()).await, vec!["a", "b", "ns/c", "ns/d", "ns/e"]);
+    assert_eq!(
+        collect(store.list().await.unwrap()).await,
+        vec!["a", "b", "ns/c", "ns/d", "ns/e"]
+    );
     assert_eq!(store.count().await.unwrap(), 5);
-    assert_eq!(collect(store.list_by_prefix("ns/").await.unwrap()).await, vec!["ns/c", "ns/d", "ns/e"]);
+    assert_eq!(
+        collect(store.list_by_prefix("ns/").await.unwrap()).await,
+        vec!["ns/c", "ns/d", "ns/e"]
+    );
     assert_eq!(store.count_by_prefix("ns/").await.unwrap(), 3);
 
     let in_ns = collect(store.all_by_prefix("ns/").await.unwrap()).await;
@@ -95,16 +106,30 @@ async fn list_count_and_prefixes() {
 async fn find_by_status_matches_the_display_form() {
     let (store, _dir) = seeded().await;
 
-    let created = collect(store.find_by_status(&StateStatus::Created.to_string()).await.unwrap()).await;
+    let created = collect(
+        store
+            .find_by_status(&StateStatus::Created.to_string())
+            .await
+            .unwrap(),
+    )
+    .await;
     assert_eq!(ids(&created), vec!["a", "ns/d"]);
 
     let failed_status = StateStatus::Failed {
         error: "boom: quota".to_string(),
     };
-    let failed = collect(store.find_by_status(&failed_status.to_string()).await.unwrap()).await;
+    let failed = collect(
+        store
+            .find_by_status(&failed_status.to_string())
+            .await
+            .unwrap(),
+    )
+    .await;
     assert_eq!(ids(&failed), vec!["ns/c", "ns/e"]);
 
-    assert!(collect(store.find_by_status("deleted").await.unwrap()).await.is_empty());
+    assert!(collect(store.find_by_status("deleted").await.unwrap())
+        .await
+        .is_empty());
 }
 
 #[valtron_test]
@@ -113,15 +138,24 @@ async fn find_by_kind_and_provider() {
 
     let workers = collect(store.find_by_kind("worker").await.unwrap()).await;
     assert_eq!(ids(&workers), vec!["a", "ns/c", "ns/e"]);
-    assert_eq!(collect(store.find_by_provider("test").await.unwrap()).await.len(), 5);
-    assert!(collect(store.find_by_provider("other").await.unwrap()).await.is_empty());
+    assert_eq!(
+        collect(store.find_by_provider("test").await.unwrap())
+            .await
+            .len(),
+        5
+    );
+    assert!(collect(store.find_by_provider("other").await.unwrap())
+        .await
+        .is_empty());
 }
 
 #[valtron_test]
 async fn set_uses_resource_id() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("state.db").to_string_lossy().into_owned();
-    let store = LibsqlStore::new_state(&path, "my-proj", "dev").await.unwrap();
+    let store = LibsqlStore::new_state(&path, "my-proj", "dev")
+        .await
+        .unwrap();
     store.init().await.unwrap();
 
     // The caller labels the state "b" but writes it under "a".

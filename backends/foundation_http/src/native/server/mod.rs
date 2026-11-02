@@ -10,9 +10,9 @@ use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::WaitGroup;
-use foundation_iogate::{ServerIo, ShutdownSignal};
 #[cfg(unix)]
 use foundation_iogate::FdReadiness;
+use foundation_iogate::{ServerIo, ShutdownSignal};
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::shared::http::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
@@ -498,7 +498,11 @@ impl HttpServer {
     ///
     /// Panics if the TCP listener cannot be set to non-blocking mode.
     #[tracing::instrument(skip(self, listener, shutdown))]
-    pub fn serve_with_listener(self, listener: &std::net::TcpListener, shutdown: &Arc<ShutdownSignal>) {
+    pub fn serve_with_listener(
+        self,
+        listener: &std::net::TcpListener,
+        shutdown: &Arc<ShutdownSignal>,
+    ) {
         tracing::info!("Listening on {}", self.bind_addr);
         listener
             .set_nonblocking(true)

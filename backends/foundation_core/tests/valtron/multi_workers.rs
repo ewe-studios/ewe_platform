@@ -6,8 +6,8 @@ use std::{
 };
 
 use foundation_core::synca::mpp;
-use foundation_core::valtron::{Ctx,
-    block_on, get_pool, valtron_test, FnReady, NotificationItem, Stream, TaskIterator,
+use foundation_core::valtron::{
+    block_on, get_pool, valtron_test, Ctx, FnReady, NotificationItem, Stream, TaskIterator,
     TaskStatus,
 };
 

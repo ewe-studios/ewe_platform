@@ -16,7 +16,12 @@
 //!
 //! Skips cleanly when the host is unset or unreachable.
 
-#![cfg(all(unix, feature = "docker", feature = "ssh", feature = "integration-tests"))]
+#![cfg(all(
+    unix,
+    feature = "docker",
+    feature = "ssh",
+    feature = "integration-tests"
+))]
 
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::DockerClient;
@@ -77,6 +82,8 @@ async fn container_round_trip_over_ssh() {
         inspect.state.and_then(|s| s.running).unwrap_or(false),
         "container should be running"
     );
-    c.remove_container(&id.id, true).await.expect("remove over SSH");
+    c.remove_container(&id.id, true)
+        .await
+        .expect("remove over SSH");
     eprintln!("SSH CONTAINER ROUND-TRIP OK");
 }

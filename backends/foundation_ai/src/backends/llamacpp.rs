@@ -155,7 +155,7 @@ impl Default for LlamaBackendConfig {
             split_mode: SplitMode::Layer,
             main_gpu: 0,
             pooling_type: LlamaPoolingType::Mean, // retrieval/sentence default
-            speculative: None, // standard decoding by default
+            speculative: None,                    // standard decoding by default
         }
     }
 }
@@ -591,7 +591,15 @@ impl Model for LlamaModels {
             .new_context(&backend, ctx_params)
             .map_err(Into::<GenerationError>::into)?;
         let mut sampler = build_sampler_chain(&params, model.n_vocab());
-        generate_text(&model, &mut ctx, &mut sampler, &prompt, templated, &params, &spec)
+        generate_text(
+            &model,
+            &mut ctx,
+            &mut sampler,
+            &prompt,
+            templated,
+            &params,
+            &spec,
+        )
     }
 
     fn stream(
@@ -914,7 +922,9 @@ impl Iterator for LlamaCppStream {
             tracing::trace!("stream_next: decoding Batch with ctx");
             if let Err(err) = ctx.decode(&mut batch) {
                 inner.finished = true;
-                return Some(stream_error(format!("failed to decode prompt batch: {err}")));
+                return Some(stream_error(format!(
+                    "failed to decode prompt batch: {err}"
+                )));
             }
 
             inner.current_pos = tokens.len() as i32;
@@ -1902,11 +1912,7 @@ impl LlamaBackends {
         // forces a genuine reload rather than silently reusing a mismatched
         // model. Inference contexts are NOT shared — each stream still builds
         // its own from the shared weights (they are `!Send`, see docs/fixes/005).
-        let cache_key = format!(
-            "{}|{}|{config:?}",
-            model_path.display(),
-            model_spec.name
-        );
+        let cache_key = format!("{}|{}|{config:?}", model_path.display(), model_spec.name);
         let cache = LOADED_MODELS.get_or_init(|| Mutex::new(std::collections::HashMap::new()));
 
         // Fast path: an already-loaded model is a lock-and-clone.

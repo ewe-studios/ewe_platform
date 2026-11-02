@@ -8,7 +8,7 @@
 use std::time::Duration;
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::{RateLimiterStore, MemoryJsonStore, MemoryStorage, TursoStorage};
+use foundation_db::{MemoryJsonStore, MemoryStorage, RateLimiterStore, TursoStorage};
 
 #[cfg(feature = "libsql")]
 use foundation_db::LibsqlStore;
@@ -18,8 +18,14 @@ async fn counts_and_limits<S: RateLimiterStore>(store: &S) {
     assert!(store.check_rate_limit("k", 2, 60).await.unwrap());
     assert_eq!(store.record_rate_limit("k", 60).await.unwrap(), 1);
     assert_eq!(store.record_rate_limit("k", 60).await.unwrap(), 2);
-    assert!(!store.check_rate_limit("k", 2, 60).await.unwrap(), "limit reached");
-    assert!(store.check_rate_limit("other", 2, 60).await.unwrap(), "keys are independent");
+    assert!(
+        !store.check_rate_limit("k", 2, 60).await.unwrap(),
+        "limit reached"
+    );
+    assert!(
+        store.check_rate_limit("other", 2, 60).await.unwrap(),
+        "keys are independent"
+    );
 
     store.reset_rate_limit("k").await.unwrap();
     assert!(store.check_rate_limit("k", 2, 60).await.unwrap());
@@ -44,8 +50,15 @@ async fn busy_key_resets_after_the_window<S: RateLimiterStore>(store: &S) {
     assert!(!store.check_rate_limit("busy", 2, 2).await.unwrap());
 
     std::thread::sleep(Duration::from_millis(2600));
-    assert!(store.check_rate_limit("busy", 2, 2).await.unwrap(), "window elapsed");
-    assert_eq!(store.record_rate_limit("busy", 2).await.unwrap(), 1, "new window");
+    assert!(
+        store.check_rate_limit("busy", 2, 2).await.unwrap(),
+        "window elapsed"
+    );
+    assert_eq!(
+        store.record_rate_limit("busy", 2).await.unwrap(),
+        1,
+        "new window"
+    );
 }
 
 async fn all<S: RateLimiterStore>(store: &S) {

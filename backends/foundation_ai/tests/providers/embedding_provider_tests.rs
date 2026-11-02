@@ -7,12 +7,12 @@ use foundation_ai::agentic::internals::{
     CacheStats, NoopColdCache, SentenceChunker, WholeTextChunker,
 };
 use foundation_ai::agentic::{CachedEmbeddingProvider, EmbeddingProvider};
-use foundation_core::valtron::{sleep_async, valtron_test};
 use foundation_ai::types::{
     BoxModel, CostStatus, ModelId, ModelInteraction, ModelOutput, ModelParams,
     ModelProviderDescriptor, ModelProviders, ModelSpec, ModelStreamBox, ProviderRouter,
     RoutableProvider, StopReason, UsageCosting, UsageReport,
 };
+use foundation_core::valtron::{sleep_async, valtron_test};
 use futures_lite::future::zip;
 
 fn zero_usage() -> UsageReport {
@@ -68,9 +68,7 @@ impl foundation_ai::types::Model for FixedEmbeddingModel {
         None
     }
 
-    fn costing(
-        &self,
-    ) -> foundation_ai::errors::GenerationResult<UsageReport> {
+    fn costing(&self) -> foundation_ai::errors::GenerationResult<UsageReport> {
         Ok(zero_usage())
     }
 
@@ -265,7 +263,10 @@ async fn register_model_enforces_dimensions() {
         100,
     );
     wrong_provider.register_model("mock-embed", 3);
-    assert!(wrong_provider.embed("bad dims", "mock-embed").await.is_err());
+    assert!(wrong_provider
+        .embed("bad dims", "mock-embed")
+        .await
+        .is_err());
 }
 
 #[valtron_test]
@@ -318,7 +319,10 @@ async fn sentence_chunker_averages_embeddings() {
         100,
     );
 
-    let result = provider.embed("First. Second.", "mock-embed").await.unwrap();
+    let result = provider
+        .embed("First. Second.", "mock-embed")
+        .await
+        .unwrap();
     assert_eq!(result.dimensions, 2);
     assert_eq!(result.data, vec![2.0, 4.0]);
 }
@@ -327,7 +331,10 @@ async fn sentence_chunker_averages_embeddings() {
 async fn with_defaults_constructs_provider() {
     let router = make_router(4, vec![1.0, 2.0, 3.0, 4.0]);
     let provider = CachedEmbeddingProvider::with_defaults(router);
-    let result = provider.embed("single sentence", "mock-embed").await.unwrap();
+    let result = provider
+        .embed("single sentence", "mock-embed")
+        .await
+        .unwrap();
     assert_eq!(result.dimensions, 4);
 }
 

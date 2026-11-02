@@ -15,10 +15,10 @@ use crate::valtron::{
     NotifyQueueStreamIterator, NotifyRecvIterator, Stream, StreamIterator, TaskIterator,
     TaskStatus, WakeCallback, WakeResult, WakeableStream,
 };
-use core::future::Future;
-use std::sync::Arc;
 use crate::valtron::{FnMutReady, FnReady, OnNext, TaskReadyResolver, TaskSpawnConfig};
+use core::future::Future;
 use core::sync::atomic::AtomicBool;
+use std::sync::Arc;
 
 use crate::valtron::DEFAULT_MAX_TURNS;
 
@@ -56,8 +56,7 @@ where
         (
             Self(Some((behaviour, task, iter_chan.clone()))),
             crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
-                iter_chan,
-                wait_cycle,
+                iter_chan, wait_cycle,
             ),
         )
     }
@@ -71,8 +70,7 @@ where
     }
 }
 
-impl<Done, Pending, Task> ExecutionAction
-    for InlineAction<Done, Pending, Task>
+impl<Done, Pending, Task> ExecutionAction for InlineAction<Done, Pending, Task>
 where
     Done: Send + 'static,
     Pending: Send + 'static,
@@ -573,10 +571,7 @@ where
 }
 
 /// Wrap a future into a [`CancellableFutureTask`] (native — requires Send).
-pub fn from_cancellable_future<F>(
-    future: F,
-    cancel: Arc<AtomicBool>,
-) -> CancellableFutureTask<F>
+pub fn from_cancellable_future<F>(future: F, cancel: Arc<AtomicBool>) -> CancellableFutureTask<F>
 where
     F: Future + Send + 'static,
     F::Output: Send + 'static,
@@ -655,10 +650,7 @@ pub fn inlined_task<Done, Pending, Task>(
     behaviour: InlineActionBehaviour,
     task: Task,
     wait_cycle: std::time::Duration,
-) -> (
-    InlineAction<Done, Pending, Task>,
-    DrivenRecvIterator<Task>,
-)
+) -> (InlineAction<Done, Pending, Task>, DrivenRecvIterator<Task>)
 where
     Done: Send + 'static,
     Pending: Send + 'static,
@@ -782,9 +774,9 @@ where
     S: futures_core::Stream + Send + 'static,
     S::Item: Send + 'static,
 {
-    Ok(crate::valtron::StreamValues::new(crate::valtron::next_values(
-        execute(from_stream(stream), None)?,
-    )))
+    Ok(crate::valtron::StreamValues::new(
+        crate::valtron::next_values(execute(from_stream(stream), None)?),
+    ))
 }
 
 /// Block the calling thread until `future` completes, returning its output
@@ -1006,7 +998,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-
             let next_value = task_iterator.next_status(self.1.clone());
 
             // if the next value is Some(_) then set back the
@@ -1076,7 +1067,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-
             let next_value = task_iterator.next();
 
             // if the next value is Some(_) then set back the
@@ -1119,9 +1109,7 @@ where
     }
 }
 
-pub struct DrivenRecvIterator<T>(
-    Option<NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>>,
-)
+pub struct DrivenRecvIterator<T>(Option<NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>>)
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -1134,9 +1122,7 @@ where
     T::Pending: Send + 'static,
 {
     #[must_use]
-    pub fn new(
-        task_iterator: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>,
-    ) -> Self {
+    pub fn new(task_iterator: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>) -> Self {
         Self(Some(task_iterator))
     }
 }
@@ -1161,7 +1147,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-
             let next_value = task_iterator.next();
 
             // Handle NotificationItem from NotifyRecvIterator
@@ -2059,16 +2044,19 @@ where
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
             Stream::Delayed(d) => Stream::Delayed(d),
-            Stream::Spread(items) => Stream::Spread(items.into_iter().map(|item| {
-                match item {
-                    crate::valtron::streams::StreamSpread::Done(result) => {
-                        crate::valtron::streams::StreamSpread::Done(result)
-                    }
-                    crate::valtron::streams::StreamSpread::Pending(_) => {
-                        crate::valtron::streams::StreamSpread::Pending(())
-                    }
-                }
-            }).collect()),
+            Stream::Spread(items) => Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        crate::valtron::streams::StreamSpread::Done(result) => {
+                            crate::valtron::streams::StreamSpread::Done(result)
+                        }
+                        crate::valtron::streams::StreamSpread::Pending(_) => {
+                            crate::valtron::streams::StreamSpread::Pending(())
+                        }
+                    })
+                    .collect(),
+            ),
         })
     })
 }
@@ -2097,8 +2085,7 @@ where
 /// duration elapses.
 pub fn sleep(
     duration: std::time::Duration,
-) -> crate::valtron::GenericResult<super::DrivenStreamIterator<super::sleep::SleepingTask>>
-{
+) -> crate::valtron::GenericResult<super::DrivenStreamIterator<super::sleep::SleepingTask>> {
     execute(super::sleep::SleepingTask::sleep(duration), None)
 }
 
@@ -2218,8 +2205,9 @@ where
     /// When the stream cannot be scheduled (e.g. the pool is not initialized).
     fn blocking(
         self,
-    ) -> GenericResult<crate::valtron::StreamValues<Self::Item, DrivenStreamIterator<StreamTask<Self>>>>
-    {
+    ) -> GenericResult<
+        crate::valtron::StreamValues<Self::Item, DrivenStreamIterator<StreamTask<Self>>>,
+    > {
         run_stream_iter(self)
     }
 }

@@ -32,7 +32,9 @@ use crate::generated::attach::{container_attach_request, ContainerAttachArgs};
 use crate::generated::export::{container_export_request, ContainerExportArgs};
 use crate::generated::logs::{container_logs_request, ContainerLogsArgs};
 use crate::generated::shared::ApiError;
-use crate::generated::update::{container_update_request, ContainerUpdateArgs, ContainerUpdateResponse};
+use crate::generated::update::{
+    container_update_request, ContainerUpdateArgs, ContainerUpdateResponse,
+};
 
 use crate::generated::changes::{container_changes_request, ContainerChangesArgs};
 use crate::generated::json::{container_list_request, ContainerListArgs};
@@ -41,7 +43,9 @@ use crate::generated::prune::{container_prune_request, ContainerPruneArgs};
 use crate::generated::rename::{container_rename_request, ContainerRenameArgs};
 use crate::generated::resize::{container_resize_request, ContainerResizeArgs};
 use crate::generated::restart::{container_restart_request, ContainerRestartArgs};
-use crate::generated::stats::{container_stats_request, ContainerStatsArgs, ContainerStatsResponse};
+use crate::generated::stats::{
+    container_stats_request, ContainerStatsArgs, ContainerStatsResponse,
+};
 use crate::generated::top::{container_top_request, ContainerTopArgs, ContainerTopResponse};
 
 use super::DockerClient;
@@ -163,11 +167,7 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn kill_container(
-        &self,
-        id: &str,
-        signal: Option<&str>,
-    ) -> Result<(), DockerError> {
+    pub async fn kill_container(&self, id: &str, signal: Option<&str>) -> Result<(), DockerError> {
         let args = ContainerKillArgs {
             id: id.to_string(),
             signal: signal.map(str::to_string),
@@ -230,7 +230,8 @@ impl DockerClient {
             id: id.to_string(),
             ps_args: ps_args.map(str::to_string),
         };
-        let response = container_top_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            container_top_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -241,14 +242,11 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn container_changes(
-        &self,
-        id: &str,
-    ) -> Result<serde_json::Value, DockerError> {
-        let args = ContainerChangesArgs {
-            id: id.to_string(),
-        };
-        let response = container_changes_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+    pub async fn container_changes(&self, id: &str) -> Result<serde_json::Value, DockerError> {
+        let args = ContainerChangesArgs { id: id.to_string() };
+        let response =
+            container_changes_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -285,7 +283,8 @@ impl DockerClient {
             tail: opts.tail.clone(),
         };
         let response =
-            container_logs_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_logs_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(LogStream::new(response.body, self.limits().max_log_frame))
     }
 
@@ -355,7 +354,8 @@ impl DockerClient {
             one_shot: Some(one_shot),
         };
         let response =
-            container_stats_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_stats_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(StatsStream::new(response.body))
     }
 
@@ -374,7 +374,8 @@ impl DockerClient {
     pub async fn container_export(&self, id: &str) -> Result<ByteBody, DockerError> {
         let args = ContainerExportArgs { id: id.to_string() };
         let response =
-            container_export_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_export_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(ByteBody::new(response.body))
     }
 
@@ -395,7 +396,8 @@ impl DockerClient {
             path: Some(path.to_string()),
         };
         let response =
-            container_archive_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_archive_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(ByteBody::new(response.body))
     }
 
@@ -432,7 +434,8 @@ impl DockerClient {
             stderr: Some(opts.stderr),
         };
         let response =
-            container_attach_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_attach_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(LogStream::new(response.body, self.limits().max_log_frame))
     }
 
@@ -456,7 +459,9 @@ impl DockerClient {
             size: Some(size),
             filters: filters.map(str::to_string),
         };
-        let response = container_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            container_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -471,10 +476,7 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn container_prune(
-        &self,
-        filters: Option<&str>,
-    ) -> Result<(), DockerError> {
+    pub async fn container_prune(&self, filters: Option<&str>) -> Result<(), DockerError> {
         let args = ContainerPruneArgs {
             filters: filters.map(str::to_string),
         };
@@ -511,7 +513,8 @@ impl DockerClient {
             body: super::generated_body("container update", config)?,
         };
         let response =
-            container_update_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            container_update_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -549,8 +552,14 @@ impl DockerClient {
             no_overwrite_dir_non_dir: no_overwrite_dir_non_dir.map(|v| v.to_string()),
             copy_uidgid: copy_uidgid.map(|v| v.to_string()),
         };
-        put_container_archive_request(self.api(), &args, &self.api_url().await?, tar, None::<NoMod>)
-            .await?;
+        put_container_archive_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            tar,
+            None::<NoMod>,
+        )
+        .await?;
         Ok(())
     }
 
@@ -598,7 +607,10 @@ impl DockerClient {
         response
             .headers
             .iter()
-            .find(|(k, _)| k.to_string().eq_ignore_ascii_case("x-docker-container-path-stat"))
+            .find(|(k, _)| {
+                k.to_string()
+                    .eq_ignore_ascii_case("x-docker-container-path-stat")
+            })
             .and_then(|(_, v)| v.first())
             .cloned()
             .ok_or_else(|| {

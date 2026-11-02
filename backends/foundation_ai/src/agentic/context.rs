@@ -204,7 +204,10 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
     ///
     /// # Errors
     /// Returns the store error when the recent messages cannot be read.
-    pub async fn assemble_from_memory(&self, memory: &SessionMemory) -> StorageResult<AgentContext> {
+    pub async fn assemble_from_memory(
+        &self,
+        memory: &SessionMemory,
+    ) -> StorageResult<AgentContext> {
         let recent = self
             .message_api
             .recent(self.config.recent_message_count)
@@ -354,7 +357,10 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
             SearchMode::Semantic => {
                 // Real embedding recall when an embedder is wired (F16); else
                 // keyword fallback so a capability-less context still works.
-                if !self.semantic_search_messages(query, &recent, &mut hits).await {
+                if !self
+                    .semantic_search_messages(query, &recent, &mut hits)
+                    .await
+                {
                     Self::search_messages(&query_lower, &recent, &mut hits);
                 }
             }
@@ -371,20 +377,30 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
                     "SearchMode::Graph is not available (no session knowledge graph); \
                      falling back to hybrid recall"
                 );
-                if !self.semantic_search_messages(query, &recent, &mut hits).await {
+                if !self
+                    .semantic_search_messages(query, &recent, &mut hits)
+                    .await
+                {
                     Self::search_messages(&query_lower, &recent, &mut hits);
                 }
                 Self::search_memory_tiers(&query_lower, memory, &mut hits);
             }
             SearchMode::Hybrid => {
-                if !self.semantic_search_messages(query, &recent, &mut hits).await {
+                if !self
+                    .semantic_search_messages(query, &recent, &mut hits)
+                    .await
+                {
                     Self::search_messages(&query_lower, &recent, &mut hits);
                 }
                 Self::search_memory_tiers(&query_lower, memory, &mut hits);
             }
         }
 
-        hits.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        hits.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         hits.truncate(k);
         Ok(hits)
     }
@@ -609,4 +625,3 @@ fn estimate_tokens(msg: &Messages) -> u64 {
     };
     (text_len as u64) / 4
 }
-

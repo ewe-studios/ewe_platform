@@ -376,10 +376,7 @@ fn parse_fragment(cursor: &mut Cursor, tag_span: Span) -> ParseResult<ParsedNode
                 ));
             }
             None => {
-                return Err(ParseError::new(
-                    tag_span,
-                    "html!: missing '</Fragment>'",
-                ));
+                return Err(ParseError::new(tag_span, "html!: missing '</Fragment>'"));
             }
         }
     }
@@ -540,7 +537,11 @@ fn parse_tag_name(cursor: &mut Cursor, open_span: Span) -> ParseResult<(String, 
 }
 
 /// Parse attributes up to (but not consuming) `>` or `/>`.
-fn parse_attributes(cursor: &mut Cursor, tag: &str, tag_span: Span) -> ParseResult<Vec<ParsedAttr>> {
+fn parse_attributes(
+    cursor: &mut Cursor,
+    tag: &str,
+    tag_span: Span,
+) -> ParseResult<Vec<ParsedAttr>> {
     let mut attrs = Vec::new();
     loop {
         if cursor.is_punct('>') || cursor.is_punct('/') {
@@ -617,9 +618,7 @@ fn parse_attributes(cursor: &mut Cursor, tag: &str, tag_span: Span) -> ParseResu
                         .map_err(|_| {
                             ParseError::new(
                                 lit.span(),
-                                format!(
-                                    "html!: unterminated string in attr '{name}' of '<{tag}>'"
-                                ),
+                                format!("html!: unterminated string in attr '{name}' of '<{tag}>'"),
                             )
                         })?
                         .value();

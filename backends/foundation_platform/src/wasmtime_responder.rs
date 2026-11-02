@@ -39,7 +39,10 @@ pub struct WasmtimeResponder {
 impl WasmtimeResponder {
     #[must_use]
     pub fn new(builder: foundation_wasmtime::WasmtimeBuilder) -> Self {
-        Self { builder, instance: Mutex::new(None) }
+        Self {
+            builder,
+            instance: Mutex::new(None),
+        }
     }
 
     /// Run `f` against the wasmtime instance, building it on first use.
@@ -56,7 +59,10 @@ impl WasmtimeResponder {
             .lock()
             .map_err(|_| "wasmtime instance lock poisoned".to_string())?;
         if guard.is_none() {
-            let instance = self.builder.build().map_err(|e| format!("wasmtime build: {e}"))?;
+            let instance = self
+                .builder
+                .build()
+                .map_err(|e| format!("wasmtime build: {e}"))?;
             *guard = Some(instance);
         }
         match guard.as_mut() {
@@ -100,7 +106,9 @@ pub struct WasmtimeShell {
 impl WasmtimeShell {
     #[must_use]
     pub fn new() -> Self {
-        Self { apps: RwLock::new(HashMap::new()) }
+        Self {
+            apps: RwLock::new(HashMap::new()),
+        }
     }
 
     /// Register a wasmtime app. The builder comes from generated code:
@@ -113,7 +121,10 @@ impl WasmtimeShell {
     /// Panics if the internal `RwLock` is poisoned.
     pub fn register(&self, name: &str, builder: foundation_wasmtime::WasmtimeBuilder) {
         let responder = Arc::new(WasmtimeResponder::new(builder));
-        self.apps.write().unwrap().insert(name.to_string(), responder);
+        self.apps
+            .write()
+            .unwrap()
+            .insert(name.to_string(), responder);
     }
 
     /// Look up a wasmtime app by name. Returns a cloneable `Arc` so the
@@ -139,7 +150,9 @@ impl WasmtimeShell {
 }
 
 impl Default for WasmtimeShell {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 // ── Session integration ──────────────────────────────────────────────────

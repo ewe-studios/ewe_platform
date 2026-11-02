@@ -25,16 +25,16 @@ use std::time::{Duration, Instant};
 use boringtun::x25519::{PublicKey, StaticSecret};
 use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream, OverlayUdp};
-use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
-use foundation_nativeapis::native::poll::{Interest, Token};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack};
+use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
 use foundation_nativeapis::native::net::UdpSocket;
+use foundation_nativeapis::native::poll::{Interest, Token};
 use foundation_netio::native::connection::Connection;
 
 use super::bootstrap::{BootstrapClient, BootstrapHandler, BootstrapServer};
 use super::dataplane::MeshDataPlane;
-use super::overlay_connection::OverlayConnection;
 use super::driver::{TimedReadiness, TunnelDriver};
+use super::overlay_connection::OverlayConnection;
 use super::relay::{HolePuncher, RelayClient, RelayServer};
 use super::transport::GossipTransport;
 use crate::shared::bootstrap::Admission;
@@ -174,17 +174,12 @@ impl WgNode {
         }
 
         // ── Data plane: from config (smoltcp or kernel TUN) ────────────
-        let dp = MeshDataPlane::from_config(
-            &self.config.dataplane.mode,
-            my_ip,
-            OVERLAY_PREFIX,
-        )?;
+        let dp = MeshDataPlane::from_config(&self.config.dataplane.mode, my_ip, OVERLAY_PREFIX)?;
 
         let udp = UdpSocket::bind(self.config.udp_listen())?;
         let udp_addr = udp.get_ref().local_addr()?;
 
-        let my_record =
-            PeerRecord::new(my_id, my_ip, vec![udp_addr], caps);
+        let my_record = PeerRecord::new(my_id, my_ip, vec![udp_addr], caps);
         let mut swim = Swim::new(my_record.clone(), mesh_swim_config(), seed_from_id(&my_id));
 
         let seed_endpoints = self.config.seed_endpoints();
@@ -227,7 +222,8 @@ impl WgNode {
             swim: Arc::clone(&swim),
             policy: Arc::clone(&policy),
         });
-        let server = BootstrapServer::bind(self.config.bootstrap_listen(), boot.channel_psk, handler)?;
+        let server =
+            BootstrapServer::bind(self.config.bootstrap_listen(), boot.channel_psk, handler)?;
         let bootstrap_addr = server.local_addr()?;
 
         let relay_enabled = self.config.relay.advertise;
@@ -262,15 +258,17 @@ impl WgNode {
 
         // Relay server thread (if this node advertises relay capability, F05).
         let mut relay_thread = None;
-        let relay_client = Arc::new(Mutex::new(RelayClient::new(
-            RelaySelector::new(RelayStrategy::LowestLoad),
-        )));
+        let relay_client = Arc::new(Mutex::new(RelayClient::new(RelaySelector::new(
+            RelayStrategy::LowestLoad,
+        ))));
         if relay_enabled {
             let relay_stop = Arc::clone(&stop);
             let relay_shared = Arc::clone(&shared);
             // Bind an ephemeral UDP socket for relay forwarding. WireGuard
             // Noise identifies the source by the inner key, not the UDP port.
-            let relay_udp = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0,0,0,0)), 0)).expect("relay udp");
+            let relay_udp =
+                UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 0))
+                    .expect("relay udp");
             let relay_server = Arc::new(Mutex::new(RelayServer::new(
                 self.config.relay.max_sessions,
                 self.config.relay.rate_limit_pps,
@@ -316,12 +314,13 @@ impl WgNode {
                                         let peer_bytes: [u8; 32] =
                                             pkt[5..37].try_into().unwrap_or([0; 32]);
                                         let peer = PeerId(peer_bytes);
-                                        if let Some(ep) =
-                                            puncher.on_punch_packet(peer, from, pkt)
-                                        {
+                                        if let Some(ep) = puncher.on_punch_packet(peer, from, pkt) {
                                             // Punch succeeded — add endpoint to peer record.
-                                            let mut members = relay_shared.members.lock().expect("members lock");
-                                            if let Some(rec) = members.iter_mut().find(|r| r.id == peer) {
+                                            let mut members =
+                                                relay_shared.members.lock().expect("members lock");
+                                            if let Some(rec) =
+                                                members.iter_mut().find(|r| r.id == peer)
+                                            {
                                                 if !rec.endpoints.contains(&ep) {
                                                     rec.endpoints.push(ep);
                                                 }
@@ -346,7 +345,10 @@ impl WgNode {
                     }
                     // Reset rate counters every second.
                     if now.duration_since(last_rate_reset).as_secs() >= 1 {
-                        relay_server_clone.lock().expect("relay lock").reset_rate_limits();
+                        relay_server_clone
+                            .lock()
+                            .expect("relay lock")
+                            .reset_rate_limits();
                         last_rate_reset = now;
                     }
                     // Park until the relay UDP socket is readable or a
@@ -366,8 +368,9 @@ impl WgNode {
         let driver = TunnelDriver::new(udp, dp);
         let gossip = if let Some(ref ns) = netstack {
             GossipTransport::overlay(
-                ns.clone().udp_bind(SocketAddr::new(my_ip, GOSSIP_PORT))
-                    .map_err(WgError::Io)?
+                ns.clone()
+                    .udp_bind(SocketAddr::new(my_ip, GOSSIP_PORT))
+                    .map_err(WgError::Io)?,
             )
         } else {
             // TUN mode — bind a kernel UDP socket. The kernel routes
@@ -377,7 +380,7 @@ impl WgNode {
                     IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
                     GOSSIP_PORT,
                 ))
-                .map_err(WgError::Io)?
+                .map_err(WgError::Io)?,
             )
         };
         let mesh_task = WgMeshTask {
@@ -426,9 +429,7 @@ impl WgNode {
                     // Delayed fallback (no reactor).
                     Some(TaskStatus::Delayed(d)) => {
                         let deadline = Instant::now() + d.min(Duration::from_millis(200));
-                        while Instant::now() < deadline
-                            && !task.stop.load(Ordering::Relaxed)
-                        {
+                        while Instant::now() < deadline && !task.stop.load(Ordering::Relaxed) {
                             std::hint::spin_loop();
                             thread::sleep(Duration::from_millis(1));
                         }
@@ -512,9 +513,14 @@ impl WgHandle {
     /// [`std::io::Error`] if the listen fails or TUN mode is active
     /// (kernel owns TCP/IP — use `std::net::TcpListener` instead).
     pub fn tcp_listen(&self, port: u16) -> std::io::Result<OverlayListener> {
-        let ns = self.netstack.as_ref()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Unsupported, "TUN mode: use std::net::TcpListener"))?;
-        ns.clone().tcp_listen(SocketAddr::new(self.shared.my_ip, port))
+        let ns = self.netstack.as_ref().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::Unsupported,
+                "TUN mode: use std::net::TcpListener",
+            )
+        })?;
+        ns.clone()
+            .tcp_listen(SocketAddr::new(self.shared.my_ip, port))
     }
 
     /// Open an overlay TCP connection to a peer's overlay IP.
@@ -522,8 +528,12 @@ impl WgHandle {
     /// # Errors
     /// [`std::io::Error`] if the connect fails or TUN mode is active.
     pub fn tcp_connect(&self, peer_ip: IpAddr, port: u16) -> std::io::Result<OverlayStream> {
-        let ns = self.netstack.as_ref()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Unsupported, "TUN mode: use std::net::TcpStream"))?;
+        let ns = self.netstack.as_ref().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::Unsupported,
+                "TUN mode: use std::net::TcpStream",
+            )
+        })?;
         ns.clone().tcp_connect(SocketAddr::new(peer_ip, port))
     }
 
@@ -532,9 +542,14 @@ impl WgHandle {
     /// # Errors
     /// [`std::io::Error`] if the bind fails or TUN mode is active.
     pub fn udp_bind(&self, port: u16) -> std::io::Result<OverlayUdp> {
-        let ns = self.netstack.as_ref()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Unsupported, "TUN mode: use std::net::UdpSocket"))?;
-        ns.clone().udp_bind(SocketAddr::new(self.shared.my_ip, port))
+        let ns = self.netstack.as_ref().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::Unsupported,
+                "TUN mode: use std::net::UdpSocket",
+            )
+        })?;
+        ns.clone()
+            .udp_bind(SocketAddr::new(self.shared.my_ip, port))
     }
 
     /// The current membership view (including self).
@@ -605,9 +620,7 @@ impl WgHandle {
                     // or the deadline passes, bounded so a stalled SYN re-connects.
                     for _ in 0..400 {
                         if stream.may_send() {
-                            return Ok(Connection::Overlay(Box::new(OverlayConnection {
-                                stream,
-                            })));
+                            return Ok(Connection::Overlay(Box::new(OverlayConnection { stream })));
                         }
                         if Instant::now() >= deadline {
                             break;
@@ -633,9 +646,11 @@ impl WgHandle {
     pub fn wait_for_peer(&self, tunnel_ip: IpAddr, timeout: Duration) -> bool {
         let deadline = Instant::now() + timeout;
         while Instant::now() < deadline {
-            if self.members().iter().any(|p| {
-                p.tunnel_ip == tunnel_ip && p.state == MemberState::Alive
-            }) {
+            if self
+                .members()
+                .iter()
+                .any(|p| p.tunnel_ip == tunnel_ip && p.state == MemberState::Alive)
+            {
                 return true;
             }
             thread::sleep(Duration::from_millis(10));
@@ -728,7 +743,8 @@ impl WgMeshTask {
         if let Some(mut rec) = my_gossiped {
             // Union our known endpoints with whatever the membership has
             // (which includes what other peers observed).
-            let known: Vec<SocketAddr> = swim.membership()
+            let known: Vec<SocketAddr> = swim
+                .membership()
                 .get(&self.my_id)
                 .map(|r| r.endpoints.clone())
                 .unwrap_or_default();
@@ -819,16 +835,18 @@ impl MeshTask {
     /// on data arrival instead of polling.
     #[must_use]
     pub fn new(inner: WgMeshTask, stop: Arc<AtomicBool>) -> Self {
-        let readiness = Reactor::get()
-            .ok()
-            .and_then(|reactor| {
-                let fd = inner.driver.udp_fd();
-                // Token 1 for mesh (0 is used by TunnelDriverTask when run standalone).
-                SharedReadiness::new(fd, reactor, Token(1), Interest::READABLE)
-                    .ok()
-                    .map(Arc::new)
-            });
-        Self { inner, stop, readiness }
+        let readiness = Reactor::get().ok().and_then(|reactor| {
+            let fd = inner.driver.udp_fd();
+            // Token 1 for mesh (0 is used by TunnelDriverTask when run standalone).
+            SharedReadiness::new(fd, reactor, Token(1), Interest::READABLE)
+                .ok()
+                .map(Arc::new)
+        });
+        Self {
+            inner,
+            stop,
+            readiness,
+        }
     }
 
     /// Convenience: create a `MeshTask` with a fresh stop signal.
@@ -839,7 +857,6 @@ impl MeshTask {
         (Self::new(inner, Arc::clone(&stop)), stop)
     }
 }
-
 
 impl TaskIterator for MeshTask {
     type Ready = ();
@@ -1024,8 +1041,8 @@ fn save_membership_snapshot(path: &str, members: &[PeerRecord]) {
 /// Falls back to `thread::sleep(timeout_ms)` when no reactor is running.
 fn wait_readable(fd: std::os::unix::io::RawFd, timeout_ms: u64) {
     use foundation_nativeapis::native::fd::Reactor;
-    use foundation_nativeapis::native::poll::{Interest, Token};
     use foundation_nativeapis::native::fd::Ready;
+    use foundation_nativeapis::native::poll::{Interest, Token};
 
     // Use a unique token for this transient registration request.
     // The fd is the same across all callers (e.g. the UDP socket),

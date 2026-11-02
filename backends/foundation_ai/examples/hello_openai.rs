@@ -12,8 +12,7 @@ use foundation_core::valtron::valtron;
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let api_key = std::env::var("OPENAI_API_KEY")
-        .expect("OPENAI_API_KEY must be set");
+    let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
 
     // GPT-4o (main) + GPT-4o-mini (memory) via Chat Completions API.
     let builder = RouterPreset::openai_chat(&api_key)?.into_agent_builder();
@@ -26,7 +25,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("Asking GPT-4o...");
     // `ask` returns just the text: complete, or what was produced before a
     // failure ended the turn.
-    match agent.ask("Hello! Please say hi back in one sentence.").await? {
+    match agent
+        .ask("Hello! Please say hi back in one sentence.")
+        .await?
+    {
         Answer::Complete(text) => {
             assert!(!text.is_empty(), "Expected a reply but got none");
             println!("{text}\n\nGPT-4o responded!");

@@ -102,7 +102,8 @@ fn dispatch(txt: &str, pending: &Pending, subs: &Subs) {
         return;
     };
     if let Some(id) = v.get("id").and_then(Value::as_u64) {
-        let is_error = v.get("error").is_some() || v.get("type").and_then(Value::as_str) == Some("error");
+        let is_error =
+            v.get("error").is_some() || v.get("type").and_then(Value::as_str) == Some("error");
         let result = if is_error {
             // CDP: `error: { code, message }`. BiDi: `type:"error"`, `error:"<code>"`
             // (a string) + a top-level `message`. Handle both shapes.
@@ -110,7 +111,10 @@ fn dispatch(txt: &str, pending: &Pending, subs: &Subs) {
             let (code, message) = match err.and_then(Value::as_object) {
                 Some(obj) => (
                     obj.get("code").and_then(Value::as_i64).unwrap_or(0),
-                    obj.get("message").and_then(Value::as_str).unwrap_or_default().to_string(),
+                    obj.get("message")
+                        .and_then(Value::as_str)
+                        .unwrap_or_default()
+                        .to_string(),
                 ),
                 None => (
                     0,
@@ -146,7 +150,10 @@ impl WireProtocol for RpcEngine {
             frame["sessionId"] = json!(s);
         }
         let (tx, rx) = sync_channel(1);
-        self.pending.lock().expect("pending poisoned").insert(id, tx);
+        self.pending
+            .lock()
+            .expect("pending poisoned")
+            .insert(id, tx);
         self.delivery
             .send(WebSocketMessage::Text(frame.to_string()))
             .map_err(|e| BrowserError::Connect(e.to_string()))?;
@@ -180,7 +187,9 @@ impl Drop for RpcEngine {
         // reader exits on the stop flag at its next poll; joining risks a hang if
         // the socket read is mid-flight.
         self.stop.store(true, Ordering::Relaxed);
-        let _ = self.delivery.send(WebSocketMessage::Close(1000, String::new()));
+        let _ = self
+            .delivery
+            .send(WebSocketMessage::Close(1000, String::new()));
         if let Some(handle) = self.reader.take() {
             // Detach; the named daemon thread winds down on the stop flag.
             drop(handle);

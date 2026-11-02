@@ -67,11 +67,12 @@ impl Envelope {
         let protocol = bytes[0];
         let version = bytes[1];
         let length = u32::from_le_bytes([bytes[2], bytes[3], bytes[4], bytes[5]]);
-        let end = Self::HEADER_LEN
-            .checked_add(length as usize)
-            .ok_or(DecodeError::SchemaMismatch {
-                detail: alloc::string::String::from("envelope length overflows usize"),
-            })?;
+        let end =
+            Self::HEADER_LEN
+                .checked_add(length as usize)
+                .ok_or(DecodeError::SchemaMismatch {
+                    detail: alloc::string::String::from("envelope length overflows usize"),
+                })?;
         if bytes.len() < end {
             return Err(DecodeError::TruncatedBuffer {
                 expected_min: end,

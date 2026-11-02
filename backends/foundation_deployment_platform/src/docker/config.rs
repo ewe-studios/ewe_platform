@@ -227,7 +227,11 @@ impl ContainerConfig {
 
     /// Bind-mount a host path into the container.
     #[must_use]
-    pub fn volume(mut self, host_path: impl Into<PathBuf>, container_path: impl Into<PathBuf>) -> Self {
+    pub fn volume(
+        mut self,
+        host_path: impl Into<PathBuf>,
+        container_path: impl Into<PathBuf>,
+    ) -> Self {
         self.volumes.push(VolumeMount {
             source: VolumeSource::Bind(host_path.into()),
             target: container_path.into(),
@@ -254,7 +258,11 @@ impl ContainerConfig {
 
     /// Mount a named volume into the container.
     #[must_use]
-    pub fn named_volume(mut self, volume_name: impl Into<String>, container_path: impl Into<PathBuf>) -> Self {
+    pub fn named_volume(
+        mut self,
+        volume_name: impl Into<String>,
+        container_path: impl Into<PathBuf>,
+    ) -> Self {
         self.volumes.push(VolumeMount {
             source: VolumeSource::Named(volume_name.into()),
             target: container_path.into(),
@@ -354,12 +362,14 @@ pub fn parse_memory_bytes(input: &str) -> Result<i64, String> {
         return Err("memory limit is empty".to_string());
     }
 
-    let digits_end = text.find(|c: char| !c.is_ascii_digit()).unwrap_or(text.len());
+    let digits_end = text
+        .find(|c: char| !c.is_ascii_digit())
+        .unwrap_or(text.len());
     let (number, suffix) = text.split_at(digits_end);
 
-    let value: i64 = number
-        .parse()
-        .map_err(|_| format!("invalid memory limit {input:?}: expected a byte count like \"256m\""))?;
+    let value: i64 = number.parse().map_err(|_| {
+        format!("invalid memory limit {input:?}: expected a byte count like \"256m\"")
+    })?;
 
     let multiplier: i64 = match suffix.trim_end_matches('b') {
         "" => 1,
@@ -370,7 +380,7 @@ pub fn parse_memory_bytes(input: &str) -> Result<i64, String> {
         _ => {
             return Err(format!(
                 "invalid memory limit {input:?}: unknown unit {suffix:?} (use b, k, m, g, or t)"
-            ))
+            ));
         }
     };
 

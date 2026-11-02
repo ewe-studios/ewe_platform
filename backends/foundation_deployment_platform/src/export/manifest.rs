@@ -46,8 +46,10 @@ impl ExportManifest {
         })?;
 
         let sha256 = compute_sha256(image_path)?;
-        let image_file = image_path
-            .file_name().map_or_else(|| "export.qcow2".to_string(), |n| n.to_string_lossy().to_string());
+        let image_file = image_path.file_name().map_or_else(
+            || "export.qcow2".to_string(),
+            |n| n.to_string_lossy().to_string(),
+        );
 
         let arch = std::env::consts::ARCH.to_string();
         let os_str = match profile.os {
@@ -110,8 +112,8 @@ impl ExportManifest {
 }
 
 fn compute_sha256(path: &Path) -> Result<String> {
-    use std::io::Read;
     use sha2::Digest;
+    use std::io::Read;
     let mut file = std::fs::File::open(path).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening image for SHA256: {e}"),
     })?;
@@ -121,7 +123,9 @@ fn compute_sha256(path: &Path) -> Result<String> {
         let n = file.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading image for SHA256: {e}"),
         })?;
-        if n == 0 { break; }
+        if n == 0 {
+            break;
+        }
         hasher.update(&buf[..n]);
     }
     Ok(format!("{:x}", hasher.finalize()))
@@ -132,6 +136,6 @@ fn get_git_commit() -> String {
         .args(["rev-parse", "--short", "HEAD"])
         .output()
         .ok()
-        .and_then(|out| String::from_utf8(out.stdout).ok()).map_or_else(|| "unknown".to_string(), |s| s.trim().to_string())
+        .and_then(|out| String::from_utf8(out.stdout).ok())
+        .map_or_else(|| "unknown".to_string(), |s| s.trim().to_string())
 }
-

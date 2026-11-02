@@ -8,11 +8,11 @@
 fn main() {
     use std::sync::Arc;
 
-    use foundation_http::ShutdownSignal;
     use foundation_core::valtron::{block_on_future, initialize_pool, BlockingFutureExt};
     use foundation_db::core::storage_provider::QueryStore;
     use foundation_db::{StorageBackend, StorageProvider};
     use foundation_http::native::server::{HttpServer, ServerConfig};
+    use foundation_http::ShutdownSignal;
     use foundation_keychain::core::store::apply_schema;
     use foundation_keychain::server::native::KeychainServer;
     use foundation_keychain::KeychainContext;

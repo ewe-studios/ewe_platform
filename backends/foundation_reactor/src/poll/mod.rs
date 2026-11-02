@@ -26,7 +26,6 @@
 ///         event.token(), event.is_readable(), event.is_writable());
 /// }
 /// ```
-
 pub mod event;
 pub use event::{Events, Source};
 
@@ -107,7 +106,9 @@ pub struct Poll {
 
 impl std::fmt::Debug for Poll {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Poll").field("backend", &self.backend()).finish()
+        f.debug_struct("Poll")
+            .field("backend", &self.backend())
+            .finish()
     }
 }
 
@@ -408,7 +409,12 @@ impl Registry {
     }
 
     /// Re-register a raw file descriptor with a new token and/or interest.
-    pub fn reregister_fd(&self, fd: sys::RawFd, token: Token, interest: Interest) -> io::Result<()> {
+    pub fn reregister_fd(
+        &self,
+        fd: sys::RawFd,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<()> {
         self.selector.reregister_fd(fd, token, interest)
     }
 
@@ -429,7 +435,7 @@ impl Registry {
     }
 
     /// Access the internal selector (for platform-specific operations).
-#[allow(dead_code)]
+    #[allow(dead_code)]
     pub(crate) fn selector(&self) -> &sys::Selector {
         &self.selector
     }

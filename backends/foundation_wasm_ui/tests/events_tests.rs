@@ -61,7 +61,10 @@ fn signal_event_bridge_end_to_end() {
         vec![String::new(), String::from("hello")],
         "stabilize ran inside the export — effects flushed synchronously"
     );
-    assert!(!slot_is_live(slot), "event slot freed by Rust after reading");
+    assert!(
+        !slot_is_live(slot),
+        "event slot freed by Rust after reading"
+    );
 
     // Stale/unknown id: dropped silently, slot still freed.
     let stale = stage_event(r#"{"type":"change","value":"nope"}"#);

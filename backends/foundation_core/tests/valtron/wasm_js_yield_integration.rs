@@ -14,10 +14,10 @@
 #![cfg(target_family = "wasm")]
 #![cfg(feature = "js-wasmbindgen")]
 
+use foundation_compact::Instant;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use foundation_compact::Instant;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},
@@ -184,7 +184,7 @@ fn concurrent_d1_queries_make_progress() {
                 }
             })))
             .as_scheduled()
-        .spawn()
+            .spawn()
             .expect("should schedule task");
         let _ = i; // suppress unused variable warning
     }
@@ -193,7 +193,11 @@ fn concurrent_d1_queries_make_progress() {
 
     let elapsed = start.elapsed();
 
-    assert_eq!(done_count.load(Ordering::Relaxed), 2, "Both tasks should complete");
+    assert_eq!(
+        done_count.load(Ordering::Relaxed),
+        2,
+        "Both tasks should complete"
+    );
     // With concurrent yields, wall time should be ~10ms (one yield period),
     // not ~20ms (sequential). Allow generous margin for JS timer variance.
     assert!(
@@ -373,7 +377,10 @@ async fn depends_task_parks_until_wake_signal_fires() {
     let slot = Rc::clone(&callback_slot);
     wasm_bindgen_futures::spawn_local(async move {
         sleep_ms(5).await;
-        let wake = slot.borrow_mut().take().expect("the task registered its wake");
+        let wake = slot
+            .borrow_mut()
+            .take()
+            .expect("the task registered its wake");
         wake();
     });
 
@@ -383,9 +390,12 @@ async fn depends_task_parks_until_wake_signal_fires() {
         }
         sleep_ms(1).await;
     }
-    assert_eq!(value.load(Ordering::Relaxed), 7, "resumed and completed after the wake");
+    assert_eq!(
+        value.load(Ordering::Relaxed),
+        7,
+        "resumed and completed after the wake"
+    );
 }
-
 
 /// Parks on a [`BoolSignal`](foundation_core::valtron::BoolSignal) until it is
 /// set, then emits one value.
@@ -401,7 +411,9 @@ impl TaskIterator for ParkOnBoolTask {
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         use foundation_core::valtron::EventReadiness;
         match self.step {
-            0 if !self.signal.is_ready(None) => Some(TaskStatus::Depends(Arc::new(self.signal.clone()))),
+            0 if !self.signal.is_ready(None) => {
+                Some(TaskStatus::Depends(Arc::new(self.signal.clone())))
+            }
             0 => {
                 self.step = 1;
                 Some(TaskStatus::Ready(9))
@@ -437,7 +449,11 @@ async fn bool_signal_set_from_js_resumes_a_parked_task() {
         .expect("should schedule");
 
     run_until_complete();
-    assert_eq!(value.load(Ordering::Relaxed), 0, "parked until the signal is set");
+    assert_eq!(
+        value.load(Ordering::Relaxed),
+        0,
+        "parked until the signal is set"
+    );
 
     wasm_bindgen_futures::spawn_local(async move {
         sleep_ms(5).await;
@@ -450,7 +466,11 @@ async fn bool_signal_set_from_js_resumes_a_parked_task() {
         }
         sleep_ms(1).await;
     }
-    assert_eq!(value.load(Ordering::Relaxed), 9, "resumed after BoolSignal::set");
+    assert_eq!(
+        value.load(Ordering::Relaxed),
+        9,
+        "resumed after BoolSignal::set"
+    );
 }
 
 /// Calls `run_until_complete` from inside its own `next_status` — what a sync
@@ -498,5 +518,9 @@ fn nested_run_until_returns_instead_of_spinning() {
         .expect("should schedule");
 
     run_until_complete();
-    assert_eq!(value.load(Ordering::Relaxed), 11, "the nested run returned and the task finished");
+    assert_eq!(
+        value.load(Ordering::Relaxed),
+        11,
+        "the nested run returned and the task finished"
+    );
 }

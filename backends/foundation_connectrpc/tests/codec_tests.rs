@@ -149,7 +149,10 @@ fn defaults_has_proto_and_json_and_rejects_arrow() {
     assert!(codecs.for_request("json").is_ok());
     assert!(codecs.for_response("json").is_ok());
     // A codec not in the table is a miss (rendered 415 by the protocol layer).
-    let miss = codecs.for_request("arrow").err().expect("arrow is unsupported");
+    let miss = codecs
+        .for_request("arrow")
+        .err()
+        .expect("arrow is unsupported");
     assert_eq!(miss.current_context().code(), Code::Unimplemented);
     let names: Vec<&str> = codecs.names().collect();
     assert_eq!(names, vec!["proto", "json"]);

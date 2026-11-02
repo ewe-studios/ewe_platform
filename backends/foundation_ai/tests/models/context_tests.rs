@@ -1,8 +1,8 @@
 #![allow(unused_imports)]
 use std::sync::Arc;
 
-use foundation_ai::agentic::context::ContextProvider;
 use foundation_ai::agentic::context::ContextConfig;
+use foundation_ai::agentic::context::ContextProvider;
 use foundation_ai::agentic::memory_store::{KvMemoryStore, MemoryStore};
 use foundation_ai::agentic::message_api::MessageApi;
 use foundation_ai::agentic::token_ledger::TokenLedger;
@@ -224,7 +224,10 @@ fn assembly_order_is_deterministic() {
             .unwrap();
         provider
             .memory_store()
-            .set(provider.session_id(), &reflection_record("reflection B", t1))
+            .set(
+                provider.session_id(),
+                &reflection_record("reflection B", t1),
+            )
             .await
             .unwrap();
         provider
@@ -273,12 +276,10 @@ fn clone_shares_state() {
 
 fn extract_text(msg: &Messages) -> String {
     match msg {
-        Messages::User { content, .. } | Messages::ToolResult { content, .. } => {
-            match content {
-                UserModelContent::Text(tc) => tc.content.clone(),
-                _ => String::new(),
-            }
-        }
+        Messages::User { content, .. } | Messages::ToolResult { content, .. } => match content {
+            UserModelContent::Text(tc) => tc.content.clone(),
+            _ => String::new(),
+        },
         Messages::Assistant { content, .. } => match content {
             ModelOutput::Text(tc) => tc.content.clone(),
             _ => String::new(),

@@ -47,7 +47,9 @@ fn handle(mut stream: TcpStream, captured: &Captured) {
             if name.eq_ignore_ascii_case("content-length") {
                 content_length = value.trim().parse().unwrap();
             }
-            if name.eq_ignore_ascii_case("expect") && value.trim().eq_ignore_ascii_case("100-continue") {
+            if name.eq_ignore_ascii_case("expect")
+                && value.trim().eq_ignore_ascii_case("100-continue")
+            {
                 expects_continue = true;
             }
         }
@@ -92,8 +94,16 @@ async fn init_sends_every_statement_with_semicolon() {
     let (store, captured) = mock_store();
     store.init().await.unwrap();
 
-    let sql = captured.lock().unwrap().clone().expect("the mock saw one /query call");
-    let statements: Vec<&str> = sql.split(';').map(str::trim).filter(|s| !s.is_empty()).collect();
+    let sql = captured
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("the mock saw one /query call");
+    let statements: Vec<&str> = sql
+        .split(';')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .collect();
 
     // CREATE TABLE + four CREATE INDEX statements, all present and separated.
     assert_eq!(statements.len(), 5);

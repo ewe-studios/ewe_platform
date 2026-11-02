@@ -6,7 +6,7 @@
 use futures_lite::StreamExt;
 
 use crate::core::errors::StorageResult;
-use crate::core::storage_provider::{QueryStore, DataValue};
+use crate::core::storage_provider::{DataValue, QueryStore};
 
 /// A single database migration.
 pub struct Migration {
@@ -176,10 +176,12 @@ impl<'a> MigrationRunner<'a> {
 
         for migration in self.migrations {
             // Check if migration already applied
-            let mut rows = store.query(
-                "SELECT 1 FROM _migrations WHERE id = ?",
-                &[DataValue::Text(migration.id.to_string())],
-            ).await?;
+            let mut rows = store
+                .query(
+                    "SELECT 1 FROM _migrations WHERE id = ?",
+                    &[DataValue::Text(migration.id.to_string())],
+                )
+                .await?;
 
             // One row is enough to know the migration ran.
             let exists = match rows.next().await {
@@ -195,13 +197,15 @@ impl<'a> MigrationRunner<'a> {
                 store.execute_batch(migration.sql).await?;
 
                 // Record migration
-                store.execute(
-                    "INSERT INTO _migrations (id, name) VALUES (?, ?)",
-                    &[
-                        DataValue::Text(migration.id.to_string()),
-                        DataValue::Text(migration.name.to_string()),
-                    ],
-                ).await?;
+                store
+                    .execute(
+                        "INSERT INTO _migrations (id, name) VALUES (?, ?)",
+                        &[
+                            DataValue::Text(migration.id.to_string()),
+                            DataValue::Text(migration.name.to_string()),
+                        ],
+                    )
+                    .await?;
 
                 count += 1;
             }

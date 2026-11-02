@@ -900,4 +900,3 @@ fn detect_shared_resources(groups: &[ApiGroup]) -> Vec<String> {
     shared.sort();
     shared
 }
-

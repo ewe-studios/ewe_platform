@@ -21,9 +21,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    drive_iterator, CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator, EventReadinessPtr,
-    FutureTask,
-    Stream, StreamSpread, TaskIterator, TaskSpread, park_on, TaskStatus,
+    drive_iterator, park_on, CancelOutcome, CancellableFutureTask, Ctx, DrivenTaskIterator,
+    EventReadinessPtr, FutureTask, Stream, StreamSpread, TaskIterator, TaskSpread, TaskStatus,
 };
 use foundation_db::traits::DocumentStore;
 use foundation_db::{StorageError, StorageResult};
@@ -721,9 +720,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
     // -----------------------------------------------------------------------
     // State transition helpers
 
-    fn transition_outer_boundary(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_outer_boundary(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         // A hard abort requested via `AgentSession::abort` (or `steer`'s Abort
         // code) terminates the turn at this boundary. Previously the Abort code
         // existed but nothing set it and the loop never read it — a stubbed
@@ -785,10 +782,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         TaskStatus::Pending(AgentProgress::SessionEnding)
     }
 
-    fn transition_inner_assemble(
-        &mut self,
-        ctx: Ctx,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_inner_assemble(&mut self, ctx: Ctx) -> TaskStatus<SessionRecord, AgentProgress> {
         // Honor a hard abort mid-turn (before starting another generation).
         if self.queues.is_aborted() {
             self.queues.reset_cancel();
@@ -938,9 +932,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         }
     }
 
-    fn transition_inner_generate(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_inner_generate(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         // We need to take ownership of the state to pump the stream.
         let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
@@ -949,7 +941,9 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
             mut collected,
         } = previous
         else {
-            panic!("transition_inner_generate requires AgentLoopState::InnerGenerate, found {actual}")
+            panic!(
+                "transition_inner_generate requires AgentLoopState::InnerGenerate, found {actual}"
+            )
         };
 
         // Pump one item from the stream.
@@ -1109,7 +1103,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
                                 crate::agentic::errors::LoopDetectedInfo {
                                     kind: format!("{detection:?}"),
                                     occurrences,
-                                });
+                                },
+                            );
                             self.state = AgentLoopState::Ending;
                             return TaskStatus::Ready(err.into_failed_action());
                         }
@@ -1287,9 +1282,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         calls
     }
 
-    fn transition_inner_tool_calls(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_inner_tool_calls(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerToolCalls { calls } = previous else {
@@ -1524,9 +1517,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         }
     }
 
-    fn transition_inner_emit_results(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_inner_emit_results(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         let previous = mem::replace(&mut self.state, AgentLoopState::Done);
         let actual = previous.variant_name();
         let AgentLoopState::InnerEmitResults { results, idx } = previous else {
@@ -1568,9 +1559,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         TaskStatus::Ready(SessionRecord::Conversation { message: msg })
     }
 
-    fn transition_output_processing(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_output_processing(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         // Fire memory triggers (F15) — check if observation/reflection needed.
         let action = self.memory.check_triggers();
         self.state = AgentLoopState::OuterBoundary;
@@ -1680,9 +1669,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
         }
     }
 
-    fn transition_summarizing(
-        &mut self,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn transition_summarizing(&mut self) -> TaskStatus<SessionRecord, AgentProgress> {
         let snapshot = self.ledger.snapshot();
         let summary = SessionRecord::Summary {
             message_count: self.message_count,
@@ -1695,10 +1682,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentLoop<D, M> {
     // -----------------------------------------------------------------------
     // Error handling (F02)
 
-    fn handle_error(
-        &mut self,
-        error: AgenticError,
-    ) -> TaskStatus<SessionRecord, AgentProgress> {
+    fn handle_error(&mut self, error: AgenticError) -> TaskStatus<SessionRecord, AgentProgress> {
         let action = self.policy.classify(error.clone());
         match action {
             AgentAction::Continue => TaskStatus::Ignore,

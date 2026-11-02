@@ -18,11 +18,11 @@ use std::time::Duration;
 
 use futures::StreamExt;
 
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron;
+use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
-use foundation_http::native::serve::H2Serve;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::shared::transport::Transport;
@@ -107,8 +107,7 @@ fn build_router() -> Router {
 // ── Server ────────────────────────────────────────────────────────────────────
 
 fn start_server() -> (String, Arc<ShutdownSignal>) {
-    let rpc: Arc<dyn H2Serve> =
-        Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
+    let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
 
     let mut app = HttpApp::new_h2_serve();
     app.route_any_h2(UNARY, rpc.clone());

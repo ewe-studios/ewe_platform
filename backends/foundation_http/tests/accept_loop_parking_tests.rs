@@ -18,8 +18,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 use serial_test::serial;
@@ -58,7 +58,11 @@ impl Serve for EchoHandler {
 /// a receiver that fires once `serve_with_listener` returns.
 fn start_server(
     config: ServerConfig,
-) -> (std::net::SocketAddr, Arc<ShutdownSignal>, std::sync::mpsc::Receiver<()>) {
+) -> (
+    std::net::SocketAddr,
+    Arc<ShutdownSignal>,
+    std::sync::mpsc::Receiver<()>,
+) {
     let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
@@ -93,10 +97,10 @@ fn process_cpu_ns() -> u128 {
         let mut usage: libc::rusage = std::mem::zeroed();
         let rc = libc::getrusage(libc::RUSAGE_SELF, &mut usage);
         assert_eq!(rc, 0, "getrusage failed");
-        let user = usage.ru_utime.tv_sec as u128 * 1_000_000_000
-            + usage.ru_utime.tv_usec as u128 * 1_000;
-        let system = usage.ru_stime.tv_sec as u128 * 1_000_000_000
-            + usage.ru_stime.tv_usec as u128 * 1_000;
+        let user =
+            usage.ru_utime.tv_sec as u128 * 1_000_000_000 + usage.ru_utime.tv_usec as u128 * 1_000;
+        let system =
+            usage.ru_stime.tv_sec as u128 * 1_000_000_000 + usage.ru_stime.tv_usec as u128 * 1_000;
         user + system
     }
 }

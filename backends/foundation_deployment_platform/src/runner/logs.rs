@@ -52,7 +52,9 @@ pub fn log_path(profile: &VmProfile, kind: LogKind) -> String {
         (GuestOs::Linux, LogKind::Run) => "/home/vagrant/.testbed-run/run.log".to_string(),
         (GuestOs::MacOS, LogKind::Build) => "/Users/vagrant/.testbed-build/build.log".to_string(),
         (GuestOs::MacOS, LogKind::Run) => "/Users/vagrant/.testbed-run/run.log".to_string(),
-        (GuestOs::Windows, LogKind::Build) => "C:\\Users\\vagrant\\.testbed-build\\build.log".to_string(),
+        (GuestOs::Windows, LogKind::Build) => {
+            "C:\\Users\\vagrant\\.testbed-build\\build.log".to_string()
+        }
         (GuestOs::Windows, LogKind::Run) => "C:\\Users\\vagrant\\.testbed-run\\run.log".to_string(),
     }
 }
@@ -101,4 +103,3 @@ fn extract_errors(session: &mut VmSession, path: &str) -> Result<String> {
 fn tail_log(session: &mut VmSession, path: &str, n: u32) -> Result<String> {
     crate::ssh::exec(session, &format!("tail -n {n} {path}"))
 }
-

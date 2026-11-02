@@ -68,7 +68,10 @@ impl ArrowSchema for Tri {
 
 impl ToArrow for Tri {
     fn to_arrow(&self) -> IpcResult<RecordBatch> {
-        RecordBatch::try_new(Self::schema_ref(), vec![Arc::new(Int32Array::from(vec![self.v]))])
+        RecordBatch::try_new(
+            Self::schema_ref(),
+            vec![Arc::new(Int32Array::from(vec![self.v]))],
+        )
     }
     fn to_arrow_batch(values: &[Self]) -> IpcResult<RecordBatch> {
         let col = Int32Array::from(values.iter().map(|t| t.v).collect::<Vec<_>>());

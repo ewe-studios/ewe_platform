@@ -18,15 +18,15 @@ pub mod wait_for;
 #[cfg(feature = "wireguard")]
 pub mod wireguard;
 
-/// Re-export the spec-54 Docker client directly — the old bollard wrapper is gone.
-pub use foundation_deployment_docker::DockerClient;
 pub use config::{
-    parse_memory_bytes, ContainerConfig, DeviceMapping, PortMapping, PortProtocol, VolumeMount,
-    VolumeSource,
+    ContainerConfig, DeviceMapping, PortMapping, PortProtocol, VolumeMount, VolumeSource,
+    parse_memory_bytes,
 };
 pub use container::{ContainerHandle, ExecOutput};
-pub use error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
+pub use error::{DockerError, DockerResult, classify_docker_client_err, docker_err};
+/// Re-export the spec-54 Docker client directly — the old bollard wrapper is gone.
+pub use foundation_deployment_docker::DockerClient;
 pub use group::ContainerGroup;
 pub use image::{BuildBackend, DockerFileConfig, DockerFileSource, ImageBuildResult};
 pub use network::NetworkHandle;
-pub use wait_for::{wait_for_port, wait_for_port_at, wait_for_stdout, WaitFor};
+pub use wait_for::{WaitFor, wait_for_port, wait_for_port_at, wait_for_stdout};

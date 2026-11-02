@@ -26,12 +26,12 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use crate::shared::tunnel::{WgOutcome, WgTunnel};
 use foundation_core::valtron::{Ctx, EventReadiness, TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack};
 use foundation_nativeapis::native::fd::{Reactor, SharedReadiness};
 use foundation_nativeapis::native::net::UdpSocket;
 use foundation_nativeapis::native::poll::{Interest, Token};
-use crate::shared::tunnel::{WgOutcome, WgTunnel};
 
 /// How often (ms) the driver re-checks WireGuard timers when otherwise idle.
 /// WG keepalive and rekey timeouts are on the order of seconds, so a 1 s floor
@@ -213,7 +213,8 @@ impl<D: DataPlane> TunnelDriver<D> {
     fn pump_outbound_overlay(&mut self, now: Instant) -> Option<Instant> {
         let deadline = self.dataplane.poll(now);
         let mut outbound: Vec<Vec<u8>> = Vec::new();
-        self.dataplane.drain_outbound_ip(&mut |p| outbound.push(p.to_vec()));
+        self.dataplane
+            .drain_outbound_ip(&mut |p| outbound.push(p.to_vec()));
         for ip_packet in outbound {
             let Some(idx) = self.route_by_dest_ip(&ip_packet) else {
                 tracing::debug!("outbound packet with unroutable destination dropped");
@@ -352,15 +353,13 @@ impl TunnelDriverTask {
     #[must_use]
     pub fn new(driver: TunnelDriver) -> (Self, Arc<AtomicBool>) {
         let stop = Arc::new(AtomicBool::new(false));
-        let readiness = Reactor::get()
-            .ok()
-            .and_then(|reactor| {
-                let fd = driver.socket.get_ref().as_raw_fd();
-                let token = Token(0); // single-fd task — token 0 is fine
-                SharedReadiness::new(fd, reactor, token, Interest::READABLE)
-                    .ok()
-                    .map(Arc::new)
-            });
+        let readiness = Reactor::get().ok().and_then(|reactor| {
+            let fd = driver.socket.get_ref().as_raw_fd();
+            let token = Token(0); // single-fd task — token 0 is fine
+            SharedReadiness::new(fd, reactor, token, Interest::READABLE)
+                .ok()
+                .map(Arc::new)
+        });
         (
             Self {
                 driver,

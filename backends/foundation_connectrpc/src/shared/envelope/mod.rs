@@ -97,7 +97,13 @@ impl Envelope {
             return Err(EnvelopeError::Incomplete);
         }
         let payload = data.slice(ENVELOPE_HEADER_LEN..total);
-        Ok((Envelope { flags, data: payload }, total))
+        Ok((
+            Envelope {
+                flags,
+                data: payload,
+            },
+            total,
+        ))
     }
 }
 
@@ -136,7 +142,10 @@ impl core::fmt::Display for EnvelopeError {
                 write!(f, "envelope length {length} exceeds read_max_bytes {limit}")
             }
             EnvelopeError::CompressedWithoutDecompressor => {
-                write!(f, "compressed frame received but no decompressor was negotiated")
+                write!(
+                    f,
+                    "compressed frame received but no decompressor was negotiated"
+                )
             }
         }
     }
@@ -231,7 +240,11 @@ pub struct EnvelopeReader<S> {
 impl<S: Read> EnvelopeReader<S> {
     /// Construct over a body source, with an optional decompressor and a
     /// `read_max_bytes` cap (`0` = unlimited).
-    pub fn new(source: S, decompressor: Option<Arc<dyn Compressor>>, read_max_bytes: usize) -> Self {
+    pub fn new(
+        source: S,
+        decompressor: Option<Arc<dyn Compressor>>,
+        read_max_bytes: usize,
+    ) -> Self {
         Self {
             source,
             decoder: EnvelopeFrameDecoder {
@@ -259,7 +272,9 @@ impl<S: Read> EnvelopeReader<S> {
     /// # Errors
     /// A [`ConnectError`]-carrying trace on a malformed frame or I/O failure.
     pub fn step(&mut self) -> ConnectResult<DecodeStep<Envelope>> {
-        self.decoder.step(&mut self.source).map_err(map_decode_error)
+        self.decoder
+            .step(&mut self.source)
+            .map_err(map_decode_error)
     }
 
     /// Whether the reader holds a partial (mid-frame) buffer.

@@ -114,7 +114,13 @@ pub fn make_id(stem: &str, name: &str) -> String {
         format!("{}_{}", stem.to_lowercase(), name.to_lowercase())
     };
     raw.chars()
-        .map(|c| if c.is_ascii_alphanumeric() || c == '_' { c } else { '_' })
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect()
 }
 
@@ -125,10 +131,7 @@ pub fn file_stem_qualified(path: &str) -> String {
         .and_then(|pp| pp.file_name())
         .and_then(|f| f.to_str())
         .unwrap_or("");
-    let stem = p
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("");
+    let stem = p.file_stem().and_then(|s| s.to_str()).unwrap_or("");
     if parent.is_empty() || parent == "." {
         stem.to_string()
     } else {

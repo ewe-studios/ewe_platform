@@ -11,15 +11,15 @@ use std::time::Duration as StdDuration;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::{DateTime, Duration, Utc};
+use foundation_compact::rng::Rng;
 use foundation_netio::shared::client::{Cookie, SameSite};
 use hmac::{Hmac, Mac};
-use foundation_compact::rng::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use zeroize::Zeroizing;
 
-use crate::shared::credential_store::CredentialStore;
 use super::types::ConfidentialText;
+use crate::shared::credential_store::CredentialStore;
 use crate::shared::credential_store::CredentialStoreError;
 
 type HmacSha256 = Hmac<Sha256>;
@@ -225,10 +225,7 @@ impl<S: CredentialStore> SessionManager<S> {
     ///
     /// Panics if the signer lock is poisoned. The `expect("signer lock")` call
     /// fails then.
-    pub async fn get_session(
-        &self,
-        token: &str,
-    ) -> Result<Option<Session>, SessionError> {
+    pub async fn get_session(&self, token: &str) -> Result<Option<Session>, SessionError> {
         let cache = Self::get_cached_session(token);
         if let Some(ref cache_data) = cache {
             if !cache_data.user_id.is_empty() {
@@ -289,10 +286,7 @@ impl<S: CredentialStore> SessionManager<S> {
     /// # Errors
     ///
     /// Returns `SessionError::Storage` if the store fails.
-    pub async fn revoke_session(
-        &self,
-        session_id: &str,
-    ) -> Result<(), SessionError> {
+    pub async fn revoke_session(&self, session_id: &str) -> Result<(), SessionError> {
         if let Some(session) = self
             .store
             .get::<Session>(session_id)
@@ -318,10 +312,7 @@ impl<S: CredentialStore> SessionManager<S> {
     /// # Errors
     ///
     /// Returns `SessionError::Storage` if the store fails.
-    pub async fn revoke_all_sessions(
-        &self,
-        user_id: &str,
-    ) -> Result<usize, SessionError> {
+    pub async fn revoke_all_sessions(&self, user_id: &str) -> Result<usize, SessionError> {
         let prefix = format!("session:{user_id}:");
         let keys = self
             .store
@@ -353,10 +344,7 @@ impl<S: CredentialStore> SessionManager<S> {
     }
 
     /// Extend session expiration (async, sliding expiration).
-    async fn extend_session(
-        &self,
-        session: &Session,
-    ) -> Result<(), SessionError> {
+    async fn extend_session(&self, session: &Session) -> Result<(), SessionError> {
         let now = Utc::now();
         let time_left = session.expires_at - now;
         if time_left < self.config.sliding_window {
@@ -479,4 +467,3 @@ impl core::fmt::Display for SessionError {
 }
 
 impl std::error::Error for SessionError {}
-

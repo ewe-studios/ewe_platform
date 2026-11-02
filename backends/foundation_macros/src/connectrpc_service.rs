@@ -65,7 +65,10 @@ impl Parse for ServiceAttr {
         }
 
         if package.is_empty() {
-            return Err(syn::Error::new(input.span(), "service: `package = \"…\"` is required"));
+            return Err(syn::Error::new(
+                input.span(),
+                "service: `package = \"…\"` is required",
+            ));
         }
 
         Ok(ServiceAttr { package, codecs })
@@ -363,7 +366,13 @@ fn extract_method_info(method: &syn::TraitItemFn) -> MethodInfo {
     let res_type = extract_res_type(&method.sig.output);
     let span = method.sig.span();
 
-    MethodInfo { snake, req_type, res_type, kind, span }
+    MethodInfo {
+        snake,
+        req_type,
+        res_type,
+        kind,
+        span,
+    }
 }
 
 // ── Name conversion ────────────────────────────────────────────────────────
@@ -376,9 +385,7 @@ fn to_pascal_case(name: &str) -> String {
             let mut chars = s.chars();
             match chars.next() {
                 None => String::new(),
-                Some(first) => {
-                    first.to_uppercase().to_string() + chars.as_str()
-                }
+                Some(first) => first.to_uppercase().to_string() + chars.as_str(),
             }
         })
         .collect()
@@ -455,11 +462,7 @@ fn ensure_send_sync_static(trait_def: &mut ItemTrait) {
 /// pins a concrete return type (`Response<Res>` for unary/client-stream, a boxed
 /// `Pin<Box<dyn Stream + Send>>` for server/bidi-stream), so the `Err` Ok-type
 /// infers with no annotation — no hidden `impl Stream` to pin.
-fn make_default_body(
-    kind: MethodKind,
-    path_const: &Ident,
-    _res_type: &TokenStream,
-) -> syn::Block {
+fn make_default_body(kind: MethodKind, path_const: &Ident, _res_type: &TokenStream) -> syn::Block {
     let tokens = match kind {
         MethodKind::Unary | MethodKind::ClientStream => {
             quote! {{
@@ -1035,7 +1038,11 @@ impl Parse for GenerateInput {
                 content.parse::<Token![,]>()?;
             }
         }
-        Ok(GenerateInput { path, module_name, artifacts })
+        Ok(GenerateInput {
+            path,
+            module_name,
+            artifacts,
+        })
     }
 }
 
@@ -1109,14 +1116,26 @@ mod tests {
         let out = output.to_string();
 
         // Service name constant (R3)
-        assert!(out.contains("test.v1.GreetService"), "missing service name constant");
+        assert!(
+            out.contains("test.v1.GreetService"),
+            "missing service name constant"
+        );
 
         // Procedure constants (R1)
-        assert!(out.contains("GREET"), "missing GREET procedure constant name");
-        assert!(out.contains("/test.v1.GreetService/Greet"), "missing procedure path");
+        assert!(
+            out.contains("GREET"),
+            "missing GREET procedure constant name"
+        );
+        assert!(
+            out.contains("/test.v1.GreetService/Greet"),
+            "missing procedure path"
+        );
 
         // Procedure module
-        assert!(out.contains("pub mod procedure"), "missing procedure module");
+        assert!(
+            out.contains("pub mod procedure"),
+            "missing procedure module"
+        );
 
         // Service trait with Send + Sync + 'static
         assert!(
@@ -1131,13 +1150,19 @@ mod tests {
         );
 
         // Registration function
-        assert!(out.contains("register_greet_service"), "missing register fn");
+        assert!(
+            out.contains("register_greet_service"),
+            "missing register fn"
+        );
 
         // Client struct (R4)
         assert!(out.contains("GreetServiceClient"), "missing client struct");
 
         // Client trait
-        assert!(out.contains("GreetServiceClientExt"), "missing client trait");
+        assert!(
+            out.contains("GreetServiceClientExt"),
+            "missing client trait"
+        );
 
         // Default body: ConnectError::unimplemented(procedure::GREET)
         assert!(
@@ -1146,8 +1171,14 @@ mod tests {
         );
 
         // Descriptor macro export
-        assert!(out.contains("greet_service_rpc_definitions"), "missing descriptor macro");
-        assert!(out.contains("macro_export"), "missing macro_export on descriptor macro");
+        assert!(
+            out.contains("greet_service_rpc_definitions"),
+            "missing descriptor macro"
+        );
+        assert!(
+            out.contains("macro_export"),
+            "missing macro_export on descriptor macro"
+        );
     }
 
     /// WHY: Verify all four RPC kinds are correctly classified and generate
@@ -1227,8 +1258,14 @@ mod tests {
         let out = output.to_string();
 
         // Procedure constant uses PascalCase path and SCREAMING_SNAKE_CASE name
-        assert!(out.contains("GREET_GROUP"), "missing GREET_GROUP const name");
-        assert!(out.contains("/p.v1.ConvTest/GreetGroup"), "missing procedure path");
+        assert!(
+            out.contains("GREET_GROUP"),
+            "missing GREET_GROUP const name"
+        );
+        assert!(
+            out.contains("/p.v1.ConvTest/GreetGroup"),
+            "missing procedure path"
+        );
 
         // Registration fn uses snake_case
         assert!(out.contains("register_conv_test"), "missing register fn");
@@ -1258,7 +1295,9 @@ mod tests {
         let out = output.to_string();
 
         assert!(
-            out.contains("ProcedureCodecs :: < Req , Res > :: of ((foundation_connectrpc :: JsonCodec ,))"),
+            out.contains(
+                "ProcedureCodecs :: < Req , Res > :: of ((foundation_connectrpc :: JsonCodec ,))"
+            ),
             "json codecs should produce ProcedureCodecs::of((JsonCodec,))"
         );
     }

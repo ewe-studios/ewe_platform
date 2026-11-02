@@ -57,7 +57,8 @@ fn mesh_uses_identity_keys_and_revoked_seed_blocks_new_join() {
     // Give the revocation a moment (atomic store is immediate, but be tolerant).
     thread::sleep(Duration::from_millis(50));
 
-    let node_c = WgNode::from_config(WgConfig::joiner(seed.clone(), network_id, vec![a_boot])).join();
+    let node_c =
+        WgNode::from_config(WgConfig::joiner(seed.clone(), network_id, vec![a_boot])).join();
     assert!(
         node_c.is_err(),
         "a fresh join with the revoked seed must be refused"

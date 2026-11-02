@@ -5,7 +5,9 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::ciphers;
@@ -71,12 +73,16 @@ fn create_list_get_roundtrips_content() {
     let (ctx, _dir) = fresh_ctx();
 
     let c = ctx.clone();
-    let created = drive(async move {
-        ciphers::create(&c, USER_A, login_req("2.name|enc", "2.user|enc")).await
-    })
-    .expect("create");
+    let created =
+        drive(
+            async move { ciphers::create(&c, USER_A, login_req("2.name|enc", "2.user|enc")).await },
+        )
+        .expect("create");
     assert_eq!(created.cipher_type, CipherType::Login);
-    assert_eq!(created.login.as_ref().unwrap().username.as_deref(), Some("2.user|enc"));
+    assert_eq!(
+        created.login.as_ref().unwrap().username.as_deref(),
+        Some("2.user|enc")
+    );
     assert!(created.deleted_date.is_none());
 
     let c = ctx.clone();
@@ -129,7 +135,10 @@ fn update_changes_content_and_favorite() {
     .expect("update");
     assert_eq!(updated.name, "2.renamed|enc");
     assert!(updated.favorite);
-    assert_eq!(updated.login.unwrap().username.as_deref(), Some("2.newuser|enc"));
+    assert_eq!(
+        updated.login.unwrap().username.as_deref(),
+        Some("2.newuser|enc")
+    );
     assert!(updated.revision_date >= created.revision_date);
 }
 
@@ -144,12 +153,18 @@ fn soft_delete_then_restore() {
     let c = ctx.clone();
     let id2 = id.clone();
     let trashed = drive(async move { ciphers::soft_delete(&c, USER_A, &id2).await }).expect("soft");
-    assert!(trashed.deleted_date.is_some(), "soft-deleted cipher has deleted_date");
+    assert!(
+        trashed.deleted_date.is_some(),
+        "soft-deleted cipher has deleted_date"
+    );
 
     let c = ctx.clone();
     let id3 = id.clone();
     let restored = drive(async move { ciphers::restore(&c, USER_A, &id3).await }).expect("restore");
-    assert!(restored.deleted_date.is_none(), "restored cipher clears deleted_date");
+    assert!(
+        restored.deleted_date.is_none(),
+        "restored cipher clears deleted_date"
+    );
 }
 
 #[valtron_test]

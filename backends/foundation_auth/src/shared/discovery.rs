@@ -263,8 +263,7 @@ async fn do_fetch(
     max_error_body: usize,
 ) -> Result<OidcDiscovery, DiscoveryError> {
     let json = fetch_discovery(client, url, max_error_body).await?;
-    serde_json::from_str(&json)
-        .map_err(|e| DiscoveryError::ParseError(e.to_string()))
+    serde_json::from_str(&json).map_err(|e| DiscoveryError::ParseError(e.to_string()))
 }
 
 /// Validate required fields.
@@ -338,7 +337,9 @@ async fn fetch_discovery(
     let status: usize = resp.get_status().into();
     if !(200..300).contains(&status) {
         let text = read_error_text(resp.take_async_body(), max_error_body).await;
-        return Err(DiscoveryError::FetchFailed(format!("HTTP {status}: {text}")));
+        return Err(DiscoveryError::FetchFailed(format!(
+            "HTTP {status}: {text}"
+        )));
     }
     let body = read_body_text(resp.take_async_body())
         .await

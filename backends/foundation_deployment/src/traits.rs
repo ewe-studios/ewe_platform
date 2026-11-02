@@ -175,10 +175,7 @@ pub trait Deployable {
     /// All `get()`, `list()`, `delete()` operations on the returned wrapper
     /// are automatically prefixed with `NAMESPACE`. Call it in `deploy`/`destroy`
     /// to persist and read back what was deployed (the id to tear down, etc.).
-    fn store(
-        &self,
-        client: &ProviderClient<Self::Store>,
-    ) -> NamespacedStore<Self::Store> {
+    fn store(&self, client: &ProviderClient<Self::Store>) -> NamespacedStore<Self::Store> {
         NamespacedStore::new(client.state_store.clone(), Self::NAMESPACE)
     }
 }

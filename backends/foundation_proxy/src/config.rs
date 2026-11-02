@@ -200,7 +200,10 @@ impl ProxyConfig {
         dns01_setter: crate::acme::Dns01Setter,
         directory_url: Option<String>,
     ) -> Self {
-        self.acme = Some(AcmeRuntime { directory_url, dns01_setter });
+        self.acme = Some(AcmeRuntime {
+            directory_url,
+            dns01_setter,
+        });
         self
     }
 

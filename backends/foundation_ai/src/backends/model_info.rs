@@ -21,8 +21,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use foundation_netio::shared::client::{
-    body_reader::collect_strings_from_send_safe,
-    request::PreparedRequest,
+    body_reader::collect_strings_from_send_safe, request::PreparedRequest,
 };
 use foundation_netio::DynNetClient;
 use serde::de::DeserializeOwned;
@@ -56,7 +55,11 @@ pub fn placeholder(model_name: &str, owned_by: &str) -> OpenAIModelInfo {
 
 /// The cached metadata for `model_name`, or a placeholder.
 #[must_use]
-pub fn cached_or_placeholder(cache: &ModelInfoCache, model_name: &str, owned_by: &str) -> OpenAIModelInfo {
+pub fn cached_or_placeholder(
+    cache: &ModelInfoCache,
+    model_name: &str,
+    owned_by: &str,
+) -> OpenAIModelInfo {
     cache
         .lock()
         .expect("model cache poisoned")
@@ -131,7 +134,10 @@ fn parse<T: DeserializeOwned>(
         // stops at the configured cap instead of buffering the whole reply.
         let body_text = capped_error_body(body, max_error_body);
         let detail = error_detail(&body_text).unwrap_or(body_text);
-        return Err(GenerationError::Backend(format_http_error(status_code, &detail)));
+        return Err(GenerationError::Backend(format_http_error(
+            status_code,
+            &detail,
+        )));
     }
     let body_text = collect_strings_from_send_safe(body)
         .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;

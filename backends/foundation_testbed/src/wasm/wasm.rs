@@ -44,11 +44,7 @@ impl BindgenTarget {
 /// - wasm-bindgen is not on PATH
 /// - the wasm-bindgen CLI fails
 /// - expected output files are not found after execution
-pub fn run_wasm_bindgen(
-    wasm_path: &Path,
-    output_dir: &Path,
-    target: BindgenTarget,
-) -> Result<()> {
+pub fn run_wasm_bindgen(wasm_path: &Path, output_dir: &Path, target: BindgenTarget) -> Result<()> {
     run_wasm_bindgen_with_name(wasm_path, output_dir, target, None)
 }
 
@@ -69,7 +65,8 @@ pub fn run_wasm_bindgen_with_name(
         .map_err(|e| WasmTestbedError::WasmBindgenExecFailed(e).trace())?
     {
         let entry = entry.map_err(|e| WasmTestbedError::WasmBindgenExecFailed(e).trace())?;
-        if entry.file_type()
+        if entry
+            .file_type()
             .map_err(|e| WasmTestbedError::WasmBindgenExecFailed(e).trace())?
             .is_file()
         {
@@ -83,9 +80,7 @@ pub fn run_wasm_bindgen_with_name(
     info!("Running wasm-bindgen...");
 
     let mut cmd = Command::new("wasm-bindgen");
-    cmd.arg(wasm_path)
-        .arg("--out-dir")
-        .arg(output_dir);
+    cmd.arg(wasm_path).arg("--out-dir").arg(output_dir);
 
     if let Some(name) = out_name {
         cmd.arg("--out-name").arg(name);
@@ -97,9 +92,9 @@ pub fn run_wasm_bindgen_with_name(
 
     debug!("Executing: {:?}", cmd);
 
-    let status = cmd.status().map_err(|e| {
-        WasmTestbedError::WasmBindgenExecFailed(e).trace()
-    })?;
+    let status = cmd
+        .status()
+        .map_err(|e| WasmTestbedError::WasmBindgenExecFailed(e).trace())?;
 
     if !status.success() {
         return Err(WasmTestbedError::WasmBindgenFailed(status.code()).trace());

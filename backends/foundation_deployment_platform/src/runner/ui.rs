@@ -81,4 +81,3 @@ Add-Type -AssemblyName System.Windows.Forms
     crate::ssh::exec(session, &script)?;
     Ok(())
 }
-

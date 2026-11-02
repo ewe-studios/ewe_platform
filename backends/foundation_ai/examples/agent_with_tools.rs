@@ -19,8 +19,8 @@ use foundation_ai::agentic::{
 use foundation_ai::harness::RouterPreset;
 use foundation_ai::types::{Args, Tool, ToolArguments, ToolDefinition};
 use foundation_core::valtron::valtron;
-use futures_lite::StreamExt;
 use foundation_jsonschema::scheme;
+use futures_lite::StreamExt;
 
 // ---------------------------------------------------------------------------
 // A struct tool: greet
@@ -62,8 +62,7 @@ impl ToolImpl for GreetTool {
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let api_key =
-        std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
+    let api_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
 
     // A closure tool: no struct, no `impl ToolImpl`.
     let count_letters = FnTool::new(
@@ -108,7 +107,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     // 3. Ask the agent to use the tools, watching the turn as it happens.
     println!("\nAsking the agent to greet Alice...");
-    let mut events = agent.run_turn_stream("Please greet Alice, then tell me how many letters her name has.")?.events();
+    let mut events = agent
+        .run_turn_stream("Please greet Alice, then tell me how many letters her name has.")?
+        .events();
     while let Some(event) = events.next().await {
         match event {
             TurnEvent::Text(delta) => print!("{delta}"),

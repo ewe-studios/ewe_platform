@@ -280,7 +280,12 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
     }
 
     async fn get_meta(&self, path: &str) -> VfsResult<Option<VfsMetadata>> {
-        match self.store.get_blob(&Self::meta_key(path)).await.map_err(serr)? {
+        match self
+            .store
+            .get_blob(&Self::meta_key(path))
+            .await
+            .map_err(serr)?
+        {
             Some(bytes) => serde_json::from_slice(&bytes).map(Some).map_err(|e| {
                 ErrorTrace::new(VfsError::Backend {
                     message: format!("meta deserialize: {e}"),
@@ -362,7 +367,12 @@ impl<S: BlobStore + 'static> BlobDelta<S> {
             return Ok(meta);
         }
         match self.read_data(path).await? {
-            Some(data) => Ok(new_meta(path, data.len() as u64, VfsFileType::Regular, 0o644)),
+            Some(data) => Ok(new_meta(
+                path,
+                data.len() as u64,
+                VfsFileType::Regular,
+                0o644,
+            )),
             None => Err(not_found(path)),
         }
     }
@@ -519,7 +529,9 @@ impl<S: BlobStore + 'static> AsyncVfsFile for BlobFile<S> {
         self.delta
             .replace_chunks(&self.path, &old, &content)
             .await?;
-        self.delta.touch_meta(&self.path, content.len() as u64).await?;
+        self.delta
+            .touch_meta(&self.path, content.len() as u64)
+            .await?;
         Ok(data.len())
     }
 
@@ -540,7 +552,9 @@ impl<S: BlobStore + 'static> AsyncVfsFile for BlobFile<S> {
         self.delta
             .replace_chunks(&self.path, &old, &content)
             .await?;
-        self.delta.touch_meta(&self.path, content.len() as u64).await
+        self.delta
+            .touch_meta(&self.path, content.len() as u64)
+            .await
     }
 
     async fn metadata_async(&self) -> VfsResult<VfsMetadata> {
@@ -667,7 +681,11 @@ impl<S: BlobStore + 'static> AsyncVfsDirectory for BlobDirectory<S> {
         self.delta.open(&join(&self.path, &path), mode).await
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         self.delta.open(&join(&self.path, &path), mode).await
     }
 
@@ -733,7 +751,11 @@ impl<S: BlobStore + 'static> AsyncVfsFileSystem for BlobDelta<S> {
         self.open(&path, mode).await
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         self.open(&path, mode).await
     }
 

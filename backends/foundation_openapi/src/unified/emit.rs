@@ -607,4 +607,3 @@ fn append_shared(files: &mut [ModuleFile], shared: usize, mut defs: Vec<TypeDef>
         file.push(def);
     }
 }
-

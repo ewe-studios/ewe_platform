@@ -24,13 +24,15 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use futures::stream::{Stream, StreamExt};
 use foundation_netio::shared::http::SimpleHeaders;
+use futures::stream::{Stream, StreamExt};
 
 use crate::shared::codec::ProcedureCodecs;
 use crate::shared::context::Ctx;
 use crate::shared::error::{ConnectError, ConnectResult};
-use crate::shared::interceptor::{StreamCall, StreamingHandlerFunc, UnaryCall, UnaryFunc, UnaryReply};
+use crate::shared::interceptor::{
+    StreamCall, StreamingHandlerFunc, UnaryCall, UnaryFunc, UnaryReply,
+};
 use crate::shared::message::{Request, Response};
 use crate::shared::transport::{BoxFuture, HandlerConn, MessageSink, MessageSource};
 
@@ -213,12 +215,9 @@ where
 
             let mut source = MessageSource::new(receiver, req_codec, headers.clone());
             let req = source.receive().await?.ok_or_else(|| {
-                ConnectError::invalid_argument(
-                    "server-stream requires exactly one request message",
-                )
+                ConnectError::invalid_argument("server-stream requires exactly one request message")
             })?;
-            let request =
-                Request::with_parts(req, ctx.spec().clone(), ctx.peer().clone(), headers);
+            let request = Request::with_parts(req, ctx.spec().clone(), ctx.peer().clone(), headers);
 
             let stream = handler(ctx.clone(), request).await?;
             let mut sink = MessageSink::new(sender, res_codec);

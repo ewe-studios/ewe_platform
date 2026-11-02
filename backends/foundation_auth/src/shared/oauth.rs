@@ -1,8 +1,8 @@
 //! OAuth 2.0 flows module with PKCE support.
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use foundation_core::url::Query;
 use foundation_compact::rng::Rng;
+use foundation_core::url::Query;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 

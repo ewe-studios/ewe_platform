@@ -66,7 +66,10 @@ fn run_linux(session: &mut VmSession, binary: &str) -> Result<()> {
         .map(|n| n.to_string_lossy())
         .unwrap_or_default();
 
-    crate::ssh::exec(session, &format!("pkill -f '{bin_name}' 2>/dev/null || true"))?;
+    crate::ssh::exec(
+        session,
+        &format!("pkill -f '{bin_name}' 2>/dev/null || true"),
+    )?;
     crate::ssh::exec(session, "pkill Xvfb 2>/dev/null || true")?;
     crate::ssh::exec(session, "pkill openbox 2>/dev/null || true")?;
 
@@ -143,22 +146,22 @@ fn auto_detect_bin(session: &mut VmSession, profile: &VmProfile) -> Result<Strin
         // Check if directory exists
         let check_cmd = format!("test -d {dir} && echo EXISTS || echo MISSING");
         if let Ok(output) = crate::ssh::exec(session, &check_cmd)
-            && output.trim() == "EXISTS" {
-                // Find the most recent executable file
-                let find_cmd = format!(
-                    "find {dir} -maxdepth 1 -type f -name '*{ext}' -printf '%T@ %p\\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-"
-                );
-                if let Ok(output) = crate::ssh::exec(session, &find_cmd) {
-                    let path = output.trim();
-                    if !path.is_empty() {
-                        return Ok(path.to_string());
-                    }
+            && output.trim() == "EXISTS"
+        {
+            // Find the most recent executable file
+            let find_cmd = format!(
+                "find {dir} -maxdepth 1 -type f -name '*{ext}' -printf '%T@ %p\\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-"
+            );
+            if let Ok(output) = crate::ssh::exec(session, &find_cmd) {
+                let path = output.trim();
+                if !path.is_empty() {
+                    return Ok(path.to_string());
                 }
             }
+        }
     }
 
     Err(TestbedError::ArtifactNotFound {
         path: "no compiled binary found in target/".to_string(),
     })
 }
-

@@ -6,7 +6,9 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::provisioning::apps::{self, RegisterAppRequest};
@@ -43,7 +45,14 @@ fn register_app(ctx: &KeychainContext, name: &str) -> (String, String) {
     let c = ctx.clone();
     let name = name.to_string();
     let resp = drive(async move {
-        apps::register(&c, RegisterAppRequest { name, description: Some("test".into()) }).await
+        apps::register(
+            &c,
+            RegisterAppRequest {
+                name,
+                description: Some("test".into()),
+            },
+        )
+        .await
     })
     .expect("register app");
     (resp.app_id, resp.secret)
@@ -53,7 +62,10 @@ fn register_app(ctx: &KeychainContext, name: &str) -> (String, String) {
 fn app_register_and_authenticate() {
     let (ctx, _dir) = fresh_ctx();
     let (app_id, secret) = register_app(&ctx, "deployer");
-    assert!(secret.starts_with(&format!("{app_id}.")), "secret embeds the app id");
+    assert!(
+        secret.starts_with(&format!("{app_id}.")),
+        "secret embeds the app id"
+    );
 
     // The secret authenticates back to the app.
     let c = ctx.clone();
@@ -92,9 +104,19 @@ fn ssh_key_generate_list_get_delete() {
     })
     .expect("create key");
     assert_eq!(created.key_type, "ed25519");
-    assert!(created.public_key.starts_with("ssh-ed25519 "), "pub: {}", created.public_key);
-    let private = created.private_key.clone().expect("private returned on create");
-    assert!(private.contains("BEGIN OPENSSH PRIVATE KEY"), "priv: {private}");
+    assert!(
+        created.public_key.starts_with("ssh-ed25519 "),
+        "pub: {}",
+        created.public_key
+    );
+    let private = created
+        .private_key
+        .clone()
+        .expect("private returned on create");
+    assert!(
+        private.contains("BEGIN OPENSSH PRIVATE KEY"),
+        "priv: {private}"
+    );
     assert!(created.expires_at.is_some());
 
     // List — public only, no private key leaked.
@@ -102,7 +124,10 @@ fn ssh_key_generate_list_get_delete() {
     let aid = app_id.clone();
     let listed = drive(async move { ssh_keys::list(&c, &aid).await }).expect("list");
     assert_eq!(listed.len(), 1);
-    assert!(listed[0].private_key.is_none(), "list must not include private key");
+    assert!(
+        listed[0].private_key.is_none(),
+        "list must not include private key"
+    );
     assert_eq!(listed[0].public_key, created.public_key);
 
     // Get — decrypts the private key at rest; must match what create returned.
@@ -138,9 +163,17 @@ fn keys_are_isolated_per_app() {
     let c = ctx.clone();
     let aid = app_a.clone();
     let key = drive(async move {
-        ssh_keys::create(&c, MASTER, &aid, CreateSshKeyRequest {
-            name: "k".into(), key_type: None, comment: None, ttl_hours: None,
-        })
+        ssh_keys::create(
+            &c,
+            MASTER,
+            &aid,
+            CreateSshKeyRequest {
+                name: "k".into(),
+                key_type: None,
+                comment: None,
+                ttl_hours: None,
+            },
+        )
         .await
     })
     .expect("create");

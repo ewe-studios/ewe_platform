@@ -14,10 +14,10 @@ use foundation_netio::PreparedRequestBuilder;
 
 use crate::client::body::EventStream;
 use crate::error::DockerError;
-use crate::generated::auth::{
-    system_auth_request, AuthConfig, AuthResponse, SystemAuthArgs,
+use crate::generated::auth::{system_auth_request, AuthConfig, AuthResponse, SystemAuthArgs};
+use crate::generated::df::{
+    system_data_usage_request, SystemDataUsageArgs, SystemDataUsageResponse,
 };
-use crate::generated::df::{system_data_usage_request, SystemDataUsageArgs, SystemDataUsageResponse};
 use crate::generated::events::{system_events_request, SystemEventsArgs};
 use crate::generated::info::{system_info_request, SystemInfo, SystemInfoArgs};
 use crate::generated::ping::{system_ping_request, SystemPingArgs};
@@ -124,7 +124,8 @@ pub async fn system_data_usage(
         verbose: None,
     };
     let response =
-        system_data_usage_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
+        system_data_usage_request(client.api(), &args, &client.api_url().await?, None::<NoMod>)
+            .await?;
     Ok(response.body)
 }
 
@@ -152,6 +153,7 @@ pub async fn system_auth(
             serveraddress: None,
         },
     };
-    let response = system_auth_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
+    let response =
+        system_auth_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
     Ok(response.body)
 }

@@ -12,10 +12,10 @@
 //! to track progress through request lifecycle. Platform-aware executor driving
 //! (single-threaded on WASM/multi=off, multi-threaded with multi=on).
 
-use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, ResponseIntro};
 use crate::http::{
     HttpClientConnection, HttpConnectionPool, HttpRequestPending, RequestIntro, SendRequestTask,
 };
+use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, ResponseIntro};
 use crate::shared::http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleResponse, Status,
@@ -188,9 +188,7 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     /// # Panics
     ///
     /// This function does not panic.
-    pub fn into_parts(
-        mut self,
-    ) -> FinalizedResponseParts<T, R> {
+    pub fn into_parts(mut self) -> FinalizedResponseParts<T, R> {
         let response = self.0.take().expect("response already taken");
         let status = response.get_status();
         let headers = response.get_headers_ref().clone();

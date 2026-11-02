@@ -853,11 +853,9 @@ impl ToolCallManager {
         let names: Vec<String> = result.tools.iter().map(|h| h.name.clone()).collect();
         self.activate(&names);
 
-        let json = serde_json::to_string(&result).map_err(|e| {
-            ToolError::Execution {
-                tool: SHED_TOOL_NAME.into(),
-                reason: format!("serialization failed: {e}"),
-            }
+        let json = serde_json::to_string(&result).map_err(|e| ToolError::Execution {
+            tool: SHED_TOOL_NAME.into(),
+            reason: format!("serialization failed: {e}"),
         })?;
         Ok(ToolCallResult::text(json))
     }

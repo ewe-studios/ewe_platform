@@ -39,8 +39,8 @@ pub fn hash_password(password: &str) -> Result<String, UserServiceError> {
 }
 
 pub fn verify_password(hash: &str, password: &str) -> Result<bool, UserServiceError> {
-    let parsed_hash = PasswordHash::new(hash)
-        .map_err(|e| UserServiceError::PasswordHash(e.to_string()))?;
+    let parsed_hash =
+        PasswordHash::new(hash).map_err(|e| UserServiceError::PasswordHash(e.to_string()))?;
     let argon2 = Argon2::default();
     match argon2.verify_password(password.as_bytes(), &parsed_hash) {
         Ok(()) => Ok(true),
@@ -80,4 +80,3 @@ pub fn validate_password(
         Err(errors)
     }
 }
-

@@ -30,12 +30,12 @@ use crate::native::json_file::JsonFileStorage;
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
 use crate::wasm::wasm_storage::{D1WasmStorage, KVWasmStorage, R2WasmStorage};
 
-use crate::core::errors::StorageResult;
 #[allow(unused_imports)] // used only in R2 match arms
 use crate::core::errors::StorageError;
+use crate::core::errors::StorageResult;
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, AsyncQueryStream, QueryStore,
-    RateLimiterStore, DataValue,
+    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
+    RateLimiterStore,
 };
 
 /// Storage backend enumeration for runtime selection.
@@ -251,7 +251,10 @@ impl StorageProvider {
 
 #[async_trait::async_trait]
 impl KeyValueStore for StorageProvider {
-    async fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.get(key).await,
@@ -506,25 +509,35 @@ impl RateLimiterStore for StorageProvider {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => {
-                storage.check_rate_limit(key, max_count, window_seconds).await
+                storage
+                    .check_rate_limit(key, max_count, window_seconds)
+                    .await
             }
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => {
-                storage.check_rate_limit(key, max_count, window_seconds).await
+                storage
+                    .check_rate_limit(key, max_count, window_seconds)
+                    .await
             }
             #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
             StorageProviderInner::Memory(storage) => {
-                storage.check_rate_limit(key, max_count, window_seconds).await
+                storage
+                    .check_rate_limit(key, max_count, window_seconds)
+                    .await
             }
             StorageProviderInner::MemoryJson(storage) => {
-                storage.check_rate_limit(key, max_count, window_seconds).await
+                storage
+                    .check_rate_limit(key, max_count, window_seconds)
+                    .await
             }
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => {
-                storage.check_rate_limit(key, max_count, window_seconds).await
+                storage
+                    .check_rate_limit(key, max_count, window_seconds)
+                    .await
             }
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
@@ -532,7 +545,9 @@ impl RateLimiterStore for StorageProvider {
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => {
-                storage.check_rate_limit(key, max_count, window_seconds).await
+                storage
+                    .check_rate_limit(key, max_count, window_seconds)
+                    .await
             }
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
@@ -540,7 +555,9 @@ impl RateLimiterStore for StorageProvider {
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => {
-                storage.check_rate_limit(key, max_count, window_seconds).await
+                storage
+                    .check_rate_limit(key, max_count, window_seconds)
+                    .await
             }
         }
     }
@@ -548,29 +565,43 @@ impl RateLimiterStore for StorageProvider {
     async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]
-            StorageProviderInner::Turso(storage) => storage.record_rate_limit(key, window_seconds).await,
+            StorageProviderInner::Turso(storage) => {
+                storage.record_rate_limit(key, window_seconds).await
+            }
             #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
-            StorageProviderInner::Libsql(storage) => storage.record_rate_limit(key, window_seconds).await,
+            StorageProviderInner::Libsql(storage) => {
+                storage.record_rate_limit(key, window_seconds).await
+            }
             #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
-            StorageProviderInner::Memory(storage) => storage.record_rate_limit(key, window_seconds).await,
-            StorageProviderInner::MemoryJson(storage) => storage.record_rate_limit(key, window_seconds).await,
+            StorageProviderInner::Memory(storage) => {
+                storage.record_rate_limit(key, window_seconds).await
+            }
+            StorageProviderInner::MemoryJson(storage) => {
+                storage.record_rate_limit(key, window_seconds).await
+            }
             #[cfg(all(feature = "d1", not(target_family = "wasm")))]
-            StorageProviderInner::D1(storage) => storage.record_rate_limit(key, window_seconds).await,
+            StorageProviderInner::D1(storage) => {
+                storage.record_rate_limit(key, window_seconds).await
+            }
             #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-            StorageProviderInner::D1Wasm(storage) => storage.record_rate_limit(key, window_seconds).await,
+            StorageProviderInner::D1Wasm(storage) => {
+                storage.record_rate_limit(key, window_seconds).await
+            }
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-            StorageProviderInner::KVWasm(storage) => storage.record_rate_limit(key, window_seconds).await,
+            StorageProviderInner::KVWasm(storage) => {
+                storage.record_rate_limit(key, window_seconds).await
+            }
         }
     }
 

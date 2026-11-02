@@ -40,12 +40,10 @@ fn thread_count() -> usize {
     std::fs::read_to_string("/proc/self/status")
         .ok()
         .and_then(|status| {
-            status
-                .lines()
-                .find_map(|line| {
-                    line.strip_prefix("Threads:")
-                        .and_then(|rest| rest.trim().parse::<usize>().ok())
-                })
+            status.lines().find_map(|line| {
+                line.strip_prefix("Threads:")
+                    .and_then(|rest| rest.trim().parse::<usize>().ok())
+            })
         })
         .unwrap_or(0)
 }
@@ -56,7 +54,9 @@ fn health_probe_of_silent_backend_times_out_and_leaks_nothing() {
 
     // A silent backend: it completes the client h2 handshake, then never answers.
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind silent backend");
-    listener.set_nonblocking(true).expect("non-blocking listener");
+    listener
+        .set_nonblocking(true)
+        .expect("non-blocking listener");
     let port = listener.local_addr().expect("backend addr").port();
     let shutdown = Arc::new(AtomicBool::new(false));
     let accept_shutdown = Arc::clone(&shutdown);
@@ -110,7 +110,10 @@ fn health_probe_of_silent_backend_times_out_and_leaks_nothing() {
             all_bounded = false;
         }
     }
-    assert!(all_bounded, "each probe must complete in about the probe timeout");
+    assert!(
+        all_bounded,
+        "each probe must complete in about the probe timeout"
+    );
 
     // The pump tasks close their sockets a moment after each probe returns. Wait
     // for the process to settle back to baseline before judging the leak.

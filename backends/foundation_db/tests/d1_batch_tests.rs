@@ -48,7 +48,9 @@ fn handle(mut stream: TcpStream, rows: &Rows) {
             if name.eq_ignore_ascii_case("content-length") {
                 content_length = value.trim().parse().unwrap();
             }
-            if name.eq_ignore_ascii_case("expect") && value.trim().eq_ignore_ascii_case("100-continue") {
+            if name.eq_ignore_ascii_case("expect")
+                && value.trim().eq_ignore_ascii_case("100-continue")
+            {
                 expects_continue = true;
             }
         }
@@ -61,7 +63,11 @@ fn handle(mut stream: TcpStream, rows: &Rows) {
 
     let req: serde_json::Value = serde_json::from_slice(&body).unwrap();
     let sql = req["sql"].as_str().unwrap_or_default();
-    let statements: Vec<&str> = sql.split(';').map(str::trim).filter(|s| !s.is_empty()).collect();
+    let statements: Vec<&str> = sql
+        .split(';')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .collect();
 
     let mut pending: Vec<(String, String)> = Vec::new();
     let mut failed = false;
@@ -129,13 +135,25 @@ async fn batch_statements_apply_atomically() {
     let (store, rows) = mock_store();
 
     let failing = vec![
-        ("INSERT INTO batch_test (key, value) VALUES ('a', '1')".to_string(), vec![]),
-        ("INSERT INTO batch_test (key, value) VALUES ('b', '2')".to_string(), vec![]),
-        ("INSERT INTO SHOULD_FAIL (key, value) VALUES ('c', '3')".to_string(), vec![]),
+        (
+            "INSERT INTO batch_test (key, value) VALUES ('a', '1')".to_string(),
+            vec![],
+        ),
+        (
+            "INSERT INTO batch_test (key, value) VALUES ('b', '2')".to_string(),
+            vec![],
+        ),
+        (
+            "INSERT INTO SHOULD_FAIL (key, value) VALUES ('c', '3')".to_string(),
+            vec![],
+        ),
     ];
     let err = store.execute_batch_statements(&failing).await.unwrap_err();
     assert!(matches!(err, StorageError::Backend(_)));
-    assert!(rows.lock().unwrap().is_empty(), "none of the three statements may apply");
+    assert!(
+        rows.lock().unwrap().is_empty(),
+        "none of the three statements may apply"
+    );
 }
 
 #[valtron_test]
@@ -143,8 +161,14 @@ async fn batch_statements_apply_when_all_succeed() {
     let (store, rows) = mock_store();
 
     let ok = vec![
-        ("INSERT INTO batch_test (key, value) VALUES ('a', '1')".to_string(), vec![]),
-        ("INSERT INTO batch_test (key, value) VALUES ('b', '2')".to_string(), vec![]),
+        (
+            "INSERT INTO batch_test (key, value) VALUES ('a', '1')".to_string(),
+            vec![],
+        ),
+        (
+            "INSERT INTO batch_test (key, value) VALUES ('b', '2')".to_string(),
+            vec![],
+        ),
     ];
     store.execute_batch_statements(&ok).await.unwrap();
 

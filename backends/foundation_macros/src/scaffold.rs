@@ -3,8 +3,8 @@ use quote::{quote, ToTokens};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{
-    Attribute, FnArg, GenericArgument, ImplItem, ItemImpl, ItemStruct, PathArguments,
-    Receiver, Token, Type,
+    Attribute, FnArg, GenericArgument, ImplItem, ItemImpl, ItemStruct, PathArguments, Receiver,
+    Token, Type,
 };
 
 // ── #[scaffoldable] — marks an impl block for automatic forwarding ──
@@ -67,7 +67,10 @@ pub fn scaffoldable(_attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 .collect();
 
             // Check for self receiver type
-            let has_self = sig.inputs.iter().any(|arg| matches!(arg, FnArg::Receiver(_)));
+            let has_self = sig
+                .inputs
+                .iter()
+                .any(|arg| matches!(arg, FnArg::Receiver(_)));
 
             if !has_self {
                 // Skip methods without self receiver — can't forward meaningfully
@@ -92,10 +95,7 @@ pub fn scaffoldable(_attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     }
 
     // Generate the macro_rules! template
-    let macro_name = syn::Ident::new(
-        &format!("__scaffold_methods_{type_name}"),
-        type_name.span(),
-    );
+    let macro_name = syn::Ident::new(&format!("__scaffold_methods_{type_name}"), type_name.span());
 
     let generated = if method_templates.is_empty() {
         quote! {}
@@ -261,7 +261,10 @@ pub fn scaffold_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     });
 
     // Reconstruct the impl block manually (impl_block already contains 'impl')
-    let attrs_tokens: TokenStream2 = new_attrs.iter().map(quote::ToTokens::to_token_stream).collect();
+    let attrs_tokens: TokenStream2 = new_attrs
+        .iter()
+        .map(quote::ToTokens::to_token_stream)
+        .collect();
     let unsafety = &impl_block.unsafety;
     let generics = &impl_block.generics;
     let self_ty = &impl_block.self_ty;
@@ -502,10 +505,7 @@ fn is_scaffold_call(block: &syn::Block) -> bool {
     false
 }
 
-fn build_delegation(
-    sig: &syn::Signature,
-    via: &proc_macro2::TokenStream,
-) -> syn::Block {
+fn build_delegation(sig: &syn::Signature, via: &proc_macro2::TokenStream) -> syn::Block {
     let ident = &sig.ident;
     let arg_names: Vec<_> = sig
         .inputs

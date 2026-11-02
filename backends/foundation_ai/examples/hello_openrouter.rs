@@ -35,8 +35,7 @@ fn openrouter_router(
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let api_key = std::env::var("OPENROUTER_API_KEY")
-        .expect("OPENROUTER_API_KEY must be set");
+    let api_key = std::env::var("OPENROUTER_API_KEY").expect("OPENROUTER_API_KEY must be set");
 
     // Use a free model to avoid charges: google/gemma-4-26b-a4b-it:free
     const PRIMARY: &str = "google/gemma-4-26b-a4b-it:free";
@@ -56,7 +55,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .await?;
 
     println!("Sending hello prompt via OpenRouter to {PRIMARY}...");
-    let turn = agent.run_turn("Hello! Please say hi back in one sentence.").await?;
+    let turn = agent
+        .run_turn("Hello! Please say hi back in one sentence.")
+        .await?;
 
     for record in &turn {
         println!("{record:?}");

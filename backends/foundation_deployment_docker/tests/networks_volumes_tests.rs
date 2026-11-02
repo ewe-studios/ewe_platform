@@ -29,7 +29,8 @@ fn temp_socket_path(tag: &str) -> PathBuf {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let path = std::path::PathBuf::from("/tmp").join(format!("ewe_docker_{tag}_{pid}_{nanos}.sock"));
+    let path =
+        std::path::PathBuf::from("/tmp").join(format!("ewe_docker_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path
 }
@@ -46,9 +47,11 @@ fn temp_socket_path(tag: &str) -> PathBuf {
 fn route(method: &str, path: &str) -> (u16, String) {
     // Strip the /v1.<version>/ prefix to get the bare endpoint path.
     let path_no_query = path.split('?').next().unwrap_or(path);
-    let p = path_no_query.split_once("/v1.").map_or(path_no_query, |(_, rest)| {
-        rest.split_once('/').map_or(rest, |(_, r)| r)
-    });
+    let p = path_no_query
+        .split_once("/v1.")
+        .map_or(path_no_query, |(_, rest)| {
+            rest.split_once('/').map_or(rest, |(_, r)| r)
+        });
 
     match (method, p) {
         // Version negotiation: the client asks once, unversioned, before its
@@ -127,15 +130,9 @@ fn mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>) {
         };
         let (method, path) = (req.method.as_str(), req.target.as_str());
         let (status, body) = route(method, path);
-        let reason = if status == 204 {
-            "No Content"
-        } else {
-            "OK"
-        };
+        let reason = if status == 204 { "No Content" } else { "OK" };
         let response = if body.is_empty() {
-            format!(
-                "HTTP/1.1 {status} {reason}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
-            )
+            format!("HTTP/1.1 {status} {reason}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
         } else {
             format!(
                 "HTTP/1.1 {status} {reason}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
@@ -159,7 +156,10 @@ async fn network_list_returns_json_array() {
     mock_daemon(socket.clone(), stop.clone());
     let client = DockerClient::connect_unix(&socket);
 
-    let result = client.network_list(None).await.expect("network_list should succeed");
+    let result = client
+        .network_list(None)
+        .await
+        .expect("network_list should succeed");
     let arr = result.as_array().expect("body should be a JSON array");
     assert_eq!(arr.len(), 1);
     assert_eq!(arr[0]["Name"], "bridge");
@@ -233,7 +233,10 @@ async fn volume_list_returns_volumes_array() {
     mock_daemon(socket.clone(), stop.clone());
     let client = DockerClient::connect_unix(&socket);
 
-    let resp = client.volume_list(None).await.expect("volume_list should succeed");
+    let resp = client
+        .volume_list(None)
+        .await
+        .expect("volume_list should succeed");
     let volumes = resp.volumes.expect("Volumes should be present");
     assert_eq!(volumes.len(), 1);
     assert_eq!(volumes[0].name, "test");
@@ -257,10 +260,7 @@ async fn volume_inspect_returns_volume() {
         .expect("volume_inspect should succeed");
     assert_eq!(vol.name, "test");
     assert_eq!(vol.driver, "local");
-    assert_eq!(
-        vol.mountpoint,
-        "/var/lib/docker/volumes/test/_data"
-    );
+    assert_eq!(vol.mountpoint, "/var/lib/docker/volumes/test/_data");
     assert_eq!(vol.scope, "local");
 
     mock_socket::stop(&socket, &stop);

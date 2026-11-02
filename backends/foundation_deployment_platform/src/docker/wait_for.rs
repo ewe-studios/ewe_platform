@@ -15,12 +15,12 @@ use std::collections::HashMap;
 use std::net::{Ipv4Addr, SocketAddr, TcpStream, UdpSocket};
 use std::time::{Duration, Instant};
 
+use crate::docker::error::{DockerError, DockerResult, classify_docker_client_err, docker_err};
 use foundation_core::valtron::sleep_async;
+use foundation_deployment_docker::DockerClient;
 use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
 use foundation_deployment_docker::streaming::decoder::LogOutput;
-use foundation_deployment_docker::DockerClient;
 use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
-use crate::docker::error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
 
 /// A readiness condition for a running container.
 #[derive(Debug, Clone, Default)]
@@ -30,7 +30,11 @@ pub enum WaitFor {
     /// Wait for a UDP port to respond to a datagram probe.
     Udp { port: u16, timeout: Duration },
     /// Wait for an HTTP endpoint to return a 2xx status.
-    Http { url: String, expected_status: u16, timeout: Duration },
+    Http {
+        url: String,
+        expected_status: u16,
+        timeout: Duration,
+    },
     /// Wait for a message to appear in container stdout/stderr.
     Stdout { message: String, timeout: Duration },
     /// Run multiple strategies in sequence (all must succeed).
@@ -43,7 +47,10 @@ pub enum WaitFor {
 impl WaitFor {
     #[must_use]
     pub fn port(port: u16) -> Self {
-        Self::Port { port, timeout: Duration::from_secs(30) }
+        Self::Port {
+            port,
+            timeout: Duration::from_secs(30),
+        }
     }
     #[must_use]
     pub fn port_with_timeout(port: u16, timeout: Duration) -> Self {
@@ -51,7 +58,10 @@ impl WaitFor {
     }
     #[must_use]
     pub fn udp(port: u16) -> Self {
-        Self::Udp { port, timeout: Duration::from_secs(30) }
+        Self::Udp {
+            port,
+            timeout: Duration::from_secs(30),
+        }
     }
     #[must_use]
     pub fn udp_with_timeout(port: u16, timeout: Duration) -> Self {
@@ -59,11 +69,18 @@ impl WaitFor {
     }
     #[must_use]
     pub fn http(url: impl Into<String>) -> Self {
-        Self::Http { url: url.into(), expected_status: 200, timeout: Duration::from_secs(30) }
+        Self::Http {
+            url: url.into(),
+            expected_status: 200,
+            timeout: Duration::from_secs(30),
+        }
     }
     #[must_use]
     pub fn stdout(message: impl Into<String>) -> Self {
-        Self::Stdout { message: message.into(), timeout: Duration::from_secs(30) }
+        Self::Stdout {
+            message: message.into(),
+            timeout: Duration::from_secs(30),
+        }
     }
     #[must_use]
     pub fn all(strategies: Vec<WaitFor>) -> Self {
@@ -114,7 +131,11 @@ impl WaitFor {
                 WaitFor::Stdout { message, timeout } => {
                     wait_for_stdout(client, container_id, message, *timeout).await?;
                 }
-                WaitFor::Http { url, expected_status, timeout } => {
+                WaitFor::Http {
+                    url,
+                    expected_status,
+                    timeout,
+                } => {
                     wait_for_http(url, *expected_status, *timeout).await?;
                 }
                 WaitFor::Composite { strategies } => {
@@ -160,7 +181,9 @@ pub async fn wait_for_port_at(
 ) -> DockerResult<()> {
     let key = format!("{port}/tcp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
-        docker_err(DockerError::InvalidConfig(format!("port {port} was not mapped")))
+        docker_err(DockerError::InvalidConfig(format!(
+            "port {port} was not mapped"
+        )))
     })?;
     let addr = SocketAddr::from((host, host_port));
 
@@ -195,7 +218,9 @@ pub(crate) async fn wait_for_udp(
 ) -> DockerResult<()> {
     let key = format!("{port}/udp");
     let host_port = ports.get(&key).copied().ok_or_else(|| {
-        docker_err(DockerError::InvalidConfig(format!("UDP port {port} was not mapped")))
+        docker_err(DockerError::InvalidConfig(format!(
+            "UDP port {port} was not mapped"
+        )))
     })?;
     let addr = SocketAddr::from((host, host_port));
 
@@ -228,7 +253,10 @@ fn udp_probe(addr: SocketAddr) -> bool {
         return false;
     };
     // Without the timeout `recv_from` could block the probe forever.
-    if socket.set_read_timeout(Some(Duration::from_millis(200))).is_err() {
+    if socket
+        .set_read_timeout(Some(Duration::from_millis(200)))
+        .is_err()
+    {
         return false;
     }
     if socket.send_to(&[1u8], addr).is_err() {

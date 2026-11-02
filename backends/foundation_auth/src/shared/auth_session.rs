@@ -53,7 +53,15 @@ impl UpstreamAuthSession {
         redirect_to: Option<String>,
         ttl_seconds: u64,
     ) -> Self {
-        Self::with_app_state(state, provider_id, code_verifier, nonce, redirect_to, ttl_seconds, None)
+        Self::with_app_state(
+            state,
+            provider_id,
+            code_verifier,
+            nonce,
+            redirect_to,
+            ttl_seconds,
+            None,
+        )
     }
 
     #[must_use]
@@ -198,17 +206,19 @@ pub mod memory {
 
     impl UpstreamAuthSessionStore for MemoryAuthSessionStore {
         fn insert(&self, session: &UpstreamAuthSession) -> Result<(), AuthSessionError> {
-            let mut map = self.sessions.lock().map_err(|e| {
-                AuthSessionError::Storage(format!("mutex poisoned: {e}"))
-            })?;
+            let mut map = self
+                .sessions
+                .lock()
+                .map_err(|e| AuthSessionError::Storage(format!("mutex poisoned: {e}")))?;
             map.insert(session.state.clone(), session.clone());
             Ok(())
         }
 
         fn take(&self, state: &str) -> Result<UpstreamAuthSession, AuthSessionError> {
-            let mut map = self.sessions.lock().map_err(|e| {
-                AuthSessionError::Storage(format!("mutex poisoned: {e}"))
-            })?;
+            let mut map = self
+                .sessions
+                .lock()
+                .map_err(|e| AuthSessionError::Storage(format!("mutex poisoned: {e}")))?;
             let session = map.remove(state).ok_or(AuthSessionError::NotFound)?;
             if session.consumed {
                 return Err(AuthSessionError::AlreadyConsumed);
@@ -220,9 +230,10 @@ pub mod memory {
         }
 
         fn delete(&self, state: &str) -> Result<(), AuthSessionError> {
-            let mut map = self.sessions.lock().map_err(|e| {
-                AuthSessionError::Storage(format!("mutex poisoned: {e}"))
-            })?;
+            let mut map = self
+                .sessions
+                .lock()
+                .map_err(|e| AuthSessionError::Storage(format!("mutex poisoned: {e}")))?;
             map.remove(state);
             Ok(())
         }
@@ -255,20 +266,17 @@ mod tests {
         assert_eq!(taken.provider_id, "google");
         assert_eq!(taken.code_verifier.unwrap(), "pkce-verifier");
         assert_eq!(taken.nonce.unwrap(), "nonce-123");
-        assert_eq!(taken.redirect_to.unwrap(), "https://app.example.com/dashboard");
+        assert_eq!(
+            taken.redirect_to.unwrap(),
+            "https://app.example.com/dashboard"
+        );
     }
 
     #[test]
     fn take_removes_session_one_time_only() {
         let store = MemoryAuthSessionStore::new();
-        let session = UpstreamAuthSession::new(
-            "state-xyz".into(),
-            "github".into(),
-            None,
-            None,
-            None,
-            600,
-        );
+        let session =
+            UpstreamAuthSession::new("state-xyz".into(), "github".into(), None, None, None, 600);
         store.insert(&session).expect("insert");
         let _first = store.take("state-xyz").expect("first take");
         let second = store.take("state-xyz");

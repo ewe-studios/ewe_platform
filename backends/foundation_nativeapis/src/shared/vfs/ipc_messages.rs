@@ -11,46 +11,130 @@ use super::types::{
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum VfsRequestBody {
     // File operations
-    Open { path: String, mode: IpcOpenMode, seekable: bool },
-    Create { path: String, mode: u32 },
-    ReadAt { handle: u64, offset: u64, size: u64 },
-    WriteAt { handle: u64, #[serde(with = "serde_bytes")] data: Vec<u8>, offset: u64 },
-    Seek { handle: u64, pos: IpcSeekFrom },
-    Truncate { handle: u64, size: u64 },
-    SyncData { handle: u64 },
-    CloseFile { handle: u64 },
-    FileSize { handle: u64 },
-    FileMetadata { handle: u64 },
+    Open {
+        path: String,
+        mode: IpcOpenMode,
+        seekable: bool,
+    },
+    Create {
+        path: String,
+        mode: u32,
+    },
+    ReadAt {
+        handle: u64,
+        offset: u64,
+        size: u64,
+    },
+    WriteAt {
+        handle: u64,
+        #[serde(with = "serde_bytes")]
+        data: Vec<u8>,
+        offset: u64,
+    },
+    Seek {
+        handle: u64,
+        pos: IpcSeekFrom,
+    },
+    Truncate {
+        handle: u64,
+        size: u64,
+    },
+    SyncData {
+        handle: u64,
+    },
+    CloseFile {
+        handle: u64,
+    },
+    FileSize {
+        handle: u64,
+    },
+    FileMetadata {
+        handle: u64,
+    },
 
     // Path operations
-    Stat { path: String },
-    Exists { path: String },
-    Mkdir { path: String },
-    Remove { path: String },
-    Rename { from: String, to: String },
-    Chmod { path: String, mode: u32 },
-    Symlink { target: String, link: String },
-    ReadLink { path: String },
+    Stat {
+        path: String,
+    },
+    Exists {
+        path: String,
+    },
+    Mkdir {
+        path: String,
+    },
+    Remove {
+        path: String,
+    },
+    Rename {
+        from: String,
+        to: String,
+    },
+    Chmod {
+        path: String,
+        mode: u32,
+    },
+    Symlink {
+        target: String,
+        link: String,
+    },
+    ReadLink {
+        path: String,
+    },
 
     // Inode operations
-    Inode { path: String },
-    PathByInode { ino: u64 },
-    StatByInode { ino: u64 },
+    Inode {
+        path: String,
+    },
+    PathByInode {
+        ino: u64,
+    },
+    StatByInode {
+        ino: u64,
+    },
 
     // Directory handle operations
-    OpenDir { path: String },
-    DirList { handle: u64 },
-    DirGetEntry { handle: u64, name: String },
-    DirPath { handle: u64 },
-    DirMetadata { handle: u64 },
-    DirCreateFile { handle: u64, name: String, mode: u32 },
-    DirCreateDir { handle: u64, name: String },
-    DirRemoveEntry { handle: u64, name: String },
-    CloseDir { handle: u64 },
+    OpenDir {
+        path: String,
+    },
+    DirList {
+        handle: u64,
+    },
+    DirGetEntry {
+        handle: u64,
+        name: String,
+    },
+    DirPath {
+        handle: u64,
+    },
+    DirMetadata {
+        handle: u64,
+    },
+    DirCreateFile {
+        handle: u64,
+        name: String,
+        mode: u32,
+    },
+    DirCreateDir {
+        handle: u64,
+        name: String,
+    },
+    DirRemoveEntry {
+        handle: u64,
+        name: String,
+    },
+    CloseDir {
+        handle: u64,
+    },
 
     // Convenience
-    ReadFile { path: String },
-    WriteFile { path: String, #[serde(with = "serde_bytes")] data: Vec<u8> },
+    ReadFile {
+        path: String,
+    },
+    WriteFile {
+        path: String,
+        #[serde(with = "serde_bytes")]
+        data: Vec<u8>,
+    },
 
     // Capabilities
     Capabilities,

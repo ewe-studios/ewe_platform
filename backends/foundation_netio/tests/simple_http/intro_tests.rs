@@ -9,8 +9,8 @@
 //! integration suite where `HttpResponseReader` and stream-based probing can be
 //! exercised deterministically.
 
-use foundation_netio::shared::client::*;
 use foundation_netio::http::*;
+use foundation_netio::shared::client::*;
 use foundation_netio::shared::http::*;
 
 #[test]

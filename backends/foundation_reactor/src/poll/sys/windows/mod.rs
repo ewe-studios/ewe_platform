@@ -6,7 +6,6 @@
 /// For readiness polling on sockets, we use `WSAPoll` under the hood since
 /// IOCP only posts completions for overlapped I/O operations (not readiness).
 /// For non-socket handles, readiness must be tracked via overlapped I/O operations.
-
 use super::super::event::Event;
 use super::super::Events;
 use crate::poll::{Interest, Registry, Token};
@@ -17,10 +16,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use windows_sys::Win32::{
-    Foundation::*,
-    Networking::WinSock::*,
-    System::IO::CreateIoCompletionPort,
-    System::Threading::*,
+    Foundation::*, Networking::WinSock::*, System::Threading::*, System::IO::CreateIoCompletionPort,
 };
 
 /// Per-registered-fd state for the IOCP selector.
@@ -96,7 +92,10 @@ impl Selector {
         unsafe {
             let handle = fd as HANDLE;
             if handle.is_null() || handle == INVALID_HANDLE_VALUE {
-                return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid handle"));
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "invalid handle",
+                ));
             }
 
             // Associate handle with our IOCP. The completion key encodes our token.
@@ -140,7 +139,10 @@ impl Selector {
             state.interest = interest;
             Ok(())
         } else {
-            Err(io::Error::new(io::ErrorKind::NotFound, "handle not registered"))
+            Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                "handle not registered",
+            ))
         }
     }
 
@@ -153,7 +155,10 @@ impl Selector {
 
     /// VNODE registration is not supported on Windows IOCP for file watching.
     pub fn register_vnode(&self, _fd: RawFd, _token: Token) -> io::Result<()> {
-        Err(io::Error::new(io::ErrorKind::Unsupported, "EVFILT_VNODE not supported on Windows"))
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "EVFILT_VNODE not supported on Windows",
+        ))
     }
 
     /// VNODE deregistration — no-op on Windows.
@@ -165,7 +170,12 @@ impl Selector {
     /// with the IOCP via a dummy completion key.
     pub fn register_waker(&self, token: Token) -> io::Result<()> {
         unsafe {
-            let event = CreateEventW(std::ptr::null(), true as BOOL, false as BOOL, std::ptr::null());
+            let event = CreateEventW(
+                std::ptr::null(),
+                true as BOOL,
+                false as BOOL,
+                std::ptr::null(),
+            );
             if event.is_null() {
                 return Err(io::Error::last_os_error());
             }
@@ -204,9 +214,7 @@ impl Selector {
     /// For non-socket handles, uses `GetQueuedCompletionStatus` with the given timeout
     /// to check for overlapped I/O completions.
     pub fn poll(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<()> {
-        let timeout_ms = timeout
-            .map(|d| d.as_millis() as u32)
-            .unwrap_or(u32::MAX);
+        let timeout_ms = timeout.map(|d| d.as_millis() as u32).unwrap_or(u32::MAX);
 
         let (ptr, cap) = events.as_mut_ptr_and_cap();
         let mut count = 0;

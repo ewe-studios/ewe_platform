@@ -137,10 +137,10 @@ impl UserInfoClient {
         userinfo_url: &str,
         access_token: &str,
     ) -> Result<UserInfo, UserInfoError> {
-        let body = fetch_userinfo(&self.http, userinfo_url, access_token, self.max_error_body)
-            .await?;
-        let info: UserInfo = serde_json::from_str(&body)
-            .map_err(|e| UserInfoError::ParseError(e.to_string()))?;
+        let body =
+            fetch_userinfo(&self.http, userinfo_url, access_token, self.max_error_body).await?;
+        let info: UserInfo =
+            serde_json::from_str(&body).map_err(|e| UserInfoError::ParseError(e.to_string()))?;
         info.validate()?;
         Ok(info)
     }

@@ -8,13 +8,9 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{self, Stream, TaskIteratorExt, TaskStatus};
-use foundation_netio::shared::client::request_task::{
-    HttpExchange, HttpExchangePending,
-};
-use foundation_netio::shared::client::{
-    ClientConfig, PreparedRequest, SystemDnsResolver,
-};
 use foundation_netio::http::{HttpConnectionPool, HttpExchangeTask};
+use foundation_netio::shared::client::request_task::{HttpExchange, HttpExchangePending};
+use foundation_netio::shared::client::{ClientConfig, PreparedRequest, SystemDnsResolver};
 use foundation_netio::shared::http::{
     pushable_request_body_with_depth, Extensions, SimpleHeaders, SimpleMethod, Status,
     DEFAULT_PUSHABLE_DEPTH,
@@ -106,7 +102,7 @@ fn yields_head_then_body_then_exhausts() {
                 body_bytes.extend_from_slice(&b);
             }
             Stream::Next(HttpExchange::Failed(e)) => panic!("unexpected Failed: {e}"),
-            _ => {},
+            _ => {}
         }
     }
 

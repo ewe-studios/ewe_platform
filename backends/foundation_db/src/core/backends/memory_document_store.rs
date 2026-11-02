@@ -11,7 +11,7 @@
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    DocumentStore, AsyncStorageItemStream, Document, PromotableDocument,
+    AsyncStorageItemStream, Document, DocumentStore, PromotableDocument,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
@@ -244,7 +244,12 @@ impl DocumentStore for MemoryDocumentStore {
         key: &str,
         limit: usize,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
-        Ok(rows_to_async(self.collect_rows(key, true, None, Some(limit))?))
+        Ok(rows_to_async(self.collect_rows(
+            key,
+            true,
+            None,
+            Some(limit),
+        )?))
     }
 
     async fn scan_all<V: DeserializeOwned + Send + 'static>(

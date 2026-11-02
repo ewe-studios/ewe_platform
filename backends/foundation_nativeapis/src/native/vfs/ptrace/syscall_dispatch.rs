@@ -5,7 +5,6 @@
 /// 1. Reading registers (syscall number + arguments)
 /// 2. Calling the appropriate dispatch function here
 /// 3. Writing the result back to registers/tracee memory
-
 use nix::libc;
 
 use std::sync::{Arc, Mutex};
@@ -13,7 +12,7 @@ use std::sync::{Arc, Mutex};
 use foundation_errstacks::ErrorTrace;
 
 use super::memory;
-use super::{MountTable, VirtualFdEntry, VirtualFdTable, syscall_nr::*};
+use super::{syscall_nr::*, MountTable, VirtualFdEntry, VirtualFdTable};
 use crate::shared::vfs::error::VfsError;
 use crate::shared::vfs::types::OpenMode;
 
@@ -42,9 +41,15 @@ pub enum SyscallAction {
 }
 
 impl SyscallAction {
-    pub fn passthrough() -> Self { Self::Passthrough }
-    pub fn skip(return_value: i64) -> Self { Self::Skip { return_value } }
-    pub fn skip_error(errno: i64) -> Self { Self::SkipError { errno } }
+    pub fn passthrough() -> Self {
+        Self::Passthrough
+    }
+    pub fn skip(return_value: i64) -> Self {
+        Self::Skip { return_value }
+    }
+    pub fn skip_error(errno: i64) -> Self {
+        Self::SkipError { errno }
+    }
 }
 
 // ── Dispatch logic ──
@@ -107,89 +112,115 @@ pub fn on_syscall_entry(
         }
 
         // ── Path operations (virtual path only) ──
-        STAT if resolve_tracee_path(pid, args.arg0).map(|p| mount_table.is_virtual(&p)).unwrap_or(false) => {
+        STAT if resolve_tracee_path(pid, args.arg0)
+            .map(|p| mount_table.is_virtual(&p))
+            .unwrap_or(false) =>
+        {
             handle_path_stat(pid, args, mount_table)
         }
-        LSTAT if {
-            match memory::read_tracee_string(pid, args.arg0, 4096) {
-                Ok(s) => mount_table.is_virtual(&s),
-                Err(_) => false,
-            }
-        } => {
+        LSTAT
+            if {
+                match memory::read_tracee_string(pid, args.arg0, 4096) {
+                    Ok(s) => mount_table.is_virtual(&s),
+                    Err(_) => false,
+                }
+            } =>
+        {
             handle_path_stat(pid, args, mount_table)
         }
-        ACCESS if {
-            match memory::read_tracee_string(pid, args.arg0, 4096) {
-                Ok(s) => mount_table.is_virtual(&s),
-                Err(_) => false,
-            }
-        } => {
+        ACCESS
+            if {
+                match memory::read_tracee_string(pid, args.arg0, 4096) {
+                    Ok(s) => mount_table.is_virtual(&s),
+                    Err(_) => false,
+                }
+            } =>
+        {
             handle_path_access(pid, args, mount_table)
         }
-        UNLINK if {
-            match memory::read_tracee_string(pid, args.arg0, 4096) {
-                Ok(s) => mount_table.is_virtual(&s),
-                Err(_) => false,
-            }
-        } => {
+        UNLINK
+            if {
+                match memory::read_tracee_string(pid, args.arg0, 4096) {
+                    Ok(s) => mount_table.is_virtual(&s),
+                    Err(_) => false,
+                }
+            } =>
+        {
             handle_path_remove(pid, args, mount_table)
         }
-        MKDIR if {
-            match memory::read_tracee_string(pid, args.arg0, 4096) {
-                Ok(s) => mount_table.is_virtual(&s),
-                Err(_) => false,
-            }
-        } => {
+        MKDIR
+            if {
+                match memory::read_tracee_string(pid, args.arg0, 4096) {
+                    Ok(s) => mount_table.is_virtual(&s),
+                    Err(_) => false,
+                }
+            } =>
+        {
             handle_path_mkdir(pid, args, mount_table)
         }
-        RMDIR if {
-            match memory::read_tracee_string(pid, args.arg0, 4096) {
-                Ok(s) => mount_table.is_virtual(&s),
-                Err(_) => false,
-            }
-        } => {
+        RMDIR
+            if {
+                match memory::read_tracee_string(pid, args.arg0, 4096) {
+                    Ok(s) => mount_table.is_virtual(&s),
+                    Err(_) => false,
+                }
+            } =>
+        {
             handle_path_remove(pid, args, mount_table)
         }
-        RENAME if {
-            match (memory::read_tracee_string(pid, args.arg0, 4096),
-                   memory::read_tracee_string(pid, args.arg1, 4096))
-            {
-                (Ok(from), Ok(to)) => mount_table.is_virtual(&from) || mount_table.is_virtual(&to),
-                _ => false,
-            }
-        } => {
+        RENAME
+            if {
+                match (
+                    memory::read_tracee_string(pid, args.arg0, 4096),
+                    memory::read_tracee_string(pid, args.arg1, 4096),
+                ) {
+                    (Ok(from), Ok(to)) => {
+                        mount_table.is_virtual(&from) || mount_table.is_virtual(&to)
+                    }
+                    _ => false,
+                }
+            } =>
+        {
             handle_path_rename(pid, args, mount_table)
         }
-        SYMLINK if {
-            match memory::read_tracee_string(pid, args.arg1, 4096) {
-                Ok(s) => mount_table.is_virtual(&s),
-                Err(_) => false,
-            }
-        } => {
+        SYMLINK
+            if {
+                match memory::read_tracee_string(pid, args.arg1, 4096) {
+                    Ok(s) => mount_table.is_virtual(&s),
+                    Err(_) => false,
+                }
+            } =>
+        {
             handle_path_symlink(pid, args, mount_table)
         }
-        READLINK if {
-            match memory::read_tracee_string(pid, args.arg0, 4096) {
-                Ok(s) => mount_table.is_virtual(&s),
-                Err(_) => false,
-            }
-        } => {
+        READLINK
+            if {
+                match memory::read_tracee_string(pid, args.arg0, 4096) {
+                    Ok(s) => mount_table.is_virtual(&s),
+                    Err(_) => false,
+                }
+            } =>
+        {
             handle_path_readlink(pid, args, mount_table)
         }
-        CHMOD if {
-            match memory::read_tracee_string(pid, args.arg0, 4096) {
-                Ok(s) => mount_table.is_virtual(&s),
-                Err(_) => false,
-            }
-        } => {
+        CHMOD
+            if {
+                match memory::read_tracee_string(pid, args.arg0, 4096) {
+                    Ok(s) => mount_table.is_virtual(&s),
+                    Err(_) => false,
+                }
+            } =>
+        {
             handle_path_chmod(pid, args, mount_table)
         }
-        TRUNCATE if {
-            match memory::read_tracee_string(pid, args.arg0, 4096) {
-                Ok(s) => mount_table.is_virtual(&s),
-                Err(_) => false,
-            }
-        } => {
+        TRUNCATE
+            if {
+                match memory::read_tracee_string(pid, args.arg0, 4096) {
+                    Ok(s) => mount_table.is_virtual(&s),
+                    Err(_) => false,
+                }
+            } =>
+        {
             handle_path_truncate(pid, args, mount_table)
         }
 
@@ -275,18 +306,20 @@ fn handle_open(
     match result {
         Ok(file) => {
             let vfd = fd_table.alloc_fd();
-            fd_table.insert(pid.as_raw() as u32, vfd, VirtualFdEntry::File {
-                handle: file,
-                path,
-                offset: Arc::new(Mutex::new(0)),
-                mode,
-                flags,
-            });
+            fd_table.insert(
+                pid.as_raw() as u32,
+                vfd,
+                VirtualFdEntry::File {
+                    handle: file,
+                    path,
+                    offset: Arc::new(Mutex::new(0)),
+                    mode,
+                    flags,
+                },
+            );
             SyscallAction::skip(vfd as i64)
         }
-        Err(e) => {
-            SyscallAction::skip_error(vfs_error_to_errno(&e))
-        }
+        Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
     }
 }
 
@@ -329,9 +362,17 @@ fn handle_openat(
     match result {
         Ok(file) => {
             let vfd = fd_table.alloc_fd();
-            fd_table.insert(pid.as_raw() as u32, vfd, VirtualFdEntry::File {
-                handle: file, path, offset: Arc::new(Mutex::new(0)), mode, flags,
-            });
+            fd_table.insert(
+                pid.as_raw() as u32,
+                vfd,
+                VirtualFdEntry::File {
+                    handle: file,
+                    path,
+                    offset: Arc::new(Mutex::new(0)),
+                    mode,
+                    flags,
+                },
+            );
             SyscallAction::skip(vfd as i64)
         }
         Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
@@ -362,10 +403,17 @@ fn handle_creat(
     match fs.create(&path, mode) {
         Ok(file) => {
             let vfd = fd_table.alloc_fd();
-            fd_table.insert(pid.as_raw() as u32, vfd, VirtualFdEntry::File {
-                handle: file, path, offset: Arc::new(Mutex::new(0)), mode: OpenMode::Write,
-                flags: libc::O_CREAT | libc::O_WRONLY | libc::O_TRUNC,
-            });
+            fd_table.insert(
+                pid.as_raw() as u32,
+                vfd,
+                VirtualFdEntry::File {
+                    handle: file,
+                    path,
+                    offset: Arc::new(Mutex::new(0)),
+                    mode: OpenMode::Write,
+                    flags: libc::O_CREAT | libc::O_WRONLY | libc::O_TRUNC,
+                },
+            );
             SyscallAction::skip(vfd as i64)
         }
         Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
@@ -459,12 +507,10 @@ fn handle_vfs_pread(
         VirtualFdEntry::File { handle, .. } => {
             let mut buf = vec![0u8; count];
             match handle.read_at(&mut buf, offset) {
-                Ok(n) => {
-                    match memory::write_tracee_buf(pid, buf_addr, &buf[..n]) {
-                        Ok(()) => SyscallAction::skip(n as i64),
-                        Err(_) => SyscallAction::skip_error(libc::EFAULT as i64),
-                    }
-                }
+                Ok(n) => match memory::write_tracee_buf(pid, buf_addr, &buf[..n]) {
+                    Ok(()) => SyscallAction::skip(n as i64),
+                    Err(_) => SyscallAction::skip_error(libc::EFAULT as i64),
+                },
                 Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
             }
         }
@@ -517,7 +563,11 @@ fn handle_vfs_lseek(
     };
 
     match entry {
-        VirtualFdEntry::File { handle, offset: file_offset, .. } => {
+        VirtualFdEntry::File {
+            handle,
+            offset: file_offset,
+            ..
+        } => {
             let current = *file_offset.lock().unwrap();
             let file_size = match handle.size() {
                 Ok(s) => s as i64,
@@ -566,28 +616,20 @@ fn handle_vfs_fstat(
     };
 
     match entry {
-        VirtualFdEntry::File { handle, .. } => {
-            match handle.metadata() {
-                Ok(meta) => {
-                    match memory::write_tracee_stat(pid, buf_addr, &meta) {
-                        Ok(()) => SyscallAction::skip(0),
-                        Err(_) => SyscallAction::skip_error(libc::EFAULT as i64),
-                    }
-                }
-                Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
-            }
-        }
-        VirtualFdEntry::Directory { handle, .. } => {
-            match handle.metadata() {
-                Ok(meta) => {
-                    match memory::write_tracee_stat(pid, buf_addr, &meta) {
-                        Ok(()) => SyscallAction::skip(0),
-                        Err(_) => SyscallAction::skip_error(libc::EFAULT as i64),
-                    }
-                }
-                Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
-            }
-        }
+        VirtualFdEntry::File { handle, .. } => match handle.metadata() {
+            Ok(meta) => match memory::write_tracee_stat(pid, buf_addr, &meta) {
+                Ok(()) => SyscallAction::skip(0),
+                Err(_) => SyscallAction::skip_error(libc::EFAULT as i64),
+            },
+            Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
+        },
+        VirtualFdEntry::Directory { handle, .. } => match handle.metadata() {
+            Ok(meta) => match memory::write_tracee_stat(pid, buf_addr, &meta) {
+                Ok(()) => SyscallAction::skip(0),
+                Err(_) => SyscallAction::skip_error(libc::EFAULT as i64),
+            },
+            Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
+        },
     }
 }
 
@@ -605,12 +647,10 @@ fn handle_vfs_ftruncate(
     };
 
     match entry {
-        VirtualFdEntry::File { handle, .. } => {
-            match handle.truncate(length) {
-                Ok(()) => SyscallAction::skip(0),
-                Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
-            }
-        }
+        VirtualFdEntry::File { handle, .. } => match handle.truncate(length) {
+            Ok(()) => SyscallAction::skip(0),
+            Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
+        },
         _ => SyscallAction::skip_error(libc::EBADF as i64),
     }
 }
@@ -670,12 +710,10 @@ fn handle_path_stat(
     };
 
     match fs.stat(&path) {
-        Ok(meta) => {
-            match memory::write_tracee_stat(pid, buf_addr, &meta) {
-                Ok(()) => SyscallAction::skip(0),
-                Err(_) => SyscallAction::skip_error(libc::EFAULT as i64),
-            }
-        }
+        Ok(meta) => match memory::write_tracee_stat(pid, buf_addr, &meta) {
+            Ok(()) => SyscallAction::skip(0),
+            Err(_) => SyscallAction::skip_error(libc::EFAULT as i64),
+        },
         Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
     }
 }
@@ -864,12 +902,10 @@ fn handle_path_truncate(
     };
 
     match fs.open_file(&path, OpenMode::Write) {
-        Ok(file) => {
-            match file.truncate(length) {
-                Ok(()) => SyscallAction::skip(0),
-                Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
-            }
-        }
+        Ok(file) => match file.truncate(length) {
+            Ok(()) => SyscallAction::skip(0),
+            Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
+        },
         Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
     }
 }
@@ -900,12 +936,10 @@ fn handle_newfstatat(
     };
 
     match fs.stat(&path) {
-        Ok(meta) => {
-            match memory::write_tracee_stat(pid, buf_addr, &meta) {
-                Ok(()) => SyscallAction::skip(0),
-                Err(_) => SyscallAction::skip_error(libc::EFAULT as i64),
-            }
-        }
+        Ok(meta) => match memory::write_tracee_stat(pid, buf_addr, &meta) {
+            Ok(()) => SyscallAction::skip(0),
+            Err(_) => SyscallAction::skip_error(libc::EFAULT as i64),
+        },
         Err(e) => SyscallAction::skip_error(vfs_error_to_errno(&e)),
     }
 }

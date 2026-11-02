@@ -235,6 +235,9 @@ fn generated_functions_stream_their_bodies() {
         "ByteStream",
         "JsonLinesStream",
     ] {
-        assert!(shared.contains(helper), "{helper} not re-exported: {shared}");
+        assert!(
+            shared.contains(helper),
+            "{helper} not re-exported: {shared}"
+        );
     }
 }

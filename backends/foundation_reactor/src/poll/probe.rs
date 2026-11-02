@@ -178,7 +178,12 @@ pub fn probe() -> Result<UringCapabilities, ProbeError> {
     let buffer_ring = probe_buffer_ring(&ring);
     let recv_multishot = buffer_ring && probe_recv_multishot(&ring);
 
-    let caps = UringCapabilities { poll_add, poll_add_multi, buffer_ring, recv_multishot };
+    let caps = UringCapabilities {
+        poll_add,
+        poll_add_multi,
+        buffer_ring,
+        recv_multishot,
+    };
 
     if !caps.supports_readiness() {
         return Err(ProbeError::NoMultishotPoll(caps));
@@ -193,7 +198,9 @@ pub fn probe() -> Result<UringCapabilities, ProbeError> {
 /// timeout means "accepted and pending" — which is exactly what "supported"
 /// looks like for a multishot op with no data to deliver.
 fn await_one_cqe(ring: &IoUring, budget: Duration) -> Option<i32> {
-    let ts = Timespec::new().sec(budget.as_secs()).nsec(budget.subsec_nanos());
+    let ts = Timespec::new()
+        .sec(budget.as_secs())
+        .nsec(budget.subsec_nanos());
     let args = SubmitArgs::new().timespec(&ts);
     // ETIME here means no CQE arrived, which the caller reads as "accepted".
     let _ = ring.submitter().submit_with_args(1, &args);
@@ -353,7 +360,12 @@ fn probe_socketpair() -> Option<(OwnedFd, OwnedFd)> {
     let mut fds = [0 as libc::c_int; 2];
     // SAFETY: `fds` is a valid 2-element array for socketpair to fill.
     let rc = unsafe {
-        libc::socketpair(libc::AF_UNIX, libc::SOCK_STREAM | libc::SOCK_CLOEXEC, 0, fds.as_mut_ptr())
+        libc::socketpair(
+            libc::AF_UNIX,
+            libc::SOCK_STREAM | libc::SOCK_CLOEXEC,
+            0,
+            fds.as_mut_ptr(),
+        )
     };
     if rc < 0 {
         return None;

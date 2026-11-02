@@ -53,9 +53,7 @@ fn replay_handles_conflict_with_lww() {
     let q = queue();
     q.enqueue("update", serde_json::Value::String("local".into()));
 
-    let result = q.replay(|m| {
-        Err(ReplayError::Conflict(format!("server-state-for-{}", m.id)))
-    });
+    let result = q.replay(|m| Err(ReplayError::Conflict(format!("server-state-for-{}", m.id))));
 
     assert_eq!(result.applied.len(), 0);
     assert_eq!(result.conflicts.len(), 1);
@@ -80,8 +78,8 @@ fn replay_stops_on_non_retryable_error() {
     });
 
     assert_eq!(result.applied.len(), 1); // only t1 applied
-    assert_eq!(result.failed.len(), 1);  // t2 failed
-    // t3 still pending — replay stopped
+    assert_eq!(result.failed.len(), 1); // t2 failed
+                                        // t3 still pending — replay stopped
     assert_eq!(q.pending_count(), 1);
 }
 

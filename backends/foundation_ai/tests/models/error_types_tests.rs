@@ -40,7 +40,10 @@ fn generation_error_display_covers_every_portable_arm() {
         rendered.starts_with("Generation failed: "),
         "unexpected prefix: {rendered}"
     );
-    assert!(rendered.contains("io blew up"), "inner error must be shown: {rendered}");
+    assert!(
+        rendered.contains("io blew up"),
+        "inner error must be shown: {rendered}"
+    );
 
     assert_eq!(
         GenerationError::Tokenizer("bad vocab".into()).to_string(),
@@ -107,7 +110,10 @@ fn model_errors_display_covers_every_portable_arm() {
     );
 
     let loading = ModelErrors::FailedLoading(boxed("disk error")).to_string();
-    assert!(loading.starts_with("Model failed to load: "), "got: {loading}");
+    assert!(
+        loading.starts_with("Model failed to load: "),
+        "got: {loading}"
+    );
     assert!(loading.contains("disk error"), "got: {loading}");
 }
 
@@ -162,7 +168,10 @@ fn foundation_errors_display_covers_every_arm() {
 #[test]
 fn foundation_errors_from_model_errors() {
     let err: FoundationAIErrors = ModelErrors::UnsupportedArchitecture("rwkv".into()).into();
-    assert!(matches!(err, FoundationAIErrors::ModelErrors(_)), "got: {err:?}");
+    assert!(
+        matches!(err, FoundationAIErrors::ModelErrors(_)),
+        "got: {err:?}"
+    );
     assert!(err.to_string().contains("rwkv"));
 }
 
@@ -200,5 +209,8 @@ fn error_chain_nests_through_all_three_layers() {
         rendered.contains("deep-model"),
         "the innermost message must survive both conversions: {rendered}"
     );
-    assert_eq!(rendered, "Registry error: Model error: Model not found: deep-model");
+    assert_eq!(
+        rendered,
+        "Registry error: Model error: Model not found: deep-model"
+    );
 }

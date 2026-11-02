@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 39 (rustfmt version pin) done on
+  `fix/io-20-vfs-process-ipc`. `rust-toolchain.toml` names the pinned channel
+  `nightly-2026-09-20`. That channel gives rustfmt `1.10.0-nightly
+  (feaadeeaca 2026-09-19)`, the same rustfmt the CI image uses. The file also
+  adds `clippy` to the components. One repo-wide `cargo fmt --all` reformats
+  1377 tracked Rust files (7292 diff hunks). The standalone `crates/channels`
+  workspace is formatted too. `cargo fmt --all -- --check` now prints nothing
+  on the host. The §16 backlog entry is removed.
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E4 done on
   `fix/io-20-vfs-process-ipc`. E4 rebuilds `TursoDelta` on the `turso` crate
   0.8.3 (local engine, `default-features = false`). The store is async-only:

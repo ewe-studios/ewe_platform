@@ -1,9 +1,8 @@
 /// Utility types for the IPC bus.
-
 use std::ops::{Bound, RangeBounds};
 
-use serde::{Deserialize, Serialize};
 use foundation_core::type_uuid::Bytes;
+use serde::{Deserialize, Serialize};
 
 /// 4-byte alignment utility for wire format padding.
 pub trait Align4 {
@@ -55,4 +54,3 @@ pub fn range_to_offset_size<S: RangeBounds<usize>>(bounds: S) -> (usize, Option<
 
     (offset, size)
 }
-

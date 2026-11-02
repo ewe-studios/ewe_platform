@@ -351,7 +351,9 @@ impl<S: Read + Write> H2Connection<S> {
         // the ACK first is a protocol violation that a strict client (grpc-go,
         // which BuildKit's session uses) rejects, tearing the connection down;
         // our own lenient H2 client tolerated it, which hid the bug.
-        self.local_settings.to_frame_server().encode(&mut self.write_buf);
+        self.local_settings
+            .to_frame_server()
+            .encode(&mut self.write_buf);
         self.flush_write()?;
 
         SettingsFrame::ack().encode(&mut self.write_buf);
@@ -689,7 +691,10 @@ impl<S: Read + Write> H2Connection<S> {
     /// Send a PING frame to the peer. The opaque data is an 8-byte payload;
     /// the peer must echo it back in the PING ACK.
     pub fn send_ping(&mut self, opaque: [u8; 8]) {
-        let pf = PingFrame { flags: 0, opaque_data: opaque };
+        let pf = PingFrame {
+            flags: 0,
+            opaque_data: opaque,
+        };
         let mut buf = BytesMut::new();
         pf.encode(&mut buf);
         self.write_buf.put_slice(&buf);

@@ -431,8 +431,10 @@ pub trait OverlayReadWrite: Read + Write + Send + Sync + std::fmt::Debug {
 #[cfg(unix)]
 pub trait TlsInterest: Send + Sync + std::fmt::Debug {
     /// The wire direction `interest` actually needs.
-    fn corrected(&self, interest: crate::native::readiness::IoInterest)
-        -> crate::native::readiness::IoInterest;
+    fn corrected(
+        &self,
+        interest: crate::native::readiness::IoInterest,
+    ) -> crate::native::readiness::IoInterest;
 
     /// The underlying kernel fd the TLS session wraps.
     fn fd(&self) -> std::os::unix::io::RawFd;
@@ -448,7 +450,10 @@ pub trait TlsInterest: Send + Sync + std::fmt::Debug {
 pub enum ConnReadiness {
     /// A kernel-fd transport: poll `fd`, with the TLS-corrected direction from
     /// `tls` when it is `Some`.
-    Fd(std::os::unix::io::RawFd, Option<std::sync::Arc<dyn TlsInterest>>),
+    Fd(
+        std::os::unix::io::RawFd,
+        Option<std::sync::Arc<dyn TlsInterest>>,
+    ),
     /// The `WireGuard` overlay: no pollable fd. Probe with
     /// [`ConnReadiness::ready_now`] and register a [`ConnWaker`].
     Overlay(Box<dyn OverlayReadWrite>),
@@ -462,12 +467,13 @@ impl ConnReadiness {
     pub fn poll_fd(
         &self,
         interest: crate::native::readiness::IoInterest,
-    ) -> Option<(std::os::unix::io::RawFd, crate::native::readiness::IoInterest)> {
+    ) -> Option<(
+        std::os::unix::io::RawFd,
+        crate::native::readiness::IoInterest,
+    )> {
         match self {
             Self::Fd(fd, tls) => {
-                let corrected = tls
-                    .as_ref()
-                    .map_or(interest, |t| t.corrected(interest));
+                let corrected = tls.as_ref().map_or(interest, |t| t.corrected(interest));
                 Some((*fd, corrected))
             }
             Self::Overlay(_) => None,
@@ -485,9 +491,7 @@ impl ConnReadiness {
     ) -> std::io::Result<bool> {
         match self {
             Self::Fd(fd, tls) => {
-                let corrected = tls
-                    .as_ref()
-                    .map_or(interest, |t| t.corrected(interest));
+                let corrected = tls.as_ref().map_or(interest, |t| t.corrected(interest));
                 crate::native::readiness::SocketReadiness::new(*fd, corrected).poll_now()
             }
             Self::Overlay(o) => Ok(match interest {
@@ -1317,7 +1321,11 @@ impl Connection {
             #[cfg(all(unix, feature = "ssl-rustls"))]
             Self::Tls(_) => true,
             #[cfg(all(
-                any(feature = "ssl-rustls", feature = "ssl-openssl", feature = "ssl-native-tls"),
+                any(
+                    feature = "ssl-rustls",
+                    feature = "ssl-openssl",
+                    feature = "ssl-native-tls"
+                ),
                 not(all(unix, feature = "ssl-rustls"))
             ))]
             Self::Tls(_) => false,
@@ -1428,8 +1436,9 @@ impl Connection {
             Self::Overlay(o) => {
                 let signal = foundation_core::valtron::BoolSignal::new(false);
                 let flag = signal.clone_inner();
-                let waker: ConnWaker =
-                    std::sync::Arc::new(move || flag.store(true, std::sync::atomic::Ordering::SeqCst));
+                let waker: ConnWaker = std::sync::Arc::new(move || {
+                    flag.store(true, std::sync::atomic::Ordering::SeqCst)
+                });
                 match interest {
                     IoInterest::Readable => o.set_read_waker(waker),
                     IoInterest::Writable => o.set_write_waker(waker),

@@ -51,8 +51,7 @@ fn stream_that_errors_after_one_event() -> web_sys::ReadableStream {
                     .enqueue_with_chunk(&chunk)
                     .expect("enqueue the event");
             } else {
-                controller
-                    .error_with_e(&JsValue::from_str("synthetic SSE read error"));
+                controller.error_with_e(&JsValue::from_str("synthetic SSE read error"));
             }
         })
     };
@@ -90,7 +89,10 @@ async fn sse_read_error_surfaces_failed_not_a_clean_end() {
             None => panic!("the stream ended without surfacing the read error"),
         }
     }
-    assert!(saw_event, "the consumer must get the event before the failure");
+    assert!(
+        saw_event,
+        "the consumer must get the event before the failure"
+    );
     assert!(saw_failed, "the consumer must see Pending(Failed)");
     assert!(events.next().is_none(), "a failed stream ends");
 }

@@ -60,7 +60,11 @@ impl<S: StateStore> NamespacedStore<S> {
     /// # Errors
     ///
     /// Returns an error if serialization fails or the inner store fails.
-    pub async fn store_typed<T: serde::Serialize + Sync>(&self, key: &str, value: &T) -> StorageResult<()> {
+    pub async fn store_typed<T: serde::Serialize + Sync>(
+        &self,
+        key: &str,
+        value: &T,
+    ) -> StorageResult<()> {
         let full_key = self.full_key(key);
         let json_value = serde_json::to_value(value)
             .map_err(|e| StorageError::Serialization(format!("Failed to serialize state: {e}")))?;
@@ -88,11 +92,14 @@ impl<S: StateStore> NamespacedStore<S> {
     /// # Errors
     ///
     /// Returns an error if deserialization fails or the inner store fails.
-    pub async fn get_typed<T: for<'de> serde::Deserialize<'de>>(&self, key: &str) -> StorageResult<Option<T>> {
+    pub async fn get_typed<T: for<'de> serde::Deserialize<'de>>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<T>> {
         match self.inner.get(&self.full_key(key)).await? {
-            Some(state) => serde_json::from_value(state.output)
-                .map(Some)
-                .map_err(|e| StorageError::Deserialization(format!("Failed to deserialize state: {e}"))),
+            Some(state) => serde_json::from_value(state.output).map(Some).map_err(|e| {
+                StorageError::Deserialization(format!("Failed to deserialize state: {e}"))
+            }),
             None => Ok(None),
         }
     }
@@ -159,7 +166,10 @@ impl<S: StateStore> StateStore for NamespacedStore<S> {
         let stream = self.inner.list_by_prefix(&self.full_key(prefix)).await?;
         let ns_prefix = self.prefix.clone();
         Ok(Box::pin(stream.map(move |item| {
-            item.map(|id| id.strip_prefix(&ns_prefix).map_or(id.clone(), str::to_string))
+            item.map(|id| {
+                id.strip_prefix(&ns_prefix)
+                    .map_or(id.clone(), str::to_string)
+            })
         })))
     }
 
@@ -174,21 +184,29 @@ impl<S: StateStore> StateStore for NamespacedStore<S> {
     async fn find_by_kind(&self, kind: &str) -> StorageResult<StateStoreStream<ResourceState>> {
         let kind = kind.to_string();
         let all = self.inner.all_by_prefix(&self.prefix).await?;
-        Ok(Box::pin(all.filter(move |item| item.as_ref().map_or(true, |s| s.kind == kind))))
+        Ok(Box::pin(all.filter(move |item| {
+            item.as_ref().map_or(true, |s| s.kind == kind)
+        })))
     }
 
     async fn find_by_status(&self, status: &str) -> StorageResult<StateStoreStream<ResourceState>> {
         let status = status.to_string();
         let all = self.inner.all_by_prefix(&self.prefix).await?;
         Ok(Box::pin(all.filter(move |item| {
-            item.as_ref().map_or(true, |s| s.status.to_string() == status)
+            item.as_ref()
+                .map_or(true, |s| s.status.to_string() == status)
         })))
     }
 
-    async fn find_by_provider(&self, provider: &str) -> StorageResult<StateStoreStream<ResourceState>> {
+    async fn find_by_provider(
+        &self,
+        provider: &str,
+    ) -> StorageResult<StateStoreStream<ResourceState>> {
         let provider = provider.to_string();
         let all = self.inner.all_by_prefix(&self.prefix).await?;
-        Ok(Box::pin(all.filter(move |item| item.as_ref().map_or(true, |s| s.provider == provider))))
+        Ok(Box::pin(all.filter(move |item| {
+            item.as_ref().map_or(true, |s| s.provider == provider)
+        })))
     }
 
     async fn delete_by_prefix(&self, prefix: &str) -> StorageResult<usize> {

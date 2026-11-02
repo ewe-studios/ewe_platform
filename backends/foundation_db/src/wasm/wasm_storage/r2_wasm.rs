@@ -7,10 +7,10 @@
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::BlobStore;
 use crate::wasm::bindgen::{R2Bucket, R2Object};
+use foundation_compact::SendWrapper;
 use js_sys::{ArrayBuffer, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
-use foundation_compact::SendWrapper;
 
 // ===========================================================================
 // R2WasmStorage
@@ -37,7 +37,6 @@ impl R2WasmStorage {
         let safe_key = key.replace('/', ":");
         format!("{}/{}", self.prefix, safe_key)
     }
-
 }
 
 // ===========================================================================
@@ -75,9 +74,9 @@ impl R2WasmStorage {
         }
 
         // Result is R2Object with .arrayBuffer() method
-        let obj = result.dyn_into::<R2Object>().map_err(|_| {
-            StorageError::Backend("R2 get returned non-R2Object".to_string())
-        })?;
+        let obj = result
+            .dyn_into::<R2Object>()
+            .map_err(|_| StorageError::Backend("R2 get returned non-R2Object".to_string()))?;
 
         let buf_promise = obj.array_buffer();
         let buf = SendWrapper::new(JsFuture::from(buf_promise))
@@ -120,7 +119,8 @@ impl R2WasmStorage {
 #[async_trait::async_trait]
 impl BlobStore for R2WasmStorage {
     async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
+        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await })
+            .await
     }
 
     async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {

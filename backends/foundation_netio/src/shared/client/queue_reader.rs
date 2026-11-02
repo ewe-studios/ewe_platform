@@ -163,15 +163,15 @@ impl<R: Read> QueueSseEvents<R> {
 
     /// End-of-stream: a producer-recorded error is a failure, otherwise a clean
     /// end. Sets `failed` so the next call returns `None`.
-    fn end_or_fail(&mut self) -> Option<foundation_core::valtron::Stream<
-        crate::event_source::ParseResult,
-        crate::shared::client::http_client::SseProgress,
-    >> {
-        let recorded = self
-            .error
-            .lock()
-            .ok()
-            .and_then(|mut slot| slot.take());
+    fn end_or_fail(
+        &mut self,
+    ) -> Option<
+        foundation_core::valtron::Stream<
+            crate::event_source::ParseResult,
+            crate::shared::client::http_client::SseProgress,
+        >,
+    > {
+        let recorded = self.error.lock().ok().and_then(|mut slot| slot.take());
         if let Some(message) = recorded {
             self.failed = true;
             Some(foundation_core::valtron::Stream::Pending(

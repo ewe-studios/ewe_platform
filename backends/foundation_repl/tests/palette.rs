@@ -53,10 +53,26 @@ const SURFACE_FLOOR: f64 = 1.25;
 fn every_palette_keeps_body_text_readable() {
     for (name, theme) in ReplTheme::palettes() {
         let checks = [
-            ("input_foreground", theme.input_foreground, theme.input_background),
-            ("prompt_foreground", theme.prompt_foreground, theme.input_background),
-            ("output_foreground", theme.output_foreground, theme.output_background),
-            ("error_foreground", theme.error_foreground, theme.output_background),
+            (
+                "input_foreground",
+                theme.input_foreground,
+                theme.input_background,
+            ),
+            (
+                "prompt_foreground",
+                theme.prompt_foreground,
+                theme.input_background,
+            ),
+            (
+                "output_foreground",
+                theme.output_foreground,
+                theme.output_background,
+            ),
+            (
+                "error_foreground",
+                theme.error_foreground,
+                theme.output_background,
+            ),
             (
                 "activity.foreground",
                 theme.activity.foreground,
@@ -85,7 +101,10 @@ fn every_palette_keeps_secondary_chrome_visible_without_shouting() {
     for (name, theme) in ReplTheme::palettes() {
         let checks = [
             ("hint_foreground", theme.hint_foreground),
-            ("activity.elapsed_foreground", theme.activity.elapsed_foreground),
+            (
+                "activity.elapsed_foreground",
+                theme.activity.elapsed_foreground,
+            ),
         ];
 
         for (field, foreground) in checks {
@@ -187,7 +206,10 @@ fn every_palette_keeps_the_shared_layout_settings() {
     // decision, not four.
     let reference = ReplTheme::nebula();
     for (name, theme) in ReplTheme::palettes() {
-        assert_eq!(theme.padding, reference.padding, "{name} changed the padding");
+        assert_eq!(
+            theme.padding, reference.padding,
+            "{name} changed the padding"
+        );
         assert_eq!(
             theme.max_input_rows, reference.max_input_rows,
             "{name} changed the box height limit"

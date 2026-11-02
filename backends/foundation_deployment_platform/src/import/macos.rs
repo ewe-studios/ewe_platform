@@ -58,11 +58,14 @@ pub fn ensure_macos_image(profile_name: &str) -> Result<PathBuf> {
     let data_disk_qcow2 = macos_dir.join("macOS-data.qcow2");
 
     // If all components exist and look valid, return the BaseSystem path
-    if basesystem_qcow2.exists() && opencore_qcow2.exists() && data_disk_qcow2.exists()
+    if basesystem_qcow2.exists()
+        && opencore_qcow2.exists()
+        && data_disk_qcow2.exists()
         && let Ok(meta) = std::fs::metadata(&basesystem_qcow2)
-            && meta.len() > 100_000_000 {
-                return Ok(basesystem_qcow2);
-            }
+        && meta.len() > 100_000_000
+    {
+        return Ok(basesystem_qcow2);
+    }
 
     // Step 1: Find IPSW
     println!("  Looking up macOS IPSW...");
@@ -122,12 +125,7 @@ pub fn find_ipsw(model: Option<&str>) -> Result<IpswInfo> {
     let device_id = model.unwrap_or("MacBookPro16,1"); // x86_64 Intel Mac
 
     // Try multiple device IDs that return macOS IPSWs
-    let devices = [
-        device_id,
-        "iMacPro1,1",
-        "MacPro7,1",
-        "MacBookPro16,1",
-    ];
+    let devices = [device_id, "iMacPro1,1", "MacPro7,1", "MacBookPro16,1"];
 
     let mut latest: Option<IpswInfo> = None;
 
@@ -135,7 +133,10 @@ pub fn find_ipsw(model: Option<&str>) -> Result<IpswInfo> {
         let api_url = format!("https://api.ipsw.me/v4/device/{dev}");
         if let Ok(info) = query_ipsw_api(&api_url) {
             // Keep the one with the highest version number (by build ID sort)
-            if latest.as_ref().is_none_or(|prev| info.build_id > prev.build_id) {
+            if latest
+                .as_ref()
+                .is_none_or(|prev| info.build_id > prev.build_id)
+            {
                 latest = Some(info);
             }
         }
@@ -160,24 +161,27 @@ fn query_ipsw_api(url: &str) -> Result<IpswInfo> {
     if !output.status.success() {
         return Err(TestbedError::DownloadFailed {
             status: 0,
-            url: format!("api.ipsw.me returned error: {}", String::from_utf8_lossy(&output.stderr)),
+            url: format!(
+                "api.ipsw.me returned error: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ),
         });
     }
 
-    let json: serde_json::Value = serde_json::from_slice(&output.stdout).map_err(|e| {
-        TestbedError::DownloadFailed {
+    let json: serde_json::Value =
+        serde_json::from_slice(&output.stdout).map_err(|e| TestbedError::DownloadFailed {
             status: 0,
             url: format!("failed to parse IPSW API response: {e}"),
-        }
-    })?;
+        })?;
 
     // The API returns an array of firmware entries
-    let firmwares = json.get("firmwares").and_then(|f| f.as_array()).ok_or_else(|| {
-        TestbedError::DownloadFailed {
+    let firmwares = json
+        .get("firmwares")
+        .and_then(|f| f.as_array())
+        .ok_or_else(|| TestbedError::DownloadFailed {
             status: 0,
             url: "api.ipsw.me response missing 'firmwares' field".to_string(),
-        }
-    })?;
+        })?;
 
     // Find the latest macOS firmware (skip iOS/iPadOS by checking version contains macOS indicators)
     let mut candidates: Vec<_> = firmwares
@@ -198,7 +202,12 @@ fn query_ipsw_api(url: &str) -> Result<IpswInfo> {
                 || version.contains("Big Sur");
 
             if is_macos {
-                Some(IpswInfo { version, build_id, url, size })
+                Some(IpswInfo {
+                    version,
+                    build_id,
+                    url,
+                    size,
+                })
             } else {
                 None
             }
@@ -207,10 +216,13 @@ fn query_ipsw_api(url: &str) -> Result<IpswInfo> {
 
     candidates.sort_by(|a, b| b.build_id.cmp(&a.build_id));
 
-    candidates.into_iter().next().ok_or_else(|| TestbedError::DownloadFailed {
-        status: 0,
-        url: "no macOS firmware found in API response".to_string(),
-    })
+    candidates
+        .into_iter()
+        .next()
+        .ok_or_else(|| TestbedError::DownloadFailed {
+            status: 0,
+            url: "no macOS firmware found in API response".to_string(),
+        })
 }
 
 /// Download an IPSW from Apple CDN using simple HTTP with progress.
@@ -251,7 +263,10 @@ fn download_ipsw(ipsw: &IpswInfo, dest: &Path) -> Result<()> {
     if meta.len() < MIN_IPSW_SIZE {
         return Err(TestbedError::DownloadFailed {
             status: 0,
-            url: format!("IPSW too small ({} bytes) — download may have failed", meta.len()),
+            url: format!(
+                "IPSW too small ({} bytes) — download may have failed",
+                meta.len()
+            ),
         });
     }
 
@@ -280,7 +295,6 @@ fn extract_basesystem(ipsw_path: &Path, dest: &Path) -> Result<()> {
         s.success()
     } else {
         // Fallback to unzip
-        
 
         Command::new("unzip")
             .args([
@@ -409,11 +423,7 @@ fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
         println!("  Downloading OpenCore {OPENCORE_VERSION}...");
 
         let status = Command::new("curl")
-            .args([
-                "-L", "-#",
-                "-o", zip_path.to_str().unwrap(),
-                &gh_url,
-            ])
+            .args(["-L", "-#", "-o", zip_path.to_str().unwrap(), &gh_url])
             .status()
             .map_err(|e| TestbedError::DownloadFailed {
                 status: 0,
@@ -456,7 +466,9 @@ fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
 
     if !hfsplus_path.exists() {
         println!("  Downloading HfsPlus.efi driver...");
-        let hfsplus_url = "https://github.com/acidanthera/OcBinaryData/raw/master/Drivers/HfsPlus.efi".to_string();
+        let hfsplus_url =
+            "https://github.com/acidanthera/OcBinaryData/raw/master/Drivers/HfsPlus.efi"
+                .to_string();
         let _ = Command::new("curl")
             .args(["-sL", "-o", hfsplus_path.to_str().unwrap(), &hfsplus_url])
             .status();
@@ -466,9 +478,14 @@ fn create_opencore_efi(macos_dir: &Path, dest: &Path) -> Result<()> {
     println!("  Generating OpenCore config.plist...");
     let config_plist = generate_config_plist();
     std::fs::write(
-        efi_stage.join("X64").join("EFI").join("OC").join("config.plist"),
+        efi_stage
+            .join("X64")
+            .join("EFI")
+            .join("OC")
+            .join("config.plist"),
         config_plist,
-    ).map_err(|e| TestbedError::Qcow2Error {
+    )
+    .map_err(|e| TestbedError::Qcow2Error {
         message: format!("writing config.plist: {e}"),
     })?;
 
@@ -568,9 +585,10 @@ fn populate_fat_image(fat_img: &Path, efi_dir: &Path) -> Result<()> {
         .status();
 
     if let Ok(s) = mcopy_status
-        && s.success() {
-            return Ok(());
-        }
+        && s.success()
+    {
+        return Ok(());
+    }
 
     // Fallback: mount loopback + cp
     let mount_point = fat_img.parent().unwrap().join("efi-mount");
@@ -588,18 +606,23 @@ fn populate_fat_image(fat_img: &Path, efi_dir: &Path) -> Result<()> {
         .status();
 
     if let Ok(s) = mount_status
-        && s.success() {
-            let cp_status = Command::new("cp")
-                .args(["-r", efi_dir.to_str().unwrap(), &format!("{}/EFI", mount_point.display())])
-                .status();
+        && s.success()
+    {
+        let cp_status = Command::new("cp")
+            .args([
+                "-r",
+                efi_dir.to_str().unwrap(),
+                &format!("{}/EFI", mount_point.display()),
+            ])
+            .status();
 
-            let _ = Command::new("umount").arg(&mount_point).status();
-            let _ = std::fs::remove_dir(&mount_point);
+        let _ = Command::new("umount").arg(&mount_point).status();
+        let _ = std::fs::remove_dir(&mount_point);
 
-            if cp_status.is_ok_and(|s| s.success()) {
-                return Ok(());
-            }
+        if cp_status.is_ok_and(|s| s.success()) {
+            return Ok(());
         }
+    }
 
     Err(TestbedError::Qcow2Error {
         message: "failed to populate FAT32 image (tried mcopy and mount)".to_string(),
@@ -1071,4 +1094,3 @@ pub fn generate_config_plist() -> String {
 </plist>"#
         .to_string()
 }
-

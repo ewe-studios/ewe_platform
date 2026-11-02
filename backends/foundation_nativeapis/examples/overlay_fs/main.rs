@@ -26,14 +26,21 @@ fn main() {
     println!("Read base file: {:?}", String::from_utf8_lossy(&data));
 
     // Write to overlay — copy-on-write
-    overlay.write_file("/src/main.rs", b"fn main() { println!(\"Hello!\"); }").unwrap();
+    overlay
+        .write_file("/src/main.rs", b"fn main() { println!(\"Hello!\"); }")
+        .unwrap();
     let modified = overlay.read_file("/src/main.rs").unwrap();
     println!("After CoW write: {:?}", String::from_utf8_lossy(&modified));
     println!("Overlay version: {}", overlay.version());
 
     // Create a new file in the overlay
     overlay.mkdir("/tests").unwrap();
-    overlay.write_file("/tests/test_main.rs", b"#[test] fn it_works() { assert!(true); }").unwrap();
+    overlay
+        .write_file(
+            "/tests/test_main.rs",
+            b"#[test] fn it_works() { assert!(true); }",
+        )
+        .unwrap();
     println!("Created /tests/test_main.rs in delta layer");
 
     // Whiteout: delete a base file
@@ -55,7 +62,10 @@ fn main() {
 
     // Delta inspection
     let delta = overlay.delta();
-    println!("\nDelta has whiteout for /src/lib.rs: {:?}", delta.is_whiteout("/src/lib.rs").unwrap());
+    println!(
+        "\nDelta has whiteout for /src/lib.rs: {:?}",
+        delta.is_whiteout("/src/lib.rs").unwrap()
+    );
 
     // Flush + reset cycle
     delta.flush().unwrap();

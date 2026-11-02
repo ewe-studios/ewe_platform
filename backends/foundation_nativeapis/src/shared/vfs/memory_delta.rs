@@ -233,7 +233,11 @@ impl AsyncVfsFileSystem for MemoryDelta {
         VfsFileSystem::open(self, &path, mode)
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         VfsFileSystem::open_seekable(self, &path, mode)
     }
 

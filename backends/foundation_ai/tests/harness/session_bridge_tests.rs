@@ -14,9 +14,9 @@
 //! (`MemoryDocumentStore`, `KvMemoryStore<MemoryStorage>`); cloud preflight
 //! (`AllowAllAccess`, empty toolshed, default budget) needs no network.
 
-use foundation_core::valtron::valtron_test;
 use foundation_ai::harness::{RouterPreset, CLAUDE_OPUS};
 use foundation_ai::types::{ModelId, SessionId};
+use foundation_core::valtron::valtron_test;
 
 fn named(id: &str) -> ModelId {
     ModelId::Name(id.to_string(), None)

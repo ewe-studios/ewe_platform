@@ -10,22 +10,21 @@ use std::time::Duration;
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{sleep_async, Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
-use foundation_netio::DynNetClient;
-#[cfg(not(target_family = "wasm"))]
-use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
     body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},
     http_client::{BoxedSseIterator, SseProgress},
     request::PreparedRequest,
 };
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;
 
 use crate::backends::backend_utils::{
-    capped_error_body, prepared_request, sleep, tool_arguments_from_str,
-    tool_arguments_from_value,
+    capped_error_body, prepared_request, sleep, tool_arguments_from_str, tool_arguments_from_value,
 };
 use crate::backends::model_info::{self, ModelInfoCache};
 use crate::backends::openai_provider::OpenAIModelInfo;
@@ -543,7 +542,9 @@ impl AnthropicMessagesProvider {
     /// shared cache, which [`AnthropicModel::info`] reads. `get_model` never
     /// blocks on the network, on any target.
     fn lookup_model_info(&self, model_name: &str) -> OpenAIModelInfo {
-        if let (Some(client), Ok(Some(req))) = (&self.http_client, self.model_info_request(model_name)) {
+        if let (Some(client), Ok(Some(req))) =
+            (&self.http_client, self.model_info_request(model_name))
+        {
             model_info::spawn_lookup(
                 Arc::clone(&self.models_cache),
                 model_name.to_string(),
@@ -721,7 +722,10 @@ impl AnthropicModel {
 
     fn auth_headers(&self) -> SimpleHeaders {
         let mut headers = self.config.auth_headers(self.api_key.as_ref());
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![String::from("application/json")],
+        );
         headers
     }
 
@@ -733,7 +737,10 @@ impl AnthropicModel {
 
     fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
         let mut headers = self.auth_headers();
-        headers.insert(SimpleHeader::ACCEPT, vec![String::from("text/event-stream")]);
+        headers.insert(
+            SimpleHeader::ACCEPT,
+            vec![String::from("text/event-stream")],
+        );
         prepared_request(SimpleMethod::POST, url, headers, body)
     }
 
@@ -767,11 +774,14 @@ impl AnthropicModel {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_prepared_request(url, body)?;
-        let response = client.send(req)
+        let response = client
+            .send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
         let (status, _headers, body) = response.into_parts();
@@ -800,11 +810,15 @@ impl AnthropicModel {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_prepared_request(url, body)?;
-        let response = client.send_async(req).await
+        let response = client
+            .send_async(req)
+            .await
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
         let (status, _headers, body) = response.into_async_parts();
@@ -814,7 +828,8 @@ impl AnthropicModel {
             // Status first; cap the error body so a huge reply is not buffered.
             let bytes = collect_bytes_bounded(body, self.config.max_error_body).await;
             let body_text = String::from_utf8_lossy(&bytes);
-            let detail = parse_anthropic_error(&body_text).unwrap_or_else(|| body_text.into_owned());
+            let detail =
+                parse_anthropic_error(&body_text).unwrap_or_else(|| body_text.into_owned());
             let msg = format_http_error(status_code, &detail);
             return Ok(Err((status_code as u16, None, msg)));
         }
@@ -1089,11 +1104,14 @@ impl Model for AnthropicModel {
 
         let url = self.build_url("messages");
 
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_sse_request(&url, &body)?;
-        let sse_iter = client.send_sse(req)
+        let sse_iter = client
+            .send_sse(req)
             .map_err(|e| GenerationError::Backend(format!("SSE request failed: {e}")))?;
 
         Ok(Box::new(AnthropicStream {

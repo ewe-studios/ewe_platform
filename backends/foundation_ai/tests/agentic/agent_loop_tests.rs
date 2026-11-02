@@ -169,7 +169,10 @@ fn follow_up_message_triggers_inner_loop() {
     let mut h = default_harness();
 
     // Skip Init.
-    assert!(matches!(h.agent.next_status(Ctx::new()), Some(TaskStatus::Init)));
+    assert!(matches!(
+        h.agent.next_status(Ctx::new()),
+        Some(TaskStatus::Init)
+    ));
 
     // Inject a follow-up before polling OuterBoundary.
     inject_follow_up(&h, make_user_msg("hello"));
@@ -190,7 +193,10 @@ fn follow_up_message_triggers_inner_loop() {
 #[test]
 fn priority_preempts_follow_up() {
     let mut h = default_harness();
-    assert!(matches!(h.agent.next_status(Ctx::new()), Some(TaskStatus::Init)));
+    assert!(matches!(
+        h.agent.next_status(Ctx::new()),
+        Some(TaskStatus::Init)
+    ));
 
     inject_follow_up(&h, make_user_msg("follow-up"));
     inject_priority(&h, make_system_msg("urgent"));
@@ -215,7 +221,10 @@ fn max_outer_iterations_ends_session() {
     });
 
     // Init → OuterBoundary (iteration 1 — at max)
-    assert!(matches!(h.agent.next_status(Ctx::new()), Some(TaskStatus::Init)));
+    assert!(matches!(
+        h.agent.next_status(Ctx::new()),
+        Some(TaskStatus::Init)
+    ));
 
     // Inject a message so we enter the inner loop
     inject_follow_up(&h, make_user_msg("go"));
@@ -275,7 +284,10 @@ fn budget_exhaustion_terminates() {
     });
 
     // Init → OuterBoundary
-    assert!(matches!(h.agent.next_status(Ctx::new()), Some(TaskStatus::Init)));
+    assert!(matches!(
+        h.agent.next_status(Ctx::new()),
+        Some(TaskStatus::Init)
+    ));
 
     // Inject a message to enter inner loop.
     inject_follow_up(&h, make_user_msg("hello"));
@@ -320,7 +332,10 @@ fn push_user_message_feeds_pending_messages() {
     let mut h = default_harness();
 
     // Init
-    assert!(matches!(h.agent.next_status(Ctx::new()), Some(TaskStatus::Init)));
+    assert!(matches!(
+        h.agent.next_status(Ctx::new()),
+        Some(TaskStatus::Init)
+    ));
 
     // Push via public API + inject a follow-up so we enter the inner loop.
     h.agent.push_user_message(make_user_msg("via push"));
@@ -346,7 +361,10 @@ fn second_follow_up_triggers_second_outer_iteration() {
     });
 
     // Init
-    assert!(matches!(h.agent.next_status(Ctx::new()), Some(TaskStatus::Init)));
+    assert!(matches!(
+        h.agent.next_status(Ctx::new()),
+        Some(TaskStatus::Init)
+    ));
 
     // First follow-up → inner loop
     inject_follow_up(&h, make_user_msg("first"));
@@ -369,7 +387,10 @@ fn done_is_terminal() {
     let mut h = default_harness();
 
     // Drive to Done.
-    assert!(matches!(h.agent.next_status(Ctx::new()), Some(TaskStatus::Init)));
+    assert!(matches!(
+        h.agent.next_status(Ctx::new()),
+        Some(TaskStatus::Init)
+    ));
     assert!(matches!(
         h.agent.next_status(Ctx::new()),
         Some(TaskStatus::Pending(AgentProgress::SessionEnding))

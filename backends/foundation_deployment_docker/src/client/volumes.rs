@@ -44,7 +44,8 @@ impl DockerClient {
         let args = VolumeListArgs {
             filters: filters.map(str::to_string),
         };
-        let response = volume_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            volume_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -64,7 +65,9 @@ impl DockerClient {
         let args = VolumeInspectArgs {
             name: name.to_string(),
         };
-        let response = volume_inspect_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            volume_inspect_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -113,11 +116,7 @@ impl DockerClient {
     /// Returns [`DockerError`] on transport failure or non-2xx status (e.g. 404
     /// if the volume does not exist, or 409 if it is still in use and force is
     /// not set).
-    pub async fn volume_delete(
-        &self,
-        name: &str,
-        force: Option<bool>,
-    ) -> Result<(), DockerError> {
+    pub async fn volume_delete(&self, name: &str, force: Option<bool>) -> Result<(), DockerError> {
         let args = VolumeDeleteArgs {
             name: name.to_string(),
             force,

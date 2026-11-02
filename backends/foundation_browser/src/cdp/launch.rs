@@ -51,7 +51,11 @@ pub struct LaunchConfig {
 
 impl Default for LaunchConfig {
     fn default() -> Self {
-        Self { browser: Browser::Chromium, headless: true, extra_args: Vec::new() }
+        Self {
+            browser: Browser::Chromium,
+            headless: true,
+            extra_args: Vec::new(),
+        }
     }
 }
 
@@ -65,7 +69,11 @@ impl LaunchConfig {
     /// Firefox (WebDriver BiDi) with defaults.
     #[must_use]
     pub fn firefox() -> Self {
-        Self { browser: Browser::Firefox, headless: true, extra_args: Vec::new() }
+        Self {
+            browser: Browser::Firefox,
+            headless: true,
+            extra_args: Vec::new(),
+        }
     }
 
     /// Toggle headless.

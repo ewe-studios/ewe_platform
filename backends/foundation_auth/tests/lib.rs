@@ -6,5 +6,5 @@
 //! - credential_store_tests.rs — existing (flat)
 //! - oauth_tests.rs            — existing (flat)
 
-pub mod units;
 pub mod integration;
+pub mod units;

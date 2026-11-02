@@ -14,7 +14,8 @@ fn launch_navigate_eval_screenshot() {
     let driver = BrowserDriver::launch(LaunchConfig::chromium()).expect("launch chromium");
     let page = driver.new_page().expect("attach a page");
 
-    page.goto("data:text/html,<h1 id='hi'>hello browser</h1>").expect("navigate");
+    page.goto("data:text/html,<h1 id='hi'>hello browser</h1>")
+        .expect("navigate");
 
     let text = page
         .eval("document.getElementById('hi').textContent")
@@ -24,7 +25,11 @@ fn launch_navigate_eval_screenshot() {
     let out = std::path::Path::new("target/primal-test/smoke.png");
     page.screenshot(out).expect("screenshot");
     let meta = std::fs::metadata(out).expect("screenshot file written");
-    assert!(meta.len() > 100, "screenshot should be a non-trivial PNG ({} bytes)", meta.len());
+    assert!(
+        meta.len() > 100,
+        "screenshot should be a non-trivial PNG ({} bytes)",
+        meta.len()
+    );
 }
 
 #[test]
@@ -42,7 +47,10 @@ fn locator_geometry_attributes_style_and_input() {
     .expect("navigate");
 
     // Presence / count.
-    page.locator(".item").expect().to_have_count(2).expect("two items");
+    page.locator(".item")
+        .expect()
+        .to_have_count(2)
+        .expect("two items");
     // Geometry (CDP content box — inside the button's padding/border at left:20/top:30).
     let rect = page.locator("#b").bounding_box().expect("box");
     assert!(
@@ -50,17 +58,34 @@ fn locator_geometry_attributes_style_and_input() {
         "content box inside the positioned button: {rect:?}"
     );
     // Computed style + visibility.
-    page.locator("#b").expect().to_be_visible().expect("button visible");
-    page.locator("#hidden").expect().to_be_hidden().expect("hidden div hidden");
+    page.locator("#b")
+        .expect()
+        .to_be_visible()
+        .expect("button visible");
+    page.locator("#hidden")
+        .expect()
+        .to_be_hidden()
+        .expect("hidden div hidden");
     // Attribute.
-    page.locator("#b").expect().to_have_attribute("data-state", "off").expect("state off");
+    page.locator("#b")
+        .expect()
+        .to_have_attribute("data-state", "off")
+        .expect("state off");
     // Trusted click → JS handler mutates state + text.
     page.locator("#b").click().expect("click");
-    page.locator("#b").expect().to_have_attribute("data-state", "on").expect("state on after click");
-    page.locator("#b").expect().to_have_text("Clicked").expect("text changed");
+    page.locator("#b")
+        .expect()
+        .to_have_attribute("data-state", "on")
+        .expect("state on after click");
+    page.locator("#b")
+        .expect()
+        .to_have_text("Clicked")
+        .expect("text changed");
     // Typed input.
     page.locator("#in").fill("hello").expect("fill");
-    let val = page.eval("document.getElementById('in').value").expect("read value");
+    let val = page
+        .eval("document.getElementById('in').value")
+        .expect("read value");
     assert_eq!(val.as_str(), Some("hello"), "input received typed text");
 }
 
@@ -83,7 +108,9 @@ fn harness_serves_drives_and_tears_down() {
 }
 
 // The ergonomic form: the macro owns setup + teardown.
-#[foundation_browser::wasm_ui_server(html = "<button id='go'>Go</button><div id='out'></div><script>document.getElementById('go').onclick=function(){document.getElementById('out').textContent='ok'}</script>")]
+#[foundation_browser::wasm_ui_server(
+    html = "<button id='go'>Go</button><div id='out'></div><script>document.getElementById('go').onclick=function(){document.getElementById('out').textContent='ok'}</script>"
+)]
 fn macro_drives_a_served_page(
     _server: &foundation_browser::test::TestServer,
     page: &foundation_browser::Page,
@@ -145,13 +172,18 @@ fn channel_a_streams_a_frame_to_the_browser() {
     })
     .expect("setup");
 
-    harness.run("channel_a_streams_a_frame_to_the_browser", |server, page| {
-        // Push a frame from Rust → broadcaster → SSE → browser. Backlog/replay
-        // absorbs the connect/push race; the assertion retries.
-        server.push_frame(b"hello-stream");
-        page.locator(".frame").expect().to_have_text("hello-stream")?;
-        Ok(())
-    });
+    harness.run(
+        "channel_a_streams_a_frame_to_the_browser",
+        |server, page| {
+            // Push a frame from Rust → broadcaster → SSE → browser. Backlog/replay
+            // absorbs the connect/push race; the assertion retries.
+            server.push_frame(b"hello-stream");
+            page.locator(".frame")
+                .expect()
+                .to_have_text("hello-stream")?;
+            Ok(())
+        },
+    );
 }
 
 // Mode 1 — a NATIVE foundation_wasm_ui App streams to a REAL browser. The App
@@ -230,7 +262,9 @@ fn drive_greeting(
         <div id="greeting" class="greeting">{t.get()}</div>
     });
     app.stabilize(); // initial mount → SSE → browser applies it
-    page.locator("#greeting").expect().to_have_text(MESSAGES[0])?;
+    page.locator("#greeting")
+        .expect()
+        .to_have_text(MESSAGES[0])?;
     watch_pause(headful);
 
     for msg in &MESSAGES[1..] {
@@ -364,7 +398,11 @@ fn https_serves_a_secure_context() {
     harness.run("https_serves_a_secure_context", |_server, page| {
         page.locator("#h").expect().to_have_text("secure")?;
         let secure = page.eval("window.__secure").unwrap_or_default();
-        assert_eq!(secure.as_bool(), Some(true), "page is a secure context over TLS");
+        assert_eq!(
+            secure.as_bool(),
+            Some(true),
+            "page is a secure context over TLS"
+        );
         Ok(())
     });
 }
@@ -434,10 +472,15 @@ fn primal_test_helper_and_reactive_settle() {
 
 fn firefox_or_skip(config: TestConfig) -> Option<Harness> {
     use foundation_browser::{Browser, BrowserError};
-    match Harness::setup(TestConfig { browser: Browser::Firefox, ..config }) {
+    match Harness::setup(TestConfig {
+        browser: Browser::Firefox,
+        ..config
+    }) {
         Ok(h) => Some(h),
         Err(BrowserError::BrowserNotInstalled { .. }) => {
-            eprintln!("skipping Firefox test: firefox not installed (mise run test:browsers:firefox)");
+            eprintln!(
+                "skipping Firefox test: firefox not installed (mise run test:browsers:firefox)"
+            );
             None
         }
         Err(e) => panic!("firefox harness setup: {e}"),
@@ -464,22 +507,34 @@ fn firefox_locator_geometry_attributes_style_and_input() {
         return;
     };
 
-    harness.run("firefox_locator_geometry_attributes_style_and_input", |_server, page| {
-        page.locator(".item").expect().to_have_count(2)?;
-        let rect = page.locator("#b").bounding_box()?;
-        assert!(rect.x >= 20.0 && rect.y >= 30.0 && rect.width > 0.0, "box: {rect:?}");
-        page.locator("#b").expect().to_be_visible()?;
-        page.locator("#hidden").expect().to_be_hidden()?;
-        page.locator("#b").expect().to_have_attribute("data-state", "off")?;
-        page.locator("#b").click()?;
-        page.locator("#b").expect().to_have_attribute("data-state", "on")?;
-        page.locator("#b").expect().to_have_text("Clicked")?;
-        page.locator("#b").hover()?; // trusted pointer move (no panic = ok)
-        page.locator("#in").fill("hello")?;
-        let val = page.eval("document.getElementById('in').value").unwrap_or_default();
-        assert_eq!(val.as_str(), Some("hello"), "typed text reached the field");
-        Ok(())
-    });
+    harness.run(
+        "firefox_locator_geometry_attributes_style_and_input",
+        |_server, page| {
+            page.locator(".item").expect().to_have_count(2)?;
+            let rect = page.locator("#b").bounding_box()?;
+            assert!(
+                rect.x >= 20.0 && rect.y >= 30.0 && rect.width > 0.0,
+                "box: {rect:?}"
+            );
+            page.locator("#b").expect().to_be_visible()?;
+            page.locator("#hidden").expect().to_be_hidden()?;
+            page.locator("#b")
+                .expect()
+                .to_have_attribute("data-state", "off")?;
+            page.locator("#b").click()?;
+            page.locator("#b")
+                .expect()
+                .to_have_attribute("data-state", "on")?;
+            page.locator("#b").expect().to_have_text("Clicked")?;
+            page.locator("#b").hover()?; // trusted pointer move (no panic = ok)
+            page.locator("#in").fill("hello")?;
+            let val = page
+                .eval("document.getElementById('in').value")
+                .unwrap_or_default();
+            assert_eq!(val.as_str(), Some("hello"), "typed text reached the field");
+            Ok(())
+        },
+    );
 }
 
 /// Run a Mode-1 DomOp-protocol parity test on Firefox: identical `drive_greeting`
@@ -500,7 +555,9 @@ fn firefox_mode1(
         return;
     };
     let headful = is_headful();
-    harness.run(name, |server, page| drive_greeting(sink(server.broadcaster()), page, headful));
+    harness.run(name, |server, page| {
+        drive_greeting(sink(server.broadcaster()), page, headful)
+    });
 }
 
 #[test]

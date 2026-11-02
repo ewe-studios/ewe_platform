@@ -144,7 +144,9 @@ pub async fn create(
         &CollectionRow {
             uuid: crypto::new_uuid_v4()?.to_string(),
             org_uuid: org.uuid.clone(),
-            name: req.collection_name.unwrap_or_else(|| "Default Collection".into()),
+            name: req
+                .collection_name
+                .unwrap_or_else(|| "Default Collection".into()),
             created_at: now,
             updated_at: now,
         },

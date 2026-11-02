@@ -60,7 +60,10 @@ pub struct WasmtimeBuilder {
 impl WasmtimeBuilder {
     #[must_use]
     pub fn new(wasm_bytes: impl Into<Vec<u8>>) -> Self {
-        Self { wasm_bytes: wasm_bytes.into(), name: String::new() }
+        Self {
+            wasm_bytes: wasm_bytes.into(),
+            name: String::new(),
+        }
     }
 
     #[must_use]
@@ -86,14 +89,20 @@ impl WasmtimeBuilder {
             .map_err(|e| ErrorTrace::new(WasmtimeError::Link(e.to_string())))?;
 
         tracing::debug!(name = %self.name, "WASM module built");
-        Ok(WasmtimeInstance { engine, store, instance, name: self.name.clone() })
+        Ok(WasmtimeInstance {
+            engine,
+            store,
+            instance,
+            name: self.name.clone(),
+        })
     }
 
     /// Build from a file path instead of embedded bytes.
     pub fn from_file(path: impl AsRef<Path>) -> Result<Self> {
         let bytes = std::fs::read(path.as_ref())
             .map_err(|e| ErrorTrace::new(WasmtimeError::Io(e.to_string())))?;
-        let name = path.as_ref()
+        let name = path
+            .as_ref()
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("wasm_app")
@@ -114,7 +123,9 @@ pub struct WasmtimeInstance {
 
 impl WasmtimeInstance {
     #[must_use]
-    pub fn name(&self) -> &str { &self.name }
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 
     /// Call a WASM export function with no arguments and no return value.
     pub fn call_void(&mut self, func_name: &str) -> Result<()> {
@@ -140,7 +151,9 @@ impl WasmtimeInstance {
     }
 
     #[must_use]
-    pub fn engine(&self) -> &Engine { &self.engine }
+    pub fn engine(&self) -> &Engine {
+        &self.engine
+    }
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────

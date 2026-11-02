@@ -127,13 +127,19 @@ fn netstack_tcp_loopback_roundtrip() {
     let request = b"GET /overlay HTTP/1.0\r\n\r\n";
     write_all(&client_stream, request, &mut client, &mut server);
     let received = read_exact(&server_stream, request.len(), &mut server, &mut client);
-    assert_eq!(&received, request, "server received the client's bytes intact");
+    assert_eq!(
+        &received, request,
+        "server received the client's bytes intact"
+    );
 
     // server -> client (echo back reversed length so it differs)
     let response = b"HTTP/1.0 200 OK\r\ncontent-length: 2\r\n\r\nhi";
     write_all(&server_stream, response, &mut server, &mut client);
     let echoed = read_exact(&client_stream, response.len(), &mut client, &mut server);
-    assert_eq!(&echoed, response, "client received the server's bytes intact");
+    assert_eq!(
+        &echoed, response,
+        "client received the server's bytes intact"
+    );
 }
 
 #[test]
@@ -223,7 +229,11 @@ fn netstack_udp_loopback_datagram() {
             Err(e) => panic!("client recv failed: {e}"),
         }
     }
-    assert_eq!(got.as_deref(), Some(reply.as_slice()), "client received reply");
+    assert_eq!(
+        got.as_deref(),
+        Some(reply.as_slice()),
+        "client received reply"
+    );
 }
 
 #[test]
@@ -231,7 +241,11 @@ fn netstack_udp_loopback_datagram() {
 fn netstack_poll_reports_idle_when_no_sockets() {
     let mut idle = stack(CLIENT_IP);
     // With no sockets and no traffic there is nothing to schedule.
-    assert_eq!(idle.poll(Instant::now()), None, "idle stack has no deadline");
+    assert_eq!(
+        idle.poll(Instant::now()),
+        None,
+        "idle stack has no deadline"
+    );
     assert_eq!(idle.socket_count(), 0);
 }
 
@@ -275,7 +289,10 @@ fn netstack_listener_queues_connections_made_before_accept() {
     let second = client.tcp_connect(server_addr()).expect("connect 2");
     establish_all(&[&first, &second], &mut client, &mut server);
     assert!(first.may_send(), "first connection established");
-    assert!(second.may_send(), "second connection established, not reset");
+    assert!(
+        second.may_send(),
+        "second connection established, not reset"
+    );
 
     let accepted = accept_all(&mut listener);
     assert_eq!(accepted.len(), 2, "both connections were queued for accept");
@@ -283,7 +300,10 @@ fn netstack_listener_queues_connections_made_before_accept() {
     ports.sort_unstable();
     let mut expected = vec![first.local_addr().port(), second.local_addr().port()];
     expected.sort_unstable();
-    assert_eq!(ports, expected, "accepted streams are the two client connections");
+    assert_eq!(
+        ports, expected,
+        "accepted streams are the two client connections"
+    );
 
     // Data flows on the second (queued) connection.
     write_all(&second, b"queued", &mut client, &mut server);
@@ -315,15 +335,24 @@ fn netstack_listener_backlog_limit_refuses_then_recovers() {
     for _ in 0..50 {
         exchange(&mut client, &mut server);
     }
-    assert!(!refused.may_send(), "connection beyond the backlog is not established");
-    assert!(!refused.is_active(), "connection beyond the backlog was reset");
+    assert!(
+        !refused.may_send(),
+        "connection beyond the backlog is not established"
+    );
+    assert!(
+        !refused.is_active(),
+        "connection beyond the backlog was reset"
+    );
 
     // Accepting frees the slot and re-arms the listener.
     let accepted = accept_all(&mut listener);
     assert_eq!(accepted.len(), 1, "only the first connection was queued");
     let third = client.tcp_connect(server_addr()).expect("connect 3");
     establish_all(&[&third], &mut client, &mut server);
-    assert!(third.may_send(), "listener accepts again after accept frees the backlog");
+    assert!(
+        third.may_send(),
+        "listener accepts again after accept frees the backlog"
+    );
     assert_eq!(accept_all(&mut listener).len(), 1);
 }
 

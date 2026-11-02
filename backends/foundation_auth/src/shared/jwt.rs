@@ -2,9 +2,8 @@
 
 use chrono::{DateTime, Utc};
 use jwt_simple::prelude::{
-    EdDSAKeyPairLike, EdDSAPublicKeyLike,
+    ECDSAP256KeyPairLike, ECDSAP256PublicKeyLike, EdDSAKeyPairLike, EdDSAPublicKeyLike,
     RSAKeyPairLike, RSAPublicKeyLike,
-    ECDSAP256KeyPairLike, ECDSAP256PublicKeyLike,
 };
 use serde::{Deserialize, Serialize};
 
@@ -138,9 +137,7 @@ impl VerifiedClaims {
     /// Check if the nonce in the claims matches the expected nonce (Feature 07).
     #[must_use]
     pub fn verify_nonce(&self, expected_nonce: &str) -> bool {
-        self.nonce
-            .as_ref()
-            .is_some_and(|n| n == expected_nonce)
+        self.nonce.as_ref().is_some_and(|n| n == expected_nonce)
     }
 }
 
@@ -318,9 +315,13 @@ impl JwtSigningKey {
     pub fn public_key_pem(&self) -> Result<String, JwtError> {
         match self {
             Self::Ed25519(kp) => Ok(kp.public_key().to_pem()),
-            Self::RS256(kp) => kp.public_key().to_pem()
+            Self::RS256(kp) => kp
+                .public_key()
+                .to_pem()
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
-            Self::ES256(kp) => kp.public_key().to_pem()
+            Self::ES256(kp) => kp
+                .public_key()
+                .to_pem()
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
         }
     }
@@ -334,9 +335,11 @@ impl JwtSigningKey {
     pub fn to_pem(&self) -> Result<String, JwtError> {
         match self {
             Self::Ed25519(kp) => Ok(kp.to_pem()),
-            Self::RS256(kp) => kp.to_pem()
+            Self::RS256(kp) => kp
+                .to_pem()
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
-            Self::ES256(kp) => kp.to_pem()
+            Self::ES256(kp) => kp
+                .to_pem()
                 .map_err(|e| JwtError::GenerationError(e.to_string())),
         }
     }
@@ -371,8 +374,7 @@ fn decode_header_algorithm(token: &str) -> Result<String, JwtError> {
         return Err(JwtError::InvalidTokenFormat);
     }
     let payload = base64_decode(parts[0])?;
-    let header: serde_json::Value =
-        serde_json::from_slice(&payload).map_err(JwtError::Json)?;
+    let header: serde_json::Value = serde_json::from_slice(&payload).map_err(JwtError::Json)?;
     header
         .get("alg")
         .and_then(|v| v.as_str())
@@ -384,25 +386,16 @@ fn decode_header_algorithm(token: &str) -> Result<String, JwtError> {
 fn to_verified_claims(
     claims: &jwt_simple::prelude::JWTClaims<serde_json::Value>,
 ) -> Result<VerifiedClaims, JwtError> {
-    let sub = claims
-        .subject
-        .clone()
-        .ok_or(JwtError::InvalidSubject)?;
+    let sub = claims.subject.clone().ok_or(JwtError::InvalidSubject)?;
 
     // Build custom claims map, stripping standard claims
-    let raw: serde_json::Value =
-        serde_json::to_value(claims).map_err(JwtError::Json)?;
+    let raw: serde_json::Value = serde_json::to_value(claims).map_err(JwtError::Json)?;
 
     // Extract scope before consuming raw
-    let scope = raw
-        .get("scope")
-        .and_then(|v| v.as_str())
-        .map(String::from);
+    let scope = raw.get("scope").and_then(|v| v.as_str()).map(String::from);
 
     let custom = if let serde_json::Value::Object(map) = raw {
-        let standard_keys = [
-            "sub", "iss", "aud", "exp", "iat", "nbf", "jti", "nonce",
-        ];
+        let standard_keys = ["sub", "iss", "aud", "exp", "iat", "nbf", "jti", "nonce"];
         map.into_iter()
             .filter(|(k, _)| !standard_keys.contains(&k.as_str()))
             .collect()
@@ -411,9 +404,7 @@ fn to_verified_claims(
     };
 
     let unix_ts_to_datetime = |ts: Option<jwt_simple::prelude::UnixTimeStamp>| {
-        ts.and_then(|t| {
-            DateTime::from_timestamp(i64::try_from(t.as_secs()).unwrap_or(i64::MAX), 0)
-        })
+        ts.and_then(|t| DateTime::from_timestamp(i64::try_from(t.as_secs()).unwrap_or(i64::MAX), 0))
     };
 
     Ok(VerifiedClaims {
@@ -829,4 +820,3 @@ impl core::fmt::Display for JwtError {
 }
 
 impl std::error::Error for JwtError {}
-

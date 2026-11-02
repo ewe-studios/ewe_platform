@@ -105,13 +105,14 @@ pub fn ensure_decompressed(image_path: &Path) -> Result<PathBuf> {
     })?;
 
     // Strip compression extension to get the qcow2 name
-    let qcow2_name = image_path
-        .file_name()
-        .and_then(|n| n.to_str()).map_or_else(|| "image.qcow2".to_string(), |n| {
+    let qcow2_name = image_path.file_name().and_then(|n| n.to_str()).map_or_else(
+        || "image.qcow2".to_string(),
+        |n| {
             n.trim_end_matches(".gz")
                 .trim_end_matches(".xz")
                 .to_string()
-        });
+        },
+    );
 
     let dest = cache_dir.join(&qcow2_name);
 
@@ -150,20 +151,24 @@ pub fn compress_gzip(src: &Path, dest: &Path) -> Result<()> {
     })?;
 
     let mut reader = BufReader::new(src_file);
-    let mut encoder = flate2::write::GzEncoder::new(
-        BufWriter::new(dest_file),
-        flate2::Compression::best(),
-    );
+    let mut encoder =
+        flate2::write::GzEncoder::new(BufWriter::new(dest_file), flate2::Compression::best());
 
     let mut buf = vec![0u8; 65536];
     loop {
-        let n = reader.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("reading source: {e}"),
-        })?;
-        if n == 0 { break; }
-        encoder.write_all(&buf[..n]).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("writing compressed data: {e}"),
-        })?;
+        let n = reader
+            .read(&mut buf)
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("reading source: {e}"),
+            })?;
+        if n == 0 {
+            break;
+        }
+        encoder
+            .write_all(&buf[..n])
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("writing compressed data: {e}"),
+            })?;
     }
 
     encoder.finish().map_err(|e| TestbedError::Qcow2Error {
@@ -191,13 +196,19 @@ pub fn decompress_gzip(src: &Path, dest: &Path) -> Result<()> {
 
     let mut buf = vec![0u8; 65536];
     loop {
-        let n = decoder.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("reading compressed data: {e}"),
-        })?;
-        if n == 0 { break; }
-        writer.write_all(&buf[..n]).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("writing decompressed data: {e}"),
-        })?;
+        let n = decoder
+            .read(&mut buf)
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("reading compressed data: {e}"),
+            })?;
+        if n == 0 {
+            break;
+        }
+        writer
+            .write_all(&buf[..n])
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("writing decompressed data: {e}"),
+            })?;
     }
 
     writer.flush().map_err(|e| TestbedError::Qcow2Error {
@@ -224,20 +235,23 @@ pub fn compress_xz(src: &Path, dest: &Path) -> Result<()> {
 
     let mut reader = BufReader::new(src_file);
     // xz2 level 9 = max compression (equivalent to xz -9)
-    let mut encoder = xz2::write::XzEncoder::new(
-        BufWriter::new(dest_file),
-        9,
-    );
+    let mut encoder = xz2::write::XzEncoder::new(BufWriter::new(dest_file), 9);
 
     let mut buf = vec![0u8; 65536];
     loop {
-        let n = reader.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("reading source: {e}"),
-        })?;
-        if n == 0 { break; }
-        encoder.write_all(&buf[..n]).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("writing compressed data: {e}"),
-        })?;
+        let n = reader
+            .read(&mut buf)
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("reading source: {e}"),
+            })?;
+        if n == 0 {
+            break;
+        }
+        encoder
+            .write_all(&buf[..n])
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("writing compressed data: {e}"),
+            })?;
     }
 
     encoder.finish().map_err(|e| TestbedError::Qcow2Error {
@@ -265,13 +279,19 @@ pub fn decompress_xz(src: &Path, dest: &Path) -> Result<()> {
 
     let mut buf = vec![0u8; 65536];
     loop {
-        let n = decoder.read(&mut buf).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("reading compressed data: {e}"),
-        })?;
-        if n == 0 { break; }
-        writer.write_all(&buf[..n]).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("writing decompressed data: {e}"),
-        })?;
+        let n = decoder
+            .read(&mut buf)
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("reading compressed data: {e}"),
+            })?;
+        if n == 0 {
+            break;
+        }
+        writer
+            .write_all(&buf[..n])
+            .map_err(|e| TestbedError::Qcow2Error {
+                message: format!("writing decompressed data: {e}"),
+            })?;
     }
 
     writer.flush().map_err(|e| TestbedError::Qcow2Error {
@@ -323,4 +343,3 @@ pub fn compress_system(src: &Path, dest: &Path, algo: Compression) -> Result<()>
 
     Ok(())
 }
-

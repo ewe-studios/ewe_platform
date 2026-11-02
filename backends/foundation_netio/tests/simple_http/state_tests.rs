@@ -108,14 +108,12 @@ fn test_fetch_outcome_map() {
 
 #[test]
 fn test_fetch_result_constructors() {
-    let success: FetchResult<&str, Vec<i32>, String> =
-        FetchResult::success("api1", vec![1, 2, 3]);
+    let success: FetchResult<&str, Vec<i32>, String> = FetchResult::success("api1", vec![1, 2, 3]);
     assert_eq!(success.source, "api1");
     assert!(matches!(success.outcome, FetchOutcome::Success(_)));
     assert_eq!(success.clone().ok(), Some(vec![1, 2, 3]));
 
-    let error: FetchResult<&str, Vec<i32>, &str> =
-        FetchResult::error("api2", "connection failed");
+    let error: FetchResult<&str, Vec<i32>, &str> = FetchResult::error("api2", "connection failed");
     assert_eq!(error.source, "api2");
     assert!(matches!(error.outcome, FetchOutcome::Error(_)));
     assert_eq!(error.clone().err(), Some("connection failed"));
@@ -131,8 +129,7 @@ fn test_fetch_result_new() {
 
 #[test]
 fn test_fetch_result_map() {
-    let result: FetchResult<&str, Vec<i32>, String> =
-        FetchResult::success("api", vec![1, 2, 3]);
+    let result: FetchResult<&str, Vec<i32>, String> = FetchResult::success("api", vec![1, 2, 3]);
     let mapped = result.map(|v: Vec<i32>| v.len());
     assert_eq!(mapped.source, "api");
     assert_eq!(mapped.ok(), Some(3));

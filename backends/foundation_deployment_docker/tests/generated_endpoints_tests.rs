@@ -42,7 +42,8 @@ fn temp_socket_path(tag: &str) -> PathBuf {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let path = std::path::PathBuf::from("/tmp").join(format!("ewe_docker_gen_{tag}_{pid}_{nanos}.sock"));
+    let path =
+        std::path::PathBuf::from("/tmp").join(format!("ewe_docker_gen_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path
 }
@@ -56,9 +57,11 @@ fn find_sub(haystack: &[u8], needle: &[u8]) -> Option<usize> {
 /// (empty when there are none). The version prefix is stripped first.
 fn route(method: &str, path: &str) -> (u16, String, String) {
     let path_no_query = path.split('?').next().unwrap_or(path);
-    let p = path_no_query.split_once("/v1.").map_or(path_no_query, |(_, rest)| {
-        rest.split_once('/').map_or(rest, |(_, r)| r)
-    });
+    let p = path_no_query
+        .split_once("/v1.")
+        .map_or(path_no_query, |(_, rest)| {
+            rest.split_once('/').map_or(rest, |(_, r)| r)
+        });
     match (method, p) {
         ("GET", "/version") => (
             200,
@@ -132,7 +135,9 @@ fn upload_mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>, consumed: Arc
             if let Some(i) = find_sub(&buf, b"\r\n\r\n") {
                 break i + 4;
             }
-            let Ok(n) = stream.read(&mut chunk) else { return };
+            let Ok(n) = stream.read(&mut chunk) else {
+                return;
+            };
             if n == 0 {
                 return;
             }
@@ -140,10 +145,14 @@ fn upload_mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>, consumed: Arc
         };
         let head = String::from_utf8_lossy(&buf[..head_end]).into_owned();
         let mut lines = head.lines();
-        let Some(request_line) = lines.next() else { return };
+        let Some(request_line) = lines.next() else {
+            return;
+        };
         let mut parts = request_line.split_whitespace();
         let (method, target) = (parts.next(), parts.next());
-        let (Some(method), Some(target)) = (method, target) else { return };
+        let (Some(method), Some(target)) = (method, target) else {
+            return;
+        };
 
         if method == "GET" && target == "/version" {
             write_response(
@@ -174,7 +183,9 @@ fn upload_mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>, consumed: Arc
                 if let Some(i) = find_sub(&rest, b"\r\n") {
                     break i;
                 }
-                let Ok(n) = stream.read(&mut chunk) else { return };
+                let Ok(n) = stream.read(&mut chunk) else {
+                    return;
+                };
                 if n == 0 {
                     return;
                 }
@@ -187,7 +198,9 @@ fn upload_mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>, consumed: Arc
                 break;
             }
             while rest.len() < size + 2 {
-                let Ok(n) = stream.read(&mut chunk) else { return };
+                let Ok(n) = stream.read(&mut chunk) else {
+                    return;
+                };
                 if n == 0 {
                     return;
                 }
@@ -304,9 +317,8 @@ async fn exec_inspect_error_body_is_capped_and_reported() {
     let socket = temp_socket_path("exec_err");
     let stop = Arc::new(AtomicBool::new(false));
     mock_daemon(socket.clone(), stop.clone());
-    let client = DockerClient::connect_unix(&socket).with_limits(
-        DockerLimits::default().with_max_error_body(64),
-    );
+    let client = DockerClient::connect_unix(&socket)
+        .with_limits(DockerLimits::default().with_max_error_body(64));
 
     let err = client
         .exec_inspect("bad")

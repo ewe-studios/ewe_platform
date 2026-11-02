@@ -137,7 +137,10 @@ fn ping_triggers_pong_output() {
     // Ping → no `Ready` message (control frame handled internally, pong written
     // straight to the stream). The task stays alive, not drained.
     let msgs = drain(&mut task);
-    assert_eq!(msgs, [] as [foundation_netio::websocket::WebSocketMessage; 0]);
+    assert_eq!(
+        msgs,
+        [] as [foundation_netio::websocket::WebSocketMessage; 0]
+    );
 }
 
 #[test]
@@ -151,8 +154,14 @@ fn close_frame_drains_task() {
     let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), tx, None);
 
     let msgs = drain(&mut task);
-    assert_eq!(msgs, [] as [foundation_netio::websocket::WebSocketMessage; 0]);
-    assert!(task.next_status(Ctx::new()).is_none(), "task ends after close");
+    assert_eq!(
+        msgs,
+        [] as [foundation_netio::websocket::WebSocketMessage; 0]
+    );
+    assert!(
+        task.next_status(Ctx::new()).is_none(),
+        "task ends after close"
+    );
 }
 
 #[test]
@@ -168,6 +177,9 @@ fn unmasked_frame_triggers_close_and_drain() {
 
     // No messages — violation sends close and drains.
     let msgs = drain(&mut task);
-    assert_eq!(msgs, [] as [foundation_netio::websocket::WebSocketMessage; 0]);
+    assert_eq!(
+        msgs,
+        [] as [foundation_netio::websocket::WebSocketMessage; 0]
+    );
     assert!(task.next_status(Ctx::new()).is_none());
 }

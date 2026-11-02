@@ -7,9 +7,6 @@
 use std::task::{Context, Poll, Waker};
 use std::thread;
 
-use futures_lite::Future;
-use futures_lite::future::block_on;
-use foundation_core::valtron::valtron_test;
 use foundation_ai::agentic::internals::{MessageApi, MessageApiConfig, MessageEvent};
 use foundation_ai::types::{
     MemoryFact, MessageRole, Messages, ObservationEntry, ObservationKind, SessionId, SessionRecord,
@@ -17,7 +14,10 @@ use foundation_ai::types::{
 };
 use foundation_compact::ids::new_scru128;
 use foundation_compact::SystemTime;
+use foundation_core::valtron::valtron_test;
 use foundation_db::MemoryDocumentStore;
+use futures_lite::future::block_on;
+use futures_lite::Future;
 
 fn threshold(flush_threshold: usize) -> MessageApiConfig {
     MessageApiConfig::default().with_flush_threshold(flush_threshold)
@@ -174,7 +174,11 @@ async fn memory_record_flush_is_idempotent() {
     api.flush().await.unwrap();
 
     let all = api.all().await.unwrap();
-    assert_eq!(all.len(), 1, "the same memory record is stored once, not twice");
+    assert_eq!(
+        all.len(),
+        1,
+        "the same memory record is stored once, not twice"
+    );
 }
 
 #[test]
@@ -232,7 +236,11 @@ async fn all_returns_oldest_first() {
 
 #[valtron_test]
 async fn flush_on_end_loses_nothing() {
-    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), threshold(1000));
+    let api = MessageApi::with_config(
+        SessionId::new(),
+        MemoryDocumentStore::new(),
+        threshold(1000),
+    );
 
     for i in 0..20 {
         api.append(user_record(&format!("msg-{i}")));
@@ -403,9 +411,7 @@ mod blocking_store {
         ) -> StorageResult<Document> {
             self.inner.append_promotable(key, content).await
         }
-        async fn append_promotable_with_id<
-            V: Serialize + PromotableDocument + Send + 'static,
-        >(
+        async fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
             &self,
             key: &str,
             doc_id: &str,
@@ -415,11 +421,7 @@ mod blocking_store {
                 .append_promotable_with_id(key, doc_id, content)
                 .await
         }
-        async fn scan_documents(
-            &self,
-            key: &str,
-            limit: usize,
-        ) -> StorageResult<Vec<Document>> {
+        async fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
             self.inner.scan_documents(key, limit).await
         }
         async fn scan_documents_from(
@@ -498,7 +500,11 @@ fn second_flush_waits_for_running_flush() {
     }
 
     store.release();
-    assert_eq!(flush1.join().unwrap(), 1, "the first flush wrote the record");
+    assert_eq!(
+        flush1.join().unwrap(),
+        1,
+        "the first flush wrote the record"
+    );
 
     // Now the running flush has finished and drained the buffer, so the
     // waiting caller reports nothing left to write.

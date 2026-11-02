@@ -219,7 +219,7 @@ async fn async_body_waits_without_spinning() {
 
     let response = client.send_async(get_request(&url)).await.expect("send");
     let (bytes, count, elapsed, cpu_ns) = read_with_counting(response).await;
-    assert_parked(&bytes,b"hello body", count, elapsed, cpu_ns);
+    assert_parked(&bytes, b"hello body", count, elapsed, cpu_ns);
 }
 
 #[cfg(unix)]
@@ -246,7 +246,7 @@ async fn async_body_chunked_waits_without_spinning() {
 
     let response = client.send_async(get_request(&url)).await.expect("send");
     let (bytes, count, elapsed, cpu_ns) = read_with_counting(response).await;
-    assert_parked(&bytes,b"hello chunked", count, elapsed, cpu_ns);
+    assert_parked(&bytes, b"hello chunked", count, elapsed, cpu_ns);
 }
 
 #[cfg(unix)]
@@ -266,7 +266,7 @@ async fn async_body_sse_waits_without_spinning() {
     let response = client.send_async(get_request(&url)).await.expect("send");
     let (bytes, count, elapsed, cpu_ns) = read_with_counting(response).await;
     // `AsyncSendSafeBody` yields each SSE message's `data` plus a newline.
-    assert_parked(&bytes,b"hello\n", count, elapsed, cpu_ns);
+    assert_parked(&bytes, b"hello\n", count, elapsed, cpu_ns);
 }
 
 #[cfg(unix)]
@@ -276,8 +276,7 @@ fn blocking_socket_wouldblock_is_an_error() {
     // the read timeout must surface as an error, not a hang and not a retry.
     let addr = serve_silent();
     let tcp = TcpStream::connect(addr).expect("connect");
-    tcp
-        .set_read_timeout(Some(Duration::from_millis(200)))
+    tcp.set_read_timeout(Some(Duration::from_millis(200)))
         .expect("read timeout");
     tcp.set_nonblocking(false).expect("blocking mode");
 

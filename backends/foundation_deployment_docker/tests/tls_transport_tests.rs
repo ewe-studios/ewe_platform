@@ -46,9 +46,14 @@ fn tls_target(verify: bool) -> Option<(String, DockerTls)> {
 async fn info_over_mutual_tls() {
     // verify = true: full mTLS — client cert presented AND daemon verified
     // against the dind CA. (dind's server cert carries 127.0.0.1 as a SAN.)
-    let Some((host, tls)) = tls_target(true) else { return };
+    let Some((host, tls)) = tls_target(true) else {
+        return;
+    };
     let client = DockerClient::connect_tls(&host, tls).expect("connect_tls");
-    assert!(client.base_url().starts_with("https://"), "TLS base_url must be https");
+    assert!(
+        client.base_url().starts_with("https://"),
+        "TLS base_url must be https"
+    );
 
     let info = client.system_info().await.expect("Info over mTLS");
     assert!(info.containers.is_some(), "SystemInfo should be valid JSON");
@@ -57,7 +62,9 @@ async fn info_over_mutual_tls() {
 
 #[valtron_test]
 async fn container_round_trip_over_tls() {
-    let Some((host, tls)) = tls_target(true) else { return };
+    let Some((host, tls)) = tls_target(true) else {
+        return;
+    };
     let c = DockerClient::connect_tls(&host, tls).expect("connect_tls");
 
     let _ = c.remove_container("ewe-tls-rt", true).await;
@@ -74,14 +81,18 @@ async fn container_round_trip_over_tls() {
         inspect.state.and_then(|s| s.running).unwrap_or(false),
         "container should be running"
     );
-    c.remove_container(&id.id, true).await.expect("remove over TLS");
+    c.remove_container(&id.id, true)
+        .await
+        .expect("remove over TLS");
     eprintln!("TLS CONTAINER ROUND-TRIP OK");
 }
 
 #[valtron_test]
 async fn info_over_tls_insecure() {
     // verify = false: encrypted but server not authenticated (DOCKER_TLS_VERIFY=0).
-    let Some((host, tls)) = tls_target(false) else { return };
+    let Some((host, tls)) = tls_target(false) else {
+        return;
+    };
     let client = DockerClient::connect_tls(&host, tls).expect("connect_tls insecure");
     let info = client.system_info().await.expect("Info over insecure TLS");
     assert!(info.containers.is_some());

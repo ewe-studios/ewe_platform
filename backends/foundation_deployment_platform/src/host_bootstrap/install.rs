@@ -126,4 +126,3 @@ pub fn find_mise_bin() -> Result<std::path::PathBuf> {
         message: "mise not found on PATH or ~/.local/bin".to_string(),
     })
 }
-

@@ -77,7 +77,10 @@ impl std::fmt::Debug for Selector {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("uring::Selector")
             .field("ring_fd", &self.ring.as_raw_fd())
-            .field("registered", &self.entries.lock().map(|e| e.len()).unwrap_or(0))
+            .field(
+                "registered",
+                &self.entries.lock().map(|e| e.len()).unwrap_or(0),
+            )
             .finish()
     }
 }
@@ -140,8 +143,9 @@ impl Selector {
         // submission queue, and `sqe` is a fully initialised entry.
         unsafe {
             let mut sq = self.ring.submission_shared();
-            sq.push(sqe)
-                .map_err(|_| io::Error::new(io::ErrorKind::WouldBlock, "io_uring submission queue full"))?;
+            sq.push(sqe).map_err(|_| {
+                io::Error::new(io::ErrorKind::WouldBlock, "io_uring submission queue full")
+            })?;
             sq.sync();
         }
 
@@ -250,13 +254,20 @@ impl Selector {
     pub fn wake(&self, _token: Token) -> io::Result<()> {
         let guard = self.waker_fd.lock().expect("waker_fd lock poisoned");
         let Some(ref fd) = *guard else {
-            return Err(io::Error::new(io::ErrorKind::NotFound, "io_uring waker not registered"));
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                "io_uring waker not registered",
+            ));
         };
         let val: u64 = 1;
         // SAFETY: writing exactly 8 bytes from a valid u64 to an eventfd, which
         // is the only accepted write size.
         let r = unsafe {
-            libc::write(fd.as_raw_fd(), std::ptr::from_ref(&val).cast(), std::mem::size_of_val(&val))
+            libc::write(
+                fd.as_raw_fd(),
+                std::ptr::from_ref(&val).cast(),
+                std::mem::size_of_val(&val),
+            )
         };
         if r < 0 {
             return Err(io::Error::last_os_error());
@@ -274,7 +285,11 @@ impl Selector {
             let mut val: u64 = 0;
             // SAFETY: reading exactly 8 bytes into a valid u64 from an eventfd.
             let r = unsafe {
-                libc::read(fd.as_raw_fd(), std::ptr::from_mut(&mut val).cast(), std::mem::size_of_val(&val))
+                libc::read(
+                    fd.as_raw_fd(),
+                    std::ptr::from_mut(&mut val).cast(),
+                    std::mem::size_of_val(&val),
+                )
             };
             if r < 0 {
                 let err = io::Error::last_os_error();
@@ -290,7 +305,10 @@ impl Selector {
     /// # Errors
     /// Always returns `io::ErrorKind::Unsupported`.
     pub fn register_vnode(&self, _fd: RawFd, _token: Token) -> io::Result<()> {
-        Err(io::Error::new(io::ErrorKind::Unsupported, "EVFILT_VNODE not supported on io_uring"))
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "EVFILT_VNODE not supported on io_uring",
+        ))
     }
 
     /// No-op counterpart to [`Selector::register_vnode`].

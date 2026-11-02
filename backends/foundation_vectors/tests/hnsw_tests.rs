@@ -1,5 +1,5 @@
 use foundation_vectors::hnsw::HnswIndex;
-use foundation_vectors::index::{VectorError, VectorIndex, load_index};
+use foundation_vectors::index::{load_index, VectorError, VectorIndex};
 use foundation_vectors::metric::DistanceMetric;
 
 fn make_hnsw() -> HnswIndex {
@@ -22,7 +22,13 @@ fn hnsw_insert_and_search() {
 fn hnsw_dimension_mismatch() {
     let index = make_hnsw();
     let err = index.insert("a", &[1.0]).unwrap_err();
-    assert!(matches!(err, VectorError::DimensionMismatch { expected: 3, got: 1 }));
+    assert!(matches!(
+        err,
+        VectorError::DimensionMismatch {
+            expected: 3,
+            got: 1
+        }
+    ));
 }
 
 #[test]
@@ -105,7 +111,10 @@ fn hnsw_serialize_roundtrip_with_deletes() {
     let index = HnswIndex::with_params(DistanceMetric::Cosine, 2, 4, 20, 10, 42);
     for i in 0..10 {
         index
-            .insert(&format!("v{i}"), &[libm::cosf(i as f32), libm::sinf(i as f32)])
+            .insert(
+                &format!("v{i}"),
+                &[libm::cosf(i as f32), libm::sinf(i as f32)],
+            )
             .unwrap();
     }
     index.remove("v3").unwrap();

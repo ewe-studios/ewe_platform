@@ -84,10 +84,11 @@ fn preflight_check(project_dir: &Path) -> Result<()> {
         });
     }
 
-    let content = std::fs::read_to_string(&mise_toml).map_err(|e| TestbedError::BootstrapFailed {
-        step: "preflight".to_string(),
-        message: format!("reading {}: {e}", mise_toml.display()),
-    })?;
+    let content =
+        std::fs::read_to_string(&mise_toml).map_err(|e| TestbedError::BootstrapFailed {
+            step: "preflight".to_string(),
+            message: format!("reading {}: {e}", mise_toml.display()),
+        })?;
 
     if !content.contains("rust") {
         return Err(TestbedError::BootstrapFailed {
@@ -105,9 +106,7 @@ fn verify_mount(session: &mut VmSession, os: GuestOs) -> Result<()> {
 
     let check_cmd = match os {
         GuestOs::Windows => {
-            format!(
-                "if (Test-Path '{guest_path}') {{ 'MOUNT_OK' }} else {{ 'MOUNT_MISSING' }}"
-            )
+            format!("if (Test-Path '{guest_path}') {{ 'MOUNT_OK' }} else {{ 'MOUNT_MISSING' }}")
         }
         GuestOs::Linux | GuestOs::MacOS => {
             format!("[ -d '{guest_path}' ] && echo 'MOUNT_OK' || echo 'MOUNT_MISSING'")
@@ -121,7 +120,11 @@ fn verify_mount(session: &mut VmSession, os: GuestOs) -> Result<()> {
             message: format!(
                 "project mount not accessible at {}. Run 'testbed bootstrap {}' first.",
                 guest_path,
-                if os == GuestOs::Windows { "windows-build" } else { "linux-build" }
+                if os == GuestOs::Windows {
+                    "windows-build"
+                } else {
+                    "linux-build"
+                }
             ),
         });
     }
@@ -168,9 +171,7 @@ fn install_project_tools(session: &mut VmSession, os: GuestOs) -> Result<()> {
     // Run mise install in the mounted project directory
     let install_cmd = match os {
         GuestOs::Windows => {
-            format!(
-                "{env_prefix} cd '{guest_path}'; mise install"
-            )
+            format!("{env_prefix} cd '{guest_path}'; mise install")
         }
         GuestOs::Linux | GuestOs::MacOS => {
             format!("{env_prefix} && cd '{guest_path}' && mise install")
@@ -241,9 +242,10 @@ fn retrieve_artifacts(session: &mut VmSession, profile: &VmProfile) -> Result<Pa
     let bundle_dir = format!("{guest_path}/target/{target}/release/bundle");
 
     // Tar the bundle dir on VM
-    crate::ssh::exec(session, &format!(
-        "cd ~ && tar czf /tmp/artifacts.tar.gz -C {bundle_dir} . 2>/dev/null || true"
-    ))?;
+    crate::ssh::exec(
+        session,
+        &format!("cd ~ && tar czf /tmp/artifacts.tar.gz -C {bundle_dir} . 2>/dev/null || true"),
+    )?;
 
     // SCP back to host
     let host_artifact_dir = dirs::home_dir()
@@ -279,4 +281,3 @@ fn retrieve_artifacts(session: &mut VmSession, profile: &VmProfile) -> Result<Pa
 
     Ok(host_artifact_dir)
 }
-

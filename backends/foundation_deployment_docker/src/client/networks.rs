@@ -37,11 +37,15 @@ impl DockerClient {
     /// # Errors
     ///
     /// Returns [`DockerError`] on transport failure or non-2xx status.
-    pub async fn network_list(&self, filters: Option<&str>) -> Result<serde_json::Value, DockerError> {
+    pub async fn network_list(
+        &self,
+        filters: Option<&str>,
+    ) -> Result<serde_json::Value, DockerError> {
         let args = NetworkListArgs {
             filters: filters.map(str::to_string),
         };
-        let response = network_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+        let response =
+            network_list_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(response.body)
     }
 
@@ -71,7 +75,8 @@ impl DockerClient {
             scope: scope.map(str::to_string),
         };
         let response =
-            network_inspect_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
+            network_inspect_request(self.api(), &args, &self.api_url().await?, None::<NoMod>)
+                .await?;
         Ok(response.body)
     }
 
@@ -88,9 +93,7 @@ impl DockerClient {
     /// Returns [`DockerError`] on transport failure or non-2xx status (e.g. 404
     /// if the network does not exist, or 409 if it is still in use).
     pub async fn network_delete(&self, id: &str) -> Result<(), DockerError> {
-        let args = NetworkDeleteArgs {
-            id: id.to_string(),
-        };
+        let args = NetworkDeleteArgs { id: id.to_string() };
         network_delete_request(self.api(), &args, &self.api_url().await?, None::<NoMod>).await?;
         Ok(())
     }

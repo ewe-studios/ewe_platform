@@ -17,8 +17,8 @@ use std::{
 use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
     valtron::{
-        AnyResult, Ctx, EventReadinessPtr, ExecutionEngine, ExecutionIterator, State,
-        TaskIterator, TaskStatus,
+        AnyResult, Ctx, EventReadinessPtr, ExecutionEngine, ExecutionIterator, State, TaskIterator,
+        TaskStatus,
     },
 };
 use crate::{
@@ -36,14 +36,13 @@ use crate::compati::Mutex;
 use crate::valtron::{WakeCallback, WakeRegistry, WakeResult, WakeableStream};
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, ExecutorError, GlobalTask,
-    ProcessController, SharedTaskQueue, SpawnInfo, SpawnType, TaskReadyResolver, TaskSpawnConfig,
+    BoxedExecutionEngine, BoxedExecutionIterator, ExecutorError, GlobalTask, ProcessController,
+    SharedTaskQueue, SpawnInfo, SpawnType, TaskReadyResolver, TaskSpawnConfig,
 };
 
 use crate::valtron::executors::constants::{
-    DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_MAX_YIELD_DURATION,
-    DEFAULT_NOTIFY_QUEUE_MAX_SPINS, DEFAULT_READINESS_POLL_QUANTUM, DEFAULT_READINESS_WAIT,
-    DEFAULT_WAIT_CHECK_INTERVAL,
+    DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_MAX_YIELD_DURATION, DEFAULT_NOTIFY_QUEUE_MAX_SPINS,
+    DEFAULT_READINESS_POLL_QUANTUM, DEFAULT_READINESS_WAIT, DEFAULT_WAIT_CHECK_INTERVAL,
 };
 
 /// Task that wraps an iterator of plain values and yields items as `TaskStatus::Ready`.
@@ -1579,7 +1578,11 @@ impl ExecutorState {
                             )))
                         }
                         SpawnType::Broadcasted | SpawnType::None | SpawnType::Scheduled => {
-                            tracing::trace!("spawned process without parent, requeueing: {:?} - id: {:?}", info, top_entry);
+                            tracing::trace!(
+                                "spawned process without parent, requeueing: {:?} - id: {:?}",
+                                info,
+                                top_entry
+                            );
 
                             // push entry back into processing mut
                             self.processing.borrow_mut().push_front(top_entry);
@@ -2991,9 +2994,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             // JS: intercept Wait → yield to event loop with short timer
             #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
             if matches!(&response, ProgressIndicator::Wait) {
-                let signal = self
-                    .yielder
-                    .yield_for(self.wait_check_interval);
+                let signal = self.yielder.yield_for(self.wait_check_interval);
                 if self.yielder.should_stop(&signal) {
                     break;
                 }
@@ -3094,9 +3095,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     ProgressIndicator::Wait => {
                         #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
                         {
-                            let signal = self
-                                .yielder
-                                .yield_for(self.wait_check_interval);
+                            let signal = self.yielder.yield_for(self.wait_check_interval);
                             if self.yielder.should_stop(&signal) {
                                 break 'main_loop; // JS event loop will check for new tasks
                             }
@@ -3156,9 +3155,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         // the readiness quantum instead of busy-spinning until one
                         // is woken. The reactor (or a bridged future's waker) calls
                         // `request_executor_resume`, which interrupts this wait.
-                        if !self.state.has_runnable_work()
-                            && self.state.number_of_sleepers() > 0
-                        {
+                        if !self.state.has_runnable_work() && self.state.number_of_sleepers() > 0 {
                             self.yielder.yield_for(self.readiness_poll_quantum);
                         }
                     }

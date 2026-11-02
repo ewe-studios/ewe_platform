@@ -3263,9 +3263,7 @@ impl RenderHttp for Http11 {
             }
             Self::ResponseHead(head) => Ok(Box::new(Http11ResponseHeadIterator::new(head))),
             Self::ResponseBodyChunk(chunk) => Ok(Box::new(Http11ChunkIterator::new(chunk))),
-            Self::ResponseTrailers(trailers) => {
-                Ok(Box::new(Http11TrailersIterator::new(trailers)))
-            }
+            Self::ResponseTrailers(trailers) => Ok(Box::new(Http11TrailersIterator::new(trailers))),
         }
     }
 }
@@ -4094,10 +4092,9 @@ where
                     }
 
                     if current_values.len() > 1 {
-                        if let Some(chunked_index) =
-                            transfer_encodings
-                                .iter()
-                                .position(|n| n.eq_ignore_ascii_case(CHUNKED_VALUE))
+                        if let Some(chunked_index) = transfer_encodings
+                            .iter()
+                            .position(|n| n.eq_ignore_ascii_case(CHUNKED_VALUE))
                         {
                             tracing::trace!("Chunked header index: {}", chunked_index);
                             if chunked_index != (current_values.len() - 1) {
@@ -4652,10 +4649,9 @@ where
                     }
 
                     if current_values.len() > 1 {
-                        if let Some(chunked_index) =
-                            transfer_encodings
-                                .iter()
-                                .position(|n| n.eq_ignore_ascii_case(CHUNKED_VALUE))
+                        if let Some(chunked_index) = transfer_encodings
+                            .iter()
+                            .position(|n| n.eq_ignore_ascii_case(CHUNKED_VALUE))
                         {
                             tracing::trace!("Chunked header index: {}", chunked_index);
                             if chunked_index != (current_values.len() - 1) {
@@ -4862,8 +4858,7 @@ impl LineFeed {
                 }
             }
             false
-        }) {
-        }
+        }) {}
 
         let line_feed_result = match pointer
             .do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume_some)
@@ -5167,8 +5162,7 @@ impl ChunkState {
             }
 
             false
-        }) {
-        }
+        }) {}
 
         match pointer.do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume) {
             Ok(value) => match String::from_utf8(value) {
@@ -5225,8 +5219,7 @@ impl ChunkState {
                 }
             }
             false
-        }) {
-        }
+        }) {}
 
         // NOTE: Some chunk encoding use \r\n and others \n\n for
         // chunk encoding to have newline instead both \r\n?
@@ -5529,17 +5522,12 @@ impl ChunkState {
         }
 
         match (extension_key, extension_value) {
-            (Some(key), Some(value)) => {
-                match (
-                    String::from_utf8(key),
-                    String::from_utf8(value),
-                ) {
-                    (Ok(key_string), Ok(value_string)) => Ok((key_string, Some(value_string))),
-                    (Ok(_), Err(err)) | (Err(err), Ok(_) | Err(_)) => {
-                        Err(ChunkStateError::InvalidOctetBytes(err))
-                    }
+            (Some(key), Some(value)) => match (String::from_utf8(key), String::from_utf8(value)) {
+                (Ok(key_string), Ok(value_string)) => Ok((key_string, Some(value_string))),
+                (Ok(_), Err(err)) | (Err(err), Ok(_) | Err(_)) => {
+                    Err(ChunkStateError::InvalidOctetBytes(err))
                 }
-            }
+            },
             (Some(key), None) => match String::from_utf8(key) {
                 Ok(converted_string) => Ok((converted_string, None)),
                 Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
@@ -5657,10 +5645,9 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleLineFeedIterator<T> {
         // a `WouldBlock` cannot split it, and a line that never ends errors at
         // `max_line` instead of growing the buffer without bound.
         let limits = self.2;
-        match self
-            .1
-            .do_once_mut(|reader| super::framing::buffer_until(reader, super::framing::line, &limits))
-        {
+        match self.1.do_once_mut(|reader| {
+            super::framing::buffer_until(reader, super::framing::line, &limits)
+        }) {
             Ok(super::framing::BufferOutcome::Ready) => {}
             Ok(super::framing::BufferOutcome::WouldBlock) => {
                 return Some(Err(Box::new(HttpReaderError::WouldBlock)));
@@ -5727,7 +5714,9 @@ impl<T: std::io::Read + Send + Sync> Iterator for SimpleSseIterator<T> {
         }) {
             Ok(super::framing::BufferOutcome::Ready) => {}
             Ok(super::framing::BufferOutcome::WouldBlock) => {
-                return Some(Err(Box::new(HttpReaderError::WouldBlock) as SendableBoxedError));
+                return Some(Err(
+                    Box::new(HttpReaderError::WouldBlock) as SendableBoxedError
+                ));
             }
             Err(err) => {
                 return Some(Err(
@@ -6170,9 +6159,7 @@ impl BodyExtractor for SimpleHttpBody {
 
 impl<T: std::io::Read + Send + Sync + 'static> HttpRequestReader<SimpleHttpBody, T> {
     #[must_use]
-    pub fn simple_tcp_stream(
-        reader: SharedByteBufferStream<T>,
-    ) -> Self {
+    pub fn simple_tcp_stream(reader: SharedByteBufferStream<T>) -> Self {
         Self::new(reader, SimpleHttpBody::default())
     }
 
@@ -6208,9 +6195,7 @@ impl<T: std::io::Read + Send + Sync + 'static> HttpRequestReader<SimpleHttpBody,
 
 impl<T: std::io::Read + Send + Sync + 'static> HttpResponseReader<SimpleHttpBody, T> {
     #[must_use]
-    pub fn simple_tcp_stream(
-        reader: SharedByteBufferStream<T>,
-    ) -> Self {
+    pub fn simple_tcp_stream(reader: SharedByteBufferStream<T>) -> Self {
         Self::new(reader, SimpleHttpBody::default())
     }
 

@@ -72,9 +72,18 @@ struct Cake {
 fn bake_cake(ctx: Ctx, recipe: Recipe) -> Option<(Recipe, TaskStatus<Cake, ()>)> {
     let _ = ctx;
     match (recipe.mixed, recipe.baked) {
-        (false, _) => Some((Recipe { mixed: true, ..recipe }, TaskStatus::Ignore)),
+        (false, _) => Some((
+            Recipe {
+                mixed: true,
+                ..recipe
+            },
+            TaskStatus::Ignore,
+        )),
         (true, false) => Some((
-            Recipe { mixed: true, baked: true },
+            Recipe {
+                mixed: true,
+                baked: true,
+            },
             TaskStatus::Ready(Cake { layers: 3 }),
         )),
         (true, true) => None,
@@ -93,11 +102,17 @@ async fn main() {
     assert_eq!(house, House { walls: 4 });
 
     // Struct-state task, driven the same way.
-    let (cake, _rest) = execute(bake_cake::new(Recipe { mixed: false, baked: false }), None)
-        .expect("engine live")
-        .into_ready_future()
-        .await
-        .expect("a cake was baked");
+    let (cake, _rest) = execute(
+        bake_cake::new(Recipe {
+            mixed: false,
+            baked: false,
+        }),
+        None,
+    )
+    .expect("engine live")
+    .into_ready_future()
+    .await
+    .expect("a cake was baked");
     assert_eq!(cake, Cake { layers: 3 });
 
     println!("enum   build_house -> {house:?}");
@@ -109,7 +124,19 @@ async fn main() {
         Some((Stage::Roof, TaskStatus::Ignore))
     );
     assert_eq!(
-        bake_cake(Ctx::new(), Recipe { mixed: false, baked: false }),
-        Some((Recipe { mixed: true, baked: false }, TaskStatus::Ignore))
+        bake_cake(
+            Ctx::new(),
+            Recipe {
+                mixed: false,
+                baked: false
+            }
+        ),
+        Some((
+            Recipe {
+                mixed: true,
+                baked: false
+            },
+            TaskStatus::Ignore
+        ))
     );
 }

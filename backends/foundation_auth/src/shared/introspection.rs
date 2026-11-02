@@ -3,8 +3,8 @@
 //! Allows a resource server to validate an access token by querying the
 //! authorization server's introspection endpoint.
 
-use base64::{engine::general_purpose::STANDARD, Engine};
 use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
+use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
@@ -121,18 +121,16 @@ impl IntrospectionClient {
         client_id: &str,
         client_secret: &str,
     ) -> Result<IntrospectionResult, IntrospectionError> {
-        let body =
-            do_introspect(
-                &self.http,
-                introspection_url,
-                token,
-                client_id,
-                client_secret,
-                self.max_error_body,
-            )
-            .await?;
-        serde_json::from_str(&body)
-            .map_err(|e| IntrospectionError::ParseError(e.to_string()))
+        let body = do_introspect(
+            &self.http,
+            introspection_url,
+            token,
+            client_id,
+            client_secret,
+            self.max_error_body,
+        )
+        .await?;
+        serde_json::from_str(&body).map_err(|e| IntrospectionError::ParseError(e.to_string()))
     }
 }
 
@@ -190,8 +188,14 @@ async fn do_introspect(
     let body_text = format!("token={}", urlencoding::encode(token));
     let req = PreparedRequestBuilder::post(url)
         .map_err(|e| IntrospectionError::ConnectionFailed(format!("invalid URL: {e}")))?
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .header(SimpleHeader::AUTHORIZATION, basic_auth_header(client_id, client_secret))
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
+        .header(
+            SimpleHeader::AUTHORIZATION,
+            basic_auth_header(client_id, client_secret),
+        )
         .body_text(body_text)
         .build();
 

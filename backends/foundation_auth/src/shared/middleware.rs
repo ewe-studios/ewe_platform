@@ -156,4 +156,3 @@ pub fn has_scope(ctx: &AuthContext, required: &[&str]) -> bool {
     let scopes: Vec<&str> = scope_str.split_whitespace().collect();
     required.iter().any(|r| scopes.contains(r))
 }
-

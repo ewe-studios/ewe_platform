@@ -92,10 +92,16 @@ fn park_on_depends_on_a_waking_stream_and_waits_otherwise() {
     assert!(signal.is_ready(None), "the push flips the signal");
 
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let mut buffered =
-        StreamIteratorExt::collect_stream(NotifyQueueStreamIterator::new(queue, 5, Duration::from_micros(50)));
+    let mut buffered = StreamIteratorExt::collect_stream(NotifyQueueStreamIterator::new(
+        queue,
+        5,
+        Duration::from_micros(50),
+    ));
     let status: TaskStatus<(), ()> = park_on(&mut buffered);
-    assert!(matches!(status, TaskStatus::Wait), "no readiness signal: re-poll");
+    assert!(
+        matches!(status, TaskStatus::Wait),
+        "no readiness signal: re-poll"
+    );
 }
 
 /// The first pull of an async bridge on an empty queue does not block: the
@@ -124,7 +130,10 @@ fn an_async_bridge_does_not_block_on_its_first_empty_pull() {
     queue.push(Stream::Next(3)).unwrap();
     match ready.as_mut().poll(&mut cx) {
         Poll::Ready(Some((value, _rest))) => assert_eq!(value, 3),
-        other => panic!("expected the pushed value, got {:?}", other.map(|o| o.map(|(v, _)| v))),
+        other => panic!(
+            "expected the pushed value, got {:?}",
+            other.map(|o| o.map(|(v, _)| v))
+        ),
     }
 
     // The task path: `TaskStatus::from_stream` parks at once too.
@@ -133,7 +142,10 @@ fn an_async_bridge_does_not_block_on_its_first_empty_pull() {
     let started = std::time::Instant::now();
     let status: Option<TaskStatus<usize, ()>> = TaskStatus::from_stream(&mut iterator);
     assert!(matches!(status, Some(TaskStatus::Depends(_))));
-    assert!(started.elapsed() < Duration::from_millis(200), "from_stream blocked");
+    assert!(
+        started.elapsed() < Duration::from_millis(200),
+        "from_stream blocked"
+    );
 }
 
 /// Counts how often it is woken.
@@ -172,7 +184,11 @@ fn first_empty_pull_does_not_block() {
     assert_eq!(counter.0.load(Ordering::SeqCst), 0);
 
     queue.push(Stream::Next(9)).unwrap();
-    assert_eq!(counter.0.load(Ordering::SeqCst), 1, "the push must wake the consumer");
+    assert_eq!(
+        counter.0.load(Ordering::SeqCst),
+        1,
+        "the push must wake the consumer"
+    );
     match ready.as_mut().poll(&mut cx) {
         Poll::Ready(Some((value, _rest))) => assert_eq!(value, 9),
         _ => panic!("expected the pushed value"),
@@ -229,7 +245,12 @@ fn item_pushed_between_empty_pull_and_registration_is_not_lost() {
 
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
     let inner = NotifyQueueStreamIterator::new(queue.clone(), 20, Duration::from_millis(200));
-    let racing = RacingStream { inner, queue, saw_empty: false, pushed: false };
+    let racing = RacingStream {
+        inner,
+        queue,
+        saw_empty: false,
+        pushed: false,
+    };
     let mut ready = std::pin::pin!(racing.into_ready_future());
     let mut cx = Context::from_waker(Waker::noop());
 
@@ -269,7 +290,9 @@ fn from_stream_does_not_accumulate_noop_wakes() {
     use foundation_core::valtron::TaskStatus;
 
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::unbounded());
-    let mut stream = IgnoreStream { queue: queue.clone() };
+    let mut stream = IgnoreStream {
+        queue: queue.clone(),
+    };
 
     for _ in 0..100 {
         let status: Option<TaskStatus<usize, ()>> = TaskStatus::from_stream(&mut stream);
@@ -289,7 +312,10 @@ fn from_stream_does_not_accumulate_noop_wakes() {
 fn register_space_wake_replaces_not_accumulates() {
     let queue: Arc<NotifyQueue<Stream<usize, ()>>> = Arc::new(NotifyQueue::bounded(1));
     queue.push(Stream::Next(1usize)).unwrap();
-    assert!(queue.queue().is_full(), "a capacity-1 queue with one item is full");
+    assert!(
+        queue.queue().is_full(),
+        "a capacity-1 queue with one item is full"
+    );
 
     for _ in 0..100 {
         queue.register_space_wake(Box::new(|| {}));
@@ -315,7 +341,18 @@ fn pop_wakes_a_waiting_producer() {
         c.fetch_add(1, Ordering::SeqCst);
     }));
 
-    assert_eq!(fired.load(Ordering::SeqCst), 0, "not woken before a pop frees space");
-    assert!(matches!(queue.pop(), Ok(Stream::Next(1))), "pop returns the pushed item");
-    assert_eq!(fired.load(Ordering::SeqCst), 1, "pop must wake a registered space waiter");
+    assert_eq!(
+        fired.load(Ordering::SeqCst),
+        0,
+        "not woken before a pop frees space"
+    );
+    assert!(
+        matches!(queue.pop(), Ok(Stream::Next(1))),
+        "pop returns the pushed item"
+    );
+    assert_eq!(
+        fired.load(Ordering::SeqCst),
+        1,
+        "pop must wake a registered space waiter"
+    );
 }

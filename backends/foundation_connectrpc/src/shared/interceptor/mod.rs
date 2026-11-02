@@ -159,7 +159,11 @@ pub struct RecoverInterceptor<F> {
 
 impl<F> RecoverInterceptor<F>
 where
-    F: Fn(&Ctx, &Spec, &SimpleHeaders, PanicPayload) -> ConnectError + Clone + Send + Sync + 'static,
+    F: Fn(&Ctx, &Spec, &SimpleHeaders, PanicPayload) -> ConnectError
+        + Clone
+        + Send
+        + Sync
+        + 'static,
 {
     /// Create a recover interceptor from a panic handler.
     pub fn new(handler: F) -> Self {
@@ -169,7 +173,11 @@ where
 
 impl<F> Interceptor for RecoverInterceptor<F>
 where
-    F: Fn(&Ctx, &Spec, &SimpleHeaders, PanicPayload) -> ConnectError + Clone + Send + Sync + 'static,
+    F: Fn(&Ctx, &Spec, &SimpleHeaders, PanicPayload) -> ConnectError
+        + Clone
+        + Send
+        + Sync
+        + 'static,
 {
     fn wrap_unary(&self, next: UnaryFunc) -> UnaryFunc {
         let handler = self.handler.clone();

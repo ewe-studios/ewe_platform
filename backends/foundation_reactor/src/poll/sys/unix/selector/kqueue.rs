@@ -1,5 +1,4 @@
 /// macOS/BSD kqueue selector.
-
 use crate::poll::event::Event;
 use crate::poll::{Events, Interest, Registry, Token};
 
@@ -161,9 +160,8 @@ impl Selector {
 
     /// Register a raw file descriptor with the kqueue selector.
     pub fn register_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
-        let mut events: [libc::kevent; 2] = [unsafe { std::mem::zeroed() }, unsafe {
-            std::mem::zeroed()
-        }];
+        let mut events: [libc::kevent; 2] =
+            [unsafe { std::mem::zeroed() }, unsafe { std::mem::zeroed() }];
         let mut count = 0;
 
         if interest.is_readable() {
@@ -263,9 +261,8 @@ impl Selector {
 
     /// Deregister a raw file descriptor from the kqueue selector.
     pub fn deregister_fd(&self, fd: RawFd) -> io::Result<()> {
-        let mut events: [libc::kevent; 2] = [unsafe { std::mem::zeroed() }, unsafe {
-            std::mem::zeroed()
-        }];
+        let mut events: [libc::kevent; 2] =
+            [unsafe { std::mem::zeroed() }, unsafe { std::mem::zeroed() }];
         let mut count = 0;
 
         // Delete both read and write filters
@@ -396,10 +393,7 @@ impl Selector {
                 Ok(())
             }
         } else {
-            Err(io::Error::new(
-                io::ErrorKind::Other,
-                "waker not registered",
-            ))
+            Err(io::Error::new(io::ErrorKind::Other, "waker not registered"))
         }
     }
 

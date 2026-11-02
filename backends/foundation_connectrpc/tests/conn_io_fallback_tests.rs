@@ -169,7 +169,9 @@ fn read_response(stream: &mut UnixStream) -> (u16, Vec<u8>) {
 #[foundation_macros::timeout(60000)]
 fn conn_io_fallback_polls_instead_of_unsupported() {
     let (server_side, mut peer) = UnixStream::pair().expect("socketpair");
-    server_side.set_nonblocking(true).expect("non-blocking server side");
+    server_side
+        .set_nonblocking(true)
+        .expect("non-blocking server side");
     peer.set_read_timeout(Some(Duration::from_secs(10)))
         .expect("peer read timeout");
 
@@ -215,7 +217,10 @@ fn conn_io_fallback_polls_instead_of_unsupported() {
     }
 
     let (status, body) = read_response(&mut peer);
-    assert_eq!(status, 200, "the unary over a completion socket returns 200");
+    assert_eq!(
+        status, 200,
+        "the unary over a completion socket returns 200"
+    );
     let echoed: Msg = JsonCodec.unmarshal(Bytes::from(body)).expect("decode echo");
     assert_eq!(
         echoed,

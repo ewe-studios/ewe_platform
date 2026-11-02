@@ -237,13 +237,8 @@ pub struct ParseError {
 
 #[derive(Debug, Eq, PartialEq)]
 enum ParseErrorKind {
-    InvalidLength {
-        n_bytes: usize,
-    },
-    InvalidDigit {
-        utf8_char: [u8; 4],
-        position: usize,
-    },
+    InvalidLength { n_bytes: usize },
+    InvalidDigit { utf8_char: [u8; 4], position: usize },
     OutOfU128Range,
 }
 
@@ -376,7 +371,7 @@ mod tests {
         ];
 
         for e in cases {
-            let from_fields = Id::try_from_fields(e.0.0, e.0.1, e.0.2, e.0.3).unwrap();
+            let from_fields = Id::try_from_fields(e.0 .0, e.0 .1, e.0 .2, e.0 .3).unwrap();
             let from_string = e.1.parse::<Id>().unwrap();
 
             assert_eq!(from_fields, from_string);
@@ -567,8 +562,8 @@ mod tests {
 
 #[cfg(feature = "serde")]
 mod with_serde {
-    use super::{Id, fmt, str};
-    use serde::{Deserializer, Serializer, de};
+    use super::{fmt, str, Id};
+    use serde::{de, Deserializer, Serializer};
 
     impl serde::Serialize for Id {
         fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {

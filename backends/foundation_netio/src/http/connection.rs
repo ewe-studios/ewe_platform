@@ -2,8 +2,8 @@
 //!
 //! This module provides URL parsing and TCP/TLS connection establishment.
 
-use crate::native::connection::Connector;
 use crate::http::pool::ConnectionPool;
+use crate::native::connection::Connector;
 use crate::shared::client::SystemDnsResolver;
 use std::io::Read;
 use std::ops::{Deref, DerefMut};
@@ -316,11 +316,7 @@ impl HttpClientConnection {
     /// the `RawStream` itself and needs a public way to turn it into an
     /// `HttpClientConnection` without going through the blocking `connect`.
     #[must_use]
-    pub fn from_stream(
-        stream: SharedByteBufferStream<RawStream>,
-        host: String,
-        port: u16,
-    ) -> Self {
+    pub fn from_stream(stream: SharedByteBufferStream<RawStream>, host: String, port: u16) -> Self {
         Self { stream, host, port }
     }
 
@@ -335,10 +331,7 @@ impl HttpClientConnection {
     // Public API: `ConnWaker` is handed over by value by callers; changing to a
     // reference would break the crate's public API surface.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn register_read_waker(
-        &self,
-        waker: crate::native::connection::ConnWaker,
-    ) -> bool {
+    pub fn register_read_waker(&self, waker: crate::native::connection::ConnWaker) -> bool {
         self.stream
             .with_inner_ref(|raw: &RawStream| raw.register_read_waker(waker.clone()))
     }
@@ -384,7 +377,10 @@ impl HttpClientConnection {
             Ok(true) => self.readiness(interest),
             Ok(false) => None,
             Err(err) => {
-                tracing::error!(?err, "cannot read socket mode; treating WouldBlock as terminal");
+                tracing::error!(
+                    ?err,
+                    "cannot read socket mode; treating WouldBlock as terminal"
+                );
                 None
             }
         }
@@ -405,9 +401,7 @@ impl HttpClientConnection {
     /// that wakes a `std::task::Waker` when this connection becomes readable
     /// (Feature 29 / Feature 03). See [`RawStream::read_wake_source`].
     #[must_use]
-    pub fn read_wake_source(
-        &self,
-    ) -> Option<crate::shared::client::body_reader::ReadWakeSource> {
+    pub fn read_wake_source(&self) -> Option<crate::shared::client::body_reader::ReadWakeSource> {
         self.stream.with_inner_ref(RawStream::read_wake_source)
     }
 
@@ -704,12 +698,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         &self,
         host: &str,
         port: u16,
-    ) -> Pin<
-        Box<
-            dyn Future<Output = Result<Vec<core::net::SocketAddr>, HttpClientError>>
-                + Send,
-        >,
-    >
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<core::net::SocketAddr>, HttpClientError>> + Send>>
     where
         R: 'static,
     {
@@ -739,7 +728,11 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     pub fn checkout_connection(&self, host: &str, port: u16) -> Option<HttpClientConnection> {
         self.pool
             .checkout(host, port)
-            .map(|stream| HttpClientConnection { stream, host: host.to_string(), port })
+            .map(|stream| HttpClientConnection {
+                stream,
+                host: host.to_string(),
+                port,
+            })
     }
 
     /// Create a new `HttpConnectionPool` from an `Arc<ConnectionPool>`.
@@ -896,7 +889,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         timeout: Option<Duration>,
     ) -> Result<Connection, HttpClientError> {
         use crate::shared::client::ProxyProtocol;
-        use crate::shared::http::{HttpResponseReader, SimpleHttpBody, IncomingResponseParts};
+        use crate::shared::http::{HttpResponseReader, IncomingResponseParts, SimpleHttpBody};
         use std::io::Write;
 
         // Verify proxy protocol
@@ -1073,7 +1066,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         timeout: Option<Duration>,
     ) -> Result<HttpClientConnection, HttpClientError> {
         use crate::shared::client::ProxyProtocol;
-        use crate::shared::http::{HttpResponseReader, SimpleHttpBody, IncomingResponseParts};
+        use crate::shared::http::{HttpResponseReader, IncomingResponseParts, SimpleHttpBody};
         use std::io::Write;
 
         // Verify proxy protocol

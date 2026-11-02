@@ -94,11 +94,12 @@ pub fn load(name: &str) -> Result<VmState> {
 
     // Stale PID detection
     if let Some(pid) = state.pid
-        && !is_process_alive(pid) {
-            state.pid = None; // Process is gone
-            // Save cleaned state
-            save(&state)?;
-        }
+        && !is_process_alive(pid)
+    {
+        state.pid = None; // Process is gone
+        // Save cleaned state
+        save(&state)?;
+    }
 
     Ok(state)
 }
@@ -147,9 +148,10 @@ pub fn list() -> Result<Vec<(String, VmState)>> {
         let path = entry.path();
         if path.extension().and_then(|e| e.to_str()) == Some("json")
             && let Ok(json) = std::fs::read_to_string(&path)
-                && let Ok(state) = serde_json::from_str::<VmState>(&json) {
-                    vms.push((state.profile_name.clone(), state));
-                }
+            && let Ok(state) = serde_json::from_str::<VmState>(&json)
+        {
+            vms.push((state.profile_name.clone(), state));
+        }
     }
 
     Ok(vms)
@@ -159,9 +161,10 @@ pub fn list() -> Result<Vec<(String, VmState)>> {
 #[must_use]
 pub fn is_running(name: &str) -> bool {
     if let Ok(state) = load(name)
-        && let Some(pid) = state.pid {
-            return is_process_alive(pid);
-        }
+        && let Some(pid) = state.pid
+    {
+        return is_process_alive(pid);
+    }
     false
 }
 
@@ -190,7 +193,8 @@ pub fn from_runtime(
         rdp_port,
         vnc_port,
         bootstrapped,
-        created_at: format!("{}T{}",
+        created_at: format!(
+            "{}T{}",
             chrono::Utc::now().date_naive(),
             chrono::Utc::now().time()
         ),
@@ -222,7 +226,8 @@ pub fn from_qemu(
         rdp_port,
         vnc_port,
         bootstrapped,
-        created_at: format!("{}T{}",
+        created_at: format!(
+            "{}T{}",
             chrono::Utc::now().date_naive(),
             chrono::Utc::now().time()
         ),
@@ -256,4 +261,3 @@ pub fn is_process_alive(pid: u32) -> bool {
         false
     }
 }
-

@@ -1,4 +1,4 @@
-use foundation_vectors::index::{FlatIndex, VectorError, VectorIndex, load_index};
+use foundation_vectors::index::{load_index, FlatIndex, VectorError, VectorIndex};
 use foundation_vectors::metric::DistanceMetric;
 
 #[test]
@@ -18,7 +18,13 @@ fn flat_insert_and_search() {
 fn flat_dimension_mismatch_on_insert() {
     let index = FlatIndex::new(DistanceMetric::Cosine, 3);
     let err = index.insert("a", &[1.0, 0.0]).unwrap_err();
-    assert!(matches!(err, VectorError::DimensionMismatch { expected: 3, got: 2 }));
+    assert!(matches!(
+        err,
+        VectorError::DimensionMismatch {
+            expected: 3,
+            got: 2
+        }
+    ));
 }
 
 #[test]

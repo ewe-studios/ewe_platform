@@ -38,9 +38,9 @@ use crate::{
 };
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutorError,
-    FnMutReady, FnReady, OnNext, PriorityOrder, ProcessController, ReadyConsumingIter,
-    SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskStatus,
+    BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutorError, FnMutReady,
+    FnReady, OnNext, PriorityOrder, ProcessController, ReadyConsumingIter, SharedTaskQueue,
+    TaskIterator, TaskReadyResolver, TaskStatus,
 };
 
 use crate::valtron::{ThreadActivity, ThreadId};
@@ -492,8 +492,7 @@ where
 /// [`spawn2`] provides a builder which allows you to build out
 /// the underlying tasks with an explicit Resolver type.
 #[must_use]
-pub fn spawn2<Task, Resolver>(
-) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Resolver, Task>
+pub fn spawn2<Task, Resolver>() -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Resolver, Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
@@ -1152,11 +1151,10 @@ impl<
         self,
         wait_cycle: time::Duration,
     ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
-        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
-            match self.channel_capacity {
-                Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
-                None => Arc::new(NotifyQueue::unbounded()),
-            };
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> = match self.channel_capacity {
+            Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
+            None => Arc::new(NotifyQueue::unbounded()),
+        };
 
         let boxed_task = match self.task {
             Some(task) => match self.resolver {
@@ -1277,11 +1275,10 @@ impl<
         self,
         wait_cycle: time::Duration,
     ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending>>, ExecutorError> {
-        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> =
-            match self.channel_capacity {
-                Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
-                None => Arc::new(NotifyQueue::unbounded()),
-            };
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending>>> = match self.channel_capacity {
+            Some(capacity) => Arc::new(NotifyQueue::bounded(capacity)),
+            None => Arc::new(NotifyQueue::unbounded()),
+        };
 
         let boxed_task = match self.task {
             Some(task) => match self.resolver {
@@ -1640,7 +1637,10 @@ impl ThreadRegistry {
             self.join_all_threads();
         } else {
             let detached = {
-                let mut map = self.thread_handles.write().unwrap_or_else(|p| p.into_inner());
+                let mut map = self
+                    .thread_handles
+                    .write()
+                    .unwrap_or_else(|p| p.into_inner());
                 std::mem::take(&mut *map).len()
             };
             tracing::error!(
@@ -1878,7 +1878,11 @@ impl ThreadRegistry {
                 );
             }) {
                 Ok(()) => {
-                    tracing::debug!("worker thread({}) {} stopped cleanly", &worker_tag, seed_clone);
+                    tracing::debug!(
+                        "worker thread({}) {} stopped cleanly",
+                        &worker_tag,
+                        seed_clone
+                    );
                     Ok(())
                 }
                 Err(err) => {

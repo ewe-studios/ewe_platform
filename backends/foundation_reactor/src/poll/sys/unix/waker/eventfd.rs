@@ -2,7 +2,6 @@
 ///
 /// Writing a u64 to the eventfd unblocks `epoll_wait()`.
 /// The eventfd is registered with `EPOLLIN` and `EPOLLET` flags.
-
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 
 /// A waker file descriptor for Linux.

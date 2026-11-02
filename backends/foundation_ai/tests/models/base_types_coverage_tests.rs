@@ -13,9 +13,7 @@
 //!
 //! HOW: pure construction and formatting — no providers, no models, no network.
 
-use foundation_ai::types::{
-    Args, ChatMessage, DeviceId, KVCacheType, MessageRole, Quantization,
-};
+use foundation_ai::types::{Args, ChatMessage, DeviceId, KVCacheType, MessageRole, Quantization};
 
 // ---------------------------------------------------------------------------
 // DeviceId
@@ -418,7 +416,11 @@ fn toolshed_with_tools_overwrites_rather_than_appends() {
         .with_tools(vec![single("first", serde_json::json!({}))])
         .with_tools(vec![single("second", serde_json::json!({}))]);
     let names: Vec<&str> = shed.tools.iter().map(Tool::name).collect();
-    assert_eq!(names, vec!["second"], "the second call must replace the first");
+    assert_eq!(
+        names,
+        vec!["second"],
+        "the second call must replace the first"
+    );
 }
 
 #[test]

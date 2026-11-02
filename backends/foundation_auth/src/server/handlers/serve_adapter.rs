@@ -3,19 +3,18 @@ use std::sync::Arc;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::{collect_one, execute, from_future};
-use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeError};
-use foundation_http::{SimpleIncomingRequest, RawStream};
-use foundation_netio::shared::http::{
-    ChunkedData, Http11, RenderHttp, SimpleHeader, SimpleOutgoingResponse, SendSafeBody,
-    Status,
-};
 use foundation_errstacks::ErrorTrace;
+use foundation_http::shared::context::ContextBag;
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeError, ServeFactory};
+use foundation_http::{RawStream, SimpleIncomingRequest};
+use foundation_netio::shared::http::{
+    ChunkedData, Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleOutgoingResponse, Status,
+};
 
 use super::super::config::IdpConfig;
 use super::super::storage::HandlerStorage;
-use foundation_db::{KeyValueStore, MemoryStorage};
 use super::core::{HandlerResponse, IdpError, IdpHandlerCore};
+use foundation_db::{KeyValueStore, MemoryStorage};
 
 /// Write JSON response with optional extra headers.
 fn json_with_headers(
@@ -24,8 +23,12 @@ fn json_with_headers(
     body: &impl serde::Serialize,
     extra_headers: &[(String, String)],
 ) -> Result<(), ErrorTrace<ServeError>> {
-    let bytes = serde_json::to_vec(body)
-        .map_err(|e| ErrorTrace::new(ServeError::InternalError { status: 500, reason: e.to_string() }))?;
+    let bytes = serde_json::to_vec(body).map_err(|e| {
+        ErrorTrace::new(ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })
+    })?;
 
     let mut builder = SimpleOutgoingResponse::builder()
         .with_status(status_code(status))
@@ -38,12 +41,22 @@ fn json_with_headers(
     let response = builder
         .with_body(SendSafeBody::Bytes(bytes))
         .build()
-        .map_err(|e| ErrorTrace::new(ServeError::InternalError { status: 500, reason: e.to_string() }))?;
+        .map_err(|e| {
+            ErrorTrace::new(ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })
+        })?;
 
     Http11::response(response)
         .http_render_to_writer(conn)
         .map(|_| ())
-        .map_err(|e| ErrorTrace::new(ServeError::InternalError { status: 500, reason: e.to_string() }))
+        .map_err(|e| {
+            ErrorTrace::new(ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })
+        })
 }
 
 fn status_code(code: u16) -> Status {
@@ -96,7 +109,11 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
         };
 
         match result {
-            Ok(HandlerResponse { status, body, headers }) => {
+            Ok(HandlerResponse {
+                status,
+                body,
+                headers,
+            }) => {
                 let err_body: serde_json::Value = body;
                 match json_with_headers(&mut conn, status, &err_body, &headers) {
                     Ok(()) => ConnectionResult::Keep,
@@ -158,7 +175,10 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
                     "error": "account_locked",
                     "error_description": format!("Account locked until {retry_not_before}"),
                 });
-                let headers = vec![("x-retry-not-before".to_string(), retry_not_before.to_string())];
+                let headers = vec![(
+                    "x-retry-not-before".to_string(),
+                    retry_not_before.to_string(),
+                )];
                 match json_with_headers(&mut conn, 423, &err, &headers) {
                     Ok(()) => ConnectionResult::Keep,
                     Err(e) => ConnectionResult::Close(Some(e)),
@@ -169,7 +189,10 @@ impl<KV: KeyValueStore + Clone + 'static> Serve for ServeAdapter<KV> {
                     "error": "too_many_requests",
                     "error_description": format!("Retry after {retry_not_before}"),
                 });
-                let headers = vec![("x-retry-not-before".to_string(), retry_not_before.to_string())];
+                let headers = vec![(
+                    "x-retry-not-before".to_string(),
+                    retry_not_before.to_string(),
+                )];
                 match json_with_headers(&mut conn, 429, &err, &headers) {
                     Ok(()) => ConnectionResult::Keep,
                     Err(e) => ConnectionResult::Close(Some(e)),
@@ -231,8 +254,7 @@ fn run_sync<KV: KeyValueStore + Clone + 'static>(
         let bag = ContextBag::new();
         core.dispatch(&bag, &req).await
     });
-    let stream = execute(task, None)
-        .map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;
+    let stream = execute(task, None).map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;
     // The handler's own `IdpError` is the response; only a missing result is
     // an executor failure.
     collect_one(stream).ok_or_else(|| IdpError::Internal("future produced no result".into()))?
@@ -251,7 +273,9 @@ fn read_body_bounded(body: Option<SendSafeBody>, limit: usize) -> Result<Vec<u8>
         buf.extend_from_slice(chunk);
         Ok(())
     }
-    let read_err = |e: &dyn std::fmt::Display| IdpError::BadRequest(format!("failed to read request body: {e}"));
+    let read_err = |e: &dyn std::fmt::Display| {
+        IdpError::BadRequest(format!("failed to read request body: {e}"))
+    };
 
     let mut buf = Vec::new();
     match body {
@@ -275,7 +299,9 @@ fn read_body_bounded(body: Option<SendSafeBody>, limit: usize) -> Result<Vec<u8>
             }
         }
         Some(SendSafeBody::LineFeedStream(_) | SendSafeBody::SseStream(_)) => {
-            return Err(IdpError::BadRequest("unsupported request body encoding".into()));
+            return Err(IdpError::BadRequest(
+                "unsupported request body encoding".into(),
+            ));
         }
     }
     Ok(buf)

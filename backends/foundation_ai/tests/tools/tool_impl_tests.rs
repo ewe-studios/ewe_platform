@@ -17,7 +17,7 @@ impl ToolImpl for EchoTool {
             description: "Echoes the message argument".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        returns: None,
+            returns: None,
         }))
     }
 

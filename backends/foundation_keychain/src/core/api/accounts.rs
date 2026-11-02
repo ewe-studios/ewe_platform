@@ -97,7 +97,9 @@ pub async fn register(ctx: &KeychainContext, req: RegisterRequest) -> AppResult<
         return Err(AppError::BadRequest("a valid email is required".into()));
     }
     if req.master_password_hash.is_empty() {
-        return Err(AppError::BadRequest("master password hash is required".into()));
+        return Err(AppError::BadRequest(
+            "master password hash is required".into(),
+        ));
     }
     if store::find_by_email(ctx.db(), &email).await?.is_some() {
         return Err(AppError::Conflict("email already registered".into()));
@@ -167,7 +169,14 @@ pub async fn update_profile(
     if req.master_password_hint.is_some() {
         user.master_password_hint = req.master_password_hint;
     }
-    store::update_profile(ctx.db(), user_uuid, &user.name, &user.master_password_hint, now).await?;
+    store::update_profile(
+        ctx.db(),
+        user_uuid,
+        &user.name,
+        &user.master_password_hint,
+        now,
+    )
+    .await?;
     user.updated_at = now;
     Ok(to_profile(&user))
 }

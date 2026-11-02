@@ -60,7 +60,11 @@ impl BrowserProcess {
             Ok(url) => url,
             Err(e) => return Err(reap(child, &profile_dir, e)),
         };
-        Ok(Self { child, profile_dir, ws_url })
+        Ok(Self {
+            child,
+            profile_dir,
+            ws_url,
+        })
     }
 
     /// Firefox: pick a free port for the Remote Agent, launch with BiDi enabled,
@@ -93,7 +97,11 @@ impl BrowserProcess {
         // Firefox's BiDi-direct endpoint is `/session` (the root path returns 200
         // and is not a BiDi socket). `session.new` opens a session over it.
         let ws_url = format!("ws://127.0.0.1:{port}/session");
-        Ok(Self { child, profile_dir, ws_url })
+        Ok(Self {
+            child,
+            profile_dir,
+            ws_url,
+        })
     }
 
     /// The browser-level CDP WebSocket URL to connect the engine to.

@@ -41,8 +41,8 @@ use crate::error::DockerError;
 use crate::generated::create::CreateImageInfo;
 use crate::generated::events::EventMessage;
 use crate::generated::push::PushImageInfo;
-use crate::generated::stats::ContainerStatsResponse;
 use crate::generated::shared::{BuildInfo, ErrorDetail};
+use crate::generated::stats::ContainerStatsResponse;
 use crate::streaming::decoder::{DecodeOutcome, LogFrameDecoder, LogOutput};
 
 // ── progress ────────────────────────────────────────────────────────────

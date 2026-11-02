@@ -8,7 +8,7 @@ use crate::errors::GenerationError;
 use crate::types::{
     BoxModel, CostStatus, MessageRole, Messages, ModelId, ModelInteraction, ModelOutput,
     ModelProviders, ProviderRouter, RouterError, StopReason, TextContent, ToolDeclarations,
-    UserModelContent, UsageCosting, UsageReport,
+    UsageCosting, UsageReport, UserModelContent,
 };
 
 fn zero_usage() -> UsageReport {
@@ -339,7 +339,12 @@ impl CachedEmbeddingProvider {
 
     #[must_use]
     pub fn with_defaults(router: ProviderRouter) -> Self {
-        Self::new(router, Box::new(SentenceChunker), Box::new(NoopColdCache), 1000)
+        Self::new(
+            router,
+            Box::new(SentenceChunker),
+            Box::new(NoopColdCache),
+            1000,
+        )
     }
 
     async fn embed_single(

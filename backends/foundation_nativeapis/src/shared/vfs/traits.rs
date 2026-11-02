@@ -30,13 +30,19 @@ pub trait VfsDirectory: Send + Sync {
     fn get_entry(&self, name: &str) -> VfsResult<Option<VfsDirEntry>>;
 
     fn create_file(&self, name: &str, mode: u32) -> VfsResult<Self::File>;
-    fn create_dir(&self, name: &str) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>;
+    fn create_dir(
+        &self,
+        name: &str,
+    ) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>;
     fn remove_entry(&self, name: &str) -> VfsResult<()>;
     fn rename_entry(&self, old_name: &str, new_name: &str) -> VfsResult<()>;
 
     fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File>;
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile>;
-    fn open_directory(&self, path: &str) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>;
+    fn open_directory(
+        &self,
+        path: &str,
+    ) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>>;
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata>;
     fn exists(&self, path: &str) -> VfsResult<bool>;
 
@@ -61,7 +67,9 @@ pub trait VfsDirectory: Send + Sync {
 
     fn mkdir_all(&self, path: &str) -> VfsResult<()> {
         let parts: Vec<&str> = path.split('/').filter(|p| !p.is_empty()).collect();
-        let mut current: Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>> = self.open_directory(".")?;
+        let mut current: Box<
+            dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>,
+        > = self.open_directory(".")?;
         for part in parts {
             match current.get_entry(part)? {
                 Some(entry) if entry.file_type == super::types::VfsFileType::Directory => {
@@ -218,9 +226,7 @@ pub trait VfsFileSystem: Send + Sync {
                     let meta = self.stat(&current)?;
                     if meta.file_type != super::types::VfsFileType::Directory {
                         return Err(foundation_errstacks::ErrorTrace::new(
-                            super::error::VfsError::NotADirectory {
-                                path: current,
-                            },
+                            super::error::VfsError::NotADirectory { path: current },
                         ));
                     }
                 }

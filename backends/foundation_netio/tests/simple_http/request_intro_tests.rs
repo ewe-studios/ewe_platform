@@ -87,7 +87,10 @@ fn blocking_transport_timeout_fails_once_and_terminates() {
         terminated,
         "task kept running after its terminal failure (unbounded retry loop)"
     );
-    assert_eq!(ready_failures, 1, "exactly one terminal failure is reported");
+    assert_eq!(
+        ready_failures, 1,
+        "exactly one terminal failure is reported"
+    );
     assert!(
         elapsed < Duration::from_secs(10),
         "task took {elapsed:?}; expected a single ~100ms read timeout"
@@ -175,7 +178,10 @@ fn nonblocking_silent_peer_parks_then_times_out_once() {
     stop_tx.send(()).expect("signal silent peer");
     peer.join().expect("silent peer thread");
 
-    assert!(parks >= 1, "the task must park on readiness, not fail at once");
+    assert!(
+        parks >= 1,
+        "the task must park on readiness, not fail at once"
+    );
     assert_eq!(timeouts, 1, "exactly one terminal timeout is reported");
     assert!(terminated, "task kept running after its terminal failure");
     assert!(

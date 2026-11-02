@@ -68,7 +68,11 @@ fn docker_container_macro_serves_traffic_while_body_runs(containers: ContainerGr
     let addr = cache
         .address(6379)
         .expect("Docker should have assigned a host port for 6379");
-    assert_ne!(addr.port(), 6379, "the host port should be Docker-assigned, not the container port");
+    assert_ne!(
+        addr.port(),
+        6379,
+        "the host port should be Docker-assigned, not the container port"
+    );
 
     assert_redis_pong(addr);
 }
@@ -93,13 +97,23 @@ fn docker_container_macro_serves_traffic_while_body_runs(containers: ContainerGr
 )]
 #[valtron_test]
 fn docker_container_macro_starts_multiple_containers(containers: ContainerGroup) {
-    assert_eq!(containers.len(), 2, "both declared containers should be in the group");
+    assert_eq!(
+        containers.len(),
+        2,
+        "both declared containers should be in the group"
+    );
 
-    let first = containers.container("first").expect("`first` should be in the group");
-    let second = containers.container("second").expect("`second` should be in the group");
+    let first = containers
+        .container("first")
+        .expect("`first` should be in the group");
+    let second = containers
+        .container("second")
+        .expect("`second` should be in the group");
 
     let first_addr = first.address(6379).expect("first should have a host port");
-    let second_addr = second.address(6379).expect("second should have a host port");
+    let second_addr = second
+        .address(6379)
+        .expect("second should have a host port");
     assert_ne!(
         first_addr, second_addr,
         "each container should get its own Docker-assigned host port"

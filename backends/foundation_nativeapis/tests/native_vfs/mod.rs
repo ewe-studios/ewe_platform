@@ -1,8 +1,10 @@
 #![cfg(feature = "vfs-native")]
 
-use foundation_nativeapis::native::vfs::{NativeFs, NativeFsConfig};
 use foundation_core::valtron::valtron_test;
-use foundation_nativeapis::shared::vfs::{AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem, SyncFs};
+use foundation_nativeapis::native::vfs::{NativeFs, NativeFsConfig};
+use foundation_nativeapis::shared::vfs::{
+    AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem, SyncFs,
+};
 use foundation_nativeapis::shared::vfs::{
     OpenMode, SeekFrom, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem, VfsFileType,
 };
@@ -17,7 +19,8 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(name: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "vfs_native_test_{name}_{}_{}", std::process::id(),
+            "vfs_native_test_{name}_{}_{}",
+            std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
@@ -54,7 +57,9 @@ fn test_write_and_read_back() {
     let tmp = TempDir::new("write");
     let native_fs = SyncFs::new(NativeFs::new(tmp.path()).unwrap());
 
-    native_fs.write_file("/output.txt", b"written by vfs").unwrap();
+    native_fs
+        .write_file("/output.txt", b"written by vfs")
+        .unwrap();
 
     let on_disk = fs::read(tmp.path().join("output.txt")).unwrap();
     assert_eq!(on_disk, b"written by vfs");
@@ -101,7 +106,9 @@ fn test_mkdir_and_list() {
     let native_fs = SyncFs::new(NativeFs::new(tmp.path()).unwrap());
 
     native_fs.mkdir("/subdir").unwrap();
-    native_fs.write_file("/subdir/file.txt", b"in subdir").unwrap();
+    native_fs
+        .write_file("/subdir/file.txt", b"in subdir")
+        .unwrap();
 
     let dir = native_fs.open_directory("/subdir").unwrap();
     let entries = dir.list().unwrap();
@@ -263,7 +270,10 @@ async fn async_read_write_round_trip() {
         .write_file_async("/a.txt".into(), b"hello".to_vec())
         .await
         .unwrap();
-    assert_eq!(native_fs.read_file_async("/a.txt".into()).await.unwrap(), b"hello");
+    assert_eq!(
+        native_fs.read_file_async("/a.txt".into()).await.unwrap(),
+        b"hello"
+    );
     let meta = native_fs.stat_async("/a.txt".into()).await.unwrap();
     assert_eq!(meta.size, 5);
 }
@@ -274,7 +284,10 @@ async fn async_read_write_round_trip() {
 async fn created_files_can_be_read_back() {
     let tmp = TempDir::new("create_rw");
     let native_fs = NativeFs::new(tmp.path()).unwrap();
-    let f = native_fs.create_async("/n.txt".into(), 0o644).await.unwrap();
+    let f = native_fs
+        .create_async("/n.txt".into(), 0o644)
+        .await
+        .unwrap();
     f.write_at_async(b"abc".to_vec(), 0).await.unwrap();
     assert_eq!(f.read_at_async(3, 0).await.unwrap(), b"abc");
 }

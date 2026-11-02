@@ -3,8 +3,13 @@
 /// Run: cargo run -p foundation_nativeapis --features ipc --example ipc_bench --release
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 fn main() {
-    use foundation_nativeapis::ipc::{self, BytesMessage, Label, LabelOp, Message, Options, Selector};
-    use std::{thread, time::{Duration, Instant}};
+    use foundation_nativeapis::ipc::{
+        self, BytesMessage, Label, LabelOp, Message, Options, Selector,
+    };
+    use std::{
+        thread,
+        time::{Duration, Instant},
+    };
 
     let bus = format!(
         "com.ewe.bench.{}",
@@ -16,8 +21,7 @@ fn main() {
 
     let opts = Options::new(&bus, Label::new("bench")).controller_affinity(true);
     let (sender, mut receiver) =
-        ipc::join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-            .expect("join");
+        ipc::join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5))).expect("join");
 
     println!("{:>10} {:>12} {:>14}", "msg size", "msgs/sec", "throughput");
     println!("{}", "-".repeat(40));
@@ -37,7 +41,10 @@ fn main() {
             for _ in 0..count {
                 let msg = Message::new(
                     Selector::multicast(LabelOp::True),
-                    BytesMessage { format: 0, data: data.clone() },
+                    BytesMessage {
+                        format: 0,
+                        data: data.clone(),
+                    },
                 );
                 s.send(msg).expect("send");
             }
@@ -48,7 +55,10 @@ fn main() {
         while received < count {
             match receiver.recv(Some(Duration::from_secs(10))) {
                 Ok(_) => received += 1,
-                Err(e) => { eprintln!("recv error after {received}/{count}: {e:?}"); break; }
+                Err(e) => {
+                    eprintln!("recv error after {received}/{count}: {e:?}");
+                    break;
+                }
             }
         }
         let elapsed = start.elapsed().as_secs_f64();
@@ -68,9 +78,13 @@ fn main() {
 
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 fn format_size(bytes: usize) -> String {
-    if bytes >= 1 << 20 { format!("{:.1}MB", bytes as f64 / (1 << 20) as f64) }
-    else if bytes >= 1 << 10 { format!("{:.1}KB", bytes as f64 / (1 << 10) as f64) }
-    else { format!("{}B", bytes) }
+    if bytes >= 1 << 20 {
+        format!("{:.1}MB", bytes as f64 / (1 << 20) as f64)
+    } else if bytes >= 1 << 10 {
+        format!("{:.1}KB", bytes as f64 / (1 << 10) as f64)
+    } else {
+        format!("{}B", bytes)
+    }
 }
 
 #[cfg(not(all(target_os = "linux", feature = "ipc")))]

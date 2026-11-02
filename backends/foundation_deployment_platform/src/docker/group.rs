@@ -57,7 +57,9 @@ impl ContainerGroup {
     /// annotated function.
     #[must_use]
     pub fn empty() -> Self {
-        Self { entries: Vec::new() }
+        Self {
+            entries: Vec::new(),
+        }
     }
 
     /// Add a started container under an optional logical lookup key.
@@ -69,7 +71,10 @@ impl ContainerGroup {
     pub fn insert(&mut self, key: Option<String>, handle: ContainerHandle) {
         if let Some(ref k) = key {
             assert!(
-                !self.entries.iter().any(|e| e.key.as_deref() == Some(k.as_str())),
+                !self
+                    .entries
+                    .iter()
+                    .any(|e| e.key.as_deref() == Some(k.as_str())),
                 "duplicate container key {k:?} in this group — give each container a distinct `as = \"...\"`"
             );
         }
@@ -133,7 +138,12 @@ impl std::fmt::Debug for ContainerGroup {
         let keys: Vec<&str> = self
             .entries
             .iter()
-            .map(|e| e.key.as_deref().or_else(|| e.handle.name()).unwrap_or("<unkeyed>"))
+            .map(|e| {
+                e.key
+                    .as_deref()
+                    .or_else(|| e.handle.name())
+                    .unwrap_or("<unkeyed>")
+            })
             .collect();
         f.debug_struct("ContainerGroup")
             .field("count", &self.entries.len())

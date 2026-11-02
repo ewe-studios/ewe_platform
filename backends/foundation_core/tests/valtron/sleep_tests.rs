@@ -2,7 +2,7 @@
 
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Ctx, sleep_async, valtron_test, SleepingTask, TaskIterator};
+use foundation_core::valtron::{sleep_async, valtron_test, Ctx, SleepingTask, TaskIterator};
 
 // ── SleepingTask unit tests (no executor needed) ──────────────────────
 
@@ -10,7 +10,10 @@ use foundation_core::valtron::{Ctx, sleep_async, valtron_test, SleepingTask, Tas
 fn sleeping_task_elapsed_returns_none() {
     let ctx = Ctx::new();
     let mut t = SleepingTask::sleep(Duration::ZERO);
-    assert!(t.next_status(ctx.clone()).is_none(), "already-elapsed sleep should be done");
+    assert!(
+        t.next_status(ctx.clone()).is_none(),
+        "already-elapsed sleep should be done"
+    );
 }
 
 #[test]
@@ -20,7 +23,10 @@ fn sleeping_task_future_yields_delayed() {
     let mut t = SleepingTask::new(deadline);
     let status = t.next_status(ctx.clone());
     assert!(
-        matches!(status, Some(foundation_core::valtron::TaskStatus::Delayed(_))),
+        matches!(
+            status,
+            Some(foundation_core::valtron::TaskStatus::Delayed(_))
+        ),
         "future deadline should yield Delayed"
     );
 }
@@ -73,7 +79,10 @@ async fn sleep_async_consecutive() {
     sleep_async(Duration::from_millis(30)).await;
     let total = start.elapsed();
     assert!(first >= Duration::from_millis(20), "first sleep too short");
-    assert!(total >= Duration::from_millis(50), "consecutive sleeps too short");
+    assert!(
+        total >= Duration::from_millis(50),
+        "consecutive sleeps too short"
+    );
 }
 
 // ── sleep_async needs no executor (native) ─────────────────────────────
@@ -115,7 +124,10 @@ fn sleep_async_fires_without_an_executor() {
     })
     .join();
     let elapsed = outcome.expect("sleep_async panicked without an executor");
-    assert!(elapsed >= Duration::from_millis(30), "fired early: {elapsed:?}");
+    assert!(
+        elapsed >= Duration::from_millis(30),
+        "fired early: {elapsed:?}"
+    );
 }
 
 /// The timer wakes its waker at the deadline rather than needing a re-poll.
@@ -127,11 +139,16 @@ fn timer_wakes_its_waker_at_the_deadline() {
 
     let waker = thread_waker();
     let mut cx = Context::from_waker(&waker);
-    let mut sleep = std::pin::pin!(foundation_core::valtron::timer::sleep_for(Duration::from_millis(20)));
+    let mut sleep = std::pin::pin!(foundation_core::valtron::timer::sleep_for(
+        Duration::from_millis(20)
+    ));
     assert!(sleep.as_mut().poll(&mut cx).is_pending());
     let started = std::time::Instant::now();
     // One park: only the timer thread's wake (or the 5 s cap) ends it.
     std::thread::park_timeout(Duration::from_secs(5));
-    assert!(started.elapsed() < Duration::from_secs(4), "the timer never woke us");
+    assert!(
+        started.elapsed() < Duration::from_secs(4),
+        "the timer never woke us"
+    );
     assert_eq!(sleep.as_mut().poll(&mut cx), Poll::Ready(()));
 }

@@ -122,7 +122,11 @@ pub async fn authenticate(ctx: &KeychainContext, secret: &str) -> AppResult<Stri
 }
 
 /// `GET /api/apps/:id` — app details (the caller must own it).
-pub async fn get(ctx: &KeychainContext, app_id: &str, requested_id: &str) -> AppResult<AppResponse> {
+pub async fn get(
+    ctx: &KeychainContext,
+    app_id: &str,
+    requested_id: &str,
+) -> AppResult<AppResponse> {
     if app_id != requested_id {
         return Err(AppError::Forbidden);
     }

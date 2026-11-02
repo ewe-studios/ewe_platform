@@ -113,7 +113,9 @@ impl<F: AsyncVfsFileSystem + 'static> VfsDaemon<F> {
             VfsRequestBody::Mkdir { path } => ok_or_err(self.fs.mkdir_async(path).await),
             VfsRequestBody::Remove { path } => ok_or_err(self.fs.remove_async(path).await),
             VfsRequestBody::Rename { from, to } => ok_or_err(self.fs.rename_async(from, to).await),
-            VfsRequestBody::Chmod { path, mode } => ok_or_err(self.fs.chmod_async(path, mode).await),
+            VfsRequestBody::Chmod { path, mode } => {
+                ok_or_err(self.fs.chmod_async(path, mode).await)
+            }
             VfsRequestBody::Symlink { target, link } => {
                 ok_or_err(self.fs.symlink_async(target, link).await)
             }
@@ -170,7 +172,9 @@ impl<F: AsyncVfsFileSystem + 'static> VfsDaemon<F> {
             VfsRequestBody::WriteFile { path, data } => {
                 ok_or_err(self.fs.write_file_async(path, data).await)
             }
-            VfsRequestBody::Capabilities => VfsResponseBody::Capabilities(self.fs.capabilities().into()),
+            VfsRequestBody::Capabilities => {
+                VfsResponseBody::Capabilities(self.fs.capabilities().into())
+            }
 
             close @ (VfsRequestBody::CloseFile { .. } | VfsRequestBody::CloseDir { .. }) => {
                 self.release(close)
@@ -377,7 +381,9 @@ impl<F: AsyncVfsFileSystem + 'static> VfsDaemon<F> {
             Err(resp) => return resp,
         };
         match self.list_dir(path).await {
-            Ok(entries) => VfsResponseBody::DirEntries(entries.into_iter().map(Into::into).collect()),
+            Ok(entries) => {
+                VfsResponseBody::DirEntries(entries.into_iter().map(Into::into).collect())
+            }
             Err(resp) => resp,
         }
     }

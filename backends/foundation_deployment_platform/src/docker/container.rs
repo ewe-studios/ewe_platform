@@ -6,6 +6,7 @@ use std::net::{Ipv4Addr, SocketAddr};
 use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
 use foundation_deployment_docker::streaming::decoder::LogOutput;
 
+use foundation_deployment_docker::DockerClient;
 use foundation_deployment_docker::client::{
     ContainerCreateBody, ContainerHostConfig, NetworkingConfig,
 };
@@ -13,12 +14,11 @@ use foundation_deployment_docker::generated::connect::EndpointSettings;
 use foundation_deployment_docker::generated::json::{
     ContainerConfig as GenContainerConfig, DeviceMapping, HostConfig, PortMap, Resources,
 };
-use foundation_deployment_docker::DockerClient;
 use tracing::{debug, info, warn};
 
-use crate::docker::config::{parse_memory_bytes, ContainerConfig};
+use crate::docker::config::{ContainerConfig, parse_memory_bytes};
+use crate::docker::error::{DockerError, DockerResult, classify_docker_client_err, docker_err};
 use crate::docker::network::NetworkHandle;
-use crate::docker::error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
 
 /// RAII guard for a running Docker container.
 pub struct ContainerHandle {
@@ -73,7 +73,9 @@ pub struct CallerContainer {
 /// # Errors
 /// Returns the daemon's error if inspecting the container fails for any reason
 /// other than "no such container", or if `/etc/hostname` cannot be read.
-pub(crate) async fn caller_container(docker: &DockerClient) -> DockerResult<Option<CallerContainer>> {
+pub(crate) async fn caller_container(
+    docker: &DockerClient,
+) -> DockerResult<Option<CallerContainer>> {
     if !docker.socket_path().is_absolute() || !std::path::Path::new("/.dockerenv").exists() {
         return Ok(None);
     }
@@ -98,7 +100,10 @@ pub(crate) async fn caller_container(docker: &DockerClient) -> DockerResult<Opti
         // A container, but not one this daemon runs (a sandbox, another
         // engine).
         Err(foundation_deployment_docker::DockerError::Api { status: 404, .. }) => Ok(None),
-        Err(e) => Err(docker_err(classify_docker_client_err("inspect_container (self)", e))),
+        Err(e) => Err(docker_err(classify_docker_client_err(
+            "inspect_container (self)",
+            e,
+        ))),
     }
 }
 
@@ -252,7 +257,10 @@ impl ContainerHandle {
 
         let ports = Self::resolve_ports(docker, container_id, config).await?;
 
-        config.wait.apply(docker, container_id, host_ip, &ports).await?;
+        config
+            .wait
+            .apply(docker, container_id, host_ip, &ports)
+            .await?;
 
         Ok(ports)
     }
@@ -261,7 +269,10 @@ impl ContainerHandle {
     /// never propagated: the caller is already returning the real failure and
     /// must not have it masked by a cleanup problem.
     async fn discard(docker: &DockerClient, container_id: &str, stop_timeout: u64) {
-        if let Err(e) = docker.stop_container(container_id, Some(stop_timeout_secs(stop_timeout))).await {
+        if let Err(e) = docker
+            .stop_container(container_id, Some(stop_timeout_secs(stop_timeout)))
+            .await
+        {
             warn!(container_id = %container_id, "start cleanup: failed to stop container: {e}");
         }
         if let Err(e) = docker.remove_container(container_id, true).await {
@@ -345,17 +356,16 @@ impl ContainerHandle {
     pub async fn shutdown_async(&self) -> DockerResult<()> {
         if let Err(e) = self
             .docker
-            .stop_container(&self.container_id, Some(stop_timeout_secs(self.stop_timeout)))
+            .stop_container(
+                &self.container_id,
+                Some(stop_timeout_secs(self.stop_timeout)),
+            )
             .await
         {
             warn!(container_id = %self.container_id, "failed to stop container: {e}");
         }
 
-        if let Err(e) = self
-            .docker
-            .remove_container(&self.container_id, true)
-            .await
-        {
+        if let Err(e) = self.docker.remove_container(&self.container_id, true).await {
             warn!(container_id = %self.container_id, "failed to remove container: {e}");
         }
 
@@ -434,7 +444,11 @@ impl ContainerHandle {
             .map_err(|e| docker_err(classify_docker_client_err("exec_create", e)))?;
         // Attached (not detached): the call returns once the command has
         // exited, with its multiplexed stdout/stderr as the body.
-        let mut out = ExecOutput { exit_code: 0, stdout: String::new(), stderr: String::new() };
+        let mut out = ExecOutput {
+            exit_code: 0,
+            stdout: String::new(),
+            stderr: String::new(),
+        };
         // The command's output, decoded as it streams; the daemon ends the
         // stream when the command exits.
         self.docker
@@ -511,7 +525,10 @@ impl ContainerHandle {
 
         let map_pull_err = |e| match e {
             foundation_deployment_docker::DockerError::PullFailed(reason) => {
-                docker_err(DockerError::ImagePull { image: image.to_string(), reason })
+                docker_err(DockerError::ImagePull {
+                    image: image.to_string(),
+                    reason,
+                })
             }
             other => docker_err(classify_docker_client_err("image_pull", other)),
         };
@@ -586,7 +603,10 @@ impl ContainerHandle {
                 }
             );
             // ExposedPorts: keys mapped to empty objects.
-            exposed_ports.insert(port_key.clone(), serde_json::Value::Object(serde_json::Map::default()));
+            exposed_ports.insert(
+                port_key.clone(),
+                serde_json::Value::Object(serde_json::Map::default()),
+            );
 
             // PortBindings: keys mapped to arrays of {HostIp, HostPort}.
             let host_port_str = pm.host_port.map_or_else(String::new, |p| p.to_string());
@@ -670,13 +690,7 @@ impl ContainerHandle {
             env: if config.env.is_empty() {
                 None
             } else {
-                Some(
-                    config
-                        .env
-                        .iter()
-                        .map(|(k, v)| format!("{k}={v}"))
-                        .collect(),
-                )
+                Some(config.env.iter().map(|(k, v)| format!("{k}={v}")).collect())
             },
             cmd: config.command.clone(),
             exposed_ports: if exposed_ports.is_empty() {
@@ -698,7 +712,11 @@ impl ContainerHandle {
         // connecting afterwards) means the container is resolvable by alias from
         // the moment it starts, with no window where a peer could miss it.
         // A container sharing the caller's namespace has no endpoint of its own.
-        let named_network = if config.share_caller_network { None } else { config.network.as_ref() };
+        let named_network = if config.share_caller_network {
+            None
+        } else {
+            config.network.as_ref()
+        };
         let networking_config = match (named_network, config.network_aliases.is_empty()) {
             (Some(network), false) => {
                 let mut endpoints_config = HashMap::new();
@@ -729,9 +747,7 @@ impl ContainerHandle {
         let info = docker
             .inspect_container(container_id)
             .await
-            .map_err(|e| {
-                docker_err(classify_docker_client_err("inspect_container", e))
-            })?;
+            .map_err(|e| docker_err(classify_docker_client_err("inspect_container", e)))?;
 
         let mut ports = HashMap::new();
 
@@ -749,10 +765,7 @@ impl ContainerHandle {
                     if let Some(binding) = bindings.get(&key) {
                         if let Some(arr) = binding.as_array() {
                             if let Some(first) = arr.first() {
-                                if let Some(hp) = first
-                                    .get("HostPort")
-                                    .and_then(|v| v.as_str())
-                                {
+                                if let Some(hp) = first.get("HostPort").and_then(|v| v.as_str()) {
                                     if let Ok(port) = hp.parse::<u16>() {
                                         ports.insert(key, port);
                                     }

@@ -160,10 +160,7 @@ where
 
     /// Transition to a [`SequenceBuilder`] linked to `parent`.
     #[must_use]
-    pub fn as_sequenced(
-        mut self,
-        parent: Entry,
-    ) -> SequenceBuilder<Done, Pending, Resolver, Task> {
+    pub fn as_sequenced(mut self, parent: Entry) -> SequenceBuilder<Done, Pending, Resolver, Task> {
         self.parent = Some(parent);
         SequenceBuilder { config: self }
     }

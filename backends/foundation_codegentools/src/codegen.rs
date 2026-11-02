@@ -179,7 +179,10 @@ pub fn selection_from_file(path: impl AsRef<Path>) -> Result<Selection, CodegenE
     if let Some(items) = value.get("tags").and_then(serde_json::Value::as_array) {
         selection = selection.tags(items.iter().filter_map(serde_json::Value::as_str));
     }
-    if let Some(items) = value.get("operations").and_then(serde_json::Value::as_array) {
+    if let Some(items) = value
+        .get("operations")
+        .and_then(serde_json::Value::as_array)
+    {
         selection = selection.operations(items.iter().filter_map(serde_json::Value::as_str));
     }
     Ok(selection)
@@ -352,7 +355,11 @@ impl Codegen {
     /// the leaf crate that receives the cross-group shared types. The provider
     /// crate keeps only a feature-gated re-export shim.
     #[must_use]
-    pub fn split_groups(mut self, groups_dir: impl Into<PathBuf>, shared_crate_dir: impl Into<PathBuf>) -> Self {
+    pub fn split_groups(
+        mut self,
+        groups_dir: impl Into<PathBuf>,
+        shared_crate_dir: impl Into<PathBuf>,
+    ) -> Self {
         self.groups_dir = Some(groups_dir.into());
         self.shared_crate_dir = Some(shared_crate_dir.into());
         self
@@ -369,10 +376,9 @@ impl Codegen {
     }
 
     fn pipeline(&self) -> Result<Pipeline, CodegenError> {
-        let provider = self
-            .provider
-            .as_deref()
-            .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+        let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+            missing: "provider",
+        })?;
         let spec = self
             .spec
             .as_ref()
@@ -408,21 +414,23 @@ impl Codegen {
             // code goes beside the hand-written client in src/.
             return Ok((crate_dir.clone(), Some(crate_dir.join("src"))));
         }
-        let output = self
-            .output_dir
-            .clone()
-            .ok_or(CodegenError::Incomplete { missing: "crate_dir" })?;
+        let output = self.output_dir.clone().ok_or(CodegenError::Incomplete {
+            missing: "crate_dir",
+        })?;
         Ok((output, self.provider_dir.clone()))
     }
 
-    fn provider_root(&self, output: PathBuf, provider_dir: &Option<PathBuf>) -> Result<PathBuf, CodegenError> {
+    fn provider_root(
+        &self,
+        output: PathBuf,
+        provider_dir: &Option<PathBuf>,
+    ) -> Result<PathBuf, CodegenError> {
         Ok(match provider_dir {
             Some(dir) => dir.clone(),
             None => {
-                let provider = self
-                    .provider
-                    .as_deref()
-                    .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+                let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+                    missing: "provider",
+                })?;
                 output.join(provider)
             }
         })
@@ -448,7 +456,8 @@ impl Codegen {
         )?;
 
         let generated_dir = self.provider_root(output, &provider_dir)?.join("generated");
-        let files = if let (Some(groups_dir), Some(_)) = (&self.groups_dir, &self.shared_crate_dir) {
+        let files = if let (Some(groups_dir), Some(_)) = (&self.groups_dir, &self.shared_crate_dir)
+        {
             self.count_split_files(groups_dir, &generated_dir)?
         } else {
             read_tree(&generated_dir)?.len()
@@ -469,11 +478,14 @@ impl Codegen {
     /// `groups_dir`. Only crates whose name carries this provider's prefix are
     /// counted, so hand-written neighbours in a shared `backends/` root do not
     /// inflate the report.
-    fn count_split_files(&self, groups_dir: &Path, generated_dir: &Path) -> Result<usize, CodegenError> {
-        let provider = self
-            .provider
-            .as_deref()
-            .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+    fn count_split_files(
+        &self,
+        groups_dir: &Path,
+        generated_dir: &Path,
+    ) -> Result<usize, CodegenError> {
+        let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+            missing: "provider",
+        })?;
         let provider_safe = provider.replace('-', "_").replace('/', "_");
         let prefix = format!("foundation_{provider_safe}_");
         let mut count = read_tree(generated_dir)?.len() + 1; // shim + shared/generated.rs
@@ -554,7 +566,10 @@ impl Codegen {
             );
             merge_prefixed(
                 "shared",
-                &read_file_tree(&shared_crate_dir.join("src/generated.rs"), "src/generated.rs")?,
+                &read_file_tree(
+                    &shared_crate_dir.join("src/generated.rs"),
+                    "src/generated.rs",
+                )?,
                 &mut committed,
             );
 
@@ -562,10 +577,9 @@ impl Codegen {
             // set this declaration produces. The committed side is read from the
             // real `groups_dir`, but only for crates carrying this provider's
             // prefix — a shared `backends/` root holds many other crates.
-            let provider = self
-                .provider
-                .as_deref()
-                .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+            let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+                missing: "provider",
+            })?;
             let provider_safe = provider.replace('-', "_").replace('/', "_");
             let prefix = format!("foundation_{provider_safe}_");
 
@@ -645,10 +659,9 @@ impl Codegen {
         groups_dir: Option<PathBuf>,
         shared_crate_dir: Option<PathBuf>,
     ) -> Result<(), CodegenError> {
-        let provider = self
-            .provider
-            .as_deref()
-            .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+        let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+            missing: "provider",
+        })?;
 
         let mut generator = UnifiedGenerator::new(output);
         if let Some(dir) = provider_dir {
@@ -775,10 +788,9 @@ impl Codegen {
     /// [`CodegenError::Incomplete`] without a `crate_dir`/`provider`/`spec`, or
     /// [`CodegenError::Io`] if the write fails.
     pub fn write_build_script(&self, overwrite: bool) -> Result<BuildScriptOutcome, CodegenError> {
-        let crate_dir = self
-            .crate_dir
-            .clone()
-            .ok_or(CodegenError::Incomplete { missing: "crate_dir" })?;
+        let crate_dir = self.crate_dir.clone().ok_or(CodegenError::Incomplete {
+            missing: "crate_dir",
+        })?;
         let target = crate_dir.join("build.rs");
 
         if target.exists() && !overwrite {
@@ -811,10 +823,9 @@ impl Codegen {
     fn render_build_script(&self, crate_dir: &Path) -> Result<String, CodegenError> {
         use std::fmt::Write as _;
 
-        let provider = self
-            .provider
-            .as_deref()
-            .ok_or(CodegenError::Incomplete { missing: "provider" })?;
+        let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+            missing: "provider",
+        })?;
         let spec = self
             .spec
             .as_ref()
@@ -822,7 +833,11 @@ impl Codegen {
         let spec_from_crate = relative_to(crate_dir, spec);
 
         let mut out = String::new();
-        writeln!(out, "//! Keeps `src/generated/` honest against the vendor's spec.").unwrap();
+        writeln!(
+            out,
+            "//! Keeps `src/generated/` honest against the vendor's spec."
+        )
+        .unwrap();
         writeln!(out, "//!").unwrap();
         writeln!(
             out,
@@ -841,15 +856,31 @@ impl Codegen {
         .unwrap();
         writeln!(out, "//! anyone can reproduce it (spec-56 feature 00 §4).").unwrap();
         writeln!(out, "//!").unwrap();
-        writeln!(out, "//! **WHAT:** verifies the pins still hold, and regenerates when the").unwrap();
-        writeln!(out, "//! committed output no longer matches this declaration.").unwrap();
+        writeln!(
+            out,
+            "//! **WHAT:** verifies the pins still hold, and regenerates when the"
+        )
+        .unwrap();
+        writeln!(
+            out,
+            "//! committed output no longer matches this declaration."
+        )
+        .unwrap();
         writeln!(out, "//!").unwrap();
-        writeln!(out, "//! **HOW:** the three outcomes are deliberately different:").unwrap();
+        writeln!(
+            out,
+            "//! **HOW:** the three outcomes are deliberately different:"
+        )
+        .unwrap();
         writeln!(out, "//!").unwrap();
         writeln!(out, "//! | `check()` says | meaning | what happens |").unwrap();
         writeln!(out, "//! |---|---|---|").unwrap();
         writeln!(out, "//! | `Ok` | output is current | nothing |").unwrap();
-        writeln!(out, "//! | `Stale` | the declaration moved | **regenerate** |").unwrap();
+        writeln!(
+            out,
+            "//! | `Stale` | the declaration moved | **regenerate** |"
+        )
+        .unwrap();
         writeln!(
             out,
             "//! | anything else | the spec moved under the pin, or is unreadable | **fail the build** |"
@@ -904,7 +935,11 @@ impl Codegen {
             "    // committed `src/generated/` is exactly what they should be compiling anyway."
         )
         .unwrap();
-        writeln!(out, "    // Nothing to do, and failing here would break their build.").unwrap();
+        writeln!(
+            out,
+            "    // Nothing to do, and failing here would break their build."
+        )
+        .unwrap();
         writeln!(out, "    if !spec.exists() {{").unwrap();
         writeln!(out, "        return;").unwrap();
         writeln!(out, "    }}").unwrap();
@@ -920,7 +955,11 @@ impl Codegen {
         )
         .unwrap();
         writeln!(out, "    // `src/`, that would rebuild forever.").unwrap();
-        writeln!(out, "    println!(\"cargo:rerun-if-changed={{}}\", spec.display());").unwrap();
+        writeln!(
+            out,
+            "    println!(\"cargo:rerun-if-changed={{}}\", spec.display());"
+        )
+        .unwrap();
         writeln!(out, "    println!(\"cargo:rerun-if-changed=build.rs\");").unwrap();
         writeln!(out).unwrap();
         writeln!(out, "    let codegen = foundation_codegentools::generate()").unwrap();
@@ -964,7 +1003,11 @@ impl Codegen {
         writeln!(out, "    match codegen.check() {{").unwrap();
         writeln!(out, "        // Already what this declaration produces.").unwrap();
         writeln!(out, "        Ok(()) => {{}}").unwrap();
-        writeln!(out, "        // The selection or the spec's shape moved — regenerate.").unwrap();
+        writeln!(
+            out,
+            "        // The selection or the spec's shape moved — regenerate."
+        )
+        .unwrap();
         writeln!(
             out,
             "        Err(foundation_codegentools::CodegenError::Stale {{ .. }}) => {{"

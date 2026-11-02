@@ -43,7 +43,10 @@ impl core::fmt::Display for Tunnel {
 impl Tunnel {
     #[must_use]
     pub fn new(source: ProxyRemoteConfig, destination: ProxyRemoteConfig) -> Self {
-        Self { source, destination }
+        Self {
+            source,
+            destination,
+        }
     }
 }
 
@@ -64,7 +67,10 @@ impl core::fmt::Display for ProxyType {
 }
 
 impl ProxyType {
-    pub fn and_routes(&mut self, _mutator: impl Fn(&mut std::collections::HashMap<String, String>)) {
+    pub fn and_routes(
+        &mut self,
+        _mutator: impl Fn(&mut std::collections::HashMap<String, String>),
+    ) {
         // Routes are handled by foundation_http HttpApp + Serve handlers.
         // This method exists for API compat with old ewe_devserver consumers.
     }
@@ -81,13 +87,20 @@ pub struct Http1 {
 impl Http1 {
     #[must_use]
     pub fn new(source: ProxyRemoteConfig, destination: ProxyRemoteConfig) -> Self {
-        Self { source, destination }
+        Self {
+            source,
+            destination,
+        }
     }
 }
 
 impl core::fmt::Display for Http1 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Http1(source: {:?}, destination: {:?})", self.source, self.destination)
+        write!(
+            f,
+            "Http1(source: {:?}, destination: {:?})",
+            self.source, self.destination
+        )
     }
 }
 
@@ -102,13 +115,20 @@ pub struct Http2 {
 impl Http2 {
     #[must_use]
     pub fn new(source: ProxyRemoteConfig, destination: ProxyRemoteConfig) -> Self {
-        Self { source, destination }
+        Self {
+            source,
+            destination,
+        }
     }
 }
 
 impl core::fmt::Display for Http2 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Http2(source: {:?}, destination: {:?})", self.source, self.destination)
+        write!(
+            f,
+            "Http2(source: {:?}, destination: {:?})",
+            self.source, self.destination
+        )
     }
 }
 
@@ -123,13 +143,20 @@ pub struct Http3 {
 impl Http3 {
     #[must_use]
     pub fn new(source: ProxyRemoteConfig, destination: ProxyRemoteConfig) -> Self {
-        Self { source, destination }
+        Self {
+            source,
+            destination,
+        }
     }
 }
 
 impl core::fmt::Display for Http3 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Http3(source: {:?}, destination: {:?})", self.source, self.destination)
+        write!(
+            f,
+            "Http3(source: {:?}, destination: {:?})",
+            self.source, self.destination
+        )
     }
 }
 

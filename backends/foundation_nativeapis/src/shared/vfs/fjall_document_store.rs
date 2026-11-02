@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::Pipe;
-use foundation_db::traits::{DocumentStore, Document, PromotableDocument};
+use foundation_db::traits::{Document, DocumentStore, PromotableDocument};
 use foundation_db::{AsyncStorageItemStream, StorageError, StorageResult};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -190,8 +190,7 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
 
     fn type_composite_key(key: &str, record_type: &str, doc_id: &str) -> Vec<u8> {
         let hex_key = hex::encode(key);
-        let mut k =
-            Vec::with_capacity(hex_key.len() + 1 + record_type.len() + 1 + doc_id.len());
+        let mut k = Vec::with_capacity(hex_key.len() + 1 + record_type.len() + 1 + doc_id.len());
         k.extend_from_slice(hex_key.as_bytes());
         k.push(KEY_SEP);
         k.extend_from_slice(record_type.as_bytes());
@@ -260,17 +259,13 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
 
     fn read_hwm(&self, key: &str) -> Option<u64> {
         let hwm_key = Self::hwm_key(key);
-        self.primary
-            .get(&hwm_key)
-            .ok()
-            .flatten()
-            .and_then(|v| {
-                if v.len() == 8 {
-                    Some(u64::from_le_bytes(v[..8].try_into().unwrap()))
-                } else {
-                    None
-                }
-            })
+        self.primary.get(&hwm_key).ok().flatten().and_then(|v| {
+            if v.len() == 8 {
+                Some(u64::from_le_bytes(v[..8].try_into().unwrap()))
+            } else {
+                None
+            }
+        })
     }
 
     async fn ensure_file_exists(&self, key: &str) -> StorageResult<()> {
@@ -309,8 +304,8 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
             record_type: record_type.clone(),
         };
 
-        let mut line = serde_json::to_vec(&row)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let mut line =
+            serde_json::to_vec(&row).map_err(|e| StorageError::Serialization(e.to_string()))?;
         line.push(b'\n');
 
         let document = row.to_document();
@@ -355,8 +350,8 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
             offset,
             len: line_len as u32,
         };
-        let idx_bytes = serde_json::to_vec(&idx_val)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let idx_bytes =
+            serde_json::to_vec(&idx_val).map_err(|e| StorageError::Serialization(e.to_string()))?;
         self.primary
             .insert(&idx_key, &idx_bytes)
             .map_err(|e| StorageError::Backend(e.to_string()))?;
@@ -477,8 +472,8 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
             .await
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        let line_str = std::str::from_utf8(&buf)
-            .map_err(|e| StorageError::Deserialization(e.to_string()))?;
+        let line_str =
+            std::str::from_utf8(&buf).map_err(|e| StorageError::Deserialization(e.to_string()))?;
         let row: NdjsonRow = serde_json::from_str(line_str.trim_end())
             .map_err(|e| StorageError::Deserialization(e.to_string()))?;
         Ok(row)
@@ -559,10 +554,8 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
         limit: Option<usize>,
     ) -> AsyncStorageItemStream<'_, C> {
         let prefix = Self::collection_prefix(key);
-        let range_start = from_id.map_or_else(
-            || prefix.clone(),
-            |fid| Self::composite_key(key, fid),
-        );
+        let range_start =
+            from_id.map_or_else(|| prefix.clone(), |fid| Self::composite_key(key, fid));
         let mut range_end = prefix.clone();
         if let Some(last) = range_end.last_mut() {
             *last = last.saturating_add(1);
@@ -591,9 +584,9 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
                         }
                         match serde_json::from_slice::<IndexValue>(&v) {
                             Ok(idx) => ScanIndexItem::Entry(idx),
-                            Err(e) => ScanIndexItem::Error(StorageError::Deserialization(
-                                e.to_string(),
-                            )),
+                            Err(e) => {
+                                ScanIndexItem::Error(StorageError::Deserialization(e.to_string()))
+                            }
                         }
                     }
                     Err(e) => ScanIndexItem::Error(StorageError::Backend(e.to_string())),
@@ -688,12 +681,7 @@ impl<V: AsyncVfsFileSystem> FjallDocumentStore<V> {
         Ok(())
     }
 
-    async fn rebuild_tail(
-        &self,
-        key: &str,
-        from_offset: u64,
-        file_size: u64,
-    ) -> StorageResult<()> {
+    async fn rebuild_tail(&self, key: &str, from_offset: u64, file_size: u64) -> StorageResult<()> {
         let file_path = self.collection_file_path(key);
         let remaining = (file_size - from_offset) as usize;
 

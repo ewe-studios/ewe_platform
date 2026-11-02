@@ -42,8 +42,8 @@ fn test_sequential_returns_one_result_per_host() {
     let pool = Arc::new(ConnectionPool::new(Duration::from_secs(1)));
     let backend = Ssh2Backend::new(pool);
 
-    let results =
-        Runner::sequential(Duration::from_millis(1)).run(&hosts, &backend, |_h| Command::new("true"));
+    let results = Runner::sequential(Duration::from_millis(1))
+        .run(&hosts, &backend, |_h| Command::new("true"));
 
     assert_eq!(results.len(), hosts.len(), "one result per host, in order");
     assert!(results.iter().all(Result::is_err));
@@ -77,5 +77,9 @@ fn test_command_builder_receives_each_host() {
     });
 
     assert_eq!(results.len(), 2);
-    assert_eq!(*seen.lock().unwrap(), vec![1u16, 2u16], "builder saw both hosts");
+    assert_eq!(
+        *seen.lock().unwrap(),
+        vec![1u16, 2u16],
+        "builder saw both hosts"
+    );
 }

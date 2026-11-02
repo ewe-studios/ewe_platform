@@ -85,7 +85,12 @@ impl WebRtcOfferer {
 
     /// Add a local ICE candidate from the browser's RTCPeerConnection.
     /// Returns the serialized WebRtcSignal to send via gossip.
-    pub fn add_local_candidate(&mut self, candidate: String, mid: Option<String>, mline: Option<u16>) -> Option<Vec<u8>> {
+    pub fn add_local_candidate(
+        &mut self,
+        candidate: String,
+        mid: Option<String>,
+        mline: Option<u16>,
+    ) -> Option<Vec<u8>> {
         if self.state != OffererState::WaitingForAnswer && self.state != OffererState::IceExchange {
             return None;
         }
@@ -103,7 +108,12 @@ impl WebRtcOfferer {
 
     /// Process an ICE candidate received from the native peer via gossip.
     /// The JS bridge feeds this to `RTCPeerConnection::add_ice_candidate()`.
-    pub fn on_ice_candidate(&mut self, candidate: String, _mid: Option<String>, _mline: Option<u16>) {
+    pub fn on_ice_candidate(
+        &mut self,
+        candidate: String,
+        _mid: Option<String>,
+        _mline: Option<u16>,
+    ) {
         self.remote_candidates.push(candidate);
         if self.state == OffererState::WaitingForAnswer {
             self.state = OffererState::IceExchange;

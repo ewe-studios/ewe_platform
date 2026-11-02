@@ -141,5 +141,8 @@ fn the_tiny_gguf_generates_with_offload() {
             }
         )
     });
-    assert!(produced_text, "offloaded generation produced no text: {out:?}");
+    assert!(
+        produced_text,
+        "offloaded generation produced no text: {out:?}"
+    );
 }

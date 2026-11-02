@@ -10,13 +10,13 @@
 
 use std::io::{Read, Write};
 use std::net::TcpStream;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{initialize_pool, timer};
+use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 use serial_test::serial;
@@ -117,9 +117,8 @@ impl Serve for NestedAsyncHandler {
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         respond::text(&mut conn, 200, "nested").map_or(ConnectionResult::Close(None), |()| {
-            let fut = async move {
-                ConnectionResult::Async(Box::pin(async { ConnectionResult::Keep }))
-            };
+            let fut =
+                async move { ConnectionResult::Async(Box::pin(async { ConnectionResult::Keep })) };
             ConnectionResult::Async(Box::pin(fut))
         })
     }
@@ -130,8 +129,11 @@ impl Serve for NestedAsyncHandler {
 
 /// Start a server with `handler` on `GET /async`; returns its address, the
 /// shutdown signal, and a receiver that fires once `serve_with_listener` returns.
-fn start_server<H: ServeFactory + 'static>(
-) -> (std::net::SocketAddr, Arc<ShutdownSignal>, std::sync::mpsc::Receiver<()>) {
+fn start_server<H: ServeFactory + 'static>() -> (
+    std::net::SocketAddr,
+    Arc<ShutdownSignal>,
+    std::sync::mpsc::Receiver<()>,
+) {
     let mut app = HttpApp::new_serve();
     app.route::<H>(SimpleMethod::GET, "/async");
 

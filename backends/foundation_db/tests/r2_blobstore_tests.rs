@@ -37,7 +37,10 @@ async fn test_r2_blobstore_put_get() {
     let key = key("test_put_get");
 
     storage.put_blob(&key, b"Hello, R2!").await.unwrap();
-    assert_eq!(storage.get_blob(&key).await.unwrap(), Some(b"Hello, R2!".to_vec()));
+    assert_eq!(
+        storage.get_blob(&key).await.unwrap(),
+        Some(b"Hello, R2!".to_vec())
+    );
 
     storage.delete_blob(&key).await.unwrap();
 }
@@ -113,8 +116,7 @@ fn state_store(stage: &str) -> Option<R2Store> {
         println!("Skipping R2 listing test - miniflare not available");
         return None;
     }
-    let bucket =
-        std::env::var(common::ENV_R2_BUCKET).unwrap_or_else(|_| "test-bucket".to_string());
+    let bucket = std::env::var(common::ENV_R2_BUCKET).unwrap_or_else(|_| "test-bucket".to_string());
     Some(R2Store::new_state_with_base_url(
         "test-token",
         "test-account",
@@ -128,7 +130,9 @@ fn state_store(stage: &str) -> Option<R2Store> {
 #[valtron_test]
 async fn r2_listing_against_worker_stub() {
     let stage = key("listing");
-    let Some(store) = state_store(&stage) else { return };
+    let Some(store) = state_store(&stage) else {
+        return;
+    };
     store.init().await.unwrap();
 
     for id in ["a", "b", "c"] {

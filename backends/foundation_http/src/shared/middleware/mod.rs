@@ -26,23 +26,19 @@ pub trait RequestMiddleware: Send + Sync + 'static {
     ///
     /// Called in registration order. Returning `MiddlewareResult::Response`
     /// short-circuits the chain and renders the response immediately.
-    fn handle(
-        &self,
-        ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult;
+    fn handle(&self, ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult;
 }
 
 // Built-in middleware modules
+mod auth;
+mod body_limit;
+mod compression;
 mod cors;
 mod logger;
-mod auth;
-mod compression;
-mod body_limit;
 
 // Re-export middleware types
-pub use cors::{CorsConfig, CorsMiddleware};
-pub use logger::{LoggerConfig, LoggerMiddleware, LogLevel};
 pub use auth::{AuthConfig, AuthMiddleware, AuthResult};
-pub use compression::{CompressionConfig, CompressionMiddleware, CompressionAlgorithm};
 pub use body_limit::BodyLimitMiddleware;
+pub use compression::{CompressionAlgorithm, CompressionConfig, CompressionMiddleware};
+pub use cors::{CorsConfig, CorsMiddleware};
+pub use logger::{LogLevel, LoggerConfig, LoggerMiddleware};

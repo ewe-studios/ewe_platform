@@ -87,10 +87,18 @@ fn network_dns_resolves_container_name_and_alias() {
         assert_eq!(again.id(), net.id(), "should find the existing network");
 
         // The subnet reached Docker.
-        let inspect = docker.network_inspect(net.id(), None, None).await.expect("inspect");
+        let inspect = docker
+            .network_inspect(net.id(), None, None)
+            .await
+            .expect("inspect");
         let json = serde_json::to_value(&inspect).expect("inspect json");
-        let subnet = json["IPAM"]["Config"][0]["Subnet"].as_str().unwrap_or_default();
-        assert_eq!(subnet, "172.31.240.0/24", "explicit subnet should be applied");
+        let subnet = json["IPAM"]["Config"][0]["Subnet"]
+            .as_str()
+            .unwrap_or_default();
+        assert_eq!(
+            subnet, "172.31.240.0/24",
+            "explicit subnet should be applied"
+        );
 
         // A server container on the network, answering to an alias as well as
         // its own name.

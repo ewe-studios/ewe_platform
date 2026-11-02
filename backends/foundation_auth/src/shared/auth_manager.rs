@@ -5,8 +5,8 @@
 //! persistence, and logout.
 
 use crate::shared::credential_store::{CredentialStorage, CredentialStoreError, OAuthTokenStore};
-use crate::shared::jwt::{JwtError, JwtManager, JwtToken, JwtVerifier};
 use crate::shared::jwks::{JwksError, JwksManager};
+use crate::shared::jwt::{JwtError, JwtManager, JwtToken, JwtVerifier};
 use crate::shared::oauth_token::OAuthToken;
 use crate::shared::session::{SessionError, SessionManager};
 use crate::shared::types::{AuthCredential, AuthenticationErrors, ConfidentialText};
@@ -142,8 +142,7 @@ impl AuthManager {
     /// Create a new `AuthManager`.
     #[must_use]
     pub fn new(store: CredentialStorage, config: AuthManagerConfig) -> Self {
-        let jwt_manager =
-            JwtManager::new().with_refresh_buffer(config.refresh_buffer_seconds);
+        let jwt_manager = JwtManager::new().with_refresh_buffer(config.refresh_buffer_seconds);
         Self {
             store,
             jwt_manager,
@@ -210,12 +209,12 @@ impl AuthManager {
 
                 if !jwt_token.is_expired() {
                     self.jwt_manager.set_token(jwt_token);
-                    let _ =
-                        self.state_machine
-                            .transition_to(AuthEvent::AuthenticateStarted);
-                    let _ =
-                        self.state_machine
-                            .transition_to(AuthEvent::AuthenticateCompleted);
+                    let _ = self
+                        .state_machine
+                        .transition_to(AuthEvent::AuthenticateStarted);
+                    let _ = self
+                        .state_machine
+                        .transition_to(AuthEvent::AuthenticateCompleted);
                     return Ok(Some(AuthToken::OAuth {
                         access_token: ConfidentialText::new(oauth_token.access_token),
                         refresh_token: oauth_token.refresh_token.map(ConfidentialText::new),
@@ -228,12 +227,12 @@ impl AuthManager {
                 // Token expired — keep refresh token available if present
                 if oauth_token.refresh_token.is_some() {
                     self.jwt_manager.set_token(jwt_token);
-                    let _ =
-                        self.state_machine
-                            .transition_to(AuthEvent::AuthenticateStarted);
-                    let _ =
-                        self.state_machine
-                            .transition_to(AuthEvent::AuthenticateCompleted);
+                    let _ = self
+                        .state_machine
+                        .transition_to(AuthEvent::AuthenticateStarted);
+                    let _ = self
+                        .state_machine
+                        .transition_to(AuthEvent::AuthenticateCompleted);
                     let _ = self.state_machine.transition_to(AuthEvent::TokenExpired);
                     return Ok(None);
                 }
@@ -321,9 +320,7 @@ impl AuthManager {
                 }
                 Err(AuthManagerError::NoRefreshToken)
             }
-            AuthState::TokenExpired | AuthState::Refreshing => {
-                Err(AuthManagerError::TokenExpired)
-            }
+            AuthState::TokenExpired | AuthState::Refreshing => Err(AuthManagerError::TokenExpired),
             _ => Err(AuthManagerError::Authentication(
                 AuthenticationErrors::InvalidCredentials,
             )),
@@ -362,9 +359,7 @@ impl AuthManager {
             Ok(new_token) => {
                 self.jwt_manager.set_token(new_token.clone());
                 self.persist_jwt_token(&new_token).await?;
-                let _ = self
-                    .state_machine
-                    .handle_event(AuthEvent::RefreshCompleted);
+                let _ = self.state_machine.handle_event(AuthEvent::RefreshCompleted);
                 Ok(())
             }
             Err(e) => {
@@ -475,7 +470,9 @@ impl AuthManager {
                     scope: scope.clone(),
                     id_token: None,
                 };
-                self.store.store_oauth_token("default", &oauth_token).await?;
+                self.store
+                    .store_oauth_token("default", &oauth_token)
+                    .await?;
                 Ok(())
             }
             _ => Ok(()),
@@ -494,7 +491,9 @@ impl AuthManager {
             scope: token.scope.clone(),
             id_token: None,
         };
-        self.store.store_oauth_token("default", &oauth_token).await?;
+        self.store
+            .store_oauth_token("default", &oauth_token)
+            .await?;
         Ok(())
     }
 

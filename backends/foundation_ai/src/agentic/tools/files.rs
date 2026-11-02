@@ -221,7 +221,10 @@ impl<F: AsyncVfsFileSystem + 'static> ToolImpl for EditTool<F> {
 
         let count = text.matches(&old).count();
         if count == 0 {
-            return Err(exec_err("edit", format!("old_string not found in '{path}'")));
+            return Err(exec_err(
+                "edit",
+                format!("old_string not found in '{path}'"),
+            ));
         }
         if count > 1 && !replace_all {
             return Err(exec_err(
@@ -291,7 +294,10 @@ impl ToolImpl for BashTool {
                 .into(),
             arguments: Args::new(
                 foundation_jsonschema::scheme::object()
-                    .required("command", foundation_jsonschema::scheme::string().min_len(1))
+                    .required(
+                        "command",
+                        foundation_jsonschema::scheme::string().min_len(1),
+                    )
                     .optional("cwd", foundation_jsonschema::scheme::string())
                     .build(),
             ),

@@ -180,13 +180,12 @@ impl ToolImpl for SearchContextTool {
                     .required("query", foundation_jsonschema::scheme::string().min_len(1))
                     .required(
                         "mode",
-                        foundation_jsonschema::scheme::string()
-                            .enum_values(vec![
-                                "Semantic".into(),
-                                "Memory".into(),
-                                "Graph".into(),
-                                "Hybrid".into(),
-                            ]),
+                        foundation_jsonschema::scheme::string().enum_values(vec![
+                            "Semantic".into(),
+                            "Memory".into(),
+                            "Graph".into(),
+                            "Hybrid".into(),
+                        ]),
                     )
                     .optional("k", foundation_jsonschema::scheme::integer().min(1))
                     .build(),
@@ -206,14 +205,14 @@ impl ToolImpl for SearchContextTool {
         // A negative or non-numeric `k` is an argument error, not a huge usize.
         let k = args.opt_usize("k")?.unwrap_or(10);
 
-        let hits = self
-            .context
-            .search(&query, mode, k)
-            .await
-            .map_err(|e| ToolError::Execution {
-                tool: "search_context".into(),
-                reason: format!("reading the session's history and memory failed: {e}"),
-            })?;
+        let hits =
+            self.context
+                .search(&query, mode, k)
+                .await
+                .map_err(|e| ToolError::Execution {
+                    tool: "search_context".into(),
+                    reason: format!("reading the session's history and memory failed: {e}"),
+                })?;
         let json = serde_json::to_string(&hits).map_err(|e| ToolError::Execution {
             tool: "search_context".into(),
             reason: format!("serializing the hits failed: {e}"),
@@ -292,12 +291,11 @@ impl ToolImpl for SearchFileTool {
                     .required("query", foundation_jsonschema::scheme::string().min_len(1))
                     .optional(
                         "kind",
-                        foundation_jsonschema::scheme::string()
-                            .enum_values(vec![
-                                "Grep".into(),
-                                "Find".into(),
-                                "MultiGrep".into(),
-                            ]),
+                        foundation_jsonschema::scheme::string().enum_values(vec![
+                            "Grep".into(),
+                            "Find".into(),
+                            "MultiGrep".into(),
+                        ]),
                     )
                     .optional(
                         "paths",
@@ -328,10 +326,7 @@ impl ToolImpl for SearchFileTool {
                 reason: format!("`paths` must be a list of strings: {e}"),
             })?;
 
-        let matches = self
-            .backend
-            .search(&query, kind, paths.as_deref())
-            .await?;
+        let matches = self.backend.search(&query, kind, paths.as_deref()).await?;
 
         let json = serde_json::to_string(&matches).map_err(|e| ToolError::Execution {
             tool: "search_file".into(),
@@ -359,4 +354,3 @@ pub fn parse_file_search_kind(s: &str) -> Result<FileSearchKind, ToolError> {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
-

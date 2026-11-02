@@ -23,11 +23,11 @@ pub mod generated;
 #[cfg(feature = "docker")]
 pub mod client;
 #[cfg(feature = "docker")]
+pub mod deployable;
+#[cfg(feature = "docker")]
 pub mod error;
 #[cfg(feature = "docker")]
 pub mod streaming;
-#[cfg(feature = "docker")]
-pub mod deployable;
 
 #[cfg(feature = "buildkit")]
 pub mod buildkit;
@@ -37,6 +37,6 @@ pub use client::{
     DockerClient, DockerLimits, DockerTls, DEFAULT_API_VERSION, DEFAULT_DOCKER_SOCKET,
 };
 #[cfg(feature = "docker")]
-pub use deployable::{ContainerDeployment, ContainerDeployOutput};
+pub use deployable::{ContainerDeployOutput, ContainerDeployment};
 #[cfg(feature = "docker")]
 pub use error::DockerError;

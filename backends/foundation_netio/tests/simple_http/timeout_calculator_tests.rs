@@ -2,9 +2,7 @@
 
 use std::time::Duration;
 
-use foundation_netio::shared::http::timeout::{
-    TimeoutCalculator, TimeoutConfig, TimeoutContext,
-};
+use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 
 #[test]
 fn test_default_config() {

@@ -63,7 +63,8 @@ fn status_details_bin_preferred_over_status_message() {
         vec!["3".to_string()], // InvalidArgument
     );
     // details-bin still encodes NotFound(5) "detailed".
-    let details = foundation_connectrpc::shared::protocol::grpc_web::encode_status_proto(5, "detailed");
+    let details =
+        foundation_connectrpc::shared::protocol::grpc_web::encode_status_proto(5, "detailed");
     use base64::Engine as _;
     trailers.insert(
         SimpleHeader::from(constants::TRAILER_STATUS_DETAILS.to_string()),
@@ -78,7 +79,9 @@ fn status_details_bin_preferred_over_status_message() {
 
 #[test]
 fn grpc_message_percent_encoding_roundtrip() {
-    use foundation_connectrpc::shared::protocol::grpc_web::{percent_decode_message, percent_encode_message};
+    use foundation_connectrpc::shared::protocol::grpc_web::{
+        percent_decode_message, percent_encode_message,
+    };
     let msg = "needs %encoding: café\n";
     let enc = percent_encode_message(msg);
     assert!(!enc.contains('é'));
@@ -210,7 +213,9 @@ fn roundtrip(text: bool) {
                 send_body: Arc::new(req_tx),
                 // F45 Part D: TransportStream now speaks FutureStream; bridge the
                 // pipe-fed test harness through the pipe→FutureStream adapters.
-                head: foundation_connectrpc::shared::transport::head_stream_from_pipe(client_head_rx),
+                head: foundation_connectrpc::shared::transport::head_stream_from_pipe(
+                    client_head_rx,
+                ),
                 recv_body: foundation_connectrpc::shared::transport::body_stream_from_pipe(resp_rx),
                 trailers: {
                     let (tx, rx) = Pipe::with_depth(1);
@@ -274,10 +279,18 @@ fn roundtrip(text: bool) {
         cs,
         srv,
         cr,
-        Box::pin(async move { let _ = s_read.await; }),
-        Box::pin(async move { let _ = s_write.await; }),
-        Box::pin(async move { let _ = c_read.await; }),
-        Box::pin(async move { let _ = c_write.await; }),
+        Box::pin(async move {
+            let _ = s_read.await;
+        }),
+        Box::pin(async move {
+            let _ = s_write.await;
+        }),
+        Box::pin(async move {
+            let _ = c_read.await;
+        }),
+        Box::pin(async move {
+            let _ = c_write.await;
+        }),
     ]);
 
     assert_eq!(&*received.lock().unwrap(), &[Bytes::from_static(b"hello")]);

@@ -19,8 +19,7 @@ use foundation_core::valtron::valtron;
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let api_key = std::env::var("ANTHROPIC_API_KEY")
-        .expect("ANTHROPIC_API_KEY must be set");
+    let api_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
 
     // --- Step 1: Create providers ---
     // (`api_key(..)` is `with_config(AnthropicConfig::api_key(..))`, i.e. an
@@ -75,7 +74,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     // --- Step 5: Run a turn ---
     println!("Sending hello prompt...");
-    let turn = agent.run_turn("Hello! Please say hi back in one sentence.").await?;
+    let turn = agent
+        .run_turn("Hello! Please say hi back in one sentence.")
+        .await?;
 
     for record in &turn {
         println!("{record:?}");

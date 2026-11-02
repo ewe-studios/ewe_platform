@@ -60,7 +60,10 @@ fn control_socket_status_and_drain() {
     let resp = rpc(&sock, r#"{"command":"list"}"#);
     assert_eq!(resp["ok"], true, "list ok: {resp}");
     assert_eq!(resp["data"][0]["name"], "echo", "service name: {resp}");
-    assert_eq!(resp["data"][0]["backends"].as_array().map(|a| a.len()), Some(2));
+    assert_eq!(
+        resp["data"][0]["backends"].as_array().map(|a| a.len()),
+        Some(2)
+    );
 
     // `drain` one backend, then confirm `status` reflects it.
     let resp = rpc(
@@ -70,7 +73,10 @@ fn control_socket_status_and_drain() {
     assert_eq!(resp["ok"], true, "drain ok: {resp}");
 
     let resp = rpc(&sock, r#"{"command":"status"}"#);
-    assert_eq!(resp["data"]["draining"], 1, "one backend draining now: {resp}");
+    assert_eq!(
+        resp["data"]["draining"], 1,
+        "one backend draining now: {resp}"
+    );
 
     // Unknown command is a clean error, not a crash.
     let resp = rpc(&sock, r#"{"command":"bogus"}"#);
@@ -79,5 +85,8 @@ fn control_socket_status_and_drain() {
     proxy.shutdown();
 
     // The socket file is removed on shutdown.
-    assert!(!std::path::Path::new(&sock).exists(), "socket file cleaned up");
+    assert!(
+        !std::path::Path::new(&sock).exists(),
+        "socket file cleaned up"
+    );
 }

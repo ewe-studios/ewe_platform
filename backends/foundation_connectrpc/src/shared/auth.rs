@@ -425,11 +425,7 @@ impl PerProcedureAuth {
 
     /// Register an authenticator for a specific procedure.
     #[must_use]
-    pub fn with_procedure(
-        mut self,
-        procedure: impl Into<String>,
-        auth: impl AuthFunc,
-    ) -> Self {
+    pub fn with_procedure(mut self, procedure: impl Into<String>, auth: impl AuthFunc) -> Self {
         self.procedure_auth.insert(procedure.into(), Arc::new(auth));
         self
     }

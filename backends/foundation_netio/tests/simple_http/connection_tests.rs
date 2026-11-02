@@ -7,8 +7,8 @@
 
 use super::*;
 use foundation_core::valtron::valtron_test;
-use foundation_netio::shared::client::{MockDnsResolver, SystemDnsResolver};
 use foundation_netio::http::HttpClientConnection;
+use foundation_netio::shared::client::{MockDnsResolver, SystemDnsResolver};
 use foundation_netio::shared::http::HttpClientError;
 
 use foundation_core::url::{Scheme, Uri};
@@ -191,8 +191,11 @@ fn test_connection_http_local() {
     let accepted = std::thread::spawn(move || listener.accept().map(|(_, peer)| peer));
 
     let url = Uri::parse(&format!("http://local.test:{}", addr.port())).unwrap();
-    let result =
-        HttpClientConnection::connect(&url, &local_resolver("local.test", addr), Some(Duration::from_secs(5)));
+    let result = HttpClientConnection::connect(
+        &url,
+        &local_resolver("local.test", addr),
+        Some(Duration::from_secs(5)),
+    );
 
     assert!(result.is_ok(), "connect failed: {:?}", result.err());
     let peer = accepted.join().expect("server thread").expect("accept");
@@ -220,8 +223,8 @@ fn test_connection_https_local() {
         .expect("read TLS fixture")
     };
     let cert = fixture("cert.pem");
-    let acceptor =
-        RustlsAcceptor::from_pem(cert.clone(), Zeroizing::new(fixture("key.pem"))).expect("acceptor");
+    let acceptor = RustlsAcceptor::from_pem(cert.clone(), Zeroizing::new(fixture("key.pem")))
+        .expect("acceptor");
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
@@ -279,7 +282,11 @@ fn test_connection_timeout() {
             Err(err) => panic!("unexpected connect error while filling the queue: {err}"),
         }
     }
-    assert!(queue_full, "accept queue never filled after {} connects", held.len());
+    assert!(
+        queue_full,
+        "accept queue never filled after {} connects",
+        held.len()
+    );
 
     let url = Uri::parse(&format!("http://stalled.test:{}", addr.port())).unwrap();
     let started = std::time::Instant::now();

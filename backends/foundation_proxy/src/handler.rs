@@ -30,9 +30,9 @@ use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFact
 
 use crate::config::BackendProtocol;
 use crate::forward::{forward_http_with_headers, forward_upgrade, is_upgrade_request};
-use crate::runtime::STICKY_COOKIE;
 use crate::passthrough::splice_bidirectional;
 use crate::runtime::BackendLease;
+use crate::runtime::STICKY_COOKIE;
 use crate::state::ProxyState;
 
 /// Reverse-proxy handler backed by the shared [`ProxyState`].
@@ -121,7 +121,17 @@ impl Serve for ProxyHandler {
         // Relay on a dedicated thread; keep the pool worker free. The lease moves
         // into the thread so the in-flight count is held for the whole exchange.
         std::thread::spawn(move || {
-            relay(conn, req, lease, &client_ip, &scheme, protocol, &client, sticky_header.as_ref(), io_mode);
+            relay(
+                conn,
+                req,
+                lease,
+                &client_ip,
+                &scheme,
+                protocol,
+                &client,
+                sticky_header.as_ref(),
+                io_mode,
+            );
             let duration = log_start.elapsed();
             tracing::info!(
                 method = %log_method,
@@ -179,7 +189,12 @@ fn relay(
         BackendProtocol::Grpc => {
             if is_grpc_web_request(&req) {
                 if let Err(e) = crate::rpc_relay::relay_grpc_web_to_grpc(
-                    &mut conn, &backend, req, client_ip, scheme, sticky_header,
+                    &mut conn,
+                    &backend,
+                    req,
+                    client_ip,
+                    scheme,
+                    sticky_header,
                 ) {
                     tracing::warn!(url = %backend.url(), "grpc-web relay failed, sending 502: {e}");
                     let _ = respond::text(&mut conn, 502, "Bad Gateway");
@@ -187,7 +202,12 @@ fn relay(
                 }
             } else if is_connect_request(&req) {
                 if let Err(e) = crate::rpc_relay::relay_connect_to_grpc(
-                    &mut conn, &backend, req, client_ip, scheme, sticky_header,
+                    &mut conn,
+                    &backend,
+                    req,
+                    client_ip,
+                    scheme,
+                    sticky_header,
                 ) {
                     tracing::warn!(url = %backend.url(), "connect relay failed, sending 502: {e}");
                     let _ = respond::text(&mut conn, 502, "Bad Gateway");
@@ -198,7 +218,15 @@ fn relay(
                 if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme, io_mode) {
                     tracing::warn!(url = %backend.url(), "upgrade relay failed: {e}");
                 }
-            } else if let Err(e) = forward_http_with_headers(&mut conn, &backend, req, client_ip, scheme, client, sticky_header) {
+            } else if let Err(e) = forward_http_with_headers(
+                &mut conn,
+                &backend,
+                req,
+                client_ip,
+                scheme,
+                client,
+                sticky_header,
+            ) {
                 tracing::warn!(url = %backend.url(), "forward failed, sending 502: {e}");
                 let _ = respond::text(&mut conn, 502, "Bad Gateway");
                 let _ = conn.flush();
@@ -216,7 +244,15 @@ fn relay(
                 if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme, io_mode) {
                     tracing::warn!(url = %backend.url(), "upgrade relay failed: {e}");
                 }
-            } else if let Err(e) = forward_http_with_headers(&mut conn, &backend, req, client_ip, scheme, client, sticky_header) {
+            } else if let Err(e) = forward_http_with_headers(
+                &mut conn,
+                &backend,
+                req,
+                client_ip,
+                scheme,
+                client,
+                sticky_header,
+            ) {
                 // The upstream was unreachable or misbehaved: never close silently,
                 // answer a well-formed 502 so the client sees a real response.
                 tracing::warn!(url = %backend.url(), "forward failed, sending 502: {e}");

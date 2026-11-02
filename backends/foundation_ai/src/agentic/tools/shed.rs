@@ -151,7 +151,8 @@ impl ToolDiscovery {
     /// # Errors
     /// [`ToolError::Execution`] if embedding or the vector insert fails.
     pub async fn index(&self, def: &ToolDefinition) -> Result<(), ToolError> {
-        self.index_tool(&Tool::SingleCommand(Box::new(def.clone()))).await
+        self.index_tool(&Tool::SingleCommand(Box::new(def.clone())))
+            .await
     }
 
     /// Index a registered tool (single or multi command) under its name.
@@ -293,13 +294,14 @@ impl ToolDiscovery {
             other => other,
         })?;
 
-        let matches = store
-            .search(NAMESPACE, &embedding, k)
-            .await
-            .map_err(|e| ToolError::Execution {
-                tool: SHED_TOOL_NAME.into(),
-                reason: format!("vector search failed: {e}"),
-            })?;
+        let matches =
+            store
+                .search(NAMESPACE, &embedding, k)
+                .await
+                .map_err(|e| ToolError::Execution {
+                    tool: SHED_TOOL_NAME.into(),
+                    reason: format!("vector search failed: {e}"),
+                })?;
 
         let summaries = self.summaries.read().expect("tool summaries poisoned");
         Ok(matches

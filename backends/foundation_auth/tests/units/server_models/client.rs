@@ -8,10 +8,7 @@ fn test_client(secret: &str) -> OAuthClient {
         name: "Test App".into(),
         client_secret_hash: hex_sha256(secret),
         redirect_uris: vec!["https://app.example.com/callback".into()],
-        grant_types: vec![
-            "authorization_code".into(),
-            "refresh_token".into(),
-        ],
+        grant_types: vec!["authorization_code".into(), "refresh_token".into()],
         scopes: vec!["openid".into(), "profile".into(), "email".into()],
         is_public: false,
         created_at: 0,

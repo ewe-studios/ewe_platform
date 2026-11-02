@@ -23,7 +23,7 @@ use chacha20poly1305::{
 use chrono::Utc;
 use foundation_compact::rng::Rng;
 
-use foundation_db::core::storage_provider::{QueryStore, AsyncQueryStream, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{AsyncQueryStream, DataValue, QueryStore, SqlRow};
 use futures_lite::StreamExt;
 
 use crate::shared::password_hash::argon2id_derive;
@@ -258,13 +258,16 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     ///
     /// `Storage` on query failure, `Parse` if a row can't be decoded.
     pub async fn find_active(&self) -> Result<Vec<UpstreamProvider>> {
-        let stream = self.query_store.query(
-            "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
+        let stream = self
+            .query_store
+            .query(
+                "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
              encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
              scopes, is_active, mapping_config, created_at, updated_at \
              FROM upstream_providers WHERE is_active = 1 ORDER BY id",
-            &[],
-        ).await;
+                &[],
+            )
+            .await;
         Self::drain_providers(stream).await
     }
 
@@ -274,13 +277,16 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     ///
     /// `Storage` on query failure, `Parse` if a row can't be decoded.
     pub async fn list_all(&self) -> Result<Vec<UpstreamProvider>> {
-        let stream = self.query_store.query(
-            "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
+        let stream = self
+            .query_store
+            .query(
+                "SELECT id, name, provider_type, client_id, client_secret_ciphertext, \
              encryption_key_id, authorization_url, token_url, userinfo_url, discovery_url, \
              scopes, is_active, mapping_config, created_at, updated_at \
              FROM upstream_providers ORDER BY id",
-            &[],
-        ).await;
+                &[],
+            )
+            .await;
         Self::drain_providers(stream).await
     }
 
@@ -305,7 +311,10 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     /// `NotFound` if the id doesn't exist; `Validation` if the result would be
     /// invalid; `Storage`/`Parse` on failure.
     pub async fn update(&self, id: &str, updates: ProviderUpdate) -> Result<UpstreamProvider> {
-        let mut provider = self.find_by_id(id).await?.ok_or(ProviderServiceError::NotFound)?;
+        let mut provider = self
+            .find_by_id(id)
+            .await?
+            .ok_or(ProviderServiceError::NotFound)?;
 
         if let Some(v) = updates.name {
             provider.name = v;
@@ -424,7 +433,10 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     /// `NotFound` if the id doesn't exist; `Validation` if no secret is set;
     /// `Crypto` if decryption fails.
     pub async fn get_secret(&self, id: &str) -> Result<String> {
-        let provider = self.find_by_id(id).await?.ok_or(ProviderServiceError::NotFound)?;
+        let provider = self
+            .find_by_id(id)
+            .await?
+            .ok_or(ProviderServiceError::NotFound)?;
         let blob = provider
             .client_secret_ciphertext
             .ok_or_else(|| ProviderServiceError::Validation("no secret set".into()))?;
@@ -438,7 +450,9 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
             return Err(ProviderServiceError::Validation("id is empty".into()));
         }
         if provider.client_id.trim().is_empty() {
-            return Err(ProviderServiceError::Validation("client_id is empty".into()));
+            return Err(ProviderServiceError::Validation(
+                "client_id is empty".into(),
+            ));
         }
         if !provider.has_endpoints() {
             return Err(ProviderServiceError::Validation(

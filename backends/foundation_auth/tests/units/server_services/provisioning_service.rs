@@ -2,7 +2,9 @@
 //! `#[cfg(test)]` module in `src/server/services/provisioning_service.rs`).
 
 use foundation_auth::server::models::provider::{ProviderMapping, ProviderType, UpstreamProvider};
-use foundation_auth::server::services::provisioning_service::{ProvisioningResult, ProvisioningService};
+use foundation_auth::server::services::provisioning_service::{
+    ProvisioningResult, ProvisioningService,
+};
 use foundation_auth::shared::upstream_client::UpstreamProfile;
 use foundation_core::valtron::{valtron_test, BlockingFutureExt};
 use foundation_db::{StorageBackend, StorageProvider};
@@ -48,7 +50,12 @@ fn test_profile() -> UpstreamProfile {
 /// waits for the async constructor with `.block()`.
 fn make_store() -> (Arc<StorageProvider>, tempfile::TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
-    let url = dir.path().join("provision_test.db").to_str().unwrap().to_string();
+    let url = dir
+        .path()
+        .join("provision_test.db")
+        .to_str()
+        .unwrap()
+        .to_string();
     let provider = async move { StorageProvider::new(StorageBackend::Turso { url }).await }
         .block()
         .expect("init turso");
@@ -64,7 +71,10 @@ async fn new_profile_creates_user_and_link() {
 
     let result = svc.provision(&provider, &profile).await.expect("provision");
     match result {
-        ProvisioningResult::Created { ref user_id, email_verified: true } => {
+        ProvisioningResult::Created {
+            ref user_id,
+            email_verified: true,
+        } => {
             assert!(!user_id.is_empty());
         }
         _ => panic!("expected Created, got {result:?}"),
@@ -78,13 +88,22 @@ async fn same_profile_provisions_once_and_links_twice() {
     let provider = test_provider();
     let profile = test_profile();
 
-    let result1 = svc.provision(&provider, &profile).await.expect("first provision");
+    let result1 = svc
+        .provision(&provider, &profile)
+        .await
+        .expect("first provision");
     let uid1 = result1.user_id().to_string();
 
-    let result2 = svc.provision(&provider, &profile).await.expect("second provision");
+    let result2 = svc
+        .provision(&provider, &profile)
+        .await
+        .expect("second provision");
     let uid2 = result2.user_id().to_string();
 
-    assert_eq!(uid1, uid2, "same upstream sub should return same local user");
+    assert_eq!(
+        uid1, uid2,
+        "same upstream sub should return same local user"
+    );
 }
 
 #[valtron_test]
@@ -96,7 +115,10 @@ async fn different_providers_with_same_verified_email_share_user() {
     let google = test_provider();
     let profile_g = test_profile();
 
-    let r1 = svc.provision(&google, &profile_g).await.expect("google provision");
+    let r1 = svc
+        .provision(&google, &profile_g)
+        .await
+        .expect("google provision");
     let uid1 = r1.user_id().to_string();
 
     // GitHub: same email, different sub
@@ -107,10 +129,16 @@ async fn different_providers_with_same_verified_email_share_user() {
     let mut profile_gh = test_profile();
     profile_gh.sub = "github-999".into();
 
-    let r2 = svc.provision(&github, &profile_gh).await.expect("github provision");
+    let r2 = svc
+        .provision(&github, &profile_gh)
+        .await
+        .expect("github provision");
     let uid2 = r2.user_id().to_string();
 
-    assert_eq!(uid1, uid2, "same verified email should auto-link to existing user");
+    assert_eq!(
+        uid1, uid2,
+        "same verified email should auto-link to existing user"
+    );
 }
 
 #[valtron_test]
@@ -146,9 +174,15 @@ async fn link_exists_detects_existing_link() {
     let provider = test_provider();
     let profile = test_profile();
 
-    assert!(!svc.link_exists(&provider, &profile.sub).await.expect("check"));
+    assert!(!svc
+        .link_exists(&provider, &profile.sub)
+        .await
+        .expect("check"));
 
     svc.provision(&provider, &profile).await.expect("provision");
 
-    assert!(svc.link_exists(&provider, &profile.sub).await.expect("check after"));
+    assert!(svc
+        .link_exists(&provider, &profile.sub)
+        .await
+        .expect("check after"));
 }

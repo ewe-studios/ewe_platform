@@ -18,9 +18,9 @@ use foundation_ai::backends::openai_provider::{
     build_chat_request, parse_chat_response, ChatCompletionResponse,
 };
 use foundation_ai::types::{
-    CostStatus, ImageContent, Messages, MimeType, ModelId, ModelInteraction,
-    ModelOutput, ModelParams, ModelProviders, ModelUsageCosting, StopReason,
-    ToolDeclarations, UsageCosting, UsageReport,
+    CostStatus, ImageContent, Messages, MimeType, ModelId, ModelInteraction, ModelOutput,
+    ModelParams, ModelProviders, ModelUsageCosting, StopReason, ToolDeclarations, UsageCosting,
+    UsageReport,
 };
 
 // ---------------------------------------------------------------------------
@@ -79,7 +79,10 @@ fn request_json(interaction: &ModelInteraction) -> serde_json::Value {
     serde_json::to_value(&req).expect("request serializes")
 }
 
-fn response_with(content: serde_json::Value, finish_reason: serde_json::Value) -> ChatCompletionResponse {
+fn response_with(
+    content: serde_json::Value,
+    finish_reason: serde_json::Value,
+) -> ChatCompletionResponse {
     let raw = serde_json::json!({
         "id": "chatcmpl-1",
         "object": "chat.completion",
@@ -157,8 +160,7 @@ fn every_supported_image_mime_maps_to_its_own_type() {
 fn an_unsupported_image_mime_falls_back_to_png() {
     // The catch-all keeps a non-image or unknown mime from producing a
     // malformed data URL the vendor cannot parse.
-    let rendered =
-        request_json(&interaction_with_assistant_image(MimeType::AudioMpeg)).to_string();
+    let rendered = request_json(&interaction_with_assistant_image(MimeType::AudioMpeg)).to_string();
     assert!(
         rendered.contains("data:image/png;base64,"),
         "an unsupported mime must fall back to image/png: {rendered}"
@@ -278,7 +280,10 @@ fn an_unknown_finish_reason_is_preserved_verbatim() {
     // A new vendor stop reason must reach the caller as text rather than being
     // silently reported as a normal completion — "length" vs "stop" is the
     // difference between a truncated answer and a finished one.
-    let resp = response_with(serde_json::json!("hi"), serde_json::json!("vendor_specific"));
+    let resp = response_with(
+        serde_json::json!("hi"),
+        serde_json::json!("vendor_specific"),
+    );
     let (msg, _) = parse(&resp);
     assert_eq!(
         stop_reason_of(&msg),
@@ -296,11 +301,14 @@ fn a_response_with_no_choices_is_an_error() {
         "choices": [],
         "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}
     });
-    let resp: ChatCompletionResponse =
-        serde_json::from_value(raw).expect("response deserializes");
+    let resp: ChatCompletionResponse = serde_json::from_value(raw).expect("response deserializes");
     assert!(
-        parse_chat_response(&resp, &ModelId::Name("gpt-4o".into(), None), &free_pricing())
-            .is_err(),
+        parse_chat_response(
+            &resp,
+            &ModelId::Name("gpt-4o".into(), None),
+            &free_pricing()
+        )
+        .is_err(),
         "an empty choices array must error rather than yield an empty completion"
     );
 }

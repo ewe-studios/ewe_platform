@@ -6,14 +6,16 @@
 
 use std::sync::Arc;
 
-use foundation_db::core::storage_provider::{QueryStore, AsyncQueryStream, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{AsyncQueryStream, DataValue, QueryStore, SqlRow};
 use foundation_db::{
-    AuthStore, KeyValueStore, PasskeyStore, AsyncStorageItemStream, TosStore,
-    StorageError, StorageResult, StoredPasskey, StoredTosAcceptance,
+    AsyncStorageItemStream, AuthStore, KeyValueStore, PasskeyStore, StorageError, StorageResult,
+    StoredPasskey, StoredTosAcceptance, TosStore,
 };
 use futures_lite::StreamExt;
 
-use super::models::{AuthorizationCode, DeviceCode, OAuthClient, Passkey, RefreshToken, TosAcceptance, User};
+use super::models::{
+    AuthorizationCode, DeviceCode, OAuthClient, Passkey, RefreshToken, TosAcceptance, User,
+};
 
 #[derive(Debug)]
 pub enum StorageOpError {
@@ -78,7 +80,11 @@ async fn execute(
     sql: &str,
     params: &[DataValue],
 ) -> Result<(), StorageOpError> {
-    store.execute(sql, params).await.map(|_| ()).map_err(query_err)
+    store
+        .execute(sql, params)
+        .await
+        .map(|_| ())
+        .map_err(query_err)
 }
 
 // ─── OAuth clients, codes, tokens ────────────────────────────────────────────
@@ -174,7 +180,10 @@ pub async fn mark_refresh_token_rotated(
     execute(
         store,
         sql,
-        &[DataValue::Integer(now), DataValue::Text(token_hash.to_string())],
+        &[
+            DataValue::Integer(now),
+            DataValue::Text(token_hash.to_string()),
+        ],
     )
     .await
 }
@@ -221,7 +230,10 @@ pub async fn approve_device_code(
     execute(
         store,
         sql,
-        &[DataValue::Text(user_id.to_string()), DataValue::Text(device_code.to_string())],
+        &[
+            DataValue::Text(user_id.to_string()),
+            DataValue::Text(device_code.to_string()),
+        ],
     )
     .await
 }
@@ -252,7 +264,11 @@ fn parse_auth_code_row(row: &SqlRow) -> Result<AuthorizationCode, StorageOpError
         user_id: row.get_by_name("user_id").map_err(parse_err)?,
         client_id: row.get_by_name("client_id").map_err(parse_err)?,
         redirect_uri: row.get_by_name("redirect_uri").map_err(parse_err)?,
-        code_challenge: if code_challenge.is_empty() { None } else { Some(code_challenge) },
+        code_challenge: if code_challenge.is_empty() {
+            None
+        } else {
+            Some(code_challenge)
+        },
         scope: row.get_by_name("scope").map_err(parse_err)?,
         nonce: if nonce.is_empty() { None } else { Some(nonce) },
         expires_at: row.get_by_name("expires_at").map_err(parse_err)?,
@@ -268,7 +284,11 @@ fn parse_refresh_token_row(row: &SqlRow) -> Result<RefreshToken, StorageOpError>
         client_id: row.get_by_name("client_id").map_err(parse_err)?,
         token_hash: row.get_by_name("token_hash").map_err(parse_err)?,
         expires_at: row.get_by_name("expires_at").map_err(parse_err)?,
-        rotated_at: if rotated_at == 0 { None } else { Some(rotated_at) },
+        rotated_at: if rotated_at == 0 {
+            None
+        } else {
+            Some(rotated_at)
+        },
         created_at: row.get_by_name("created_at").map_err(parse_err)?,
     })
 }
@@ -281,8 +301,15 @@ fn parse_device_code_row(row: &SqlRow) -> Result<DeviceCode, StorageOpError> {
         client_id: row.get_by_name("client_id").map_err(parse_err)?,
         scope: row.get_by_name("scope").map_err(parse_err)?,
         expires_at: row.get_by_name("expires_at").map_err(parse_err)?,
-        interval: int_to_u32(row.get_by_name::<i64>("interval_secs").map_err(parse_err)?, "interval_secs")?,
-        user_id: if user_id.is_empty() { None } else { Some(user_id) },
+        interval: int_to_u32(
+            row.get_by_name::<i64>("interval_secs").map_err(parse_err)?,
+            "interval_secs",
+        )?,
+        user_id: if user_id.is_empty() {
+            None
+        } else {
+            Some(user_id)
+        },
         created_at: row.get_by_name("created_at").map_err(parse_err)?,
     })
 }
@@ -307,7 +334,8 @@ pub async fn update_user_lockout(
     failed_attempts: u32,
     locked_until: Option<i64>,
 ) -> Result<(), StorageOpError> {
-    let sql = "UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?";
+    let sql =
+        "UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?";
     let now = chrono::Utc::now().timestamp_millis();
     let locked = locked_until.unwrap_or(0);
     execute(
@@ -429,24 +457,49 @@ fn parse_user_row(row: &SqlRow) -> Result<User, StorageOpError> {
     let email_verified_at_val: i64 = row.get_by_name("email_verified_at").map_err(parse_err)?;
     let locked_until_val: i64 = row.get_by_name("locked_until").map_err(parse_err)?;
     let deleted_at_val: i64 = row.get_by_name("deleted_at").map_err(parse_err)?;
-    let failed_login_attempts: i64 = row.get_by_name("failed_login_attempts").map_err(parse_err)?;
+    let failed_login_attempts: i64 = row
+        .get_by_name("failed_login_attempts")
+        .map_err(parse_err)?;
     Ok(User {
         id: row.get_by_name("id").map_err(parse_err)?,
         email: row.get_by_name("email").map_err(parse_err)?,
-        username: if username_val.is_empty() { None } else { Some(username_val) },
-        password_hash: if password_hash.is_empty() { None } else { Some(password_hash) },
+        username: if username_val.is_empty() {
+            None
+        } else {
+            Some(username_val)
+        },
+        password_hash: if password_hash.is_empty() {
+            None
+        } else {
+            Some(password_hash)
+        },
         email_verified: row.get_by_name("email_verified").map_err(parse_err)?,
-        email_verified_at: if email_verified_at_val == 0 { None } else { Some(email_verified_at_val) },
+        email_verified_at: if email_verified_at_val == 0 {
+            None
+        } else {
+            Some(email_verified_at_val)
+        },
         created_at: row.get_by_name("created_at").map_err(parse_err)?,
         updated_at: row.get_by_name("updated_at").map_err(parse_err)?,
         metadata: if metadata.is_empty() {
             None
         } else {
-            Some(serde_json::from_str(&metadata).map_err(|e| StorageOpError::Parse(format!("user metadata: {e}")))?)
+            Some(
+                serde_json::from_str(&metadata)
+                    .map_err(|e| StorageOpError::Parse(format!("user metadata: {e}")))?,
+            )
         },
         failed_login_attempts: int_to_u32(failed_login_attempts, "failed_login_attempts")?,
-        locked_until: if locked_until_val == 0 { None } else { Some(locked_until_val) },
-        deleted_at: if deleted_at_val == 0 { None } else { Some(deleted_at_val) },
+        locked_until: if locked_until_val == 0 {
+            None
+        } else {
+            Some(locked_until_val)
+        },
+        deleted_at: if deleted_at_val == 0 {
+            None
+        } else {
+            Some(deleted_at_val)
+        },
     })
 }
 
@@ -456,7 +509,10 @@ fn parse_json_vec<T: serde::de::DeserializeOwned>(value: &str) -> Result<Vec<T>,
 
 // ─── Passkeys ────────────────────────────────────────────────────────────────
 
-pub async fn store_passkey(store: &dyn QueryStore, passkey: &Passkey) -> Result<(), StorageOpError> {
+pub async fn store_passkey(
+    store: &dyn QueryStore,
+    passkey: &Passkey,
+) -> Result<(), StorageOpError> {
     let sql = "INSERT INTO passkeys (id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)";
     execute(
         store,
@@ -544,19 +600,27 @@ pub async fn update_passkey_name(
     execute(
         store,
         sql,
-        &[DataValue::Text(name.to_string()), DataValue::Text(passkey_id.to_string())],
+        &[
+            DataValue::Text(name.to_string()),
+            DataValue::Text(passkey_id.to_string()),
+        ],
     )
     .await
 }
 
-pub async fn delete_passkey(store: &dyn QueryStore, passkey_id: &str) -> Result<(), StorageOpError> {
+pub async fn delete_passkey(
+    store: &dyn QueryStore,
+    passkey_id: &str,
+) -> Result<(), StorageOpError> {
     let sql = "DELETE FROM passkeys WHERE id = ?";
     execute(store, sql, &[DataValue::Text(passkey_id.to_string())]).await
 }
 
 fn parse_passkey_row(row: &SqlRow) -> Result<Passkey, StorageOpError> {
     let credential_id: Vec<u8> = row.get_by_name("credential_id").map_err(parse_err)?;
-    let credential_public_key: Vec<u8> = row.get_by_name("credential_public_key").map_err(parse_err)?;
+    let credential_public_key: Vec<u8> = row
+        .get_by_name("credential_public_key")
+        .map_err(parse_err)?;
     let last_used_at_val: i64 = row.get_by_name("last_used_at").map_err(parse_err)?;
     Ok(Passkey {
         id: row.get_by_name("id").map_err(parse_err)?,
@@ -564,9 +628,16 @@ fn parse_passkey_row(row: &SqlRow) -> Result<Passkey, StorageOpError> {
         name: row.get_by_name("name").map_err(parse_err)?,
         credential_id,
         credential_public_key,
-        counter: int_to_u32(row.get_by_name::<i64>("counter").map_err(parse_err)?, "counter")?,
+        counter: int_to_u32(
+            row.get_by_name::<i64>("counter").map_err(parse_err)?,
+            "counter",
+        )?,
         created_at: row.get_by_name("created_at").map_err(parse_err)?,
-        last_used_at: if last_used_at_val == 0 { None } else { Some(last_used_at_val) },
+        last_used_at: if last_used_at_val == 0 {
+            None
+        } else {
+            Some(last_used_at_val)
+        },
     })
 }
 
@@ -623,7 +694,11 @@ fn parse_tos_acceptance_row(row: &SqlRow) -> Result<TosAcceptance, StorageOpErro
         user_id: row.get_by_name("user_id").map_err(parse_err)?,
         tos_version: row.get_by_name("tos_version").map_err(parse_err)?,
         accepted_at: row.get_by_name("accepted_at").map_err(parse_err)?,
-        ip_address: if ip_address.is_empty() { None } else { Some(ip_address) },
+        ip_address: if ip_address.is_empty() {
+            None
+        } else {
+            Some(ip_address)
+        },
     })
 }
 
@@ -711,7 +786,9 @@ fn op_to_storage_err(e: StorageOpError) -> StorageError {
 impl<KV: KeyValueStore> PasskeyStore for HandlerStorage<KV> {
     async fn store_passkey(&self, passkey: &StoredPasskey) -> Result<(), String> {
         let our_pk = stored_to_passkey(passkey);
-        store_passkey(self.query_store.as_ref(), &our_pk).await.map_err(map_storage_err)
+        store_passkey(self.query_store.as_ref(), &our_pk)
+            .await
+            .map_err(map_storage_err)
     }
 
     async fn find_passkeys_by_user<'a>(
@@ -723,7 +800,10 @@ impl<KV: KeyValueStore> PasskeyStore for HandlerStorage<KV> {
             .map_err(op_to_storage_err)
     }
 
-    async fn find_passkey_by_id<'a>(&'a self, passkey_id: &'a str) -> StorageResult<Option<StoredPasskey>> {
+    async fn find_passkey_by_id<'a>(
+        &'a self,
+        passkey_id: &'a str,
+    ) -> StorageResult<Option<StoredPasskey>> {
         find_passkey_by_id(self.query_store.as_ref(), passkey_id)
             .await
             .map(|opt| opt.as_ref().map(passkey_to_stored))
@@ -753,7 +833,9 @@ impl<KV: KeyValueStore> PasskeyStore for HandlerStorage<KV> {
     }
 
     async fn delete_passkey(&self, passkey_id: &str) -> Result<(), String> {
-        delete_passkey(self.query_store.as_ref(), passkey_id).await.map_err(map_storage_err)
+        delete_passkey(self.query_store.as_ref(), passkey_id)
+            .await
+            .map_err(map_storage_err)
     }
 }
 
@@ -761,7 +843,9 @@ impl<KV: KeyValueStore> PasskeyStore for HandlerStorage<KV> {
 impl<KV: KeyValueStore> TosStore for HandlerStorage<KV> {
     async fn store_tos_acceptance(&self, acceptance: &StoredTosAcceptance) -> Result<(), String> {
         let our_ta = stored_to_tos(acceptance);
-        store_tos_acceptance(self.query_store.as_ref(), &our_ta).await.map_err(map_storage_err)
+        store_tos_acceptance(self.query_store.as_ref(), &our_ta)
+            .await
+            .map_err(map_storage_err)
     }
 
     async fn find_tos_acceptance<'a>(

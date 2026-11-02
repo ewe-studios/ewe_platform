@@ -128,9 +128,13 @@ fn the_tiny_fixture_generates_on_cuda() {
     // that device. Random weights emit gibberish, so this is structural — that
     // generation happens at all on CUDA, not what it says.
     let backend = CandleBackend::try_cuda(0).expect("CUDA device 0 opens");
-    let model = backend.get_model_by_spec(spec()).expect("fixture loads on CUDA");
+    let model = backend
+        .get_model_by_spec(spec())
+        .expect("fixture loads on CUDA");
 
-    let out = model.generate(greeting(), Some(params())).expect("cuda generate");
+    let out = model
+        .generate(greeting(), Some(params()))
+        .expect("cuda generate");
     let text: String = out
         .iter()
         .filter_map(|m| match m {
@@ -141,7 +145,10 @@ fn the_tiny_fixture_generates_on_cuda() {
             _ => None,
         })
         .collect();
-    assert!(!text.is_empty(), "CUDA generation produced no text: {out:?}");
+    assert!(
+        !text.is_empty(),
+        "CUDA generation produced no text: {out:?}"
+    );
 }
 
 #[valtron_test]
@@ -151,9 +158,13 @@ fn a_cuda_stream_advances() {
         return;
     }
     let backend = CandleBackend::try_cuda(0).expect("CUDA device 0 opens");
-    let model = backend.get_model_by_spec(spec()).expect("fixture loads on CUDA");
+    let model = backend
+        .get_model_by_spec(spec())
+        .expect("fixture loads on CUDA");
 
-    let stream = model.stream(greeting(), Some(params())).expect("cuda stream");
+    let stream = model
+        .stream(greeting(), Some(params()))
+        .expect("cuda stream");
     let mut text_tokens = 0;
     for item in stream {
         if let Stream::Next(Messages::Assistant {

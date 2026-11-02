@@ -42,7 +42,9 @@ fn with_mtp_preserves_base_config() {
 #[test]
 fn builder_mtp_helper_matches_explicit() {
     let via_builder = LlamaBackendConfig::builder().mtp(None, 2).build();
-    let spec = via_builder.speculative.expect("builder .mtp sets speculative");
+    let spec = via_builder
+        .speculative
+        .expect("builder .mtp sets speculative");
     assert_eq!(spec.kind, SpeculativeKind::Mtp);
     assert_eq!(spec.n_max, 2);
 }

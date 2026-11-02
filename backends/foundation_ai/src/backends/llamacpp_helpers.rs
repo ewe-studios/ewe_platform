@@ -77,4 +77,3 @@ pub fn build_sampler_chain(params: &ModelParams, n_vocab: i32) -> LlamaSampler {
     // Build the chain with no_perf=false for optimized performance
     LlamaSampler::chain(samplers, false)
 }
-

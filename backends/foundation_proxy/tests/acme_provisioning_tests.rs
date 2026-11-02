@@ -21,11 +21,11 @@ use std::time::{Duration, Instant};
 use base64::Engine;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{initialize_pool, sleep_async, BlockingFutureExt};
-use foundation_http::ShutdownSignal;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
+use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::{
@@ -39,7 +39,8 @@ use foundation_proxy::config::{ServiceConfig, SslConfig};
 use foundation_proxy::tls::{AcmeCertManager, CertManager};
 use foundation_proxy::{ProxyConfig, ProxyServer};
 
-const B64: base64::engine::general_purpose::GeneralPurpose = base64::engine::general_purpose::URL_SAFE_NO_PAD;
+const B64: base64::engine::general_purpose::GeneralPurpose =
+    base64::engine::general_purpose::URL_SAFE_NO_PAD;
 
 const ACCOUNT_URL_PATH: &str = "/account/0";
 
@@ -134,7 +135,9 @@ impl MockAcme {
         let jws: serde_json::Value =
             serde_json::from_slice(body).map_err(|e| format!("jws json: {e}"))?;
         let payload_b64 = jws["payload"].as_str().unwrap_or("");
-        let payload = B64.decode(payload_b64).map_err(|e| format!("payload b64: {e}"))?;
+        let payload = B64
+            .decode(payload_b64)
+            .map_err(|e| format!("payload b64: {e}"))?;
         let fin: serde_json::Value =
             serde_json::from_slice(&payload).map_err(|e| format!("finalize json: {e}"))?;
         let csr_b64 = fin["csr"].as_str().ok_or("no csr in finalize")?;
@@ -276,45 +279,50 @@ impl Serve for MockAcmeHandler {
                 // RFC 8555 §7.2: nonce is returned in the Replay-Nonce header.
                 self.state.nonce_fetches.fetch_add(1, Ordering::Relaxed);
                 let nonce = self.state.issue_nonce();
-                render_acme(&mut conn, Status::OK, &nonce, "application/octet-stream", SendSafeBody::None, None);
+                render_acme(
+                    &mut conn,
+                    Status::OK,
+                    &nonce,
+                    "application/octet-stream",
+                    SendSafeBody::None,
+                    None,
+                );
                 return ConnectionResult::Close(None);
             }
-            "/new-account" => {
-                match self.state.validate_jws(raw, false) {
-                    Ok(()) => {
-                        let nonce = self.state.issue_nonce();
-                        let bytes = serde_json::to_vec(&serde_json::json!({
-                            "status": "valid",
-                            "orders": format!("{base}/orders"),
-                        }))
-                        .expect("serialize account");
-                        render_acme(
-                            &mut conn,
-                            Status::Created,
-                            &nonce,
-                            "application/json",
-                            SendSafeBody::Bytes(bytes),
-                            Some(&self.state.account_url()),
-                        );
-                    }
-                    Err(e) => {
-                        let nonce = self.state.issue_nonce();
-                        let bytes = serde_json::to_vec(&serde_json::json!({
-                            "type": "urn:ietf:params:acme:error:malformed",
-                            "detail": e,
-                        }))
-                        .expect("serialize problem");
-                        render_acme(
-                            &mut conn,
-                            Status::BadRequest,
-                            &nonce,
-                            "application/problem+json",
-                            SendSafeBody::Bytes(bytes),
-                            None,
-                        );
-                    }
+            "/new-account" => match self.state.validate_jws(raw, false) {
+                Ok(()) => {
+                    let nonce = self.state.issue_nonce();
+                    let bytes = serde_json::to_vec(&serde_json::json!({
+                        "status": "valid",
+                        "orders": format!("{base}/orders"),
+                    }))
+                    .expect("serialize account");
+                    render_acme(
+                        &mut conn,
+                        Status::Created,
+                        &nonce,
+                        "application/json",
+                        SendSafeBody::Bytes(bytes),
+                        Some(&self.state.account_url()),
+                    );
                 }
-            }
+                Err(e) => {
+                    let nonce = self.state.issue_nonce();
+                    let bytes = serde_json::to_vec(&serde_json::json!({
+                        "type": "urn:ietf:params:acme:error:malformed",
+                        "detail": e,
+                    }))
+                    .expect("serialize problem");
+                    render_acme(
+                        &mut conn,
+                        Status::BadRequest,
+                        &nonce,
+                        "application/problem+json",
+                        SendSafeBody::Bytes(bytes),
+                        None,
+                    );
+                }
+            },
             "/new-order" => serve_acme_post(
                 &self.state,
                 &mut conn,
@@ -400,7 +408,13 @@ impl Serve for MockAcmeHandler {
             },
             "/cert/0" => match self.state.validate_jws(raw, true) {
                 Ok(()) => {
-                    let pem = self.state.issued.lock().unwrap().clone().unwrap_or_default();
+                    let pem = self
+                        .state
+                        .issued
+                        .lock()
+                        .unwrap()
+                        .clone()
+                        .unwrap_or_default();
                     let nonce = self.state.issue_nonce();
                     render_acme(
                         &mut conn,
@@ -449,7 +463,8 @@ fn start_mock_acme() -> (String, Arc<ShutdownSignal>, Arc<MockAcme>) {
     app.route_any::<MockAcmeHandler>("/*");
     let state = app.context().get::<MockAcme>().expect("stored MockAcme");
 
-    let server = HttpServer::with_config(app, &format!("127.0.0.1:{port}"), ServerConfig::defaults());
+    let server =
+        HttpServer::with_config(app, &format!("127.0.0.1:{port}"), ServerConfig::defaults());
     let shutdown = Arc::new(ShutdownSignal::new());
     let thread_shutdown = Arc::clone(&shutdown);
     std::thread::spawn(move || server.serve_with_listener(&listener, &thread_shutdown));
@@ -486,7 +501,10 @@ fn test_acme_client(directory: &str) -> AcmeClient {
 fn make_csr(domains: &[&str]) -> (rcgen::KeyPair, Vec<u8>) {
     let key = rcgen::KeyPair::generate().expect("csr key");
     let params = rcgen::CertificateParams::new(
-        domains.iter().map(|d| d.to_string()).collect::<Vec<String>>(),
+        domains
+            .iter()
+            .map(|d| d.to_string())
+            .collect::<Vec<String>>(),
     )
     .expect("csr params");
     let csr = params.serialize_request(&key).expect("serialize csr");
@@ -517,7 +535,9 @@ fn acme_cert_manager_provisions_a_usable_cert() {
         noop_dns_setter(),
     );
 
-    let pair = manager.get_cert().expect("ACME provisioning should yield a cert");
+    let pair = manager
+        .get_cert()
+        .expect("ACME provisioning should yield a cert");
     let cert = String::from_utf8_lossy(&pair.cert_chain);
     let key = String::from_utf8_lossy(&pair.private_key);
     assert!(cert.contains("BEGIN CERTIFICATE"), "cert PEM: {cert}");
@@ -530,7 +550,10 @@ fn acme_cert_manager_provisions_a_usable_cert() {
 
     // Cached: a second call returns the same cert without re-provisioning.
     let again = manager.get_cert().expect("cached cert");
-    assert_eq!(again.cert_chain, pair.cert_chain, "second get_cert is cached");
+    assert_eq!(
+        again.cert_chain, pair.cert_chain,
+        "second get_cert is cached"
+    );
 
     shutdown.turn_on();
 }
@@ -550,7 +573,9 @@ fn proxy_server_starts_with_acme_letsencrypt_provider() {
         .acme(noop_dns_setter(), Some(directory))
         .service(svc);
 
-    let proxy = ProxyServer::start(config).block().expect("proxy must start with ACME-provisioned TLS");
+    let proxy = ProxyServer::start(config)
+        .block()
+        .expect("proxy must start with ACME-provisioned TLS");
     assert!(proxy.local_addr().port() > 0, "TLS front end bound");
     proxy.shutdown();
 

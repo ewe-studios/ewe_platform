@@ -14,9 +14,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
-use foundation_core::valtron::{
-    AsyncStateTask, AsyncTransition, Ctx, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{AsyncStateTask, AsyncTransition, Ctx, TaskIterator, TaskStatus};
 use foundation_db::{DataValue, QueryStore, SqlRow, StorageError};
 use futures_lite::StreamExt;
 use saffron::Cron;
@@ -509,10 +507,8 @@ impl<QS: QueryStore + ?Sized + 'static> CronScheduler<QS> {
         policy: MissedJobPolicy,
         clock: &SharedCronClock,
     ) -> Result<Vec<JobRunTask>, CronError> {
-        let runners: HashMap<&str, Arc<dyn Job>> = jobs
-            .iter()
-            .map(|j| (j.id(), Arc::clone(j)))
-            .collect();
+        let runners: HashMap<&str, Arc<dyn Job>> =
+            jobs.iter().map(|j| (j.id(), Arc::clone(j))).collect();
         self.jobs
             .into_iter()
             .map(|job| {

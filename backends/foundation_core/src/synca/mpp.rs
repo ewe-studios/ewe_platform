@@ -423,16 +423,12 @@ impl<T: Clone + Send + 'static> Broadcaster<T> {
     /// Dead subscriber channels (Receiver dropped) are cleaned up automatically.
     /// Uses `force_send` to drop oldest events if a subscriber's queue is full.
     pub fn broadcast(&mut self, event: T) {
-        self.subscribers.retain(|tx| {
-            match tx.send(event.clone()) {
-                Ok(()) => true,
-                Err(_) => {
-                    match tx.force_send(event.clone()) {
-                        Ok(_dropped) => true,
-                        Err(_) => false,
-                    }
-                }
-            }
+        self.subscribers.retain(|tx| match tx.send(event.clone()) {
+            Ok(()) => true,
+            Err(_) => match tx.force_send(event.clone()) {
+                Ok(_dropped) => true,
+                Err(_) => false,
+            },
         });
     }
 

@@ -453,7 +453,9 @@ impl AsyncVfsFile for NativeFile {
             return read_at_host(&self.file, len, offset);
         }
         let file = self.file.try_clone().map_err(io_err)?;
-        self.pool.offload(move || read_at_host(&file, len, offset)).await
+        self.pool
+            .offload(move || read_at_host(&file, len, offset))
+            .await
     }
 
     async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize> {
@@ -464,7 +466,9 @@ impl AsyncVfsFile for NativeFile {
             return write_at_host(&self.file, &data, offset);
         }
         let file = self.file.try_clone().map_err(io_err)?;
-        self.pool.offload(move || write_at_host(&file, &data, offset)).await
+        self.pool
+            .offload(move || write_at_host(&file, &data, offset))
+            .await
     }
 
     async fn sync_data_async(&self) -> VfsResult<()> {
@@ -532,7 +536,9 @@ impl AsyncVfsFile for SeekableNativeFile {
             return read_at_host(&*self.file()?, len, offset);
         }
         let file = self.file()?.try_clone().map_err(io_err)?;
-        self.pool.offload(move || read_at_host(&file, len, offset)).await
+        self.pool
+            .offload(move || read_at_host(&file, len, offset))
+            .await
     }
 
     async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize> {
@@ -543,7 +549,9 @@ impl AsyncVfsFile for SeekableNativeFile {
             return write_at_host(&*self.file()?, &data, offset);
         }
         let file = self.file()?.try_clone().map_err(io_err)?;
-        self.pool.offload(move || write_at_host(&file, &data, offset)).await
+        self.pool
+            .offload(move || write_at_host(&file, &data, offset))
+            .await
     }
 
     async fn sync_data_async(&self) -> VfsResult<()> {
@@ -930,7 +938,9 @@ impl AsyncVfsFileSystem for NativeFs {
         if !self.pool.should_offload(size) {
             return std::fs::read(&fs_path).map_err(io_err);
         }
-        self.pool.offload(move || std::fs::read(&fs_path).map_err(io_err)).await
+        self.pool
+            .offload(move || std::fs::read(&fs_path).map_err(io_err))
+            .await
     }
 
     async fn write_file_async(&self, path: String, data: Vec<u8>) -> VfsResult<()> {
@@ -938,6 +948,8 @@ impl AsyncVfsFileSystem for NativeFs {
         if !self.pool.should_offload(data.len()) {
             return std::fs::write(&fs_path, data).map_err(io_err);
         }
-        self.pool.offload(move || std::fs::write(&fs_path, data).map_err(io_err)).await
+        self.pool
+            .offload(move || std::fs::write(&fs_path, data).map_err(io_err))
+            .await
     }
 }

@@ -6,9 +6,9 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
-use foundation_netio::shared::http::SimpleMethod;
 use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+use foundation_netio::shared::http::SimpleMethod;
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 /// HTTP client for remote content fetching.
 pub struct HttpBackend {
@@ -26,7 +26,10 @@ impl HttpBackend {
     }
 
     pub fn set_auth(&self, domain: &str, token: &str) {
-        self.auth_tokens.lock().unwrap().insert(domain.to_string(), token.to_string());
+        self.auth_tokens
+            .lock()
+            .unwrap()
+            .insert(domain.to_string(), token.to_string());
     }
 
     /// Fetch content from a URL. Returns `(body_bytes, content_type)`.
@@ -36,7 +39,9 @@ impl HttpBackend {
         let builder = PreparedRequestBuilder::new(SimpleMethod::GET, url)
             .map_err(|e| format!("bad URL '{url}': {e}"))?;
 
-        let response = self.client.send(builder.build())
+        let response = self
+            .client
+            .send(builder.build())
             .map_err(|e| format!("fetch '{url}' failed: {e}"))?;
 
         let status_code: usize = response.get_status().into();
@@ -50,7 +55,9 @@ impl HttpBackend {
 }
 
 impl Default for HttpBackend {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl std::fmt::Debug for HttpBackend {

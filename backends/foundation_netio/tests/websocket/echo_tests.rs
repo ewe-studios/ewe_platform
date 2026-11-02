@@ -36,7 +36,7 @@ fn test_text_message_echo() {
     // Receive echoed message via iterator
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => {},
+            WebSocketEvent::Skip => {}
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                 assert_eq!(text, "Hello, WebSocket!");
                 break;
@@ -73,7 +73,7 @@ fn test_binary_message_echo() {
     // Receive echoed message
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => {},
+            WebSocketEvent::Skip => {}
             WebSocketEvent::Message(WebSocketMessage::Binary(data)) => {
                 assert_eq!(data, binary_data);
                 break;
@@ -158,7 +158,7 @@ fn test_ping_pong_exchange() {
     // Receive pong response
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => {},
+            WebSocketEvent::Skip => {}
             WebSocketEvent::Message(WebSocketMessage::Pong(data)) => {
                 assert_eq!(data, ping_data);
                 break;
@@ -192,7 +192,7 @@ fn test_client_initiated_close() {
     // Server echoes close frame back, we should receive it
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => {},
+            WebSocketEvent::Skip => {}
             WebSocketEvent::Message(WebSocketMessage::Close(code, reason)) => {
                 assert_eq!(code, 1000);
                 assert_eq!(reason, "goodbye");
@@ -230,7 +230,7 @@ fn test_large_message_echo() {
     // Receive echoed message
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => {},
+            WebSocketEvent::Skip => {}
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                 assert_eq!(text, large_text);
                 assert_eq!(text.len(), 500);
@@ -268,7 +268,7 @@ fn test_very_large_message_echo() {
     // Receive echoed message
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => {},
+            WebSocketEvent::Skip => {}
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                 assert_eq!(text, large_text);
                 assert_eq!(text.len(), 70_000);
@@ -312,7 +312,7 @@ fn test_utf8_text_messages() {
 
         for event in client.messages() {
             match event.expect("should receive event") {
-                WebSocketEvent::Skip => {},
+                WebSocketEvent::Skip => {}
                 WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                     assert_eq!(&text, msg, "UTF-8 message should echo correctly");
                     break;
@@ -362,7 +362,7 @@ fn test_message_iterator() {
         }
 
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => {},
+            WebSocketEvent::Skip => {}
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                 tracing::info!("Received text: {}", text);
                 received.push(text);

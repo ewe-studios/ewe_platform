@@ -8,16 +8,16 @@ use crate::ssh::VmSession;
 
 /// Error patterns to search for in build logs.
 pub const ERROR_PATTERNS: &[&str] = &[
-    "error[E",       // Rust compiler errors
-    "error:",        // Generic errors
-    "FAILED",        // Build failure markers
-    "panic",         // Rust panics
-    "fatal error",   // Compiler fatal errors
+    "error[E",                    // Rust compiler errors
+    "error:",                     // Generic errors
+    "FAILED",                     // Build failure markers
+    "panic",                      // Rust panics
+    "fatal error",                // Compiler fatal errors
     "unresolved external symbol", // MSVC linker errors
-    "LNK",           // MSVC linker error codes
-    "cannot find -l", // Linker missing library
-    "linker .* not found", // Missing linker
-    "mise ERROR",    // Mise errors
+    "LNK",                        // MSVC linker error codes
+    "cannot find -l",             // Linker missing library
+    "linker .* not found",        // Missing linker
+    "mise ERROR",                 // Mise errors
 ];
 
 /// Extract error stanzas from the build log.
@@ -29,7 +29,10 @@ pub const ERROR_PATTERNS: &[&str] = &[
 /// Returns an error if log error extraction fails.
 pub fn dump_build_log_errors(session: &mut VmSession) -> Result<String> {
     // Read the build log
-    let Ok(log_content) = crate::ssh::exec(session, "cat ~/.testbed-build/build.log 2>/dev/null || echo 'NO_LOG'") else {
+    let Ok(log_content) = crate::ssh::exec(
+        session,
+        "cat ~/.testbed-build/build.log 2>/dev/null || echo 'NO_LOG'",
+    ) else {
         return Ok("No build log available".to_string());
     };
 
@@ -74,6 +77,9 @@ pub fn extract_errors(log: &str) -> Result<String> {
     errors.dedup();
     let output = errors[..errors.len().min(20)].join("\n---\n");
 
-    Ok(format!("Build errors ({} found):\n---\n{}", errors.len(), output))
+    Ok(format!(
+        "Build errors ({} found):\n---\n{}",
+        errors.len(),
+        output
+    ))
 }
-

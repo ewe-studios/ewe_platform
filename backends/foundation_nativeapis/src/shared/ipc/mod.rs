@@ -5,7 +5,6 @@
 ///
 /// The native transport layer (platform sockets, shared memory, FFI) lives in
 /// the top-level `ipc` module which is gated to linux/macos/windows.
-
 pub mod errors;
 pub mod label;
 pub mod message;
@@ -16,13 +15,13 @@ pub mod version;
 
 pub use errors::{Error, JoinError, RecvError, SendError};
 pub use label::{Label, LabelOp};
-pub use message::{BytesMessage, ConnectMessage, ConnectMessageAck, MessageBox};
 #[cfg(target_os = "windows")]
 pub use message::FetchProcessHandleMessage;
+pub use message::{BytesMessage, ConnectMessage, ConnectMessageAck, MessageBox};
 pub use options::Options;
 pub use selector::{Selector, SelectorMode};
 pub use util::{Align4, EndpointID};
-pub use version::{Version, version_pre};
+pub use version::{version_pre, Version};
 
 /// Decode a value from bincode bytes.
 pub fn decode<'de, T: serde::Deserialize<'de>>(data: &'de [u8]) -> Result<T, Error> {

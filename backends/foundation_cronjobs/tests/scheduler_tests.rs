@@ -13,8 +13,7 @@ use std::time::Duration;
 use chrono::{DateTime, TimeZone, Utc};
 use foundation_core::valtron::{valtron_test, Ctx, TaskIterator, TaskStatus};
 use foundation_cronjobs::{
-    CronClock, CronError, CronJob, CronScheduler, Job, JobConfig, MissedJobPolicy,
-    SharedCronClock,
+    CronClock, CronError, CronJob, CronScheduler, Job, JobConfig, MissedJobPolicy, SharedCronClock,
 };
 use foundation_db::{DataValue, MemoryStorage, QueryStore, TursoStorage};
 
@@ -37,7 +36,10 @@ fn job_with(id: &str, expr: &str) -> JobConfig {
 async fn turso() -> (Arc<TursoStorage>, tempfile::TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
     let url = dir.path().join("cron.db").to_string_lossy().into_owned();
-    (Arc::new(TursoStorage::new(&url).await.expect("open turso")), dir)
+    (
+        Arc::new(TursoStorage::new(&url).await.expect("open turso")),
+        dir,
+    )
 }
 
 /// A wall clock a test can move.
@@ -257,7 +259,10 @@ async fn missed_policy_skip_runs_nothing() {
     assert!(matches!(status, Some(TaskStatus::Delayed(_))));
     assert_eq!(runs.load(Ordering::SeqCst), 0, "Skip must not run the job");
     // Next fire is the first occurrence after now: 01:15.
-    assert_eq!(task.snapshot().next_run, utc(2026, 1, 1, 1, 15, 0).timestamp());
+    assert_eq!(
+        task.snapshot().next_run,
+        utc(2026, 1, 1, 1, 15, 0).timestamp()
+    );
 }
 
 #[valtron_test]
@@ -281,7 +286,10 @@ async fn missed_policy_catch_up_runs_once() {
 
     assert!(matches!(status, Some(TaskStatus::Delayed(_))));
     assert_eq!(runs.load(Ordering::SeqCst), 1, "CatchUp runs the job once");
-    assert_eq!(task.snapshot().next_run, utc(2026, 1, 1, 1, 15, 0).timestamp());
+    assert_eq!(
+        task.snapshot().next_run,
+        utc(2026, 1, 1, 1, 15, 0).timestamp()
+    );
 }
 
 #[valtron_test]
@@ -309,7 +317,10 @@ async fn missed_policy_run_all_runs_each_missed_fire() {
         4,
         "RunAll runs once per missed fire"
     );
-    assert_eq!(task.snapshot().next_run, utc(2026, 1, 1, 1, 0, 0).timestamp());
+    assert_eq!(
+        task.snapshot().next_run,
+        utc(2026, 1, 1, 1, 0, 0).timestamp()
+    );
 }
 
 #[valtron_test]
@@ -379,7 +390,9 @@ async fn save_then_load_round_trips_job_state() {
 
     let mut second = CronScheduler::new(Arc::clone(&db));
     second.register(job("j1")).expect("valid expression");
-    second.register(job("never-saved")).expect("valid expression");
+    second
+        .register(job("never-saved"))
+        .expect("valid expression");
     second.load().await.expect("load");
 
     let state = &second.jobs()[0].state;

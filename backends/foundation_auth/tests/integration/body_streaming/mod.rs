@@ -110,8 +110,7 @@ fn jwks_parses_key_set() {
         .close_after_response(true);
 
     let jwks_url = server.url("/jwks");
-    let mut manager =
-        JwksManager::with_client(HttpClientBuilder::new().build(), jwks_url, None);
+    let mut manager = JwksManager::with_client(HttpClientBuilder::new().build(), jwks_url, None);
 
     let (count, kid) = drive(async move {
         manager
@@ -134,12 +133,8 @@ fn introspection_parses_result() {
     let url = server.url("/introspect");
     let client = IntrospectionClient::with_client(HttpClientBuilder::new().build());
 
-    let result = drive(async move {
-        client
-            .introspect(&url, "tok", "client", "secret")
-            .await
-    })
-    .expect("introspection");
+    let result = drive(async move { client.introspect(&url, "tok", "client", "secret").await })
+        .expect("introspection");
 
     assert!(result.active);
     assert_eq!(result.sub.as_deref(), Some("user-1"));
@@ -155,7 +150,8 @@ fn userinfo_parses_profile() {
     let url = server.url("/userinfo");
     let client = UserInfoClient::with_client(HttpClientBuilder::new().build());
 
-    let info = drive(async move { client.fetch(&url, "access-tok").await }).expect("userinfo fetch");
+    let info =
+        drive(async move { client.fetch(&url, "access-tok").await }).expect("userinfo fetch");
 
     assert_eq!(info.sub, "user-1");
     assert_eq!(info.email.as_deref(), Some("alice@example.com"));
@@ -197,7 +193,8 @@ fn discovery_error_body_is_capped() {
     let url = server.url("/.well-known/openid-configuration");
     let client = DiscoveryClient::with_client(HttpClientBuilder::new().build());
 
-    let err = drive(async move { client.fetch_from_url(&url).await }).expect_err("a 500 is an error");
+    let err =
+        drive(async move { client.fetch_from_url(&url).await }).expect_err("a 500 is an error");
 
     let text = match err {
         DiscoveryError::FetchFailed(msg) => msg
@@ -220,11 +217,10 @@ fn jwks_error_body_is_capped() {
     .close_after_response(true);
 
     let jwks_url = server.url("/jwks");
-    let mut manager =
-        JwksManager::with_client(HttpClientBuilder::new().build(), jwks_url, None);
+    let mut manager = JwksManager::with_client(HttpClientBuilder::new().build(), jwks_url, None);
 
-    let err = drive(async move { manager.fetch().await.map(|_| ()) })
-        .expect_err("a 500 is an error");
+    let err =
+        drive(async move { manager.fetch().await.map(|_| ()) }).expect_err("a 500 is an error");
 
     let text = match err {
         JwksError::JwksFetchFailed(msg) => msg
@@ -241,20 +237,15 @@ fn jwks_error_body_is_capped() {
 fn introspection_error_body_is_capped() {
     let body = oversized_body();
     let original = body.clone();
-    let server = TestHttpServer::with_response(move |_req| {
-        error_response(401, "Unauthorized", &body)
-    })
-    .close_after_response(true);
+    let server =
+        TestHttpServer::with_response(move |_req| error_response(401, "Unauthorized", &body))
+            .close_after_response(true);
 
     let url = server.url("/introspect");
     let client = IntrospectionClient::with_client(HttpClientBuilder::new().build());
 
-    let err = drive(async move {
-        client
-            .introspect(&url, "tok", "client", "secret")
-            .await
-    })
-    .expect_err("a 401 is an error");
+    let err = drive(async move { client.introspect(&url, "tok", "client", "secret").await })
+        .expect_err("a 401 is an error");
 
     // A 401 carries the raw body with no HTTP prefix.
     let text = match err {
@@ -341,8 +332,8 @@ fn discovery_error_body_uses_configured_cap() {
     let client = DiscoveryClient::with_client(HttpClientBuilder::new().build())
         .with_max_error_body(CUSTOM_CAP);
 
-    let err = drive(async move { client.fetch_from_url(&url).await })
-        .expect_err("a 500 is an error");
+    let err =
+        drive(async move { client.fetch_from_url(&url).await }).expect_err("a 500 is an error");
 
     let text = match err {
         DiscoveryError::FetchFailed(msg) => msg
@@ -366,15 +357,11 @@ fn jwks_error_body_uses_configured_cap() {
     .close_after_response(true);
 
     let jwks_url = server.url("/jwks");
-    let mut manager = JwksManager::with_client(
-        HttpClientBuilder::new().build(),
-        jwks_url,
-        None,
-    )
-    .with_max_error_body(CUSTOM_CAP);
+    let mut manager = JwksManager::with_client(HttpClientBuilder::new().build(), jwks_url, None)
+        .with_max_error_body(CUSTOM_CAP);
 
-    let err = drive(async move { manager.fetch().await.map(|_| ()) })
-        .expect_err("a 500 is an error");
+    let err =
+        drive(async move { manager.fetch().await.map(|_| ()) }).expect_err("a 500 is an error");
 
     let text = match err {
         JwksError::JwksFetchFailed(msg) => msg
@@ -392,21 +379,16 @@ fn jwks_error_body_uses_configured_cap() {
 fn introspection_error_body_uses_configured_cap() {
     let body = oversized_body();
     let original = body.clone();
-    let server = TestHttpServer::with_response(move |_req| {
-        error_response(401, "Unauthorized", &body)
-    })
-    .close_after_response(true);
+    let server =
+        TestHttpServer::with_response(move |_req| error_response(401, "Unauthorized", &body))
+            .close_after_response(true);
 
     let url = server.url("/introspect");
     let client = IntrospectionClient::with_client(HttpClientBuilder::new().build())
         .with_max_error_body(CUSTOM_CAP);
 
-    let err = drive(async move {
-        client
-            .introspect(&url, "tok", "client", "secret")
-            .await
-    })
-    .expect_err("a 401 is an error");
+    let err = drive(async move { client.introspect(&url, "tok", "client", "secret").await })
+        .expect_err("a 401 is an error");
 
     // A 401 carries the raw body with no HTTP prefix.
     let text = match err {
@@ -431,8 +413,7 @@ fn userinfo_error_body_uses_configured_cap() {
     let client = UserInfoClient::with_client(HttpClientBuilder::new().build())
         .with_max_error_body(CUSTOM_CAP);
 
-    let err = drive(async move { client.fetch(&url, "tok").await })
-        .expect_err("a 500 is an error");
+    let err = drive(async move { client.fetch(&url, "tok").await }).expect_err("a 500 is an error");
 
     let text = match err {
         UserInfoError::FetchFailed(msg) => msg
@@ -509,10 +490,9 @@ mod native {
             .build();
         let client = NativeOAuth::with_client(HttpClientBuilder::new().build(), config);
 
-        let token: OAuthToken = drive(async move {
-            client.exchange_code_async("code", Some("verifier")).await
-        })
-        .expect("token exchange succeeds");
+        let token: OAuthToken =
+            drive(async move { client.exchange_code_async("code", Some("verifier")).await })
+                .expect("token exchange succeeds");
 
         assert_eq!(token.access_token, "a");
         assert_eq!(token.token_type, "Bearer");
@@ -594,7 +574,11 @@ mod native {
         });
         let ticker_stream = execute(ticker_task, None).expect("execute ticker");
 
-        assert_eq!(collect_one(client_stream), Some(true), "the fetch must succeed");
+        assert_eq!(
+            collect_one(client_stream),
+            Some(true),
+            "the fetch must succeed"
+        );
         let _ = collect_one(ticker_stream);
 
         let seen = snapshot.load(Ordering::SeqCst);

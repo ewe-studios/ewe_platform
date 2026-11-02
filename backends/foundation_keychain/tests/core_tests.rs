@@ -36,7 +36,10 @@ fn app_error_json_includes_error_and_description() {
     let json = err.to_json();
     assert_eq!(json["error"], "invalid_request");
     assert!(json["error_description"].as_str().unwrap().contains("name"));
-    assert!(json["ErrorModel"]["Message"].as_str().unwrap().contains("name"));
+    assert!(json["ErrorModel"]["Message"]
+        .as_str()
+        .unwrap()
+        .contains("name"));
 }
 
 #[test]
@@ -60,7 +63,9 @@ fn icon_rejects_internal_ips() {
 fn icon_allows_public_hosts() {
     assert!(validate_icon_domain("https://example.com/icon.png"));
     assert!(validate_icon_domain("https://github.com/favicon.ico"));
-    assert!(validate_icon_domain("https://cdn.example.org/icons/google.svg"));
+    assert!(validate_icon_domain(
+        "https://cdn.example.org/icons/google.svg"
+    ));
 }
 
 // ── Security stamp verification ─────────────────────────────────────────
@@ -125,7 +130,11 @@ fn all_update_types_are_distinct() {
     let mut deduped = values.clone();
     deduped.sort();
     deduped.dedup();
-    assert_eq!(values.len(), deduped.len(), "update type values must be unique");
+    assert_eq!(
+        values.len(),
+        deduped.len(),
+        "update type values must be unique"
+    );
 }
 
 // ── Cipher model serde ───────────────────────────────────────────────────
@@ -133,7 +142,8 @@ fn all_update_types_are_distinct() {
 #[test]
 fn cipher_create_request_deserializes() {
     // Bitwarden type codes are integers (CipherType::Login == 1).
-    let json = r#"{"type": 1, "name": "My Login", "login": {"username": "alice", "password": "secret"}}"#;
+    let json =
+        r#"{"type": 1, "name": "My Login", "login": {"username": "alice", "password": "secret"}}"#;
     let req: CipherCreateRequest = serde_json::from_str(json).expect("deserialize");
     assert_eq!(req.cipher_type, CipherType::Login);
     assert_eq!(req.name, "My Login");

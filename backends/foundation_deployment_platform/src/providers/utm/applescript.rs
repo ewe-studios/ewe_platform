@@ -52,11 +52,12 @@ fn find_emulated_nic(uuid: &str) -> Result<u32> {
         "#
     );
     let result = run_applescript(&script)?;
-    let idx = result.trim().parse::<u32>().map_err(|_| {
-        TestbedError::Qcow2Error {
+    let idx = result
+        .trim()
+        .parse::<u32>()
+        .map_err(|_| TestbedError::Qcow2Error {
             message: format!("parsing emulated NIC index from osascript output: {result:?}"),
-        }
-    })?;
+        })?;
     if idx == u32::MAX || idx == 0 {
         // osascript may return -1 as "4294967295" or similar
     }
@@ -95,7 +96,10 @@ pub fn configure_port_forwards(
 
     let set_rules = rules.iter().fold(String::new(), |mut acc, r| {
         use std::fmt::Write as _;
-        let _ = write!(acc, "\n      {r}\n      copy newPortForward to the end of portForwards");
+        let _ = write!(
+            acc,
+            "\n      {r}\n      copy newPortForward to the end of portForwards"
+        );
         acc
     });
 
@@ -189,12 +193,11 @@ pub fn import_bundle(bundle_path: &str) -> Result<String> {
 /// `~/Library/Containers/com.utmapp.UTM/Data/Documents/{display_name}.utm`
 #[must_use]
 pub fn verify_imported_bundle(display_name: &str) -> bool {
-    dirs::home_dir()
-        .is_some_and(|home| {
-            home.join("Library/Containers/com.utmapp.UTM/Data/Documents")
-                .join(format!("{display_name}.utm"))
-                .exists()
-        })
+    dirs::home_dir().is_some_and(|home| {
+        home.join("Library/Containers/com.utmapp.UTM/Data/Documents")
+            .join(format!("{display_name}.utm"))
+            .exists()
+    })
 }
 
 /// Configure a shared directory for a UTM VM.
@@ -211,7 +214,12 @@ pub fn verify_imported_bundle(display_name: &str) -> bool {
 ///
 /// # Errors
 /// Returns an error if the `AppleScript` fails.
-pub fn configure_shared_directory(uuid: &str, host_path: &str, mount_tag: &str, readonly: bool) -> Result<()> {
+pub fn configure_shared_directory(
+    uuid: &str,
+    host_path: &str,
+    mount_tag: &str,
+    readonly: bool,
+) -> Result<()> {
     let read_only_str = if readonly { "true" } else { "false" };
     let script = format!(
         r#"
@@ -225,4 +233,3 @@ pub fn configure_shared_directory(uuid: &str, host_path: &str, mount_tag: &str, 
     run_applescript(&script)?;
     Ok(())
 }
-

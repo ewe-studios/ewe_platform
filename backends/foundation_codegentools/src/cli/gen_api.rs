@@ -4,9 +4,7 @@
 //!
 //! HOW: Uses foundation_openapi for analysis and generation with intelligent grouping.
 
-use foundation_openapi::{
-    unified::{analyze_spec, AnalysisOptions},
-};
+use foundation_openapi::unified::{analyze_spec, AnalysisOptions};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
@@ -21,7 +19,10 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 const SPLIT_OUT_PROVIDERS: &[(&str, &str)] = &[
     ("cloudflare", "backends/foundation_deployment_cloudflare"),
     ("hetzner", "backends/foundation_deployment_hetzner"),
-    ("digitalocean", "backends/foundation_deployment_digitalocean"),
+    (
+        "digitalocean",
+        "backends/foundation_deployment_digitalocean",
+    ),
     ("docker", "backends/foundation_deployment_docker"),
     ("stripe", "backends/foundation_deployment_stripe"),
     ("supabase", "backends/foundation_deployment_supabase"),
@@ -395,11 +396,18 @@ fn write_features_back(manifest: &str, features: &toml::Table) -> Result<String,
     for (key, value) in features {
         let entries: Vec<String> = value
             .as_array()
-            .map(|a| a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(str::to_string))
+                    .collect()
+            })
             .unwrap_or_default();
-        let current: Option<Vec<String>> = table.get(key).and_then(toml_edit::Item::as_array).map(|a| {
-            a.iter().filter_map(|v| v.as_str().map(str::to_string)).collect()
-        });
+        let current: Option<Vec<String>> =
+            table.get(key).and_then(toml_edit::Item::as_array).map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(str::to_string))
+                    .collect()
+            });
         if current.as_ref() == Some(&entries) {
             continue;
         }
@@ -1069,10 +1077,8 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     // Feature 22 E3: one crate per generated group. The umbrella
                     // crate keeps only the feature-gated re-export shim; the
                     // cross-group shared types land in the shared types crate.
-                    codegen = codegen.split_groups(
-                        "backends",
-                        "backends/foundation_cloudflare_types",
-                    );
+                    codegen =
+                        codegen.split_groups("backends", "backends/foundation_cloudflare_types");
                 }
                 if let Some(v) = &spec_version {
                     codegen = codegen.spec_version(v);
@@ -1086,12 +1092,9 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     // run that skipped them would report on a spec the real run
                     // never sees.
                     let resolved = codegen.resolve()?;
-                    let analysis = analyze_spec(
-                        &serde_json::to_string(&resolved)?,
-                        api_name,
-                        &options,
-                    )
-                    .map_err(|e| format!("Analysis failed: {}", e))?;
+                    let analysis =
+                        analyze_spec(&serde_json::to_string(&resolved)?, api_name, &options)
+                            .map_err(|e| format!("Analysis failed: {}", e))?;
                     println!(
                         "    Paths: {} | schemas: {} | groups: {}",
                         resolved

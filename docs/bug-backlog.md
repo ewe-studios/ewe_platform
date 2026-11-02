@@ -159,12 +159,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 16. Workspace / process
 
-- **`cargo fmt --check` diverges between local and CI.** The Linux CI image's
-  `rustfmt` reformats whole crates differently (64 files in foundation_auth,
-  91 in foundation_netio). CI treats fmt as report-only, so scripts still exit
-  0, but the repo is not fmt-clean under the CI toolchain. Fix: pin one rustfmt
-  version (a `rust-toolchain.toml` with the rustfmt component) and format the
-  repo with it.
 - **`foundation_testbed` declares `deno_v8` as an unused dependency** (cargo
   nightly 1.100.0 `unused_dependencies` lint, `Cargo.toml:118`). `deno_v8` is
   listed only to enable its V8 backend for `deno_core` (feature unification);

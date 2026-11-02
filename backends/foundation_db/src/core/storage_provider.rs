@@ -286,8 +286,7 @@ pub trait QueryStore: Send + Sync {
     ///
     /// Use `.collect_all().await` to get all rows, or iterate row-by-row
     /// via `.next().await`.
-    async fn query(&self, sql: &str, params: &[DataValue])
-        -> StorageResult<AsyncQueryStream>;
+    async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream>;
 
     /// Execute a statement that returns number of rows affected.
     async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
@@ -319,11 +318,7 @@ pub trait KeyValueStore: Send + Sync {
         &self,
         key: &str,
     ) -> StorageResult<Option<V>>;
-    async fn set<V: Serialize + Send + 'static>(
-        &self,
-        key: &str,
-        value: V,
-    ) -> StorageResult<()>;
+    async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
     async fn delete(&self, key: &str) -> StorageResult<()>;
     async fn exists(&self, key: &str) -> StorageResult<bool>;
     /// List all keys with optional prefix filter, returning an async stream.

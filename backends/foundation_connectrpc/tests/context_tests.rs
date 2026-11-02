@@ -100,7 +100,10 @@ fn linked_propagates_parent_to_child_only() {
     let child2 = CancelSignal::linked(&parent2);
     child2.cancel();
     assert!(child2.is_canceled());
-    assert!(!parent2.is_canceled(), "child cancel never reaches the parent");
+    assert!(
+        !parent2.is_canceled(),
+        "child cancel never reaches the parent"
+    );
 }
 
 // ── Awaitable cancel ──────────────────────────────────────────────────────────

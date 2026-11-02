@@ -38,7 +38,9 @@ pub fn generate_platform_code() {
                 .to_string();
             if n.starts_with("app-") && p.is_dir() && p.join("Cargo.toml").exists() {
                 // Skip wasmtime shell crates (app-shell, app-shell-*) — handled separately
-                if n.starts_with("app-shell") { continue; }
+                if n.starts_with("app-shell") {
+                    continue;
+                }
                 apps.push(AppDistribution {
                     name: n.clone(),
                     crate_dir: p,
@@ -74,7 +76,11 @@ pub fn generate_platform_code() {
         if let Ok(entries) = std::fs::read_dir(&project_root) {
             for e in entries.filter_map(std::result::Result::ok) {
                 let p = e.path();
-                let n = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
+                let n = p
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("")
+                    .to_string();
                 if n.starts_with("app-shell-") && p.is_dir() && p.join("Cargo.toml").exists() {
                     shells.push(AppDistribution {
                         name: n.replace('-', "_"),
@@ -142,14 +148,22 @@ pub fn build_wasmtime_app(app_dir: &Path, out_dir: &Path) {
         .args(["build", "--target", "wasm32-wasip1", "--release"])
         .current_dir(app_dir)
         .status()
-        .unwrap_or_else(|e| panic!("cargo build failed for wasmtime app {}: {e}", app_dir.display()));
+        .unwrap_or_else(|e| {
+            panic!(
+                "cargo build failed for wasmtime app {}: {e}",
+                app_dir.display()
+            )
+        });
 
     if !status.success() {
         println!("cargo:warning=wasmtime app build failed (exit {status})");
         return;
     }
 
-    let name = app_dir.file_name().and_then(|n| n.to_str()).unwrap_or("wasm_app");
+    let name = app_dir
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("wasm_app");
     let wasm_src = app_dir
         .join("target/wasm32-wasip1/release")
         .join(format!("{name}.wasm"));
@@ -158,7 +172,10 @@ pub fn build_wasmtime_app(app_dir: &Path, out_dir: &Path) {
         let wasm_dst = out_dir.join(format!("{name}.wasm"));
         std::fs::copy(&wasm_src, &wasm_dst)
             .unwrap_or_else(|e| panic!("failed to copy wasmtime app to output: {e}"));
-        println!("cargo:warning=wasmtime app copied to {}", wasm_dst.display());
+        println!(
+            "cargo:warning=wasmtime app copied to {}",
+            wasm_dst.display()
+        );
     }
 }
 
@@ -271,7 +288,8 @@ fn generate_wasmtime_modules(apps: &[AppDistribution], generated_dir: &Path) {
     for app in apps {
         let module_name = app.name.replace('-', "_");
         // Use the crate name directly for the wasm file lookup.
-        let wasm_name = app.crate_dir
+        let wasm_name = app
+            .crate_dir
             .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or(&app.name);
@@ -310,7 +328,10 @@ fn generate_wasmtime_modules(apps: &[AppDistribution], generated_dir: &Path) {
         std::fs::write(&parent_mod, updated).ok();
     }
 
-    println!("cargo:warning=generated {} wasmtime shell modules", apps.len());
+    println!(
+        "cargo:warning=generated {} wasmtime shell modules",
+        apps.len()
+    );
 }
 
 fn patch_tauri_conf_for_ewe(manifest_dir: &Path, route_prefix: &str) {
@@ -403,10 +424,17 @@ pub fn scan_for_annotations(dir: &Path) -> Vec<Annotation> {
                             })
                         });
                         // Parse annotation target: #[wasm_bin(target = "wasip1", ...)]
-                        let target = t.find("target")
+                        let target = t
+                            .find("target")
                             .and_then(|pos| t[pos + 6..].trim_start().strip_prefix('='))
                             .map(|rest| rest.trim().trim_matches('"').trim_matches('#'))
-                            .map(|s| s.split(',').next().unwrap_or(s).trim_matches('"').to_string())
+                            .map(|s| {
+                                s.split(',')
+                                    .next()
+                                    .unwrap_or(s)
+                                    .trim_matches('"')
+                                    .to_string()
+                            })
                             .unwrap_or_else(|| String::from("wasm32-unknown-unknown"));
                         if let Some(n) = name {
                             v.push(Annotation {

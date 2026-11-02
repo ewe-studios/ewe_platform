@@ -25,12 +25,12 @@ use std::task::{Context, Poll, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::{valtron_test, Ctx as VCtx, Stream as VStream, TaskIterator};
 use foundation_http::native::serve::H3Serve;
 use foundation_http::native::server::serve_h3;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
+use foundation_http::ShutdownSignal;
 use foundation_netio::http3::connection::error_code;
 use foundation_netio::http3::{H3Connection, H3Error, H3Request};
 use foundation_netio::netcap::context::ConnectionContext;
@@ -527,7 +527,11 @@ fn grpc_unary_over_h3_ends_with_grpc_status() {
     let (_, payload) = h.next_envelope(&mut buf);
     assert_eq!(decode(&payload), msg("echo:hi"));
     assert_eq!(h.response_end(), None, "no more DATA after the message");
-    assert_eq!(grpc_status(&h).as_deref(), Some("0"), "unary gRPC must end in grpc-status");
+    assert_eq!(
+        grpc_status(&h).as_deref(),
+        Some("0"),
+        "unary gRPC must end in grpc-status"
+    );
 }
 
 /// A streaming gRPC call over HTTP/3 ends with a `grpc-status` trailer, not a
@@ -545,7 +549,11 @@ fn grpc_stream_over_h3_ends_with_grpc_status() {
     let (_, payload) = h.next_envelope(&mut buf);
     assert_eq!(decode(&payload), msg("re:x"));
     assert_eq!(h.response_end(), None, "no more DATA after the message");
-    assert_eq!(grpc_status(&h).as_deref(), Some("0"), "streaming gRPC must end in grpc-status");
+    assert_eq!(
+        grpc_status(&h).as_deref(),
+        Some("0"),
+        "streaming gRPC must end in grpc-status"
+    );
 }
 
 /// The client resets its request mid-stream. That is not a clean end of the

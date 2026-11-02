@@ -1,12 +1,11 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 /// A thread-safe stop signal for watcher tasks.
 ///
 /// Shared between the task's `next_status()` and external code
 /// (e.g., tests) that wants to terminate the watcher cleanly.
 /// When `stop()` is called, `is_ready()` returns `true` so the executor
 /// wakes the task, and the next `next_status()` call returns `None`.
-
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use foundation_core::valtron::{EventReadiness, EventReadinessPtr};
@@ -69,4 +68,3 @@ impl EventReadiness for CompositeReadiness {
         self.a.is_ready(dur) || self.b.is_ready(dur)
     }
 }
-

@@ -47,8 +47,14 @@ fn generation_error_from_candle() {
 fn model_errors_display() {
     for (e, needle) in [
         (ModelErrors::NotFound("m".into()), "not found"),
-        (ModelErrors::CandleModelLoad("bad".into()), "Candle model load"),
-        (ModelErrors::UnsupportedArchitecture("qwen".into()), "Unsupported architecture"),
+        (
+            ModelErrors::CandleModelLoad("bad".into()),
+            "Candle model load",
+        ),
+        (
+            ModelErrors::UnsupportedArchitecture("qwen".into()),
+            "Unsupported architecture",
+        ),
     ] {
         let s = format!("{e}");
         assert!(
@@ -109,8 +115,16 @@ fn model_descriptors_registry_is_populated_and_wellformed() {
 
     for d in all {
         assert!(!d.id.is_empty(), "every descriptor has a non-empty id");
-        assert!(!d.name.is_empty(), "every descriptor has a non-empty name: {}", d.id);
-        assert!(d.context_window > 0, "context window must be positive for {}", d.id);
+        assert!(
+            !d.name.is_empty(),
+            "every descriptor has a non-empty name: {}",
+            d.id
+        );
+        assert!(
+            d.context_window > 0,
+            "context window must be positive for {}",
+            d.id
+        );
     }
 
     // Multiple providers are represented (the concatenation actually ran).

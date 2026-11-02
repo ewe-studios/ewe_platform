@@ -93,20 +93,35 @@ macro_rules! blob_contract {
                 let store = &backend.store;
 
                 store.put_blob("k", b"0123456789").await.unwrap();
-                let range = BlobRange { start: 2, end: Some(5) };
+                let range = BlobRange {
+                    start: 2,
+                    end: Some(5),
+                };
                 let stream = store.get_blob_range("k", range).await.unwrap();
                 assert_eq!(collect_bytes(stream).await, b"234");
 
                 // An unbounded end reads to the last byte.
                 let tail = store
-                    .get_blob_range("k", BlobRange { start: 8, end: None })
+                    .get_blob_range(
+                        "k",
+                        BlobRange {
+                            start: 8,
+                            end: None,
+                        },
+                    )
                     .await
                     .unwrap();
                 assert_eq!(collect_bytes(tail).await, b"89");
 
                 // A missing object reads as an empty range.
                 let missing = store
-                    .get_blob_range("missing", BlobRange { start: 0, end: Some(4) })
+                    .get_blob_range(
+                        "missing",
+                        BlobRange {
+                            start: 0,
+                            end: Some(4),
+                        },
+                    )
                     .await
                     .unwrap();
                 assert_eq!(collect_bytes(missing).await, Vec::<u8>::new());
@@ -123,7 +138,10 @@ macro_rules! blob_contract {
                     .await
                     .unwrap_err();
                 assert!(matches!(err, StorageError::PreconditionFailed(_)));
-                assert_eq!(store.get_blob("k").await.unwrap().unwrap(), b"first".to_vec());
+                assert_eq!(
+                    store.get_blob("k").await.unwrap().unwrap(),
+                    b"first".to_vec()
+                );
             }
 
             #[valtron_test]
@@ -149,7 +167,12 @@ macro_rules! blob_contract {
                 let backend = $make();
                 let store = &backend.store;
 
-                for (key, value) in [("c", b"c".to_vec()), ("a", b"a".to_vec()), ("b", b"b".to_vec()), ("d", b"d".to_vec())] {
+                for (key, value) in [
+                    ("c", b"c".to_vec()),
+                    ("a", b"a".to_vec()),
+                    ("b", b"b".to_vec()),
+                    ("d", b"d".to_vec()),
+                ] {
                     store.put_blob(&key, &value).await.unwrap();
                 }
 
@@ -157,7 +180,10 @@ macro_rules! blob_contract {
                 assert_eq!(all, vec!["a", "b", "c", "d"]);
 
                 let after_b = collect_keys(
-                    store.list_blobs_after("", Some("b"), Some(2)).await.unwrap(),
+                    store
+                        .list_blobs_after("", Some("b"), Some(2))
+                        .await
+                        .unwrap(),
                 )
                 .await;
                 assert_eq!(after_b, vec!["c", "d"]);
@@ -173,11 +199,17 @@ macro_rules! blob_contract {
                 let length: u64 = chunks.iter().map(|c| c.len() as u64).sum();
                 let stream = counting_stream(chunks, Arc::clone(&counter));
 
-                store.put_blob_stream("k", Some(length), stream).await.unwrap();
+                store
+                    .put_blob_stream("k", Some(length), stream)
+                    .await
+                    .unwrap();
 
                 // Every chunk was pulled from the source exactly once.
                 assert_eq!(counter.load(Ordering::SeqCst), 3);
-                assert_eq!(store.get_blob("k").await.unwrap().unwrap(), b"abcdefghi".to_vec());
+                assert_eq!(
+                    store.get_blob("k").await.unwrap().unwrap(),
+                    b"abcdefghi".to_vec()
+                );
             }
         }
     };
@@ -219,7 +251,10 @@ fn respond_body(stream: &mut TcpStream, status: &str, extra: &[(&str, &str)], bo
     for (name, value) in extra {
         head.push_str(&format!("{name}: {value}\r\n"));
     }
-    head.push_str(&format!("Content-Length: {}\r\nConnection: close\r\n\r\n", body.len()));
+    head.push_str(&format!(
+        "Content-Length: {}\r\nConnection: close\r\n\r\n",
+        body.len()
+    ));
     stream.write_all(head.as_bytes()).unwrap();
     stream.write_all(body).unwrap();
     stream.flush().unwrap();
@@ -258,7 +293,8 @@ fn read_chunked_body(reader: &mut BufReader<TcpStream>) -> Vec<u8> {
 
 /// `bytes=start-end` or `bytes=start-` → inclusive `[start, end]`, clamped to
 /// the body, or `None` when the range is not satisfiable.
-fn parse_range(header: &str, len: usize) -> Option<(usize, usize)> {    let spec = header.strip_prefix("bytes=")?;
+fn parse_range(header: &str, len: usize) -> Option<(usize, usize)> {
+    let spec = header.strip_prefix("bytes=")?;
     let (start_s, end_s) = spec.split_once('-')?;
     let start: usize = start_s.parse().ok()?;
     let end = if end_s.is_empty() {
@@ -352,12 +388,19 @@ fn blob_handle(mut stream: TcpStream, objects: &Objects) {
                     "cursor": if truncated { (start + PAGE).to_string() } else { String::new() },
                 },
             });
-            respond_body(&mut stream, "200 OK", &[("Content-Type", "application/json")], reply.to_string().as_bytes());
+            respond_body(
+                &mut stream,
+                "200 OK",
+                &[("Content-Type", "application/json")],
+                reply.to_string().as_bytes(),
+            );
         }
         ("HEAD", key) => {
             let key = percent_decode(&key[1..]);
             match objects.get(&key) {
-                Some(data) => respond_body(&mut stream, "200 OK", &[("etag", &content_etag(data))], b""),
+                Some(data) => {
+                    respond_body(&mut stream, "200 OK", &[("etag", &content_etag(data))], b"")
+                }
                 None => respond_body(&mut stream, "404 Not Found", &[], b""),
             }
         }
@@ -365,8 +408,13 @@ fn blob_handle(mut stream: TcpStream, objects: &Objects) {
             let key = percent_decode(&key[1..]);
             match objects.get(&key) {
                 None => respond_body(&mut stream, "404 Not Found", &[], b"{}"),
-                Some(data) => match range_header.as_deref().and_then(|h| parse_range(h, data.len())) {
-                    Some((start, end)) => respond_body(&mut stream, "206 Partial Content", &[], &data[start..=end]),
+                Some(data) => match range_header
+                    .as_deref()
+                    .and_then(|h| parse_range(h, data.len()))
+                {
+                    Some((start, end)) => {
+                        respond_body(&mut stream, "206 Partial Content", &[], &data[start..=end])
+                    }
                     None => respond_body(&mut stream, "200 OK", &[], data),
                 },
             }

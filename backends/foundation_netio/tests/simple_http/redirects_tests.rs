@@ -38,9 +38,8 @@ fn test_followup_strips_expect_header() {
     let original = descriptor_with_headers("https://origin.example.com/file", headers);
 
     let new_url = Uri::parse("https://cdn.example.com/file").expect("valid url");
-    let followup =
-        build_followup_request_from_request_descriptor(&original, new_url, true, false)
-            .expect("followup builds");
+    let followup = build_followup_request_from_request_descriptor(&original, new_url, true, false)
+        .expect("followup builds");
 
     assert!(
         !followup.headers.contains_key(&SimpleHeader::EXPECT),
@@ -55,9 +54,8 @@ fn test_followup_rewrites_host_header() {
     let original = descriptor_with_headers("https://origin.example.com/file", headers);
 
     let new_url = Uri::parse("https://cdn.example.com:8443/file").expect("valid url");
-    let followup =
-        build_followup_request_from_request_descriptor(&original, new_url, true, false)
-            .expect("followup builds");
+    let followup = build_followup_request_from_request_descriptor(&original, new_url, true, false)
+        .expect("followup builds");
 
     assert_eq!(
         followup.headers.get(&SimpleHeader::HOST),
@@ -69,13 +67,7 @@ fn test_followup_rewrites_host_header() {
 #[test]
 fn test_strip_sensitive_headers_same_host() {
     let mut headers = create_headers_with_auth_and_cookie();
-    strip_sensitive_headers_for_redirect(
-        &mut headers,
-        "example.com",
-        "example.com",
-        false,
-        false,
-    );
+    strip_sensitive_headers_for_redirect(&mut headers, "example.com", "example.com", false, false);
 
     // Same host - nothing should be stripped
     assert!(headers.contains_key(&SimpleHeader::AUTHORIZATION));

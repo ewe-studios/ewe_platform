@@ -36,7 +36,9 @@ fn map_round_trip() {
     let ctx = Ctx::new();
     assert!(ctx.insert(Arc::new(42u32)).is_none());
 
-    let got = ctx.get::<u32>().expect("inserted value should be reachable");
+    let got = ctx
+        .get::<u32>()
+        .expect("inserted value should be reachable");
     assert_eq!(*got, 42);
     assert!(ctx.contains::<u32>());
 
@@ -53,7 +55,11 @@ fn insert_replaces_and_returns_prior() {
     assert!(prior.is_none(), "first insert has no prior");
 
     let prior = ctx.insert(Arc::new(2u32));
-    assert_eq!(prior.map(|v| *v), Some(1), "replace returns the previous Arc");
+    assert_eq!(
+        prior.map(|v| *v),
+        Some(1),
+        "replace returns the previous Arc"
+    );
     assert_eq!(*ctx.get::<u32>().unwrap(), 2);
 }
 
@@ -101,11 +107,18 @@ fn fork_isolates_the_map() {
 
     ctx.insert(Arc::new(1u32));
     // The fork has its own (copied) map: the parent's insert is invisible.
-    assert!(!fork.contains::<u32>(), "a forked map must not see the parent's insert");
+    assert!(
+        !fork.contains::<u32>(),
+        "a forked map must not see the parent's insert"
+    );
 
     fork.insert(Arc::new(2u32));
     // The parent's map is unaffected by the fork's insert: still holds value 1.
-    assert_eq!(*ctx.get::<u32>().unwrap(), 1, "the parent must not see the fork's insert");
+    assert_eq!(
+        *ctx.get::<u32>().unwrap(),
+        1,
+        "the parent must not see the fork's insert"
+    );
     assert_eq!(*fork.get::<u32>().unwrap(), 2);
 }
 
@@ -152,7 +165,10 @@ fn standard_elements_are_reachable_and_rng_draws() {
     let mut guard = rng.lock().expect("rng lock poisoned");
     let first = guard.next_u64();
     let second = guard.next_u64();
-    assert_ne!(first, second, "two draws from a live RNG stream must differ");
+    assert_ne!(
+        first, second,
+        "two draws from a live RNG stream must differ"
+    );
 }
 
 #[test]
@@ -217,10 +233,16 @@ fn mock_clock_moves_time_forward_and_backward() {
     let clock = MockClock::new();
 
     clock.advance(foundation_compact::Duration::from_millis(5));
-    assert_eq!(clock.elapsed(), foundation_compact::Duration::from_millis(5));
+    assert_eq!(
+        clock.elapsed(),
+        foundation_compact::Duration::from_millis(5)
+    );
 
     clock.rewind(foundation_compact::Duration::from_millis(3));
-    assert_eq!(clock.elapsed(), foundation_compact::Duration::from_millis(2));
+    assert_eq!(
+        clock.elapsed(),
+        foundation_compact::Duration::from_millis(2)
+    );
 
     // Rewinding below the origin clamps elapsed to zero rather than going negative.
     clock.rewind(foundation_compact::Duration::from_millis(10));

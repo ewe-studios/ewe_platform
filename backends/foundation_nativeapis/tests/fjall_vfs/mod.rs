@@ -306,7 +306,10 @@ async fn async_inodefs_mkdir_stat_exists() {
 async fn async_inodefs_create_write_read() {
     let fs = InodeFs::new();
 
-    let file = fs.create_async("/test.txt".to_string(), 0o644).await.unwrap();
+    let file = fs
+        .create_async("/test.txt".to_string(), 0o644)
+        .await
+        .unwrap();
     file.write_at_async(b"hello".to_vec(), 0).await.unwrap();
     let data = file.read_at_async(5, 0).await.unwrap();
     assert_eq!(&data, b"hello");

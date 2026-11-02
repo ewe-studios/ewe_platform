@@ -19,11 +19,11 @@ use std::time::Duration;
 
 use futures::StreamExt;
 
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
+use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
-use foundation_http::native::serve::H2Serve;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::shared::transport::Transport;
@@ -334,7 +334,6 @@ async fn two_concurrent_calls_both_complete() {
 
     shutdown.turn_on();
 }
-
 
 /// End-of-stream must come from the pump, not from the peer's idle timeout.
 ///

@@ -149,4 +149,3 @@ pub fn apply_profile(bundle_path: &Path, profile: &VmProfile) -> Result<()> {
 
     Ok(())
 }
-

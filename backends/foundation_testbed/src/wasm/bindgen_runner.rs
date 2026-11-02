@@ -17,7 +17,7 @@ use tracing::info;
 
 use crate::wasm::cli::BindgenArgs;
 use crate::wasm::error::{Result, ToTrace, WasmTestbedError};
-use crate::wasm::{build, browser, init, server, wasm, wasm_test};
+use crate::wasm::{browser, build, init, server, wasm, wasm_test};
 
 /// Outcome mirroring the owned-harness shape so the CLI dispatch is uniform.
 #[derive(Debug)]
@@ -56,10 +56,16 @@ fn check_wasm_bindgen_version() -> Result<()> {
         if parts.len() < 3 {
             return None;
         }
-        Some((parts[0].parse().ok()?, parts[1].parse().ok()?, parts[2].parse().ok()?))
+        Some((
+            parts[0].parse().ok()?,
+            parts[1].parse().ok()?,
+            parts[2].parse().ok()?,
+        ))
     };
 
-    let (Some(cli_ver), Some(crate_ver)) = (parse_semver(&cli_version), parse_semver(crate_version)) else {
+    let (Some(cli_ver), Some(crate_ver)) =
+        (parse_semver(&cli_version), parse_semver(crate_version))
+    else {
         return Err(WasmTestbedError::WasmBindgenVersionMismatch {
             cli: cli_version,
             crate_version: crate_version.to_string(),
@@ -89,12 +95,16 @@ pub fn run_bindgen(args: &BindgenArgs) -> Result<RunOutcome> {
 
     // Inline preflight — avoids depending on `fwt_runner::preflight` which
     // requires the `wasm` feature.
-    for (tool, why) in &[("cargo", "builds the test crate to wasm32"), ("wasm-bindgen", "generates JS glue")] {
+    for (tool, why) in &[
+        ("cargo", "builds the test crate to wasm32"),
+        ("wasm-bindgen", "generates JS glue"),
+    ] {
         if which::which(tool).is_err() {
             return Err(WasmTestbedError::MissingTool {
                 tool: (*tool).to_string(),
                 why: (*why).to_string(),
-            }.trace());
+            }
+            .trace());
         }
     }
 
@@ -120,11 +130,7 @@ pub fn run_bindgen(args: &BindgenArgs) -> Result<RunOutcome> {
     )?;
 
     // 2b. index.html (the page the browser loads)
-    init::write_template_to(
-        "bindgen-web/index.html",
-        &built.package_name,
-        &staging_path,
-    )?;
+    init::write_template_to("bindgen-web/index.html", &built.package_name, &staging_path)?;
 
     // 2c. Discover tests from the bindgen-processed wasm
     let bg_wasm = staging_path.join(format!("{}_bg.wasm", built.package_name));
@@ -133,9 +139,7 @@ pub fn run_bindgen(args: &BindgenArgs) -> Result<RunOutcome> {
         tests.retain(|name| name.contains(filter.as_str()));
     }
     if tests.is_empty() {
-        return Err(
-            WasmTestbedError::NoFwtCases(bg_wasm.display().to_string()).trace(),
-        );
+        return Err(WasmTestbedError::NoFwtCases(bg_wasm.display().to_string()).trace());
     }
     info!("discovered {} browser test(s)", tests.len());
 

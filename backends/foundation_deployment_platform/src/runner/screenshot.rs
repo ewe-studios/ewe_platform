@@ -18,7 +18,12 @@ use crate::winrm::WinRM;
 /// # Errors
 ///
 /// Returns an error if the capture, download, or cleanup fails.
-pub fn capture(profile: &VmProfile, session: &mut VmSession, winrm: Option<&WinRM>, output: &Path) -> Result<()> {
+pub fn capture(
+    profile: &VmProfile,
+    session: &mut VmSession,
+    winrm: Option<&WinRM>,
+    output: &Path,
+) -> Result<()> {
     let vm_path = "/tmp/testbed-screenshot.png";
 
     match profile.os {
@@ -37,10 +42,7 @@ pub fn capture(profile: &VmProfile, session: &mut VmSession, winrm: Option<&WinR
 
 /// Capture screenshot on Linux via scrot.
 fn capture_linux(session: &mut VmSession, vm_path: &str) -> Result<()> {
-    crate::ssh::exec(
-        session,
-        &format!("DISPLAY=:99 scrot --overwrite {vm_path}"),
-    )?;
+    crate::ssh::exec(session, &format!("DISPLAY=:99 scrot --overwrite {vm_path}"))?;
     Ok(())
 }
 
@@ -56,7 +58,9 @@ fn capture_windows(session: &mut VmSession, winrm: Option<&WinRM>, vm_path: &str
     }
 
     // Fallback: headless (may return blank pixels on some systems)
-    crate::ssh::exec(session, r"
+    crate::ssh::exec(
+        session,
+        r"
 Add-Type -AssemblyName System.Windows.Forms
 $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
 $bmp = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
@@ -65,7 +69,7 @@ $graphics.CopyFromScreen(0, 0, 0, 0, $bmp.Size)
 $bmp.Save('/tmp/testbed-screenshot.png', [System.Drawing.Imaging.ImageFormat]::Png)
 $graphics.Dispose()
 $bmp.Dispose()
-")?;
+",
+    )?;
     Ok(())
 }
-

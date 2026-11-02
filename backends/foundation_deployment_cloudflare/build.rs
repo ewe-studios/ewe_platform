@@ -56,8 +56,13 @@ fn main() {
         Ok(()) => {}
         // The selection or the spec's shape moved — regenerate.
         Err(foundation_codegentools::CodegenError::Stale { .. }) => {
-            codegen.write().expect("regenerate cloudflare's API surface");
-            println!("cargo:warning=regenerated cloudflare's src/generated/ from {}", spec.display());
+            codegen
+                .write()
+                .expect("regenerate cloudflare's API surface");
+            println!(
+                "cargo:warning=regenerated cloudflare's src/generated/ from {}",
+                spec.display()
+            );
         }
         // A moved pin, an unreadable spec, a spec that will not canonicalise.
         Err(e) => panic!("{e}"),

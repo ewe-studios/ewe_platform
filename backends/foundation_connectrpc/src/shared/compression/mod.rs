@@ -108,10 +108,19 @@ impl core::fmt::Display for CompressionError {
                 write!(f, "{algorithm}: decompress failed: {message}")
             }
             CompressionError::TooLarge { algorithm, limit } => {
-                write!(f, "{algorithm}: decompressed size exceeds limit of {limit} bytes")
+                write!(
+                    f,
+                    "{algorithm}: decompressed size exceeds limit of {limit} bytes"
+                )
             }
-            CompressionError::Unsupported { requested, supported } => {
-                write!(f, "unsupported encoding {requested:?}, supported: [{supported}]")
+            CompressionError::Unsupported {
+                requested,
+                supported,
+            } => {
+                write!(
+                    f,
+                    "unsupported encoding {requested:?}, supported: [{supported}]"
+                )
             }
         }
     }
@@ -143,10 +152,12 @@ pub(crate) fn read_to_limit<R: Read>(
     let mut out = Vec::new();
     let mut chunk = [0u8; 8192];
     loop {
-        let n = reader.read(&mut chunk).map_err(|e| CompressionError::Decompress {
-            algorithm,
-            message: e.to_string(),
-        })?;
+        let n = reader
+            .read(&mut chunk)
+            .map_err(|e| CompressionError::Decompress {
+                algorithm,
+                message: e.to_string(),
+            })?;
         if n == 0 {
             break;
         }

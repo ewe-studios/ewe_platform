@@ -73,7 +73,11 @@ fn diamond_dependency_groups_by_depth() {
     let wf = mgr().build_workflow(&calls).expect("valid");
     assert_eq!(wf.stages.len(), 3);
     assert_eq!(stage_ids(&wf.stages[0]), vec!["a"]);
-    assert_eq!(stage_ids(&wf.stages[1]), vec!["b", "c"], "b and c run together");
+    assert_eq!(
+        stage_ids(&wf.stages[1]),
+        vec!["b", "c"],
+        "b and c run together"
+    );
     assert_eq!(stage_ids(&wf.stages[2]), vec!["d"]);
 }
 

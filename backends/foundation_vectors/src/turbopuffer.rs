@@ -254,7 +254,10 @@ impl TurboPufferVectorStore {
                  digits, '-', '_' and '.', 1 to 128 bytes"
             )));
         }
-        Ok(format!("{}/v2/namespaces/{namespace}{suffix}", self.base_url))
+        Ok(format!(
+            "{}/v2/namespaces/{namespace}{suffix}",
+            self.base_url
+        ))
     }
 
     fn distance_metric_name(&self) -> &'static str {
@@ -318,7 +321,9 @@ impl TurboPufferVectorStore {
             let retryable = status_code == 429 || status_code == 503;
             if !retryable || attempt >= self.retry.retry_attempts {
                 let (text, _) = read_bounded(body, self.limits.max_error_body).await;
-                return Err(VectorStoreError::Backend(format!("HTTP {status_code}: {text}")));
+                return Err(VectorStoreError::Backend(format!(
+                    "HTTP {status_code}: {text}"
+                )));
             }
             // The error body is not needed for a retry, so it is dropped unread.
             // The next request is fresh; no message is kept from this one.
@@ -482,11 +487,7 @@ struct UpsertRow<'a> {
 
 #[async_trait::async_trait]
 impl VectorStore for TurboPufferVectorStore {
-    async fn insert(
-        &self,
-        namespace: &str,
-        entry: VectorEntry,
-    ) -> Result<(), VectorStoreError> {
+    async fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(entry.vector.dimension(), entry.vector.is_zero())?;
         let metadata = serde_json::to_string(&entry.metadata)
             .map_err(|e| VectorStoreError::Backend(format!("serialize metadata: {e}")))?;
@@ -538,9 +539,9 @@ impl VectorStore for TurboPufferVectorStore {
             .unwrap_or_default()
             .into_iter()
             .map(|r| {
-                let dist = r.dist.ok_or_else(|| {
-                    VectorStoreError::Backend("query row has no $dist".into())
-                })?;
+                let dist = r
+                    .dist
+                    .ok_or_else(|| VectorStoreError::Backend("query row has no $dist".into()))?;
                 Ok(VectorMatch {
                     id: id_text(&r.id),
                     score: self.score(dist),

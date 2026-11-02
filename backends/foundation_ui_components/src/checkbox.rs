@@ -168,7 +168,10 @@ pub fn checkbox_group(
     children: Vec<Slot>,
 ) -> Html {
     let class = config.class.unwrap_or(Cow::Borrowed("checkbox-group"));
-    let kids: Vec<Html> = children.into_iter().map(|slot| slot.render(ctx, rcv)).collect();
+    let kids: Vec<Html> = children
+        .into_iter()
+        .map(|slot| slot.render(ctx, rcv))
+        .collect();
     html! { ctx, rcv,
         <div class=[class] role="group"
              aria-label=[config.aria_label]

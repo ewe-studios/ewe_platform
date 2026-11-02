@@ -41,7 +41,10 @@ fn parse_ws_key(stream: &mut TcpStream) -> io::Result<String> {
             return Ok(val.trim().to_string());
         }
     }
-    Err(io::Error::new(io::ErrorKind::InvalidData, "no Sec-WebSocket-Key"))
+    Err(io::Error::new(
+        io::ErrorKind::InvalidData,
+        "no Sec-WebSocket-Key",
+    ))
 }
 
 /// Send the 101 Switching Protocols response.
@@ -115,7 +118,12 @@ impl RelayWsAcceptor {
         let token = foundation_nativeapis::native::poll::Token(0xF300);
         let reactor = foundation_nativeapis::native::fd::Reactor::get().ok();
         if let Some(ref r) = reactor {
-            r.register(listener_fd, token, foundation_nativeapis::native::poll::Interest::READABLE).ok();
+            r.register(
+                listener_fd,
+                token,
+                foundation_nativeapis::native::poll::Interest::READABLE,
+            )
+            .ok();
         }
 
         while !stop.load(Ordering::Relaxed) {
@@ -168,10 +176,7 @@ impl RelayWsAcceptor {
 
 /// Serve one browser WS session: read relay frames, forward through the
 /// relay server, write relay responses back as WS frames.
-fn serve_ws_session(
-    stream: &mut TcpStream,
-    server: &Arc<Mutex<RelayServer>>,
-) -> Option<PeerId> {
+fn serve_ws_session(stream: &mut TcpStream, server: &Arc<Mutex<RelayServer>>) -> Option<PeerId> {
     // The first frame from the browser carries the relay payload.
     let first_frame = read_ws_frame(stream).ok()??;
     let relay_frame = RelayFrame::decode(&first_frame)?;

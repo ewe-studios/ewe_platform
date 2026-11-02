@@ -114,8 +114,11 @@ impl<F: AsyncVfsFileSystem + 'static> VfsSearcher for InCodeVfsSearcher<F> {
         }
 
         if matches!(kind, VfsSearchKind::Grep | VfsSearchKind::MultiGrep) {
-            matches
-                .sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+            matches.sort_by(|a, b| {
+                b.score
+                    .partial_cmp(&a.score)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
         }
 
         Ok(matches)

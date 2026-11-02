@@ -12,14 +12,8 @@ mod tests {
             WasmFlavor::from_triple("wasm32-unknown-emscripten"),
             WasmFlavor::Emscripten
         );
-        assert_eq!(
-            WasmFlavor::from_triple("wasm32-wasip1"),
-            WasmFlavor::Wasip1
-        );
-        assert_eq!(
-            WasmFlavor::from_triple("wasm32-wasip2"),
-            WasmFlavor::Wasip2
-        );
+        assert_eq!(WasmFlavor::from_triple("wasm32-wasip1"), WasmFlavor::Wasip1);
+        assert_eq!(WasmFlavor::from_triple("wasm32-wasip2"), WasmFlavor::Wasip2);
     }
 
     #[test]

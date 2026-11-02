@@ -73,7 +73,9 @@ fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests
             if name.eq_ignore_ascii_case("content-length") {
                 content_length = value.trim().parse().unwrap();
             }
-            if name.eq_ignore_ascii_case("expect") && value.trim().eq_ignore_ascii_case("100-continue") {
+            if name.eq_ignore_ascii_case("expect")
+                && value.trim().eq_ignore_ascii_case("100-continue")
+            {
                 expects_continue = true;
             }
         }
@@ -104,7 +106,12 @@ fn handle(mut stream: TcpStream, objects: &Objects, list_requests: &ListRequests
             let prefix = params.get("prefix").cloned().unwrap_or_default();
             let start: usize = params.get("cursor").map_or(0, |c| c.parse().unwrap());
             let keys: Vec<&String> = objects.keys().filter(|k| k.starts_with(&prefix)).collect();
-            let page: Vec<_> = keys.iter().skip(start).take(PAGE).map(|k| json!({ "key": k })).collect();
+            let page: Vec<_> = keys
+                .iter()
+                .skip(start)
+                .take(PAGE)
+                .map(|k| json!({ "key": k }))
+                .collect();
             let truncated = start + PAGE < keys.len();
             let reply = json!({
                 "success": true,
@@ -272,9 +279,17 @@ async fn find_by_kind_filters() {
     let ids: Vec<&str> = workers.iter().map(|s| s.id.as_str()).collect();
     assert_eq!(ids, vec!["a", "ns/c", "ns/e"]);
 
-    let created = collect(store.find_by_status(&StateStatus::Created.to_string()).await.unwrap()).await;
+    let created = collect(
+        store
+            .find_by_status(&StateStatus::Created.to_string())
+            .await
+            .unwrap(),
+    )
+    .await;
     assert_eq!(created.len(), 5);
-    assert!(collect(store.find_by_provider("other").await.unwrap()).await.is_empty());
+    assert!(collect(store.find_by_provider("other").await.unwrap())
+        .await
+        .is_empty());
 }
 
 #[valtron_test]

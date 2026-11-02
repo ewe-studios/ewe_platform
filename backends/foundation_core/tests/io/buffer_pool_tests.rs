@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use foundation_core::io::buffer_pool::{BytesPool, BytesPoolConfig, PoolStatsSnapshot, PooledBuffer};
+use foundation_core::io::buffer_pool::{
+    BytesPool, BytesPoolConfig, PoolStatsSnapshot, PooledBuffer,
+};
 
 #[test]
 /// WHY: Pool should reuse buffers to reduce allocations
@@ -178,7 +180,10 @@ fn bytes_pool_drops_oversized_buffers() {
     let _buf2 = pool.acquire();
     let stats = pool.stats();
     assert_eq!(stats.pool_hits, 1, "oversized buffer must not be pooled");
-    assert_eq!(stats.allocations, 1, "re-acquire after a drop is an allocation");
+    assert_eq!(
+        stats.allocations, 1,
+        "re-acquire after a drop is an allocation"
+    );
 }
 
 /// WHY: Feature 09 caps how many buffers a pool keeps. A buffer returned past
@@ -216,7 +221,10 @@ fn bytes_pool_counts_one_outcome_per_acquire() {
     let buf = pool.acquire_with_capacity(4096);
     assert!(buf.capacity() >= 4096);
     let stats = pool.stats();
-    assert_eq!(stats.pool_hits, 0, "too-small buffer must not count as a hit");
+    assert_eq!(
+        stats.pool_hits, 0,
+        "too-small buffer must not count as a hit"
+    );
     assert_eq!(stats.allocations, 1, "too-small buffer is one allocation");
 
     // Large-enough: the pooled buffer is used as-is. One hit, no allocation.
@@ -253,5 +261,8 @@ fn pooled_buffer_debug_shows_len_and_capacity() {
         debug.contains("capacity: 1024"),
         "debug shows capacity, got {debug}"
     );
-    assert!(!debug.contains("hello"), "debug must not dump bytes, got {debug}");
+    assert!(
+        !debug.contains("hello"),
+        "debug must not dump bytes, got {debug}"
+    );
 }

@@ -313,7 +313,10 @@ fn invoke_callback_updates_the_signal_through_the_default_dispatch() {
 fn numeric_signals_parse_event_values() {
     let (runtime, ctx) = setup();
     let (count, set_count) = ctx.signal(0u32);
-    assert!(runtime.invoke_callback(set_count.callback_id(), EventData::with_value("input", "42")));
+    assert!(runtime.invoke_callback(
+        set_count.callback_id(),
+        EventData::with_value("input", "42")
+    ));
     assert_eq!(count.get(), 42);
 
     // Type mismatch (unparsable) — set is skipped, value retained.
@@ -333,7 +336,10 @@ fn stale_callback_ids_are_silently_dropped() {
     assert!(runtime.has_callback(id));
 
     drop(scope);
-    assert!(!runtime.has_callback(id), "disposal removes the registration");
+    assert!(
+        !runtime.has_callback(id),
+        "disposal removes the registration"
+    );
     assert!(
         !runtime.invoke_callback(id, EventData::with_value("change", "x")),
         "stale id returns false, no panic"
@@ -490,7 +496,10 @@ fn dependencies_discovered_later_still_order_correctly() {
     let order = evals.borrow().clone();
     let c_pos = order.iter().position(|e| *e == "c").unwrap();
     let d_pos = order.iter().rposition(|e| *e == "d").unwrap();
-    assert!(c_pos < d_pos, "recomputed height orders C before D: {order:?}");
+    assert!(
+        c_pos < d_pos,
+        "recomputed height orders C before D: {order:?}"
+    );
     assert_eq!(
         order.iter().filter(|e| **e == "d").count(),
         1,

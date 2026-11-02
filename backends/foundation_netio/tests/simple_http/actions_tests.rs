@@ -9,8 +9,8 @@
 //!   be required they instead perform compile-time type checks or simple
 //!   ownership/Option semantics checks.
 
-use foundation_netio::shared::client::*;
 use foundation_netio::http::*;
+use foundation_netio::shared::client::*;
 use foundation_netio::shared::http::*;
 
 use foundation_core::extensions::result_ext::BoxedResult;

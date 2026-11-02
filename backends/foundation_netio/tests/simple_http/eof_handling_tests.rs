@@ -141,7 +141,10 @@ fn test_request_reader_partial_then_eof() {
 
     for result in &mut request_reader {
         count += 1;
-        assert!(count <= max_iterations, "Possible infinite loop - got {count} iterations");
+        assert!(
+            count <= max_iterations,
+            "Possible infinite loop - got {count} iterations"
+        );
 
         // We should at least get the Intro part before EOF
         if let Ok(IncomingRequestParts::Intro(_, _, _)) = result {
@@ -232,7 +235,10 @@ fn test_response_reader_partial_then_eof() {
 
     for result in &mut response_reader {
         count += 1;
-        assert!(count <= max_iterations, "Possible infinite loop - got {count} iterations");
+        assert!(
+            count <= max_iterations,
+            "Possible infinite loop - got {count} iterations"
+        );
 
         // We should at least get the Intro part before EOF
         if let Ok(IncomingResponseParts::Intro(_, _, _)) = result {

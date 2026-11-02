@@ -28,7 +28,9 @@ pub struct UtmProvider {
 impl UtmProvider {
     #[must_use]
     pub fn new() -> Self {
-        UtmProvider { display: DisplayMode::Headless }
+        UtmProvider {
+            display: DisplayMode::Headless,
+        }
     }
 
     #[must_use]
@@ -46,15 +48,14 @@ impl UtmProvider {
         }
 
         let bundle_path = import::ensure_utm_bundle(profile)?;
-        let vm_entry = utmctl::find_vm_by_name(profile.name)?.ok_or_else(|| {
-            TestbedError::Qcow2Error {
+        let vm_entry =
+            utmctl::find_vm_by_name(profile.name)?.ok_or_else(|| TestbedError::Qcow2Error {
                 message: format!(
                     "VM '{}' not found in UTM after import — bundle at {}",
                     profile.name,
                     bundle_path.display()
                 ),
-            }
-        })?;
+            })?;
 
         if utmctl::is_vm_running(profile.name)? {
             return Err(TestbedError::Qcow2Error {
@@ -67,7 +68,10 @@ impl UtmProvider {
             crate::config::get_mount_for_profile(profile.name, ".")
         {
             if let Err(e) = applescript::configure_shared_directory(
-                &vm_entry.uuid, &host_path, "project", readonly,
+                &vm_entry.uuid,
+                &host_path,
+                "project",
+                readonly,
             ) {
                 eprintln!("  Warning: could not configure shared directory (non-fatal): {e}");
             }
@@ -75,8 +79,16 @@ impl UtmProvider {
 
         // Resources
         if profile.cpu_cores > 0 || profile.memory_mib > 0 {
-            let cpus = if profile.cpu_cores > 0 { profile.cpu_cores } else { 4 };
-            let mem = if profile.memory_mib > 0 { profile.memory_mib } else { 4096 };
+            let cpus = if profile.cpu_cores > 0 {
+                profile.cpu_cores
+            } else {
+                4
+            };
+            let mem = if profile.memory_mib > 0 {
+                profile.memory_mib
+            } else {
+                4096
+            };
             if let Err(e) = applescript::configure_resources(&vm_entry.uuid, mem, cpus) {
                 eprintln!("  Warning: could not configure resources (non-fatal): {e}");
             }
@@ -87,8 +99,12 @@ impl UtmProvider {
 
         // Network port forwards
         let mut extra_forwards = Vec::new();
-        if let Some(rdp) = profile.rdp_port { extra_forwards.push((3389, rdp)); }
-        if let Some(winrm) = profile.winrm_port { extra_forwards.push((5985, winrm)); }
+        if let Some(rdp) = profile.rdp_port {
+            extra_forwards.push((3389, rdp));
+        }
+        if let Some(winrm) = profile.winrm_port {
+            extra_forwards.push((5985, winrm));
+        }
         if let Err(e) =
             applescript::configure_port_forwards(&vm_entry.uuid, profile.ssh_port, &extra_forwards)
         {
@@ -145,8 +161,12 @@ impl Provider for UtmProvider {
     type Config = VmProfile;
     type Error = TestbedError;
 
-    fn name(&self) -> &'static str { "utm" }
-    fn id(&self) -> ProviderId { ProviderId::Utm }
+    fn name(&self) -> &'static str {
+        "utm"
+    }
+    fn id(&self) -> ProviderId {
+        ProviderId::Utm
+    }
 
     fn launch(&self, config: &VmProfile) -> Result<VmHandle> {
         Self::launch_vm(config, self.display)
@@ -176,14 +196,24 @@ impl Provider for UtmProvider {
 // ── VmProvider (compatibility — delegates to Provider) ──────────────────
 
 impl VmProvider for UtmProvider {
-    fn name(&self) -> &'static str { <Self as Provider>::name(self) }
-    fn id(&self) -> ProviderId { <Self as Provider>::id(self) }
+    fn name(&self) -> &'static str {
+        <Self as Provider>::name(self)
+    }
+    fn id(&self) -> ProviderId {
+        <Self as Provider>::id(self)
+    }
     fn launch(&self, profile: &VmProfile, _mode: DisplayMode) -> Result<VmHandle> {
         <Self as Provider>::launch(self, profile)
     }
-    fn stop(&self, handle: &VmHandle) -> Result<()> { <Self as Provider>::stop(self, handle) }
-    fn is_running(&self, handle: &VmHandle) -> bool { <Self as Provider>::is_running(self, handle) }
-    fn resolved_ports(&self, handle: &VmHandle) -> Result<ResolvedPorts> { <Self as Provider>::resolved_ports(self, handle) }
+    fn stop(&self, handle: &VmHandle) -> Result<()> {
+        <Self as Provider>::stop(self, handle)
+    }
+    fn is_running(&self, handle: &VmHandle) -> bool {
+        <Self as Provider>::is_running(self, handle)
+    }
+    fn resolved_ports(&self, handle: &VmHandle) -> Result<ResolvedPorts> {
+        <Self as Provider>::resolved_ports(self, handle)
+    }
     fn monitor_command(&self, _handle: &VmHandle, _cmd: &str) -> Result<String> {
         Err(TestbedError::MonitorFailed {
             source: anyhow::anyhow!("UTM does not expose a QEMU monitor interface"),
@@ -192,7 +222,9 @@ impl VmProvider for UtmProvider {
     fn ensure_image(&self, profile: &VmProfile) -> Result<PathBuf> {
         import::ensure_utm_bundle(profile)
     }
-    fn host_health(&self) -> crate::doctor::HostHealth { crate::doctor::check_host() }
+    fn host_health(&self) -> crate::doctor::HostHealth {
+        crate::doctor::check_host()
+    }
 }
 
 // ── Public API ──────────────────────────────────────────────────────────

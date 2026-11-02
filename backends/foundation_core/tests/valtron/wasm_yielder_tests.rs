@@ -141,11 +141,9 @@ fn single_threaded_runs_counter_to_completion() {
     assert_eq!(results.borrow()[..], [1, 2, 3, 4, 5]);
 }
 
-
 #[test]
 fn nothreadcontroller_is_cloneable() {
     let controller = NoThreadController::new();
     let _cloned = controller.clone();
     // Should compile and not panic
 }
-

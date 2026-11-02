@@ -82,7 +82,9 @@ impl BootstrapLogger {
     }
 
     pub fn log_path(&self) -> PathBuf {
-        PathBuf::from(".testbed").join(&self.vm_name).join("bootstrap.log")
+        PathBuf::from(".testbed")
+            .join(&self.vm_name)
+            .join("bootstrap.log")
     }
 
     pub fn elapsed(&self) -> std::time::Duration {
@@ -134,4 +136,3 @@ where
     }
     result
 }
-

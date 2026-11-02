@@ -4,10 +4,10 @@
 //! Client hashes `(challenge + nonce)` until hash has enough leading zeros.
 //! Server validates by hashing once.
 
-use chrono::Utc;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use foundation_db::{KeyValueStore, StorageError};
+use chrono::Utc;
 use foundation_compact::rng::Rng;
+use foundation_db::{KeyValueStore, StorageError};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 

@@ -128,7 +128,13 @@ struct CountingFs<F> {
 impl<F: VfsFileSystem> CountingFs<F> {
     fn new(inner: F) -> (Self, Arc<Mutex<Vec<usize>>>) {
         let reads = Arc::new(Mutex::new(Vec::new()));
-        (Self { inner, reads: reads.clone() }, reads)
+        (
+            Self {
+                inner,
+                reads: reads.clone(),
+            },
+            reads,
+        )
     }
 }
 
@@ -171,7 +177,10 @@ impl<F: VfsFileSystem> VfsFileSystem for CountingFs<F> {
 
     fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
         let file = self.inner.open(path, mode)?;
-        Ok(CountingFile { inner: file, reads: self.reads.clone() })
+        Ok(CountingFile {
+            inner: file,
+            reads: self.reads.clone(),
+        })
     }
 
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
@@ -184,7 +193,10 @@ impl<F: VfsFileSystem> VfsFileSystem for CountingFs<F> {
 
     fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File> {
         let file = self.inner.create(path, mode)?;
-        Ok(CountingFile { inner: file, reads: self.reads.clone() })
+        Ok(CountingFile {
+            inner: file,
+            reads: self.reads.clone(),
+        })
     }
 
     fn mkdir(&self, path: &str) -> VfsResult<()> {
@@ -325,7 +337,13 @@ struct CountingAsyncFs<F> {
 impl<F: AsyncVfsFileSystem> CountingAsyncFs<F> {
     fn new(inner: F) -> (Self, Arc<Mutex<Vec<usize>>>) {
         let reads = Arc::new(Mutex::new(Vec::new()));
-        (Self { inner, reads: reads.clone() }, reads)
+        (
+            Self {
+                inner,
+                reads: reads.clone(),
+            },
+            reads,
+        )
     }
 }
 
@@ -369,7 +387,10 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for CountingAsyncFs<F> {
 
     async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
         let file = self.inner.open_async(path, mode).await?;
-        Ok(CountingAsyncFile { inner: file, reads: self.reads.clone() })
+        Ok(CountingAsyncFile {
+            inner: file,
+            reads: self.reads.clone(),
+        })
     }
 
     async fn open_seekable_async(
@@ -386,7 +407,10 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for CountingAsyncFs<F> {
 
     async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> {
         let file = self.inner.create_async(path, mode).await?;
-        Ok(CountingAsyncFile { inner: file, reads: self.reads.clone() })
+        Ok(CountingAsyncFile {
+            inner: file,
+            reads: self.reads.clone(),
+        })
     }
 
     async fn mkdir_async(&self, path: String) -> VfsResult<()> {
@@ -414,14 +438,20 @@ fn vfs_copy_streams_in_chunks() {
 
     assert_eq!(fs.read_file("/dst").unwrap(), content);
 
-    assert!(recorded.len() > 1, "copy issued only one read: {recorded:?}");
+    assert!(
+        recorded.len() > 1,
+        "copy issued only one read: {recorded:?}"
+    );
     assert_eq!(
         recorded.iter().sum::<usize>(),
         content.len(),
         "copy must read the whole file"
     );
     for read in recorded {
-        assert!(read <= CHUNK, "read of {read} bytes exceeds the {CHUNK}-byte chunk");
+        assert!(
+            read <= CHUNK,
+            "read of {read} bytes exceeds the {CHUNK}-byte chunk"
+        );
     }
 }
 
@@ -430,22 +460,36 @@ async fn vfs_copy_async_streams_in_chunks() {
     let content: Vec<u8> = (0..1000u16).map(|b| (b % 251) as u8).collect();
 
     let inner = MemoryFs::new();
-    inner.write_file_async("/src".to_string(), content.clone()).await.unwrap();
+    inner
+        .write_file_async("/src".to_string(), content.clone())
+        .await
+        .unwrap();
 
     let (fs, reads) = CountingAsyncFs::new(inner);
-    fs.copy_async("/src".to_string(), "/dst".to_string()).await.unwrap();
+    fs.copy_async("/src".to_string(), "/dst".to_string())
+        .await
+        .unwrap();
 
     let recorded = reads.lock().unwrap().clone();
 
-    assert_eq!(fs.read_file_async("/dst".to_string()).await.unwrap(), content);
+    assert_eq!(
+        fs.read_file_async("/dst".to_string()).await.unwrap(),
+        content
+    );
 
-    assert!(recorded.len() > 1, "copy issued only one read: {recorded:?}");
+    assert!(
+        recorded.len() > 1,
+        "copy issued only one read: {recorded:?}"
+    );
     assert_eq!(
         recorded.iter().sum::<usize>(),
         content.len(),
         "copy must read the whole file"
     );
     for read in recorded {
-        assert!(read <= CHUNK, "read of {read} bytes exceeds the {CHUNK}-byte chunk");
+        assert!(
+            read <= CHUNK,
+            "read of {read} bytes exceeds the {CHUNK}-byte chunk"
+        );
     }
 }

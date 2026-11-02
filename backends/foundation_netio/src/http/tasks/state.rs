@@ -1,6 +1,6 @@
+use crate::http::{HttpClientConnection, HttpConnectionPool, HttpRequestPending};
 use crate::netcap::RawStream;
 use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
-use crate::http::{HttpClientConnection, HttpConnectionPool, HttpRequestPending};
 use crate::shared::http::{
     HttpClientError, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,
 };

@@ -2,6 +2,19 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 39, rustfmt version pin): the nightly channel name and
+  the rustfmt commit date differ by one day. The CI image's rustfmt is
+  `1.10.0-nightly (feaadeeaca 2026-09-19)`. The channel that gives that
+  rustfmt is `nightly-2026-09-20`. The date in the version string is the
+  commit date, not the channel name. Pin the channel, not the commit date.
+  `cargo fmt --all` does not touch `crates/*` (they are excluded), so each
+  standalone crate there needs its own `cargo fmt`. rustfmt needs two passes
+  on a few long `format!` calls inside `match` arms: the first `cargo fmt
+  --all` left one file flagged and a second run settled it. Run `cargo fmt
+  --all` and then `--check` until clean. The first `--check` counted 7292
+  `Diff in` lines. That is diff hunks across 1372 files, not 7292 files. The
+  feature 08 learning "the repo is not fmt-clean" is now resolved.
+
 - 2026-11-02 (feature 19 E4, foundation_nativeapis): the local `turso`
   engine (crate `turso` 0.8.3) can back a local delta store. It is not the
   same as `LibsqlDelta` (remote Turso through the `libsql` 0.9 crate). The

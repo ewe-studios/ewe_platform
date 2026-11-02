@@ -18,11 +18,11 @@
 
 use foundation_netio::shared::http::Proto;
 
+use foundation_connectrpc::native::transport::h3::H3Transport;
 use foundation_connectrpc::shared::context::StreamType;
 use foundation_connectrpc::shared::transport::capabilities::{
     check_compatible, requirements, ProtocolKind,
 };
-use foundation_connectrpc::native::transport::h3::H3Transport;
 use foundation_connectrpc::shared::transport::Transport;
 
 /// A transport instance. The client config is never used: no call is opened.
@@ -36,7 +36,10 @@ fn transport() -> H3Transport {
 fn http3_advertises_what_quic_actually_provides() {
     let caps = transport().capabilities();
 
-    assert!(caps.request_streaming, "HTTP/3 can keep sending DATA frames");
+    assert!(
+        caps.request_streaming,
+        "HTTP/3 can keep sending DATA frames"
+    );
     assert!(
         caps.full_duplex,
         "QUIC gives each direction its own flow-control window, and the pump \
@@ -108,8 +111,8 @@ fn a_transport_without_trailers_still_rejects_grpc() {
     caps.h2_trailers = false;
 
     let req = requirements(ProtocolKind::Grpc, StreamType::Unary);
-    let err = check_compatible(&req, &caps)
-        .expect_err("gRPC without trailing HEADERS must be rejected");
+    let err =
+        check_compatible(&req, &caps).expect_err("gRPC without trailing HEADERS must be rejected");
     assert!(
         format!("{err:?}").contains("trailing HEADERS"),
         "the error must name the missing ability: {err:?}"

@@ -58,8 +58,10 @@ pub fn init(project_root: &Path, vm_names: &[String]) -> Result<()> {
 
     // Generate .gitignore
     let gitignore = generate_gitignore();
-    fs::write(testbed_dir.join(".gitignore"), &gitignore).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("writing .gitignore: {e}"),
+    fs::write(testbed_dir.join(".gitignore"), &gitignore).map_err(|e| {
+        TestbedError::Qcow2Error {
+            message: format!("writing .gitignore: {e}"),
+        }
     })?;
 
     // Generate scripts for each VM
@@ -153,7 +155,6 @@ pub fn generate_testbed_toml(vm_names: &[String]) -> String {
          key_prefix = \"\"\n",
     );
 
-
     out
 }
 
@@ -189,24 +190,20 @@ fn generate_scripts(testbed_dir: &Path, vm_name: &str) -> Result<()> {
         fs::create_dir_all(&startup).map_err(|e| TestbedError::Qcow2Error {
             message: format!("creating {}: {e}", startup.display()),
         })?;
-        fs::write(
-            startup.join("00-defender.ps1"),
-            BUILTIN_DEFENDER_EXCLUSIONS,
-        )
-        .map_err(|e| TestbedError::Qcow2Error {
-            message: format!("writing 00-defender.ps1: {e}"),
+        fs::write(startup.join("00-defender.ps1"), BUILTIN_DEFENDER_EXCLUSIONS).map_err(|e| {
+            TestbedError::Qcow2Error {
+                message: format!("writing 00-defender.ps1: {e}"),
+            }
         })?;
     } else {
         let startup = scripts_dir.join("startup");
         fs::create_dir_all(&startup).map_err(|e| TestbedError::Qcow2Error {
             message: format!("creating {}: {e}", startup.display()),
         })?;
-        fs::write(
-            startup.join("00-mount.sh"),
-            BUILTIN_MOUNT_CHECK,
-        )
-        .map_err(|e| TestbedError::Qcow2Error {
-            message: format!("writing 00-mount.sh: {e}"),
+        fs::write(startup.join("00-mount.sh"), BUILTIN_MOUNT_CHECK).map_err(|e| {
+            TestbedError::Qcow2Error {
+                message: format!("writing 00-mount.sh: {e}"),
+            }
         })?;
     }
 
@@ -244,7 +241,10 @@ fi
 /// # Errors
 /// Returns an error if a startup script fails.
 pub fn run_startup_scripts(vm_name: &str, os: GuestOs, ssh_port: u16, user: &str) -> Result<()> {
-    let scripts_dir = Path::new(".testbed").join("scripts").join(vm_name).join("startup");
+    let scripts_dir = Path::new(".testbed")
+        .join("scripts")
+        .join(vm_name)
+        .join("startup");
     run_scripts_dir(&scripts_dir, os, ssh_port, user)
 }
 
@@ -253,7 +253,10 @@ pub fn run_startup_scripts(vm_name: &str, os: GuestOs, ssh_port: u16, user: &str
 /// # Errors
 /// Returns an error if a shutdown script fails.
 pub fn run_shutdown_scripts(vm_name: &str, os: GuestOs, ssh_port: u16, user: &str) -> Result<()> {
-    let scripts_dir = Path::new(".testbed").join("scripts").join(vm_name).join("shutdown");
+    let scripts_dir = Path::new(".testbed")
+        .join("scripts")
+        .join(vm_name)
+        .join("shutdown");
     run_scripts_dir(&scripts_dir, os, ssh_port, user)
 }
 
@@ -307,4 +310,3 @@ fn run_scripts_dir(dir: &Path, os: GuestOs, ssh_port: u16, user: &str) -> Result
 fn shell_quote(s: &str) -> String {
     format!("'{}'", s.replace('\'', r"'\''"))
 }
-

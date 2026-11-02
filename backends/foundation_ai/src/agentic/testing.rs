@@ -95,28 +95,40 @@ impl MockModelProvider {
         matcher: impl Fn(&ModelInteraction) -> bool + Send + Sync + 'static,
         reply: Vec<Messages>,
     ) -> &mut Self {
-        self.inner.scripts.write().expect("mock scripts poisoned").push(Script {
-            matcher: Box::new(move |mi, _| matcher(mi)),
-            replies: reply,
-        });
+        self.inner
+            .scripts
+            .write()
+            .expect("mock scripts poisoned")
+            .push(Script {
+                matcher: Box::new(move |mi, _| matcher(mi)),
+                replies: reply,
+            });
         self
     }
 
     /// Respond with `reply` on the `n`th call (0-indexed).
     pub fn on_nth_call(&mut self, n: usize, reply: Vec<Messages>) -> &mut Self {
-        self.inner.scripts.write().expect("mock scripts poisoned").push(Script {
-            matcher: Box::new(move |_, call| call == n),
-            replies: reply,
-        });
+        self.inner
+            .scripts
+            .write()
+            .expect("mock scripts poisoned")
+            .push(Script {
+                matcher: Box::new(move |_, call| call == n),
+                replies: reply,
+            });
         self
     }
 
     /// Respond with `reply` for any interaction (catch-all, add last).
     pub fn on_any(&mut self, reply: Vec<Messages>) -> &mut Self {
-        self.inner.scripts.write().expect("mock scripts poisoned").push(Script {
-            matcher: Box::new(|_, _| true),
-            replies: reply,
-        });
+        self.inner
+            .scripts
+            .write()
+            .expect("mock scripts poisoned")
+            .push(Script {
+                matcher: Box::new(|_, _| true),
+                replies: reply,
+            });
         self
     }
 
@@ -126,10 +138,14 @@ impl MockModelProvider {
         matcher: impl Fn(&ModelInteraction) -> bool + Send + Sync + 'static,
         error: impl Into<String>,
     ) -> &mut Self {
-        self.inner.failures.write().expect("mock failures poisoned").push(Failure {
-            matcher: Box::new(move |mi, _| matcher(mi)),
-            error: error.into(),
-        });
+        self.inner
+            .failures
+            .write()
+            .expect("mock failures poisoned")
+            .push(Failure {
+                matcher: Box::new(move |mi, _| matcher(mi)),
+                error: error.into(),
+            });
         self
     }
 
@@ -651,4 +667,3 @@ impl ToolImpl for MockTool {
 // ---------------------------------------------------------------------------
 // Tests for the mock substrate itself
 // ---------------------------------------------------------------------------
-

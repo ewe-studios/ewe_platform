@@ -145,8 +145,8 @@ impl Default for StreamRegistry {
 
 #[cfg(feature = "web")]
 pub mod wasm_exports {
-    use foundation_nostd::comp::basic::Mutex;
     use super::{StreamChunk, StreamId, StreamRegistry};
+    use foundation_nostd::comp::basic::Mutex;
 
     static REGISTRY: Mutex<StreamRegistry> = Mutex::new(StreamRegistry::new());
 
@@ -197,9 +197,11 @@ pub mod wasm_exports {
     /// Close a stream by ID. Returns 1 on success, 0 if already closed.
     #[no_mangle]
     pub extern "C" fn stream_close(stream_id: u64) -> u32 {
-        u32::from(REGISTRY
-            .lock()
-            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-            .close(StreamId(stream_id)))
+        u32::from(
+            REGISTRY
+                .lock()
+                .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
+                .close(StreamId(stream_id)),
+        )
     }
 }

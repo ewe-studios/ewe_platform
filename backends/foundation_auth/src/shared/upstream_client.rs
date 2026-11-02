@@ -54,7 +54,9 @@ impl core::fmt::Display for UpstreamClientError {
             Self::OAuth(e) => write!(f, "oauth error: {e}"),
             Self::TokenExchange(s) => write!(f, "token exchange error: {s}"),
             Self::Userinfo(s) => write!(f, "userinfo error: {s}"),
-            Self::NoEndpoints => write!(f, "provider has no discovery URL and no explicit endpoints"),
+            Self::NoEndpoints => {
+                write!(f, "provider has no discovery URL and no explicit endpoints")
+            }
             Self::InvalidConfig(s) => write!(f, "invalid provider config: {s}"),
         }
     }
@@ -154,11 +156,7 @@ impl UpstreamOidcClient {
         let token_url = provider
             .token_url
             .as_deref()
-            .or_else(|| {
-                self.discovery
-                    .as_ref()
-                    .map(|d| d.token_endpoint.as_str())
-            })
+            .or_else(|| self.discovery.as_ref().map(|d| d.token_endpoint.as_str()))
             .ok_or(UpstreamClientError::NoEndpoints)?;
 
         let mut builder = OAuthConfig::builder()
@@ -320,8 +318,9 @@ impl UpstreamOidcClient {
         let body = encode_form(&form);
         let response =
             http_post_form(&self.http, &config.token_url, &body, self.max_error_body).await?;
-        let token: TokenResponse = serde_json::from_str(&response)
-            .map_err(|e| UpstreamClientError::TokenExchange(format!("parse token response: {e}")))?;
+        let token: TokenResponse = serde_json::from_str(&response).map_err(|e| {
+            UpstreamClientError::TokenExchange(format!("parse token response: {e}"))
+        })?;
 
         Ok(OAuthToken {
             access_token: token.access_token,
@@ -352,8 +351,8 @@ impl UpstreamOidcClient {
             .userinfo_endpoint()
             .ok_or(UpstreamClientError::NoEndpoints)?;
 
-        let response = http_get_with_bearer(&self.http, &url, access_token, self.max_error_body)
-            .await?;
+        let response =
+            http_get_with_bearer(&self.http, &url, access_token, self.max_error_body).await?;
         let json: serde_json::Value = serde_json::from_str(&response)
             .map_err(|e| UpstreamClientError::Userinfo(format!("parse userinfo response: {e}")))?;
 
@@ -449,7 +448,10 @@ async fn http_post_form(
 ) -> Result<String, UpstreamClientError> {
     let req = PreparedRequestBuilder::post(url)
         .map_err(|e| UpstreamClientError::TokenExchange(format!("invalid token URL: {e}")))?
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
         .header(SimpleHeader::ACCEPT, "application/json")
         .body_text(body)
         .build();
@@ -492,11 +494,15 @@ async fn http_get_with_bearer(
     let status: usize = resp.get_status().into();
     if status == 401 {
         let text = read_error_text(resp.take_async_body(), max_error_body).await;
-        return Err(UpstreamClientError::Userinfo(format!("unauthorized: {text}")));
+        return Err(UpstreamClientError::Userinfo(format!(
+            "unauthorized: {text}"
+        )));
     }
     if !(200..300).contains(&status) {
         let text = read_error_text(resp.take_async_body(), max_error_body).await;
-        return Err(UpstreamClientError::Userinfo(format!("HTTP {status}: {text}")));
+        return Err(UpstreamClientError::Userinfo(format!(
+            "HTTP {status}: {text}"
+        )));
     }
     read_body_text(resp.take_async_body())
         .await

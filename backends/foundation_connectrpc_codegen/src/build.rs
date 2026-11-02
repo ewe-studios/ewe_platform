@@ -75,9 +75,9 @@ impl Config {
     /// Returns a boxed error if prost-build compilation fails, the descriptor
     /// set cannot be read or decoded, or the output file cannot be written.
     pub fn compile(self) -> Result<(), Box<dyn std::error::Error>> {
-        let out_dir = self
-            .out_dir
-            .unwrap_or_else(|| PathBuf::from(std::env::var("OUT_DIR").unwrap_or_else(|_| ".".to_string())));
+        let out_dir = self.out_dir.unwrap_or_else(|| {
+            PathBuf::from(std::env::var("OUT_DIR").unwrap_or_else(|_| ".".to_string()))
+        });
 
         // ── Configure prost-build ───────────────────────────────────────────
         let mut config = prost_build::Config::new();
@@ -97,8 +97,7 @@ impl Config {
         let descriptor_set = prost_types::FileDescriptorSet::decode(buf.as_slice())?;
 
         // ── Generate ConnectRPC service code ────────────────────────────────
-        let connectrpc_code =
-            super::generate_services(&descriptor_set.file);
+        let connectrpc_code = super::generate_services(&descriptor_set.file);
 
         // ── Write output ────────────────────────────────────────────────────
         let out_file = out_dir.join("_connectrpc.rs");

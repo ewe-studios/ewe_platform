@@ -706,10 +706,16 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         Self: WakeableStream;
 
     fn into_stream_iter(self) -> crate::valtron::StreamIter<Self>
-    where Self: Sized { crate::valtron::StreamIter(self) }
+    where
+        Self: Sized,
+    {
+        crate::valtron::StreamIter(self)
+    }
 
     fn try_map_done<F, R>(self, f: F) -> TryMapDone<Self, R>
-    where F: Fn(Self::D) -> Option<R> + 'static, R: 'static;
+    where
+        F: Fn(Self::D) -> Option<R> + 'static,
+        R: 'static;
 
     fn collect_result(self) -> Vec<Self::D>;
 
@@ -840,7 +846,13 @@ where
         Self::P: Clone,
         Pred: Fn(&Stream<Self::D, Self::P>) -> bool + 'static,
     {
-        sbroadcast_build(self, n, Box::new(predicate), queue_size, BroadcastPolicy::Backpressure)
+        sbroadcast_build(
+            self,
+            n,
+            Box::new(predicate),
+            queue_size,
+            BroadcastPolicy::Backpressure,
+        )
     }
 
     fn broadcast_lossy<Pred>(
@@ -858,7 +870,13 @@ where
         Self::P: Clone,
         Pred: Fn(&Stream<Self::D, Self::P>) -> bool + 'static,
     {
-        sbroadcast_build(self, n, Box::new(predicate), queue_size, BroadcastPolicy::DropNewest)
+        sbroadcast_build(
+            self,
+            n,
+            Box::new(predicate),
+            queue_size,
+            BroadcastPolicy::DropNewest,
+        )
     }
 
     fn broadcast_latest<Pred>(
@@ -876,7 +894,13 @@ where
         Self::P: Clone,
         Pred: Fn(&Stream<Self::D, Self::P>) -> bool + 'static,
     {
-        sbroadcast_build(self, n, Box::new(predicate), queue_size, BroadcastPolicy::DropOldest)
+        sbroadcast_build(
+            self,
+            n,
+            Box::new(predicate),
+            queue_size,
+            BroadcastPolicy::DropOldest,
+        )
     }
 
     fn split_collect_until<Pred>(
@@ -1255,16 +1279,24 @@ where
     }
 
     fn try_map_done<F, R>(self, f: F) -> TryMapDone<Self, R>
-    where F: Fn(Self::D) -> Option<R> + 'static, R: 'static,
+    where
+        F: Fn(Self::D) -> Option<R> + 'static,
+        R: 'static,
     {
-        TryMapDone { inner: self, mapper: Box::new(f), done: false }
+        TryMapDone {
+            inner: self,
+            mapper: Box::new(f),
+            done: false,
+        }
     }
 
     fn collect_result(self) -> Vec<Self::D> {
         let mut out = Vec::new();
         let mut inner = self.into_stream_iter();
         while let Some(item) = inner.next() {
-            if let Stream::Next(v) = item { out.push(v); }
+            if let Stream::Next(v) = item {
+                out.push(v);
+            }
         }
         out
     }
@@ -1272,7 +1304,9 @@ where
     fn collect_one(self) -> Option<Self::D> {
         let mut inner = self.into_stream_iter();
         while let Some(item) = inner.next() {
-            if let Stream::Next(v) = item { return Some(v); }
+            if let Stream::Next(v) = item {
+                return Some(v);
+            }
         }
         None
     }
@@ -1289,30 +1323,45 @@ pub struct TryMapDone<I: StreamIterator, R> {
 }
 
 impl<I, R> Iterator for TryMapDone<I, R>
-where I: StreamIterator, R: 'static,
+where
+    I: StreamIterator,
+    R: 'static,
 {
     type Item = Stream<R, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.done { return None; }
+        if self.done {
+            return None;
+        }
         let item = self.inner.next()?;
         Some(match item {
             Stream::Next(d) => match (self.mapper)(d) {
                 Some(r) => Stream::Next(r),
-                None => { self.done = true; return None; }
+                None => {
+                    self.done = true;
+                    return None;
+                }
             },
             Stream::Spread(items) => {
                 let mut any_none = false;
-                let mapped: Vec<_> = items.into_iter().filter_map(|sp| match sp {
-                    StreamSpread::Done(d) => match (self.mapper)(d) {
-                        Some(r) => Some(StreamSpread::Done(r)),
-                        None => { any_none = true; None }
-                    },
-                    StreamSpread::Pending(p) => Some(StreamSpread::Pending(p)),
-                }).collect();
-                if any_none { self.done = true; }
+                let mapped: Vec<_> = items
+                    .into_iter()
+                    .filter_map(|sp| match sp {
+                        StreamSpread::Done(d) => match (self.mapper)(d) {
+                            Some(r) => Some(StreamSpread::Done(r)),
+                            None => {
+                                any_none = true;
+                                None
+                            }
+                        },
+                        StreamSpread::Pending(p) => Some(StreamSpread::Pending(p)),
+                    })
+                    .collect();
+                if any_none {
+                    self.done = true;
+                }
                 Stream::Spread(mapped)
-            },
+            }
             Stream::Pending(p) => Stream::Pending(p),
             Stream::Delayed(dur) => Stream::Delayed(dur),
             Stream::Init => Stream::Init,
@@ -1347,17 +1396,15 @@ where
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
-            Stream::Spread(items) => {
-                Some(Stream::Spread(
-                    items
-                        .into_iter()
-                        .map(|item| match item {
-                            StreamSpread::Done(d) => StreamSpread::Done((self.mapper)(d)),
-                            StreamSpread::Pending(p) => StreamSpread::Pending(p),
-                        })
-                        .collect(),
-                ))
-            }
+            Stream::Spread(items) => Some(Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        StreamSpread::Done(d) => StreamSpread::Done((self.mapper)(d)),
+                        StreamSpread::Pending(p) => StreamSpread::Pending(p),
+                    })
+                    .collect(),
+            )),
         }
     }
 }
@@ -1396,17 +1443,15 @@ where
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
-            Stream::Spread(items) => {
-                Some(Stream::Spread(
-                    items
-                        .into_iter()
-                        .map(|item| match item {
-                            StreamSpread::Done(d) => StreamSpread::Done(d),
-                            StreamSpread::Pending(p) => StreamSpread::Pending((self.mapper)(p)),
-                        })
-                        .collect(),
-                ))
-            }
+            Stream::Spread(items) => Some(Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        StreamSpread::Done(d) => StreamSpread::Done(d),
+                        StreamSpread::Pending(p) => StreamSpread::Pending((self.mapper)(p)),
+                    })
+                    .collect(),
+            )),
         }
     }
 }
@@ -1444,21 +1489,17 @@ where
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
             Stream::Wait => Some(Stream::Wait),
-            Stream::Spread(items) => {
-                Some(Stream::Spread(
-                    items
-                        .into_iter()
-                        .map(|item| match item {
-                            StreamSpread::Done(d) => {
-                                StreamSpread::Done((self.mapper)(Stream::Next(d)))
-                            }
-                            StreamSpread::Pending(p) => {
-                                StreamSpread::Done((self.mapper)(Stream::Pending(p)))
-                            }
-                        })
-                        .collect(),
-                ))
-            }
+            Stream::Spread(items) => Some(Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        StreamSpread::Done(d) => StreamSpread::Done((self.mapper)(Stream::Next(d))),
+                        StreamSpread::Pending(p) => {
+                            StreamSpread::Done((self.mapper)(Stream::Pending(p)))
+                        }
+                    })
+                    .collect(),
+            )),
         }
     }
 }
@@ -2768,7 +2809,10 @@ where
                         Some(Stream::Ignore)
                     } else {
                         Some(Stream::Spread(
-                            pending_items.into_iter().map(StreamSpread::Pending).collect(),
+                            pending_items
+                                .into_iter()
+                                .map(StreamSpread::Pending)
+                                .collect(),
                         ))
                     }
                 }
@@ -2875,7 +2919,8 @@ where
             Some(Stream::Wait) => Some(Stream::Wait),
             Some(Stream::Spread(items)) => {
                 let mut done_items: Vec<<I::D as IntoIterator>::Item> = Vec::new();
-                let mut pending_items: Vec<StreamSpread<<I::D as IntoIterator>::Item, I::P>> = Vec::new();
+                let mut pending_items: Vec<StreamSpread<<I::D as IntoIterator>::Item, I::P>> =
+                    Vec::new();
                 for item in items {
                     match item {
                         StreamSpread::Done(iterable) => {
@@ -2890,7 +2935,11 @@ where
                     // Original: returned Vec<M> as a single Done
                     // For consistency, return the flat-mapped result
                     Some(Stream::Spread(
-                        done_items.into_iter().map(StreamSpread::Done).chain(pending_items).collect(),
+                        done_items
+                            .into_iter()
+                            .map(StreamSpread::Done)
+                            .chain(pending_items)
+                            .collect(),
                     ))
                 } else if !pending_items.is_empty() {
                     Some(Stream::Spread(pending_items))
@@ -2948,7 +2997,8 @@ where
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
             Some(Stream::Spread(items)) => {
-                let mut done_items: Vec<StreamSpread<I::D, <I::P as IntoIterator>::Item>> = Vec::new();
+                let mut done_items: Vec<StreamSpread<I::D, <I::P as IntoIterator>::Item>> =
+                    Vec::new();
                 let mut pending_items: Vec<<I::P as IntoIterator>::Item> = Vec::new();
                 for item in items {
                     match item {
@@ -2962,7 +3012,10 @@ where
                 }
                 if !pending_items.is_empty() {
                     Some(Stream::Spread(
-                        done_items.into_iter().chain(pending_items.into_iter().map(StreamSpread::Pending)).collect(),
+                        done_items
+                            .into_iter()
+                            .chain(pending_items.into_iter().map(StreamSpread::Pending))
+                            .collect(),
                     ))
                 } else if !done_items.is_empty() {
                     Some(Stream::Spread(done_items))
@@ -3037,7 +3090,11 @@ where
                     }
                 }
                 Some(Stream::Spread(
-                    done_items.into_iter().map(StreamSpread::Done).chain(pending_items).collect(),
+                    done_items
+                        .into_iter()
+                        .map(StreamSpread::Done)
+                        .chain(pending_items)
+                        .collect(),
                 ))
             }
             None => None,
@@ -3107,7 +3164,10 @@ where
                     }
                 }
                 Some(Stream::Spread(
-                    done_items.into_iter().chain(pending_items.into_iter().map(StreamSpread::Pending)).collect(),
+                    done_items
+                        .into_iter()
+                        .chain(pending_items.into_iter().map(StreamSpread::Pending))
+                        .collect(),
                 ))
             }
             None => None,
@@ -3340,21 +3400,19 @@ where
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
-            Stream::Spread(items) => {
-                Stream::Spread(
-                    items
-                        .into_iter()
-                        .map(|item| match item {
-                            StreamSpread::Done(d) => {
-                                let idx = self.count;
-                                self.count += 1;
-                                StreamSpread::Done((idx, d))
-                            }
-                            StreamSpread::Pending(p) => StreamSpread::Pending(p),
-                        })
-                        .collect(),
-                )
-            }
+            Stream::Spread(items) => Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        StreamSpread::Done(d) => {
+                            let idx = self.count;
+                            self.count += 1;
+                            StreamSpread::Done((idx, d))
+                        }
+                        StreamSpread::Pending(p) => StreamSpread::Pending(p),
+                    })
+                    .collect(),
+            ),
         })
     }
 }
@@ -3411,7 +3469,10 @@ where
                     Some(Stream::Ignore)
                 } else {
                     Some(Stream::Spread(
-                        pending_items.into_iter().map(StreamSpread::Pending).collect(),
+                        pending_items
+                            .into_iter()
+                            .map(StreamSpread::Pending)
+                            .collect(),
                     ))
                 }
             }
@@ -3472,7 +3533,10 @@ where
                     Some(Stream::Ignore)
                 } else {
                     Some(Stream::Spread(
-                        pending_items.into_iter().map(StreamSpread::Pending).collect(),
+                        pending_items
+                            .into_iter()
+                            .map(StreamSpread::Pending)
+                            .collect(),
                     ))
                 }
             }
@@ -3523,13 +3587,11 @@ where
             Some(Stream::Spread(items)) => {
                 let mut pending_items: Vec<StreamSpread<R, I::P>> = Vec::new();
                 if let Some(acc) = self.acc.take() {
-                    let folded = items.into_iter().fold(acc, |acc, item| {
-                        match item {
-                            StreamSpread::Done(d) => (self.folder)(acc, d),
-                            StreamSpread::Pending(p) => {
-                                pending_items.push(StreamSpread::Pending(p));
-                                acc
-                            }
+                    let folded = items.into_iter().fold(acc, |acc, item| match item {
+                        StreamSpread::Done(d) => (self.folder)(acc, d),
+                        StreamSpread::Pending(p) => {
+                            pending_items.push(StreamSpread::Pending(p));
+                            acc
                         }
                     });
                     self.acc = Some(folded);

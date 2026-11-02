@@ -188,10 +188,9 @@ pub(crate) async fn sql_record<Q: QueryStore + ?Sized>(
             ],
         )
         .await?;
-    let row = rows
-        .next()
-        .await
-        .ok_or_else(|| StorageError::Backend(format!("rate limit row for {key:?} missing after upsert")))??;
+    let row = rows.next().await.ok_or_else(|| {
+        StorageError::Backend(format!("rate limit row for {key:?} missing after upsert"))
+    })??;
     let count: i64 = row.get(0)?;
     u32::try_from(count)
         .map_err(|_| StorageError::SqlConversion(format!("rate limit count out of range: {count}")))
@@ -211,7 +210,10 @@ pub(crate) async fn sql_record<Q: QueryStore + ?Sized>(
 pub(crate) async fn sql_reset<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> StorageResult<()> {
     store.execute_batch(CREATE_TABLE_SQL).await?;
     store
-        .execute("DELETE FROM rate_limits WHERE key = ?", &[DataValue::Text(key.to_string())])
+        .execute(
+            "DELETE FROM rate_limits WHERE key = ?",
+            &[DataValue::Text(key.to_string())],
+        )
         .await?;
     Ok(())
 }
@@ -222,8 +224,13 @@ pub(crate) async fn sql_reset<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> S
     feature = "libsql",
     feature = "wasm-bindgen-storage"
 ))]
-async fn sql_entry<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> StorageResult<Option<RateLimitEntry>> {
-    let mut rows = store.query(SELECT_SQL, &[DataValue::Text(key.to_string())]).await?;
+async fn sql_entry<Q: QueryStore + ?Sized>(
+    store: &Q,
+    key: &str,
+) -> StorageResult<Option<RateLimitEntry>> {
+    let mut rows = store
+        .query(SELECT_SQL, &[DataValue::Text(key.to_string())])
+        .await?;
     let Some(row) = rows.next().await else {
         return Ok(None);
     };
@@ -231,10 +238,14 @@ async fn sql_entry<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> StorageResul
     let count: i64 = row.get(0)?;
     let window_start: i64 = row.get(1)?;
     Ok(Some(RateLimitEntry {
-        count: u32::try_from(count)
-            .map_err(|_| StorageError::SqlConversion(format!("rate limit count out of range: {count}")))?,
-        window_start: u64::try_from(window_start)
-            .map_err(|_| StorageError::SqlConversion(format!("rate limit window_start out of range: {window_start}")))?,
+        count: u32::try_from(count).map_err(|_| {
+            StorageError::SqlConversion(format!("rate limit count out of range: {count}"))
+        })?,
+        window_start: u64::try_from(window_start).map_err(|_| {
+            StorageError::SqlConversion(format!(
+                "rate limit window_start out of range: {window_start}"
+            ))
+        })?,
     }))
 }
 
@@ -245,5 +256,6 @@ async fn sql_entry<Q: QueryStore + ?Sized>(store: &Q, key: &str) -> StorageResul
     feature = "wasm-bindgen-storage"
 ))]
 fn to_i64(secs: u64) -> StorageResult<i64> {
-    i64::try_from(secs).map_err(|_| StorageError::Backend(format!("timestamp out of range: {secs}")))
+    i64::try_from(secs)
+        .map_err(|_| StorageError::Backend(format!("timestamp out of range: {secs}")))
 }

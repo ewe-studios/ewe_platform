@@ -12,7 +12,9 @@ use std::time::Duration;
 use foundation_core::valtron::initialize_pool;
 use foundation_netio::http::{ClientRequestBuilder, HttpConnectionPool, NativeHttpClient};
 use foundation_netio::shared::client::{ClientConfig, SystemDnsResolver};
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status};
+use foundation_netio::shared::http::{
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
+};
 use foundation_proxy::forward::forward_request_headers;
 
 #[test]
@@ -71,7 +73,11 @@ fn forward_http_sends_expected_headers_and_gets_200() {
     let request = client.request(builder).expect("prepare request");
     let response = request.send().expect("upstream request must succeed");
 
-    assert_eq!(response.get_status(), Status::OK, "fake upstream answers 200");
+    assert_eq!(
+        response.get_status(),
+        Status::OK,
+        "fake upstream answers 200"
+    );
 
     // The captured head, lower-cased so header-name case cannot hide a miss.
     let sent = upstream.join().expect("upstream thread").to_lowercase();

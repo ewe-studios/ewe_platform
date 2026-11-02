@@ -14,7 +14,7 @@
 
 use std::sync::Arc;
 
-use foundation_db::{QueryStore, AsyncQueryStream, DataValue, SqlRow, StorageResult};
+use foundation_db::{AsyncQueryStream, DataValue, QueryStore, SqlRow, StorageResult};
 use futures_lite::StreamExt;
 
 use crate::server::models::provider::UpstreamProvider;
@@ -32,11 +32,17 @@ pub enum ProvisioningError {
     /// Storage error.
     Storage(String),
     /// The user already has a link for this provider.
-    LinkAlreadyExists { provider_id: String, user_id: String },
+    LinkAlreadyExists {
+        provider_id: String,
+        user_id: String,
+    },
     /// Multiple local users share the same verified email (ambiguous).
     AmbiguousEmail(String),
     /// The email is already taken by a different user (manual link required).
-    EmailConflict { email: String, existing_user_id: String },
+    EmailConflict {
+        email: String,
+        existing_user_id: String,
+    },
     /// The upstream provider is not trusted for auto-linking.
     UnsupportedProvider(String),
 }
@@ -46,12 +52,24 @@ impl core::fmt::Display for ProvisioningError {
         match self {
             Self::MissingField(s) => write!(f, "missing field: {s}"),
             Self::Storage(s) => write!(f, "storage error: {s}"),
-            Self::LinkAlreadyExists { provider_id, user_id } => {
-                write!(f, "link already exists: provider={provider_id}, user={user_id}")
+            Self::LinkAlreadyExists {
+                provider_id,
+                user_id,
+            } => {
+                write!(
+                    f,
+                    "link already exists: provider={provider_id}, user={user_id}"
+                )
             }
             Self::AmbiguousEmail(s) => write!(f, "multiple users with email: {s}"),
-            Self::EmailConflict { email, existing_user_id } => {
-                write!(f, "email {email} already belongs to user {existing_user_id}")
+            Self::EmailConflict {
+                email,
+                existing_user_id,
+            } => {
+                write!(
+                    f,
+                    "email {email} already belongs to user {existing_user_id}"
+                )
             }
             Self::UnsupportedProvider(s) => write!(f, "unsupported provider: {s}"),
         }
@@ -194,10 +212,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         }
     }
 
-    async fn find_user_by_email(
-        &self,
-        email: &str,
-    ) -> Result<Option<String>, ProvisioningError> {
+    async fn find_user_by_email(&self, email: &str) -> Result<Option<String>, ProvisioningError> {
         let stream = self
             .query_store
             .query(
@@ -239,10 +254,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         Ok(())
     }
 
-    async fn create_user(
-        &self,
-        profile: &UpstreamProfile,
-    ) -> Result<String, ProvisioningError> {
+    async fn create_user(&self, profile: &UpstreamProfile) -> Result<String, ProvisioningError> {
         let user_id = uuid::Uuid::new_v4().to_string();
         let email = profile.email.clone().unwrap_or_default();
         let name = profile.name.clone().unwrap_or_default();
@@ -274,7 +286,9 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         provider: &UpstreamProvider,
         upstream_sub: &str,
     ) -> Result<bool, ProvisioningError> {
-        self.find_link(provider, upstream_sub).await.map(|r| r.is_some())
+        self.find_link(provider, upstream_sub)
+            .await
+            .map(|r| r.is_some())
     }
 
     /// Get all provider links for a local user.
@@ -282,10 +296,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
     /// # Errors
     ///
     /// Returns a `ProvisioningError` on storage failure.
-    pub async fn get_user_links(
-        &self,
-        user_id: &str,
-    ) -> Result<Vec<String>, ProvisioningError> {
+    pub async fn get_user_links(&self, user_id: &str) -> Result<Vec<String>, ProvisioningError> {
         let stream = self
             .query_store
             .query(
@@ -300,10 +311,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
 }
 
 /// Read one text column from a row result.
-fn string_column(
-    row: StorageResult<SqlRow>,
-    column: &str,
-) -> Result<String, ProvisioningError> {
+fn string_column(row: StorageResult<SqlRow>, column: &str) -> Result<String, ProvisioningError> {
     row.and_then(|row| row.get_by_name(column))
         .map_err(|e| ProvisioningError::Storage(e.to_string()))
 }

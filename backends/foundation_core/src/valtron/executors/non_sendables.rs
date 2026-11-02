@@ -3,20 +3,22 @@
 use super::single;
 pub use super::single::fork_ctx;
 
+use super::inline_action::InlineActionBehaviour;
 use crate::valtron::executors::local::NotifyQueue;
 use crate::valtron::StreamConfig;
 use crate::valtron::{BoxedExecutionEngine, ConsumingIter, ExecutorError, SpawnInfo};
-use super::inline_action::InlineActionBehaviour;
-use std::sync::Arc;
 use crate::valtron::{FnMutReady, FnReady, OnNext, TaskReadyResolver, TaskSpawnConfig};
+use std::sync::Arc;
 
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 use crate::valtron::collect_result;
 use crate::valtron::{
-    collect_one, Ctx, ExecutionAction, GenericResult, NotificationItem,
-    NotifyQueueStreamIterator, NotifyRecvIterator, ProgressIndicator, State, Stream,
-    StreamIterator, StreamSpread, TaskIterator, TaskStatus, WakeCallback,
-    WakeResult, WakeableStream,
+    collect_one, Ctx, ExecutionAction, GenericResult, NotificationItem, NotifyQueueStreamIterator,
+    NotifyRecvIterator, ProgressIndicator, State, Stream, StreamIterator, StreamSpread,
+    TaskIterator, TaskStatus, WakeCallback, WakeResult, WakeableStream,
 };
 #[cfg(any(feature = "std", feature = "alloc"))]
 use core::future::Future;
@@ -51,8 +53,7 @@ where
         (
             Self(Some((behaviour, task, iter_chan.clone()))),
             crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
-                iter_chan,
-                wait_cycle,
+                iter_chan, wait_cycle,
             ),
         )
     }
@@ -66,8 +67,7 @@ where
     }
 }
 
-impl<Done, Pending, Task> ExecutionAction
-    for InlineAction<Done, Pending, Task>
+impl<Done, Pending, Task> ExecutionAction for InlineAction<Done, Pending, Task>
 where
     Done: 'static,
     Pending: 'static,
@@ -134,15 +134,24 @@ use crate::valtron::CancellableFutureTask;
 #[cfg(any(feature = "std", feature = "alloc"))]
 use crate::valtron::FutureTask;
 #[cfg(any(feature = "std", feature = "alloc"))]
-use crate::valtron::StreamTask;
-#[cfg(any(feature = "std", feature = "alloc"))]
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 use crate::valtron::ReadyValues;
 #[cfg(any(feature = "std", feature = "alloc"))]
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+use crate::valtron::StreamTask;
+#[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 use crate::valtron::ThreadedIterFuture;
 #[cfg(any(feature = "std", feature = "alloc"))]
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 use crate::valtron::ThreadedValue;
 
 /// [`initialize_pool`] provides a unified method to initialize the underlying
@@ -256,10 +265,7 @@ pub fn inlined_task<Done, Pending, Task>(
     behaviour: InlineActionBehaviour,
     task: Task,
     wait_cycle: std::time::Duration,
-) -> (
-    InlineAction<Done, Pending, Task>,
-    DrivenRecvIterator<Task>,
-)
+) -> (InlineAction<Done, Pending, Task>, DrivenRecvIterator<Task>)
 where
     Done: 'static,
     Pending: 'static,
@@ -328,7 +334,10 @@ where
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
 /// complete. There, `.await` the future/stream instead.
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 pub fn run_stream_iter<S>(
     stream: S,
 ) -> GenericResult<crate::valtron::StreamValues<S::Item, DrivenStreamIterator<StreamTask<S>>>>
@@ -336,9 +345,9 @@ where
     S: futures_core::Stream + 'static,
     S::Item: 'static,
 {
-    Ok(crate::valtron::StreamValues::new(crate::valtron::next_values(
-        execute(from_stream(stream), None)?,
-    )))
+    Ok(crate::valtron::StreamValues::new(
+        crate::valtron::next_values(execute(from_stream(stream), None)?),
+    ))
 }
 
 /// Block the calling thread until `future` completes, returning its output
@@ -362,7 +371,10 @@ where
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
 /// complete. There, `.await` the future/stream instead.
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 pub fn block_on_future<F>(future: F) -> F::Output
 where
     F: Future + 'static,
@@ -479,7 +491,10 @@ where
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
 /// complete. There, `.await` the future/stream instead.
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 pub fn block_on_collect<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
 where
     F: Future + 'static,
@@ -508,7 +523,10 @@ where
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
 /// complete. There, `.await` the future/stream instead.
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 pub fn run_future_iter<F, Fut, I, T, E>(
     future_fn: F,
     queue_size: Option<usize>,
@@ -809,7 +827,10 @@ where
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
 /// complete. There, `.await` the future/stream instead.
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 pub fn sync_collect_one<T>(task: T) -> GenericResult<T::Ready>
 where
     T: TaskIterator + 'static,
@@ -846,7 +867,10 @@ where
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
 /// complete. There, `.await` the future/stream instead.
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 pub fn sync_one<T>(task: T) -> GenericResult<Vec<T::Ready>>
 where
     T: TaskIterator + 'static,
@@ -884,7 +908,10 @@ where
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
 /// complete. There, `.await` the future/stream instead.
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 pub fn sync_all<T>(tasks: Vec<T>) -> GenericResult<Vec<T::Ready>>
 where
     T: TaskIterator + 'static,
@@ -1326,9 +1353,7 @@ where
     }
 }
 
-pub struct DrivenRecvIterator<T>(
-    Option<NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>>,
-)
+pub struct DrivenRecvIterator<T>(Option<NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>>)
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
@@ -1341,9 +1366,7 @@ where
     T::Pending: 'static,
 {
     #[must_use]
-    pub fn new(
-        task_iterator: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>,
-    ) -> Self {
+    pub fn new(task_iterator: NotifyRecvIterator<TaskStatus<T::Ready, T::Pending>>) -> Self {
         Self(Some(task_iterator))
     }
 }
@@ -1358,7 +1381,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
@@ -1468,7 +1490,10 @@ where
                 Some(Stream::Pending(self.sources.len()))
             }
             Some(Stream::Spread(items)) => {
-                let pending_count = items.iter().filter(|i| matches!(i, StreamSpread::Pending(_))).count();
+                let pending_count = items
+                    .iter()
+                    .filter(|i| matches!(i, StreamSpread::Pending(_)))
+                    .count();
                 for item in items {
                     if let StreamSpread::Done(d) = item {
                         self.collected.push(d);
@@ -2155,12 +2180,15 @@ where
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
             Stream::Delayed(d) => Stream::Delayed(d),
-            Stream::Spread(items) => Stream::Spread(items.into_iter().map(|item| {
-                match item {
-                    StreamSpread::Done(result) => StreamSpread::Done(result),
-                    StreamSpread::Pending(_) => StreamSpread::Pending(()),
-                }
-            }).collect()),
+            Stream::Spread(items) => Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        StreamSpread::Done(result) => StreamSpread::Done(result),
+                        StreamSpread::Pending(_) => StreamSpread::Pending(()),
+                    })
+                    .collect(),
+            ),
         })
     })
 }
@@ -2190,8 +2218,7 @@ where
 /// duration elapses.
 pub fn sleep(
     duration: std::time::Duration,
-) -> crate::valtron::GenericResult<DrivenStreamIterator<super::sleep::SleepingTask>>
-{
+) -> crate::valtron::GenericResult<DrivenStreamIterator<super::sleep::SleepingTask>> {
     execute(super::sleep::SleepingTask::sleep(duration), None)
 }
 
@@ -2278,7 +2305,10 @@ where
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
 /// complete. There, `.await` the future/stream instead.
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 pub trait BlockingFutureExt: Future + Sized + 'static
 where
     Self::Output: 'static,
@@ -2289,7 +2319,10 @@ where
     }
 }
 
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 impl<F> BlockingFutureExt for F
 where
     F: Future + 'static,
@@ -2302,7 +2335,10 @@ where
 /// **Not available on JS-hosted wasm** (`js-wasmbindgen`, `js-foundation-wasm`):
 /// it would block the isolate's only thread, so the I/O it waits on could never
 /// complete. There, `.await` the future/stream instead.
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 pub trait BlockingStreamExt: futures_core::Stream + Sized + 'static
 where
     Self::Item: 'static,
@@ -2313,13 +2349,17 @@ where
     /// When the stream cannot be scheduled (e.g. the pool is not initialized).
     fn blocking(
         self,
-    ) -> GenericResult<crate::valtron::StreamValues<Self::Item, DrivenStreamIterator<StreamTask<Self>>>>
-    {
+    ) -> GenericResult<
+        crate::valtron::StreamValues<Self::Item, DrivenStreamIterator<StreamTask<Self>>>,
+    > {
         run_stream_iter(self)
     }
 }
 
-#[cfg(not(all(target_family = "wasm", any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))))]
+#[cfg(not(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 impl<S> BlockingStreamExt for S
 where
     S: futures_core::Stream + 'static,

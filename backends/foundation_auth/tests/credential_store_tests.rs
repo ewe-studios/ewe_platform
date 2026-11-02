@@ -7,11 +7,11 @@
 #![recursion_limit = "256"]
 
 use foundation_auth::shared::credential_store::{
-    CredentialStore, CredentialStorage, OAuthTokenStore, StoredCredential,
+    CredentialStorage, CredentialStore, OAuthTokenStore, StoredCredential,
 };
 use foundation_auth::shared::oauth_token::OAuthToken;
-use foundation_db::{StorageBackend, StorageProvider};
 use foundation_core::valtron::valtron_test;
+use foundation_db::{StorageBackend, StorageProvider};
 
 async fn sqlite_store() -> (CredentialStorage, tempfile::TempDir) {
     let dir = tempfile::tempdir().expect("tempdir");
@@ -28,24 +28,34 @@ async fn sqlite_store_basic_roundtrip() {
     let (store, _dir) = sqlite_store().await;
 
     store
-        .set("test_key", "test_value").await
+        .set("test_key", "test_value")
+        .await
         .expect("Failed to set credential");
 
     let value: String = store
-        .get("test_key").await
+        .get("test_key")
+        .await
         .expect("Failed to get credential")
         .expect("Credential not found");
     assert_eq!(value, "test_value");
 
-    assert!(store.exists("test_key").await.expect("Failed to check existence"));
+    assert!(store
+        .exists("test_key")
+        .await
+        .expect("Failed to check existence"));
     assert!(!store
-        .exists("nonexistent").await
+        .exists("nonexistent")
+        .await
         .expect("Failed to check existence"));
 
     store
-        .delete("test_key").await
+        .delete("test_key")
+        .await
         .expect("Failed to delete credential");
-    assert!(!store.exists("test_key").await.expect("Failed to check existence"));
+    assert!(!store
+        .exists("test_key")
+        .await
+        .expect("Failed to check existence"));
 }
 
 #[valtron_test]
@@ -62,22 +72,26 @@ async fn sqlite_store_oauth_helpers() {
     };
 
     store
-        .store_oauth_token("test_provider", &token).await
+        .store_oauth_token("test_provider", &token)
+        .await
         .expect("Failed to store OAuth token");
 
     let retrieved = store
-        .get_oauth_token("test_provider").await
+        .get_oauth_token("test_provider")
+        .await
         .expect("Failed to get OAuth token")
         .expect("OAuth token not found");
     assert_eq!(retrieved.access_token, "access_123");
     assert_eq!(retrieved.refresh_token, Some("refresh_456".to_string()));
 
     store
-        .store_oauth_state("test_state", "verifier_abc", 9_999_999_999).await
+        .store_oauth_state("test_state", "verifier_abc", 9_999_999_999)
+        .await
         .expect("Failed to store OAuth state");
 
     let state = store
-        .get_oauth_state("test_state").await
+        .get_oauth_state("test_state")
+        .await
         .expect("Failed to get OAuth state")
         .expect("OAuth state not found");
     assert_eq!(state.code_verifier, "verifier_abc");

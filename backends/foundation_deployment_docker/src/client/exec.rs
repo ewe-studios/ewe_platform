@@ -48,7 +48,8 @@ pub async fn exec_create(
         },
     };
     let response =
-        container_exec_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
+        container_exec_request(client.api(), &args, &client.api_url().await?, None::<NoMod>)
+            .await?;
     Ok(response.body)
 }
 
@@ -99,9 +100,7 @@ pub async fn exec_inspect(
     client: &super::DockerClient,
     id: &str,
 ) -> Result<ExecInspectResponse, DockerError> {
-    let args = ExecInspectArgs {
-        id: id.to_string(),
-    };
+    let args = ExecInspectArgs { id: id.to_string() };
     let response =
         exec_inspect_request(client.api(), &args, &client.api_url().await?, None::<NoMod>).await?;
     Ok(response.body)

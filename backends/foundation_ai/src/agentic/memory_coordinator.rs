@@ -107,11 +107,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     /// of the same record does not create a duplicate document (F16 E8).
     /// # Errors
     /// Returns [`StorageError`] if the record cannot be stored.
-    pub async fn record(
-        &self,
-        session: &SessionId,
-        record: &SessionRecord,
-    ) -> StorageResult<()> {
+    pub async fn record(&self, session: &SessionId, record: &SessionRecord) -> StorageResult<()> {
         // Audit first — promoted columns (record_type/summary) come from
         // `PromotableDocument for SessionRecord` above.
         let key = Self::audit_key(session);
@@ -167,11 +163,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
         let audit_key = Self::audit_key(session);
         // The scan stream is `!Send` on wasm (JS-backed stores); this future
         // must stay `Send` for the `MemoryAccess` trait, and wasm has one thread.
-        let mut records = SendWrapper::new(
-            self.audit
-                .scan_all::<SessionRecord>(&audit_key)
-                .await?,
-        );
+        let mut records = SendWrapper::new(self.audit.scan_all::<SessionRecord>(&audit_key).await?);
         while let Some(item) = SendWrapper::new(records.next()).await {
             let record = item?;
             if let Some(tier) = MemoryTier::of(&record) {

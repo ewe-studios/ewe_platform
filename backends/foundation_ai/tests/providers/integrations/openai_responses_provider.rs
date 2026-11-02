@@ -16,8 +16,8 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::Stream;
-use foundation_netio::{DynNetClient, HttpClientBuilder};
 use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
 
 fn setup_responses_provider(
     guard: &foundation_ai::toolbox::llama_server_harness::LlamaServerGuard,

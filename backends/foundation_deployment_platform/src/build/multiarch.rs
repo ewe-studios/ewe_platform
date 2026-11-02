@@ -7,10 +7,7 @@ use crate::config::Result;
 use crate::ssh::VmSession;
 
 /// Debian/Ubuntu packages needed for `x86_64` cross-compilation.
-pub const CROSS_DEPS: &[&str] = &[
-    "gcc-x86-64-linux-gnu",
-    "g++-x86-64-linux-gnu",
-];
+pub const CROSS_DEPS: &[&str] = &["gcc-x86-64-linux-gnu", "g++-x86-64-linux-gnu"];
 
 /// Enable multiarch support for `x86_64` cross-compilation.
 ///
@@ -43,4 +40,3 @@ pub fn cross_compile_env() -> &'static str {
      export PKG_CONFIG_ALLOW_CROSS=1\n\
      export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
 }
-

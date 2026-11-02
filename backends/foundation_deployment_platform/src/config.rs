@@ -180,16 +180,16 @@ const PROFILES: &[VmProfile] = &[
 /// # Errors
 /// Returns an error if the profile name is unknown.
 pub fn get_profile(name: &str) -> Result<&'static VmProfile> {
-    PROFILES
-        .iter()
-        .find(|p| p.name == name)
-        .ok_or_else(|| {
-            let available: Vec<&str> = PROFILES.iter().map(|p| p.name).collect();
-            TestbedError::UnknownProfile {
-                name: name.to_string(),
-                available: available.iter().map(std::string::ToString::to_string).collect(),
-            }
-        })
+    PROFILES.iter().find(|p| p.name == name).ok_or_else(|| {
+        let available: Vec<&str> = PROFILES.iter().map(|p| p.name).collect();
+        TestbedError::UnknownProfile {
+            name: name.to_string(),
+            available: available
+                .iter()
+                .map(std::string::ToString::to_string)
+                .collect(),
+        }
+    })
 }
 
 /// List all default profiles.
@@ -318,9 +318,10 @@ pub fn get_profile_with_config(name: &str) -> Result<VmProfile> {
 
     // Apply user config override if present
     if let Some(config) = load_user_config()
-        && let Some(entry) = config.profiles.iter().find(|e| e.name == name) {
-            apply_user_override(&mut profile, &entry.profile);
-        }
+        && let Some(entry) = config.profiles.iter().find(|e| e.name == name)
+    {
+        apply_user_override(&mut profile, &entry.profile);
+    }
 
     Ok(profile)
 }
@@ -403,16 +404,30 @@ pub fn get_mount_for_profile(
 
     if let Some(config) = load_user_config()
         && let Some(entry) = config.profiles.iter().find(|e| e.name == profile_name)
-        && let Some(mount) = &entry.profile.mount {
-            let host_path = mount.host_path.as_deref().unwrap_or(default_host_path).to_string();
-            let guest_path = mount.guest_path.as_deref().unwrap_or(default_guest).to_string();
-            let readonly = mount.readonly.unwrap_or(false);
-            let methods = mount.methods.clone().unwrap_or(default_methods);
-            return Some((host_path, guest_path, readonly, methods));
-        }
+        && let Some(mount) = &entry.profile.mount
+    {
+        let host_path = mount
+            .host_path
+            .as_deref()
+            .unwrap_or(default_host_path)
+            .to_string();
+        let guest_path = mount
+            .guest_path
+            .as_deref()
+            .unwrap_or(default_guest)
+            .to_string();
+        let readonly = mount.readonly.unwrap_or(false);
+        let methods = mount.methods.clone().unwrap_or(default_methods);
+        return Some((host_path, guest_path, readonly, methods));
+    }
 
     // Fallback: use defaults
-    Some((default_host_path.to_string(), default_guest.to_string(), false, default_methods))
+    Some((
+        default_host_path.to_string(),
+        default_guest.to_string(),
+        false,
+        default_methods,
+    ))
 }
 
 /// Path to the user config file: `./testbed.toml`.
@@ -482,9 +497,7 @@ pub fn load_image_stores() -> Vec<ImageStore> {
 /// Look up an image store by name.
 #[must_use]
 pub fn get_image_store(name: &str) -> Option<ImageStore> {
-    load_image_stores()
-        .into_iter()
-        .find(|s| s.name == name)
+    load_image_stores().into_iter().find(|s| s.name == name)
 }
 
 // ── Directories ──────────────────────────────────────────────────────────────
@@ -580,7 +593,14 @@ pub fn vm_artifacts_dir(profile_name: &str) -> std::path::PathBuf {
 /// Home-based artifacts directory: `$HOME/.testbed/[vm-name]/artifacts/`.
 #[must_use]
 pub fn home_artifacts_dir(profile_name: &str) -> std::path::PathBuf {
-    dirs::home_dir().map_or_else(|| std::path::PathBuf::from("/tmp/.testbed").join(profile_name).join("artifacts"), |h| h.join(".testbed").join(profile_name).join("artifacts"))
+    dirs::home_dir().map_or_else(
+        || {
+            std::path::PathBuf::from("/tmp/.testbed")
+                .join(profile_name)
+                .join("artifacts")
+        },
+        |h| h.join(".testbed").join(profile_name).join("artifacts"),
+    )
 }
 
 /// Resolve an artifact by checking in order:
@@ -596,10 +616,18 @@ pub fn resolve_artifact(profile_name: &str, filename: &str) -> Option<std::path:
             if let Some(path) = entry.profile.artefacts.get(filename) {
                 let p = std::path::PathBuf::from(path);
                 if p.exists() {
-                    debug!("Using config-defined artifact: {} → {}", filename, p.display());
+                    debug!(
+                        "Using config-defined artifact: {} → {}",
+                        filename,
+                        p.display()
+                    );
                     return Some(p);
                 }
-                debug!("Config-defined artifact {} at {} does not exist", filename, p.display());
+                debug!(
+                    "Config-defined artifact {} at {} does not exist",
+                    filename,
+                    p.display()
+                );
             }
         }
     }
@@ -653,7 +681,10 @@ pub fn resolve_script_or_embed(
         step: format!("write embedded script {filename}"),
         message: e.to_string(),
     })?;
-    debug!("Using embedded script (no local {} found)", local_path.display());
+    debug!(
+        "Using embedded script (no local {} found)",
+        local_path.display()
+    );
     Ok(temp_path)
 }
 
@@ -673,8 +704,14 @@ pub fn copy_embedded_scripts(profile_name: &str) -> Result<()> {
 
     // Scripts from the source tree
     let scripts: [(&str, &[u8]); 2] = [
-        ("vs_install_from_zip.ps1", include_bytes!("bootstrap/scripts/vs_install_from_zip.ps1").as_slice()),
-        ("vs_install_online.ps1", include_bytes!("bootstrap/scripts/vs_install_online.ps1").as_slice()),
+        (
+            "vs_install_from_zip.ps1",
+            include_bytes!("bootstrap/scripts/vs_install_from_zip.ps1").as_slice(),
+        ),
+        (
+            "vs_install_online.ps1",
+            include_bytes!("bootstrap/scripts/vs_install_online.ps1").as_slice(),
+        ),
     ];
 
     for (name, content) in &scripts {
@@ -723,7 +760,10 @@ use derive_more::{Display, Error};
 #[derive(Debug, Display, Error)]
 pub enum TestbedError {
     #[display("unknown VM profile '{name}'; available: {}", available.join(", "))]
-    UnknownProfile { name: String, available: Vec<String> },
+    UnknownProfile {
+        name: String,
+        available: Vec<String>,
+    },
 
     #[display("QEMU not found on PATH — install via: {install_cmd}")]
     QemuNotFound { install_cmd: String },
@@ -781,4 +821,3 @@ pub enum TestbedError {
 }
 
 pub type Result<T> = std::result::Result<T, TestbedError>;
-

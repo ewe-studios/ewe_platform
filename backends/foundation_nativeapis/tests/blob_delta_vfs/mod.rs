@@ -68,7 +68,9 @@ impl BlobStore for CountingStore {
         start_after: Option<&str>,
         limit: Option<usize>,
     ) -> StorageResult<BlobListStream> {
-        self.inner.list_blobs_after(prefix, start_after, limit).await
+        self.inner
+            .list_blobs_after(prefix, start_after, limit)
+            .await
     }
 }
 
@@ -93,7 +95,10 @@ async fn write_at_honours_the_offset() {
     f.write_at_async(b"WORLD".to_vec(), 6).await.unwrap();
     // Past the end pads with zeros.
     f.write_at_async(b"!".to_vec(), 12).await.unwrap();
-    assert_eq!(d.read_file_async("/f".into()).await.unwrap(), b"hello WORLD\0!");
+    assert_eq!(
+        d.read_file_async("/f".into()).await.unwrap(),
+        b"hello WORLD\0!"
+    );
     assert_eq!(f.read_at_async(5, 6).await.unwrap(), b"WORLD");
 }
 
@@ -120,7 +125,10 @@ async fn truncate_persists() {
 async fn seekable_file_tracks_its_cursor() {
     let d = delta();
     d.create_async("/s".into(), 0o644).await.unwrap();
-    let mut f = d.open_seekable_async("/s".into(), OpenMode::ReadWrite).await.unwrap();
+    let mut f = d
+        .open_seekable_async("/s".into(), OpenMode::ReadWrite)
+        .await
+        .unwrap();
     f.write_async(b"abc".to_vec()).await.unwrap();
     f.write_async(b"def".to_vec()).await.unwrap();
     assert_eq!(f.position_async(), 6);
@@ -169,7 +177,10 @@ async fn rename_moves_data_and_metadata() {
     assert!(!d.exists_async("/from".into()).await.unwrap());
     assert_eq!(d.read_file_async("/to".into()).await.unwrap(), b"data");
     assert_eq!(d.stat_async("/to".into()).await.unwrap().permissions, 0o640);
-    assert!(d.rename_async("/missing".into(), "/x".into()).await.is_err());
+    assert!(d
+        .rename_async("/missing".into(), "/x".into())
+        .await
+        .is_err());
 }
 
 #[valtron_test]
@@ -179,7 +190,11 @@ async fn directories_create_and_look_up_children() {
     let dir = d.open_directory_async("/dir".into()).await.unwrap();
     dir.create_file_async("child".into(), 0o644).await.unwrap();
 
-    let entry = dir.get_entry_async("child".into()).await.unwrap().expect("child");
+    let entry = dir
+        .get_entry_async("child".into())
+        .await
+        .unwrap()
+        .expect("child");
     assert_eq!(entry.name, "child");
     assert_eq!(entry.file_type, VfsFileType::Regular);
     assert!(dir.get_entry_async("other".into()).await.unwrap().is_none());

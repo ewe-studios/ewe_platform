@@ -41,7 +41,12 @@ impl BlobDelta<D1Store> {
         let account_id = env("CF_ACCOUNT_ID")?;
         let api_token = env("CF_API_TOKEN")?;
         let database_id = env("CF_D1_DATABASE_ID")?;
-        Ok(Self::from_store(D1Store::new_kv(&api_token, &account_id, &database_id, "vfs")))
+        Ok(Self::from_store(D1Store::new_kv(
+            &api_token,
+            &account_id,
+            &database_id,
+            "vfs",
+        )))
     }
 
     /// A D1 delta over the given database (Cloudflare's API endpoint).
@@ -65,7 +70,9 @@ impl BlobDelta<D1Store> {
         base_url: Option<&str>,
     ) -> VfsResult<Self> {
         let store = match base_url {
-            Some(url) => D1Store::new_kv_with_base_url(api_token, account_id, database_id, "vfs", url),
+            Some(url) => {
+                D1Store::new_kv_with_base_url(api_token, account_id, database_id, "vfs", url)
+            }
             None => D1Store::new_kv(api_token, account_id, database_id, "vfs"),
         };
         Ok(Self::from_store(store))

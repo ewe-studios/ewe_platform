@@ -25,7 +25,10 @@ fn cache_retention_from_strings() {
         CacheRetention::Custom("2h".to_string())
     );
     // owned-String path
-    assert_eq!(CacheRetention::from("none".to_string()), CacheRetention::None);
+    assert_eq!(
+        CacheRetention::from("none".to_string()),
+        CacheRetention::None
+    );
 }
 
 #[test]
@@ -44,8 +47,14 @@ fn thinking_levels_from_strings() {
 fn model_providers_from_strings() {
     assert_eq!(ModelProviders::from("openai"), ModelProviders::OPENAI);
     assert_eq!(ModelProviders::from("anthropic"), ModelProviders::ANTHROPIC);
-    assert_eq!(ModelProviders::from("openrouter"), ModelProviders::OPENROUTER);
-    assert_eq!(ModelProviders::from("huggingface"), ModelProviders::HUGGINGFACE);
+    assert_eq!(
+        ModelProviders::from("openrouter"),
+        ModelProviders::OPENROUTER
+    );
+    assert_eq!(
+        ModelProviders::from("huggingface"),
+        ModelProviders::HUGGINGFACE
+    );
     assert_eq!(ModelProviders::from("candle"), ModelProviders::CANDLE);
     // owned-String path + unknown → Custom
     assert_eq!(
@@ -78,7 +87,10 @@ fn model_api_from_strings() {
 
 #[test]
 fn mime_type_from_strings() {
-    assert_eq!(MimeType::from("application/json"), MimeType::ApplicationJson);
+    assert_eq!(
+        MimeType::from("application/json"),
+        MimeType::ApplicationJson
+    );
     assert_eq!(MimeType::from("image/png"), MimeType::ImagePng);
     assert_eq!(MimeType::from("image/svg+xml"), MimeType::ImageSvgXml);
     assert_eq!(MimeType::from("audio/mpeg"), MimeType::AudioMpeg);
@@ -180,7 +192,10 @@ fn text_formatter_parses_all_json_arg_types() {
     let result = formatter.extract_tool_calls(response).unwrap();
     assert!(result.has_tool_calls);
 
-    let ModelOutput::ToolCall { arguments, name, .. } = &result.calls[0] else {
+    let ModelOutput::ToolCall {
+        arguments, name, ..
+    } = &result.calls[0]
+    else {
         panic!("expected a tool call");
     };
     assert_eq!(name, "do_it");

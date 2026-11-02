@@ -106,7 +106,12 @@ async fn test_init_from_store_expired_no_refresh() {
     assert!(result.is_none());
     assert_eq!(mgr.state(), AuthState::Unauthenticated);
     // The expired token is cleared from the store.
-    assert!(mgr.store().get_oauth_token("default").await.unwrap().is_none());
+    assert!(mgr
+        .store()
+        .get_oauth_token("default")
+        .await
+        .unwrap()
+        .is_none());
 }
 
 #[valtron_test]
@@ -209,9 +214,17 @@ async fn test_refresh_success() {
 
     assert!(result.is_ok());
     assert!(mgr.is_authenticated());
-    assert_eq!(mgr.jwt_manager().get_token().unwrap().access_token(), "new_access");
+    assert_eq!(
+        mgr.jwt_manager().get_token().unwrap().access_token(),
+        "new_access"
+    );
     // The new token is persisted.
-    let stored = mgr.store().get_oauth_token("default").await.unwrap().unwrap();
+    let stored = mgr
+        .store()
+        .get_oauth_token("default")
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(stored.access_token, "new_access");
 }
 
@@ -232,7 +245,12 @@ async fn test_refresh_failure() {
     assert!(result.is_err());
     assert_eq!(mgr.state(), AuthState::Failed);
     assert!(mgr.jwt_manager().get_token().is_none());
-    assert!(mgr.store().get_oauth_token("default").await.unwrap().is_none());
+    assert!(mgr
+        .store()
+        .get_oauth_token("default")
+        .await
+        .unwrap()
+        .is_none());
 }
 
 #[valtron_test]
@@ -282,15 +300,23 @@ async fn test_logout() {
     assert!(!mgr.is_authenticated());
     assert_eq!(mgr.state(), AuthState::Unauthenticated);
     assert!(mgr.jwt_manager().get_token().is_none());
-    assert!(mgr.store().get_oauth_token("default").await.unwrap().is_none());
+    assert!(mgr
+        .store()
+        .get_oauth_token("default")
+        .await
+        .unwrap()
+        .is_none());
 }
 
 #[valtron_test]
 async fn test_logout_with_session_manager() {
     let signing_key = vec![0xAB; 32];
-    let session_mgr =
-        SessionManager::new(CredentialStorage::memory(), SessionConfig::default(), &signing_key)
-            .unwrap();
+    let session_mgr = SessionManager::new(
+        CredentialStorage::memory(),
+        SessionConfig::default(),
+        &signing_key,
+    )
+    .unwrap();
 
     let mut mgr = test_manager().with_session_manager(session_mgr);
 

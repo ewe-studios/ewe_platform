@@ -34,7 +34,7 @@ fn to_hex(b: &[u8]) -> String {
 fn from_hex(s: &str) -> [u8; 32] {
     let bytes: Vec<u8> = (0..s.len())
         .step_by(2)
-        .filter_map(|i| u8::from_str_radix(&s[i..i+2], 16).ok())
+        .filter_map(|i| u8::from_str_radix(&s[i..i + 2], 16).ok())
         .collect();
     let mut arr = [0u8; 32];
     arr.copy_from_slice(&bytes[..bytes.len().min(32)]);
@@ -72,7 +72,8 @@ mod system_time_serde {
 
     pub fn serialize<S: Serializer>(v: &Option<SystemTime>, s: S) -> Result<S::Ok, S::Error> {
         match v {
-            Some(t) => t.duration_since(SystemTime::UNIX_EPOCH)
+            Some(t) => t
+                .duration_since(SystemTime::UNIX_EPOCH)
                 .map(|d| d.as_secs())
                 .unwrap_or(0)
                 .serialize(s),

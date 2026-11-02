@@ -18,7 +18,9 @@ pub enum Runner {
 impl Runner {
     /// Parallel execution (default).
     #[must_use]
-    pub fn parallel() -> Self { Self::Parallel }
+    pub fn parallel() -> Self {
+        Self::Parallel
+    }
 
     /// Sequential execution with delay.
     #[must_use]
@@ -45,7 +47,10 @@ impl Runner {
         match self {
             Self::Parallel => {
                 // Sequential for now — proper parallel needs threads/tokio
-                hosts.iter().map(|h| backend.execute(h, &command_builder(h))).collect()
+                hosts
+                    .iter()
+                    .map(|h| backend.execute(h, &command_builder(h)))
+                    .collect()
             }
             Self::Sequential { wait_interval } => {
                 let mut results = Vec::new();

@@ -29,7 +29,10 @@ async fn test_libsql_storage_basic() {
     let db_path = temp_dir.path().join("test.db");
     let storage = open(db_path.to_str().unwrap()).await;
 
-    storage.set("test_key", "test_value".to_string()).await.unwrap();
+    storage
+        .set("test_key", "test_value".to_string())
+        .await
+        .unwrap();
 
     let value: Option<String> = storage.get("test_key").await.unwrap();
     assert_eq!(value, Some("test_value".to_string()));
@@ -47,10 +50,22 @@ async fn test_libsql_storage_list_keys() {
     let db_path = temp_dir.path().join("test.db");
     let storage = open(db_path.to_str().unwrap()).await;
 
-    storage.set("prefix:key1", "value1".to_string()).await.unwrap();
-    storage.set("prefix:key2", "value2".to_string()).await.unwrap();
-    storage.set("other:key3", "value3".to_string()).await.unwrap();
+    storage
+        .set("prefix:key1", "value1".to_string())
+        .await
+        .unwrap();
+    storage
+        .set("prefix:key2", "value2".to_string())
+        .await
+        .unwrap();
+    storage
+        .set("other:key3", "value3".to_string())
+        .await
+        .unwrap();
 
     assert_eq!(keys(&storage, None).await.len(), 3);
-    assert_eq!(keys(&storage, Some("prefix:")).await, vec!["prefix:key1", "prefix:key2"]);
+    assert_eq!(
+        keys(&storage, Some("prefix:")).await,
+        vec!["prefix:key1", "prefix:key2"]
+    );
 }

@@ -13,8 +13,8 @@
 
 use std::time::{Duration, Instant};
 
-use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use super::body::{read_body_text, read_error_text, DEFAULT_MAX_ERROR_BODY};
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
@@ -59,7 +59,10 @@ impl Jwk {
         }
         match (self.key_type.as_str(), self.algorithm.as_str()) {
             ("OKP", "EdDSA") => {
-                let x = self.x.as_ref().ok_or(JwksError::MissingKeyData("x".into()))?;
+                let x = self
+                    .x
+                    .as_ref()
+                    .ok_or(JwksError::MissingKeyData("x".into()))?;
                 let pk = jwt_simple::prelude::Ed25519PublicKey::from_bytes(x)
                     .map_err(|e| JwksError::KeyParseError(e.to_string()))?;
                 Ok(pk.to_pem())
@@ -74,16 +77,21 @@ impl Jwk {
                     .as_ref()
                     .ok_or(JwksError::MissingKeyData("e".into()))?;
                 // Build RSAPublicKey from (n, e)
-                let pk =
-                    jwt_simple::prelude::RSAPublicKey::from_components(n, e)
-                        .map_err(|e| JwksError::KeyParseError(e.to_string()))?;
+                let pk = jwt_simple::prelude::RSAPublicKey::from_components(n, e)
+                    .map_err(|e| JwksError::KeyParseError(e.to_string()))?;
                 Ok(pk
                     .to_pem()
                     .map_err(|e| JwksError::KeyParseError(e.to_string()))?)
             }
             ("EC", "ES256") => {
-                let x = self.x.as_ref().ok_or(JwksError::MissingKeyData("x".into()))?;
-                let y = self.y.as_ref().ok_or(JwksError::MissingKeyData("y".into()))?;
+                let x = self
+                    .x
+                    .as_ref()
+                    .ok_or(JwksError::MissingKeyData("x".into()))?;
+                let y = self
+                    .y
+                    .as_ref()
+                    .ok_or(JwksError::MissingKeyData("y".into()))?;
                 // Build uncompressed EC point: 0x04 || x || y (65 bytes for P-256)
                 let mut point = vec![0x04];
                 point.extend_from_slice(x);
@@ -151,8 +159,8 @@ impl Jwks {
     /// Returns `JwksError::JwksParseError` if JSON is invalid or key data
     /// cannot be decoded.
     pub fn from_json(json: &str) -> Result<Self, JwksError> {
-        let raw: RawJwks = serde_json::from_str(json)
-            .map_err(|e| JwksError::JwksParseError(e.to_string()))?;
+        let raw: RawJwks =
+            serde_json::from_str(json).map_err(|e| JwksError::JwksParseError(e.to_string()))?;
 
         let mut keys = Vec::with_capacity(raw.keys.len());
         for raw_key in raw.keys {
@@ -162,16 +170,24 @@ impl Jwks {
                 algorithm: raw_key.alg,
                 use_: raw_key.use_.unwrap_or_else(|| String::from("sig")),
                 curve: raw_key.crv,
-                x: raw_key.x.map(|b64| base64url_decode(&b64))
+                x: raw_key
+                    .x
+                    .map(|b64| base64url_decode(&b64))
                     .transpose()
                     .map_err(JwksError::JwksParseError)?,
-                y: raw_key.y.map(|b64| base64url_decode(&b64))
+                y: raw_key
+                    .y
+                    .map(|b64| base64url_decode(&b64))
                     .transpose()
                     .map_err(JwksError::JwksParseError)?,
-                modulus: raw_key.n.map(|b64| base64url_decode(&b64))
+                modulus: raw_key
+                    .n
+                    .map(|b64| base64url_decode(&b64))
                     .transpose()
                     .map_err(JwksError::JwksParseError)?,
-                exponent: raw_key.e.map(|b64| base64url_decode(&b64))
+                exponent: raw_key
+                    .e
+                    .map(|b64| base64url_decode(&b64))
                     .transpose()
                     .map_err(JwksError::JwksParseError)?,
                 pem: None,
@@ -179,10 +195,7 @@ impl Jwks {
             keys.push(jwk);
         }
 
-        Ok(Self {
-            keys,
-            issuer: None,
-        })
+        Ok(Self { keys, issuer: None })
     }
 
     /// Serialize to a JSON string.
@@ -217,8 +230,7 @@ impl Jwks {
 }
 
 /// Raw JWKS JSON structure for deserialization.
-#[derive(Debug, Deserialize)]
-#[derive(Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct RawJwks {
     keys: Vec<RawJwk>,
 }
@@ -353,15 +365,13 @@ impl JwksManager {
     /// # Errors
     ///
     /// Returns `JwksError` if the key is not found or cannot be converted.
-    pub async fn verifier_for_key(
-        &mut self,
-        kid: &str,
-    ) -> Result<JwtVerifier, JwksError> {
+    pub async fn verifier_for_key(&mut self, kid: &str) -> Result<JwtVerifier, JwksError> {
         // Ensure cache is populated first
         let _ = self.get().await?;
 
         // Extract issuer while we have mutable access
-        let issuer = self.cached_jwks
+        let issuer = self
+            .cached_jwks
             .as_ref()
             .and_then(|(jwks, _)| jwks.issuer.clone());
 
@@ -382,8 +392,7 @@ impl JwksManager {
             key_id: Some(jwk.key_id.clone()),
             public_key: super::jwt::PublicKeySource::Pem(pem),
         };
-        JwtVerifier::from_config(config)
-            .map_err(JwksError::Jwt)
+        JwtVerifier::from_config(config).map_err(JwksError::Jwt)
     }
 
     /// Clear the cached JWKS.

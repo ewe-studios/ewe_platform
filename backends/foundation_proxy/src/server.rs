@@ -24,17 +24,17 @@ use std::time::{Duration, Instant};
 #[cfg(unix)]
 use foundation_iogate::FdReadiness;
 
-use foundation_http::ShutdownSignal;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
+use foundation_http::ShutdownSignal;
 use foundation_netio::http::HttpConnectionPool;
-use foundation_netio::shared::client::{ClientConfig, SystemDnsResolver};
 use foundation_netio::http::NativeHttpClient;
+use foundation_netio::shared::client::{ClientConfig, SystemDnsResolver};
 
 use crate::config::{BackendState, ProxyConfig, ProxyError, SslProvider};
 use crate::control::ControlSocket;
-use crate::handler::ProxyHandler;
 use crate::h2_proxy::H2ProxyHandler;
+use crate::handler::ProxyHandler;
 use crate::health::{spawn_service_probes, HealthMonitor};
 use crate::persistence::{PersistedProxyState, ProxyStateStore};
 use crate::router::Router;
@@ -123,7 +123,10 @@ impl ProxyServer {
         );
 
         // Bind the front-end listener (ephemeral port support for tests).
-        let bind_addr = config.bind_addr.clone().unwrap_or_else(|| DEFAULT_BIND.to_string());
+        let bind_addr = config
+            .bind_addr
+            .clone()
+            .unwrap_or_else(|| DEFAULT_BIND.to_string());
         let listener = TcpListener::bind(&bind_addr)
             .map_err(|e| ProxyError::Startup(format!("bind {bind_addr}: {e}")))?;
         let local_addr = listener
@@ -141,7 +144,10 @@ impl ProxyServer {
         // from a previous run, and attach the store so admin changes are written
         // through. `None` state_dir disables persistence entirely.
         let store: Option<Arc<ProxyStateStore>> = config.state_dir.as_ref().map(|dir| {
-            Arc::new(ProxyStateStore::new(std::path::Path::new(dir), &config.domain))
+            Arc::new(ProxyStateStore::new(
+                std::path::Path::new(dir),
+                &config.domain,
+            ))
         });
         if let Some(store) = &store {
             restore_persisted_state(store, &services, &config).await;
@@ -212,8 +218,12 @@ impl ProxyServer {
             // configured UDP address using the same certificate.
             #[cfg(feature = "quic")]
             if let Some(h3_addr) = &config.h3_bind {
-                h3_local_addr =
-                    Some(spawn_h3_server(h3_addr, &cert_pair, Arc::clone(&proxy_state), shutdown.clone())?);
+                h3_local_addr = Some(spawn_h3_server(
+                    h3_addr,
+                    &cert_pair,
+                    Arc::clone(&proxy_state),
+                    shutdown.clone(),
+                )?);
             }
         }
 
@@ -620,7 +630,11 @@ fn apply_backend_states(services: &[Arc<ServiceRuntime>], persisted: &PersistedP
         let name = &svc.config().name;
         for backend in svc.backends() {
             let key = format!("{name}/{}", backend.url());
-            if let Some(state) = persisted.backend_states.get(&key).and_then(|s| parse_backend_state(s)) {
+            if let Some(state) = persisted
+                .backend_states
+                .get(&key)
+                .and_then(|s| parse_backend_state(s))
+            {
                 backend.set_state(state);
                 tracing::info!(service = %name, url = %backend.url(), state = %state, "restored backend state");
             }

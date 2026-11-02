@@ -38,22 +38,22 @@ pub mod native;
 pub mod wasm;
 
 // Public re-exports (shared — always available)
-pub use core::errors::*;
-pub use core::storage_provider as traits;
-pub use core::cleanup::*;
-pub use core::backends::*;
-pub use core::crypto::*;
-pub use core::schema::*;
 pub use core::auth_store::*;
+pub use core::backends::*;
+pub use core::cleanup::*;
+pub use core::crypto::*;
+pub use core::errors::*;
+pub use core::schema::*;
+pub use core::storage_provider as traits;
 
 // Central StorageProvider + StorageBackend (always available)
 pub use storage_provider::{StorageBackend, StorageProvider};
 
 // Re-export trait types at top level for convenience
 pub use core::storage_provider::{
-    BlobStore, DocumentStore, KeyValueStore, AsyncListStream, QueryStore,
-    AsyncQueryStream, RateLimiterStore, AsyncStorageItemStream, DataValue, Document,
-    FromDataValue, PromotableDocument, SqlRow,
+    AsyncListStream, AsyncQueryStream, AsyncStorageItemStream, BlobStore, DataValue, Document,
+    DocumentStore, FromDataValue, KeyValueStore, PromotableDocument, QueryStore, RateLimiterStore,
+    SqlRow,
 };
 
 // Native-only re-exports
@@ -66,7 +66,9 @@ pub use wasm::{CfD1R2DocumentStore, D1WasmStorage, KVWasmStorage, R2WasmStorage}
 
 // Wasm-bindgen CF types re-exports (wasm32 only)
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-pub use wasm::bindgen::{D1Database, D1PreparedStatement, KVNamespace, R2Bucket, R2Object, R2Objects};
+pub use wasm::bindgen::{
+    D1Database, D1PreparedStatement, KVNamespace, R2Bucket, R2Object, R2Objects,
+};
 
 // State store module
 pub use core::state;

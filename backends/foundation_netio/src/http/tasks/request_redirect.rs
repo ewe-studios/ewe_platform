@@ -25,24 +25,26 @@
 //! timeouts.
 
 use crate::http::{HttpClientConnection, HttpConnectionPool};
-use crate::native::readiness::{DeadlineReadiness, IoInterest};
-use crate::netcap::{Connection, RawStream};
-#[cfg(unix)]
-use crate::native::readiness::SocketReadiness;
 use crate::native::readiness::io_or_deadline;
 #[cfg(unix)]
-use crate::netcap::PendingConnect;
+use crate::native::readiness::SocketReadiness;
+use crate::native::readiness::{DeadlineReadiness, IoInterest};
 #[cfg(feature = "ssl-rustls")]
 use crate::netcap::ssl::{ClientSSLStream, SSLConnector};
+#[cfg(unix)]
+use crate::netcap::PendingConnect;
+use crate::netcap::{Connection, RawStream};
 use crate::shared::client::{redirects, ClientConfig, DnsResolver};
 use crate::shared::http::{
     ensure_chunked_transfer_encoding, BodyReadiness, Http11, Http11RequestBodyIterator,
     HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp, RequestDescriptor,
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
-use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
-use foundation_core::valtron::{queue_waker, Ctx, AnyReadiness, QueueReadiness, TaskIterator, TaskStatus, WakeToken};
 use concurrent_queue::ConcurrentQueue;
+use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
+use foundation_core::valtron::{
+    queue_waker, AnyReadiness, Ctx, QueueReadiness, TaskIterator, TaskStatus, WakeToken,
+};
 use std::future::Future;
 use std::io::Write;
 use std::pin::Pin;
@@ -183,12 +185,8 @@ pub struct WritingBody {
 #[cfg(unix)]
 pub struct Resolving<R: DnsResolver + Send + 'static> {
     exchange: PendingExchange<R>,
-    future: Pin<
-        Box<
-            dyn Future<Output = Result<Vec<core::net::SocketAddr>, HttpClientError>>
-                + Send,
-        >,
-    >,
+    future:
+        Pin<Box<dyn Future<Output = Result<Vec<core::net::SocketAddr>, HttpClientError>> + Send>>,
     /// Fixed DNS deadline (feature 36).
     deadline: Instant,
     wake_queue: Arc<ConcurrentQueue<WakeToken>>,
@@ -449,8 +447,8 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             return self.fail(HttpClientError::InvalidUrl("Missing host".to_string()));
         };
         let target_port = descriptor.request_uri.port_or_default();
-        let use_tls = descriptor.request_uri.scheme().is_https()
-            || descriptor.request_uri.scheme().is_wss();
+        let use_tls =
+            descriptor.request_uri.scheme().is_https() || descriptor.request_uri.scheme().is_wss();
 
         // Determine effective proxy configuration.
         let env_proxy = if config.proxy_from_env {
@@ -487,17 +485,14 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
         }
 
         // Blocking fallback (proxy, custom connector, non-unix, non-rustls TLS).
-        let connection = match pool.create_connection_with_proxy(
-            &descriptor.request_uri,
-            proxy_config,
-            None,
-        ) {
-            Ok(connection) => connection,
-            Err(err) => {
-                tracing::error!("Failed to connect: {:?}", err);
-                return self.fail(HttpClientError::ConnectionError);
-            }
-        };
+        let connection =
+            match pool.create_connection_with_proxy(&descriptor.request_uri, proxy_config, None) {
+                Ok(connection) => connection,
+                Err(err) => {
+                    tracing::error!("Failed to connect: {:?}", err);
+                    return self.fail(HttpClientError::ConnectionError);
+                }
+            };
 
         self.finish_connected(
             PendingExchange {
@@ -662,8 +657,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
 
         match st.future.as_mut().poll(&mut cx) {
             Poll::Ready(Ok(addrs)) => {
-                let deadline =
-                    Instant::now() + st.exchange.config.timeout_config().connect_timeout;
+                let deadline = Instant::now() + st.exchange.config.timeout_config().connect_timeout;
                 self.0 = Some(HttpRequestRedirectState::Connecting(Some(Box::new(
                     Connecting {
                         exchange: st.exchange,

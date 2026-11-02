@@ -50,8 +50,14 @@ impl CodeGraph {
 
         for idx in self.graph.node_indices() {
             let node = &self.graph[idx];
-            let in_degree = self.graph.edges_directed(idx, petgraph::Direction::Incoming).count();
-            let out_degree = self.graph.edges_directed(idx, petgraph::Direction::Outgoing).count();
+            let in_degree = self
+                .graph
+                .edges_directed(idx, petgraph::Direction::Incoming)
+                .count();
+            let out_degree = self
+                .graph
+                .edges_directed(idx, petgraph::Direction::Outgoing)
+                .count();
             scored.push(GodNode {
                 id: node.id.clone(),
                 label: node.label.clone(),
@@ -92,10 +98,7 @@ impl CodeGraph {
             let src_comm = comm.get(&src_node.id).copied().unwrap_or(usize::MAX);
             let tgt_comm = comm.get(&tgt_node.id).copied().unwrap_or(usize::MAX);
 
-            if src_comm != tgt_comm
-                && src_comm != usize::MAX
-                && tgt_comm != usize::MAX
-            {
+            if src_comm != tgt_comm && src_comm != usize::MAX && tgt_comm != usize::MAX {
                 result.push(SurprisingConnection {
                     source_id: src_node.id.clone(),
                     source_label: src_node.label.clone(),
@@ -110,7 +113,8 @@ impl CodeGraph {
 
         // Sort by source community (0 = largest first), then target
         result.sort_by(|a, b| {
-            a.source_community.cmp(&b.source_community)
+            a.source_community
+                .cmp(&b.source_community)
                 .then_with(|| a.target_community.cmp(&b.target_community))
         });
         result

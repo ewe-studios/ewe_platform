@@ -24,7 +24,9 @@ fn log_decoder_single_stdout_frame() {
 
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::StdOut { message: bytes::Bytes::from("hello") })
+        DecodeOutcome::Frame(LogOutput::StdOut {
+            message: bytes::Bytes::from("hello")
+        })
     );
     assert_eq!(dec.decode(), DecodeOutcome::NeedMore, "no more frames");
     assert_eq!(dec.buffered_len(), 0);
@@ -39,7 +41,9 @@ fn log_decoder_single_stderr_frame() {
 
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::StdErr { message: bytes::Bytes::from("oops") })
+        DecodeOutcome::Frame(LogOutput::StdErr {
+            message: bytes::Bytes::from("oops")
+        })
     );
 }
 
@@ -52,7 +56,9 @@ fn log_decoder_stdin_frame() {
 
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::StdIn { message: bytes::Bytes::from("foo") })
+        DecodeOutcome::Frame(LogOutput::StdIn {
+            message: bytes::Bytes::from("foo")
+        })
     );
 }
 
@@ -65,7 +71,9 @@ fn log_decoder_console_frame() {
 
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::Console { message: bytes::Bytes::from("hi") })
+        DecodeOutcome::Frame(LogOutput::Console {
+            message: bytes::Bytes::from("hi")
+        })
     );
 }
 
@@ -102,11 +110,15 @@ fn log_decoder_multiple_frames_single_chunk() {
 
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::StdOut { message: bytes::Bytes::from("ab") })
+        DecodeOutcome::Frame(LogOutput::StdOut {
+            message: bytes::Bytes::from("ab")
+        })
     );
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::StdErr { message: bytes::Bytes::from("cd") })
+        DecodeOutcome::Frame(LogOutput::StdErr {
+            message: bytes::Bytes::from("cd")
+        })
     );
     assert_eq!(dec.decode(), DecodeOutcome::NeedMore, "no more frames");
 }
@@ -122,7 +134,9 @@ fn log_decoder_incremental_feeds() {
     dec.feed(b"xyz");
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::StdOut { message: bytes::Bytes::from("xyz") })
+        DecodeOutcome::Frame(LogOutput::StdOut {
+            message: bytes::Bytes::from("xyz")
+        })
     );
 }
 
@@ -134,7 +148,9 @@ fn log_decoder_compact_frees_memory() {
     dec.feed(&frame);
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::StdOut { message: bytes::Bytes::from("foo") })
+        DecodeOutcome::Frame(LogOutput::StdOut {
+            message: bytes::Bytes::from("foo")
+        })
     );
     assert_eq!(dec.buffered_len(), 0, "all bytes decoded");
 
@@ -144,7 +160,9 @@ fn log_decoder_compact_frees_memory() {
     dec.feed(&frame2);
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::StdOut { message: bytes::Bytes::from("bar") })
+        DecodeOutcome::Frame(LogOutput::StdOut {
+            message: bytes::Bytes::from("bar")
+        })
     );
     assert_eq!(dec.buffered_len(), 0);
 }
@@ -159,7 +177,9 @@ fn log_decoder_large_payload() {
 
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::StdOut { message: bytes::Bytes::from(payload) })
+        DecodeOutcome::Frame(LogOutput::StdOut {
+            message: bytes::Bytes::from(payload)
+        })
     );
 }
 
@@ -190,7 +210,9 @@ fn log_frame_decoder_distinguishes_need_more_from_skip() {
     assert_eq!(dec.decode(), DecodeOutcome::Skipped);
     assert_eq!(
         dec.decode(),
-        DecodeOutcome::Frame(LogOutput::StdOut { message: bytes::Bytes::from("ok") })
+        DecodeOutcome::Frame(LogOutput::StdOut {
+            message: bytes::Bytes::from("ok")
+        })
     );
     assert_eq!(dec.decode(), DecodeOutcome::NeedMore);
 }

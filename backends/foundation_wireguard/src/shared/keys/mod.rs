@@ -89,9 +89,9 @@ impl NetworkId {
     #[must_use]
     pub fn from_hex(s: &str) -> WgResult<Self> {
         let bytes = hex::decode(s.trim())?;
-        let arr: [u8; 16] = bytes
-            .try_into()
-            .map_err(|_| WgError::InvalidKey("network id must be 16 bytes (32 hex chars)".into()))?;
+        let arr: [u8; 16] = bytes.try_into().map_err(|_| {
+            WgError::InvalidKey("network id must be 16 bytes (32 hex chars)".into())
+        })?;
         Ok(Self(arr))
     }
 }
@@ -257,8 +257,11 @@ impl WgSeed {
         let hk = self.hkdf();
 
         let mut sk_bytes = [0u8; 32];
-        hk.expand_multi_info(&[INFO_BOOTSTRAP_X25519, network_id.as_bytes()], &mut sk_bytes)
-            .expect("32 bytes within HKDF limits");
+        hk.expand_multi_info(
+            &[INFO_BOOTSTRAP_X25519, network_id.as_bytes()],
+            &mut sk_bytes,
+        )
+        .expect("32 bytes within HKDF limits");
         clamp_x25519(&mut sk_bytes);
         let static_secret = StaticSecret::from(sk_bytes);
         let public = PublicKey::from(&static_secret);

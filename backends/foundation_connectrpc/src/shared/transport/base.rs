@@ -26,10 +26,10 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use bytes::Bytes;
-use futures::{Stream, StreamExt};
 use foundation_core::valtron::{MappedSender, PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::shared::http::{RequestDescriptor, SimpleHeaders, Status};
+use futures::{Stream, StreamExt};
 
 use crate::shared::error::{Code, ConnectError};
 
@@ -60,8 +60,12 @@ impl SendBody for PipeSender<Bytes> {
     fn send_async(&self, item: Bytes) -> SendBodyFuture<'_> {
         Box::pin(async move { self.send(item).await.map_err(|_| ()) })
     }
-    fn close(&self) { self.close(); }
-    fn is_closed(&self) -> bool { self.is_closed() }
+    fn close(&self) {
+        self.close();
+    }
+    fn is_closed(&self) -> bool {
+        self.is_closed()
+    }
 }
 
 impl<Inner: Send + 'static, F> SendBody for MappedSender<Inner, Bytes, F>
@@ -74,8 +78,12 @@ where
     fn send_async(&self, item: Bytes) -> SendBodyFuture<'_> {
         Box::pin(async move { self.send(item).await.map_err(|_| ()) })
     }
-    fn close(&self) { self.close(); }
-    fn is_closed(&self) -> bool { self.is_closed() }
+    fn close(&self) {
+        self.close();
+    }
+    fn is_closed(&self) -> bool {
+        self.is_closed()
+    }
 }
 
 /// The wire-body byte source (response bytes in) — the pipe-backed variant still
@@ -111,8 +119,7 @@ pub type HeadStream =
 /// a Fetch body, a pipe) is hidden behind this boxed `Stream`, so a mid-body
 /// failure rides the payload as `Err` instead of being silently dropped, and the
 /// reader never learns what fed it. Each item is `Ok(bytes)` or `Err(transport)`.
-pub type BodyStream =
-    Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send>>;
+pub type BodyStream = Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send>>;
 
 /// Bridge a pipe-backed [`ByteSource`] into a [`BodyStream`] (F45 Part D).
 ///
@@ -271,23 +278,16 @@ pub async fn round_trip(
 ) -> Result<(Status, SimpleHeaders, Bytes), TransportError> {
     let mut stream = transport.open(request)?;
     if !body.is_empty() {
-        stream
-            .send_body
-            .try_send(body)
-            .map_err(|e| {
-                TransportError::Io(Arc::new(std::io::Error::new(
-                    std::io::ErrorKind::BrokenPipe,
-                    format!("{e:?}"),
-                )))
-            })?;
+        stream.send_body.try_send(body).map_err(|e| {
+            TransportError::Io(Arc::new(std::io::Error::new(
+                std::io::ErrorKind::BrokenPipe,
+                format!("{e:?}"),
+            )))
+        })?;
     }
     stream.send_body.close();
     // RPC has exactly one response head — take the first item off the head stream.
-    let (status, headers) = stream
-        .head
-        .next()
-        .await
-        .ok_or(TransportError::Reset)??;
+    let (status, headers) = stream.head.next().await.ok_or(TransportError::Reset)??;
     let mut body_bytes = Vec::new();
     while let Some(chunk) = stream.recv_body.next().await {
         body_bytes.extend_from_slice(&chunk?);

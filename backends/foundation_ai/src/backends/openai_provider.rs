@@ -19,15 +19,15 @@ use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{sleep_async, Stream, StreamSpread};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::event_source::{Event, ParseResult};
-use foundation_netio::DynNetClient;
-#[cfg(not(target_family = "wasm"))]
-use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
     body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},
     http_client::{BoxedSseIterator, SseProgress},
     request::PreparedRequest,
 };
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use serde::{Deserialize, Serialize};
 
 use crate::backends::model_info::{self, ModelInfoCache};
@@ -1216,9 +1216,7 @@ impl Iterator for OpenAIStream {
                                     let (msg, _) = self.build_final_message();
                                     mapped.push(StreamSpread::Done(msg));
                                 }
-                                Stream::Init
-                                | Stream::Ignore
-                                | Stream::Wait => {}
+                                Stream::Init | Stream::Ignore | Stream::Wait => {}
                                 Stream::Spread(inner) => mapped.extend(inner),
                             }
                         }

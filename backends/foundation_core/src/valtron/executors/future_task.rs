@@ -835,8 +835,14 @@ where
                 match future.as_mut().poll(&mut cx) {
                     Poll::Ready(Ok(iter)) => break Some(iter),
                     Poll::Ready(Err(e)) => {
-                        if !push_waiting(&worker_queue, ThreadedValue::Value(Err(e)), backpressure_wait) {
-                            tracing::debug!("ThreadedIterFuture: consumer gone; dropping the error");
+                        if !push_waiting(
+                            &worker_queue,
+                            ThreadedValue::Value(Err(e)),
+                            backpressure_wait,
+                        ) {
+                            tracing::debug!(
+                                "ThreadedIterFuture: consumer gone; dropping the error"
+                            );
                         }
                         break None;
                     }
@@ -847,7 +853,11 @@ where
             // Stream iterator results through the channel
             if let Some(iter) = iterator {
                 for result in iter {
-                    if !push_waiting(&worker_queue, ThreadedValue::Value(result), backpressure_wait) {
+                    if !push_waiting(
+                        &worker_queue,
+                        ThreadedValue::Value(result),
+                        backpressure_wait,
+                    ) {
                         return;
                     }
                 }
@@ -857,10 +867,7 @@ where
         })?;
 
         Ok(FutureIterator {
-            iter: NotifyRecvIterator::from_notify_queue(
-                queue,
-                notify_queue_wait_timeout,
-            ),
+            iter: NotifyRecvIterator::from_notify_queue(queue, notify_queue_wait_timeout),
         })
     }
 }

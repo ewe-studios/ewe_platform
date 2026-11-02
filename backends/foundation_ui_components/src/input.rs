@@ -118,7 +118,10 @@ pub struct FieldsetConfig {
 
 impl Default for FieldsetConfig {
     fn default() -> Self {
-        Self { disabled: false, class: None }
+        Self {
+            disabled: false,
+            class: None,
+        }
     }
 }
 
@@ -132,7 +135,10 @@ pub struct FieldsetSlots {
 
 impl Default for FieldsetSlots {
     fn default() -> Self {
-        Self { legend: None, children: Vec::new() }
+        Self {
+            legend: None,
+            children: Vec::new(),
+        }
     }
 }
 
@@ -146,7 +152,11 @@ pub fn fieldset(
 ) -> Html {
     let class = config.class.unwrap_or(Cow::Borrowed("fieldset"));
     let legend_html = slots.legend.map(|s| s.render(ctx, rcv));
-    let body: Vec<Html> = slots.children.into_iter().map(|s| s.render(ctx, rcv)).collect();
+    let body: Vec<Html> = slots
+        .children
+        .into_iter()
+        .map(|s| s.render(ctx, rcv))
+        .collect();
     html! { ctx, rcv,
         <fieldset class=[class]
                   disabled={config.disabled.then_some("")}
@@ -169,7 +179,10 @@ pub struct FormConfig {
 
 impl Default for FormConfig {
     fn default() -> Self {
-        Self { class: None, novalidate: true }
+        Self {
+            class: None,
+            novalidate: true,
+        }
     }
 }
 

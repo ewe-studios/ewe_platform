@@ -9,14 +9,14 @@ use crate::core::backends::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit::RateLimitEntry;
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
-    RateLimiterStore, DataValue,
+    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
+    RateLimiterStore,
 };
 use crate::wasm::bindgen::KVNamespace;
+use foundation_compact::SendWrapper;
 use js_sys::Object;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
-use foundation_compact::SendWrapper;
 
 // ===========================================================================
 // KVWasmStorage
@@ -42,7 +42,6 @@ impl KVWasmStorage {
     fn prefixed_key(&self, key: &str) -> String {
         format!("{}:{}", self.prefix, key)
     }
-
 }
 
 // ===========================================================================
@@ -65,12 +64,12 @@ impl KVWasmStorage {
             return Ok(None);
         }
 
-        let value = result.as_string().ok_or_else(|| {
-            StorageError::Serialization("KV value is not a string".to_string())
-        })?;
+        let value = result
+            .as_string()
+            .ok_or_else(|| StorageError::Serialization("KV value is not a string".to_string()))?;
 
-        let deserialized: V = serde_json::from_str(&value)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let deserialized: V =
+            serde_json::from_str(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
 
         Ok(Some(deserialized))
     }
@@ -131,9 +130,9 @@ impl KVWasmStorage {
             .await
             .map_err(|e| StorageError::Backend(format!("KV list failed: {e:?}")))?;
 
-        let obj = result.dyn_into::<js_sys::Object>().map_err(|_| {
-            StorageError::Backend("KV list returned non-object".to_string())
-        })?;
+        let obj = result
+            .dyn_into::<js_sys::Object>()
+            .map_err(|_| StorageError::Backend("KV list returned non-object".to_string()))?;
 
         let keys_arr = js_sys::Reflect::get(&obj, &"keys".into())
             .ok()
@@ -149,7 +148,8 @@ impl KVWasmStorage {
                     .and_then(|v| v.as_string())
                 {
                     // Strip prefix to return clean key
-                    let clean_key = name.strip_prefix(&format!("{}:", self.prefix))
+                    let clean_key = name
+                        .strip_prefix(&format!("{}:", self.prefix))
                         .unwrap_or(&name)
                         .to_string();
                     keys.push(clean_key);
@@ -163,11 +163,18 @@ impl KVWasmStorage {
 
 #[async_trait::async_trait]
 impl KeyValueStore for KVWasmStorage {
-    async fn get<V: serde::de::DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: serde::de::DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
         foundation_compact::SendWrapper::new(async move { self.get_async(key).await }).await
     }
 
-    async fn set<V: serde::Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
+    async fn set<V: serde::Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> StorageResult<()> {
         foundation_compact::SendWrapper::new(async move { self.set_async(key, value).await }).await
     }
 
@@ -180,9 +187,9 @@ impl KeyValueStore for KVWasmStorage {
     }
 
     async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
-        let keys = foundation_compact::SendWrapper::new(async move {
-            self.list_keys_async(prefix).await
-        }).await?;
+        let keys =
+            foundation_compact::SendWrapper::new(async move { self.list_keys_async(prefix).await })
+                .await?;
         Ok(AsyncListStream::new(futures_lite::stream::iter(
             keys.into_iter().map(Ok),
         )))
@@ -197,11 +204,7 @@ impl KeyValueStore for KVWasmStorage {
 /// `StorageError::Generic`.
 #[async_trait::async_trait]
 impl QueryStore for KVWasmStorage {
-    async fn query(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<AsyncQueryStream> {
+    async fn query(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         Err(StorageError::Generic(
             "QueryStore not supported for KVWasmStorage".to_string(),
         ))
@@ -226,7 +229,10 @@ impl QueryStore for KVWasmStorage {
 
 impl KVWasmStorage {
     /// The stored entry for `key`'s rate limit, if any.
-    async fn rate_limit_entry(&self, rate_key: &str) -> Result<Option<RateLimitEntry>, StorageError> {
+    async fn rate_limit_entry(
+        &self,
+        rate_key: &str,
+    ) -> Result<Option<RateLimitEntry>, StorageError> {
         let promise = self.kv.get(&self.prefixed_key(rate_key));
         let result = SendWrapper::new(JsFuture::from(promise))
             .await
@@ -262,12 +268,17 @@ impl KVWasmStorage {
     /// concurrent records read the same entry and each writes its own count:
     /// some hits are never counted. Use a D1-backed [`RateLimiterStore`] (or a
     /// Durable Object) where the limit must be exact.
-    async fn record_rate_limit_async(&self, key: &str, window_seconds: u64) -> Result<u32, StorageError> {
+    async fn record_rate_limit_async(
+        &self,
+        key: &str,
+        window_seconds: u64,
+    ) -> Result<u32, StorageError> {
         let rate_key = format!("_rate_limit:{key}");
         let now = unix_now_secs()?;
         let previous = self.rate_limit_entry(&rate_key).await?;
         let entry = RateLimitEntry::record(previous, now, window_seconds);
-        let json = serde_json::to_string(&entry).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let json = serde_json::to_string(&entry)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let value_js = wasm_bindgen::JsValue::from_str(&json);
         let put_promise = self.kv.put(&self.prefixed_key(&rate_key), &value_js);
         SendWrapper::new(JsFuture::from(put_promise))
@@ -301,16 +312,22 @@ impl RateLimiterStore for KVWasmStorage {
         window_seconds: u64,
     ) -> StorageResult<bool> {
         foundation_compact::SendWrapper::new(async move {
-            self.check_rate_limit_async(key, max_count, window_seconds).await
-        }).await
+            self.check_rate_limit_async(key, max_count, window_seconds)
+                .await
+        })
+        .await
     }
 
     async fn record_rate_limit(&self, key: &str, window_seconds: u64) -> StorageResult<u32> {
-        foundation_compact::SendWrapper::new(async move { self.record_rate_limit_async(key, window_seconds).await }).await
+        foundation_compact::SendWrapper::new(async move {
+            self.record_rate_limit_async(key, window_seconds).await
+        })
+        .await
     }
 
     async fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
-        foundation_compact::SendWrapper::new(async move { self.reset_rate_limit_async(key).await }).await
+        foundation_compact::SendWrapper::new(async move { self.reset_rate_limit_async(key).await })
+            .await
     }
 }
 
@@ -348,8 +365,8 @@ impl KVWasmStorage {
             StorageError::Serialization("KV blob value is not a string".to_string())
         })?;
 
-        let wrapper: serde_json::Value = serde_json::from_str(&json)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let wrapper: serde_json::Value =
+            serde_json::from_str(&json).map_err(|e| StorageError::Serialization(e.to_string()))?;
 
         let is_blob = wrapper.get("type").and_then(|v| v.as_str()) == Some("blob");
         if !is_blob {
@@ -359,7 +376,9 @@ impl KVWasmStorage {
         let encoded = wrapper
             .get("data")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| StorageError::Serialization("missing data field in blob wrapper".to_string()))?;
+            .ok_or_else(|| {
+                StorageError::Serialization("missing data field in blob wrapper".to_string())
+            })?;
 
         let decoded = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded)
             .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))?;
@@ -391,7 +410,8 @@ impl KVWasmStorage {
 #[async_trait::async_trait]
 impl BlobStore for KVWasmStorage {
     async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
+        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await })
+            .await
     }
 
     async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {

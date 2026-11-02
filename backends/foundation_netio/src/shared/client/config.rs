@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
-use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 use crate::shared::http::framing::FrameLimits;
+use crate::shared::http::timeout::{TimeoutCalculator, TimeoutConfig, TimeoutContext};
 use crate::shared::http::{SimpleHeader, SimpleHeaders, SimpleHttpBody};
 
 use super::proxy;

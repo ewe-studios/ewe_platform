@@ -50,7 +50,7 @@ impl ClientClassification {
     pub fn timeout_multiplier(&self) -> f64 {
         match self {
             Self::Normal => 1.0,
-            Self::Slow => 1.5, // +50% timeout
+            Self::Slow => 1.5,       // +50% timeout
             Self::Suspicious => 0.5, // -50% timeout (fail fast)
         }
     }

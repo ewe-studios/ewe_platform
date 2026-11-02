@@ -3,7 +3,7 @@
 #![cfg(feature = "vms")]
 
 use foundation_deployment_platform::init::{
-    generate_gitignore, generate_testbed_toml, BUILTIN_DEFENDER_EXCLUSIONS, BUILTIN_MOUNT_CHECK,
+    BUILTIN_DEFENDER_EXCLUSIONS, BUILTIN_MOUNT_CHECK, generate_gitignore, generate_testbed_toml,
 };
 
 #[test]

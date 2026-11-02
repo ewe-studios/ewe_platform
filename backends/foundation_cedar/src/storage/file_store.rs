@@ -50,10 +50,7 @@ impl PolicyStore for FilePolicyStore {
 
     async fn version(&self) -> Result<String, CedarError> {
         let meta = std::fs::metadata(&self.policy).map_err(|e| {
-            CedarError::PolicyParse(format!(
-                "Failed to stat {}: {e}",
-                self.policy.display()
-            ))
+            CedarError::PolicyParse(format!("Failed to stat {}: {e}", self.policy.display()))
         })?;
         let modified = meta
             .modified()

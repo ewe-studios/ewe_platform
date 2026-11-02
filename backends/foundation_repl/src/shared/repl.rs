@@ -70,7 +70,10 @@ impl Repl {
     #[cfg(feature = "wasm")]
     fn make_backend(
         theme: ReplTheme,
-    ) -> (crate::wasm::input::WasmInput, crate::wasm::display::WasmDisplay) {
+    ) -> (
+        crate::wasm::input::WasmInput,
+        crate::wasm::display::WasmDisplay,
+    ) {
         (
             crate::wasm::input::WasmInput::new(),
             crate::wasm::display::WasmDisplay::new(theme),

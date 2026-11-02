@@ -94,7 +94,7 @@ pub fn ramp(hue: f32, sat: f32, count: usize, ease_c1: f32, ease_c2: f32) -> Vec
             #[allow(clippy::cast_precision_loss)]
             let t = i as f32 / denom;
             let e = ease(t, ease_c1, ease_c2); // 0..1
-            // Light (0.95) → dark (0.12).
+                                               // Light (0.95) → dark (0.12).
             let l = 0.95 - e * 0.83;
             Hsl::new(hue, sat, l).to_hex()
         })
@@ -168,5 +168,7 @@ fn norm_deg(h: f32) -> f32 {
 fn to_u8(v: f32) -> u8 {
     let scaled = (v * 255.0 + 0.5).clamp(0.0, 255.0);
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-    { scaled as u8 }
+    {
+        scaled as u8
+    }
 }

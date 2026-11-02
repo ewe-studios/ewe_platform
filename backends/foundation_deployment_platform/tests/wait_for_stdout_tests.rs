@@ -25,12 +25,12 @@ mod mock_socket;
 use std::io::Write;
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::time::Duration;
 
 use foundation_core::valtron::valtron_test;
-use foundation_deployment_platform::docker::{wait_for_stdout, DockerClient, DockerError};
+use foundation_deployment_platform::docker::{DockerClient, DockerError, wait_for_stdout};
 
 /// A unique socket path so parallel test runs never collide.
 fn temp_socket_path(tag: &str) -> PathBuf {
@@ -49,7 +49,11 @@ fn frame(stream_type: u8, payload: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(8 + payload.len());
     out.push(stream_type);
     out.extend_from_slice(&[0u8; 3]);
-    out.extend_from_slice(&u32::try_from(payload.len()).unwrap_or(u32::MAX).to_be_bytes());
+    out.extend_from_slice(
+        &u32::try_from(payload.len())
+            .unwrap_or(u32::MAX)
+            .to_be_bytes(),
+    );
     out.extend_from_slice(payload);
     out
 }
@@ -70,12 +74,18 @@ fn write_response(stream: &mut UnixStream, status: u16, body: &[u8]) {
 #[derive(Clone, Copy)]
 enum LogScript {
     /// The message is split across two stdout frames on one connection.
-    SplitAcrossFrames { first: &'static [u8], second: &'static [u8] },
+    SplitAcrossFrames {
+        first: &'static [u8],
+        second: &'static [u8],
+    },
     /// The message appears only on stderr; stdout is empty.
     StderrOnly { payload: &'static [u8] },
     /// `follow=true` serves two stdout frames on one connection; `follow=false`
     /// serves only the first frame, so a re-polling caller gets it repeatedly.
-    FollowVsPoll { first: &'static [u8], second: &'static [u8] },
+    FollowVsPoll {
+        first: &'static [u8],
+        second: &'static [u8],
+    },
 }
 
 /// Serve one log response according to `script`, counting the frame bytes it
@@ -130,9 +140,11 @@ fn mock_daemon(
         }
 
         let path_no_query = path.split('?').next().unwrap_or(path);
-        let p = path_no_query.split_once("/v1.").map_or(path_no_query, |(_, rest)| {
-            rest.split_once('/').map_or(rest, |(_, r)| r)
-        });
+        let p = path_no_query
+            .split_once("/v1.")
+            .map_or(path_no_query, |(_, rest)| {
+                rest.split_once('/').map_or(rest, |(_, r)| r)
+            });
         if method == "GET" && p.starts_with("containers/") && p.ends_with("/logs") {
             let follow = path.contains("follow=true");
             // A long-lived stream must not hold the accept loop.
@@ -158,7 +170,10 @@ async fn wait_for_stdout_matches_across_frames() {
         &socket,
         stop.clone(),
         bytes.clone(),
-        LogScript::SplitAcrossFrames { first: b"hello ", second: b"world" },
+        LogScript::SplitAcrossFrames {
+            first: b"hello ",
+            second: b"world",
+        },
     );
     let client = DockerClient::connect_unix(&socket);
 
@@ -180,7 +195,9 @@ async fn wait_for_stdout_ignores_stderr() {
         &socket,
         stop.clone(),
         bytes.clone(),
-        LogScript::StderrOnly { payload: b"hello world" },
+        LogScript::StderrOnly {
+            payload: b"hello world",
+        },
     );
     let client = DockerClient::connect_unix(&socket);
 
@@ -205,7 +222,10 @@ async fn wait_for_stdout_reads_each_byte_once() {
         &socket,
         stop.clone(),
         bytes.clone(),
-        LogScript::FollowVsPoll { first: b"hello", second: b"world" },
+        LogScript::FollowVsPoll {
+            first: b"hello",
+            second: b"world",
+        },
     );
     let client = DockerClient::connect_unix(&socket);
 

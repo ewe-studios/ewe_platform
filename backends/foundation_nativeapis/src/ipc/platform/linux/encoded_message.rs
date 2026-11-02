@@ -10,17 +10,15 @@
 /// | payload_padding                       0-3 bytes
 ///
 /// Ancillary data: SCM_RIGHTS with array of fds (objects + memory region fds)
-
 use std::{mem, os::fd::RawFd, ptr, slice};
 
 use foundation_core::type_uuid::TypeUuid;
 
 use super::fd::{Local, Remote};
-use crate::ipc::{
-    decode, util::Align4, version::version, version::Version,
-    Error, MemoryRegion, Selector,
-};
 use super::Fd as Object;
+use crate::ipc::{
+    decode, util::Align4, version::version, version::Version, Error, MemoryRegion, Selector,
+};
 
 pub(crate) struct EncodedMessage {
     pub selector: Selector,
@@ -219,7 +217,8 @@ pub fn alloc_buffer<T>(size: usize) -> Vec<u8> {
     let mut buf_t = Vec::<T>::with_capacity(buffer_t_size);
 
     let buffer_size = buffer_t_size * mem::size_of::<T>();
-    let buf = unsafe { Vec::from_raw_parts(buf_t.as_mut_ptr().cast::<u8>(), buffer_size, buffer_size) };
+    let buf =
+        unsafe { Vec::from_raw_parts(buf_t.as_mut_ptr().cast::<u8>(), buffer_size, buffer_size) };
 
     mem::forget(buf_t);
 

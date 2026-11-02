@@ -20,7 +20,7 @@ use crate::backends::backend_utils::{
 use crate::backends::openai_provider::OpenAIFormatter;
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
-    AuthProvider, Messages, MessageType, Model, ModelAPI, ModelId, ModelInteraction, ModelOutput,
+    AuthProvider, MessageType, Messages, Model, ModelAPI, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
     ModelStreamBox, ModelUsageCosting, StopReason, TextContent, ToolFormatter, UsageReport,
     UserModelContent,
@@ -28,15 +28,15 @@ use crate::types::base_types::{
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
-use foundation_netio::DynNetClient;
-#[cfg(not(target_family = "wasm"))]
-use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
     body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},
     http_client::{BoxedSseIterator, SseProgress},
     request::PreparedRequest,
 };
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use serde::{Deserialize, Serialize};
 
 /// Cloudflare Workers AI REST API base URL.
@@ -217,10 +217,7 @@ impl WorkersAiProvider {
 
     /// [`Self::with_http_client`] with a config.
     #[must_use]
-    pub fn with_http_client_and_config(
-        client: DynNetClient,
-        config: WorkersAiConfig,
-    ) -> Self {
+    pub fn with_http_client_and_config(client: DynNetClient, config: WorkersAiConfig) -> Self {
         Self {
             config,
             api_token: None,
@@ -379,7 +376,11 @@ impl WorkersAiModel {
     }
 
     /// Execute a single non-streaming request (no retry: wasm has no `thread`).
-    fn do_request<T: for<'de> Deserialize<'de>>(&self, url: &str, body: &str) -> GenerationResult<T> {
+    fn do_request<T: for<'de> Deserialize<'de>>(
+        &self,
+        url: &str,
+        body: &str,
+    ) -> GenerationResult<T> {
         let client = self
             .http_client
             .as_ref()
@@ -622,9 +623,7 @@ impl Iterator for WorkersAiStream {
                                         None,
                                     )));
                                 }
-                                Stream::Init
-                                | Stream::Ignore
-                                | Stream::Wait => {}
+                                Stream::Init | Stream::Ignore | Stream::Wait => {}
                                 Stream::Spread(inner) => mapped.extend(inner),
                             }
                         }

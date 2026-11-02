@@ -24,8 +24,7 @@ pub const KEY_LEN: u32 = 32;
 
 /// Server-side re-hash iteration count. WebCrypto caps PBKDF2 at 100k, so this is
 /// shared by both backends for identical output (`PBKDF2_SERVER_ITERATIONS`).
-pub const SERVER_ITERATIONS: u32 =
-    foundation_auth::shared::password_hash::PBKDF2_SERVER_ITERATIONS;
+pub const SERVER_ITERATIONS: u32 = foundation_auth::shared::password_hash::PBKDF2_SERVER_ITERATIONS;
 
 /// Derive the server-side password verifier from the client's master password hash.
 #[cfg(not(target_family = "wasm"))]
@@ -48,7 +47,9 @@ pub async fn derive_password_hash(
 ) -> AppResult<Vec<u8>> {
     let key = pbkdf2_derive(client_hash, salt, iterations, KEY_LEN)
         .await
-        .map_err(|e| crate::core::error::AppError::Internal(format!("pbkdf2 derive failed: {e:?}")))?;
+        .map_err(|e| {
+            crate::core::error::AppError::Internal(format!("pbkdf2 derive failed: {e:?}"))
+        })?;
     Ok(key.as_bytes().to_vec())
 }
 
@@ -131,7 +132,12 @@ pub async fn derive_client_hash(
         return Ok(None);
     }
     let mut mk = vec![0u8; 32];
-    pbkdf2_hmac::<Sha256>(password.as_bytes(), email_lower.as_bytes(), client_iterations, &mut mk);
+    pbkdf2_hmac::<Sha256>(
+        password.as_bytes(),
+        email_lower.as_bytes(),
+        client_iterations,
+        &mut mk,
+    );
     let mut lh = vec![0u8; 32];
     pbkdf2_hmac::<Sha256>(&mk, password.as_bytes(), 1, &mut lh);
     Ok(Some(base64::engine::general_purpose::STANDARD.encode(&lh)))

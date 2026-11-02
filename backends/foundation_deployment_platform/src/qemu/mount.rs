@@ -119,4 +119,3 @@ pub fn fstab_entry(tag: &str, guest_path: &str) -> String {
 pub fn verify_mount_command(guest_path: &str) -> String {
     format!("mount | grep -q {guest_path} && echo OK || echo MISSING")
 }
-

@@ -80,10 +80,16 @@ impl KeychainContext {
     }
 }
 
-fn build_verifier(signing_key: &JwtSigningKey) -> Result<JwtVerifier, foundation_auth::shared::jwt::JwtError> {
+fn build_verifier(
+    signing_key: &JwtSigningKey,
+) -> Result<JwtVerifier, foundation_auth::shared::jwt::JwtError> {
     let pem = signing_key.public_key_pem()?;
     JwtVerifier::from_config(JwtVerifierConfig {
-        allowed_algorithms: vec![JwtAlgorithm::EdDSA, JwtAlgorithm::RS256, JwtAlgorithm::ES256],
+        allowed_algorithms: vec![
+            JwtAlgorithm::EdDSA,
+            JwtAlgorithm::RS256,
+            JwtAlgorithm::ES256,
+        ],
         issuer: Some(ISSUER.to_string()),
         audience: None,
         key_id: None,

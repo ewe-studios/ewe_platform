@@ -34,7 +34,9 @@ use crate::shared::interceptor::{
     Interceptor, InterceptorChain, RecoverInterceptor, StreamingHandlerFunc, UnaryFunc,
 };
 use crate::shared::message::{Request, Response};
-use crate::shared::protocol::{connect::ConnectHandler, grpc::GrpcHandler, grpc_web::GrpcWebHandler, ProtocolHandler};
+use crate::shared::protocol::{
+    connect::ConnectHandler, grpc::GrpcHandler, grpc_web::GrpcWebHandler, ProtocolHandler,
+};
 use crate::shared::transport::DEFAULT_PIPE_DEPTH;
 
 use erased::{
@@ -46,8 +48,8 @@ pub use dispatch::{
     in_memory_body, CallHooks, CollectingSink, ConnectRpcHandler, DeadlineTimer, RequestBody,
     ResponseSink,
 };
-pub use erased::RequestStream;
 pub(crate) use erased::ProcedureMeta;
+pub use erased::RequestStream;
 
 /// Per-procedure (and global) handler configuration (Decision 08 §HandlerOptions).
 /// Codecs are **not** here — they are installed only through the registration

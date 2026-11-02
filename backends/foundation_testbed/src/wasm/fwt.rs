@@ -13,8 +13,8 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use foundation_codegen::wasm::sections::{ExportDesc, Section};
 use foundation_codegen::wasm::Module;
+use foundation_codegen::wasm::sections::{ExportDesc, Section};
 use tracing::debug;
 
 use crate::wasm::error::{Result, ToTrace, WasmTestbedError};

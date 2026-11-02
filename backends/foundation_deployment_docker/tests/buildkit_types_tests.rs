@@ -45,7 +45,10 @@ fn info_request_proto_round_trips() {
 
 #[test]
 fn status_request_ref_round_trips_proto_and_json() {
-    let req = StatusRequest { Ref: "build-ref-123".into(), ..Default::default() };
+    let req = StatusRequest {
+        Ref: "build-ref-123".into(),
+        ..Default::default()
+    };
 
     // Proto wire round-trip.
     let bytes = req.encode_to_vec();

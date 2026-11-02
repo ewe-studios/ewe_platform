@@ -58,8 +58,8 @@ pub fn connect_from_port(port: u16, user: &str, os: GuestOs) -> Result<VmSession
 }
 
 fn connect_raw(port: u16, user: &str, os: GuestOs) -> Result<VmSession> {
-    let tcp = std::net::TcpStream::connect(("127.0.0.1", port))
-        .map_err(|e| TestbedError::SshFailed {
+    let tcp =
+        std::net::TcpStream::connect(("127.0.0.1", port)).map_err(|e| TestbedError::SshFailed {
             port,
             source: anyhow::anyhow!(e),
         })?;
@@ -76,10 +76,8 @@ fn connect_raw(port: u16, user: &str, os: GuestOs) -> Result<VmSession> {
     })?;
 
     // Auth fallback chain: agent → keys → password
-    authenticate_raw(&mut session, user).map_err(|e| TestbedError::SshFailed {
-        port,
-        source: e,
-    })?;
+    authenticate_raw(&mut session, user)
+        .map_err(|e| TestbedError::SshFailed { port, source: e })?;
 
     Ok(VmSession {
         session,
@@ -106,9 +104,9 @@ fn authenticate_raw(session: &mut Session, user: &str) -> anyhow::Result<()> {
                 && session
                     .userauth_pubkey_file(user, None, &key_path, None)
                     .is_ok()
-                {
-                    return Ok(());
-                }
+            {
+                return Ok(());
+            }
         }
     }
 
@@ -119,9 +117,9 @@ fn authenticate_raw(session: &mut Session, user: &str) -> anyhow::Result<()> {
             && session
                 .userauth_pubkey_file(user, None, &vagrant_key, None)
                 .is_ok()
-            {
-                return Ok(());
-            }
+        {
+            return Ok(());
+        }
     }
 
     // 3. Password (not available without profile — skip)
@@ -170,12 +168,10 @@ pub fn exec_with_exit(session: &mut VmSession, cmd: &str) -> Result<(String, i32
             source: anyhow::anyhow!(e),
         })?;
 
-    let exit_code = channel
-        .exit_status()
-        .map_err(|e| TestbedError::SshFailed {
-            port: session.port,
-            source: anyhow::anyhow!(e),
-        })?;
+    let exit_code = channel.exit_status().map_err(|e| TestbedError::SshFailed {
+        port: session.port,
+        source: anyhow::anyhow!(e),
+    })?;
 
     Ok((output, exit_code))
 }
@@ -192,10 +188,7 @@ pub fn exec_with_exit(session: &mut VmSession, cmd: &str) -> Result<(String, i32
 /// Returns an error if the PowerShell command fails.
 pub fn exec_ps_windows(session: &mut VmSession, script: &str) -> Result<(String, i32)> {
     // Encode script as UTF-16LE + Base64 for -EncodedCommand
-    let utf16le: Vec<u8> = script
-        .encode_utf16()
-        .flat_map(u16::to_le_bytes)
-        .collect();
+    let utf16le: Vec<u8> = script.encode_utf16().flat_map(u16::to_le_bytes).collect();
     let encoded =
         base64::engine::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
 
@@ -227,11 +220,16 @@ pub fn upload(session: &mut VmSession, local: &Path, remote: &str) -> Result<()>
 
     let status = Command::new("scp")
         .args([
-            "-P", &session.port.to_string(),
-            "-o", "StrictHostKeyChecking=no",
-            "-o", "UserKnownHostsFile=/dev/null",
-            "-o", "LogLevel=quiet",
-            "-i", &key_path,
+            "-P",
+            &session.port.to_string(),
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-o",
+            "LogLevel=quiet",
+            "-i",
+            &key_path,
             local.to_str().ok_or_else(|| TestbedError::SshFailed {
                 port: session.port,
                 source: anyhow::anyhow!("local path {} is not valid UTF-8", local.display()),
@@ -294,11 +292,16 @@ pub fn download(session: &mut VmSession, remote: &str, local: &Path) -> Result<(
 
     let status = Command::new("scp")
         .args([
-            "-P", &session.port.to_string(),
-            "-o", "StrictHostKeyChecking=no",
-            "-o", "UserKnownHostsFile=/dev/null",
-            "-o", "LogLevel=quiet",
-            "-i", &key_path,
+            "-P",
+            &session.port.to_string(),
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-o",
+            "LogLevel=quiet",
+            "-i",
+            &key_path,
             &format!("{}@127.0.0.1:{remote}", session.user),
             local.to_str().ok_or_else(|| TestbedError::SshFailed {
                 port: session.port,
@@ -416,4 +419,3 @@ pub fn wrap_command_cmd(cmd: &str) -> String {
 pub fn wrap_command_bash(cmd: &str) -> String {
     format!("bash -c {cmd:?}")
 }
-

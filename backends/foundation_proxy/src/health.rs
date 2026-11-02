@@ -24,9 +24,9 @@ use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_http::ShutdownSignal;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{block_on_future, sleep_async};
+use foundation_http::ShutdownSignal;
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl,
 };
@@ -35,9 +35,9 @@ use foundation_connectrpc::{
     CancelSignal, ClientExchange, ClientExchangeConfig, GrpcClient, H2Transport, ProtocolClient,
     Spec, Transport,
 };
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use futures_util::future::{select, Either};
 use futures_util::FutureExt;
-use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 
 use crate::config::{BackendProtocol, HealthCheckConfig};
 use crate::runtime::{BackendRuntime, ServiceRuntime};
@@ -122,9 +122,14 @@ impl HealthMonitor {
 /// A service without a `health_check` config spawns nothing — its backends stay
 /// at their initial healthy state.
 #[must_use]
-pub fn spawn_service_probes(service: &Arc<ServiceRuntime>, shutdown: Arc<ShutdownSignal>) -> HealthMonitor {
+pub fn spawn_service_probes(
+    service: &Arc<ServiceRuntime>,
+    shutdown: Arc<ShutdownSignal>,
+) -> HealthMonitor {
     let Some(config) = service.config().health_check.clone() else {
-        return HealthMonitor { handles: Vec::new() };
+        return HealthMonitor {
+            handles: Vec::new(),
+        };
     };
     // One probe client per service, with the probe timeout for both the
     // connect and the read; its threads share its pool.
@@ -199,9 +204,7 @@ fn probe_once(
         BackendProtocol::Http
         | BackendProtocol::Https
         | BackendProtocol::Connect
-        | BackendProtocol::GrpcWeb => {
-            probe_http(backend.url(), &config.path, client)
-        }
+        | BackendProtocol::GrpcWeb => probe_http(backend.url(), &config.path, client),
     }
 }
 

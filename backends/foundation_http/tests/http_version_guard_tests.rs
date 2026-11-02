@@ -27,8 +27,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_http::ShutdownSignal;
 use foundation_core::valtron::valtron_test;
+use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 
@@ -228,7 +228,6 @@ fn serves_request_line_without_version() {
 fn serves_lowercase_http_11_token() {
     assert_served("http/1.1");
 }
-
 
 // -- Persistence defaults are version-dependent (RFC 9112 §9.3).
 //

@@ -51,7 +51,11 @@ fn fuse_rrf(
         })
         .collect();
 
-    results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+    results.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     results.truncate(k);
     results
 }
@@ -109,18 +113,18 @@ fn fuse_alpha(
         .map(|(id, score)| VectorMatch { id, score })
         .collect();
 
-    results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+    results.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     results.truncate(k);
     results
 }
 
 pub trait Reranker: Send + Sync {
-    fn rerank(
-        &self,
-        query: &str,
-        candidates: Vec<VectorMatch>,
-        texts: &[&str],
-    ) -> Vec<VectorMatch>;
+    fn rerank(&self, query: &str, candidates: Vec<VectorMatch>, texts: &[&str])
+        -> Vec<VectorMatch>;
 }
 
 /// An id → text source for reranking. The text is the document a candidate id

@@ -27,7 +27,7 @@ impl ToolImpl for EchoTool {
             description: "Echoes input".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        returns: None,
+            returns: None,
         }))
     }
 
@@ -61,7 +61,7 @@ impl ToolImpl for FailingTool {
             description: "Always fails".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        returns: None,
+            returns: None,
         }))
     }
 
@@ -379,7 +379,7 @@ impl ToolImpl for FlakyTool {
             description: "Fails then succeeds".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        returns: None,
+            returns: None,
         }))
     }
 
@@ -448,7 +448,10 @@ fn get_def_returns_registered_definition() {
     let m = mgr();
     let def = m.get_def("echo").expect("echo is registered");
     assert_eq!(def.name(), "echo");
-    assert!(m.get_def("nope").is_none(), "unknown tool has no definition");
+    assert!(
+        m.get_def("nope").is_none(),
+        "unknown tool has no definition"
+    );
 }
 
 /// Matrix 10.6 — a panicking tool is contained at the boundary: execute_one
@@ -463,7 +466,7 @@ impl ToolImpl for PanicTool {
             description: "Panics".into(),
             arguments: Args::from_value(serde_json::json!({})),
             category: "shell".into(),
-        returns: None,
+            returns: None,
         }))
     }
     async fn execute(&self, _arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -502,7 +505,7 @@ impl ToolImpl for StrictTool {
                 "required": ["path"]
             })),
             category: "read".into(),
-        returns: None,
+            returns: None,
         }))
     }
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -514,7 +517,10 @@ impl ToolImpl for StrictTool {
         }
         Ok(ToolCallResult {
             content: foundation_ai::types::UserModelContent::Text(
-                foundation_ai::types::TextContent { content: "ok".into(), signature: None },
+                foundation_ai::types::TextContent {
+                    content: "ok".into(),
+                    signature: None,
+                },
             ),
             error_detail: None,
         })

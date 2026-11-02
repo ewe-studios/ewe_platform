@@ -255,7 +255,11 @@ fn test_system_resolver_rejects_empty_host() {
 #[valtron_test]
 fn test_system_resolver_handles_invalid_host() {
     let resolver = SystemDnsResolver::new();
-    let result = resolve_blocking(&resolver, "this-hostname-should-not-exist-12345.invalid", 8080);
+    let result = resolve_blocking(
+        &resolver,
+        "this-hostname-should-not-exist-12345.invalid",
+        8080,
+    );
 
     assert!(result.is_err(), "invalid hostname should fail to resolve");
 }

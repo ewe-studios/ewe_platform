@@ -357,8 +357,7 @@ fn classify_body_error(e: &foundation_core::extensions::result_ext::BoxedError) 
     let would_block = e
         .downcast_ref::<HttpReaderError>()
         .is_some_and(HttpReaderError::is_would_block)
-        || e
-            .downcast_ref::<io::Error>()
+        || e.downcast_ref::<io::Error>()
             .is_some_and(|e| e.kind() == io::ErrorKind::WouldBlock);
     if would_block {
         BodyStep::WouldBlock
@@ -817,9 +816,8 @@ async fn run_streaming(
     };
     let handler_fut = handler.handle(ctx, &codec_name, conn);
 
-    let request_side = futures::future::try_join(feeder, async {
-        Ok::<_, io::Error>(reader_task.await)
-    });
+    let request_side =
+        futures::future::try_join(feeder, async { Ok::<_, io::Error>(reader_task.await) });
     let response_side = futures::future::join(writer_task, handler_fut);
     let rest = std::pin::pin!(exchange_until_aborted(
         request_side,
@@ -1756,9 +1754,8 @@ async fn run_streaming_h2(
 
     let handler_fut = handler.handle(ctx, &codec_name, conn);
 
-    let request_side = futures::future::try_join(feeder, async {
-        Ok::<_, io::Error>(reader_task.await)
-    });
+    let request_side =
+        futures::future::try_join(feeder, async { Ok::<_, io::Error>(reader_task.await) });
     let response_side = futures::future::join(writer_task, handler_fut);
     let rest = std::pin::pin!(exchange_until_aborted(
         request_side,
@@ -1858,9 +1855,10 @@ async fn run_streaming_h2(
             // MUST end in `grpc-status` trailers or the client reports
             // `Unknown` with an empty message (bit BuildKit's FileSend sink,
             // whose response stream is legitimately empty).
-            response
-                .trailers
-                .insert(SimpleHeader::from("grpc-status".to_string()), vec!["0".to_string()]);
+            response.trailers.insert(
+                SimpleHeader::from("grpc-status".to_string()),
+                vec!["0".to_string()],
+            );
         }
     }
     send_whole_response(tx, response).await
@@ -1887,7 +1885,10 @@ pub(crate) fn grpc_status_trailers(
                 }
             }
             vec![
-                (Bytes::from_static(b"grpc-status"), Bytes::from(code.to_string())),
+                (
+                    Bytes::from_static(b"grpc-status"),
+                    Bytes::from(code.to_string()),
+                ),
                 (Bytes::from_static(b"grpc-message"), Bytes::from(encoded)),
             ]
         }

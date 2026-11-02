@@ -162,11 +162,9 @@ fn test_round_robin_spreads_across_backends() {
     let a = ContainerHandle::start(echo_config("backend-A")).expect("start A");
     let b = ContainerHandle::start(echo_config("backend-B")).expect("start B");
 
-    let proxy = start_proxy(vec![
-        ServiceConfig::new("app", "app.local")
-            .backend(&backend_url(&a, ECHO_PORT))
-            .backend(&backend_url(&b, ECHO_PORT)),
-    ]);
+    let proxy = start_proxy(vec![ServiceConfig::new("app", "app.local")
+        .backend(&backend_url(&a, ECHO_PORT))
+        .backend(&backend_url(&b, ECHO_PORT))]);
     let addr = proxy.local_addr();
 
     let mut saw_a = false;
@@ -290,11 +288,9 @@ fn test_no_healthy_backend_returns_503() {
         healthy_threshold: 1,
         unhealthy_threshold: 2,
     };
-    let proxy = start_proxy(vec![
-        ServiceConfig::new("app", "app.local")
-            .backend(&url)
-            .health_check_config(hc),
-    ]);
+    let proxy = start_proxy(vec![ServiceConfig::new("app", "app.local")
+        .backend(&url)
+        .health_check_config(hc)]);
     let addr = proxy.local_addr();
 
     // Kill the backend and wait for the probes to eject it.
@@ -336,7 +332,7 @@ fn test_hop_by_hop_stripped_and_xff_added() {
     let a = ContainerHandle::start(echo_config("hop-backend")).expect("start echo A");
 
     let proxy = start_proxy(vec![
-        ServiceConfig::new("app", "app.local").backend(&backend_url(&a, ECHO_PORT)),
+        ServiceConfig::new("app", "app.local").backend(&backend_url(&a, ECHO_PORT))
     ]);
     let addr = proxy.local_addr();
 
@@ -417,11 +413,9 @@ fn test_health_ejects_and_readmits_backend() {
         healthy_threshold: 1,
         unhealthy_threshold: 2,
     };
-    let proxy = start_proxy(vec![
-        ServiceConfig::new("app", "app.local")
-            .backend(&url)
-            .health_check_config(hc),
-    ]);
+    let proxy = start_proxy(vec![ServiceConfig::new("app", "app.local")
+        .backend(&url)
+        .health_check_config(hc)]);
     let addr = proxy.local_addr();
 
     // Verify the backend is reachable via the proxy while healthy.

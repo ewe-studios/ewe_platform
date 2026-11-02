@@ -17,7 +17,7 @@ use std::time::Duration;
 
 use crate::core::backends::{unix_now_millis, unix_now_secs};
 use crate::core::errors::{StorageError, StorageResult};
-use crate::core::storage_provider::{QueryStore, DataValue};
+use crate::core::storage_provider::{DataValue, QueryStore};
 
 /// How long expired rows are kept before a full cleanup deletes them.
 ///
@@ -140,7 +140,11 @@ pub trait StorageCleanup: QueryStore {
     /// # Errors
     ///
     /// Returns a `StorageError` if the database query fails.
-    async fn cleanup_expired_sessions(&self, now: i64, max_inactive: Option<Duration>) -> StorageResult<u64> {
+    async fn cleanup_expired_sessions(
+        &self,
+        now: i64,
+        max_inactive: Option<Duration>,
+    ) -> StorageResult<u64> {
         match max_inactive {
             Some(inactive) => {
                 self.execute(
@@ -162,8 +166,11 @@ pub trait StorageCleanup: QueryStore {
     ///
     /// Returns a `StorageError` if the database query fails.
     async fn cleanup_expired_jwt_tokens(&self, before: i64) -> StorageResult<u64> {
-        self.execute("DELETE FROM jwt_tokens WHERE expires_at < ?", &[DataValue::Integer(before)])
-            .await
+        self.execute(
+            "DELETE FROM jwt_tokens WHERE expires_at < ?",
+            &[DataValue::Integer(before)],
+        )
+        .await
     }
 
     /// Delete verification tokens that expired before `before` (Unix milliseconds).
@@ -185,8 +192,11 @@ pub trait StorageCleanup: QueryStore {
     ///
     /// Returns a `StorageError` if the database query fails.
     async fn cleanup_expired_oauth_states(&self, before: i64) -> StorageResult<u64> {
-        self.execute("DELETE FROM oauth_states WHERE expires_at < ?", &[DataValue::Integer(before)])
-            .await
+        self.execute(
+            "DELETE FROM oauth_states WHERE expires_at < ?",
+            &[DataValue::Integer(before)],
+        )
+        .await
     }
 
     /// Delete magic links that expired before `before` (Unix milliseconds).
@@ -195,8 +205,11 @@ pub trait StorageCleanup: QueryStore {
     ///
     /// Returns a `StorageError` if the database query fails.
     async fn cleanup_expired_magic_links(&self, before: i64) -> StorageResult<u64> {
-        self.execute("DELETE FROM magic_links WHERE expires_at < ?", &[DataValue::Integer(before)])
-            .await
+        self.execute(
+            "DELETE FROM magic_links WHERE expires_at < ?",
+            &[DataValue::Integer(before)],
+        )
+        .await
     }
 
     /// Delete email OTPs that expired before `before` (Unix milliseconds).
@@ -205,8 +218,11 @@ pub trait StorageCleanup: QueryStore {
     ///
     /// Returns a `StorageError` if the database query fails.
     async fn cleanup_expired_email_otps(&self, before: i64) -> StorageResult<u64> {
-        self.execute("DELETE FROM email_otps WHERE expires_at < ?", &[DataValue::Integer(before)])
-            .await
+        self.execute(
+            "DELETE FROM email_otps WHERE expires_at < ?",
+            &[DataValue::Integer(before)],
+        )
+        .await
     }
 
     /// Delete rate-limit windows that started more than `window` before
@@ -242,7 +258,10 @@ pub trait StorageCleanup: QueryStore {
                 .cleanup_expired_jwt_tokens(cutoff_millis(now_ms, config.jwt_token_retention)?)
                 .await?,
             verification_tokens_deleted: self
-                .cleanup_expired_verification_tokens(cutoff_millis(now_ms, config.verification_token_retention)?)
+                .cleanup_expired_verification_tokens(cutoff_millis(
+                    now_ms,
+                    config.verification_token_retention,
+                )?)
                 .await?,
             oauth_states_deleted: self
                 .cleanup_expired_oauth_states(cutoff_millis(now_ms, config.oauth_state_retention)?)

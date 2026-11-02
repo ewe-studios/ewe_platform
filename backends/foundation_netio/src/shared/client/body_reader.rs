@@ -40,9 +40,8 @@ use bytes::{Bytes, BytesMut};
 use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::io::readers::{Data, DataBytesIterator};
 use foundation_core::valtron::{
-    self, BoxedSendableDataIterator, BoxedSendableIterator,
-    CollectionState, SplitCollectorMapObserver, SplitUntilObserverMap, Stream, TaskIterator,
-    TaskIteratorExt,
+    self, BoxedSendableDataIterator, BoxedSendableIterator, CollectionState,
+    SplitCollectorMapObserver, SplitUntilObserverMap, Stream, TaskIterator, TaskIteratorExt,
 };
 use serde::de::DeserializeOwned;
 
@@ -244,7 +243,7 @@ pub fn collect_string_strict(
                             for line_result in iter {
                                 match line_result {
                                     Ok(LineFeed::Line(line)) => lines.push(line),
-                                    Ok(LineFeed::SKIP | LineFeed::END) => {},
+                                    Ok(LineFeed::SKIP | LineFeed::END) => {}
                                     Err(e) => {
                                         return Err(StringBodyError::StreamIteratorError(
                                             e.to_string().into_boxed_str(),
@@ -271,7 +270,7 @@ pub fn collect_string_strict(
                 IncomingResponseParts::Intro(_, _, _)
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => {},
+            ) => {}
             Ok(IncomingResponseParts::NoBody) => return Err(StringBodyError::NoBody),
             // Stream error
             Err(e) => return Err(StringBodyError::StreamRead(e)),
@@ -340,7 +339,7 @@ pub fn drain_stream_iterator_from_send_safe(body: SendSafeBody) -> Result<(), Bo
             if let Some(iter) = opt_iter.take() {
                 for chunk_result in DataBytesIterator::new(iter) {
                     match chunk_result {
-                        Ok(_) => {},
+                        Ok(_) => {}
                         Err(e) => {
                             return Err(BodyReaderError::StreamIteratorError(
                                 e.to_string().into_boxed_str(),
@@ -355,7 +354,7 @@ pub fn drain_stream_iterator_from_send_safe(body: SendSafeBody) -> Result<(), Bo
             if let Some(iter) = opt_iter.take() {
                 for chunk_result in iter {
                     match chunk_result {
-                        Ok(_) => {},
+                        Ok(_) => {}
                         Err(e) => {
                             return Err(BodyReaderError::StreamIteratorError(
                                 e.to_string().into_boxed_str(),
@@ -370,7 +369,7 @@ pub fn drain_stream_iterator_from_send_safe(body: SendSafeBody) -> Result<(), Bo
             if let Some(iter) = opt_iter.take() {
                 for line_result in iter {
                     match line_result {
-                        Ok(_) => {},
+                        Ok(_) => {}
                         Err(e) => {
                             return Err(BodyReaderError::StreamIteratorError(
                                 e.to_string().into_boxed_str(),
@@ -410,7 +409,7 @@ pub fn drain_stream_iterator(
                 | IncomingResponseParts::NoBody
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => {},
+            ) => {}
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
     }
@@ -508,7 +507,7 @@ pub fn collect_bytes_strict(
                                     Ok(LineFeed::Line(line)) => {
                                         bytes.extend_from_slice(line.as_bytes());
                                     }
-                                    Ok(LineFeed::SKIP | LineFeed::END) => {},
+                                    Ok(LineFeed::SKIP | LineFeed::END) => {}
                                     Err(e) => {
                                         return Err(BodyReaderError::StreamIteratorError(
                                             e.to_string().into_boxed_str(),
@@ -533,7 +532,7 @@ pub fn collect_bytes_strict(
                 IncomingResponseParts::Intro(_, _, _)
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => {},
+            ) => {}
             Ok(IncomingResponseParts::NoBody) => return Err(BodyReaderError::NoBody),
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
@@ -667,7 +666,7 @@ pub fn collect_bytes_direct(
                                     bytes.extend_from_slice(line.as_bytes());
                                     bytes.push(b'\n');
                                 }
-                                Ok(LineFeed::SKIP | LineFeed::END) => {},
+                                Ok(LineFeed::SKIP | LineFeed::END) => {}
                                 Err(e) => {
                                     tracing::warn!("Line stream error: {e}");
                                     break;
@@ -692,7 +691,7 @@ pub fn collect_bytes_direct(
                 IncomingResponseParts::Intro(_, _, _)
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => {},
+            ) => {}
             Ok(IncomingResponseParts::NoBody) => return Vec::new(),
             Err(e) => {
                 tracing::warn!("Error reading stream for byte collection: {e}");
@@ -766,7 +765,7 @@ where
                 bytes.extend_from_slice(line.as_bytes());
                 bytes.push(b'\n');
             }
-            Ok(LineFeed::SKIP | LineFeed::END) => {},
+            Ok(LineFeed::SKIP | LineFeed::END) => {}
             Err(e) => {
                 tracing::warn!("Line stream error: {e}");
                 break;
@@ -782,7 +781,7 @@ where
 {
     for result in iter {
         match result {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => {
                 tracing::warn!("SSE stream error: {e}");
                 return Err(e);
@@ -806,7 +805,7 @@ where
                     bytes.extend_from_slice(data.as_bytes());
                     bytes.push(b'\n');
                 }
-                Event::Comment(_) | Event::Reconnect => {},
+                Event::Comment(_) | Event::Reconnect => {}
             },
             Err(e) => {
                 tracing::warn!("SSE stream error: {e}");
@@ -832,7 +831,7 @@ where
                     bytes.extend_from_slice(data.as_bytes());
                     bytes.push(b'\n');
                 }
-                Event::Comment(_) | Event::Reconnect => {},
+                Event::Comment(_) | Event::Reconnect => {}
             }
         }
     }
@@ -925,7 +924,7 @@ where
                 writer.write_all(b"\n")?;
                 total_bytes += 1;
             }
-            Ok(LineFeed::SKIP | LineFeed::END) => {},
+            Ok(LineFeed::SKIP | LineFeed::END) => {}
             Err(e) => {
                 return Err(format!("Line stream error during write: {e}").into());
             }
@@ -1487,7 +1486,7 @@ where
                                             return Ok(ProcessStreamResult::StoppedByCallback);
                                         }
                                     }
-                                    Ok(LineFeed::SKIP | LineFeed::END) => {},
+                                    Ok(LineFeed::SKIP | LineFeed::END) => {}
                                     Err(e) => {
                                         return Err(BodyReaderError::StreamIteratorError(
                                             e.to_string().into_boxed_str(),
@@ -1508,7 +1507,7 @@ where
                                                 return Ok(ProcessStreamResult::StoppedByCallback);
                                             }
                                         }
-                                        Event::Comment(_) | Event::Reconnect => {},
+                                        Event::Comment(_) | Event::Reconnect => {}
                                     },
                                     Err(e) => {
                                         return Err(BodyReaderError::StreamIteratorError(
@@ -1527,7 +1526,7 @@ where
                 IncomingResponseParts::Intro(_, _, _)
                 | IncomingResponseParts::Headers(_)
                 | IncomingResponseParts::SKIP,
-            ) => {},
+            ) => {}
             Ok(IncomingResponseParts::NoBody) => return Ok(ProcessStreamResult::NoBody),
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
@@ -1982,9 +1981,9 @@ impl From<SendSafeBody> for AsyncSendSafeBody {
             SendSafeBody::ChunkedStream(Some(iter)) => {
                 SendSafeBodyState::ChunkedStream(Box::new(iter.map(|r| r.map_err(|e| map_err(&e)))))
             }
-            SendSafeBody::LineFeedStream(Some(iter)) => {
-                SendSafeBodyState::LineFeedStream(Box::new(iter.map(|r| r.map_err(|e| map_err(&e)))))
-            }
+            SendSafeBody::LineFeedStream(Some(iter)) => SendSafeBodyState::LineFeedStream(
+                Box::new(iter.map(|r| r.map_err(|e| map_err(&e)))),
+            ),
             SendSafeBody::SseStream(Some(iter)) => SendSafeBodyState::SseStream(iter),
         };
         Self {
@@ -2021,7 +2020,7 @@ impl FuturesStream for AsyncSendSafeBody {
                             return Poll::Ready(Some(Ok(b)));
                         }
                         Some(Ok(Data::Retry)) => match this.wait_decision(cx, &mut repolled) {
-                            WaitAction::Repoll => {},
+                            WaitAction::Repoll => {}
                             WaitAction::Park => {
                                 this.inner = SendSafeBodyState::Stream(iter);
                                 return Poll::Pending;
@@ -2029,7 +2028,7 @@ impl FuturesStream for AsyncSendSafeBody {
                         },
                         Some(Err(e)) if is_would_block(&*e) => {
                             match this.wait_decision(cx, &mut repolled) {
-                                WaitAction::Repoll => {},
+                                WaitAction::Repoll => {}
                                 WaitAction::Park => {
                                     this.inner = SendSafeBodyState::Stream(iter);
                                     return Poll::Pending;
@@ -2053,7 +2052,7 @@ impl FuturesStream for AsyncSendSafeBody {
                         Some(Ok(ChunkedData::Trailers(_) | ChunkedData::DataEnded)) => {}
                         Some(Err(e)) if is_would_block(&*e) => {
                             match this.wait_decision(cx, &mut repolled) {
-                                WaitAction::Repoll => {},
+                                WaitAction::Repoll => {}
                                 WaitAction::Park => {
                                     this.inner = SendSafeBodyState::ChunkedStream(iter);
                                     return Poll::Pending;
@@ -2075,10 +2074,10 @@ impl FuturesStream for AsyncSendSafeBody {
                             bytes.push(b'\n');
                             return Poll::Ready(Some(Ok(bytes)));
                         }
-                        Some(Ok(LineFeed::SKIP | LineFeed::END)) => {},
+                        Some(Ok(LineFeed::SKIP | LineFeed::END)) => {}
                         Some(Err(e)) if is_would_block(&*e) => {
                             match this.wait_decision(cx, &mut repolled) {
-                                WaitAction::Repoll => {},
+                                WaitAction::Repoll => {}
                                 WaitAction::Park => {
                                     this.inner = SendSafeBodyState::LineFeedStream(iter);
                                     return Poll::Pending;
@@ -2101,11 +2100,11 @@ impl FuturesStream for AsyncSendSafeBody {
                                 bytes.push(b'\n');
                                 return Poll::Ready(Some(Ok(bytes)));
                             }
-                            Event::Comment(_) | Event::Reconnect => {},
+                            Event::Comment(_) | Event::Reconnect => {}
                         },
                         Some(Err(e)) if is_would_block(&*e) => {
                             match this.wait_decision(cx, &mut repolled) {
-                                WaitAction::Repoll => {},
+                                WaitAction::Repoll => {}
                                 WaitAction::Park => {
                                     this.inner = SendSafeBodyState::SseStream(iter);
                                     return Poll::Pending;
@@ -2126,7 +2125,9 @@ impl FuturesStream for AsyncSendSafeBody {
 /// # Errors
 ///
 /// Returns an error if the operation fails.
-pub async fn collect_bytes_async(mut body: AsyncSendSafeBody) -> Result<Vec<u8>, SendableBoxedError> {
+pub async fn collect_bytes_async(
+    mut body: AsyncSendSafeBody,
+) -> Result<Vec<u8>, SendableBoxedError> {
     use futures_lite::StreamExt;
     let mut all = Vec::new();
     while let Some(chunk) = body.next().await {
@@ -2211,21 +2212,13 @@ pub type ExchangeBodyObserver =
 /// The `+ Send` bound is native-only: on wasm valtron runs single-threaded and the
 /// split machinery is non-sendable, so the boxed continuation is not `Send` there.
 #[cfg(not(target_family = "wasm"))]
-pub type ExchangeContinuation = Box<
-    dyn TaskIterator<
-            Ready = HttpExchange,
-            Pending = HttpExchangePending,
-        > + Send,
->;
+pub type ExchangeContinuation =
+    Box<dyn TaskIterator<Ready = HttpExchange, Pending = HttpExchangePending> + Send>;
 
 /// Unsent continuation from [`split_exchange`] (wasm — no `Send` bound).
 #[cfg(target_family = "wasm")]
-pub type ExchangeContinuation = Box<
-    dyn TaskIterator<
-        Ready = HttpExchange,
-        Pending = HttpExchangePending,
-    >,
->;
+pub type ExchangeContinuation =
+    Box<dyn TaskIterator<Ready = HttpExchange, Pending = HttpExchangePending>>;
 
 /// Split an unsent HTTP exchange into head + body observers plus a continuation.
 ///
@@ -2246,7 +2239,11 @@ pub type ExchangeContinuation = Box<
 pub fn split_exchange(
     client: &DynNetClient,
     builder: PreparedRequestBuilder,
-) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
+) -> (
+    ExchangeHeadObserver,
+    ExchangeBodyObserver,
+    ExchangeContinuation,
+) {
     let pump = builder.send(client);
 
     let (head, head_cont) = pump.split_collect_until_map(

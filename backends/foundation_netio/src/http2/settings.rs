@@ -17,7 +17,7 @@ use crate::http2::frame::{Setting, SettingId, SettingsFrame};
 pub const DEFAULT_HEADER_TABLE_SIZE: u32 = 4096;
 pub const DEFAULT_ENABLE_PUSH: u32 = 1;
 pub const DEFAULT_MAX_CONCURRENT_STREAMS: u32 = 256; // RFC 7540 leaves this unbounded, but u32::MAX (0xFFFF_FFFF)
-// is interpreted as i32(-1) by Go's grpc-go, which clamps it to 0 and refuses to create streams.
+                                                     // is interpreted as i32(-1) by Go's grpc-go, which clamps it to 0 and refuses to create streams.
 pub const DEFAULT_INITIAL_WINDOW_SIZE: u32 = 65_535;
 pub const DEFAULT_MAX_FRAME_SIZE: u32 = 16_384;
 pub const DEFAULT_MAX_HEADER_LIST_SIZE: u32 = u32::MAX; // "unlimited"

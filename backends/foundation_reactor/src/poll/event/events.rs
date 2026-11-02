@@ -3,7 +3,6 @@
 /// This is a reusable buffer — the same `Events` instance can be passed to
 /// multiple `poll()` calls. Its capacity is set at creation time and cannot
 /// be changed.
-
 use super::Event;
 
 /// Holds readiness events from the poll selector.

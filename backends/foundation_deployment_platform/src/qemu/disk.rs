@@ -17,7 +17,13 @@ use crate::config::{Result, TestbedError};
 pub fn create(path: &Path, size_gb: u32) -> Result<()> {
     let qemu_img = find_qemu_img()?;
     let status = Command::new(qemu_img)
-        .args(["create", "-f", "qcow2", path.to_str().unwrap(), &format!("{size_gb}G")])
+        .args([
+            "create",
+            "-f",
+            "qcow2",
+            path.to_str().unwrap(),
+            &format!("{size_gb}G"),
+        ])
         .status()
         .map_err(|e| TestbedError::Qcow2Error {
             message: format!("spawning qemu-img: {e}"),
@@ -124,11 +130,10 @@ pub struct DiskInfo {
 ///
 /// Returns an error if the JSON is invalid or is missing `virtual-size`.
 pub fn parse_disk_info(json: &str) -> Result<DiskInfo> {
-    let parsed: serde_json::Value = serde_json::from_str(json).map_err(|e| {
-        TestbedError::Qcow2Error {
+    let parsed: serde_json::Value =
+        serde_json::from_str(json).map_err(|e| TestbedError::Qcow2Error {
             message: format!("parsing qemu-img info JSON: {e}"),
-        }
-    })?;
+        })?;
 
     let virtual_size = parsed
         .get("virtual-size")
@@ -200,4 +205,3 @@ pub fn find_qemu_img() -> Result<std::path::PathBuf> {
         install_cmd: "mise install qemu".to_string(),
     })
 }
-

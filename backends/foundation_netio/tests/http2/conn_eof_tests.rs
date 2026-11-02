@@ -95,11 +95,18 @@ fn a_flush_interrupted_by_would_block_resumes_without_repeating_bytes() {
         match conn.flush() {
             Ok(()) => break,
             Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                assert!(conn.has_pending_writes(), "a WouldBlock leaves the rest queued");
+                assert!(
+                    conn.has_pending_writes(),
+                    "a WouldBlock leaves the rest queued"
+                );
             }
             Err(e) => panic!("flush failed: {e}"),
         }
     }
     assert!(!conn.has_pending_writes());
-    assert_eq!(conn.socket_ref().written, frames, "every byte once, in order");
+    assert_eq!(
+        conn.socket_ref().written,
+        frames,
+        "every byte once, in order"
+    );
 }

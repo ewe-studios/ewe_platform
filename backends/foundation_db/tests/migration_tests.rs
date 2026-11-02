@@ -19,7 +19,10 @@ async fn old_rate_limit_table_is_rebuilt() {
         )
         .await
         .unwrap();
-    for migration in MIGRATIONS.iter().filter(|m| m.id != "027_rebuild_rate_limits") {
+    for migration in MIGRATIONS
+        .iter()
+        .filter(|m| m.id != "027_rebuild_rate_limits")
+    {
         store
             .execute(
                 "INSERT INTO _migrations (id, name) VALUES (?, ?)",
@@ -41,7 +44,10 @@ async fn old_rate_limit_table_is_rebuilt() {
         .await
         .unwrap();
 
-    let applied = MigrationRunner::new(MIGRATIONS).run_async(&store).await.unwrap();
+    let applied = MigrationRunner::new(MIGRATIONS)
+        .run_async(&store)
+        .await
+        .unwrap();
     assert_eq!(applied, 1, "only 027 should be pending");
 
     // The documented columns must now exist: an insert with all of them

@@ -64,19 +64,32 @@ fn http_response(stream: &mut impl Read) -> io::Result<Option<HttpResponse>> {
     loop {
         line.clear();
         match read_line(stream, &mut line) {
-            Ok(0) => return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "headers truncated")),
+            Ok(0) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::UnexpectedEof,
+                    "headers truncated",
+                ))
+            }
             Err(e) => return Err(e),
             Ok(_) => {}
         }
         let trimmed = line.trim();
-        if trimmed.is_empty() { break; }
-        if let Some(val) = trimmed.strip_prefix("Content-Length:").or_else(|| trimmed.strip_prefix("content-length:")) {
+        if trimmed.is_empty() {
+            break;
+        }
+        if let Some(val) = trimmed
+            .strip_prefix("Content-Length:")
+            .or_else(|| trimmed.strip_prefix("content-length:"))
+        {
             content_length = val.trim().parse::<usize>().unwrap_or(0);
         }
     }
 
     if content_length > MAX_FRAME {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "response body exceeds limit"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "response body exceeds limit",
+        ));
     }
     let mut body = vec![0u8; content_length];
     if content_length > 0 {
@@ -94,8 +107,12 @@ fn read_line(stream: &mut impl Read, buf: &mut String) -> io::Result<usize> {
             Ok(0) => return if total == 0 { Ok(0) } else { Ok(total) },
             Ok(_) => {
                 total += 1;
-                if byte[0] == b'\n' { return Ok(total); }
-                if byte[0] != b'\r' { buf.push(byte[0] as char); }
+                if byte[0] == b'\n' {
+                    return Ok(total);
+                }
+                if byte[0] != b'\r' {
+                    buf.push(byte[0] as char);
+                }
             }
             Err(e) => return Err(e),
         }
@@ -105,10 +122,17 @@ fn read_line(stream: &mut impl Read, buf: &mut String) -> io::Result<usize> {
 fn parse_status(line: &str) -> io::Result<u16> {
     let parts: Vec<&str> = line.split_whitespace().collect();
     if parts.len() < 2 || !parts[0].starts_with("HTTP/") {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, format!("bad status line: {line}")));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("bad status line: {line}"),
+        ));
     }
-    parts[1].parse::<u16>()
-        .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, format!("bad status code: {line}")))
+    parts[1].parse::<u16>().map_err(|_| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("bad status code: {line}"),
+        )
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -241,7 +265,12 @@ impl BootstrapServer {
         let reactor_token = foundation_nativeapis::native::poll::Token(0xF200);
         let reactor = foundation_nativeapis::native::fd::Reactor::get().ok();
         if let Some(ref r) = reactor {
-            r.register(fd, reactor_token, foundation_nativeapis::native::poll::Interest::READABLE).ok();
+            r.register(
+                fd,
+                reactor_token,
+                foundation_nativeapis::native::poll::Interest::READABLE,
+            )
+            .ok();
         }
 
         while !stop.load(Ordering::Relaxed) {
@@ -258,11 +287,17 @@ impl BootstrapServer {
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // Wait for a connection or timeout using reactor readiness.
                     if let Some(ref r) = reactor {
-                        r.clear(reactor_token, foundation_nativeapis::native::fd::Ready::READABLE);
+                        r.clear(
+                            reactor_token,
+                            foundation_nativeapis::native::fd::Ready::READABLE,
+                        );
                         let deadline = Instant::now() + Duration::from_millis(50);
                         while Instant::now() < deadline && !stop.load(Ordering::Relaxed) {
                             if r.is_ready(reactor_token) {
-                                r.clear(reactor_token, foundation_nativeapis::native::fd::Ready::READABLE);
+                                r.clear(
+                                    reactor_token,
+                                    foundation_nativeapis::native::fd::Ready::READABLE,
+                                );
                                 break;
                             }
                             std::hint::spin_loop();
@@ -295,26 +330,39 @@ impl BootstrapServer {
                         .map_err(|e| WgError::Protocol(format!("join body: {e}")))?;
                     let record = match request {
                         BootstrapRequest::Join(r) => r,
-                        other => return Err(WgError::Protocol(format!("expected Join, got {other:?}"))),
+                        other => {
+                            return Err(WgError::Protocol(format!("expected Join, got {other:?}")))
+                        }
                     };
                     let (decision, members) = self.handler.on_join(record);
-                    (200, serde_json::to_vec(&BootstrapResponse::JoinResult { decision, members })
-                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?)
+                    (
+                        200,
+                        serde_json::to_vec(&BootstrapResponse::JoinResult { decision, members })
+                            .map_err(|e| WgError::Protocol(format!("encode: {e}")))?,
+                    )
                 }
-                "PullMembership" => {
-                    (200, serde_json::to_vec(&BootstrapResponse::Membership(self.handler.membership()))
-                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?)
-                }
+                "PullMembership" => (
+                    200,
+                    serde_json::to_vec(&BootstrapResponse::Membership(self.handler.membership()))
+                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?,
+                ),
                 "Announce" => {
                     let request: BootstrapRequest = serde_json::from_slice(&req.body)
                         .map_err(|e| WgError::Protocol(format!("announce body: {e}")))?;
                     let record = match request {
                         BootstrapRequest::Announce(r) => r,
-                        other => return Err(WgError::Protocol(format!("expected Announce, got {other:?}"))),
+                        other => {
+                            return Err(WgError::Protocol(format!(
+                                "expected Announce, got {other:?}"
+                            )))
+                        }
                     };
                     self.handler.on_announce(record);
-                    (200, serde_json::to_vec(&BootstrapResponse::Ack)
-                        .map_err(|e| WgError::Protocol(format!("encode: {e}")))?)
+                    (
+                        200,
+                        serde_json::to_vec(&BootstrapResponse::Ack)
+                            .map_err(|e| WgError::Protocol(format!("encode: {e}")))?,
+                    )
                 }
                 _ => {
                     let err = serde_json::json!({"code":"unimplemented","message":format!("unknown method: {}",req.method)});
@@ -343,33 +391,45 @@ fn read_http_request(stream: &mut impl Read) -> io::Result<Option<HttpRequest>> 
     }
     let parts: Vec<&str> = line.split_whitespace().collect();
     if parts.len() < 2 {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, format!("bad request line: {line}")));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("bad request line: {line}"),
+        ));
     }
     // Extract method name from the path: /wg_bootstrap.v1.WgBootstrap/Join → Join
-    let method = parts[1]
-        .rsplit('/')
-        .next()
-        .unwrap_or("")
-        .to_string();
+    let method = parts[1].rsplit('/').next().unwrap_or("").to_string();
 
     // Read headers.
     let mut content_length: usize = 0;
     loop {
         line.clear();
         match read_line(stream, &mut line) {
-            Ok(0) => return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "headers truncated")),
+            Ok(0) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::UnexpectedEof,
+                    "headers truncated",
+                ))
+            }
             Err(e) => return Err(e),
             Ok(_) => {}
         }
         let trimmed = line.trim();
-        if trimmed.is_empty() { break; }
-        if let Some(val) = trimmed.strip_prefix("Content-Length:").or_else(|| trimmed.strip_prefix("content-length:")) {
+        if trimmed.is_empty() {
+            break;
+        }
+        if let Some(val) = trimmed
+            .strip_prefix("Content-Length:")
+            .or_else(|| trimmed.strip_prefix("content-length:"))
+        {
             content_length = val.trim().parse::<usize>().unwrap_or(0);
         }
     }
 
     if content_length > MAX_FRAME {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "request body exceeds limit"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "request body exceeds limit",
+        ));
     }
     let mut body = vec![0u8; content_length];
     if content_length > 0 {
@@ -440,7 +500,8 @@ pub struct BootstrapConnection {
 
 impl std::fmt::Debug for BootstrapConnection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("BootstrapConnection").finish_non_exhaustive()
+        f.debug_struct("BootstrapConnection")
+            .finish_non_exhaustive()
     }
 }
 
@@ -449,15 +510,22 @@ impl BootstrapConnection {
     ///
     /// # Errors
     /// [`WgError::Io`] on transport errors; [`WgError::Protocol`] on a malformed reply.
-    pub fn request(&mut self, method: &str, request: &BootstrapRequest) -> WgResult<BootstrapResponse> {
-        let body = serde_json::to_vec(request)
-            .map_err(|e| WgError::Protocol(format!("encode: {e}")))?;
+    pub fn request(
+        &mut self,
+        method: &str,
+        request: &BootstrapRequest,
+    ) -> WgResult<BootstrapResponse> {
+        let body =
+            serde_json::to_vec(request).map_err(|e| WgError::Protocol(format!("encode: {e}")))?;
         http_request(&mut self.stream, method, &body)?;
         let resp = http_response(&mut self.stream)?
             .ok_or_else(|| WgError::Protocol("connection closed before reply".into()))?;
         if resp.status != 200 {
             let detail = String::from_utf8_lossy(&resp.body);
-            return Err(WgError::Protocol(format!("bootstrap server returned {}: {detail}", resp.status)));
+            return Err(WgError::Protocol(format!(
+                "bootstrap server returned {}: {detail}",
+                resp.status
+            )));
         }
         serde_json::from_slice(&resp.body)
             .map_err(|e| WgError::Protocol(format!("decode response: {e}")))
@@ -470,7 +538,9 @@ impl BootstrapConnection {
     pub fn join(&mut self, record: PeerRecord) -> WgResult<(Admission, Vec<PeerRecord>)> {
         match self.request("Join", &BootstrapRequest::Join(record))? {
             BootstrapResponse::JoinResult { decision, members } => Ok((decision, members)),
-            other => Err(WgError::Protocol(format!("unexpected join reply: {other:?}"))),
+            other => Err(WgError::Protocol(format!(
+                "unexpected join reply: {other:?}"
+            ))),
         }
     }
 
@@ -481,7 +551,9 @@ impl BootstrapConnection {
     pub fn pull_membership(&mut self) -> WgResult<Vec<PeerRecord>> {
         match self.request("PullMembership", &BootstrapRequest::PullMembership)? {
             BootstrapResponse::Membership(members) => Ok(members),
-            other => Err(WgError::Protocol(format!("unexpected membership reply: {other:?}"))),
+            other => Err(WgError::Protocol(format!(
+                "unexpected membership reply: {other:?}"
+            ))),
         }
     }
 
@@ -492,7 +564,9 @@ impl BootstrapConnection {
     pub fn announce(&mut self, record: PeerRecord) -> WgResult<()> {
         match self.request("Announce", &BootstrapRequest::Announce(record))? {
             BootstrapResponse::Ack => Ok(()),
-            other => Err(WgError::Protocol(format!("unexpected announce reply: {other:?}"))),
+            other => Err(WgError::Protocol(format!(
+                "unexpected announce reply: {other:?}"
+            ))),
         }
     }
 }

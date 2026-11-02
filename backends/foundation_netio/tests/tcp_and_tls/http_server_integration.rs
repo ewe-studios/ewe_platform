@@ -156,12 +156,13 @@ fn test_http_client_response_body() {
     let large_body = "x".repeat(10_000);
     let large_body_clone = large_body.clone();
 
-    let server = TestHttpServer::with_response(move |req: &HttpRequest| match req.path.url.as_str() {
-        "/empty" => HttpResponse::ok(b""),
-        "/small" => HttpResponse::ok(b"Small body"),
-        "/large" => HttpResponse::ok(large_body_clone.as_bytes()),
-        _ => HttpResponse::ok(b"Default"),
-    });
+    let server =
+        TestHttpServer::with_response(move |req: &HttpRequest| match req.path.url.as_str() {
+            "/empty" => HttpResponse::ok(b""),
+            "/small" => HttpResponse::ok(b"Small body"),
+            "/large" => HttpResponse::ok(large_body_clone.as_bytes()),
+            _ => HttpResponse::ok(b"Default"),
+        });
     let client = NativeHttpClient::from_system();
 
     let empty = client
@@ -217,7 +218,13 @@ fn test_http_client_concurrent_requests() {
             let url = format!("{base_url}/path{i}");
             thread::spawn(move || {
                 let client = NativeHttpClient::from_system();
-                let res = client.get(&url).unwrap().build_client().unwrap().send().unwrap();
+                let res = client
+                    .get(&url)
+                    .unwrap()
+                    .build_client()
+                    .unwrap()
+                    .send()
+                    .unwrap();
                 assert_eq!(res.get_status().into_usize(), 200);
                 collect_strings_from_send_safe(res.into_parts().2).unwrap()
             })

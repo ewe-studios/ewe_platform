@@ -3,8 +3,8 @@
 
 use libsql::Connection;
 
-use crate::shared::vfs::error::VfsResult;
 use super::types;
+use crate::shared::vfs::error::VfsResult;
 
 /// Split data into chunks of the given size.
 pub fn split_into_chunks<'a>(data: &'a [u8], chunk_size: usize) -> Vec<&'a [u8]> {
@@ -97,7 +97,9 @@ pub async fn write_all_chunks_async(
         values.push(chunk.to_vec().into());
     }
     if !chunks.is_empty() {
-        conn.execute(&sql, values).await.map_err(types::libsql_err)?;
+        conn.execute(&sql, values)
+            .await
+            .map_err(types::libsql_err)?;
     }
 
     let checksum = blake3::hash(data);
@@ -108,8 +110,15 @@ pub async fn write_all_chunks_async(
 
     conn.execute(
         "UPDATE vfs_dentry SET size = ?, checksum = ?, updated_at = ? WHERE ino = ?",
-        (data.len() as i64, checksum.as_bytes().to_vec(), updated_at, ino),
-    ).await.map_err(types::libsql_err)?;
+        (
+            data.len() as i64,
+            checksum.as_bytes().to_vec(),
+            updated_at,
+            ino,
+        ),
+    )
+    .await
+    .map_err(types::libsql_err)?;
 
     Ok(())
 }
@@ -131,14 +140,18 @@ pub async fn truncate_file_async(
         conn.execute(
             "DELETE FROM vfs_chunks WHERE ino = ? AND chunk_idx > ?",
             (ino, last_chunk_idx),
-        ).await.map_err(types::libsql_err)?;
+        )
+        .await
+        .map_err(types::libsql_err)?;
 
         let remainder = new_size as usize % chunk_size;
         if remainder != 0 {
             conn.execute(
                 "UPDATE vfs_chunks SET data = SUBSTR(data, 1, ?) WHERE ino = ? AND chunk_idx = ?",
                 (remainder as i64, ino, last_chunk_idx),
-            ).await.map_err(types::libsql_err)?;
+            )
+            .await
+            .map_err(types::libsql_err)?;
         }
     }
 
@@ -150,7 +163,9 @@ pub async fn truncate_file_async(
     conn.execute(
         "UPDATE vfs_dentry SET size = ?, updated_at = ? WHERE ino = ?",
         (new_size as i64, updated_at, ino),
-    ).await.map_err(types::libsql_err)?;
+    )
+    .await
+    .map_err(types::libsql_err)?;
 
     Ok(())
 }
