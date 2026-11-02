@@ -29,19 +29,21 @@ mod shim_exports {
     use once_cell::sync::Lazy;
     use tracing;
 
-    use foundation_core::valtron::PoolGuard;
-    #[cfg(feature = "vfs-sqlite")]
+    #[cfg(any(feature = "vfs-sqlite", feature = "vfs-turso"))]
     use foundation_core::valtron::initialize_pool;
+    use foundation_core::valtron::PoolGuard;
 
+    #[cfg(feature = "vfs-sqlite")]
+    use crate::native::vfs::libsql_delta::LibsqlDelta;
     use crate::native::vfs::native_fs::NativeFs;
+    #[cfg(feature = "vfs-turso")]
+    use crate::native::vfs::turso_delta::TursoDelta;
     use crate::shared::vfs::dynfs::DynFs;
+    #[cfg(any(feature = "vfs-sqlite", feature = "vfs-turso"))]
+    use crate::shared::vfs::exec_async::exec_async;
     use crate::shared::vfs::memory_delta::MemoryDelta;
     use crate::shared::vfs::overlay_fs::OverlayFileSystem;
     use crate::shared::vfs::types::OpenMode;
-    #[cfg(feature = "vfs-sqlite")]
-    use crate::native::vfs::libsql_delta::LibsqlDelta;
-    #[cfg(feature = "vfs-sqlite")]
-    use crate::shared::vfs::exec_async::exec_async;
 
     use super::config::ShimConfig;
     use super::fd_table::VirtualFdTable;
@@ -60,9 +62,9 @@ mod shim_exports {
     /// Type-erased VFS stack — supports any delta store at runtime.
     ///
     /// The delta backend is selected via `FOUNDATION_VFS_DELTA` env var.
-    /// Supported: `memory` (default), `sqlite`, `dir`, `d1`, `r2`.
-    /// `sqlite` and `dir` fall back to `memory` if init fails. `d1` and `r2`
-    /// never fall back; they panic if the feature is missing or init fails.
+    /// Supported: `memory` (default), `sqlite`, `turso`, `dir`, `d1`, `r2`.
+    /// `sqlite`, `turso` and `dir` fall back to `memory` if init fails. `d1`
+    /// and `r2` never fall back; they panic if the feature is missing or init fails.
     static VFS: Lazy<VfsRuntime> = Lazy::new(|| {
         let root = CONFIG.root_dir.clone().unwrap_or_else(|| ".".to_string());
         let base = NativeFs::new(root.clone()).unwrap_or_else(|_| NativeFs::new(".").unwrap());
@@ -112,6 +114,31 @@ mod shim_exports {
                 }
                 #[cfg(not(feature = "vfs-sqlite"))]
                 mem_fallback!("vfs-sqlite feature not enabled");
+            }
+            super::config::DeltaBackend::Turso => {
+                #[cfg(feature = "vfs-turso")]
+                {
+                    // Initialize valtron pool for async-through-sync execution
+                    let guard = initialize_pool(42, Some(4));
+                    let path = CONFIG.delta_path.clone().unwrap_or_else(|| {
+                        let dir = std::env::temp_dir();
+                        dir.join("vfs-turso.db").to_string_lossy().to_string()
+                    });
+                    let delta = match exec_async(async move { TursoDelta::new(&path).await }) {
+                        Ok(d) => d,
+                        Err(e) => {
+                            drop(guard);
+                            mem_fallback!(format!("turso delta failed: {e}"))
+                        }
+                    };
+                    let overlay = OverlayFileSystem::new(base, delta);
+                    VfsRuntime {
+                        fs: DynFs::from_async(overlay),
+                        guard: Some(guard),
+                    }
+                }
+                #[cfg(not(feature = "vfs-turso"))]
+                mem_fallback!("vfs-turso feature not enabled");
             }
             super::config::DeltaBackend::Directory => {
                 use crate::native::vfs::dir_delta::DirectoryDelta;
@@ -172,7 +199,8 @@ mod shim_exports {
     /// When `LOCAL_CF_API_BASE` is set (local emulator mode), the database id
     /// may come from `LOCAL_D1_DATABASE_ID` and test credentials are defaulted.
     #[cfg(feature = "vfs-d1")]
-    fn build_d1_delta() -> crate::shared::vfs::error::VfsResult<crate::native::vfs::d1_delta::D1Delta> {
+    fn build_d1_delta(
+    ) -> crate::shared::vfs::error::VfsResult<crate::native::vfs::d1_delta::D1Delta> {
         use crate::native::vfs::d1_delta::D1Delta;
         let Some(base) = std::env::var("LOCAL_CF_API_BASE").ok() else {
             return D1Delta::from_env();
@@ -189,7 +217,8 @@ mod shim_exports {
     /// When `LOCAL_CF_API_BASE` is set (local emulator mode), test credentials
     /// are defaulted.
     #[cfg(feature = "vfs-r2")]
-    fn build_r2_delta() -> crate::shared::vfs::error::VfsResult<crate::native::vfs::r2_delta::R2Delta> {
+    fn build_r2_delta(
+    ) -> crate::shared::vfs::error::VfsResult<crate::native::vfs::r2_delta::R2Delta> {
         use crate::native::vfs::r2_delta::R2Delta;
         let Some(base) = std::env::var("LOCAL_CF_API_BASE").ok() else {
             return R2Delta::from_env();
@@ -216,7 +245,11 @@ mod shim_exports {
     fn strip_prefix(path: &str) -> String {
         for prefix in &CONFIG.prefixes {
             if let Some(rest) = path.strip_prefix(prefix) {
-                return if rest.is_empty() { "/".to_string() } else { rest.to_string() };
+                return if rest.is_empty() {
+                    "/".to_string()
+                } else {
+                    rest.to_string()
+                };
             }
         }
         path.to_string()
@@ -317,8 +350,12 @@ mod shim_exports {
         static KEEP_OPENAT: unsafe extern "C" fn(c_int, *const c_char, c_int, ...) -> c_int =
             openat;
         #[used]
-        static KEEP_OPENAT64_TIME64: unsafe extern "C" fn(c_int, *const c_char, c_int, ...) -> c_int =
-            __openat64_time64;
+        static KEEP_OPENAT64_TIME64: unsafe extern "C" fn(
+            c_int,
+            *const c_char,
+            c_int,
+            ...
+        ) -> c_int = __openat64_time64;
     }
 
     // ── close ──
@@ -335,7 +372,11 @@ mod shim_exports {
     // ── read / write ──
 
     #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn read(fd: c_int, buf: *mut c_void, count: libc::size_t) -> libc::ssize_t {
+    pub unsafe extern "C" fn read(
+        fd: c_int,
+        buf: *mut c_void,
+        count: libc::size_t,
+    ) -> libc::ssize_t {
         if is_virtual_fd(fd) {
             return handle_virtual_read(fd, buf, count);
         }
@@ -343,7 +384,11 @@ mod shim_exports {
     }
 
     #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn write(fd: c_int, buf: *const c_void, count: libc::size_t) -> libc::ssize_t {
+    pub unsafe extern "C" fn write(
+        fd: c_int,
+        buf: *const c_void,
+        count: libc::size_t,
+    ) -> libc::ssize_t {
         if is_virtual_fd(fd) {
             return handle_virtual_write(fd, buf, count);
         }
@@ -455,24 +500,40 @@ mod shim_exports {
     // ── pread / pwrite ──
 
     #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn pread(fd: c_int, buf: *mut c_void, count: libc::size_t, offset: libc::off_t) -> libc::ssize_t {
+    pub unsafe extern "C" fn pread(
+        fd: c_int,
+        buf: *mut c_void,
+        count: libc::size_t,
+        offset: libc::off_t,
+    ) -> libc::ssize_t {
         if is_virtual_fd(fd) {
             let buf_slice = unsafe { std::slice::from_raw_parts_mut(buf as *mut u8, count) };
             return match FD_TABLE.read_at(fd, buf_slice, offset as u64) {
                 Some(n) => n as libc::ssize_t,
-                None => { set_errno(libc::EBADF); -1 }
+                None => {
+                    set_errno(libc::EBADF);
+                    -1
+                }
             };
         }
         unsafe { super::real::pread(fd, buf, count, offset) }
     }
 
     #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn pwrite(fd: c_int, buf: *const c_void, count: libc::size_t, offset: libc::off_t) -> libc::ssize_t {
+    pub unsafe extern "C" fn pwrite(
+        fd: c_int,
+        buf: *const c_void,
+        count: libc::size_t,
+        offset: libc::off_t,
+    ) -> libc::ssize_t {
         if is_virtual_fd(fd) {
             let data = unsafe { std::slice::from_raw_parts(buf as *const u8, count) };
             return match FD_TABLE.write_at(fd, data, offset as u64) {
                 Some(n) => n as libc::ssize_t,
-                None => { set_errno(libc::EBADF); -1 }
+                None => {
+                    set_errno(libc::EBADF);
+                    -1
+                }
             };
         }
         unsafe { super::real::pwrite(fd, buf, count, offset) }
@@ -481,7 +542,11 @@ mod shim_exports {
     // ── readlink / symlink ──
 
     #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn readlink(pathname: *const c_char, buf: *mut c_char, bufsiz: libc::size_t) -> libc::ssize_t {
+    pub unsafe extern "C" fn readlink(
+        pathname: *const c_char,
+        buf: *mut c_char,
+        bufsiz: libc::size_t,
+    ) -> libc::ssize_t {
         // Virtual symlinks not implemented yet
         if let Some(path) = unsafe { c_path_to_str(pathname) } {
             if path_matches_prefix(path) {
@@ -646,7 +711,10 @@ mod shim_exports {
         let buf_slice = unsafe { std::slice::from_raw_parts_mut(buf as *mut u8, count) };
         match FD_TABLE.read(fd, buf_slice) {
             Some(n) => n as libc::ssize_t,
-            None => { set_errno(libc::EBADF); -1 }
+            None => {
+                set_errno(libc::EBADF);
+                -1
+            }
         }
     }
 
@@ -654,7 +722,10 @@ mod shim_exports {
         let data = unsafe { std::slice::from_raw_parts(buf as *const u8, count) };
         match FD_TABLE.write(fd, data) {
             Some(n) => n as libc::ssize_t,
-            None => { set_errno(libc::EBADF); -1 }
+            None => {
+                set_errno(libc::EBADF);
+                -1
+            }
         }
     }
 
@@ -669,16 +740,22 @@ mod shim_exports {
                     (*statbuf).st_uid = meta.owner.0;
                     (*statbuf).st_gid = meta.owner.1;
                     if let Some(t) = meta.modified {
-                        (*statbuf).st_mtime = t.duration_since(std::time::UNIX_EPOCH)
-                            .map(|d| d.as_secs() as libc::time_t).unwrap_or(0);
+                        (*statbuf).st_mtime = t
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .map(|d| d.as_secs() as libc::time_t)
+                            .unwrap_or(0);
                     }
                     if let Some(t) = meta.created {
-                        (*statbuf).st_ctime = t.duration_since(std::time::UNIX_EPOCH)
-                            .map(|d| d.as_secs() as libc::time_t).unwrap_or(0);
+                        (*statbuf).st_ctime = t
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .map(|d| d.as_secs() as libc::time_t)
+                            .unwrap_or(0);
                     }
                     if let Some(t) = meta.accessed {
-                        (*statbuf).st_atime = t.duration_since(std::time::UNIX_EPOCH)
-                            .map(|d| d.as_secs() as libc::time_t).unwrap_or(0);
+                        (*statbuf).st_atime = t
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .map(|d| d.as_secs() as libc::time_t)
+                            .unwrap_or(0);
                     }
                 }
                 0
@@ -702,18 +779,26 @@ mod shim_exports {
 
     fn handle_virtual_lseek(fd: c_int, offset: libc::off_t, whence: c_int) -> libc::off_t {
         let cur = FD_TABLE.get_offset(fd).unwrap_or(0) as libc::off_t;
-        let file_len = FD_TABLE.path(fd)
+        let file_len = FD_TABLE
+            .path(fd)
             .and_then(|p| VFS.fs.stat(&p).ok())
-            .map(|m| m.size as libc::off_t).unwrap_or(0);
+            .map(|m| m.size as libc::off_t)
+            .unwrap_or(0);
 
         let new_offset = match whence {
             libc::SEEK_SET => offset,
             libc::SEEK_CUR => cur + offset,
             libc::SEEK_END => file_len + offset,
-            _ => { set_errno(libc::EINVAL); return -1; },
+            _ => {
+                set_errno(libc::EINVAL);
+                return -1;
+            }
         };
 
-        if new_offset < 0 { set_errno(libc::EINVAL); return -1; }
+        if new_offset < 0 {
+            set_errno(libc::EINVAL);
+            return -1;
+        }
         FD_TABLE.set_offset(fd, new_offset as u64);
         new_offset
     }
@@ -722,7 +807,10 @@ mod shim_exports {
         let key = strip_prefix(path);
         match VFS.fs.mkdir(&key) {
             Ok(_) => 0,
-            Err(_) => { set_errno(libc::EIO); -1 }
+            Err(_) => {
+                set_errno(libc::EIO);
+                -1
+            }
         }
     }
 
@@ -730,7 +818,10 @@ mod shim_exports {
         let key = strip_prefix(path);
         match VFS.fs.remove(&key) {
             Ok(_) => 0,
-            Err(_) => { set_errno(libc::ENOENT); -1 }
+            Err(_) => {
+                set_errno(libc::ENOENT);
+                -1
+            }
         }
     }
 
@@ -739,7 +830,10 @@ mod shim_exports {
         let new_key = strip_prefix(new);
         match VFS.fs.rename(&old_key, &new_key) {
             Ok(_) => 0,
-            Err(_) => { set_errno(libc::ENOENT); -1 }
+            Err(_) => {
+                set_errno(libc::ENOENT);
+                -1
+            }
         }
     }
 
@@ -747,7 +841,10 @@ mod shim_exports {
         let key = strip_prefix(path);
         match VFS.fs.remove(&key) {
             Ok(_) => 0,
-            Err(_) => { set_errno(libc::ENOENT); -1 }
+            Err(_) => {
+                set_errno(libc::ENOENT);
+                -1
+            }
         }
     }
 

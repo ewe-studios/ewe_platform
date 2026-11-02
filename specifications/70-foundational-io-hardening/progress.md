@@ -2,6 +2,23 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-02: feature 19 (foundation_nativeapis) E4 done on
+  `fix/io-20-vfs-process-ipc`. E4 rebuilds `TursoDelta` on the `turso` crate
+  0.8.3 (local engine, `default-features = false`). The store is async-only:
+  `AsyncVfsFileSystem` plus `AsyncDeltaStore`, with `TursoFile`,
+  `SeekableTursoFile` and `TursoDirectory`. It lives under
+  `src/native/vfs/turso_delta/` (mod, schema, types, path_resolve, chunking,
+  file_handle). The `vfs-turso` feature enables it, the `turso` dependency is
+  target-gated to `not(target_arch = "wasm32")`, and the shim gains a `turso`
+  backend (`FOUNDATION_VFS_DELTA=turso`, default path `vfs-turso.db`, memory
+  fallback). The delta contract suite runs in `tests/turso_delta_vfs/`: 8
+  tests, all pass under `--profile uat`. A `#![recursion_limit = "256"]` is
+  added to the crate root and the test file (the local turso engine's async
+  chain overflows the default limit while proving `Send`, the same root cause
+  as feature 35). The crate bumps 0.0.5 to 0.0.6 and the five consumers
+  (iogate, toolings, ai, proxy, wireguard) pin 0.0.6. The §13 backlog entry
+  is removed.
+
 - 2026-11-02: feature 19 (foundation_nativeapis) E10 done on
   `fix/io-20-vfs-process-ipc`. E10 gates the VFS sync boundary behind
   `foundation_core::blocking_boundary!`. `exec_async` is wrapped in the

@@ -2,6 +2,30 @@
 
 _What an agent learned that the next agent needs. Newest first._
 
+- 2026-11-02 (feature 19 E4, foundation_nativeapis): the local `turso`
+  engine (crate `turso` 0.8.3) can back a local delta store. It is not the
+  same as `LibsqlDelta` (remote Turso through the `libsql` 0.9 crate). The
+  two crates differ. `turso` `Statement::query` and `Statement::execute`
+  take `&mut self`; libsql consumes the statement. `turso` `execute_batch`
+  and `execute` fail with "unexpected row during execution" on any statement
+  that returns rows; libsql discards those rows. `PRAGMA
+  wal_checkpoint(TRUNCATE)` and the four open PRAGMAs (`journal_mode = WAL`,
+  `synchronous = NORMAL`, `foreign_keys = ON`, `busy_timeout = 5000`) all
+  return rows. Run them with `conn.query` and drain the rows. The PRAGMA
+  side effect happens on the first step; an undrained `Rows` does nothing.
+  Depend on `turso` with `default-features = false`; its default features
+  pull in `mimalloc` (a global allocator). `turso` is native-only, so gate
+  the dependency and module behind `cfg(not(target_arch = "wasm32"))` (the
+  same as `foundation_db`). The `turso` async chain overflows the default
+  `recursion_limit` while proving `Send` through the `async_trait` boxed
+  futures; set `#![recursion_limit = "256"]` on the crate root and the test
+  file (the same root cause and fix as feature 35). For the pedantic clippy
+  casts, use `cast_signed()` and `cast_unsigned()` (stable since Rust 1.87)
+  for same-width sign changes, `i64::from` and `u64::from` for lossless
+  widening, and `try_from(...).unwrap_or(0)` or `.expect(...)` for the rest.
+  The `uid` and `gid` local bindings trip `similar_names`; allow it on
+  `from_row`.
+
 - 2026-11-02 (feature 19 E10, foundation_nativeapis):
   `foundation_core::blocking_boundary!` evaluates `foundation_core`'s own
   `js-wasmbindgen`/`js-foundation-wasm` features (after feature unification),

@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nativeapis"
-version = "0.0.5"
+version = "0.0.6"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -80,6 +80,11 @@ windows-sys = { version = "0.59", features = [
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
 foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["multi"] }
+
+# Native-only storage backends — excluded on wasm32 because the local engine
+# (turso_core) does not compile without a host filesystem.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+turso = { version = "0.8.3", optional = true, default-features = false }
 
 [dev-dependencies]
 foundation_arrow = { path = "../foundation_arrow" }
@@ -356,6 +361,9 @@ vfs-native = ["vfs", "dep:foundation_macros", "dep:foundation_nostd"]
 # VFS SQLite-backed DeltaStore (libsql)
 vfs-sqlite = ["vfs", "dep:libsql", "dep:blake3", "dep:foundation_compact"]
 
+# VFS local Turso-engine-backed DeltaStore (the `turso` crate, native only)
+vfs-turso = ["vfs", "dep:turso", "dep:blake3", "dep:foundation_compact"]
+
 # Cloudflare D1 edge SQLite DeltaStore — uses foundation_db's D1 HTTP client
 vfs-d1 = ["vfs", "dep:foundation_db", "dep:serde_json", "dep:futures-lite", "foundation_db/d1"]
 
@@ -416,6 +424,11 @@ required-features = ["vfs-native", "vfs-d1"]
 name = "d1_delta_vfs"
 path = "tests/d1_delta_vfs/mod.rs"
 required-features = ["vfs-native", "vfs-d1"]
+
+[[test]]
+name = "turso_delta_vfs"
+path = "tests/turso_delta_vfs/mod.rs"
+required-features = ["vfs-native", "vfs-turso"]
 
 [[test]]
 name = "r2_delta_vfs"
