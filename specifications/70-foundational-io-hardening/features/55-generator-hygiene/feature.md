@@ -1,6 +1,6 @@
 ---
 feature: "Generators and Cloudflare crates: rustfmt-clean shims, openapi/codegentools clippy debt, wasm unused dependencies"
-status: "pending"
+status: "partial"
 lane: "B"
 model: "haiku"
 branch: "fix/io-51-60-lane-b"
@@ -56,3 +56,31 @@ python3 scripts/ci/ci.py run foundation_deployment_cloudflare --profile dev
 
 - [ ] No rustfmt ignore for generated shims; clippy at zero for both crates; §8 and §21
       entries deleted (coordinate the §8 docker part with feature 49). CI green.
+
+## Result (2026-11-02, branch `fix/io-51-60-lane-b`)
+
+- **E1 done.** `format_files` already ran rustfmt with an empty config. The group `lib.rs` shims
+  were written after that step, so they were never formatted. They now go through it; the 43
+  Cloudflare entries are gone from `rustfmt.toml` (boringtun stays). Output regenerated in its
+  own commit. `cargo fmt --all --check` passes.
+- **E2 done for `foundation_openapi` and `foundation_codegentools`:** clippy 130 to 0 and 71 to 0
+  (default and `cli` features). Lints that need a signature or structure change carry an
+  `#[allow]` with a reason. CI already runs clippy for both crates (`ci/packages.toml` defaults).
+  The `foundation_deployment_docker` part of backlog §8 stays with feature 49 (lane A).
+- **E3 partial.** Native-only dependencies moved; the wasm-only netio entry is gone. The
+  default-feature wasm32 check still fails in `foundation_core` (pre-existing); the
+  `--no-default-features` check still reports `chrono` and `foundation_core`. Both are in backlog §21.
+- **E4 done.** The wire-type test uses `Codegen::check_shared_types` and takes 12.4 to 13.5 s
+  (20 runs). The full `check()` the build script runs takes 16.7 s. Finding: the shared module
+  depends on every group (hoisting), so the shared-only path still builds all groups. The speed-up
+  came from a `SchemaIndex` that replaces a linear scan per schema lookup.
+
+## Done when (status)
+
+- [x] No rustfmt ignore for generated shims.
+- [x] Clippy at zero for `foundation_openapi` and `foundation_codegentools`.
+- [ ] `foundation_deployment_cloudflare` wasm32 check clean (see §21 of the backlog).
+- [x] Backlog §8 shim entry, the §8 `foundation_openapi`/`foundation_codegentools` clippy entry,
+      §11 slow-check entry and §21 entry replaced by the remaining §21 items.
+- [ ] CI green: not verified here (no push to CI from this run).
+
