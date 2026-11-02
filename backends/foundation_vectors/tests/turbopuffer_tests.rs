@@ -23,11 +23,12 @@
 #[macro_use]
 mod contract;
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::time::{Duration, Instant};
 
 use foundation_core::valtron::valtron_test;
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
@@ -36,7 +37,7 @@ use foundation_vectors::store::{
     VectorEntry, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
 };
 use foundation_vectors::vector::Vector;
-use foundation_vectors::{TurboPufferLimits, TurboPufferVectorStore};
+use foundation_vectors::{TurboPufferConfig, TurboPufferLimits, TurboPufferVectorStore};
 use serde_json::{json, Value};
 
 /// One request the mock received.
@@ -46,10 +47,20 @@ struct Seen {
     path: String,
     auth: Option<String>,
     body: Value,
+    arrived: Instant,
 }
 
 /// A stored row: vector, metadata attribute.
 type Rows = BTreeMap<String, (Vec<f32>, Option<String>)>;
+
+/// One scripted reply: the mock pops the front of the script for each request
+/// until it is empty, then answers normally. Used for retry tests.
+#[derive(Clone, Debug)]
+struct ScriptedReply {
+    status: u16,
+    retry_after: Option<u64>,
+    body: String,
+}
 
 #[derive(Default)]
 struct MockState {
@@ -57,6 +68,9 @@ struct MockState {
     seen: Vec<Seen>,
     /// When set, every request gets this status and body.
     fail_with: Option<(u16, String)>,
+    /// A queue of scripted replies, drained one per request before `fail_with`
+    /// or a normal answer.
+    script: VecDeque<ScriptedReply>,
 }
 
 type Shared = Arc<Mutex<MockState>>;
@@ -72,9 +86,10 @@ impl Mock {
     }
 }
 
-fn respond(stream: &mut TcpStream, status: u16, body: &str) {
+fn respond(stream: &mut TcpStream, status: u16, body: &str, retry_after: Option<u64>) {
+    let retry = retry_after.map_or_else(String::new, |s| format!("Retry-After: {s}\r\n"));
     let head = format!(
-        "HTTP/1.1 {status} X\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+        "HTTP/1.1 {status} X\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n{retry}\r\n",
         body.len()
     );
     stream.write_all(head.as_bytes()).unwrap();
@@ -256,20 +271,28 @@ fn handle(mut stream: TcpStream, state: &Shared) {
     let method = parts.next().unwrap().to_string();
     let path = parts.next().unwrap().to_string();
 
-    let (status, reply) = {
+    let (status, reply, retry_after) = {
         let mut state = state.lock().unwrap();
         state.seen.push(Seen {
             method,
             path: path.clone(),
             auth,
             body: body.clone(),
+            arrived: Instant::now(),
         });
-        match state.fail_with.clone() {
-            Some(fail) => fail,
-            None => answer(&mut state, &path, &body),
+        if let Some(scripted) = state.script.pop_front() {
+            (scripted.status, scripted.body, scripted.retry_after)
+        } else {
+            match state.fail_with.clone() {
+                Some((status, body)) => (status, body, None),
+                None => {
+                    let (status, body) = answer(&mut state, &path, &body);
+                    (status, body, None)
+                }
+            }
         }
     };
-    respond(&mut stream, status, &reply);
+    respond(&mut stream, status, &reply, retry_after);
 }
 
 fn start_mock() -> Mock {
@@ -422,6 +445,74 @@ async fn oversized_response_is_an_error() {
     assert!(
         matches!(&err, VectorStoreError::Backend(m) if m.contains("max_response_body")),
         "{err:?}"
+    );
+}
+
+fn fast_retry_config(attempts: u32) -> TurboPufferConfig {
+    TurboPufferConfig::default()
+        .with_retry_attempts(attempts)
+        .with_retry_base_delay(Duration::from_millis(5))
+        .with_retry_max_delay(Duration::from_millis(20))
+}
+
+#[valtron_test]
+async fn turbopuffer_retries_429_then_succeeds() {
+    let (mock, store) = make_store().await;
+    let store = store.with_retry_config(fast_retry_config(3));
+    mock.state.lock().unwrap().script.push_back(ScriptedReply {
+        status: 429,
+        retry_after: None,
+        body: "rate limited".into(),
+    });
+
+    store
+        .insert("ns", entry("a", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+
+    let seen = mock.seen();
+    assert_eq!(seen.len(), 2, "one rate limit, then the retry");
+    assert_eq!(seen[0].body, seen[1].body, "the retry repeats the request");
+}
+
+#[valtron_test]
+async fn turbopuffer_gives_up_after_max_attempts() {
+    let (mock, store) = make_store().await;
+    let store = store.with_retry_config(fast_retry_config(3));
+    mock.state.lock().unwrap().fail_with = Some((429, "rate limited".into()));
+
+    let err = store
+        .insert("ns", entry("a", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap_err();
+    let VectorStoreError::Backend(msg) = err else {
+        panic!("expected a backend error, got {err:?}");
+    };
+    assert!(msg.starts_with("HTTP 429: "), "{msg}");
+    assert_eq!(mock.seen().len(), 3, "exactly retry_attempts requests");
+}
+
+#[valtron_test]
+async fn turbopuffer_honours_retry_after() {
+    let (mock, store) = make_store().await;
+    let store = store.with_retry_config(fast_retry_config(2));
+    mock.state.lock().unwrap().script.push_back(ScriptedReply {
+        status: 429,
+        retry_after: Some(1),
+        body: "slow down".into(),
+    });
+
+    store
+        .insert("ns", entry("a", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+
+    let seen = mock.seen();
+    assert_eq!(seen.len(), 2);
+    let gap = seen[1].arrived.duration_since(seen[0].arrived);
+    assert!(
+        gap >= Duration::from_millis(900),
+        "Retry-After: 1s honoured, waited {gap:?}"
     );
 }
 

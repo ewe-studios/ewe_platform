@@ -28,6 +28,15 @@ _Written in ASD-STE100 Simplified Technical English._
   message when the key is not set. It proves `deleted_ids` lists only ids that
   existed and `include_attributes: ["vector"]` returns the vector. It uses a
   namespace with a unique suffix and deletes the namespace at the end.
+- **E5.** `TurboPufferVectorStore` retries HTTP 429 and 503 with exponential
+  backoff and full jitter, and honours `Retry-After`. The attempt count, base
+  delay and cap live on the new `TurboPufferConfig` (defaults 5 attempts,
+  200 ms, 10 s; the delays follow the AWS SDK standard retry mode). The wait
+  uses the valtron timer (`sleep_async`), never a thread sleep. New tests
+  `turbopuffer_retries_429_then_succeeds`,
+  `turbopuffer_gives_up_after_max_attempts` and
+  `turbopuffer_honours_retry_after` run against the mock; the retry tests pass
+  a 20-run flake check.
 
 ## In progress
 
@@ -35,7 +44,6 @@ _Written in ASD-STE100 Simplified Technical English._
 
 ## Next
 
-- E5: TurboPuffer 429/503 retry.
 - E7: `hybrid_search` text lookup.
 - E8: `SqlVectorStore` scan-cost docs and threshold warning.
 - E6 (last): `sql-store` on wasm32 + CI wasm run.

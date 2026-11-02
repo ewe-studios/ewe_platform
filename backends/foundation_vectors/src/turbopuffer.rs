@@ -25,7 +25,10 @@
 //! is a small JSON object that the next step needs whole, so it is read up to
 //! [`TurboPufferLimits::max_response_body`]. A non-2xx body is read only up to
 //! [`TurboPufferLimits::max_error_body`], for the error message. A query on a
-//! namespace that does not exist (HTTP 404) reads as an empty namespace.
+//! namespace that does not exist (HTTP 404) reads as an empty namespace. A
+//! rate limit (HTTP 429) or a brief outage (HTTP 503) is retried with
+//! exponential backoff and jitter, honouring `Retry-After`, up to the counts
+//! and waits in [`TurboPufferConfig`].
 //!
 //! The entry metadata is stored as one string attribute, `metadata` (JSON).
 //!
@@ -36,9 +39,10 @@
 //! negative squared distance, the same as [`DistanceMetric::L2`]).
 
 use std::collections::HashMap;
+use std::time::Duration;
 
 use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
-use foundation_netio::shared::http::SimpleHeader;
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use futures_lite::StreamExt;
 use serde::{Deserialize, Serialize};
@@ -98,6 +102,63 @@ impl TurboPufferLimits {
     }
 }
 
+/// Retry behaviour for `TurboPuffer` rate limits (HTTP 429) and brief outages
+/// (HTTP 503).
+///
+/// Rule 8: the retry count and waits are configuration, not constants.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TurboPufferConfig {
+    /// The most attempts for one request: the first send plus its retries.
+    ///
+    /// Default 5. The AWS SDK standard retry mode uses 3 attempts; this store
+    /// allows 5 because one bulk upsert can cross `TurboPuffer`'s per-namespace
+    /// rate limit, and a couple of short waits cost less than a failed upload.
+    pub retry_attempts: u32,
+    /// The wait before the first retry. Each later retry doubles this wait.
+    ///
+    /// Default 200 ms, the AWS SDK standard retry mode's base delay.
+    pub retry_base_delay: Duration,
+    /// The most a computed retry wait can be. A `Retry-After` header is honoured
+    /// as sent and is not capped.
+    ///
+    /// Default 10 s, half the AWS SDK standard retry mode's 20 s cap, enough for
+    /// a short namespace burst without a long tail.
+    pub retry_max_delay: Duration,
+}
+
+impl Default for TurboPufferConfig {
+    fn default() -> Self {
+        Self {
+            retry_attempts: 5,
+            retry_base_delay: Duration::from_millis(200),
+            retry_max_delay: Duration::from_secs(10),
+        }
+    }
+}
+
+impl TurboPufferConfig {
+    /// The most attempts for one request (at least 1).
+    #[must_use]
+    pub fn with_retry_attempts(mut self, attempts: u32) -> Self {
+        self.retry_attempts = attempts;
+        self
+    }
+
+    /// The wait before the first retry.
+    #[must_use]
+    pub fn with_retry_base_delay(mut self, delay: Duration) -> Self {
+        self.retry_base_delay = delay;
+        self
+    }
+
+    /// The most a computed retry wait can be.
+    #[must_use]
+    pub fn with_retry_max_delay(mut self, delay: Duration) -> Self {
+        self.retry_max_delay = delay;
+        self
+    }
+}
+
 /// A [`VectorStore`] over one `TurboPuffer` account. See the module
 /// documentation for the requests that each method sends.
 pub struct TurboPufferVectorStore {
@@ -106,6 +167,7 @@ pub struct TurboPufferVectorStore {
     base_url: String,
     config: VectorStoreConfig,
     limits: TurboPufferLimits,
+    retry: TurboPufferConfig,
 }
 
 /// A 2xx body, or the HTTP 404 of a namespace that does not exist.
@@ -151,6 +213,7 @@ impl TurboPufferVectorStore {
             base_url: String::from("https://api.turbopuffer.com"),
             config,
             limits: TurboPufferLimits::default(),
+            retry: TurboPufferConfig::default(),
         })
     }
 
@@ -166,6 +229,13 @@ impl TurboPufferVectorStore {
     #[must_use]
     pub fn with_limits(mut self, limits: TurboPufferLimits) -> Self {
         self.limits = limits;
+        self
+    }
+
+    /// Replace the retry behaviour.
+    #[must_use]
+    pub fn with_retry_config(mut self, retry: TurboPufferConfig) -> Self {
+        self.retry = retry;
         self
     }
 
@@ -205,36 +275,69 @@ impl TurboPufferVectorStore {
 
     /// POST `body` as JSON. The status is checked first; an error body is
     /// read only up to `max_error_body`.
+    ///
+    /// HTTP 429 and 503 are retried with exponential backoff and jitter, up to
+    /// [`TurboPufferConfig::retry_attempts`]. A `Retry-After` header is honoured
+    /// in place of the computed wait. The wait uses the valtron timer, never a
+    /// thread sleep.
     async fn post(&self, url: &str, body: &serde_json::Value) -> Result<Reply, VectorStoreError> {
-        let req = PreparedRequestBuilder::post(url)
-            .map_err(|e| VectorStoreError::Backend(format!("invalid URL {url}: {e}")))?
-            .bearer_token(&self.api_key)
-            .header(SimpleHeader::ACCEPT, "application/json")
-            .body_json(body)
-            .map_err(|e| VectorStoreError::Backend(format!("serialize request: {e}")))?
-            .build();
-        let response = self
-            .client
-            .send_async(req)
-            .await
-            .map_err(|e| VectorStoreError::Backend(format!("HTTP error: {e}")))?;
-        let (status, _headers, body) = response.into_async_parts();
-        let status_code: usize = status.into();
-        if status_code == 404 {
-            return Ok(Reply::NotFound);
+        let mut attempt: u32 = 0;
+        loop {
+            attempt += 1;
+            let req = PreparedRequestBuilder::post(url)
+                .map_err(|e| VectorStoreError::Backend(format!("invalid URL {url}: {e}")))?
+                .bearer_token(&self.api_key)
+                .header(SimpleHeader::ACCEPT, "application/json")
+                .body_json(body)
+                .map_err(|e| VectorStoreError::Backend(format!("serialize request: {e}")))?
+                .build();
+            let response = self
+                .client
+                .send_async(req)
+                .await
+                .map_err(|e| VectorStoreError::Backend(format!("HTTP error: {e}")))?;
+            let (status, headers, body) = response.into_async_parts();
+            let status_code: usize = status.into();
+            if status_code == 404 {
+                return Ok(Reply::NotFound);
+            }
+            if (200..=299).contains(&status_code) {
+                let (text, truncated) = read_bounded(body, self.limits.max_response_body).await;
+                if truncated {
+                    return Err(VectorStoreError::Backend(format!(
+                        "response body is larger than max_response_body ({} bytes)",
+                        self.limits.max_response_body
+                    )));
+                }
+                return Ok(Reply::Ok(text));
+            }
+            let retryable = status_code == 429 || status_code == 503;
+            if !retryable || attempt >= self.retry.retry_attempts {
+                let (text, _) = read_bounded(body, self.limits.max_error_body).await;
+                return Err(VectorStoreError::Backend(format!("HTTP {status_code}: {text}")));
+            }
+            // The error body is not needed for a retry, so it is dropped unread.
+            // The next request is fresh; no message is kept from this one.
+            drop(body);
+            let delay = self.retry_delay(&headers, attempt);
+            foundation_core::valtron::sleep_async(delay).await;
         }
-        if !(200..=299).contains(&status_code) {
-            let (text, _) = read_bounded(body, self.limits.max_error_body).await;
-            return Err(VectorStoreError::Backend(format!("HTTP {status_code}: {text}")));
+    }
+
+    /// The wait before the attempt after `attempt` failed with a retryable
+    /// status: `Retry-After` seconds when the header is present, else
+    /// exponential backoff with full jitter.
+    fn retry_delay(&self, headers: &SimpleHeaders, attempt: u32) -> Duration {
+        if let Some(seconds) = retry_after_seconds(headers) {
+            return Duration::from_secs(seconds);
         }
-        let (text, truncated) = read_bounded(body, self.limits.max_response_body).await;
-        if truncated {
-            return Err(VectorStoreError::Backend(format!(
-                "response body is larger than max_response_body ({} bytes)",
-                self.limits.max_response_body
-            )));
-        }
-        Ok(Reply::Ok(text))
+        let factor = 2u32.saturating_pow(attempt.saturating_sub(1));
+        let backoff = self
+            .retry
+            .retry_base_delay
+            .saturating_mul(factor)
+            .min(self.retry.retry_max_delay);
+        jitter(backoff)
     }
 
     /// A query on `namespace`; `None` when the namespace does not exist.
@@ -306,6 +409,30 @@ async fn read_bounded(mut body: AsyncSendSafeBody, limit: usize) -> (String, boo
         }
     }
     (String::from_utf8_lossy(&buf).into_owned(), truncated)
+}
+
+/// The `Retry-After` header as whole seconds, when it is present and parses as
+/// a decimal integer. `TurboPuffer` sends delta-seconds, not an HTTP date; a
+/// non-integer value reads as absent, and the caller falls back to backoff.
+fn retry_after_seconds(headers: &SimpleHeaders) -> Option<u64> {
+    headers
+        .get(&SimpleHeader::RETRY_AFTER)?
+        .first()?
+        .parse::<u64>()
+        .ok()
+}
+
+/// A random wait in `[0, capped]` (full jitter, the AWS SDK recommendation).
+/// The draw uses [`foundation_compact::entropy`]'s platform source (rule 11),
+/// not a global RNG. When the source fails, the full capped wait is used: still
+/// correct, only less spread.
+fn jitter(capped: Duration) -> Duration {
+    let nanos = capped.as_nanos();
+    let Ok(draw) = foundation_compact::entropy::u32() else {
+        return capped;
+    };
+    let scaled = (u128::from(draw) * nanos) >> 32;
+    Duration::from_nanos(u64::try_from(scaled).unwrap_or(u64::MAX))
 }
 
 #[derive(Deserialize)]

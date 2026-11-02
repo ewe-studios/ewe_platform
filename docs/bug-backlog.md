@@ -214,9 +214,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 17. foundation_vectors
 
-- **`TurboPufferVectorStore` does not retry HTTP 429.** `TurboPuffer` throttles
-  writes with 429 (backpressure). The store reports it as an error. Fix: retry
-  with backoff, with the attempts and delays on a config.
 - **The `sql-store` feature does not build for wasm32.**
   `cargo check --target wasm32-unknown-unknown -p foundation_vectors
   --features sql-store` fails in `foundation_core` (`idle_wake` missing, a

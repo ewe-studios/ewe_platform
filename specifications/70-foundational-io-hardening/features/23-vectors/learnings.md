@@ -66,6 +66,27 @@ _Written in ASD-STE100 Simplified Technical English._
   The `VectorStore` trait has no namespace delete, so the cleanup sends a raw
   `DELETE /v2/namespaces/{ns}` through a fresh `DynNetClient`.
 
+## E5
+
+- **`VectorStore: Send + Sync`, so a `RefCell<fastrand::Rng>` cannot live in
+  the store.** The existing `ExponentialBackoffDecider` in `foundation_core`
+  holds a `RefCell`, which is `Send` but not `Sync`. The retry delay is
+  computed in `post` from `foundation_compact::entropy::u32()` instead, a
+  stateless platform entropy call (rule 11) that keeps the store `Sync`.
+- **`foundation_core::valtron::sleep_async` is the cross-runtime sleep.** On
+  native it awaits `timer::sleep_for`; on wasm it bridges a valtron `sleep`
+  task. It needs no executor on native, so a retry wait never hangs the store.
+- **The mock's `fail_with` answers every request; a script queue answers one
+  request each.** The retry tests push a `VecDeque<ScriptedReply>`: the mock
+  pops one reply per request, then answers normally, so a 429 followed by
+  success is easy to stage.
+- **`Retry-After` is whole seconds, so the honours test sleeps one second.**
+  The assertion compares the two mock arrivals (a monotonic `Instant` on each
+  `Seen`), not a wall-clock guess: the gap must be at least 900 ms.
+- **Full jitter over `[0, capped]` avoids float casts.** The u32 entropy draw
+  is scaled by `(draw as u128 * nanos) >> 32`, so clippy's
+  `cast_precision_loss`/`cast_possible_truncation` never fire.
+
 ## Dead ends
 
 - **`f32::from(i32)` does not exist.** `f32` implements `From` for small
