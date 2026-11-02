@@ -64,7 +64,7 @@ code-graph-query = ["dep:petgraph", "dep:serde_json"]
 sql-store = ["dep:serde_json", "dep:foundation_db", "dep:futures-lite"]
 turbopuffer = ["dep:serde_json", "dep:foundation_core", "dep:foundation_netio", "dep:futures-lite"]
 # Persistent native VectorStore over fjall + a persisted F25 IVF index (F29).
-fjall-store = ["dep:fjall", "dep:serde_json"]
+fjall-store = ["dep:fjall", "dep:serde_json", "dep:foundation_core"]
 # SQLite vec0 KNN via bundled sqlite-vec .so (F29). Native only.
 sqlite-vec = ["dep:serde_json", "dep:libsql", "dep:tempfile"]
 

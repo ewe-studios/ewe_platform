@@ -246,12 +246,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 17. foundation_vectors
 
-- **`FjallVectorStore` runs fjall inline in its async methods**
-  (`src/fjall_store.rs`). fjall has only a sync API. The calls read and write
-  the page cache without `fsync`, but the first use of a namespace scans all
-  of its vectors to rebuild the index, and `flush` (`fsync`) is sync. Both can
-  hold a worker for a long time. Fix: run them on a blocking-work seam when
-  valtron has one (or in a task of their own), and make `flush` async.
 - **`SqliteVecVectorStore` ships only a linux-x86_64 `vec0.so`**
   (`vendor/vec0.so`). `open` fails on every other platform. Fix: vendor the
   extension for each supported target, or build sqlite-vec from source.
@@ -286,6 +280,13 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   (`SqlVectorStore::search`): memory is bounded (`TopK`), but time is
   O(n·d) per query. Expected for the portable fallback; large namespaces
   should use `LibsqlVectorStore` (native index) or a dedicated vector backend.
+- **Pre-existing clippy deny in the `code-graph` test tree.**
+  `tests/lang_config_tests.rs:123` uses `assert!(ext.raw_calls.len() >= 0)`
+  (`clippy::absurd_extreme_comparisons`, a deny-by-default lint), so
+  `cargo clippy -p foundation_vectors --profile uat --all-targets
+  --all-features` fails. CI does not run `code-graph`, so it never sees it.
+  Fix: replace the comparison with `assert!(!ext.raw_calls.is_empty())` or
+  delete the assertion, then keep the whole `code-graph` tree clippy-clean.
 
 ## 18. ewe_channels (crates/channels)
 
