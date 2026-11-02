@@ -15,7 +15,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 1. foundation_connectrpc
 
-(no open entries)
+- Clippy warnings (pre-existing, `cargo clippy -p foundation_connectrpc --profile uat --all-targets --all-features`), grouped by lint:
+  - `clippy::doc_markdown` ("item in documentation is missing backticks") across `src/` (lib.rs, error/code.rs, auth.rs, …), `tests/`, and `examples/` — the largest set.
+  - `clippy::cast_possible_truncation` / `cast_possible_wrap` / `cast_sign_loss` in `tests/` (h1_pool_parking_tests.rs, router_dispatch_tests.rs, arrow_codec_tests.rs, codec_tests.rs, conformance_tests.rs, grpc_tests.rs, server_socket_tests.rs, …) and `src/shared/transport/conn.rs`, `src/shared/client.rs`.
+  - `clippy::needless_pass_by_value`, `clippy::must_use`, `clippy::struct_excessive_bools`, `clippy::similar_names`, `clippy::unused_async` (examples: code_first_service).
+  - Fix in a dedicated warning-cleanup pass for the crate.
 
 ## 2. foundation_netio
 
@@ -161,11 +165,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   suggest a disk store. They implement only the sync traits. Fix: rename the
   constructors (`InodeFs::new()`), drop the aliases, and add the async face
   like `MemoryFs`.
-- **`FjallDocumentStore` uses the sync VFS traits.** `FjallDocumentStore<V:
-  VfsFileSystem>` (`src/shared/vfs/fjall_document_store.rs`) calls its VFS
-  synchronously inside the async `DocumentStore` methods. With an I/O-backed
-  VFS (wrapped in `SyncFs`) each call blocks. Fix: make `V:
-  AsyncVfsFileSystem` and await the calls.
 - **NFS `readdir` ignores `start_after`.** `VfsNfs::readdir`
   (`src/native/vfs/nfs/mod.rs`) always starts at the first entry, so a
   directory larger than one page repeats; the attribute times are always 0.
