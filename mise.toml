@@ -63,14 +63,11 @@ nushell = "0.116.1"
 node = "24.21.0"
 python = "3.12.15"
 pnpm = "10.34.6"
-"aqua:denoland/deno" = "2.9.7"
 cmake = "3.31.12"
 ninja = "1.13.2"
 protoc = "36.2"
 sccache = "0.18.0"
 cargo-binstall = "1.25.2"
-# Must match the wasm-bindgen version in Cargo.lock (CI checks this).
-"github:wasm-bindgen/wasm-bindgen" = "0.2.126"
 "github:wasm-bindgen/wasm-pack" = "0.15.0"
 "github:WebAssembly/binaryen" = "version_133"
 wasmtime = "49.0.2"
@@ -1068,24 +1065,6 @@ description = "Run foundation_nostd stress tests"
 run = """
 echo "Running stress tests..."
 cargo test --package foundation_testing --release -- stress
-"""
-
-[tasks."test:wasm-testbed:deno"]
-alias = "test-wasm-testbed-deno"
-description = "Owned #[wasm_test] harness e2e on the EMBEDDED Deno runtime (spec-44) — in-process, zero node/deno install. Sample crate + ported JS-yield tests."
-run = """
-echo "Owned wasm-testbed sample (embedded deno, filtered green subset)..."
-cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_testbed/integration/module --filter passes
-echo "Ported foundation_core JS-yield tests (embedded deno)..."
-cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_core/integration/wasm_tests
-echo "✓ owned embedded-deno harness green"
-"""
-
-[tasks."test:wasm-bindgen:deno"]
-alias = "test-wasm-bindgen-deno"
-description = "valtron's js-wasmbindgen backend (the one Workers run) under Deno: park → wake → microtask resume, JS yield (spec 68). Needs the mise-pinned deno + wasm-bindgen."
-run = """
-cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std --filter wasm_js_yield_integration
 """
 
 [tasks."test:wasm-testbed:web"]

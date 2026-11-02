@@ -19,6 +19,12 @@ Branch: `fix/io-20-vfs-process-ipc`.
   backlog entry "`wasm-testbed` warns on `Command::Bindgen(args)`" is deleted in
   the same commit. A new backlog entry records the `deno_v8` unused-dependency
   manifest lint surfaced by cargo nightly 1.100.0.
+- **E6.** A new `mise.wasm.toml` environment pins only deno and wasm-bindgen,
+  sets `auto_install = false`, and holds the two wasm deno tasks. `mise.toml`
+  drops those two tools and tasks. `MISE_ENV=wasm mise run test:wasm-bindgen:deno`
+  now installs only deno and wasm-bindgen instead of the whole toolchain. The
+  backlog entry "Running a wasm mise task installs every tool" is deleted in the
+  same commit.
 
 ## In progress
 
@@ -26,7 +32,6 @@ Branch: `fix/io-20-vfs-process-ipc`.
 
 ## Next
 
-- E6: split the wasm mise tools into their own mise environment.
 - E7: fix the `foundation_keychain` wasm warnings.
 - E8: fix the `foundation_deployment_cloudflare` wasm warning.
 - E4 and E3 stay for a later pass.

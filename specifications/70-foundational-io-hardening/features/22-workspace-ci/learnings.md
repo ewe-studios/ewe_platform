@@ -32,3 +32,14 @@
   `deno_core` (feature unification), so the lint flags it. This is not the E5
   warning; it is recorded in the backlog.
 
+## E6. A separate mise environment for the wasm tools
+
+- mise environment files overlay the base `mise.toml`; they do not replace it.
+  Pinning only deno and wasm-bindgen in `mise.wasm.toml` is not enough, because
+  the base `[tools]` list is still merged in. The isolation comes from
+  `[settings] auto_install = false` plus an explicit `mise install deno
+  wasm-bindgen` in the task body.
+- Verified: `MISE_ENV=wasm mise config get settings.auto_install` returns
+  `false`; the two wasm tasks appear only under `MISE_ENV=wasm`; the base
+  `mise tasks` no longer lists them.
+

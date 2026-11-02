@@ -188,13 +188,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   listed only to enable its V8 backend for `deno_core` (feature unification);
   no source `use`s it. Fix: silence the lint for that dependency (for example
   a `[lints.cargo]` override or a `use` that marks it used).
-- **Running a wasm mise task installs every tool in `mise.toml`.** `mise exec`/`mise run`
-  first installs all pinned tools (bacon, cargo-nextest, cargo-audit, python…),
-  building several from source. On a small disk that fills it, and where the
-  GitHub attestation API is blocked the python install fails, so
-  `test:wasm-bindgen:deno` cannot start even though it only needs deno and
-  wasm-bindgen. Split the wasm tools into their own mise env/profile, or have the
-  task invoke the two binaries via `mise which`.
 
 - **Wasm runtime tests never run in CI.** `foundation_core`'s
   `tests/valtron/wasm_js_yield_integration.rs` (and the other
