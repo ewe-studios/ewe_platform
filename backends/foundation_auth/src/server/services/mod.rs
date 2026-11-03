@@ -12,7 +12,7 @@ pub mod user_service;
 pub mod webauthn_service;
 
 pub use client_service::{create_client_record, ClientServiceError};
-pub use mfa_service::{MfaChallengeRecord, MfaService};
+pub use mfa_service::{EncryptedSecret, MfaChallengeRecord, MfaService, TotpEnrollment};
 pub use pow_service::{PowChallenge, PowService, PowSolution};
 pub use provider_service::{ProviderCrypto, ProviderService, ProviderServiceError};
 pub use session_service::{SessionService, SessionServiceError};

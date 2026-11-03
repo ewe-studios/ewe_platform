@@ -75,6 +75,8 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
         // F02 — auth endpoints (unified login, MFA, logout)
         app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/oidc/authorize");
         app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/mfa");
+        app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/mfa/totp/enroll/start");
+        app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/mfa/totp/enroll/confirm");
         app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/oidc/logout");
         // F03 — registration endpoints
         app.route::<ServeAdapter<KV>>(SimpleMethod::POST, "/auth/v1/users/register");

@@ -7,3 +7,4 @@
 
 mod expiry;
 mod single_use;
+mod totp;

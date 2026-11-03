@@ -284,7 +284,10 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             cache,
         ));
         let tos_service = Arc::new(TosService::new(Arc::clone(&storage)));
-        let mfa_service = Arc::new(MfaService::new(Arc::clone(&storage)));
+        let mfa_service = Arc::new(MfaService::new(
+            Arc::clone(&storage),
+            config.totp_keys.clone(),
+        ));
         // A fresh in-memory session service. `IdpServer` and `ServeAdapter`
         // replace it with one shared by all routes (`with_session_service`).
         let session_service = Arc::new(
@@ -803,7 +806,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
         // MFA: a user with a TOTP secret must prove it before the ToS gate
         // and the session.
-        if self.mfa_service.totp_secret(&user.id).await?.is_some() {
+        if self.mfa_service.has_totp(&user.id).await? {
             let challenge_id = self
                 .mfa_service
                 .create_challenge(&user.id, pending, self.config.mfa_challenge_ttl)
@@ -857,13 +860,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         if user.is_locked() {
             return Err(IdpError::Locked(user.locked_until.unwrap_or(0)));
         }
-        let secret = self
-            .mfa_service
-            .totp_secret(&user.id)
-            .await?
-            .ok_or_else(invalid)?;
-
-        if !MfaService::<KV>::verify_code(&secret, &code) {
+        // Checks the code and spends its time step (a code works once).
+        if !self.mfa_service.verify_totp_code(&user.id, &code).await? {
             let mut u = user.clone();
             u.record_failed_attempt(
                 self.config.password_policy.max_failed_attempts,
@@ -985,6 +983,109 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             }
         }
         Ok(None)
+    }
+
+    /// Start TOTP enrollment: POST /auth/v1/mfa/totp/enroll/start
+    ///
+    /// Needs a session (cookie or bearer). Makes a secret and returns it with
+    /// an `otpauth_uri` for an authenticator app. The secret is stored
+    /// encrypted and is not active until `enroll/confirm` gets a first code. A
+    /// user who already has a TOTP secret must send the `current_code` in the
+    /// body, so a stolen session cannot replace the second factor.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid, not authenticated, or a
+    /// storage or service call fails.
+    pub async fn totp_enroll_start(
+        &self,
+        _bag: &ContextBag,
+        req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let user_id = self
+            .authenticated_user(req)
+            .await?
+            .ok_or_else(|| IdpError::Unauthorized("Authentication required".into()))?;
+        if self.config.totp_keys.active().is_none() {
+            return Err(IdpError::Internal(
+                "TOTP enrollment is not configured (no encryption key)".into(),
+            ));
+        }
+        let body = extract_body_text(req.body.as_ref());
+        let body: serde_json::Value = if body.trim().is_empty() {
+            serde_json::json!({})
+        } else {
+            serde_json::from_str(&body)
+                .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?
+        };
+
+        if self.mfa_service.has_totp(&user_id).await? {
+            let code = body
+                .get("current_code")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| {
+                    IdpError::Unauthorized("current_code is required to replace the secret".into())
+                })?;
+            if !self.mfa_service.verify_totp_code(&user_id, code).await? {
+                return Err(IdpError::Unauthorized("Invalid current_code".into()));
+            }
+        }
+
+        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &user_id)
+            .await?
+            .ok_or_else(|| IdpError::Unauthorized("Authentication required".into()))?;
+        let enrollment = self
+            .mfa_service
+            .start_enrollment(&user_id, self.config.mfa_challenge_ttl)
+            .await?;
+        let issuer = self.config.issuer_url.trim_end_matches('/');
+        let uri = format!(
+            "otpauth://totp/{}:{}?secret={}&issuer={}&algorithm=SHA256&digits=6&period=30",
+            urlencoding::encode(issuer),
+            urlencoding::encode(&user.email),
+            enrollment.secret_base32,
+            urlencoding::encode(issuer),
+        );
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "secret": enrollment.secret_base32,
+            "otpauth_uri": uri,
+            "expires_in": self.config.mfa_challenge_ttl.as_secs(),
+        })))
+    }
+
+    /// Confirm TOTP enrollment: POST /auth/v1/mfa/totp/enroll/confirm
+    ///
+    /// Needs a session. The body is `{"code": "..."}`, a first code made from
+    /// the secret that `enroll/start` returned. One start allows one attempt.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError`] if the request is not valid, not authenticated, or a
+    /// storage or service call fails.
+    pub async fn totp_enroll_confirm(
+        &self,
+        _bag: &ContextBag,
+        req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let user_id = self
+            .authenticated_user(req)
+            .await?
+            .ok_or_else(|| IdpError::Unauthorized("Authentication required".into()))?;
+        let body = extract_body_text(req.body.as_ref());
+        let body: serde_json::Value = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+        let code = body
+            .get("code")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| IdpError::BadRequest("Missing code".into()))?;
+        if !self.mfa_service.confirm_enrollment(&user_id, code).await? {
+            return Err(IdpError::Unauthorized(
+                "Invalid code or no enrollment in progress".into(),
+            ));
+        }
+        Ok(HandlerResponse::ok(
+            serde_json::json!({ "status": "enrolled" }),
+        ))
     }
 
     /// Logout: POST /auth/v1/oidc/logout
@@ -1940,7 +2041,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             self.device_authorize(bag, req).await
         }
         // F02 auth routes
-        else if path.ends_with("/auth/v1/mfa") {
+        else if path.ends_with("/auth/v1/mfa/totp/enroll/start") {
+            self.totp_enroll_start(bag, req).await
+        } else if path.ends_with("/auth/v1/mfa/totp/enroll/confirm") {
+            self.totp_enroll_confirm(bag, req).await
+        } else if path.ends_with("/auth/v1/mfa") {
             self.mfa(bag, req).await
         } else if path.ends_with("/auth/v1/oidc/logout") {
             self.logout(bag, req)

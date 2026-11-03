@@ -65,37 +65,34 @@ impl TOTPSecret {
 
     /// Verify a TOTP code with time window tolerance (±1 step by default).
     ///
-    /// Checks the current time step and one step before/after to account
-    /// for clock drift.
+    /// Checks the current time step and `tolerance` steps before and after to
+    /// account for clock drift.
+    #[must_use]
+    pub fn verify(&self, code: &str, tolerance: u64) -> bool {
+        self.verify_step(code, tolerance).is_some()
+    }
+
+    /// Like [`verify`](Self::verify), but returns the time step the code
+    /// belongs to. A caller that remembers the last accepted step can reject a
+    /// code for the same or an earlier step (replay).
     #[must_use]
     #[allow(clippy::missing_panics_doc)]
-    pub fn verify(&self, code: &str, tolerance: u64) -> bool {
+    pub fn verify_step(&self, code: &str, tolerance: u64) -> Option<u64> {
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .expect("system clock before Unix epoch")
             .as_secs();
         let time_step = timestamp / self.period;
 
-        for delta in 0..=tolerance {
-            if delta > 0 {
-                // Check previous step
-                if time_step >= delta
-                    && code == Self::generate_code(&self.secret, time_step - delta, self.digits)
-                {
-                    return true;
-                }
-                // Check next step
-                if code == Self::generate_code(&self.secret, time_step + delta, self.digits) {
-                    return true;
-                }
-            } else {
-                // Current step
-                if code == Self::generate_code(&self.secret, time_step, self.digits) {
-                    return true;
-                }
+        // Check every step in the window; do not stop at the first match, so
+        // the work does not depend on which step matched.
+        let mut matched = None;
+        for step in time_step.saturating_sub(tolerance)..=time_step + tolerance {
+            if code == Self::generate_code(&self.secret, step, self.digits) {
+                matched = Some(step);
             }
         }
-        false
+        matched
     }
 
     /// Get the base32-encoded representation of the secret.

@@ -6,6 +6,7 @@ use std::time::Duration;
 use foundation_auth::server::models::{PendingLogin, TosVersion};
 use foundation_auth::server::services::{MfaService, TosService};
 use foundation_auth::server::storage::HandlerStorage;
+use foundation_auth::server::TotpKeyRing;
 use foundation_core::valtron::{valtron_test, BlockingFutureExt};
 use foundation_db::{KeyValueStore, MemoryStorage, QueryStore};
 use futures_lite::StreamExt;
@@ -44,7 +45,7 @@ async fn keys(storage: &HandlerStorage<MemoryStorage>) -> Vec<String> {
 fn expired_entries_are_not_returned_and_are_cleaned() {
     let storage = storage();
     let tos = TosService::new(Arc::clone(&storage));
-    let mfa = MfaService::new(Arc::clone(&storage));
+    let mfa = MfaService::new(Arc::clone(&storage), TotpKeyRing::default());
     let storage_c = Arc::clone(&storage);
 
     async move {

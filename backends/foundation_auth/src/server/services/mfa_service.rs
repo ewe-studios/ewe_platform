@@ -1,5 +1,10 @@
 //! Multi-factor login service — TOTP secrets and one-time MFA challenges.
 //!
+//! A TOTP secret is stored encrypted (ChaCha20-Poly1305, key from the IdP
+//! config, key id stored with the ciphertext, the user id as associated data).
+//! The service remembers the last accepted time step per user and rejects a
+//! code for the same or an earlier step, so a code works once.
+//!
 //! A user with a stored TOTP secret must prove it after the password. The
 //! login handler then answers `200 mfa_required` with a `challenge_id`. The
 //! challenge is 256 random bits, stored as its SHA-256, bound to the user and
@@ -11,12 +16,17 @@ use std::fmt::Write as _;
 use std::sync::Arc;
 use std::time::Duration;
 
+use chacha20poly1305::aead::{Aead, KeyInit, Payload};
+use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
+use zeroize::Zeroizing;
+
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::Utc;
 use foundation_compact::rng::Rng;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+use super::super::config::TotpKeyRing;
 use super::super::models::PendingLogin;
 use super::super::storage::{HandlerStorage, StorageOpError};
 use crate::shared::two_factor::TOTPSecret;
@@ -27,6 +37,101 @@ const TOTP_TOLERANCE_STEPS: u64 = 1;
 
 fn totp_key(user_id: &str) -> String {
     format!("mfa:totp:{user_id}")
+}
+
+/// Cache key of the last accepted TOTP time step of a user.
+fn step_key(user_id: &str) -> String {
+    format!("mfa:totp_step:{user_id}")
+}
+
+/// Cache key of a TOTP secret that is waiting for its first code.
+fn pending_key(user_id: &str) -> String {
+    format!("mfa:totp_pending:{user_id}")
+}
+
+/// A TOTP secret as stored: encrypted, with the id of the key that did it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptedSecret {
+    /// The id of the key in the [`TotpKeyRing`].
+    pub key_id: String,
+    /// The 96-bit random nonce, base64url.
+    pub nonce: String,
+    /// The ciphertext with its 128-bit tag, base64url.
+    pub ciphertext: String,
+}
+
+/// A new TOTP secret that the user has not confirmed yet.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct PendingEnrollment {
+    secret: EncryptedSecret,
+    /// Unix time in milliseconds after which the enrollment is not valid.
+    expires_at: i64,
+}
+
+/// What the user needs to add the secret to an authenticator app.
+#[derive(Debug, Clone)]
+pub struct TotpEnrollment {
+    /// The secret, base32.
+    pub secret_base32: String,
+}
+
+fn encrypt_secret(
+    ring: &TotpKeyRing,
+    user_id: &str,
+    secret: &TOTPSecret,
+) -> Result<EncryptedSecret, StorageOpError> {
+    let (key_id, key) = ring
+        .active()
+        .ok_or_else(|| StorageOpError::Query("no TOTP encryption key is configured".into()))?;
+    let mut nonce_bytes = [0u8; 12];
+    foundation_compact::rng::rng().fill_bytes(&mut nonce_bytes);
+    let plaintext = Zeroizing::new(secret.to_base32().into_bytes());
+    let ciphertext = ChaCha20Poly1305::new(Key::from_slice(key))
+        .encrypt(
+            Nonce::from_slice(&nonce_bytes),
+            Payload {
+                msg: &plaintext,
+                aad: user_id.as_bytes(),
+            },
+        )
+        .map_err(|_| StorageOpError::Query("TOTP secret encryption failed".into()))?;
+    Ok(EncryptedSecret {
+        key_id: key_id.to_string(),
+        nonce: URL_SAFE_NO_PAD.encode(nonce_bytes),
+        ciphertext: URL_SAFE_NO_PAD.encode(ciphertext),
+    })
+}
+
+fn decrypt_secret(
+    ring: &TotpKeyRing,
+    user_id: &str,
+    stored: &EncryptedSecret,
+) -> Result<TOTPSecret, StorageOpError> {
+    let parse = |what: &str| StorageOpError::Parse(format!("stored TOTP secret: {what}"));
+    let key = ring
+        .get(&stored.key_id)
+        .ok_or_else(|| parse("its encryption key is not in the key ring"))?;
+    let nonce = URL_SAFE_NO_PAD
+        .decode(&stored.nonce)
+        .ok()
+        .filter(|n| n.len() == 12)
+        .ok_or_else(|| parse("bad nonce"))?;
+    let ciphertext = URL_SAFE_NO_PAD
+        .decode(&stored.ciphertext)
+        .map_err(|_| parse("bad ciphertext"))?;
+    let plaintext = Zeroizing::new(
+        ChaCha20Poly1305::new(Key::from_slice(key))
+            .decrypt(
+                Nonce::from_slice(&nonce),
+                Payload {
+                    msg: &ciphertext,
+                    aad: user_id.as_bytes(),
+                },
+            )
+            .map_err(|_| parse("it does not decrypt"))?,
+    );
+    let encoded = std::str::from_utf8(&plaintext).map_err(|_| parse("not text"))?;
+    TOTPSecret::from_base32(encoded).ok_or_else(|| parse("not a secret"))
 }
 
 fn challenge_key(challenge_id: &str) -> String {
@@ -53,56 +158,195 @@ pub struct MfaChallengeRecord {
 /// MFA service — TOTP secrets and challenges, kept in the shared cache.
 pub struct MfaService<KV: KeyValueStore> {
     storage: Arc<HandlerStorage<KV>>,
+    keys: TotpKeyRing,
 }
 
 impl<KV: KeyValueStore> MfaService<KV> {
+    /// `keys` encrypt the TOTP secrets (`IdpConfig::totp_keys`). With no
+    /// active key, enrolling a secret fails.
     #[must_use]
-    pub fn new(storage: Arc<HandlerStorage<KV>>) -> Self {
-        Self { storage }
+    pub fn new(storage: Arc<HandlerStorage<KV>>, keys: TotpKeyRing) -> Self {
+        Self { storage, keys }
     }
 
-    /// Store the TOTP secret of a user (base32). Replaces an earlier secret.
+    /// Store the TOTP secret of a user, encrypted. Replaces an earlier secret
+    /// and resets the replay guard. The caller must have proved the user
+    /// (enrollment endpoints do; so does an operator tool).
     ///
     /// # Errors
     ///
-    /// Returns [`StorageOpError`] if the cache write fails.
+    /// Returns [`StorageOpError`] if no encryption key is configured or the
+    /// cache write fails.
     pub async fn enroll_totp(
         &self,
         user_id: &str,
         secret: &TOTPSecret,
     ) -> Result<(), StorageOpError> {
-        self.storage
-            .cache
-            .set(&totp_key(user_id), secret.to_base32())
-            .await
-            .map_err(|e| StorageOpError::Query(format!("cache set: {e}")))
+        self.store_enrolled(user_id, secret, 0).await
     }
 
-    /// The stored TOTP secret of a user, if the user has enrolled one.
+    async fn store_enrolled(
+        &self,
+        user_id: &str,
+        secret: &TOTPSecret,
+        last_step: u64,
+    ) -> Result<(), StorageOpError> {
+        let encrypted = encrypt_secret(&self.keys, user_id, secret)?;
+        let cache_err =
+            |e: foundation_db::StorageError| StorageOpError::Query(format!("cache set: {e}"));
+        self.storage
+            .cache
+            .set(&step_key(user_id), last_step)
+            .await
+            .map_err(cache_err)?;
+        self.storage
+            .cache
+            .set(&totp_key(user_id), encrypted)
+            .await
+            .map_err(cache_err)
+    }
+
+    /// True if the user has an enrolled TOTP secret.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the cache call fails.
+    pub async fn has_totp(&self, user_id: &str) -> Result<bool, StorageOpError> {
+        self.storage
+            .cache
+            .exists(&totp_key(user_id))
+            .await
+            .map_err(|e| StorageOpError::Query(format!("cache exists: {e}")))
+    }
+
+    /// The stored TOTP secret of a user, decrypted, if the user has enrolled one.
     ///
     /// # Errors
     ///
     /// Returns [`StorageOpError`] if the cache call fails or the stored value
-    /// is not a valid secret.
+    /// does not decrypt (wrong or missing key).
     pub async fn totp_secret(&self, user_id: &str) -> Result<Option<TOTPSecret>, StorageOpError> {
-        let Some(encoded) = self
+        let Some(stored) = self
             .storage
             .cache
-            .get::<String>(&totp_key(user_id))
+            .get::<EncryptedSecret>(&totp_key(user_id))
             .await
             .map_err(|e| StorageOpError::Query(format!("cache get: {e}")))?
         else {
             return Ok(None);
         };
-        TOTPSecret::from_base32(&encoded)
-            .map(Some)
-            .ok_or_else(|| StorageOpError::Parse("stored TOTP secret is not valid".into()))
+        decrypt_secret(&self.keys, user_id, &stored).map(Some)
     }
 
-    /// Check a one-time code against a secret.
-    #[must_use]
-    pub fn verify_code(secret: &TOTPSecret, code: &str) -> bool {
-        secret.verify(code.trim(), TOTP_TOLERANCE_STEPS)
+    /// Check a one-time code for an enrolled user, and spend it.
+    ///
+    /// The code is valid only for a time step later than the last accepted one,
+    /// so a code works once. The last step is taken from the cache with one
+    /// atomic `take` and written back, so two simultaneous requests cannot both
+    /// pass; the second one fails closed. Returns `false` for a wrong code, a
+    /// replayed code, or a user with no secret.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if a cache call fails or the secret does not
+    /// decrypt.
+    pub async fn verify_totp_code(
+        &self,
+        user_id: &str,
+        code: &str,
+    ) -> Result<bool, StorageOpError> {
+        let Some(secret) = self.totp_secret(user_id).await? else {
+            return Ok(false);
+        };
+        let cache_err =
+            |e: foundation_db::StorageError| StorageOpError::Query(format!("cache: {e}"));
+        let Some(last) = self
+            .storage
+            .cache
+            .take::<u64>(&step_key(user_id))
+            .await
+            .map_err(cache_err)?
+        else {
+            // Another request holds the step right now (or it is lost).
+            return Ok(false);
+        };
+        let accepted = secret
+            .verify_step(code.trim(), TOTP_TOLERANCE_STEPS)
+            .filter(|step| *step > last);
+        self.storage
+            .cache
+            .set(&step_key(user_id), accepted.unwrap_or(last))
+            .await
+            .map_err(cache_err)?;
+        Ok(accepted.is_some())
+    }
+
+    /// Start enrolling a new TOTP secret for a user: make a secret, keep it
+    /// encrypted until the user confirms it with a first code, and return it so
+    /// the user can add it to an authenticator app. Replaces an earlier pending
+    /// secret. The caller must have proved the user, and, if the user is
+    /// already enrolled, the current code.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if no encryption key is configured or a cache
+    /// call fails.
+    pub async fn start_enrollment(
+        &self,
+        user_id: &str,
+        ttl: Duration,
+    ) -> Result<TotpEnrollment, StorageOpError> {
+        let secret = TOTPSecret::generate();
+        let pending = PendingEnrollment {
+            secret: encrypt_secret(&self.keys, user_id, &secret)?,
+            expires_at: Utc::now()
+                .timestamp_millis()
+                .saturating_add(i64::try_from(ttl.as_millis()).unwrap_or(i64::MAX)),
+        };
+        self.storage
+            .cache
+            .set(&pending_key(user_id), pending)
+            .await
+            .map_err(|e| StorageOpError::Query(format!("cache set: {e}")))?;
+        Ok(TotpEnrollment {
+            secret_base32: secret.to_base32(),
+        })
+    }
+
+    /// Finish enrolling: check the first code against the pending secret and,
+    /// if it is right, store the secret as the user's TOTP secret. The pending
+    /// secret is taken (atomically) whatever the result, so one start allows
+    /// one attempt. Returns `false` for a wrong code, an expired or missing
+    /// pending secret.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if a cache call fails or the pending secret
+    /// does not decrypt.
+    pub async fn confirm_enrollment(
+        &self,
+        user_id: &str,
+        code: &str,
+    ) -> Result<bool, StorageOpError> {
+        let Some(pending) = self
+            .storage
+            .cache
+            .take::<PendingEnrollment>(&pending_key(user_id))
+            .await
+            .map_err(|e| StorageOpError::Query(format!("cache take: {e}")))?
+        else {
+            return Ok(false);
+        };
+        if Utc::now().timestamp_millis() >= pending.expires_at {
+            return Ok(false);
+        }
+        let secret = decrypt_secret(&self.keys, user_id, &pending.secret)?;
+        let Some(step) = secret.verify_step(code.trim(), TOTP_TOLERANCE_STEPS) else {
+            return Ok(false);
+        };
+        // The first code is spent: it cannot be used to log in.
+        self.store_enrolled(user_id, &secret, step).await?;
+        Ok(true)
     }
 
     /// Issue a challenge for a user whose password was proven. Returns the

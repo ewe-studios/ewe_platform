@@ -31,6 +31,71 @@ impl Default for PasswordPolicy {
     }
 }
 
+/// Keys that encrypt TOTP secrets at rest (ChaCha20-Poly1305, 256-bit keys).
+///
+/// The keys come from the IdP configuration (for example from an environment
+/// variable or a secret store read by the application); they are never in the
+/// code. Each stored ciphertext carries the id of the key that made it, so you
+/// can rotate: make the new key the active one with
+/// [`TotpKeyRing::with_active`] and keep the old one with
+/// [`TotpKeyRing::with_retired`] until every secret is re-enrolled.
+///
+/// With no active key, TOTP enrollment is off and fails closed.
+#[derive(Clone, Default)]
+pub struct TotpKeyRing {
+    active: Option<String>,
+    keys: std::collections::HashMap<String, zeroize::Zeroizing<[u8; 32]>>,
+}
+
+impl TotpKeyRing {
+    /// A ring with one active key.
+    #[must_use]
+    pub fn new(key_id: impl Into<String>, key: [u8; 32]) -> Self {
+        Self::default().with_active(key_id, key)
+    }
+
+    /// Add a key and make it the one new secrets are encrypted with.
+    #[must_use]
+    pub fn with_active(mut self, key_id: impl Into<String>, key: [u8; 32]) -> Self {
+        let id = key_id.into();
+        self.keys.insert(id.clone(), zeroize::Zeroizing::new(key));
+        self.active = Some(id);
+        self
+    }
+
+    /// Add a key that can only decrypt (an earlier active key).
+    #[must_use]
+    pub fn with_retired(mut self, key_id: impl Into<String>, key: [u8; 32]) -> Self {
+        self.keys
+            .insert(key_id.into(), zeroize::Zeroizing::new(key));
+        self
+    }
+
+    /// The id and bytes of the key new secrets are encrypted with, if any.
+    #[must_use]
+    pub fn active(&self) -> Option<(&str, &[u8; 32])> {
+        let id = self.active.as_deref()?;
+        self.keys.get(id).map(|k| (id, &**k))
+    }
+
+    /// The key with this id (active or retired), if the ring holds it.
+    #[must_use]
+    pub fn get(&self, key_id: &str) -> Option<&[u8; 32]> {
+        self.keys.get(key_id).map(|k| &**k)
+    }
+}
+
+impl core::fmt::Debug for TotpKeyRing {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let mut ids: Vec<&String> = self.keys.keys().collect();
+        ids.sort();
+        f.debug_struct("TotpKeyRing")
+            .field("active", &self.active)
+            .field("key_ids", &ids)
+            .finish_non_exhaustive()
+    }
+}
+
 pub struct IdpConfig {
     pub issuer_url: String,
     pub signing_key: JwtSigningKey,
@@ -58,6 +123,9 @@ pub struct IdpConfig {
     /// How long an MFA challenge (from a `200 mfa_required` login answer) stays
     /// valid. Default 5 minutes, the period of a typical one-time-code prompt.
     pub mfa_challenge_ttl: Duration,
+    /// Keys that encrypt TOTP secrets at rest (see [`TotpKeyRing`]). Default:
+    /// empty, which turns TOTP enrollment off.
+    pub totp_keys: TotpKeyRing,
 }
 
 /// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
@@ -82,6 +150,7 @@ impl IdpConfig {
             dev_mode: false,
             tos_code_ttl: Duration::from_secs(600),
             mfa_challenge_ttl: Duration::from_secs(300),
+            totp_keys: TotpKeyRing::default(),
         }
     }
 
@@ -135,6 +204,13 @@ impl IdpConfig {
         self
     }
 
+    /// Set the keys that encrypt TOTP secrets (see [`TotpKeyRing`]).
+    #[must_use]
+    pub fn with_totp_keys(mut self, keys: TotpKeyRing) -> Self {
+        self.totp_keys = keys;
+        self
+    }
+
     /// Set the life of an MFA challenge (see
     /// [`mfa_challenge_ttl`](Self::mfa_challenge_ttl)).
     #[must_use]
@@ -164,6 +240,7 @@ impl core::fmt::Debug for IdpConfig {
             .field("dev_mode", &self.dev_mode)
             .field("tos_code_ttl", &self.tos_code_ttl)
             .field("mfa_challenge_ttl", &self.mfa_challenge_ttl)
+            .field("totp_keys", &self.totp_keys)
             .finish_non_exhaustive()
     }
 }

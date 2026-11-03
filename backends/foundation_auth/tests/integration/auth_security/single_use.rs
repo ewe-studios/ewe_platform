@@ -7,6 +7,7 @@ use std::time::Duration;
 use foundation_auth::server::models::{PendingLogin, TosVersion};
 use foundation_auth::server::services::{MfaService, TosService};
 use foundation_auth::server::storage::HandlerStorage;
+use foundation_auth::server::TotpKeyRing;
 use foundation_core::valtron::{valtron_test, BlockingFutureExt};
 use foundation_db::{AsyncListStream, KeyValueStore, MemoryStorage, QueryStore, StorageResult};
 use serde::{de::DeserializeOwned, Serialize};
@@ -128,7 +129,10 @@ fn concurrent_use_of_one_tos_code_lets_exactly_one_through() {
 #[valtron_test(threads = 8, timeout = 60000)]
 fn concurrent_use_of_one_mfa_challenge_lets_exactly_one_through() {
     let storage = storage();
-    let mfa = Arc::new(MfaService::new(Arc::clone(&storage)));
+    let mfa = Arc::new(MfaService::new(
+        Arc::clone(&storage),
+        TotpKeyRing::default(),
+    ));
     let id = {
         let mfa = Arc::clone(&mfa);
         async move {

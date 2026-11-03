@@ -5,7 +5,7 @@ pub mod models;
 pub mod services;
 pub mod storage;
 
-pub use config::{IdpConfig, PasswordPolicy};
+pub use config::{IdpConfig, PasswordPolicy, TotpKeyRing};
 pub use handlers::{
     DeviceAuthResponse, HandlerResponse, IdpError, IdpHandlerCore, OidcDiscoveryDocument,
     ServeAdapter,

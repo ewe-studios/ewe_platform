@@ -11,7 +11,7 @@ use std::time::Duration;
 use foundation_auth::server::models::TosVersion;
 use foundation_auth::server::services::{MfaService, TosService};
 use foundation_auth::server::storage::{self, HandlerStorage};
-use foundation_auth::server::{IdpConfig, IdpServer};
+use foundation_auth::server::{IdpConfig, IdpServer, TotpKeyRing};
 use foundation_auth::TOTPSecret;
 use foundation_core::valtron::{valtron_test, BlockingFutureExt};
 use foundation_db::{MemoryStorage, QueryStore};
@@ -24,9 +24,9 @@ use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 const PASSWORD: &str = "ValidPass123!";
 
 /// A running `IdP` plus a client and the storage the server uses.
-struct Env {
-    client: DynNetClient,
-    storage: Arc<HandlerStorage<MemoryStorage>>,
+pub(crate) struct Env {
+    pub(crate) client: DynNetClient,
+    pub(crate) storage: Arc<HandlerStorage<MemoryStorage>>,
     shutdown: Arc<ShutdownSignal>,
     handle: Option<std::thread::JoinHandle<()>>,
 }
@@ -41,14 +41,14 @@ impl Drop for Env {
 }
 
 /// What the server answered.
-struct Reply {
-    status: usize,
-    headers: SimpleHeaders,
-    body: serde_json::Value,
+pub(crate) struct Reply {
+    pub(crate) status: usize,
+    pub(crate) headers: SimpleHeaders,
+    pub(crate) body: serde_json::Value,
 }
 
 impl Reply {
-    fn set_cookies(&self) -> Vec<String> {
+    pub(crate) fn set_cookies(&self) -> Vec<String> {
         self.headers
             .get(&SimpleHeader::SET_COOKIE)
             .cloned()
@@ -56,14 +56,14 @@ impl Reply {
     }
 
     /// The `name=value` pair of the session token cookie, ready to send back.
-    fn session_cookie(&self) -> Option<String> {
+    pub(crate) fn session_cookie(&self) -> Option<String> {
         self.set_cookies()
             .into_iter()
             .find(|c| c.starts_with("session_token="))
             .and_then(|c| c.split(';').next().map(str::to_string))
     }
 
-    fn location(&self) -> Option<String> {
+    pub(crate) fn location(&self) -> Option<String> {
         self.headers
             .get(&SimpleHeader::LOCATION)
             .and_then(|v| v.first().cloned())
@@ -80,7 +80,13 @@ fn make_storage() -> Arc<HandlerStorage<MemoryStorage>> {
     Arc::new(HandlerStorage::new(query_store, MemoryStorage::new()))
 }
 
-fn start(config: IdpConfig) -> Env {
+/// A server with the test TOTP keys.
+pub(crate) fn start(config: IdpConfig) -> Env {
+    start_raw(config.with_totp_keys(test_keys()))
+}
+
+/// A server with exactly this config (dev mode on).
+pub(crate) fn start_raw(config: IdpConfig) -> Env {
     let storage = make_storage();
     let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
@@ -108,7 +114,12 @@ fn start(config: IdpConfig) -> Env {
     }
 }
 
-fn config() -> IdpConfig {
+/// The TOTP key ring every test server uses.
+pub(crate) fn test_keys() -> TotpKeyRing {
+    TotpKeyRing::new("k1", [7u8; 32])
+}
+
+pub(crate) fn config() -> IdpConfig {
     IdpConfig::new("https://auth.example.com".into())
 }
 
@@ -121,7 +132,7 @@ fn read_body(body: SendSafeBody) -> String {
 }
 
 impl Env {
-    fn post(&self, path: &str, body: &serde_json::Value, cookie: Option<&str>) -> Reply {
+    pub(crate) fn post(&self, path: &str, body: &serde_json::Value, cookie: Option<&str>) -> Reply {
         let mut builder = PreparedRequestBuilder::post(&format!("http://testserver{path}"))
             .unwrap()
             .body_text(body.to_string())
@@ -138,7 +149,7 @@ impl Env {
         }
     }
 
-    fn register(&self, email: &str) -> String {
+    pub(crate) fn register(&self, email: &str) -> String {
         let reply = self.post(
             "/auth/v1/dev/register",
             &serde_json::json!({
@@ -153,7 +164,7 @@ impl Env {
         reply.body["id"].as_str().expect("user id").to_string()
     }
 
-    fn login(&self, email: &str) -> Reply {
+    pub(crate) fn login(&self, email: &str) -> Reply {
         self.post(
             "/auth/v1/oidc/authorize",
             &serde_json::json!({ "email": email, "password": PASSWORD }),
@@ -161,7 +172,12 @@ impl Env {
         )
     }
 
-    fn accept_code(&self, code: &str, version: &str, extra_user_id: Option<&str>) -> Reply {
+    pub(crate) fn accept_code(
+        &self,
+        code: &str,
+        version: &str,
+        extra_user_id: Option<&str>,
+    ) -> Reply {
         let mut body = serde_json::json!({ "tos_await_code": code, "tos_version": version });
         if let Some(user_id) = extra_user_id {
             body["user_id"] = user_id.into();
@@ -169,7 +185,7 @@ impl Env {
         self.post("/auth/v1/tos/accept", &body, None)
     }
 
-    fn seed_tos(&self, version: &str, effective_from: i64) {
+    pub(crate) fn seed_tos(&self, version: &str, effective_from: i64) {
         let service = TosService::new(Arc::clone(&self.storage));
         let version = TosVersion {
             version: version.to_string(),
@@ -183,10 +199,10 @@ impl Env {
     }
 
     /// Store a TOTP secret for the user; returns a second handle on the secret.
-    fn enroll(&self, user_id: &str) -> TOTPSecret {
+    pub(crate) fn enroll(&self, user_id: &str) -> TOTPSecret {
         let secret = TOTPSecret::generate();
         let copy = TOTPSecret::from_base32(&secret.to_base32()).expect("base32 round trip");
-        let service = MfaService::new(Arc::clone(&self.storage));
+        let service = MfaService::new(Arc::clone(&self.storage), test_keys());
         let user_id = user_id.to_string();
         async move { service.enroll_totp(&user_id, &copy).await }
             .block()
@@ -194,7 +210,7 @@ impl Env {
         secret
     }
 
-    fn has_accepted(&self, user_id: &str, version: &str) -> bool {
+    pub(crate) fn has_accepted(&self, user_id: &str, version: &str) -> bool {
         let query_store = Arc::clone(&self.storage.query_store);
         let (user_id, version) = (user_id.to_string(), version.to_string());
         async move { storage::find_tos_acceptance(query_store.as_ref(), &user_id, &version).await }
