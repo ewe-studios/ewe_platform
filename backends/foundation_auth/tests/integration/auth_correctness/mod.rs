@@ -8,6 +8,7 @@ mod cache_guard;
 mod cookies;
 mod enrollment;
 mod register;
+mod routing;
 mod social_code;
 mod social_tos;
 mod sweeper;

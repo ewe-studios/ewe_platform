@@ -96,6 +96,8 @@ impl core::fmt::Debug for TotpKeyRing {
     }
 }
 
+// One public flag per setting; grouping them would change the config API.
+#[allow(clippy::struct_excessive_bools)]
 pub struct IdpConfig {
     pub issuer_url: String,
     pub signing_key: JwtSigningKey,
@@ -136,18 +138,18 @@ pub struct IdpConfig {
     /// one most authenticator apps support). A stored secret keeps the hash it
     /// was enrolled with.
     pub totp_algorithm: crate::shared::two_factor::TotpAlgorithm,
-    /// How often the server deletes expired short-lived entries (ToS codes,
-    /// MFA challenges, PoW challenges) from the cache; see
+    /// How often the server deletes expired short-lived entries (`ToS` codes,
+    /// MFA challenges, `PoW` challenges) from the cache; see
     /// `IdpServer::start_sweeper`. Default 5 minutes.
     pub sweep_interval: Duration,
     /// Accept a cache whose `take` is not atomic (for example Workers KV).
     /// Default `false`: `IdpServer::try_new` refuses such a cache, because a
-    /// ToS code or MFA challenge in it could be used twice by two requests at
+    /// `ToS` code or MFA challenge in it could be used twice by two requests at
     /// the same time. Use D1 or a Durable Object for single-use data instead;
     /// turn this on only if you accept that risk.
     pub allow_non_atomic_cache: bool,
     /// The page where a user accepts the Terms of Service during a social
-    /// login. When a social login ends with an unaccepted ToS, the callback
+    /// login. When a social login ends with an unaccepted `ToS`, the callback
     /// answers `302` to this URL with `#tos_await_code=...&tos_version=...` in
     /// the fragment (a fragment is never sent to a server or logged). The page
     /// posts the code to `POST /auth/v1/tos/accept`. With `None` (default) the
@@ -247,7 +249,7 @@ impl IdpConfig {
         self
     }
 
-    /// Set the page for the ToS step of a social login (see
+    /// Set the page for the `ToS` step of a social login (see
     /// [`tos_page_url`](Self::tos_page_url)).
     #[must_use]
     pub fn with_tos_page_url(mut self, url: impl Into<String>) -> Self {

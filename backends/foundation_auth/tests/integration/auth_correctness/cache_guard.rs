@@ -1,4 +1,4 @@
-//! The IdP refuses a cache that cannot make single-use data single use.
+//! The `IdP` refuses a cache that cannot make single-use data single use.
 
 use std::sync::Arc;
 

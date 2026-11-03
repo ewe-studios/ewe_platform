@@ -2,6 +2,8 @@ use std::sync::Arc;
 
 use foundation_http::shared::context::ContextBag;
 use foundation_http::SimpleIncomingRequest;
+
+use super::routes::{route_for, Route};
 use foundation_netio::shared::http::SendSafeBody;
 use serde::{Deserialize, Serialize};
 
@@ -2094,26 +2096,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         self.complete_login(&user_id, pending, req).await
     }
 
-    /// The MFA routes (`/auth/v1/mfa` and TOTP enrollment); `None` for any
-    /// other path.
-    async fn dispatch_mfa(
-        &self,
-        bag: &ContextBag,
-        req: &SimpleIncomingRequest,
-        path: &str,
-    ) -> Option<Result<HandlerResponse, IdpError>> {
-        if path.ends_with("/auth/v1/mfa/totp/enroll/start") {
-            Some(self.totp_enroll_start(bag, req).await)
-        } else if path.ends_with("/auth/v1/mfa/totp/enroll/confirm") {
-            Some(self.totp_enroll_confirm(bag, req).await)
-        } else if path.ends_with("/auth/v1/mfa") {
-            Some(self.mfa(bag, req).await)
-        } else {
-            None
-        }
-    }
-
-    /// Dispatch.
+    /// Dispatch: find the route for the method and path in the route table
+    /// ([`route_for`]) and call its handler. No route is a 404.
     ///
     /// # Errors
     ///
@@ -2125,114 +2109,52 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     ) -> Result<HandlerResponse, IdpError> {
         let path = req.request_url.url.as_str();
         let path = path.split('?').next().unwrap_or(path);
-
-        if path.ends_with("/.well-known/openid-configuration") {
-            self.discovery(bag, req)
-        } else if path.ends_with("/.well-known/jwks.json") {
-            self.jwks(bag, req)
-        }
-        // F011: social login — /authorize?provider=X dispatches here
-        else if path.ends_with("/authorize") && has_query_param("provider", req) {
-            self.social_authorize(bag, req).await
-        } else if path.ends_with("/callback") && has_query_param("provider", req) {
-            self.social_callback(bag, req).await
-        }
-        // F02 unified login: POST /auth/v1/oidc/authorize. It must be matched
-        // before the generic `/authorize` branch below, which would take it.
-        else if path.contains("/auth/v1/oidc/authorize") {
-            self.login(bag, req).await
-        } else if path.ends_with("/authorize") && !path.contains("/device/") {
-            self.authorize(bag, req).await
-        } else if path.ends_with("/token") && !path.contains("/introspect") {
-            self.token(bag, req).await
-        } else if path.ends_with("/userinfo") {
-            self.userinfo(bag, req)
-        } else if path.ends_with("/introspect") {
-            self.introspect(bag, req)
-        } else if path.ends_with("/device/authorize") {
-            self.device_authorize(bag, req).await
-        }
-        // F02 auth routes
-        else if let Some(result) = self.dispatch_mfa(bag, req, path).await {
-            result
-        } else if path.ends_with("/auth/v1/oidc/logout") {
-            self.logout(bag, req).await
-        }
-        // F03 registration routes
-        else if path.ends_with("/auth/v1/users/register") {
-            self.register(bag, req).await
-        } else if path.ends_with("/auth/v1/dev/register") {
-            self.dev_register(bag, req).await
-        }
-        // F04 password reset routes
-        else if path.ends_with("/auth/v1/users/request_reset") {
-            self.request_password_reset(bag, req).await
-        } else if path.contains("/auth/v1/users/") && path.ends_with("/reset") {
-            self.set_password(bag, req)
-        }
-        // F05 PoW routes
-        else if path.ends_with("/auth/v1/pow") {
-            match req.method {
-                foundation_http::SimpleMethod::GET => self.pow_challenge(bag, req).await,
-                foundation_http::SimpleMethod::POST => self.pow_solve(bag, req).await,
-                _ => Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))),
+        let route = route_for(&req.method, path)
+            .ok_or_else(|| IdpError::NotFound(format!("Unknown endpoint: {path}")))?;
+        match route {
+            Route::Discovery => self.discovery(bag, req),
+            Route::Jwks => self.jwks(bag, req),
+            // F011: social login starts at /authorize?provider=X
+            Route::Authorize if has_query_param("provider", req) => {
+                self.social_authorize(bag, req).await
             }
-        }
-        // F08 template/config routes
-        else if path.ends_with("/auth/v1/templates/config") {
-            self.template_config(bag, req)
-        } else if path.ends_with("/auth/v1/templates/password_policy") {
-            self.password_policy(bag, req)
-        }
-        // F09 account management routes
-        else if path.starts_with("/auth/v1/users/") && path.ends_with("/change_password") {
-            self.change_password(bag, req).await
-        } else if path.starts_with("/auth/v1/users/") && path.ends_with("/sessions") {
-            self.list_sessions(bag, req)
-        } else if path.starts_with("/auth/v1/users/") && path.ends_with("/revoke") {
-            self.revoke_user(bag, req).await
-        } else if path.starts_with("/auth/v1/users/")
-            && path.matches('/').count() == 4
-            && !path.ends_with("/reset")
-            && !path.ends_with("/change_password")
-            && !path.ends_with("/sessions")
-            && !path.ends_with("/revoke")
-        {
-            match req.method {
-                foundation_http::SimpleMethod::GET => self.get_user(bag, req).await,
-                foundation_http::SimpleMethod::PUT => self.update_user(bag, req).await,
-                _ => Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))),
+            Route::Authorize => self.authorize(bag, req).await,
+            Route::Callback if has_query_param("provider", req) => {
+                self.social_callback(bag, req).await
             }
-        }
-        // F06 WebAuthn routes
-        else if path.ends_with("/auth/v1/webauthn/register/start") {
-            self.webauthn_register_start(bag, req).await
-        } else if path.ends_with("/auth/v1/webauthn/register/finish") {
-            self.webauthn_register_finish(bag, req).await
-        } else if path.ends_with("/auth/v1/webauthn/login/start") {
-            self.webauthn_auth_start(bag, req).await
-        } else if path.ends_with("/auth/v1/webauthn/login/finish") {
-            self.webauthn_auth_finish(bag, req).await
-        } else if path.starts_with("/auth/v1/webauthn/") && path.matches('/').count() == 4 {
-            match req.method {
-                foundation_http::SimpleMethod::DELETE => self.delete_passkey(bag, req).await,
-                foundation_http::SimpleMethod::PUT => self.rename_passkey(bag, req).await,
-                _ => Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))),
-            }
-        }
-        // F06 passkey-only login routes
-        else if path.ends_with("/auth/v1/passkey/login/start") {
-            self.passkey_login_start(bag, req).await
-        } else if path.ends_with("/auth/v1/passkey/login/finish") {
-            self.passkey_login_finish(bag, req).await
-        }
-        // F07 ToS routes
-        else if path.ends_with("/auth/v1/tos/latest") {
-            self.tos_latest(bag, req).await
-        } else if path.ends_with("/auth/v1/tos/accept") {
-            self.tos_accept(bag, req).await
-        } else {
-            Err(IdpError::NotFound(format!("Unknown endpoint: {path}")))
+            Route::Callback => Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))),
+            Route::Token => self.token(bag, req).await,
+            Route::Userinfo => self.userinfo(bag, req),
+            Route::Introspect => self.introspect(bag, req),
+            Route::DeviceAuthorize => self.device_authorize(bag, req).await,
+            Route::Login => self.login(bag, req).await,
+            Route::Mfa => self.mfa(bag, req).await,
+            Route::TotpEnrollStart => self.totp_enroll_start(bag, req).await,
+            Route::TotpEnrollConfirm => self.totp_enroll_confirm(bag, req).await,
+            Route::Logout => self.logout(bag, req).await,
+            Route::Register => self.register(bag, req).await,
+            Route::DevRegister => self.dev_register(bag, req).await,
+            Route::RequestPasswordReset => self.request_password_reset(bag, req).await,
+            Route::SetPassword => self.set_password(bag, req),
+            Route::PowChallenge => self.pow_challenge(bag, req).await,
+            Route::PowSolve => self.pow_solve(bag, req).await,
+            Route::TemplateConfig => self.template_config(bag, req),
+            Route::PasswordPolicy => self.password_policy(bag, req),
+            Route::GetUser => self.get_user(bag, req).await,
+            Route::UpdateUser => self.update_user(bag, req).await,
+            Route::ChangePassword => self.change_password(bag, req).await,
+            Route::ListSessions => self.list_sessions(bag, req),
+            Route::RevokeUser => self.revoke_user(bag, req).await,
+            Route::WebauthnRegisterStart => self.webauthn_register_start(bag, req).await,
+            Route::WebauthnRegisterFinish => self.webauthn_register_finish(bag, req).await,
+            Route::WebauthnAuthStart => self.webauthn_auth_start(bag, req).await,
+            Route::WebauthnAuthFinish => self.webauthn_auth_finish(bag, req).await,
+            Route::DeletePasskey => self.delete_passkey(bag, req).await,
+            Route::RenamePasskey => self.rename_passkey(bag, req).await,
+            Route::PasskeyLoginStart => self.passkey_login_start(bag, req).await,
+            Route::PasskeyLoginFinish => self.passkey_login_finish(bag, req).await,
+            Route::TosLatest => self.tos_latest(bag, req).await,
+            Route::TosAccept => self.tos_accept(bag, req).await,
         }
     }
 }

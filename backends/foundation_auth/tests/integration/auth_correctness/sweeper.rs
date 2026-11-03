@@ -1,4 +1,4 @@
-//! The IdP sweeps expired cache entries on an interval, as a valtron task,
+//! The `IdP` sweeps expired cache entries on an interval, as a valtron task,
 //! and stops when the shutdown signal is set.
 
 use std::sync::Arc;

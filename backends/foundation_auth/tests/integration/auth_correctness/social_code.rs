@@ -18,7 +18,7 @@ use foundation_netio::PreparedRequestBuilder;
 
 use crate::integration::tos_login_gate::{config, start, Env};
 
-/// A GET route of the IdP itself: the test client follows the 302 there.
+/// A GET route of the `IdP` itself: the test client follows the 302 there.
 const REDIRECT: &str = "http://testserver/auth/v1/templates/config";
 
 fn new_client(env: &Env, name: &str) -> (OAuthClient, String) {
