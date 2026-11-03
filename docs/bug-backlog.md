@@ -273,6 +273,22 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   Fix: deserialize the config into `ServerConfig` in the dev binary and wire
   `App` into the app binary, or delete the unused scaffolding.
 
+## 25. foundation_auth
+
+Found while building the ToS login gate (spec 70 feature 68, 2026-11-03).
+
+1. `src/server/handlers/core.rs` (`register`), `foundation_db` `users` table: a user created without `preferred_username` gets a value that breaks `users.username` UNIQUE, so the second such user gets a 500 (`UNIQUE constraint failed: users.username`). Fix: store NULL (or make the column nullable-unique) when no username is given.
+2. **Security.** `src/server/services/tos_service.rs`, `mfa_service.rs`: ToS codes and MFA challenges are read, then deleted. `KeyValueStore` has no atomic take, so two simultaneous requests with the same code can both pass. Fix: add an atomic `take`/compare-and-delete to `KeyValueStore` in foundation_db and use it.
+3. `src/server/services/tos_service.rs`, `mfa_service.rs`, `pow_service.rs`: the cache has no TTL. A code or challenge that nobody presents stays in the store after it expires. Fix: TTL support in `KeyValueStore`, or a sweep.
+4. **Security.** `src/server/services/mfa_service.rs`: there is no MFA enrollment endpoint (a test or operator must call `MfaService::enroll_totp`). The TOTP secret is stored unencrypted in the cache (`mfa:totp:<user_id>`), and a TOTP code can be replayed inside its time window. Fix: an enrollment endpoint, encryption at rest, and remember the last used time step per user.
+5. `src/server/handlers/core.rs` (`logout`): it does not read the session cookie and does not revoke the session, now that login creates real sessions. Fix: read the cookie, `SessionService::revoke_session`, clear the cookies.
+6. `src/server/handlers/core.rs` (`login`): `failed_login_attempts` is not reset after a good login (spec 48 F02 step 4).
+7. **Security.** `src/server/handlers/core.rs` (`social_authorize`, `social_callback`): `redirect_uri` is not checked against a client's registered list, and the authorization code is sent to it (open redirect). Fix: take a `client_id` and use `OAuthClient::allows_redirect`.
+8. `src/server/idp_server.rs`, `services/session_service.rs`: the default `SessionService` is in-memory with a random key, so sessions end when the process stops. An app built with `register_routes` only (no `http_app`) gets one session store per route, so a login session is not valid on other routes. Fix: a persistent `SessionManager` in `IdpServer`, and take the session service from the app in `register_routes`.
+9. `src/server/handlers/core.rs` (`dispatch`): routing is by `ends_with`/`contains` in a fixed order (this made `login` unreachable until feature 68; only that case was fixed). Fix: route on method and exact path.
+10. `src/server/handlers/core.rs` (`social_callback`): when the ToS gate applies, the 206 JSON answer is returned on a browser `GET` redirect flow, so the browser shows JSON. Fix: redirect to a ToS page with the code, or a front-channel flow for social login.
+11. `foundation_db` `src/core/schema/sql`: 28 SQL files but 27 entries in `MIGRATIONS`; `023_create_vectors.sql` is not registered. Register it or delete it (it may be deliberate; check the vectors crate).
+
 ## Paused
 
 - Windows/macOS VM images (#69).

@@ -6,15 +6,17 @@ use foundation_netio::shared::http::SendSafeBody;
 use serde::{Deserialize, Serialize};
 
 use super::super::config::IdpConfig;
-use super::super::models::DeviceCode;
+use super::super::models::{DeviceCode, PendingLogin};
 use super::super::services::user_service;
+use super::super::services::{
+    MfaService, SessionService, TosAcceptError, TosService, WebAuthnService,
+};
 use super::super::services::{
     PasskeyLoginFinishRequest, PasskeyLoginStartRequest, WebAuthnAuthFinishRequest,
     WebAuthnRegisterFinishRequest,
 };
 use super::super::services::{PowService, PowSolution};
 use super::super::services::{TokenService, TokenServiceError};
-use super::super::services::{TosService, WebAuthnService};
 use super::super::storage::{
     self, find_client_by_id, update_user_lockout, HandlerStorage, StorageOpError,
 };
@@ -138,6 +140,9 @@ pub struct LoginRequest {
     pub password: Option<String>,
     pub client_id: Option<String>,
     pub redirect_uri: Option<String>,
+    /// Ignored. A user with a TOTP secret gets a `mfa_required` challenge and
+    /// sends the code to `POST /auth/v1/mfa`. A code in the login body would
+    /// let a caller guess codes with no per-challenge limit.
     pub totp: Option<String>,
 }
 
@@ -254,12 +259,20 @@ pub struct IdpHandlerCore<KV: KeyValueStore + Clone = MemoryStorage> {
     pow_service: Arc<PowService<KV>>,
     webauthn_service: Arc<WebAuthnService<HandlerStorage<KV>, KV>>,
     tos_service: Arc<TosService<KV>>,
+    mfa_service: Arc<MfaService<KV>>,
+    session_service: Arc<SessionService>,
     /// In-memory upstream auth session store (F011). When present, social login
     /// routes are enabled.
     session_store: Option<Arc<crate::shared::auth_session::memory::MemoryAuthSessionStore>>,
 }
 
 impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
+    /// Build the handlers over a config and storage.
+    ///
+    /// # Panics
+    ///
+    /// Never in practice: it panics only if building the default in-memory
+    /// session service fails, and a 32-byte random key is always valid.
     #[must_use]
     pub fn new(config: Arc<IdpConfig>, storage: Arc<HandlerStorage<KV>>) -> Self {
         let cache = storage.cache.clone();
@@ -271,6 +284,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             cache,
         ));
         let tos_service = Arc::new(TosService::new(Arc::clone(&storage)));
+        let mfa_service = Arc::new(MfaService::new(Arc::clone(&storage)));
+        // A fresh in-memory session service. `IdpServer` and `ServeAdapter`
+        // replace it with one shared by all routes (`with_session_service`).
+        let session_service = Arc::new(
+            SessionService::in_memory().expect("a 32-byte signing key is a valid session key"),
+        );
         Self {
             config,
             storage,
@@ -278,8 +297,18 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             pow_service,
             webauthn_service,
             tos_service,
+            mfa_service,
+            session_service,
             session_store: None,
         }
+    }
+
+    /// Use this session service (shared by all routes) to create and read
+    /// login sessions.
+    #[must_use]
+    pub fn with_session_service(mut self, sessions: Arc<SessionService>) -> Self {
+        self.session_service = sessions;
+        self
     }
 
     /// Enable social login by attaching a session store.
@@ -715,17 +744,29 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
         // Step 1: email only, no password sent
         let Some(password) = login_req.password else {
-            if !user.has_password() {
-                return Ok(HandlerResponse::ok(serde_json::json!({
-                    "status": "password_required",
-                    "email": email,
-                })));
-            }
             return Ok(HandlerResponse::ok(serde_json::json!({
                 "status": "password_required",
                 "email": email,
             })));
         };
+
+        // The client and redirect URI are checked before any session or
+        // `ToS` code can carry them to the end of the login.
+        if login_req.client_id.is_none() && login_req.redirect_uri.is_some() {
+            return Err(IdpError::BadRequest(
+                "redirect_uri needs a client_id".into(),
+            ));
+        }
+        if let Some(client_id) = login_req.client_id.as_deref() {
+            let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)
+                .await?
+                .ok_or_else(|| IdpError::BadRequest("Unknown client_id".into()))?;
+            if let Some(redirect_uri) = login_req.redirect_uri.as_deref() {
+                if !client.allows_redirect(redirect_uri) {
+                    return Err(IdpError::BadRequest("redirect_uri not allowed".into()));
+                }
+            }
+        }
 
         // Step 2: verify password
         let valid =
@@ -752,19 +793,42 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             })));
         }
 
-        // Password correct — check for MFA (F06 WebAuthn/TOTP would be checked here)
-        // For now, return authenticated (session creation requires SessionService wiring)
-        Ok(HandlerResponse::accepted(serde_json::json!({
-            "status": "authenticated",
-        })))
+        let pending = PendingLogin {
+            auth_method: "password".into(),
+            client_id: login_req.client_id,
+            redirect_uri: login_req.redirect_uri,
+            state: None,
+            nonce: None,
+        };
+
+        // MFA: a user with a TOTP secret must prove it before the ToS gate
+        // and the session.
+        if self.mfa_service.totp_secret(&user.id).await?.is_some() {
+            let challenge_id = self
+                .mfa_service
+                .create_challenge(&user.id, pending, self.config.mfa_challenge_ttl)
+                .await?;
+            return Ok(HandlerResponse::ok(serde_json::json!({
+                "status": "mfa_required",
+                "challenge_id": challenge_id,
+                "type": "totp",
+            })));
+        }
+
+        self.complete_login(&user.id, pending, req).await
     }
 
     /// MFA verification: POST /auth/v1/mfa
     ///
+    /// The body holds the `challenge_id` from the `mfa_required` login answer
+    /// and the one-time `code`. The user comes from the challenge, never from
+    /// the body. A challenge allows one attempt; a wrong code counts as a
+    /// failed login attempt for the user (account lockout applies).
+    ///
     /// # Errors
     ///
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
-    pub fn mfa(
+    pub async fn mfa(
         &self,
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
@@ -773,19 +837,154 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let mfa_req: MfaRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
-        let _challenge_id = mfa_req
+        let challenge_id = mfa_req
             .challenge_id
             .ok_or_else(|| IdpError::BadRequest("Missing challenge_id".into()))?;
         let code = mfa_req
             .code
             .ok_or_else(|| IdpError::BadRequest("Missing code".into()))?;
 
-        // TOTP verification would go here (user's TOTP secret + code)
-        // For now, return a placeholder
-        let _ = code;
-        Ok(HandlerResponse::accepted(serde_json::json!({
-            "status": "authenticated",
-        })))
+        let invalid = || IdpError::Unauthorized("Invalid or expired MFA challenge or code".into());
+
+        let record = self
+            .mfa_service
+            .take_challenge(&challenge_id)
+            .await?
+            .ok_or_else(invalid)?;
+        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &record.user_id)
+            .await?
+            .ok_or_else(invalid)?;
+        if user.is_locked() {
+            return Err(IdpError::Locked(user.locked_until.unwrap_or(0)));
+        }
+        let secret = self
+            .mfa_service
+            .totp_secret(&user.id)
+            .await?
+            .ok_or_else(invalid)?;
+
+        if !MfaService::<KV>::verify_code(&secret, &code) {
+            let mut u = user.clone();
+            u.record_failed_attempt(
+                self.config.password_policy.max_failed_attempts,
+                self.config.password_policy.lockout_duration,
+            );
+            update_user_lockout(
+                self.storage.query_store.as_ref(),
+                &u.id,
+                u.failed_login_attempts,
+                u.locked_until,
+            )
+            .await?;
+            return Err(invalid());
+        }
+
+        let mut pending = record.pending_login;
+        pending.auth_method = "password+totp".into();
+        self.complete_login(&user.id, pending, req).await
+    }
+
+    /// Finish a proven authentication. Every path that proves a user (password,
+    /// MFA, passkey, WebAuthn, social login) ends here.
+    ///
+    /// If the user has not accepted the active `ToS` version, no session or
+    /// authorization code is made. The answer is
+    /// `206 {"status": "tos_required", "tos_await_code", "tos_version"}` and the
+    /// client posts the code to `POST /auth/v1/tos/accept`. Otherwise the
+    /// session is created (`202` with `Set-Cookie` and `Location`), or, for
+    /// social login, the authorization code is made (`302`).
+    async fn complete_login(
+        &self,
+        user_id: &str,
+        pending: PendingLogin,
+        req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        if let Some(challenge) = self
+            .tos_service
+            .gate(user_id, pending.clone(), self.config.tos_code_ttl)
+            .await?
+        {
+            return Ok(HandlerResponse {
+                status: 206,
+                body: serde_json::json!({
+                    "status": "tos_required",
+                    "tos_await_code": challenge.code,
+                    "tos_version": challenge.tos_version,
+                }),
+                headers: vec![],
+            });
+        }
+
+        if pending.auth_method == "social" {
+            let auth_code = crate::server::models::AuthorizationCode::new(
+                user_id.to_string(),
+                String::new(),
+                pending.redirect_uri.clone().unwrap_or_default(),
+                None,
+                "openid profile email".to_string(),
+                pending.nonce.clone(),
+                self.config.auth_code_ttl,
+            );
+            storage::store_auth_code(self.storage.query_store.as_ref(), &auth_code)
+                .await
+                .map_err(|e| IdpError::Internal(format!("store auth code: {e}")))?;
+            let app_state = pending.state.as_deref().unwrap_or("");
+            let redirect_uri = pending.redirect_uri.as_deref().unwrap_or("/");
+            let redirect_to = format!("{redirect_uri}?code={}&state={app_state}", auth_code.code);
+            return Ok(HandlerResponse::redirect(&redirect_to));
+        }
+
+        let user_agent = request_header(req, "user-agent");
+        let (_session, cookies) = self
+            .session_service
+            .create_session(user_id, None, user_agent.as_deref())
+            .await
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        let mut headers: Vec<(String, String)> = cookies
+            .iter()
+            .map(|c| ("Set-Cookie".to_string(), c.to_set_cookie_string()))
+            .collect();
+        headers.push((
+            "Location".to_string(),
+            pending.redirect_uri.unwrap_or_else(|| "/".to_string()),
+        ));
+        Ok(HandlerResponse {
+            status: 202,
+            body: serde_json::json!({
+                "status": "authenticated",
+                "user_id": user_id,
+            }),
+            headers,
+        })
+    }
+
+    /// The user of the request's session cookie or bearer access token, if
+    /// either is valid.
+    async fn authenticated_user(
+        &self,
+        req: &SimpleIncomingRequest,
+    ) -> Result<Option<String>, IdpError> {
+        let cookie_name = self.session_service.token_cookie_name();
+        if let Some(token) = request_cookie(req, cookie_name) {
+            if let Some(session) = self
+                .session_service
+                .get_session(&token)
+                .await
+                .map_err(|e| IdpError::Internal(e.to_string()))?
+            {
+                return Ok(Some(session.user_id));
+            }
+        }
+        if let Some(header) = request_header(req, "authorization") {
+            if let Some(token) = crate::shared::middleware::extract_bearer_token(Some(&header)) {
+                if let Ok(claims) = self.token_service.verify_access_token(&token) {
+                    if let Some(sub) = claims.get("sub").and_then(|v| v.as_str()) {
+                        return Ok(Some(sub.to_string()));
+                    }
+                }
+            }
+        }
+        Ok(None)
     }
 
     /// Logout: POST /auth/v1/oidc/logout
@@ -1321,10 +1520,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .auth_finish(&finish_req)
             .await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
-        Ok(HandlerResponse::accepted(serde_json::json!({
-            "status": "authenticated",
-            "user_id": user_id,
-        })))
+        self.complete_login(&user_id, passkey_pending("webauthn"), req)
+            .await
     }
 
     /// Passkey-only login start: POST /auth/v1/passkey/login/start
@@ -1372,10 +1569,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .passkey_login_finish(&finish_req)
             .await
             .map_err(|e| IdpError::Internal(e.to_string()))?;
-        Ok(HandlerResponse::accepted(serde_json::json!({
-            "status": "authenticated",
-            "user_id": user_id,
-        })))
+        self.complete_login(&user_id, passkey_pending("passkey"), req)
+            .await
     }
 
     /// Delete passkey: DELETE /auth/v1/webauthn/{id}
@@ -1437,12 +1632,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// # Errors
     ///
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
-    pub fn tos_latest(
+    pub async fn tos_latest(
         &self,
         _bag: &ContextBag,
         _req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        match self.tos_service.get_latest() {
+        match self.tos_service.get_latest().await? {
             Some(tos) => Ok(HandlerResponse::ok(serde_json::json!({
                 "version": tos.version,
                 "content": tos.content,
@@ -1457,6 +1652,23 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
     /// Accept `ToS`: POST /auth/v1/tos/accept
     ///
+    /// Two modes:
+    ///
+    /// - `{"tos_await_code": "...", "tos_version": "..."}`: the code from a
+    ///   `206 tos_required` login answer. The acceptance is recorded for the
+    ///   user the code was issued to, then the pending login is finished (the
+    ///   same answer as a normal login: `202` with `Set-Cookie` and `Location`).
+    /// - `{"tos_version": "..."}` with a valid session cookie or bearer access
+    ///   token: the acceptance is recorded for the session's user.
+    ///
+    /// A `user_id` in the body is ignored in both modes. With neither a code
+    /// nor a session the answer is 401.
+    ///
+    /// Errors: an unknown, used or expired code gives 401 `invalid_tos_code`
+    /// (one answer for all three). A version that is not the code's version or
+    /// not the active version gives 409 `tos_version_mismatch` with the active
+    /// version.
+    ///
     /// # Errors
     ///
     /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
@@ -1468,19 +1680,77 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let body = extract_body_text(req.body.as_ref());
         let accept_req: serde_json::Value = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+        // `user_id` in the body is deliberately never read.
+        let version = accept_req.get("tos_version").and_then(|v| v.as_str());
+        let code = accept_req.get("tos_await_code").and_then(|v| v.as_str());
 
-        let user_id = accept_req
-            .get("user_id")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| IdpError::BadRequest("Missing user_id".into()))?;
+        if let Some(code) = code {
+            let version =
+                version.ok_or_else(|| IdpError::BadRequest("Missing tos_version".into()))?;
+            // Deleted by `take_code` before anything else happens.
+            let Some(record) = self.tos_service.take_code(code).await? else {
+                return Ok(HandlerResponse {
+                    status: 401,
+                    body: serde_json::json!({
+                        "error": "invalid_tos_code",
+                        "error_description": "The ToS code is not valid.",
+                    }),
+                    headers: vec![],
+                });
+            };
+            if record.tos_version != version {
+                return self.tos_version_mismatch().await;
+            }
+            match self
+                .tos_service
+                .accept_version(&record.user_id, &record.tos_version, None)
+                .await
+            {
+                Ok(()) => {}
+                Err(TosAcceptError::VersionMismatch { .. } | TosAcceptError::NoActiveVersion) => {
+                    return self.tos_version_mismatch().await;
+                }
+                Err(TosAcceptError::Storage(e)) => return Err(e.into()),
+            }
+            return self
+                .complete_login(&record.user_id, record.pending_login, req)
+                .await;
+        }
 
-        self.tos_service
-            .accept(user_id, None)
+        let user_id = self
+            .authenticated_user(req)
+            .await?
+            .ok_or_else(|| IdpError::Unauthorized("Authentication required".into()))?;
+        let version = version.ok_or_else(|| IdpError::BadRequest("Missing tos_version".into()))?;
+        match self
+            .tos_service
+            .accept_version(&user_id, version, None)
             .await
-            .map_err(|e| IdpError::Internal(e.to_string()))?;
-        Ok(HandlerResponse::ok(serde_json::json!({
-            "status": "accepted",
-        })))
+        {
+            Ok(()) => Ok(HandlerResponse::ok(serde_json::json!({
+                "status": "accepted",
+                "tos_version": version,
+            }))),
+            Err(TosAcceptError::VersionMismatch { .. } | TosAcceptError::NoActiveVersion) => {
+                self.tos_version_mismatch().await
+            }
+            Err(TosAcceptError::Storage(e)) => Err(e.into()),
+        }
+    }
+
+    /// The 409 answer for a wrong or stale `ToS` version; it names the active
+    /// version.
+    async fn tos_version_mismatch(&self) -> Result<HandlerResponse, IdpError> {
+        let active = self.tos_service.get_latest().await?.map(|v| v.version);
+        Ok(HandlerResponse {
+            status: 409,
+            body: serde_json::json!({
+                "error": "tos_version_mismatch",
+                "error_description": "The ToS version is not the active version.",
+                "active_version": active,
+            }),
+            headers: vec![],
+        })
     }
 
     // ── F011 Social login handlers ────────────────────────────────────────
@@ -1620,23 +1890,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .await
             .map_err(|e| IdpError::Internal(format!("provisioning: {e}")))?;
 
-        let auth_code = crate::server::models::AuthorizationCode::new(
-            user_id,
-            String::new(),
-            session.redirect_to.clone().unwrap_or_default(),
-            None,
-            "openid profile email".to_string(),
-            session.nonce.clone(),
-            std::time::Duration::from_secs(600),
-        );
-        storage::store_auth_code(self.storage.query_store.as_ref(), &auth_code)
-            .await
-            .map_err(|e| IdpError::Internal(format!("store auth code: {e}")))?;
-
-        let app_state = session.app_state.as_deref().unwrap_or("");
-        let redirect_uri = session.redirect_to.as_deref().unwrap_or("/");
-        let redirect_to = format!("{redirect_uri}?code={}&state={app_state}", auth_code.code);
-        Ok(HandlerResponse::redirect(&redirect_to))
+        let pending = PendingLogin {
+            auth_method: "social".into(),
+            client_id: None,
+            redirect_uri: session.redirect_to.clone(),
+            state: session.app_state.clone(),
+            nonce: session.nonce.clone(),
+        };
+        self.complete_login(&user_id, pending, req).await
     }
 
     /// Dispatch.
@@ -1662,6 +1923,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             self.social_authorize(bag, req).await
         } else if path.ends_with("/callback") && has_query_param("provider", req) {
             self.social_callback(bag, req).await
+        }
+        // F02 unified login: POST /auth/v1/oidc/authorize. It must be matched
+        // before the generic `/authorize` branch below, which would take it.
+        else if path.contains("/auth/v1/oidc/authorize") {
+            self.login(bag, req).await
         } else if path.ends_with("/authorize") && !path.contains("/device/") {
             self.authorize(bag, req).await
         } else if path.ends_with("/token") && !path.contains("/introspect") {
@@ -1674,10 +1940,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             self.device_authorize(bag, req).await
         }
         // F02 auth routes
-        else if path.contains("/auth/v1/oidc/authorize") {
-            self.login(bag, req).await
-        } else if path.ends_with("/auth/v1/mfa") {
-            self.mfa(bag, req)
+        else if path.ends_with("/auth/v1/mfa") {
+            self.mfa(bag, req).await
         } else if path.ends_with("/auth/v1/oidc/logout") {
             self.logout(bag, req)
         }
@@ -1751,7 +2015,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         }
         // F07 ToS routes
         else if path.ends_with("/auth/v1/tos/latest") {
-            self.tos_latest(bag, req)
+            self.tos_latest(bag, req).await
         } else if path.ends_with("/auth/v1/tos/accept") {
             self.tos_accept(bag, req).await
         } else {
@@ -1911,6 +2175,37 @@ async fn find_user_by_email_lax(
         Some(Err(e)) => Err(format!("db: {e}")),
         None => Ok(None),
     }
+}
+
+/// The `PendingLogin` for a passkey or WebAuthn login (no client data).
+fn passkey_pending(method: &str) -> PendingLogin {
+    PendingLogin {
+        auth_method: method.to_string(),
+        client_id: None,
+        redirect_uri: None,
+        state: None,
+        nonce: None,
+    }
+}
+
+/// The first value of a request header, by case-insensitive name.
+fn request_header(req: &SimpleIncomingRequest, name: &str) -> Option<String> {
+    req.headers
+        .iter()
+        .find(|(k, _)| header_name_eq(k, name))
+        .and_then(|(_, v)| v.first().cloned())
+}
+
+/// The value of one cookie of the request, by exact name.
+fn request_cookie(req: &SimpleIncomingRequest, name: &str) -> Option<String> {
+    req.headers
+        .iter()
+        .filter(|(k, _)| header_name_eq(k, "cookie"))
+        .flat_map(|(_, values)| values.iter())
+        .flat_map(|line| line.split(';'))
+        .filter_map(|pair| pair.trim().split_once('='))
+        .find(|(n, _)| *n == name)
+        .map(|(_, v)| v.to_string())
 }
 
 fn extract_body_text(body: Option<&SendSafeBody>) -> String {

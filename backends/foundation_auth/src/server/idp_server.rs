@@ -6,6 +6,7 @@ use foundation_http::SimpleMethod;
 
 use super::config::IdpConfig;
 use super::handlers::ServeAdapter;
+use super::services::SessionService;
 use super::storage::HandlerStorage;
 use foundation_db::{KeyValueStore, MemoryStorage};
 
@@ -16,12 +17,34 @@ use foundation_db::{KeyValueStore, MemoryStorage};
 pub struct IdpServer<KV: KeyValueStore + Clone + 'static = MemoryStorage> {
     config: IdpConfig,
     storage: Arc<HandlerStorage<KV>>,
+    sessions: Arc<SessionService>,
 }
 
 impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
+    /// Build the server over a config and storage.
+    ///
+    /// # Panics
+    ///
+    /// Never in practice: it panics only if building the default in-memory
+    /// session service fails, and a 32-byte random key is always valid.
     #[must_use]
     pub fn new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>) -> Self {
-        Self { config, storage }
+        let sessions = Arc::new(
+            SessionService::in_memory().expect("a 32-byte signing key is a valid session key"),
+        );
+        Self {
+            config,
+            storage,
+            sessions,
+        }
+    }
+
+    /// Use this session service for all routes. The default is an in-memory
+    /// service with a random signing key: sessions end when the process stops.
+    #[must_use]
+    pub fn with_session_service(mut self, sessions: Arc<SessionService>) -> Self {
+        self.sessions = sessions;
+        self
     }
 
     pub fn register_routes(app: &mut HttpApp<Arc<dyn Serve>>, prefix: &str) {
@@ -88,6 +111,9 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
         // Stored as `Arc<HandlerStorage<KV>>`; `ServeAdapter::create` looks up
         // exactly that type.
         app.ctx.store(self.storage);
+        // Stored as `Arc<SessionService>`; `ServeAdapter::create` looks up
+        // exactly that type.
+        app.ctx.store(self.sessions);
         Self::register_routes(&mut app, "/idp");
         if dev_mode {
             eprintln!(

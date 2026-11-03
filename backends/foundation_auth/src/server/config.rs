@@ -51,6 +51,13 @@ pub struct IdpConfig {
     /// `POST /auth/v1/dev/register`, a registration route without the
     /// proof-of-work step. Never turn it on in production.
     pub dev_mode: bool,
+    /// How long a `ToS` code (from a `206 tos_required` login answer) stays
+    /// valid. Default 10 minutes, the same as an authorization code
+    /// ([`auth_code_ttl`](Self::auth_code_ttl)).
+    pub tos_code_ttl: Duration,
+    /// How long an MFA challenge (from a `200 mfa_required` login answer) stays
+    /// valid. Default 5 minutes, the period of a typical one-time-code prompt.
+    pub mfa_challenge_ttl: Duration,
 }
 
 /// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
@@ -73,6 +80,8 @@ impl IdpConfig {
             password_policy: PasswordPolicy::default(),
             max_request_body_bytes: DEFAULT_MAX_REQUEST_BODY_BYTES,
             dev_mode: false,
+            tos_code_ttl: Duration::from_secs(600),
+            mfa_challenge_ttl: Duration::from_secs(300),
         }
     }
 
@@ -119,6 +128,21 @@ impl IdpConfig {
         self
     }
 
+    /// Set the life of a `ToS` code (see [`tos_code_ttl`](Self::tos_code_ttl)).
+    #[must_use]
+    pub fn with_tos_code_ttl(mut self, ttl: Duration) -> Self {
+        self.tos_code_ttl = ttl;
+        self
+    }
+
+    /// Set the life of an MFA challenge (see
+    /// [`mfa_challenge_ttl`](Self::mfa_challenge_ttl)).
+    #[must_use]
+    pub fn with_mfa_challenge_ttl(mut self, ttl: Duration) -> Self {
+        self.mfa_challenge_ttl = ttl;
+        self
+    }
+
     /// Set the largest request body the `IdP` endpoints read (see
     /// [`max_request_body_bytes`](Self::max_request_body_bytes)).
     #[must_use]
@@ -138,6 +162,8 @@ impl core::fmt::Debug for IdpConfig {
             .field("require_pkce", &self.require_pkce)
             .field("max_request_body_bytes", &self.max_request_body_bytes)
             .field("dev_mode", &self.dev_mode)
+            .field("tos_code_ttl", &self.tos_code_ttl)
+            .field("mfa_challenge_ttl", &self.mfa_challenge_ttl)
             .finish_non_exhaustive()
     }
 }

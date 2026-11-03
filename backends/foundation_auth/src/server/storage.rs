@@ -768,7 +768,7 @@ pub async fn store_tos_acceptance(
     store: &dyn QueryStore,
     acceptance: &TosAcceptance,
 ) -> Result<(), StorageOpError> {
-    let sql = "INSERT INTO tos_acceptances (user_id, tos_version, accepted_at, ip_address) VALUES (?, ?, ?, ?)";
+    let sql = "INSERT OR IGNORE INTO tos_acceptances (user_id, tos_version, accepted_at, ip_address) VALUES (?, ?, ?, ?)";
     execute(
         store,
         sql,

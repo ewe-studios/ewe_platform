@@ -17,5 +17,5 @@ pub use code::{AuthorizationCode, DeviceCode};
 pub use passkey::Passkey;
 pub use provider::{ProviderMapping, ProviderType, ProviderUpdate, UpstreamProvider};
 pub use token::RefreshToken;
-pub use tos::{TosAcceptance, TosVersion};
+pub use tos::{PendingLogin, TosAcceptance, TosCodeRecord, TosVersion};
 pub use user::User;

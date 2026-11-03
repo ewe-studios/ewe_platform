@@ -3,6 +3,9 @@
 //! This crate provides authentication flows, credential management, and token handling
 //! for use with AI inference providers and other services requiring authentication.
 
+// The `Send` check on the deeply nested handler futures needs a deeper limit.
+#![recursion_limit = "512"]
+
 pub mod shared;
 
 #[cfg(not(target_family = "wasm"))]

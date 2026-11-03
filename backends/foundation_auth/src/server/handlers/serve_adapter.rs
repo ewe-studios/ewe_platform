@@ -12,6 +12,7 @@ use foundation_netio::shared::http::{
 };
 
 use super::super::config::IdpConfig;
+use super::super::services::SessionService;
 use super::super::storage::HandlerStorage;
 use super::core::{HandlerResponse, IdpError, IdpHandlerCore};
 use foundation_db::{KeyValueStore, MemoryStorage};
@@ -241,8 +242,16 @@ impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
             .get::<Arc<HandlerStorage<KV>>>()
             .map(|stored| Arc::clone(&*stored))
             .expect("Arc<HandlerStorage<KV>> must be in ContextBag");
+        let mut core = IdpHandlerCore::new(config, storage);
+        // One session service for all routes, so a session made by the login
+        // route is valid on the others. Without one in the bag (an app built
+        // with `register_routes` only) each route keeps its own in-memory
+        // sessions.
+        if let Some(sessions) = bag.get::<Arc<SessionService>>() {
+            core = core.with_session_service(Arc::clone(&*sessions));
+        }
         Self {
-            core: Arc::new(IdpHandlerCore::new(config, storage)),
+            core: Arc::new(core),
         }
     }
 }

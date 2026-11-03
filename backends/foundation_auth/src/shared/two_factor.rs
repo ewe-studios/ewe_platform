@@ -123,6 +123,34 @@ impl TOTPSecret {
         String::from_utf8(bytes[..significant].to_vec()).unwrap_or_default()
     }
 
+    /// Create from a base32 string (RFC 4648, no padding), the inverse of
+    /// [`to_base32`](Self::to_base32). Returns `None` for a character outside
+    /// the base32 alphabet or an empty string.
+    #[must_use]
+    pub fn from_base32(encoded: &str) -> Option<Self> {
+        if encoded.is_empty() {
+            return None;
+        }
+        let mut out = Vec::with_capacity(encoded.len() * 5 / 8);
+        let mut buffer: u32 = 0;
+        let mut bits = 0u32;
+        for ch in encoded.bytes() {
+            let val = match ch {
+                b'A'..=b'Z' => u32::from(ch - b'A'),
+                b'2'..=b'7' => u32::from(ch - b'2') + 26,
+                _ => return None,
+            };
+            buffer = (buffer << 5) | val;
+            bits += 5;
+            if bits >= 8 {
+                bits -= 8;
+                out.push(u8::try_from((buffer >> bits) & 0xFF).ok()?);
+                buffer &= (1 << bits) - 1;
+            }
+        }
+        Some(Self::from_bytes(out))
+    }
+
     /// Generate the HOTP code for a given time step.
     #[allow(clippy::cast_possible_truncation)]
     fn generate_code(secret: &[u8], time_step: u64, digits: usize) -> String {

@@ -1,6 +1,6 @@
 ---
 feature: "foundation_auth: the ToS gate at login, with a bound single-use code; tos/accept is never trusted with a user id from the body"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
@@ -76,6 +76,6 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] Every path to "authenticated" passes the ToS gate; `tos/accept` never trusts a body
+- [x] Every path to "authenticated" passes the ToS gate; `tos/accept` never trusts a body
       `user_id`; codes are hashed, bound, expiring and single-use.
-- [ ] The first three tests fail before and pass after (show both). CI green.
+- [x] The first three tests fail before and pass after (show both). CI green.

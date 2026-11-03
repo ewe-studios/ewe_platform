@@ -36,6 +36,33 @@ impl SessionService {
         Self { session_mgr }
     }
 
+    /// A session service over in-memory storage and a random signing key.
+    ///
+    /// Sessions live in this process and end when it stops. Use
+    /// [`SessionService::new`] with a persistent `SessionManager` for a real
+    /// deployment.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionServiceError`] if the session manager cannot be built.
+    pub fn in_memory() -> Result<Self, SessionServiceError> {
+        use foundation_compact::rng::Rng;
+        let mut key = [0u8; 32];
+        foundation_compact::rng::rng().fill_bytes(&mut key);
+        let mgr = SessionManager::new(
+            CredentialStorage::memory(),
+            crate::shared::session::SessionConfig::default(),
+            &key,
+        )?;
+        Ok(Self::new(Arc::new(mgr)))
+    }
+
+    /// The name of the session token cookie.
+    #[must_use]
+    pub fn token_cookie_name(&self) -> &str {
+        &self.session_mgr.config().token_cookie_name
+    }
+
     /// Create session.
     ///
     /// # Errors
