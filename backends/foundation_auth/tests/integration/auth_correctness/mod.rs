@@ -5,3 +5,4 @@
 #![cfg(feature = "server-test")]
 
 mod cookies;
+mod enrollment;

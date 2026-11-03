@@ -826,6 +826,45 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         self.complete_login(&user.id, pending, req).await
     }
 
+    /// Count a failed second-factor attempt toward the account lockout.
+    async fn record_failed_attempt(
+        &self,
+        user: &super::super::models::User,
+    ) -> Result<(), IdpError> {
+        let mut u = user.clone();
+        u.record_failed_attempt(
+            self.config.password_policy.max_failed_attempts,
+            self.config.password_policy.lockout_duration,
+        );
+        update_user_lockout(
+            self.storage.query_store.as_ref(),
+            &u.id,
+            u.failed_login_attempts,
+            u.locked_until,
+        )
+        .await?;
+        Ok(())
+    }
+
+    /// The signed-in user of the request, for the TOTP enrollment routes. A
+    /// locked account gets 423: failed codes count toward the lockout.
+    async fn enrollment_user(
+        &self,
+        req: &SimpleIncomingRequest,
+    ) -> Result<super::super::models::User, IdpError> {
+        let user_id = self
+            .authenticated_user(req)
+            .await?
+            .ok_or_else(|| IdpError::Unauthorized("Authentication required".into()))?;
+        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &user_id)
+            .await?
+            .ok_or_else(|| IdpError::Unauthorized("Authentication required".into()))?;
+        if user.is_locked() {
+            return Err(IdpError::Locked(user.locked_until.unwrap_or(0)));
+        }
+        Ok(user)
+    }
+
     /// A full successful login ends the run of failed attempts: reset the
     /// count and any lockout.
     async fn clear_failed_attempts(
@@ -879,18 +918,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         }
         // Checks the code and spends its time step (a code works once).
         if !self.mfa_service.verify_totp_code(&user.id, &code).await? {
-            let mut u = user.clone();
-            u.record_failed_attempt(
-                self.config.password_policy.max_failed_attempts,
-                self.config.password_policy.lockout_duration,
-            );
-            update_user_lockout(
-                self.storage.query_store.as_ref(),
-                &u.id,
-                u.failed_login_attempts,
-                u.locked_until,
-            )
-            .await?;
+            self.record_failed_attempt(&user).await?;
             return Err(invalid());
         }
 
@@ -1020,10 +1048,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let user_id = self
-            .authenticated_user(req)
-            .await?
-            .ok_or_else(|| IdpError::Unauthorized("Authentication required".into()))?;
+        let user = self.enrollment_user(req).await?;
+        let user_id = user.id.clone();
         if self.config.totp_keys.active().is_none() {
             return Err(IdpError::Internal(
                 "TOTP enrollment is not configured (no encryption key)".into(),
@@ -1045,16 +1071,14 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
                     IdpError::Unauthorized("current_code is required to replace the secret".into())
                 })?;
             if !self.mfa_service.verify_totp_code(&user_id, code).await? {
+                self.record_failed_attempt(&user).await?;
                 return Err(IdpError::Unauthorized("Invalid current_code".into()));
             }
         }
 
-        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &user_id)
-            .await?
-            .ok_or_else(|| IdpError::Unauthorized("Authentication required".into()))?;
         let enrollment = self
             .mfa_service
-            .start_enrollment(&user_id, self.config.mfa_challenge_ttl)
+            .start_enrollment(&user_id, self.config.totp_enrollment_ttl)
             .await?;
         let issuer = self.config.issuer_url.trim_end_matches('/');
         let uri = format!(
@@ -1067,7 +1091,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         Ok(HandlerResponse::ok(serde_json::json!({
             "secret": enrollment.secret_base32,
             "otpauth_uri": uri,
-            "expires_in": self.config.mfa_challenge_ttl.as_secs(),
+            "expires_in": self.config.totp_enrollment_ttl.as_secs(),
         })))
     }
 
@@ -1085,10 +1109,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         _bag: &ContextBag,
         req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let user_id = self
-            .authenticated_user(req)
-            .await?
-            .ok_or_else(|| IdpError::Unauthorized("Authentication required".into()))?;
+        let user = self.enrollment_user(req).await?;
         let body = extract_body_text(req.body.as_ref());
         let body: serde_json::Value = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
@@ -1096,7 +1117,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .get("code")
             .and_then(|v| v.as_str())
             .ok_or_else(|| IdpError::BadRequest("Missing code".into()))?;
-        if !self.mfa_service.confirm_enrollment(&user_id, code).await? {
+        if !self.mfa_service.confirm_enrollment(&user.id, code).await? {
+            self.record_failed_attempt(&user).await?;
             return Err(IdpError::Unauthorized(
                 "Invalid code or no enrollment in progress".into(),
             ));

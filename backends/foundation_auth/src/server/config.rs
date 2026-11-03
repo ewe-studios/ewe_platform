@@ -129,6 +129,9 @@ pub struct IdpConfig {
     /// Mark the session cookies `Secure` (sent over HTTPS only). Default
     /// `true`. Turn it off only for local development over plain HTTP.
     pub secure_cookies: bool,
+    /// How long a started TOTP enrollment waits for its first code. Default
+    /// 5 minutes. A new start replaces the pending enrollment.
+    pub totp_enrollment_ttl: Duration,
 }
 
 /// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
@@ -155,6 +158,7 @@ impl IdpConfig {
             mfa_challenge_ttl: Duration::from_secs(300),
             totp_keys: TotpKeyRing::default(),
             secure_cookies: true,
+            totp_enrollment_ttl: Duration::from_secs(300),
         }
     }
 
@@ -217,6 +221,14 @@ impl IdpConfig {
         self
     }
 
+    /// Set how long a started TOTP enrollment waits for its first code (see
+    /// [`totp_enrollment_ttl`](Self::totp_enrollment_ttl)).
+    #[must_use]
+    pub fn with_totp_enrollment_ttl(mut self, ttl: Duration) -> Self {
+        self.totp_enrollment_ttl = ttl;
+        self
+    }
+
     /// Set the keys that encrypt TOTP secrets (see [`TotpKeyRing`]).
     #[must_use]
     pub fn with_totp_keys(mut self, keys: TotpKeyRing) -> Self {
@@ -255,6 +267,7 @@ impl core::fmt::Debug for IdpConfig {
             .field("mfa_challenge_ttl", &self.mfa_challenge_ttl)
             .field("totp_keys", &self.totp_keys)
             .field("secure_cookies", &self.secure_cookies)
+            .field("totp_enrollment_ttl", &self.totp_enrollment_ttl)
             .finish_non_exhaustive()
     }
 }
