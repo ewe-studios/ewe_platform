@@ -357,6 +357,30 @@ impl KeyValueStore for D1WasmStorage {
         foundation_compact::SendWrapper::new(async move { self.delete_async(key).await }).await
     }
 
+    async fn take<V: serde::de::DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        // One statement: D1 runs it atomically, so only one caller gets the row.
+        foundation_compact::SendWrapper::new(async move {
+            let table = format!("{}_kv", self.table_prefix);
+            let sql = format!("DELETE FROM {table} WHERE key = ? RETURNING value");
+            let row = do_query_first(&self.db, &sql, &[DataValue::Text(key.to_string())]).await?;
+            match row {
+                Some(obj) => {
+                    let value = Self::get_str_field(&obj, "value").ok_or_else(|| {
+                        StorageError::SqlConversion("missing or invalid value field".to_string())
+                    })?;
+                    let deserialized: V = serde_json::from_str(&value)
+                        .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                    Ok(Some(deserialized))
+                }
+                None => Ok(None),
+            }
+        })
+        .await
+    }
+
     async fn exists(&self, key: &str) -> StorageResult<bool> {
         foundation_compact::SendWrapper::new(async move { self.exists_async(key).await }).await
     }

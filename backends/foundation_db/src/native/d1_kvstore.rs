@@ -654,6 +654,37 @@ impl KeyValueStore for D1Store {
         Ok(())
     }
 
+    async fn take<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        // One statement: D1 runs it atomically, so only one caller gets the row.
+        let sql = format!(
+            "DELETE FROM {} WHERE key = ? RETURNING value",
+            self.kv_table()
+        );
+        let response = self
+            .execute_sql_async(&sql, &[serde_json::Value::String(key.to_string())])
+            .await?;
+        let rows = Self::extract_rows(&response);
+        match rows.first() {
+            Some(row) => {
+                let value: String = row
+                    .get("value")
+                    .and_then(serde_json::Value::as_str)
+                    .map(String::from)
+                    .ok_or_else(|| {
+                        StorageError::SqlConversion("missing or invalid value field".to_string())
+                    })?;
+                Ok(Some(
+                    serde_json::from_str(&value)
+                        .map_err(|e| StorageError::Serialization(e.to_string()))?,
+                ))
+            }
+            None => Ok(None),
+        }
+    }
+
     async fn exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
         let response = self

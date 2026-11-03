@@ -239,33 +239,27 @@ impl<KV: KeyValueStore> TosService<KV> {
         }))
     }
 
-    /// Use a `ToS` code. The stored record is deleted before it is returned,
-    /// so a code works once. An unknown, used or expired code gives `None`
-    /// (the caller cannot tell which).
+    /// Use a `ToS` code. The stored record is removed by one atomic
+    /// `KeyValueStore::take` before anything else happens, so a code works
+    /// once even when many requests send it at the same time. An unknown, used
+    /// or expired code gives `None` (the caller cannot tell which).
     ///
-    /// The delete follows the read: the cache has no atomic "take". Two
-    /// requests with the same code at the same instant can both read it (see
-    /// `docs/bug-backlog.md`).
+    /// The atomic guarantee is the cache backend's (see `KeyValueStore::take`
+    /// for the table; Workers KV is not atomic).
     ///
     /// # Errors
     ///
     /// Returns [`StorageOpError`] if the cache call fails.
     pub async fn take_code(&self, code: &str) -> Result<Option<TosCodeRecord>, StorageOpError> {
-        let key = code_key(code);
         let Some(record) = self
             .storage
             .cache
-            .get::<TosCodeRecord>(&key)
+            .take::<TosCodeRecord>(&code_key(code))
             .await
-            .map_err(|e| StorageOpError::Query(format!("cache get: {e}")))?
+            .map_err(|e| StorageOpError::Query(format!("cache take: {e}")))?
         else {
             return Ok(None);
         };
-        self.storage
-            .cache
-            .delete(&key)
-            .await
-            .map_err(|e| StorageOpError::Query(format!("cache delete: {e}")))?;
         if Utc::now().timestamp_millis() >= record.expires_at {
             return Ok(None);
         }

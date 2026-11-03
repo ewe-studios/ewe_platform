@@ -195,6 +195,25 @@ impl KeyValueStore for JsonFileStorage {
         self.flush_to_disk()
     }
 
+    async fn take<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        // One lock covers the read and the removal; the flush follows.
+        let bytes = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?
+            .remove(key);
+        let Some(bytes) = bytes else {
+            return Ok(None);
+        };
+        let value: V = serde_json::from_slice(&bytes)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.flush_to_disk()?;
+        Ok(Some(value))
+    }
+
     async fn exists(&self, key: &str) -> StorageResult<bool> {
         let data = self
             .data

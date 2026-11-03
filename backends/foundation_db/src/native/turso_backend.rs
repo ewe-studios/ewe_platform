@@ -374,6 +374,40 @@ impl TursoStorage {
         Ok(())
     }
 
+    /// Async KV take: one `DELETE ... RETURNING`, so only one caller gets the row.
+    async fn take_async_internal<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        let _guard = self.write().await?;
+        let key = key.to_string();
+        let conn = Arc::clone(&self.conn);
+        let opt = conn
+            .prepare("DELETE FROM kv_store WHERE key = ? RETURNING value")
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .query([key])
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?
+            .next()
+            .await
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
+        match opt {
+            Some(row) => {
+                let stored_value: String = row
+                    .get(0)
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let json_str = self
+                    .maybe_decrypt(&stored_value)
+                    .map_err(|e| StorageError::Encryption(e.to_string()))?;
+                let value: V = serde_json::from_str(&json_str)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                Ok(Some(value))
+            }
+            None => Ok(None),
+        }
+    }
+
     /// Async KV exists.
     async fn exists_async_internal(&self, key: &str) -> StorageResult<bool> {
         let _guard = self.read().await?;
@@ -576,6 +610,13 @@ impl KeyValueStore for TursoStorage {
 
     async fn delete(&self, key: &str) -> StorageResult<()> {
         self.delete_async_internal(key).await
+    }
+
+    async fn take<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        self.take_async_internal::<V>(key).await
     }
 
     async fn exists(&self, key: &str) -> StorageResult<bool> {

@@ -81,6 +81,22 @@ impl KeyValueStore for MemoryJsonStore {
         Ok(())
     }
 
+    async fn take<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        // One lock covers the read and the removal.
+        let json = self.lock()?.remove(key);
+        match json {
+            Some(json) => {
+                let value: V = serde_json::from_str(&json)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                Ok(Some(value))
+            }
+            None => Ok(None),
+        }
+    }
+
     async fn exists(&self, key: &str) -> StorageResult<bool> {
         let data = self.lock()?;
         Ok(data.contains_key(key))

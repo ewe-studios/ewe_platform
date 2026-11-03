@@ -137,9 +137,10 @@ impl<KV: KeyValueStore> MfaService<KV> {
         Ok(id)
     }
 
-    /// Use a challenge: the record is deleted before it is returned, so one
-    /// challenge allows one code attempt. An unknown, used or expired
-    /// challenge gives `None`.
+    /// Use a challenge: the record is removed by one atomic
+    /// `KeyValueStore::take` before it is returned, so one challenge allows one
+    /// code attempt even when many requests send it at the same time. An
+    /// unknown, used or expired challenge gives `None`.
     ///
     /// # Errors
     ///
@@ -148,21 +149,15 @@ impl<KV: KeyValueStore> MfaService<KV> {
         &self,
         challenge_id: &str,
     ) -> Result<Option<MfaChallengeRecord>, StorageOpError> {
-        let key = challenge_key(challenge_id);
         let Some(record) = self
             .storage
             .cache
-            .get::<MfaChallengeRecord>(&key)
+            .take::<MfaChallengeRecord>(&challenge_key(challenge_id))
             .await
-            .map_err(|e| StorageOpError::Query(format!("cache get: {e}")))?
+            .map_err(|e| StorageOpError::Query(format!("cache take: {e}")))?
         else {
             return Ok(None);
         };
-        self.storage
-            .cache
-            .delete(&key)
-            .await
-            .map_err(|e| StorageOpError::Query(format!("cache delete: {e}")))?;
         if Utc::now().timestamp_millis() >= record.expires_at {
             return Ok(None);
         }
