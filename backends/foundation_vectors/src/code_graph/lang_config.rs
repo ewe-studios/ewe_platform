@@ -11,6 +11,9 @@ use super::types::{
 // LanguageConfig
 // ---------------------------------------------------------------------------
 
+/// A language-specific walk step: `(node, source, file path, file stem, parent id, extraction)`.
+pub type ExtraWalkFn = fn(Node, &str, &str, &str, &str, &mut FileExtraction);
+
 pub struct LanguageConfig {
     pub language: fn() -> tree_sitter::Language,
     pub class_types: &'static [&'static str],
@@ -23,7 +26,7 @@ pub struct LanguageConfig {
     pub body_field: &'static str,
     pub call_function_field: &'static str,
     pub call_accessor_field: &'static str,
-    pub extra_walk_fn: Option<fn(Node, &str, &str, &str, &str, &mut FileExtraction)>,
+    pub extra_walk_fn: Option<ExtraWalkFn>,
 }
 
 // ---------------------------------------------------------------------------
@@ -73,6 +76,7 @@ pub fn typescript_config() -> LanguageConfig {
     }
 }
 
+#[must_use]
 pub fn python_config() -> LanguageConfig {
     LanguageConfig {
         language: || tree_sitter_python::LANGUAGE.into(),
@@ -167,14 +171,29 @@ fn js_extra_walk(
 // Public extract entry points
 // ---------------------------------------------------------------------------
 
+/// Extract the code graph of one JavaScript file.
+///
+/// # Errors
+///
+/// Returns a message when the JavaScript grammar can not be loaded or the source can not be parsed.
 pub fn extract_js_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     extract_with_config(path, source, &javascript_config())
 }
 
+/// Extract the code graph of one TypeScript file.
+///
+/// # Errors
+///
+/// Returns a message when the TypeScript grammar can not be loaded or the source can not be parsed.
 pub fn extract_ts_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     extract_with_config(path, source, &typescript_config())
 }
 
+/// Extract the code graph of one Python file.
+///
+/// # Errors
+///
+/// Returns a message when the Python grammar can not be loaded or the source can not be parsed.
 pub fn extract_py_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     extract_with_config(path, source, &python_config())
 }
@@ -252,9 +271,11 @@ fn walk_node(
         if config.function_types.contains(&kind) {
             extract_function(
                 &child,
-                source,
-                file_path,
-                stem,
+                &FileContext {
+                    source,
+                    file_path,
+                    stem,
+                },
                 parent_id,
                 extraction,
                 config,
@@ -342,7 +363,7 @@ fn extract_class(
                 .last()
                 .unwrap_or(&super_name)
                 .split('.')
-                .last()
+                .next_back()
                 .unwrap_or(&super_name);
             let super_id = make_id(stem, super_label);
             extraction.edges.push((
@@ -366,9 +387,11 @@ fn extract_class(
             if config.function_types.contains(&child.kind()) {
                 extract_function(
                     &child,
-                    source,
-                    file_path,
-                    stem,
+                    &FileContext {
+                        source,
+                        file_path,
+                        stem,
+                    },
                     &id,
                     extraction,
                     config,
@@ -384,7 +407,7 @@ fn extract_class(
 fn find_type_identifier(node: &Node, source: &[u8]) -> Option<String> {
     let kind = node.kind();
     if kind == "type_identifier" || kind == "identifier" || kind == "scoped_type_identifier" {
-        return node.utf8_text(source).ok().map(|s| s.to_string());
+        return node.utf8_text(source).ok().map(std::string::ToString::to_string);
     }
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
@@ -395,16 +418,26 @@ fn find_type_identifier(node: &Node, source: &[u8]) -> Option<String> {
     None
 }
 
+/// The file a walk step reads: its source text, path and id stem.
+struct FileContext<'a> {
+    source: &'a str,
+    file_path: &'a str,
+    stem: &'a str,
+}
+
 fn extract_function(
     node: &Node,
-    source: &str,
-    file_path: &str,
-    stem: &str,
+    file: &FileContext,
     parent_id: &str,
     extraction: &mut FileExtraction,
     config: &LanguageConfig,
     kind: NodeKind,
 ) {
+    let FileContext {
+        source,
+        file_path,
+        stem,
+    } = *file;
     let Some(name) = node_name(node, source, config) else {
         return;
     };
@@ -516,7 +549,7 @@ fn extract_calls(
                 } else {
                     let text = func.utf8_text(source.as_bytes()).unwrap_or("").to_string();
                     text.split('.')
-                        .last()
+                        .next_back()
                         .unwrap_or(&text)
                         .split("::")
                         .last()

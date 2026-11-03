@@ -192,21 +192,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   happen at release time so 0.0.7 publishes before `foundation_reactor`.
 ## 17. foundation_vectors
 
-- **The SQL store test tree hits `recursion_depth_exceeding_limit`.**
-  `tests/contract/mod.rs` plus `make_store` over `TursoStorage` forces a
-  `Send` check through the `turso` crate's deeply nested async chain, so
-  `sql_vector_store_tests`, `libsql_vector_store_tests` and
-  `sqlite_vec_store_tests` each emit the future-incompatible warning. It
-  becomes a hard error in a later Rust release. Fix: add
-  `#![recursion_limit = "256"]` to those test crates, the same as
-  `foundation_db/tests/turso_storage_tests.rs`.
-- **Pre-existing clippy deny in the `code-graph` test tree.**
-  `tests/lang_config_tests.rs:123` uses `assert!(ext.raw_calls.len() >= 0)`
-  (`clippy::absurd_extreme_comparisons`, a deny-by-default lint), so
-  `cargo clippy -p foundation_vectors --profile uat --all-targets
-  --all-features` fails. CI does not run `code-graph`, so it never sees it.
-  Fix: replace the comparison with `assert!(!ext.raw_calls.is_empty())` or
-  delete the assertion, then keep the whole `code-graph` tree clippy-clean.
+- **Code-graph function and method ids ignore the class, so a second method with the same
+  name is dropped.** `extract_function` (`src/code_graph/lang_config.rs`, and the Rust and Go
+  walkers) builds the node id from the file stem and the bare name (`make_id(stem, name)`),
+  then skips the node when the id is already in `seen_ids`. Two classes in one file that both
+  define `handle` give one node, and the calls inside the second body are never extracted
+  (found with the TypeScript source in `tests/lang_config_tests.rs`: an abstract `handle` in
+  `BaseController` hides `UserController::handle` and its `this.repo.findAll()` call). Fix:
+  put the parent (class or impl) in the id, then give `ts_raw_calls_extraction` the two-class
+  source back.
 
 ## 18. ewe_channels (crates/channels)
 

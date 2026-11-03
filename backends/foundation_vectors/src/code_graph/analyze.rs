@@ -10,11 +10,9 @@
 
 use std::collections::HashMap;
 
-use petgraph::graph::NodeIndex;
-use petgraph::visit::EdgeRef;
 
 use super::graph::CodeGraph;
-use super::types::{GraphEdge, GraphNode};
+use super::types::GraphEdge;
 
 /// A node ranked by centrality (degree).
 #[derive(Debug, Clone)]
@@ -45,6 +43,7 @@ impl CodeGraph {
     ///
     /// High in-degree = many things depend on this node. High out-degree = this
     /// node depends on many things. Both are structurally significant.
+    #[must_use]
     pub fn god_nodes(&self, k: usize) -> Vec<GodNode> {
         let mut scored: Vec<GodNode> = Vec::with_capacity(self.graph.node_count());
 
@@ -79,6 +78,7 @@ impl CodeGraph {
     ///
     /// If `communities` is None, returns an empty vec (no clustering has been
     /// performed). A community map maps node id → community id (0 = largest).
+    #[must_use]
     pub fn surprising_connections(
         &self,
         communities: Option<&HashMap<String, usize>>,
@@ -90,7 +90,9 @@ impl CodeGraph {
         let mut result = Vec::new();
 
         for edge_idx in self.graph.edge_indices() {
-            let (src, tgt) = self.graph.edge_endpoints(edge_idx).unwrap();
+            let Some((src, tgt)) = self.graph.edge_endpoints(edge_idx) else {
+                continue;
+            };
             let src_node = &self.graph[src];
             let tgt_node = &self.graph[tgt];
             let edge = &self.graph[edge_idx];

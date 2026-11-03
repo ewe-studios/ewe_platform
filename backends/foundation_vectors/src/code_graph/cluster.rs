@@ -20,10 +20,8 @@
 //! a practical stopping criterion (max iterations, minimum modularity improvement).
 
 use std::collections::HashMap;
-use std::sync::Arc;
 
 use petgraph::graph::NodeIndex;
-use petgraph::visit::EdgeRef;
 
 use super::graph::CodeGraph;
 use super::types::{GraphEdge, GraphNode};
@@ -47,7 +45,7 @@ pub struct ClusteringResult {
     pub modularity: f64,
 }
 
-/// Build an undirected weighted projection of the CodeGraph.
+/// Build an undirected weighted projection of the `CodeGraph`.
 fn build_undirected(graph: &petgraph::graph::DiGraph<GraphNode, GraphEdge>) -> Vec<UEdge> {
     let mut edges: Vec<UEdge> = Vec::new();
     // Sum edge weights in both directions for undirected projection
@@ -55,7 +53,7 @@ fn build_undirected(graph: &petgraph::graph::DiGraph<GraphNode, GraphEdge>) -> V
 
     for edge_idx in graph.edge_indices() {
         let (src, tgt) = graph.edge_endpoints(edge_idx).unwrap();
-        let weight = graph[edge_idx].weight as f64;
+        let weight = f64::from(graph[edge_idx].weight);
 
         let (a, b) = if src < tgt { (src, tgt) } else { (tgt, src) };
         *edge_map.entry((a, b)).or_insert(0.0) += weight;
@@ -120,7 +118,7 @@ fn modularity(edges: &[UEdge], communities: &[usize], m: f64) -> f64 {
             acc
         });
 
-    for (&c, &dc) in &comm_weights {
+    for &dc in comm_weights.values() {
         let dc2 = dc * dc;
         q -= dc2 / (2.0 * m);
     }
@@ -139,7 +137,6 @@ fn adj_from_edges(edges: &[UEdge]) -> Vec<Vec<(usize, f64)>> {
 
 /// Local moving phase: greedily move each node to the best community.
 fn local_move(
-    edges: &[UEdge],
     adj: &[Vec<(usize, f64)>],
     degrees: &[f64],
     communities: &mut [usize],
@@ -189,13 +186,13 @@ fn local_move(
         }
 
         // Move node
-        if best_comm != current_comm {
+        if best_comm == current_comm {
+            *comm_degrees.entry(current_comm).or_insert(0.0) += ki; // put it back
+        } else {
             communities[i] = best_comm;
             *comm_degrees.entry(current_comm).or_insert(0.0) += ki; // undo the removal for old comm
             *comm_degrees.entry(best_comm).or_insert(0.0) += ki;
             improved = true;
-        } else {
-            *comm_degrees.entry(current_comm).or_insert(0.0) += ki; // put it back
         }
     }
 
@@ -204,14 +201,11 @@ fn local_move(
 
 /// Refinement phase: split communities into well-connected sub-communities.
 fn refine(
-    edges: &[UEdge],
     adj: &[Vec<(usize, f64)>],
     degrees: &[f64],
     communities: &mut [usize],
     m: f64,
 ) {
-    let n = communities.len();
-
     // Group nodes by community
     let mut comm_nodes: HashMap<usize, Vec<usize>> = HashMap::new();
     for (i, &comm) in communities.iter().enumerate() {
@@ -221,7 +215,7 @@ fn refine(
     let mut refined = communities.to_vec();
     let mut next_comm_id = *communities.iter().max().unwrap_or(&0) + 1;
 
-    for (&_comm, nodes) in &comm_nodes {
+    for nodes in comm_nodes.values() {
         if nodes.len() <= 1 {
             continue;
         }
@@ -282,11 +276,12 @@ fn refine(
     communities.copy_from_slice(&refined);
 }
 
-/// Leiden community detection on a CodeGraph.
+/// Leiden community detection on a `CodeGraph`.
 ///
 /// The directed graph is projected to an undirected weighted graph (summing
 /// edge weights in both directions), then Leiden runs until convergence or
 /// `max_iterations` rounds.
+#[must_use]
 pub fn leiden(graph: &CodeGraph, max_iterations: usize) -> ClusteringResult {
     let n = graph.graph.node_count();
     if n == 0 {
@@ -321,10 +316,10 @@ pub fn leiden(graph: &CodeGraph, max_iterations: usize) -> ClusteringResult {
 
     for _iter in 0..max_iterations {
         // Phase 1: Local moving
-        let moved = local_move(&edges, &adj, &degrees, &mut communities, m);
+        let moved = local_move(&adj, &degrees, &mut communities, m);
 
         // Phase 2: Refinement
-        refine(&edges, &adj, &degrees, &mut communities, m);
+        refine(&adj, &degrees, &mut communities, m);
 
         if !moved {
             break;
@@ -367,8 +362,9 @@ pub fn leiden(graph: &CodeGraph, max_iterations: usize) -> ClusteringResult {
     }
 }
 
-/// Run Leiden on the CodeGraph (default 10 iterations).
+/// Run Leiden on the `CodeGraph` (default 10 iterations).
 impl CodeGraph {
+    #[must_use]
     pub fn cluster(&self) -> ClusteringResult {
         leiden(self, 10)
     }

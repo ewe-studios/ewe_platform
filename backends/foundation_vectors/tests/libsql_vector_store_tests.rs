@@ -1,6 +1,13 @@
 //! `LibsqlVectorStore` tests (F29) — native `DiskANN` (`vector_top_k`) over a
 //! real local libSQL database, with namespace over-fetch + exact re-rank.
 
+// A contract-test body over `TursoStorage` forces a `Send` check through the
+// `turso` crate's deeply nested async chain, which overflows the default
+// recursion limit (128) and is a future-incompatible warning today. Raise it
+// for this test crate (the depth is in the external `turso` dependency); same
+// as `foundation_db/tests/turso_storage_tests.rs`.
+#![recursion_limit = "256"]
+
 #[macro_use]
 mod contract;
 

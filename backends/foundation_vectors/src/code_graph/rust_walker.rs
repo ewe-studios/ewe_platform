@@ -5,6 +5,11 @@ use super::types::{
     RawCall, Relation,
 };
 
+/// Extract the code graph of one Rust file.
+///
+/// # Errors
+///
+/// Returns a message when the Rust grammar can not be loaded or the source can not be parsed.
 pub fn extract_rust_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     let mut parser = Parser::new();
     let language = tree_sitter_rust::LANGUAGE;

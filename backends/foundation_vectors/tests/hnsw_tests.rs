@@ -73,8 +73,8 @@ fn hnsw_overwrite() {
 #[test]
 fn hnsw_larger_dataset() {
     let index = HnswIndex::with_params(DistanceMetric::Cosine, 2, 8, 50, 20, 42);
-    for i in 0..100 {
-        let angle = (i as f32) * 0.0628;
+    for i in 0..100_u16 {
+        let angle = (f32::from(i)) * 0.0628;
         index
             .insert(&format!("v{i}"), &[libm::cosf(angle), libm::sinf(angle)])
             .unwrap();
@@ -89,8 +89,8 @@ fn hnsw_larger_dataset() {
 #[test]
 fn hnsw_serialize_roundtrip() {
     let index = HnswIndex::with_params(DistanceMetric::Cosine, 2, 4, 20, 10, 42);
-    for i in 0..20 {
-        let angle = (i as f32) * 0.314;
+    for i in 0..20_u16 {
+        let angle = (f32::from(i)) * 0.314;
         index
             .insert(&format!("v{i}"), &[libm::cosf(angle), libm::sinf(angle)])
             .unwrap();
@@ -109,11 +109,11 @@ fn hnsw_serialize_roundtrip() {
 #[test]
 fn hnsw_serialize_roundtrip_with_deletes() {
     let index = HnswIndex::with_params(DistanceMetric::Cosine, 2, 4, 20, 10, 42);
-    for i in 0..10 {
+    for i in 0..10_u16 {
         index
             .insert(
                 &format!("v{i}"),
-                &[libm::cosf(i as f32), libm::sinf(i as f32)],
+                &[libm::cosf(f32::from(i)), libm::sinf(f32::from(i))],
             )
             .unwrap();
     }
@@ -129,7 +129,7 @@ fn hnsw_serialize_roundtrip_with_deletes() {
 fn hnsw_empty_search() {
     let index = make_hnsw();
     let results = index.search(&[1.0, 0.0, 0.0], 5).unwrap();
-    assert!(results.is_empty());
+    assert_eq!(results, [] as [foundation_vectors::VectorMatch; 0]);
 }
 
 #[test]
@@ -146,11 +146,11 @@ fn hnsw_recall_vs_flat() {
     let flat = FlatIndex::new(DistanceMetric::Cosine, 3);
     let hnsw = HnswIndex::with_params(DistanceMetric::Cosine, 3, 16, 200, 64, 42);
 
-    for i in 0..200 {
+    for i in 0..200_u16 {
         let v = [
-            libm::cosf(i as f32 * 0.1),
-            libm::sinf(i as f32 * 0.2),
-            libm::cosf(i as f32 * 0.3),
+            libm::cosf(f32::from(i) * 0.1),
+            libm::sinf(f32::from(i) * 0.2),
+            libm::cosf(f32::from(i) * 0.3),
         ];
         flat.insert(&format!("d{i}"), &v).unwrap();
         hnsw.insert(&format!("d{i}"), &v).unwrap();
@@ -167,7 +167,7 @@ fn hnsw_recall_vs_flat() {
         hnsw_results.iter().map(|m| m.id.as_str()).collect();
 
     let overlap = flat_ids.intersection(&hnsw_ids).count();
-    let recall = overlap as f32 / k as f32;
+    let recall = f32::from(u16::try_from(overlap).unwrap()) / f32::from(u16::try_from(k).unwrap());
     assert!(
         recall >= 0.8,
         "HNSW recall vs flat should be >= 0.8, got {recall} (overlap={overlap}/{k})"

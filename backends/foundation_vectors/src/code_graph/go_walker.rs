@@ -11,6 +11,11 @@ use super::types::{
     RawCall, Relation,
 };
 
+/// Extract the code graph of one Go file.
+///
+/// # Errors
+///
+/// Returns a message when the Go grammar can not be loaded or the source can not be parsed.
 pub fn extract_go_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     let mut parser = Parser::new();
     let language = tree_sitter_go::LANGUAGE;
@@ -121,10 +126,10 @@ fn extract_type_declaration(
 
             // Determine kind from the type body
             let kind = if let Some(type_node) = child.child_by_field_name("type") {
-                match type_node.kind() {
-                    "struct_type" => NodeKind::Struct,
-                    "interface_type" => NodeKind::Trait, // Go interfaces ≈ Rust traits
-                    _ => NodeKind::Struct,
+                if type_node.kind() == "interface_type" {
+                    NodeKind::Trait // Go interfaces ≈ Rust traits
+                } else {
+                    NodeKind::Struct
                 }
             } else {
                 NodeKind::Struct
@@ -181,7 +186,7 @@ fn extract_type_declaration(
     }
 }
 
-/// Process a field_declaration for embedded type detection (Go embedding = inheritance).
+/// Process a `field_declaration` for embedded type detection (Go embedding = inheritance).
 fn process_field_for_inheritance(
     tc_child: &Node,
     source: &str,
@@ -196,7 +201,7 @@ fn process_field_for_inheritance(
         if field_name.is_none() {
             // Embedded type → inherits edge
             let embedded_name = type_n.utf8_text(source.as_bytes()).unwrap_or("");
-            let super_label = embedded_name.split('.').last().unwrap_or(embedded_name);
+            let super_label = embedded_name.split('.').next_back().unwrap_or(embedded_name);
             let super_id = make_id(stem, super_label);
             extraction.edges.push((
                 type_id.to_string(),
@@ -350,7 +355,7 @@ fn extract_import(
             continue;
         }
         // Get the last path segment
-        let import_name = trimmed.split('/').last().unwrap_or(trimmed);
+        let import_name = trimmed.split('/').next_back().unwrap_or(trimmed);
         let target_id = make_id(stem, import_name);
         extraction.edges.push((
             parent_id.to_string(),
@@ -435,7 +440,7 @@ fn extract_calls(
                         .unwrap_or_default()
                 } else {
                     let text = func.utf8_text(source.as_bytes()).unwrap_or("").to_string();
-                    text.split('.').last().unwrap_or(&text).to_string()
+                    text.split('.').next_back().unwrap_or(&text).to_string()
                 };
 
                 if !callee_name.is_empty() {

@@ -225,8 +225,12 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm-fetch"]
 
 [packages.foundation_vectors]
-# `sql-store` adds the SQL / libsql vector stores and their tests.
-runs = ["", "sql-store"]
+# `sql-store` adds the SQL / libsql vector stores and their tests; `code-graph`
+# adds the tree-sitter code-graph module and its tests.
+runs = ["", "sql-store", "code-graph"]
+clippy-runs = ["", "sql-store", "code-graph"]
+# At zero clippy warnings (spec 70 feature 56): a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 # `turbopuffer` takes the fetch client on wasm32 (foundation_netio `wasm-fetch`).
 # `sql-store` is the portable full-scan store over foundation_db's shared core.

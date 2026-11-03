@@ -71,7 +71,7 @@ fn alpha_pure_keyword() {
 #[test]
 fn empty_lists_produce_empty() {
     let fused = fuse(&[], &[], 10, FusionStrategy::default());
-    assert!(fused.is_empty());
+    assert_eq!(fused, [] as [foundation_vectors::VectorMatch; 0]);
 }
 
 #[test]
