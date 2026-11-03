@@ -245,14 +245,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 21. foundation_deployment_cloudflare on wasm32
 
-- **Six dependencies are unused on wasm32 when the `workers` feature is off**
-  (`foundation_deployment_cloudflare`): `derive_more`, `foundation_macros`, `js-sys`,
-  `serde`, `serde_json`, `tracing` (cargo's nightly `unused_dependencies` lint, manifest
-  warnings only; the build passes). On wasm32 only the `workers` module uses them. Fix: make
-  each wasm32 use optional and enabled by `workers` (for example a wasm-only optional
-  dependency entry listed in `workers = [...]`), keeping the native entries as they are.
-  Scheduled as spec 70 feature 71 E2. (`chrono` and `foundation_core` were moved to the
-  native table on 2026-11-03.)
 - **`foundation_core` does not build for wasm32 with neither `std` nor `alloc`**
   (`cargo check -p foundation_core --target wasm32-unknown-unknown --no-default-features`):
   `valtron::Ctx` is unresolved in `executors/collect_next.rs` and `dependent_lift.rs`. CI
