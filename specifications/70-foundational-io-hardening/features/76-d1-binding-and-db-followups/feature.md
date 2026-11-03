@@ -1,10 +1,10 @@
 ---
-feature: "D1 Workers binding keeps integer types and i64 precision; d1r2 document store passes on local wrangler; code-graph method ids; StateStore conditional write"
+feature: "Wasm stores tested on the real wrangler bindings (no stub); D1 binding keeps integer types and i64 precision; REST stub a plain pass-through; d1r2 document store passes on local wrangler; code-graph method ids; StateStore conditional write"
 status: "pending"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
-crates: ["foundation_db", "foundation_vectors", "foundation_proxy (consumer only)"]
+crates: ["foundation_db", "foundation_vectors", "foundation_testbed (template and harness only)"]
 catalogue_rows: [91, 92, 93, 94]
 ---
 
@@ -14,22 +14,41 @@ _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers 
 
 Found in feature 56 (2026-11-03).
 
-## E1. `D1WasmStorage` may store integers as REAL and lose i64 precision
+## E0. Test the wasm stores against the REAL bindings under wrangler — no stub (owner decision 2026-11-03)
 
-Feature 56 measured the D1 binding in workerd (local wrangler): `bind(7)` stores `real`; a JS
-Number is always REAL and becomes INTEGER only through column affinity; `bind(7n)` throws
-`D1_TYPE_ERROR: Type 'bigint' not supported`. `D1WasmStorage` (`src/wasm/wasm_storage/d1_wasm.rs`)
-binds `DataValue::Integer(i64)` through the binding. Check how it converts i64 (to f64? to a
-JS Number?). Risks: (a) columns without INTEGER affinity store REAL; (b) any i64 above 2^53 is
-rounded.
-Fix: bind integers so the stored type is INTEGER and the value is exact (for example bind the
-decimal text and use `CAST(?N AS INTEGER)` in the SQL the store generates, as the fixed stub
-does, or another method you prove). Read integers back exactly (a column read as a JS Number
-loses precision above 2^53: read such columns as text with `CAST(col AS TEXT)` where the store
-needs exact i64, or document the limit per column). Tests against local wrangler
-(`CF_INTEGRATION_TEST=1`, a Workers test harness for `D1WasmStorage` if one exists; if the
-wasm store cannot run under the stub, say how you tested it): `i64::MAX` round-trips;
-`typeof` is `integer` in an untyped column.
+Owner rule: when wrangler can run the real thing, tests use it, not a stub. `wrangler dev
+--local` runs workerd with real local D1, R2 and KV bindings.
+- Use `foundation_testbed`'s `wasm-testbed` wrangler mode (it already runs wasm test code inside
+  workerd; template in `backends/foundation_testbed/src/wasm/templates/wrangler/`). Add D1, R2
+  and KV bindings to the template's `wrangler.toml` (local only), and a way for a test to reach
+  them (the `worker::Env` the testbed passes in).
+- Write the wasm-store tests as wasm tests that run inside that worker: `D1WasmStorage`,
+  `R2WasmStorage`, `KVWasmStorage`, `CfD1R2DocumentStore` — the contract tests that the native
+  stores already have (get/set/list/batch/take/blob range/conditional put …), run against
+  `env.DB` / `env.BUCKET` / `env.KV`.
+- CI: add them to the wasm runtime job that feature 22 E4 created (`mise run
+  test:wasm-testbed:...`), so they run on every PR.
+
+## E1. `D1WasmStorage` integer types and i64 precision (on the real binding)
+
+Feature 56 measured the binding: a JS Number is always stored as REAL (it becomes INTEGER only
+through column affinity), and `BigInt` is rejected (`D1_TYPE_ERROR`). Check how `D1WasmStorage`
+binds `DataValue::Integer(i64)` and reads integers back. Fix it so integers are stored as
+INTEGER and are exact (for example bind the decimal text with `CAST(?N AS INTEGER)` in the SQL
+the store builds, and read exact i64 columns with `CAST(col AS TEXT)`; or another method you
+prove). Tests in the E0 harness, on the real binding: `typeof` is `integer` in an untyped
+column; `i64::MAX`, `i64::MIN` and 2^53+1 round-trip exactly.
+
+## E1b. The REST stub becomes a plain pass-through again
+
+`worker-stub.js` serves only the native REST clients (`D1Store`, `R2Store`): wrangler does not run
+Cloudflare's hosted REST front end, so locally the stub is the only way to exercise those clients.
+It must not add behaviour. Revert feature 56's type rewriting (the source-text reviver and the
+`CAST(?N AS INTEGER)` placeholder rewrite) so the stub passes `sql` and `params` to
+`env.DB.prepare(...).bind(...)` unchanged. Move the type-semantics assertions
+(`d1_param_types_wrangler`) to the E0 harness, where they test the real binding; keep in the REST
+suite only tests of our client's request and response handling, and say in the stub's header and
+in those tests' doc comments that they do not prove hosted REST behaviour.
 
 ## E2. `d1r2_document_store_tests` fail 2 of 4 against local wrangler
 
@@ -62,4 +81,4 @@ CF_INTEGRATION_TEST=1 cargo test -p foundation_db --profile dev --test d1r2_docu
 
 ## Done when
 
-- [ ] E1–E4 fixed with tests; backlog entries deleted. CI green.
+- [ ] E0 harness runs the wasm stores on real bindings in CI; E1–E4 fixed with tests; the stub adds no behaviour; backlog entries deleted. CI green.
