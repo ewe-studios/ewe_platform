@@ -95,10 +95,12 @@ fuser = { version = "0.15", default-features = false }
 # specifications/70-foundational-io-hardening/learnings.md.
 # A patch applies only inside this workspace; the upstream fix is written in
 # patches/gemm-common/UPSTREAM.md and tracked in docs/bug-backlog.md section 10.
-# gemm-f16 (0.19.0, pulled in by candle-core) is not patched; see the same section.
+# gemm-f16 (0.19.0, pulled in by candle-core through gemm) has the same dispatch
+# fix in patches/gemm-f16. Its upstream note is in patches/gemm-common/UPSTREAM.md.
 # (boringtun is no longer patched: backends/foundation_boringtun is a published fork.)
 [patch.crates-io]
 gemm-common = { path = "patches/gemm-common" }
+gemm-f16 = { path = "patches/gemm-f16" }
 
 [workspace.lints.rust]
 missing_docs = { level = "allow" }

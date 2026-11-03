@@ -120,13 +120,13 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `boringtun` patch no longer exists: `backends/foundation_boringtun` is a
   published fork.)
 
-- **`gemm-f16` f16 kernel dispatch is unpatched.** `gemm-f16` 0.19.0 (pulled in by
-  `candle-core` through `gemm`, see `cargo tree -i gemm-f16@0.19.0`) picks its f16
-  `fma` kernel from the `fma` CPU feature alone, the same bug as `gemm-common`, and
-  the f16 `V3` also needs F16C. The workspace does not patch it, so an f16 gemm on
-  such a CPU can still panic. Fix: vendor `gemm-f16` 0.19.0 under `patches/`, apply
-  the `gemm-f16/src/gemm.rs` part of the upstream change (`gemm_common::simd::V3::try_new()`
-  and `V4::try_new()`), and add it to `[patch.crates-io]`, or fix it upstream first.
+- **`gemm-f16` fix is vendored but not yet upstream.** `patches/gemm-f16` (0.19.0,
+  `[patch.crates-io]`) applies the same `V3::try_new()` / `V4::try_new()` dispatch
+  as `gemm-common`. It applies only inside this workspace, so a user of the
+  published `foundation_ai` still gets the unpatched f16 path. The upstream PR is
+  prepared on branch `fix-fma-without-avx2` of the sarah-ek/gemm clone; link pending
+  (see `patches/gemm-common/UPSTREAM.md`). Fix: file it, then drop
+  `patches/gemm-f16` when a fixed release is out and candle accepts it.
 
 ## 11. foundation_db and its sync callers
 

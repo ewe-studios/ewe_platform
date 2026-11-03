@@ -7,8 +7,8 @@ links here and in `docs/bug-backlog.md` section 10.
 
 The patch is the `gemm-common` part of the upstream change. It is the only
 difference between this directory and the crates.io release `gemm-common`
-0.19.0 (file `src/gemm.rs`). The change also touches `gemm-f16` (see the end of
-this file); that crate is not vendored here.
+0.19.0 (file `src/gemm.rs`). The same upstream change also touches `gemm-f16`;
+that part is vendored in `patches/gemm-f16` (see the end of this file).
 
 ## Issue text
 
@@ -87,10 +87,13 @@ crate. Remove `patches/gemm-common` and the `[patch.crates-io]` section when
 a release of `gemm-common` with this fix is on crates.io and candle accepts it.
 See `docs/bug-backlog.md` section 10.
 
-## gemm-f16 is not patched here
+## gemm-f16 (vendored in `patches/gemm-f16`)
 
-The same dispatch change is in `gemm-f16/src/gemm.rs` (`init_gemm_fn`, the f16
-kernels, which also need F16C). `gemm-f16` 0.19.0 is in the workspace graph
-(`cargo tree -i gemm-f16@0.19.0` shows candle-core, through `gemm`), so the f16
-dispatch still uses the unpatched `fma` check here. It is tracked in
-`docs/bug-backlog.md` section 10.
+The `gemm-f16` part of the same upstream change is applied in
+`patches/gemm-f16/src/gemm.rs`: `init_gemm_fn` dispatches on
+`gemm_common::simd::V3::try_new().is_some()` and `V4::try_new().is_some()`, the
+same as gemm-common. The f16 `V3` also needs F16C. Post-image blob `e8200e9`
+matches the upstream diff. `gemm-f16` 0.19.0 is in the workspace graph through
+candle-core and `gemm`, so this patch is needed for the f16 path. The rest of the
+crate is unchanged from the crates.io release. The upstream PR is part of the
+same prepared branch, `fix-fma-without-avx2`; link pending, as above.

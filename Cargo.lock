@@ -6822,8 +6822,6 @@ dependencies = [
 [[package]]
 name = "gemm-f16"
 version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3df7a55202e6cd6739d82ae3399c8e0c7e1402859b30e4cb780e61525d9486e"
 dependencies = [
  "dyn-stack",
  "gemm-common 0.19.0",
