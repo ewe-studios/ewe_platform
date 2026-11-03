@@ -733,9 +733,15 @@ pub fn command() -> clap::Command {
                             .action(clap::ArgAction::SetTrue),
                     )
                     .arg(
+                        clap::Arg::new("fix")
+                            .long("fix")
+                            .help("Run `cargo fix` over the generated crate afterwards. Off by default: the generator emits clean code, and the step compiles every group crate (about 46 s warm on cloudflare, minutes cold)")
+                            .action(clap::ArgAction::SetTrue),
+                    )
+                    .arg(
                         clap::Arg::new("profile")
                             .long("profile")
-                            .help("Profile for the cargo fix post-step (dev, uat, release, …)")
+                            .help("Profile for the `--fix` cargo fix step (dev, uat, release, …)")
                             .value_name("PROFILE"),
                     ),
             )
@@ -1202,7 +1208,11 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             println!("\n=== Generation Complete ===");
             println!("Output directory: {}", generated_dir.display());
 
-            // Auto-fix common issues (unused imports, snake_case, etc.)
+            // Opt-in only (`--fix`): generated code is clean as emitted, and the
+            // step compiles every group crate (feature 71 E4).
+            if !sub_matches.get_flag("fix") {
+                return Ok(());
+            }
             println!("\n=== Running cargo fix ===");
             let feature_name = provider.replace(['-', '/'], "_");
             let crate_name = if is_split {

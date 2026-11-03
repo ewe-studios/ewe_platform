@@ -76,11 +76,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 8. foundation_openapi / foundation_codegentools
 
-- **`genapi generate` runs `cargo fix` on the whole generated crate.** The post-step in
-  `cli/gen_api.rs` compiles every generated group crate. On the Cloudflare crate it took
-  about 5 minutes in a dev build, most of a regeneration. Fix: make the step optional
-  (`--no-fix`), or run it only when a generated file has a lint the generator can fix.
-
 - **`foundation_deployment_docker` clippy debt.** About 231 lints (`format!` inline
   variables, trailing commas, `::default()` calls, missing `# Errors` sections).
   `foundation_openapi` and `foundation_codegentools` are clean (spec 70 feature 55).
