@@ -354,6 +354,12 @@ fixed in code but not deleted.
 | 82 | valtron: a readiness with a deadline gives the executor no wake time (QUIC timers, 100-continue timer) | found in 72 | 75 |
 | 83 | idle QUIC listener uses ~85 ms CPU per second | found in 72 | 75 |
 | 84 | feature 72 E1 held on a branch until 82 is fixed | 72 | 75 |
+| 85 | auth: TOTP uses HMAC-SHA256 (apps expect SHA-1) | found in 73 | 74 |
+| 86 | auth: unlimited `enroll/start` lets first codes be guessed (security) | found in 73 | 74 |
+| 87 | auth: session cookies not `Secure` (security) | found in 73 | 74 |
+| 88 | auth: `sweep_expired` not scheduled | found in 73 | 74 |
+| 89 | auth: social authorization code has an empty `client_id` | found in 73 | 74 |
+| 90 | auth: Workers KV `take` not atomic | found in 73 | 74 |
 
 ### 8.1 Lanes, branches and models
 
