@@ -29,7 +29,7 @@ use sha2::{Digest, Sha256};
 use super::super::config::TotpKeyRing;
 use super::super::models::PendingLogin;
 use super::super::storage::{HandlerStorage, StorageOpError};
-use crate::shared::two_factor::TOTPSecret;
+use crate::shared::two_factor::{TOTPSecret, TotpAlgorithm};
 use foundation_db::KeyValueStore;
 
 /// How many 30-second steps before and after now a TOTP code may be off.
@@ -58,6 +58,14 @@ pub struct EncryptedSecret {
     pub nonce: String,
     /// The ciphertext with its 128-bit tag, base64url.
     pub ciphertext: String,
+    /// The hash of the secret. Records made before this field existed used
+    /// SHA-256.
+    #[serde(default = "legacy_algorithm")]
+    pub algorithm: TotpAlgorithm,
+}
+
+fn legacy_algorithm() -> TotpAlgorithm {
+    TotpAlgorithm::Sha256
 }
 
 /// A new TOTP secret that the user has not confirmed yet.
@@ -73,6 +81,8 @@ struct PendingEnrollment {
 pub struct TotpEnrollment {
     /// The secret, base32.
     pub secret_base32: String,
+    /// The hash of the secret (for the `algorithm` of the provisioning URI).
+    pub algorithm: TotpAlgorithm,
 }
 
 fn encrypt_secret(
@@ -99,6 +109,7 @@ fn encrypt_secret(
         key_id: key_id.to_string(),
         nonce: URL_SAFE_NO_PAD.encode(nonce_bytes),
         ciphertext: URL_SAFE_NO_PAD.encode(ciphertext),
+        algorithm: secret.algorithm(),
     })
 }
 
@@ -131,7 +142,9 @@ fn decrypt_secret(
             .map_err(|_| parse("it does not decrypt"))?,
     );
     let encoded = std::str::from_utf8(&plaintext).map_err(|_| parse("not text"))?;
-    TOTPSecret::from_base32(encoded).ok_or_else(|| parse("not a secret"))
+    TOTPSecret::from_base32(encoded)
+        .map(|s| s.with_algorithm(stored.algorithm))
+        .ok_or_else(|| parse("not a secret"))
 }
 
 fn challenge_key(challenge_id: &str) -> String {
@@ -159,6 +172,7 @@ pub struct MfaChallengeRecord {
 pub struct MfaService<KV: KeyValueStore> {
     storage: Arc<HandlerStorage<KV>>,
     keys: TotpKeyRing,
+    algorithm: TotpAlgorithm,
 }
 
 impl<KV: KeyValueStore> MfaService<KV> {
@@ -166,7 +180,18 @@ impl<KV: KeyValueStore> MfaService<KV> {
     /// active key, enrolling a secret fails.
     #[must_use]
     pub fn new(storage: Arc<HandlerStorage<KV>>, keys: TotpKeyRing) -> Self {
-        Self { storage, keys }
+        Self {
+            storage,
+            keys,
+            algorithm: TotpAlgorithm::default(),
+        }
+    }
+
+    /// The hash new TOTP secrets use (default SHA-1).
+    #[must_use]
+    pub fn with_algorithm(mut self, algorithm: TotpAlgorithm) -> Self {
+        self.algorithm = algorithm;
+        self
     }
 
     /// Store the TOTP secret of a user, encrypted. Replaces an earlier secret
@@ -296,7 +321,7 @@ impl<KV: KeyValueStore> MfaService<KV> {
         user_id: &str,
         ttl: Duration,
     ) -> Result<TotpEnrollment, StorageOpError> {
-        let secret = TOTPSecret::generate();
+        let secret = TOTPSecret::generate().with_algorithm(self.algorithm);
         let pending = PendingEnrollment {
             secret: encrypt_secret(&self.keys, user_id, &secret)?,
             expires_at: Utc::now()
@@ -310,6 +335,7 @@ impl<KV: KeyValueStore> MfaService<KV> {
             .map_err(|e| StorageOpError::Query(format!("cache set: {e}")))?;
         Ok(TotpEnrollment {
             secret_base32: secret.to_base32(),
+            algorithm: self.algorithm,
         })
     }
 

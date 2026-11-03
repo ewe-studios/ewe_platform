@@ -284,10 +284,10 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             cache,
         ));
         let tos_service = Arc::new(TosService::new(Arc::clone(&storage)));
-        let mfa_service = Arc::new(MfaService::new(
-            Arc::clone(&storage),
-            config.totp_keys.clone(),
-        ));
+        let mfa_service = Arc::new(
+            MfaService::new(Arc::clone(&storage), config.totp_keys.clone())
+                .with_algorithm(config.totp_algorithm),
+        );
         // A fresh in-memory session service. `IdpServer` and `ServeAdapter`
         // replace it with one shared by all routes (`with_session_service`).
         let session_service = Arc::new(
@@ -1082,11 +1082,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .await?;
         let issuer = self.config.issuer_url.trim_end_matches('/');
         let uri = format!(
-            "otpauth://totp/{}:{}?secret={}&issuer={}&algorithm=SHA256&digits=6&period=30",
+            "otpauth://totp/{}:{}?secret={}&issuer={}&algorithm={}&digits=6&period=30",
             urlencoding::encode(issuer),
             urlencoding::encode(&user.email),
             enrollment.secret_base32,
             urlencoding::encode(issuer),
+            enrollment.algorithm.uri_name(),
         );
         Ok(HandlerResponse::ok(serde_json::json!({
             "secret": enrollment.secret_base32,

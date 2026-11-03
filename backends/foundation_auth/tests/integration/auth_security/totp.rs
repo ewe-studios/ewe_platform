@@ -205,3 +205,58 @@ fn totp_secret_survives_key_rotation() {
     // The key id in test_keys() is the active one for new enrollments.
     assert_eq!(test_keys().active().unwrap().0, "k1");
 }
+
+fn provisioning_uri(env: &Env, email: &str) -> String {
+    let (_, cookie) = signed_in(env, email);
+    let started = env.post(ENROLL_START, &serde_json::json!({}), Some(&cookie));
+    assert_eq!(started.status, 200, "start: {}", started.body);
+    started.body["otpauth_uri"].as_str().unwrap().to_string()
+}
+
+#[valtron_test(threads = 8, timeout = 60000)]
+fn provisioning_uri_names_the_algorithm() {
+    let default_env = start(config());
+    let uri = provisioning_uri(&default_env, "sha1@example.com");
+    assert!(uri.contains("algorithm=SHA1"), "{uri}");
+    assert!(
+        uri.contains("digits=6") && uri.contains("period=30"),
+        "{uri}"
+    );
+
+    let sha256_env = start(config().with_totp_algorithm(foundation_auth::TotpAlgorithm::Sha256));
+    let uri = provisioning_uri(&sha256_env, "sha256@example.com");
+    assert!(uri.contains("algorithm=SHA256"), "{uri}");
+}
+
+#[valtron_test(threads = 8, timeout = 60000)]
+fn sha256_enrollment_logs_in_with_sha256_codes() {
+    let env = start(config().with_totp_algorithm(foundation_auth::TotpAlgorithm::Sha256));
+    let (_, cookie) = signed_in(&env, "s256login@example.com");
+    let started = env.post(ENROLL_START, &serde_json::json!({}), Some(&cookie));
+    let secret = TOTPSecret::from_base32(started.body["secret"].as_str().unwrap())
+        .unwrap()
+        .with_algorithm(foundation_auth::TotpAlgorithm::Sha256);
+    let confirmed = env.post(
+        ENROLL_CONFIRM,
+        &serde_json::json!({ "code": secret.now() }),
+        Some(&cookie),
+    );
+    assert_eq!(confirmed.status, 200, "{}", confirmed.body);
+
+    let reply = mfa_login(
+        &env,
+        "s256login@example.com",
+        &secret.code_at(now_secs() + 30),
+    );
+
+    assert_eq!(reply.status, 202, "{}", reply.body);
+}
+
+#[test]
+fn records_without_an_algorithm_are_sha256() {
+    // Secrets stored before the algorithm field existed were SHA-256.
+    let old = r#"{"key_id":"k1","nonce":"AAAA","ciphertext":"BBBB"}"#;
+    let record: foundation_auth::server::services::EncryptedSecret =
+        serde_json::from_str(old).unwrap();
+    assert_eq!(record.algorithm, foundation_auth::TotpAlgorithm::Sha256);
+}

@@ -3,20 +3,47 @@
 //! WHY: MFA for sensitive auth flows and API key protection.
 //!
 //! WHAT: `TOTPSecret` for TOTP generation/verification, backup code support.
-//! HOW: HMAC-SHA1 with time steps. Synchronous — CPU-bound crypto ops.
+//! HOW: HMAC (SHA-1 by default, SHA-256 optional) with time steps. Synchronous — CPU-bound crypto ops.
 
 use foundation_compact::rng::Rng;
 use hmac::{Hmac, Mac};
+use serde::{Deserialize, Serialize};
+use sha1::Sha1;
 use sha2::Sha256;
 use zeroize::Zeroizing;
 
+type HmacSha1 = Hmac<Sha1>;
 type HmacSha256 = Hmac<Sha256>;
+
+/// The hash a TOTP secret uses. RFC 6238 defaults to SHA-1, and it is the
+/// only one most authenticator apps (Google Authenticator and others)
+/// implement. SHA-256 is for apps that support it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub enum TotpAlgorithm {
+    /// HMAC-SHA-1, 6 digits, 30 s: the RFC 6238 default.
+    #[default]
+    Sha1,
+    /// HMAC-SHA-256.
+    Sha256,
+}
+
+impl TotpAlgorithm {
+    /// The name in an `otpauth://` URI (`algorithm=`).
+    #[must_use]
+    pub fn uri_name(self) -> &'static str {
+        match self {
+            Self::Sha1 => "SHA1",
+            Self::Sha256 => "SHA256",
+        }
+    }
+}
 
 /// TOTP secret for time-based one-time password generation (RFC 6238).
 pub struct TOTPSecret {
     secret: Zeroizing<Vec<u8>>,
     period: u64,
     digits: usize,
+    algorithm: TotpAlgorithm,
 }
 
 impl TOTPSecret {
@@ -31,7 +58,21 @@ impl TOTPSecret {
             secret: Zeroizing::new(secret),
             period: 30,
             digits: 6,
+            algorithm: TotpAlgorithm::default(),
         }
+    }
+
+    /// Use this hash (default: SHA-1, the RFC 6238 default).
+    #[must_use]
+    pub fn with_algorithm(mut self, algorithm: TotpAlgorithm) -> Self {
+        self.algorithm = algorithm;
+        self
+    }
+
+    /// The hash this secret uses.
+    #[must_use]
+    pub fn algorithm(&self) -> TotpAlgorithm {
+        self.algorithm
     }
 
     /// Create from an existing secret key.
@@ -41,6 +82,7 @@ impl TOTPSecret {
             secret: Zeroizing::new(secret),
             period: 30,
             digits: 6,
+            algorithm: TotpAlgorithm::default(),
         }
     }
 
@@ -60,7 +102,7 @@ impl TOTPSecret {
     #[allow(clippy::missing_panics_doc)]
     pub fn code_at(&self, timestamp: u64) -> String {
         let time_step = timestamp / self.period;
-        Self::generate_code(&self.secret, time_step, self.digits)
+        Self::generate_code(&self.secret, time_step, self.digits, self.algorithm)
     }
 
     /// Verify a TOTP code with time window tolerance (±1 step by default).
@@ -88,7 +130,7 @@ impl TOTPSecret {
         // the work does not depend on which step matched.
         let mut matched = None;
         for step in time_step.saturating_sub(tolerance)..=time_step + tolerance {
-            if code == Self::generate_code(&self.secret, step, self.digits) {
+            if code == Self::generate_code(&self.secret, step, self.digits, self.algorithm) {
                 matched = Some(step);
             }
         }
@@ -150,14 +192,30 @@ impl TOTPSecret {
 
     /// Generate the HOTP code for a given time step.
     #[allow(clippy::cast_possible_truncation)]
-    fn generate_code(secret: &[u8], time_step: u64, digits: usize) -> String {
+    fn generate_code(
+        secret: &[u8],
+        time_step: u64,
+        digits: usize,
+        algorithm: TotpAlgorithm,
+    ) -> String {
         // Encode time step as 8-byte big-endian counter
         let counter = time_step.to_be_bytes();
 
         // Compute HMAC-SHA256
-        let mut mac = HmacSha256::new_from_slice(secret).expect("HMAC can take key of any size");
-        mac.update(&counter);
-        let result = mac.finalize().into_bytes();
+        let result: Vec<u8> = match algorithm {
+            TotpAlgorithm::Sha1 => {
+                let mut mac =
+                    HmacSha1::new_from_slice(secret).expect("HMAC can take key of any size");
+                mac.update(&counter);
+                mac.finalize().into_bytes().to_vec()
+            }
+            TotpAlgorithm::Sha256 => {
+                let mut mac =
+                    HmacSha256::new_from_slice(secret).expect("HMAC can take key of any size");
+                mac.update(&counter);
+                mac.finalize().into_bytes().to_vec()
+            }
+        };
 
         // Dynamic truncation (RFC 4226 section 5.4)
         let offset = (result[result.len() - 1] & 0x0F) as usize;

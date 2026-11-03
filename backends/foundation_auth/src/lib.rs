@@ -69,7 +69,9 @@ pub use shared::oauth::TokenResponse;
 pub use shared::oauth::{OAuthConfig, OAuthConfigBuilder, OAuthError, OAuthManager, PkceChallenge};
 pub use shared::oauth_token::OAuthToken;
 pub use shared::session::{Session, SessionConfig, SessionError, SessionManager};
-pub use shared::two_factor::{BackupCodeSet, TOTPSecret, TwoFactorChallenge, TwoFactorError};
+pub use shared::two_factor::{
+    BackupCodeSet, TOTPSecret, TotpAlgorithm, TwoFactorChallenge, TwoFactorError,
+};
 
 // Re-export platform-specific OAuth wrappers.
 #[cfg(not(target_family = "wasm"))]

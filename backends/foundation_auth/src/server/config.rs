@@ -132,6 +132,10 @@ pub struct IdpConfig {
     /// How long a started TOTP enrollment waits for its first code. Default
     /// 5 minutes. A new start replaces the pending enrollment.
     pub totp_enrollment_ttl: Duration,
+    /// The hash new TOTP secrets use. Default SHA-1 (RFC 6238, and the only
+    /// one most authenticator apps support). A stored secret keeps the hash it
+    /// was enrolled with.
+    pub totp_algorithm: crate::shared::two_factor::TotpAlgorithm,
 }
 
 /// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
@@ -159,6 +163,7 @@ impl IdpConfig {
             totp_keys: TotpKeyRing::default(),
             secure_cookies: true,
             totp_enrollment_ttl: Duration::from_secs(300),
+            totp_algorithm: crate::shared::two_factor::TotpAlgorithm::default(),
         }
     }
 
@@ -221,6 +226,17 @@ impl IdpConfig {
         self
     }
 
+    /// Set the hash new TOTP secrets use (see
+    /// [`totp_algorithm`](Self::totp_algorithm)).
+    #[must_use]
+    pub fn with_totp_algorithm(
+        mut self,
+        algorithm: crate::shared::two_factor::TotpAlgorithm,
+    ) -> Self {
+        self.totp_algorithm = algorithm;
+        self
+    }
+
     /// Set how long a started TOTP enrollment waits for its first code (see
     /// [`totp_enrollment_ttl`](Self::totp_enrollment_ttl)).
     #[must_use]
@@ -268,6 +284,7 @@ impl core::fmt::Debug for IdpConfig {
             .field("totp_keys", &self.totp_keys)
             .field("secure_cookies", &self.secure_cookies)
             .field("totp_enrollment_ttl", &self.totp_enrollment_ttl)
+            .field("totp_algorithm", &self.totp_algorithm)
             .finish_non_exhaustive()
     }
 }
