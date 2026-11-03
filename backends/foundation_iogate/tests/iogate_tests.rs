@@ -56,6 +56,23 @@ fn accept_one(listener: &TcpListener, mode: ServerIo) -> Connection {
     foundation_iogate::accept_connection(server_tcp, peer, mode).expect("accept_connection")
 }
 
+/// Whether io_uring is missing, so the caller skips its test.
+///
+/// A local machine without io_uring skips with a warning. An environment that
+/// sets `EWE_REQUIRE_IO_URING=1` expects io_uring, so a missing io_uring fails the
+/// test there: CI cannot lose this coverage without anyone noticing.
+fn io_uring_missing(what: &str) -> bool {
+    if foundation_iogate::init_reactor_for(ServerIo::Completion).is_ok() {
+        return false;
+    }
+    assert!(
+        std::env::var("EWE_REQUIRE_IO_URING").as_deref() != Ok("1"),
+        "EWE_REQUIRE_IO_URING=1 but io_uring is unavailable ({what})"
+    );
+    tracing::warn!("io_uring unavailable — skipping {what}");
+    true
+}
+
 #[test]
 fn server_io_defaults_to_std() {
     assert_eq!(ServerIo::default(), ServerIo::Std);
@@ -110,8 +127,7 @@ fn completion_mode_carries_bytes() {
     // Completion mode demands io_uring. On a kernel without it, initialising the
     // reactor on `Uring` is a hard error — skip loudly rather than fail, since
     // this is an environment capability, not a defect.
-    if foundation_iogate::init_reactor_for(ServerIo::Completion).is_err() {
-        tracing::warn!("io_uring unavailable — skipping completion-mode byte test");
+    if io_uring_missing("completion-mode byte test") {
         return;
     }
 
@@ -165,8 +181,7 @@ fn connect_completion_dials_a_completion_backed_upstream() {
     // The client mirror of `completion_mode_carries_bytes`: the *outbound* dial is
     // registered with the reactor, so an upstream leg reads from the io_uring inbox
     // (Feature 50 Part A). Skip loudly without io_uring.
-    if foundation_iogate::init_reactor_for(ServerIo::Completion).is_err() {
-        tracing::warn!("io_uring unavailable — skipping completion-mode dial test");
+    if io_uring_missing("completion-mode dial test") {
         return;
     }
 
@@ -190,8 +205,7 @@ fn connect_completion_dials_a_completion_backed_upstream() {
 fn adopt_connected_registers_an_already_connected_upstream() {
     // `adopt_connected` is `connect_completion` minus the blocking connect: the
     // async dial connects non-blocking, then hands the socket here.
-    if foundation_iogate::init_reactor_for(ServerIo::Completion).is_err() {
-        tracing::warn!("io_uring unavailable — skipping adopt_connected test");
+    if io_uring_missing("adopt_connected test") {
         return;
     }
 

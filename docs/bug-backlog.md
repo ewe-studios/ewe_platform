@@ -115,19 +115,35 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   tests `load_balancer_tests.rs` (unused `Arc`, `Duration`, `STICKY_COOKIE`) and
   `h2_integration_tests.rs:318` (unused `mut`) warn on build. Scheduled as
   feature 49 E7.
-- **The H3 proxy buffers the whole request body.** `h3_proxy.rs` `read_body`
-  collects the client's request body into one `Vec` before it forwards, which
-  breaks rule 4 for uploads. `read_headers` and `read_body` also park on a 1 ms
-  timer, not on the connection waker. Fix: stream the request body to the
-  upstream (a `PushableBody`) and park these two reads with `park_op`.
+- **The H3 proxy buffers the whole request body and polls on a 1 ms timer.**
+  `h3_proxy.rs` `read_body` collects the client's request body into one `Vec`
+  (rule 4), and `read_headers` / `read_body` park on a 1 ms timer. Feature 72 E1
+  wrote the fix (a bounded pipe to the upstream, 413 over `max_request_body`,
+  waker-parked reads) on branch `wip/f72-h3-request-body`, but it cannot land: a
+  parked QUIC server driver does not wake for its own QUIC timers, see the next
+  entry. The 16 MiB upload stalls in about one run in four, and the 1 ms timers
+  were hiding it. Land the next entry first, then merge that branch.
+- **A parked `QuicDriver` does not wake for its QUIC timers.** `quinn_driver.rs`
+  parks as `TaskStatus::Depends(AnyReadiness(socket, DeadlinePassed, woken))`.
+  The executor gives a `Sleepable::Readiness` sleeper no deadline
+  (`Sleepable::deadline` and `remaining_duration` return `None`), so the worker
+  does not wake at the QUIC deadline (ACK delay, loss detection, flow-control
+  update). With nothing else polling, a large upload stalls and ends with a
+  connection idle timeout. The same parked driver also uses about 85 ms of CPU
+  per second with an H3 listener and no client. Fix: add a `deadline()` hint to
+  `EventReadiness` (default `None`; `AnyReadiness` returns the earliest child;
+  `DeadlinePassed` returns its instant), return it from the `Sleepable::Readiness`
+  methods, and test with the 16 MiB upload on `wip/f72-h3-request-body`.
 - **`foundation_proxy` `control.rs` has an inline `#[cfg(test)] mod tests`.**
   Rule 7 forbids it. Fix: move its tests into `tests/` (scheduled as feature 50).
-- **The io_uring tests skip silently when io_uring is missing.**
-  `completion_splice_tests.rs`, `completion_dial_tests.rs` and the iogate
-  completion tests return early with a log line when the kernel has no io_uring,
-  so a CI image without it passes them without running them. Fix: a CI check that
-  fails when io_uring is expected but missing, or an explicit
-  `IO_URING_REQUIRED` switch.
+- **CI does not set `EWE_REQUIRE_IO_URING=1`.** The `foundation_iogate` and
+  `foundation_proxy` io_uring tests now fail when that variable is `1` and io_uring
+  is missing, and skip with a message otherwise. CI runs every package in a Docker
+  `container:` job (`.github/workflows/check.yaml`); Docker's default seccomp
+  profile can block `io_uring_setup`, and the CI image kernel was not confirmed to
+  allow it, so the variable is not set. Fix: run one CI job with the variable and
+  keep it if the tests pass. The `foundation_nativeapis` `uring_completion_*` and
+  `completion_source_seam` tests still skip without the variable check.
 - **A response writer's send timeout counts from its creation, not from its last
   byte, for long streams.** `forward_http` and the translators use one
   `ResponseWriter` for the whole response, so a gRPC stream idle for longer than

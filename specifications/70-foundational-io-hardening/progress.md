@@ -2,6 +2,14 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-03: feature 72 partial on `fix/io-41-50-lane-a`. E2 done: the io_uring tests of
+  `foundation_iogate` and `foundation_proxy` fail when `EWE_REQUIRE_IO_URING=1` and io_uring is
+  missing; the CI variable is not set (Docker/seccomp support unconfirmed, recorded in the backlog).
+  E1 not merged: the streamed H3 request body works (peak 1420 bytes, 413 over the limit, 0 idle
+  polls) but exposes a QUIC driver bug: a parked driver does not wake for its QUIC timers, so a
+  16 MiB upload stalls about one run in four. Work is on branch `wip/f72-h3-request-body`; the
+  fix (an `EventReadiness` deadline hint) is a new backlog entry.
+
 - 2026-11-03: feature 70 done on `fix/io-41-50-lane-a`. E1 deletes the polling
   `splice_bidirectional` (the io_uring splice test uses `aio::splice`). E2 makes the io_uring
   upstream dial non-blocking (`dial_tcp` parks on write readiness, `iogate::adopt_connected`

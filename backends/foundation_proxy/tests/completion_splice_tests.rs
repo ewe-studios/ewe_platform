@@ -32,10 +32,26 @@ fn completion_stream(tcp: TcpStream, token: usize) -> SharedByteBufferStream<Raw
     SharedByteBufferStream::rwrite(raw)
 }
 
+/// Whether io_uring is missing, so the caller skips its test.
+///
+/// A local machine without io_uring skips with a message. An environment that
+/// sets `EWE_REQUIRE_IO_URING=1` expects io_uring, so a missing io_uring fails the
+/// test there: CI cannot lose this coverage without anyone noticing.
+fn io_uring_missing(what: &str) -> bool {
+    if init_reactor_for(ServerIo::Completion).is_ok() {
+        return false;
+    }
+    assert!(
+        std::env::var("EWE_REQUIRE_IO_URING").as_deref() != Ok("1"),
+        "EWE_REQUIRE_IO_URING=1 but io_uring is unavailable ({what})"
+    );
+    eprintln!("io_uring unavailable — skipping {what}");
+    true
+}
+
 #[valtron_test(seed = 70, threads = 2, timeout = 60000)]
 async fn completion_splice_relays_bytes_both_directions() {
-    if init_reactor_for(ServerIo::Completion).is_err() {
-        eprintln!("io_uring unavailable — skipping completion splice test");
+    if io_uring_missing("completion splice test") {
         return;
     }
 

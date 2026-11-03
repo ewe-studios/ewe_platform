@@ -1,6 +1,6 @@
 ---
 feature: "foundation_proxy H3: stream the request body and park on the waker; io_uring tests fail loudly when io_uring is missing in CI"
-status: "pending"
+status: "partial"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -44,5 +44,20 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] H3 request body streamed and capped; no 1 ms polling; io_uring tests cannot skip in CI
-      unnoticed. §9 entries deleted. CI green.
+- [ ] H3 request body streamed and capped; no 1 ms polling. NOT DONE: see Result.
+- [x] io_uring tests fail when `EWE_REQUIRE_IO_URING=1` and io_uring is missing (CI variable not set,
+      see backlog).
+
+## Result (2026-11-03)
+
+- E2 done for `foundation_iogate` and `foundation_proxy`. The CI variable is not set: CI jobs run in
+  a Docker container and the kernel/seccomp support for io_uring is not confirmed (backlog §9).
+  `foundation_nativeapis` io_uring tests are not changed.
+- E1 is partial and not merged. The code and both tests are on branch `wip/f72-h3-request-body`
+  (commit 7bbbf1b6a). `h3_request_body_is_streamed` failed on the old code (16777289 bytes held,
+  line 311) and `h3_idle_request_uses_no_cpu` failed on the old code (816 stream polls and +165 ms
+  CPU in one second, limit 100 polls). With the fix the peak is 1420 bytes and the idle polls are
+  0, but the 16 MiB upload stalls in about one run in four and the 413 test in about one in five.
+  Cause: a parked `QuicDriver` does not wake for its QUIC timers (the executor gives a
+  `Readiness` sleeper no deadline); the old 1 ms timers hid it. Left: add the `EventReadiness`
+  deadline hint (backlog §9), then merge the branch.
