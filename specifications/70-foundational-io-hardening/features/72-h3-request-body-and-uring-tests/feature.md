@@ -1,6 +1,6 @@
 ---
 feature: "foundation_proxy H3: stream the request body and park on the waker; io_uring tests fail loudly when io_uring is missing in CI"
-status: "partial"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -44,7 +44,7 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] H3 request body streamed and capped; no 1 ms polling. NOT DONE: see Result.
+- [x] H3 request body streamed and capped; no 1 ms polling (merged by feature 75).
 - [x] io_uring tests fail when `EWE_REQUIRE_IO_URING=1` and io_uring is missing (CI variable not set,
       see backlog).
 
@@ -61,3 +61,10 @@ Flake check: 20 runs of each new test.
   Cause: a parked `QuicDriver` does not wake for its QUIC timers (the executor gives a
   `Readiness` sleeper no deadline); the old 1 ms timers hid it. Left: add the `EventReadiness`
   deadline hint (backlog §9), then merge the branch.
+
+### Update (feature 75)
+
+E1 landed with feature 75. The stall was a lost wake in the executor (the idle back-off
+`SpinWait` sleep in `block_on` was not bounded by the sleepers), not the QUIC timers. The three
+tests passed 20 of 20 each after the fix. The "idle request" test asserts on stream polls (0),
+not on process CPU: the idle QUIC endpoint has its own cost.

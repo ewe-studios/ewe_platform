@@ -2,6 +2,16 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-03: feature 75 done (and feature 72 done through it) on `fix/io-41-50-lane-a`.
+  Measured cause: the executor re-checked readiness-parked tasks every 1 ms (idle cost) and the
+  idle back-off `SpinWait` sleep in `block_on` could outlast a wake (the feature 72 upload stall).
+  Added `EventReadiness::deadline`/`needs_polling`, `ResumeSignal`, deadline plumbing in six
+  crates, a kill check after sleep and per-step `idle_wake::checking()`. Idle QUIC listener: 92 ms
+  to under 20 ms CPU per second. Feature 72's three H3 tests pass 20 of 20. CI: foundation_core
+  1655 tests, foundation_netio 2720 tests, foundation_proxy `--features quic` 137 tests,
+  plus reactor, wireguard, nativeapis and http tests, all green. New backlog entries for the
+  signals that still poll.
+
 - 2026-11-03: feature 72 partial on `fix/io-41-50-lane-a`. E2 done: the io_uring tests of
   `foundation_iogate` and `foundation_proxy` fail when `EWE_REQUIRE_IO_URING=1` and io_uring is
   missing; the CI variable is not set (Docker/seccomp support unconfirmed, recorded in the backlog).

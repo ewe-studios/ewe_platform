@@ -115,25 +115,26 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   tests `load_balancer_tests.rs` (unused `Arc`, `Duration`, `STICKY_COOKIE`) and
   `h2_integration_tests.rs:318` (unused `mut`) warn on build. Scheduled as
   feature 49 E7.
-- **The H3 proxy buffers the whole request body and polls on a 1 ms timer.**
-  `h3_proxy.rs` `read_body` collects the client's request body into one `Vec`
-  (rule 4), and `read_headers` / `read_body` park on a 1 ms timer. Feature 72 E1
-  wrote the fix (a bounded pipe to the upstream, 413 over `max_request_body`,
-  waker-parked reads) on branch `wip/f72-h3-request-body`, but it cannot land: a
-  parked QUIC server driver does not wake for its own QUIC timers, see the next
-  entry. The 16 MiB upload stalls in about one run in four, and the 1 ms timers
-  were hiding it. Land the next entry first, then merge that branch.
-- **A parked `QuicDriver` does not wake for its QUIC timers.** `quinn_driver.rs`
-  parks as `TaskStatus::Depends(AnyReadiness(socket, DeadlinePassed, woken))`.
-  The executor gives a `Sleepable::Readiness` sleeper no deadline
-  (`Sleepable::deadline` and `remaining_duration` return `None`), so the worker
-  does not wake at the QUIC deadline (ACK delay, loss detection, flow-control
-  update). With nothing else polling, a large upload stalls and ends with a
-  connection idle timeout. The same parked driver also uses about 85 ms of CPU
-  per second with an H3 listener and no client. Fix: add a `deadline()` hint to
-  `EventReadiness` (default `None`; `AnyReadiness` returns the earliest child;
-  `DeadlinePassed` returns its instant), return it from the `Sleepable::Readiness`
-  methods, and test with the 16 MiB upload on `wip/f72-h3-request-body`.
+- **A worker with an event-driven sleeper still uses about 20 ms of CPU per second.**
+  Feature 75 stops the 1 ms re-check for signals that resume the executor, but a
+  `multi` worker parked on a `ResumeSignal` still used about 21 ms of CPU per second
+  in `event_driven_cpu` (about 55 ms with a polling signal). The idle back-off and
+  the 100 ms `max_yield_duration` wake-ups do not explain it. Fix: sample per
+  thread (`/proc/<tid>/schedstat`) and find the loop.
+- **`BoolSignal` and the queue readiness types keep the 1 ms re-check.** Code in
+  `foundation_http` `connection.rs` and `foundation_netio` `native/connection.rs`
+  stores into a `BoolSignal` through `clone_inner` without calling
+  `request_executor_resume`, and other code pushes to a raw queue, so they cannot
+  report `needs_polling() == false`. Fix: replace those raw stores with
+  `ResumeSignal` (or `set`), then mark the queue types event-driven.
+- **`FdRegistration` and `RegisteredFd` (`foundation_nativeapis`) keep the 1 ms
+  re-check.** That crate's reactor latches readiness without
+  `request_executor_resume`, and its legacy path polls with a syscall. Fix: call
+  `request_executor_resume` after the latch, then return `false` from
+  `needs_polling`.
+- **The idle back-off in `block_on` could outlast a wake.** Fixed in feature 75 by
+  bounding the `SpinWait` sleep with `sleeper_wait()`; keep that bound if the
+  executor loop is refactored.
 - **`foundation_proxy` `control.rs` has an inline `#[cfg(test)] mod tests`.**
   Rule 7 forbids it. Fix: move its tests into `tests/` (scheduled as feature 50).
 - **CI does not set `EWE_REQUIRE_IO_URING=1`.** The `foundation_iogate` and

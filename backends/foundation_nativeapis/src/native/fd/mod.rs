@@ -579,6 +579,10 @@ impl FdRegistration {
     }
 }
 
+// `needs_polling` stays at its default (`true`) for `FdRegistration` and
+// `RegisteredFd`: this crate's reactor latches readiness without calling
+// `request_executor_resume`, and the legacy path polls with a syscall, so an
+// executor that slept on them could miss a transition.
 impl EventReadiness for FdRegistration {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         match self.query_readiness() {
