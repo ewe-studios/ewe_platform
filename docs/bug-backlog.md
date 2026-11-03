@@ -133,17 +133,15 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   version or `ETag` on `ResourceState` and `set_if_version(id, state, expected)` returning
   `StorageError::PreconditionFailed` (the variant exists); file store: compare under a lock
   file; SQL stores: `UPDATE ... WHERE version = ?`; D1/R2: `If-Match`.
-- **D1 request parameters are sent as JSON numbers and null; the hosted D1
-  REST endpoint is not proven to accept them.** Cloudflare's `OpenAPI` spec types
-  `d1_params` as an array of strings. `foundation_db` binds `DataValue::Integer`,
-  `Real` and `Null` as JSON numbers and `null`, and the overlay
-  `artefacts/cloud_providers/cloudflare/overlays/d1-query.json` widens the
-  generated type to match. The local wrangler worker (`worker-stub.js`) accepts
-  both, but that is the D1 *binding*, not Cloudflare's hosted REST API (it also
-  binds a whole JS number as a `REAL`). Fix: an opt-in test against a real
-  Cloudflare account that sends an integer, a real and null to `/query` and reads
-  back `typeof()`; if the hosted API rejects them, drop the overlay and convert
-  values to strings in `d1_kvstore.rs`.
+- **`d1r2_document_store_tests` fail against local wrangler (2 of 4).**
+  `append_orders_by_scru128_and_counts` gets the documents' JSON where it expects ids, and
+  `large_document_offloads_to_r2_and_reads_through` finds an `r2_key` on a small document, with
+  `CF_INTEGRATION_TEST=1` and `wrangler dev --local` (4.156.2); the same two fail with the
+  stub from before feature 56 E8, so the stub change did not cause them. Likely cause (not
+  confirmed): D1 rows arrive as JSON objects, `serde_json` keeps object keys sorted, and
+  `D1R2DocumentStore` reads columns by position, so the column order of `SELECT {columns}`
+  is lost. Fix: build `SqlRow` from the `SELECT` list order (or enable `serde_json`
+  `preserve_order`) and read by name.
 
 ## 16. Workspace / process
 

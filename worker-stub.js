@@ -54,10 +54,115 @@ export default {
   },
 };
 
+
+// ---------------------------------------------------------------------------
+// Parameter binding
+//
+// The D1 Workers binding documents this JavaScript-to-SQLite mapping
+// ("Type conversion" in the D1 Workers Binding API reference,
+// https://developers.cloudflare.com/d1/worker-api/): null -> NULL,
+// Number -> REAL (an integer-valued Number is INTEGER only through column
+// affinity), String -> TEXT, Boolean -> INTEGER, ArrayBuffer -> BLOB;
+// BigInt and undefined are not supported. Checked with wrangler 4.156.2
+// (workerd): `bind(7)` makes `typeof(?1)` = 'real', and `bind(7n)` throws
+// D1_TYPE_ERROR.
+//
+// The clients of this stub send JSON, where `7` and `7.0` differ. Hosted D1
+// stores a JSON integer as INTEGER, so the stub keeps that meaning: a JSON
+// integer literal is bound as `CAST(?N AS INTEGER)` (an integer outside the
+// double-safe range is bound as its decimal text, which CAST reads exactly),
+// a fractional number stays a REAL, null stays NULL and a string stays TEXT.
+// The stub reads the literal's source text (`JSON.parse` reviver context) to
+// tell `7` from `7.0`.
+// ---------------------------------------------------------------------------
+
+class SqlInteger {
+  constructor(text) {
+    this.text = text;
+  }
+}
+
+function parseRequestJson(text) {
+  return JSON.parse(text, (_key, value, context) =>
+    typeof value === "number" && /^-?\d+$/.test(context?.source ?? "")
+      ? new SqlInteger(context.source)
+      : value,
+  );
+}
+
+// Rewrite every `?` / `?N` placeholder whose parameter is a JSON integer into
+// `CAST(?N AS INTEGER)`. Quoted text and comments are copied unchanged.
+function rewriteIntegerPlaceholders(sql, params) {
+  let out = "";
+  let largest = 0;
+  let i = 0;
+  while (i < sql.length) {
+    const c = sql[i];
+    if (c === "'" || c === '"' || c === "`" || c === "[") {
+      const close = c === "[" ? "]" : c;
+      let j = i + 1;
+      while (j < sql.length) {
+        if (sql[j] === close) {
+          if (close !== "]" && sql[j + 1] === close) {
+            j += 2; // doubled quote
+            continue;
+          }
+          break;
+        }
+        j++;
+      }
+      out += sql.slice(i, j + 1);
+      i = j + 1;
+    } else if (c === "-" && sql[i + 1] === "-") {
+      const end = sql.indexOf("\n", i);
+      const stop = end === -1 ? sql.length : end;
+      out += sql.slice(i, stop);
+      i = stop;
+    } else if (c === "/" && sql[i + 1] === "*") {
+      const end = sql.indexOf("*/", i + 2);
+      const stop = end === -1 ? sql.length : end + 2;
+      out += sql.slice(i, stop);
+      i = stop;
+    } else if (c === "?") {
+      let j = i + 1;
+      while (j < sql.length && sql[j] >= "0" && sql[j] <= "9") j++;
+      const digits = sql.slice(i + 1, j);
+      // SQLite numbers a bare `?` one above the largest number so far.
+      const index = digits === "" ? largest + 1 : Number(digits);
+      largest = Math.max(largest, index);
+      out += params[index - 1] instanceof SqlInteger
+        ? `CAST(?${index} AS INTEGER)`
+        : sql.slice(i, j);
+      i = j;
+    } else {
+      out += c;
+      i++;
+    }
+  }
+  return out;
+}
+
+function bindableValue(value) {
+  if (value instanceof SqlInteger) {
+    const n = Number(value.text);
+    return Number.isSafeInteger(n) ? n : value.text;
+  }
+  return value;
+}
+
+function prepareStatement(env, sql, params) {
+  if (params.length === 0) {
+    return env.DB.prepare(sql);
+  }
+  return env.DB.prepare(rewriteIntegerPlaceholders(sql, params)).bind(
+    ...params.map(bindableValue),
+  );
+}
+
 async function handleD1Query(request, env) {
   let body;
   try {
-    body = await request.json();
+    body = parseRequestJson(await request.text());
   } catch (e) {
     return cfError(400, `invalid JSON body: ${e}`);
   }
@@ -77,9 +182,7 @@ async function handleD1Query(request, env) {
   }
 
   try {
-    const stmt = params.length > 0
-      ? env.DB.prepare(sql).bind(...params)
-      : env.DB.prepare(sql);
+    const stmt = prepareStatement(env, sql, params);
     const result = await stmt.all();
 
     const responseBody = JSON.stringify({
@@ -114,8 +217,7 @@ async function handleD1Batch(batch, env) {
   try {
     const statements = batch.map((entry) => {
       const params = Array.isArray(entry.params) ? entry.params : [];
-      const stmt = env.DB.prepare(entry.sql);
-      return params.length > 0 ? stmt.bind(...params) : stmt;
+      return prepareStatement(env, entry.sql, params);
     });
     const results = await env.DB.batch(statements);
 
