@@ -4,7 +4,7 @@ status: "pending"
 lane: "A"
 model: "haiku"
 branch: "fix/io-41-50-lane-a"
-crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc", "foundation_netio", "foundation_deployment", "foundation_keychain", "foundation_proxy", "foundation_wireguard"]
+crates: ["foundation_reactor", "foundation_testbed", "foundation_deployment_docker", "foundation_connectrpc", "foundation_netio", "foundation_deployment", "foundation_keychain", "foundation_proxy", "foundation_wireguard", "foundation_iogate"]
 catalogue_rows: [13, 14, 15, 31]
 ---
 
@@ -65,6 +65,10 @@ Fix the wasm32 manifest warnings (`cargo check -p foundation_wireguard --target
 wasm32-unknown-unknown`) by target-gating dependencies. **Do not remove
 `foundation_errstacks`:** it is the project's error standard; feature 67 adopts it in this
 crate. Remove only `thiserror` (unused; `derive_more` is the standard for the error enums).
+
+## E9. `foundation_iogate` clippy (found in feature 70)
+
+About ten `doc_markdown` warnings. Fix them; 0 warnings.
 
 ## Verify
 

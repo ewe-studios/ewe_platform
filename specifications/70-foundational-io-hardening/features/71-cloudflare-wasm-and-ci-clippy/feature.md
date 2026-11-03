@@ -14,7 +14,16 @@ _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers 
 
 Found in feature 55 (backlog §8, §21).
 
-## E1. The default-feature wasm32 build of the Cloudflare crates fails (§21)
+## E1. The default-feature wasm32 build of the Cloudflare crates fails (§21) — DONE by the main session
+
+Done on branch `fix/io-71-cloudflare-wasm` (commit `a7148a870`, from the lane B branch), at
+the owner's request on 2026-11-03: the generator now emits the group crates and the types crate
+as native-only umbrella dependencies; `chrono` and `foundation_core` moved native-only; a
+`compile_error!` in `foundation_core` names the cause if `multi` reaches wasm32 again; CI wasm
+runs added for the crate. **Merge `origin/fix/io-71-cloudflare-wasm` into the lane B branch
+before starting E2.** The text below is the original task, kept for the record.
+
+
 
 `cargo check -p foundation_deployment_cloudflare --target wasm32-unknown-unknown` fails in
 `foundation_core` (valtron `multi` executors use `idle_wake`, native-only). Cause: the generated
@@ -27,7 +36,11 @@ the cause is a feature line inside a lane A crate's manifest (`foundation_deploy
 Verify: the wasm32 check above exits 0 with default features; add it to the crate's
 `wasm-runs` in `ci/packages.toml` so CI keeps it.
 
-## E2. `chrono` and `foundation_core` are unused on wasm32 with no default features (§21)
+## E2. Six dependencies unused on wasm32 when `workers` is off (§21)
+
+`chrono` and `foundation_core` are done (E1). Left: `derive_more`, `foundation_macros`,
+`js-sys`, `serde`, `serde_json`, `tracing` — on wasm32 only the `workers` module uses them.
+Make each wasm32 use optional and enabled by `workers`, keeping the native entries.
 
 Target-gate them so `cargo check -p foundation_deployment_cloudflare --target
 wasm32-unknown-unknown --no-default-features` has no unused-dependency warnings (nightly lint).

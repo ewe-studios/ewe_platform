@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 42
-  uncompleted: 29
-  total: 71
+  uncompleted: 30
+  total: 72
   completion_percentage: 66%
 ---
 
@@ -192,6 +192,7 @@ done
 | 69 | [Unsolicited 1xx interim responses are skipped](./features/69-unsolicited-interim-responses/feature.md) | §8 catalogue row 59 (haiku) | 43 | S |
 | 70 | [Proxy: no polling splice, async io_uring dial, streamed H3 body](./features/70-proxy-completion-and-h3-body/feature.md) | §8 catalogue rows 60–62 (sonnet) | 65 | M |
 | 71 | [Cloudflare wasm build, CI clippy enforcement, faster genapi](./features/71-cloudflare-wasm-and-ci-clippy/feature.md) | §8 catalogue rows 64–67 (sonnet) | 55 | M |
+| 72 | [H3 request body streamed; io_uring tests fail loudly in CI](./features/72-h3-request-body-and-uring-tests/feature.md) | §8 catalogue rows 68, 69 (sonnet) | 70 | M |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -333,6 +334,9 @@ fixed in code but not deleted.
 | 65 | `chrono`, `foundation_core` unused on wasm32 (cloudflare) | found in 55 | 71 |
 | 66 | clippy warnings do not fail CI | found in 55 | 71 |
 | 67 | `genapi generate` runs `cargo fix` on the whole crate (~5 min) | found in 55 | 71 |
+| 68 | proxy H3 `read_body` buffers the whole request body; `read_headers`/`read_body` poll on a 1 ms timer | found in 70 | 72 |
+| 69 | io_uring tests skip silently when io_uring is missing | found in 70 | 72 |
+| 70 | `foundation_iogate` clippy (doc_markdown) | found in 70 | 49 |
 
 ### 8.1 Lanes, branches and models
 
@@ -345,7 +349,7 @@ the choice.
 
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
-| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
+| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 72 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
 | B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 68 → 54 E4 → 71 → 56 → … → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
