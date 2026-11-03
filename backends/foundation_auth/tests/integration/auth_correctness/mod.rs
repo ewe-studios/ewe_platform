@@ -6,5 +6,6 @@
 
 mod cookies;
 mod enrollment;
+mod register;
 mod social_code;
 mod sweeper;

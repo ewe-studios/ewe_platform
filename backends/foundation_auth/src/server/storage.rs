@@ -473,14 +473,13 @@ pub async fn update_user_profile(
     user_id: &str,
     username: Option<&str>,
 ) -> Result<(), StorageOpError> {
-    let username = username.unwrap_or("");
     let now = chrono::Utc::now().timestamp_millis();
     let sql = "UPDATE users SET username = ?, updated_at = ? WHERE id = ?";
     execute(
         store,
         sql,
         &[
-            DataValue::Text(username.to_string()),
+            username_value(username),
             DataValue::Integer(now),
             DataValue::Text(user_id.to_string()),
         ],
@@ -550,7 +549,7 @@ pub async fn create_user(store: &dyn QueryStore, user: &User) -> Result<(), Stor
         &[
             DataValue::Text(user.id.clone()),
             DataValue::Text(user.email.clone()),
-            DataValue::Text(user.username.clone().unwrap_or_default()),
+            username_value(user.username.as_deref()),
             DataValue::Text(user.password_hash.clone().unwrap_or_default()),
             DataValue::Integer(i64::from(user.email_verified)),
             DataValue::Integer(email_verified_at.unwrap_or(0)),
@@ -562,10 +561,21 @@ pub async fn create_user(store: &dyn QueryStore, user: &User) -> Result<(), Stor
     .await
 }
 
+/// A missing or empty username is stored as NULL: `users.username` is UNIQUE,
+/// and SQL allows many NULLs but only one empty string.
+fn username_value(username: Option<&str>) -> DataValue {
+    match username {
+        Some(u) if !u.is_empty() => DataValue::Text(u.to_string()),
+        _ => DataValue::Null,
+    }
+}
+
 fn parse_user_row(row: &SqlRow) -> Result<User, StorageOpError> {
     let password_hash: String = row.get_by_name("password_hash").map_err(parse_err)?;
     let metadata: String = row.get_by_name("metadata").map_err(parse_err)?;
-    let username_val: String = row.get_by_name("username").map_err(parse_err)?;
+    // NULL (none) or, in rows made before NULL was used, an empty string.
+    let username_val: Option<String> = row.get_by_name("username").map_err(parse_err)?;
+    let username_val = username_val.filter(|u| !u.is_empty());
     let email_verified_at_val: i64 = row.get_by_name("email_verified_at").map_err(parse_err)?;
     let locked_until_val: i64 = row.get_by_name("locked_until").map_err(parse_err)?;
     let deleted_at_val: i64 = row.get_by_name("deleted_at").map_err(parse_err)?;
@@ -575,11 +585,7 @@ fn parse_user_row(row: &SqlRow) -> Result<User, StorageOpError> {
     Ok(User {
         id: row.get_by_name("id").map_err(parse_err)?,
         email: row.get_by_name("email").map_err(parse_err)?,
-        username: if username_val.is_empty() {
-            None
-        } else {
-            Some(username_val)
-        },
+        username: username_val,
         password_hash: if password_hash.is_empty() {
             None
         } else {
