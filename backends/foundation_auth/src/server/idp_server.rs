@@ -7,7 +7,7 @@ use foundation_http::SimpleMethod;
 use super::config::IdpConfig;
 use super::handlers::ServeAdapter;
 use super::services::SessionService;
-use super::storage::HandlerStorage;
+use super::storage::{HandlerStorage, StorageOpError};
 use foundation_db::{KeyValueStore, MemoryStorage};
 
 /// The `IdP` server: routes plus the config and storage its handlers share.
@@ -37,6 +37,17 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
             storage,
             sessions,
         }
+    }
+
+    /// Delete expired short-lived state (`ToS` codes, MFA challenges, `PoW`
+    /// challenges) from the cache; returns how many entries it deleted. Call
+    /// it on a timer. See [`HandlerStorage::sweep_expired`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if a cache call fails.
+    pub async fn sweep_expired(&self) -> Result<usize, StorageOpError> {
+        self.storage.sweep_expired().await
     }
 
     /// Use this session service for all routes. The default is an in-memory

@@ -848,9 +848,71 @@ pub struct HandlerStorage<KV: KeyValueStore> {
     pub cache: KV,
 }
 
+/// Cache key prefixes whose values carry an `expires_at` field (Unix
+/// milliseconds): `ToS` codes, MFA challenges and pending TOTP enrollments, and
+/// `PoW` challenges. [`HandlerStorage::sweep_expired`] deletes the expired ones.
+pub const EXPIRING_CACHE_PREFIXES: &[&str] = &[
+    "tos:code:",
+    "mfa:challenge:",
+    "mfa:totp_pending:",
+    "pow:challenge:",
+];
+
 impl<KV: KeyValueStore> HandlerStorage<KV> {
     pub fn new(query_store: Arc<dyn QueryStore>, cache: KV) -> Self {
         Self { query_store, cache }
+    }
+
+    /// Delete the expired entries of the short-lived handshake state in the
+    /// cache ([`EXPIRING_CACHE_PREFIXES`]). Returns how many it deleted.
+    ///
+    /// The cache backends have no expiry of their own, so each entry holds its
+    /// `expires_at`. A read of an expired entry already returns nothing
+    /// (`TosService::take_code`, `MfaService::take_challenge`); this removes the
+    /// entries nobody presented. Run it from a timer (for example every few
+    /// minutes), like the SQL cleanup in `foundation_db`
+    /// (`run_full_cleanup`). It reads every key under the prefixes, so its cost
+    /// grows with the number of live entries.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if a cache call fails.
+    pub async fn sweep_expired(&self) -> Result<usize, StorageOpError> {
+        let now = chrono::Utc::now().timestamp_millis();
+        let mut removed = 0;
+        for prefix in EXPIRING_CACHE_PREFIXES {
+            // The key stream ends before the next call on the same store.
+            let keys: Vec<String> = {
+                let mut stream = self
+                    .cache
+                    .list_keys(Some(prefix))
+                    .await
+                    .map_err(|e| StorageOpError::Query(format!("cache list: {e}")))?;
+                let mut keys = Vec::new();
+                while let Some(key) = futures_lite::StreamExt::next(&mut stream).await {
+                    keys.push(key.map_err(|e| StorageOpError::Query(format!("cache list: {e}")))?);
+                }
+                keys
+            };
+            for key in keys {
+                let value = self
+                    .cache
+                    .get::<serde_json::Value>(&key)
+                    .await
+                    .map_err(|e| StorageOpError::Query(format!("cache get: {e}")))?;
+                let expired = value
+                    .and_then(|v| v.get("expires_at").and_then(serde_json::Value::as_i64))
+                    .is_some_and(|at| at <= now);
+                if expired {
+                    self.cache
+                        .delete(&key)
+                        .await
+                        .map_err(|e| StorageOpError::Query(format!("cache delete: {e}")))?;
+                    removed += 1;
+                }
+            }
+        }
+        Ok(removed)
     }
 }
 
