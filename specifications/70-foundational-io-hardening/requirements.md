@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 42
-  uncompleted: 33
-  total: 75
+  uncompleted: 34
+  total: 76
   completion_percentage: 66%
 ---
 
@@ -196,6 +196,7 @@ done
 | 73 | [Auth security follow-ups](./features/73-auth-security-followups/feature.md) | §8 catalogue rows 71–76 (sonnet) | 68 | L |
 | 74 | [Auth correctness follow-ups; vectors migration](./features/74-auth-correctness-followups/feature.md) | §8 catalogue rows 77–81 (sonnet) | 68 | M |
 | 75 | [Readiness deadlines; idle QUIC listener; land 72 E1](./features/75-readiness-deadlines/feature.md) | §8 catalogue rows 82–84 (sonnet) | 72 | M |
+| 76 | [D1 binding types; db follow-ups](./features/76-d1-binding-and-db-followups/feature.md) | §8 catalogue rows 91–94 (sonnet) | 56 | M |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -360,6 +361,10 @@ fixed in code but not deleted.
 | 88 | auth: `sweep_expired` not scheduled | found in 73 | 74 |
 | 89 | auth: social authorization code has an empty `client_id` | found in 73 | 74 |
 | 90 | auth: Workers KV `take` not atomic | found in 73 | 74 |
+| 91 | `D1WasmStorage`: JS Number binding stores REAL and rounds i64 above 2^53 | found in 56 | 76 |
+| 92 | `d1r2_document_store_tests` fail 2 of 4 on local wrangler | found in 56 | 76 |
+| 93 | code-graph method ids ignore the class | found in 56 | 76 |
+| 94 | `StateStore` has no conditional write | found in 45, 56 | 76 |
 
 ### 8.1 Lanes, branches and models
 
@@ -373,7 +378,7 @@ the choice.
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
 | A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 72 → 75 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
-| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 68 → 73 → 54 E4 → 71 → 56 → 74 → … → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
+| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 68 → 73 → 54 E4 → 71 → 56 → 74 → 76 → … → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
   reports to the main session. (Feature 54 may change only the boringtun line of
