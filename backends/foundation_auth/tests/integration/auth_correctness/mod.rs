@@ -6,3 +6,4 @@
 
 mod cookies;
 mod enrollment;
+mod social_code;

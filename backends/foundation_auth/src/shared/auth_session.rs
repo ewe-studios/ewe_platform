@@ -41,6 +41,10 @@ pub struct UpstreamAuthSession {
     pub ttl_seconds: u64,
     /// Whether this session has been consumed (one-time use).
     pub consumed: bool,
+    /// The OAuth client that asked for the login. The authorization code made
+    /// at the end of the flow is bound to it.
+    #[serde(default)]
+    pub client_id: Option<String>,
 }
 
 impl UpstreamAuthSession {
@@ -62,6 +66,13 @@ impl UpstreamAuthSession {
             ttl_seconds,
             None,
         )
+    }
+
+    /// Bind the session to the client that asked for the login.
+    #[must_use]
+    pub fn with_client_id(mut self, client_id: impl Into<String>) -> Self {
+        self.client_id = Some(client_id.into());
+        self
     }
 
     #[must_use]
@@ -89,6 +100,7 @@ impl UpstreamAuthSession {
             created_at: now,
             ttl_seconds,
             consumed: false,
+            client_id: None,
         }
     }
 

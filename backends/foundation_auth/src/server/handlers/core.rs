@@ -489,10 +489,9 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
         storage::delete_auth_code(self.storage.query_store.as_ref(), &auth_code.code).await?;
 
-        let user =
-            storage::find_user_by_email(self.storage.query_store.as_ref(), &auth_code.user_id)
-                .await?
-                .ok_or_else(|| IdpError::Internal("User not found for auth code".into()))?;
+        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &auth_code.user_id)
+            .await?
+            .ok_or_else(|| IdpError::Internal("User not found for auth code".into()))?;
 
         let token_pair = self.token_service.generate_tokens(
             &user,
@@ -960,9 +959,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         }
 
         if pending.auth_method == "social" {
+            // The code is bound to the client that asked for the login; the
+            // token endpoint checks it.
             let auth_code = crate::server::models::AuthorizationCode::new(
                 user_id.to_string(),
-                String::new(),
+                pending.client_id.clone().unwrap_or_default(),
                 pending.redirect_uri.clone().unwrap_or_default(),
                 None,
                 "openid profile email".to_string(),
@@ -1991,19 +1992,22 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         };
 
         session_store
-            .insert(&UpstreamAuthSession::with_app_state(
-                upstream_state,
-                provider_id.to_string(),
-                Some(pkce.code_verifier),
-                nonce,
-                Some(app_redirect_uri.to_string()),
-                600,
-                if app_state.is_empty() {
-                    None
-                } else {
-                    Some(app_state)
-                },
-            ))
+            .insert(
+                &UpstreamAuthSession::with_app_state(
+                    upstream_state,
+                    provider_id.to_string(),
+                    Some(pkce.code_verifier),
+                    nonce,
+                    Some(app_redirect_uri.to_string()),
+                    600,
+                    if app_state.is_empty() {
+                        None
+                    } else {
+                        Some(app_state)
+                    },
+                )
+                .with_client_id(client_id),
+            )
             .map_err(|e| IdpError::Internal(format!("session store: {e}")))?;
 
         Ok(HandlerResponse::redirect(&auth_url))
@@ -2071,7 +2075,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
         let pending = PendingLogin {
             auth_method: "social".into(),
-            client_id: None,
+            client_id: session.client_id.clone(),
             redirect_uri: session.redirect_to.clone(),
             state: session.app_state.clone(),
             nonce: session.nonce.clone(),
