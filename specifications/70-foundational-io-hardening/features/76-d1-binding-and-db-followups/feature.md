@@ -1,5 +1,5 @@
 ---
-feature: "Wasm stores tested on the real wrangler bindings (no stub); D1 binding keeps integer types and i64 precision; REST stub a plain pass-through; d1r2 document store passes on local wrangler; code-graph method ids; StateStore conditional write"
+feature: "Wasm stores tested on the real wrangler bindings (no stub); D1 binding keeps integer types and i64 precision; native REST clients tested on wrangler's local REST API (stub deleted); d1r2 document store passes on local wrangler; code-graph method ids; StateStore conditional write"
 status: "pending"
 lane: "B"
 model: "sonnet"
@@ -39,16 +39,51 @@ the store builds, and read exact i64 columns with `CAST(col AS TEXT)`; or anothe
 prove). Tests in the E0 harness, on the real binding: `typeof` is `integer` in an untyped
 column; `i64::MAX`, `i64::MIN` and 2^53+1 round-trip exactly.
 
-## E1b. The REST stub becomes a plain pass-through again
+## E1b. Test the native REST clients against wrangler's own local REST API — delete the stub (owner decision 2026-11-03)
 
-`worker-stub.js` serves only the native REST clients (`D1Store`, `R2Store`): wrangler does not run
-Cloudflare's hosted REST front end, so locally the stub is the only way to exercise those clients.
-It must not add behaviour. Revert feature 56's type rewriting (the source-text reviver and the
-`CAST(?N AS INTEGER)` placeholder rewrite) so the stub passes `sql` and `params` to
-`env.DB.prepare(...).bind(...)` unchanged. Move the type-semantics assertions
-(`d1_param_types_wrangler`) to the E0 harness, where they test the real binding; keep in the REST
-suite only tests of our client's request and response handling, and say in the stub's header and
-in those tests' doc comments that they do not prove hosted REST behaviour.
+Owner rule again: no stub where wrangler serves the real thing. It does. `wrangler dev --local`
+(miniflare) serves a Cloudflare-shaped REST API at `http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`,
+backed by the same local D1, R2 and KV storage as the bindings. Measured with wrangler 4.156.2
+(miniflare 5.20261102.0-beta), 2026-11-03:
+- Routes (no `/accounts/:account_id` prefix): `GET /d1/database`, `POST /d1/database/:id/raw`;
+  `GET|PUT /r2/buckets/:b/objects/:key`, `DELETE /r2/buckets/:b/objects/:key{.+}`,
+  `GET|DELETE /r2/buckets/:b/objects`; `/storage/kv/namespaces/:id/{keys,values/:key,bulk,bulk/get,bulk/delete}`.
+  The D1 database id is the binding's `preview_database_id` (for example `test-db-preview`).
+- D1: only `/raw` exists (`/query` gives 404). `/raw` returns `{columns, rows}` with rows as
+  ordered arrays, so column order is kept.
+- D1 params are strings only (`zD1Params = z.array(z.string())`, the same as the published
+  Cloudflare spec). `[7, 1.5, null, "x"]` gives `{"code":10001,"message":"Invalid input"}`;
+  `["7","1.5","x"]` works and every value is stored as `text`.
+- R2 has no range read and no conditional put; object metadata comes from
+  `GET` with header `cf-metadata-only: true` (not `HEAD`). GET and PUT match `:key` without
+  `{.+}`, so test whether keys with `/` work, and encode them if needed.
+
+So feature 52's finding was wrong: it was made against `worker-stub.js`, which calls the binding,
+not against REST. The REST API accepts string params only. Work:
+1. `D1Store` (native REST) sends every param as a JSON string and gives it a type in SQL:
+   `CAST(?N AS INTEGER)` / `CAST(?N AS REAL)` for numbers, the `NULL` literal (not a bound
+   param) for null, blobs as hex with `unhex(?N)` or another method you prove. Read rows through
+   `/raw` (ordered arrays, column names once) on both hosted and local. Exact i64 on read:
+   `CAST(col AS TEXT)` where the store reads an integer column, as in E1.
+2. Remove the `d1_params` part of `artefacts/cloud_providers/cloudflare/overlays/d1-query.json`
+   (keep the `d1_query_meta` integer fix), regenerate with the generator, and use the generated
+   `/raw` request and response types (CLAUDE.md rule 5).
+3. Make the REST path layout configurable on the client config: hosted
+   (`https://api.cloudflare.com/client/v4/accounts/{account}`) or local explorer
+   (`http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`, no account segment). The existing
+   `*_with_base_url` constructors take the full prefix; no `const` in the code path.
+4. Point every `CF_INTEGRATION_TEST` REST test (foundation_db `common/mod.rs`, `d1_*`, `r2_*`,
+   `d1r2_document_store_tests`; foundation_nativeapis `d1_delta_vfs`, `r2_delta_vfs`,
+   `vfs_shim_vfs`) at the explorer API. R2 operations the explorer does not serve (range read,
+   conditional put) are tested on the real binding in the E0 harness, and the doc comment says so.
+5. Delete `worker-stub.js` and its `mise` wiring. `d1_param_types_wrangler` moves: the binding's
+   type semantics go to the E0 harness; the REST side becomes
+   `d1_rest_params_are_strings_and_typed_by_cast` (integers incl. `i64::MAX`/`i64::MIN`, reals,
+   null, text, blob round-trip with the right `typeof`). Add `d1_rest_batch_rolls_back` (a
+   failing statement in a batch leaves no rows from the batch).
+6. Pin the wrangler version in the test tooling (the explorer API is beta and may change), and
+   say in `common/mod.rs` that it is the local explorer, not the hosted front end; the hosted
+   API follows the same published spec (string params).
 
 ## E2. `d1r2_document_store_tests` fail 2 of 4 against local wrangler
 
@@ -81,4 +116,4 @@ CF_INTEGRATION_TEST=1 cargo test -p foundation_db --profile dev --test d1r2_docu
 
 ## Done when
 
-- [ ] E0 harness runs the wasm stores on real bindings in CI; E1–E4 fixed with tests; the stub adds no behaviour; backlog entries deleted. CI green.
+- [ ] E0 harness runs the wasm stores on real bindings in CI; the REST tests run on the local explorer API and `worker-stub.js` is gone; E1–E4 fixed with tests; backlog entries deleted. CI green.
