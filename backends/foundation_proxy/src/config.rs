@@ -105,6 +105,11 @@ pub struct ProxyConfig {
     /// live client is not cut. Defaults to 60 seconds (nginx `send_timeout`).
     #[serde(default = "default_relay_send_timeout", with = "duration_millis")]
     pub relay_send_timeout: Duration,
+    /// The longest an HTTP/3 client may take no byte of the request head or body
+    /// before the proxy gives up on the request. The wait parks the task. Defaults
+    /// to 60 seconds (nginx `client_header_timeout` / `client_body_timeout`).
+    #[serde(default = "default_client_read_timeout", with = "duration_millis")]
+    pub client_read_timeout: Duration,
     /// The longest the proxy waits for a TCP connect to a backend (the tunnel
     /// and upgrade relays) to finish. The wait parks the task; it holds no
     /// thread. Defaults to 60 seconds (nginx `proxy_connect_timeout`).
@@ -142,6 +147,7 @@ impl ProxyConfig {
             io_mode: ServerIo::default(),
             relay_send_timeout: default_relay_send_timeout(),
             connect_timeout: default_connect_timeout(),
+            client_read_timeout: default_client_read_timeout(),
             max_request_body: default_max_request_body(),
             drain_poll: default_drain_poll(),
         }
@@ -167,6 +173,14 @@ impl ProxyConfig {
     #[must_use]
     pub fn relay_send_timeout(mut self, timeout: Duration) -> Self {
         self.relay_send_timeout = timeout;
+        self
+    }
+
+    /// Set [`Self::client_read_timeout`]. Default 60 seconds (nginx
+    /// `client_body_timeout`).
+    #[must_use]
+    pub fn client_read_timeout(mut self, timeout: Duration) -> Self {
+        self.client_read_timeout = timeout;
         self
     }
 
@@ -323,6 +337,11 @@ const fn default_max_request_body() -> usize {
 
 /// The default relay send timeout: 60 seconds (nginx `send_timeout`).
 fn default_relay_send_timeout() -> Duration {
+    Duration::from_secs(60)
+}
+
+/// The default client read timeout: 60 seconds (nginx `client_body_timeout`).
+fn default_client_read_timeout() -> Duration {
     Duration::from_secs(60)
 }
 
