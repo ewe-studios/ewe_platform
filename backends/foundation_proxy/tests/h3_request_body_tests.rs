@@ -313,14 +313,6 @@ fn h3_request_body_is_streamed() {
             "upload send failed"
         );
     }
-    eprintln!(
-        "DBG [{}] upload sent",
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis()
-            % 1000000
-    );
     finish(&mut fx.request, fx.deadline);
 
     let (status, body) = read_response(&mut fx.request, fx.deadline);
