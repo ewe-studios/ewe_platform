@@ -3251,7 +3251,16 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                             return;
                         }
 
-                        self.yielder.yield_for(duration);
+                        // The idle back-off must not outlast what the sleepers allow:
+                        // a parked task that can become ready without a wake is
+                        // re-checked on the quantum, and every sleeper is
+                        // re-checked at its deadline.
+                        let wait = if self.state.number_of_sleepers() > 0 {
+                            duration.min(self.sleeper_wait())
+                        } else {
+                            duration
+                        };
+                        self.yielder.yield_for(wait);
                         slept = true;
                     }
                     ProgressIndicator::Wait => {

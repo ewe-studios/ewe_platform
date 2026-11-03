@@ -220,3 +220,38 @@ fn read_timeout_does_not_lengthen_expect_continue_wait_tcp() {
         .expect("send");
     check(&rx, response.get_status(), started.elapsed());
 }
+
+/// Feature 75: the 100-continue timer fires on time on an otherwise idle executor.
+///
+/// WHY: the wait is "socket ready OR deadline passed". An executor that parks with
+/// no deadline for that kind of signal wakes it late. The body must arrive 300 ms
+/// after the head, within 150 ms more.
+#[valtron_test(timeout = 30_000)]
+fn expect_continue_body_sent_on_time_with_no_other_activity() {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let port = listener.local_addr().expect("addr").port();
+    let (tx, rx) = mpsc::channel();
+    thread::spawn(move || {
+        let (socket, _) = listener.accept().expect("accept");
+        tx.send(handle(socket)).expect("report");
+    });
+
+    let client = HttpClientBuilder::new()
+        .max_redirects(0)
+        .expect_continue_timeout(Duration::from_millis(300))
+        .build();
+    let response = client
+        .send(post(&format!("http://127.0.0.1:{port}/containers/create")))
+        .expect("send");
+    assert_eq!(response.get_status(), Status::OK);
+    let seen = rx
+        .recv_timeout(Duration::from_secs(5))
+        .expect("server report");
+    assert_eq!(seen.body, BODY);
+    assert!(
+        seen.body_after_head >= Duration::from_millis(280)
+            && seen.body_after_head < Duration::from_millis(450),
+        "the body arrived {:?} after the head; the timer is 300 ms",
+        seen.body_after_head
+    );
+}

@@ -17,7 +17,7 @@ use std::time::{Duration, Instant};
 
 use foundation_core::valtron::{
     execute, valtron_test, AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr,
-    StreamIteratorExt, TaskIterator, TaskStatus,
+    ResumeSignal, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 
@@ -130,5 +130,47 @@ async fn any_readiness_wakes_at_the_earliest_child_deadline() {
     assert!(
         cpu < Duration::from_millis(100),
         "the wait used {cpu:?} of CPU"
+    );
+}
+
+/// Parks once on a signal that never fires; ends only when the pool shuts down.
+struct ParkForever {
+    signal: Option<EventReadinessPtr>,
+}
+
+impl TaskIterator for ParkForever {
+    type Ready = ();
+    type Pending = ();
+
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        self.signal.take().map(TaskStatus::Depends)
+    }
+}
+
+/// A worker whose only task is parked on an event-driven signal
+/// (`EventReadiness::needs_polling` is `false`) sleeps: it does not re-check the
+/// signal on the 1 ms readiness quantum. The CPU of the whole process over one
+/// second stays under 20 ms. (With `needs_polling` left at its default `true`
+/// the same worker re-checks every millisecond and uses several times that.)
+#[valtron_test(threads = 1, timeout = 20_000)]
+async fn worker_with_event_driven_sleeper_uses_no_cpu() {
+    let signal: EventReadinessPtr = Arc::new(ResumeSignal::new(false));
+    let _stream = execute(
+        ParkForever {
+            signal: Some(signal),
+        },
+        None,
+    )
+    .expect("execute")
+    .into_next_stream();
+
+    // Let the task reach its park, then hold still.
+    std::thread::sleep(Duration::from_millis(300));
+    let before = process_cpu();
+    std::thread::sleep(Duration::from_secs(1));
+    let used = process_cpu() - before;
+    assert!(
+        used < Duration::from_millis(20),
+        "a worker parked on an event-driven signal used {used:?} of CPU in one second"
     );
 }
