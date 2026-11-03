@@ -23,7 +23,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 2. foundation_netio
 
-(no open entries)
+- **`foundation_netio` native build warnings** (seen in `cargo check -p foundation_wireguard --tests`):
+  `backends/foundation_netio/src/native/raw_stream.rs:4` has `use std::sync::Arc;` that is unused,
+  and `raw_stream.rs:414` has `if let Self::AsPlain(inner, _) = self`, an irrefutable pattern
+  (the `if let` always matches). Fix: delete the import; replace the `if let` with a `let`
+  binding (keep the behaviour the same and check it with the netio tests).
 
 ## 3. foundation_http
 
@@ -146,6 +150,16 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   error when it is exceeded; stream rows when the D1 API allows.
 
 ## 16. Workspace / process
+
+- **`foundation_wireguard` warnings in its tests and manifest.** `cargo check -p foundation_wireguard --tests`
+  reports: unused imports at `tests/relay_tests.rs:325` (`MemberState`) and `tests/tunnel_tests.rs:186`
+  (`Duration`, `Instant`); an unused variable `pk` at `tests/tunnel_tests.rs:190`; and unused `must_use`
+  return values at `relay_tests.rs:192` (`RelaySelector::failover`) and `relay_tests.rs:295`
+  (`HolePuncher::drain_syns`). The manifest (`backends/foundation_wireguard/Cargo.toml`)
+  has unused dependencies `foundation_errstacks` (line 20), `foundation_nativeapis` and `foundation_netio`
+  (the wasm check), and `web-sys` (line 74) for wasm32. Fix: remove the unused imports and variable, and
+  either use or drop the `must_use` results; drop the unused dependencies after checking that no
+  `cfg` path needs them. Do not `#[allow]` them.
 
 - **`foundation_boringtun` (fork of upstream boringtun) keeps upstream's inline tests and nine bare `#[ignore]`s.**
   `src/device/integration_tests/mod.rs` has nine `#[ignore]` tests (lines 466, 475,

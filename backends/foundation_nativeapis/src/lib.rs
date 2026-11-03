@@ -17,7 +17,7 @@ pub mod valtron;
 /// The sans-I/O `DataPlane` trait plus its two implementations — a smoltcp userspace
 /// TCP/IP netstack (`netstack` feature, cross-target) and a kernel TUN device
 /// (`tun` feature, native-only) — that convert overlay sockets to/from raw IP packets
-/// on `boringtun::Tunn`'s inner boundary.
+/// on `foundation_boringtun::Tunn`'s inner boundary.
 #[cfg(feature = "netstack")]
 pub mod dataplane;
 

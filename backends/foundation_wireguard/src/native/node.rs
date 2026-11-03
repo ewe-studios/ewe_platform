@@ -22,7 +22,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
-use boringtun::x25519::{PublicKey, StaticSecret};
+use foundation_boringtun::x25519::{PublicKey, StaticSecret};
 use foundation_core::valtron::{Ctx, TaskIterator, TaskStatus};
 use foundation_nativeapis::dataplane::netstack::{OverlayListener, OverlayStream, OverlayUdp};
 use foundation_nativeapis::dataplane::{DataPlane, NetStack};

@@ -1,6 +1,6 @@
 //! Sans-I/O per-peer WireGuard tunnel wrapper (spec-55, feature 01).
 //!
-//! WHY: `boringtun::noise::Tunn` is a pure crypto state machine with no I/O and a
+//! WHY: `foundation_boringtun::noise::Tunn` is a pure crypto state machine with no I/O and a
 //! lifetime-bound output buffer. We wrap it so callers get owned, ergonomic outcomes and
 //! the buffer management is internal — keeping the driver loop clean.
 //!
@@ -13,8 +13,8 @@
 
 use std::net::IpAddr;
 
-use boringtun::noise::{Tunn, TunnResult};
-use boringtun::x25519::{PublicKey, StaticSecret};
+use foundation_boringtun::noise::{Tunn, TunnResult};
+use foundation_boringtun::x25519::{PublicKey, StaticSecret};
 
 /// Scratch buffer size — large enough for any IP packet plus WireGuard overhead
 /// (boringtun requires `dst >= src + 32` and `>= 148`).

@@ -1,6 +1,6 @@
 //! WireGuard overlay data plane (spec-55, feature 00).
 //!
-//! WHY: `boringtun::Tunn` produces and consumes **raw IP packets** on its inner
+//! WHY: `foundation_boringtun::Tunn` produces and consumes **raw IP packets** on its inner
 //! boundary. To turn that boundary into usable sockets we need a TCP/IP stack. This
 //! module provides the sans-I/O [`DataPlane`] trait plus two implementations — a
 //! smoltcp userspace netstack ([`netstack::NetStack`], cross-target, unprivileged) and
@@ -43,7 +43,7 @@ pub use netstack::{NetStack, NetStackConfig, OverlayListener, OverlayStream, Ove
 /// invokes it (one-shot) when the associated socket transitions to readable/writable.
 pub type WakeFn = Arc<dyn Fn() + Send + Sync>;
 
-/// WHY: `boringtun::Tunn`'s inner boundary speaks raw L3 packets; something must be the
+/// WHY: `foundation_boringtun::Tunn`'s inner boundary speaks raw L3 packets; something must be the
 /// TCP/IP stack that produces and consumes them. Both a userspace netstack and a kernel
 /// TUN device fill that gap, and callers should not care which.
 ///

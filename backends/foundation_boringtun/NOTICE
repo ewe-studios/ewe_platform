@@ -6,8 +6,9 @@ unchanged.
 
 Changes from upstream boringtun 0.7.1:
 
-1. Package name: `foundation_boringtun`. The library name is still `boringtun`
-   (`[lib] name = "boringtun"`), so `use boringtun::...` works as before.
+1. Package and library name: `foundation_boringtun` (`[lib] name =
+   "foundation_boringtun"`), so code uses `use foundation_boringtun::...`.
+   Upstream uses `boringtun` for both; this fork renames both.
 2. `src/sleepyinstant/wasm.rs` (new) and the `wasm32` branch in
    `src/sleepyinstant/mod.rs`: a clock backend for `wasm32-unknown-unknown`,
    built on `js_sys::Date`. Upstream has unix and windows backends only.

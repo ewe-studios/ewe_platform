@@ -84,7 +84,7 @@ impl Default for WsRelayClient {
 
 /// A browser-side WireGuard mesh node.
 ///
-/// WHY: The browser peer runs `boringtun::Tunn` + smoltcp `NetStack` in wasm —
+/// WHY: The browser peer runs `foundation_boringtun::Tunn` + smoltcp `NetStack` in wasm —
 /// no kernel module, no privileges, no UDP socket.
 ///
 /// WHAT: Wraps a `WgTunnel`, `JsDevice`, and `WsRelayClient`. After `tick()`,

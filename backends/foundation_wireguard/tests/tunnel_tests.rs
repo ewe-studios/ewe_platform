@@ -181,7 +181,7 @@ fn two_nodes_handshake_and_pass_tcp_over_overlay() {
 #[traced_test]
 #[test]
 fn tunnel_with_keepalive_emits_network_write_after_idle() {
-    use boringtun::x25519::{PublicKey, StaticSecret};
+    use foundation_boringtun::x25519::{PublicKey, StaticSecret};
     use foundation_wireguard::shared::tunnel::WgOutcome;
     use std::time::{Duration, Instant};
 

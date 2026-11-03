@@ -2,8 +2,8 @@
 # `foundation_boringtun`. It adds a wasm32 clock backend (see NOTICE) so
 # `foundation_wireguard` builds for wasm32 for users of the published crate too.
 # A `[patch.crates-io]` entry only applies inside this workspace; a renamed fork
-# reaches every user. The library name stays `boringtun`, so source code that
-# says `use boringtun::...` does not change.
+# reaches every user. The library name matches the package name, so source code that
+# says `use foundation_boringtun::...` is the same name as the crate.
 
 [package]
 name = "foundation_boringtun"
@@ -48,7 +48,7 @@ jni-bindings = [
 mock-instant = ["mock_instant"]
 
 [lib]
-name = "boringtun"
+name = "foundation_boringtun"
 crate-type = [
     "staticlib",
     "cdylib",
