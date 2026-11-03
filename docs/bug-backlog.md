@@ -126,6 +126,13 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   features, 25 with `libsql` (`i32`/`usize` cast truncation and sign loss, missing `# Errors`
   sections, others). Fix: clear them, then set `clippy-deny-warnings = true` in
   `ci/packages.toml` (with `clippy-runs = ["", "libsql"]`).
+- **`StateStore` has no conditional write.** `set` always replaces. Two processes that read a
+  resource, change it and `set` it lose one update (a lost update), and the proxy state lock
+  (`foundation_proxy`) exists only to hide this. `FileStateStore::set` is atomic now (temp
+  file, `fsync`, `rename`), which stops torn reads but not lost updates. Design need: a
+  version or `ETag` on `ResourceState` and `set_if_version(id, state, expected)` returning
+  `StorageError::PreconditionFailed` (the variant exists); file store: compare under a lock
+  file; SQL stores: `UPDATE ... WHERE version = ?`; D1/R2: `If-Match`.
 - **D1 request parameters are sent as JSON numbers and null; the hosted D1
   REST endpoint is not proven to accept them.** Cloudflare's `OpenAPI` spec types
   `d1_params` as an array of strings. `foundation_db` binds `DataValue::Integer`,

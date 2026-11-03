@@ -6,7 +6,8 @@
 //! WHAT: Each resource is a separate JSON file under
 //! `.deployment/{project}/{stage}/{resource_id}.json`.
 //!
-//! HOW: `std::fs` operations inside the async `StateStore` methods. The files
+//! HOW: `set` writes a temp file, syncs it and renames it over the target, so
+//! a reader never sees a torn file. `std::fs` operations inside the async `StateStore` methods. The files
 //! are small and local, so every future is ready on its first poll; listings
 //! read the directory (names only) and stream the results.
 
@@ -69,6 +70,51 @@ impl FileStateStore {
     fn read_state(path: &Path) -> StorageResult<ResourceState> {
         let content = std::fs::read_to_string(path)?;
         serde_json::from_str(&content).map_err(|e| StorageError::Serialization(e.to_string()))
+    }
+
+    /// Replace `path` with `content` so that a reader sees the whole old file
+    /// or the whole new one, never a part: write a temp file in the same
+    /// directory (so the rename stays on one file system), `fsync` it, then
+    /// `rename` it over the target (atomic on POSIX). The temp name does not end
+    /// in `.json`, so listings never show it. A failed write removes the temp
+    /// file.
+    fn write_atomically(path: &Path, content: &[u8]) -> StorageResult<()> {
+        use std::io::Write;
+        use std::sync::atomic::{AtomicU64, Ordering};
+
+        static NEXT_TEMP: AtomicU64 = AtomicU64::new(0);
+
+        let dir = path.parent().unwrap_or_else(|| Path::new("."));
+        let name = path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let temp = dir.join(format!(
+            ".{name}.{}.{}.tmp",
+            std::process::id(),
+            NEXT_TEMP.fetch_add(1, Ordering::Relaxed)
+        ));
+
+        let written = (|| -> std::io::Result<()> {
+            let mut file = std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&temp)?;
+            file.write_all(content)?;
+            file.sync_all()?;
+            drop(file);
+            std::fs::rename(&temp, path)
+        })();
+        if let Err(e) = written {
+            let _ = std::fs::remove_file(&temp);
+            return Err(e.into());
+        }
+
+        // Make the rename itself durable: fsync the directory (Unix only; other
+        // platforms have no directory handle to sync).
+        #[cfg(unix)]
+        std::fs::File::open(dir)?.sync_all()?;
+        Ok(())
     }
 
     fn id_of(path: &Path) -> Option<String> {
@@ -136,7 +182,7 @@ impl StateStore for FileStateStore {
         let path = self.resource_path(&state.id);
         let content = serde_json::to_string_pretty(&state)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        std::fs::write(&path, content)?;
+        Self::write_atomically(&path, content.as_bytes())?;
         Ok(())
     }
 
