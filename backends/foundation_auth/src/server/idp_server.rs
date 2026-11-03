@@ -11,7 +11,6 @@ use foundation_http::SimpleMethod;
 use super::config::IdpConfig;
 use super::handlers::IdpError;
 use super::handlers::ServeAdapter;
-use super::services::SessionService;
 use super::storage::{HandlerStorage, StorageOpError};
 use crate::shared::auth_session::memory::MemoryAuthSessionStore;
 use foundation_db::{KeyValueStore, MemoryStorage};
@@ -23,7 +22,6 @@ use foundation_db::{KeyValueStore, MemoryStorage};
 pub struct IdpServer<KV: KeyValueStore + Clone + 'static = MemoryStorage> {
     config: IdpConfig,
     storage: Arc<HandlerStorage<KV>>,
-    sessions: Arc<SessionService>,
     social: Option<Arc<MemoryAuthSessionStore>>,
 }
 
@@ -32,10 +30,9 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     ///
     /// # Panics
     ///
-    /// Panics if the cache cannot make single-use data single use (see
-    /// [`try_new`](Self::try_new)); use `try_new` to handle that error. It
-    /// also panics if building the default in-memory session service fails,
-    /// which does not happen: a 32-byte random key is always valid.
+    /// Panics if the cache cannot make single-use data single use, or the
+    /// session key is too short (see [`try_new`](Self::try_new)); use
+    /// `try_new` to handle those errors.
     #[must_use]
     pub fn new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>) -> Self {
         Self::try_new(config, storage).unwrap_or_else(|e| panic!("{e}"))
@@ -51,12 +48,8 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     /// # Errors
     ///
     /// Returns [`IdpError::Internal`] if the cache `take` is not atomic and the
-    /// risk is not accepted.
-    ///
-    /// # Panics
-    ///
-    /// Never in practice: it panics only if building the default in-memory
-    /// session service fails, and a 32-byte random key is always valid.
+    /// risk is not accepted, or if `IdpConfig::session_key` is shorter than 32
+    /// bytes.
     pub fn try_new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>) -> Result<Self, IdpError> {
         if !storage.cache.take_is_atomic() && !config.allow_non_atomic_cache {
             return Err(IdpError::Internal(
@@ -66,17 +59,14 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
                     .into(),
             ));
         }
-        let sessions = Arc::new(
-            SessionService::in_memory_with(crate::shared::session::SessionConfig {
-                secure_cookies: config.secure_cookies,
-                ..Default::default()
-            })
-            .expect("a 32-byte signing key is a valid session key"),
-        );
+        if config.session_key.len() < 32 {
+            return Err(IdpError::Internal(
+                "IdpConfig::session_key must be at least 32 bytes".into(),
+            ));
+        }
         Ok(Self {
             config,
             storage,
-            sessions,
             social: None,
         })
     }
@@ -129,14 +119,6 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     #[must_use]
     pub fn with_social_login(mut self, store: Arc<MemoryAuthSessionStore>) -> Self {
         self.social = Some(store);
-        self
-    }
-
-    /// Use this session service for all routes. The default is an in-memory
-    /// service with a random signing key: sessions end when the process stops.
-    #[must_use]
-    pub fn with_session_service(mut self, sessions: Arc<SessionService>) -> Self {
-        self.sessions = sessions;
         self
     }
 
@@ -206,9 +188,6 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
         // Stored as `Arc<HandlerStorage<KV>>`; `ServeAdapter::create` looks up
         // exactly that type.
         app.ctx.store(self.storage);
-        // Stored as `Arc<SessionService>`; `ServeAdapter::create` looks up
-        // exactly that type.
-        app.ctx.store(self.sessions);
         if let Some(social) = self.social {
             // Stored as `Arc<MemoryAuthSessionStore>`; `ServeAdapter::create`
             // looks up exactly that type.

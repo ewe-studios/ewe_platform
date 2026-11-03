@@ -4,6 +4,7 @@ use foundation_http::shared::context::ContextBag;
 use foundation_http::SimpleIncomingRequest;
 
 use super::routes::{route_for, Route};
+use crate::shared::credential_store::KvCredentialStore;
 use foundation_netio::shared::http::SendSafeBody;
 use serde::{Deserialize, Serialize};
 
@@ -262,7 +263,7 @@ pub struct IdpHandlerCore<KV: KeyValueStore + Clone = MemoryStorage> {
     webauthn_service: Arc<WebAuthnService<HandlerStorage<KV>, KV>>,
     tos_service: Arc<TosService<KV>>,
     mfa_service: Arc<MfaService<KV>>,
-    session_service: Arc<SessionService>,
+    session_service: Arc<SessionService<KvCredentialStore<KV>>>,
     /// In-memory upstream auth session store (F011). When present, social login
     /// routes are enabled.
     session_store: Option<Arc<crate::shared::auth_session::memory::MemoryAuthSessionStore>>,
@@ -273,8 +274,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     ///
     /// # Panics
     ///
-    /// Never in practice: it panics only if building the default in-memory
-    /// session service fails, and a 32-byte random key is always valid.
+    /// Panics if `IdpConfig::session_key` is shorter than 32 bytes
+    /// (`IdpServer::try_new` checks it and returns an error instead).
     #[must_use]
     pub fn new(config: Arc<IdpConfig>, storage: Arc<HandlerStorage<KV>>) -> Self {
         let cache = storage.cache.clone();
@@ -290,14 +291,19 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             MfaService::new(Arc::clone(&storage), config.totp_keys.clone())
                 .with_algorithm(config.totp_algorithm),
         );
-        // A fresh in-memory session service. `IdpServer` and `ServeAdapter`
-        // replace it with one shared by all routes (`with_session_service`).
+        // Sessions live in the cache the rest of the IdP uses, signed with the
+        // configured key: every route (every handler instance) sees the same
+        // sessions, and they survive a restart when the cache is persistent.
         let session_service = Arc::new(
-            SessionService::in_memory_with(crate::shared::session::SessionConfig {
-                secure_cookies: config.secure_cookies,
-                ..Default::default()
-            })
-            .expect("a 32-byte signing key is a valid session key"),
+            SessionService::over_store(
+                KvCredentialStore::new(storage.cache.clone()),
+                crate::shared::session::SessionConfig {
+                    secure_cookies: config.secure_cookies,
+                    ..Default::default()
+                },
+                &config.session_key,
+            )
+            .expect("IdpConfig::session_key must be at least 32 bytes"),
         );
         Self {
             config,
@@ -315,7 +321,10 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     /// Use this session service (shared by all routes) to create and read
     /// login sessions.
     #[must_use]
-    pub fn with_session_service(mut self, sessions: Arc<SessionService>) -> Self {
+    pub fn with_session_service(
+        mut self,
+        sessions: Arc<SessionService<KvCredentialStore<KV>>>,
+    ) -> Self {
         self.session_service = sessions;
         self
     }

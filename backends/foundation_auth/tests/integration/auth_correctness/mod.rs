@@ -9,6 +9,7 @@ mod cookies;
 mod enrollment;
 mod register;
 mod routing;
+mod sessions;
 mod social_code;
 mod social_tos;
 mod sweeper;

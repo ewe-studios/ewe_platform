@@ -156,6 +156,12 @@ pub struct IdpConfig {
     /// callback answers `206` with the JSON body instead, which suits an API
     /// client, not a browser.
     pub tos_page_url: Option<String>,
+    /// The key that signs session tokens (at least 32 bytes). The default is
+    /// random per `IdpConfig`, so sessions in a persistent store stop being valid
+    /// when the process restarts: **set a stable key from your secret store**
+    /// ([`with_session_key`](Self::with_session_key)) for sessions that survive
+    /// a restart or that several instances share.
+    pub session_key: Vec<u8>,
 }
 
 /// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
@@ -187,6 +193,12 @@ impl IdpConfig {
             sweep_interval: Duration::from_secs(300),
             allow_non_atomic_cache: false,
             tos_page_url: None,
+            session_key: {
+                use foundation_compact::rng::Rng;
+                let mut key = vec![0u8; 32];
+                foundation_compact::rng::rng().fill_bytes(&mut key);
+                key
+            },
         }
     }
 
@@ -246,6 +258,14 @@ impl IdpConfig {
     #[must_use]
     pub fn with_secure_cookies(mut self, secure: bool) -> Self {
         self.secure_cookies = secure;
+        self
+    }
+
+    /// Set the key that signs session tokens (see
+    /// [`session_key`](Self::session_key)); at least 32 bytes.
+    #[must_use]
+    pub fn with_session_key(mut self, key: impl Into<Vec<u8>>) -> Self {
+        self.session_key = key.into();
         self
     }
 
