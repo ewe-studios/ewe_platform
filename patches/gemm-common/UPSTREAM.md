@@ -1,8 +1,14 @@
 # Upstream patch for gemm-common 0.19.0
 
-Send this to https://github.com/sarah-ek/gemm/ (issue, then pull request).
-The patch is two lines. It is the only difference between this directory and
-the crates.io release `gemm-common` 0.19.0 (file `src/gemm.rs`).
+Status: the upstream pull request is prepared on branch `fix-fma-without-avx2`
+in the main session's clone of https://github.com/sarah-ek/gemm/. Link pending:
+the issue and the pull request are not filed yet. When they exist, add their
+links here and in `docs/bug-backlog.md` section 10.
+
+The patch is the `gemm-common` part of the upstream change. It is the only
+difference between this directory and the crates.io release `gemm-common`
+0.19.0 (file `src/gemm.rs`). The change also touches `gemm-f16` (see the end of
+this file); that crate is not vendored here.
 
 ## Issue text
 
@@ -23,37 +29,54 @@ How to reproduce: run any `gemm::gemm` call for `f32` in a `linux/amd64`
 container under Docker Desktop on an Apple Silicon Mac. The program panics at
 `called Option::unwrap() on a None value`.
 
-Fix: check `avx2` together with `fma`, so the code falls back to the `scalar`
-kernel (the real `fma`-only path has no kernel). The patch is below.
+Fix: pick each x86 kernel by asking its SIMD type, not one CPU flag. The
+dispatch checks `V3::try_new().is_some()` (and `V4::try_new().is_some()` for
+`avx512f`), so the choice and the kernel's own `unwrap()` use the same check.
+The `fma` kernel needs avx, avx2 and sse3..sse4.2 (and f16c with the `f16`
+feature), so `fma` alone is not enough. The patch is below.
 
 ## Patch
 
 ```diff
 --- a/src/gemm.rs
 +++ b/src/gemm.rs
-@@ -1015,7 +1015,10 @@
-                 if $crate::feature_detected!("avx512f") {
+@@ -1011,11 +1011,15 @@ macro_rules! gemm_def {
+         fn init_gemm_fn() -> GemmTy {
+             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+             {
++                // Pick a kernel by asking its SIMD type, not one CPU flag: the kernel
++                // `unwrap()`s `try_new()`, which needs every feature the type lists
++                // (e.g. `fma` alone is not enough; some CPUs and x86 emulators report
++                // FMA without AVX2).
+                 #[cfg(feature = "x86-v4")]
+-                if $crate::feature_detected!("avx512f") {
++                if $crate::simd::V4::try_new().is_some() {
                      return avx512f::gemm_basic;
                  }
 -                if $crate::feature_detected!("fma") {
-+                // The `fma` kernel uses the V3 SIMD type. That type needs AVX2.
-+                // Check AVX2 too. If AVX2 is missing, `V3::try_new()` returns
-+                // `None` and the unwrap in `__inject_mod!` panics.
-+                if $crate::feature_detected!("fma") && $crate::feature_detected!("avx2") {
++                if $crate::simd::V3::try_new().is_some() {
                      fma::gemm_basic
                  } else {
                      scalar::gemm_basic
-@@ -1124,7 +1127,8 @@
-                 if $crate::feature_detected!("avx512f") {
+@@ -1124,11 +1128,12 @@ macro_rules! gemm_cplx_def {
+         fn init_gemm_cplx_fn() -> GemmCplxTy {
+             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+             {
++                // See `init_gemm_fn`: ask the kernel's SIMD type, not one flag.
+                 #[cfg(feature = "x86-v4")]
+-                if $crate::feature_detected!("avx512f") {
++                if $crate::simd::V4::try_new().is_some() {
                      return avx512f_cplx::gemm_basic_cplx;
                  }
 -                if $crate::feature_detected!("fma") {
-+                // See `init_gemm_fn`: the `fma_cplx` kernel needs AVX2 too.
-+                if $crate::feature_detected!("fma") && $crate::feature_detected!("avx2") {
++                if $crate::simd::V3::try_new().is_some() {
                      return fma_cplx::gemm_basic_cplx;
                  }
              }
 ```
+
+The post-image of `src/gemm.rs` in the upstream commit has git blob `fd37141`,
+the same as this vendored file.
 
 ## Why this stays a `[patch.crates-io]` entry
 
@@ -63,3 +86,11 @@ this workspace. A user of the published `foundation_ai` gets the unpatched
 crate. Remove `patches/gemm-common` and the `[patch.crates-io]` section when
 a release of `gemm-common` with this fix is on crates.io and candle accepts it.
 See `docs/bug-backlog.md` section 10.
+
+## gemm-f16 is not patched here
+
+The same dispatch change is in `gemm-f16/src/gemm.rs` (`init_gemm_fn`, the f16
+kernels, which also need F16C). `gemm-f16` 0.19.0 is in the workspace graph
+(`cargo tree -i gemm-f16@0.19.0` shows candle-core, through `gemm`), so the f16
+dispatch still uses the unpatched `fma` check here. It is tracked in
+`docs/bug-backlog.md` section 10.

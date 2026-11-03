@@ -108,15 +108,25 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 - **Published `foundation_ai` panics in gemm on a CPU with `fma` but no `avx2`.**
   `gemm-common` 0.19.0 chooses its `fma` kernel from the `fma` CPU feature alone,
-  but that kernel needs AVX2. On emulated CPUs (Docker Desktop `linux/amd64`)
-  `V3::try_new()` returns `None` and the unwrap panics. We fix it with
-  `patches/gemm-common` and `[patch.crates-io]`, which applies only inside this
-  workspace, so a user of the published `foundation_ai` still gets the panic. We
-  cannot rename `gemm-common` (candle depends on it). Fix: send the two-line patch
-  in `patches/gemm-common/UPSTREAM.md` to https://github.com/sarah-ek/gemm/, then
+  but that kernel needs the whole V3 SIMD type (avx2 too). On emulated CPUs (Docker
+  Desktop `linux/amd64`) `V3::try_new()` returns `None` and the unwrap panics. We
+  fix it with `patches/gemm-common` and `[patch.crates-io]`, which applies only
+  inside this workspace, so a user of the published `foundation_ai` still gets the
+  panic. We cannot rename `gemm-common` (candle depends on it). The upstream fix
+  (dispatch on `V3::try_new()` / `V4::try_new()`) is prepared on branch
+  `fix-fma-without-avx2` of the sarah-ek/gemm clone; the issue and PR link are
+  pending (see `patches/gemm-common/UPSTREAM.md`). Fix: file the issue and PR, then
   drop the patch when a fixed release is out and candle accepts it. (The wasm32
   `boringtun` patch no longer exists: `backends/foundation_boringtun` is a
   published fork.)
+
+- **`gemm-f16` f16 kernel dispatch is unpatched.** `gemm-f16` 0.19.0 (pulled in by
+  `candle-core` through `gemm`, see `cargo tree -i gemm-f16@0.19.0`) picks its f16
+  `fma` kernel from the `fma` CPU feature alone, the same bug as `gemm-common`, and
+  the f16 `V3` also needs F16C. The workspace does not patch it, so an f16 gemm on
+  such a CPU can still panic. Fix: vendor `gemm-f16` 0.19.0 under `patches/`, apply
+  the `gemm-f16/src/gemm.rs` part of the upstream change (`gemm_common::simd::V3::try_new()`
+  and `V4::try_new()`), and add it to `[patch.crates-io]`, or fix it upstream first.
 
 ## 11. foundation_db and its sync callers
 
