@@ -157,3 +157,54 @@ async fn d1_rejects_non_finite_real() {
     assert!(rows.next().await.is_some());
     assert_eq!(seen.load(Ordering::SeqCst), 1);
 }
+
+async fn first_row_note(store: &D1Store) -> Result<String, StorageError> {
+    let mut rows = store.query("SELECT 1", &[]).await?;
+    let row = rows.next().await.expect("one row")?;
+    row.get_by_name::<String>("note")
+}
+
+#[valtron_test]
+async fn d1_response_over_cap_is_an_error() {
+    // Far over the cap: a typed error, not a partial parse.
+    let (store, _) = mock_store(ok(rows_body(100_000)));
+    let store = store.with_max_response_body(4096);
+    let err = first_row_note(&store).await.unwrap_err();
+    assert!(
+        matches!(&err, StorageError::Backend(msg) if msg.contains("max_response_body")),
+        "expected a response-too-large error, got {err:?}"
+    );
+
+    // Under the cap: parsed as before.
+    let (store, _) = mock_store(ok(rows_body(100)));
+    let store = store.with_max_response_body(4096);
+    assert_eq!(first_row_note(&store).await.unwrap(), "x".repeat(100));
+}
+
+#[valtron_test]
+async fn d1_response_cap_is_inclusive() {
+    let body = rows_body(500);
+    let (store, _) = mock_store(ok(body.clone()));
+    let at_cap = store.with_max_response_body(body.len());
+    assert_eq!(first_row_note(&at_cap).await.unwrap(), "x".repeat(500));
+
+    let (store, _) = mock_store(ok(body.clone()));
+    let one_short = store.with_max_response_body(body.len() - 1);
+    assert!(first_row_note(&one_short).await.is_err());
+}
+
+#[valtron_test]
+async fn d1_error_body_is_read_up_to_its_cap_only() {
+    let (store, _) = mock_store(Reply {
+        status: "500 Internal Server Error",
+        body: format!("BOOM{}", "E".repeat(1_000_000)),
+    });
+    let store = store.with_max_error_body(16);
+    let err = first_row_note(&store).await.unwrap_err();
+    let StorageError::Backend(msg) = &err else {
+        panic!("expected a Backend error, got {err:?}");
+    };
+    assert!(msg.contains("500"), "status in the message: {msg}");
+    assert!(msg.contains("BOOM"), "start of the body in the message: {msg}");
+    assert!(msg.len() < 200, "the body is bounded, got {} bytes", msg.len());
+}

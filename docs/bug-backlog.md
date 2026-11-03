@@ -137,12 +137,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   Cloudflare account that sends an integer, a real and null to `/query` and reads
   back `typeof()`; if the hosted API rejects them, drop the overlay and convert
   values to strings in `d1_kvstore.rs`.
-- **D1 `/query` responses are read whole, with no size cap.**
-  `D1Store::post_query` calls `collect_string_async` on the body, so a large
-  `SELECT` is buffered in memory in full (CLAUDE.md rule 4). Fix: add a response
-  limit field on the store's config (rule 8; nginx's `proxy_buffer` and Go's
-  `http.MaxBytesReader` use finite caps), read under it, and return a clear
-  error when it is exceeded; stream rows when the D1 API allows.
 
 ## 16. Workspace / process
 

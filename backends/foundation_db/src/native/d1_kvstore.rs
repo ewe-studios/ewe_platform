@@ -13,7 +13,6 @@
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_cloudflare_types::{D1BatchQuery, D1QueryDatabaseResponse, D1SingleQuery};
-use foundation_netio::shared::client::body_reader::collect_string_async;
 use foundation_netio::shared::http::{SimpleHeader, Status};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use futures_lite::{stream, StreamExt};
@@ -28,6 +27,19 @@ use crate::core::storage_provider::{
     AsyncListStream, AsyncQueryStream, BlobListStream, BlobStore, DataValue, KeyValueStore,
     QueryStore, RateLimiterStore, SqlRow,
 };
+
+/// Default for [`D1Store::with_max_response_body`]: 16 MiB.
+///
+/// D1 documents a maximum row size of 2 MB (developers.cloudflare.com/d1/platform/limits)
+/// but no maximum result size, so the default allows eight maximum-size rows
+/// (Go's `http.MaxBytesReader` and nginx's `proxy_buffers` also want a finite
+/// number from the caller; there is no standard default). A larger result
+/// needs `LIMIT`/paging or a larger cap.
+pub const DEFAULT_MAX_RESPONSE_BODY: usize = 16 * 1024 * 1024;
+
+/// Default for [`D1Store::with_max_error_body`]: 8 KiB, the size nginx uses for
+/// its error-page buffers (`proxy_buffer_size`: one memory page).
+pub const DEFAULT_MAX_ERROR_BODY: usize = 8 * 1024;
 
 /// Default Cloudflare API base. Tests override via `D1Store::with_base_url`.
 pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
@@ -182,6 +194,8 @@ pub struct D1Store {
     base_url: String,
     client: DynNetClient,
     mode: D1Mode,
+    max_response_body: usize,
+    max_error_body: usize,
 }
 
 impl D1Store {
@@ -222,6 +236,8 @@ impl D1Store {
             mode: D1Mode::KeyValue {
                 kv_table: format!("{table_prefix}_kv"),
             },
+            max_response_body: DEFAULT_MAX_RESPONSE_BODY,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
         }
     }
 
@@ -288,6 +304,8 @@ impl D1Store {
             base_url: base_url.trim_end_matches('/').to_string(),
             client: HttpClientBuilder::new().build(),
             mode: D1Mode::State { state_table },
+            max_response_body: DEFAULT_MAX_RESPONSE_BODY,
+            max_error_body: DEFAULT_MAX_ERROR_BODY,
         }
     }
 
@@ -308,6 +326,25 @@ impl D1Store {
             StorageError::Connection("CLOUDFLARE_ACCOUNT_ID must be set".to_string())
         })?;
         Ok(Self::new_state(&token, &account, &db_id, project, stage))
+    }
+
+    // ========== Limits ==========
+
+    /// Largest successful `/query` response body, in bytes, that the store
+    /// reads. A larger body is a [`StorageError::Backend`] error, never a
+    /// partial parse. Default: [`DEFAULT_MAX_RESPONSE_BODY`].
+    #[must_use]
+    pub fn with_max_response_body(mut self, bytes: usize) -> Self {
+        self.max_response_body = bytes;
+        self
+    }
+
+    /// Most bytes of an error response body that go into the error message.
+    /// The rest is not read. Default: [`DEFAULT_MAX_ERROR_BODY`].
+    #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
     }
 
     // ========== Shared helpers ==========
@@ -359,19 +396,42 @@ impl D1Store {
             .await
             .map_err(|e| StorageError::Backend(format!("D1 request failed: {e}")))?;
 
-        if response.get_status() != Status::OK {
+        let status = response.get_status();
+        let (_, _, mut body) = response.into_async_parts();
+
+        if status != Status::OK {
+            // Status first; the body only explains the error, so read a bounded part.
+            let mut shown = Vec::new();
+            while shown.len() < self.max_error_body {
+                match body.next().await {
+                    Some(Ok(chunk)) => {
+                        let room = self.max_error_body - shown.len();
+                        shown.extend_from_slice(&chunk[..chunk.len().min(room)]);
+                    }
+                    Some(Err(_)) | None => break,
+                }
+            }
             return Err(StorageError::Backend(format!(
-                "D1 query failed with status {}",
-                response.get_status()
+                "D1 query failed with status {status}: {}",
+                String::from_utf8_lossy(&shown)
             )));
         }
 
-        let (_, _, body) = response.into_async_parts();
-        let text = collect_string_async(body)
-            .await
-            .map_err(|e| StorageError::Backend(format!("D1 body read failed: {e}")))?;
+        // Read the body as a stream, stopping as soon as it passes the cap.
+        let mut text = Vec::new();
+        while let Some(chunk) = body.next().await {
+            let chunk =
+                chunk.map_err(|e| StorageError::Backend(format!("D1 body read failed: {e}")))?;
+            if text.len().saturating_add(chunk.len()) > self.max_response_body {
+                return Err(StorageError::Backend(format!(
+                    "D1 response is larger than max_response_body ({} bytes)",
+                    self.max_response_body
+                )));
+            }
+            text.extend_from_slice(&chunk);
+        }
 
-        serde_json::from_str::<D1QueryDatabaseResponse>(&text)
+        serde_json::from_slice::<D1QueryDatabaseResponse>(&text)
             .map_err(|e| StorageError::Serialization(format!("D1 response parse failed: {e}")))
     }
 
