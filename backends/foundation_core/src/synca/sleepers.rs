@@ -128,6 +128,12 @@ impl<T: std::fmt::Debug> DurationStore<T> {
 
 pub trait Timeable {
     fn remaining_duration(&self) -> Option<time::Duration>;
+
+    /// Whether the sleeper must be re-checked on a timer because it can become
+    /// ready without a wake. Defaults to `false`: a pure timer needs none.
+    fn needs_polling(&self) -> bool {
+        false
+    }
 }
 
 impl<T: Waker> Timeable for DurationWaker<T> {
@@ -354,6 +360,19 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
 
     /// Returns the duration until the earliest sleeper deadline.
     ///
+    /// Whether any sleeper must be re-checked on a timer (see
+    /// [`Timeable::needs_polling`]).
+    pub fn needs_polling(&self) -> bool
+    where
+        T: crate::synca::sleepers::Timeable,
+    {
+        self.sleepers
+            .read()
+            .unwrap()
+            .values()
+            .any(Timeable::needs_polling)
+    }
+
     /// Returns None if no sleepers have deadlines.
     /// Returns Duration::ZERO if a sleeper is already past its deadline.
     pub fn time_until_next(&self) -> Option<time::Duration>

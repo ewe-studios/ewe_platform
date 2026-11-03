@@ -89,3 +89,9 @@ required-features = ["quic"]
 name = "h3_request_body_tests"
 path = "tests/h3_request_body_tests.rs"
 required-features = ["quic"]
+
+# Idle QUIC listener CPU test (F75 E2) — quic-gated.
+[[test]]
+name = "idle_quic_listener_tests"
+path = "tests/idle_quic_listener_tests.rs"
+required-features = ["quic"]

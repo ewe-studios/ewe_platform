@@ -235,11 +235,14 @@ impl core::fmt::Debug for Sleepable {
 impl Sleepable {
     /// Returns the deadline when this sleeper will be ready.
     /// For Timable sleepers, returns the Instant when duration expires.
-    /// For Atomic and Readiness sleepers, returns None (no specific deadline).
+    /// For a Readiness sleeper, returns the deadline its signal reports (a
+    /// signal such as "socket ready or timer passed" can be ready at that
+    /// instant without any event). For Atomic sleepers, returns None.
     pub fn deadline(&self) -> Option<time::Instant> {
         match self {
             Sleepable::Timable(inner) => Some(inner.deadline()),
-            Sleepable::Atomic(_, _) | Sleepable::Readiness(_, _) => None,
+            Sleepable::Atomic(_, _) => None,
+            Sleepable::Readiness(signal, _) => signal.deadline(),
         }
     }
 }
@@ -248,7 +251,20 @@ impl Timeable for Sleepable {
     fn remaining_duration(&self) -> Option<time::Duration> {
         match self {
             Sleepable::Timable(inner) => inner.remaining(),
-            Sleepable::Atomic(_, _) | Sleepable::Readiness(_, _) => None,
+            Sleepable::Atomic(_, _) => None,
+            Sleepable::Readiness(signal, _) => signal
+                .deadline()
+                .map(|deadline| deadline.saturating_duration_since(time::Instant::now())),
+        }
+    }
+
+    fn needs_polling(&self) -> bool {
+        match self {
+            Sleepable::Timable(_) => false,
+            // A bare atomic flag is set by code that need not ask the executor
+            // to run again.
+            Sleepable::Atomic(_, _) => true,
+            Sleepable::Readiness(signal, _) => signal.needs_polling(),
         }
     }
 }
@@ -1153,6 +1169,14 @@ impl ExecutorState {
         self.depends_true_violations.borrow().len()
     }
 
+    /// Whether any sleeper can become ready without a wake, so the worker must
+    /// re-check on the readiness quantum. See [`EventReadiness::needs_polling`].
+    #[inline]
+    #[must_use]
+    pub fn sleepers_need_polling(&self) -> bool {
+        self.sleepers.needs_polling()
+    }
+
     #[inline]
     #[must_use]
     pub fn has_sleeping_tasks(&self) -> bool {
@@ -1352,6 +1376,12 @@ impl ExecutorState {
                     // sleeper — a 10ms-polling I/O pump next to a 1s sleeper
                     // woke ~1s late, collapsing transport throughput.
                     if let Some(min_sleep_dur) = self.sleepers.min_duration() {
+                        // A sleeper that can become ready without a wake must
+                        // still be re-checked on the caller's quantum, so do not
+                        // sleep through it to the nearest deadline.
+                        if self.sleepers.needs_polling() {
+                            return ProgressIndicator::CanProgress(None);
+                        }
                         return ProgressIndicator::SpinWait(min_sleep_dur);
                     }
 
@@ -2079,6 +2109,13 @@ impl ReferencedExecutorState {
     #[must_use]
     pub fn number_of_sleepers(&self) -> usize {
         self.inner.number_of_sleepers()
+    }
+
+    /// See [`ExecutorState::sleepers_need_polling`].
+    #[inline]
+    #[must_use]
+    pub fn sleepers_need_polling(&self) -> bool {
+        self.inner.sleepers_need_polling()
     }
 
     /// See [`ExecutorState::readiness_wait`].
@@ -3117,6 +3154,26 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         }
     }
 
+    /// How long a worker whose only work is parked sleepers may sleep.
+    ///
+    /// The nearest sleeper deadline bounds it (a timer, or a readiness that
+    /// reports a [`deadline`](EventReadiness::deadline)). When a sleeper can
+    /// become ready without a wake ([`EventReadiness::needs_polling`]) it is
+    /// also bounded by the readiness quantum, so that sleeper is re-checked.
+    /// When every sleeper is woken by an event, the worker sleeps until the
+    /// deadline, or at most `max_yield_duration` when there is none: a resume
+    /// from the reactor or a signal interrupts the sleep.
+    fn sleeper_wait(&self) -> time::Duration {
+        let until = self.state.time_until_next_wakeup();
+        if self.state.sleepers_need_polling() {
+            until.map_or(self.readiness_poll_quantum, |d| {
+                d.min(self.readiness_poll_quantum)
+            })
+        } else {
+            until.unwrap_or(self.max_yield_duration)
+        }
+    }
+
     /// `block_on` usually should in a separate thread where it will block
     /// the thread until either a panic occurs or the kill signal is sent
     /// to the thread.
@@ -3156,7 +3213,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         // is woken. The reactor (or a bridged future's waker) calls
                         // `request_executor_resume`, which interrupts this wait.
                         if !self.state.has_runnable_work() && self.state.number_of_sleepers() > 0 {
-                            self.yielder.yield_for(self.readiness_poll_quantum);
+                            self.yielder.yield_for(self.sleeper_wait());
                         }
                     }
                     ProgressIndicator::NoWork => {
@@ -3172,14 +3229,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         // blind `no_work_yield` (seconds) here turned every
                         // cross-worker pipe handoff into a multi-second stall
                         // (first seen collapsing BuildKit tar-export throughput).
-                        let yield_duration =
-                            self.state.time_until_next_wakeup().unwrap_or_else(|| {
-                                if self.state.number_of_sleepers() > 0 {
-                                    self.readiness_poll_quantum
-                                } else {
-                                    self.no_work_yield
-                                }
-                            });
+                        let yield_duration = if self.state.number_of_sleepers() > 0 {
+                            self.sleeper_wait()
+                        } else {
+                            self.state
+                                .time_until_next_wakeup()
+                                .unwrap_or(self.no_work_yield)
+                        };
                         self.yielder.yield_for(yield_duration);
                     }
                     ProgressIndicator::SpinWait(duration) => {

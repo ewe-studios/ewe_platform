@@ -20,6 +20,7 @@ mod map_circuit;
 #[cfg(not(target_family = "wasm"))]
 mod notification_based_waiting;
 mod park_busy_loop;
+mod readiness_deadline_tests;
 #[cfg(not(target_family = "wasm"))]
 mod shutdown_mechanism_tests;
 mod sleep_tests;

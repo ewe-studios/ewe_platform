@@ -46,6 +46,78 @@ pub trait EventReadiness {
     /// `WouldBlock` still wakes the parked task (see
     /// `foundation_reactor::FdReadiness`).
     fn clear(&self) {}
+
+    /// The instant after which this signal becomes ready on its own, if it has
+    /// one.
+    ///
+    /// WHY: an executor that parks with nothing runnable must wake at the
+    /// nearest deadline of its sleepers. A signal such as "socket ready OR
+    /// timer passed" is only re-checked when something else wakes the
+    /// executor, so without this hint the task sleeps past its timer.
+    ///
+    /// Defaults to `None`: most signals (queues, atomics, sockets) become ready
+    /// only by an outside event and have no instant of their own. A time-based
+    /// signal returns its instant; a signal that combines others returns the
+    /// earliest of theirs.
+    fn deadline(&self) -> Option<time::Instant> {
+        None
+    }
+
+    /// Whether the executor must re-check this signal on a timer.
+    ///
+    /// WHY: a signal flipped by code that does not ask the executor to run again
+    /// (a raw atomic store, a flag in another crate) is seen only when the
+    /// executor looks. So by default a worker whose only work is parked tasks
+    /// re-checks them every readiness quantum (1 ms), which costs CPU while idle.
+    ///
+    /// Returns `true` by default (safe). A signal returns `false` when it
+    /// becomes ready only by an event that calls
+    /// [`request_executor_resume`](crate::valtron::request_executor_resume) (the
+    /// reactor, [`ResumeSignal`], [`WakeSignal`]) or at its [`Self::deadline`].
+    /// Then the executor sleeps until the nearest deadline or the next resume.
+    fn needs_polling(&self) -> bool {
+        true
+    }
+}
+
+/// A readiness flag that asks the executor to run again when it is set.
+///
+/// WHY: unlike [`BoolSignal`], it has no raw access to its flag, so every change
+/// calls `request_executor_resume`. The executor then never has to re-check it
+/// on a timer ([`EventReadiness::needs_polling`] is `false`).
+#[derive(Clone, Default)]
+pub struct ResumeSignal(Arc<AtomicBool>);
+
+impl ResumeSignal {
+    /// A new signal with the given value.
+    #[must_use]
+    pub fn new(value: bool) -> Self {
+        Self(Arc::new(AtomicBool::new(value)))
+    }
+
+    /// Set the value. Setting it to `true` asks the executor to run again.
+    pub fn set(&self, value: bool) {
+        self.0.store(value, Ordering::SeqCst);
+        if value {
+            crate::valtron::request_executor_resume();
+        }
+    }
+
+    /// The current value.
+    #[must_use]
+    pub fn get(&self) -> bool {
+        self.0.load(Ordering::SeqCst)
+    }
+}
+
+impl EventReadiness for ResumeSignal {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        self.get()
+    }
+
+    fn needs_polling(&self) -> bool {
+        false
+    }
 }
 
 /// The pointer type that [`State::Depends`] and [`TaskStatus::Depends`] carry.
@@ -144,6 +216,10 @@ impl WakeSignal {
 }
 
 impl EventReadiness for WakeSignal {
+    fn needs_polling(&self) -> bool {
+        false
+    }
+
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         self.0.load(Ordering::SeqCst)
     }
@@ -449,6 +525,19 @@ impl AnyReadiness {
 impl EventReadiness for AnyReadiness {
     fn is_ready(&self, dur: Option<time::Duration>) -> bool {
         self.0.iter().any(|child| child.is_ready(dur))
+    }
+
+    /// The earliest deadline of the children: the signal is ready as soon as
+    /// any child is, so it can be ready at the first of their instants. `None`
+    /// when no child has one.
+    fn deadline(&self) -> Option<time::Instant> {
+        self.0.iter().filter_map(|child| child.deadline()).min()
+    }
+
+    /// The executor must poll when any child needs polling: that child can
+    /// become ready without a resume.
+    fn needs_polling(&self) -> bool {
+        self.0.iter().any(|child| child.needs_polling())
     }
 }
 

@@ -496,6 +496,13 @@ impl crate::valtron::EventReadiness for CancelOrReadiness {
     fn is_ready(&self, dur: Option<core::time::Duration>) -> bool {
         self.cancel.load(core::sync::atomic::Ordering::Acquire) || self.inner.is_ready(dur)
     }
+
+    fn deadline(&self) -> Option<std::time::Instant> {
+        self.inner.deadline()
+    }
+
+    // The cancel flag is a plain atomic that nothing asks the executor to
+    // re-check, so the default (`needs_polling` is `true`) stays.
 }
 
 /// Wraps a [`FutureTask`] with an `Arc<AtomicBool>` cancel signal.
