@@ -32,7 +32,11 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     #[must_use]
     pub fn new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>) -> Self {
         let sessions = Arc::new(
-            SessionService::in_memory().expect("a 32-byte signing key is a valid session key"),
+            SessionService::in_memory_with(crate::shared::session::SessionConfig {
+                secure_cookies: config.secure_cookies,
+                ..Default::default()
+            })
+            .expect("a 32-byte signing key is a valid session key"),
         );
         Self {
             config,

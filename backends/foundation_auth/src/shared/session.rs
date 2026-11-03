@@ -39,6 +39,9 @@ pub struct SessionConfig {
     pub dont_remember_cookie_name: String,
     /// Enable sliding expiration (auto-extend on activity).
     pub sliding_expiration: bool,
+    /// Mark the session cookies `Secure` (sent over HTTPS only). Default
+    /// `true`. Turn it off only for local development over plain HTTP.
+    pub secure_cookies: bool,
 }
 
 impl Default for SessionConfig {
@@ -50,6 +53,7 @@ impl Default for SessionConfig {
             data_cookie_name: "session_data".to_string(),
             dont_remember_cookie_name: "dont_remember".to_string(),
             sliding_expiration: true,
+            secure_cookies: true,
         }
     }
 }
@@ -157,6 +161,7 @@ impl<S> SessionManager<S> {
                 self.config.max_session_age.num_seconds() as u64,
             ))
             .http_only(true)
+            .secure(self.config.secure_cookies)
             .same_site(SameSite::Lax);
         cookies.push(token_cookie);
 
@@ -166,13 +171,23 @@ impl<S> SessionManager<S> {
         };
         let cache_json = serde_json::to_string(&cache)
             .map_err(|e| SessionError::Serialization(e.to_string()))?;
-        let data_cookie = Cookie::new(&self.config.data_cookie_name, &cache_json)
-            .path("/")
-            .max_age(StdDuration::from_secs(300));
+        // A cookie value may not hold `,`, `;`, `"` or spaces: the JSON is
+        // base64url-encoded (the raw JSON was split by HTTP header parsers).
+        let data_cookie = Cookie::new(
+            &self.config.data_cookie_name,
+            &URL_SAFE_NO_PAD.encode(cache_json.as_bytes()),
+        )
+        .path("/")
+        .max_age(StdDuration::from_secs(300))
+        .secure(self.config.secure_cookies)
+        .same_site(SameSite::Lax);
         cookies.push(data_cookie);
 
         if !self.config.sliding_expiration {
-            let dont_remember = Cookie::new(&self.config.dont_remember_cookie_name, "1").path("/");
+            let dont_remember = Cookie::new(&self.config.dont_remember_cookie_name, "1")
+                .path("/")
+                .secure(self.config.secure_cookies)
+                .same_site(SameSite::Lax);
             cookies.push(dont_remember);
         }
 

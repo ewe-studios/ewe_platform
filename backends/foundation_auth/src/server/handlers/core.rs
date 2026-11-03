@@ -291,7 +291,11 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         // A fresh in-memory session service. `IdpServer` and `ServeAdapter`
         // replace it with one shared by all routes (`with_session_service`).
         let session_service = Arc::new(
-            SessionService::in_memory().expect("a 32-byte signing key is a valid session key"),
+            SessionService::in_memory_with(crate::shared::session::SessionConfig {
+                secure_cookies: config.secure_cookies,
+                ..Default::default()
+            })
+            .expect("a 32-byte signing key is a valid session key"),
         );
         Self {
             config,

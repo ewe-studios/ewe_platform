@@ -126,6 +126,9 @@ pub struct IdpConfig {
     /// Keys that encrypt TOTP secrets at rest (see [`TotpKeyRing`]). Default:
     /// empty, which turns TOTP enrollment off.
     pub totp_keys: TotpKeyRing,
+    /// Mark the session cookies `Secure` (sent over HTTPS only). Default
+    /// `true`. Turn it off only for local development over plain HTTP.
+    pub secure_cookies: bool,
 }
 
 /// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
@@ -151,6 +154,7 @@ impl IdpConfig {
             tos_code_ttl: Duration::from_secs(600),
             mfa_challenge_ttl: Duration::from_secs(300),
             totp_keys: TotpKeyRing::default(),
+            secure_cookies: true,
         }
     }
 
@@ -204,6 +208,15 @@ impl IdpConfig {
         self
     }
 
+    /// Turn the `Secure` flag of the session cookies on or off (see
+    /// [`secure_cookies`](Self::secure_cookies)). Off is for local
+    /// development over plain HTTP only.
+    #[must_use]
+    pub fn with_secure_cookies(mut self, secure: bool) -> Self {
+        self.secure_cookies = secure;
+        self
+    }
+
     /// Set the keys that encrypt TOTP secrets (see [`TotpKeyRing`]).
     #[must_use]
     pub fn with_totp_keys(mut self, keys: TotpKeyRing) -> Self {
@@ -241,6 +254,7 @@ impl core::fmt::Debug for IdpConfig {
             .field("tos_code_ttl", &self.tos_code_ttl)
             .field("mfa_challenge_ttl", &self.mfa_challenge_ttl)
             .field("totp_keys", &self.totp_keys)
+            .field("secure_cookies", &self.secure_cookies)
             .finish_non_exhaustive()
     }
 }

@@ -46,14 +46,22 @@ impl SessionService {
     ///
     /// Returns [`SessionServiceError`] if the session manager cannot be built.
     pub fn in_memory() -> Result<Self, SessionServiceError> {
+        Self::in_memory_with(crate::shared::session::SessionConfig::default())
+    }
+
+    /// Like [`in_memory`](Self::in_memory), with this session configuration
+    /// (cookie names, lifetimes, the `Secure` flag).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SessionServiceError`] if the session manager cannot be built.
+    pub fn in_memory_with(
+        config: crate::shared::session::SessionConfig,
+    ) -> Result<Self, SessionServiceError> {
         use foundation_compact::rng::Rng;
         let mut key = [0u8; 32];
         foundation_compact::rng::rng().fill_bytes(&mut key);
-        let mgr = SessionManager::new(
-            CredentialStorage::memory(),
-            crate::shared::session::SessionConfig::default(),
-            &key,
-        )?;
+        let mgr = SessionManager::new(CredentialStorage::memory(), config, &key)?;
         Ok(Self::new(Arc::new(mgr)))
     }
 
@@ -69,6 +77,8 @@ impl SessionService {
                     .path("/")
                     .max_age(std::time::Duration::ZERO)
                     .http_only(true)
+                    .secure(config.secure_cookies)
+                    .same_site(foundation_netio::shared::client::SameSite::Lax)
             })
             .collect()
     }

@@ -1,4 +1,5 @@
 // Integration tests — organized by scenario.
+mod auth_correctness;
 mod auth_security;
 mod body_streaming;
 mod e2e;
