@@ -1,6 +1,6 @@
 ---
 feature: "foundation_proxy: no polling splice, non-blocking io_uring upstream dial, streamed H3 forward body"
-status: "pending"
+status: "done"
 lane: "A"
 model: "sonnet"
 branch: "fix/io-41-50-lane-a"
@@ -48,4 +48,19 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] Three §9 entries fixed and deleted. CI green.
+- [x] Three §9 entries fixed and deleted. CI green (`python3 scripts/ci/ci.py run foundation_proxy --profile dev` exit 0; `cargo test -p foundation_proxy --profile dev --features quic` green).
+
+## Result (2026-11-03)
+
+- E1: `splice_bidirectional` and its `HalfRelay` helper are deleted. `completion_splice_tests`
+  now runs two io_uring completion sockets through `aio::splice`.
+- E2: `iogate` has no async connect op in its completion layer (io_uring `CONNECT` is not
+  wired), so the dial is a non-blocking `connect(2)` that parks on write readiness for every
+  I/O mode, then `foundation_iogate::adopt_connected` registers the connected socket with the
+  reactor. New `connect_timeout` (`ProxyConfig`, `ProxyState`, `PassthroughConfig`; default
+  60 s, nginx `proxy_connect_timeout`). The test uses six stuck dials because the pool always
+  has at least two task workers.
+- E3: `h3_proxy.rs` streams. Root cause of the buffering was in `foundation_core`:
+  `LimitedBatchStreamReader` and `LimitedEOFStreamReader` asked the socket for all the
+  remaining bytes of the cap, so one body piece was several MiB. Both now ask for at most one
+  `batch_size`. Peak body bytes held by the proxy for a 16 MiB body: 8192.

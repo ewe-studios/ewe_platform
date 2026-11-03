@@ -920,3 +920,60 @@ fn batch_reader_would_block_is_not_an_error_log() {
         "a real read error must emit an ERROR record (proves capture works)"
     );
 }
+
+/// WHY: `LimitedBatchStreamReader` asked the inner reader for all the bytes that
+/// remained of the cap, so a 16 MiB `Content-Length` body came out in pieces of
+/// several MiB (one `read` took whatever the socket held) and every read
+/// allocated and zeroed a buffer of the whole remainder. `batch_size` is the
+/// largest piece a body hands out (spec 70 feature 70, E3: a relay that streams
+/// holds one piece at a time).
+///
+/// WHAT: a source of 64 bytes, `batch_size = 8`, `byte_cap = 64`: no piece may be
+/// longer than 8 bytes, and the pieces add up to the whole 64 bytes.
+#[test]
+fn limited_batch_stream_reader_pieces_never_pass_batch_size() {
+    let data: Vec<u8> = (0..64u8).collect();
+    let batch = BatchReader::new(Cursor::new(data.clone())).batch_size(8);
+    let limited = LimitedBatchStreamReader::new(batch, 64);
+
+    let mut collected = Vec::new();
+    for result in limited {
+        if let Data::Bytes(b) = result.unwrap() {
+            assert!(
+                b.len() <= 8,
+                "a piece of {} bytes passes batch_size 8",
+                b.len()
+            );
+            collected.extend_from_slice(&b);
+        }
+    }
+    assert_eq!(collected, data);
+}
+
+/// WHY: `LimitedEOFStreamReader` had the same flaw: it asked for the whole
+/// remainder of its cap (1 GiB for the client default), so every read of a
+/// close-delimited body allocated and zeroed a buffer of that size.
+///
+/// WHAT: a source of 64 bytes, `batch_size = 8`, `byte_cap = 1 GiB`: each piece is
+/// at most 8 bytes.
+#[test]
+fn limited_eof_stream_reader_pieces_never_pass_batch_size() {
+    let data: Vec<u8> = (0..64u8).collect();
+    let batch = BatchReader::new(Cursor::new(data.clone()))
+        .batch_size(8)
+        .eof_on_zero_read(true);
+    let limited = LimitedEOFStreamReader::new(batch, 1024 * 1024 * 1024);
+
+    let mut collected = Vec::new();
+    for result in limited {
+        if let Data::Bytes(b) = result.unwrap() {
+            assert!(
+                b.len() <= 8,
+                "a piece of {} bytes passes batch_size 8",
+                b.len()
+            );
+            collected.extend_from_slice(&b);
+        }
+    }
+    assert_eq!(collected, data);
+}

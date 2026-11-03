@@ -66,7 +66,10 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   on the sleepers of the engine as well as on the queue.
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 
-(no open entries)
+- **`foundation_iogate` clippy doc-backtick warnings are open.** `cargo clippy -p
+  foundation_iogate --no-deps` reports about ten `doc_markdown` warnings (items
+  such as `io_uring` and `CompletionSocket` without backticks) in `lib.rs`,
+  `shared/mod.rs` and `native/`. Fix: add the backticks.
 
 ## 6. foundation_deployment_docker / foundation_deployment
 
@@ -112,10 +115,19 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   tests `load_balancer_tests.rs` (unused `Arc`, `Duration`, `STICKY_COOKIE`) and
   `h2_integration_tests.rs:318` (unused `mut`) warn on build. Scheduled as
   feature 49 E7.
-- **The H3 proxy forward collects the whole response body.** `h3_proxy.rs`
-  `forward` reads the upstream body into one `Vec` before it answers, which breaks
-  rule 4 (stream bodies). Its waits are now timer parks, not thread sleeps. Fix:
-  stream the body into H3 DATA frames.
+- **The H3 proxy buffers the whole request body.** `h3_proxy.rs` `read_body`
+  collects the client's request body into one `Vec` before it forwards, which
+  breaks rule 4 for uploads. `read_headers` and `read_body` also park on a 1 ms
+  timer, not on the connection waker. Fix: stream the request body to the
+  upstream (a `PushableBody`) and park these two reads with `park_op`.
+- **`foundation_proxy` `control.rs` has an inline `#[cfg(test)] mod tests`.**
+  Rule 7 forbids it. Fix: move its tests into `tests/` (scheduled as feature 50).
+- **The io_uring tests skip silently when io_uring is missing.**
+  `completion_splice_tests.rs`, `completion_dial_tests.rs` and the iogate
+  completion tests return early with a log line when the kernel has no io_uring,
+  so a CI image without it passes them without running them. Fix: a CI check that
+  fails when io_uring is expected but missing, or an explicit
+  `IO_URING_REQUIRED` switch.
 - **A response writer's send timeout counts from its creation, not from its last
   byte, for long streams.** `forward_http` and the translators use one
   `ResponseWriter` for the whole response, so a gRPC stream idle for longer than

@@ -77,3 +77,9 @@ workspace = true
 name = "h3_integration_tests"
 path = "tests/h3_integration_tests.rs"
 required-features = ["quic"]
+
+# HTTP/3 streaming test (F70 E3) — real QUIC front end, quic-gated.
+[[test]]
+name = "h3_streaming_tests"
+path = "tests/h3_streaming_tests.rs"
+required-features = ["quic"]

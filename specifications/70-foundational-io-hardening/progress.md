@@ -2,6 +2,15 @@
 
 _Newest first. One entry per feature PR: date, feature, PR, result._
 
+- 2026-11-03: feature 70 done on `fix/io-41-50-lane-a`. E1 deletes the polling
+  `splice_bidirectional` (the io_uring splice test uses `aio::splice`). E2 makes the io_uring
+  upstream dial non-blocking (`dial_tcp` parks on write readiness, `iogate::adopt_connected`
+  registers the socket) and adds `connect_timeout`. E3 streams the H3 response body with the
+  H3 flow control; the root cause was `LimitedBatchStreamReader`/`LimitedEOFStreamReader` in
+  `foundation_core` handing out pieces as big as the remaining cap. Tests:
+  `completion_dial_does_not_hold_worker`, `h3_forward_streams_large_body`, two reader tests,
+  `adopt_connected_registers_an_already_connected_upstream`. Three new backlog entries.
+
 - 2026-11-02: feature 69 (unsolicited 1xx interim responses skipped with `Expect` off) done on
   `fix/io-41-50-lane-a`. T0: open (no client bug; the skip logic in `request_redirect.rs` was
   already correct). Six new tests, all passed on the first run, so no client change was made:

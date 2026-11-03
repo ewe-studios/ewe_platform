@@ -52,4 +52,4 @@ pub use passthrough::{PassthroughConfig, TcpPassthrough, UdpPassthrough};
 pub use router::Router;
 pub use runtime::{BackendLease, BackendRuntime, ServiceRuntime};
 pub use server::ProxyServer;
-pub use state::ProxyState;
+pub use state::{BufferedBytesGauge, ProxyState};

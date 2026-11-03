@@ -8,7 +8,7 @@
 //! WHAT: [`ProxyState`] holds the [`Router`] and the shared [`SharedHttpClient`],
 //! plus the scheme the front end terminates (used for `X-Forwarded-Proto`).
 
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -41,6 +41,46 @@ pub struct ProxyState {
     max_request_body: usize,
     /// The longest a backend TCP connect may take.
     connect_timeout: Duration,
+    /// Response body bytes the H3 relay holds in memory (see
+    /// [`BufferedBytesGauge`]).
+    h3_body_gauge: BufferedBytesGauge,
+}
+
+/// A gauge of body bytes a relay holds in memory at once.
+///
+/// WHY: bodies are streamed, never buffered (rule 4). A relay that streams holds
+/// at most one chunk at a time. The gauge makes that testable: a relay calls
+/// [`Self::add`] when it reads a chunk from one side and [`Self::sub`] when the
+/// other side has taken it; [`Self::peak`] is the most it held at once.
+#[derive(Debug, Default)]
+pub struct BufferedBytesGauge {
+    current: AtomicUsize,
+    peak: AtomicUsize,
+}
+
+impl BufferedBytesGauge {
+    /// A relay now holds `bytes` more.
+    pub fn add(&self, bytes: usize) {
+        let now = self.current.fetch_add(bytes, Ordering::SeqCst) + bytes;
+        self.peak.fetch_max(now, Ordering::SeqCst);
+    }
+
+    /// A relay no longer holds `bytes`.
+    pub fn sub(&self, bytes: usize) {
+        self.current.fetch_sub(bytes, Ordering::SeqCst);
+    }
+
+    /// The bytes held now.
+    #[must_use]
+    pub fn current(&self) -> usize {
+        self.current.load(Ordering::SeqCst)
+    }
+
+    /// The most bytes held at once since the proxy started.
+    #[must_use]
+    pub fn peak(&self) -> usize {
+        self.peak.load(Ordering::SeqCst)
+    }
 }
 
 impl std::fmt::Debug for ProxyState {
@@ -74,6 +114,7 @@ impl ProxyState {
             writer: WriterConfig::default(),
             max_request_body: 1024 * 1024,
             connect_timeout: Duration::from_secs(60),
+            h3_body_gauge: BufferedBytesGauge::default(),
         }
     }
 
@@ -89,6 +130,12 @@ impl ProxyState {
     #[must_use]
     pub fn max_request_body(&self) -> usize {
         self.max_request_body
+    }
+
+    /// The gauge of response body bytes the H3 relay holds in memory.
+    #[must_use]
+    pub fn h3_body_gauge(&self) -> &BufferedBytesGauge {
+        &self.h3_body_gauge
     }
 
     /// Set the longest a backend TCP connect may take. Default 60 seconds
