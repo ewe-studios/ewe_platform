@@ -906,7 +906,20 @@ pub fn rewrite_umbrella_for_split(
     Ok(())
 }
 
+/// The target key for dependencies the umbrella needs only on native targets.
+pub const NATIVE_ONLY_CFG: &str = "cfg(not(target_family = \"wasm\"))";
+
 /// The pure half of [`rewrite_umbrella_for_split`].
+///
+/// Puts every group crate and the shared types crate in the umbrella's
+/// native-only dependency table (see [`NATIVE_ONLY_CFG`]) and moves any entries an
+/// older generator left in the all-target `[dependencies]` table.
+///
+/// # Errors
+///
+/// [`FeatureRewriteError::Parse`] if `manifest` is not valid TOML, and
+/// [`FeatureRewriteError::MissingFeatures`] if it has no `[features]` table (or a
+/// `target` / `dependencies` entry that is not a table).
 #[allow(clippy::too_many_lines)] // One template per generated unit; splitting it is a refactor, not part of this lint pass.
 pub fn rewrite_umbrella_for_split_str(
     manifest: &str,
@@ -933,48 +946,62 @@ pub fn rewrite_umbrella_for_split_str(
         ));
     }
 
-    // Optional dependencies: one per group crate. Scoped first so the later
-    // `features` borrow of `doc` does not overlap it.
+    // Optional dependencies: one per group crate, plus the shared types crate the
+    // umbrella shim re-exports. They go in the NATIVE-ONLY target table: the
+    // umbrella's `generated` module is `#[cfg(not(target_family = "wasm"))]`, and
+    // each group crate pulls `foundation_deployment` and `foundation_netio/multi`
+    // (the native thread pool). Declared for every target, they forced
+    // `foundation_core/multi` into every wasm32 build of the umbrella, which does
+    // not compile there. Scoped first so the later `features` borrow of `doc`
+    // does not overlap it.
     {
-        let deps = doc["dependencies"]
-            .or_insert(toml_edit::table())
+        let mut names: Vec<String> = group_entries.iter().map(|(_, c)| c.clone()).collect();
+        names.push("foundation_cloudflare_types".to_string());
+
+        // Move entries an older generator wrote into the all-target table, and
+        // drop the hash dependencies the umbrella no longer needs (the shared
+        // module with its `JsonHash` derives lives in the types and group crates).
+        if let Some(all) = doc
+            .get_mut("dependencies")
+            .and_then(toml_edit::Item::as_table_like_mut)
+        {
+            for name in &names {
+                all.remove(name);
+            }
+            all.remove("base85rs");
+            all.remove("sha2");
+        }
+
+        let target = doc
+            .entry("target")
+            .or_insert_with(|| {
+                let mut t = toml_edit::Table::new();
+                t.set_implicit(true);
+                toml_edit::Item::Table(t)
+            })
             .as_table_like_mut()
             .ok_or(FeatureRewriteError::MissingFeatures)?;
-        // The umbrella shim's `shared` module re-exports the shared types crate
-        // directly, so the umbrella depends on it too (the group crates each
-        // have the same dependency for their own `shared` module). It is
-        // optional because the shim is gated on the base feature; a wasm
-        // `workers`-only build never compiles it.
-        if let Some(existing) = deps.get_mut("foundation_cloudflare_types") {
-            let is_optional = existing
-                .as_inline_table()
-                .and_then(|t| t.get("optional"))
-                .and_then(toml_edit::Value::as_bool)
-                .unwrap_or(false);
-            if !is_optional {
-                if let Some(table) = existing.as_inline_table_mut() {
-                    table.insert("optional", true.into());
-                }
-            }
-        } else {
-            let mut entry = toml_edit::InlineTable::new();
-            entry.insert("path", "../foundation_cloudflare_types".into());
-            entry.insert("version", "0.1.0".into());
-            entry.insert("optional", true.into());
-            deps.insert("foundation_cloudflare_types", toml_edit::value(entry));
-        }
-        // The shared module (with its `JsonHash` derives) now lives in the
-        // shared types crate and the per-group crates. The umbrella only
-        // re-exports them, so it no longer needs the hash dependencies itself.
-        deps.remove("base85rs");
-        deps.remove("sha2");
-        for (_, crate_name) in &group_entries {
-            if deps.get(crate_name).is_none() {
+        let native = target
+            .entry(NATIVE_ONLY_CFG)
+            .or_insert_with(|| {
+                let mut t = toml_edit::Table::new();
+                t.set_implicit(true);
+                toml_edit::Item::Table(t)
+            })
+            .as_table_like_mut()
+            .ok_or(FeatureRewriteError::MissingFeatures)?;
+        let deps = native
+            .entry("dependencies")
+            .or_insert_with(|| toml_edit::Item::Table(toml_edit::Table::new()))
+            .as_table_like_mut()
+            .ok_or(FeatureRewriteError::MissingFeatures)?;
+        for name in &names {
+            if deps.get(name).is_none() {
                 let mut entry = toml_edit::InlineTable::new();
-                entry.insert("path", format!("../{crate_name}").into());
+                entry.insert("path", format!("../{name}").into());
                 entry.insert("version", "0.1.0".into());
                 entry.insert("optional", true.into());
-                deps.insert(crate_name, toml_edit::value(entry));
+                deps.insert(name, toml_edit::value(entry));
             }
         }
     }

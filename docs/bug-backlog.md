@@ -221,21 +221,20 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 21. foundation_deployment_cloudflare on wasm32
 
-- **The default-feature wasm32 check fails in `foundation_core`.** `cargo check -p
-  foundation_deployment_cloudflare --target wasm32-unknown-unknown` stops at
-  `foundation_core/src/valtron/executors/multi/mod.rs:887` (`idle_wake` is native-only)
-  and at a `PoisonError` closure bound on line 214. The default features compile every
-  Cloudflare group crate. Each group manifest (`write_group_crate`) depends on
-  `foundation_deployment` with default features, which enables `foundation_db/multi` and
-  `foundation_netio/multi`, and so `foundation_core/multi`, on wasm32. Fix: gate the group
-  dependencies (in the generated group manifests and in the umbrella's `rewrite_umbrella_for_split`)
-  to native targets, make the group code build without them on wasm32, and fix the two wasm
-  errors in `foundation_core` itself.
-- **`chrono` and `foundation_core` are unused on wasm32 with `--no-default-features`.** Both are
-  used only behind `cfg(not(target_family = "wasm"))`. Fix: move both to the native target
-  section. That also makes cargo's unused-dependency lint report `derive_more`,
-  `foundation_macros`, `js-sys`, `serde`, `serde_json` and `tracing` in that configuration.
-  Each needs a decision: native-only, or needed by the `workers` feature.
+- **Six dependencies are unused on wasm32 when the `workers` feature is off**
+  (`foundation_deployment_cloudflare`): `derive_more`, `foundation_macros`, `js-sys`,
+  `serde`, `serde_json`, `tracing` (cargo's nightly `unused_dependencies` lint, manifest
+  warnings only; the build passes). On wasm32 only the `workers` module uses them. Fix: make
+  each wasm32 use optional and enabled by `workers` (for example a wasm-only optional
+  dependency entry listed in `workers = [...]`), keeping the native entries as they are.
+  Scheduled as spec 70 feature 71 E2. (`chrono` and `foundation_core` were moved to the
+  native table on 2026-11-03.)
+- **`foundation_core` does not build for wasm32 with neither `std` nor `alloc`**
+  (`cargo check -p foundation_core --target wasm32-unknown-unknown --no-default-features`):
+  `valtron::Ctx` is unresolved in `executors/collect_next.rs` and `dependent_lift.rs`. CI
+  never runs that configuration (its wasm runs all add `std`). Fix: either gate the
+  executors that need `Ctx` on `alloc`, or declare in `Cargo.toml` docs that `alloc` is the
+  minimum and make a bare build fail with a `compile_error!` that says so.
 
 ## 22. foundation_keychain
 
