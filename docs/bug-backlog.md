@@ -126,11 +126,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   features, 25 with `libsql` (`i32`/`usize` cast truncation and sign loss, missing `# Errors`
   sections, others). Fix: clear them, then set `clippy-deny-warnings = true` in
   `ci/packages.toml` (with `clippy-runs = ["", "libsql"]`).
-- **Auth tables mix timestamp units.** The `created_at` defaults in the core
-  migrations are milliseconds (`strftime('%s','now') * 1000`), while
-  `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
-  server writes milliseconds for its own rows. Fix: pick one unit per column,
-  document it in the migrations, and make cleanup follow it.
 - **D1 request parameters are sent as JSON numbers and null; the hosted D1
   REST endpoint is not proven to accept them.** Cloudflare's `OpenAPI` spec types
   `d1_params` as an array of strings. `foundation_db` binds `DataValue::Integer`,
@@ -187,10 +182,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   call site is compiled out, so `cargo check --tests --target wasm32` on
   foundation_wireguard/foundation_netio emits `method rearm_readable is never
   used`. Fix: gate the method on the same `cfg` as its call site.
-- **`foundation_db` dead-code warnings in test builds**: `core/rate_limit.rs`
-  `CREATE_TABLE_SQL`, `RECORD_SQL`, `SELECT_SQL`, `sql_check`, `sql_record`,
-  `sql_reset` are unused in the feature set the connectrpc test builds pull
-  in. Fix: gate them on the features that use them.
 - **`foundation_reactor` publish fails tarball verification: `foundation_core` is stale on crates.io.**
   `foundation_reactor` 0.0.1 (a new crate) depends on `foundation_core` 0.0.6, but its source uses
   `foundation_core::valtron::request_executor_resume` (`reactor.rs:840`) and
