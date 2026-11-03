@@ -161,6 +161,12 @@ runs = ["", "docker", "--no-run --features docker,integration-tests"]
 # at a time. Splitting the generated groups into their own crates is what
 # would remove this.
 env = { CARGO_BUILD_JOBS = "1" }
+# The default-feature wasm32 build (Workers consumers get default features). It
+# broke unnoticed when the generated group crates pulled `foundation_core/multi`
+# into wasm32 (fixed 2026-11-03: group crates are native-only dependencies).
+# `workers` is the wasm-only feature set Workers code uses.
+wasm = "enforce"
+wasm-runs = ["", "--no-default-features --features workers"]
 
 # ---------------------------------------------------------------------------
 # Wasm32 compile gates (spec 65 00-foundation / spec 28 feature 07).

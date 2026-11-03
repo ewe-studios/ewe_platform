@@ -15,4 +15,7 @@ pub mod emit;
 mod generator;
 
 pub use analyzer::{analyze_spec, AnalysisOptions, AnalysisResult, ApiGroup};
-pub use generator::{rewrite_features_for_groups, FeatureRewriteError, GenError, UnifiedGenerator};
+pub use generator::{
+    rewrite_features_for_groups, rewrite_umbrella_for_split_str, FeatureRewriteError, GenError,
+    UnifiedGenerator, NATIVE_ONLY_CFG,
+};
