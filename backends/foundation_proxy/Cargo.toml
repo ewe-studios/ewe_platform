@@ -83,3 +83,9 @@ required-features = ["quic"]
 name = "h3_streaming_tests"
 path = "tests/h3_streaming_tests.rs"
 required-features = ["quic"]
+
+# HTTP/3 request-body tests (F72 E1) — real QUIC front end, quic-gated.
+[[test]]
+name = "h3_request_body_tests"
+path = "tests/h3_request_body_tests.rs"
+required-features = ["quic"]

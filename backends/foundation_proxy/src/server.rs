@@ -160,7 +160,8 @@ impl ProxyServer {
                 WriterConfig::default().with_send_timeout(config.relay_send_timeout),
             )
             .with_max_request_body(config.max_request_body)
-            .with_connect_timeout(config.connect_timeout);
+            .with_connect_timeout(config.connect_timeout)
+            .with_client_read_timeout(config.client_read_timeout);
         if let Some(store) = &store {
             proxy_state_value = proxy_state_value.with_store(Arc::clone(store));
         }

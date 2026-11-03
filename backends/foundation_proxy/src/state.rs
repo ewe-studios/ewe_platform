@@ -41,6 +41,8 @@ pub struct ProxyState {
     max_request_body: usize,
     /// The longest a backend TCP connect may take.
     connect_timeout: Duration,
+    /// The longest an H3 client may take no byte of a request head or body.
+    client_read_timeout: Duration,
     /// Response body bytes the H3 relay holds in memory (see
     /// [`BufferedBytesGauge`]).
     h3_body_gauge: BufferedBytesGauge,
@@ -56,6 +58,7 @@ pub struct ProxyState {
 pub struct BufferedBytesGauge {
     current: AtomicUsize,
     peak: AtomicUsize,
+    polls: AtomicUsize,
 }
 
 impl BufferedBytesGauge {
@@ -68,6 +71,19 @@ impl BufferedBytesGauge {
     /// A relay no longer holds `bytes`.
     pub fn sub(&self, bytes: usize) {
         self.current.fetch_sub(bytes, Ordering::SeqCst);
+    }
+
+    /// A relay polled the client's stream for input once.
+    pub fn note_poll(&self) {
+        self.polls.fetch_add(1, Ordering::SeqCst);
+    }
+
+    /// How many times relays polled the client's stream for input. An idle
+    /// request that parks on the connection's waker adds almost none; one that
+    /// polls on a timer adds one per tick.
+    #[must_use]
+    pub fn polls(&self) -> usize {
+        self.polls.load(Ordering::SeqCst)
     }
 
     /// The bytes held now.
@@ -114,6 +130,7 @@ impl ProxyState {
             writer: WriterConfig::default(),
             max_request_body: 1024 * 1024,
             connect_timeout: Duration::from_secs(60),
+            client_read_timeout: Duration::from_secs(60),
             h3_body_gauge: BufferedBytesGauge::default(),
         }
     }
@@ -130,6 +147,20 @@ impl ProxyState {
     #[must_use]
     pub fn max_request_body(&self) -> usize {
         self.max_request_body
+    }
+
+    /// Set the longest an H3 client may take no byte of a request head or body.
+    /// Default 60 seconds (nginx `client_body_timeout`).
+    #[must_use]
+    pub fn with_client_read_timeout(mut self, timeout: Duration) -> Self {
+        self.client_read_timeout = timeout;
+        self
+    }
+
+    /// The longest an H3 client may take no byte of a request head or body.
+    #[must_use]
+    pub fn client_read_timeout(&self) -> Duration {
+        self.client_read_timeout
     }
 
     /// The gauge of response body bytes the H3 relay holds in memory.

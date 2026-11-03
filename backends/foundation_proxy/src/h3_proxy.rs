@@ -31,9 +31,12 @@ use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::quic::QuinnBidiStream;
 use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::client::SystemDnsResolver;
-use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::shared::http::{
+    pushable_request_body_with_readiness, BodyReadiness, PushableRequestBody, SendSafeBody,
+    SimpleHeader, SimpleHeaders, SimpleMethod, DEFAULT_PUSHABLE_DEPTH,
+};
 use futures_util::future::{select, Either};
-use futures_util::StreamExt;
+use futures_util::{pin_mut, select, FutureExt, StreamExt};
 
 use foundation_http::native::serve::{BoxFuture, H3Serve};
 use foundation_http::shared::context::ContextBag;
@@ -74,56 +77,113 @@ impl H3Serve for H3ProxyHandler {
             .unwrap_or_else(|| "unknown".to_string());
 
         Box::pin(async move {
-            // Read the request head + body off the H3 stream.
-            let fields = match read_headers(&mut request).await {
-                Some(f) => f,
-                None => return Ok(()),
+            let send_timeout = state.writer_config().send_timeout;
+            let read_timeout = state.client_read_timeout();
+            let limit = state.max_request_body();
+            // Read the request head off the H3 stream.
+            let Some(fields) =
+                read_headers(&mut request, read_timeout, state.h3_body_gauge()).await
+            else {
+                return Ok(());
             };
             let method = pseudo(&fields, b":method").unwrap_or_default();
             let host = pseudo(&fields, b":authority").unwrap_or_default();
             let path = pseudo(&fields, b":path").unwrap_or_else(|| "/".to_string());
-            let body = read_body(&mut request).await;
 
             // Route + pick a backend.
             let Some(service) = state.router().route(&host, &path) else {
-                let _ = respond(
-                    &mut request,
-                    404,
-                    &[],
-                    Bytes::new(),
-                    state.writer_config().send_timeout,
-                )
-                .await;
+                let _ = respond(&mut request, 404, &[], Bytes::new(), send_timeout).await;
                 return Ok(());
             };
             let Some((lease, _idx)) = service.pick_sticky(None) else {
-                let _ = respond(
-                    &mut request,
-                    503,
-                    &[],
-                    Bytes::new(),
-                    state.writer_config().send_timeout,
-                )
-                .await;
+                let _ = respond(&mut request, 503, &[], Bytes::new(), send_timeout).await;
                 return Ok(());
             };
 
+            // A declared length over the limit is refused before any byte is
+            // read (nginx `client_max_body_size`).
+            let request_headers = request_headers(&fields);
+            if limit != 0
+                && request_headers
+                    .get(&SimpleHeader::CONTENT_LENGTH)
+                    .and_then(|v| v.first())
+                    .and_then(|v| v.trim().parse::<usize>().ok())
+                    .is_some_and(|len| len > limit)
+            {
+                reject_too_large(&mut request, send_timeout).await;
+                return Ok(());
+            }
+
             // Forward through the shared pooled client (same as H1/H2).
             let url = upstream_url(lease.backend().url(), &path);
-            let mut headers =
-                forward_request_headers(&request_headers(&fields), &client_ip, &scheme);
+            let mut headers = forward_request_headers(&request_headers, &client_ip, &scheme);
             headers.insert(SimpleHeader::HOST, vec![host]);
 
-            let send_timeout = state.writer_config().send_timeout;
-            match forward(&client, &method, &url, headers, body).await {
-                Ok(upstream) => {
-                    relay_response(&mut request, upstream, state.h3_body_gauge(), send_timeout)
-                        .await;
+            // The first body read tells whether the request has a body at all: a
+            // bodyless request is sent bodyless, not chunked.
+            let first = match park_op(
+                &mut request,
+                read_timeout,
+                Some(POLL_BACKOFF),
+                counted(state.h3_body_gauge(), H3Request::poll_body),
+            )
+            .await
+            {
+                Some(Ok(first)) => first,
+                _ => {
+                    request.reset(error_code::H3_REQUEST_CANCELLED);
+                    return Ok(());
                 }
-                Err(e) => {
+            };
+            let gauge = state.h3_body_gauge();
+            let outcome = if let Some(first) = first {
+                let (producer, body, readiness) =
+                    pushable_request_body_with_readiness(DEFAULT_PUSHABLE_DEPTH);
+                let (upstream, pumped) = {
+                    let fwd =
+                        forward(&client, &method, &url, headers, body, Some(readiness)).fuse();
+                    let pump = pump_request_body(
+                        &mut request,
+                        first,
+                        producer,
+                        limit,
+                        gauge,
+                        read_timeout,
+                    )
+                    .fuse();
+                    pin_mut!(fwd, pump);
+                    let mut pump_done = false;
+                    let result = loop {
+                        select! {
+                            upstream = fwd => break Ok(upstream),
+                            pumped = pump => match pumped {
+                                Ok(()) => pump_done = true,
+                                Err(end) => break Err(end),
+                            },
+                        }
+                    };
+                    (result, pump_done)
+                };
+                if upstream.is_ok() && !pumped {
+                    // The upstream answered before the upload ended: tell the
+                    // client to stop sending (RFC 9114 section 4.1.1).
+                    request.stop_sending(error_code::H3_NO_ERROR);
+                }
+                upstream
+            } else {
+                Ok(forward(&client, &method, &url, headers, SendSafeBody::None, None).await)
+            };
+
+            match outcome {
+                Ok(Ok(upstream)) => {
+                    relay_response(&mut request, upstream, gauge, send_timeout).await;
+                }
+                Ok(Err(e)) => {
                     tracing::warn!(%url, "H3 upstream forward failed: {e}");
                     let _ = respond(&mut request, 502, &[], Bytes::new(), send_timeout).await;
                 }
+                Err(BodyEnd::TooLarge) => reject_too_large(&mut request, send_timeout).await,
+                Err(BodyEnd::Read) => request.reset(error_code::H3_REQUEST_CANCELLED),
             }
             drop(lease);
             Ok(())
@@ -149,12 +209,16 @@ async fn forward(
     method: &str,
     url: &str,
     headers: SimpleHeaders,
-    body: Vec<u8>,
+    body: SendSafeBody,
+    readiness: Option<BodyReadiness>,
 ) -> Result<UpstreamResponse, String> {
-    let builder = ClientRequestBuilder::<SystemDnsResolver>::new(method_of(method), url)
+    let mut builder = ClientRequestBuilder::<SystemDnsResolver>::new(method_of(method), url)
         .map_err(|e| format!("build upstream request: {e}"))?
         .headers(headers)
-        .body(SendSafeBody::Bytes(body));
+        .body(body);
+    if let Some(readiness) = readiness {
+        builder = builder.with_body_readiness(readiness);
+    }
     let response = client
         .request(builder)
         .map_err(|e| format!("prepare upstream request: {e}"))?
@@ -254,26 +318,96 @@ async fn relay_response(
 
 // ── H3 stream helpers ─────────────────────────────────────────────────────
 
-/// Read the request HEADERS field list off the stream.
-async fn read_headers(request: &mut H3Request<QuinnBidiStream>) -> Option<Vec<(Bytes, Bytes)>> {
-    loop {
-        match request.poll_headers() {
-            Stream::Next(Ok(fields)) => return Some(fields),
-            Stream::Next(Err(_)) => return None,
-            _ => sleep_async(POLL_BACKOFF).await,
-        }
+/// Read the request HEADERS field list off the stream, waiting at most
+/// `timeout` for it. The wait parks on the connection's waker.
+async fn read_headers(
+    request: &mut H3Request<QuinnBidiStream>,
+    timeout: Duration,
+    gauge: &BufferedBytesGauge,
+) -> Option<Vec<(Bytes, Bytes)>> {
+    match park_op(
+        request,
+        timeout,
+        Some(POLL_BACKOFF),
+        counted(gauge, H3Request::poll_headers),
+    )
+    .await
+    {
+        Some(Ok(fields)) => Some(fields),
+        _ => None,
     }
 }
 
-/// Read the request body to end-of-stream.
-async fn read_body(request: &mut H3Request<QuinnBidiStream>) -> Vec<u8> {
-    let mut body = Vec::new();
+/// Why the request body stopped before its end.
+enum BodyEnd {
+    /// The body is larger than `max_request_body`.
+    TooLarge,
+    /// The client stream failed or went idle past the read timeout.
+    Read,
+}
+
+/// Move the client's request body into the upstream request pipe, starting with
+/// `first`, at most `limit` bytes (0 = no limit). Closes the pipe at the end of
+/// the body. Each chunk is held only while it is pushed; the pipe is bounded, so
+/// a slow upstream slows the read (back pressure). `gauge` counts the bytes held.
+async fn pump_request_body(
+    request: &mut H3Request<QuinnBidiStream>,
+    first: Bytes,
+    producer: PushableRequestBody,
+    limit: usize,
+    gauge: &BufferedBytesGauge,
+    read_timeout: Duration,
+) -> Result<(), BodyEnd> {
+    let mut chunk = first;
+    let mut total = 0usize;
     loop {
-        match request.poll_body() {
-            Stream::Next(Ok(Some(chunk))) => body.extend_from_slice(&chunk),
-            Stream::Next(Ok(None)) | Stream::Next(Err(_)) => return body,
-            _ => sleep_async(POLL_BACKOFF).await,
+        total = total.saturating_add(chunk.len());
+        if limit != 0 && total > limit {
+            return Err(BodyEnd::TooLarge);
         }
+        let held = chunk.len();
+        gauge.add(held);
+        let pushed = producer.push(chunk).await;
+        gauge.sub(held);
+        if pushed.is_err() {
+            // The upstream request is done with the body (it answered early).
+            return Ok(());
+        }
+        chunk = loop {
+            match park_op(
+                request,
+                read_timeout,
+                Some(POLL_BACKOFF),
+                counted(gauge, H3Request::poll_body),
+            )
+            .await
+            {
+                Some(Ok(Some(next))) if next.is_empty() => {}
+                Some(Ok(Some(next))) => break next,
+                Some(Ok(None)) => {
+                    producer.close();
+                    return Ok(());
+                }
+                _ => return Err(BodyEnd::Read),
+            }
+        };
+    }
+}
+
+/// Answer `413` and tell the client to stop sending.
+async fn reject_too_large(request: &mut H3Request<QuinnBidiStream>, send_timeout: Duration) {
+    let _ = respond(request, 413, &[], Bytes::new(), send_timeout).await;
+    request.stop_sending(error_code::H3_NO_ERROR);
+}
+
+/// Wrap `op` so each call counts as one poll of the client's stream on `gauge`.
+fn counted<'a, T>(
+    gauge: &'a BufferedBytesGauge,
+    mut op: impl FnMut(&mut H3Request<QuinnBidiStream>) -> Stream<Result<T, H3Error>, ()> + 'a,
+) -> impl FnMut(&mut H3Request<QuinnBidiStream>) -> Stream<Result<T, H3Error>, ()> + 'a {
+    move |request| {
+        gauge.note_poll();
+        op(request)
     }
 }
 
@@ -285,6 +419,7 @@ async fn read_body(request: &mut H3Request<QuinnBidiStream>) -> Vec<u8> {
 async fn park_op<T>(
     request: &mut H3Request<QuinnBidiStream>,
     limit: Duration,
+    recheck: Option<Duration>,
     mut op: impl FnMut(&mut H3Request<QuinnBidiStream>) -> Stream<Result<T, H3Error>, ()>,
 ) -> Option<Result<T, H3Error>> {
     let deadline = Instant::now() + limit;
@@ -300,10 +435,15 @@ async fn park_op<T>(
                 _ => Poll::Ready(None),
             }
         });
-        match select(Box::pin(attempt), Box::pin(sleep_async(remaining))).await {
+        match select(
+            Box::pin(attempt),
+            Box::pin(sleep_async(recheck.map_or(remaining, |r| r.min(remaining)))),
+        )
+        .await
+        {
             Either::Left((Some(result), _)) => return Some(result),
             Either::Left((None, _)) => sleep_async(POLL_BACKOFF.min(remaining)).await,
-            Either::Right(_) => return None,
+            Either::Right(_) => {}
         }
     }
 }
@@ -336,7 +476,7 @@ async fn finish(
     request: &mut H3Request<QuinnBidiStream>,
     send_timeout: Duration,
 ) -> io::Result<()> {
-    match park_op(request, send_timeout, H3Request::poll_finish).await {
+    match park_op(request, send_timeout, None, H3Request::poll_finish).await {
         Some(Ok(())) => Ok(()),
         Some(Err(e)) => Err(io::Error::other(format!("h3 finish failed: {e}"))),
         None => Err(io::Error::other("h3 finish timed out")),
@@ -352,7 +492,7 @@ async fn send_all(
     headers: bool,
     send_timeout: Duration,
 ) -> io::Result<()> {
-    let sent = park_op(request, send_timeout, |r| {
+    let sent = park_op(request, send_timeout, None, |r| {
         if headers {
             r.poll_send_headers(&mut pending)
         } else {
