@@ -947,6 +947,17 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             .gate(user_id, pending.clone(), self.config.tos_code_ttl)
             .await?
         {
+            // A social login ends in a browser redirect: send the browser to
+            // the ToS page, with the code in the fragment.
+            if pending.auth_method == "social" {
+                if let Some(page) = self.config.tos_page_url.as_deref() {
+                    return Ok(HandlerResponse::redirect(&format!(
+                        "{page}#tos_await_code={}&tos_version={}",
+                        urlencoding::encode(&challenge.code),
+                        urlencoding::encode(&challenge.tos_version),
+                    )));
+                }
+            }
             return Ok(HandlerResponse {
                 status: 206,
                 body: serde_json::json!({

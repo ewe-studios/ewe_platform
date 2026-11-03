@@ -146,6 +146,14 @@ pub struct IdpConfig {
     /// the same time. Use D1 or a Durable Object for single-use data instead;
     /// turn this on only if you accept that risk.
     pub allow_non_atomic_cache: bool,
+    /// The page where a user accepts the Terms of Service during a social
+    /// login. When a social login ends with an unaccepted ToS, the callback
+    /// answers `302` to this URL with `#tos_await_code=...&tos_version=...` in
+    /// the fragment (a fragment is never sent to a server or logged). The page
+    /// posts the code to `POST /auth/v1/tos/accept`. With `None` (default) the
+    /// callback answers `206` with the JSON body instead, which suits an API
+    /// client, not a browser.
+    pub tos_page_url: Option<String>,
 }
 
 /// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
@@ -176,6 +184,7 @@ impl IdpConfig {
             totp_algorithm: crate::shared::two_factor::TotpAlgorithm::default(),
             sweep_interval: Duration::from_secs(300),
             allow_non_atomic_cache: false,
+            tos_page_url: None,
         }
     }
 
@@ -235,6 +244,14 @@ impl IdpConfig {
     #[must_use]
     pub fn with_secure_cookies(mut self, secure: bool) -> Self {
         self.secure_cookies = secure;
+        self
+    }
+
+    /// Set the page for the ToS step of a social login (see
+    /// [`tos_page_url`](Self::tos_page_url)).
+    #[must_use]
+    pub fn with_tos_page_url(mut self, url: impl Into<String>) -> Self {
+        self.tos_page_url = Some(url.into());
         self
     }
 
@@ -315,6 +332,7 @@ impl core::fmt::Debug for IdpConfig {
             .field("totp_algorithm", &self.totp_algorithm)
             .field("sweep_interval", &self.sweep_interval)
             .field("allow_non_atomic_cache", &self.allow_non_atomic_cache)
+            .field("tos_page_url", &self.tos_page_url)
             .finish_non_exhaustive()
     }
 }

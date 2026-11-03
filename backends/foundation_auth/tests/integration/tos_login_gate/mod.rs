@@ -26,6 +26,7 @@ const PASSWORD: &str = "ValidPass123!";
 
 /// A running `IdP` plus a client and the storage the server uses.
 pub(crate) struct Env {
+    pub(crate) addr: std::net::SocketAddr,
     pub(crate) client: DynNetClient,
     pub(crate) storage: Arc<HandlerStorage<MemoryStorage>>,
     pub(crate) shutdown: Arc<ShutdownSignal>,
@@ -112,6 +113,7 @@ pub(crate) fn start_raw(config: IdpConfig) -> Env {
         .write_timeout(Duration::from_secs(5))
         .build();
     Env {
+        addr,
         client,
         storage,
         shutdown,
@@ -167,6 +169,35 @@ impl Env {
             headers,
             body: serde_json::from_str(&text).unwrap_or(serde_json::Value::Null),
         }
+    }
+
+    /// A raw `GET` over TCP: the status code and the headers, with no
+    /// redirect followed (the HTTP client follows them).
+    pub(crate) fn raw_get(&self, path_and_query: &str) -> (u16, Vec<(String, String)>) {
+        use std::io::{Read, Write};
+        let mut stream = std::net::TcpStream::connect(self.addr).expect("connect");
+        stream
+            .set_read_timeout(Some(Duration::from_secs(10)))
+            .expect("timeout");
+        write!(
+            stream,
+            "GET {path_and_query} HTTP/1.1\r\nHost: testserver\r\nConnection: close\r\n\r\n"
+        )
+        .expect("write");
+        let mut text = String::new();
+        stream.read_to_string(&mut text).ok();
+        let head = text.split("\r\n\r\n").next().unwrap_or("");
+        let mut lines = head.lines();
+        let status = lines
+            .next()
+            .and_then(|l| l.split_whitespace().nth(1))
+            .and_then(|c| c.parse().ok())
+            .expect("status line");
+        let headers = lines
+            .filter_map(|l| l.split_once(':'))
+            .map(|(k, v)| (k.trim().to_ascii_lowercase(), v.trim().to_string()))
+            .collect();
+        (status, headers)
     }
 
     pub(crate) fn register(&self, email: &str) -> String {
