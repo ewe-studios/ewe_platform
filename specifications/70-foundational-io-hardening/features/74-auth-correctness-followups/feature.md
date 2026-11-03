@@ -5,7 +5,7 @@ lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
 crates: ["foundation_auth", "foundation_db"]
-catalogue_rows: [77, 78, 79, 80, 81]
+catalogue_rows: [77, 78, 79, 80, 81, 85, 86, 87, 88, 89, 90]
 ---
 
 # Feature 74: auth correctness follow-ups
@@ -33,6 +33,30 @@ Found in feature 68 (`docs/bug-backlog.md` foundation_auth section).
   backends/foundation_vectors`). Register it (with a test that it applies) or delete the file and
   say why.
 
+Added from feature 73 (2026-11-03):
+
+- **E6 TOTP uses HMAC-SHA256; most authenticator apps only do SHA-1.** RFC 6238's default and
+  what Google Authenticator and most apps implement is SHA-1, 6 digits, 30 s. Generate and verify
+  with SHA-1 by default, put the algorithm in the provisioning URI, and keep SHA-256 as a config
+  option. Test: a known RFC 6238 SHA-1 test vector verifies; the provisioning URI names the
+  algorithm.
+- **E7 `enroll/start` can be called again without limit (security).** Each call makes a new
+  pending secret, so an attacker with a session can keep trying first codes. Allow one pending
+  enrollment per user (replace it, with its own short TTL), and count failed confirms toward the
+  account's failed-attempt lockout. Test: `enroll_confirm_attempts_are_limited`.
+- **E8 Session cookies are not `Secure` (security).** Set `Secure`, `HttpOnly` and
+  `SameSite=Lax` (or `Strict` where the flow allows) by default; a config flag may turn `Secure`
+  off only for local http development. Test: the Set-Cookie header has all three.
+- **E9 `sweep_expired` is never scheduled.** Run it from the IdP server on an interval from config
+  (default 5 min), as a valtron task (not a thread), stopped on shutdown. Test: with a 100 ms
+  interval, an expired entry is gone within 1 s.
+- **E10 A social-login authorization code has an empty `client_id`.** Carry the client id from
+  `social_authorize` through the callback into the code, and check it at the token endpoint. Test:
+  `social_code_is_bound_to_its_client`.
+- **E11 Workers KV `take` is not atomic.** It cannot be with KV. Make the IdP refuse to start with
+  a KV-backed cache for single-use data unless a config flag accepts the risk, and say so in the
+  docs; recommend D1 or a Durable Object.
+
 ## Verify
 
 ```bash
@@ -43,4 +67,4 @@ python3 scripts/ci/ci.py run foundation_db --profile dev
 
 ## Done when
 
-- [ ] Five entries fixed and deleted. CI green.
+- [ ] E1–E11 fixed (E11 as documented refusal) and their entries deleted. CI green.

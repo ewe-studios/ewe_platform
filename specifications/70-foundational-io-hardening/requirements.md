@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 42
-  uncompleted: 32
-  total: 74
+  uncompleted: 33
+  total: 75
   completion_percentage: 66%
 ---
 
@@ -195,6 +195,7 @@ done
 | 72 | [H3 request body streamed; io_uring tests fail loudly in CI](./features/72-h3-request-body-and-uring-tests/feature.md) | §8 catalogue rows 68, 69 (sonnet) | 70 | M |
 | 73 | [Auth security follow-ups](./features/73-auth-security-followups/feature.md) | §8 catalogue rows 71–76 (sonnet) | 68 | L |
 | 74 | [Auth correctness follow-ups; vectors migration](./features/74-auth-correctness-followups/feature.md) | §8 catalogue rows 77–81 (sonnet) | 68 | M |
+| 75 | [Readiness deadlines; idle QUIC listener; land 72 E1](./features/75-readiness-deadlines/feature.md) | §8 catalogue rows 82–84 (sonnet) | 72 | M |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -350,6 +351,15 @@ fixed in code but not deleted.
 | 79 | auth: dispatch by suffix match in fixed order | found in 68 | 74 |
 | 80 | auth: social ToS 206 on a GET redirect | found in 68 | 74 |
 | 81 | db: `023_create_vectors.sql` not registered | found in 68 | 74 |
+| 82 | valtron: a readiness with a deadline gives the executor no wake time (QUIC timers, 100-continue timer) | found in 72 | 75 |
+| 83 | idle QUIC listener uses ~85 ms CPU per second | found in 72 | 75 |
+| 84 | feature 72 E1 held on a branch until 82 is fixed | 72 | 75 |
+| 85 | auth: TOTP uses HMAC-SHA256 (apps expect SHA-1) | found in 73 | 74 |
+| 86 | auth: unlimited `enroll/start` lets first codes be guessed (security) | found in 73 | 74 |
+| 87 | auth: session cookies not `Secure` (security) | found in 73 | 74 |
+| 88 | auth: `sweep_expired` not scheduled | found in 73 | 74 |
+| 89 | auth: social authorization code has an empty `client_id` | found in 73 | 74 |
+| 90 | auth: Workers KV `take` not atomic | found in 73 | 74 |
 
 ### 8.1 Lanes, branches and models
 
@@ -362,7 +372,7 @@ the choice.
 
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
-| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 72 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
+| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 72 → 75 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
 | B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 68 → 73 → 54 E4 → 71 → 56 → 74 → … → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
