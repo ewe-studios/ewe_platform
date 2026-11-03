@@ -32,13 +32,11 @@ fn authorize(
     client: Option<&str>,
     redirect: &str,
 ) -> crate::integration::tos_login_gate::Reply {
-    let mut url = format!(
-        "/idp/authorize?provider=nope&state=s&redirect_uri={}",
+    let client_param = client.map_or(String::new(), |c| format!("&client_id={c}"));
+    let url = format!(
+        "/idp/authorize?provider=nope&state=s&redirect_uri={}{client_param}",
         urlencoding::encode(redirect)
     );
-    if let Some(client) = client {
-        url.push_str(&format!("&client_id={client}"));
-    }
     env.get(&url, None)
 }
 

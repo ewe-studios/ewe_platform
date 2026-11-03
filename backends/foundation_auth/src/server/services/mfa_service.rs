@@ -1,6 +1,6 @@
 //! Multi-factor login service — TOTP secrets and one-time MFA challenges.
 //!
-//! A TOTP secret is stored encrypted (ChaCha20-Poly1305, key from the IdP
+//! A TOTP secret is stored encrypted (ChaCha20-Poly1305, key from the `IdP`
 //! config, key id stored with the ciphertext, the user id as associated data).
 //! The service remembers the last accepted time step per user and rejects a
 //! code for the same or an earlier step, so a code works once.

@@ -20,7 +20,7 @@ fn now_secs() -> u64 {
         .as_secs()
 }
 
-/// Register and log in a user (no ToS, no TOTP yet); return the id and the
+/// Register and log in a user (no `ToS`, no TOTP yet); return the id and the
 /// session cookie.
 fn signed_in(env: &Env, email: &str) -> (String, String) {
     let id = env.register(email);

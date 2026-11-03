@@ -1,6 +1,6 @@
 ---
 feature: "foundation_auth security follow-ups: atomic single-use take, cache TTL, TOTP enrollment/encryption/replay, social open redirect, logout revocation, failed-attempt reset"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
@@ -72,4 +72,4 @@ Clippy 0 for server-test and server-native. Flake check: 20 runs of each new tes
 
 ## Done when
 
-- [ ] Six entries fixed with tests that fail before and pass after. Entries deleted. CI green.
+- [x] Six entries fixed with tests that fail before and pass after. Entries deleted. CI green.

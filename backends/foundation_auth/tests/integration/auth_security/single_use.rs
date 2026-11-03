@@ -1,4 +1,4 @@
-//! A ToS code and an MFA challenge work once, even under concurrent use.
+//! A `ToS` code and an MFA challenge work once, even under concurrent use.
 
 use std::sync::{Arc, Barrier};
 use std::thread;

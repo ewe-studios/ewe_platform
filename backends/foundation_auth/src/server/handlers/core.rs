@@ -2052,6 +2052,25 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         self.complete_login(&user_id, pending, req).await
     }
 
+    /// The MFA routes (`/auth/v1/mfa` and TOTP enrollment); `None` for any
+    /// other path.
+    async fn dispatch_mfa(
+        &self,
+        bag: &ContextBag,
+        req: &SimpleIncomingRequest,
+        path: &str,
+    ) -> Option<Result<HandlerResponse, IdpError>> {
+        if path.ends_with("/auth/v1/mfa/totp/enroll/start") {
+            Some(self.totp_enroll_start(bag, req).await)
+        } else if path.ends_with("/auth/v1/mfa/totp/enroll/confirm") {
+            Some(self.totp_enroll_confirm(bag, req).await)
+        } else if path.ends_with("/auth/v1/mfa") {
+            Some(self.mfa(bag, req).await)
+        } else {
+            None
+        }
+    }
+
     /// Dispatch.
     ///
     /// # Errors
@@ -2092,12 +2111,8 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             self.device_authorize(bag, req).await
         }
         // F02 auth routes
-        else if path.ends_with("/auth/v1/mfa/totp/enroll/start") {
-            self.totp_enroll_start(bag, req).await
-        } else if path.ends_with("/auth/v1/mfa/totp/enroll/confirm") {
-            self.totp_enroll_confirm(bag, req).await
-        } else if path.ends_with("/auth/v1/mfa") {
-            self.mfa(bag, req).await
+        else if let Some(result) = self.dispatch_mfa(bag, req, path).await {
+            result
         } else if path.ends_with("/auth/v1/oidc/logout") {
             self.logout(bag, req).await
         }

@@ -33,7 +33,7 @@ impl Default for PasswordPolicy {
 
 /// Keys that encrypt TOTP secrets at rest (ChaCha20-Poly1305, 256-bit keys).
 ///
-/// The keys come from the IdP configuration (for example from an environment
+/// The keys come from the `IdP` configuration (for example from an environment
 /// variable or a secret store read by the application); they are never in the
 /// code. Each stored ciphertext carries the id of the key that made it, so you
 /// can rotate: make the new key the active one with
