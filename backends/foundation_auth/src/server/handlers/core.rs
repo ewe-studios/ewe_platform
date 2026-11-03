@@ -818,7 +818,20 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             })));
         }
 
+        self.clear_failed_attempts(&user).await?;
         self.complete_login(&user.id, pending, req).await
+    }
+
+    /// A full successful login ends the run of failed attempts: reset the
+    /// count and any lockout.
+    async fn clear_failed_attempts(
+        &self,
+        user: &super::super::models::User,
+    ) -> Result<(), IdpError> {
+        if user.failed_login_attempts > 0 || user.locked_until.is_some() {
+            update_user_lockout(self.storage.query_store.as_ref(), &user.id, 0, None).await?;
+        }
+        Ok(())
     }
 
     /// MFA verification: POST /auth/v1/mfa
@@ -877,6 +890,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
             return Err(invalid());
         }
 
+        self.clear_failed_attempts(&user).await?;
         let mut pending = record.pending_login;
         pending.auth_method = "password+totp".into();
         self.complete_login(&user.id, pending, req).await
@@ -1090,19 +1104,45 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
 
     /// Logout: POST /auth/v1/oidc/logout
     ///
+    /// Revokes the session of the session cookie and clears the session
+    /// cookies. With no cookie, or one that is not a live session, it still
+    /// answers 200 (the client is logged out either way). A bearer access
+    /// token is a signed token with no server-side record, so logout cannot
+    /// revoke it; it ends when it expires.
+    ///
     /// # Errors
     ///
-    /// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
-    pub fn logout(
+    /// Returns [`IdpError`] if a storage or service call fails.
+    pub async fn logout(
         &self,
         _bag: &ContextBag,
-        _req: &SimpleIncomingRequest,
+        req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        // Session revocation requires SessionService wiring.
-        // Return success with cookie-clearing header.
-        Ok(HandlerResponse::ok(
-            serde_json::json!({ "status": "logged_out" }),
-        ))
+        let cookie_name = self.session_service.token_cookie_name();
+        if let Some(token) = request_cookie(req, cookie_name) {
+            if let Some(session) = self
+                .session_service
+                .get_session(&token)
+                .await
+                .map_err(|e| IdpError::Internal(e.to_string()))?
+            {
+                self.session_service
+                    .revoke_session(&session.id)
+                    .await
+                    .map_err(|e| IdpError::Internal(e.to_string()))?;
+            }
+        }
+        let headers = self
+            .session_service
+            .clearing_cookies()
+            .iter()
+            .map(|c| ("Set-Cookie".to_string(), c.to_set_cookie_string()))
+            .collect();
+        Ok(HandlerResponse {
+            status: 200,
+            body: serde_json::json!({ "status": "logged_out" }),
+            headers,
+        })
     }
 
     // ─── F03: User Registration ────────────────────────────────────────────────
@@ -2059,7 +2099,7 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         } else if path.ends_with("/auth/v1/mfa") {
             self.mfa(bag, req).await
         } else if path.ends_with("/auth/v1/oidc/logout") {
-            self.logout(bag, req)
+            self.logout(bag, req).await
         }
         // F03 registration routes
         else if path.ends_with("/auth/v1/users/register") {

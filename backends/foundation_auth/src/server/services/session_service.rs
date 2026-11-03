@@ -57,6 +57,22 @@ impl SessionService {
         Ok(Self::new(Arc::new(mgr)))
     }
 
+    /// Cookies that clear the session cookies in the browser (same names and
+    /// path, empty value, `Max-Age=0`).
+    #[must_use]
+    pub fn clearing_cookies(&self) -> Vec<Cookie> {
+        let config = self.session_mgr.config();
+        [&config.token_cookie_name, &config.data_cookie_name]
+            .into_iter()
+            .map(|name| {
+                Cookie::new(name, "")
+                    .path("/")
+                    .max_age(std::time::Duration::ZERO)
+                    .http_only(true)
+            })
+            .collect()
+    }
+
     /// The name of the session token cookie.
     #[must_use]
     pub fn token_cookie_name(&self) -> &str {

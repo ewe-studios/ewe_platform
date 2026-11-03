@@ -6,6 +6,7 @@
 #![cfg(feature = "server-test")]
 
 mod expiry;
+mod session;
 mod single_use;
 mod social;
 mod totp;
