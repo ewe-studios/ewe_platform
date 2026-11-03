@@ -28,7 +28,7 @@ const PASSWORD: &str = "ValidPass123!";
 pub(crate) struct Env {
     pub(crate) client: DynNetClient,
     pub(crate) storage: Arc<HandlerStorage<MemoryStorage>>,
-    shutdown: Arc<ShutdownSignal>,
+    pub(crate) shutdown: Arc<ShutdownSignal>,
     handle: Option<std::thread::JoinHandle<()>>,
 }
 
@@ -94,9 +94,11 @@ pub(crate) fn start_raw(config: IdpConfig) -> Env {
     let addr = listener.local_addr().expect("local_addr failed");
     let server_config = ServerConfig::defaults()
         .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
-    let app = IdpServer::new(config.with_dev_mode(true), Arc::clone(&storage))
-        .with_social_login(Arc::new(MemoryAuthSessionStore::new()))
-        .http_app();
+    let idp = IdpServer::new(config.with_dev_mode(true), Arc::clone(&storage))
+        .with_social_login(Arc::new(MemoryAuthSessionStore::new()));
+    idp.start_sweeper(Arc::clone(&shutdown))
+        .expect("start the cache sweeper");
+    let app = idp.http_app();
     let server = HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), server_config);
     let shutdown_thread = Arc::clone(&shutdown);
     let handle = std::thread::spawn(move || {

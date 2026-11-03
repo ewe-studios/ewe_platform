@@ -136,6 +136,10 @@ pub struct IdpConfig {
     /// one most authenticator apps support). A stored secret keeps the hash it
     /// was enrolled with.
     pub totp_algorithm: crate::shared::two_factor::TotpAlgorithm,
+    /// How often the server deletes expired short-lived entries (ToS codes,
+    /// MFA challenges, PoW challenges) from the cache; see
+    /// `IdpServer::start_sweeper`. Default 5 minutes.
+    pub sweep_interval: Duration,
 }
 
 /// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
@@ -164,6 +168,7 @@ impl IdpConfig {
             secure_cookies: true,
             totp_enrollment_ttl: Duration::from_secs(300),
             totp_algorithm: crate::shared::two_factor::TotpAlgorithm::default(),
+            sweep_interval: Duration::from_secs(300),
         }
     }
 
@@ -226,6 +231,14 @@ impl IdpConfig {
         self
     }
 
+    /// Set how often expired cache entries are deleted (see
+    /// [`sweep_interval`](Self::sweep_interval)).
+    #[must_use]
+    pub fn with_sweep_interval(mut self, interval: Duration) -> Self {
+        self.sweep_interval = interval;
+        self
+    }
+
     /// Set the hash new TOTP secrets use (see
     /// [`totp_algorithm`](Self::totp_algorithm)).
     #[must_use]
@@ -285,6 +298,7 @@ impl core::fmt::Debug for IdpConfig {
             .field("secure_cookies", &self.secure_cookies)
             .field("totp_enrollment_ttl", &self.totp_enrollment_ttl)
             .field("totp_algorithm", &self.totp_algorithm)
+            .field("sweep_interval", &self.sweep_interval)
             .finish_non_exhaustive()
     }
 }

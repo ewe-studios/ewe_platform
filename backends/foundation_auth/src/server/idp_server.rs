@@ -1,10 +1,15 @@
 use std::sync::Arc;
+use std::time::Duration;
+
+use foundation_core::valtron::{execute, from_future, sleep_async};
+use foundation_http::ShutdownSignal;
 
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
 use foundation_http::SimpleMethod;
 
 use super::config::IdpConfig;
+use super::handlers::IdpError;
 use super::handlers::ServeAdapter;
 use super::services::SessionService;
 use super::storage::{HandlerStorage, StorageOpError};
@@ -55,6 +60,38 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     /// Returns [`StorageOpError`] if a cache call fails.
     pub async fn sweep_expired(&self) -> Result<usize, StorageOpError> {
         self.storage.sweep_expired().await
+    }
+
+    /// Start the cache sweeper: a valtron task that calls
+    /// [`sweep_expired`](Self::sweep_expired) every `IdpConfig::sweep_interval`
+    /// (default 5 minutes) and ends when `shutdown` is set. Pass the signal you
+    /// give to the HTTP server. Needs an initialised valtron pool.
+    ///
+    /// The task sleeps with the valtron timer (no thread, no worker is held
+    /// while it waits) and checks `shutdown` at least every 500 ms.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError::Internal`] if the valtron pool is not initialised.
+    pub fn start_sweeper(&self, shutdown: Arc<ShutdownSignal>) -> Result<(), IdpError> {
+        let storage = Arc::clone(&self.storage);
+        let interval = self.config.sweep_interval;
+        let slice = interval.min(Duration::from_millis(500));
+        let task = from_future(async move {
+            while !shutdown.probe() {
+                if let Err(e) = storage.sweep_expired().await {
+                    eprintln!("IdP cache sweep failed: {e}");
+                }
+                let mut waited = Duration::ZERO;
+                while waited < interval && !shutdown.probe() {
+                    sleep_async(slice).await;
+                    waited += slice;
+                }
+            }
+        });
+        // The task runs on the pool; the handle is not needed.
+        execute(task, None).map_err(|e| IdpError::Internal(format!("valtron: {e}")))?;
+        Ok(())
     }
 
     /// Turn on social login: the routes `GET {prefix}/authorize?provider=...`

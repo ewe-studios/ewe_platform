@@ -8,11 +8,11 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use foundation_auth::server::models::{OAuthClient, PendingLogin, TosVersion};
+use foundation_auth::server::models::{OAuthClient, PendingLogin};
 use foundation_auth::server::services::{create_client_record, TosService};
 use foundation_auth::server::storage;
 use foundation_core::valtron::{valtron_test, BlockingFutureExt};
-use foundation_db::{DataValue, QueryStore};
+use foundation_db::DataValue;
 use foundation_netio::shared::http::SimpleHeader;
 use foundation_netio::PreparedRequestBuilder;
 
