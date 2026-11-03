@@ -227,6 +227,10 @@ impl AsyncQueryStream {
     }
 
     /// Collect all remaining rows into a Vec.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first row error the stream yields.
     pub async fn collect_all(self) -> StorageResult<Vec<SqlRow>> {
         self.inner.collect::<Vec<_>>().await.into_iter().collect()
     }
@@ -261,6 +265,10 @@ impl AsyncListStream {
     }
 
     /// Collect all remaining keys into a Vec.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first key error the stream yields.
     pub async fn collect_all(self) -> StorageResult<Vec<String>> {
         self.inner.collect::<Vec<_>>().await.into_iter().collect()
     }

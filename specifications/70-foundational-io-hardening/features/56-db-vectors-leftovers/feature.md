@@ -1,6 +1,6 @@
 ---
 feature: "foundation_db and foundation_vectors leftovers: timestamp units, rate-limit dead code, recursion lint, code-graph clippy"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
@@ -98,4 +98,4 @@ cargo clippy -p foundation_vectors --profile dev --all-targets --all-features 2>
 
 ## Done when
 
-- [ ] E1–E9 fixed and their entries deleted; the wrangler type test passes 20/20. CI green.
+- [x] E1–E9 fixed and their entries deleted; the wrangler type test passes 20/20. CI green.

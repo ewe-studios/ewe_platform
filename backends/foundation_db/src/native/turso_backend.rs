@@ -165,17 +165,16 @@ impl TursoStorage {
 
     fn turso_row_to_sql_row(
         row: &turso::Row,
-        column_count: i32,
+        column_count: usize,
         column_names: &[String],
     ) -> StorageResult<SqlRow> {
-        let mut columns = Vec::with_capacity(column_count.unsigned_abs() as usize);
+        let mut columns = Vec::with_capacity(column_count);
         for i in 0..column_count {
             let name = column_names
-                .get(i as usize)
+                .get(i)
                 .cloned()
                 .unwrap_or_else(|| format!("col{i}"));
-            #[allow(clippy::cast_sign_loss)]
-            let value = Self::turso_value_to_data_value(row.get_value(i as usize)?);
+            let value = Self::turso_value_to_data_value(row.get_value(i)?);
             columns.push((name, value));
         }
         Ok(SqlRow::new(columns))
@@ -531,10 +530,9 @@ impl TursoStorage {
             while let Some(row) = rows.next().await
                 .map_err(|e| StorageError::Backend(e.to_string()))?
             {
-                #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
                 yield Self::turso_row_to_sql_row(
                     &row,
-                    row.column_count() as i32,
+                    row.column_count(),
                     &column_names,
                 )?;
             }

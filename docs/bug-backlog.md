@@ -121,11 +121,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 ## 11. foundation_db and its sync callers
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
-- **`foundation_db` has clippy debt, so `clippy-deny-warnings` is off for it.** With
-  `cargo clippy -p foundation_db --all-targets --no-deps -- -D warnings`: 12 errors in default
-  features, 25 with `libsql` (`i32`/`usize` cast truncation and sign loss, missing `# Errors`
-  sections, others). Fix: clear them, then set `clippy-deny-warnings = true` in
-  `ci/packages.toml` (with `clippy-runs = ["", "libsql"]`).
 - **`StateStore` has no conditional write.** `set` always replaces. Two processes that read a
   resource, change it and `set` it lose one update (a lost update), and the proxy state lock
   (`foundation_proxy`) exists only to hide this. `FileStateStore::set` is atomic now (temp

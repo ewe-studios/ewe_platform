@@ -7,9 +7,9 @@
 //! `libsql::Connection`, shared across all modes.
 //!
 //! HOW: Different constructors for different usage modes:
-//!   - `LibsqlStore::new_kv()` — KV/query/rate-limit/blob store (kv_store, rate_limits, blobs tables)
-//!   - `LibsqlStore::new_state()` — StateStore (table: `{project}_{stage}_resources`)
-//!   - `LibsqlStore::new_state_remote()` — StateStore with Turso remote sync
+//!   - `LibsqlStore::new_kv()` — KV/query/rate-limit/blob store (`kv_store`, `rate_limits`, blobs tables)
+//!   - `LibsqlStore::new_state()` — `StateStore` (table: `{project}_{stage}_resources`)
+//!   - `LibsqlStore::new_state_remote()` — `StateStore` with Turso remote sync
 //!
 //! The KV/query/rate-limit/blob side implements only the `Async*` storage
 //! traits, and the constructors are `async fn`s. Its `StateStore` impl is async too: queries
@@ -67,7 +67,9 @@ fn escape_like(s: &str) -> String {
 
 fn parse_state_row(row: &libsql::Row) -> Result<ResourceState, StorageError> {
     let get = |idx: usize| {
-        row.get::<String>(idx as i32)
+        let column = i32::try_from(idx)
+            .map_err(|e| StorageError::SqlConversion(format!("column index {idx}: {e}")))?;
+        row.get::<String>(column)
             .map_err(|e| StorageError::SqlConversion(e.to_string()))
     };
     let id = get(0)?;
@@ -192,13 +194,13 @@ const STATE_COLUMNS: &str =
 
 #[derive(Clone)]
 enum LibsqlMode {
-    /// KV/query/rate-limit/blob store. Uses kv_store, rate_limits, blobs tables.
+    /// KV/query/rate-limit/blob store. Uses `kv_store`, `rate_limits`, blobs tables.
     KeyValue {
         encryption_key: Option<EncryptionKey>,
     },
-    /// StateStore. Table name = `{project}_{stage}_resources`.
+    /// `StateStore`. Table name = `{project}_{stage}_resources`.
     State { table_name: String },
-    /// StateStore with Turso remote sync. Table name = `{project}_{stage}_resources`.
+    /// `StateStore` with Turso remote sync. Table name = `{project}_{stage}_resources`.
     StateRemote { table_name: String },
 }
 
@@ -269,7 +271,7 @@ impl LibsqlStore {
 
     // ========== State-mode constructors ==========
 
-    /// Local-only StateStore.
+    /// Local-only `StateStore`.
     ///
     /// Table name = `{project}_{stage}_resources`.
     ///
@@ -297,7 +299,7 @@ impl LibsqlStore {
         })
     }
 
-    /// StateStore with Turso remote sync.
+    /// `StateStore` with Turso remote sync.
     ///
     /// Table name = `{project}_{stage}_resources`.
     ///
@@ -349,7 +351,7 @@ impl LibsqlStore {
         Self::new_kv(&path, None).await
     }
 
-    /// StateStore from environment.
+    /// `StateStore` from environment.
     ///
     /// Priority:
     ///   1. `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` → remote Turso

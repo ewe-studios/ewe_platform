@@ -1,7 +1,7 @@
 //! D1+R2 `DocumentStore` integration tests (F23) against a local
 //! wrangler/miniflare worker emulating Cloudflare D1 + R2.
 //!
-//! WHY: `D1R2DocumentStore` is the Cloudflare DocumentStore — D1 is the ordered
+//! WHY: `D1R2DocumentStore` is the Cloudflare `DocumentStore` — D1 is the ordered
 //! SQL index, R2 holds large document blobs offloaded past the 4 KB SQLite page
 //! threshold. The store logic is target-agnostic (`D1R2DocumentStore<Q, B>`), so
 //! we exercise the exact same code natively here over `D1Store` (D1 REST) +

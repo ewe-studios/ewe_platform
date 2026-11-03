@@ -209,6 +209,9 @@ wasm-runs = ["--no-default-features --features wasm"]
 [packages.foundation_db]
 # `libsql` adds the libsql KV/state/document-store and rate-limit tests.
 runs = ["", "libsql"]
+clippy-runs = ["", "libsql"]
+# At zero clippy warnings in both feature trees (spec 70 feature 56): a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 # Plain wasm (no JS host), and with the Cloudflare bindings
 # (`wasm-bindgen-storage` turns on valtron's JS mode).

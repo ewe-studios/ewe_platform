@@ -1,7 +1,7 @@
 //! `KeyValueStore::take`: read and remove a key in one step.
 //!
 //! Two callers that take the same key at the same time must not both get the
-//! value. Single-use codes (ToS codes, MFA challenges) rely on this. Every
+//! value. Single-use codes (`ToS` codes, MFA challenges) rely on this. Every
 //! backend that can guarantee it is tested here with 20 threads on one key.
 
 #![recursion_limit = "256"]
@@ -75,7 +75,7 @@ fn memory_json_take_is_atomic() {
 #[valtron_test(threads = 8, timeout = 60000)]
 fn json_file_take_is_atomic() {
     let dir = TempDir::new().unwrap();
-    check_take(JsonFileStorage::new(&dir.path().join("kv.json")).unwrap());
+    check_take(JsonFileStorage::new(dir.path().join("kv.json")).unwrap());
 }
 
 #[valtron_test(threads = 8, timeout = 60000)]
