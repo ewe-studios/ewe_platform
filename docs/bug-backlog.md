@@ -259,19 +259,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
 
 ## 25. foundation_auth
 
-Found while building the ToS login gate (spec 70 feature 68, 2026-11-03) and its security follow-ups (feature 73). Feature 73 fixed the atomic take, cache expiry, TOTP enrollment/encryption/replay, social open redirect, logout and failed-attempt reset.
-
-1. `src/server/handlers/core.rs` (`register`), `foundation_db` `users` table: a user created without `preferred_username` gets a value that breaks `users.username` UNIQUE, so the second such user gets a 500 (`UNIQUE constraint failed: users.username`). Fix: store NULL (or make the column nullable-unique) when no username is given.
-2. `src/server/idp_server.rs`, `services/session_service.rs`: the default `SessionService` is in-memory with a random key, so sessions end when the process stops. An app built with `register_routes` only (no `http_app`) gets one session store per route, so a login session is not valid on other routes. Fix: a persistent `SessionManager` in `IdpServer`, and take the session service from the app in `register_routes`.
-3. `src/server/handlers/core.rs` (`dispatch`): routing is by `ends_with`/`contains` in a fixed order (this made `login` unreachable until feature 68; only that case was fixed). Fix: route on method and exact path.
-4. `src/server/handlers/core.rs` (`social_callback`): when the ToS gate applies, the 206 JSON answer is returned on a browser `GET` redirect flow, so the browser shows JSON. Fix: redirect to a ToS page with the code, or a front-channel flow for social login.
-5. `foundation_db` `src/core/schema/sql`: 28 SQL files but 27 entries in `MIGRATIONS`; `023_create_vectors.sql` is not registered. Register it or delete it (it may be deliberate; check the vectors crate).
-6. `foundation_db` `KeyValueStore::take` (`KVWasmStorage`, Workers KV): Workers KV has no conditional delete, so `take` there is the documented non-atomic read-then-delete. A ToS code or MFA challenge on a KV-only cache can be used twice by two simultaneous requests. Fix: keep single-use state in D1 or a Durable Object, not in Workers KV.
-7. `foundation_auth` TOTP (`src/shared/two_factor.rs`): codes are HMAC-SHA256. Common authenticator apps (for example Google Authenticator) only do SHA-1 and ignore the `algorithm` parameter of the `otpauth_uri`, so those apps make codes the server rejects. Fix: support SHA-1 (RFC 6238 default) next to SHA-256, chosen at enrollment.
-8. `foundation_auth` TOTP enrollment (`handlers/core.rs`): `enroll/confirm` allows one code attempt per `enroll/start`, but a session can call start again without limit, so a stolen session can guess first codes. Fix: count failed confirms per user and lock out, like the password attempts.
-9. `foundation_auth` `session_service.rs`/`shared/session.rs`: the session cookies are not `Secure` (the cookie builder sets `HttpOnly` and `SameSite=Lax` only). Fix: a `secure` field on `SessionConfig`, on by default.
-10. `foundation_auth` `HandlerStorage::sweep_expired`: nothing schedules it; the operator must call `IdpServer::sweep_expired` on a timer. Fix: a timer task started with the server.
-11. `foundation_auth` `social_callback`: the authorization code made after a social login has an empty `client_id` (the social session does not keep the client that `social_authorize` now checks). Fix: keep `client_id` in the upstream auth session and pass it to the code.
+(no open entries; features 68, 73 and 74 fixed the ones found in the ToS gate work)
 
 ## Paused
 
