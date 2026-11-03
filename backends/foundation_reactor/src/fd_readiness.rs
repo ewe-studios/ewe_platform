@@ -138,6 +138,12 @@ impl EventReadiness for FdReadiness {
     fn clear(&self) {
         self.readiness.clear(Ready::READABLE.union(Ready::WRITABLE));
     }
+
+    /// Delegates to the reactor readiness, which resumes the executor on every
+    /// event.
+    fn needs_polling(&self) -> bool {
+        self.readiness.needs_polling()
+    }
 }
 
 impl Drop for FdReadiness {

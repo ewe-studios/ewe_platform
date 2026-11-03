@@ -124,7 +124,6 @@ impl H3Serve for H3ProxyHandler {
             let first = match park_op(
                 &mut request,
                 read_timeout,
-                Some(POLL_BACKOFF),
                 counted(state.h3_body_gauge(), H3Request::poll_body),
             )
             .await
@@ -325,14 +324,7 @@ async fn read_headers(
     timeout: Duration,
     gauge: &BufferedBytesGauge,
 ) -> Option<Vec<(Bytes, Bytes)>> {
-    match park_op(
-        request,
-        timeout,
-        Some(POLL_BACKOFF),
-        counted(gauge, H3Request::poll_headers),
-    )
-    .await
-    {
+    match park_op(request, timeout, counted(gauge, H3Request::poll_headers)).await {
         Some(Ok(fields)) => Some(fields),
         _ => None,
     }
@@ -374,14 +366,7 @@ async fn pump_request_body(
             return Ok(());
         }
         chunk = loop {
-            match park_op(
-                request,
-                read_timeout,
-                Some(POLL_BACKOFF),
-                counted(gauge, H3Request::poll_body),
-            )
-            .await
-            {
+            match park_op(request, read_timeout, counted(gauge, H3Request::poll_body)).await {
                 Some(Ok(Some(next))) if next.is_empty() => {}
                 Some(Ok(Some(next))) => break next,
                 Some(Ok(None)) => {
@@ -419,7 +404,6 @@ fn counted<'a, T>(
 async fn park_op<T>(
     request: &mut H3Request<QuinnBidiStream>,
     limit: Duration,
-    recheck: Option<Duration>,
     mut op: impl FnMut(&mut H3Request<QuinnBidiStream>) -> Stream<Result<T, H3Error>, ()>,
 ) -> Option<Result<T, H3Error>> {
     let deadline = Instant::now() + limit;
@@ -435,15 +419,10 @@ async fn park_op<T>(
                 _ => Poll::Ready(None),
             }
         });
-        match select(
-            Box::pin(attempt),
-            Box::pin(sleep_async(recheck.map_or(remaining, |r| r.min(remaining)))),
-        )
-        .await
-        {
+        match select(Box::pin(attempt), Box::pin(sleep_async(remaining))).await {
             Either::Left((Some(result), _)) => return Some(result),
             Either::Left((None, _)) => sleep_async(POLL_BACKOFF.min(remaining)).await,
-            Either::Right(_) => {}
+            Either::Right(_) => return None,
         }
     }
 }
@@ -476,7 +455,7 @@ async fn finish(
     request: &mut H3Request<QuinnBidiStream>,
     send_timeout: Duration,
 ) -> io::Result<()> {
-    match park_op(request, send_timeout, None, H3Request::poll_finish).await {
+    match park_op(request, send_timeout, H3Request::poll_finish).await {
         Some(Ok(())) => Ok(()),
         Some(Err(e)) => Err(io::Error::other(format!("h3 finish failed: {e}"))),
         None => Err(io::Error::other("h3 finish timed out")),
@@ -492,7 +471,7 @@ async fn send_all(
     headers: bool,
     send_timeout: Duration,
 ) -> io::Result<()> {
-    let sent = park_op(request, send_timeout, None, |r| {
+    let sent = park_op(request, send_timeout, |r| {
         if headers {
             r.poll_send_headers(&mut pending)
         } else {

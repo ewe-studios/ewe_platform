@@ -38,7 +38,7 @@ use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
 use foundation_core::valtron::{
-    AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr, TaskIterator, TaskStatus,
+    AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ResumeSignal, TaskIterator, TaskStatus,
 };
 use quinn_proto::{
     ClientConfig, ConnectionHandle, DatagramEvent, Endpoint, EndpointConfig, ServerConfig,
@@ -80,6 +80,14 @@ impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         Instant::now() >= self.0
     }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.0)
+    }
+
+    fn needs_polling(&self) -> bool {
+        false
+    }
 }
 
 /// Drives one `quinn_proto::Endpoint` and every connection it routes.
@@ -101,7 +109,7 @@ pub struct QuicDriver {
     fd_readiness: Option<EventReadinessPtr>,
     /// A self-wake shared into every connection: a stream handle sets it after
     /// queueing outgoing data, so a parked driver transmits that data at once.
-    driver_woken: BoolSignal,
+    driver_woken: ResumeSignal,
     idle: Duration,
     /// A server driver keeps listening with no connections; a client driver ends.
     is_server: bool,
@@ -129,7 +137,7 @@ impl QuicDriver {
             scratch: Vec::with_capacity(MAX_DATAGRAM),
             tx_buf: Vec::with_capacity(MAX_DATAGRAM),
             fd_readiness: None,
-            driver_woken: BoolSignal::new(false),
+            driver_woken: ResumeSignal::new(false),
             idle: IDLE_POLL,
             is_server,
             done: false,

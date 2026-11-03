@@ -74,6 +74,14 @@ impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         Instant::now() >= self.0
     }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.0)
+    }
+
+    fn needs_polling(&self) -> bool {
+        false
+    }
 }
 
 // ---------------------------------------------------------------------------

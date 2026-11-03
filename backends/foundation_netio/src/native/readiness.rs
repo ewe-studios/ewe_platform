@@ -164,6 +164,14 @@ impl EventReadiness for DeadlineReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         self.expired()
     }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.deadline)
+    }
+
+    fn needs_polling(&self) -> bool {
+        false
+    }
 }
 
 /// Compose an I/O readiness signal with a deadline: ready when either is.

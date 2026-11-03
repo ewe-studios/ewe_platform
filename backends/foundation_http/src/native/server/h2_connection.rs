@@ -213,6 +213,14 @@ impl EventReadiness for DeadlinePassed {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         Instant::now() >= self.0
     }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.0)
+    }
+
+    fn needs_polling(&self) -> bool {
+        false
+    }
 }
 
 /// Ready once the server is shutting down.
@@ -221,6 +229,11 @@ struct ShutdownRequested(Arc<ShutdownSignal>);
 impl EventReadiness for ShutdownRequested {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         self.0.probe()
+    }
+
+    /// `ShutdownSignal::turn_on` asks the executor to run again.
+    fn needs_polling(&self) -> bool {
+        false
     }
 }
 

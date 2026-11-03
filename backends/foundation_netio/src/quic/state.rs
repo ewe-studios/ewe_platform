@@ -23,7 +23,7 @@ use std::sync::{Arc, Mutex};
 use std::task::Waker;
 
 use bytes::Bytes;
-use foundation_core::valtron::BoolSignal;
+use foundation_core::valtron::ResumeSignal;
 use quinn_proto::{ConnectionHandle, Dir};
 
 use super::traits::QuicConnError;
@@ -65,7 +65,7 @@ pub(crate) struct ConnState {
     /// it after queueing outgoing data (reset, write, finish, stop, close, or a
     /// datagram), so a driver parked on socket readiness transmits it at once
     /// instead of waiting for the next socket edge or timer.
-    pub(crate) driver_wake: BoolSignal,
+    pub(crate) driver_wake: ResumeSignal,
 }
 
 impl ConnState {

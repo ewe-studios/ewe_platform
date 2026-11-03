@@ -446,4 +446,12 @@ impl EventReadiness for TimedReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         self.fd.is_ready(None) || Instant::now() >= self.deadline
     }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(self.deadline)
+    }
+
+    fn needs_polling(&self) -> bool {
+        self.fd.needs_polling()
+    }
 }

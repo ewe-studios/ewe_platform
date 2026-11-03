@@ -23,7 +23,7 @@ use std::task::{Wake, Waker};
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    AnyReadiness, BoolSignal, Ctx, EventReadiness, FutureTask, Stream, TaskIterator, TaskStatus,
+    AnyReadiness, Ctx, EventReadiness, FutureTask, ResumeSignal, Stream, TaskIterator, TaskStatus,
 };
 #[cfg(unix)]
 use foundation_iogate::FdReadiness as SocketReadiness;
@@ -124,7 +124,7 @@ pub struct H3AcceptTask {
     conns: Vec<ActiveConn>,
     shutdown: Arc<ShutdownSignal>,
     /// Set by `waker`; the task parks on it.
-    woken: BoolSignal,
+    woken: ResumeSignal,
     /// One waker for the task's life, so `will_wake` dedupes its
     /// registrations.
     waker: Waker,
@@ -137,7 +137,7 @@ impl H3AcceptTask {
         app: H3App,
         shutdown: Arc<ShutdownSignal>,
     ) -> Self {
-        let woken = BoolSignal::new(false);
+        let woken = ResumeSignal::new(false);
         Self {
             accept_queue,
             accept_wakers,
@@ -151,7 +151,7 @@ impl H3AcceptTask {
 }
 
 /// A `Waker` that sets the accept task's signal (and asks the executor to run).
-struct SignalWaker(BoolSignal);
+struct SignalWaker(ResumeSignal);
 
 impl Wake for SignalWaker {
     fn wake(self: Arc<Self>) {
@@ -169,6 +169,11 @@ struct ShutdownRequested(Arc<ShutdownSignal>);
 impl EventReadiness for ShutdownRequested {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         self.0.probe()
+    }
+
+    /// `ShutdownSignal::turn_on` asks the executor to run again.
+    fn needs_polling(&self) -> bool {
+        false
     }
 }
 

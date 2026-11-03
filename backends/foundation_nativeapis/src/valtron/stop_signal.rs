@@ -67,4 +67,15 @@ impl EventReadiness for CompositeReadiness {
         // Short-circuit: if `a` is ready, don't need to check `b`.
         self.a.is_ready(dur) || self.b.is_ready(dur)
     }
+
+    fn deadline(&self) -> Option<std::time::Instant> {
+        match (self.a.deadline(), self.b.deadline()) {
+            (Some(a), Some(b)) => Some(a.min(b)),
+            (a, b) => a.or(b),
+        }
+    }
+
+    fn needs_polling(&self) -> bool {
+        self.a.needs_polling() || self.b.needs_polling()
+    }
 }

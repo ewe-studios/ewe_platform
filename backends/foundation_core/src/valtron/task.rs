@@ -70,6 +70,11 @@ pub trait EventReadiness {
     /// executor looks. So by default a worker whose only work is parked tasks
     /// re-checks them every readiness quantum (1 ms), which costs CPU while idle.
     ///
+    /// The rule: return `false` only if every transition to ready calls
+    /// [`request_executor_resume`](crate::valtron::request_executor_resume), or
+    /// happens at [`Self::deadline`]. A signal that is flipped by a raw atomic
+    /// store, or that another crate may flip without a resume, keeps the default.
+    ///
     /// Returns `true` by default (safe). A signal returns `false` when it
     /// becomes ready only by an event that calls
     /// [`request_executor_resume`](crate::valtron::request_executor_resume) (the

@@ -15,15 +15,15 @@ use std::{
 };
 
 use crate::{
+    synca::Timeable,
+    valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask},
+};
+use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
     valtron::{
         AnyResult, Ctx, EventReadinessPtr, ExecutionEngine, ExecutionIterator, State, TaskIterator,
         TaskStatus,
     },
-};
-use crate::{
-    synca::{Timeable, Timing},
-    valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask},
 };
 use foundation_compact::rng::ChaCha8Rng;
 use foundation_compact::rng::SeedableRng;
@@ -1375,16 +1375,9 @@ impl ExecutorState {
                     // every shorter timer fire late by the gap to the longest
                     // sleeper — a 10ms-polling I/O pump next to a 1s sleeper
                     // woke ~1s late, collapsing transport throughput.
-                    if let Some(min_sleep_dur) = self.sleepers.min_duration() {
-                        // A sleeper that can become ready without a wake must
-                        // still be re-checked on the caller's quantum, so do not
-                        // sleep through it to the nearest deadline.
-                        if self.sleepers.needs_polling() {
-                            return ProgressIndicator::CanProgress(None);
-                        }
-                        return ProgressIndicator::SpinWait(min_sleep_dur);
-                    }
-
+                    // The caller sleeps for `sleeper_wait`: the nearest sleeper
+                    // deadline, bounded by the readiness quantum when a sleeper
+                    // can become ready without a wake.
                     return ProgressIndicator::CanProgress(None);
                 }
 
@@ -3199,12 +3192,24 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
             // Feature 04: Check kill signal every N iterations instead of every iteration
             // This reduces overhead while still ensuring timely shutdown
+            // After a sleep the kill signal is checked at once: a shutdown
+            // interrupts the sleep, and the next sleep could last a long time
+            // now that a worker with event-driven sleepers is not re-checked on
+            // a timer.
+            let mut slept = false;
             for i in 0..200 {
                 // Check kill signal at configured interval (default: every 16 iterations)
-                if i % self.kill_signal_check_interval == 0 && kill_signal.probe() {
+                if (slept || i % self.kill_signal_check_interval == 0) && kill_signal.probe() {
                     return;
                 }
 
+                slept = false;
+                // A wake that lands between this check for work and the sleep
+                // below must not be lost: `park_idle` skips the sleep for it.
+                // Needed on every step, not only once per batch, now that a
+                // worker with event-driven sleepers is not re-checked on a timer.
+                #[cfg(not(target_family = "wasm"))]
+                crate::valtron::executors::idle_wake::checking();
                 match self.run_once() {
                     ProgressIndicator::CanProgress(_) => {
                         // The step reported progress, but when nothing is actually
@@ -3214,6 +3219,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         // `request_executor_resume`, which interrupts this wait.
                         if !self.state.has_runnable_work() && self.state.number_of_sleepers() > 0 {
                             self.yielder.yield_for(self.sleeper_wait());
+                            slept = true;
                         }
                     }
                     ProgressIndicator::NoWork => {
@@ -3237,6 +3243,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                                 .unwrap_or(self.no_work_yield)
                         };
                         self.yielder.yield_for(yield_duration);
+                        slept = true;
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         // Also check kill signal during spin wait
@@ -3245,6 +3252,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         }
 
                         self.yielder.yield_for(duration);
+                        slept = true;
                     }
                     ProgressIndicator::Wait => {
                         // A task said "re-poll me" (no deadline). Cap the wait
@@ -3257,6 +3265,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
                         self.yielder
                             .yield_for(self.no_work_yield.min(self.max_yield_duration));
+                        slept = true;
                     }
                 }
             }

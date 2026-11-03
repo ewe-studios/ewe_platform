@@ -992,4 +992,10 @@ impl foundation_core::valtron::EventReadiness for SharedReadiness {
     fn is_ready(&self, _dur: Option<Duration>) -> bool {
         self.reactor.is_ready(self.token)
     }
+
+    /// Readiness is latched only by the reactor's event drain, which calls
+    /// `request_executor_resume` after every batch of events.
+    fn needs_polling(&self) -> bool {
+        false
+    }
 }

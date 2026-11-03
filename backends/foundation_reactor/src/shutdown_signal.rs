@@ -59,6 +59,8 @@ impl ShutdownSignal {
             if let Some(reactor) = self.reactor.get() {
                 reactor.wake_waiters();
             }
+            // A task parked on this signal is re-checked by its executor.
+            foundation_core::valtron::request_executor_resume();
             true
         } else {
             false

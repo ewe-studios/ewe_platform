@@ -47,4 +47,12 @@ impl EventReadiness for TimerReadiness {
             false
         }
     }
+
+    fn deadline(&self) -> Option<Instant> {
+        Some(*self.last_ready.lock().unwrap() + self.interval)
+    }
+
+    fn needs_polling(&self) -> bool {
+        false
+    }
 }
