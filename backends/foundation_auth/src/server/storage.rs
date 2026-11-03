@@ -112,6 +112,36 @@ pub async fn find_client_by_id(
     }
 }
 
+/// Store a registered OAuth client.
+///
+/// # Errors
+///
+/// Returns [`StorageOpError`] if the operation fails.
+pub async fn store_oauth_client(
+    store: &dyn QueryStore,
+    client: &OAuthClient,
+) -> Result<(), StorageOpError> {
+    let sql = "INSERT INTO oauth_clients (id, name, client_secret_hash, redirect_uris, grant_types, scopes, is_public, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    let json = |v: &Vec<String>| {
+        serde_json::to_string(v).map_err(|e| StorageOpError::Parse(e.to_string()))
+    };
+    execute(
+        store,
+        sql,
+        &[
+            DataValue::Text(client.id.clone()),
+            DataValue::Text(client.name.clone()),
+            DataValue::Text(client.client_secret_hash.clone()),
+            DataValue::Text(json(&client.redirect_uris)?),
+            DataValue::Text(json(&client.grant_types)?),
+            DataValue::Text(json(&client.scopes)?),
+            DataValue::Integer(i64::from(client.is_public)),
+            DataValue::Integer(client.created_at),
+        ],
+    )
+    .await
+}
+
 /// Store auth code.
 ///
 /// # Errors

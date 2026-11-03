@@ -15,6 +15,7 @@ use super::super::config::IdpConfig;
 use super::super::services::SessionService;
 use super::super::storage::HandlerStorage;
 use super::core::{HandlerResponse, IdpError, IdpHandlerCore};
+use crate::shared::auth_session::memory::MemoryAuthSessionStore;
 use foundation_db::{KeyValueStore, MemoryStorage};
 
 /// Write JSON response with optional extra headers.
@@ -249,6 +250,9 @@ impl<KV: KeyValueStore + Clone + 'static> ServeFactory for ServeAdapter<KV> {
         // sessions.
         if let Some(sessions) = bag.get::<Arc<SessionService>>() {
             core = core.with_session_service(Arc::clone(&*sessions));
+        }
+        if let Some(social) = bag.get::<Arc<MemoryAuthSessionStore>>() {
+            core = core.with_social_login(Arc::clone(&*social));
         }
         Self {
             core: Arc::new(core),

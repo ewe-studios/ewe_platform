@@ -8,6 +8,7 @@ use super::config::IdpConfig;
 use super::handlers::ServeAdapter;
 use super::services::SessionService;
 use super::storage::{HandlerStorage, StorageOpError};
+use crate::shared::auth_session::memory::MemoryAuthSessionStore;
 use foundation_db::{KeyValueStore, MemoryStorage};
 
 /// The `IdP` server: routes plus the config and storage its handlers share.
@@ -18,6 +19,7 @@ pub struct IdpServer<KV: KeyValueStore + Clone + 'static = MemoryStorage> {
     config: IdpConfig,
     storage: Arc<HandlerStorage<KV>>,
     sessions: Arc<SessionService>,
+    social: Option<Arc<MemoryAuthSessionStore>>,
 }
 
 impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
@@ -36,6 +38,7 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
             config,
             storage,
             sessions,
+            social: None,
         }
     }
 
@@ -48,6 +51,14 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     /// Returns [`StorageOpError`] if a cache call fails.
     pub async fn sweep_expired(&self) -> Result<usize, StorageOpError> {
         self.storage.sweep_expired().await
+    }
+
+    /// Turn on social login: the routes `GET {prefix}/authorize?provider=...`
+    /// and `GET {prefix}/callback` keep their handshake state in this store.
+    #[must_use]
+    pub fn with_social_login(mut self, store: Arc<MemoryAuthSessionStore>) -> Self {
+        self.social = Some(store);
+        self
     }
 
     /// Use this session service for all routes. The default is an in-memory
@@ -127,6 +138,11 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
         // Stored as `Arc<SessionService>`; `ServeAdapter::create` looks up
         // exactly that type.
         app.ctx.store(self.sessions);
+        if let Some(social) = self.social {
+            // Stored as `Arc<MemoryAuthSessionStore>`; `ServeAdapter::create`
+            // looks up exactly that type.
+            app.ctx.store(social);
+        }
         Self::register_routes(&mut app, "/idp");
         if dev_mode {
             eprintln!(

@@ -7,4 +7,5 @@
 
 mod expiry;
 mod single_use;
+mod social;
 mod totp;

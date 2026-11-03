@@ -1877,6 +1877,17 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let app_redirect_uri = query_param(&query, "redirect_uri")
             .ok_or_else(|| IdpError::BadRequest("Missing 'redirect_uri' query param".into()))?;
 
+        // The authorization code is sent to this URI at the end of the login:
+        // it must be one the client registered (exact match), like in `login`.
+        let client_id = query_param(&query, "client_id")
+            .ok_or_else(|| IdpError::BadRequest("Missing 'client_id' query param".into()))?;
+        let app_client = find_client_by_id(self.storage.query_store.as_ref(), client_id)
+            .await?
+            .ok_or_else(|| IdpError::BadRequest("Unknown client_id".into()))?;
+        if !app_client.allows_redirect(app_redirect_uri) {
+            return Err(IdpError::BadRequest("redirect_uri not allowed".into()));
+        }
+
         let provider = lookup_upstream_provider(self.storage.query_store.as_ref(), provider_id)
             .await
             .map_err(|e| IdpError::Internal(format!("provider lookup: {e}")))?

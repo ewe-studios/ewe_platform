@@ -12,6 +12,7 @@ use foundation_auth::server::models::TosVersion;
 use foundation_auth::server::services::{MfaService, TosService};
 use foundation_auth::server::storage::{self, HandlerStorage};
 use foundation_auth::server::{IdpConfig, IdpServer, TotpKeyRing};
+use foundation_auth::shared::auth_session::memory::MemoryAuthSessionStore;
 use foundation_auth::TOTPSecret;
 use foundation_core::valtron::{valtron_test, BlockingFutureExt};
 use foundation_db::{MemoryStorage, QueryStore};
@@ -93,7 +94,9 @@ pub(crate) fn start_raw(config: IdpConfig) -> Env {
     let addr = listener.local_addr().expect("local_addr failed");
     let server_config = ServerConfig::defaults()
         .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
-    let app = IdpServer::new(config.with_dev_mode(true), Arc::clone(&storage)).http_app();
+    let app = IdpServer::new(config.with_dev_mode(true), Arc::clone(&storage))
+        .with_social_login(Arc::new(MemoryAuthSessionStore::new()))
+        .http_app();
     let server = HttpServer::with_config(app, &format!("127.0.0.1:{}", addr.port()), server_config);
     let shutdown_thread = Arc::clone(&shutdown);
     let handle = std::thread::spawn(move || {
@@ -137,6 +140,21 @@ impl Env {
             .unwrap()
             .body_text(body.to_string())
             .header(SimpleHeader::CONTENT_TYPE, "application/json");
+        if let Some(cookie) = cookie {
+            builder = builder.header(SimpleHeader::COOKIE, cookie);
+        }
+        let (status, headers, body) = self.client.send(builder.build()).unwrap().into_parts();
+        let text = read_body(body);
+        Reply {
+            status: status.into_usize(),
+            headers,
+            body: serde_json::from_str(&text).unwrap_or(serde_json::Value::Null),
+        }
+    }
+
+    pub(crate) fn get(&self, path_and_query: &str, cookie: Option<&str>) -> Reply {
+        let mut builder =
+            PreparedRequestBuilder::get(&format!("http://testserver{path_and_query}")).unwrap();
         if let Some(cookie) = cookie {
             builder = builder.header(SimpleHeader::COOKIE, cookie);
         }
