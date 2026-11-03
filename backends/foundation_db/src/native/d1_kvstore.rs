@@ -61,15 +61,31 @@ fn escape_like(s: &str) -> String {
 
 /// Convert one [`DataValue`] into the JSON parameter shape the D1 REST API
 /// expects.
-fn data_value_to_json(value: &DataValue) -> serde_json::Value {
-    match value {
+///
+/// # Errors
+///
+/// Returns [`StorageError::SqlConversion`] for a `Real` that is NaN or
+/// infinite: JSON has no such number, and sending `null` instead would store
+/// NULL without any error.
+fn data_value_to_json(value: &DataValue) -> Result<serde_json::Value, StorageError> {
+    Ok(match value {
         DataValue::Null => serde_json::Value::Null,
         DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
         DataValue::Real(f) => serde_json::Number::from_f64(*f)
-            .map_or(serde_json::Value::Null, serde_json::Value::Number),
+            .map(serde_json::Value::Number)
+            .ok_or_else(|| {
+                StorageError::SqlConversion(format!(
+                    "non-finite REAL parameter ({f}) can not be sent to D1"
+                ))
+            })?,
         DataValue::Text(s) => serde_json::Value::String(s.clone()),
         DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
-    }
+    })
+}
+
+/// Convert a parameter list, failing on the first value that has no JSON form.
+fn params_to_json(params: &[DataValue]) -> Result<Vec<serde_json::Value>, StorageError> {
+    params.iter().map(data_value_to_json).collect()
 }
 
 // ---- State mode row parsing ----
@@ -726,7 +742,7 @@ impl KeyValueStore for D1Store {
 #[async_trait::async_trait]
 impl QueryStore for D1Store {
     async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
-        let json_params: Vec<serde_json::Value> = params.iter().map(data_value_to_json).collect();
+        let json_params = params_to_json(params)?;
         let response = self.execute_sql_async(sql, &json_params).await?;
         let rows: Vec<SqlRow> = Self::extract_rows(&response)
             .iter()
@@ -762,17 +778,7 @@ impl QueryStore for D1Store {
     }
 
     async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
-        let json_params: Vec<serde_json::Value> = params
-            .iter()
-            .map(|v| match v {
-                DataValue::Null => serde_json::Value::Null,
-                DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
-                DataValue::Real(f) => serde_json::Number::from_f64(*f)
-                    .map_or(serde_json::Value::Null, serde_json::Value::Number),
-                DataValue::Text(s) => serde_json::Value::String(s.clone()),
-                DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
-            })
-            .collect();
+        let json_params = params_to_json(params)?;
         let response = self.execute_sql_async(sql, &json_params).await?;
         let affected = response
             .result
@@ -801,11 +807,13 @@ impl QueryStore for D1Store {
         // whole batch rolls back.
         let batch = statements
             .iter()
-            .map(|(sql, params)| D1SingleQuery {
-                sql: sql.clone(),
-                params: Some(params.iter().map(data_value_to_json).collect()),
+            .map(|(sql, params)| {
+                Ok(D1SingleQuery {
+                    sql: sql.clone(),
+                    params: Some(params_to_json(params)?),
+                })
             })
-            .collect();
+            .collect::<Result<Vec<_>, StorageError>>()?;
         let response = self
             .post_query(&D1BatchQuery::MultipleQueries { batch })
             .await?;

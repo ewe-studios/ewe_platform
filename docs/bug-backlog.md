@@ -137,11 +137,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   Cloudflare account that sends an integer, a real and null to `/query` and reads
   back `typeof()`; if the hosted API rejects them, drop the overlay and convert
   values to strings in `d1_kvstore.rs`.
-- **D1 `Real` parameters that are NaN or infinite silently become `NULL`.**
-  `data_value_to_json` in `src/native/d1_kvstore.rs` maps `serde_json::Number::
-  from_f64` failure to `Value::Null`, so `execute(sql, [Real(NaN)])` writes NULL
-  without an error. Fix: return `StorageError::SqlConversion` for a non-finite
-  value (and give `data_value_to_json` a `Result` type).
 - **D1 `/query` responses are read whole, with no size cap.**
   `D1Store::post_query` calls `collect_string_async` on the body, so a large
   `SELECT` is buffered in memory in full (CLAUDE.md rule 4). Fix: add a response
