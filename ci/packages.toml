@@ -22,6 +22,10 @@
 #   wasm-runs       = [...]   one `cargo check --target wasm32` per entry, same
 #                             feature-flag syntax as `runs`. Only the wasm-
 #                             relevant crates set this.
+#   clippy-deny-warnings = true  pass `--no-deps -- -D warnings` to every clippy run of this
+#                             package, so a clippy warning fails CI. Default
+#                             false. Set it only for packages at zero warnings
+#                             (with every feature tree in `clippy-runs`).
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
 #   reason          = "why"   shown next to report-only failures
@@ -189,6 +193,8 @@ wasm-runs = ["", "--no-default-features --features workers"]
 runs = ["", "server-test"]
 # Clippy covers the server tree too, so its lint count stays at zero.
 clippy-runs = ["", "server-test"]
+# At zero clippy warnings: a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
@@ -292,3 +298,10 @@ test = "enforce"
 wasm = "off"
 timeout-minutes = 90
 env = { MISE_ENV = "wasm" }
+
+# At zero clippy warnings (spec 70 feature 55): a new one fails CI.
+[packages.foundation_openapi]
+clippy-deny-warnings = true
+
+[packages.foundation_codegentools]
+clippy-deny-warnings = true

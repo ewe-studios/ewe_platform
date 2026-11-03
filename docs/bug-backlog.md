@@ -76,11 +76,6 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 8. foundation_openapi / foundation_codegentools
 
-- **Clippy warnings do not fail CI for these crates.** `ci/packages.toml` sets
-  `clippy = "enforce"`, but `scripts/ci/ci.py` runs clippy without `-D warnings`, so
-  only errors fail. The debt in this section built up that way. Fix: run clippy with
-  `-D warnings` for `foundation_openapi` and `foundation_codegentools` (feature 55 has
-  them at zero), or add a per-package `clippy-deny` setting.
 - **`genapi generate` runs `cargo fix` on the whole generated crate.** The post-step in
   `cli/gen_api.rs` compiles every generated group crate. On the Cloudflare crate it took
   about 5 minutes in a dev build, most of a regeneration. Fix: make the step optional
@@ -131,6 +126,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 ## 11. foundation_db and its sync callers
 
 Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
+- **`foundation_db` has clippy debt, so `clippy-deny-warnings` is off for it.** With
+  `cargo clippy -p foundation_db --all-targets --no-deps -- -D warnings`: 12 errors in default
+  features, 25 with `libsql` (`i32`/`usize` cast truncation and sign loss, missing `# Errors`
+  sections, others). Fix: clear them, then set `clippy-deny-warnings = true` in
+  `ci/packages.toml` (with `clippy-runs = ["", "libsql"]`).
 - **Auth tables mix timestamp units.** The `created_at` defaults in the core
   migrations are milliseconds (`strftime('%s','now') * 1000`), while
   `AsyncStorageCleanup` compares `expires_at` with Unix seconds and the IdP
