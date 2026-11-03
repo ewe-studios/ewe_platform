@@ -343,10 +343,16 @@ pub trait KeyValueStore: Send + Sync {
     /// | `KVWasmStorage` (Workers KV) | **no**: KV has no conditional delete, so this default is used |
     /// | `StorageProvider` | as the backend it wraps |
     ///
+    /// [`take_is_atomic`](Self::take_is_atomic) tells which case a store is.
+    ///
     /// The default is a read then a delete. It is **not atomic**: two callers
     /// can both read the value before either deletes it. A backend that
     /// cannot do better keeps it; a caller that needs single use on such a
     /// backend must add its own guard.
+    fn take_is_atomic(&self) -> bool {
+        false
+    }
+
     async fn take<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,

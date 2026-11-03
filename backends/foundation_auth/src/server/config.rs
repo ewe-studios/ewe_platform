@@ -140,6 +140,12 @@ pub struct IdpConfig {
     /// MFA challenges, PoW challenges) from the cache; see
     /// `IdpServer::start_sweeper`. Default 5 minutes.
     pub sweep_interval: Duration,
+    /// Accept a cache whose `take` is not atomic (for example Workers KV).
+    /// Default `false`: `IdpServer::try_new` refuses such a cache, because a
+    /// ToS code or MFA challenge in it could be used twice by two requests at
+    /// the same time. Use D1 or a Durable Object for single-use data instead;
+    /// turn this on only if you accept that risk.
+    pub allow_non_atomic_cache: bool,
 }
 
 /// Default for [`IdpConfig::max_request_body_bytes`]: 1 MiB (nginx's
@@ -169,6 +175,7 @@ impl IdpConfig {
             totp_enrollment_ttl: Duration::from_secs(300),
             totp_algorithm: crate::shared::two_factor::TotpAlgorithm::default(),
             sweep_interval: Duration::from_secs(300),
+            allow_non_atomic_cache: false,
         }
     }
 
@@ -228,6 +235,14 @@ impl IdpConfig {
     #[must_use]
     pub fn with_secure_cookies(mut self, secure: bool) -> Self {
         self.secure_cookies = secure;
+        self
+    }
+
+    /// Accept a cache whose `take` is not atomic (see
+    /// [`allow_non_atomic_cache`](Self::allow_non_atomic_cache)).
+    #[must_use]
+    pub fn with_allow_non_atomic_cache(mut self, allow: bool) -> Self {
+        self.allow_non_atomic_cache = allow;
         self
     }
 
@@ -299,6 +314,7 @@ impl core::fmt::Debug for IdpConfig {
             .field("totp_enrollment_ttl", &self.totp_enrollment_ttl)
             .field("totp_algorithm", &self.totp_algorithm)
             .field("sweep_interval", &self.sweep_interval)
+            .field("allow_non_atomic_cache", &self.allow_non_atomic_cache)
             .finish_non_exhaustive()
     }
 }

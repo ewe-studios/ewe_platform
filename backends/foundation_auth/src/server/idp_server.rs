@@ -32,10 +32,40 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
     ///
     /// # Panics
     ///
-    /// Never in practice: it panics only if building the default in-memory
-    /// session service fails, and a 32-byte random key is always valid.
+    /// Panics if the cache cannot make single-use data single use (see
+    /// [`try_new`](Self::try_new)); use `try_new` to handle that error. It
+    /// also panics if building the default in-memory session service fails,
+    /// which does not happen: a 32-byte random key is always valid.
     #[must_use]
     pub fn new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>) -> Self {
+        Self::try_new(config, storage).unwrap_or_else(|e| panic!("{e}"))
+    }
+
+    /// Build the server over a config and storage, or refuse.
+    ///
+    /// `ToS` codes and MFA challenges live in the cache and must work once. That
+    /// needs an atomic `KeyValueStore::take`. A cache without it (Workers KV)
+    /// is refused unless `IdpConfig::allow_non_atomic_cache` is set. Use D1
+    /// or a Durable Object for the cache instead.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IdpError::Internal`] if the cache `take` is not atomic and the
+    /// risk is not accepted.
+    ///
+    /// # Panics
+    ///
+    /// Never in practice: it panics only if building the default in-memory
+    /// session service fails, and a 32-byte random key is always valid.
+    pub fn try_new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>) -> Result<Self, IdpError> {
+        if !storage.cache.take_is_atomic() && !config.allow_non_atomic_cache {
+            return Err(IdpError::Internal(
+                "the cache has no atomic take, so one-time codes (ToS codes, MFA challenges) \
+                 could be used twice by two simultaneous requests. Use a cache with an atomic \
+                 take (memory, SQL, D1) or set IdpConfig::allow_non_atomic_cache to accept the risk"
+                    .into(),
+            ));
+        }
         let sessions = Arc::new(
             SessionService::in_memory_with(crate::shared::session::SessionConfig {
                 secure_cookies: config.secure_cookies,
@@ -43,12 +73,12 @@ impl<KV: KeyValueStore + Clone + 'static> IdpServer<KV> {
             })
             .expect("a 32-byte signing key is a valid session key"),
         );
-        Self {
+        Ok(Self {
             config,
             storage,
             sessions,
             social: None,
-        }
+        })
     }
 
     /// Delete expired short-lived state (`ToS` codes, MFA challenges, `PoW`

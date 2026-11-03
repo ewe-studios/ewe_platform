@@ -58,10 +58,7 @@ async fn types_of(store: &D1Store, table: &str, id: i64) -> [String; 4] {
 
 async fn make_table(store: &D1Store, table: &str) {
     store
-        .execute(
-            &format!("CREATE TABLE {table} (id, i, r, n, t)"),
-            &[],
-        )
+        .execute(&format!("CREATE TABLE {table} (id, i, r, n, t)"), &[])
         .await
         .unwrap();
 }
@@ -228,7 +225,10 @@ async fn d1_i64_extremes_round_trip_wrangler() {
         .await;
         assert_eq!(found.len(), 1);
         assert_eq!(found[0].get_by_name::<String>("ti").unwrap(), "integer");
-        assert_eq!(found[0].get_by_name::<String>("txt").unwrap(), value.to_string());
+        assert_eq!(
+            found[0].get_by_name::<String>("txt").unwrap(),
+            value.to_string()
+        );
         assert_eq!(found[0].get_by_name::<i64>("same").unwrap(), 1);
     }
 

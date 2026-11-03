@@ -205,6 +205,13 @@ async fn d1_error_body_is_read_up_to_its_cap_only() {
         panic!("expected a Backend error, got {err:?}");
     };
     assert!(msg.contains("500"), "status in the message: {msg}");
-    assert!(msg.contains("BOOM"), "start of the body in the message: {msg}");
-    assert!(msg.len() < 200, "the body is bounded, got {} bytes", msg.len());
+    assert!(
+        msg.contains("BOOM"),
+        "start of the body in the message: {msg}"
+    );
+    assert!(
+        msg.len() < 200,
+        "the body is bounded, got {} bytes",
+        msg.len()
+    );
 }

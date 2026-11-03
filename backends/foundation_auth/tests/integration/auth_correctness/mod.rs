@@ -4,6 +4,7 @@
 
 #![cfg(feature = "server-test")]
 
+mod cache_guard;
 mod cookies;
 mod enrollment;
 mod register;

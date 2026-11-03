@@ -610,6 +610,10 @@ impl KeyValueStore for TursoStorage {
         self.delete_async_internal(key).await
     }
 
+    fn take_is_atomic(&self) -> bool {
+        true
+    }
+
     async fn take<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,

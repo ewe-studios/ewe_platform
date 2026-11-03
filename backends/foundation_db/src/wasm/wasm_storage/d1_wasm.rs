@@ -357,6 +357,10 @@ impl KeyValueStore for D1WasmStorage {
         foundation_compact::SendWrapper::new(async move { self.delete_async(key).await }).await
     }
 
+    fn take_is_atomic(&self) -> bool {
+        true
+    }
+
     async fn take<V: serde::de::DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
