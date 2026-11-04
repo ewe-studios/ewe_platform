@@ -101,6 +101,15 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   Likely cause: the test pool for one test stops while a body thread of another test still calls
   `execute`, or the `valtron_test` timeout drops the pool too early. Fix: give each test its own
   pool and make the body thread end before the test ends; then stress the suite under load.
+- **The idle CPU tests measure the threads of other tests.** File:
+  `backends/foundation_core/tests/valtron/readiness_deadline_tests.rs:300-400`. Problem: the
+  tests read `/proc/self/task` and keep every thread whose name ends in `valtron::readin`, which
+  is the 15-character truncation of the module path. Pool worker threads inherit the name of the
+  thread that starts them, so the workers of another test in the same binary match too. A full
+  run under load showed 9 wake-ups and 1.8 ms of CPU on threads of another test, and the bound of
+  2 ms then failed. Likely fix: name each pool's workers after the pool (or the test), then match
+  that name, or compare the two phases of one test only, as
+  `worker_with_event_driven_sleeper_uses_less_cpu_than_a_polling_one` does.
 
 ## 5. foundation_nostd / foundation_wasm / foundation_iogate
 

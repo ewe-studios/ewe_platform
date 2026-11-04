@@ -46,7 +46,9 @@ mise_lock = "mise.lock"
 #   .agents                       agent docs, not a build input
 #   artefacts/models/whisper.cpp  model weights (Hugging Face LFS), not a
 #                                 build input
-submodules = ["tools/llama.cpp", "tools/whisper.cpp", "tools/emsdk"]
+# tools/whisper.cpp is not a submodule in master (commit 2512754fa "FIX: subs"),
+# so it is not baked. The image script fails when a listed path is not in HEAD.
+submodules = ["tools/llama.cpp", "tools/emsdk"]
 # Warm the cargo registry with `cargo fetch --locked`.
 cargo_fetch = true
 # Fail the image build if these mise pins drift from Cargo.lock.
