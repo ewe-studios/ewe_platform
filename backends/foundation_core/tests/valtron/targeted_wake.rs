@@ -68,9 +68,38 @@ impl TaskIterator for ParkThenReport {
     }
 }
 
+/// A `ResumeSignal` that records when the executor has registered its waker,
+/// that is, when the task is really parked on it.
+///
+/// WHY: setting the signal before the task parks makes the executor see a
+/// `Depends` on an already-ready signal, which it counts as a task bug and
+/// panics on after enough in a row (CI's faster runners hit that). The storm
+/// thread sets a signal only after its waker is registered.
+#[derive(Clone)]
+struct ParkedSignal {
+    signal: ResumeSignal,
+    registered: Arc<AtomicBool>,
+}
+
+impl EventReadiness for ParkedSignal {
+    fn is_ready(&self, dur: Option<Duration>) -> bool {
+        self.signal.is_ready(dur)
+    }
+
+    fn deadline(&self) -> Option<Instant> {
+        self.signal.deadline()
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let wakes = self.signal.register(waker);
+        self.registered.store(true, Ordering::SeqCst);
+        wakes
+    }
+}
+
 /// Parks on a fresh `ResumeSignal` each time it runs, until `stop` is set.
 struct ParkAgainAndAgain {
-    published: Arc<Mutex<Option<ResumeSignal>>>,
+    published: Arc<Mutex<Option<ParkedSignal>>>,
     wakes: Arc<AtomicUsize>,
     stop: Arc<AtomicBool>,
     parked: bool,
@@ -88,7 +117,10 @@ impl TaskIterator for ParkAgainAndAgain {
             return None;
         }
         self.parked = true;
-        let signal = ResumeSignal::new(false);
+        let signal = ParkedSignal {
+            signal: ResumeSignal::new(false),
+            registered: Arc::new(AtomicBool::new(false)),
+        };
         *self.published.lock().unwrap() = Some(signal.clone());
         Some(TaskStatus::Depends(Arc::new(signal)))
     }
@@ -101,7 +133,7 @@ const MAX_CHECKS: usize = 20;
 
 #[valtron_test(threads = 2, timeout = 20_000)]
 async fn a_wake_for_another_task_does_not_make_a_parked_task_re_check() {
-    let published = Arc::new(Mutex::new(None::<ResumeSignal>));
+    let published = Arc::new(Mutex::new(None::<ParkedSignal>));
     let wakes = Arc::new(AtomicUsize::new(0));
     let stop = Arc::new(AtomicBool::new(false));
 
@@ -142,15 +174,21 @@ async fn a_wake_for_another_task_does_not_make_a_parked_task_re_check() {
         std::thread::spawn(move || {
             let until = Instant::now() + Duration::from_millis(600);
             while Instant::now() < until {
-                if let Some(signal) = published.lock().unwrap().take() {
-                    signal.set(true);
-                } else {
-                    std::thread::yield_now();
+                let parked = {
+                    let mut slot = published.lock().unwrap();
+                    match slot.as_ref() {
+                        Some(s) if s.registered.load(Ordering::SeqCst) => slot.take(),
+                        _ => None,
+                    }
+                };
+                match parked {
+                    Some(signal) => signal.signal.set(true),
+                    None => std::thread::yield_now(),
                 }
             }
             stop.store(true, Ordering::SeqCst);
             if let Some(signal) = published.lock().unwrap().take() {
-                signal.set(true);
+                signal.signal.set(true);
             }
         })
     };
@@ -265,7 +303,11 @@ async fn observer_wakes(close: bool) -> u64 {
     let (ready_tx, ready_rx) = std::sync::mpsc::channel();
     let driver = std::thread::spawn(move || {
         let (observer, mut continuation) = Count(0).split_collector(move |_| !close, 8);
-        ready_tx.send(observer.readiness()).expect("send readiness");
+        // The clock starts here, where the 200 ms sleep starts, so the measured
+        // wait cannot come out under 200 ms by thread start-up order.
+        ready_tx
+            .send((observer.readiness(), Instant::now()))
+            .expect("send readiness");
         std::thread::sleep(Duration::from_millis(200));
         while continuation.next_status(Ctx::new()).is_some() {}
         drop(continuation);
@@ -273,10 +315,11 @@ async fn observer_wakes(close: bool) -> u64 {
         // closes the queue too.
         drop(observer);
     });
-    let readiness: EventReadinessPtr = Arc::new(ready_rx.recv().expect("readiness"));
+    let (readiness, started) = ready_rx.recv().expect("readiness");
+    let readiness: EventReadinessPtr = Arc::new(readiness);
     let mut stream = execute(
         ParkThenReport {
-            created: Instant::now(),
+            created: started,
             signal: Some(readiness),
             reported: false,
         },
