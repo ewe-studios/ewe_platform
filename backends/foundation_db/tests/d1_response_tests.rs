@@ -1,5 +1,5 @@
 //! `D1Store` request values and response bodies against an in-process mock of
-//! the D1 REST `/query` API: non-finite REAL values are rejected, and a
+//! the D1 REST `/raw` API: non-finite REAL values are rejected, and a
 //! response body is read under a configured cap.
 
 #![cfg(feature = "d1")]
@@ -95,7 +95,7 @@ fn mock_store(reply: Reply) -> (D1Store, Arc<AtomicUsize>) {
     )
 }
 
-/// A successful `/query` body with one row whose `note` column holds `padding`
+/// A successful `/raw` body with one row whose `note` column holds `padding`
 /// characters.
 fn rows_body(padding: usize) -> String {
     json!({
@@ -105,7 +105,7 @@ fn rows_body(padding: usize) -> String {
         "result": [{
             "success": true,
             "meta": {},
-            "results": [{ "id": 1, "note": "x".repeat(padding) }],
+            "results": { "columns": ["id", "note"], "rows": [[1, "x".repeat(padding)]] },
         }],
     })
     .to_string()
@@ -151,7 +151,7 @@ async fn d1_rejects_non_finite_real() {
 
     // A finite REAL still goes through.
     let mut rows = store
-        .query("SELECT 1", &[DataValue::Real(1.5)])
+        .query("SELECT ? AS v", &[DataValue::Real(1.5)])
         .await
         .unwrap();
     assert!(rows.next().await.is_some());

@@ -1,6 +1,6 @@
-//! `D1Store::execute_batch_statements` against the local wrangler worker
-//! (`worker-stub.js`), whose D1 database is a real SQLite behind the D1
-//! binding. Skipped unless `CF_INTEGRATION_TEST=1` (see [`common`]).
+//! `D1Store::execute_batch_statements` against wrangler's local explorer API,
+//! whose D1 database is a real SQLite. Skipped unless `CF_INTEGRATION_TEST=1`
+//! (see [`common`]).
 //!
 //! WHY: the mock in `d1_batch_tests.rs` only proves what the client sends.
 //! These tests prove that a failed statement rolls the whole batch back in a
@@ -35,10 +35,10 @@ async fn row_count(store: &D1Store, table: &str) -> i64 {
 }
 
 #[valtron_test]
-async fn d1_batch_rolls_back_on_failure_wrangler() {
+async fn d1_rest_batch_rolls_back() {
     let Some(store) = make_d1_store() else {
         println!(
-            "Skipping D1 batch test - wrangler worker not available (set CF_INTEGRATION_TEST=1)"
+            "Skipping D1 batch test - wrangler explorer API not available (set CF_INTEGRATION_TEST=1)"
         );
         return;
     };

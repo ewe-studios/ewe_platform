@@ -121,6 +121,17 @@ impl Default for D1BatchQuery {
 /// Same shape as `ApiEnvelope<Vec<D1QueryResultResponse>>`.
 pub type D1QueryDatabaseResponse = ApiEnvelope<Vec<D1QueryResultResponse>>;
 
+/// `D1RawResultResponse` type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct D1RawResultResponse {
+    /// `meta` property.
+    pub meta: Option<D1QueryMeta>,
+    /// `results` property.
+    pub results: Option<std::collections::HashMap<String, serde_json::Value>>,
+    /// `success` property.
+    pub success: Option<bool>,
+}
+
 /// `DosApiResponseCommon` type.
 ///
 /// Same shape as `ErrorsMessagesSuccessObject`.
@@ -625,7 +636,7 @@ pub type D1ServedByRegion = String;
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct D1SingleQuery {
     /// `params` property.
-    pub params: Option<Vec<serde_json::Value>>,
+    pub params: Option<Vec<String>>,
     /// `sql` property.
     pub sql: String,
 }

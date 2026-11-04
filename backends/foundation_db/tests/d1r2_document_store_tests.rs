@@ -169,7 +169,8 @@ async fn large_document_offloads_to_r2_and_reads_through() {
         .map(|row| {
             let row = row.unwrap();
             let id: String = row.get_by_name("doc_id").unwrap();
-            let rk: Option<String> = row.get_by_name("r2_key").ok();
+            // `Option<String>`: a plain `String` reads NULL as "".
+            let rk: Option<String> = row.get_by_name("r2_key").unwrap();
             (id, rk)
         })
         .collect()

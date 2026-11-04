@@ -2,7 +2,8 @@
 # Wrangler Configuration for Local Testing
 # =============================================================================
 # This configuration is used for running local integration tests with
-# miniflare (bundled with wrangler v3+).
+# miniflare (bundled with wrangler). Pin the wrangler version (the explorer API
+# is beta): see WRANGLER_VERSION in mise.toml.
 #
 # Usage:
 #   mise run cf:start
@@ -14,8 +15,10 @@
 name = "foundation-db-test"
 compatibility_date = "2024-01-01"
 
-# Entry point (stub worker for local testing)
-main = "worker-stub.js"
+# Entry point: an empty worker. The tests do not call it; they use wrangler's
+# local explorer API (`/cdn-cgi/local/explorer/api`), which serves the D1 and R2
+# bindings below as a Cloudflare-shaped REST API.
+main = "tests/cf-local/worker.js"
 
 # Local development server
 dev = { port = 8789 }

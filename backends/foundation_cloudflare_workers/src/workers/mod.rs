@@ -28,6 +28,7 @@ use super::shared::D1BatchQuery;
 use super::shared::D1QueryDatabaseResponse;
 use super::shared::D1QueryMeta;
 use super::shared::D1QueryResultResponse;
+use super::shared::D1RawResultResponse;
 use super::shared::D1ServedByColo;
 use super::shared::D1ServedByRegion;
 use super::shared::D1SingleQuery;
@@ -1236,7 +1237,7 @@ pub type D1ListDatabasesResponse =
 pub type D1Messages = Vec<std::collections::HashMap<String, serde_json::Value>>;
 
 /// `D1Params` type.
-pub type D1Params = Vec<serde_json::Value>;
+pub type D1Params = Vec<String>;
 
 /// `D1PrimaryLocationHint` type.
 pub type D1PrimaryLocationHint = String;
@@ -1245,17 +1246,6 @@ pub type D1PrimaryLocationHint = String;
 ///
 /// Same shape as `super::shared::ApiEnvelope<Vec<D1RawResultResponse>>`.
 pub type D1RawDatabaseQueryResponse = super::shared::ApiEnvelope<Vec<D1RawResultResponse>>;
-
-/// `D1RawResultResponse` type.
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
-pub struct D1RawResultResponse {
-    /// `meta` property.
-    pub meta: Option<D1QueryMeta>,
-    /// `results` property.
-    pub results: Option<std::collections::HashMap<String, serde_json::Value>>,
-    /// `success` property.
-    pub success: Option<bool>,
-}
 
 /// `D1ReadReplicationDetails` type.
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]

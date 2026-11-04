@@ -20,8 +20,10 @@
 //! - The R2 listing endpoint is absent from the vendored `OpenAPI` spec. The
 //!   overlay `artefacts/cloud_providers/cloudflare/overlays/r2-list-objects.json`
 //!   adds it, so the generator produces `R2ListObjectsResponse` and its parts.
-//! - `d1-query.json` in the same directory widens the D1 parameter type to any
-//!   JSON scalar and types the two row counters as integers.
+//! - `d1-query.json` in the same directory types the two row counters as
+//!   integers. The D1 parameters stay strings, as the spec has them: the REST
+//!   API takes strings only, so `foundation_db` types each value in SQL.
+//! - The D1 `/raw` response is `ApiEnvelope<Vec<D1RawResultResponse>>`.
 //!
 //! `foundation_codegentools::codegen::CLOUDFLARE_HOISTED_SCHEMAS` names the
 //! schemas that are emitted here although only one group uses them.
@@ -30,6 +32,7 @@
 pub mod generated;
 
 pub use generated::{
-    D1BatchQuery, D1QueryDatabaseResponse, D1QueryMeta, D1QueryResultResponse, D1SingleQuery,
+    ApiEnvelope, D1BatchQuery, D1QueryDatabaseResponse, D1QueryMeta, D1QueryResultResponse,
+    D1RawResultResponse, D1SingleQuery,
     R2ListObjectsResponse, R2ListObjectsResultInfo, R2ObjectInfo,
 };

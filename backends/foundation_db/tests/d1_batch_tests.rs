@@ -1,5 +1,5 @@
 //! `D1Store::execute_batch_statements` against an in-process mock of the D1
-//! REST `/query` API. The mock applies a multi-statement batch only when every
+//! REST `/raw` API. The mock applies a multi-statement batch only when every
 //! statement succeeds, matching D1's all-or-nothing batch contract.
 
 #![cfg(feature = "d1")]
@@ -61,7 +61,7 @@ fn read_json_body(stream: &mut TcpStream) -> Option<serde_json::Value> {
     Some(serde_json::from_slice(&body).unwrap())
 }
 
-/// The SQL statements of a `/query` request: one per `batch` entry, or the
+/// The SQL statements of a `/raw` request: one per `batch` entry, or the
 /// single `sql` string split on `;` (the single-statement shape).
 fn request_statements(req: &serde_json::Value) -> Vec<String> {
     if let Some(batch) = req["batch"].as_array() {
@@ -127,7 +127,7 @@ fn handle(mut stream: TcpStream, rows: &Rows) {
             "success": true,
             "errors": [],
             "messages": [],
-            "result": statements.iter().map(|_| json!({ "results": [], "success": true, "meta": {} })).collect::<Vec<_>>(),
+            "result": statements.iter().map(|_| json!({ "results": {"columns": [], "rows": []}, "success": true, "meta": {} })).collect::<Vec<_>>(),
         })
     };
     respond(&mut stream, "200 OK", reply.to_string().as_bytes());
@@ -219,7 +219,7 @@ fn recording_store() -> (D1Store, Arc<Mutex<Vec<serde_json::Value>>>) {
                     "success": true,
                     "errors": [],
                     "messages": [],
-                    "result": (0..count).map(|_| json!({ "results": [], "success": true, "meta": {} })).collect::<Vec<_>>(),
+                    "result": (0..count).map(|_| json!({ "results": {"columns": [], "rows": []}, "success": true, "meta": {} })).collect::<Vec<_>>(),
                 });
                 respond(&mut stream, "200 OK", reply.to_string().as_bytes());
             });
@@ -255,10 +255,44 @@ async fn d1_batch_sends_one_entry_per_statement() {
     assert_eq!(batch.len(), 2, "one batch entry per statement");
     assert_eq!(batch[0]["sql"], "INSERT INTO t (k) VALUES (?1)");
     assert_eq!(batch[0]["params"], json!(["first"]));
-    assert_eq!(batch[1]["sql"], "UPDATE t SET n = ?2 WHERE k = ?1");
-    assert_eq!(batch[1]["params"], json!(["second", 7]));
+    // The REST API takes strings only: the integer is sent as text and typed
+    // in the SQL.
+    assert_eq!(
+        batch[1]["sql"],
+        "UPDATE t SET n = CAST(?2 AS INTEGER) WHERE k = ?1"
+    );
+    assert_eq!(batch[1]["params"], json!(["second", "7"]));
     assert!(
         bodies[0].get("sql").is_none(),
         "the batch shape carries no top-level `sql`"
+    );
+}
+
+#[valtron_test]
+async fn d1_rest_params_are_strings_typed_in_sql_and_nulls_inline() {
+    let (store, bodies) = recording_store();
+
+    // `?1` is NULL: it becomes the `NULL` literal and its parameter is dropped,
+    // so `?2` and `?3` become `?1` and `?2`. Every value is a string.
+    let statements = vec![(
+        "INSERT INTO t (a, b, c, d, e) VALUES (?1, ?2, ?3, ?4, 'it''s ?5') -- ?9".to_string(),
+        vec![
+            DataValue::Null,
+            DataValue::Integer(i64::MAX),
+            DataValue::Real(1.5),
+            DataValue::Blob(vec![0x00, 0xFF]),
+        ],
+    )];
+    store.execute_batch_statements(&statements).await.unwrap();
+
+    let bodies = bodies.lock().unwrap();
+    let entry = &bodies[0]["batch"][0];
+    assert_eq!(
+        entry["sql"],
+        "INSERT INTO t (a, b, c, d, e) VALUES (NULL, CAST(?1 AS INTEGER), CAST(?2 AS REAL), unhex(?3), 'it''s ?5') -- ?9"
+    );
+    assert_eq!(
+        entry["params"],
+        json!(["9223372036854775807", "1.5", "00ff"])
     );
 }

@@ -192,19 +192,40 @@ fn local_d1() -> Option<(String, String)> {
     if std::env::var("CF_INTEGRATION_TEST").ok().as_deref() != Some("1") {
         return None;
     }
-    let base =
-        std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
-    let db_id = std::env::var("LOCAL_D1_DATABASE_ID").unwrap_or_else(|_| "test-db".to_string());
+    let base = std::env::var("LOCAL_CF_API_BASE")
+        .unwrap_or_else(|_| "http://localhost:8789/cdn-cgi/local/explorer/api".to_string());
+    let db_id =
+        std::env::var("LOCAL_D1_DATABASE_ID").unwrap_or_else(|_| "test-db-preview".to_string());
     let up = Command::new("curl")
-        .args(["-s", "-o", "/dev/null", "-w", "%{http_code}", &base])
+        .args([
+            "-s",
+            "-o",
+            "/dev/null",
+            "-w",
+            "%{http_code}",
+            &format!("{base}/d1/database"),
+        ])
         .output()
         .ok()
         .map(|o| {
             let code = String::from_utf8_lossy(&o.stdout);
-            matches!(code.trim(), "200" | "404")
+            code.trim() == "200"
         })
         .unwrap_or(false);
     if up {
+        // A real D1 database does not create the delta's table on demand.
+        let body = r#"{"sql":"CREATE TABLE IF NOT EXISTS vfs_kv (key TEXT PRIMARY KEY, value TEXT NOT NULL, created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))"}"#;
+        let created = Command::new("curl")
+            .args(["-s", "-o", "/dev/null", "-w", "%{http_code}", "-X", "POST"])
+            .args(["-H", "Content-Type: application/json", "-d", body])
+            .arg(format!("{base}/d1/database/{db_id}/raw"))
+            .output()
+            .expect("curl");
+        assert_eq!(
+            String::from_utf8_lossy(&created.stdout).trim(),
+            "200",
+            "create vfs_kv"
+        );
         Some((base, db_id))
     } else {
         None

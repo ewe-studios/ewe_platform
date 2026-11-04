@@ -1,18 +1,14 @@
-//! D1 parameter types: what SQLite storage class each `DataValue` ends up in,
-//! checked with `typeof(col)` against the local wrangler worker
-//! (`worker-stub.js`, `wrangler dev --local`, the D1 engine in workerd).
-//! Skipped unless `CF_INTEGRATION_TEST=1` (see [`common`]).
-//!
-//! Limit of this check: local wrangler runs the D1 *binding* (`env.DB`), not
-//! Cloudflare's hosted REST front end, so the stub turns the JSON request into
-//! binding calls itself (see the comment in `worker-stub.js`). The test proves
-//! that the client sends integers, fractions, null and text in a form from
-//! which D1's engine stores INTEGER, REAL, NULL and TEXT, and that the 64-bit
-//! integer range survives. It does not prove what the hosted REST endpoint
-//! does with the same JSON.
+//! D1 REST parameters: the API takes **strings only**, so `D1Store` sends each
+//! value as a string and types it in SQL (`CAST(? AS INTEGER)`, `CAST(? AS
+//! REAL)`, the `NULL` literal, `unhex(?)`). These tests check the SQLite storage
+//! class each `DataValue` ends up in (`typeof(col)`) against wrangler's local
+//! explorer API (`wrangler dev --local`, see [`common`]). Skipped unless
+//! `CF_INTEGRATION_TEST=1`.
 //!
 //! The columns are declared without a type, so SQLite applies no column
-//! affinity: the storage class is the one the bound value had.
+//! affinity: the storage class is the one the SQL gave the value. The binding's
+//! own type rules (a JS Number is always REAL there) are tested on the real
+//! binding in the wasm testbed.
 
 #![cfg(feature = "d1")]
 
@@ -64,9 +60,9 @@ async fn make_table(store: &D1Store, table: &str) {
 }
 
 #[valtron_test]
-async fn d1_param_types_wrangler() {
+async fn d1_rest_params_are_strings_and_typed_by_cast() {
     let Some(store) = make_d1_store() else {
-        println!("Skipping D1 param type test - wrangler worker not available (set CF_INTEGRATION_TEST=1)");
+        println!("Skipping D1 param type test - wrangler explorer API not available (set CF_INTEGRATION_TEST=1)");
         return;
     };
     let table = unique_table("param_types");
@@ -136,9 +132,9 @@ async fn d1_param_types_wrangler() {
 }
 
 #[valtron_test]
-async fn d1_batch_with_mixed_types_wrangler() {
+async fn d1_rest_batch_with_mixed_types() {
     let Some(store) = make_d1_store() else {
-        println!("Skipping D1 param type test - wrangler worker not available (set CF_INTEGRATION_TEST=1)");
+        println!("Skipping D1 param type test - wrangler explorer API not available (set CF_INTEGRATION_TEST=1)");
         return;
     };
     let table = unique_table("param_batch");
@@ -192,9 +188,9 @@ async fn d1_batch_with_mixed_types_wrangler() {
 }
 
 #[valtron_test]
-async fn d1_i64_extremes_round_trip_wrangler() {
+async fn d1_rest_i64_extremes_round_trip() {
     let Some(store) = make_d1_store() else {
-        println!("Skipping D1 param type test - wrangler worker not available (set CF_INTEGRATION_TEST=1)");
+        println!("Skipping D1 param type test - wrangler explorer API not available (set CF_INTEGRATION_TEST=1)");
         return;
     };
     let table = unique_table("param_i64");
@@ -232,6 +228,47 @@ async fn d1_i64_extremes_round_trip_wrangler() {
         assert_eq!(found[0].get_by_name::<i64>("same").unwrap(), 1);
     }
 
+    store
+        .execute(&format!("DROP TABLE {table}"), &[])
+        .await
+        .unwrap();
+}
+
+#[valtron_test]
+async fn d1_rest_blob_and_text_round_trip() {
+    let Some(store) = make_d1_store() else {
+        println!("Skipping D1 param type test - wrangler explorer API not available (set CF_INTEGRATION_TEST=1)");
+        return;
+    };
+    let table = unique_table("param_blob");
+    store
+        .execute(&format!("CREATE TABLE {table} (id, b, t)"), &[])
+        .await
+        .unwrap();
+    store
+        .execute(
+            &format!("INSERT INTO {table} (id, b, t) VALUES (?, ?, ?)"),
+            &[
+                DataValue::Integer(1),
+                DataValue::Blob(vec![0x00, 0x01, 0xFF, 0x7F]),
+                // A `?` inside the text and a quote are values, not placeholders.
+                DataValue::Text("it's a ? and \"two\"".to_string()),
+            ],
+        )
+        .await
+        .unwrap();
+    let found = rows(
+        &store,
+        &format!("SELECT typeof(b) AS tb, hex(b) AS hb, t FROM {table} WHERE id = ?"),
+        &[DataValue::Integer(1)],
+    )
+    .await;
+    assert_eq!(found[0].get_by_name::<String>("tb").unwrap(), "blob");
+    assert_eq!(found[0].get_by_name::<String>("hb").unwrap(), "0001FF7F");
+    assert_eq!(
+        found[0].get_by_name::<String>("t").unwrap(),
+        "it's a ? and \"two\""
+    );
     store
         .execute(&format!("DROP TABLE {table}"), &[])
         .await

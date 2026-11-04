@@ -12,7 +12,7 @@
 //!   - `D1Store::new_state()` — `StateStore` (table: `{project}_{stage}_resources`)
 
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_cloudflare_types::{D1BatchQuery, D1QueryDatabaseResponse, D1SingleQuery};
+use foundation_cloudflare_types::{ApiEnvelope, D1BatchQuery, D1RawResultResponse, D1SingleQuery};
 use foundation_netio::shared::http::{SimpleHeader, Status};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use futures_lite::{stream, StreamExt};
@@ -41,8 +41,24 @@ pub const DEFAULT_MAX_RESPONSE_BODY: usize = 16 * 1024 * 1024;
 /// its error-page buffers (`proxy_buffer_size`: one memory page).
 pub const DEFAULT_MAX_ERROR_BODY: usize = 8 * 1024;
 
-/// Default Cloudflare API base. Tests override via `D1Store::with_base_url`.
+/// Default Cloudflare API base (hosted). `D1Store::new_*` put
+/// `/accounts/{account_id}` after it; the `*_with_base_url` constructors take
+/// the whole prefix instead (see [`hosted_api_prefix`]).
 pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
+
+/// The response of `POST .../d1/database/{id}/raw`: one result per statement,
+/// each with the column names once and the rows as ordered arrays.
+type D1RawResponse = ApiEnvelope<Vec<D1RawResultResponse>>;
+
+/// The API prefix of the hosted Cloudflare API for `account_id`
+/// (`https://api.cloudflare.com/client/v4/accounts/{account_id}`). Pass it, or
+/// the prefix of wrangler's local explorer API
+/// (`http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`, no account segment),
+/// as the `base_url` of the `*_with_base_url` constructors.
+#[must_use]
+pub fn hosted_api_prefix(account_id: &str) -> String {
+    format!("{CF_API_BASE}/accounts/{account_id}")
+}
 
 // ---- Schema helpers for State mode ----
 
@@ -89,33 +105,178 @@ fn escape_like(s: &str) -> String {
     s.replace('%', "\\%").replace('_', "\\_")
 }
 
-/// Convert one [`DataValue`] into the JSON parameter shape the D1 REST API
-/// expects.
-///
-/// # Errors
-///
-/// Returns [`StorageError::SqlConversion`] for a `Real` that is NaN or
-/// infinite: JSON has no such number, and sending `null` instead would store
-/// NULL without any error.
-fn data_value_to_json(value: &DataValue) -> Result<serde_json::Value, StorageError> {
-    Ok(match value {
-        DataValue::Null => serde_json::Value::Null,
-        DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
-        DataValue::Real(f) => serde_json::Number::from_f64(*f)
-            .map(serde_json::Value::Number)
-            .ok_or_else(|| {
-                StorageError::SqlConversion(format!(
+/// For each parameter: its text and the SQL that types it (`None` for NULL,
+/// which is written inline so its parameter is dropped); the new number of each
+/// kept parameter (its place among the kept ones, so `?N` keeps its number
+/// unless a NULL before it was dropped); and the texts of the kept parameters.
+#[allow(clippy::type_complexity)]
+fn typed_parameters(
+    params: &[DataValue],
+) -> Result<(Vec<Option<(String, &'static str)>>, Vec<usize>, Vec<String>), StorageError> {
+    let mut typed: Vec<Option<(String, &'static str)>> = Vec::with_capacity(params.len());
+    for value in params {
+        typed.push(match value {
+            DataValue::Null => None,
+            DataValue::Integer(i) => Some((i.to_string(), "CAST(? AS INTEGER)")),
+            DataValue::Real(f) if f.is_finite() => Some((f.to_string(), "CAST(? AS REAL)")),
+            DataValue::Real(f) => {
+                return Err(StorageError::SqlConversion(format!(
                     "non-finite REAL parameter ({f}) can not be sent to D1"
-                ))
-            })?,
-        DataValue::Text(s) => serde_json::Value::String(s.clone()),
-        DataValue::Blob(b) => serde_json::Value::String(STANDARD.encode(b)),
+                )));
+            }
+            DataValue::Text(t) => Some((t.clone(), "?")),
+            DataValue::Blob(b) => Some((hex(b), "unhex(?)")),
+        });
+    }
+    let mut slots = Vec::with_capacity(params.len());
+    let mut kept = 0usize;
+    for t in &typed {
+        if t.is_some() {
+            kept += 1;
+        }
+        slots.push(kept);
+    }
+    let strings = typed
+        .iter()
+        .flatten()
+        .map(|(text, _)| text.clone())
+        .collect();
+    Ok((typed, slots, strings))
+}
+
+/// Lowercase hex of `bytes`.
+fn hex(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
+    bytes.iter().fold(String::new(), |mut out, byte| {
+        // Writing to a `String` cannot fail.
+        let _ = write!(out, "{byte:02x}");
+        out
     })
 }
 
-/// Convert a parameter list, failing on the first value that has no JSON form.
-fn params_to_json(params: &[DataValue]) -> Result<Vec<serde_json::Value>, StorageError> {
-    params.iter().map(data_value_to_json).collect()
+/// Turn SQL with `?` placeholders and typed [`DataValue`]s into SQL and string
+/// parameters for the D1 REST API.
+///
+/// The REST API takes **strings only** as parameters (the published spec says
+/// `array of string`; wrangler's local explorer API rejects anything else with
+/// code 10001). So each value is sent as a string and given its type in the
+/// SQL:
+///
+/// - `Integer(i)`: `CAST(? AS INTEGER)` with the decimal text, so the full
+///   `i64` range is exact (a JSON number would pass through a double);
+/// - `Real(f)`: `CAST(? AS REAL)` with the shortest text that reads back as the
+///   same `f64`;
+/// - `Null`: the `NULL` literal replaces the placeholder (no parameter);
+/// - `Text(s)`: `?` with `s`;
+/// - `Blob(b)`: `unhex(?)` with the hex text.
+///
+/// Only `?` and `?N` placeholders outside string literals, quoted names and
+/// comments are rewritten. When a `NULL` is written inline its parameter is
+/// dropped, so a `?N` is renumbered to its place among the parameters that stay.
+///
+/// # Errors
+///
+/// Returns [`StorageError::SqlConversion`] for a `Real` that is NaN or infinite
+/// (JSON has no such number and SQL has no such literal), and when the
+/// placeholders name a parameter that is not there or leave one unused.
+fn typed_statement(sql: &str, params: &[DataValue]) -> Result<(String, Vec<String>), StorageError> {
+    let mismatch = || {
+        StorageError::SqlConversion(format!(
+            "the SQL has a different number of `?` placeholders than the {} parameters",
+            params.len()
+        ))
+    };
+    let mut out = String::with_capacity(sql.len() + params.len() * 16);
+    let (typed, slots, strings) = typed_parameters(params)?;
+    let mut next_anonymous = 0usize;
+    let mut used = 0usize;
+    let mut chars = sql.chars().peekable();
+    while let Some(c) = chars.next() {
+        match c {
+            // Quoted text and names: copy to the closing quote (doubled quote = escaped).
+            '\'' | '"' | '`' => {
+                out.push(c);
+                while let Some(q) = chars.next() {
+                    out.push(q);
+                    if q == c {
+                        if chars.peek() == Some(&c) {
+                            out.extend(chars.next());
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+            '[' => {
+                out.push(c);
+                for q in chars.by_ref() {
+                    out.push(q);
+                    if q == ']' {
+                        break;
+                    }
+                }
+            }
+            '-' if chars.peek() == Some(&'-') => {
+                out.push(c);
+                for q in chars.by_ref() {
+                    out.push(q);
+                    if q == '\n' {
+                        break;
+                    }
+                }
+            }
+            '/' if chars.peek() == Some(&'*') => {
+                out.push(c);
+                out.extend(chars.next());
+                let mut prev = '\0';
+                for q in chars.by_ref() {
+                    out.push(q);
+                    if prev == '*' && q == '/' {
+                        break;
+                    }
+                    prev = q;
+                }
+            }
+            '?' => {
+                // `?` takes the next parameter; `?N` names parameter N (1-based).
+                let mut digits = String::new();
+                while let Some(d) = chars.peek().copied().filter(char::is_ascii_digit) {
+                    digits.push(d);
+                    chars.next();
+                }
+                let index = if digits.is_empty() {
+                    let i = next_anonymous;
+                    next_anonymous += 1;
+                    i
+                } else {
+                    digits
+                        .parse::<usize>()
+                        .ok()
+                        .and_then(|n| n.checked_sub(1))
+                        .ok_or_else(mismatch)?
+                };
+                let Some(typed_param) = typed.get(index) else {
+                    return Err(mismatch());
+                };
+                used = used.max(index + 1);
+                match typed_param {
+                    None => out.push_str("NULL"),
+                    Some((_, wrap)) => {
+                        if digits.is_empty() {
+                            out.push_str(wrap);
+                        } else {
+                            out.push_str(&wrap.replace('?', &format!("?{}", slots[index])));
+                        }
+                    }
+                }
+            }
+            other => out.push(other),
+        }
+    }
+    if used != params.len() {
+        return Err(mismatch());
+    }
+    Ok((out, strings))
 }
 
 // ---- State mode row parsing ----
@@ -207,9 +368,9 @@ enum D1Mode {
 #[derive(Clone)]
 pub struct D1Store {
     api_token: ZeroizingString,
-    account_id: String,
     database_id: String,
-    base_url: String,
+    /// Everything before `/d1/database/...` in the request URL.
+    api_prefix: String,
     client: DynNetClient,
     mode: D1Mode,
     max_response_body: usize,
@@ -232,24 +393,26 @@ impl D1Store {
             account_id,
             database_id,
             table_prefix,
-            CF_API_BASE,
+            &hosted_api_prefix(account_id),
         )
     }
 
-    /// KV store with custom base URL (for tests).
+    /// KV store with a custom API prefix: everything before `/d1/database/...`.
+    /// For the hosted API that is [`hosted_api_prefix`]; for wrangler's local
+    /// explorer API it is `http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`
+    /// (no account segment). `account_id` is not used in the URL then.
     #[must_use]
     pub fn new_kv_with_base_url(
         api_token: &str,
-        account_id: &str,
+        _account_id: &str,
         database_id: &str,
         table_prefix: &str,
         base_url: &str,
     ) -> Self {
         Self {
             api_token: ZeroizingString::from_string(api_token.to_string()),
-            account_id: account_id.to_string(),
             database_id: database_id.to_string(),
-            base_url: base_url.trim_end_matches('/').to_string(),
+            api_prefix: base_url.trim_end_matches('/').to_string(),
             client: HttpClientBuilder::new().build(),
             mode: D1Mode::KeyValue {
                 kv_table: format!("{table_prefix}_kv"),
@@ -296,15 +459,16 @@ impl D1Store {
             database_id,
             project,
             stage,
-            CF_API_BASE,
+            &hosted_api_prefix(account_id),
         )
     }
 
-    /// `StateStore` with custom base URL (for tests).
+    /// `StateStore` with a custom API prefix (see
+    /// [`new_kv_with_base_url`](Self::new_kv_with_base_url)).
     #[must_use]
     pub fn new_state_with_base_url(
         api_token: &str,
-        account_id: &str,
+        _account_id: &str,
         database_id: &str,
         project: &str,
         stage: &str,
@@ -317,9 +481,8 @@ impl D1Store {
         );
         Self {
             api_token: ZeroizingString::from_string(api_token.to_string()),
-            account_id: account_id.to_string(),
             database_id: database_id.to_string(),
-            base_url: base_url.trim_end_matches('/').to_string(),
+            api_prefix: base_url.trim_end_matches('/').to_string(),
             client: HttpClientBuilder::new().build(),
             mode: D1Mode::State { state_table },
             max_response_body: DEFAULT_MAX_RESPONSE_BODY,
@@ -367,11 +530,11 @@ impl D1Store {
 
     // ========== Shared helpers ==========
 
-    fn query_url(&self) -> String {
-        format!(
-            "{}/accounts/{}/d1/database/{}/query",
-            self.base_url, self.account_id, self.database_id
-        )
+    /// `POST` target for SQL. `/raw` returns the column names once and the rows
+    /// as ordered arrays, so column order is kept; the local explorer API serves
+    /// only `/raw`.
+    fn raw_url(&self) -> String {
+        format!("{}/d1/database/{}/raw", self.api_prefix, self.database_id)
     }
 
     fn auth_header(&self) -> String {
@@ -384,10 +547,31 @@ impl D1Store {
         &self,
         sql: &str,
         params: &[serde_json::Value],
-    ) -> Result<D1QueryDatabaseResponse, StorageError> {
+    ) -> Result<D1RawResponse, StorageError> {
+        let typed = params
+            .iter()
+            .map(|v| match v {
+                serde_json::Value::Null => Ok(DataValue::Null),
+                serde_json::Value::String(t) => Ok(DataValue::Text(t.clone())),
+                other => Err(StorageError::SqlConversion(format!(
+                    "unsupported D1 parameter {other}"
+                ))),
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        self.execute_typed(sql, &typed).await
+    }
+
+    /// Run one statement with typed values: each value is sent as a string and
+    /// typed in the SQL (see [`typed_statement`]).
+    async fn execute_typed(
+        &self,
+        sql: &str,
+        params: &[DataValue],
+    ) -> Result<D1RawResponse, StorageError> {
+        let (sql, strings) = typed_statement(sql, params)?;
         self.post_query(&D1BatchQuery::D1SingleQuery(D1SingleQuery {
-            sql: sql.to_string(),
-            params: Some(params.to_vec()),
+            sql,
+            params: Some(strings),
         }))
         .await
     }
@@ -395,16 +579,13 @@ impl D1Store {
     /// POST a generated `/query` request body (`send_async`, no blocking) and
     /// return the parsed response. A single query and a batch share this path:
     /// the body type says which one it is.
-    async fn post_query(
-        &self,
-        query: &D1BatchQuery,
-    ) -> Result<D1QueryDatabaseResponse, StorageError> {
+    async fn post_query(&self, query: &D1BatchQuery) -> Result<D1RawResponse, StorageError> {
         let body = serde_json::to_string(query)
             .map_err(|e| StorageError::Serialization(format!("D1 request encode failed: {e}")))?;
         let response = self
             .client
             .send_async(
-                PreparedRequestBuilder::post(&self.query_url())
+                PreparedRequestBuilder::post(&self.raw_url())
                     .map_err(|e| StorageError::Backend(format!("D1 request build failed: {e}")))?
                     .header(SimpleHeader::AUTHORIZATION, self.auth_header())
                     .header(SimpleHeader::CONTENT_TYPE, "application/json")
@@ -449,16 +630,59 @@ impl D1Store {
             text.extend_from_slice(&chunk);
         }
 
-        serde_json::from_slice::<D1QueryDatabaseResponse>(&text)
+        serde_json::from_slice::<D1RawResponse>(&text)
             .map_err(|e| StorageError::Serialization(format!("D1 response parse failed: {e}")))
     }
 
-    fn extract_rows(response: &D1QueryDatabaseResponse) -> Vec<serde_json::Value> {
-        response
+    /// The columns and rows of the first statement's result, in the order the
+    /// server returned them.
+    fn raw_rows(response: &D1RawResponse) -> (Vec<String>, Vec<Vec<serde_json::Value>>) {
+        let Some(results) = response
             .result
             .first()
-            .and_then(|statement| statement.results.clone())
-            .unwrap_or_default()
+            .and_then(|statement| statement.results.as_ref())
+        else {
+            return (Vec::new(), Vec::new());
+        };
+        let columns = results
+            .get("columns")
+            .and_then(serde_json::Value::as_array)
+            .map(|c| {
+                c.iter()
+                    .map(|n| n.as_str().unwrap_or_default().to_string())
+                    .collect()
+            })
+            .unwrap_or_default();
+        let rows = results
+            .get("rows")
+            .and_then(serde_json::Value::as_array)
+            .map(|r| {
+                r.iter()
+                    .map(|row| row.as_array().cloned().unwrap_or_default())
+                    .collect()
+            })
+            .unwrap_or_default();
+        (columns, rows)
+    }
+
+    /// The rows as JSON objects keyed by column name, for the stores that read
+    /// a few named columns (the order of the keys does not matter there).
+    fn extract_rows(response: &D1RawResponse) -> Vec<serde_json::Value> {
+        let (columns, rows) = Self::raw_rows(response);
+        rows.into_iter()
+            .map(|row| {
+                serde_json::Value::Object(
+                    columns
+                        .iter()
+                        .cloned()
+                        .zip(
+                            row.into_iter()
+                                .chain(std::iter::repeat(serde_json::Value::Null)),
+                        )
+                        .collect(),
+                )
+            })
+            .collect()
     }
 
     fn kv_table(&self) -> &str {
@@ -477,11 +701,11 @@ impl D1Store {
 
     /// The D1 API returns a query's rows in one JSON body; stream them,
     /// decoding each row as it is pulled.
-    fn state_rows(response: &D1QueryDatabaseResponse) -> StateStoreStream<ResourceState> {
+    fn state_rows(response: &D1RawResponse) -> StateStoreStream<ResourceState> {
         Box::pin(stream::iter(Self::extract_rows(response)).map(|row| parse_d1_row(&row)))
     }
 
-    fn id_rows(response: &D1QueryDatabaseResponse) -> StateStoreStream<String> {
+    fn id_rows(response: &D1RawResponse) -> StateStoreStream<String> {
         Box::pin(stream::iter(Self::extract_rows(response)).map(|row| {
             row.get("id")
                 .and_then(serde_json::Value::as_str)
@@ -490,7 +714,7 @@ impl D1Store {
         }))
     }
 
-    fn count_row(response: &D1QueryDatabaseResponse) -> StorageResult<usize> {
+    fn count_row(response: &D1RawResponse) -> StorageResult<usize> {
         let rows = Self::extract_rows(response);
         let Some(row) = rows.first() else {
             return Ok(0);
@@ -856,18 +1080,18 @@ impl KeyValueStore for D1Store {
 #[async_trait::async_trait]
 impl QueryStore for D1Store {
     async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
-        let json_params = params_to_json(params)?;
-        let response = self.execute_sql_async(sql, &json_params).await?;
-        let rows: Vec<SqlRow> = Self::extract_rows(&response)
-            .iter()
+        let response = self.execute_typed(sql, params).await?;
+        let (columns, raw_rows) = Self::raw_rows(&response);
+        // Columns keep the server's order and duplicates (a SELECT can name a
+        // column twice); this is what a JSON object per row used to lose.
+        let rows: Vec<SqlRow> = raw_rows
+            .into_iter()
             .map(|row| {
-                let obj = row.as_object().ok_or_else(|| {
-                    StorageError::SqlConversion("row is not an object".to_string())
-                })?;
-                let columns: Vec<(String, DataValue)> = obj
+                let cells: Vec<(String, DataValue)> = columns
                     .iter()
-                    .map(|(k, v)| {
-                        let dv = match v {
+                    .zip(row)
+                    .map(|(name, v)| {
+                        let dv = match &v {
                             serde_json::Value::Number(n) => {
                                 if let Some(i) = n.as_i64() {
                                     DataValue::Integer(i)
@@ -877,23 +1101,22 @@ impl QueryStore for D1Store {
                                     DataValue::Null
                                 }
                             }
-                            serde_json::Value::String(s) => DataValue::Text(s.clone()),
+                            serde_json::Value::String(t) => DataValue::Text(t.clone()),
                             _ => DataValue::Null,
                         };
-                        (k.clone(), dv)
+                        (name.clone(), dv)
                     })
                     .collect();
-                Ok::<_, StorageError>(SqlRow::new(columns))
+                SqlRow::new(cells)
             })
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect();
         Ok(AsyncQueryStream::new(stream::iter(
             rows.into_iter().map(Ok),
         )))
     }
 
     async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
-        let json_params = params_to_json(params)?;
-        let response = self.execute_sql_async(sql, &json_params).await?;
+        let response = self.execute_typed(sql, params).await?;
         let affected = response
             .result
             .first()
@@ -922,9 +1145,10 @@ impl QueryStore for D1Store {
         let batch = statements
             .iter()
             .map(|(sql, params)| {
+                let (sql, strings) = typed_statement(sql, params)?;
                 Ok(D1SingleQuery {
-                    sql: sql.clone(),
-                    params: Some(params_to_json(params)?),
+                    sql,
+                    params: Some(strings),
                 })
             })
             .collect::<Result<Vec<_>, StorageError>>()?;

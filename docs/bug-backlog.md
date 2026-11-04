@@ -127,16 +127,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   object's `ETag`, which the state API does not carry. `foundation_proxy` can drop its flock
   where it uses a store with an atomic `set_if_version` (lane A owns the proxy). `D1Store`'s
   version is tested only on a hosted or wrangler D1 (`CF_INTEGRATION_TEST`).
-- **`d1r2_document_store_tests` fail against local wrangler (2 of 4).**
-  `append_orders_by_scru128_and_counts` gets the documents' JSON where it expects ids, and
-  `large_document_offloads_to_r2_and_reads_through` finds an `r2_key` on a small document, with
-  `CF_INTEGRATION_TEST=1` and `wrangler dev --local` (4.156.2); the same two fail with the
-  stub from before feature 56 E8, so the stub change did not cause them. Likely cause (not
-  confirmed): D1 rows arrive as JSON objects, `serde_json` keeps object keys sorted, and
-  `D1R2DocumentStore` reads columns by position, so the column order of `SELECT {columns}`
-  is lost. Fix: build `SqlRow` from the `SELECT` list order (or enable `serde_json`
-  `preserve_order`) and read by name.
-
 ## 16. Workspace / process
 
 - **`foundation_wireguard` warnings in its tests and manifest.** `cargo check -p foundation_wireguard --tests`

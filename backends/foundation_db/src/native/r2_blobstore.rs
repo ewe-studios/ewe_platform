@@ -28,8 +28,19 @@ use crate::core::storage_provider::{
     BlobListStream, BlobPutCondition, BlobRange, BlobStore, BlobStream,
 };
 
-/// Default Cloudflare API base. Tests override via `R2Store::with_base_url`.
+/// Default Cloudflare API base (hosted). `R2Store::new_*` put
+/// `/accounts/{account_id}` after it; the `*_with_base_url` constructors take
+/// the whole prefix instead (see [`hosted_api_prefix`]).
 pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
+
+/// The API prefix of the hosted Cloudflare API for `account_id`. Pass it, or the
+/// prefix of wrangler's local explorer API
+/// (`http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`, no account segment),
+/// as the `base_url` of the `*_with_base_url` constructors.
+#[must_use]
+pub fn hosted_api_prefix(account_id: &str) -> String {
+    format!("{CF_API_BASE}/accounts/{account_id}")
+}
 
 // ---- Mode enum ----
 
@@ -50,8 +61,8 @@ enum R2Mode {
 #[derive(Clone)]
 pub struct R2Store {
     api_token: String,
-    account_id: String,
-    base_url: String,
+    /// Everything before `/r2/buckets/...` in the request URL.
+    api_prefix: String,
     client: DynNetClient,
     mode: R2Mode,
 }
@@ -62,22 +73,30 @@ impl R2Store {
     /// `BlobStore` at production Cloudflare API.
     #[must_use]
     pub fn new_blob(api_token: &str, account_id: &str, bucket_name: &str, prefix: &str) -> Self {
-        Self::new_blob_with_base_url(api_token, account_id, bucket_name, prefix, CF_API_BASE)
+        Self::new_blob_with_base_url(
+            api_token,
+            account_id,
+            bucket_name,
+            prefix,
+            &hosted_api_prefix(account_id),
+        )
     }
 
-    /// `BlobStore` with custom base URL (for tests).
+    /// `BlobStore` with a custom API prefix: everything before `/r2/buckets/...`.
+    /// For the hosted API that is [`hosted_api_prefix`]; for wrangler's local
+    /// explorer API it is `http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`.
+    /// `account_id` is not used in the URL then.
     #[must_use]
     pub fn new_blob_with_base_url(
         api_token: &str,
-        account_id: &str,
+        _account_id: &str,
         bucket_name: &str,
         prefix: &str,
         base_url: &str,
     ) -> Self {
         Self {
             api_token: api_token.to_string(),
-            account_id: account_id.to_string(),
-            base_url: base_url.trim_end_matches('/').to_string(),
+            api_prefix: base_url.trim_end_matches('/').to_string(),
             client: HttpClientBuilder::new().build(),
             mode: R2Mode::Blob {
                 bucket: bucket_name.to_string(),
@@ -123,15 +142,16 @@ impl R2Store {
             bucket_name,
             project,
             stage,
-            CF_API_BASE,
+            &hosted_api_prefix(account_id),
         )
     }
 
-    /// `StateStore` with custom base URL (for tests).
+    /// `StateStore` with a custom API prefix (see
+    /// [`new_blob_with_base_url`](Self::new_blob_with_base_url)).
     #[must_use]
     pub fn new_state_with_base_url(
         api_token: &str,
-        account_id: &str,
+        _account_id: &str,
         bucket_name: &str,
         project: &str,
         stage: &str,
@@ -139,8 +159,7 @@ impl R2Store {
     ) -> Self {
         Self {
             api_token: api_token.to_string(),
-            account_id: account_id.to_string(),
-            base_url: base_url.trim_end_matches('/').to_string(),
+            api_prefix: base_url.trim_end_matches('/').to_string(),
             client: HttpClientBuilder::new().build(),
             mode: R2Mode::State {
                 bucket: bucket_name.to_string(),
@@ -194,12 +213,16 @@ impl R2Store {
     }
 
     fn object_url(&self, key: &str) -> String {
-        let (bucket, account_id, base_url) = match &self.mode {
-            R2Mode::Blob { bucket, .. } | R2Mode::State { bucket, .. } => {
-                (bucket, &self.account_id, &self.base_url)
-            }
+        let bucket = match &self.mode {
+            R2Mode::Blob { bucket, .. } | R2Mode::State { bucket, .. } => bucket,
         };
-        format!("{base_url}/accounts/{account_id}/r2/buckets/{bucket}/objects/{key}")
+        // The key is one path segment: `/` inside it is `%2F` (the local explorer
+        // API matches `objects/:key` as a single segment).
+        format!(
+            "{}/r2/buckets/{bucket}/objects/{}",
+            self.api_prefix,
+            query_escape(key)
+        )
     }
 
     fn bucket(&self) -> &str {
@@ -518,9 +541,8 @@ impl R2Store {
         cursor: Option<&str>,
     ) -> Result<(Vec<String>, Option<String>), StorageError> {
         let mut url = format!(
-            "{}/accounts/{}/r2/buckets/{}/objects?prefix={}",
-            self.base_url,
-            self.account_id,
+            "{}/r2/buckets/{}/objects?prefix={}",
+            self.api_prefix,
             self.bucket(),
             query_escape(prefix)
         );
@@ -551,8 +573,7 @@ impl R2Store {
         let text = collect_string_async(body)
             .await
             .map_err(|e| StorageError::Backend(format!("R2 body read failed: {e}")))?;
-        let parsed: R2ListObjectsResponse = serde_json::from_str(&text)
-            .map_err(|e| StorageError::Serialization(format!("R2 LIST parse failed: {e}")))?;
+        let parsed = parse_list_response(&text)?;
 
         let keys = parsed
             .result
@@ -691,6 +712,24 @@ enum PageState {
     },
     /// The stream ended, or a page failed.
     Done,
+}
+
+/// Parse an R2 object-listing response.
+///
+/// Wrangler's local explorer API (beta) writes `result_info.is_truncated` as
+/// the string `"false"`/`"true"`; the published spec and the hosted API use a
+/// boolean. Both are accepted: a string is turned into a boolean before the
+/// typed parse.
+fn parse_list_response(text: &str) -> Result<R2ListObjectsResponse, StorageError> {
+    let parse_err =
+        |e: serde_json::Error| StorageError::Serialization(format!("R2 LIST parse failed: {e}"));
+    let mut value: serde_json::Value = serde_json::from_str(text).map_err(parse_err)?;
+    if let Some(flag) = value.pointer_mut("/result_info/is_truncated") {
+        if let Some(text) = flag.as_str() {
+            *flag = serde_json::Value::Bool(text.eq_ignore_ascii_case("true"));
+        }
+    }
+    serde_json::from_value(value).map_err(parse_err)
 }
 
 /// Percent-encode a query-string value (everything but RFC 3986 unreserved

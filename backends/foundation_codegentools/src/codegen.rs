@@ -199,6 +199,7 @@ pub const CLOUDFLARE_OVERLAYS_DIR: &str = "artefacts/cloud_providers/cloudflare/
 pub const CLOUDFLARE_HOISTED_SCHEMAS: &[&str] = &[
     "d1_batch_query",
     "d1_query_database_response",
+    "d1_raw_result_response",
     "r2_list_objects_response",
 ];
 
