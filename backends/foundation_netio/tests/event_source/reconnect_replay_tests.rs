@@ -28,6 +28,12 @@ fn run_with_one_reconnect() -> (String, usize, Vec<String>) {
               conn_num: usize| {
             let _ = writer.event("Hello");
             if conn_num == 0 {
+                // The abrupt drop resets the connection (`SO_LINGER = 0`), and a
+                // reset discards data that is still in the send buffer. Give the
+                // client time to read the event first, so the test always starts
+                // with the first "Hello". The client stays idle during this wait,
+                // well below the stream idle timeout.
+                std::thread::sleep(Duration::from_millis(100));
                 SseConnectionResult::abrupt_drop()
             } else {
                 let _ = writer.event(" world");
