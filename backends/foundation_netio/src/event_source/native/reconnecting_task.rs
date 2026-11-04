@@ -453,7 +453,15 @@ where
                 // Create new inner task
                 if let Some(inner) = self.create_inner_task() {
                     self.state = Some(ReconnectingState::Connected(Box::new(inner)));
-                    Some(TaskStatus::Pending(ReconnectingProgress::Connecting))
+                    // Tell the consumer the stream starts again. A server that
+                    // ignores `Last-Event-ID` replays the response from the
+                    // start, so a consumer that accumulates (text, tool-call
+                    // arguments) must discard what it holds, or the replay is
+                    // appended to it.
+                    Some(TaskStatus::Ready(ParseResult::new(
+                        Event::Reconnect,
+                        self.last_event_id.clone(),
+                    )))
                 } else {
                     error!("Failed to create inner task");
                     // Failed to create task — exhaust
