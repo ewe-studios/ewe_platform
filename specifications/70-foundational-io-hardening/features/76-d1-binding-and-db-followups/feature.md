@@ -1,10 +1,10 @@
 ---
-feature: "D1 Workers binding keeps integer types and i64 precision; d1r2 document store passes on local wrangler; code-graph method ids; StateStore conditional write"
+feature: "Wasm stores tested on the real wrangler bindings (no stub); D1 binding keeps integer types and i64 precision; native REST clients tested on wrangler's local REST API (stub deleted); d1r2 document store passes on local wrangler; code-graph method ids; StateStore conditional write"
 status: "pending"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
-crates: ["foundation_db", "foundation_vectors", "foundation_proxy (consumer only)"]
+crates: ["foundation_db", "foundation_vectors", "foundation_testbed (template and harness only)"]
 catalogue_rows: [91, 92, 93, 94]
 ---
 
@@ -14,22 +14,76 @@ _Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers 
 
 Found in feature 56 (2026-11-03).
 
-## E1. `D1WasmStorage` may store integers as REAL and lose i64 precision
+## E0. Test the wasm stores against the REAL bindings under wrangler — no stub (owner decision 2026-11-03)
 
-Feature 56 measured the D1 binding in workerd (local wrangler): `bind(7)` stores `real`; a JS
-Number is always REAL and becomes INTEGER only through column affinity; `bind(7n)` throws
-`D1_TYPE_ERROR: Type 'bigint' not supported`. `D1WasmStorage` (`src/wasm/wasm_storage/d1_wasm.rs`)
-binds `DataValue::Integer(i64)` through the binding. Check how it converts i64 (to f64? to a
-JS Number?). Risks: (a) columns without INTEGER affinity store REAL; (b) any i64 above 2^53 is
-rounded.
-Fix: bind integers so the stored type is INTEGER and the value is exact (for example bind the
-decimal text and use `CAST(?N AS INTEGER)` in the SQL the store generates, as the fixed stub
-does, or another method you prove). Read integers back exactly (a column read as a JS Number
-loses precision above 2^53: read such columns as text with `CAST(col AS TEXT)` where the store
-needs exact i64, or document the limit per column). Tests against local wrangler
-(`CF_INTEGRATION_TEST=1`, a Workers test harness for `D1WasmStorage` if one exists; if the
-wasm store cannot run under the stub, say how you tested it): `i64::MAX` round-trips;
-`typeof` is `integer` in an untyped column.
+Owner rule: when wrangler can run the real thing, tests use it, not a stub. `wrangler dev
+--local` runs workerd with real local D1, R2 and KV bindings.
+- Use `foundation_testbed`'s `wasm-testbed` wrangler mode (it already runs wasm test code inside
+  workerd; template in `backends/foundation_testbed/src/wasm/templates/wrangler/`). Add D1, R2
+  and KV bindings to the template's `wrangler.toml` (local only), and a way for a test to reach
+  them (the `worker::Env` the testbed passes in).
+- Write the wasm-store tests as wasm tests that run inside that worker: `D1WasmStorage`,
+  `R2WasmStorage`, `KVWasmStorage`, `CfD1R2DocumentStore` — the contract tests that the native
+  stores already have (get/set/list/batch/take/blob range/conditional put …), run against
+  `env.DB` / `env.BUCKET` / `env.KV`.
+- CI: add them to the wasm runtime job that feature 22 E4 created (`mise run
+  test:wasm-testbed:...`), so they run on every PR.
+
+## E1. `D1WasmStorage` integer types and i64 precision (on the real binding)
+
+Feature 56 measured the binding: a JS Number is always stored as REAL (it becomes INTEGER only
+through column affinity), and `BigInt` is rejected (`D1_TYPE_ERROR`). Check how `D1WasmStorage`
+binds `DataValue::Integer(i64)` and reads integers back. Fix it so integers are stored as
+INTEGER and are exact (for example bind the decimal text with `CAST(?N AS INTEGER)` in the SQL
+the store builds, and read exact i64 columns with `CAST(col AS TEXT)`; or another method you
+prove). Tests in the E0 harness, on the real binding: `typeof` is `integer` in an untyped
+column; `i64::MAX`, `i64::MIN` and 2^53+1 round-trip exactly.
+
+## E1b. Test the native REST clients against wrangler's own local REST API — delete the stub (owner decision 2026-11-03)
+
+Owner rule again: no stub where wrangler serves the real thing. It does. `wrangler dev --local`
+(miniflare) serves a Cloudflare-shaped REST API at `http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`,
+backed by the same local D1, R2 and KV storage as the bindings. Measured with wrangler 4.156.2
+(miniflare 5.20261102.0-beta), 2026-11-03:
+- Routes (no `/accounts/:account_id` prefix): `GET /d1/database`, `POST /d1/database/:id/raw`;
+  `GET|PUT /r2/buckets/:b/objects/:key`, `DELETE /r2/buckets/:b/objects/:key{.+}`,
+  `GET|DELETE /r2/buckets/:b/objects`; `/storage/kv/namespaces/:id/{keys,values/:key,bulk,bulk/get,bulk/delete}`.
+  The D1 database id is the binding's `preview_database_id` (for example `test-db-preview`).
+- D1: only `/raw` exists (`/query` gives 404). `/raw` returns `{columns, rows}` with rows as
+  ordered arrays, so column order is kept.
+- D1 params are strings only (`zD1Params = z.array(z.string())`, the same as the published
+  Cloudflare spec). `[7, 1.5, null, "x"]` gives `{"code":10001,"message":"Invalid input"}`;
+  `["7","1.5","x"]` works and every value is stored as `text`.
+- R2 has no range read and no conditional put; object metadata comes from
+  `GET` with header `cf-metadata-only: true` (not `HEAD`). GET and PUT match `:key` without
+  `{.+}`, so test whether keys with `/` work, and encode them if needed.
+
+So feature 52's finding was wrong: it was made against `worker-stub.js`, which calls the binding,
+not against REST. The REST API accepts string params only. Work:
+1. `D1Store` (native REST) sends every param as a JSON string and gives it a type in SQL:
+   `CAST(?N AS INTEGER)` / `CAST(?N AS REAL)` for numbers, the `NULL` literal (not a bound
+   param) for null, blobs as hex with `unhex(?N)` or another method you prove. Read rows through
+   `/raw` (ordered arrays, column names once) on both hosted and local. Exact i64 on read:
+   `CAST(col AS TEXT)` where the store reads an integer column, as in E1.
+2. Remove the `d1_params` part of `artefacts/cloud_providers/cloudflare/overlays/d1-query.json`
+   (keep the `d1_query_meta` integer fix), regenerate with the generator, and use the generated
+   `/raw` request and response types (CLAUDE.md rule 5).
+3. Make the REST path layout configurable on the client config: hosted
+   (`https://api.cloudflare.com/client/v4/accounts/{account}`) or local explorer
+   (`http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`, no account segment). The existing
+   `*_with_base_url` constructors take the full prefix; no `const` in the code path.
+4. Point every `CF_INTEGRATION_TEST` REST test (foundation_db `common/mod.rs`, `d1_*`, `r2_*`,
+   `d1r2_document_store_tests`; foundation_nativeapis `d1_delta_vfs`, `r2_delta_vfs`,
+   `vfs_shim_vfs`) at the explorer API. R2 operations the explorer does not serve (range read,
+   conditional put) are tested on the real binding in the E0 harness, and the doc comment says so.
+5. Delete `worker-stub.js` and its `mise` wiring. `d1_param_types_wrangler` moves: the binding's
+   type semantics go to the E0 harness; the REST side becomes
+   `d1_rest_params_are_strings_and_typed_by_cast` (integers incl. `i64::MAX`/`i64::MIN`, reals,
+   null, text, blob round-trip with the right `typeof`). Add `d1_rest_batch_rolls_back` (a
+   failing statement in a batch leaves no rows from the batch).
+6. Pin the wrangler version in the test tooling (the explorer API is beta and may change), and
+   say in `common/mod.rs` that it is the local explorer, not the hosted front end; the hosted
+   API follows the same published spec (string params).
 
 ## E2. `d1r2_document_store_tests` fail 2 of 4 against local wrangler
 
@@ -62,4 +116,4 @@ CF_INTEGRATION_TEST=1 cargo test -p foundation_db --profile dev --test d1r2_docu
 
 ## Done when
 
-- [ ] E1–E4 fixed with tests; backlog entries deleted. CI green.
+- [ ] E0 harness runs the wasm stores on real bindings in CI; the REST tests run on the local explorer API and `worker-stub.js` is gone; E1–E4 fixed with tests; backlog entries deleted. CI green.

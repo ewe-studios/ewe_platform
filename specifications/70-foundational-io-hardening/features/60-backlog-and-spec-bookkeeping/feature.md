@@ -30,3 +30,11 @@ Do this first (it is small) and again at the end.
 ## Done when
 
 - [ ] No backlog entry describes a fixed bug. Spec 70 frontmatter correct.
+
+## E-drop. Features 57 and 58 are dropped (owner decision 2026-11-04)
+
+Move the backlog entries for `crates/channels` (§18), `crates/domain` (§19), `examples/todo`
+(§23) and the `bin/platform` web-app templates (§24) to the "Paused" section of
+`docs/bug-backlog.md`, with the line "Dropped by the owner 2026-11-04: old code, not
+scheduled." Do not fix them. Do not add new entries for those crates.
+
