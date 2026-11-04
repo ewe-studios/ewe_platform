@@ -243,7 +243,7 @@ impl Sleepable {
     /// For a Readiness sleeper, returns the deadline its signal reports (a
     /// signal such as "socket ready or timer passed" can be ready at that
     /// instant without any event). For Atomic sleepers, returns None.
-    pub fn deadline(&self) -> Option<time::Instant> {
+    pub fn deadline(&self) -> Option<foundation_compact::Instant> {
         match self {
             Sleepable::Timable(inner) => Some(inner.deadline()),
             Sleepable::Atomic(_, _) => None,
@@ -257,9 +257,9 @@ impl Timeable for Sleepable {
         match self {
             Sleepable::Timable(inner) => inner.remaining(),
             Sleepable::Atomic(_, _) => None,
-            Sleepable::Readiness(signal, _, _) => signal
-                .deadline()
-                .map(|deadline| deadline.saturating_duration_since(time::Instant::now())),
+            Sleepable::Readiness(signal, _, _) => signal.deadline().map(|deadline| {
+                deadline.saturating_duration_since(foundation_compact::Instant::now())
+            }),
         }
     }
 
@@ -286,7 +286,7 @@ impl Waiter for Sleepable {
                 // deadline has passed. A wake for another task costs nothing here.
                 let due = signal
                     .deadline()
-                    .is_some_and(|deadline| time::Instant::now() >= deadline);
+                    .is_some_and(|deadline| foundation_compact::Instant::now() >= deadline);
                 (park.0.take_woken() || due) && signal.is_ready(dur)
             }
             Sleepable::Readiness(signal, _, None) => signal.is_ready(dur),
@@ -3156,8 +3156,23 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     .time_until_next_wakeup()
                     .unwrap_or(self.no_work_yield)
             };
-            self.yielder
-                .yield_for(yield_duration.min(self.max_yield_duration));
+            let wait = yield_duration.min(self.max_yield_duration);
+            // JS: only parked sleepers remain, and one of them has a deadline (a
+            // timer, or a readiness with a `deadline`). The yield queued a host
+            // timer that re-enters the executor then. Return to the event loop:
+            // looping here would spin until the deadline, blocking the host
+            // (its timers and microtasks cannot run) and queueing a timer per
+            // spin. The wake of a `ReadinessWaker` still resumes the executor
+            // earlier by a microtask.
+            #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+            {
+                let signal = self.yielder.yield_for(wait);
+                if self.yielder.should_stop(&signal) {
+                    break;
+                }
+            }
+            #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+            self.yielder.yield_for(wait);
         }
     }
 
@@ -3241,6 +3256,16 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                 .state
                 .time_until_next_wakeup()
                 .unwrap_or(self.no_work_yield);
+            // JS: the timer queued by this yield re-enters the executor; return to
+            // the event loop instead of spinning until it is due.
+            #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+            {
+                let signal = self.yielder.yield_for(yield_duration);
+                if self.yielder.should_stop(&signal) {
+                    break 'main_loop;
+                }
+            }
+            #[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
             self.yielder.yield_for(yield_duration);
         }
     }

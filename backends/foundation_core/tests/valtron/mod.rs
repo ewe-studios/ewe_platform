@@ -57,6 +57,13 @@ mod threaded_future;
 mod threaded_future_std;
 mod units;
 mod wasm_js_yield_integration;
+// Shared scenarios for the wasm runtime suites (also included by
+// `integration/wasm_tests`); a JS-hosted wasm build only.
+#[cfg(all(
+    target_family = "wasm",
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+))]
+mod wasm_wake_support;
 mod wasm_yielder_tests;
 // Blocking sync-boundary helpers do not exist on JS-hosted wasm.
 #[cfg(not(target_family = "wasm"))]

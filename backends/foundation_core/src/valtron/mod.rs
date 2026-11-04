@@ -169,3 +169,13 @@ pub use futures_lite::StreamExt;
 // foundation_core::valtron::trace::try_init_tracing_with() without every
 // crate adding foundation_compact as a direct dependency.
 pub use foundation_compact::trace;
+
+/// The instant type of [`EventReadiness::deadline`].
+///
+/// WHY: `std::time::Instant::now()` panics on `wasm32-unknown-unknown`, and a
+/// deadline the executor reads (to wake at it) is compared with the clock. This
+/// is `std::time::Instant` on every other target, and the host-clock instant on
+/// JS wasm, so one readiness source compiles and runs on both. A crate that
+/// implements `deadline` names this type, so it does not need a direct
+/// dependency on `foundation_compact`.
+pub use foundation_compact::Instant as ReadinessInstant;

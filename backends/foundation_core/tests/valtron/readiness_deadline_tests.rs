@@ -12,10 +12,11 @@
 //! the executor must check it only a few times while it waits (a counting adapter
 //! in the test). (The CPU cost of a parked worker is measured by `event_driven_cpu` below.)
 
+use foundation_compact::Instant;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use foundation_core::valtron::{
     execute, valtron_test, AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ReadinessWaker,

@@ -57,7 +57,7 @@ use std::sync::Mutex;
 #[test]
 fn test_duration_waker_new() {
     let handle = MockWaker::new();
-    let start = time::Instant::now();
+    let start = foundation_compact::Instant::now();
     let duration = time::Duration::from_millis(100);
 
     let waker = DurationWaker::new(handle, start, duration);
@@ -101,7 +101,7 @@ fn test_duration_waker_is_ready_when_elapsed() {
 fn test_duration_waker_deadline() {
     let handle = MockWaker::new();
     let duration = time::Duration::from_millis(100);
-    let before = time::Instant::now();
+    let before = foundation_compact::Instant::now();
 
     let waker = DurationWaker::from_now(handle, duration);
     let deadline = waker.deadline();

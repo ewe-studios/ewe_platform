@@ -87,7 +87,7 @@ impl EventReadiness for CompositeReadiness {
         self.a.is_ready(dur) || self.b.is_ready(dur)
     }
 
-    fn deadline(&self) -> Option<std::time::Instant> {
+    fn deadline(&self) -> Option<foundation_core::valtron::ReadinessInstant> {
         match (self.a.deadline(), self.b.deadline()) {
             (Some(a), Some(b)) => Some(a.min(b)),
             (a, b) => a.or(b),

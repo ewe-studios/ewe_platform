@@ -488,7 +488,7 @@ impl crate::valtron::EventReadiness for CancelOrReadiness {
         self.cancel.load(core::sync::atomic::Ordering::Acquire) || self.inner.is_ready(dur)
     }
 
-    fn deadline(&self) -> Option<std::time::Instant> {
+    fn deadline(&self) -> Option<foundation_compact::Instant> {
         self.inner.deadline()
     }
 

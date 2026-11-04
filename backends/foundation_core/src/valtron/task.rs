@@ -59,7 +59,7 @@ pub trait EventReadiness {
     /// only by an outside event and have no instant of their own. A time-based
     /// signal returns its instant; a signal that combines others returns the
     /// earliest of theirs.
-    fn deadline(&self) -> Option<time::Instant> {
+    fn deadline(&self) -> Option<foundation_compact::Instant> {
         None
     }
 
@@ -706,7 +706,7 @@ impl EventReadiness for AnyReadiness {
     /// The earliest deadline of the children: the signal is ready as soon as
     /// any child is, so it can be ready at the first of their instants. `None`
     /// when no child has one.
-    fn deadline(&self) -> Option<time::Instant> {
+    fn deadline(&self) -> Option<foundation_compact::Instant> {
         self.0.iter().filter_map(|child| child.deadline()).min()
     }
 

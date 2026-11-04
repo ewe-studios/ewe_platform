@@ -16,7 +16,7 @@ pub trait Waker {
 #[derive(Debug)]
 pub struct DurationWaker<T> {
     pub handle: T,
-    pub from: time::Instant,
+    pub from: foundation_compact::Instant,
     pub how_long: time::Duration,
 }
 
@@ -159,7 +159,7 @@ impl<T: Waker> Waker for DurationWaker<T> {
 }
 
 impl<T> DurationWaker<T> {
-    pub fn new(handle: T, from: time::Instant, how_long: time::Duration) -> Self {
+    pub fn new(handle: T, from: foundation_compact::Instant, how_long: time::Duration) -> Self {
         Self {
             handle,
             from,
@@ -168,11 +168,11 @@ impl<T> DurationWaker<T> {
     }
 
     pub fn from_now(handle: T, how_long: time::Duration) -> Self {
-        Self::new(handle, time::Instant::now(), how_long)
+        Self::new(handle, foundation_compact::Instant::now(), how_long)
     }
 
     pub fn remaining(&self) -> Option<time::Duration> {
-        let now = std::time::Instant::now();
+        let now = foundation_compact::Instant::now();
         match self.from.checked_add(self.how_long) {
             Some(when_ready) => when_ready.checked_duration_since(now),
             None => None,
@@ -180,14 +180,14 @@ impl<T> DurationWaker<T> {
     }
 
     pub fn try_is_ready(&self) -> Option<bool> {
-        let now = std::time::Instant::now();
+        let now = foundation_compact::Instant::now();
         self.from
             .checked_add(self.how_long)
             .map(|when_ready| when_ready.checked_duration_since(now).is_none())
     }
 
     /// Returns the deadline when this waker will be ready.
-    pub fn deadline(&self) -> time::Instant {
+    pub fn deadline(&self) -> foundation_compact::Instant {
         self.from + self.how_long
     }
 }
@@ -346,7 +346,7 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
     ///
     /// Used to calculate how long a thread should sleep when no work is available.
     /// Returns None if no sleepers have deadlines (e.g., all are Atomic).
-    pub fn minimum_deadline(&self) -> Option<time::Instant>
+    pub fn minimum_deadline(&self) -> Option<foundation_compact::Instant>
     where
         T: crate::synca::sleepers::Timeable,
     {
@@ -354,7 +354,7 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         sleepers
             .values()
             .filter_map(|sleeper| sleeper.remaining_duration())
-            .map(|remaining| time::Instant::now() + remaining)
+            .map(|remaining| foundation_compact::Instant::now() + remaining)
             .min()
     }
 
@@ -380,7 +380,7 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         T: crate::synca::sleepers::Timeable,
     {
         self.minimum_deadline().map(|deadline| {
-            let now = time::Instant::now();
+            let now = foundation_compact::Instant::now();
             if deadline > now {
                 deadline - now
             } else {
