@@ -356,6 +356,12 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
     plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
     if s.fmt != "off":
         plan["fmt"].append(["cargo", "fmt", "-p", name, "--check"])
+    if name == "foundation_core" and s.build == "enforce":
+        # Spec 70 feature 80: the executor wake functions are private to valtron.
+        # One repository-wide scan, run with the package that owns them (in the
+        # enforced `build` step), and the test of the scan itself.
+        plan["build"].append([sys.executable, "scripts/ci/check_executor_wake.py"])
+        plan["build"].append([sys.executable, "-m", "unittest", "discover", "-s", "scripts/ci/tests"])
     if s.build != "off":
         # Library, binaries, tests, examples and benches: compile errors show
         # up here, separately from test failures.

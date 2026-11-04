@@ -154,46 +154,77 @@ pub type EventReadinessPtr = Arc<dyn EventReadiness>;
 /// A simple readiness signal backed by an `Arc<AtomicBool>`.
 ///
 /// The task considers itself ready when the atomic bool is `true`.
+///
+/// [`BoolSignal::set`] wakes the tasks parked on the signal, so a signal that is only
+/// changed through `set` is not re-checked on a timer. A signal built from a raw
+/// atomic ([`BoolSignal::from_atomic`], [`BoolSignal::clone_inner`]) may be stored to
+/// by code that wakes nobody, so it stays on the timed re-check.
 #[derive(Clone)]
-pub struct BoolSignal(Arc<AtomicBool>);
+pub struct BoolSignal(Arc<BoolSignalInner>);
+
+struct BoolSignalInner {
+    flag: Arc<AtomicBool>,
+    notifier: ReadinessNotifier,
+    /// A raw writer exists: a store may not wake the tasks parked on the signal.
+    raw: AtomicBool,
+}
 
 impl BoolSignal {
     /// Create a new `BoolSignal` with the given initial value.
     pub fn new(value: bool) -> Self {
-        Self(Arc::new(AtomicBool::new(value)))
+        Self(Arc::new(BoolSignalInner {
+            flag: Arc::new(AtomicBool::new(value)),
+            notifier: ReadinessNotifier::new(),
+            raw: AtomicBool::new(false),
+        }))
     }
 
     /// Create a `BoolSignal` from an existing `Arc<AtomicBool>`.
+    ///
+    /// Whoever holds the atomic can store to it without waking a parked task, so
+    /// the signal is re-checked on a timer.
     pub fn from_atomic(inner: Arc<AtomicBool>) -> Self {
-        Self(inner)
+        Self(Arc::new(BoolSignalInner {
+            flag: inner,
+            notifier: ReadinessNotifier::new(),
+            raw: AtomicBool::new(true),
+        }))
     }
 
     /// Get a clone of the underlying `Arc<AtomicBool>` for external mutation.
     ///
-    /// Prefer [`BoolSignal::set`]: a raw store does not ask the executor to
-    /// run again, so on a JS wasm build (which hands control back to the event
-    /// loop while every task is parked) a task parked on this signal is never
-    /// re-polled unless the writer also calls
-    /// [`request_executor_resume`](crate::valtron::request_executor_resume).
+    /// Prefer [`BoolSignal::set`]: a raw store wakes nobody. Taking the atomic
+    /// puts the signal on the timed re-check, so a raw store is still seen.
     pub fn clone_inner(&self) -> Arc<AtomicBool> {
-        self.0.clone()
+        self.0.raw.store(true, Ordering::SeqCst);
+        self.0.flag.clone()
     }
 
-    /// Set the signal. Turning it on asks the executor's host to run again
-    /// ([`request_executor_resume`](crate::valtron::request_executor_resume)),
-    /// so a task parked on it is re-polled even when the writer is JS-side async
-    /// work on a wasm build, and at once on native.
+    /// Set the signal. Turning it on wakes the tasks parked on it, and on a JS wasm
+    /// build asks the host to run the executor again, so a task parked on it is
+    /// re-polled even when the writer is JS-side async work.
     pub fn set(&self, value: bool) {
-        self.0.store(value, Ordering::SeqCst);
+        self.0.flag.store(value, Ordering::SeqCst);
         if value {
-            crate::valtron::request_executor_resume();
+            self.0.notifier.notify();
+            if self.0.raw.load(Ordering::SeqCst) {
+                // A timed re-check task (no waker) parked on a raw signal: nudge
+                // the executors of the process.
+                crate::valtron::request_executor_resume();
+            }
         }
     }
 }
 
 impl EventReadiness for BoolSignal {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        self.0.load(Ordering::SeqCst)
+        self.0.flag.load(Ordering::SeqCst)
+    }
+
+    /// Takes the waker only while no raw writer exists (see the type docs).
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        let registered = self.0.notifier.register(waker);
+        registered && !self.0.raw.load(Ordering::SeqCst)
     }
 }
 
@@ -204,14 +235,13 @@ impl EventReadiness for BoolSignal {
 /// stream has data. This ties the two together.
 ///
 /// HOW: [`WakeSignal::callback`] builds a one-shot [`WakeCallback`] that sets the
-/// flag and calls [`request_executor_resume`] (so a JS wasm executor that has
+/// flag and wakes the task parked on the signal (so a JS wasm executor that has
 /// handed control back to the event loop is run again). Register it with
 /// `stream.wake(signal.callback())`; if that returns `WakeResult::Successful`,
 /// return `TaskStatus::Depends(Arc::new(signal))`.
 ///
 /// [`WakeableStream`]: crate::valtron::WakeableStream
 /// [`WakeCallback`]: crate::valtron::WakeCallback
-/// [`request_executor_resume`]: crate::valtron::request_executor_resume
 #[derive(Clone, Default)]
 pub struct WakeSignal(Arc<WakeSignalInner>);
 
@@ -376,6 +406,10 @@ impl<T> QueueReadiness<T> {
     /// the executor re-checks this readiness on a timer (`register` returns
     /// `false`). Prefer an [`EventQueue`] and [`EventQueue::readiness`], whose push
     /// wakes the parked task.
+    #[deprecated(
+        since = "0.0.7",
+        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::readiness()` (spec 70 feature 80)"
+    )]
     pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
         Self {
             queue,
@@ -388,6 +422,11 @@ impl<T> QueueReadiness<T> {
     /// Kept for code that built a readiness over a raw queue and resumed the
     /// executor itself; it is re-checked on a timer like [`Self::new`]. Use
     /// [`EventQueue`].
+    #[deprecated(
+        since = "0.0.7",
+        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::readiness()` (spec 70 feature 80)"
+    )]
+    #[allow(deprecated)]
     pub fn event_driven(queue: Arc<ConcurrentQueue<T>>) -> Self {
         Self::new(queue)
     }
@@ -517,6 +556,10 @@ impl<T> QueueVacancyReadiness<T> {
     /// the executor re-checks this readiness on a timer (`register` returns
     /// `false`). Prefer an [`EventQueue`] and [`EventQueue::vacancy`], whose pop
     /// wakes the parked producer.
+    #[deprecated(
+        since = "0.0.7",
+        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::vacancy()` (spec 70 feature 80)"
+    )]
     pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
         Self {
             queue,
@@ -526,6 +569,11 @@ impl<T> QueueVacancyReadiness<T> {
 
     /// Same as [`Self::new`]: a plain queue cannot wake the task. Use
     /// [`EventQueue`].
+    #[deprecated(
+        since = "0.0.7",
+        note = "a plain queue cannot wake the parked task and is re-checked on a timer; use `EventQueue` and `EventQueue::vacancy()` (spec 70 feature 80)"
+    )]
+    #[allow(deprecated)]
     pub fn event_driven(queue: Arc<ConcurrentQueue<T>>) -> Self {
         Self::new(queue)
     }

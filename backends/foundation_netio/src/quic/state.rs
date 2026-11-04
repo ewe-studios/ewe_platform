@@ -105,10 +105,10 @@ impl ConnState {
 
     /// Wake the driver: this connection has queued outgoing data to transmit.
     ///
-    /// `set(true)` also asks the executor host to run again, so a driver parked
-    /// on `TaskStatus::Depends` is re-polled on native at once (and re-scheduled
-    /// on wasm). Safe to call under the connection lock: `resume_idle` takes a
-    /// different lock and never runs the driver inline.
+    /// `set(true)` wakes the driver task's waker, so a driver parked on
+    /// `TaskStatus::Depends` is re-polled on native at once (and re-scheduled on
+    /// wasm). Safe to call under the connection lock: the wake takes a different
+    /// lock and never runs the driver inline.
     pub(crate) fn wake_driver(&self) {
         self.driver_wake.set(true);
     }

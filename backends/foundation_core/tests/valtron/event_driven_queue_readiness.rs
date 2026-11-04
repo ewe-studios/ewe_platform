@@ -110,10 +110,10 @@ where
 }
 
 /// The most checks a 200 ms park may cost. An event-driven park checks the
-/// readiness a few times (3 to 12 alone). Other tests of this binary run beside
-/// this one and every `request_executor_resume` they make interrupts this
-/// thread's sleep, so a loaded run can reach about 50. A 1 ms re-check makes 170
-/// (`multi`) to 350 or more, so the bound still tells them apart.
+/// readiness a few times (2 to 12 alone). A wake belongs to one task, so the
+/// tests of this binary that run beside this one do not interrupt it. A 1 ms
+/// re-check makes 170 (`multi`) to 350 or more, so the bound still tells them
+/// apart.
 const MAX_CHECKS: usize = 100;
 
 fn assert_woke(label: &str, ms: u64, checks: usize) {
@@ -140,6 +140,7 @@ async fn queue_readiness_wakes_on_a_push_from_another_thread() {
 }
 
 #[valtron_test(threads = 1, timeout = 10_000)]
+#[allow(deprecated)]
 async fn queue_readiness_new_keeps_polling_for_raw_pushers() {
     let queue = Arc::new(ConcurrentQueue::unbounded());
     let raw = queue.clone();

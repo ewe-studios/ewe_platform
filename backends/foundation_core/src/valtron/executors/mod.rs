@@ -81,7 +81,7 @@ pub(crate) mod idle_wake;
 ///
 /// [`WakeSignal`]: crate::valtron::WakeSignal
 #[inline]
-pub fn request_executor_resume() {
+pub(crate) fn request_executor_resume() {
     #[cfg(all(
         target_family = "wasm",
         any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")

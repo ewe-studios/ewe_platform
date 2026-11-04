@@ -882,7 +882,7 @@ impl ProcessController for ThreadYielder {
             .expect("should send event");
 
         // A parked task becoming ready anywhere interrupts this wait
-        // (`request_executor_resume`), so it resumes at once.
+        // (a wake of a task parked on this worker), so it resumes at once.
         let interrupter = self.clone();
         crate::valtron::executors::idle_wake::park_idle(
             std::sync::Arc::new(move || interrupter.interrupt()),

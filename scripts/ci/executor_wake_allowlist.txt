@@ -1,0 +1,4 @@
+# Files outside backends/foundation_core/src/valtron/ that may name the executor
+# wake functions (request_executor_resume, resume_idle, idle_wake). One path per
+# line, then `# reason`. Spec 70 feature 80: the default answer is "no exception",
+# so this list is empty.

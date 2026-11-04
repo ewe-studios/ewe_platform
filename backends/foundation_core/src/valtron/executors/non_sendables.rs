@@ -1311,6 +1311,7 @@ where
             // time): report `Wait` and let the caller drive again. Block only
             // when nothing here can run — then the item can only come from
             // another thread.
+            #[cfg_attr(target_family = "wasm", allow(unused_mut))]
             let mut pulled = task_iterator.try_next();
 
             // Only parked sleepers remain: the item can come from this very

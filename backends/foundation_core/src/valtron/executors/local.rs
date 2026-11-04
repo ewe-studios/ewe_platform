@@ -198,57 +198,6 @@ impl core::fmt::Debug for ThreadActivity {
     }
 }
 
-/// How many sleeps of this thread's `wait_for_sleepers` in a row a resume cut
-/// short without a sleeper becoming ready.
-///
-/// WHY: `request_executor_resume` is process-wide, so a resume that belongs to
-/// another executor (a readiness flip, a queue push, a future wake) also cuts
-/// this thread's sleep short, and the re-check that follows costs a readiness
-/// check per resume. On a busy process that is thousands of checks a second for
-/// a thread that only waits for a deadline. After each such sleep the next
-/// re-check waits a gap that doubles, from 16 times the readiness poll quantum
-/// to 128 times it (16 ms to 128 ms with the 1 ms default); a sleeper that
-/// becomes ready, or a sleep that ends on its own, resets it. A real resume
-/// therefore waits at most the gap, and only while the process is busy.
-#[cfg(not(target_family = "wasm"))]
-#[derive(Clone, Copy, Default)]
-struct SpuriousResumes {
-    /// Interrupted sleeps in a row.
-    count: u32,
-    /// When the gap started: the end of the last interrupted sleep.
-    since: Option<time::Instant>,
-}
-
-#[cfg(not(target_family = "wasm"))]
-impl SpuriousResumes {
-    /// The part of the gap still to wait, if any.
-    fn gap(self, quantum: time::Duration) -> Option<time::Duration> {
-        if self.count == 0 {
-            return None;
-        }
-        let gap = quantum.saturating_mul(1 << (self.count + 3).min(7));
-        let waited = self.since.map_or(gap, |since| since.elapsed());
-        gap.checked_sub(waited).filter(|left| !left.is_zero())
-    }
-
-    fn after_sleep(self, interrupted: bool) -> Self {
-        if interrupted {
-            Self {
-                count: (self.count + 1).min(6),
-                since: Some(time::Instant::now()),
-            }
-        } else {
-            Self::default()
-        }
-    }
-}
-
-#[cfg(not(target_family = "wasm"))]
-thread_local! {
-    static SPURIOUS_RESUMES: core::cell::Cell<SpuriousResumes> =
-        const { core::cell::Cell::new(SpuriousResumes { count: 0, since: None }) };
-}
-
 /// `PriorityOrder` defines how wake up tasks should placed once woken up.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PriorityOrder {
@@ -2999,7 +2948,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// WHAT: wakes the sleepers that are ready; if one became runnable, returns
     /// `false` so the caller runs it. Otherwise sleeps [`Self::sleeper_wait`], but
     /// not past `until`, and returns `true`. A resume
-    /// (`request_executor_resume`) interrupts the sleep. Returns `false` at once
+    /// (a wake of a parked task) interrupts the sleep. Returns `false` at once
     /// when nothing is parked, so the caller blocks as before.
     #[cfg(not(target_family = "wasm"))]
     pub fn wait_for_sleepers(&self, until: time::Instant) -> bool {
@@ -3007,26 +2956,14 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         if self.state.number_of_sleepers() == 0 {
             return false;
         }
-        // Space out the re-checks that unrelated resumes cause (see
-        // `SpuriousResumes`): sleep out the rest of the gap first.
-        let gap = SPURIOUS_RESUMES.with(|s| s.get().gap(self.readiness_poll_quantum));
-        if let Some(gap) = gap {
-            let left = until.saturating_duration_since(time::Instant::now());
-            std::thread::sleep(gap.min(left));
-        }
         self.state.wakeup_ready_sleepers();
         if self.state.has_runnable_work() {
-            SPURIOUS_RESUMES.with(|s| s.set(SpuriousResumes::default()));
             return false;
         }
         let planned = self
             .sleeper_wait()
             .min(until.saturating_duration_since(time::Instant::now()));
-        let started = time::Instant::now();
         self.yielder.yield_for(planned);
-        // A sleep that ended early was cut short by a resume.
-        let interrupted = started.elapsed() + time::Duration::from_micros(500) < planned;
-        SPURIOUS_RESUMES.with(|s| s.set(s.get().after_sleep(interrupted)));
         true
     }
 
@@ -3042,7 +2979,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     ///
     /// On JS wasm the drivers return to the event loop in this state instead of
     /// spinning (which would starve the async work being waited on) or polling on
-    /// a timer; the owner calls `request_executor_resume` when the signal flips.
+    /// a timer; the owner wakes the task's waker when the signal flips.
     #[cfg(all(
         target_family = "wasm",
         any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
@@ -3106,7 +3043,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             // a stream read) completes, so hand the thread back to the event loop.
             // Neither spin here (that starves the very work we wait on and freezes
             // the isolate) nor poll on a timer: whoever flips the signal asks for a
-            // run via `request_executor_resume` (`WakeSignal` does it for you).
+            // run by the wake of its `ReadinessWaker` (`WakeSignal` does it for you).
             #[cfg(all(
                 target_family = "wasm",
                 any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
@@ -3246,7 +3183,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
                 // JS: every remaining task is parked on a readiness signal (none
                 // on a timer). Return to the event loop; the signal's owner
-                // requests a resume (`request_executor_resume`) when it flips.
+                // wakes the task's waker when it flips.
                 // Looping here would spin without ever letting JS run.
                 #[cfg(all(
                     target_family = "wasm",
@@ -3342,7 +3279,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// Like [`Self::sleeper_wait`], the nearest sleeper deadline bounds it, and a
     /// sleeper that can become ready without a wake
     /// ([`EventReadiness::register`]) bounds it by the readiness quantum.
-    /// Sleepers woken by an event (`request_executor_resume`) with no deadline
+    /// Sleepers woken by an event (a `ReadinessWaker` wake) with no deadline
     /// need no timed wake.
     #[must_use]
     pub fn parked_wake_after(&self) -> Option<time::Duration> {
@@ -3408,7 +3345,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         // runnable — only readiness-parked sleepers remain — sleep
                         // the readiness quantum instead of busy-spinning until one
                         // is woken. The reactor (or a bridged future's waker) calls
-                        // `request_executor_resume`, which interrupts this wait.
+                        // a wake of the task, which interrupts this wait.
                         if !self.state.has_runnable_work() && self.state.number_of_sleepers() > 0 {
                             self.yielder.yield_for(self.sleeper_wait());
                             slept = true;
