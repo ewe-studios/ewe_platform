@@ -410,9 +410,11 @@ the choice.
 3. **Report** to the main session after each feature: what changed, before/after test results,
    commands and results. The main session reviews against the feature's "Done when" list
    before the next feature starts.
-4. **CI runs on GitHub, not locally (owner decision 2026-11-04).** Locally, run only the
-   targeted tests and clippy for what you changed. After a push, the main session starts
-   `check.yaml` by `workflow_dispatch` on the lane branch with the changed packages and reads
-   the result. Do not run `ci.py run` locally.
+4. **Local checks are focused; full CI runs on GitHub (owner decision 2026-11-04).** After each
+   change, run locally: the tests and clippy of the crates you changed, plus the tests of the
+   workspace crates that depend on them and use the changed API (find them with
+   `cargo tree -i <crate> --workspace --depth 1`, then pick the ones that call what changed).
+   Keep it fast and targeted; do not run `ci.py run` for the whole crate set. After a push, the
+   PR's GitHub CI runs everything and the main session reads the result and sends failures back.
 5. **One lane builds at a time.** The disk does not hold two full lane `target` directories.
    The main session pauses one lane while the other builds.
