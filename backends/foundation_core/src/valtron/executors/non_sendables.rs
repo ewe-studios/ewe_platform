@@ -1256,7 +1256,28 @@ where
             // time): report `Wait` and let the caller drive again. Block only
             // when nothing here can run — then the item can only come from
             // another thread.
-            let next_value = match task_iterator.try_next() {
+            let mut pulled = task_iterator.try_next();
+
+            // Only parked sleepers remain: the item can come from this very
+            // thread, when a sleeper matures. Sleep as long as the sleepers
+            // allow (their nearest deadline, a resume) instead of blocking on
+            // the queue, which a sleeper cannot fill, then drive the engine once
+            // more so a sleeper that matured (or was resumed) produces its item.
+            // The wait is bounded by the executor's `max_yield_duration`; then
+            // the caller gets `Wait` and decides whether to poll again.
+            #[cfg(not(target_family = "wasm"))]
+            if pulled.is_none() && !single::has_runnable_work() {
+                let until = std::time::Instant::now() + single::sleeper_budget();
+                while pulled.is_none() && single::wait_for_sleepers(until) {
+                    run_until_next_state();
+                    pulled = task_iterator.try_next();
+                    if pulled.is_none() && std::time::Instant::now() >= until {
+                        pulled = Some(Some(Stream::Wait));
+                    }
+                }
+            }
+
+            let next_value = match pulled {
                 Some(item) => item,
                 None if single::has_runnable_work() => Some(Stream::Wait),
                 None => task_iterator.next(),

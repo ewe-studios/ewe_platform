@@ -188,7 +188,7 @@ where
                 //  - self-wake (token pushed during poll): `Ignore` (requeue, no park);
                 //  - external-wake (no token): park on the queue readiness.
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::event_driven(
                         self.wake_queue.clone(),
                     ))))
                 } else {
@@ -239,7 +239,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::event_driven(
                         self.wake_queue.clone(),
                     ))))
                 } else {

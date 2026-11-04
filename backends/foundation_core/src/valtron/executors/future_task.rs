@@ -292,7 +292,7 @@ where
                 // the executor requeues, and we drain it on the next poll.
                 if self.wake_queue.is_empty() {
                     // No self-wake: genuine park.
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::event_driven(
                         self.wake_queue.clone(),
                     ))))
                 } else {
@@ -332,7 +332,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::event_driven(
                         self.wake_queue.clone(),
                     ))))
                 } else {
@@ -408,7 +408,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::event_driven(
                         self.wake_queue.clone(),
                     ))))
                 } else {
@@ -449,7 +449,7 @@ where
             }
             Poll::Pending => {
                 if self.wake_queue.is_empty() {
-                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                    Some(TaskStatus::Depends(Arc::new(QueueReadiness::event_driven(
                         self.wake_queue.clone(),
                     ))))
                 } else {

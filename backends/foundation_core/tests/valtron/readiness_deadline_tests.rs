@@ -8,20 +8,23 @@
 //! its timer, or the worker spun to re-check it.
 //!
 //! WHAT: the only task parks on a signal that is never signalled and has a
-//! deadline 200 ms away. It must run again within 200 to 400 ms of the park,
-//! (The CPU cost of a parked worker is measured by `event_driven_cpu` below.)
+//! deadline 300 ms away. It must run again within 300 to 500 ms of the park, and
+//! the executor must check it only a few times while it waits (a counting adapter
+//! in the test). (The CPU cost of a parked worker is measured by `event_driven_cpu` below.)
 
 use std::pin::Pin;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::{
-    execute, valtron_test, AnyReadiness, BoolSignal, Ctx, EventReadiness, EventReadinessPtr,
+    execute, valtron_test, AnyReadiness, Ctx, EventReadiness, EventReadinessPtr, ResumeSignal,
     StreamIteratorExt, TaskIterator, TaskStatus,
 };
 use futures_core::Stream as FuturesStream;
 
-/// Ready once its instant has passed. Nothing else signals it.
+/// Ready once its instant has passed. Nothing else signals it, so it needs no
+/// re-check on a timer: the executor wakes at its deadline.
 struct DeadlineSignal(Instant);
 
 impl EventReadiness for DeadlineSignal {
@@ -31,6 +34,56 @@ impl EventReadiness for DeadlineSignal {
 
     fn deadline(&self) -> Option<Instant> {
         Some(self.0)
+    }
+
+    fn needs_polling(&self) -> bool {
+        false
+    }
+}
+
+/// A test adapter that counts every `is_ready` call on the readiness it wraps.
+///
+/// WHY: a test that only measures when the task ran again passes on an executor
+/// that re-checks the readiness every millisecond. The count tells the two apart:
+/// an executor that sleeps checks the readiness a few times, a polling one
+/// checks it hundreds of times.
+///
+/// With `force_polling` it reports `needs_polling() == true`, which makes the
+/// executor re-check it on the readiness quantum: it is the old behaviour.
+struct Counting {
+    inner: EventReadinessPtr,
+    checks: Arc<AtomicUsize>,
+    force_polling: bool,
+}
+
+impl Counting {
+    fn new(inner: EventReadinessPtr, force_polling: bool) -> (Arc<Self>, Arc<AtomicUsize>) {
+        let checks = Arc::new(AtomicUsize::new(0));
+        let signal = Arc::new(Self {
+            inner,
+            checks: Arc::clone(&checks),
+            force_polling,
+        });
+        (signal, checks)
+    }
+}
+
+impl EventReadiness for Counting {
+    fn is_ready(&self, dur: Option<Duration>) -> bool {
+        self.checks.fetch_add(1, Ordering::SeqCst);
+        self.inner.is_ready(dur)
+    }
+
+    fn deadline(&self) -> Option<Instant> {
+        self.inner.deadline()
+    }
+
+    fn clear(&self) {
+        self.inner.clear();
+    }
+
+    fn needs_polling(&self) -> bool {
+        self.force_polling || self.inner.needs_polling()
     }
 }
 
@@ -75,37 +128,89 @@ async fn park_and_measure(signal: EventReadinessPtr) -> u64 {
     value.expect("the task yields a value")
 }
 
-/// The only task, parked on a readiness whose deadline is 200 ms away and which
-/// is never signalled, runs again within 200 to 400 ms.
+/// How long the deadlines of these tests are from the start of the park.
+const PARK_MS: u64 = 300;
+
+/// The most readiness checks a parked task may cost over the park. An executor that
+/// sleeps checks the readiness at the park, at the deadline and, on the
+/// single-thread driver, once per `max_yield_duration` (100 ms) wake-up: 2 to 14
+/// checks. The old 1 ms re-check made about `PARK_MS` (300) to 650 checks.
+const MAX_CHECKS: usize = 20;
+
+/// One deadline readiness, parked on and counted. `with_any` parks on an
+/// `AnyReadiness` of the earliest deadline, a later one and a signal that never fires.
+async fn run_deadline_case(with_any: bool, force_polling: bool) -> (u64, usize) {
+    let now = Instant::now();
+    let due = Duration::from_millis(PARK_MS);
+    let inner: EventReadinessPtr = if with_any {
+        Arc::new(
+            AnyReadiness::either(
+                Arc::new(DeadlineSignal(now + due * 4)),
+                Arc::new(ResumeSignal::new(false)),
+            )
+            .with(Arc::new(DeadlineSignal(now + due))),
+        )
+    } else {
+        Arc::new(DeadlineSignal(now + due))
+    };
+    let (signal, checks) = Counting::new(inner, force_polling);
+    let ms = park_and_measure(signal).await;
+    (ms, checks.load(Ordering::SeqCst))
+}
+
+fn assert_on_time(ms: u64) {
+    assert!(
+        (PARK_MS..PARK_MS + 200).contains(&ms),
+        "the task ran again after {ms} ms; the deadline is {PARK_MS} ms"
+    );
+}
+
+/// The only task, parked on a readiness whose deadline is 300 ms away and which
+/// is never signalled, runs again on time and the executor checks the readiness
+/// only a few times while it is parked (the old 1 ms re-check made about 300).
 #[valtron_test(threads = 1, timeout = 10_000)]
 async fn task_parked_on_deadline_readiness_wakes_on_time() {
-    let signal = Arc::new(DeadlineSignal(Instant::now() + Duration::from_millis(200)));
-    let ms = park_and_measure(signal).await;
+    let (ms, checks) = run_deadline_case(false, false).await;
+    eprintln!("deadline readiness: {ms} ms, {checks} checks");
 
+    assert_on_time(ms);
     assert!(
-        (200..400).contains(&ms),
-        "the task ran again after {ms} ms; the deadline is 200 ms"
+        checks <= MAX_CHECKS,
+        "the executor checked the parked readiness {checks} times; the bound is {MAX_CHECKS}"
     );
 }
 
 /// `AnyReadiness` reports the earliest deadline of its children: with children
-/// due at 200 ms and 800 ms and one that never fires, the task runs at 200 ms.
+/// due at 300 ms and 1200 ms and one that never fires, the task runs at 300 ms
+/// with a few checks.
 #[valtron_test(threads = 1, timeout = 10_000)]
 async fn any_readiness_wakes_at_the_earliest_child_deadline() {
-    let now = Instant::now();
-    let signal = Arc::new(
-        AnyReadiness::either(
-            Arc::new(DeadlineSignal(now + Duration::from_millis(800))),
-            Arc::new(BoolSignal::new(false)),
-        )
-        .with(Arc::new(DeadlineSignal(now + Duration::from_millis(200)))),
-    );
-    let ms = park_and_measure(signal).await;
+    let (ms, checks) = run_deadline_case(true, false).await;
+    eprintln!("any readiness: {ms} ms, {checks} checks");
 
+    assert_on_time(ms);
     assert!(
-        (200..400).contains(&ms),
-        "the task ran again after {ms} ms; the earliest child deadline is 200 ms"
+        checks <= MAX_CHECKS,
+        "the executor checked the parked readiness {checks} times; the bound is {MAX_CHECKS}"
     );
+}
+
+/// The counting bound does discriminate: with polling forced on (the old
+/// behaviour) the same park makes far more checks than `MAX_CHECKS`, and the task
+/// still runs on time, so only the count tells the two apart.
+#[valtron_test(threads = 1, timeout = 10_000)]
+async fn forced_polling_makes_many_checks_during_a_park() {
+    for with_any in [false, true] {
+        let (ms, checks) = run_deadline_case(with_any, true).await;
+        eprintln!("forced polling (any={with_any}): {ms} ms, {checks} checks");
+
+        assert_on_time(ms);
+        assert!(
+            checks > MAX_CHECKS * 5,
+            "with polling forced the executor checked the readiness only {checks} times; \
+             the bound {MAX_CHECKS} would not tell it from an event-driven park"
+        );
+    }
 }
 
 /// Tests that measure the CPU of pool worker threads: the single-thread executor
@@ -113,7 +218,6 @@ async fn any_readiness_wakes_at_the_earliest_child_deadline() {
 #[cfg(all(target_os = "linux", feature = "multi"))]
 mod event_driven_cpu {
     use super::*;
-    use foundation_core::valtron::ResumeSignal;
 
     /// Parks once on a signal that never fires; ends only when the pool shuts down.
     struct ParkForever {

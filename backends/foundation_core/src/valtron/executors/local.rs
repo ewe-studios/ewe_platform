@@ -2104,6 +2104,12 @@ impl ReferencedExecutorState {
         self.inner.number_of_sleepers()
     }
 
+    /// See [`ExecutorState::wakeup_ready_sleepers`].
+    #[inline]
+    pub fn wakeup_ready_sleepers(&self) {
+        self.inner.wakeup_ready_sleepers();
+    }
+
     /// See [`ExecutorState::sleepers_need_polling`].
     #[inline]
     #[must_use]
@@ -2885,6 +2891,43 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
+    /// Native: when nothing here can run but parked sleepers remain, sleep this
+    /// thread as long as the sleepers allow, then return `true`.
+    ///
+    /// WHY: a caller that drives this engine between its own steps (the
+    /// single-threaded stream driver) used to block on its own output queue when
+    /// nothing was runnable. The queue only fills when this very thread runs a
+    /// task, so the block was a fixed wait that ignored the sleepers: a parked
+    /// task was re-checked once per wait, and a deadline was met up to a whole
+    /// wait late.
+    ///
+    /// WHAT: wakes the sleepers that are ready; if one became runnable, returns
+    /// `false` so the caller runs it. Otherwise sleeps [`Self::sleeper_wait`], but
+    /// not past `until`, and returns `true`. A resume
+    /// (`request_executor_resume`) interrupts the sleep. Returns `false` at once
+    /// when nothing is parked, so the caller blocks as before.
+    #[cfg(not(target_family = "wasm"))]
+    pub fn wait_for_sleepers(&self, until: time::Instant) -> bool {
+        crate::valtron::executors::idle_wake::checking();
+        if self.state.number_of_sleepers() == 0 {
+            return false;
+        }
+        self.state.wakeup_ready_sleepers();
+        if self.state.has_runnable_work() {
+            return false;
+        }
+        let left = until.saturating_duration_since(time::Instant::now());
+        self.yielder.yield_for(self.sleeper_wait().min(left));
+        true
+    }
+
+    /// How long a caller that drives this engine may wait for parked sleepers
+    /// in one call: `max_yield_duration`.
+    #[must_use]
+    pub fn sleeper_budget(&self) -> time::Duration {
+        self.max_yield_duration
+    }
+
     /// Every remaining task is parked on a readiness signal and none on a timer:
     /// nothing can run until the signal's owner flips it.
     ///
@@ -3054,12 +3097,21 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             // or fall back to the default yield duration if no sleepers exist.
             // Cap at `max_yield_duration` to ensure threads periodically check
             // for new work.
-            let yield_duration = self
-                .state
-                .time_until_next_wakeup()
-                .unwrap_or(self.no_work_yield)
-                .min(self.max_yield_duration);
-            self.yielder.yield_for(yield_duration);
+            //
+            // When sleepers are parked, `sleeper_wait` applies the same rule as
+            // `block_on`: a sleeper that can become ready without a wake
+            // (`EventReadiness::needs_polling`) is re-checked on the readiness
+            // quantum, and an event-driven one is not re-checked until its
+            // deadline or a resume.
+            let yield_duration = if self.state.number_of_sleepers() > 0 {
+                self.sleeper_wait()
+            } else {
+                self.state
+                    .time_until_next_wakeup()
+                    .unwrap_or(self.no_work_yield)
+            };
+            self.yielder
+                .yield_for(yield_duration.min(self.max_yield_duration));
         }
     }
 

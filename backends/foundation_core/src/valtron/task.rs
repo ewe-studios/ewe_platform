@@ -332,19 +332,33 @@ impl<D, P> TaskStatus<D, P> {
 /// }
 /// Some(TaskStatus::Depends(Arc::new(readiness)))
 /// ```
-pub struct QueueReadiness<T>(Arc<ConcurrentQueue<T>>);
+pub struct QueueReadiness<T>(Arc<ConcurrentQueue<T>>, bool);
 
 // Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
 impl<T> Clone for QueueReadiness<T> {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self(self.0.clone(), self.1)
     }
 }
 
 impl<T> QueueReadiness<T> {
     /// Create a `QueueReadiness` that watches the given queue for messages.
+    ///
+    /// The queue may be filled by code that does not ask the executor to run
+    /// again (a raw `queue().push`), so the executor re-checks this readiness on
+    /// a timer ([`EventReadiness::needs_polling`] is `true`). Use
+    /// [`Self::event_driven`] when every producer resumes the executor.
     pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
-        Self(queue)
+        Self(queue, false)
+    }
+
+    /// Create a `QueueReadiness` whose every producer asks the executor to run
+    /// again after a push or a close ([`QueueReadiness::push`],
+    /// [`request_executor_resume`](crate::valtron::request_executor_resume), a
+    /// queue waker). The executor then sleeps until the push instead of
+    /// re-checking the queue ([`EventReadiness::needs_polling`] is `false`).
+    pub fn event_driven(queue: Arc<ConcurrentQueue<T>>) -> Self {
+        Self(queue, true)
     }
 
     /// Get a clone of the underlying queue for external mutation (pushing messages).
@@ -384,12 +398,20 @@ impl<T: Send> EventReadiness for QueueReadiness<T> {
         // `Closed`) instead of sleeping forever.
         !self.0.is_empty() || self.0.is_closed()
     }
+
+    fn needs_polling(&self) -> bool {
+        !self.1
+    }
 }
 
 #[cfg(not(feature = "multi"))]
 impl<T> EventReadiness for QueueReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         !self.0.is_empty() || self.0.is_closed()
+    }
+
+    fn needs_polling(&self) -> bool {
+        !self.1
     }
 }
 

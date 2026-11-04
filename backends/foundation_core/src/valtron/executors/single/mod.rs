@@ -195,6 +195,33 @@ pub fn has_runnable_work() -> bool {
     })
 }
 
+/// Native: sleep this thread while only parked sleepers remain, as long as the
+/// sleepers allow. Returns `true` if it slept. See
+/// [`LocalThreadExecutor::wait_for_sleepers`].
+///
+/// Returns `false` when the engine has not been initialized.
+#[cfg(not(target_family = "wasm"))]
+#[must_use]
+pub fn wait_for_sleepers(until: std::time::Instant) -> bool {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
+        pool.get()
+            .is_some_and(|engine| engine.wait_for_sleepers(until))
+    })
+}
+
+/// Native: how long one call of a caller that drives this engine may wait for
+/// parked sleepers (the executor's `max_yield_duration`).
+#[cfg(not(target_family = "wasm"))]
+#[must_use]
+pub fn sleeper_budget() -> std::time::Duration {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
+        pool.get().map_or(
+            std::time::Duration::ZERO,
+            LocalThreadExecutor::sleeper_budget,
+        )
+    })
+}
+
 /// Whether this thread's engine has been initialized ([`initialize_pool`]).
 ///
 /// Host callbacks that resume the executor (a JS timer or microtask queued by a
