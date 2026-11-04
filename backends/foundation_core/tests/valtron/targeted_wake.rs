@@ -305,3 +305,61 @@ async fn an_observer_close_wakes_the_parked_task() {
     let ms = observer_wakes(true).await;
     assert!((200..450).contains(&ms), "the task ran again after {ms} ms");
 }
+
+/// A source outside the queue types: a flag plus a `ReadinessNotifier`, the construct
+/// a new kind of source (a socket, a timer, a shutdown flag) holds.
+struct FlagSource {
+    flag: AtomicBool,
+    notifier: ReadinessNotifier,
+}
+
+impl EventReadiness for FlagSource {
+    fn is_ready(&self, _dur: Option<Duration>) -> bool {
+        self.flag.load(Ordering::SeqCst)
+    }
+
+    fn register(&self, waker: &ReadinessWaker) -> bool {
+        self.notifier.register(waker)
+    }
+}
+
+/// A task parked on a custom source wakes when another thread sets the flag and calls
+/// `notify`, and the executor checks the source only a few times meanwhile.
+#[valtron_test(threads = 1, timeout = 10_000)]
+async fn a_task_parked_on_a_notifier_source_wakes_on_notify() {
+    let source = Arc::new(FlagSource {
+        flag: AtomicBool::new(false),
+        notifier: ReadinessNotifier::new(),
+    });
+    let checks = Arc::new(AtomicUsize::new(0));
+    let counted: EventReadinessPtr = Arc::new(Counting {
+        inner: source.clone(),
+        checks: Arc::clone(&checks),
+    });
+    let mut stream = execute(
+        ParkThenReport {
+            created: Instant::now(),
+            signal: Some(counted),
+            reported: false,
+        },
+        None,
+    )
+    .expect("execute")
+    .into_next_stream();
+    let setter = std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(200));
+        source.flag.store(true, Ordering::SeqCst);
+        source.notifier.notify();
+    });
+    let ms = std::future::poll_fn(|cx| Pin::new(&mut stream).poll_next(cx))
+        .await
+        .expect("the task runs again after notify");
+    setter.join().expect("setter thread");
+    let checked = checks.load(Ordering::SeqCst);
+    eprintln!("notifier source: {ms} ms, {checked} checks");
+    assert!((200..450).contains(&ms), "the task ran again after {ms} ms");
+    assert!(
+        checked <= MAX_CHECKS,
+        "the source was checked {checked} times; the bound is {MAX_CHECKS}"
+    );
+}
