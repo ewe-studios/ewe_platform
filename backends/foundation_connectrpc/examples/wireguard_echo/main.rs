@@ -17,8 +17,8 @@
 use std::io::{Read, Write};
 use std::time::Duration;
 
-use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 use foundation_wireguard::native::WgNode;
+use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 
 fn main() {
     let seed = WgSeed::generate(SeedBits::Bits256).expect("random seed");
@@ -26,18 +26,26 @@ fn main() {
 
     // ── Two nodes, one mesh ──────────────────────────────────────────
     let a = WgNode::from_config(WgConfig::seed(seed.clone(), net))
-        .join().expect("A");
+        .join()
+        .expect("A");
     let a_boot = a.bootstrap_addr();
     let b = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![a_boot]))
-        .join().expect("B");
+        .join()
+        .expect("B");
 
     let dl = std::time::Instant::now() + Duration::from_secs(10);
     while std::time::Instant::now() < dl {
         if a.wait_for_peer(b.overlay_ip(), Duration::from_millis(100))
-            && b.wait_for_peer(a.overlay_ip(), Duration::from_millis(100)) { break; }
+            && b.wait_for_peer(a.overlay_ip(), Duration::from_millis(100))
+        {
+            break;
+        }
     }
     assert!(a.wait_for_peer(b.overlay_ip(), Duration::from_millis(10)));
-    println!("🟢 mesh formed — {} members via SWIM gossip", a.members().len());
+    println!(
+        "🟢 mesh formed — {} members via SWIM gossip",
+        a.members().len()
+    );
 
     // ── B: listen on overlay IP ──────────────────────────────────────
     let b_ip = b.overlay_ip();
@@ -68,7 +76,10 @@ fn main() {
     let mut conn = None;
     for _ in 0..40 {
         match a.overlay_connect(b_ip, b_port) {
-            Ok(c) => { conn = Some(c); break; }
+            Ok(c) => {
+                conn = Some(c);
+                break;
+            }
             Err(_) => std::thread::sleep(Duration::from_millis(100)),
         }
     }

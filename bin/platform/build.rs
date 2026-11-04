@@ -55,7 +55,8 @@ fn copy_dir(from: &Path, to: &Path) -> io::Result<()> {
 
 fn main() -> io::Result<()> {
     let package_directory = PathBuf::from(
-        env::var("CARGO_MANIFEST_DIR").map_err(|e| io::Error::other(format!("CARGO_MANIFEST_DIR: {e}")))?,
+        env::var("CARGO_MANIFEST_DIR")
+            .map_err(|e| io::Error::other(format!("CARGO_MANIFEST_DIR: {e}")))?,
     );
     let out_directory =
         PathBuf::from(env::var("OUT_DIR").map_err(|e| io::Error::other(format!("OUT_DIR: {e}")))?);

@@ -37,7 +37,11 @@ fn first_match_wins() {
     struct A;
     impl RouteHandler for A {
         fn resolve(&self, i: &NavigationIntent, _: &PlatformSession) -> Option<RouteDecision> {
-            if i.url.contains("/app/") { Some(webview_app()) } else { None }
+            if i.url.contains("/app/") {
+                Some(webview_app())
+            } else {
+                None
+            }
         }
     }
 
@@ -65,10 +69,18 @@ fn falls_through_to_default() {
 fn respects_registration_order() {
     let s = session();
     s.register_handler(FnRouteHandler::new(|i, _| {
-        if i.url.contains("/app/") { Some(webview_app()) } else { None }
+        if i.url.contains("/app/") {
+            Some(webview_app())
+        } else {
+            None
+        }
     }));
     s.register_handler(FnRouteHandler::new(|i, _| {
-        if i.url.contains("/app/") { Some(remote_fetch()) } else { None }
+        if i.url.contains("/app/") {
+            Some(remote_fetch())
+        } else {
+            None
+        }
     }));
     let d = s.resolve_route(&intent("/app/items"));
     assert_eq!(d.source, RouteSource::WebviewApp);
@@ -82,32 +94,60 @@ fn closure_captures_state() {
     s.register_handler(FnRouteHandler::new(move |i, _| {
         if i.url.contains("/auth/") && f.load(Ordering::SeqCst) {
             Some(webview_app())
-        } else { None }
+        } else {
+            None
+        }
     }));
-    assert_eq!(s.resolve_route(&intent("/auth/login")).profile, Profile::UntrustedRemote);
+    assert_eq!(
+        s.resolve_route(&intent("/auth/login")).profile,
+        Profile::UntrustedRemote
+    );
     flag.store(true, Ordering::SeqCst);
-    assert_eq!(s.resolve_route(&intent("/auth/login")).source, RouteSource::WebviewApp);
+    assert_eq!(
+        s.resolve_route(&intent("/auth/login")).source,
+        RouteSource::WebviewApp
+    );
 }
 
 #[test]
 fn none_falls_through() {
     let s = session();
     s.register_handler(FnRouteHandler::new(|_, _| None));
-    assert_eq!(s.resolve_route(&intent("/app/items")).profile, Profile::UntrustedRemote);
+    assert_eq!(
+        s.resolve_route(&intent("/app/items")).profile,
+        Profile::UntrustedRemote
+    );
 }
 
 #[test]
 fn multi_handler_fallthrough() {
     let s = session();
     s.register_handler(FnRouteHandler::new(|i, _| {
-        if i.url.contains("/auth/") { Some(remote_fetch().with_profile(Profile::Auth)) } else { None }
+        if i.url.contains("/auth/") {
+            Some(remote_fetch().with_profile(Profile::Auth))
+        } else {
+            None
+        }
     }));
     s.register_handler(FnRouteHandler::new(|i, _| {
-        if i.url.contains("/app/") { Some(webview_app()) } else { None }
+        if i.url.contains("/app/") {
+            Some(webview_app())
+        } else {
+            None
+        }
     }));
-    assert_eq!(s.resolve_route(&intent("/app/items")).source, RouteSource::WebviewApp);
-    assert_eq!(s.resolve_route(&intent("/auth/login")).profile, Profile::Auth);
-    assert_eq!(s.resolve_route(&intent("/other/path")).profile, Profile::UntrustedRemote);
+    assert_eq!(
+        s.resolve_route(&intent("/app/items")).source,
+        RouteSource::WebviewApp
+    );
+    assert_eq!(
+        s.resolve_route(&intent("/auth/login")).profile,
+        Profile::Auth
+    );
+    assert_eq!(
+        s.resolve_route(&intent("/other/path")).profile,
+        Profile::UntrustedRemote
+    );
 }
 
 // ── Page identity ───────────────────────────────────────────────
@@ -139,17 +179,19 @@ fn stale_page_guard_rejects_old() {
 // ── Connectivity ────────────────────────────────────────────────
 
 #[test]
-fn starts_online() { assert!(session().is_online()); }
+fn starts_online() {
+    assert!(session().is_online());
+}
 
 #[test]
 fn toggle_connectivity() {
     let s = session();
     // set_online returns the PREVIOUS state, not whether it changed
-    assert!(s.set_online(false));  // was true -> returns true
+    assert!(s.set_online(false)); // was true -> returns true
     assert!(!s.is_online());
     assert!(!s.set_online(true)); // was false -> returns false
     assert!(s.is_online());
-    assert!(s.set_online(false));  // was true -> returns true
+    assert!(s.set_online(false)); // was true -> returns true
 }
 
 #[test]
@@ -162,9 +204,9 @@ fn update_online_emits_event_only_on_change() {
         true
     });
 
-    assert!(s.update_online(false));  // online -> offline: fired
+    assert!(s.update_online(false)); // online -> offline: fired
     assert!(!s.update_online(false)); // offline -> offline: no fire
-    assert!(s.update_online(true));   // offline -> online: fired
+    assert!(s.update_online(true)); // offline -> online: fired
 
     let fired = events.read().unwrap();
     assert_eq!(fired.len(), 2);
@@ -205,8 +247,8 @@ fn listener_can_unsubscribe() {
         false // unsubscribe after first event
     });
 
-    s.on_suspend();   // fires -> count = 1, listener removed
-    s.on_resume();    // fires -> no listener, count stays 1
+    s.on_suspend(); // fires -> count = 1, listener removed
+    s.on_resume(); // fires -> no listener, count stays 1
 
     assert_eq!(count.load(Ordering::SeqCst), 1);
 }
@@ -217,8 +259,14 @@ fn multiple_listeners_fire_in_order() {
     let order = Arc::new(RwLock::new(Vec::new()));
     let o1 = order.clone();
     let o2 = order.clone();
-    s.on_event(move |_| { o1.write().unwrap().push(1); true });
-    s.on_event(move |_| { o2.write().unwrap().push(2); true });
+    s.on_event(move |_| {
+        o1.write().unwrap().push(1);
+        true
+    });
+    s.on_event(move |_| {
+        o2.write().unwrap().push(2);
+        true
+    });
 
     s.on_suspend();
     assert_eq!(*order.read().unwrap(), vec![1, 2]);

@@ -183,6 +183,22 @@ pub trait QuicConnection: Send {
     /// are not supported (RFC 9221 not negotiated).
     #[must_use]
     fn max_datagram_size(&self) -> Option<usize>;
+
+    /// WHY: a stream or connection operation that returns `Pending` becomes
+    /// possible only when the connection makes progress, which only the driver
+    /// sees. A future should park until then rather than re-poll itself.
+    ///
+    /// WHAT: wake `waker` the next time this connection makes progress (data or
+    /// credit arrived, a stream opened, the connection ended).
+    ///
+    /// HOW: register *before* trying the operation, so a wake between a
+    /// `Pending` answer and the registration is not lost. Returns `false` when
+    /// the backend cannot wake (the caller must then re-poll itself); spurious
+    /// wakes are possible.
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        let _ = waker;
+        false
+    }
 }
 
 /// The write half of a QUIC stream.
@@ -207,6 +223,22 @@ pub trait QuicSendStream: Send {
 
     /// This stream's QUIC stream id.
     fn id(&self) -> StreamId;
+
+    /// WHY: a stream or connection operation that returns `Pending` becomes
+    /// possible only when the connection makes progress, which only the driver
+    /// sees. A future should park until then rather than re-poll itself.
+    ///
+    /// WHAT: wake `waker` the next time this connection makes progress (data or
+    /// credit arrived, a stream opened, the connection ended).
+    ///
+    /// HOW: register *before* trying the operation, so a wake between a
+    /// `Pending` answer and the registration is not lost. Returns `false` when
+    /// the backend cannot wake (the caller must then re-poll itself); spurious
+    /// wakes are possible.
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        let _ = waker;
+        false
+    }
 }
 
 /// The read half of a QUIC stream.
@@ -222,6 +254,22 @@ pub trait QuicRecvStream: Send {
 
     /// This stream's QUIC stream id.
     fn id(&self) -> StreamId;
+
+    /// WHY: a stream or connection operation that returns `Pending` becomes
+    /// possible only when the connection makes progress, which only the driver
+    /// sees. A future should park until then rather than re-poll itself.
+    ///
+    /// WHAT: wake `waker` the next time this connection makes progress (data or
+    /// credit arrived, a stream opened, the connection ended).
+    ///
+    /// HOW: register *before* trying the operation, so a wake between a
+    /// `Pending` answer and the registration is not lost. Returns `false` when
+    /// the backend cannot wake (the caller must then re-poll itself); spurious
+    /// wakes are possible.
+    fn register_waker(&self, waker: &std::task::Waker) -> bool {
+        let _ = waker;
+        false
+    }
 }
 
 /// A bidirectional QUIC stream — both halves, splittable.

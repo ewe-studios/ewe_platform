@@ -6,7 +6,7 @@
 use std::sync::Arc;
 
 use foundation_netio::shared::http::{
-    SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, SendSafeBody, Status,
+    SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 
 use crate::shared::context::ContextBag;
@@ -62,11 +62,7 @@ impl BodyLimitMiddleware {
 }
 
 impl RequestMiddleware for BodyLimitMiddleware {
-    fn handle(
-        &self,
-        _ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         // Check Content-Length header
         if let Some(content_length) = Self::extract_content_length(req) {
             if content_length > self.max_bytes {
@@ -86,22 +82,5 @@ impl RequestMiddleware for BodyLimitMiddleware {
         // or require a different approach.
 
         MiddlewareResult::Continue
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_body_limit_middleware_new() {
-        let mw = BodyLimitMiddleware::new(1024);
-        assert_eq!(mw.max_bytes, 1024);
-    }
-
-    #[test]
-    fn test_body_limit_middleware_with_message() {
-        let mw = BodyLimitMiddleware::new(1024).with_message("Custom error");
-        assert_eq!(mw.error_message, "Custom error");
     }
 }

@@ -4,7 +4,7 @@
 //! `exchange_code` and `fetch_userinfo` over the platform network client
 //! (`DynNetClient`, built with `HttpClientBuilder`). These tests drive both async methods end-to-end
 //! against a real local HTTP server, over the same client wasm/Workers use,
-//! proving the OAuth2 `authorization_code` grant and the userinfo Bearer fetch
+//! proving the `OAuth2` `authorization_code` grant and the userinfo Bearer fetch
 //! actually speak HTTP correctly — not just that the parsing helpers work.
 //!
 //! WHAT: `exchange_code` posts the grant to a live token endpoint and parses the
@@ -37,7 +37,7 @@ where
     collect_one(stream).expect("future produced a result")
 }
 
-/// A minimal OAuth2 provider; callers override the endpoint URLs to point at the
+/// A minimal `OAuth2` provider; callers override the endpoint URLs to point at the
 /// test server.
 fn test_provider() -> UpstreamProvider {
     UpstreamProvider {
@@ -68,8 +68,8 @@ fn body_string(body: &SendSafeBody) -> String {
     }
 }
 
-fn header_value(headers: &SimpleHeaders, name: SimpleHeader) -> Option<String> {
-    headers.get(&name).and_then(|v| v.first()).cloned()
+fn header_value(headers: &SimpleHeaders, name: &SimpleHeader) -> Option<String> {
+    headers.get(name).and_then(|v| v.first()).cloned()
 }
 
 #[valtron_test]
@@ -90,8 +90,7 @@ fn exchange_code_posts_grant_and_parses_token() {
 
     let mut provider = test_provider();
     provider.token_url = Some(server.url("/token"));
-    let mut client =
-        UpstreamOidcClient::new(provider, "https://app.example/callback".into());
+    let mut client = UpstreamOidcClient::new(provider, "https://app.example/callback".into());
     client.configure().expect("configure");
 
     let token = drive(async move {
@@ -107,9 +106,16 @@ fn exchange_code_posts_grant_and_parses_token() {
     assert_eq!(token.refresh_token.as_deref(), Some("rt-456"));
     assert_eq!(token.id_token.as_deref(), Some("idt-789"));
 
-    let (method, body) = captured.lock().unwrap().clone().expect("server saw the request");
+    let (method, body) = captured
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("server saw the request");
     assert_eq!(method, SimpleMethod::POST);
-    assert!(body.contains("grant_type=authorization_code"), "body: {body}");
+    assert!(
+        body.contains("grant_type=authorization_code"),
+        "body: {body}"
+    );
     assert!(body.contains("code=auth-code-xyz"), "body: {body}");
     assert!(body.contains("redirect_uri="), "body: {body}");
     assert!(body.contains("client_id=client-abc"), "body: {body}");
@@ -124,23 +130,24 @@ fn exchange_code_surfaces_endpoint_error() {
 
     let mut provider = test_provider();
     provider.token_url = Some(server.url("/token"));
-    let mut client =
-        UpstreamOidcClient::new(provider, "https://app.example/callback".into());
+    let mut client = UpstreamOidcClient::new(provider, "https://app.example/callback".into());
     client.configure().expect("configure");
 
-    let result = drive(async move {
-        client.exchange_code("bad-code", None, None).await
-    });
-    assert!(result.is_err(), "a 400 from the token endpoint must be an error");
+    let result = drive(async move { client.exchange_code("bad-code", None, None).await });
+    assert!(
+        result.is_err(),
+        "a 400 from the token endpoint must be an error"
+    );
 }
 
 #[valtron_test]
 fn fetch_userinfo_sends_bearer_and_maps_profile() {
-    let captured: Arc<Mutex<Option<(SimpleMethod, Option<String>)>>> = Arc::new(Mutex::new(None));
+    type Captured = Option<(SimpleMethod, Option<String>)>;
+    let captured: Arc<Mutex<Captured>> = Arc::new(Mutex::new(None));
     let cap = Arc::clone(&captured);
 
     let server = TestHttpServer::with_response(move |req| {
-        let auth = header_value(&req.headers, SimpleHeader::AUTHORIZATION);
+        let auth = header_value(&req.headers, &SimpleHeader::AUTHORIZATION);
         *cap.lock().unwrap() = Some((req.method.clone(), auth));
         let profile = r#"{"sub":"user-1","email":"alice@example.com","email_verified":true,"name":"Alice","preferred_username":"alice"}"#;
         HttpResponse::ok(profile)
@@ -161,7 +168,11 @@ fn fetch_userinfo_sends_bearer_and_maps_profile() {
     assert_eq!(profile.name.as_deref(), Some("Alice"));
     assert_eq!(profile.preferred_username.as_deref(), Some("alice"));
 
-    let (method, auth) = captured.lock().unwrap().clone().expect("server saw the request");
+    let (method, auth) = captured
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("server saw the request");
     assert_eq!(method, SimpleMethod::GET);
     assert_eq!(auth.as_deref(), Some("Bearer access-tok-xyz"));
 }
@@ -195,17 +206,21 @@ fn discover_and_configure_reads_endpoints_from_discovery_doc() {
     provider.authorization_url = None;
     provider.discovery_url = Some(server.url("/.well-known/openid-configuration"));
 
-    let mut client =
-        UpstreamOidcClient::new(provider, "https://app.example/callback".into());
+    let mut client = UpstreamOidcClient::new(provider, "https://app.example/callback".into());
 
     let configured = drive(async move {
         let mut discovery = DiscoveryClient::new();
-        client.discover_and_configure(&mut discovery).await.map(|()| client)
+        client
+            .discover_and_configure(&mut discovery)
+            .await
+            .map(|()| client)
     });
     let client = configured.expect("discovery + configure succeeds");
 
     // The userinfo endpoint must come from the discovered document.
-    let userinfo = client.userinfo_endpoint().expect("discovered userinfo endpoint");
+    let userinfo = client
+        .userinfo_endpoint()
+        .expect("discovered userinfo endpoint");
     assert!(userinfo.ends_with("/userinfo"), "userinfo: {userinfo}");
 
     // And the client can now build an authorize URL against the discovered endpoint.
@@ -217,10 +232,7 @@ fn discover_and_configure_reads_endpoints_from_discovery_doc() {
 #[valtron_test]
 fn fetch_userinfo_without_endpoint_errors() {
     // Provider has no userinfo_url and no discovery — fetch must fail, not panic.
-    let client = UpstreamOidcClient::new(
-        test_provider(),
-        "https://app.example/callback".into(),
-    );
+    let client = UpstreamOidcClient::new(test_provider(), "https://app.example/callback".into());
     let result = drive(async move { client.fetch_userinfo("tok").await });
     assert!(result.is_err(), "missing userinfo endpoint must error");
 }

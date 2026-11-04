@@ -1,7 +1,6 @@
 /// Top-level bus controller — manages the controller thread and endpoint lifecycle.
 ///
 /// Implements the `join()` API with the `Rule` enum (Client/Server duality).
-
 use std::{
     marker::PhantomData,
     sync::{Arc, RwLock},
@@ -10,9 +9,9 @@ use std::{
 };
 
 use crate::ipc::{
-    platform::{look_up, register, IoMultiplexing, EncodedMessage, IoHub, Remote},
-    version::Version,
+    platform::{look_up, register, EncodedMessage, IoHub, IoMultiplexing, Remote},
     util::EndpointID,
+    version::Version,
     Error, JoinError, Message, MessageBox, Options, RecvError, SendError,
 };
 
@@ -60,48 +59,44 @@ impl<T: MessageBox> EndpointSender<T> {
         loop {
             let rule = self.rule.read().unwrap();
             match &*rule {
-                Rule::Client { remote, epoch, .. } => {
-                    match msg.send(remote) {
-                        Err(Error::Disconnect) => {
-                            let epoch = *epoch;
-                            drop(rule);
+                Rule::Client { remote, epoch, .. } => match msg.send(remote) {
+                    Err(Error::Disconnect) => {
+                        let epoch = *epoch;
+                        drop(rule);
 
-                            let mut rule = self.rule.write().unwrap();
-                            match &mut *rule {
-                                Rule::Client {
-                                    options,
-                                    io_hub,
-                                    reader_closed,
-                                    im,
-                                    epoch: epoch1,
-                                    ..
-                                } => {
-                                    if epoch == *epoch1 {
-                                        let reader_closed_val = *reader_closed;
-                                        drop(io_hub.take());
+                        let mut rule = self.rule.write().unwrap();
+                        match &mut *rule {
+                            Rule::Client {
+                                options,
+                                io_hub,
+                                reader_closed,
+                                im,
+                                epoch: epoch1,
+                                ..
+                            } => {
+                                if epoch == *epoch1 {
+                                    let reader_closed_val = *reader_closed;
+                                    drop(io_hub.take());
 
-                                        *rule = Rule::join(
-                                            options.clone(),
-                                            epoch.overflowing_add(1).0,
-                                            im.clone(),
-                                            None,
-                                        )?;
+                                    *rule = Rule::join(
+                                        options.clone(),
+                                        epoch.overflowing_add(1).0,
+                                        im.clone(),
+                                        None,
+                                    )?;
 
-                                        if reader_closed_val {
-                                            rule.reader_close();
-                                        }
+                                    if reader_closed_val {
+                                        rule.reader_close();
                                     }
                                 }
-                                Rule::Server { .. } => {}
                             }
+                            Rule::Server { .. } => {}
                         }
-                        Err(_) => unreachable!(),
-                        Ok(_) => break Ok(()),
                     }
-                }
-                Rule::Server {
-                    bus_sender, im, ..
-                } => {
+                    Err(_) => unreachable!(),
+                    Ok(_) => break Ok(()),
+                },
+                Rule::Server { bus_sender, im, .. } => {
                     bus_sender.lock().unwrap().send(msg).unwrap();
                     im.wake();
                     break Ok(());
@@ -160,7 +155,9 @@ impl<R: MessageBox> EndpointReceiver<R> {
                                         im.clone(),
                                         timeout,
                                     )?;
-                                    if rc { rule.reader_close(); }
+                                    if rc {
+                                        rule.reader_close();
+                                    }
                                 }
                                 continue;
                             }
@@ -181,11 +178,17 @@ impl<R: MessageBox> EndpointReceiver<R> {
                                         msg.memory_regions = encoded_msg.memory_regions;
                                         break Ok(msg);
                                     }
-                                    Err(Error::TypeUuidNotFound) => { continue; }
-                                    Err(Error::Decode(err)) => { break Err(RecvError::Decode(err)); }
+                                    Err(Error::TypeUuidNotFound) => {
+                                        continue;
+                                    }
+                                    Err(Error::Decode(err)) => {
+                                        break Err(RecvError::Decode(err));
+                                    }
                                     Err(_) => unreachable!(),
                                 }
-                            } else { continue; }
+                            } else {
+                                continue;
+                            }
                         }
                         Err(Error::Disconnect) => {
                             let epoch_val = *epoch;
@@ -211,14 +214,18 @@ impl<R: MessageBox> EndpointReceiver<R> {
                                             im.clone(),
                                             timeout,
                                         )?;
-                                        if rc { rule.reader_close(); }
+                                        if rc {
+                                            rule.reader_close();
+                                        }
                                     }
                                     continue;
                                 }
                                 Rule::Server { .. } => continue,
                             }
                         }
-                        Err(Error::Timeout) => { break Err(RecvError::Timeout); }
+                        Err(Error::Timeout) => {
+                            break Err(RecvError::Timeout);
+                        }
                         Err(_) => unreachable!(),
                     }
                 }
@@ -227,19 +234,24 @@ impl<R: MessageBox> EndpointReceiver<R> {
                     break match timeout {
                         Some(timeout) => match receiver.recv_timeout(timeout) {
                             Ok(encoded_msg) => {
-                                match R::decode(encoded_msg.selector.uuid, encoded_msg.payload_data) {
+                                match R::decode(encoded_msg.selector.uuid, encoded_msg.payload_data)
+                                {
                                     Ok(payload) => {
                                         let mut msg = Message::new(encoded_msg.selector, payload);
                                         msg.objects = encoded_msg.objects;
                                         msg.memory_regions = encoded_msg.memory_regions;
                                         Ok(msg)
                                     }
-                                    Err(Error::TypeUuidNotFound) => { continue; }
+                                    Err(Error::TypeUuidNotFound) => {
+                                        continue;
+                                    }
                                     Err(Error::Decode(err)) => Err(RecvError::Decode(err)),
                                     Err(_) => unreachable!(),
                                 }
                             }
-                            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => Err(RecvError::Timeout),
+                            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                                Err(RecvError::Timeout)
+                            }
                             Err(_) => unreachable!(),
                         },
                         None => {
@@ -251,7 +263,9 @@ impl<R: MessageBox> EndpointReceiver<R> {
                                     msg.memory_regions = encoded_msg.memory_regions;
                                     Ok(msg)
                                 }
-                                Err(Error::TypeUuidNotFound) => { continue; }
+                                Err(Error::TypeUuidNotFound) => {
+                                    continue;
+                                }
                                 Err(Error::Decode(err)) => Err(RecvError::Decode(err)),
                                 Err(_) => unreachable!(),
                             }
@@ -305,7 +319,9 @@ impl Rule {
                 let mut w = Duration::from_secs(2);
                 if let Some(end) = end {
                     let remain = end.saturating_duration_since(Instant::now());
-                    if remain.is_zero() { return Err(JoinError::Timeout); }
+                    if remain.is_zero() {
+                        return Err(JoinError::Timeout);
+                    }
                     w = w.min(remain);
                 }
                 thread::sleep(w);
@@ -336,7 +352,10 @@ impl Rule {
                     };
                 }
                 Err(Error::IdentifierNotInUse) => {
-                    if !options.controller_affinity { wait!(); continue; }
+                    if !options.controller_affinity {
+                        wait!();
+                        continue;
+                    }
 
                     let r = register(&options.identifier, im.clone());
                     match r {
@@ -345,7 +364,11 @@ impl Rule {
                             let im2 = io_hub.io_multiplexing();
 
                             let ctrl = super::platform::BusController::new(
-                                eid, options.label, options.token, tx, io_hub,
+                                eid,
+                                options.label,
+                                options.token,
+                                tx,
+                                io_hub,
                             );
                             ctrl.run();
 
@@ -359,10 +382,15 @@ impl Rule {
                         Err(Error::IdentifierInUse) => {}
                         Err(Error::PermissionDenied) => {
                             perm_denied += 1;
-                            if perm_denied > 5 { return Err(JoinError::PermissionDenied); }
+                            if perm_denied > 5 {
+                                return Err(JoinError::PermissionDenied);
+                            }
                             wait!();
                         }
-                        Err(e) => { tracing::error!("register: {:?}", e); wait!(); }
+                        Err(e) => {
+                            tracing::error!("register: {:?}", e);
+                            wait!();
+                        }
                     }
                 }
                 Err(Error::VersionMismatch(v, _)) => {
@@ -373,7 +401,9 @@ impl Rule {
                 }
                 Err(Error::PermissionDenied) => {
                     perm_denied += 1;
-                    if perm_denied > 5 { return Err(JoinError::PermissionDenied); }
+                    if perm_denied > 5 {
+                        return Err(JoinError::PermissionDenied);
+                    }
                     wait!();
                 }
                 Err(Error::Timeout) => {
@@ -383,7 +413,10 @@ impl Rule {
                     }
                     wait!();
                 }
-                Err(e) => { tracing::error!("look_up: {:?}", e); wait!(); }
+                Err(e) => {
+                    tracing::error!("look_up: {:?}", e);
+                    wait!();
+                }
             }
         };
 
@@ -394,7 +427,11 @@ impl Rule {
 impl Rule {
     fn reader_close(&mut self) {
         match self {
-            Rule::Client { io_hub, reader_closed, .. } => {
+            Rule::Client {
+                io_hub,
+                reader_closed,
+                ..
+            } => {
                 let _ = io_hub.take();
                 *reader_closed = true;
             }

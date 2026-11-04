@@ -37,6 +37,15 @@ pub trait EventReadiness {
     ///
     /// Returns `true` if ready, `false` otherwise.
     fn is_ready(&self, dur: Option<time::Duration>) -> bool;
+
+    /// Forget any latched readiness so the next edge is observed fresh.
+    ///
+    /// Defaults to a no-op: most signals (queues, atomics, deadlines) have
+    /// nothing to clear. An edge-triggered readiness source overrides this to
+    /// clear its latch before the next read, so an edge that arrives after a
+    /// `WouldBlock` still wakes the parked task (see
+    /// `foundation_reactor::FdReadiness`).
+    fn clear(&self) {}
 }
 
 /// The pointer type that [`State::Depends`] and [`TaskStatus::Depends`] carry.
@@ -195,6 +204,11 @@ impl<D, P> TaskStatus<D, P> {
     where
         S: crate::valtron::WakeableStream<D = D, P = P> + ?Sized,
     {
+        // Announce the parking consumer before pulling, so a queue-backed
+        // stream answers an empty pull with `Wait` instead of blocking the
+        // executor thread for a timed wait first. `announce` is idempotent and
+        // registers no callback, so it cannot leak on repeated polls.
+        stream.announce();
         Some(match stream.next()? {
             Stream::Next(value) => TaskStatus::Ready(value),
             Stream::Pending(progress) => TaskStatus::Pending(progress),
@@ -1363,14 +1377,17 @@ pub trait TaskReadyResolver<D, P> {
 }
 
 pub trait IntoBoxedSendTaskReadyResolver<D, P> {
-    fn into_box_send_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static>;
+    fn into_box_send_task_ready_resolver(self)
+        -> Box<dyn TaskReadyResolver<D, P> + Send + 'static>;
 }
 
 impl<F, D, P> IntoBoxedSendTaskReadyResolver<D, P> for F
 where
     F: TaskReadyResolver<D, P> + Send + 'static,
 {
-    fn into_box_send_task_ready_resolver(self) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static> {
+    fn into_box_send_task_ready_resolver(
+        self,
+    ) -> Box<dyn TaskReadyResolver<D, P> + Send + 'static> {
         Box::new(self)
     }
 }
@@ -1533,7 +1550,6 @@ where
         }
     }
 }
-
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ReadyValue<P> {

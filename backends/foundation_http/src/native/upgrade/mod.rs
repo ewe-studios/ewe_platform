@@ -6,11 +6,11 @@
 use std::io::Write;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::RawStream;
 use foundation_netio::event_source::{EventWriter, SseEvent};
+use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{
-    Http11, RenderHttp, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
-    SimpleOutgoingResponse, SendSafeBody, Status,
+    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
+    SimpleOutgoingResponse, Status,
 };
 
 /// Error type for upgrade operations.
@@ -128,9 +128,7 @@ impl SseStream {
     /// # Errors
     ///
     /// Returns `UpgradeError` if header writing fails.
-    pub fn new(
-        conn: &mut SharedByteBufferStream<RawStream>,
-    ) -> Result<Self, UpgradeError> {
+    pub fn new(conn: &mut SharedByteBufferStream<RawStream>) -> Result<Self, UpgradeError> {
         let response = SimpleOutgoingResponse::builder()
             .with_status(Status::OK)
             .add_header(SimpleHeader::CONTENT_TYPE, "text/event-stream")

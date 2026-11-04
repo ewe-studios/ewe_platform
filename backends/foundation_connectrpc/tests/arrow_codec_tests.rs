@@ -7,8 +7,8 @@
 #![cfg(feature = "arrow")]
 
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
-use bytes::{Buf, BufMut};
+use buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache};
+use bytes::Buf;
 
 use foundation_arrow::arrow_array::{Array, Int32Array, RecordBatch};
 use foundation_arrow::arrow_schema::{DataType, Field, Schema};
@@ -33,9 +33,9 @@ impl DefaultInstance for Tri {
 
 impl Message for Tri {
     fn compute_size(&self, _c: &mut SizeCache) -> u32 {
-        0
+        (1 + buffa::types::int32_encoded_len(self.v)) as u32
     }
-    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl BufMut) {
+    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl EncodeSink) {
         Tag::new(1, WireType::Varint).encode(buf);
         encode_varint(self.v as u64, buf);
     }
@@ -68,7 +68,10 @@ impl ArrowSchema for Tri {
 
 impl ToArrow for Tri {
     fn to_arrow(&self) -> IpcResult<RecordBatch> {
-        RecordBatch::try_new(Self::schema_ref(), vec![Arc::new(Int32Array::from(vec![self.v]))])
+        RecordBatch::try_new(
+            Self::schema_ref(),
+            vec![Arc::new(Int32Array::from(vec![self.v]))],
+        )
     }
     fn to_arrow_batch(values: &[Self]) -> IpcResult<RecordBatch> {
         let col = Int32Array::from(values.iter().map(|t| t.v).collect::<Vec<_>>());

@@ -1,6 +1,6 @@
 ---
 feature: "Docker client and foundation_deployment: generated requests, streamed bodies, CI for integration targets"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: ["03-client-body-readiness"]
 branch: "fix/io-12-docker-deployment"
@@ -77,13 +77,28 @@ cargo check --workspace --all-targets --profile dev
 
 ## Done when
 
-- [ ] T0 table in the PR body. Every open entry fixed and its backlog entry deleted.
-- [ ] New tests fail on the base code and pass now; 20-run flake check passes.
-- [ ] No hand-written request in the seven methods (`rg -n 'Request::new|PreparedRequest' src` in
+- [x] T0 table in the PR body. Every open entry fixed and its backlog entry deleted.
+- [x] New tests fail on the base code and pass now; 20-run flake check passes.
+- [x] No hand-written request in the seven methods (`rg -n 'Request::new|PreparedRequest' src` in
       the crate shows none in them).
-- [ ] CI green, including the new `integration-tests` build.
+- [x] CI green, including the new `integration-tests` build.
+
+## Finalization notes
+
+- E1 changed `exec_inspect` (and the other client methods) to return generated types. That is
+  a breaking public API change in `foundation_deployment_docker`. Version bumped `0.1.3` to
+  `0.1.4`; the one consumer, `foundation_deployment_platform`, moved to `version = "0.1.4"`.
+- Cross-crate fix in `foundation_deployment_platform` (feature 13's crate, so the feature 12
+  executor reported it instead of editing it): `docker/container.rs` `exec_async` now reads
+  `info.exit_code` (was `info.get("ExitCode").and_then(as_i64)`), and the error formats the
+  struct with `{info:?}`.
+- `Cargo.lock` still records `foundation_deployment_docker 0.1.3`; it refreshes in the
+  single end-of-branch `Cargo.lock` commit, not in this feature commit.
+- Linux CI gate (rule 11) is green: the `foundation_deployment_docker` package
+  passed in the Linux CI image (`ewestudios/ewe-platform-ci`), including the
+  `integration-tests` `--no-run` build. Status moved to `done`.
 
 ## Review checklist (main session)
 
-- [ ] Generator fixes are in the generator, and the generated code is regenerated, not edited.
-- [ ] Upload streaming is real (body stream end to end).
+- [x] Generator fixes are in the generator, and the generated code is regenerated, not edited.
+- [x] Upload streaming is real (body stream end to end).

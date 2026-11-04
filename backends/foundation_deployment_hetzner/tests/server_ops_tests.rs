@@ -29,7 +29,9 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
 use foundation_core::valtron::valtron_test;
-use foundation_deployment_hetzner::{CreateServerRequest, HetznerClient, HetznerError, ServerStatus};
+use foundation_deployment_hetzner::{
+    CreateServerRequest, HetznerClient, HetznerError, ServerStatus,
+};
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 
@@ -134,8 +136,6 @@ fn ssh_keys_json(keys: &[(i64, &str, &str)]) -> String {
     serde_json::to_string(&response).expect("a generated type serializes")
 }
 
-
-
 fn client_for(server: &TestHttpServer) -> HetznerClient {
     // Inject the token rather than exporting it: std::env is process-global and
     // these tests run threaded (decision 02 §5).
@@ -155,7 +155,10 @@ async fn create_server_sends_what_hetzner_needs_to_build_the_box() {
             SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
             other => panic!("unexpected request body shape: {other:?}"),
         };
-        json_response(201, &create_response_json(42, "web-1", "initializing", "1.2.3.4"))
+        json_response(
+            201,
+            &create_response_json(42, "web-1", "initializing", "1.2.3.4"),
+        )
     });
 
     let client = client_for(&server);
@@ -182,7 +185,10 @@ async fn create_server_sends_what_hetzner_needs_to_build_the_box() {
     // The cloud-init payload is what makes hardening-before-first-boot possible
     // (feature 04) — dropping it silently would produce an unhardened box.
     assert!(
-        body["user_data"].as_str().unwrap().contains("#cloud-config"),
+        body["user_data"]
+            .as_str()
+            .unwrap()
+            .contains("#cloud-config"),
         "user_data must reach Hetzner: {body}"
     );
     // A created-but-off server bills and cannot be reached.
@@ -202,7 +208,10 @@ async fn create_server_sends_the_token_as_a_bearer() {
             .headers
             .get(&SimpleHeader::AUTHORIZATION)
             .and_then(|v| v.first().cloned());
-        json_response(201, &create_response_json(1, "n", "initializing", "1.2.3.4"))
+        json_response(
+            201,
+            &create_response_json(1, "n", "initializing", "1.2.3.4"),
+        )
     });
 
     let _ = client_for(&server)
@@ -222,7 +231,6 @@ async fn create_server_sends_the_token_as_a_bearer() {
 }
 
 // ── the error mapping ────────────────────────────────────────────────────────
-
 
 #[valtron_test]
 async fn a_429_carries_how_long_to_wait() {
@@ -257,7 +265,9 @@ async fn a_429_carries_how_long_to_wait() {
 async fn a_429_without_the_header_still_maps_rather_than_inventing_a_backoff() {
     let server = TestHttpServer::with_response(|_| HttpResponse::status(429, ""));
     match client_for(&server).list_servers(None).await {
-        Err(HetznerError::RateLimited { retry_after_secs: None }) => {}
+        Err(HetznerError::RateLimited {
+            retry_after_secs: None,
+        }) => {}
         other => panic!("expected RateLimited with no hint, got {other:?}"),
     }
 }
@@ -266,7 +276,10 @@ async fn a_429_without_the_header_still_maps_rather_than_inventing_a_backoff() {
 async fn an_api_error_keeps_hetzners_own_code_and_message() {
     // The status number alone does not say what to fix.
     let server = TestHttpServer::with_response(|_| {
-        json_response(422, r#"{"error":{"code":"invalid_input","message":"server_type cx99 does not exist"}}"#)
+        json_response(
+            422,
+            r#"{"error":{"code":"invalid_input","message":"server_type cx99 does not exist"}}"#,
+        )
     });
 
     match client_for(&server)
@@ -278,9 +291,16 @@ async fn an_api_error_keeps_hetzners_own_code_and_message() {
         })
         .await
     {
-        Err(HetznerError::Api { status, code, message }) => {
+        Err(HetznerError::Api {
+            status,
+            code,
+            message,
+        }) => {
             assert_eq!(status, 422);
-            assert_eq!(code, "invalid_input", "the stable string, not just a number");
+            assert_eq!(
+                code, "invalid_input",
+                "the stable string, not just a number"
+            );
             assert!(message.contains("cx99"), "{message}");
         }
         other => panic!("expected Api, got {other:?}"),
@@ -302,10 +322,6 @@ async fn an_unparseable_error_body_is_reported_rather_than_discarded() {
 
 // ── get / list / delete ──────────────────────────────────────────────────────
 
-
-
-
-
 // ── await_running ────────────────────────────────────────────────────────────
 
 #[valtron_test]
@@ -319,11 +335,18 @@ async fn await_running_polls_until_the_server_settles() {
         let n = counter.fetch_add(1, Ordering::SeqCst);
         let status = if n < 2 { "initializing" } else { "running" };
         HttpResponse::ok(
-            format!(r#"{{"server":{}}}"#, server_json(42, "web-1", status, "1.2.3.4")).as_bytes(),
+            format!(
+                r#"{{"server":{}}}"#,
+                server_json(42, "web-1", status, "1.2.3.4")
+            )
+            .as_bytes(),
         )
     });
 
-    let ready = client_for(&server).await_running(42).await.expect("settles");
+    let ready = client_for(&server)
+        .await_running(42)
+        .await
+        .expect("settles");
     assert_eq!(ready.status, ServerStatus::Running);
     assert!(
         calls.load(Ordering::SeqCst) >= 3,
@@ -337,10 +360,15 @@ async fn await_running_returns_on_a_settled_failure_instead_of_spinning() {
     // that will never reach it. `off` is settled — report it and let the caller
     // decide.
     let server = TestHttpServer::with_response(|_| {
-        HttpResponse::ok(format!(r#"{{"server":{}}}"#, server_json(42, "w", "off", "1.2.3.4")).as_bytes())
+        HttpResponse::ok(
+            format!(r#"{{"server":{}}}"#, server_json(42, "w", "off", "1.2.3.4")).as_bytes(),
+        )
     });
 
-    let settled = client_for(&server).await_running(42).await.expect("returns");
+    let settled = client_for(&server)
+        .await_running(42)
+        .await
+        .expect("returns");
     assert_eq!(settled.status, ServerStatus::Off, "settled, not running");
 }
 
@@ -353,7 +381,11 @@ async fn a_server_that_vanishes_mid_poll_is_not_reported_as_a_timeout() {
     });
 
     match client_for(&server).await_running(42).await {
-        Err(HetznerError::Api { status: 404, message, .. }) => {
+        Err(HetznerError::Api {
+            status: 404,
+            message,
+            ..
+        }) => {
             assert!(message.contains("disappeared"), "{message}");
         }
         other => panic!("expected a 404 Api error, got {other:?}"),
@@ -374,7 +406,10 @@ async fn ensure_ssh_key_returns_the_existing_key_when_hetzner_says_duplicate() {
         let n = counter.fetch_add(1, Ordering::SeqCst);
         if n == 0 {
             // POST /ssh_keys — Hetzner rejects the duplicate.
-            json_response(409, r#"{"error":{"code":"uniqueness_error","message":"ssh key already exists"}}"#)
+            json_response(
+                409,
+                r#"{"error":{"code":"uniqueness_error","message":"ssh key already exists"}}"#,
+            )
         } else {
             // GET /ssh_keys — ask Hetzner which one it is.
             HttpResponse::ok(ssh_keys_json(&[(7, "deploy", "aa:bb:cc")]).as_bytes())
@@ -399,16 +434,25 @@ async fn a_duplicate_whose_key_is_then_missing_is_a_real_conflict() {
 
     let server = TestHttpServer::with_response(move |_| {
         if counter.fetch_add(1, Ordering::SeqCst) == 0 {
-            json_response(409, r#"{"error":{"code":"uniqueness_error","message":"exists"}}"#)
+            json_response(
+                409,
+                r#"{"error":{"code":"uniqueness_error","message":"exists"}}"#,
+            )
         } else {
             HttpResponse::ok(ssh_keys_json(&[]).as_bytes())
         }
     });
 
-    match client_for(&server).ensure_ssh_key("deploy", "ssh-ed25519 AAAA").await {
+    match client_for(&server)
+        .ensure_ssh_key("deploy", "ssh-ed25519 AAAA")
+        .await
+    {
         Err(HetznerError::Api { code, message, .. }) => {
             assert_eq!(code, "uniqueness_error");
-            assert!(message.contains("different name"), "says what happened: {message}");
+            assert!(
+                message.contains("different name"),
+                "says what happened: {message}"
+            );
         }
         other => panic!("expected a conflict, got {other:?}"),
     }
@@ -417,7 +461,10 @@ async fn a_duplicate_whose_key_is_then_missing_is_a_real_conflict() {
 #[valtron_test]
 async fn ensure_ssh_key_creates_when_there_is_none() {
     let server = TestHttpServer::with_response(|_| {
-        json_response(201, r#"{"ssh_key":{"id":9,"name":"deploy","fingerprint":"dd:ee:ff","public_key":"ssh-ed25519 BBBB","labels":{},"created":"x"}}"#)
+        json_response(
+            201,
+            r#"{"ssh_key":{"id":9,"name":"deploy","fingerprint":"dd:ee:ff","public_key":"ssh-ed25519 BBBB","labels":{},"created":"x"}}"#,
+        )
     });
 
     let key = client_for(&server)

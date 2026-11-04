@@ -155,7 +155,7 @@ impl Default for LlamaBackendConfig {
             split_mode: SplitMode::Layer,
             main_gpu: 0,
             pooling_type: LlamaPoolingType::Mean, // retrieval/sentence default
-            speculative: None, // standard decoding by default
+            speculative: None,                    // standard decoding by default
         }
     }
 }
@@ -448,6 +448,7 @@ impl LlamaModels {
     /// and every stream builds its own `llama_context` (and its own KV cache and
     /// sampler) from the shared weights, which is what makes concurrent agents
     /// safe.
+    #[allow(clippy::arc_with_non_send_sync)]
     fn share_weights(&self) -> Self {
         let inner = self.inner.lock().expect("model inner poisoned");
         Self {
@@ -456,7 +457,7 @@ impl LlamaModels {
                 context: inner.context.clone(),
                 sampler: None,
                 spec: inner.spec.clone(),
-                pricing: inner.pricing.clone(),
+                pricing: inner.pricing,
                 cumulative_cost: CostAccumulator::new(),
                 config: inner.config.clone(),
                 mtp_model: Arc::clone(&inner.mtp_model),
@@ -589,8 +590,16 @@ impl Model for LlamaModels {
         let mut ctx = model
             .new_context(&backend, ctx_params)
             .map_err(Into::<GenerationError>::into)?;
-        let mut sampler = build_sampler_chain(&params);
-        generate_text(&model, &mut ctx, &mut sampler, &prompt, templated, &params, &spec)
+        let mut sampler = build_sampler_chain(&params, model.n_vocab());
+        generate_text(
+            &model,
+            &mut ctx,
+            &mut sampler,
+            &prompt,
+            templated,
+            &params,
+            &spec,
+        )
     }
 
     fn stream(
@@ -684,7 +693,8 @@ impl LlamaCppStream {
 
         // Build sampler from params
         let params = specs.unwrap_or_default();
-        let sampler = build_sampler_chain(&params);
+        let n_vocab = model.inner.lock().unwrap().model.n_vocab();
+        let sampler = build_sampler_chain(&params, n_vocab);
 
         // Get max_tokens from params
         #[allow(
@@ -912,7 +922,9 @@ impl Iterator for LlamaCppStream {
             tracing::trace!("stream_next: decoding Batch with ctx");
             if let Err(err) = ctx.decode(&mut batch) {
                 inner.finished = true;
-                return Some(stream_error(format!("failed to decode prompt batch: {err}")));
+                return Some(stream_error(format!(
+                    "failed to decode prompt batch: {err}"
+                )));
             }
 
             inner.current_pos = tokens.len() as i32;
@@ -923,7 +935,7 @@ impl Iterator for LlamaCppStream {
             inner.finished = true;
             return Some(stream_error("sampler missing — cannot sample next token"));
         };
-        let next_token = sampler.sample(&ctx, 0);
+        let next_token = sampler.sample(ctx, 0);
         tracing::trace!("stream_next: generated next token: {:?}", &next_token);
 
         // Check for end of sequence
@@ -1050,10 +1062,7 @@ fn build_stream_assistant(input_tokens: usize, output_tokens: usize, piece: Stri
 /// finishes the stream gracefully (spec-51 G5).
 #[allow(clippy::cast_sign_loss)]
 fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, ModelState>> {
-    let need_begin = match inner.mtp.as_ref() {
-        Some(m) => !m.started,
-        None => return None,
-    };
+    let need_begin = !inner.mtp.as_ref()?.started;
 
     tracing::trace!("mtp_stream_next: need_begin: {:?}", need_begin);
 
@@ -1903,11 +1912,7 @@ impl LlamaBackends {
         // forces a genuine reload rather than silently reusing a mismatched
         // model. Inference contexts are NOT shared — each stream still builds
         // its own from the shared weights (they are `!Send`, see docs/fixes/005).
-        let cache_key = format!(
-            "{}|{}|{config:?}",
-            model_path.display(),
-            model_spec.name
-        );
+        let cache_key = format!("{}|{}|{config:?}", model_path.display(), model_spec.name);
         let cache = LOADED_MODELS.get_or_init(|| Mutex::new(std::collections::HashMap::new()));
 
         // Fast path: an already-loaded model is a lock-and-clone.

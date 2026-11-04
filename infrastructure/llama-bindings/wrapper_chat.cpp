@@ -57,8 +57,8 @@ extern "C" char * ewe_chat_templates_apply(const ewe_chat_templates * tmpls,
             inputs.messages.push_back(std::move(msg));
         }
 
-        common_chat_params  params = common_chat_templates_apply(tmpls->ptr.get(), inputs);
-        const std::string & prompt = params.prompt;
+        common_chat_params params = common_chat_templates_apply(tmpls->ptr.get(), inputs);
+        std::string        prompt = params.prompt.str();
 
         char * out = static_cast<char *>(std::malloc(prompt.size() + 1));
         if (out == nullptr) {

@@ -2,7 +2,6 @@
 ///
 /// Selectors determine which endpoints receive a message based on
 /// label expressions, delivery mode (unicast/multicast), and the payload's type UUID.
-
 use foundation_core::type_uuid::Bytes;
 
 use super::label::LabelOp;
@@ -32,8 +31,8 @@ pub struct Selector {
 
 // serde helper for Duration
 mod duration_serde {
-    use std::time::Duration;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
+    use std::time::Duration;
 
     pub fn serialize<S: Serializer>(val: &Duration, s: S) -> Result<S::Ok, S::Error> {
         val.as_millis().serialize(s)
@@ -77,4 +76,3 @@ impl Selector {
         self.label_op.matches(&label.0)
     }
 }
-

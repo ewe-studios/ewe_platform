@@ -3,12 +3,12 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
-use foundation_netio::event_source::{SseEvent, EventWriter, SseResponse};
-use foundation_netio::shared::http::{Http11, RenderHttp};
-use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_netio::event_source::{EventWriter, SseEvent, SseResponse};
 use foundation_netio::netcap::RawStream;
+use foundation_netio::shared::http::{Http11, RenderHttp};
 
 use concurrent_queue::ConcurrentQueue;
 
@@ -22,12 +22,15 @@ pub struct SseReloadHandler {
 
 impl ServeFactory for SseReloadHandler {
     fn create(bag: &ContextBag) -> Self {
-        let tx = bag.get::<Arc<ConcurrentQueue<FileChange>>>()
+        let tx = bag
+            .get::<Arc<ConcurrentQueue<FileChange>>>()
             .expect("reload queue in ContextBag");
         // bag.get() returns Arc<T>, T is already Arc<ConcurrentQueue>
         // We need to get the inner Arc via deref
         let queue: &Arc<ConcurrentQueue<FileChange>> = &tx;
-        Self { reload_rx: (*queue).clone() }
+        Self {
+            reload_rx: (*queue).clone(),
+        }
     }
 }
 

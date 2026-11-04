@@ -237,6 +237,8 @@ impl From<InvalidUri> for HttpClientError {
 }
 
 impl core::fmt::Display for HttpClientError {
+    // One arm per error variant, so the Display impl is as long as the enum.
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::FailedWith(err) => {
@@ -354,7 +356,7 @@ pub enum HttpReaderError {
     /// `io::ErrorKind::WouldBlock`, NOT a failure. The reader keeps its state so the
     /// next `next()` resumes; the driving task should park (`TaskStatus::Depends`)
     /// on the connection's read/write waker and retry when unparked. Emitted only by
-    /// non-blocking transports (the WireGuard overlay); blocking `TcpStream` reads
+    /// non-blocking transports (the `WireGuard` overlay); blocking `TcpStream` reads
     /// never surface it. See F11 "Non-blocking transport integration".
     #[from(ignore)]
     WouldBlock,

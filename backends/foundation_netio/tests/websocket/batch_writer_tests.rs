@@ -28,7 +28,7 @@ fn test_batch_writer_with_defaults() {
     // Should be flushed now
     assert_eq!(writer.queued_frame_count(), 0);
     assert_eq!(writer.buffered_bytes(), 0);
-    assert!(!buffer.is_empty());
+    assert_ne!(buffer, [] as [u8; 0]);
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn test_write_immediate() {
     // Both frames should be written
     assert_eq!(writer.stats().frames, 2);
     assert_eq!(writer.queued_frame_count(), 0);
-    assert!(!buffer.is_empty());
+    assert_ne!(buffer, [] as [u8; 0]);
 }
 
 #[test]
@@ -153,7 +153,7 @@ fn test_empty_flush_is_noop() {
     // Flushing empty buffer should be a no-op
     writer.flush().unwrap();
     assert_eq!(writer.stats().flushes, 0);
-    assert!(buffer.is_empty());
+    assert_eq!(buffer, [] as [u8; 0]);
 }
 
 #[test]

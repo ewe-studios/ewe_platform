@@ -133,7 +133,15 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         token: Token,
         peer: Option<SocketAddr>,
     ) -> io::Result<Self> {
-        Self::register(inner, registry, token, peer, true, ReadMode::Completion, WriteMode::Send)
+        Self::register(
+            inner,
+            registry,
+            token,
+            peer,
+            true,
+            ReadMode::Completion,
+            WriteMode::Send,
+        )
     }
 
     /// Register `inner` with `registry` for readiness only — no completion RECV
@@ -152,7 +160,15 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         token: Token,
         peer: Option<SocketAddr>,
     ) -> io::Result<Self> {
-        Self::register(inner, registry, token, peer, false, ReadMode::Std, WriteMode::Std)
+        Self::register(
+            inner,
+            registry,
+            token,
+            peer,
+            false,
+            ReadMode::Std,
+            WriteMode::Std,
+        )
     }
 
     /// Register with explicit read and write modes (F50 config gate).
@@ -180,7 +196,15 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         read_mode: ReadMode,
         write_mode: WriteMode,
     ) -> io::Result<Self> {
-        Self::register(inner, registry, token, peer, arm_completion, read_mode, write_mode)
+        Self::register(
+            inner,
+            registry,
+            token,
+            peer,
+            arm_completion,
+            read_mode,
+            write_mode,
+        )
     }
 
     /// The per-backend registration. On Linux with io_uring, `arm_completion`
@@ -207,7 +231,12 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         } else {
             RegisteredFd::new(inner, registry, token)?
         };
-        Ok(Self { inner, peer, read_mode, write_mode })
+        Ok(Self {
+            inner,
+            peer,
+            read_mode,
+            write_mode,
+        })
     }
 
     #[cfg(not(target_os = "linux"))]
@@ -217,13 +246,18 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         token: Token,
         peer: Option<SocketAddr>,
         _arm_completion: bool,
-        read_mode: ReadMode,
-        write_mode: WriteMode,
+        _read_mode: ReadMode,
+        _write_mode: WriteMode,
     ) -> io::Result<Self> {
         let _ = Interest::READABLE;
         let inner = RegisteredFd::new(inner, registry, token)?;
         // Off Linux, force modes to Std since there's no io_uring.
-        Ok(Self { inner, peer, read_mode: ReadMode::Std, write_mode: WriteMode::Std })
+        Ok(Self {
+            inner,
+            peer,
+            read_mode: ReadMode::Std,
+            write_mode: WriteMode::Std,
+        })
     }
 
     /// Access the inner registration.
@@ -258,7 +292,9 @@ impl<T: AsRawFd + Read + Write> CompletionSocket<T> {
         #[cfg(target_os = "linux")]
         {
             self.read_mode == ReadMode::Completion
-                && foundation_nativeapis::native::fd::CompletionSource::is_completion_source(&self.inner)
+                && foundation_nativeapis::native::fd::CompletionSource::is_completion_source(
+                    &self.inner,
+                )
         }
         #[cfg(not(target_os = "linux"))]
         {

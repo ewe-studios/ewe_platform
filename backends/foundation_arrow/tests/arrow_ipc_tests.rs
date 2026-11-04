@@ -18,11 +18,7 @@ fn make_test_batch() -> RecordBatch {
 
     let id: ArrayRef = Arc::new(UInt64Array::from(vec![1, 2, 3]));
     let name: ArrayRef = Arc::new(StringArray::from(vec!["alice", "bob", "charlie"]));
-    let value: ArrayRef = Arc::new(Float64Array::from(vec![
-        Some(1.5),
-        Some(2.7),
-        None,
-    ]));
+    let value: ArrayRef = Arc::new(Float64Array::from(vec![Some(1.5), Some(2.7), None]));
     let timestamp: ArrayRef = Arc::new(Int64Array::from(vec![1000, 2000, 3000]));
     let data: ArrayRef = Arc::new(BinaryArray::from_opt_vec(vec![
         Some(b"hello"),

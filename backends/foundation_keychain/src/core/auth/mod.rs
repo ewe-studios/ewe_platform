@@ -91,11 +91,12 @@ pub struct AuthedToken {
     pub device: Option<String>,
 }
 
-fn custom_str(
-    claims: &foundation_auth::shared::jwt::VerifiedClaims,
-    key: &str,
-) -> Option<String> {
-    claims.custom.get(key).and_then(|v| v.as_str()).map(String::from)
+fn custom_str(claims: &foundation_auth::shared::jwt::VerifiedClaims, key: &str) -> Option<String> {
+    claims
+        .custom
+        .get(key)
+        .and_then(|v| v.as_str())
+        .map(String::from)
 }
 
 /// Verify an access token and extract the authenticated principal.

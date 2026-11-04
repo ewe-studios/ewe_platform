@@ -23,7 +23,10 @@ async fn in_memory_turso_storage_is_a_migrated_key_value_store() {
 async fn sql_document_store_over_in_memory_turso_has_its_documents_table() {
     let store = SqlDocumentStore::new(TursoStorage::in_memory().await.unwrap());
 
-    let doc = store.append("k", serde_json::json!({"n": 1})).await.unwrap();
+    let doc = store
+        .append("k", serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
     let docs = store.scan_documents("k", 10).await.unwrap();
     assert_eq!(docs.len(), 1);
     assert_eq!(docs[0].id, doc.id);

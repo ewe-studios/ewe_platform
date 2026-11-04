@@ -43,7 +43,11 @@ impl StaticAssetHandler {
     /// A handler serving `body` with the given `Content-Type`.
     #[must_use]
     pub fn new(body: impl Into<Arc<[u8]>>, content_type: impl Into<String>) -> Self {
-        Self { body: body.into(), content_type: content_type.into(), headers: Vec::new() }
+        Self {
+            body: body.into(),
+            content_type: content_type.into(),
+            headers: Vec::new(),
+        }
     }
 
     /// Attach an extra response header (e.g. `Cache-Control`). Chainable.
@@ -67,7 +71,10 @@ impl Serve for StaticAssetHandler {
         for (name, value) in &self.headers {
             builder = builder.add_header(SimpleHeader::custom(name), value);
         }
-        let Ok(response) = builder.with_body(SendSafeBody::Bytes(self.body.to_vec())).build() else {
+        let Ok(response) = builder
+            .with_body(SendSafeBody::Bytes(self.body.to_vec()))
+            .build()
+        else {
             return ConnectionResult::Close(None);
         };
         Http11::response(response)

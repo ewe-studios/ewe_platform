@@ -29,8 +29,9 @@ pub struct BuildOutput {
 
 /// Read the package name from a Cargo.toml file.
 fn read_package_name(cargo_toml: &Path) -> Result<String> {
-    let content = std::fs::read_to_string(cargo_toml)
-        .map_err(|_e| WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace())?;
+    let content = std::fs::read_to_string(cargo_toml).map_err(|_e| {
+        WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace()
+    })?;
 
     let mut in_package = false;
     for line in content.lines() {
@@ -87,11 +88,7 @@ fn find_workspace_root(crate_path: &Path) -> Option<PathBuf> {
 /// - the build fails
 /// - the wasm binary is not found after a successful build
 /// - the crate has no [package].name
-pub fn run(
-    crate_path: &Path,
-    release: bool,
-    features: Option<&str>,
-) -> Result<BuildOutput> {
+pub fn run(crate_path: &Path, release: bool, features: Option<&str>) -> Result<BuildOutput> {
     run_for_target(crate_path, release, features, "wasm32-unknown-unknown")
 }
 
@@ -122,7 +119,13 @@ pub fn run_with_tests(
     release: bool,
     features: Option<&str>,
 ) -> Result<BuildOutput> {
-    run_impl(crate_path, release, features, true, "wasm32-unknown-unknown")
+    run_impl(
+        crate_path,
+        release,
+        features,
+        true,
+        "wasm32-unknown-unknown",
+    )
 }
 
 fn run_impl(
@@ -236,17 +239,19 @@ fn run_impl(
         });
     }
 
-    let deps_dir = target_dir
-        .join(target_triple)
-        .join(profile)
-        .join("deps");
+    let deps_dir = target_dir.join(target_triple).join(profile).join("deps");
 
     // When building with --tests, find the test wasm binary containing
     // __wbgt_ exports (wasm-bindgen). Scan ALL .wasm files in deps/ —
     // cargo names them mod-<hash>.wasm, {pkg}-<hash>.wasm, or
     // {test_target}-<hash>.wasm depending on how the test target is defined.
     if include_tests && deps_dir.exists() {
-        for entry in std::fs::read_dir(&deps_dir).ok().into_iter().flatten().flatten() {
+        for entry in std::fs::read_dir(&deps_dir)
+            .ok()
+            .into_iter()
+            .flatten()
+            .flatten()
+        {
             let Ok(meta) = entry.metadata() else { continue };
             if !meta.is_file() {
                 continue;
@@ -328,4 +333,3 @@ fn wasm_artifacts(line: &str) -> Vec<(PathBuf, bool)> {
 fn has_wasm_bindgen_tests(path: &Path) -> bool {
     std::fs::read(path).is_ok_and(|content| content.windows(7).any(|w| w == b"__wbgt_"))
 }
-

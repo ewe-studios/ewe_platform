@@ -26,10 +26,8 @@
 use std::sync::Arc;
 
 use foundation_core::synca::mpp::{Receiver, ReceiverError};
-use foundation_core::valtron::{Ctx, execute, GenericResult};
-use foundation_core::valtron::{
-    DrivenStreamIterator, EventReadiness, TaskIterator, TaskStatus,
-};
+use foundation_core::valtron::{execute, Ctx, GenericResult};
+use foundation_core::valtron::{DrivenStreamIterator, EventReadiness, TaskIterator, TaskStatus};
 
 use crate::shared::vfs::{AsyncVfsFileSystem, ObservableFs, VfsEvent};
 

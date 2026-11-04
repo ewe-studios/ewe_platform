@@ -48,8 +48,6 @@ pub enum HttpExchangePending {
 /// own task. `Box<dyn TaskIterator<...> + Send>` implements `TaskIterator` via
 /// valtron's blanket impl and works with `valtron::execute()`/`send()`.
 pub type HttpExchangeClientTask = Box<
-    dyn foundation_core::valtron::TaskIterator<
-            Ready = HttpExchange,
-            Pending = HttpExchangePending,
-        > + Send,
+    dyn foundation_core::valtron::TaskIterator<Ready = HttpExchange, Pending = HttpExchangePending>
+        + Send,
 >;

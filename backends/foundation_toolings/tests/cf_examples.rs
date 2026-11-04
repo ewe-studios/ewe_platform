@@ -124,7 +124,10 @@ fn serve(stream: &TcpStream, vendor: Vendor, requests: &AtomicUsize) {
             }),
             Vendor::WorkersAi => serde_json::json!({ "response": word }),
         };
-        if out.write_all(format!("data: {data}\n\n").as_bytes()).is_err() {
+        if out
+            .write_all(format!("data: {data}\n\n").as_bytes())
+            .is_err()
+        {
             return;
         }
         let _ = out.flush();
@@ -188,7 +191,10 @@ fn cf_cloud_provider_streams_one_generation_and_stays_responsive() {
     let worker = Miniflare::builder()
         .worker_dir(&dir)
         .var("OPENROUTER_API_KEY", "mock")
-        .var("OPENROUTER_BASE_URL", format!("http://127.0.0.1:{}/api", vendor.port))
+        .var(
+            "OPENROUTER_BASE_URL",
+            format!("http://127.0.0.1:{}/api", vendor.port),
+        )
         .startup_timeout(Duration::from_secs(90))
         .build()
         .expect("start cf-cloud-provider under miniflare");
@@ -196,7 +202,12 @@ fn cf_cloud_provider_streams_one_generation_and_stays_responsive() {
     let (status, body) = worker
         .post("/chat", "What is the capital of France?", PROMPT_TIMEOUT)
         .expect("POST /chat");
-    assert_eq!(status, 200, "body: {body}\nworker stderr:\n{}", worker.stderr_tail());
+    assert_eq!(
+        status,
+        200,
+        "body: {body}\nworker stderr:\n{}",
+        worker.stderr_tail()
+    );
     assert_eq!(
         sse_text(&body),
         ANSWER,
@@ -205,7 +216,10 @@ fn cf_cloud_provider_streams_one_generation_and_stays_responsive() {
     assert_eq!(vendor.requests(), 1, "one prompt must be one model call");
 
     let (status, _) = worker.get("/").expect("GET / after a chat turn");
-    assert_eq!(status, 200, "the isolate must keep serving after a chat turn");
+    assert_eq!(
+        status, 200,
+        "the isolate must keep serving after a chat turn"
+    );
 }
 
 /// `cf-agent-loop`: Workers AI via the fetch client (`HttpClientBuilder`), reply returned whole.
@@ -219,7 +233,10 @@ fn cf_agent_loop_answers_one_generation_and_stays_responsive() {
         .worker_dir(&dir)
         .var("WORKERS_AI_API_TOKEN", "mock")
         .var("CLOUDFLARE_ACCOUNT_ID", "mock-account")
-        .var("WORKERS_AI_BASE_URL", format!("http://127.0.0.1:{}", vendor.port))
+        .var(
+            "WORKERS_AI_BASE_URL",
+            format!("http://127.0.0.1:{}", vendor.port),
+        )
         .startup_timeout(Duration::from_secs(90))
         .build()
         .expect("start cf-agent-loop under miniflare");
@@ -227,7 +244,12 @@ fn cf_agent_loop_answers_one_generation_and_stays_responsive() {
     let (status, body) = worker
         .post("/", "What is the capital of France?", PROMPT_TIMEOUT)
         .expect("POST /");
-    assert_eq!(status, 200, "body: {body}\nworker stderr:\n{}", worker.stderr_tail());
+    assert_eq!(
+        status,
+        200,
+        "body: {body}\nworker stderr:\n{}",
+        worker.stderr_tail()
+    );
     assert_eq!(body, ANSWER, "the reply must be the answer once");
     assert_eq!(vendor.requests(), 1, "one prompt must be one model call");
 

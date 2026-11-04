@@ -2,4 +2,6 @@
 
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
 
+mod http_exchange_task;
+mod sse;
 mod websocket;

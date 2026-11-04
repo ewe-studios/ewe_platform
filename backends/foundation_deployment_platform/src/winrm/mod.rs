@@ -1,20 +1,20 @@
-//! WinRM SOAP client for Windows guest VMs.
+//! `WinRM` SOAP client for Windows guest VMs.
 //!
 //! Pure Rust implementation — no Python/pywinrm dependency.
 //! HTTP Basic auth over plain HTTP (localhost only, port 5985).
 //!
 //! Shell lifecycle: Create → Execute → Receive (loop) → Delete.
 
-use tracing::{debug, trace};
 use std::io::{Read, Write};
-use std::net::{TcpStream, SocketAddr};
+use std::net::{SocketAddr, TcpStream};
 use std::time::Duration;
+use tracing::{debug, trace};
 
 use crate::config::{Result, TestbedError, VmProfile};
 
 pub mod elevated;
 
-/// Result of a WinRM command execution.
+/// Result of a `WinRM` command execution.
 #[derive(Debug, Clone)]
 pub struct CmdResult {
     pub stdout: String,
@@ -22,7 +22,7 @@ pub struct CmdResult {
     pub exit_code: i32,
 }
 
-/// WinRM client for a specific host/port/credentials.
+/// `WinRM` client for a specific host/port/credentials.
 pub struct WinRM {
     host: String,
     port: u16,
@@ -31,7 +31,8 @@ pub struct WinRM {
 }
 
 impl WinRM {
-    /// Create a new WinRM client.
+    /// Create a new `WinRM` client.
+    #[must_use]
     pub fn new(host: &str, port: u16, user: &str, pass: &str) -> Self {
         Self {
             host: host.to_string(),
@@ -42,31 +43,45 @@ impl WinRM {
     }
 
     /// Create from a VM profile.
-    pub fn from_profile(profile: &VmProfile) -> Result<Self> {
-        let winrm_port = profile.winrm_port.ok_or_else(|| {
-            TestbedError::WinrmNotReachable {
-                port: 0,
-            }
-        })?;
-        Ok(Self::new("127.0.0.1", winrm_port, profile.user, profile.pass))
-    }
-
-    /// Check if WinRM is reachable and can create a shell (real probe).
     ///
-    /// Creates and immediately deletes a WinRM shell to verify the full
-    /// SOAP pipeline works, not just that the TCP port is open.
-    pub fn ping(&self) -> bool {
-        self.shell_create().and_then(|shell_id| {
-            self.shell_delete(&shell_id, None)
-        }).is_ok()
+    /// # Errors
+    ///
+    /// Returns an error if the profile has no `WinRM` port.
+    pub fn from_profile(profile: &VmProfile) -> Result<Self> {
+        let winrm_port = profile
+            .winrm_port
+            .ok_or_else(|| TestbedError::WinrmNotReachable { port: 0 })?;
+        Ok(Self::new(
+            "127.0.0.1",
+            winrm_port,
+            profile.user,
+            profile.pass,
+        ))
     }
 
-    /// Run a PowerShell script via WinRM shell.
+    /// Check if `WinRM` is reachable and can create a shell (real probe).
+    ///
+    /// Creates and immediately deletes a `WinRM` shell to verify the full
+    /// SOAP pipeline works, not just that the TCP port is open.
+    #[must_use]
+    pub fn ping(&self) -> bool {
+        self.shell_create()
+            .map(|shell_id| {
+                self.shell_delete(&shell_id, None);
+            })
+            .is_ok()
+    }
+
+    /// Run a PowerShell script via `WinRM` shell.
     ///
     /// Encodes script as UTF-16LE + Base64 for `powershell -EncodedCommand`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a `WinRM` shell operation fails.
     pub fn run_ps(&self, script: &str) -> Result<CmdResult> {
         // Encode script as UTF-16LE + Base64
-        let utf16le: Vec<u8> = script.encode_utf16().flat_map(|c| c.to_le_bytes()).collect();
+        let utf16le: Vec<u8> = script.encode_utf16().flat_map(u16::to_le_bytes).collect();
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
 
         let ps_command = format!("powershell -EncodedCommand {encoded}");
@@ -78,14 +93,14 @@ impl WinRM {
         debug!("run_ps: receiving output (unlimited wait)");
         let result = self.shell_receive(&shell_id, &command_id, 0)?;
         debug!("run_ps: command complete, exit_code={}", result.exit_code);
-        self.shell_delete(&shell_id, Some(&command_id)).ok();
+        self.shell_delete(&shell_id, Some(&command_id));
 
         Ok(result)
     }
 
     // ── WinRM SOAP protocol ──────────────────────────────────────────────
 
-    /// Create a WinRM shell.
+    /// Create a `WinRM` shell.
     fn shell_create(&self) -> Result<String> {
         let msg_id = uuid_simple();
         let body = format!(
@@ -93,11 +108,12 @@ impl WinRM {
             msg_id, self.host, self.port
         );
 
-        let response = self.send_soap("http://schemas.xmlsoap.org/ws/2004/09/transfer/Create", &body)?;
+        let response = self.send_soap(
+            "http://schemas.xmlsoap.org/ws/2004/09/transfer/Create",
+            &body,
+        )?;
         // Extract ShellId from response
-        parse_shell_id(&response).ok_or_else(|| TestbedError::WinrmNotReachable {
-            port: self.port,
-        })
+        parse_shell_id(&response).ok_or_else(|| TestbedError::WinrmNotReachable { port: self.port })
     }
 
     /// Execute a command in an existing shell.
@@ -108,16 +124,23 @@ impl WinRM {
             msg_id, self.host, self.port, shell_id, command
         );
 
-        let response = self.send_soap("http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Command", &body)?;
-        parse_command_id(&response).ok_or_else(|| TestbedError::WinrmNotReachable {
-            port: self.port,
-        })
+        let response = self.send_soap(
+            "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Command",
+            &body,
+        )?;
+        parse_command_id(&response)
+            .ok_or_else(|| TestbedError::WinrmNotReachable { port: self.port })
     }
 
     /// Receive output from a running command.
     ///
     /// `max_wait_secs` caps total polling time. Use `0` for unlimited (legacy).
-    fn shell_receive(&self, shell_id: &str, command_id: &str, max_wait_secs: u64) -> Result<CmdResult> {
+    fn shell_receive(
+        &self,
+        shell_id: &str,
+        command_id: &str,
+        max_wait_secs: u64,
+    ) -> Result<CmdResult> {
         let mut stdout = String::new();
         let mut stderr = String::new();
         let mut exit_code = 0;
@@ -128,13 +151,15 @@ impl WinRM {
         };
 
         // Poll for output — supports long-running commands (up to 1800s)
-        let mut iteration = 0;
-        for _ in 0..3600 {
+        for (iteration, _) in (0..3600).enumerate() {
             // 1800s total at 500ms intervals
             if let Some(dl) = deadline
                 && std::time::Instant::now() > dl
             {
-                debug!("shell_receive: TIMEOUT after {} iterations, stdout={:?} stderr={:?}", iteration, stdout, stderr);
+                debug!(
+                    "shell_receive: TIMEOUT after {} iterations, stdout={:?} stderr={:?}",
+                    iteration, stdout, stderr
+                );
                 return Err(TestbedError::WinrmTimeout {
                     message: format!("shell_receive timed out after {max_wait_secs}s"),
                 });
@@ -146,21 +171,32 @@ impl WinRM {
                 msg_id, self.host, self.port, shell_id, command_id
             );
 
-            let response = self.send_soap("http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Receive", &body)?;
+            let response = self.send_soap(
+                "http://schemas.microsoft.com/wbem/wsman/1/windows/shell/Receive",
+                &body,
+            )?;
 
             // Parse output streams and command state
             let (new_stdout, new_stderr, done, code) = parse_receive_response(&response);
-            trace!("shell_receive iter {}: done={} stdout={} bytes stderr={} bytes", iteration, done, new_stdout.len(), new_stderr.len());
+            trace!(
+                "shell_receive iter {}: done={} stdout={} bytes stderr={} bytes",
+                iteration,
+                done,
+                new_stdout.len(),
+                new_stderr.len()
+            );
             stdout.push_str(&new_stdout);
             stderr.push_str(&new_stderr);
 
             if done {
                 exit_code = code;
-                trace!("shell_receive: command completed after {} iterations", iteration);
+                trace!(
+                    "shell_receive: command completed after {} iterations",
+                    iteration
+                );
                 break;
             }
 
-            iteration += 1;
             std::thread::sleep(std::time::Duration::from_millis(500));
         }
 
@@ -171,12 +207,16 @@ impl WinRM {
         })
     }
 
-    /// Run a quick WinRM command (sentinel/heartbeat checks).
+    /// Run a quick `WinRM` command (sentinel/heartbeat checks).
     ///
-    /// Uses a 15-second receive timeout to avoid blocking when WinRM is transiently
+    /// Uses a 15-second receive timeout to avoid blocking when `WinRM` is transiently
     /// unavailable during long elevated operations like OpenSSH install.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if a `WinRM` shell operation fails.
     pub fn run_ps_quiet(&self, script: &str) -> Result<CmdResult> {
-        let utf16le: Vec<u8> = script.encode_utf16().flat_map(|c| c.to_le_bytes()).collect();
+        let utf16le: Vec<u8> = script.encode_utf16().flat_map(u16::to_le_bytes).collect();
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &utf16le);
         let ps_command = format!("powershell -EncodedCommand {encoded}");
 
@@ -186,13 +226,16 @@ impl WinRM {
         let command_id = self.shell_exec(&shell_id, &ps_command)?;
         trace!("run_ps_quiet: command exec done, receiving with 15s timeout");
         let result = self.shell_receive(&shell_id, &command_id, 15);
-        trace!("run_ps_quiet: receive result: {:?}", result.as_ref().map(|r| &r.stdout));
-        self.shell_delete(&shell_id, Some(&command_id)).ok();
+        trace!(
+            "run_ps_quiet: receive result: {:?}",
+            result.as_ref().map(|r| &r.stdout)
+        );
+        self.shell_delete(&shell_id, Some(&command_id));
         result
     }
 
-    /// Delete a WinRM shell.
-    fn shell_delete(&self, shell_id: &str, command_id: Option<&str>) -> Result<()> {
+    /// Delete a `WinRM` shell.
+    fn shell_delete(&self, shell_id: &str, command_id: Option<&str>) {
         let msg_id = uuid_simple();
         let command_selector = command_id
             .map(|id| format!("<rsp:Signal CommandId=\"{id}\"><w:Code>0</w:Code></rsp:Signal>"))
@@ -203,19 +246,20 @@ impl WinRM {
             msg_id, self.host, self.port, shell_id, command_selector
         );
 
-        let _ = self.send_soap("http://schemas.xmlsoap.org/ws/2004/09/transfer/Delete", &body);
-        Ok(())
+        let _ = self.send_soap(
+            "http://schemas.xmlsoap.org/ws/2004/09/transfer/Delete",
+            &body,
+        );
     }
 
     /// Send a SOAP request and return the response body.
     fn send_soap(&self, action: &str, body: &str) -> Result<String> {
-        let addr: SocketAddr = format!("{}:{}", self.host, self.port).parse().map_err(|_| {
-            TestbedError::WinrmNotReachable { port: self.port }
-        })?;
+        let addr: SocketAddr = format!("{}:{}", self.host, self.port)
+            .parse()
+            .map_err(|_| TestbedError::WinrmNotReachable { port: self.port })?;
         trace!("send_soap: connecting to {} action={}", addr, action);
-        let stream = TcpStream::connect_timeout(&addr, Duration::from_secs(10)).map_err(|_| {
-            TestbedError::WinrmNotReachable { port: self.port }
-        })?;
+        let stream = TcpStream::connect_timeout(&addr, Duration::from_secs(10))
+            .map_err(|_| TestbedError::WinrmNotReachable { port: self.port })?;
         let mut stream = stream;
         stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
         stream.set_write_timeout(Some(Duration::from_secs(10))).ok();
@@ -236,18 +280,18 @@ impl WinRM {
             body.len()
         );
 
-        stream.write_all(header.as_bytes()).map_err(|_e| {
-            TestbedError::WinrmNotReachable { port: self.port }
-        })?;
-        stream.write_all(body.as_bytes()).map_err(|_e| {
-            TestbedError::WinrmNotReachable { port: self.port }
-        })?;
+        stream
+            .write_all(header.as_bytes())
+            .map_err(|_e| TestbedError::WinrmNotReachable { port: self.port })?;
+        stream
+            .write_all(body.as_bytes())
+            .map_err(|_e| TestbedError::WinrmNotReachable { port: self.port })?;
 
         // Read response
         let mut response = String::new();
-        stream.read_to_string(&mut response).map_err(|_e| {
-            TestbedError::WinrmNotReachable { port: self.port }
-        })?;
+        stream
+            .read_to_string(&mut response)
+            .map_err(|_e| TestbedError::WinrmNotReachable { port: self.port })?;
 
         // Extract body after HTTP headers (after \r\n\r\n)
         if let Some(idx) = response.find("\r\n\r\n") {
@@ -258,6 +302,7 @@ impl WinRM {
     }
 
     /// Base64-encoded Basic auth value.
+    #[must_use]
     pub fn auth_header_value(&self) -> String {
         let creds = format!("{}:{}", self.user, self.pass);
         base64::Engine::encode(&base64::engine::general_purpose::STANDARD, creds.as_bytes())
@@ -266,7 +311,8 @@ impl WinRM {
 
 // ── Response parsing ─────────────────────────────────────────────────────────
 
-/// Extract ShellId from a SOAP response.
+/// Extract `ShellId` from a SOAP response.
+#[must_use]
 pub fn parse_shell_id(response: &str) -> Option<String> {
     // Look for <Selector Name="ShellId">VALUE</Selector>
     let start = response.find(r#"Name="ShellId">"#)?;
@@ -275,7 +321,8 @@ pub fn parse_shell_id(response: &str) -> Option<String> {
     Some(rest[..end].to_string())
 }
 
-/// Extract CommandId from a SOAP response.
+/// Extract `CommandId` from a SOAP response.
+#[must_use]
 pub fn parse_command_id(response: &str) -> Option<String> {
     // Look for <rsp:CommandId>VALUE</rsp:CommandId>
     let start = response.find("<rsp:CommandId>")?;
@@ -284,7 +331,8 @@ pub fn parse_command_id(response: &str) -> Option<String> {
     Some(rest[..end].to_string())
 }
 
-/// Parse a WinRM Receive response for stdout, stderr, completion, and exit code.
+/// Parse a `WinRM` Receive response for stdout, stderr, completion, and exit code.
+#[must_use]
 pub fn parse_receive_response(response: &str) -> (String, String, bool, i32) {
     let mut stdout = String::new();
     let mut stderr = String::new();
@@ -293,10 +341,9 @@ pub fn parse_receive_response(response: &str) -> (String, String, bool, i32) {
 
     // Extract Base64-encoded stdout streams
     for (data, is_stderr_flag) in extract_streams(response) {
-        if let Ok(bytes) = base64::Engine::decode(
-            &base64::engine::general_purpose::STANDARD,
-            data.trim(),
-        ) {
+        if let Ok(bytes) =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, data.trim())
+        {
             let text = String::from_utf8_lossy(&bytes).to_string();
             if is_stderr_flag {
                 stderr.push_str(&text);
@@ -307,8 +354,10 @@ pub fn parse_receive_response(response: &str) -> (String, String, bool, i32) {
     }
 
     // Check if command is done
-    if response.contains("http://schemas.microsoft.com/wbem/wsman/1/windows/shell/CommandState/Done")
-        || response.contains("http://schemas.dmtf.org/wbem/wsman/1/wsman/secprofile/CommandState/Done")
+    if response
+        .contains("http://schemas.microsoft.com/wbem/wsman/1/windows/shell/CommandState/Done")
+        || response
+            .contains("http://schemas.dmtf.org/wbem/wsman/1/wsman/secprofile/CommandState/Done")
     {
         done = true;
         // Try to extract exit code
@@ -332,10 +381,10 @@ fn extract_streams(response: &str) -> Vec<(String, bool)> {
         let block_start = search_from + start;
         // Find the Name attribute to determine if this is stderr
         let block = &response[block_start..];
-        let is_stderr = block.starts_with(r#"Name="stderr""#)
-            || block.starts_with(r#"Name='stderr'"#);
+        let is_stderr =
+            block.starts_with(r#"Name="stderr""#) || block.starts_with(r"Name='stderr'");
 
-        if let Some(data_start) = block.find(">") {
+        if let Some(data_start) = block.find('>') {
             let content = &block[data_start + 1..];
             if let Some(data_end) = content.find("</rsp:Stream>") {
                 results.push((content[..data_end].to_string(), is_stderr));
@@ -348,11 +397,12 @@ fn extract_streams(response: &str) -> Vec<(String, bool)> {
     results
 }
 
-/// Generate a unique message ID for WinRM request correlation.
+/// Generate a unique message ID for `WinRM` request correlation.
 #[allow(dead_code)]
+#[must_use]
 pub fn generate_message_id() -> String {
     let uuid = uuid_simple();
-    format!("uuid:{}", uuid)
+    format!("uuid:{uuid}")
 }
 
 /// Simple UUID generation without external dependency.
@@ -363,6 +413,9 @@ fn uuid_simple() -> String {
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos();
-    format!("{:016x}{:016x}", now, now.wrapping_mul(0x6C62272E07BB0142))
+    format!(
+        "{:016x}{:016x}",
+        now,
+        now.wrapping_mul(0x6C62_272E_07BB_0142)
+    )
 }
-

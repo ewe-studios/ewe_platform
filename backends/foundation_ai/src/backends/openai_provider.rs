@@ -5,29 +5,29 @@
 //! client on wasm32) for HTTP I/O with
 //! Valtron `TaskIterator`/`StreamIterator` patterns — no tokio, no async-trait.
 
-use foundation_compact::SystemTime;
+use foundation_compact::{SendWrapper, SystemTime};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crate::backends::backend_utils::{
-    empty_usage_report, flatten_tools, model_id_to_string, prepared_request, sleep,
-    tool_arguments_from_str,
+    capped_error_body, empty_usage_report, flatten_tools, model_id_to_string, prepared_request,
+    sleep, tool_arguments_from_str,
 };
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{Stream, StreamSpread};
+use foundation_core::valtron::{sleep_async, Stream, StreamSpread};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::event_source::{Event, ParseResult};
-use foundation_netio::DynNetClient;
-#[cfg(not(target_family = "wasm"))]
-use foundation_netio::HttpClientBuilder;
 use foundation_netio::shared::client::{
-    body_reader::collect_strings_from_send_safe,
+    body_reader::{collect_bytes_bounded, collect_string_async, collect_strings_from_send_safe},
     http_client::{BoxedSseIterator, SseProgress},
     request::PreparedRequest,
 };
 use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::DynNetClient;
+#[cfg(not(target_family = "wasm"))]
+use foundation_netio::HttpClientBuilder;
 use serde::{Deserialize, Serialize};
 
 use crate::backends::model_info::{self, ModelInfoCache};
@@ -57,6 +57,10 @@ pub struct OpenAIConfig {
     pub api_version: String,
     pub timeout_secs: u64,
     pub max_retries: u32,
+    /// At most this many bytes of a non-2xx response body are read to form the
+    /// error message. Default is 64 KiB, the error-drain limit Go `net/http`
+    /// uses before it closes a response body it will not use.
+    pub max_error_body: usize,
     pub proxy_url: Option<String>,
     pub streaming: bool,
     pub auth: Option<AuthCredential>,
@@ -69,6 +73,7 @@ impl Default for OpenAIConfig {
             api_version: String::from("v1"),
             timeout_secs: 30,
             max_retries: 3,
+            max_error_body: 64 * 1024,
             proxy_url: None,
             streaming: true,
             auth: None,
@@ -138,6 +143,12 @@ impl OpenAIConfig {
     }
 
     #[must_use]
+    pub fn with_max_error_body(mut self, bytes: usize) -> Self {
+        self.max_error_body = bytes;
+        self
+    }
+
+    #[must_use]
     pub fn with_proxy_url(mut self, url: impl Into<String>) -> Self {
         self.proxy_url = Some(url.into());
         self
@@ -174,6 +185,7 @@ impl Clone for OpenAIConfig {
             api_version: self.api_version.clone(),
             timeout_secs: self.timeout_secs,
             max_retries: self.max_retries,
+            max_error_body: self.max_error_body,
             proxy_url: self.proxy_url.clone(),
             streaming: self.streaming,
             auth: None,
@@ -342,15 +354,19 @@ impl OpenAIProvider {
 
         let (status, headers, body) = response.into_parts();
         let status_code: usize = status.into();
-        let body_text = collect_strings_from_send_safe(body)
-            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
+            // Status first: only the error message is needed, so the body read
+            // stops at the configured cap instead of buffering the whole reply.
+            let body_text = capped_error_body(body, self.config.max_error_body);
             let retry_after = extract_retry_after(&headers);
             let detail = parse_openai_error(&body_text).unwrap_or_else(|| body_text.clone());
             let msg = format_http_error(status_code, &detail);
             return Ok(Err((status_code as u16, retry_after, msg)));
         }
+
+        let body_text = collect_strings_from_send_safe(body)
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         serde_json::from_str(&body_text)
             .map(|v| Ok(v))
@@ -389,7 +405,7 @@ impl OpenAIProvider {
             .clone()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
         let req = self.model_info_request(model_name)?;
-        let info = fetch_model_info_with(client, req).await?;
+        let info = fetch_model_info_with(client, req, self.config.max_error_body).await?;
         model_info::store(&self.models_cache, model_name, info.clone());
         Ok(info)
     }
@@ -404,7 +420,7 @@ impl OpenAIProvider {
                 Ok(req) => model_info::spawn_lookup(
                     Arc::clone(&self.models_cache),
                     model_name.to_string(),
-                    fetch_model_info_with(client, req),
+                    fetch_model_info_with(client, req, self.config.max_error_body),
                 ),
                 Err(e) => {
                     tracing::warn!(model = model_name, error = %e, "model metadata lookup not started");
@@ -422,8 +438,16 @@ impl OpenAIProvider {
 async fn fetch_model_info_with(
     client: DynNetClient,
     req: PreparedRequest,
+    max_error_body: usize,
 ) -> GenerationResult<OpenAIModelInfo> {
-    model_info::fetch(client, req, parse_openai_error, <OpenAIModelInfo as From<OpenAIModelResponse>>::from).await
+    model_info::fetch(
+        client,
+        req,
+        parse_openai_error,
+        <OpenAIModelInfo as From<OpenAIModelResponse>>::from,
+        max_error_body,
+    )
+    .await
 }
 
 impl ModelProvider for OpenAIProvider {
@@ -667,19 +691,92 @@ impl OpenAIModel {
 
         let (status, headers, body) = response.into_parts();
         let status_code: usize = status.into();
-        let body_text = collect_strings_from_send_safe(body)
-            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
 
         if !(200..=299).contains(&status_code) {
+            // Status first; cap the error body so a huge reply is not buffered.
+            let body_text = capped_error_body(body, self.config.max_error_body);
             let retry_after = extract_retry_after(&headers);
             let detail = parse_openai_error(&body_text).unwrap_or_else(|| body_text.clone());
             let msg = format_http_error(status_code, &detail);
             return Ok(Err((status_code as u16, retry_after, msg)));
         }
 
+        let body_text = collect_strings_from_send_safe(body)
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
+
         serde_json::from_str(&body_text)
             .map(|v| Ok(v))
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))
+    }
+
+    /// Async single attempt. Mirrors [`Self::do_request`] over
+    /// [`HttpClient::send_async`], so it yields on wasm instead of deadlocking.
+    #[allow(clippy::type_complexity, clippy::cast_possible_truncation)]
+    async fn do_request_async<T: for<'de> Deserialize<'de> + Send>(
+        &self,
+        url: &str,
+        body: &str,
+    ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
+        let client = self
+            .http_client
+            .as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
+
+        let req = self.build_prepared_request(url, body)?;
+        let response = client
+            .send_async(req)
+            .await
+            .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
+
+        let (status, headers, body) = response.into_async_parts();
+        let status_code: usize = status.into();
+
+        if !(200..=299).contains(&status_code) {
+            // Status first; cap the error body so a huge reply is not buffered.
+            let bytes = collect_bytes_bounded(body, self.config.max_error_body).await;
+            let body_text = String::from_utf8_lossy(&bytes);
+            let retry_after = extract_retry_after(&headers);
+            let detail = parse_openai_error(&body_text).unwrap_or_else(|| body_text.into_owned());
+            let msg = format_http_error(status_code, &detail);
+            return Ok(Err((status_code as u16, retry_after, msg)));
+        }
+
+        let body_text = collect_string_async(body)
+            .await
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
+
+        serde_json::from_str(&body_text)
+            .map(|v| Ok(v))
+            .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))
+    }
+
+    /// Execute a non-streaming HTTP request asynchronously with retry on
+    /// 429/5xx errors. Back-off uses valtron's [`sleep_async`] timer, which
+    /// yields on wasm instead of spinning.
+    async fn execute_request_async<T: for<'de> Deserialize<'de> + Send>(
+        &self,
+        url: &str,
+        body: &str,
+    ) -> GenerationResult<T> {
+        let mut attempt = 0;
+        let max_retries = self.config.max_retries;
+
+        loop {
+            let result = self.do_request_async::<T>(url, body).await?;
+            match result {
+                Ok(value) => return Ok(value),
+                Err((status, retry_after, msg)) => {
+                    if attempt >= max_retries || !is_retryable_status(status) {
+                        return Err(GenerationError::Backend(msg));
+                    }
+                    let delay = retry_after.unwrap_or_else(|| exponential_backoff(attempt));
+                    attempt += 1;
+                    // `sleep_async` is `!Send` on wasm (single-threaded valtron
+                    // executor); wrap it so this async-trait future stays `Send`.
+                    SendWrapper::new(sleep_async(Duration::from_secs(delay))).await;
+                }
+            }
+        }
     }
 
     /// Generate embeddings via `/v1/embeddings` endpoint.
@@ -917,6 +1014,7 @@ impl ToolFormatter for OpenAIFormatter {
     }
 }
 
+#[async_trait::async_trait]
 impl Model for OpenAIModel {
     fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
         Box::new(OpenAIFormatter)
@@ -978,6 +1076,32 @@ impl Model for OpenAIModel {
 
         let url = self.build_url("chat/completions");
         let response: ChatCompletionResponse = self.execute_request(&url, &body)?;
+
+        let (message, report) = parse_chat_response(&response, &self.model_id, &self.pricing)?;
+        self.cumulative_cost.lock().unwrap().add(&report.cost);
+        Ok(vec![message])
+    }
+
+    async fn generate_async(
+        &self,
+        interaction: ModelInteraction,
+        specs: Option<ModelParams>,
+    ) -> GenerationResult<Vec<Messages>> {
+        let params = specs.unwrap_or_default();
+
+        if is_embedding_request(&interaction.messages) {
+            // Embeddings have no async path yet; the sync path runs on the
+            // worker and returns immediately for the local use case.
+            return self.generate_embeddings(&interaction);
+        }
+
+        let request = build_chat_request(&self.model_name, &interaction, &params, false);
+
+        let body = serde_json::to_string(&request)
+            .map_err(|e| GenerationError::Generic(format!("Failed to serialize request: {e}")))?;
+
+        let url = self.build_url("chat/completions");
+        let response: ChatCompletionResponse = self.execute_request_async(&url, &body).await?;
 
         let (message, report) = parse_chat_response(&response, &self.model_id, &self.pricing)?;
         self.cumulative_cost.lock().unwrap().add(&report.cost);
@@ -1092,9 +1216,7 @@ impl Iterator for OpenAIStream {
                                     let (msg, _) = self.build_final_message();
                                     mapped.push(StreamSpread::Done(msg));
                                 }
-                                Stream::Init
-                                | Stream::Ignore
-                                | Stream::Wait => {}
+                                Stream::Init | Stream::Ignore | Stream::Wait => {}
                                 Stream::Spread(inner) => mapped.extend(inner),
                             }
                         }
@@ -1451,7 +1573,7 @@ pub struct OpenAIFunction {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parameters: Option<serde_json::Value>,
     /// When `true`, the model uses structured output for this function call
-    /// (the `returns` schema from `ToolDefinition`). OpenAI Chat Completions
+    /// (the `returns` schema from `ToolDefinition`). `OpenAI` Chat Completions
     /// only — other providers ignore this field.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub strict: Option<bool>,

@@ -10,10 +10,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use foundation_core::valtron::{Ctx, 
-    multi::spawn,
-    valtron_test,
-    FnReady, TaskIterator, TaskStatus,
+use foundation_core::valtron::{
+    multi::spawn, valtron_test, Ctx, FnReady, TaskIterator, TaskStatus,
 };
 /// Task that returns Ready a limited number of times then completes
 struct FiniteTask {
@@ -154,7 +152,10 @@ fn shutdown_within_detaches_a_blocked_worker_and_releases_the_pool_gate() {
     let took = start.elapsed();
     drop(guard);
 
-    assert!(!stopped, "a blocked worker cannot stop, so shutdown_within must report it");
+    assert!(
+        !stopped,
+        "a blocked worker cannot stop, so shutdown_within must report it"
+    );
     assert!(
         took < Duration::from_secs(5),
         "shutdown_within must return near its 200 ms deadline, took {took:?}"

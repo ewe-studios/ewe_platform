@@ -8,22 +8,18 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use foundation_core::valtron::{self, Pipe, PipeReceiver, PipeSender};
 use foundation_core::valtron::valtron_test;
-use foundation_netio::shared::http::{
-    Proto, RequestDescriptor, SimpleHeaders, Status,
-};
+use foundation_core::valtron::{self, Pipe, PipeReceiver, PipeSender};
+use foundation_netio::shared::http::{Proto, RequestDescriptor, SimpleHeaders, Status};
 
-use foundation_connectrpc::shared::client::{
-    Client, ClientOptions, ProtocolSelection,
-};
+use foundation_connectrpc::shared::client::{Client, ClientOptions, ProtocolSelection};
 use foundation_connectrpc::shared::codec::{Codec, CodecError, CodecFor, ProcedureCodecs};
 use foundation_connectrpc::shared::context::Ctx;
 use foundation_connectrpc::shared::error::Code;
 use foundation_connectrpc::shared::message::Request;
 use foundation_connectrpc::shared::transport::{
-    Transport, TransportCapabilities, TransportError, TransportStream,
-    head_stream_from_pipe, body_stream_from_pipe,
+    body_stream_from_pipe, head_stream_from_pipe, Transport, TransportCapabilities, TransportError,
+    TransportStream,
 };
 
 // ============================================================================
@@ -35,8 +31,12 @@ use foundation_connectrpc::shared::transport::{
 struct IdentityCodec;
 
 impl Codec for IdentityCodec {
-    fn name(&self) -> &str { "proto" }
-    fn is_binary(&self) -> bool { true }
+    fn name(&self) -> &str {
+        "proto"
+    }
+    fn is_binary(&self) -> bool {
+        true
+    }
 }
 
 impl CodecFor<Vec<u8>> for IdentityCodec {
@@ -173,10 +173,7 @@ impl ServerPipes {
     /// closed when `ServerPipes` is dropped, which signals end-of-stream to
     /// the client.
     async fn send_unary_response(&self, body: Bytes) {
-        let _ = self
-            .head_tx
-            .send((Status::OK, SimpleHeaders::new()))
-            .await;
+        let _ = self.head_tx.send((Status::OK, SimpleHeaders::new())).await;
         let _ = self.resp_tx.send(body).await;
     }
 }
@@ -230,8 +227,10 @@ fn client_init_unknown_codec() {
     match result {
         Err(e) => {
             let msg = e.to_string().to_lowercase();
-            assert!(msg.contains("codec") || msg.contains("nonexistent"),
-                "expected a codec-not-found error, got: {e}");
+            assert!(
+                msg.contains("codec") || msg.contains("nonexistent"),
+                "expected a codec-not-found error, got: {e}"
+            );
         }
         Ok(_) => panic!("expected error for unknown codec"),
     }
@@ -249,7 +248,10 @@ fn client_init_grpc_on_h1_fails() {
         ClientOptions::new().with_grpc(),
     );
 
-    assert!(result.is_err(), "expected error for gRPC on h1-only transport");
+    assert!(
+        result.is_err(),
+        "expected error for gRPC on h1-only transport"
+    );
 }
 
 // ============================================================================
@@ -262,17 +264,11 @@ fn client_init_grpc_on_h1_fails() {
 /// when a task parks (e.g. on a pipe read), the entire future tree suspends, so
 /// `join!` branches cannot make progress. Spawning the server as a separate
 /// valtron task lets the executor schedule them concurrently.
-fn spawn_unary_server(
-    server: ServerPipes,
-    expected_req: Vec<u8>,
-    resp_body: Vec<u8>,
-) {
+fn spawn_unary_server(server: ServerPipes, expected_req: Vec<u8>, resp_body: Vec<u8>) {
     let _ = foundation_core::valtron::send(foundation_core::valtron::from_future(async move {
         let req_body = server.read_request_body().await;
         assert_eq!(req_body, expected_req);
-        server
-            .send_unary_response(Bytes::from(resp_body))
-            .await;
+        server.send_unary_response(Bytes::from(resp_body)).await;
     }));
 }
 

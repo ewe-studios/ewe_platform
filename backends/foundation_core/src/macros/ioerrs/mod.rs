@@ -67,4 +67,3 @@ macro_rules! err {
         err!($kind, $desc, "{}", $desc)
     };
 }
-

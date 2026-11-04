@@ -6,7 +6,9 @@ use foundation_connectrpc::shared::error::{
     code_of, wrap_if_context, wrap_if_h2c, wrap_if_rst, wrap_if_uncoded, EndStreamResponse,
     ERRSTACKS_TYPE_URL,
 };
-use foundation_connectrpc::{Code, ConnectError, ConnectResult, ErrorDetail, WireError, WireErrorDetail};
+use foundation_connectrpc::{
+    Code, ConnectError, ConnectResult, ErrorDetail, WireError, WireErrorDetail,
+};
 use foundation_errstacks::ErrorTrace;
 
 // ── Code ↔ HTTP mappings (Decision 03 tables, exact) ──────────────────────────
@@ -101,7 +103,10 @@ fn wire_json_with_detail_is_exact() {
 
 #[test]
 fn wire_error_detail_base64_and_type_roundtrip() {
-    let detail = ErrorDetail::from_raw("type.googleapis.com/google.rpc.RetryInfo", vec![10, 2, 8, 60]);
+    let detail = ErrorDetail::from_raw(
+        "type.googleapis.com/google.rpc.RetryInfo",
+        vec![10, 2, 8, 60],
+    );
     assert_eq!(detail.type_name(), "google.rpc.RetryInfo");
 
     let wire = WireErrorDetail::from_detail(&detail);
@@ -119,7 +124,10 @@ fn wire_error_deserializes_back() {
     let we: WireError = serde_json::from_str(json).expect("deserialize");
     assert_eq!(we.code, "unavailable");
     assert_eq!(we.message.as_deref(), Some("m"));
-    assert_eq!(we.details.as_ref().unwrap()[0].type_url, "google.rpc.RetryInfo");
+    assert_eq!(
+        we.details.as_ref().unwrap()[0].type_url,
+        "google.rpc.RetryInfo"
+    );
 }
 
 #[test]
@@ -147,7 +155,10 @@ fn errstacks_detail_carries_trace_json() {
     let structured = trace.to_structured();
     let detail = ErrorDetail::from_errstacks(&structured);
     assert_eq!(detail.type_url(), ERRSTACKS_TYPE_URL);
-    assert_eq!(detail.type_name(), "foundation.errstacks.StructuredErrorTrace");
+    assert_eq!(
+        detail.type_name(),
+        "foundation.errstacks.StructuredErrorTrace"
+    );
     // The value is the trace JSON and is retained as wire_json for round-trips.
     assert!(detail.wire_json().is_some());
     let parsed: serde_json::Value = serde_json::from_slice(detail.value()).expect("valid json");
@@ -192,7 +203,10 @@ fn wrap_if_classifiers() {
     let rst = std::io::Error::new(std::io::ErrorKind::Other, "http2: RST_STREAM received");
     assert_eq!(wrap_if_rst(&rst), Some(Code::Canceled));
 
-    let h2c = std::io::Error::new(std::io::ErrorKind::Other, "http2: unexpected server response");
+    let h2c = std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "http2: unexpected server response",
+    );
     assert_eq!(wrap_if_h2c(&h2c), Some(Code::Unavailable));
 
     // wrap_if_uncoded wraps a foreign error as Unknown, keeping it as source.
@@ -225,9 +239,7 @@ fn load_user(id: u64) -> Result<(), ErrorTrace<DomainError>> {
 
 /// ...which maps to a ConnectError at the RPC boundary via `change_context`.
 fn rpc_handler() -> ConnectResult<()> {
-    load_user(42).map_err(|trace| {
-        trace.change_context(ConnectError::not_found("no such user"))
-    })?;
+    load_user(42).map_err(|trace| trace.change_context(ConnectError::not_found("no such user")))?;
     Ok(())
 }
 
@@ -239,7 +251,10 @@ fn domain_error_changes_context_to_connect_error() {
     // The original domain frame is preserved in the trace.
     let structured = trace.to_structured();
     assert!(
-        structured.frames.iter().any(|f| f.message.contains("user 42 not found")),
+        structured
+            .frames
+            .iter()
+            .any(|f| f.message.contains("user 42 not found")),
         "domain frame should be preserved, frames: {:?}",
         structured.frames
     );

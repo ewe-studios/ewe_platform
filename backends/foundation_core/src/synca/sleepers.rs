@@ -278,6 +278,13 @@ impl<T: Waiter + std::fmt::Debug> Sleepers<T> {
         self.max_readiness_wait = dur;
     }
 
+    /// The maximum wait a readiness check may block (see
+    /// [`Self::get_matured`]).
+    #[must_use]
+    pub fn max_readiness_wait(&self) -> std::time::Duration {
+        self.max_readiness_wait
+    }
+
     /// Inserts a new Wakeable keyed by the task entry.
     /// The entry is the task's entry, not a new sleeper entry.
     pub fn insert(&self, entry: Entry, wakeable: T) {

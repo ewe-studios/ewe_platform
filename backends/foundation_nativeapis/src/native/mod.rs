@@ -1,13 +1,14 @@
 /// Platform-specific native module — feature-gated, requires OS-specific APIs.
 ///
 /// Contains:
-/// - `poll` — I/O readiness polling (epoll/kqueue/IOCP)
+/// - `poll` — I/O readiness polling (epoll/kqueue/IOCP), re-exported from
+///   `foundation_reactor` so `foundation_netio` can reach it without a cycle
 /// - `fd` — File descriptor readiness tracking (Unix only)
 /// - `net` — TCP/UDP/Unix socket wrappers (Unix only)
 /// - `watcher` — Platform-specific file watchers (inotify, kqueue, IOCP)
 
 #[cfg(feature = "poll")]
-pub mod poll;
+pub use foundation_reactor::poll;
 
 #[cfg(all(feature = "poll", unix))]
 pub mod net;

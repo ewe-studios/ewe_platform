@@ -3,29 +3,34 @@
 
 use std::path::Path;
 
-use clap::ArgMatches;
-use crate::config::{get_profile};
-use crate::ssh;
+use crate::config::get_profile;
 use crate::runner;
 use crate::runner::logs;
+use crate::ssh;
+use clap::ArgMatches;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
 fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, BoxedError> {
-    get_profile(name).map(|p| p.clone()).map_err(|e| Box::new(e) as BoxedError)
+    get_profile(name)
+        .map(|p| p.clone())
+        .map_err(|e| Box::new(e) as BoxedError)
 }
 
 pub fn cmd_exec(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let cmd = args.get_one::<String>("cmd").unwrap();
-    let method = args.get_one::<String>("method").map(|s| s.as_str()).unwrap_or("ssh");
+    let method = args
+        .get_one::<String>("method")
+        .map(|s| s.as_str())
+        .unwrap_or("ssh");
     let profile = resolve_profile(name)?;
 
     match method {
         "winrm" => {
-            let port = profile.winrm_port.ok_or_else(|| {
-                format!("No WinRM port configured for '{}'", profile.name)
-            })?;
+            let port = profile
+                .winrm_port
+                .ok_or_else(|| format!("No WinRM port configured for '{}'", profile.name))?;
             let winrm = crate::winrm::WinRM::new("127.0.0.1", port, profile.user, profile.pass);
             let result = winrm.run_ps(cmd)?;
             if !result.stdout.is_empty() {
@@ -66,7 +71,12 @@ pub fn cmd_run(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     // For Windows, also connect to WinRM for interactive launch
     let winrm = if profile.os == crate::config::GuestOs::Windows {
         let port = profile.winrm_port.unwrap_or(5985);
-        Some(crate::winrm::WinRM::new("127.0.0.1", port, profile.user, profile.pass))
+        Some(crate::winrm::WinRM::new(
+            "127.0.0.1",
+            port,
+            profile.user,
+            profile.pass,
+        ))
     } else {
         None
     };
@@ -86,7 +96,12 @@ pub fn cmd_screenshot(args: &ArgMatches) -> std::result::Result<(), BoxedError> 
     // For Windows, also connect to WinRM for interactive screenshot
     let winrm = if profile.os == crate::config::GuestOs::Windows {
         let port = profile.winrm_port.unwrap_or(5985);
-        Some(crate::winrm::WinRM::new("127.0.0.1", port, profile.user, profile.pass))
+        Some(crate::winrm::WinRM::new(
+            "127.0.0.1",
+            port,
+            profile.user,
+            profile.pass,
+        ))
     } else {
         None
     };
@@ -100,8 +115,12 @@ pub fn cmd_logs(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
     let name = args.get_one::<String>("profile").unwrap();
     let profile = resolve_profile(name)?;
 
-    let kind_str = args.get_one::<String>("kind").map(|s| s.as_str()).unwrap_or("build");
-    let kind = kind_str.parse::<logs::LogKind>()
+    let kind_str = args
+        .get_one::<String>("kind")
+        .map(|s| s.as_str())
+        .unwrap_or("build");
+    let kind = kind_str
+        .parse::<logs::LogKind>()
         .map_err(|e| format!("Invalid log kind: {}", e))?;
 
     let mode = if args.get_flag("follow") {

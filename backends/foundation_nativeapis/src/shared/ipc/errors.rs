@@ -1,5 +1,4 @@
 /// Error types for the IPC bus.
-
 use thiserror::Error;
 
 use super::version::Version;
@@ -119,4 +118,3 @@ impl From<JoinError> for RecvError {
         }
     }
 }
-

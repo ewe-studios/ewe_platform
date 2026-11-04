@@ -1,4 +1,4 @@
-//! Unit tests for DockerError.
+//! Unit tests for `DockerError`.
 
 use foundation_deployment_platform::docker::{DockerError, docker_err};
 
@@ -15,7 +15,10 @@ fn test_display_formats() {
     let e = DockerError::Connection("no socket".into());
     assert_eq!(format!("{e}"), "Docker daemon not reachable: no socket");
 
-    let e = DockerError::ImagePull { image: "redis:7".into(), reason: "not found".into() };
+    let e = DockerError::ImagePull {
+        image: "redis:7".into(),
+        reason: "not found".into(),
+    };
     assert_eq!(format!("{e}"), "Image pull failed for 'redis:7': not found");
 
     let e = DockerError::InvalidConfig("missing port".into());
@@ -29,7 +32,10 @@ fn test_display_formats() {
 fn test_docker_err_wraps_in_errortrace() {
     let trace = docker_err(DockerError::Network("no route".into()));
     let display = format!("{trace}");
-    assert!(display.contains("Network operation failed: no route"), "got: {display}");
+    assert!(
+        display.contains("Network operation failed: no route"),
+        "got: {display}"
+    );
     assert!(!trace.current_context().is_connection_error());
 }
 
@@ -57,11 +63,21 @@ fn a_daemon_error_status_is_an_api_error_not_a_connection_error() {
     for status in [400u16, 404, 409, 500] {
         let e = classify_docker_client_err(
             "image_inspect",
-            ClientError::Api { status, message: "(no body)".into() },
+            ClientError::Api {
+                status,
+                message: "(no body)".into(),
+            },
         );
-        assert!(!e.is_connection_error(), "status {status} must not read as Docker absent");
+        assert!(
+            !e.is_connection_error(),
+            "status {status} must not read as Docker absent"
+        );
         match &e {
-            DockerError::Api { operation, status: s, message } => {
+            DockerError::Api {
+                operation,
+                status: s,
+                message,
+            } => {
                 assert_eq!(operation, "image_inspect");
                 assert_eq!(*s, status);
                 assert_eq!(message, "(no body)");
@@ -77,9 +93,15 @@ fn a_daemon_error_status_is_an_api_error_not_a_connection_error() {
 
 #[test]
 fn an_unreachable_daemon_is_a_connection_error() {
-    let e = classify_docker_client_err("image_inspect", ClientError::Transport("connection refused".into()));
+    let e = classify_docker_client_err(
+        "image_inspect",
+        ClientError::Transport("connection refused".into()),
+    );
     assert!(e.is_connection_error());
-    assert_eq!(e.to_string(), "Docker daemon not reachable: image_inspect: connection refused");
+    assert_eq!(
+        e.to_string(),
+        "Docker daemon not reachable: image_inspect: connection refused"
+    );
 
     let e = classify_docker_client_err("connect", ClientError::Unavailable("no socket".into()));
     assert!(e.is_connection_error());
@@ -87,9 +109,15 @@ fn an_unreachable_daemon_is_a_connection_error() {
 
 #[test]
 fn a_failed_pull_or_push_is_not_a_connection_error() {
-    let e = classify_docker_client_err("redis:7", ClientError::PullFailed("pull access denied".into()));
+    let e = classify_docker_client_err(
+        "redis:7",
+        ClientError::PullFailed("pull access denied".into()),
+    );
     assert!(!e.is_connection_error());
-    assert!(matches!(e, DockerError::ImagePull { ref reason, .. } if reason == "pull access denied"), "{e:?}");
+    assert!(
+        matches!(e, DockerError::ImagePull { ref reason, .. } if reason == "pull access denied"),
+        "{e:?}"
+    );
 
     let e = classify_docker_client_err("image_push", ClientError::PushFailed("denied".into()));
     assert!(!e.is_connection_error());

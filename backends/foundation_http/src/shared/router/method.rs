@@ -2,7 +2,7 @@
 
 use foundation_netio::shared::http::SimpleMethod;
 
-use super::segments::{RouteResult, RouteOp};
+use super::segments::{RouteOp, RouteResult};
 
 /// Stores handlers for each HTTP method at a route leaf.
 pub struct RouteMethod<S> {
@@ -38,8 +38,15 @@ impl<S: Clone> Clone for RouteMethod<S> {
 impl<S> Default for RouteMethod<S> {
     fn default() -> Self {
         Self {
-            get: None, post: None, put: None, delete: None, patch: None,
-            head: None, options: None, connect: None, trace: None,
+            get: None,
+            post: None,
+            put: None,
+            delete: None,
+            patch: None,
+            head: None,
+            options: None,
+            connect: None,
+            trace: None,
             custom: None,
         }
     }
@@ -93,7 +100,8 @@ impl<S> RouteMethod<S> {
             }
         };
 
-        opt.clone().ok_or_else(|| RouteOp::NoMatchingRoute(format!("{method:?}")))
+        opt.clone()
+            .ok_or_else(|| RouteOp::NoMatchingRoute(format!("{method:?}")))
     }
 
     /// Returns true if any HTTP method has a handler registered.
@@ -113,15 +121,35 @@ impl<S> RouteMethod<S> {
 
     /// Take all handlers from another `RouteMethod` and merge them into self.
     pub fn take(&mut self, other: Self) {
-        if self.get.is_none() { self.get = other.get; }
-        if self.post.is_none() { self.post = other.post; }
-        if self.put.is_none() { self.put = other.put; }
-        if self.delete.is_none() { self.delete = other.delete; }
-        if self.patch.is_none() { self.patch = other.patch; }
-        if self.head.is_none() { self.head = other.head; }
-        if self.options.is_none() { self.options = other.options; }
-        if self.connect.is_none() { self.connect = other.connect; }
-        if self.trace.is_none() { self.trace = other.trace; }
-        if self.custom.is_none() { self.custom = other.custom; }
+        if self.get.is_none() {
+            self.get = other.get;
+        }
+        if self.post.is_none() {
+            self.post = other.post;
+        }
+        if self.put.is_none() {
+            self.put = other.put;
+        }
+        if self.delete.is_none() {
+            self.delete = other.delete;
+        }
+        if self.patch.is_none() {
+            self.patch = other.patch;
+        }
+        if self.head.is_none() {
+            self.head = other.head;
+        }
+        if self.options.is_none() {
+            self.options = other.options;
+        }
+        if self.connect.is_none() {
+            self.connect = other.connect;
+        }
+        if self.trace.is_none() {
+            self.trace = other.trace;
+        }
+        if self.custom.is_none() {
+            self.custom = other.custom;
+        }
     }
 }

@@ -28,7 +28,8 @@ fn temp_socket_path(tag: &str) -> PathBuf {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let path = std::env::temp_dir().join(format!("ewe_docker_execsys_{tag}_{pid}_{nanos}.sock"));
+    let path = std::path::PathBuf::from("/tmp")
+        .join(format!("ewe_docker_execsys_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path
 }
@@ -37,9 +38,11 @@ fn temp_socket_path(tag: &str) -> PathBuf {
 /// Strips the `/v1.XX/` prefix before matching.
 fn route(method: &str, path: &str) -> (u16, String, String) {
     let path_no_query = path.split('?').next().unwrap_or(path);
-    let p = path_no_query.split_once("/v1.").map_or(path_no_query, |(_, rest)| {
-        rest.split_once('/').map_or(rest, |(_, r)| r)
-    });
+    let p = path_no_query
+        .split_once("/v1.")
+        .map_or(path_no_query, |(_, rest)| {
+            rest.split_once('/').map_or(rest, |(_, r)| r)
+        });
     match (method, p) {
         // Version negotiation: the client asks once, unversioned, before its
         // first versioned request.
@@ -101,8 +104,7 @@ fn mock_daemon(socket_path: PathBuf, stop: Arc<AtomicBool>) {
 
 #[valtron_test]
 async fn system_ping_returns_ok() {
-    // WHY: Proves `system_ping` handles the daemon's text/plain "OK" response
-    // (which would fail JSON parsing in the generated function).
+    // WHY: Proves `system_ping` handles the daemon's text/plain "OK" response.
     let socket = temp_socket_path("ping");
     let stop = Arc::new(AtomicBool::new(false));
     mock_daemon(socket.clone(), stop.clone());
@@ -125,9 +127,12 @@ async fn system_info_returns_data() {
     mock_daemon(socket.clone(), stop.clone());
     let client = DockerClient::connect_unix(&socket);
 
-    let info = client.system_info().await.expect("system_info should succeed");
-    assert_eq!(info.get("ID").and_then(|v| v.as_str()), Some("abc"));
-    assert_eq!(info.get("Containers").and_then(|v| v.as_i64()), Some(0));
+    let info = client
+        .system_info()
+        .await
+        .expect("system_info should succeed");
+    assert_eq!(info.id.as_deref(), Some("abc"));
+    assert_eq!(info.containers, Some(0));
 
     mock_socket::stop(&socket, &stop);
 }
@@ -154,8 +159,8 @@ async fn exec_create_returns_id() {
 
 #[valtron_test]
 async fn exec_inspect_returns_json() {
-    // WHY: Proves `exec_inspect` successfully fetches and parses the JSON
-    // response body that the generated function would discard.
+    // WHY: Proves `exec_inspect` fetches and parses the JSON response body
+    // into the generated `ExecInspectResponse`.
     let socket = temp_socket_path("exec_inspect");
     let stop = Arc::new(AtomicBool::new(false));
     mock_daemon(socket.clone(), stop.clone());
@@ -165,8 +170,8 @@ async fn exec_inspect_returns_json() {
         .exec_inspect("exec123")
         .await
         .expect("exec_inspect should succeed");
-    assert_eq!(inspect["ID"].as_str(), Some("exec123"));
-    assert_eq!(inspect["Running"].as_bool(), Some(false));
+    assert_eq!(inspect.id.as_deref(), Some("exec123"));
+    assert_eq!(inspect.running, Some(false));
 
     mock_socket::stop(&socket, &stop);
 }

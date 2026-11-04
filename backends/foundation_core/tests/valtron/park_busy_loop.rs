@@ -156,12 +156,9 @@ fn wake_signal_is_ready_only_after_its_callback_runs() {
 async fn depends_on_wake_signal_parks_then_resumes() {
     let signal = WakeSignal::new();
     let wake = signal.callback();
-    let mut stream = execute(
-        ParkOnWakeSignal { signal, step: 0 },
-        None,
-    )
-    .expect("execute")
-    .into_next_stream();
+    let mut stream = execute(ParkOnWakeSignal { signal, step: 0 }, None)
+        .expect("execute")
+        .into_next_stream();
 
     match poll_once(&mut stream) {
         Poll::Pending => {}
@@ -174,5 +171,9 @@ async fn depends_on_wake_signal_parks_then_resumes() {
     // poll once, which raced the worker (and only passed while `next()`
     // blocked until the value arrived).
     let resumed = std::future::poll_fn(|cx| Pin::new(&mut stream).poll_next(cx)).await;
-    assert_eq!(resumed, Some(7), "after the wake the task must resume with its value");
+    assert_eq!(
+        resumed,
+        Some(7),
+        "after the wake the task must resume with its value"
+    );
 }

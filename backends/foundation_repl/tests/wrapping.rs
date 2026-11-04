@@ -58,10 +58,7 @@ fn full_width_characters_are_measured_in_columns_not_characters() {
     let rows = wrap_text("日本語です日本語です", 8);
 
     for row in &rows {
-        let columns: usize = row
-            .chars()
-            .map(unicode_width_of)
-            .sum();
+        let columns: usize = row.chars().map(unicode_width_of).sum();
         assert!(columns <= 8, "row {row:?} is {columns} columns");
     }
     assert!(rows.len() >= 2);
@@ -88,7 +85,10 @@ fn trailing_spaces_do_not_push_a_row_over_the_limit() {
 fn nothing_is_committed_until_a_row_is_full() {
     let (committed, tail) = split_committed("hello", 40);
 
-    assert!(committed.is_empty(), "one short row is still being written to");
+    assert!(
+        committed.is_empty(),
+        "one short row is still being written to"
+    );
     assert_eq!(tail, "hello");
 }
 

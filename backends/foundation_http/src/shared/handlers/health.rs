@@ -6,7 +6,7 @@ use serde_json::json;
 use std::sync::Arc;
 
 use crate::shared::context::ContextBag;
-use crate::shared::serve::{ConnectionResult, ServeWriter, ServeWriterFactory, respond};
+use crate::shared::serve::{respond, ConnectionResult, ServeWriter, ServeWriterFactory};
 
 /// Health check handler.
 pub struct HealthHandler;
@@ -45,7 +45,9 @@ impl crate::shared::serve::Serve for HealthHandler {
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
-        mut conn: foundation_core::io::ioutils::SharedByteBufferStream<foundation_netio::netcap::RawStream>,
+        mut conn: foundation_core::io::ioutils::SharedByteBufferStream<
+            foundation_netio::netcap::RawStream,
+        >,
     ) -> ConnectionResult {
         <Self as ServeWriter>::serve_writer(self, &bag, req, &mut conn)
     }

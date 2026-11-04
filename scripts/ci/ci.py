@@ -24,6 +24,7 @@ import os
 import shlex
 import subprocess
 import sys
+import time
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -31,6 +32,22 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = ROOT / "ci" / "packages.toml"
 IN_GITHUB = bool(os.environ.get("GITHUB_ACTIONS"))
+
+
+def target_dir() -> str:
+    """The cargo target directory for this worktree.
+
+    Parallel worktrees must not share one ``CARGO_TARGET_DIR``. They build
+    crates with the same hashes and overwrite each other's artifacts mid-run.
+    Use ``<repo>/target`` by default. When ``CARGO_TARGET_DIR`` is set, use
+    ``<CARGO_TARGET_DIR>/<checkout-name>`` instead, where ``<checkout-name>``
+    is the basename of the repository root. Each worktree has its own checkout
+    name, so its target directory stays separate.
+    """
+    base = os.environ.get("CARGO_TARGET_DIR")
+    if base:
+        return str(Path(base) / ROOT.name)
+    return str(ROOT / "target")
 
 # Crates whose build compiles the `tools/llama.cpp` submodule.
 LLAMA_CRATES = {"infrastructure_llama_bindings", "infrastructure_llama_cpp"}
@@ -83,6 +100,10 @@ class Settings:
     clippy: str
     test: str
     runs: list[str]  # one `cargo test` per entry; each entry is its feature flags
+    clippy_runs: list[str]  # one `cargo clippy` per entry; empty means `[runs[0]]`
+    # True: every clippy run of the package gets `--no-deps -- -D warnings`, so a clippy
+    # warning fails CI. Set it only for packages already at zero warnings.
+    clippy_deny_warnings: bool
     wasm: str  # wasm32-unknown-unknown compile check mode
     wasm_runs: list[str]  # one `cargo check --target wasm32` per entry; feature flags
     test_args: list[str]
@@ -137,6 +158,28 @@ def load_workspace() -> dict[str, Package]:
             dep_name = by_id[dep]["name"]
             if dep_name in packages and dep_name != name:
                 packages[dep_name].dependents.add(name)
+
+    # The `examples/` directory holds self-contained workspaces (excluded from
+    # this workspace), so cargo metadata never lists them. Add one synthetic
+    # package that owns that directory; its build step (see `examples_commands`)
+    # compiles every `examples/cf-*` to wasm32 and the native `answerme-agent`.
+    # It builds answerme-agent, so it inherits that app's llama.cpp need.
+    packages["examples"] = Package(
+        name="examples",
+        dir="examples",
+        needs_llama=packages["answerme-agent"].needs_llama,
+    )
+
+    # The wasm runtime test suites live in wasm32-only test targets and in a
+    # self-contained crate outside the root workspace, so cargo metadata's
+    # library-only view never exercises them. Add one synthetic package whose
+    # build step compiles those tests and whose test step runs the embedded-Deno
+    # harnesses (feature 22 E4). See `wasm_tests_commands`.
+    packages["wasm-tests"] = Package(
+        name="wasm-tests",
+        dir="backends/foundation_core/integration/wasm_tests",
+        needs_llama=False,
+    )
     return packages
 
 
@@ -169,6 +212,8 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
             clippy=merged.get("clippy", "enforce"),
             test=merged.get("test", "enforce"),
             runs=list(merged.get("runs", [""])) or [""],
+            clippy_runs=list(merged.get("clippy-runs", [])),
+            clippy_deny_warnings=bool(merged.get("clippy-deny-warnings", False)),
             wasm=merged.get("wasm", "off"),
             wasm_runs=list(merged.get("wasm-runs", [""])) or [""],
             test_args=list(merged.get("test-args", [])),
@@ -263,7 +308,57 @@ def feature_flags(spec: str) -> list[str]:
     return ["--features", ",".join(spec.split())]
 
 
+def examples_commands(profile: str) -> dict[str, list[list[str]]]:
+    """Build commands for the synthetic `examples` package.
+
+    The `examples/cf-*` directories are self-contained wasm32 workspaces (the
+    workspace `[workspace] exclude`s them), so they are compiled directly by
+    manifest rather than by `-p`. The `answerme-agent` app is a workspace
+    member and gets a normal native build.
+    """
+    plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
+    for manifest in sorted((ROOT / "examples").glob("cf-*/Cargo.toml")):
+        plan["build"].append(
+            ["cargo", "build", "--target", "wasm32-unknown-unknown", "--manifest-path", manifest.as_posix()]
+        )
+    plan["build"].append(["cargo", "build", "--profile", profile, "-p", "answerme-agent"])
+    return plan
+
+
+def wasm_tests_commands() -> dict[str, list[list[str]]]:
+    """Commands for the synthetic `wasm-tests` package (feature 22 E4).
+
+    (1) Compile every crate with wasm tests, plus the standalone wasm_tests
+    crate outside the root workspace, with `--tests --target wasm32` so the
+    test code itself is checked (the default wasm gate checks libraries only,
+    which let the `wasm_bindgen_test` suites rot). (2) Run the two embedded-Deno
+    runtime suites. `MISE_ENV=wasm` (set in `ci/packages.toml`) selects
+    `mise.wasm.toml`, which pins only deno + wasm-bindgen and turns off
+    auto_install.
+    """
+    plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
+    plan["build"] = [
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_core", *feature_flags("--no-default-features --features std,js-wasmbindgen")],
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_netio", *feature_flags("--no-default-features --features wasm-fetch")],
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "-p", "foundation_wireguard", *feature_flags("--no-default-features --features wasm-bindgen-test")],
+        ["cargo", "check", "--tests", "--target", "wasm32-unknown-unknown",
+         "--manifest-path", "backends/foundation_core/integration/wasm_tests/Cargo.toml"],
+    ]
+    plan["test"] = [
+        ["mise", "run", "test:wasm-testbed:deno"],
+        ["mise", "run", "test:wasm-bindgen:deno"],
+    ]
+    return plan
+
+
 def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]:
+    if name == "examples":
+        return examples_commands(profile)
+    if name == "wasm-tests":
+        return wasm_tests_commands()
     plan: dict[str, list[list[str]]] = {step: [] for step in STEPS}
     if s.fmt != "off":
         plan["fmt"].append(["cargo", "fmt", "-p", name, "--check"])
@@ -274,14 +369,17 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
             ["cargo", "build", "--profile", profile, "-p", name, "--all-targets", *feature_flags(s.runs[0])]
         )
     if s.clippy != "off":
-        plan["clippy"].append(
-            ["cargo", "clippy", "--profile", profile, "-p", name, "--all-targets", *feature_flags(s.runs[0])]
-        )
+        for run in s.clippy_runs or [s.runs[0]]:
+            cmd = ["cargo", "clippy", "--profile", profile, "-p", name, "--all-targets", *feature_flags(run)]
+            if s.clippy_deny_warnings:
+                cmd += ["--no-deps", "--", "-D", "warnings"]
+            plan["clippy"].append(cmd)
     if s.test != "off":
         for run in s.runs:
             cmd = ["cargo", "test", "--profile", profile, "-p", name, "--no-fail-fast", *feature_flags(run)]
-            if s.test_args:
-                cmd += ["--", *s.test_args]
+            # `--nocapture` prints every test's output, so a failing or hanging
+            # test leaves its own trace instead of a bare "FAILED" line.
+            cmd += ["--", "--nocapture", *s.test_args]
             plan["test"].append(cmd)
     if s.wasm != "off":
         # A wasm32 compile gate: no `--all-targets`/profile (wasm has no test
@@ -312,15 +410,36 @@ def run_package(name: str, steps: list[str], profile: str) -> int:
     # The package's `env` applies to every step. A value already set in the
     # environment wins, so a bigger machine can still override it locally.
     env = {**s.env, **os.environ}
+    env["CARGO_TARGET_DIR"] = target_dir()
     if s.env:
         print(f"{name}: env " + " ".join(f"{k}={v}" for k, v in sorted(s.env.items())), flush=True)
+    print(f"{name}: target dir {env['CARGO_TARGET_DIR']}", flush=True)
     failures: list[str] = []
+    # One hard deadline for the whole package. GitHub gives the same job
+    # `timeout-minutes`; a local run had no kill switch, so a step that looped
+    # (a hung test, a deadlocked build) never returned. Each command borrows
+    # the time still left, and a command that overruns is fatal for the package.
+    deadline = time.monotonic() + s.timeout_minutes * 60
     for step in steps:
         mode = getattr(s, step)
         for cmd in plan[step]:
             line = shlex.join(cmd)
             print(f"::group::{step}: {line}" if IN_GITHUB else f"$ {line}", flush=True)
-            code = subprocess.run(cmd, cwd=ROOT, env=env).returncode
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                if IN_GITHUB:
+                    print("::endgroup::", flush=True)
+                failures.append(line)
+                annotate("error", f"{name}: `{line}` timed out after {s.timeout_minutes} minutes")
+                return 1
+            try:
+                code = subprocess.run(cmd, cwd=ROOT, env=env, timeout=remaining).returncode
+            except subprocess.TimeoutExpired:
+                if IN_GITHUB:
+                    print("::endgroup::", flush=True)
+                failures.append(line)
+                annotate("error", f"{name}: `{line}` timed out after {s.timeout_minutes} minutes")
+                return 1
             if IN_GITHUB:
                 print("::endgroup::", flush=True)
             if code == 0:
@@ -344,7 +463,7 @@ def cmd_list(_: argparse.Namespace) -> int:
     settings = load_settings(packages)
     for name in sorted(packages):
         p, s = packages[name], settings[name]
-        status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} build={s.build} clippy={s.clippy} test={s.test} wasm={s.wasm}"
+        status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} build={s.build} clippy={s.clippy}{'+deny' if s.clippy_deny_warnings else ''} test={s.test} wasm={s.wasm}"
         runs = ", ".join(repr(r) for r in s.runs)
         env = "".join(f"  {k}={v}" for k, v in sorted(s.env.items()))
         print(f"{name:36} {status:42} runs=[{runs}]{'  +llama.cpp' if p.needs_llama else ''}{env}")

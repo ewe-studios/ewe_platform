@@ -41,10 +41,7 @@ struct PendingMapWsTask<I> {
 
 impl<I> TaskIterator for PendingMapWsTask<I>
 where
-    I: TaskIterator<
-        Ready = Result<WebSocketMessage, WebSocketError>,
-        Pending = WsPending,
-    >,
+    I: TaskIterator<Ready = Result<WebSocketMessage, WebSocketError>, Pending = WsPending>,
 {
     type Ready = Result<WebSocketMessage, WebSocketError>;
     type Pending = WsProgress;
@@ -63,9 +60,7 @@ where
                     .into_iter()
                     .map(|spread| match spread {
                         TaskSpread::Ready(d) => TaskSpread::Ready(d),
-                        TaskSpread::Pending(p) => {
-                            TaskSpread::Pending(native_progress(p))
-                        }
+                        TaskSpread::Pending(p) => TaskSpread::Pending(native_progress(p)),
                     })
                     .collect();
                 Some(TaskStatus::Spread(mapped))

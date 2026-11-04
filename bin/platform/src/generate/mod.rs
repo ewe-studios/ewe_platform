@@ -1,10 +1,10 @@
 use clap::ValueEnum;
+use foundation_core::extensions::strings_ext::TryIntoString;
+use foundation_macros::EmbedDirectoryAs;
 use foundation_packager::{
     Directorate, PackageConfig, PackageConfigurator, PackageGenerator, RustConfig,
     RustProjectConfigurator,
 };
-use foundation_core::extensions::strings_ext::TryIntoString;
-use foundation_macros::EmbedDirectoryAs;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 

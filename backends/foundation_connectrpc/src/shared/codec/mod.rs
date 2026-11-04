@@ -17,16 +17,16 @@
 //! HOW: See the sub-modules. Domain [`CodecError`]s map into the RPC error at the
 //! boundary via `From`/`change_context` (Decision 03).
 
-mod proto;
 mod json;
 mod procedure;
+mod proto;
 
 #[cfg(feature = "arrow")]
 mod arrow;
 
 pub use json::JsonCodec;
-pub use proto::ProtoCodec;
 pub use procedure::{CodecSet, ProcedureCodecs};
+pub use proto::ProtoCodec;
 
 #[cfg(feature = "arrow")]
 pub use arrow::ArrowCodec;

@@ -19,13 +19,13 @@ pub enum AuthToken {
         access_token: ConfidentialText,
         refresh_token: Option<ConfidentialText>,
         token_type: String,
-        expires_at: f64,
+        expires_at: i64,
         scope: Option<String>,
     },
     /// JWT bearer token.
     Jwt {
         token: ConfidentialText,
-        expires_at: f64,
+        expires_at: i64,
         issuer: Option<String>,
         audience: Option<String>,
     },
@@ -35,7 +35,7 @@ pub enum AuthToken {
     Session {
         session_id: String,
         token: ConfidentialText,
-        expires_at: f64,
+        expires_at: i64,
         cookie: Option<Cookie>,
     },
 }
@@ -43,12 +43,11 @@ pub enum AuthToken {
 impl AuthToken {
     /// Whether the token is currently valid.
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
     pub fn is_expired(&self) -> bool {
         match self {
             Self::OAuth { expires_at, .. }
             | Self::Jwt { expires_at, .. }
-            | Self::Session { expires_at, .. } => Utc::now().timestamp() as f64 >= *expires_at,
+            | Self::Session { expires_at, .. } => Utc::now().timestamp() >= *expires_at,
             Self::ApiKey { .. } => false, // API keys don't expire
         }
     }
@@ -128,4 +127,3 @@ impl From<AuthCredential> for AuthToken {
         }
     }
 }
-

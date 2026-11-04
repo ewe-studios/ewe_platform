@@ -41,7 +41,7 @@ fn client_secret() -> AuthCredential {
 
 fn oauth() -> AuthCredential {
     AuthCredential::OAuth(OAuthCredential {
-        expires: 0.0,
+        expires: 0,
         access_token: ConfidentialText::new("sk-oauth".into()),
         refresh_token: None,
     })
@@ -79,7 +79,10 @@ fn openai_new_and_default_agree() {
 fn openai_with_config_is_constructible() {
     let cfg = OpenAIConfig::new().with_base_url("https://example.test/v1");
     let p = OpenAIProvider::with_config(cfg);
-    assert!(p.describe().is_ok(), "a configured provider must describe itself");
+    assert!(
+        p.describe().is_ok(),
+        "a configured provider must describe itself"
+    );
 }
 
 // ---------------------------------------------------------------------------

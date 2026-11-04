@@ -9,9 +9,10 @@
 use std::collections::HashMap;
 use std::path::Path;
 
-use foundation_db::core::state::{FileStateStore, StateStore};
-use foundation_db::core::state::types::ResourceState;
 use foundation_db::core::errors::StorageError;
+use foundation_db::core::state::types::ResourceState;
+use foundation_db::core::state::{FileStateStore, StateStore};
+use futures_util::lock::Mutex as AsyncMutex;
 use serde::{Deserialize, Serialize};
 
 use crate::config::ProxyConfig;
@@ -31,6 +32,14 @@ pub struct PersistedProxyState {
 
 pub struct ProxyStateStore {
     store: FileStateStore,
+    /// Serialises the load-change-save of the one `proxy_state` document.
+    ///
+    /// WHY: `save_backend_state` and `save_tls_cert` run on separate
+    /// control-socket threads. Each reads the whole state, changes one field and
+    /// saves it back. Without this lock two commands can each save over the
+    /// other's change (a lost update). The store keeps one document so old state
+    /// files stay loadable; a mutex is the smallest fix for that shape.
+    write_lock: AsyncMutex<()>,
 }
 
 const PROXY_STATE_ID: &str = "proxy_state";
@@ -39,6 +48,7 @@ impl ProxyStateStore {
     pub fn new(state_dir: &Path, domain: &str) -> Self {
         Self {
             store: FileStateStore::new(state_dir, "foundation_proxy", domain),
+            write_lock: AsyncMutex::new(()),
         }
     }
 
@@ -62,8 +72,8 @@ impl ProxyStateStore {
     ///
     /// Returns `StorageError` if the state can't be encoded or written.
     pub async fn save(&self, state: &PersistedProxyState) -> Result<(), StorageError> {
-        let data = serde_json::to_value(state)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let data =
+            serde_json::to_value(state).map_err(|e| StorageError::Serialization(e.to_string()))?;
         let resource = ResourceState {
             id: PROXY_STATE_ID.to_string(),
             kind: "proxy_state".to_string(),
@@ -90,6 +100,7 @@ impl ProxyStateStore {
         backend_url: &str,
         state: &str,
     ) -> Result<(), StorageError> {
+        let _guard = self.write_lock.lock().await;
         let mut persisted = self.load().await?.unwrap_or_default();
         persisted
             .backend_states
@@ -120,6 +131,7 @@ impl ProxyStateStore {
     ///
     /// Returns `StorageError` if the state can't be loaded or saved.
     pub async fn save_tls_cert(&self, cert_pem: &str, key_pem: &str) -> Result<(), StorageError> {
+        let _guard = self.write_lock.lock().await;
         let mut state = self.load().await?.unwrap_or_default();
         state.cert_pem = Some(cert_pem.to_string());
         state.key_pem = Some(key_pem.to_string());
@@ -132,4 +144,3 @@ impl ProxyStateStore {
         self.save(&state).await
     }
 }
-

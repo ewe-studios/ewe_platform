@@ -107,6 +107,7 @@ pub struct RawCall {
     pub source_line: usize,
 }
 
+#[must_use]
 pub fn make_id(stem: &str, name: &str) -> String {
     let raw = if stem.is_empty() {
         name.to_lowercase()
@@ -114,10 +115,17 @@ pub fn make_id(stem: &str, name: &str) -> String {
         format!("{}_{}", stem.to_lowercase(), name.to_lowercase())
     };
     raw.chars()
-        .map(|c| if c.is_ascii_alphanumeric() || c == '_' { c } else { '_' })
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect()
 }
 
+#[must_use]
 pub fn file_stem_qualified(path: &str) -> String {
     let p = std::path::Path::new(path);
     let parent = p
@@ -125,10 +133,7 @@ pub fn file_stem_qualified(path: &str) -> String {
         .and_then(|pp| pp.file_name())
         .and_then(|f| f.to_str())
         .unwrap_or("");
-    let stem = p
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("");
+    let stem = p.file_stem().and_then(|s| s.to_str()).unwrap_or("");
     if parent.is_empty() || parent == "." {
         stem.to_string()
     } else {
@@ -136,6 +141,7 @@ pub fn file_stem_qualified(path: &str) -> String {
     }
 }
 
+#[must_use]
 pub fn normalize_label(label: &str) -> String {
     label
         .to_lowercase()

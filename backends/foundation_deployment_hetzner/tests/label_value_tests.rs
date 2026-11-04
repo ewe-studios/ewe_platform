@@ -3,7 +3,6 @@
 
 use foundation_deployment_hetzner::deployable::{label_value, HetznerServer, IDENTITY_LABEL};
 
-
 #[test]
 fn an_identity_is_a_legal_hetzner_label_value() {
     // The rule, from Hetzner's spec: <=63 chars, begins and ends
@@ -19,7 +18,10 @@ fn an_identity_is_a_legal_hetzner_label_value() {
     assert_valid(&value);
 
     // The key may carry a prefix — that is where a slash is allowed.
-    assert!(IDENTITY_LABEL.contains('/'), "the key is prefixed: {IDENTITY_LABEL}");
+    assert!(
+        IDENTITY_LABEL.contains('/'),
+        "the key is prefixed: {IDENTITY_LABEL}"
+    );
     assert!(
         !IDENTITY_LABEL.starts_with("hetzner.cloud/"),
         "that prefix is reserved by Hetzner"
@@ -56,11 +58,17 @@ fn assert_valid(value: &str) {
     assert!(!value.is_empty(), "empty");
     assert!(value.len() <= 63, "{value:?} is {} chars", value.len());
     assert!(
-        value.chars().next().is_some_and(|c| c.is_ascii_alphanumeric()),
+        value
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_alphanumeric()),
         "{value:?} must begin alphanumeric"
     );
     assert!(
-        value.chars().next_back().is_some_and(|c| c.is_ascii_alphanumeric()),
+        value
+            .chars()
+            .next_back()
+            .is_some_and(|c| c.is_ascii_alphanumeric()),
         "{value:?} must end alphanumeric"
     );
     assert!(

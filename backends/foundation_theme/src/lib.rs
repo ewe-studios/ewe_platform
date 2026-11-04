@@ -314,15 +314,78 @@ struct Scale {
 /// `px/rem/em/vh` variants so users pick the measured property
 /// (`.text-56-rem`, `.h-50-vh`); the bare class uses the primary unit.
 const SCALES: &[Scale] = &[
-    Scale { prefix: "opacity", property: "opacity", start: 0, end: 100, step: 5, units: &[Unit::Ratio] },
-    Scale { prefix: "w", property: "width", start: 0, end: 100, step: 5, units: &[Unit::Pct, Unit::Vw, Unit::Vh] },
-    Scale { prefix: "h", property: "height", start: 0, end: 100, step: 5, units: &[Unit::Pct, Unit::Vh, Unit::Vw] },
-    Scale { prefix: "p", property: "padding", start: 0, end: 64, step: 4, units: &[Unit::Px, Unit::Rem] },
-    Scale { prefix: "m", property: "margin", start: 0, end: 64, step: 4, units: &[Unit::Px, Unit::Rem] },
-    Scale { prefix: "gap", property: "gap", start: 0, end: 64, step: 4, units: &[Unit::Px, Unit::Rem] },
-    Scale { prefix: "text", property: "font-size", start: 8, end: 72, step: 2, units: &[Unit::Px, Unit::Rem, Unit::Em, Unit::Vh] },
-    Scale { prefix: "border", property: "border-width", start: 0, end: 8, step: 1, units: &[Unit::Px, Unit::Rem, Unit::Em] },
-    Scale { prefix: "font", property: "font-weight", start: 100, end: 900, step: 100, units: &[Unit::Raw] },
+    Scale {
+        prefix: "opacity",
+        property: "opacity",
+        start: 0,
+        end: 100,
+        step: 5,
+        units: &[Unit::Ratio],
+    },
+    Scale {
+        prefix: "w",
+        property: "width",
+        start: 0,
+        end: 100,
+        step: 5,
+        units: &[Unit::Pct, Unit::Vw, Unit::Vh],
+    },
+    Scale {
+        prefix: "h",
+        property: "height",
+        start: 0,
+        end: 100,
+        step: 5,
+        units: &[Unit::Pct, Unit::Vh, Unit::Vw],
+    },
+    Scale {
+        prefix: "p",
+        property: "padding",
+        start: 0,
+        end: 64,
+        step: 4,
+        units: &[Unit::Px, Unit::Rem],
+    },
+    Scale {
+        prefix: "m",
+        property: "margin",
+        start: 0,
+        end: 64,
+        step: 4,
+        units: &[Unit::Px, Unit::Rem],
+    },
+    Scale {
+        prefix: "gap",
+        property: "gap",
+        start: 0,
+        end: 64,
+        step: 4,
+        units: &[Unit::Px, Unit::Rem],
+    },
+    Scale {
+        prefix: "text",
+        property: "font-size",
+        start: 8,
+        end: 72,
+        step: 2,
+        units: &[Unit::Px, Unit::Rem, Unit::Em, Unit::Vh],
+    },
+    Scale {
+        prefix: "border",
+        property: "border-width",
+        start: 0,
+        end: 8,
+        step: 1,
+        units: &[Unit::Px, Unit::Rem, Unit::Em],
+    },
+    Scale {
+        prefix: "font",
+        property: "font-weight",
+        start: 100,
+        end: 900,
+        step: 100,
+        units: &[Unit::Raw],
+    },
 ];
 
 /// Append every generated scale. Named tokens (`.p-md`, `.text-primary`) come
@@ -432,7 +495,10 @@ pub fn theme_css(tokens: &[ThemeToken]) -> String {
                 let _ = writeln!(css, ".text-{name} {{ font-size: var({var}); }}");
             }
             "animation" => {
-                let _ = writeln!(css, ".duration-{name} {{ transition-duration: var({var}); }}");
+                let _ = writeln!(
+                    css,
+                    ".duration-{name} {{ transition-duration: var({var}); }}"
+                );
             }
             _ => {}
         }

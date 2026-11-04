@@ -1,6 +1,6 @@
 [package]
 name = "foundation_nativeapis"
-version = "0.0.3"
+version = "0.0.6"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -13,18 +13,19 @@ keywords = ["io-uring", "epoll", "kqueue", "file-watcher", "ipc"]
 crate-type = ["rlib", "cdylib"]
 
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.6" }
+foundation_core = { path = "../foundation_core", version = "0.0.7" }
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.6", optional = true }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.3", optional = true }
-foundation_compact = { path = "../foundation_compact", version = "0.2.2", optional = true }
-foundation_db = { path = "../foundation_db", version = "0.0.4", optional = true, default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.3", optional = true }
+foundation_db = { path = "../foundation_db", version = "0.0.5", optional = true, default-features = false }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.3", optional = true }
 
 io-uring = { version = "0.7", optional = true }
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
-foundation_macros = { path = "../foundation_macros", version = "0.0.6", optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.7", optional = true }
 cfg-if = "1"
 once_cell = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
@@ -78,7 +79,12 @@ windows-sys = { version = "0.59", features = [
 
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["multi"] }
+
+# Native-only storage backends — excluded on wasm32 because the local engine
+# (turso_core) does not compile without a host filesystem.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+turso = { version = "0.8.3", optional = true, default-features = false }
 
 [dev-dependencies]
 foundation_arrow = { path = "../foundation_arrow" }
@@ -88,6 +94,7 @@ tracing-subscriber.workspace = true
 serial_test = "3.3"
 ntest = "0.9"
 uuid = { version = "1", features = ["v4"] }
+futures-lite = "2"
 
 [target.'cfg(unix)'.dev-dependencies]
 nix = { version = "0.29", features = ["fs", "poll"] }
@@ -307,7 +314,9 @@ name = "vfs_sqlite_delta"
 path = "examples/vfs_sqlite_delta/main.rs"
 required-features = ["vfs-sqlite"]
 
-
+[build-dependencies]
+# Compiles the C variadic `open`/`openat` entry points for the vfs-preload shim.
+cc = "1"
 
 [features]
 # Default: full platform-native stack.
@@ -330,8 +339,11 @@ watcher-linux = ["poll"]
 watcher-macos = ["poll"]
 watcher-windows = ["poll"]
 
-# io_uring layer (Linux only)
-uring = ["dep:io-uring"]
+# io_uring layer (Linux only). Forwards to the reactor's `uring` feature: the
+# uring send path here delegates to `Reactor::submit_send*`, and imports
+# `foundation_reactor::{send_pool, poll::sys::unix::selector::{bufring,
+# uring_completion}}`, all of which are gated behind that feature.
+uring = ["dep:io-uring", "foundation_reactor/uring"]
 
 # Interprocess message bus (adapted from ipmb)
 ipc = ["dep:bincode", "dep:foundation_macros", "dep:serde_bytes", "dep:uuid", "dep:once_cell"]
@@ -349,11 +361,14 @@ vfs-native = ["vfs", "dep:foundation_macros", "dep:foundation_nostd"]
 # VFS SQLite-backed DeltaStore (libsql)
 vfs-sqlite = ["vfs", "dep:libsql", "dep:blake3", "dep:foundation_compact"]
 
+# VFS local Turso-engine-backed DeltaStore (the `turso` crate, native only)
+vfs-turso = ["vfs", "dep:turso", "dep:blake3", "dep:foundation_compact"]
+
 # Cloudflare D1 edge SQLite DeltaStore — uses foundation_db's D1 HTTP client
-vfs-d1 = ["vfs", "dep:foundation_db", "dep:serde_json", "foundation_db/d1"]
+vfs-d1 = ["vfs", "dep:foundation_db", "dep:serde_json", "dep:futures-lite", "foundation_db/d1"]
 
 # Cloudflare R2 S3-compatible DeltaStore — uses foundation_db's R2 HTTP client
-vfs-r2 = ["vfs", "dep:foundation_db", "dep:serde_json", "foundation_db/r2"]
+vfs-r2 = ["vfs", "dep:foundation_db", "dep:serde_json", "dep:futures-lite", "foundation_db/r2"]
 
 # Arrow serialization for VFS types
 vfs-arrow = ["vfs", "dep:foundation_arrow"]
@@ -411,6 +426,11 @@ path = "tests/d1_delta_vfs/mod.rs"
 required-features = ["vfs-native", "vfs-d1"]
 
 [[test]]
+name = "turso_delta_vfs"
+path = "tests/turso_delta_vfs/mod.rs"
+required-features = ["vfs-native", "vfs-turso"]
+
+[[test]]
 name = "r2_delta_vfs"
 path = "tests/r2_delta_vfs/mod.rs"
 required-features = ["vfs-native", "vfs-r2"]
@@ -429,3 +449,8 @@ required-features = ["vfs-fjall"]
 name = "nfs_vfs"
 path = "tests/nfs_vfs/mod.rs"
 required-features = ["vfs-native", "vfs-nfs"]
+
+[[test]]
+name = "copy_vfs"
+path = "tests/copy_vfs/mod.rs"
+required-features = ["vfs"]

@@ -266,7 +266,11 @@ fn get_model_forwards_ok_as_some_boxed_model() {
     let m = boxed(true)
         .get_model(&known())
         .expect("known model must load");
-    assert_eq!(m.spec().name, KNOWN, "the boxed model must be the right one");
+    assert_eq!(
+        m.spec().name,
+        KNOWN,
+        "the boxed model must be the right one"
+    );
 }
 
 #[test]

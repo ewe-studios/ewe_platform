@@ -9,8 +9,8 @@ use std::time::Duration;
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{Ctx, SharedTaskQueue, TaskIterator, TaskStatus, WrapTask};
 use foundation_core::valtron::{
-    ExecutionAction, InlineAction, InlineActionBehaviour, LocalThreadExecutor,
-    NotifyQueue, PriorityOrder, NotificationItem,
+    ExecutionAction, InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotificationItem,
+    NotifyQueue, PriorityOrder,
 };
 use foundation_core::{
     retries::ExponentialBackoffDecider,
@@ -176,8 +176,7 @@ fn test_bounded_queue_producer_consumer_coordination() {
 /// values are eventually delivered.
 #[test]
 fn test_executor_fast_producer_slow_consumer_no_loss() {
-    let global: SharedTaskQueue =
-        Arc::new(ConcurrentQueue::bounded(10));
+    let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
     let results: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(Vec::new()));
 
@@ -201,11 +200,8 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
     // Task that produces many values quickly
     let task = WrapTask::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].into_iter());
 
-    let (mut inline_action, receiver) = InlineAction::new(
-        InlineActionBehaviour::Lift,
-        task,
-        Duration::from_micros(50),
-    );
+    let (mut inline_action, receiver) =
+        InlineAction::new(InlineActionBehaviour::Lift, task, Duration::from_micros(50));
 
     let receiver = Arc::new(Mutex::new(receiver));
 
@@ -237,8 +233,7 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
 #[test]
 fn test_executor_ready_iter_no_message_loss() {
     // Use a simple test with multiple values to stress the channel
-    let global: SharedTaskQueue =
-        Arc::new(ConcurrentQueue::bounded(10));
+    let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
 
     let results: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(Vec::new()));
 
@@ -262,11 +257,8 @@ fn test_executor_ready_iter_no_message_loss() {
     // Task that produces values
     let task = WrapTask::new(vec![100, 200, 300, 400, 500].into_iter());
 
-    let (mut inline_action, receiver) = InlineAction::new(
-        InlineActionBehaviour::Lift,
-        task,
-        Duration::from_micros(50),
-    );
+    let (mut inline_action, receiver) =
+        InlineAction::new(InlineActionBehaviour::Lift, task, Duration::from_micros(50));
 
     let receiver = Arc::new(Mutex::new(receiver));
 
@@ -307,10 +299,7 @@ impl TaskIterator for SeqTask {
     type Ready = u32;
     type Pending = String;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.items.next()
     }
 }
@@ -340,7 +329,10 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
 
     // Step 1: pushes 10 into the depth-1 queue and forwards Ready(10).
     assert!(
-        matches!(continuation.next_status(ctx.clone()), Some(TaskStatus::Ready(10))),
+        matches!(
+            continuation.next_status(ctx.clone()),
+            Some(TaskStatus::Ready(10))
+        ),
         "first step forwards the source value and fills the observer queue"
     );
 
@@ -364,7 +356,10 @@ fn test_split_continuation_parks_on_full_observer_no_loss() {
     // Drain one slot: the stashed copy of 20 now lands and the source advances.
     assert!(matches!(observer.next(), Some(Stream::Next(10))));
     assert!(
-        matches!(continuation.next_status(ctx.clone()), Some(TaskStatus::Ready(20))),
+        matches!(
+            continuation.next_status(ctx.clone()),
+            Some(TaskStatus::Ready(20))
+        ),
         "draining a slot unparks the source and delivers the stashed item"
     );
 

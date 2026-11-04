@@ -10,23 +10,27 @@
 /// | payload_padding                       0-3 bytes
 ///
 /// Ancillary data: SCM_RIGHTS with array of fds (objects + memory region fds)
-
 use std::{mem, os::fd::RawFd, ptr, slice};
 
 use foundation_core::type_uuid::TypeUuid;
 
 use super::fd::{Local, Remote};
-use crate::ipc::{
-    decode, util::Align4, version::version, version::Version,
-    Error, MemoryRegion, Selector,
-};
 use super::Fd as Object;
+use crate::ipc::{
+    decode, util::Align4, version::version, version::Version, Error, MemoryRegion, Selector,
+};
 
 pub(crate) struct EncodedMessage {
     pub selector: Selector,
     pub payload_data: &'static [u8],
     pub iov_data: Vec<u8>,
     pub control_data: Vec<u8>,
+    /// Number of valid bytes in `control_data`. `from_local` receives into a
+    /// fixed-size buffer, so the buffer can be longer than the control data the
+    /// kernel actually copied. `send` must pass this length, not the buffer
+    /// length, or it sends uninitialised trailing bytes as garbage ancillary
+    /// data and `sendmsg` fails intermittently.
+    pub control_len: usize,
     pub objects: Vec<Object>,
     pub memory_regions: Vec<MemoryRegion>,
 }
@@ -95,10 +99,15 @@ impl EncodedMessage {
                 return Err(Error::Disconnect);
             }
 
+            // The kernel writes the actual control length into
+            // `msg_controllen`; keep it for `send`, which re-sends only the
+            // valid bytes, never the uninitialised tail of the buffer.
+            let control_len = hdr.msg_controllen as usize;
+
             // Parse ancillary data (objects/fds)
             let mut objects = vec![];
 
-            if hdr.msg_controllen > 0 {
+            if control_len > 0 {
                 let control_ptr = control_data.as_ptr() as *const libc::cmsghdr;
                 let mut control_data_ptr = libc::CMSG_DATA(control_ptr) as *const RawFd;
 
@@ -153,6 +162,7 @@ impl EncodedMessage {
                 ),
                 iov_data,
                 control_data,
+                control_len,
                 objects,
                 memory_regions,
             })
@@ -173,7 +183,7 @@ impl EncodedMessage {
         hdr.msg_iovlen = 1;
 
         hdr.msg_control = self.control_data.as_mut_ptr() as _;
-        hdr.msg_controllen = self.control_data.len() as _;
+        hdr.msg_controllen = self.control_len as _;
 
         // Increment ref count for memory regions
         for r in self.memory_regions.iter() {
@@ -207,7 +217,8 @@ pub fn alloc_buffer<T>(size: usize) -> Vec<u8> {
     let mut buf_t = Vec::<T>::with_capacity(buffer_t_size);
 
     let buffer_size = buffer_t_size * mem::size_of::<T>();
-    let buf = unsafe { Vec::from_raw_parts(buf_t.as_mut_ptr().cast::<u8>(), buffer_size, buffer_size) };
+    let buf =
+        unsafe { Vec::from_raw_parts(buf_t.as_mut_ptr().cast::<u8>(), buffer_size, buffer_size) };
 
     mem::forget(buf_t);
 

@@ -2,7 +2,9 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::events::{self, EventRequest};
@@ -46,8 +48,16 @@ fn collect_then_list() {
             &c,
             USER,
             vec![
-                EventRequest { event_type: 1114, cipher_id: Some("cid-1".into()), date: None },
-                EventRequest { event_type: 1107, cipher_id: None, date: None },
+                EventRequest {
+                    event_type: 1114,
+                    cipher_id: Some("cid-1".into()),
+                    date: None,
+                },
+                EventRequest {
+                    event_type: 1107,
+                    cipher_id: None,
+                    date: None,
+                },
             ],
         )
         .await
@@ -57,9 +67,13 @@ fn collect_then_list() {
     let c = ctx.clone();
     let listed = drive(async move { events::list(&c, USER).await }).expect("list");
     assert_eq!(listed.len(), 2);
-    assert!(listed.iter().any(|e| e.event_type == 1114 && e.cipher_id.as_deref() == Some("cid-1")));
+    assert!(listed
+        .iter()
+        .any(|e| e.event_type == 1114 && e.cipher_id.as_deref() == Some("cid-1")));
 
     // Another user sees none.
     let c = ctx.clone();
-    assert!(drive(async move { events::list(&c, "other").await }).expect("list other").is_empty());
+    assert!(drive(async move { events::list(&c, "other").await })
+        .expect("list other")
+        .is_empty());
 }

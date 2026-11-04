@@ -1,8 +1,5 @@
-use foundation_nativeapis::{
-    ObservableFs, MemoryFs, SyncFs, VfsFileSystem,
-    VfsEvent,
-};
 use foundation_core::synca::mpp::Receiver;
+use foundation_nativeapis::{MemoryFs, ObservableFs, SyncFs, VfsEvent, VfsFileSystem};
 
 fn make_observable() -> (SyncFs<ObservableFs<MemoryFs>>, Receiver<VfsEvent>) {
     let fs = SyncFs::new(ObservableFs::new(MemoryFs::new()));
@@ -45,7 +42,10 @@ fn test_write_file_emits_events() {
     fs.write_file("/hello.txt", b"world").unwrap();
     let events = collect_events(&rx);
     // write_file creates a file and writes — we expect FileOpened + FileCreated or similar
-    assert!(!events.is_empty(), "expected at least one event from write_file");
+    assert!(
+        !events.is_empty(),
+        "expected at least one event from write_file"
+    );
 }
 
 #[test]
@@ -211,7 +211,9 @@ fn test_error_emits_operation_failed() {
     let events = collect_events(&rx);
     assert_eq!(events.len(), 1);
     match &events[0] {
-        VfsEvent::OperationFailed { operation, path, .. } => {
+        VfsEvent::OperationFailed {
+            operation, path, ..
+        } => {
             assert_eq!(operation, "stat");
             assert_eq!(path, "/nonexistent");
         }

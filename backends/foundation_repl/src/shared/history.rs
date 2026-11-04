@@ -79,10 +79,7 @@ impl ReplHistory {
         let entries: Vec<String> = serde_json::from_str(&data)?;
         let max_len = entries.len().max(1000);
         let mut deque = VecDeque::with_capacity(max_len);
-        for entry in entries
-            .iter()
-            .skip(entries.len().saturating_sub(max_len))
-        {
+        for entry in entries.iter().skip(entries.len().saturating_sub(max_len)) {
             deque.push_back(entry.clone());
         }
         Ok(Self {

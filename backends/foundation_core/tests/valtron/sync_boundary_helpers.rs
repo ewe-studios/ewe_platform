@@ -42,10 +42,7 @@ impl TaskIterator for CounterTask {
     type Ready = u32;
     type Pending = u32;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         use std::cmp::Ordering;
         match self.current.cmp(&self.pending_count) {
             Ordering::Less => {
@@ -85,10 +82,7 @@ impl TaskIterator for MultiValueTask {
     type Ready = u32;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.index < self.values.len() {
             let val = self.values[self.index];
             self.index += 1;
@@ -159,7 +153,6 @@ fn test_collect_result_no_next_values() {
 /// `sync_one` executes a task that produces a single value after pending states.
 #[valtron_test(seed = 42)]
 fn test_sync_one_single_value_task() {
-
     let task = CounterTask::new(3, 77);
     let results = sync_one(task).expect("sync_one should succeed");
     assert_eq!(results, vec![77]);
@@ -168,7 +161,6 @@ fn test_sync_one_single_value_task() {
 /// `sync_one` executes a task that produces a value with no pending states.
 #[valtron_test(seed = 42)]
 fn test_sync_one_immediate_ready() {
-
     let task = CounterTask::new(0, 55);
     let results = sync_one(task).expect("sync_one should succeed");
     assert_eq!(results, vec![55]);
@@ -177,7 +169,6 @@ fn test_sync_one_immediate_ready() {
 /// `sync_one` collects multiple Ready values from a multi-value task.
 #[valtron_test(seed = 42)]
 fn test_sync_one_multi_value_task() {
-
     let task = MultiValueTask::new(vec![10, 20, 30]);
     let results = sync_one(task).expect("sync_one should succeed");
     assert_eq!(results, vec![10, 20, 30]);
@@ -190,7 +181,6 @@ fn test_sync_one_multi_value_task() {
 /// `sync_all` executes multiple tasks in parallel and collects all results.
 #[valtron_test(seed = 42)]
 fn test_sync_all_multiple_tasks() {
-
     let tasks = vec![
         CounterTask::new(1, 10),
         CounterTask::new(2, 20),
@@ -206,7 +196,6 @@ fn test_sync_all_multiple_tasks() {
 /// `sync_all` with a single task behaves like `sync_one`.
 #[valtron_test(seed = 42)]
 fn test_sync_all_single_task() {
-
     let tasks = vec![CounterTask::new(1, 42)];
     let results = sync_all(tasks).expect("sync_all should succeed");
     assert_eq!(results, vec![42]);
@@ -215,7 +204,6 @@ fn test_sync_all_single_task() {
 /// `sync_all` with an empty task list returns an error (no results produced).
 #[valtron_test(seed = 42)]
 fn test_sync_all_empty_tasks() {
-
     let tasks: Vec<CounterTask> = vec![];
     let result = sync_all(tasks);
     assert!(result.is_err(), "sync_all with empty tasks should error");
@@ -224,7 +212,6 @@ fn test_sync_all_empty_tasks() {
 /// `sync_all` collects results from tasks with varying pending counts.
 #[valtron_test(seed = 42)]
 fn test_sync_all_varying_pending_counts() {
-
     let tasks = vec![
         CounterTask::new(0, 1),  // immediate
         CounterTask::new(5, 2),  // 5 pending states
@@ -297,7 +284,6 @@ fn test_collect_one_no_next_values() {
 /// `sync_collect_one` executes a task and returns the single result directly.
 #[valtron_test(seed = 42)]
 fn test_sync_collect_one_single_value() {
-
     let task = CounterTask::new(3, 77);
     let result = sync_collect_one(task).expect("sync_collect_one should succeed");
     assert_eq!(result, 77);
@@ -306,7 +292,6 @@ fn test_sync_collect_one_single_value() {
 /// `sync_collect_one` with immediate ready (no pending states).
 #[valtron_test(seed = 42)]
 fn test_sync_collect_one_immediate_ready() {
-
     let task = CounterTask::new(0, 55);
     let result = sync_collect_one(task).expect("sync_collect_one should succeed");
     assert_eq!(result, 55);
@@ -315,7 +300,6 @@ fn test_sync_collect_one_immediate_ready() {
 /// `sync_collect_one` with a multi-value task returns the first value.
 #[valtron_test(seed = 42)]
 fn test_sync_collect_one_multi_value_returns_first() {
-
     let task = MultiValueTask::new(vec![10, 20, 30]);
     let result = sync_collect_one(task).expect("sync_collect_one should succeed");
     assert_eq!(result, 10);
@@ -356,8 +340,8 @@ fn run_stream_iter_iterates_an_async_stream_from_sync_code() {
     use foundation_core::valtron::run_stream_iter;
 
     let mut seen = Vec::new();
-    for value in run_stream_iter(futures_lite::stream::iter(vec![10u32, 20, 30]))
-        .expect("scheduled")
+    for value in
+        run_stream_iter(futures_lite::stream::iter(vec![10u32, 20, 30])).expect("scheduled")
     {
         seen.push(value);
     }
@@ -387,14 +371,12 @@ fn run_stream_iter_waits_for_items_that_arrive_later() {
     // An async stream over a channel that is empty when first polled.
     let rx = std::sync::Arc::new(std::sync::Mutex::new(rx));
     let stream = futures_lite::stream::unfold(rx, |rx| async move {
-        let next = futures_lite::future::poll_fn(|cx| {
-            match rx.lock().expect("rx").try_recv() {
-                Ok(v) => std::task::Poll::Ready(Some(v)),
-                Err(mpsc::TryRecvError::Disconnected) => std::task::Poll::Ready(None),
-                Err(mpsc::TryRecvError::Empty) => {
-                    cx.waker().wake_by_ref();
-                    std::task::Poll::Pending
-                }
+        let next = futures_lite::future::poll_fn(|cx| match rx.lock().expect("rx").try_recv() {
+            Ok(v) => std::task::Poll::Ready(Some(v)),
+            Err(mpsc::TryRecvError::Disconnected) => std::task::Poll::Ready(None),
+            Err(mpsc::TryRecvError::Empty) => {
+                cx.waker().wake_by_ref();
+                std::task::Poll::Pending
             }
         })
         .await;
@@ -415,10 +397,11 @@ fn block_and_blocking_are_the_sync_boundary() {
     use foundation_core::valtron::{BlockingFutureExt, BlockingStreamExt};
 
     assert_eq!(async { 6 * 7 }.block(), 42);
-    let doubled: Vec<u32> = futures_lite::StreamExt::map(futures_lite::stream::iter(1..=3u32), |x| x * 2)
-        .blocking()
-        .expect("scheduled")
-        .collect();
+    let doubled: Vec<u32> =
+        futures_lite::StreamExt::map(futures_lite::stream::iter(1..=3u32), |x| x * 2)
+            .blocking()
+            .expect("scheduled")
+            .collect();
     assert_eq!(doubled, vec![2, 4, 6]);
 }
 
@@ -429,7 +412,8 @@ fn block_on_a_future_that_awaits_a_valtron_stream() {
     use foundation_core::valtron::{BlockingFutureExt, StreamIteratorExt};
 
     let values = async {
-        let inner = foundation_core::valtron::execute(CounterTask::new(3, 9), None).expect("scheduled");
+        let inner =
+            foundation_core::valtron::execute(CounterTask::new(3, 9), None).expect("scheduled");
         futures_lite::StreamExt::collect::<Vec<u32>>(inner.values()).await
     }
     .block();
@@ -443,7 +427,9 @@ fn two_blocking_iterators_interleave() {
     use foundation_core::valtron::BlockingStreamExt;
 
     let a = futures_lite::stream::iter(0..100u32).blocking().expect("a");
-    let b = futures_lite::stream::iter(100..200u32).blocking().expect("b");
+    let b = futures_lite::stream::iter(100..200u32)
+        .blocking()
+        .expect("b");
     let pairs: Vec<(u32, u32)> = a.zip(b).collect();
     assert_eq!(pairs.len(), 100);
     assert!(pairs.iter().all(|(x, y)| y - x == 100));

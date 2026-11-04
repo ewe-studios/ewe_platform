@@ -20,9 +20,7 @@
 use std::io::{Read, Write};
 use std::sync::Arc;
 
-use foundation_netio::netcap::connection::{
-    ConnWaker, Connection, Connector, OverlayReadWrite,
-};
+use foundation_netio::netcap::connection::{ConnWaker, Connection, Connector, OverlayReadWrite};
 use foundation_sshkit::{ChannelStream, Dialer, Host};
 
 /// The remote command whose stdio is the Docker socket.
@@ -76,6 +74,16 @@ impl OverlayReadWrite for SshOverlay {
     fn set_read_waker(&self, _waker: ConnWaker) {}
     fn set_write_waker(&self, _waker: ConnWaker) {}
 
+    /// A blocking channel never returns `WouldBlock` — a read or write blocks
+    /// instead — so it is always ready for both directions.
+    fn readable(&self) -> bool {
+        true
+    }
+
+    fn writable(&self) -> bool {
+        true
+    }
+
     /// `docker system dial-stdio` is a one-shot bridge to the remote socket — the
     /// channel must never be pooled and reused for a later request.
     fn should_pool(&self) -> bool {
@@ -112,7 +120,10 @@ impl Connector for SshConnector {
         _timeout: Option<std::time::Duration>,
     ) -> std::io::Result<Connection> {
         let channel = self.dialer.dial(DIAL_STDIO).map_err(|e| {
-            std::io::Error::new(std::io::ErrorKind::ConnectionRefused, format!("ssh dial: {e}"))
+            std::io::Error::new(
+                std::io::ErrorKind::ConnectionRefused,
+                format!("ssh dial: {e}"),
+            )
         })?;
         Ok(Connection::Overlay(Box::new(SshOverlay(channel))))
     }

@@ -863,7 +863,13 @@ where
         Self::P: Clone,
         Pred: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
     {
-        sbroadcast_build(self, n, Box::new(predicate), queue_size, BroadcastPolicy::Backpressure)
+        sbroadcast_build(
+            self,
+            n,
+            Box::new(predicate),
+            queue_size,
+            BroadcastPolicy::Backpressure,
+        )
     }
 
     fn broadcast_lossy<Pred>(
@@ -881,7 +887,13 @@ where
         Self::P: Clone,
         Pred: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
     {
-        sbroadcast_build(self, n, Box::new(predicate), queue_size, BroadcastPolicy::DropNewest)
+        sbroadcast_build(
+            self,
+            n,
+            Box::new(predicate),
+            queue_size,
+            BroadcastPolicy::DropNewest,
+        )
     }
 
     fn broadcast_latest<Pred>(
@@ -899,7 +911,13 @@ where
         Self::P: Clone,
         Pred: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
     {
-        sbroadcast_build(self, n, Box::new(predicate), queue_size, BroadcastPolicy::DropOldest)
+        sbroadcast_build(
+            self,
+            n,
+            Box::new(predicate),
+            queue_size,
+            BroadcastPolicy::DropOldest,
+        )
     }
 
     fn split_collect_until<Pred>(
@@ -1282,7 +1300,11 @@ where
         F: Fn(Self::D) -> Option<R> + Send + 'static,
         R: Send + 'static,
     {
-        TryMapDone { inner: self, mapper: Box::new(f), done: false }
+        TryMapDone {
+            inner: self,
+            mapper: Box::new(f),
+            done: false,
+        }
     }
 
     fn collect_result(self) -> Vec<Self::D> {
@@ -1363,7 +1385,7 @@ where
                     self.done = true;
                 }
                 Stream::Spread(mapped)
-            },
+            }
             Stream::Pending(p) => Stream::Pending(p),
             Stream::Delayed(dur) => Stream::Delayed(dur),
             Stream::Init => Stream::Init,
@@ -1398,12 +1420,15 @@ where
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
-            Stream::Spread(items) => {
-                Stream::Spread(items.into_iter().map(|item| match item {
-                    StreamSpread::Done(d) => StreamSpread::Done((self.mapper)(d)),
-                    StreamSpread::Pending(p) => StreamSpread::Pending(p),
-                }).collect())
-            }
+            Stream::Spread(items) => Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        StreamSpread::Done(d) => StreamSpread::Done((self.mapper)(d)),
+                        StreamSpread::Pending(p) => StreamSpread::Pending(p),
+                    })
+                    .collect(),
+            ),
         })
     }
 }
@@ -1442,12 +1467,15 @@ where
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
-            Stream::Spread(items) => {
-                Stream::Spread(items.into_iter().map(|item| match item {
-                    StreamSpread::Done(d) => StreamSpread::Done(d),
-                    StreamSpread::Pending(p) => StreamSpread::Pending((self.mapper)(p)),
-                }).collect())
-            }
+            Stream::Spread(items) => Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        StreamSpread::Done(d) => StreamSpread::Done(d),
+                        StreamSpread::Pending(p) => StreamSpread::Pending((self.mapper)(p)),
+                    })
+                    .collect(),
+            ),
         })
     }
 }
@@ -1485,15 +1513,18 @@ where
             Stream::Init => Stream::Init,
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
-            Stream::Spread(items) => {
-                Stream::Spread(items.into_iter().map(|item| {
-                    let r = match item {
-                        StreamSpread::Done(d) => (self.mapper)(Stream::Next(d)),
-                        StreamSpread::Pending(p) => (self.mapper)(Stream::Pending(p)),
-                    };
-                    StreamSpread::Done(r)
-                }).collect())
-            }
+            Stream::Spread(items) => Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| {
+                        let r = match item {
+                            StreamSpread::Done(d) => (self.mapper)(Stream::Next(d)),
+                            StreamSpread::Pending(p) => (self.mapper)(Stream::Pending(p)),
+                        };
+                        StreamSpread::Done(r)
+                    })
+                    .collect(),
+            ),
         })
     }
 }
@@ -2871,10 +2902,17 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
-            Some(Stream::Spread(items)) => Some(Stream::Spread(items.into_iter().flat_map(|item| match item {
-                StreamSpread::Done(d) => d.into_iter().map(StreamSpread::Done).collect::<Vec<_>>(),
-                StreamSpread::Pending(p) => vec![StreamSpread::Pending(p)],
-            }).collect())),
+            Some(Stream::Spread(items)) => Some(Stream::Spread(
+                items
+                    .into_iter()
+                    .flat_map(|item| match item {
+                        StreamSpread::Done(d) => {
+                            d.into_iter().map(StreamSpread::Done).collect::<Vec<_>>()
+                        }
+                        StreamSpread::Pending(p) => vec![StreamSpread::Pending(p)],
+                    })
+                    .collect(),
+            )),
             None => None,
         }
     }
@@ -2924,10 +2962,17 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
-            Some(Stream::Spread(items)) => Some(Stream::Spread(items.into_iter().flat_map(|item| match item {
-                StreamSpread::Done(d) => vec![StreamSpread::Done(d)],
-                StreamSpread::Pending(p) => p.into_iter().map(StreamSpread::Pending).collect::<Vec<_>>(),
-            }).collect())),
+            Some(Stream::Spread(items)) => Some(Stream::Spread(
+                items
+                    .into_iter()
+                    .flat_map(|item| match item {
+                        StreamSpread::Done(d) => vec![StreamSpread::Done(d)],
+                        StreamSpread::Pending(p) => {
+                            p.into_iter().map(StreamSpread::Pending).collect::<Vec<_>>()
+                        }
+                    })
+                    .collect(),
+            )),
             None => None,
         }
     }
@@ -2981,10 +3026,18 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
-            Some(Stream::Spread(items)) => Some(Stream::Spread(items.into_iter().flat_map(|item| match item {
-                StreamSpread::Done(d) => (self.mapper)(d).into_iter().map(StreamSpread::Done).collect::<Vec<_>>(),
-                StreamSpread::Pending(p) => vec![StreamSpread::Pending(p)],
-            }).collect())),
+            Some(Stream::Spread(items)) => Some(Stream::Spread(
+                items
+                    .into_iter()
+                    .flat_map(|item| match item {
+                        StreamSpread::Done(d) => (self.mapper)(d)
+                            .into_iter()
+                            .map(StreamSpread::Done)
+                            .collect::<Vec<_>>(),
+                        StreamSpread::Pending(p) => vec![StreamSpread::Pending(p)],
+                    })
+                    .collect(),
+            )),
             None => None,
         }
     }
@@ -3038,10 +3091,18 @@ where
             Some(Stream::Init) => Some(Stream::Init),
             Some(Stream::Ignore) => Some(Stream::Ignore),
             Some(Stream::Wait) => Some(Stream::Wait),
-            Some(Stream::Spread(items)) => Some(Stream::Spread(items.into_iter().flat_map(|item| match item {
-                StreamSpread::Done(d) => vec![StreamSpread::Done(d)],
-                StreamSpread::Pending(p) => (self.mapper)(p).into_iter().map(StreamSpread::Pending).collect::<Vec<_>>(),
-            }).collect())),
+            Some(Stream::Spread(items)) => Some(Stream::Spread(
+                items
+                    .into_iter()
+                    .flat_map(|item| match item {
+                        StreamSpread::Done(d) => vec![StreamSpread::Done(d)],
+                        StreamSpread::Pending(p) => (self.mapper)(p)
+                            .into_iter()
+                            .map(StreamSpread::Pending)
+                            .collect::<Vec<_>>(),
+                    })
+                    .collect(),
+            )),
             None => None,
         }
     }
@@ -3278,18 +3339,24 @@ where
             Stream::Wait => Some(Stream::Wait),
             Stream::Spread(items) => {
                 let start = self.count;
-                let done_count = items.iter().filter(|item| matches!(item, StreamSpread::Done(_))).count();
+                let done_count = items
+                    .iter()
+                    .filter(|item| matches!(item, StreamSpread::Done(_)))
+                    .count();
                 self.count += done_count;
                 let mut idx = start;
                 Some(Stream::Spread(
-                    items.into_iter().map(|item| match item {
-                        StreamSpread::Done(d) => {
-                            let current = idx;
-                            idx += 1;
-                            StreamSpread::Done((current, d))
-                        }
-                        StreamSpread::Pending(p) => StreamSpread::Pending(p),
-                    }).collect(),
+                    items
+                        .into_iter()
+                        .map(|item| match item {
+                            StreamSpread::Done(d) => {
+                                let current = idx;
+                                idx += 1;
+                                StreamSpread::Done((current, d))
+                            }
+                            StreamSpread::Pending(p) => StreamSpread::Pending(p),
+                        })
+                        .collect(),
                 ))
             }
         }
@@ -3458,13 +3525,11 @@ where
             Some(Stream::Spread(items)) => {
                 if let Some(acc) = self.acc.take() {
                     let mut pending_items = Vec::new();
-                    let acc = items.into_iter().fold(acc, |acc, item| {
-                        match item {
-                            StreamSpread::Done(v) => (self.folder)(acc, v),
-                            StreamSpread::Pending(p) => {
-                                pending_items.push(StreamSpread::Pending(p));
-                                acc
-                            }
+                    let acc = items.into_iter().fold(acc, |acc, item| match item {
+                        StreamSpread::Done(v) => (self.folder)(acc, v),
+                        StreamSpread::Pending(p) => {
+                            pending_items.push(StreamSpread::Pending(p));
+                            acc
                         }
                     });
                     self.acc = Some(acc);
@@ -3634,7 +3699,10 @@ where
             Stream::Ignore => Stream::Ignore,
             Stream::Wait => Stream::Wait,
             Stream::Spread(items) => {
-                self.count += items.into_iter().filter(|item| matches!(item, StreamSpread::Done(_))).count();
+                self.count += items
+                    .into_iter()
+                    .filter(|item| matches!(item, StreamSpread::Done(_)))
+                    .count();
                 Stream::Ignore
             }
         })
@@ -3771,10 +3839,13 @@ where
                     // Continue to next source in same pass
                 }
                 Some(Stream::Spread(items)) => {
-                    self.spread_items = items.into_iter().filter_map(|item| match item {
-                        StreamSpread::Done(d) => Some(d),
-                        StreamSpread::Pending(_) => None,
-                    }).collect();
+                    self.spread_items = items
+                        .into_iter()
+                        .filter_map(|item| match item {
+                            StreamSpread::Done(d) => Some(d),
+                            StreamSpread::Pending(_) => None,
+                        })
+                        .collect();
                     self.current_index = (self.current_index + 1) % self.sources.len();
                     // Return first item, rest will be drained on subsequent calls
                     if !self.spread_items.is_empty() {
@@ -3826,6 +3897,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, R> WakeableStream for MapDone<I, R>
@@ -3836,6 +3911,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -3848,6 +3927,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, R> WakeableStream for MapPendingAndDone<I, R>
@@ -3857,6 +3940,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -3869,6 +3956,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I> WakeableStream for MapDelayed<I>
@@ -3880,6 +3971,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I> WakeableStream for MapCircuit<I>
@@ -3890,6 +3985,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -3903,6 +4002,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F> WakeableStream for SInspectState<I, F>
@@ -3914,6 +4017,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -3927,6 +4034,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F> WakeableStream for STakeWhileState<I, F>
@@ -3938,6 +4049,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -3951,6 +4066,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F> WakeableStream for SSkipWhileState<I, F>
@@ -3962,6 +4081,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -3975,6 +4098,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F> WakeableStream for SSkipState<I, F>
@@ -3987,6 +4114,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I> WakeableStream for SEnumerate<I>
@@ -3997,6 +4128,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -4010,6 +4145,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F, R> WakeableStream for SFindMap<I, F, R>
@@ -4021,6 +4160,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -4034,6 +4177,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I, F> WakeableStream for SAll<I, F>
@@ -4044,6 +4191,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 
@@ -4056,6 +4207,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I> WakeableStream for SCount<I>
@@ -4066,6 +4221,10 @@ where
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
     }
+
+    fn announce(&mut self) {
+        self.inner.announce();
+    }
 }
 
 impl<I> WakeableStream for SCountAll<I>
@@ -4075,6 +4234,10 @@ where
 {
     fn wake(&mut self, cb: WakeCallback) -> WakeResult {
         self.inner.wake(cb)
+    }
+
+    fn announce(&mut self) {
+        self.inner.announce();
     }
 }
 

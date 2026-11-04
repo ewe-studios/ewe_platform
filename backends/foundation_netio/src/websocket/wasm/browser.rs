@@ -194,8 +194,7 @@ impl WasmWebSocketBridge {
                     });
             }
         };
-        result
-            .map_err(|e| WebSocketError::ProtocolError(format!("WebSocket send failed: {e:?}")))
+        result.map_err(|e| WebSocketError::ProtocolError(format!("WebSocket send failed: {e:?}")))
     }
 }
 
@@ -259,10 +258,7 @@ pub(super) struct StreamToTaskAdapter {
 }
 
 impl Iterator for StreamToTaskAdapter {
-    type Item = TaskStatus<
-        Result<WebSocketMessage, WebSocketError>,
-        WsProgress,
-    >;
+    type Item = TaskStatus<Result<WebSocketMessage, WebSocketError>, WsProgress>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next()? {
@@ -277,7 +273,9 @@ impl Iterator for StreamToTaskAdapter {
                     .into_iter()
                     .map(|spread| match spread {
                         foundation_core::valtron::StreamSpread::Done(d) => TaskSpread::Ready(d),
-                        foundation_core::valtron::StreamSpread::Pending(p) => TaskSpread::Pending(p),
+                        foundation_core::valtron::StreamSpread::Pending(p) => {
+                            TaskSpread::Pending(p)
+                        }
                     })
                     .collect();
                 Some(TaskStatus::Spread(mapped))

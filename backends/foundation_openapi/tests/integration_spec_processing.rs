@@ -138,8 +138,8 @@ fn normalized_output_contains_endpoint_details() {
     // All endpoints must have non-empty operation_id and method
     for methods in normalized.endpoints.values() {
         for (method, endpoint) in methods {
-            assert!(!endpoint.operation_id.is_empty());
-            assert!(!method.is_empty());
+            assert_ne!(endpoint.operation_id, "");
+            assert_ne!(method, "");
         }
     }
 }
@@ -169,7 +169,7 @@ fn type_definitions_include_required_fields() {
 
     // Validate all type definitions have required fields
     for type_def in normalized.types.values() {
-        assert!(!type_def.name.is_empty());
+        assert_ne!(type_def.name, "");
         let type_json = serde_json::to_string(&type_def).expect("Should serialize type");
         assert!(type_json.contains("\"name\""));
         assert!(type_json.contains("\"kind\""));
@@ -257,6 +257,6 @@ fn gcp_endpoint_extracted_with_full_structure() {
     assert_eq!(endpoint.operation_id, "abusiveexperiencereport.sites.get");
 
     assert!(endpoint.response_type.is_some());
-    assert!(!endpoint.success_codes.is_empty());
+    assert_ne!(endpoint.success_codes, Vec::<String>::new());
     assert_eq!(endpoint.path_params.len(), 1);
 }

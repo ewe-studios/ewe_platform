@@ -29,7 +29,7 @@ pub struct VmState {
     pub monitor_socket: String,
     /// Resolved SSH port.
     pub ssh_port: u16,
-    /// Resolved WinRM port.
+    /// Resolved `WinRM` port.
     pub winrm_port: Option<u16>,
     /// Resolved RDP port.
     pub rdp_port: Option<u16>,
@@ -42,6 +42,11 @@ pub struct VmState {
 }
 
 /// Save VM state to disk.
+///
+/// # Errors
+///
+/// Returns an error if the state cannot be serialized, if the directory cannot
+/// be created, or if the file cannot be written.
 pub fn save(state: &VmState) -> Result<()> {
     let path = state_path(&state.profile_name);
     let json = serde_json::to_string_pretty(state).map_err(|e| TestbedError::Qcow2Error {
@@ -52,11 +57,11 @@ pub fn save(state: &VmState) -> Result<()> {
     // on a fresh machine; don't rely on a launch path having created it.
     let dir = state_dir();
     std::fs::create_dir_all(&dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating state directory {dir:?}: {e}"),
+        message: format!("creating state directory {}: {e}", dir.display()),
     })?;
 
     std::fs::write(&path, json).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("writing state to {path:?}: {e}"),
+        message: format!("writing state to {}: {e}", path.display()),
     })?;
 
     Ok(())
@@ -66,6 +71,11 @@ pub fn save(state: &VmState) -> Result<()> {
 ///
 /// Performs stale PID detection: if the process is gone, marks the VM
 /// as stopped (sets PID to None) and saves the cleaned state.
+///
+/// # Errors
+///
+/// Returns an error if the state file does not exist, cannot be read, or cannot
+/// be parsed, or if the cleaned state cannot be saved.
 pub fn load(name: &str) -> Result<VmState> {
     let path = state_path(name);
     if !path.exists() {
@@ -75,7 +85,7 @@ pub fn load(name: &str) -> Result<VmState> {
     }
 
     let json = std::fs::read_to_string(&path).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("reading state from {path:?}: {e}"),
+        message: format!("reading state from {}: {e}", path.display()),
     })?;
 
     let mut state: VmState = serde_json::from_str(&json).map_err(|e| TestbedError::Qcow2Error {
@@ -84,26 +94,32 @@ pub fn load(name: &str) -> Result<VmState> {
 
     // Stale PID detection
     if let Some(pid) = state.pid
-        && !is_process_alive(pid) {
-            state.pid = None; // Process is gone
-            // Save cleaned state
-            save(&state)?;
-        }
+        && !is_process_alive(pid)
+    {
+        state.pid = None; // Process is gone
+        // Save cleaned state
+        save(&state)?;
+    }
 
     Ok(state)
 }
 
 /// Check if a VM has a state file.
+#[must_use]
 pub fn exists(name: &str) -> bool {
     state_path(name).exists()
 }
 
 /// Delete VM state file.
+///
+/// # Errors
+///
+/// Returns an error if the state file cannot be removed.
 pub fn delete(name: &str) -> Result<()> {
     let path = state_path(name);
     if path.exists() {
         std::fs::remove_file(&path).map_err(|e| TestbedError::Qcow2Error {
-            message: format!("deleting state {path:?}: {e}"),
+            message: format!("deleting state {}: {e}", path.display()),
         })?;
     }
     Ok(())
@@ -111,7 +127,11 @@ pub fn delete(name: &str) -> Result<()> {
 
 /// List all known VMs.
 ///
-/// Returns (profile_name, state) for each state file.
+/// Returns (`profile_name`, state) for each state file.
+///
+/// # Errors
+///
+/// Returns an error if the state directory cannot be read.
 pub fn list() -> Result<Vec<(String, VmState)>> {
     let dir = state_dir();
     if !dir.exists() {
@@ -120,7 +140,7 @@ pub fn list() -> Result<Vec<(String, VmState)>> {
 
     let mut vms = Vec::new();
     for entry in std::fs::read_dir(&dir).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("reading state dir {dir:?}: {e}"),
+        message: format!("reading state dir {}: {e}", dir.display()),
     })? {
         let entry = entry.map_err(|e| TestbedError::Qcow2Error {
             message: format!("reading state entry: {e}"),
@@ -128,24 +148,28 @@ pub fn list() -> Result<Vec<(String, VmState)>> {
         let path = entry.path();
         if path.extension().and_then(|e| e.to_str()) == Some("json")
             && let Ok(json) = std::fs::read_to_string(&path)
-                && let Ok(state) = serde_json::from_str::<VmState>(&json) {
-                    vms.push((state.profile_name.clone(), state));
-                }
+            && let Ok(state) = serde_json::from_str::<VmState>(&json)
+        {
+            vms.push((state.profile_name.clone(), state));
+        }
     }
 
     Ok(vms)
 }
 
 /// Check if a VM is currently running (has a live PID).
+#[must_use]
 pub fn is_running(name: &str) -> bool {
     if let Ok(state) = load(name)
-        && let Some(pid) = state.pid {
-            return is_process_alive(pid);
-        }
+        && let Some(pid) = state.pid
+    {
+        return is_process_alive(pid);
+    }
     false
 }
 
-/// Build a VmState from runtime info.
+/// Build a `VmState` from runtime info.
+#[must_use]
 pub fn from_runtime(
     profile_name: &str,
     disk_path: &std::path::Path,
@@ -169,14 +193,16 @@ pub fn from_runtime(
         rdp_port,
         vnc_port,
         bootstrapped,
-        created_at: format!("{}T{}",
+        created_at: format!(
+            "{}T{}",
             chrono::Utc::now().date_naive(),
             chrono::Utc::now().time()
         ),
     }
 }
 
-/// Build a VmState from QEMU runtime info (legacy, prefer from_runtime).
+/// Build a `VmState` from QEMU runtime info (legacy, prefer `from_runtime`).
+#[must_use]
 pub fn from_qemu(
     profile_name: &str,
     disk_path: &std::path::Path,
@@ -200,7 +226,8 @@ pub fn from_qemu(
         rdp_port,
         vnc_port,
         bootstrapped,
-        created_at: format!("{}T{}",
+        created_at: format!(
+            "{}T{}",
             chrono::Utc::now().date_naive(),
             chrono::Utc::now().time()
         ),
@@ -215,13 +242,16 @@ fn state_path(name: &str) -> PathBuf {
 }
 
 /// State directory path.
+#[must_use]
 pub fn state_dir() -> PathBuf {
     crate::config::state_dir()
 }
 
 /// Check if a process is alive via kill(pid, 0).
+#[must_use]
 pub fn is_process_alive(pid: u32) -> bool {
     #[cfg(unix)]
+    #[allow(clippy::cast_possible_wrap)] // PID fits in i32 on supported Unix targets.
     {
         unsafe { libc::kill(pid as i32, 0) == 0 }
     }
@@ -231,4 +261,3 @@ pub fn is_process_alive(pid: u32) -> bool {
         false
     }
 }
-

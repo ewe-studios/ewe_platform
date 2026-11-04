@@ -6,7 +6,9 @@
 /// Run: cargo run -p foundation_nativeapis --features ipc --example ipc_rejoin
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 fn main() {
-    use foundation_nativeapis::ipc::{self, BytesMessage, Label, LabelOp, Message, Options, Selector};
+    use foundation_nativeapis::ipc::{
+        self, BytesMessage, Label, LabelOp, Message, Options, Selector,
+    };
     use std::time::Duration;
 
     let ts = std::time::SystemTime::now()
@@ -43,9 +45,7 @@ fn main() {
         ))
         .expect("send");
 
-    let msg = receiver
-        .recv(Some(Duration::from_secs(2)))
-        .expect("recv");
+    let msg = receiver.recv(Some(Duration::from_secs(2))).expect("recv");
     println!(
         "  Received: format={} data={:?}",
         msg.payload.format,

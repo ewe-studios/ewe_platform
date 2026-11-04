@@ -68,11 +68,10 @@ impl SchemaGenerator {
 
         let mut structs = Vec::new();
         for file_path in &rust_files {
-            let content =
-                std::fs::read_to_string(file_path).map_err(|e| SchemaGenError::Io {
-                    path: file_path.clone(),
-                    source: e,
-                })?;
+            let content = std::fs::read_to_string(file_path).map_err(|e| SchemaGenError::Io {
+                path: file_path.clone(),
+                source: e,
+            })?;
 
             let syntax = syn::parse_file(&content).map_err(|e| SchemaGenError::ParseError {
                 path: file_path.clone(),

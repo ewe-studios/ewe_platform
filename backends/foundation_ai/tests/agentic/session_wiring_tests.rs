@@ -122,7 +122,7 @@ impl RecordingTool {
 #[async_trait]
 impl ToolImpl for RecordingTool {
     fn definition(&self) -> Tool {
-        Tool::SingleCommand(ToolDefinition {
+        Tool::SingleCommand(Box::new(ToolDefinition {
             name: "greet".into(),
             category: "custom".into(),
             description: "Greet someone by name.".into(),
@@ -132,7 +132,7 @@ impl ToolImpl for RecordingTool {
                     .build(),
             ),
             returns: None,
-        })
+        }))
     }
 
     async fn execute(&self, arguments: ToolArguments) -> Result<ToolCallResult, ToolError> {
@@ -212,7 +212,10 @@ async fn store_setters_need_no_default_bound() {
         KvMemoryStore::new(MemoryStorage::new()),
     )
     .await;
-    let records = session.run_turn(user_msg("hi")).await.expect("turn succeeds");
+    let records = session
+        .run_turn(user_msg("hi"))
+        .await
+        .expect("turn succeeds");
     assert!(records.iter().any(|r| matches!(
         r,
         SessionRecord::Conversation {
@@ -247,7 +250,8 @@ async fn memory_tool_writes_reach_the_assembled_context() {
     activate(&session, &["memory"]);
 
     let records = session
-        .run_turn(user_msg("remember I like tea")).await
+        .run_turn(user_msg("remember I like tea"))
+        .await
         .expect("turn succeeds");
     assert_eq!(
         tool_results(&records),
@@ -292,7 +296,8 @@ async fn resume_sees_earlier_history() {
         .await
         .expect("first session builds");
     first
-        .run_turn(user_msg("first question")).await
+        .run_turn(user_msg("first question"))
+        .await
         .expect("turn succeeds");
     first.end().await.expect("end succeeds");
 
@@ -377,7 +382,10 @@ async fn streamed_deltas_are_persisted_as_one_message() {
     ]);
     let session = session_with(mock).await;
 
-    session.run_turn(user_msg("hi")).await.expect("turn succeeds");
+    session
+        .run_turn(user_msg("hi"))
+        .await
+        .expect("turn succeeds");
     assert_eq!(
         stored_assistant_texts(&session).await,
         vec!["Hello, world".to_string()]
@@ -394,7 +402,10 @@ async fn streamed_snapshots_are_persisted_as_one_message() {
     ]);
     let session = session_with(mock).await;
 
-    session.run_turn(user_msg("hi")).await.expect("turn succeeds");
+    session
+        .run_turn(user_msg("hi"))
+        .await
+        .expect("turn succeeds");
     assert_eq!(
         stored_assistant_texts(&session).await,
         vec!["Hello, world".to_string()]
@@ -458,7 +469,8 @@ async fn the_model_is_offered_only_shed_until_shed_returns_a_tool() {
     let (tool, seen) = RecordingTool::new();
     let session = session_with_tools(mock, ToolShed::new().tool(tool)).await;
     let records = session
-        .run_turn(user_msg("greet Ada")).await
+        .run_turn(user_msg("greet Ada"))
+        .await
         .expect("turn succeeds");
 
     let offered = offered.lock().unwrap().clone();
@@ -498,7 +510,8 @@ async fn calling_a_tool_before_shed_returns_it_is_a_tool_error() {
     let (tool, seen) = RecordingTool::new();
     let session = session_with_tools(mock, ToolShed::new().tool(tool)).await;
     let records = session
-        .run_turn(user_msg("greet Ada")).await
+        .run_turn(user_msg("greet Ada"))
+        .await
         .expect("turn succeeds");
 
     let results = tool_results(&records);
@@ -521,7 +534,10 @@ async fn a_tool_less_session_declares_no_tools() {
     mock.on_any(vec![mock_text("hi")]);
 
     let session = session_with(mock).await;
-    session.run_turn(user_msg("hi")).await.expect("turn succeeds");
+    session
+        .run_turn(user_msg("hi"))
+        .await
+        .expect("turn succeeds");
     assert_eq!(offered.lock().unwrap()[0], Vec::<String>::new());
 }
 
@@ -530,8 +546,9 @@ async fn a_tool_less_session_declares_no_tools() {
 /// common with its name or description.
 struct GreetingEmbedder;
 
+#[async_trait::async_trait]
 impl EmbeddingProvider for GreetingEmbedder {
-    fn embed(&self, text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
+    async fn embed(&self, text: &str, _model_id: &str) -> Result<EmbeddingVector, EmbeddingError> {
         let lower = text.to_lowercase();
         let data = if lower.contains("greet") || lower.contains("salute") {
             vec![1.0, 0.0]
@@ -544,12 +561,16 @@ impl EmbeddingProvider for GreetingEmbedder {
             model_id: "greeting".into(),
         })
     }
-    fn embed_batch(
+    async fn embed_batch(
         &self,
         texts: &[String],
         model_id: &str,
     ) -> Result<Vec<EmbeddingVector>, EmbeddingError> {
-        texts.iter().map(|t| self.embed(t, model_id)).collect()
+        let mut out = Vec::with_capacity(texts.len());
+        for t in texts {
+            out.push(self.embed(t, model_id).await?);
+        }
+        Ok(out)
     }
     fn register_model(&self, _model_id: &str, _dimensions: u16) {}
     fn cache_stats(&self) -> CacheStats {
@@ -662,7 +683,8 @@ async fn text_protocol_tool_calls_run_the_tool() {
     activate(&session, &["greet"]);
 
     let records = session
-        .run_turn(user_msg("greet Ada")).await
+        .run_turn(user_msg("greet Ada"))
+        .await
         .expect("turn succeeds");
 
     assert_eq!(tool_results(&records), vec![("greet".to_string(), None)]);
@@ -675,7 +697,9 @@ async fn text_protocol_tool_calls_run_the_tool() {
             "the tool receives the call's arguments, not the envelope"
         );
     }
-    assert!(stored_assistant_texts(&session).await.contains(&"Let me greet them.".to_string()));
+    assert!(stored_assistant_texts(&session)
+        .await
+        .contains(&"Let me greet them.".to_string()));
 }
 
 #[valtron_test]
@@ -688,7 +712,10 @@ async fn arguments_violating_the_schema_are_rejected_before_execution() {
     let session = session_with_tools(mock, ToolShed::new().tool(tool)).await;
     activate(&session, &["greet"]);
 
-    let records = session.run_turn(user_msg("greet")).await.expect("turn succeeds");
+    let records = session
+        .run_turn(user_msg("greet"))
+        .await
+        .expect("turn succeeds");
     let results = tool_results(&records);
     assert_eq!(results.len(), 1);
     assert!(
@@ -769,7 +796,8 @@ async fn denied_tools_do_not_run() {
     activate(&session, &["greet"]);
 
     let records = session
-        .run_turn(user_msg("greet Ada")).await
+        .run_turn(user_msg("greet Ada"))
+        .await
         .expect("turn succeeds");
     let results = tool_results(&records);
     assert!(
@@ -796,7 +824,10 @@ async fn refused_spend_ends_the_turn() {
     });
     let session = session_with_access(mock, access).await;
 
-    let turn = session.run_turn(user_msg("hi")).await.expect("the turn started");
+    let turn = session
+        .run_turn(user_msg("hi"))
+        .await
+        .expect("the turn started");
     let err = turn.failure().expect("spend refused");
     assert!(err.to_string().contains("budget exceeded"), "{err}");
     assert!(turn.text().is_empty(), "nothing was generated");
@@ -821,6 +852,9 @@ async fn usage_is_reported_to_the_access_provider() {
     });
     let session = session_with_access(mock, Arc::clone(&access)).await;
 
-    session.run_turn(user_msg("hi")).await.expect("turn succeeds");
+    session
+        .run_turn(user_msg("hi"))
+        .await
+        .expect("turn succeeds");
     assert_eq!(access.recorded.load(Ordering::Relaxed), 12);
 }

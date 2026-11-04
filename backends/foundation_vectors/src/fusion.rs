@@ -51,7 +51,11 @@ fn fuse_rrf(
         })
         .collect();
 
-    results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+    results.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     results.truncate(k);
     results
 }
@@ -109,22 +113,34 @@ fn fuse_alpha(
         .map(|(id, score)| VectorMatch { id, score })
         .collect();
 
-    results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+    results.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     results.truncate(k);
     results
 }
 
 pub trait Reranker: Send + Sync {
-    fn rerank(
-        &self,
-        query: &str,
-        candidates: Vec<VectorMatch>,
-        texts: &[&str],
-    ) -> Vec<VectorMatch>;
+    fn rerank(&self, query: &str, candidates: Vec<VectorMatch>, texts: &[&str])
+        -> Vec<VectorMatch>;
+}
+
+/// An id → text source for reranking. The text is the document a candidate id
+/// points at (for example, a stored message body).
+#[async_trait::async_trait]
+pub trait TextLookup: Send + Sync {
+    /// The text for `id`, or `None` when there is no text for it.
+    async fn text(&self, id: &str) -> Option<String>;
 }
 
 /// Search `vector_store` and `bm25` for `2 * k` candidates each, fuse them
 /// with `strategy`, then rerank the fused list when a reranker is given.
+///
+/// `texts` supplies one text per fused candidate, in fused order, so the
+/// reranker can read the documents. A candidate with no text reads as an empty
+/// string, which keeps the lists aligned.
 ///
 /// # Errors
 /// The vector store's search error. A failed vector search is not read as
@@ -136,6 +152,7 @@ pub async fn hybrid_search(
     namespace: &str,
     vector_store: &dyn crate::store::VectorStore,
     bm25: &crate::bm25::Bm25Index,
+    texts: &dyn TextLookup,
     k: usize,
     strategy: FusionStrategy,
     reranker: Option<&dyn Reranker>,
@@ -150,8 +167,14 @@ pub async fn hybrid_search(
     let mut fused = fuse(&vector_results, &keyword_results, k, strategy);
 
     if let Some(rr) = reranker {
-        let texts: Vec<&str> = Vec::new();
-        fused = rr.rerank(query_text, fused, &texts);
+        // Fetch one text per fused candidate, in order. The fetched strings are
+        // owned here and borrowed only for the rerank call.
+        let mut fetched: Vec<String> = Vec::with_capacity(fused.len());
+        for m in &fused {
+            fetched.push(texts.text(&m.id).await.unwrap_or_default());
+        }
+        let refs: Vec<&str> = fetched.iter().map(String::as_str).collect();
+        fused = rr.rerank(query_text, fused, &refs);
         fused.truncate(k);
     }
 

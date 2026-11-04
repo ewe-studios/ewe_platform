@@ -10,52 +10,59 @@ mod builder;
 mod cache;
 pub mod capability;
 pub mod codegen;
+pub mod ewe;
 mod injector;
 pub mod ipc;
 pub mod multi_app;
 mod mutation;
 pub mod ota;
 pub mod overlay;
-pub mod stack;
-pub mod window;
-pub mod worker;
-pub mod ewe;
 pub mod pattern;
 pub mod profiles;
 mod responder;
 mod route;
 pub mod route_handler;
 mod session;
+pub mod stack;
 mod types;
 mod wasmtime_responder;
+pub mod window;
+pub mod worker;
 
 pub use profiles::{default_profile_for_source, Access, ProfileError, ProfileGate, Service};
 
-pub use backend::{query_backend, BackendTransport, ClosureTransport, DefaultTransport};
 pub use backend::http::HttpBackend;
 pub use backend::ipc_dispatch::{dispatch_ipc, SessionTransport};
+pub use backend::{query_backend, BackendTransport, ClosureTransport, DefaultTransport};
 pub use builder::PlatformBuilder;
 pub use cache::{CacheManager, CacheStorage, CachedEntry, MemoryCacheStorage};
 pub use capability::{CapabilityRegistry, PlatformCapability};
+pub use ewe::{
+    encode_protocol, register_ewe_protocol, select_protocol, transport_for_source, Transport,
+};
+pub use foundation_wasm::{CapabilityRequest, CapabilityResponse};
 pub use multi_app::{AppConfig, AppIsolation};
-pub use mutation::{MemoryQueueStorage, Mutation, MutationQueue, MutationStatus, QueueStorage, ReplayError, ReplayResult};
+pub use mutation::{
+    MemoryQueueStorage, Mutation, MutationQueue, MutationStatus, QueueStorage, ReplayError,
+    ReplayResult,
+};
 pub use ota::{LocalVersion, OtaAppEntry, OtaFileEntry, OtaManifest, PackageDirectorate};
-pub use stack::{PooledWebView, PreloadEntry, SlotState, StackConfig, WebViewOps, WebViewPool, WebViewSlot, WebViewStack, WebViewState};
-pub use ewe::{encode_protocol, register_ewe_protocol, select_protocol, transport_for_source, Transport};
 pub use overlay::{OverlayCapability, OverlayConfig, OverlayPosition};
 pub use responder::{MobileApp, MobileDisk, RemoteProxy, WebviewApp};
-pub use wasmtime_responder::{wasmtime_app, WasmtimeResponder, WasmtimeShell};
-pub use window::{NoopWindowOps, WindowManager, WindowOps};
-pub use worker::{WorkerChannel, WorkerReceiver, WorkerRegistry};
 pub use route::{ipc_shell, ipc_shell_with, remote_fetch, webview_app, RouteDecisionExt};
 pub use route_handler::{FnRouteHandler, RouteHandler, RouteResponder};
 pub use session::{PlatformSession, SessionEvent};
-pub use foundation_wasm::{CapabilityRequest, CapabilityResponse};
+pub use stack::{
+    PooledWebView, PreloadEntry, SlotState, StackConfig, WebViewOps, WebViewPool, WebViewSlot,
+    WebViewStack, WebViewState,
+};
+pub use wasmtime_responder::{wasmtime_app, WasmtimeResponder, WasmtimeShell};
+pub use window::{NoopWindowOps, WindowManager, WindowOps};
+pub use worker::{WorkerChannel, WorkerReceiver, WorkerRegistry};
 
 // Re-export all platform types from foundation_ui_traits so consumers
 // only need one `use foundation_platform::*` import.
 pub use foundation_ui_traits::*;
-
 
 /// Build and launch a `foundation_platform` app.
 ///
@@ -71,7 +78,8 @@ pub use foundation_ui_traits::*;
 macro_rules! platform_run {
     ($builder:expr) => {{
         let __builder: $crate::PlatformBuilder = $builder;
-        __builder.build(::tauri::generate_context!())
+        __builder
+            .build(::tauri::generate_context!())
             .expect("failed to build foundation_platform app")
             .run(|_handle, event| {
                 if let ::tauri::RunEvent::Exit = event {
@@ -81,7 +89,8 @@ macro_rules! platform_run {
     }};
     ($builder:expr, |$handle:ident, $event:ident| $body:block) => {{
         let __builder: $crate::PlatformBuilder = $builder;
-        __builder.build(::tauri::generate_context!())
+        __builder
+            .build(::tauri::generate_context!())
             .expect("failed to build foundation_platform app")
             .run(|$handle, $event| $body)
     }};

@@ -34,7 +34,7 @@ fn test_totp_deterministic() {
 fn test_totp_base32() {
     let secret = TOTPSecret::generate();
     let b32 = secret.to_base32();
-    assert!(!b32.is_empty());
+    assert_ne!(b32, "");
     assert!(b32.chars().all(|c| c.is_ascii_alphanumeric()));
 }
 

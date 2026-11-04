@@ -18,7 +18,6 @@
 //! client + cache dir but download nothing until `get_model`, so we point them
 //! at a throwaway cache dir and exercise routing only.
 
-use foundation_core::valtron::valtron_test;
 use foundation_ai::agentic::AgenticError;
 use foundation_ai::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
 use foundation_ai::harness::{
@@ -26,6 +25,7 @@ use foundation_ai::harness::{
     OPENAI_GPT4O_MINI,
 };
 use foundation_ai::types::{ModelId, ModelProviders, RouterError};
+use foundation_core::valtron::valtron_test;
 
 fn named(id: &str) -> ModelId {
     ModelId::Name(id.to_string(), None)
@@ -232,7 +232,10 @@ fn gemma_preset_rejects_unknown_model() {
     // An unknown model must not resolve to any provider. (BoxModel is not Debug,
     // so match on the Result rather than formatting it.)
     assert!(
-        preset.router.get_model(&named("nobody/serves-this")).is_err(),
+        preset
+            .router
+            .get_model(&named("nobody/serves-this"))
+            .is_err(),
         "an unknown model must not resolve"
     );
 }
@@ -265,7 +268,11 @@ async fn all_presets_build_sessions_offline() {
     use foundation_ai::agentic::{AgentSession, ModelSelection};
 
     async fn session(preset: RouterPreset) -> AgentSession {
-        preset.into_agent_builder().build().await.expect("session builds")
+        preset
+            .into_agent_builder()
+            .build()
+            .await
+            .expect("session builds")
     }
 
     // GGUF-backed presets (throwaway configs → no download at construction).
@@ -352,9 +359,21 @@ fn all_preset_quantizations_build_offline() {
     // Each preset × each quantization must construct a provider.
     macro_rules! check {
         ($p:ty) => {{
-            assert!(<$p>::q3_k_m(Some(cfg())).is_ok(), "{} q3_k_m", stringify!($p));
-            assert!(<$p>::q4_k_m(Some(cfg())).is_ok(), "{} q4_k_m", stringify!($p));
-            assert!(<$p>::q5_k_m(Some(cfg())).is_ok(), "{} q5_k_m", stringify!($p));
+            assert!(
+                <$p>::q3_k_m(Some(cfg())).is_ok(),
+                "{} q3_k_m",
+                stringify!($p)
+            );
+            assert!(
+                <$p>::q4_k_m(Some(cfg())).is_ok(),
+                "{} q4_k_m",
+                stringify!($p)
+            );
+            assert!(
+                <$p>::q5_k_m(Some(cfg())).is_ok(),
+                "{} q5_k_m",
+                stringify!($p)
+            );
             assert!(<$p>::q8_0(Some(cfg())).is_ok(), "{} q8_0", stringify!($p));
         }};
     }

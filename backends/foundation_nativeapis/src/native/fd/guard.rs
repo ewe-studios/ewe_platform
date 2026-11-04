@@ -4,7 +4,6 @@
 /// is dropped without being explicitly handled. This prevents the critical
 /// bug of forgetting to clear readiness after an operation, which causes
 /// the fd to appear ready forever on edge-triggered pollers.
-
 use crate::native::fd::{Ready, RegisteredFd};
 
 use std::io;
@@ -32,7 +31,7 @@ impl<'a, T: AsRawFd + std::fmt::Debug> std::fmt::Debug for ReadyGuard<'a, T> {
 }
 
 impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
-#[allow(dead_code)]
+    #[allow(dead_code)]
     pub(crate) fn new(fd: &'a RegisteredFd<T>, readiness: Ready) -> Self {
         Self { fd, readiness }
     }
@@ -154,7 +153,7 @@ pub struct MutReadyGuard<'a, T: AsRawFd> {
 }
 
 impl<'a, T: AsRawFd> MutReadyGuard<'a, T> {
-#[allow(dead_code)]
+    #[allow(dead_code)]
     pub(crate) fn new(fd: &'a mut RegisteredFd<T>, readiness: Ready) -> Self {
         Self { fd, readiness }
     }

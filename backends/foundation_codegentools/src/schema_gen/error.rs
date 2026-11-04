@@ -26,7 +26,11 @@ impl std::fmt::Display for SchemaGenError {
             Self::CrateNotFound(p) => write!(f, "crate directory not found: {}", p.display()),
             Self::NoCargoToml(p) => write!(f, "no Cargo.toml found in {}", p.display()),
             Self::CargoTomlParse { path, source } => {
-                write!(f, "failed to parse Cargo.toml at {}: {source}", path.display())
+                write!(
+                    f,
+                    "failed to parse Cargo.toml at {}: {source}",
+                    path.display()
+                )
             }
             Self::ScanError(e) => write!(f, "source scanning failed: {e}"),
             Self::ParseError { path, message } => {

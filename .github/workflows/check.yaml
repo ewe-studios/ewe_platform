@@ -102,11 +102,27 @@ jobs:
       credentials:
         username: ${{ needs.image.outputs.registry-username }}
         password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+      # The runner's preinstalled .NET, Android, Haskell and Boost trees are
+      # mounted in so the first step can delete them: a container job cannot
+      # reach the host disk otherwise, and large packages (foundation_ai,
+      # the publish dry-run) ran out of space on the ~14 GB free by default.
+      options: >-
+        -v /usr/share/dotnet:/runner-free/dotnet
+        -v /usr/local/lib/android:/runner-free/android
+        -v /opt/ghc:/runner-free/ghc
+        -v /usr/local/.ghcup:/runner-free/ghcup
+        -v /usr/local/share/boost:/runner-free/boost
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
+      - name: Free runner disk
+        run: |
+          df -h /
+          find /runner-free -mindepth 2 -maxdepth 2 -exec rm -rf {} +
+          df -h /
+
       - name: Checkout
         uses: actions/checkout@v4.4.0
         with:
@@ -250,8 +266,24 @@ jobs:
       credentials:
         username: ${{ needs.image.outputs.registry-username }}
         password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
+      # The runner's preinstalled .NET, Android, Haskell and Boost trees are
+      # mounted in so the first step can delete them: a container job cannot
+      # reach the host disk otherwise, and large packages (foundation_ai,
+      # the publish dry-run) ran out of space on the ~14 GB free by default.
+      options: >-
+        -v /usr/share/dotnet:/runner-free/dotnet
+        -v /usr/local/lib/android:/runner-free/android
+        -v /opt/ghc:/runner-free/ghc
+        -v /usr/local/.ghcup:/runner-free/ghcup
+        -v /usr/local/share/boost:/runner-free/boost
     timeout-minutes: 120
     steps:
+      - name: Free runner disk
+        run: |
+          df -h /
+          find /runner-free -mindepth 2 -maxdepth 2 -exec rm -rf {} +
+          df -h /
+
       - name: Checkout
         uses: actions/checkout@v4.4.0
         with:

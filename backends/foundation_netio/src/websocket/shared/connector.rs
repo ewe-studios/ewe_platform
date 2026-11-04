@@ -38,9 +38,9 @@ use crate::websocket::shared::message::WebSocketMessage;
 /// platform-agnostic.
 pub type WsExchangeTask = Box<
     dyn TaskIterator<
-        Ready = Result<WebSocketMessage, WebSocketError>,
-        Pending = crate::websocket::shared::client::WsProgress,
-    > + Send,
+            Ready = Result<WebSocketMessage, WebSocketError>,
+            Pending = crate::websocket::shared::client::WsProgress,
+        > + Send,
 >;
 
 /// Trait for opening WebSocket connections through a client.

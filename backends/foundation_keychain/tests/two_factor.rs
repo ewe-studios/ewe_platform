@@ -7,7 +7,9 @@ use std::sync::Arc;
 
 use base32::Alphabet;
 use foundation_auth::shared::two_factor::TOTPSecret;
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::two_factor;
@@ -72,8 +74,8 @@ fn full_totp_lifecycle() {
     // The current code enables it and yields a recovery code.
     let code = current_code(&key);
     let c = ctx.clone();
-    let enabled =
-        drive(async move { two_factor::enable_authenticator(&c, USER, &code).await }).expect("enable");
+    let enabled = drive(async move { two_factor::enable_authenticator(&c, USER, &code).await })
+        .expect("enable");
     assert!(enabled.enabled);
     assert!(!enabled.recovery_code.is_empty());
     let recovery = enabled.recovery_code.clone();
@@ -88,14 +90,20 @@ fn full_totp_lifecycle() {
     // The recovery code also verifies; a random one does not.
     let c = ctx.clone();
     let rec = recovery.clone();
-    assert!(drive(async move { two_factor::verify(&c, USER, &rec).await }).expect("verify recovery"));
+    assert!(
+        drive(async move { two_factor::verify(&c, USER, &rec).await }).expect("verify recovery")
+    );
     let c = ctx.clone();
-    assert!(!drive(async move { two_factor::verify(&c, USER, "not-a-code").await }).expect("verify bad"));
+    assert!(
+        !drive(async move { two_factor::verify(&c, USER, "not-a-code").await })
+            .expect("verify bad")
+    );
 
     // Disable with a current code; afterwards it is off.
     let code = current_code(&key);
     let c = ctx.clone();
-    drive(async move { two_factor::disable_authenticator(&c, USER, &code).await }).expect("disable");
+    drive(async move { two_factor::disable_authenticator(&c, USER, &code).await })
+        .expect("disable");
     let c = ctx.clone();
     assert!(!drive(async move { two_factor::is_enabled(&c, USER).await }).expect("disabled?"));
 }

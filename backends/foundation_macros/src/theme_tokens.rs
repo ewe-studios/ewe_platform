@@ -113,8 +113,9 @@ fn parse_token_attr(field: &syn::Field) -> Result<Option<ThemeToken>, syn::Error
         let span = field.span();
         let category =
             category.ok_or_else(|| syn::Error::new(span, "#[token] needs category = \"…\""))?;
-        let light = light
-            .ok_or_else(|| syn::Error::new(span, "#[token] needs light = \"…\" or value = \"…\""))?;
+        let light = light.ok_or_else(|| {
+            syn::Error::new(span, "#[token] needs light = \"…\" or value = \"…\"")
+        })?;
         let name = field
             .ident
             .as_ref()

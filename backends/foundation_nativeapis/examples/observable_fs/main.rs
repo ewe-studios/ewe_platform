@@ -1,6 +1,4 @@
-use foundation_nativeapis::shared::vfs::{
-    MemoryFs, ObservableFs, SyncFs, VfsFile, VfsFileSystem,
-};
+use foundation_nativeapis::shared::vfs::{MemoryFs, ObservableFs, SyncFs, VfsFile, VfsFileSystem};
 
 fn main() {
     println!("=== ObservableFs Example ===\n");
@@ -21,13 +19,15 @@ fn main() {
     file.write_at(b"first line\n", 0).unwrap();
     println!("Created and wrote to /data/log.txt");
 
-    fs.write_file("/data/config.json", b"{\"key\": \"value\"}").unwrap();
+    fs.write_file("/data/config.json", b"{\"key\": \"value\"}")
+        .unwrap();
     println!("Wrote /data/config.json");
 
     let _ = fs.stat("/data/log.txt").unwrap();
     println!("Stat'd /data/log.txt");
 
-    fs.rename("/data/config.json", "/data/settings.json").unwrap();
+    fs.rename("/data/config.json", "/data/settings.json")
+        .unwrap();
     println!("Renamed config.json → settings.json");
 
     // Drain all events from the subscriber

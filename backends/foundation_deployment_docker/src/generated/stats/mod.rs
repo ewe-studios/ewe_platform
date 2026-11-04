@@ -179,10 +179,10 @@ pub struct ContainerThrottlingData {
 pub struct ContainerStatsArgs {
     /// Path parameter: `id`.
     pub id: String,
-    /// Query parameter: `stream`.
-    pub stream: Option<String>,
-    /// Query parameter: `one-shot`.
-    pub one_shot: Option<String>,
+    /// Query parameter: `stream` (true/false).
+    pub stream: Option<bool>,
+    /// Query parameter: `one-shot` (true/false).
+    pub one_shot: Option<bool>,
 }
 
 // =============================================================================
@@ -234,8 +234,14 @@ where
     let mut builder = PreparedRequestBuilder::get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("stream", args.stream.as_deref());
-    builder = builder.query("one-shot", args.one_shot.as_deref());
+    builder = builder.query(
+        "stream",
+        args.stream.map(|b| if b { "true" } else { "false" }),
+    );
+    builder = builder.query(
+        "one-shot",
+        args.one_shot.map(|b| if b { "true" } else { "false" }),
+    );
 
     if let Some(f) = builder_mod {
         f(&mut builder);

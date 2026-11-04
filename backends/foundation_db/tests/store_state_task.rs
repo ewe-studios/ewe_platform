@@ -34,18 +34,12 @@ impl<T: Clone + Send + 'static> TaskIterator for MockSuccessTask<T> {
     type Ready = Result<T, String>;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>>
-    {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.called {
             None
         } else {
             self.called = true;
-            Some(TaskStatus::Ready(Ok(self
-                .value
-                .clone())))
+            Some(TaskStatus::Ready(Ok(self.value.clone())))
         }
     }
 }
@@ -70,18 +64,12 @@ impl TaskIterator for MockFailResourceTask {
     type Ready = Result<TestResource, String>;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>>
-    {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.called {
             None
         } else {
             self.called = true;
-            Some(TaskStatus::Ready(Err(self
-                .error
-                .clone())))
+            Some(TaskStatus::Ready(Err(self.error.clone())))
         }
     }
 }
@@ -106,18 +94,12 @@ impl TaskIterator for MockFailTask {
     type Ready = Result<String, String>;
     type Pending = ();
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>>
-    {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.called {
             None
         } else {
             self.called = true;
-            Some(TaskStatus::Ready(Err(self
-                .error
-                .clone())))
+            Some(TaskStatus::Ready(Err(self.error.clone())))
         }
     }
 }
@@ -157,7 +139,10 @@ struct TestArgs {
 async fn test_store_state_task_success() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().await.expect("Failed to init state store");
+    state_store
+        .init()
+        .await
+        .expect("Failed to init state store");
 
     let output = TestResource {
         id: "res-123".to_string(),
@@ -218,7 +203,10 @@ async fn test_store_state_task_success() {
 async fn test_store_state_task_inner_failure() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().await.expect("Failed to init state store");
+    state_store
+        .init()
+        .await
+        .expect("Failed to init state store");
 
     let input = TestArgs {
         name: "test".to_string(),
@@ -274,7 +262,10 @@ async fn test_store_state_task_inner_failure() {
 async fn test_store_state_identifier_task_success() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().await.expect("Failed to init state store");
+    state_store
+        .init()
+        .await
+        .expect("Failed to init state store");
 
     let output = TestResource {
         id: "res-456".to_string(),
@@ -332,7 +323,10 @@ async fn test_store_state_identifier_task_success() {
 async fn test_store_state_identifier_task_inner_failure() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let state_store = FileStateStore::new(temp_dir.path(), "test-project", "dev");
-    state_store.init().await.expect("Failed to init state store");
+    state_store
+        .init()
+        .await
+        .expect("Failed to init state store");
 
     let input = TestArgs {
         name: "test".to_string(),

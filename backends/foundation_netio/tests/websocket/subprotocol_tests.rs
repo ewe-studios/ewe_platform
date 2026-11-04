@@ -21,7 +21,7 @@ fn test_client_requests_subprotocol() {
     let server = WebSocketEchoServer::with_subprotocols("chat,superchat");
     // Extract base URL (strip |subprotocols=... part)
     let base_url = server.base_url().split('|').next().unwrap();
-    let url = format!("{}/echo", base_url);
+    let url = format!("{base_url}/echo");
 
     // Connect with subprotocol
     let result = WebSocketClient::with_options(
@@ -45,12 +45,12 @@ fn test_client_requests_subprotocol() {
     // Receive response
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Skip => {}
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                 assert_eq!(text, "test");
                 break;
             }
-            WebSocketEvent::Message(other) => panic!("expected Text message, got: {:?}", other),
+            WebSocketEvent::Message(other) => panic!("expected Text message, got: {other:?}"),
         }
     }
 }
@@ -63,7 +63,7 @@ fn test_client_with_subprotocol_builder() {
 
     let server = WebSocketEchoServer::with_subprotocols("chat");
     let base_url = server.base_url().split('|').next().unwrap();
-    let url = format!("{}/echo", base_url);
+    let url = format!("{base_url}/echo");
 
     // Connect using with_options to set subprotocol
     let result = WebSocketClient::with_options(
@@ -87,7 +87,7 @@ fn test_server_selects_first_matching_protocol() {
     // Server supports "chat" and "superchat"
     let server = WebSocketEchoServer::with_subprotocols("chat,superchat");
     let base_url = server.base_url().split('|').next().unwrap();
-    let url = format!("{}/echo", base_url);
+    let url = format!("{base_url}/echo");
 
     // Client requests "chat" first
     let result = WebSocketClient::with_options(
@@ -114,7 +114,7 @@ fn test_client_requests_multiple_subprotocols() {
     // Server supports "superchat" (second in list)
     let server = WebSocketEchoServer::with_subprotocols("superchat,chat");
     let base_url = server.base_url().split('|').next().unwrap();
-    let url = format!("{}/echo", base_url);
+    let url = format!("{base_url}/echo");
 
     // Client requests both, server should pick first match
     let result = WebSocketClient::with_options(
@@ -140,12 +140,12 @@ fn test_client_requests_multiple_subprotocols() {
 
     for event in client.messages() {
         match event.expect("should receive event") {
-            WebSocketEvent::Skip => continue,
+            WebSocketEvent::Skip => {}
             WebSocketEvent::Message(WebSocketMessage::Text(text)) => {
                 assert_eq!(text, "hello");
                 break;
             }
-            _ => break,
+            WebSocketEvent::Message(_) => break,
         }
     }
 }
@@ -159,7 +159,7 @@ fn test_connection_without_subprotocol() {
     // Server supports protocols but client doesn't request any
     let server = WebSocketEchoServer::with_subprotocols("chat,superchat");
     let base_url = server.base_url().split('|').next().unwrap();
-    let url = format!("{}/echo", base_url);
+    let url = format!("{base_url}/echo");
 
     let result = WebSocketClient::connect(
         SystemDnsResolver,
@@ -202,9 +202,7 @@ fn test_server_without_subprotocol_support() {
 #[test]
 #[serial(valtron_pool)]
 fn test_subprotocol_header_extraction() {
-    use foundation_netio::shared::http::{
-        SimpleHeader, SimpleIncomingRequest, SimpleMethod,
-    };
+    use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
     // Build a mock request with subprotocol header
     let builder = SimpleIncomingRequest::builder()
@@ -234,9 +232,7 @@ fn test_subprotocol_header_extraction() {
 #[test]
 #[serial(valtron_pool)]
 fn test_missing_subprotocol_returns_none() {
-    use foundation_netio::shared::http::{
-        SimpleHeader, SimpleIncomingRequest, SimpleMethod,
-    };
+    use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
     let builder = SimpleIncomingRequest::builder()
         .with_plain_url("http://localhost/chat")
@@ -263,9 +259,7 @@ fn test_missing_subprotocol_returns_none() {
 #[test]
 #[serial(valtron_pool)]
 fn test_empty_subprotocol_string() {
-    use foundation_netio::shared::http::{
-        SimpleHeader, SimpleIncomingRequest, SimpleMethod,
-    };
+    use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 
     let builder = SimpleIncomingRequest::builder()
         .with_plain_url("http://localhost/chat")
@@ -285,7 +279,7 @@ fn test_empty_subprotocol_string() {
 
     assert_eq!(
         protocols,
-        Some("".to_string()),
+        Some(String::new()),
         "Empty header value should return Some empty string"
     );
 }
@@ -294,9 +288,7 @@ fn test_empty_subprotocol_string() {
 #[test]
 #[serial(valtron_pool)]
 fn test_server_includes_selected_protocol() {
-    use foundation_netio::shared::http::{
-        SimpleHeader, SimpleIncomingRequest, SimpleMethod,
-    };
+    use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
     use foundation_netio::websocket::native::server::WebSocketUpgrade;
 
     // Build request with subprotocol

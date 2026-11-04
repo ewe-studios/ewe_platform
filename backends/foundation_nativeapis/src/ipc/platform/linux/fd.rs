@@ -1,5 +1,4 @@
 /// Linux IPC fd types — Fd, Remote, Local.
-
 use std::{
     io, mem,
     os::fd::{AsRawFd, FromRawFd, IntoRawFd, OwnedFd, RawFd},

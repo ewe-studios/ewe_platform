@@ -15,22 +15,21 @@ use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
 use crate::shared::http::SimpleHeaders;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::{Ctx,
-    execute, DrivenStreamIterator, Stream, StreamSpread, TaskIterator,
-    TaskSpread, TaskStatus,
+use foundation_core::valtron::{
+    execute, Ctx, DrivenStreamIterator, Stream, StreamSpread, TaskIterator, TaskSpread, TaskStatus,
 };
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::websocket::shared::client::{
-    BoxedWebSocketStream, MessageDelivery, Reconnect, WebSocketClient, WebSocketConnectConfig,
-    WsProgress,
-};
 use crate::websocket::native::reconnecting_task::{
     ReconnectingWebSocketProgress, ReconnectingWebSocketTask,
 };
 use crate::websocket::native::task::{WebSocketProgress, WebSocketTask};
 use crate::websocket::shared::batch_writer::BatchFrameWriter;
+use crate::websocket::shared::client::{
+    BoxedWebSocketStream, MessageDelivery, Reconnect, WebSocketClient, WebSocketConnectConfig,
+    WsProgress,
+};
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::frame::{generate_mask, Opcode, WebSocketFrame};
 
@@ -231,8 +230,8 @@ impl WebSocketConnection {
     /// Returns [`WebSocketError`] if the close frame cannot be sent.
     pub fn close(&mut self, code: u16, reason: &str) -> Result<(), WebSocketError> {
         match self.state {
-            ConnectionState::Closed => return Ok(()),
-            ConnectionState::Closing {
+            ConnectionState::Closed
+            | ConnectionState::Closing {
                 close_sent: true, ..
             } => return Ok(()),
             _ => {}
@@ -368,7 +367,7 @@ impl From<ReconnectingWebSocketProgress> for WsPending {
 /// Either a single-shot or reconnecting WS task — unified [`TaskIterator`].
 pub enum WsTask<R: DnsResolver + Clone + Send + 'static> {
     Single(WebSocketTask<R>),
-    Reconnecting(ReconnectingWebSocketTask<R>),
+    Reconnecting(Box<ReconnectingWebSocketTask<R>>),
 }
 
 impl<R> TaskIterator for WsTask<R>
@@ -399,10 +398,7 @@ fn remap_spread<D, P1, P2>(sp: TaskSpread<D, P1>, f: fn(P1) -> P2) -> TaskSpread
 }
 
 /// Remap the `Pending` type of a `TaskStatus`.
-fn remap_task_status<D, P1, P2>(
-    s: TaskStatus<D, P1>,
-    f: fn(P1) -> P2,
-) -> TaskStatus<D, P2> {
+fn remap_task_status<D, P1, P2>(s: TaskStatus<D, P1>, f: fn(P1) -> P2) -> TaskStatus<D, P2> {
     match s {
         TaskStatus::Ready(r) => TaskStatus::Ready(r),
         TaskStatus::Pending(p) => TaskStatus::Pending(f(p)),
@@ -428,7 +424,9 @@ fn remap_task_status<D, P1, P2>(
 pub(crate) fn native_progress(pending: WsPending) -> WsProgress {
     match pending {
         WsPending::Task(WebSocketProgress::Connecting)
-        | WsPending::Reconnecting(ReconnectingWebSocketProgress::Connecting) => WsProgress::Connecting,
+        | WsPending::Reconnecting(ReconnectingWebSocketProgress::Connecting) => {
+            WsProgress::Connecting
+        }
         WsPending::Task(WebSocketProgress::Handshaking)
         | WsPending::Reconnecting(ReconnectingWebSocketProgress::Handshaking) => {
             WsProgress::Handshaking
@@ -501,7 +499,14 @@ impl WebSocketClient {
     where
         R: DnsResolver + Clone + Send + 'static,
     {
-        Self::with_options(resolver, url, None, SimpleHeaders::new(), read_timeout, sleep_timeout)
+        Self::with_options(
+            resolver,
+            url,
+            None,
+            SimpleHeaders::new(),
+            read_timeout,
+            sleep_timeout,
+        )
     }
 
     /// Connect to a WebSocket endpoint with custom options.
@@ -607,9 +612,9 @@ impl WebSocketClient {
                 read_timeout,
                 sleep_timeout,
             )?),
-            Reconnect::Yes => {
-                WsTask::Reconnecting(ReconnectingWebSocketTask::connect(resolver, &url_str)?)
-            }
+            Reconnect::Yes => WsTask::Reconnecting(Box::new(ReconnectingWebSocketTask::connect(
+                resolver, &url_str,
+            )?)),
         };
 
         Ok((task, delivery))

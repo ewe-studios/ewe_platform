@@ -1,11 +1,11 @@
 // Integration tests for foundation_toolings.
 
 use foundation_toolings::builder::{CargoBuilder, ProjectBuilder};
+use foundation_toolings::proxy::{copy_bidirectional, TunnelProxyTrait};
+use foundation_toolings::runner::DurationSleeper;
 use foundation_toolings::watcher::FileChange;
 use foundation_toolings::VecStringExt;
-use foundation_toolings::{ProjectDefinition, ProxyRemoteConfig, ProxyType, Http1, Tunnel};
-use foundation_toolings::runner::DurationSleeper;
-use foundation_toolings::proxy::{TunnelProxyTrait, copy_bidirectional};
+use foundation_toolings::{Http1, ProjectDefinition, ProxyRemoteConfig, ProxyType, Tunnel};
 
 use std::path::PathBuf;
 use std::time::Duration;

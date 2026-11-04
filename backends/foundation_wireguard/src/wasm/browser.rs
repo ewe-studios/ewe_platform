@@ -84,7 +84,7 @@ impl Default for WsRelayClient {
 
 /// A browser-side WireGuard mesh node.
 ///
-/// WHY: The browser peer runs `boringtun::Tunn` + smoltcp `NetStack` in wasm —
+/// WHY: The browser peer runs `foundation_boringtun::Tunn` + smoltcp `NetStack` in wasm —
 /// no kernel module, no privileges, no UDP socket.
 ///
 /// WHAT: Wraps a `WgTunnel`, `JsDevice`, and `WsRelayClient`. After `tick()`,
@@ -127,7 +127,6 @@ impl BrowserWgNode {
     /// WHAT: Derive bootstrap keys from `seed`, create a `WgTunnel`, set up
     /// the `JsDevice`, and set the overlay IP.
     pub fn join(seed: &WgSeed, network_id: &NetworkId, mtu: usize) -> Self {
-        
         let boot = seed.derive_bootstrap(network_id);
         let overlay_ip = IpAddr::V4(std::net::Ipv4Addr::new(10, 0, 0, 1));
         Self::new(
@@ -182,7 +181,11 @@ impl BrowserWgNode {
     /// Resolve an overlay IP to a PeerId for relay routing.
     /// Returns the first known peer as a fallback for single-peer setups.
     fn resolve_peer(&self) -> PeerId {
-        self.peers.values().next().copied().unwrap_or(PeerId([0; 32]))
+        self.peers
+            .values()
+            .next()
+            .copied()
+            .unwrap_or(PeerId([0; 32]))
     }
 
     /// Create a pre-joined node from an existing tunnel (for testing).

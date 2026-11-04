@@ -6,7 +6,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -172,14 +172,13 @@ pub async fn update(db: &dyn QueryStore, row: &SendRow) -> AppResult<()> {
 }
 
 /// Bump `access_count` (on a successful anonymous access).
-pub async fn increment_access(
-    db: &dyn QueryStore,
-    uuid: &str,
-    new_count: i64,
-) -> AppResult<()> {
+pub async fn increment_access(db: &dyn QueryStore, uuid: &str, new_count: i64) -> AppResult<()> {
     db.execute(
         "UPDATE sends SET access_count = ? WHERE uuid = ?",
-        &[DataValue::Integer(new_count), DataValue::Text(uuid.to_string())],
+        &[
+            DataValue::Integer(new_count),
+            DataValue::Text(uuid.to_string()),
+        ],
     )
     .await
     .map_err(store_err)?;

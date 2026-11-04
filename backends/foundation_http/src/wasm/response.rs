@@ -53,17 +53,15 @@ mod wasm_helpers {
         let init = ResponseInit::new();
         init.set_status(status);
 
-        let web_headers = web_sys::Headers::new().map_err(|e| {
-            JsError::new(&format!("failed to create headers: {e:?}"))
-        })?;
+        let web_headers = web_sys::Headers::new()
+            .map_err(|e| JsError::new(&format!("failed to create headers: {e:?}")))?;
         for (k, v) in headers {
             let _ = web_headers.append(&k, &v);
         }
         init.set_headers(&web_headers);
 
-        Response::new_with_opt_u8_array_and_init(Some(&mut body_mut), &init).map_err(|e| {
-            JsError::new(&format!("failed to create response: {e:?}"))
-        })
+        Response::new_with_opt_u8_array_and_init(Some(&mut body_mut), &init)
+            .map_err(|e| JsError::new(&format!("failed to create response: {e:?}")))
     }
 
     /// Build a `web_sys::Response` from a `WasmResponse`.

@@ -28,8 +28,8 @@ pub fn discover_tests(wasm_path: &Path) -> Result<Vec<String>> {
         return Err(WasmTestbedError::TestWasmNotFound(wasm_path.display().to_string()).trace());
     }
 
-    let bytes = std::fs::read(wasm_path)
-        .map_err(|e| WasmTestbedError::WasmReadFailed(e).trace())?;
+    let bytes =
+        std::fs::read(wasm_path).map_err(|e| WasmTestbedError::WasmReadFailed(e).trace())?;
 
     let module = walrus::ModuleConfig::new()
         .parse(&bytes)

@@ -16,6 +16,13 @@
 //! - In-Memory - Ephemeral storage for development/testing
 //! - JSON File - Simple JSON-on-disk key-value store (native only)
 
+// The `turso` crate's async methods nest past the default trait-solver
+// recursion limit (128). `TursoStorage::set` (an `async_trait` impl) resolves
+// `Send`/`CoerceUnsized` through that chain and overflows it (issue #159228,
+// `recursion_depth_exceeding_limit`). Raise the limit instead of flattening the
+// chain: the depth is in the external `turso` dependency, not here.
+#![recursion_limit = "256"]
+
 // Shared — always compiled
 pub mod core;
 
@@ -31,22 +38,22 @@ pub mod native;
 pub mod wasm;
 
 // Public re-exports (shared — always available)
-pub use core::errors::*;
-pub use core::storage_provider as traits;
-pub use core::cleanup::*;
-pub use core::backends::*;
-pub use core::crypto::*;
-pub use core::schema::*;
 pub use core::auth_store::*;
+pub use core::backends::*;
+pub use core::cleanup::*;
+pub use core::crypto::*;
+pub use core::errors::*;
+pub use core::schema::*;
+pub use core::storage_provider as traits;
 
 // Central StorageProvider + StorageBackend (always available)
 pub use storage_provider::{StorageBackend, StorageProvider};
 
 // Re-export trait types at top level for convenience
 pub use core::storage_provider::{
-    BlobStore, DocumentStore, KeyValueStore, AsyncListStream, QueryStore,
-    AsyncQueryStream, RateLimiterStore, AsyncStorageItemStream, DataValue, Document,
-    FromDataValue, PromotableDocument, SqlRow,
+    AsyncListStream, AsyncQueryStream, AsyncStorageItemStream, BlobStore, DataValue, Document,
+    DocumentStore, FromDataValue, KeyValueStore, PromotableDocument, QueryStore, RateLimiterStore,
+    SqlRow,
 };
 
 // Native-only re-exports
@@ -55,11 +62,13 @@ pub use native::*;
 
 // Wasm-bindgen storage re-exports (wasm32 only)
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-pub use wasm::{CfD1R2DocumentStore, D1WasmStorage, KVWasmStorage, R2WasmStorage, WasmCredentialStore};
+pub use wasm::{CfD1R2DocumentStore, D1WasmStorage, KVWasmStorage, R2WasmStorage};
 
 // Wasm-bindgen CF types re-exports (wasm32 only)
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-pub use wasm::bindgen::{D1Database, D1PreparedStatement, KVNamespace, R2Bucket, R2Object, R2Objects};
+pub use wasm::bindgen::{
+    D1Database, D1PreparedStatement, KVNamespace, R2Bucket, R2Object, R2Objects,
+};
 
 // State store module
 pub use core::state;

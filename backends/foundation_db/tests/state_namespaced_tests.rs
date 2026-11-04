@@ -65,7 +65,10 @@ async fn test_list_filters_by_prefix() {
     set_unrelated(&store, "other-key").await;
 
     let ids = collect(ns.list().await.unwrap()).await;
-    assert_eq!(ids, vec!["resource-1".to_string(), "resource-2".to_string()]);
+    assert_eq!(
+        ids,
+        vec!["resource-1".to_string(), "resource-2".to_string()]
+    );
 }
 
 #[valtron_test]
@@ -138,7 +141,10 @@ async fn test_list_by_prefix_delegates() {
     ns.store_typed("beta-1", &3).await.unwrap();
 
     let alpha_ids = collect(ns.list_by_prefix("alpha-").await.unwrap()).await;
-    assert_eq!(alpha_ids, vec!["alpha-1".to_string(), "alpha-2".to_string()]);
+    assert_eq!(
+        alpha_ids,
+        vec!["alpha-1".to_string(), "alpha-2".to_string()]
+    );
 }
 
 #[valtron_test]
@@ -204,7 +210,13 @@ async fn test_set_writes_inside_the_namespace() {
     };
     ns.set("web", &state).await.unwrap();
 
-    assert!(store.get("web").await.unwrap().is_none(), "wrote outside the namespace");
+    assert!(
+        store.get("web").await.unwrap().is_none(),
+        "wrote outside the namespace"
+    );
     assert_eq!(ns.get("web").await.unwrap().unwrap().kind, "worker");
-    assert_eq!(collect(ns.list().await.unwrap()).await, vec!["web".to_string()]);
+    assert_eq!(
+        collect(ns.list().await.unwrap()).await,
+        vec!["web".to_string()]
+    );
 }

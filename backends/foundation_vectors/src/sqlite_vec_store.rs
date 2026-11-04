@@ -1,9 +1,9 @@
 //! SQLite vector store via **sqlite-vec** loaded as a dynamic extension (F29).
 //!
 //! WHY: `sqlite-vec` provides native `vec0` virtual tables with k-nearest
-//! neighbour (KNN) queries on SQLite-compatible engines. The extension is
-//! loaded at runtime from a bundled `.so` (written to a temp dir), so no system
-//! install is needed.
+//! neighbour (KNN) queries on SQLite-compatible engines. `build.rs` compiles
+//! the vendored `vendor/sqlite-vec.c` into a loadable extension for the
+//! current target; no system install is needed.
 //!
 //! WHAT: [`SqliteVecVectorStore`] implements the async [`VectorStore`] over a
 //! local libSQL/SQLite file. Each namespace is a separate `vec0` virtual table
@@ -14,8 +14,8 @@
 //! `metadata` column (JSON text). The methods await libSQL's async API
 //! directly, the same as `LibsqlStore` in `foundation_db`.
 //!
-//! Sync boundary: [`SqliteVecVectorStore::open`] writes the bundled `.so` to a
-//! temp file and loads it. `std::fs::write` and libSQL's `load_extension`
+//! Sync boundary: [`SqliteVecVectorStore::open`] writes the built extension to
+//! a temp file and loads it. `std::fs::write` and libSQL's `load_extension`
 //! are sync calls. They run once, when the store opens.
 //!
 //! Limits of `vec0`:
@@ -35,9 +35,10 @@ use crate::store::{
 };
 use crate::vector::Vector;
 
-/// Prebuilt sqlite-vec loadable extension (linux-x86_64, v0.1.9).
-/// Loaded at init time into the SQLite connection via `load_extension`.
-const VEC0_SO: &[u8] = include_bytes!("../vendor/vec0.so");
+/// Prebuilt sqlite-vec loadable extension, compiled from `vendor/sqlite-vec.c`
+/// by `build.rs` for the current target. Loaded at init time into the SQLite
+/// connection via `load_extension`.
+const VEC0_SO: &[u8] = include_bytes!(env!("VEC0_SO"));
 
 /// The longest namespace name, in bytes. It keeps the table name well inside
 /// SQLite's identifier rules; this is a format rule, not a tuning limit.
@@ -68,6 +69,14 @@ fn blob_vec(b: &[u8]) -> Result<Vec<f32>, VectorStoreError> {
 
 fn be<E: std::fmt::Display>(ctx: &'static str) -> impl Fn(E) -> VectorStoreError {
     move |e| VectorStoreError::Backend(format!("{ctx}: {e}"))
+}
+
+/// The embedding dimension in an old-shape `vec0` table statement
+/// (`... embedding float[{dim}] ...`).
+fn old_embedding_dim(sql: &str) -> Option<usize> {
+    let start = sql.find("float[")? + "float[".len();
+    let end = sql[start..].find(']')? + start;
+    sql[start..end].parse().ok()
 }
 
 /// The `vec0` table of a namespace, after a check that the name is safe to
@@ -136,11 +145,162 @@ impl SqliteVecVectorStore {
         conn.load_extension_disable()
             .map_err(be("disable load_extension"))?;
 
-        Ok(Self {
+        let store = Self {
             conn,
             config,
             temp_dir: dir,
-        })
+        };
+        store.migrate_old_tables().await?;
+        Ok(store)
+    }
+
+    /// Migrate every old-shape `vec0_*` table to the current shape.
+    ///
+    /// Spec 36 F29 stored `vec0(embedding float[{dim}], external_id text)`:
+    /// an integer rowid primary key, no `metadata` column, no distance
+    /// metric. The current shape (spec 50 F05 T1) has a text primary key, a
+    /// `metadata` column and a distance metric. An old table fails every
+    /// current query, so `open` rewrites it once.
+    async fn migrate_old_tables(&self) -> Result<(), VectorStoreError> {
+        // Collect first: the migration runs DDL, which cannot run while the
+        // `sqlite_master` cursor is still open.
+        let mut tables: Vec<(String, String)> = Vec::new();
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT name, sql FROM sqlite_master WHERE type = 'table' AND name GLOB 'vec0_*'",
+                (),
+            )
+            .await
+            .map_err(be("list vec0 tables"))?;
+        while let Some(row) = rows.next().await.map_err(be("list vec0 tables"))? {
+            let name: String = row.get(0).map_err(be("read vec0 table name"))?;
+            let sql: Option<String> = row.get(1).map_err(be("read vec0 table sql"))?;
+            let Some(sql) = sql else { continue };
+            // Shadow tables also match the `vec0_*` name; keep only the
+            // virtual tables themselves.
+            if !sql.contains("USING vec0") {
+                continue;
+            }
+            tables.push((name, sql));
+        }
+        drop(rows);
+
+        for (name, sql) in tables {
+            if name.ends_with("__migrating") {
+                // A previous migration stopped after dropping the real table.
+                // The temporary table is the only copy; finish the migration.
+                // When the real table is still present, `migrate_one` below
+                // drops the stale temporary table instead.
+                let base = name.strip_suffix("__migrating").unwrap_or(name.as_str());
+                if !self.table_exists(base).await? {
+                    self.finish_migration(base, &name).await?;
+                }
+                continue;
+            }
+            if sql.contains("metadata") {
+                // Already the current shape.
+                continue;
+            }
+            self.migrate_one(&name, &sql).await?;
+        }
+        Ok(())
+    }
+
+    /// Rewrite one old-shape table into the current shape.
+    ///
+    /// `vec0` does not implement `xRename`, so the swap copies the rows into
+    /// a temporary table, drops the old table, recreates it with the current
+    /// shape, and copies the rows back. `migrate_old_tables` finishes the copy
+    /// if an earlier run stopped after the drop.
+    async fn migrate_one(&self, table: &str, sql: &str) -> Result<(), VectorStoreError> {
+        let old_dim = old_embedding_dim(sql).ok_or_else(|| {
+            VectorStoreError::SchemaMismatch(format!(
+                "table {table}: cannot read the old embedding dimension"
+            ))
+        })?;
+        if old_dim != self.config.dimension {
+            return Err(VectorStoreError::SchemaMismatch(format!(
+                "table {table}: old embedding dimension {old_dim}, store uses {}",
+                self.config.dimension
+            )));
+        }
+        // The old shape had no uniqueness on `external_id`, so it could hold
+        // two rows with one id. The current text primary key refuses that.
+        // Report it instead of losing a row silently.
+        let dupes = self.duplicate_id_count(table).await?;
+        if dupes > 0 {
+            return Err(VectorStoreError::SchemaMismatch(format!(
+                "table {table}: {dupes} duplicate external_id rows; deduplicate before opening"
+            )));
+        }
+
+        let tmp = format!("{table}__migrating");
+        if self.table_exists(&tmp).await? {
+            // A run stopped before the drop left a stale temporary table. The
+            // old table still holds the rows, so drop the temporary one.
+            self.exec(&format!("DROP TABLE {tmp}")).await?;
+        }
+
+        let cols = self.vec0_columns();
+        self.exec(&format!("CREATE VIRTUAL TABLE {tmp} USING vec0({cols})"))
+            .await?;
+        self.exec(&format!(
+            "INSERT INTO {tmp}(external_id, embedding, metadata) \
+             SELECT external_id, embedding, NULL FROM {table}"
+        ))
+        .await?;
+        self.exec(&format!("DROP TABLE {table}")).await?;
+        self.finish_migration(table, &tmp).await
+    }
+
+    /// Recreate the real table from the temporary table, then drop it.
+    async fn finish_migration(&self, table: &str, tmp: &str) -> Result<(), VectorStoreError> {
+        let cols = self.vec0_columns();
+        self.exec(&format!("CREATE VIRTUAL TABLE {table} USING vec0({cols})"))
+            .await?;
+        self.exec(&format!(
+            "INSERT INTO {table}(external_id, embedding, metadata) \
+             SELECT external_id, embedding, NULL FROM {tmp}"
+        ))
+        .await?;
+        self.exec(&format!("DROP TABLE {tmp}")).await
+    }
+
+    /// The number of `external_id` values that repeat in one old table.
+    async fn duplicate_id_count(&self, table: &str) -> Result<i64, VectorStoreError> {
+        let mut rows = self
+            .conn
+            .query(
+                &format!("SELECT COUNT(*) - COUNT(DISTINCT external_id) FROM {table}"),
+                (),
+            )
+            .await
+            .map_err(be("count duplicate ids"))?;
+        let Some(row) = rows.next().await.map_err(be("count duplicate ids"))? else {
+            return Ok(0);
+        };
+        row.get(0).map_err(be("read duplicate id count"))
+    }
+
+    /// Run one statement and drop its result.
+    async fn exec(&self, sql: &str) -> Result<(), VectorStoreError> {
+        self.conn
+            .execute(sql, ())
+            .await
+            .map(|_| ())
+            .map_err(|e| VectorStoreError::Backend(format!("{sql}: {e}")))
+    }
+
+    /// The column list of the current `vec0` shape.
+    fn vec0_columns(&self) -> String {
+        format!(
+            "external_id text primary key, \
+             embedding float[{dim}] distance_metric={metric}, \
+             +metadata text",
+            dim = self.config.dimension,
+            metric = self.metric_option(),
+        )
     }
 
     fn validate(&self, dim: usize, zero: bool) -> Result<(), VectorStoreError> {
@@ -190,12 +350,8 @@ impl SqliteVecVectorStore {
 
     async fn ensure_table(&self, table: &str) -> Result<(), VectorStoreError> {
         let sql = format!(
-            "CREATE VIRTUAL TABLE IF NOT EXISTS {table} USING vec0(\
-                external_id text primary key, \
-                embedding float[{dim}] distance_metric={metric}, \
-                +metadata text)",
-            dim = self.config.dimension,
-            metric = self.metric_option(),
+            "CREATE VIRTUAL TABLE IF NOT EXISTS {table} USING vec0({})",
+            self.vec0_columns()
         );
         self.conn
             .execute(&sql, ())
@@ -207,11 +363,7 @@ impl SqliteVecVectorStore {
 
 #[async_trait::async_trait]
 impl VectorStore for SqliteVecVectorStore {
-    async fn insert(
-        &self,
-        namespace: &str,
-        entry: VectorEntry,
-    ) -> Result<(), VectorStoreError> {
+    async fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(entry.vector.dimension(), entry.vector.is_zero())?;
         let table = table_name(namespace)?;
         self.ensure_table(&table).await?;

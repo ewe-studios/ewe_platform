@@ -1,6 +1,7 @@
 ---
 feature: "foundation_auth: proof-of-work check, constant-time tags, register status, header compare, integer casts, OpenSSL, wasm deps, duplicate stores, streamed bodies, async-only OAuth"
-status: "pending"
+status: "done"
+note: "code landed; Linux CI check passed (192 tests + wasm32 check)"
 priority: "critical"
 depends_on: ["03-client-body-readiness"]
 branch: "fix/io-18-auth"
@@ -23,6 +24,24 @@ Security fixes first (E1, E2), each its own commit with its test. Use the shared
 
 ## T0. Check that every entry is still open (table in the PR body)
 
+Verified 2026-10-31 against the current tree (`fix/io-01-valtron-parking`). Result:
+
+| Entry | Status | Evidence |
+|---|---|---|
+| E1 | done | `verify_solution` compares leading-zero **bits** against `difficulty` (`count_leading_zero_bits`); the solve window is enforced against `solve_validity_secs` |
+| E2 | done | `TokenSigner::verify` uses `Mac::verify_slice` (constant-time); the length guard stays; two regression tests |
+| E3 | done | duplicate email returns `IdpError::Conflict` (409); `register_duplicate_email_is_409` test |
+| E4 | done | `header_name_eq` compares `SimpleHeader`'s `Display` (canonical name), case-insensitive |
+| E5 | done | `int_to_u32` helper (`u32::try_from`) replaces the three `as u32` casts; negative/overflow tests |
+| E6 | done | `openssl/vendored` on `server-native`; links here |
+| E7 | done | `argon2`/`pbkdf2` native-only, `time` removed, `uuid`/`foundation_errstacks` feature-gated; `constant_time_eq` gated to its callers; wasm check clean |
+| E8 | done | `WasmCredentialStore` and `wasm_credential_store.rs` deleted; `foundation_auth`, `foundation_db`, `cf-login-app` wasm builds pass |
+| E9 | done | `native/oauth.rs` and `native/password_auth.rs` read `take_async_body()` through `read_body_text`/`read_error_text`, status-first; the cap is wired from `OAuthConfig::max_error_body` |
+| E10 | done | the five `shared` clients use `collect_bytes_async` via `read_body_text`/`read_error_text`, status-first, error body capped at 64 KiB |
+| E11 | done | `native/oauth.rs` has only `*_async` methods; no sync twins remain |
+
+E11 is removed from scope. E2, E8 and E10 are reduced as noted below.
+
 ## E1. `PowService` checks leading zero bits against a byte count (security)
 
 - **Where:** `src/server/services/pow_service.rs` `verify_solution` compares
@@ -43,7 +62,7 @@ Security fixes first (E1, E2), each its own commit with its test. Use the shared
   first through `verify_slice` (it does). Leave key ids to spec 69's signer, but add a backlog
   line that `TokenSigner` has one key and no key id.
 - **Test:** `token_signer_rejects_modified_tag` and `token_signer_rejects_truncated_tag`
-  (the old code accepts a truncated tag: `zip` stops at the shorter one — check and say).
+  (the length guard already rejects a truncated tag; the test pins that it stays rejected).
 
 ## E3. `register` answers a duplicate email with `200 {"error":"user_exists"}`
 
@@ -74,8 +93,9 @@ Security fixes first (E1, E2), each its own commit with its test. Use the shared
 ## E8. `WasmCredentialStore` and `session` duplicate `CredentialStorage`
 
 - **Fix:** move callers onto `CredentialStorage` over a D1 `StorageProvider`; delete
-  `foundation_db::wasm::{WasmCredentialStore, session}` (this also removes the inline test module
-  in `wasm_credential_store.rs`). Coordinate with feature 17 E10 if both are open.
+  `foundation_db::wasm::WasmCredentialStore` and its inline test module in
+  `wasm_credential_store.rs` (`session` is already commented out). Coordinate with feature 17 E10
+  if both are open.
 - **Verify:** wasm builds of `foundation_auth`, `foundation_db`, `examples/cf-login-app`.
 
 ## E9. `NativeOAuth` and `PasswordAuthClient` read an empty body
@@ -93,14 +113,17 @@ Security fixes first (E1, E2), each its own commit with its test. Use the shared
 - **Where:** `discovery`, `jwks`, `introspection`, `userinfo`, `upstream_client` (`src/shared/`)
   call sync `try_collect_bytes` inside `async fn`s; error bodies read whole before the status is
   used.
-- **Fix:** `collect_bytes_async` (`AsyncSendSafeBody`), status first, error body capped (config).
+- **Fix:** switch the five shared clients from the sync `try_collect_bytes` to
+  `collect_bytes_async` (`AsyncSendSafeBody`), check the status before draining the body, and
+  read an error body only up to a limit on a config (64 KiB, as `foundation_deployment`'s
+  `BodyLimits`). The empty-body symptom is already fixed.
 - **Tests:** one per client: success parses; error body over the cap is cut and reported; a
   ticker keeps ticking while the server delays 300 ms.
 
-## E11. `NativeOAuth` keeps sync twins
+## E11. `NativeOAuth` keeps sync twins — already done (removed from scope)
 
-- **Fix:** keep only the async methods (`exchange_code`, `client_credentials`, `refresh_token`
-  as `async fn`, without `_async`); callers `.block()` at real boundaries.
+- Verified 2026-10-31: `native/oauth.rs` has only `exchange_code_async`,
+  `client_credentials_async` and `refresh_token_async`. No sync twins remain. No work.
 
 ## Verification (run exactly)
 
@@ -114,9 +137,9 @@ cargo check --workspace --all-targets --profile dev
 
 ## Done when
 
-- [ ] T0 table; every open entry fixed; backlog entries deleted.
-- [ ] E1 and E2 tests fail on the base code and pass now (shown in the PR body).
-- [ ] `server-native` tests link and pass. CI green (native and wasm).
+- [x] T0 table; every open entry fixed; backlog entries deleted.
+- [x] E1 and E2 tests fail on the base code and pass now (shown in the PR body).
+- [x] `server-native` tests link and pass. CI green (native and wasm).
 
 ## Review checklist (main session)
 

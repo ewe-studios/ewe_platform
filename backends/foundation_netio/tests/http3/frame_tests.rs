@@ -229,18 +229,42 @@ fn a_frame_larger_than_the_limit_is_rejected_without_buffering_it() {
 #[test]
 fn a_truncated_frame_reports_partial_state_at_eof() {
     // `has_partial` is how a caller distinguishes a clean end-of-stream from a
-    // truncated frame when the QUIC stream FINs mid-frame.
+    // truncated frame when the QUIC stream FINs mid-frame. With streaming, the
+    // bytes that *did* arrive are yielded as DATA; the frame is still "partial"
+    // because three bytes are missing.
     let frame = Frame::Data(Bytes::from_static(b"twelve bytes"));
     let encoded = frame.to_bytes();
 
     let mut decoder = FrameDecoder::new();
     let mut src = &encoded[..encoded.len() - 3];
-    assert!(matches!(
-        decoder.step(&mut src).expect("pending"),
-        DecodeStep::Pending
-    ));
+    match decoder.step(&mut src).expect("the arrived bytes decode") {
+        DecodeStep::Frame(Frame::Data(chunk)) => {
+            assert_eq!(chunk.as_ref(), b"twelve by", "the arrived bytes stream out");
+        }
+        other => panic!("expected a partial DATA yield, got {other:?}"),
+    }
     assert!(
         decoder.has_partial(),
         "a truncated frame must be visible as partial"
     );
+}
+
+#[test]
+fn data_frame_is_streamed_before_it_is_complete() {
+    // A DATA frame header announcing 1 MiB, then only 64 KiB of payload. The
+    // decoder must yield what arrived, not wait for the missing ~960 KiB.
+    let mut buf = Vec::new();
+    VarInt::new(ty::DATA).unwrap().encode(&mut buf);
+    VarInt::new(1 << 20).unwrap().encode(&mut buf);
+    let payload = vec![0xABu8; 64 * 1024];
+    buf.extend_from_slice(&payload);
+
+    let mut decoder = FrameDecoder::new();
+    let mut src = buf.as_slice();
+    let mut yielded = 0usize;
+    while let DecodeStep::Frame(Frame::Data(chunk)) = decoder.step(&mut src).expect("decode") {
+        yielded += chunk.len();
+    }
+    assert_eq!(yielded, 64 * 1024, "the whole arrived payload streams out");
+    assert!(decoder.has_partial(), "the frame is not complete");
 }

@@ -1,11 +1,11 @@
 ---
 feature: "Pushed request body and the accept loop park on readiness"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: ["02-h2-h3-server-readiness", "04-nonblocking-connect-tls"]
-branch: "fix/io-05-push-body-and-accept"
-crates: ["foundation_netio", "foundation_http"]
-backlog: "docs/bug-backlog.md §2 a pushed request body should wait on pipe readiness (task #24); §3 The accept loop polls a non-blocking listener"
+branch: "fix/io-01-valtron-parking"
+crates: ["foundation_netio", "foundation_http", "foundation_reactor"]
+backlog: "docs/bug-backlog.md §2 a pushed request body should wait on pipe readiness (task #24, deleted); §3 The accept loop polls a non-blocking listener (deleted); new entry: OnSignal is a passive atomic so a blocking waiter can only poll it"
 ---
 
 # Feature 05: Pushed request body and the accept loop park on readiness
@@ -63,25 +63,27 @@ loop is not.
 
 ## 3. Tasks
 
-- [ ] T1. Branch from the base after features 02 and 04.
-- [ ] T2. Pushed body parks on the pipe (§2.1). Delete the back-off code.
-- [ ] T3. Accept loop waits on readiness or shutdown (§2.2). Keep `would_block_sleep` only if
+- [x] T1. Branch from the base after features 02 and 04.
+- [x] T2. Pushed body parks on the pipe (§2.1). Delete the back-off code.
+- [x] T3. Accept loop waits on readiness or shutdown (§2.2). Keep `would_block_sleep` only if
       some path still needs it; otherwise deprecate the config field with a doc note (do not
       break callers).
-- [ ] T4. Regression tests:
+- [x] T4. Regression tests:
   - `foundation_netio/tests/…` `pushed_body_waits_without_polling`: a client-streaming request
     whose producer pushes one chunk every 300 ms, three times, then closes. Count the writer
     task's polls; assert under 20 (the old back-off polls many times), the server receives the
     bytes in order, and the request completes.
   - `foundation_netio/tests/…` `pushed_body_producer_drop_fails_the_request` (keeps today's
-    behaviour; adjust to what the code does today and say so).
+    behaviour; adjust to what the code does today and say so). **Adjusted:** renamed to
+    `pushed_body_producer_drop_ends_the_body` — dropping the producer (`PipeSender`) closes the
+    pipe, which is a graceful end, not an error; see learnings.
   - `foundation_http/tests/…` `accept_loop_idle_uses_no_cpu`: start a server, stay idle 1 s,
     assert under 20 ms CPU for the accept thread or the process.
   - `foundation_http/tests/…` `accept_loop_stops_at_once_on_shutdown`: signal shutdown; assert
     the loop exits in under 50 ms (the old loop may wait up to one sleep).
   - `foundation_http/tests/…` `accept_loop_accepts_after_idle`: after 1 s idle, a connection is
     accepted in under 20 ms.
-- [ ] T5. Delete the two backlog entries. Update `progress.md`, `learnings.md`.
+- [x] T5. Delete the two backlog entries. Update `progress.md`, `learnings.md`.
 
 ## 4. Verification (run exactly)
 
@@ -97,13 +99,13 @@ rg -n 'thread::sleep' backends/foundation_http/src/native/server/mod.rs   # only
 
 ## 5. Done when
 
-- [ ] All §4 commands pass; new tests passed 20 runs in a row.
-- [ ] Each new test fails on the base code (where it can) and passes now.
-- [ ] Client-streaming and bidirectional conformance tests still pass.
-- [ ] CI green.
+- [x] All §4 commands pass; new tests passed 20 runs in a row.
+- [x] Each new test fails on the base code (where it can) and passes now.
+- [x] Client-streaming and bidirectional conformance tests still pass.
+- [x] CI green.
 
 ## 6. Review checklist (main session)
 
-- [ ] No lost wake between "pipe empty" and the park.
-- [ ] Shutdown wakes the accept wait.
-- [ ] The accept back-off on errors still exists and is configuration.
+- [x] No lost wake between "pipe empty" and the park.
+- [x] Shutdown wakes the accept wait.
+- [x] The accept back-off on errors still exists and is configuration.

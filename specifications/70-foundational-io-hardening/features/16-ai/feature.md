@@ -1,6 +1,6 @@
 ---
 feature: "foundation_ai: async generate and embed, agent tool busy loop, capped error bodies, flush races, names, test deps"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: ["03-client-body-readiness"]
 branch: "fix/io-16-ai"
@@ -19,6 +19,9 @@ input/output (I/O); pull request (PR); AeroSpace and Defence Industries Associat
 
 Use the shared protocol in [`requirements.md`](../../requirements.md) sections 3 and 4. One
 commit per entry. Valtron only; no tokio.
+
+**Progress.** E1–E6, E8 and E9 are done. E7 is blocked on `foundation_db`
+(idempotent upsert by document id) and stays in backlog §10.
 
 ## T0. Check that every entry is still open (table in the PR body)
 

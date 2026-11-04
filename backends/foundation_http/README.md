@@ -80,7 +80,7 @@ fn main() {
     // With default keep-alive config
     let server = app.server("0.0.0.0:8080");
 
-    let shutdown = Arc::new(foundation_http::OnSignal::new());
+    let shutdown = Arc::new(foundation_http::ShutdownSignal::new());
     server.serve(&shutdown);
 }
 ```

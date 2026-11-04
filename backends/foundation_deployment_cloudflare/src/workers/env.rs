@@ -56,9 +56,6 @@ pub fn get_secret(env: &Env, name: &str) -> WorkerResult<String> {
 /// # Errors
 ///
 /// Returns `worker::Error` if the binding is missing.
-pub fn get_do_namespace(
-    env: &Env,
-    name: &str,
-) -> WorkerResult<worker::durable::ObjectNamespace> {
+pub fn get_do_namespace(env: &Env, name: &str) -> WorkerResult<worker::durable::ObjectNamespace> {
     env.durable_object(name)
 }

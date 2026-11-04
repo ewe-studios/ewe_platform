@@ -260,9 +260,8 @@ impl LlamaMtp {
     /// [`MtpError::Utf8`] if the piece is not valid UTF-8.
     pub fn step(&self) -> Result<MtpStep, MtpError> {
         let mut out_piece: *mut std::os::raw::c_char = std::ptr::null_mut();
-        let rc = unsafe {
-            infrastructure_llama_bindings::ewe_mtp_step(self.handle, &mut out_piece)
-        };
+        let rc =
+            unsafe { infrastructure_llama_bindings::ewe_mtp_step(self.handle, &mut out_piece) };
         if rc < 0 {
             if !out_piece.is_null() {
                 unsafe { infrastructure_llama_bindings::ewe_chat_string_free(out_piece) };

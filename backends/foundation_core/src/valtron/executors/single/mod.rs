@@ -9,11 +9,12 @@ use std::sync::Arc;
 
 use crate::valtron::{
     executors::constants::{
-        BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
-        DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+        DEFAULT_BACK_OFF_JITTER, DEFAULT_BACK_OFF_MAX_DURATION, DEFAULT_BACK_OFF_MIN_DURATION,
+        DEFAULT_BACK_OFF_THREAD_FACTOR, DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT,
+        MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
-    Ctx, LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator,
-    SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskSpawnConfig,
+    Ctx, LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator, SharedTaskQueue,
+    TaskIterator, TaskReadyResolver, TaskSpawnConfig,
 };
 
 use crate::{
@@ -164,10 +165,10 @@ pub fn initialize_pool(seed_for_rng: u64) {
                     SleepyMan::new(
                         MAX_ROUNDS_WHEN_SLEEPING_ENDS,
                         ExponentialBackoffDecider::new(
-                            BACK_OFF_THREAD_FACTOR,
-                            BACK_OFF_JITER,
-                            BACK_OFF_MIN_DURATION,
-                            Some(BACK_OFF_MAX_DURATION),
+                            DEFAULT_BACK_OFF_THREAD_FACTOR,
+                            DEFAULT_BACK_OFF_JITTER,
+                            DEFAULT_BACK_OFF_MIN_DURATION,
+                            Some(DEFAULT_BACK_OFF_MAX_DURATION),
                         ),
                     ),
                 ),
@@ -332,8 +333,7 @@ where
 ///
 /// A builder for creating a task iterator
 #[must_use]
-pub fn spawn2<Task, Resolver>(
-) -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
+pub fn spawn2<Task, Resolver>() -> TaskSpawnConfig<Task::Ready, Task::Pending, Resolver, Task>
 where
     Task::Ready: 'static,
     Task::Pending: 'static,

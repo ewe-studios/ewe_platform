@@ -1,6 +1,6 @@
+use crate::tinytemplate::TinyTemplate;
 use derive_more::{Display, Error};
 use foundation_errstacks::{ErrorTrace, IntoErrorTrace};
-use crate::tinytemplate::TinyTemplate;
 use minijinja;
 use serde::Serialize;
 use std::{
@@ -101,7 +101,10 @@ impl FileSystemCommand<'_> {
                 }
 
                 let mut builder = fs::DirBuilder::new();
-                builder.recursive(true).create(dir.clone()).map_err(io_err)?;
+                builder
+                    .recursive(true)
+                    .create(dir.clone())
+                    .map_err(io_err)?;
 
                 for sub_command in commands {
                     sub_command.exec(dir.clone(), value.clone())?;
@@ -118,7 +121,10 @@ impl FileSystemCommand<'_> {
                 }
 
                 let mut builder = fs::DirBuilder::new();
-                builder.recursive(true).create(target_path.clone()).map_err(io_err)?;
+                builder
+                    .recursive(true)
+                    .create(target_path.clone())
+                    .map_err(io_err)?;
 
                 for sub_command in commands {
                     sub_command.exec(target_path.clone(), value.clone())?;

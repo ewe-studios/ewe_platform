@@ -16,21 +16,22 @@ workspace = true
 [dependencies]
 # -- Workspace dependencies
 
-foundation_core = { path = "../foundation_core", version = "0.0.6" }
-foundation_wasm = { path = "../foundation_wasm", version = "0.0.5" }
+foundation_core = { path = "../foundation_core", version = "0.0.7" }
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.6" }
 # RNG/entropy from foundation_compact's vendored path (no upstream rand/getrandom
 # → wasm-clean). std is followed from this crate's `std` feature.
-foundation_compact = { path = "../foundation_compact", version = "0.2.2", default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.3", default-features = false }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
+# `StreamExt` (`.next().await`, `.try_next()`) for `AsyncSendSafeBody`. futures-core
+# alone has only the `poll_next` method; the extension trait lives here.
+futures-lite = { version = "2", default-features = false, features = ["alloc"] }
 derive_more = { version = "2.0", features = ["from", "debug", "error", "display"] }
 serde = { version = "1", features = ["derive"] }
 concurrent-queue = { version = "2.5.0" }
 toml_datetime = { version = "0.7" }
 serde_json = { version = "1" }
-serde_yml = { version = "0.0.12" }
 toml = { version = "0.9" }
 fastrand = "2.3.0"
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
@@ -38,7 +39,6 @@ chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 async-trait = { version = "0.1.88" }
 memchr = "2.7.4"
 tracing = { version = "0.1.41" }
-thiserror = { version = "2.0" }
 regex = "1.12.2"
 base64 = "0.22"
 sha1 = "0.10"
@@ -65,6 +65,9 @@ web-sys = { version = "0.3", optional = true, features = [
 ] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# The I/O reactor (poll readiness) is used only by the native `raw_stream`
+# path; it has no wasm32 poll backend, so keep it off the wasm build.
+foundation_reactor = { path = "../foundation_reactor", version = "0.0.1" }
 # SSL/TLS backends — not available on wasm32 (require C compilation or OS APIs)
 ring = { version = "0.17.14", optional = true }
 aws-lc-rs = { version = "1.16.1", optional = true }
@@ -73,7 +76,9 @@ rustls-pemfile = { version = "2.2", optional = true }
 webpki-roots = { version = "0.26", optional = true }
 native-tls = { version = "0.2", optional = true }
 openssl = { version = "0.10", optional = true }
-socket2 = { version = "0.6", optional = true }
+# Always available on native targets (feature 04 non-blocking connect), not just
+# under `nightly`. The `nightly` feature no longer needs to pull it in.
+socket2 = { version = "0.6" }
 quinn-proto = { version = "0.11", optional = true, features = ["rustls", "ring"] }
 
 # poll(2) for socket readiness: the H1 client parks its non-blocking sockets on
@@ -88,6 +93,9 @@ foundation_testbed = { path = "../foundation_testbed", default-features = false,
 wasm-bindgen-test = "=0.3.76"
 # Proc-macro crate — always compiled for host, safe for all targets.
 foundation_macros = { path = "../foundation_macros" }
+# Feature 04 TLS regression tests build a slow rustls server, which needs the
+# same `Zeroizing` wrapper the crate's `RustlsAcceptor::from_pem` takes.
+zeroize = { version = "1" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 foundation_testing = { path = "../foundation_testing" }
@@ -108,7 +116,7 @@ log_warnings = []
 log_errors = []
 log_debug = []
 log_info = []
-nightly = ["dep:socket2"]
+nightly = []
 
 socks5 = []
 # QUIC (F33). quinn-proto is sans-IO and needs a rustls crypto provider; declare

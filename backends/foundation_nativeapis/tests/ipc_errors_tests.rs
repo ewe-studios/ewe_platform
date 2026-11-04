@@ -1,7 +1,6 @@
 //! Tests extracted from shared/ipc/errors.rs
 mod tests {
     use foundation_nativeapis::shared::ipc::*;
-    
 
     #[test]
     fn error_from_io() {

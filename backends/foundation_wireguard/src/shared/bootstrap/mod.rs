@@ -190,7 +190,9 @@ impl BootstrapToken {
         let (body, crc_bytes) = blob.split_at(blob.len() - 4);
         let expected = u32::from_be_bytes([crc_bytes[0], crc_bytes[1], crc_bytes[2], crc_bytes[3]]);
         if crc32c(body) != expected {
-            return Err(WgError::InvalidToken("CRC mismatch (corrupt/truncated)".into()));
+            return Err(WgError::InvalidToken(
+                "CRC mismatch (corrupt/truncated)".into(),
+            ));
         }
 
         let mut network_id = None;
@@ -244,8 +246,8 @@ impl BootstrapToken {
             }
         }
 
-        let network_id = network_id
-            .ok_or_else(|| WgError::InvalidToken("missing network_id field".into()))?;
+        let network_id =
+            network_id.ok_or_else(|| WgError::InvalidToken("missing network_id field".into()))?;
         let secret = secret.ok_or_else(|| WgError::InvalidToken("missing secret field".into()))?;
         if endpoints.is_empty() {
             return Err(WgError::InvalidToken("token carries no endpoints".into()));

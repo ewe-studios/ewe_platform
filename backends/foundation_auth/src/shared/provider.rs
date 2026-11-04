@@ -1,10 +1,10 @@
 //! Upstream identity provider entity for social login.
 //!
-//! WHY: the IdP brokers authentication through upstream providers (Google,
+//! WHY: the `IdP` brokers authentication through upstream providers (Google,
 //! GitHub, Facebook, ...). Each configured provider is stored as an
 //! `UpstreamProvider` row; its client secret is encrypted at rest.
 //!
-//! WHAT: `UpstreamProvider` (config), `ProviderType` (OIDC vs OAuth2), and
+//! WHAT: `UpstreamProvider` (config), `ProviderType` (OIDC vs `OAuth2`), and
 //! `ProviderMapping` (claim → user-field mapping rules).
 //!
 //! HOW: plain serde structs. Persistence + encryption live in
@@ -13,13 +13,13 @@
 
 use serde::{Deserialize, Serialize};
 
-/// How the IdP talks to an upstream provider.
+/// How the `IdP` talks to an upstream provider.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ProviderType {
     /// Full OIDC: discovery document + userinfo endpoint + ID token.
     Oidc,
-    /// OAuth2 only: explicit authorize/token/userinfo URLs, no ID token.
+    /// `OAuth2` only: explicit authorize/token/userinfo URLs, no ID token.
     Oauth2,
 }
 
@@ -61,7 +61,7 @@ pub struct ProviderMapping {
     pub email_verified_field: String,
     /// Claim holding the display name. Default: `"name"`.
     pub name_field: String,
-    /// Claim holding the stable subject id. Default: `"sub"` (OIDC) / `"id"` (OAuth2).
+    /// Claim holding the stable subject id. Default: `"sub"` (OIDC) / `"id"` (`OAuth2`).
     pub subject_field: String,
     /// Claim holding the preferred username. Default: `"preferred_username"`.
     pub username_field: Option<String>,
@@ -86,7 +86,7 @@ pub struct UpstreamProvider {
     pub id: String,
     /// Human-readable display name.
     pub name: String,
-    /// OIDC or OAuth2.
+    /// OIDC or `OAuth2`.
     pub provider_type: ProviderType,
     /// Upstream-issued client id (public).
     pub client_id: String,
@@ -98,7 +98,7 @@ pub struct UpstreamProvider {
     pub authorization_url: Option<String>,
     /// Token endpoint (required when there's no `discovery_url`).
     pub token_url: Option<String>,
-    /// Userinfo endpoint (OAuth2 providers without OIDC discovery).
+    /// Userinfo endpoint (`OAuth2` providers without OIDC discovery).
     pub userinfo_url: Option<String>,
     /// OIDC discovery `.well-known` URL. When set, endpoints are discovered.
     pub discovery_url: Option<String>,

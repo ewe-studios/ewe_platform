@@ -20,8 +20,8 @@
 extern crate lazy_regex;
 extern crate lazy_static;
 
-extern crate tracing;
 extern crate foundation_conditional;
+extern crate tracing;
 
 pub mod markup;
 pub mod parsers;

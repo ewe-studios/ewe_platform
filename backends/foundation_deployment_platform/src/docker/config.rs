@@ -24,7 +24,7 @@ pub struct ContainerConfig {
     pub image: String,
     /// Optional container name. Auto-generated if absent.
     pub name: Option<String>,
-    /// Port mappings: container_port -> optional host_port (None = auto-assign).
+    /// Port mappings: `container_port` -> optional `host_port` (None = auto-assign).
     pub ports: Vec<PortMapping>,
     /// Environment variables: KEY=VALUE pairs.
     pub env: Vec<(String, String)>,
@@ -227,7 +227,11 @@ impl ContainerConfig {
 
     /// Bind-mount a host path into the container.
     #[must_use]
-    pub fn volume(mut self, host_path: impl Into<PathBuf>, container_path: impl Into<PathBuf>) -> Self {
+    pub fn volume(
+        mut self,
+        host_path: impl Into<PathBuf>,
+        container_path: impl Into<PathBuf>,
+    ) -> Self {
         self.volumes.push(VolumeMount {
             source: VolumeSource::Bind(host_path.into()),
             target: container_path.into(),
@@ -236,8 +240,6 @@ impl ContainerConfig {
         self
     }
 
-    /// Mount a named volume into the container.
-    #[must_use]
     /// Bind-mount a host path read-only — the container can read it but any
     /// write is refused by the kernel.
     #[must_use]
@@ -254,8 +256,13 @@ impl ContainerConfig {
         self
     }
 
+    /// Mount a named volume into the container.
     #[must_use]
-    pub fn named_volume(mut self, volume_name: impl Into<String>, container_path: impl Into<PathBuf>) -> Self {
+    pub fn named_volume(
+        mut self,
+        volume_name: impl Into<String>,
+        container_path: impl Into<PathBuf>,
+    ) -> Self {
         self.volumes.push(VolumeMount {
             source: VolumeSource::Named(volume_name.into()),
             target: container_path.into(),
@@ -345,18 +352,24 @@ impl ContainerConfig {
 ///
 /// Returns `Err` with the offending input rather than a fallback, so a
 /// mistyped limit surfaces instead of silently running unlimited.
+///
+/// # Errors
+/// Returns `Err` when the input is empty, has an unknown unit, or overflows
+/// an `i64` byte count.
 pub fn parse_memory_bytes(input: &str) -> Result<i64, String> {
     let text = input.trim().to_ascii_lowercase();
     if text.is_empty() {
         return Err("memory limit is empty".to_string());
     }
 
-    let digits_end = text.find(|c: char| !c.is_ascii_digit()).unwrap_or(text.len());
+    let digits_end = text
+        .find(|c: char| !c.is_ascii_digit())
+        .unwrap_or(text.len());
     let (number, suffix) = text.split_at(digits_end);
 
-    let value: i64 = number
-        .parse()
-        .map_err(|_| format!("invalid memory limit {input:?}: expected a byte count like \"256m\""))?;
+    let value: i64 = number.parse().map_err(|_| {
+        format!("invalid memory limit {input:?}: expected a byte count like \"256m\"")
+    })?;
 
     let multiplier: i64 = match suffix.trim_end_matches('b') {
         "" => 1,
@@ -367,7 +380,7 @@ pub fn parse_memory_bytes(input: &str) -> Result<i64, String> {
         _ => {
             return Err(format!(
                 "invalid memory limit {input:?}: unknown unit {suffix:?} (use b, k, m, g, or t)"
-            ))
+            ));
         }
     };
 

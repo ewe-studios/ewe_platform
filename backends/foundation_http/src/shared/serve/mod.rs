@@ -6,14 +6,16 @@
 //! The HTTP/2 serve trait (`H2Serve`) is native-only (it drives the native
 //! `foundation_netio::http2` substrate) and lives at [`crate::native::serve`].
 
+use std::future::Future;
+use std::pin::Pin;
 #[cfg(not(target_family = "wasm"))]
 use std::sync::Arc;
 
-use foundation_netio::shared::http::{
-    Http11, RenderHttp, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
-    SimpleHeader, SendSafeBody,
-};
 use foundation_errstacks::ErrorTrace;
+use foundation_netio::shared::http::{
+    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
+    Status,
+};
 
 use crate::shared::context::ContextBag;
 
@@ -53,6 +55,10 @@ impl From<ServeError> for ErrorTrace<ServeError> {
 // ---------------------------------------------------------------------------
 // ConnectionResult
 
+/// A handler's async continuation. It owns everything it needs (`'static`) and
+/// resolves to what the connection does next.
+pub type ServeFuture = Pin<Box<dyn Future<Output = ConnectionResult> + Send + 'static>>;
+
 /// Three outcomes telling the worker what to do after a handler runs.
 pub enum ConnectionResult {
     /// Handler wrote a response; connection kept alive for next request.
@@ -62,6 +68,9 @@ pub enum ConnectionResult {
     Take,
     /// Close the connection, optionally carrying an error for logging.
     Close(Option<ErrorTrace<ServeError>>),
+    /// The handler continues asynchronously. The connection task parks on the
+    /// future and applies its result (Keep / Take / Close) when it completes.
+    Async(ServeFuture),
 }
 
 // ---------------------------------------------------------------------------
@@ -75,7 +84,9 @@ pub trait Serve: Send + Sync + 'static {
         &self,
         bag: Arc<ContextBag>,
         req: SimpleIncomingRequest,
-        conn: foundation_core::io::ioutils::SharedByteBufferStream<foundation_netio::netcap::RawStream>,
+        conn: foundation_core::io::ioutils::SharedByteBufferStream<
+            foundation_netio::netcap::RawStream,
+        >,
     ) -> ConnectionResult;
 }
 
@@ -159,11 +170,17 @@ fn render_response(
         .add_header(SimpleHeader::CONNECTION, "close")
         .with_body(body)
         .build()
-        .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+        .map_err(|e| ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })?;
 
     Http11::response(response)
         .http_render_to_writer(conn)
-        .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+        .map_err(|e| ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })?;
 
     Ok(())
 }
@@ -173,8 +190,8 @@ pub mod respond {
     use serde::Serialize;
 
     use super::{
-        ErrorTrace, Http11, RenderHttp, SendSafeBody, ServeError, SimpleHeader,
-        SimpleOutgoingResponse, render_response, status_from_code,
+        render_response, status_from_code, ErrorTrace, Http11, RenderHttp, SendSafeBody,
+        ServeError, SimpleHeader, SimpleOutgoingResponse,
     };
 
     /// Write a JSON response with the given status code.
@@ -183,8 +200,10 @@ pub mod respond {
         status: u16,
         body: &T,
     ) -> Result<(), ErrorTrace<ServeError>> {
-        let bytes = serde_json::to_vec(body)
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+        let bytes = serde_json::to_vec(body).map_err(|e| ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })?;
         render_response(conn, status, "application/json", SendSafeBody::Bytes(bytes))
     }
 
@@ -217,11 +236,17 @@ pub mod respond {
             .add_header(SimpleHeader::LOCATION, location)
             .with_body(SendSafeBody::None)
             .build()
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+            .map_err(|e| ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })?;
 
         Http11::response(response)
             .http_render_to_writer(conn)
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+            .map_err(|e| ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })?;
 
         Ok(())
     }
@@ -251,18 +276,26 @@ pub mod respond {
             .with_status(status_from_code(100))
             .with_body(SendSafeBody::None)
             .build()
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+            .map_err(|e| ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })?;
 
         tracing::trace!("Rendering 100 Continue response to connection");
         Http11::response(response)
             .http_render_to_writer(conn)
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+            .map_err(|e| ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })?;
 
         // Flush so the interim response reaches the client immediately — the client
         // blocks reading it before it will send the request body, so any buffering
         // here would stall the whole exchange.
-        conn.flush()
-            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+        conn.flush().map_err(|e| ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })?;
 
         tracing::trace!("100 Continue response sent successfully");
         Ok(())

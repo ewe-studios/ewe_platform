@@ -147,9 +147,9 @@ impl PackageDirectorate {
         let mut updates = Vec::new();
         for entry in &manifest.apps {
             let local = LocalVersion::read(&self.resource_root, &entry.app_id);
-            let is_newer = local.as_ref().map_or(true, |l| {
-                l.bundle_version != entry.bundle_version
-            });
+            let is_newer = local
+                .as_ref()
+                .map_or(true, |l| l.bundle_version != entry.bundle_version);
 
             if is_newer {
                 updates.push(entry.clone());
@@ -167,14 +167,9 @@ impl PackageDirectorate {
     /// # Errors
     ///
     /// Returns an error string if any download or write fails.
-    pub fn apply_update(
-        &self,
-        manifest: &OtaManifest,
-        entry: &OtaAppEntry,
-    ) -> Result<(), String> {
+    pub fn apply_update(&self, manifest: &OtaManifest, entry: &OtaAppEntry) -> Result<(), String> {
         let app_dir = self.resource_root.join(&entry.app_id);
-        std::fs::create_dir_all(&app_dir)
-            .map_err(|e| format!("mkdir {app_dir:?}: {e}"))?;
+        std::fs::create_dir_all(&app_dir).map_err(|e| format!("mkdir {app_dir:?}: {e}"))?;
 
         for file in &entry.files {
             let url = format!("{}/{}/{}", manifest.base_url, entry.app_id, file.path);
@@ -196,17 +191,14 @@ impl PackageDirectorate {
             // Write atomically: temp file → rename
             let dest = app_dir.join(&file.path);
             if let Some(parent) = dest.parent() {
-                std::fs::create_dir_all(parent)
-                    .map_err(|e| format!("mkdir {parent:?}: {e}"))?;
+                std::fs::create_dir_all(parent).map_err(|e| format!("mkdir {parent:?}: {e}"))?;
             }
 
             let tmp = dest.with_extension("tmp");
-            let mut f =
-                std::fs::File::create(&tmp).map_err(|e| format!("create {tmp:?}: {e}"))?;
+            let mut f = std::fs::File::create(&tmp).map_err(|e| format!("create {tmp:?}: {e}"))?;
             f.write_all(&data)
                 .map_err(|e| format!("write {tmp:?}: {e}"))?;
-            std::fs::rename(&tmp, &dest)
-                .map_err(|e| format!("rename {tmp:?} → {dest:?}: {e}"))?;
+            std::fs::rename(&tmp, &dest).map_err(|e| format!("rename {tmp:?} → {dest:?}: {e}"))?;
         }
 
         // Write local version manifest

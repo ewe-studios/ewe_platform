@@ -2,7 +2,6 @@
 ///
 /// Uses the native inotify API for real-time file system event monitoring.
 /// Integrates with our epoll-based poll selector for readiness polling.
-
 use std::collections::HashMap;
 use std::ffi::CString;
 use std::io;
@@ -11,9 +10,9 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 use std::{fs, mem};
 
+use crate::native::poll::{Interest, Poll, Token};
 use crate::shared::error::{Result, WatchError};
 use crate::shared::event::{WatchEvent, WatchEventKind};
-use crate::native::poll::{Interest, Poll, Token};
 use crate::shared::watcher::NativeWatcher;
 
 /// Maximum inotify buffer size for a single read.
@@ -63,11 +62,8 @@ impl InotifyWatcher {
         let poll = Poll::new()?;
         let token = Token(0); // inotify always uses token 0
 
-        poll.registry().register_fd(
-            inotify_fd.as_raw_fd(),
-            token,
-            Interest::READABLE,
-        )?;
+        poll.registry()
+            .register_fd(inotify_fd.as_raw_fd(), token, Interest::READABLE)?;
 
         Ok(Self {
             inotify_fd,
@@ -106,9 +102,13 @@ impl InotifyWatcher {
                 let name_ptr = unsafe {
                     (event_ptr as *const u8).offset(mem::size_of::<libc::inotify_event>() as isize)
                 };
-                let name_bytes = unsafe { std::slice::from_raw_parts(name_ptr, event.len as usize) };
+                let name_bytes =
+                    unsafe { std::slice::from_raw_parts(name_ptr, event.len as usize) };
                 // Find the null terminator — if none found, treat all bytes as the name
-                let null_pos = name_bytes.iter().position(|&b| b == 0).unwrap_or(name_bytes.len());
+                let null_pos = name_bytes
+                    .iter()
+                    .position(|&b| b == 0)
+                    .unwrap_or(name_bytes.len());
                 String::from_utf8_lossy(&name_bytes[..null_pos]).to_string()
             } else {
                 String::new()
@@ -393,9 +393,8 @@ impl InotifyWatcher {
         let mut available: libc::c_int = 0;
         // SAFETY: `available` is a valid out-param for FIONREAD, and
         // `inotify_fd` is an open descriptor owned by `self`.
-        let rc = unsafe {
-            libc::ioctl(self.inotify_fd.as_raw_fd(), libc::FIONREAD, &mut available)
-        };
+        let rc =
+            unsafe { libc::ioctl(self.inotify_fd.as_raw_fd(), libc::FIONREAD, &mut available) };
         if rc < 0 || available < 0 {
             return 0;
         }

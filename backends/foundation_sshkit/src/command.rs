@@ -137,5 +137,7 @@ pub struct CommandResult {
 }
 
 impl CommandResult {
-    pub fn is_success(&self) -> bool { self.exit_code == 0 }
+    pub fn is_success(&self) -> bool {
+        self.exit_code == 0
+    }
 }

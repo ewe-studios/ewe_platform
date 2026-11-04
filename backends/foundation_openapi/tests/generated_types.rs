@@ -47,7 +47,7 @@ fn generate(tag: &str, spec: &serde_json::Value) -> String {
 
 /// A spec whose one endpoint returns `schema_ref`, with `schemas` as its
 /// components.
-fn spec(schema_ref: &str, schemas: serde_json::Value) -> serde_json::Value {
+fn spec(schema_ref: &str, schemas: &serde_json::Value) -> serde_json::Value {
     serde_json::json!({
         "openapi": "3.0.0",
         "info": {"title": "types", "version": "1"},
@@ -60,7 +60,7 @@ fn spec(schema_ref: &str, schemas: serde_json::Value) -> serde_json::Value {
                 }}}}
             }}
         },
-        "components": {"schemas": schemas}
+        "components": {"schemas": schemas.clone()}
     })
 }
 
@@ -81,7 +81,7 @@ fn generated() -> &'static str {
             "types",
             &spec(
                 "Thing",
-                serde_json::json!({
+                &serde_json::json!({
                     "Thing": {"type": "object", "properties": {
                         // Cloudflare keys properties by ASN, and by a bare `*`.
                         "13335": {"type": "string"},

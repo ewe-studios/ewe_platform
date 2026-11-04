@@ -9,8 +9,8 @@ use std::time::{Duration, Instant};
 
 use crate::bootstrap;
 use crate::bootstrap::BootstrapLogger;
-use crate::config::{get_profile, GuestOs, DisplayMode};
-use crate::providers::{default_provider, ResolvedPorts};
+use crate::config::{DisplayMode, GuestOs, get_profile};
+use crate::providers::{ResolvedPorts, default_provider};
 use crate::ssh;
 use crate::state;
 use crate::winrm::WinRM;
@@ -19,7 +19,9 @@ use crate::winrm::elevated::ProgressCallback;
 type BoxedError = Box<dyn std::error::Error + Send + Sync>;
 
 fn resolve_profile(name: &str) -> std::result::Result<crate::config::VmProfile, BoxedError> {
-    get_profile(name).map(|p| p.clone()).map_err(|e| Box::new(e) as BoxedError)
+    get_profile(name)
+        .map(|p| p.clone())
+        .map_err(|e| Box::new(e) as BoxedError)
 }
 
 /// Ensure the VM image is available in the cache.
@@ -31,7 +33,8 @@ fn ensure_image(profile: &crate::config::VmProfile) -> Result<(), BoxedError> {
 
     eprintln!("  Image not cached, importing...");
     let provider = default_provider()?;
-    let path = provider.ensure_image(profile)
+    let path = provider
+        .ensure_image(profile)
         .map_err(|e| format!("Failed to import image: {e}"))?;
     eprintln!("  Image imported at {}", path.display());
     Ok(())
@@ -41,9 +44,12 @@ fn ensure_image(profile: &crate::config::VmProfile) -> Result<(), BoxedError> {
 fn ensure_vm_running(profile: &crate::config::VmProfile) -> Result<ResolvedPorts, BoxedError> {
     // Check if there's existing state with a live PID
     if state::is_running(&profile.name) {
-        let vm_state = state::load(&profile.name)
-            .expect("is_running returned true but load failed");
-        eprintln!("  VM '{}' already running (PID {:?})", profile.name, vm_state.pid);
+        let vm_state =
+            state::load(&profile.name).expect("is_running returned true but load failed");
+        eprintln!(
+            "  VM '{}' already running (PID {:?})",
+            profile.name, vm_state.pid
+        );
         return Ok(ResolvedPorts {
             ssh_port: vm_state.ssh_port,
             winrm_port: vm_state.winrm_port,
@@ -54,14 +60,17 @@ fn ensure_vm_running(profile: &crate::config::VmProfile) -> Result<ResolvedPorts
 
     eprintln!("  VM '{}' not running, launching...", profile.name);
     let provider = default_provider()?;
-    let handle = provider.launch(profile, DisplayMode::Headless)
+    let handle = provider
+        .launch(profile, DisplayMode::Headless)
         .map_err(|e| format!("Failed to launch VM: {e}"))?;
 
     let ports = handle.resolved_ports.clone();
     drop(handle); // Provider saved state already
 
-    eprintln!("  VM launched: SSH={}, VNC={}, WinRM={:?}",
-        ports.ssh_port, ports.vnc_port, ports.winrm_port);
+    eprintln!(
+        "  VM launched: SSH={}, VNC={}, WinRM={:?}",
+        ports.ssh_port, ports.vnc_port, ports.winrm_port
+    );
     Ok(ports)
 }
 
@@ -96,11 +105,18 @@ pub fn cmd_bootstrap(args: &ArgMatches) -> std::result::Result<(), BoxedError> {
 
     match profile.os {
         GuestOs::Linux | GuestOs::MacOS => bootstrap_ssh(&profile, name, &logger, &ports),
-        GuestOs::Windows => bootstrap_windows(&profile, name, &logger, progress_cb, force_vsbuild, &ports),
+        GuestOs::Windows => {
+            bootstrap_windows(&profile, name, &logger, progress_cb, force_vsbuild, &ports)
+        }
     }
 }
 
-fn bootstrap_ssh(profile: &crate::config::VmProfile, name: &str, logger: &BootstrapLogger, ports: &ResolvedPorts) -> Result<(), BoxedError> {
+fn bootstrap_ssh(
+    profile: &crate::config::VmProfile,
+    name: &str,
+    logger: &BootstrapLogger,
+    ports: &ResolvedPorts,
+) -> Result<(), BoxedError> {
     // Use resolved ports for SSH connection
     let ssh_port = ports.ssh_port;
 
@@ -113,8 +129,16 @@ fn bootstrap_ssh(profile: &crate::config::VmProfile, name: &str, logger: &Bootst
     Ok(())
 }
 
-fn bootstrap_windows(profile: &crate::config::VmProfile, name: &str, logger: &BootstrapLogger, progress: ProgressCallback<'_>, force_vsbuild: bool, ports: &ResolvedPorts) -> Result<(), BoxedError> {
-    let winrm_port = ports.winrm_port
+fn bootstrap_windows(
+    profile: &crate::config::VmProfile,
+    name: &str,
+    logger: &BootstrapLogger,
+    progress: ProgressCallback<'_>,
+    force_vsbuild: bool,
+    ports: &ResolvedPorts,
+) -> Result<(), BoxedError> {
+    let winrm_port = ports
+        .winrm_port
         .ok_or_else(|| format!("No WinRM port configured for '{}'", profile.name))?;
 
     logger.message(&format!("→ Waiting for WinRM on port {winrm_port}..."));
@@ -145,7 +169,8 @@ fn bootstrap_windows(profile: &crate::config::VmProfile, name: &str, logger: &Bo
             return Err(crate::config::TestbedError::BootstrapFailed {
                 step: "wait for SSH".to_string(),
                 message: format!("timed out waiting for SSH after {:?}", timeout),
-            }.into());
+            }
+            .into());
         }
         if ssh::connect_from_port(ports.ssh_port, &profile.user, profile.os).is_ok() {
             break;
@@ -157,7 +182,14 @@ fn bootstrap_windows(profile: &crate::config::VmProfile, name: &str, logger: &Bo
     // Phase 2: SSH (installs dev tools)
     let mut session = ssh::connect_from_port(ports.ssh_port, &profile.user, profile.os)
         .map_err(|e| format!("SSH connection failed: {e}"))?;
-    bootstrap::windows::bootstrap_windows_ssh_phase(profile, &winrm, &mut session, logger, progress, force_vsbuild)?;
+    bootstrap::windows::bootstrap_windows_ssh_phase(
+        profile,
+        &winrm,
+        &mut session,
+        logger,
+        progress,
+        force_vsbuild,
+    )?;
 
     // Verify with retry — WinRM may need time to stabilize after nushell setup
     let mut verified = false;
@@ -174,7 +206,8 @@ fn bootstrap_windows(profile: &crate::config::VmProfile, name: &str, logger: &Bo
         return Err(crate::config::TestbedError::BootstrapFailed {
             step: "verification".to_string(),
             message: "bootstrap marker not found after completion".to_string(),
-        }.into());
+        }
+        .into());
     }
 
     logger.message(&format!("✓ {name} bootstrap complete"));

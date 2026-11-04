@@ -240,7 +240,9 @@ fn test_mtp_concurrent_generations_share_model() {
                     _ => None,
                 });
                 assert!(
-                    text.as_deref().map(str::trim).is_some_and(|t| !t.is_empty()),
+                    text.as_deref()
+                        .map(str::trim)
+                        .is_some_and(|t| !t.is_empty()),
                     "concurrent MTP generation {i} yielded empty text"
                 );
             })

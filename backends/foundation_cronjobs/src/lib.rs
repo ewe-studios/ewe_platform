@@ -1,12 +1,12 @@
-//! Cron job scheduling with valtron executor and foundation_db persistence.
+//! Cron job scheduling with the valtron executor and `foundation_db` persistence.
 //!
 //! WHY: scheduled jobs need reliable execution with persistence — if the process
 //! restarts, missed jobs should be caught up and execution history preserved.
 //!
 //! WHAT: `CronScheduler` parses cron expressions, computes next fire times, and
 //! parks valtron tasks via `Delayed` until the next execution. Job state
-//! (last_run, next_run, success/failure, consecutive_errors) persists in
-//! foundation_db.
+//! (`last_run`, `next_run`, success/failure, `consecutive_errors`) persists in
+//! `foundation_db`.
 //!
 //! HOW:
 //! 1. At startup, load all registered jobs from the DB, compute next fire time,
@@ -20,5 +20,8 @@
 pub mod scheduler;
 pub mod storage;
 
-pub use scheduler::{CronJob, CronScheduler, JobConfig, MissedJobPolicy, CREATE_TABLE_SQL};
-pub use storage::{JobState, JobRecord};
+pub use scheduler::{
+    CronClock, CronError, CronJob, CronScheduler, Job, JobConfig, JobRunResult, JobRunSnapshot,
+    JobRunTask, MissedJobPolicy, SharedCronClock, UtcClock, CREATE_TABLE_SQL,
+};
+pub use storage::{JobRecord, JobState};

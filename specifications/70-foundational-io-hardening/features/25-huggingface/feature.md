@@ -1,6 +1,7 @@
 ---
 feature: "foundation_deployment_huggingface: async Hub client, streamed multipart uploads, Link pagination"
-status: "pending"
+status: "done"
+note: "E1–E3 landed; Linux CI green (huggingface 12, testing 82, ai 2835 tests)"
 priority: "medium"
 depends_on: ["03-client-body-readiness", "05-push-body-and-accept"]
 branch: "fix/io-25-huggingface"

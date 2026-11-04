@@ -21,15 +21,17 @@ use foundation_core::valtron::{execute, StreamIteratorExt};
 use crate::event_source::{ReconnectingEventSourceTask, ReconnectingProgress};
 use crate::http::pool::ConnectionPool;
 use crate::http::tasks::HttpExchangeTask;
+use crate::http::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
 use crate::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
-use crate::shared::client::{BoxedDnsResolver, ClientConfig, DnsResolver, SystemDnsResolver};
-use crate::http::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
+use crate::shared::client::{ClientConfig, DnsResolver, SystemDnsResolver};
 use crate::shared::http::timeout::TimeoutCalculator;
-use crate::shared::http::{HttpClientError, SendSafeBody, SimpleHeader, SimpleMethod, SimpleResponse};
+use crate::shared::http::{
+    HttpClientError, SendSafeBody, SimpleHeader, SimpleMethod, SimpleResponse,
+};
 
 /// The native HTTP client — owns the connection pool, configuration, and resolver.
 ///
@@ -261,7 +263,7 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         self
     }
 
-    /// Route requests over a custom transport connector (WireGuard overlay, SSH
+    /// Route requests over a custom transport connector (`WireGuard` overlay, SSH
     /// `docker system dial-stdio`) instead of dialing DNS+TCP.
     #[must_use]
     pub fn with_connector(
@@ -545,9 +547,12 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
 
         let request = self.request(builder)?;
         let response = request.send_async().await?;
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let (status, headers, body, _pool, conn) = response.into_parts();
+        let source = conn.as_ref().and_then(|c| c.read_wake_source());
 
-        Ok(SimpleResponse::new(status, headers, body))
+        Ok(SimpleResponse::with_read_wake(
+            status, headers, body, source,
+        ))
     }
 
     async fn send_sse_async(
@@ -598,8 +603,16 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
         let config = self.config.clone();
-        let resolver: BoxedDnsResolver = Arc::new(SystemDnsResolver);
-        let pool = Arc::new(HttpConnectionPool::new(ConnectionPool::default(), resolver));
+        // Use the client's own pool so a transport connector set with
+        // `with_connector` (WireGuard overlay, SSH `dial-stdio`) reaches the
+        // async exchange path, matching `send` and `send_async`. A fresh pool
+        // here would silently drop the connector and dial DNS+TCP instead.
+        let pool = self.pool.clone().unwrap_or_else(|| {
+            Arc::new(HttpConnectionPool::new(
+                ConnectionPool::default(),
+                self.resolver.clone(),
+            ))
+        });
         let task = HttpExchangeTask::new(req, config.max_redirects, pool, config);
         Box::new(task)
     }

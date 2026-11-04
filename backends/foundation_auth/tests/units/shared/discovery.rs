@@ -19,10 +19,7 @@ fn test_parse_discovery_json() {
 
     let discovery: OidcDiscovery = serde_json::from_str(json).unwrap();
     assert_eq!(discovery.issuer, "https://auth.example.com");
-    assert_eq!(
-        discovery.jwks_url(),
-        "https://auth.example.com/jwks"
-    );
+    assert_eq!(discovery.jwks_url(), "https://auth.example.com/jwks");
 }
 
 #[test]

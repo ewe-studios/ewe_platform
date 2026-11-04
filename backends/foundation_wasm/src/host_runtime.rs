@@ -498,9 +498,9 @@ pub mod internal_api {
                         .call(addr, Err(code))
                         .expect("should have called callback");
                 }
-                _ => panic!(
-                    "Runtime memory bug, please investigate, this should not fail: {err:?}"
-                ),
+                _ => {
+                    panic!("Runtime memory bug, please investigate, this should not fail: {err:?}")
+                }
             },
         }
     }
@@ -1157,8 +1157,16 @@ pub mod abi {
 
             // ── F28: Stream FFI ────────────────────────────────────────
 
-            pub fn host_stream_create() -> u64 { 0 }
-            pub fn host_sender_send(_stream_id: u64, _data_start: *const u8, _data_len: u32, _seq: u64) {}
+            pub fn host_stream_create() -> u64 {
+                0
+            }
+            pub fn host_sender_send(
+                _stream_id: u64,
+                _data_start: *const u8,
+                _data_len: u32,
+                _seq: u64,
+            ) {
+            }
             pub fn host_sender_end(_stream_id: u64) {}
         }
 

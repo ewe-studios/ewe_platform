@@ -24,8 +24,8 @@ use foundation_netio::shared::http::{
     SimpleOutgoingResponse, Status,
 };
 
-use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::envelope::EnvelopeWriter;
+use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::protocol::grpc_web::{
     self, build_status_trailers, render_trailer_frame_body, Base64StreamEncoder,
 };
@@ -202,4 +202,3 @@ pub fn status_from_code(code: Code) -> Status {
         Code::Unauthenticated => Status::Unauthorized,
     }
 }
-

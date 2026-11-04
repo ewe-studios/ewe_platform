@@ -294,9 +294,9 @@ where
     /// # Errors
     ///
     /// Returns [`WebSocketError`] if the URL is invalid.
-    #[instrument(skip(pool, extra_headers, outbound_rx, _url), err, fields(url = %_url))]
+    #[instrument(skip(pool, extra_headers, outbound_rx, url), err, fields(url = %url))]
     pub fn connect_with_pool_and_delivery(
-        _url: String,
+        url: String,
         pool: Arc<HttpConnectionPool<R>>,
         subprotocols: Option<String>,
         extra_headers: SimpleHeaders,
@@ -304,7 +304,7 @@ where
         read_timeout: Duration,
         sleep_between: Duration,
     ) -> Result<Self, WebSocketError> {
-        let url_str = _url;
+        let url_str = url;
         info!(url = %url_str, "Connecting to WebSocket endpoint with pool and delivery queue");
 
         let uri = Uri::parse(&url_str).map_err(|e| {
@@ -363,7 +363,10 @@ where
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
         debug!(?name, "Adding custom header");
         if let Some(WebSocketState::Init(Some(ref mut info))) = self.state {
-            info.extra_headers.entry(name).or_default().push(value.into());
+            info.extra_headers
+                .entry(name)
+                .or_default()
+                .push(value.into());
         }
         self
     }
@@ -533,10 +536,12 @@ where
                                 trace!(?status, "Received response status");
                                 if status != Status::SwitchingProtocols {
                                     error!(?status, "Upgrade failed - not 101 Switching Protocols");
+                                    // HTTP status codes never exceed 599, so
+                                    // usize -> u16 is lossless.
+                                    #[allow(clippy::cast_possible_truncation)]
+                                    let code = status.into_usize() as u16;
                                     self.state = Some(WebSocketState::Closed(Some(
-                                        WebSocketError::UpgradeFailed(
-                                            status.into_usize() as u16
-                                        ),
+                                        WebSocketError::UpgradeFailed(code),
                                     )));
                                     return None;
                                 }

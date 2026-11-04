@@ -20,7 +20,10 @@ fn test_cloudflare_error_display() {
     let e = CloudflareError::ZoneNotFound("example.com".into());
     assert_eq!(format!("{e}"), "Zone not found: example.com");
 
-    let e = CloudflareError::Api { status: 400, message: "bad request".into() };
+    let e = CloudflareError::Api {
+        status: 400,
+        message: "bad request".into(),
+    };
     assert_eq!(format!("{e}"), "API error (400): bad request");
 }
 
@@ -46,8 +49,14 @@ fn test_dns_record_type_serde() {
 fn test_cf_err_wraps_in_error_trace() {
     let trace = cf_err(CloudflareError::Http("timeout".into()));
     let display = format!("{trace}");
-    assert!(display.contains("HTTP transport error: timeout"), "got: {display}");
-    assert!(display.contains("ErrorTrace"), "should contain ErrorTrace header");
+    assert!(
+        display.contains("HTTP transport error: timeout"),
+        "got: {display}"
+    );
+    assert!(
+        display.contains("ErrorTrace"),
+        "should contain ErrorTrace header"
+    );
 }
 
 #[test]
@@ -242,7 +251,8 @@ fn test_a_deduplicated_alias_serialises_identically_to_its_canonical_type() {
         messages: vec![message()],
         success: true,
     };
-    let expected = serde_json::json!({ "errors": [], "messages": [{ "code": 1000 }], "success": true });
+    let expected =
+        serde_json::json!({ "errors": [], "messages": [{ "code": 1000 }], "success": true });
     assert_eq!(serde_json::to_value(&via_alias).unwrap(), expected);
     assert_eq!(serde_json::to_value(&canonical).unwrap(), expected);
 
@@ -256,7 +266,9 @@ fn test_an_endpoint_response_reads_through_the_generic_envelope() {
     // `CacheApiResponseSingleId` is `ApiEnvelope<CacheResult>`: the shared
     // `{ errors, messages, result, success }` wrapper with a typed `result`.
     use foundation_deployment_cloudflare::generated::shared::ApiEnvelope;
-    use foundation_deployment_cloudflare::generated::zones::{CacheApiResponseSingleId, CacheResult};
+    use foundation_deployment_cloudflare::generated::zones::{
+        CacheApiResponseSingleId, CacheResult,
+    };
 
     let json = serde_json::json!({
         "errors": [],
@@ -276,5 +288,44 @@ fn test_an_endpoint_response_reads_through_the_generic_envelope() {
 
     // The alias is the generic type, so code can be written against either.
     let generic: &ApiEnvelope<CacheResult> = &response;
-    assert_eq!(serde_json::to_value(generic).unwrap()["result"]["id"], json["result"]["id"]);
+    assert_eq!(
+        serde_json::to_value(generic).unwrap()["result"]["id"],
+        json["result"]["id"]
+    );
+}
+
+#[test]
+fn d1_update_body_uses_typed_read_replication() {
+    // The D1 update bodies inline a `read_replication` object that byte-matches
+    // the named `d1_read_replication_details` schema. The generator must reuse
+    // the named type, so the field is `D1ReadReplicationDetails`, not an untyped
+    // `HashMap<String, serde_json::Value>`.
+    use foundation_deployment_cloudflare::generated::workers::{
+        D1DatabaseUpdatePartialRequestBody, D1DatabaseUpdateRequestBody, D1ReadReplicationDetails,
+    };
+
+    let body = D1DatabaseUpdateRequestBody {
+        read_replication: D1ReadReplicationDetails {
+            mode: "auto".to_string(),
+        },
+    };
+    let json = serde_json::to_value(&body).unwrap();
+    assert_eq!(
+        json,
+        serde_json::json!({ "read_replication": { "mode": "auto" } })
+    );
+
+    let back: D1DatabaseUpdateRequestBody = serde_json::from_value(json).unwrap();
+    assert_eq!(back.read_replication.mode, "auto");
+
+    // The partial (PATCH) body keeps the field optional.
+    let partial = D1DatabaseUpdatePartialRequestBody {
+        read_replication: Some(D1ReadReplicationDetails {
+            mode: "manual".to_string(),
+        }),
+    };
+    assert_eq!(
+        serde_json::to_value(&partial).unwrap(),
+        serde_json::json!({ "read_replication": { "mode": "manual" } })
+    );
 }

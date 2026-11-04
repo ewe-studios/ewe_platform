@@ -12,9 +12,7 @@
 
 use std::collections::HashMap;
 
-use foundation_vectors::store::{
-    VectorEntry, VectorMetadata, VectorStore, VectorStoreError,
-};
+use foundation_vectors::store::{VectorEntry, VectorMetadata, VectorStore, VectorStoreError};
 use foundation_vectors::vector::Vector;
 
 pub const NS: &str = "contract";
@@ -67,15 +65,24 @@ pub async fn invalid_vectors_rejected(store: &dyn VectorStore) {
     };
     assert!(matches!(
         store.insert(NS, bad).await.unwrap_err(),
-        VectorStoreError::DimensionMismatch { expected: 3, got: 2 }
+        VectorStoreError::DimensionMismatch {
+            expected: 3,
+            got: 2
+        }
     ));
     assert!(matches!(
-        store.insert(NS, entry("z", [0.0, 0.0, 0.0])).await.unwrap_err(),
+        store
+            .insert(NS, entry("z", [0.0, 0.0, 0.0]))
+            .await
+            .unwrap_err(),
         VectorStoreError::ZeroVector
     ));
     assert!(matches!(
         store.search(NS, &[1.0], 1).await.unwrap_err(),
-        VectorStoreError::DimensionMismatch { expected: 3, got: 1 }
+        VectorStoreError::DimensionMismatch {
+            expected: 3,
+            got: 1
+        }
     ));
     assert_eq!(store.len(NS).await.unwrap(), 0);
 }
@@ -89,17 +96,26 @@ pub async fn search_ranks_best_first(store: &dyn VectorStore) {
     let m = store.search(NS, &[1.0, 0.0, 0.0], 2).await.unwrap();
     assert_eq!(ids(&m), vec!["x", "z"]);
     assert!(m[0].score >= m[1].score);
-    assert!((m[0].score - 1.0).abs() < 1e-4, "cosine score of an equal vector is 1");
+    assert!(
+        (m[0].score - 1.0).abs() < 1e-4,
+        "cosine score of an equal vector is 1"
+    );
 
     let all = store.search(NS, &[1.0, 0.0, 0.0], 10).await.unwrap();
     assert_eq!(ids(&all), vec!["x", "z", "y"]);
-    assert_eq!(store.search(NS, &[1.0, 0.0, 0.0], 0).await.unwrap(), Vec::new());
+    assert_eq!(
+        store.search(NS, &[1.0, 0.0, 0.0], 0).await.unwrap(),
+        Vec::new()
+    );
 }
 
 /// A namespace with no entries reads as empty, not as an error.
 pub async fn unknown_namespace_is_empty(store: &dyn VectorStore) {
     let ns = "never_written";
-    assert_eq!(store.search(ns, &[1.0, 0.0, 0.0], 5).await.unwrap(), Vec::new());
+    assert_eq!(
+        store.search(ns, &[1.0, 0.0, 0.0], 5).await.unwrap(),
+        Vec::new()
+    );
     assert!(store.get(ns, "a").await.unwrap().is_none());
     assert_eq!(store.len(ns).await.unwrap(), 0);
     assert!(store.is_empty(ns).await.unwrap());
@@ -129,9 +145,18 @@ pub async fn delete_removes_and_reports_missing(store: &dyn VectorStore) {
 
 /// One namespace never sees another's entries.
 pub async fn namespaces_are_isolated(store: &dyn VectorStore) {
-    store.insert("ns_a", entry("a1", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert("ns_b", entry("b1", [1.0, 0.0, 0.0])).await.unwrap();
-    store.insert("ns_b", entry("b2", [0.0, 1.0, 0.0])).await.unwrap();
+    store
+        .insert("ns_a", entry("a1", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert("ns_b", entry("b1", [1.0, 0.0, 0.0]))
+        .await
+        .unwrap();
+    store
+        .insert("ns_b", entry("b2", [0.0, 1.0, 0.0]))
+        .await
+        .unwrap();
 
     assert_eq!(store.len("ns_a").await.unwrap(), 1);
     assert_eq!(store.len("ns_b").await.unwrap(), 2);

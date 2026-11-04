@@ -6,8 +6,8 @@ use std::sync::Arc;
 
 use crate::valtron::branches::{BroadcastPolicy, CollectionState};
 use crate::valtron::{
-    Ctx, QueueReadiness, QueueVacancyReadiness, Stream, TaskIterator,
-    TaskShortCircuit, TaskSpread, TaskStatus,
+    Ctx, QueueReadiness, QueueVacancyReadiness, Stream, TaskIterator, TaskShortCircuit, TaskSpread,
+    TaskStatus,
 };
 
 /// Extension trait providing builder-style combinator methods for any `TaskIterator`.
@@ -452,15 +452,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     fn map_iter<F, InnerIter, InnerR, InnerP>(
         self,
         mapper: F,
-    ) -> TMapIter<
-        Self,
-        F,
-        InnerIter,
-        InnerR,
-        InnerP,
-        Self::Ready,
-        Self::Pending,
-    >
+    ) -> TMapIter<Self, F, InnerIter, InnerR, InnerP, Self::Ready, Self::Pending>
     where
         Self: Sized,
         F: Fn(Self::Ready) -> InnerIter + 'static,
@@ -516,9 +508,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// Transform any `TaskStatus` with full state access.
     fn map_state<F>(self, f: F) -> TMapState<Self, F>
     where
-        F: Fn(
-                TaskStatus<Self::Ready, Self::Pending>,
-            ) -> TaskStatus<Self::Ready, Self::Pending>
+        F: Fn(TaskStatus<Self::Ready, Self::Pending>) -> TaskStatus<Self::Ready, Self::Pending>
             + 'static;
 
     /// Side-effect on any `TaskStatus`.
@@ -575,8 +565,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     fn take_all(
         self,
         n: usize,
-    ) -> TTakeState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool>
-    {
+    ) -> TTakeState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool> {
         self.take_state(n, |_| true)
     }
 
@@ -595,8 +584,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     fn skip_all(
         self,
         n: usize,
-    ) -> TSkipState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool>
-    {
+    ) -> TSkipState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool> {
         self.skip_state(n, |_| true)
     }
 
@@ -604,10 +592,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     fn take_while<F>(
         self,
         f: F,
-    ) -> TTakeWhileState<
-        Self,
-        impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool,
-    >
+    ) -> TTakeWhileState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool>
     where
         F: Fn(&Self::Ready) -> bool + 'static,
     {
@@ -629,10 +614,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     fn skip_while<F>(
         self,
         f: F,
-    ) -> TSkipWhileState<
-        Self,
-        impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool,
-    >
+    ) -> TSkipWhileState<Self, impl Fn(&TaskStatus<Self::Ready, Self::Pending>) -> bool>
     where
         F: Fn(&Self::Ready) -> bool + 'static,
     {
@@ -1019,15 +1001,7 @@ where
     fn map_iter<F, InnerIter, InnerR, InnerP>(
         self,
         mapper: F,
-    ) -> TMapIter<
-        Self,
-        F,
-        InnerIter,
-        InnerR,
-        InnerP,
-        Self::Ready,
-        Self::Pending,
-    >
+    ) -> TMapIter<Self, F, InnerIter, InnerR, InnerP, Self::Ready, Self::Pending>
     where
         Self: Sized,
         F: Fn(Self::Ready) -> InnerIter + 'static,
@@ -1105,9 +1079,7 @@ where
 
     fn map_state<F>(self, f: F) -> TMapState<Self, F>
     where
-        F: Fn(
-                TaskStatus<Self::Ready, Self::Pending>,
-            ) -> TaskStatus<Self::Ready, Self::Pending>
+        F: Fn(TaskStatus<Self::Ready, Self::Pending>) -> TaskStatus<Self::Ready, Self::Pending>
             + 'static,
     {
         TMapState {
@@ -1276,7 +1248,11 @@ where
         F: Fn(Self::Ready) -> Option<R> + 'static,
         R: 'static,
     {
-        TTryMapReady { inner: self, mapper: Box::new(f), done: false }
+        TTryMapReady {
+            inner: self,
+            mapper: Box::new(f),
+            done: false,
+        }
     }
 }
 
@@ -1306,20 +1282,31 @@ where
         Some(match status {
             TaskStatus::Ready(v) => match (self.mapper)(v) {
                 Some(r) => TaskStatus::Ready(r),
-                None => { self.done = true; return None; }
+                None => {
+                    self.done = true;
+                    return None;
+                }
             },
             TaskStatus::Spread(items) => {
                 let mut any_none = false;
-                let mapped: Vec<_> = items.into_iter().filter_map(|item| match item {
-                    TaskSpread::Ready(d) => match (self.mapper)(d) {
-                        Some(r) => Some(TaskSpread::Ready(r)),
-                        None => { any_none = true; None }
-                    },
-                    TaskSpread::Pending(p) => Some(TaskSpread::Pending(p)),
-                }).collect();
-                if any_none { self.done = true; }
+                let mapped: Vec<_> = items
+                    .into_iter()
+                    .filter_map(|item| match item {
+                        TaskSpread::Ready(d) => match (self.mapper)(d) {
+                            Some(r) => Some(TaskSpread::Ready(r)),
+                            None => {
+                                any_none = true;
+                                None
+                            }
+                        },
+                        TaskSpread::Pending(p) => Some(TaskSpread::Pending(p)),
+                    })
+                    .collect();
+                if any_none {
+                    self.done = true;
+                }
                 TaskStatus::Spread(mapped)
-            },
+            }
             TaskStatus::Pending(v) => TaskStatus::Pending(v),
             TaskStatus::Delayed(d) => TaskStatus::Delayed(d),
             TaskStatus::Ignore => TaskStatus::Ignore,
@@ -1513,10 +1500,7 @@ where
                     }
                     if !pending_items.is_empty() {
                         return Some(TaskStatus::Spread(
-                            pending_items
-                                .into_iter()
-                                .map(TaskSpread::Pending)
-                                .collect(),
+                            pending_items.into_iter().map(TaskSpread::Pending).collect(),
                         ));
                     }
                     if has_ready {
@@ -1599,9 +1583,10 @@ where
                     items
                         .into_iter()
                         .flat_map(|item| match item {
-                            TaskSpread::Ready(iterable) => {
-                                iterable.into_iter().map(TaskSpread::Ready).collect::<Vec<_>>()
-                            }
+                            TaskSpread::Ready(iterable) => iterable
+                                .into_iter()
+                                .map(TaskSpread::Ready)
+                                .collect::<Vec<_>>(),
                             TaskSpread::Pending(p) => vec![TaskSpread::Pending(p)],
                         })
                         .collect(),
@@ -1613,7 +1598,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
-        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -1676,9 +1661,10 @@ where
                         .into_iter()
                         .flat_map(|item| match item {
                             TaskSpread::Ready(d) => vec![TaskSpread::Ready(d)],
-                            TaskSpread::Pending(iterable) => {
-                                iterable.into_iter().map(TaskSpread::Pending).collect::<Vec<_>>()
-                            }
+                            TaskSpread::Pending(iterable) => iterable
+                                .into_iter()
+                                .map(TaskSpread::Pending)
+                                .collect::<Vec<_>>(),
                         })
                         .collect(),
                 ))
@@ -1690,7 +1676,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
-        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -1768,7 +1754,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
-        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -1846,7 +1832,7 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Wait => Some(TaskStatus::Wait),
-        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -2843,10 +2829,7 @@ pub struct TMapState<I, F> {
 impl<I, F> TaskIterator for TMapState<I, F>
 where
     I: TaskIterator,
-    F: Fn(
-            TaskStatus<I::Ready, I::Pending>,
-        ) -> TaskStatus<I::Ready, I::Pending>
-        + 'static,
+    F: Fn(TaskStatus<I::Ready, I::Pending>) -> TaskStatus<I::Ready, I::Pending> + 'static,
 {
     type Ready = I::Ready;
     type Pending = I::Pending;
@@ -2914,10 +2897,7 @@ pub struct TTransformUntil<I, F> {
 impl<I, F> TaskIterator for TTransformUntil<I, F>
 where
     I: TaskIterator,
-    F: Fn(
-            TaskStatus<I::Ready, I::Pending>,
-        ) -> Option<TaskStatus<I::Ready, I::Pending>>
-        + 'static,
+    F: Fn(TaskStatus<I::Ready, I::Pending>) -> Option<TaskStatus<I::Ready, I::Pending>> + 'static,
 {
     type Ready = I::Ready;
     type Pending = I::Pending;
@@ -3088,7 +3068,7 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
-        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -3124,11 +3104,9 @@ where
                 }
             }
             TaskStatus::Spread(items) => {
-                if let Some(v) = items.into_iter().find_map(|item| {
-                    match item {
-                        TaskSpread::Ready(v) if (self.predicate)(&v) => Some(v),
-                        _ => None,
-                    }
+                if let Some(v) = items.into_iter().find_map(|item| match item {
+                    TaskSpread::Ready(v) if (self.predicate)(&v) => Some(v),
+                    _ => None,
                 }) {
                     self.found = true;
                     Some(TaskStatus::Ready(Some(v)))
@@ -3142,7 +3120,7 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
-        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -3180,11 +3158,9 @@ where
                 }
             }
             TaskStatus::Spread(items) => {
-                if let Some(r) = items.into_iter().find_map(|item| {
-                    match item {
-                        TaskSpread::Ready(v) => (self.mapper)(v),
-                        _ => None,
-                    }
+                if let Some(r) = items.into_iter().find_map(|item| match item {
+                    TaskSpread::Ready(v) => (self.mapper)(v),
+                    _ => None,
                 }) {
                     self.found = true;
                     Some(TaskStatus::Ready(Some(r)))
@@ -3198,7 +3174,7 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Wait => Some(TaskStatus::Wait),
-        TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
+            TaskStatus::Depends(signal) => Some(TaskStatus::Depends(signal)),
         }
     }
 }
@@ -3235,14 +3211,10 @@ where
             }
             Some(TaskStatus::Spread(items)) => {
                 if let Some(acc) = self.acc.take() {
-                    self.acc = Some(
-                        items
-                            .into_iter()
-                            .fold(acc, |acc, item| match item {
-                                TaskSpread::Ready(v) => (self.folder)(acc, v),
-                                _ => acc,
-                            }),
-                    );
+                    self.acc = Some(items.into_iter().fold(acc, |acc, item| match item {
+                        TaskSpread::Ready(v) => (self.folder)(acc, v),
+                        _ => acc,
+                    }));
                 }
                 Some(TaskStatus::Ignore)
             }
@@ -3512,11 +3484,8 @@ where
 /// return a value and stop, or just stop.
 pub struct TMapCircuit<I: TaskIterator> {
     inner: I,
-    circuit: Box<
-        dyn Fn(
-            TaskStatus<I::Ready, I::Pending>,
-        ) -> TaskShortCircuit<I::Ready, I::Pending>,
-    >,
+    circuit:
+        Box<dyn Fn(TaskStatus<I::Ready, I::Pending>) -> TaskShortCircuit<I::Ready, I::Pending>>,
     stopped: bool,
     _phantom: std::marker::PhantomData<I>,
 }

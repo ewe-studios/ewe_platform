@@ -14,16 +14,16 @@ use tracing_test::traced_test;
 
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::RawStream;
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::ShutdownSignal;
 use foundation_netio::event_source::SseEvent;
+use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
 use foundation_netio::shared::http::SimpleResponse;
-use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, Status,
 };
+use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
 use serial_test::serial;
 
 use foundation_http::{
@@ -181,16 +181,15 @@ impl RequestMiddleware for BlockMiddleware {
 /// Start an HttpServer in a background thread. Returns (addr, shutdown_signal).
 /// Binds the TcpListener before spawning the server thread so the port is
 /// guaranteed to be in use by the time this function returns.
-fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<OnSignal>) {
-    let shutdown = Arc::new(OnSignal::new());
+fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
+    let shutdown = Arc::new(ShutdownSignal::new());
 
     // Bind the listener first — the port is ours from this point on.
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
 
-    let config = ServerConfig::defaults().with_keep_alive(
-        KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)),
-    );
+    let config = ServerConfig::defaults()
+        .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
 
     let bind_addr = format!("127.0.0.1:{}", addr.port());
     let server = HttpServer::with_config(app, &bind_addr, config);
@@ -591,7 +590,7 @@ fn test_post_with_text_body() {
         .send(
             PreparedRequestBuilder::post("http://testserver/body-echo")
                 .unwrap()
-            .body_text("hello world")
+                .body_text("hello world")
                 .build(),
         )
         .unwrap();
@@ -621,8 +620,8 @@ fn test_post_with_json_body() {
         .send(
             PreparedRequestBuilder::post("http://testserver/json")
                 .unwrap()
-            .body_json(&payload)
-            .unwrap()
+                .body_json(&payload)
+                .unwrap()
                 .build(),
         )
         .unwrap();
@@ -825,7 +824,7 @@ fn test_multiple_routes_same_app() {
         .send(
             PreparedRequestBuilder::post("http://testserver/body")
                 .unwrap()
-            .body_text("hello")
+                .body_text("hello")
                 .build(),
         )
         .unwrap();
@@ -982,11 +981,7 @@ fn test_multiple_sequential_requests() {
     for i in 0..5 {
         let url = format!("http://testserver/echo?n={i}");
         let response = client
-            .send(
-                PreparedRequestBuilder::get(&url)
-                    .unwrap()
-                    .build(),
-            )
+            .send(PreparedRequestBuilder::get(&url).unwrap().build())
             .unwrap();
         assert!(response.is_success(), "Request {i} should succeed");
     }
@@ -1100,6 +1095,7 @@ fn test_server_config_defaults() {
     let config = ServerConfig::defaults();
     assert_eq!(config.would_block_sleep(), Duration::from_millis(15)); // base sleep from calculator
     assert_eq!(config.accept_error_sleep(), Duration::from_millis(30)); // 2x base sleep
+    assert_eq!(config.accept_shutdown_poll, Duration::from_millis(10)); // Feature 05 shutdown poll
     assert_eq!(config.keep_alive.min_delay(), Duration::from_millis(15));
     assert_eq!(config.keep_alive.max_delay(), Duration::from_secs(300)); // max_read_timeout
     assert_eq!(config.keep_alive.idle_timeout(), Duration::from_secs(120)); // min_read_timeout
@@ -1113,9 +1109,7 @@ fn test_server_config_builder() {
     let config = ServerConfig::defaults()
         .with_would_block_sleep(Duration::from_millis(50))
         .with_accept_error_sleep(Duration::from_millis(200))
-        .with_keep_alive(
-            KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(30)),
-        )
+        .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(30)))
         .with_max_body_bytes(1024);
 
     // with_accept_error_sleep sets min_sleep_duration to dur/2 = 100ms
@@ -1398,7 +1392,10 @@ impl Serve for ExpectContinueEchoHandler {
         );
         let body_text = match req.body {
             Some(body) => {
-                let bytes = foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(body);
+                let bytes =
+                    foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe(
+                        body,
+                    );
                 tracing::trace!("ExpectContinueEchoHandler: collected {} bytes", bytes.len());
                 String::from_utf8_lossy(&bytes).to_string()
             }
@@ -1435,8 +1432,8 @@ fn test_expect_100_continue_body_echo() {
         .send(
             PreparedRequestBuilder::post("http://testserver/echo-body")
                 .unwrap()
-            .header(SimpleHeader::EXPECT, "100-continue")
-            .body_text("hello via expect-continue")
+                .header(SimpleHeader::EXPECT, "100-continue")
+                .body_text("hello via expect-continue")
                 .build(),
         )
         .unwrap();
@@ -1472,9 +1469,9 @@ fn test_expect_100_continue_json_body() {
         .send(
             PreparedRequestBuilder::post("http://testserver/json-echo")
                 .unwrap()
-            .header(SimpleHeader::EXPECT, "100-continue")
-            .body_json(&payload)
-            .unwrap()
+                .header(SimpleHeader::EXPECT, "100-continue")
+                .body_json(&payload)
+                .unwrap()
                 .build(),
         )
         .unwrap();
@@ -1510,7 +1507,7 @@ fn test_expect_100_continue_get_no_body() {
         .send(
             PreparedRequestBuilder::get("http://testserver/echo")
                 .unwrap()
-            .header(SimpleHeader::EXPECT, "100-continue")
+                .header(SimpleHeader::EXPECT, "100-continue")
                 .build(),
         )
         .unwrap();
@@ -1542,8 +1539,8 @@ fn test_expect_100_continue_zero_content_length() {
         .send(
             PreparedRequestBuilder::post("http://testserver/echo-zero")
                 .unwrap()
-            .header(SimpleHeader::EXPECT, "100-continue")
-            .header(SimpleHeader::CONTENT_LENGTH, "0")
+                .header(SimpleHeader::EXPECT, "100-continue")
+                .header(SimpleHeader::CONTENT_LENGTH, "0")
                 .build(),
         )
         .unwrap();

@@ -2,7 +2,7 @@
 
 use chrono::{DateTime, Utc};
 
-use foundation_db::core::storage_provider::{QueryStore, DataValue, SqlRow};
+use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
 use crate::core::error::AppResult;
 use crate::core::store::{parse_ts, store_err};
@@ -56,7 +56,9 @@ pub async fn insert(db: &dyn QueryStore, row: &EventRow) -> AppResult<()> {
 pub async fn find_by_user(db: &dyn QueryStore, user_uuid: &str) -> AppResult<Vec<EventRow>> {
     let rows = db
         .query(
-            &format!("SELECT {COLUMNS} FROM vault_events WHERE user_uuid = ? ORDER BY event_date DESC"),
+            &format!(
+                "SELECT {COLUMNS} FROM vault_events WHERE user_uuid = ? ORDER BY event_date DESC"
+            ),
             &[DataValue::Text(user_uuid.to_string())],
         )
         .await

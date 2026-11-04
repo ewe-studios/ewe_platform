@@ -20,9 +20,9 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use crate::core::errors::{StorageError, StorageResult};
+use crate::core::state::hash::config_hash;
 use crate::core::state::resource_identifier::ResourceIdentifier;
 use crate::core::state::traits::StateStore;
-use crate::core::state::hash::config_hash;
 use crate::core::state::types::{ResourceState, StateStatus};
 use foundation_core::valtron::{Ctx, FutureTask, TaskIterator, TaskSpread, TaskStatus};
 use serde::Serialize;
@@ -36,6 +36,9 @@ type WriteFuture = Pin<Box<dyn Future<Output = StorageResult<()>>>>;
 
 /// The valtron task form of a [`WriteFuture`].
 type StoreWrite = FutureTask<WriteFuture>;
+
+/// The spread items of a provider call, with their errors converted to `ProviderError`.
+type SpreadItems<T, E, P> = Vec<TaskSpread<Result<T, ProviderError<E>>, StoreStatePending<P>>>;
 
 /// Start writing `state` to `store`, as a task the caller polls.
 fn start_write<St: StateStore + 'static>(store: Arc<St>, state: ResourceState) -> StoreWrite {
@@ -186,10 +189,7 @@ where
         environment: Option<String>,
     },
     /// Inner task succeeded - storing result
-    Storing {
-        output: D,
-        write: StoreWrite,
-    },
+    Storing { output: D, write: StoreWrite },
     /// Done - no more states
     Done,
 }
@@ -448,13 +448,23 @@ where
                     }
                     TaskStatus::Spread(items) => {
                         self.state = Some(StoreStatePrecomputed::Inner {
-                            inner, state_store, resource_id, resource_kind, provider, input, environment,
+                            inner,
+                            state_store,
+                            resource_id,
+                            resource_kind,
+                            provider,
+                            input,
+                            environment,
                         });
-                        let converted: Vec<TaskSpread<Result<D, ProviderError<E>>, StoreStatePending<P>>> = items
+                        let converted: SpreadItems<D, E, P> = items
                             .into_iter()
                             .map(|item| match item {
-                                TaskSpread::Ready(d) => TaskSpread::Ready(d.map_err(|e| ProviderError::ExecuteFailed(e.to_string()))),
-                                TaskSpread::Pending(p) => TaskSpread::Pending(StoreStatePending::WaitingInner(p)),
+                                TaskSpread::Ready(d) => TaskSpread::Ready(
+                                    d.map_err(|e| ProviderError::ExecuteFailed(e.to_string())),
+                                ),
+                                TaskSpread::Pending(p) => {
+                                    TaskSpread::Pending(StoreStatePending::WaitingInner(p))
+                                }
                             })
                             .collect();
                         Some(TaskStatus::Spread(converted))
@@ -498,10 +508,7 @@ where
         environment: Option<String>,
     },
     /// Inner task succeeded - storing result
-    Storing {
-        output: O,
-        write: StoreWrite,
-    },
+    Storing { output: O, write: StoreWrite },
     /// Done - no more states
     Done,
 }
@@ -733,13 +740,20 @@ where
                     }
                     TaskStatus::Spread(items) => {
                         self.state = Some(StoreStateIdentifierInner::Inner {
-                            inner, state_store, input, environment,
+                            inner,
+                            state_store,
+                            input,
+                            environment,
                         });
-                        let converted: Vec<TaskSpread<Result<O, ProviderError<E>>, StoreStatePending<P>>> = items
+                        let converted: SpreadItems<O, E, P> = items
                             .into_iter()
                             .map(|item| match item {
-                                TaskSpread::Ready(d) => TaskSpread::Ready(d.map_err(|e| ProviderError::ExecuteFailed(e.to_string()))),
-                                TaskSpread::Pending(p) => TaskSpread::Pending(StoreStatePending::WaitingInner(p)),
+                                TaskSpread::Ready(d) => TaskSpread::Ready(
+                                    d.map_err(|e| ProviderError::ExecuteFailed(e.to_string())),
+                                ),
+                                TaskSpread::Pending(p) => {
+                                    TaskSpread::Pending(StoreStatePending::WaitingInner(p))
+                                }
                             })
                             .collect();
                         Some(TaskStatus::Spread(converted))

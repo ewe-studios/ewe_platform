@@ -24,8 +24,8 @@
 /// request body, not a parameter.
 #[derive(Debug, Clone, Default)]
 pub struct ImageBuildOptions {
-    /// `name:tag` to apply to the built image.
-    pub tag: Option<String>,
+    /// `name:tag` values to apply to the built image (several allowed).
+    pub tags: Vec<String>,
     /// Path of the Dockerfile *within the context* (default: `Dockerfile`).
     pub dockerfile: Option<String>,
     /// `ARG` values for the build.
@@ -80,10 +80,14 @@ use crate::error::DockerError;
 use crate::generated::build::{image_build_request, ImageBuildArgs};
 use crate::generated::commit::{image_commit_request, ContainerConfig, ImageCommitArgs};
 use crate::generated::create::{image_create_request, CreateImageInfo, ImageCreateArgs};
-use crate::generated::get::{image_get_all_request, image_get_request, ImageGetAllArgs, ImageGetArgs};
+use crate::generated::get::{
+    image_get_all_request, image_get_request, ImageGetAllArgs, ImageGetArgs,
+};
 use crate::generated::history::{image_history_request, ImageHistoryArgs};
 use crate::generated::images::{image_delete_request, ImageDeleteArgs};
-use crate::generated::json::{image_inspect_request, image_list_request, ImageInspect, ImageInspectArgs, ImageListArgs};
+use crate::generated::json::{
+    image_inspect_request, image_list_request, ImageInspect, ImageInspectArgs, ImageListArgs,
+};
 use crate::generated::load::{image_load_request, ImageLoadArgs};
 use crate::generated::prune::{image_prune_request, ImagePruneArgs};
 use crate::generated::push::{image_push_request, ImagePushArgs, PushImageInfo};
@@ -106,14 +110,19 @@ impl DockerClient {
         digests: Option<bool>,
     ) -> Result<serde_json::Value, DockerError> {
         let args = ImageListArgs {
-            all: all.map(|v| v.to_string()),
+            all,
             filters: filters.map(str::to_string),
-            shared_size: shared_size.map(|v| v.to_string()),
-            digests: digests.map(|v| v.to_string()),
+            shared_size,
+            digests,
             manifests: None,
         };
-        let response =
-            image_list_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        let response = image_list_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(response.body)
     }
 
@@ -128,8 +137,13 @@ impl DockerClient {
             manifests: None,
             platform: None,
         };
-        let response =
-            image_inspect_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        let response = image_inspect_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(response.body)
     }
 
@@ -143,8 +157,13 @@ impl DockerClient {
             name: name.to_string(),
             platform: None,
         };
-        let response =
-            image_history_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        let response = image_history_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(response.body)
     }
 
@@ -166,7 +185,13 @@ impl DockerClient {
             repo: repo.map(str::to_string),
             tag: tag.map(str::to_string),
         };
-        image_tag_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        image_tag_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(())
     }
 
@@ -185,12 +210,17 @@ impl DockerClient {
     ) -> Result<serde_json::Value, DockerError> {
         let args = ImageDeleteArgs {
             name: name.to_string(),
-            force: force.map(|v| v.to_string()),
-            noprune: noprune.map(|v| v.to_string()),
+            force,
+            noprune,
             platforms: Vec::new(),
         };
-        let response =
-            image_delete_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        let response = image_delete_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(response.body)
     }
 
@@ -212,8 +242,13 @@ impl DockerClient {
             limit: limit.map(|v| v.to_string()),
             filters: filters.map(str::to_string),
         };
-        let response =
-            image_search_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        let response = image_search_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(response.body)
     }
 
@@ -234,7 +269,7 @@ impl DockerClient {
         quiet: Option<bool>,
     ) -> Result<ProgressStream<BuildInfo>, DockerError> {
         let args = ImageLoadArgs {
-            quiet: quiet.map(|v| v.to_string()),
+            quiet,
             platform: Vec::new(),
         };
         let response = image_load_request(
@@ -260,12 +295,17 @@ impl DockerClient {
             tag: opts.tag.clone(),
             comment: opts.comment.clone(),
             author: opts.author.clone(),
-            pause: opts.pause.map(|v| v.to_string()),
+            pause: opts.pause,
             changes: opts.changes.clone(),
             body: ContainerConfig::default(),
         };
-        let response =
-            image_commit_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        let response = image_commit_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(response.body)
     }
 
@@ -278,7 +318,13 @@ impl DockerClient {
         let args = ImagePruneArgs {
             filters: filters.map(str::to_string),
         };
-        image_prune_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        image_prune_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(())
     }
 
@@ -309,23 +355,25 @@ impl DockerClient {
             if pairs.is_empty() {
                 return Ok(None);
             }
-            let map: std::collections::HashMap<&str, &str> =
-                pairs.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+            let map: std::collections::HashMap<&str, &str> = pairs
+                .iter()
+                .map(|(k, v)| (k.as_str(), v.as_str()))
+                .collect();
             serde_json::to_string(&map)
                 .map(Some)
                 .map_err(|e| DockerError::JsonParse(format!("{what}: {e}")))
         };
         let args = ImageBuildArgs {
             dockerfile: opts.dockerfile.clone(),
-            t: opts.tag.clone(),
+            t: opts.tags.clone(),
             target: opts.target.clone(),
             platform: opts.platform.clone(),
-            nocache: Some(opts.no_cache.to_string()),
+            nocache: Some(opts.no_cache),
             pull: Some(opts.pull.to_string()),
             // Remove intermediate containers from a successful build; `forcerm`
             // also removes them when it fails (see `ImageBuildOptions::force_rm`).
-            rm: Some("true".to_string()),
-            forcerm: opts.force_rm.then(|| "true".to_string()),
+            rm: Some(true),
+            forcerm: opts.force_rm.then_some(true),
             buildargs: json_map("buildargs", &opts.build_args)?,
             labels: json_map("labels", &opts.labels)?,
             ..ImageBuildArgs::default()
@@ -440,8 +488,13 @@ impl DockerClient {
             name: name.to_string(),
             platform: Vec::new(),
         };
-        let response =
-            image_get_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        let response = image_get_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(ByteBody::new(response.body))
     }
 
@@ -459,7 +512,13 @@ impl DockerClient {
         let args = DistributionInspectArgs {
             name: name.to_string(),
         };
-        let response = distribution_inspect_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        let response = distribution_inspect_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(response.body)
     }
 
@@ -481,10 +540,16 @@ impl DockerClient {
             reserved_space: reserved_space.map(|v| v.to_string()),
             max_used_space: max_used_space.map(|v| v.to_string()),
             min_free_space: None,
-            all: all.map(|v| v.to_string()),
+            all,
             filters: filters.map(str::to_string),
         };
-        build_prune_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        build_prune_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(())
     }
 
@@ -506,8 +571,13 @@ impl DockerClient {
             names: names.iter().map(|n| (*n).to_string()).collect(),
             platform: Vec::new(),
         };
-        let response =
-            image_get_all_request(self.api(), &args, &self.api_url().await?, None::<super::NoMod>).await?;
+        let response = image_get_all_request(
+            self.api(),
+            &args,
+            &self.api_url().await?,
+            None::<super::NoMod>,
+        )
+        .await?;
         Ok(ByteBody::new(response.body))
     }
 }

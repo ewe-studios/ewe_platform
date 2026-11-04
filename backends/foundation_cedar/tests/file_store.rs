@@ -21,7 +21,7 @@ async fn test_file_store_loads_policies() {
     assert!(store.load_schema().await.unwrap().contains("entity User"));
     assert!(store.load_policies().await.unwrap().contains("permit"));
     assert!(store.load_entities().await.unwrap().is_none());
-    assert!(!store.version().await.unwrap().is_empty());
+    assert_ne!(store.version().await.unwrap(), "");
 
     let _ = std::fs::remove_dir_all(&dir);
 }

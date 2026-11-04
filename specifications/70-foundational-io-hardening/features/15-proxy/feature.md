@@ -1,6 +1,7 @@
 ---
 feature: "foundation_proxy: health probe leak, state race, ACME account flow, redirect limits, diagnostic test, warning"
-status: "pending"
+status: "done"
+note: "E1–E6 landed; Linux CI green (connectrpc 477 tests, proxy 117 tests)"
 priority: "high"
 depends_on: ["04-nonblocking-connect-tls", "13-deployment-platform"]
 branch: "fix/io-15-proxy"

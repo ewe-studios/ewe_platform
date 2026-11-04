@@ -105,5 +105,5 @@ pub fn fetch_standard_spec(
     let stream = foundation_core::valtron::execute(task, None)
         .map_err(|e| DeploymentError::Generic(format!("Valtron scheduling failed: {e}")))?;
 
-    Ok(stream.map_pending(|_| ()))
+    Ok(stream.map_pending(|()| ()))
 }

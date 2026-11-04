@@ -6,7 +6,7 @@
 //! and the gap is not cosmetic: the extractor derives a response's type name from
 //! its `ref_path`, so a **fully bundled** spec (every schema inlined) yields no
 //! named types at all. Measured 2026-07-17: Linode (9.3 MB) and Hetzner (3.4 MB)
-//! have **zero** `$ref`s; DigitalOcean has 7814.
+//! have **zero** `$ref`s; `DigitalOcean` has 7814.
 //!
 //! WHAT: One function per transform, plus [`validate_canonical`] to check the
 //! result actually is canonical rather than hoping.
@@ -95,6 +95,9 @@ fn nested_suffix(key: &str) -> String {
 ///
 /// Names go through [`nested_suffix`], so a property keyed with a slash, a dash or
 /// a space still yields a component name that a `$ref` can resolve.
+///
+/// # Panics
+/// Never: each key is taken from `properties` just before it is looked up.
 pub fn extract_inline_schemas(
     properties: &mut Map<String, Value>,
     parent_name: &str,
@@ -158,6 +161,67 @@ pub fn extract_inline_schemas(
     }
 }
 
+/// Point an inline object property at the named schema it duplicates.
+///
+/// WHY: [`canonicalize_operations`] hoists only operation-level request and
+/// response schemas. A vendor also writes the same object inline inside its own
+/// `components/schemas`. The generator names a type from a `$ref`, so an inline
+/// object generates as an untyped `HashMap<String, serde_json::Value>`.
+/// Cloudflare's `d1_database_update_request_body` inlines `read_replication`
+/// byte-for-byte as `d1_read_replication_details`: the update body generated
+/// untyped while create and details used the named struct.
+///
+/// WHAT: for every named schema, walk its properties. When a property is an
+/// inline object byte-identical to a named schema, replace it with a `$ref` to
+/// that schema. An inline object that matches nothing is left as it was.
+pub fn reuse_identical_schemas(spec: &mut Value) -> usize {
+    let Some(schemas) = spec
+        .pointer_mut("/components/schemas")
+        .and_then(Value::as_object_mut)
+    else {
+        return 0;
+    };
+
+    // Snapshot the named schemas once. Keys stay stable during the walk; the
+    // values are cloned so comparisons see the pre-walk shapes.
+    let named: Vec<(String, Value)> = schemas
+        .iter()
+        .map(|(name, schema)| (name.clone(), schema.clone()))
+        .collect();
+
+    let mut reused = 0;
+    for (_name, schema) in schemas.iter_mut() {
+        if let Some(props) = schema.get_mut("properties").and_then(Value::as_object_mut) {
+            reused += reuse_in_props(props, &named);
+        }
+    }
+    reused
+}
+
+fn reuse_in_props(props: &mut Map<String, Value>, named: &[(String, Value)]) -> usize {
+    let mut reused = 0;
+    for (_key, prop) in props.iter_mut() {
+        let is_inline = prop.get("$ref").is_none() && prop.get("properties").is_some();
+        if is_inline {
+            if let Some((name, _)) = named.iter().find(|(_, schema)| schema == prop) {
+                *prop = serde_json::json!({"$ref": format!("#/components/schemas/{name}")});
+                reused += 1;
+                continue;
+            }
+        }
+        // Recurse into nested properties and array items.
+        if let Some(inner) = prop.get_mut("properties").and_then(Value::as_object_mut) {
+            reused += reuse_in_props(inner, named);
+        }
+        if let Some(items) = prop.get_mut("items") {
+            if let Some(inner) = items.get_mut("properties").and_then(Value::as_object_mut) {
+                reused += reuse_in_props(inner, named);
+            }
+        }
+    }
+    reused
+}
+
 /// Convert a path like `/v1/databases/{databaseId}/backups` to a `PascalCase`
 /// type name prefix like `DatabasesBackups`.
 ///
@@ -210,9 +274,16 @@ impl std::fmt::Display for NotCanonical {
         match self {
             Self::NoServers => write!(f, "no `servers` entry — clients would have no base URL"),
             Self::NoComponentSchemas => {
-                write!(f, "`components/schemas` is missing or empty — nothing to $ref")
+                write!(
+                    f,
+                    "`components/schemas` is missing or empty — nothing to $ref"
+                )
             }
-            Self::InlineSchema { path, method, location } => write!(
+            Self::InlineSchema {
+                path,
+                method,
+                location,
+            } => write!(
                 f,
                 "{method} {path} ({location}) still has an inline object schema — \
                  it would generate as an anonymous blob, since types are named from $ref"
@@ -239,7 +310,7 @@ pub fn validate_canonical(spec: &Value) -> Result<(), Vec<NotCanonical>> {
     if spec
         .get("servers")
         .and_then(Value::as_array)
-        .is_none_or(|a| a.is_empty())
+        .is_none_or(std::vec::Vec::is_empty)
     {
         issues.push(NotCanonical::NoServers);
     }
@@ -247,14 +318,16 @@ pub fn validate_canonical(spec: &Value) -> Result<(), Vec<NotCanonical>> {
     if spec
         .pointer("/components/schemas")
         .and_then(Value::as_object)
-        .is_none_or(|m| m.is_empty())
+        .is_none_or(serde_json::Map::is_empty)
     {
         issues.push(NotCanonical::NoComponentSchemas);
     }
 
     if let Some(paths) = spec.get("paths").and_then(Value::as_object) {
         for (path, item) in paths {
-            let Some(item) = item.as_object() else { continue };
+            let Some(item) = item.as_object() else {
+                continue;
+            };
             for (method, op) in item {
                 if !is_http_method(method) {
                     continue;
@@ -375,6 +448,10 @@ pub struct CanonicalizeStats {
 /// `PostLinodeInstanceResponse`. Without one, the path and method are used;
 /// `path_to_type_name` alone would collide, since it strips parameters and would
 /// give `/instances` and `/instances/{id}` the same name.
+///
+/// # Panics
+/// If `spec` is not a JSON object, or if `components` or `components/schemas`
+/// exists and is not one. A spec read from JSON with that shape never panics.
 pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
     let mut stats = CanonicalizeStats::default();
     let mut hoisted: Map<String, Value> = Map::new();
@@ -402,12 +479,16 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
     };
 
     for (path, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         for (method, op) in item.iter_mut() {
             if !is_http_method(method) {
                 continue;
             }
-            let Some(op) = op.as_object_mut() else { continue };
+            let Some(op) = op.as_object_mut() else {
+                continue;
+            };
 
             let base = operation_type_base(op, path, method);
 
@@ -417,7 +498,13 @@ pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
                 .and_then(Value::as_object_mut)
                 .and_then(first_media_schema_mut)
             {
-                hoist(schema, &format!("{base}Request"), &mut hoisted, &reserved, &mut stats);
+                hoist(
+                    schema,
+                    &format!("{base}Request"),
+                    &mut hoisted,
+                    &reserved,
+                    &mut stats,
+                );
             }
 
             if let Some(responses) = op.get_mut("responses").and_then(Value::as_object_mut) {
@@ -579,9 +666,9 @@ const DOC_ONLY_FIELDS: &[&str] = &[
 ///
 /// WHY: two reasons, one of which is not obvious.
 ///
-/// 1. **Weight.** They are 34% of DigitalOcean's spec — 2.3 MB → 1.6 MB — and
+/// 1. **Weight.** They are 34% of `DigitalOcean`'s spec — 2.3 MB → 1.6 MB — and
 ///    nothing in the generator reads them.
-/// 2. **They carry credential-shaped strings.** DigitalOcean's spec embeds Slack
+/// 2. **They carry credential-shaped strings.** `DigitalOcean`'s spec embeds Slack
 ///    webhook URLs in `example` values and `x-codeSamples` snippets (11 of them).
 ///    They are the vendor's own documentation placeholders, not live secrets — but
 ///    committing the artefact trips GitHub's push protection, and a repository that
@@ -621,7 +708,7 @@ pub struct ParameterRefStats {
 /// Resolve `$ref`s into `components/parameters` so operations carry their
 /// parameters directly.
 ///
-/// **WHY:** the twin of [`resolve_response_refs`], and it bites harder. DigitalOcean
+/// **WHY:** the twin of [`resolve_response_refs`], and it bites harder. `DigitalOcean`
 /// writes **every** parameter as a reference —
 /// `{"$ref": "#/components/parameters/droplet_tag_name"}` — and our `Parameter`
 /// model has `name`/`in`/`required`/`schema` and **no `$ref` field**. So each one
@@ -630,7 +717,7 @@ pub struct ParameterRefStats {
 /// at all.
 ///
 /// That is not cosmetic. `?tag_name=` is how a deployment enumerates *its own*
-/// droplets — DigitalOcean's answer to Hetzner's label selector — so losing it
+/// droplets — `DigitalOcean`'s answer to Hetzner's label selector — so losing it
 /// takes the identity mechanism with it.
 ///
 /// **WHAT:** replaces each `$ref` parameter with the component's body.
@@ -658,7 +745,9 @@ pub fn resolve_parameter_refs(spec: &mut Value) -> ParameterRefStats {
     };
 
     for (_, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         for (method, op) in item.iter_mut() {
             // A path item can carry `parameters` shared by every method on it, so
             // that key is walked too — not only the HTTP methods.
@@ -706,7 +795,7 @@ pub struct ResponseRefStats {
 /// Resolve `$ref`s into `components/responses` so operations carry their content
 /// directly.
 ///
-/// **WHY:** DigitalOcean writes every response as a reference —
+/// **WHY:** `DigitalOcean` writes every response as a reference —
 /// `"202": { "$ref": "#/components/responses/droplet_create" }` — where Hetzner
 /// inlines `content` at the operation. Our `Response` model has `description` and
 /// `content` and **no `$ref` field**, so a DO response deserialises to an empty
@@ -733,6 +822,10 @@ pub struct ResponseRefStats {
 ///
 /// Run it **before** [`canonicalize_operations`], which then finds ordinary
 /// `content` and has nothing left to do for these.
+///
+/// # Panics
+/// If `spec` is not a JSON object, or if `components` or `components/schemas`
+/// exists and is not one. A spec read from JSON with that shape never panics.
 pub fn resolve_response_refs(spec: &mut Value) -> ResponseRefStats {
     let mut stats = ResponseRefStats::default();
 
@@ -740,7 +833,11 @@ pub fn resolve_response_refs(spec: &mut Value) -> ResponseRefStats {
     let reserved: BTreeSet<String> = spec
         .pointer("/components/schemas")
         .and_then(Value::as_object)
-        .map(|s| s.keys().map(|k| crate::api_catalog::to_pascal_case_from_any(k)).collect())
+        .map(|s| {
+            s.keys()
+                .map(|k| crate::api_catalog::to_pascal_case_from_any(k))
+                .collect()
+        })
         .unwrap_or_default();
 
     let mut hoisted: Map<String, Value> = Map::new();
@@ -812,15 +909,14 @@ pub fn resolve_response_refs(spec: &mut Value) -> ResponseRefStats {
     };
 
     for (_, item) in paths.iter_mut() {
-        let Some(item) = item.as_object_mut() else { continue };
+        let Some(item) = item.as_object_mut() else {
+            continue;
+        };
         for (method, op) in item.iter_mut() {
             if !is_http_method(method) {
                 continue;
             }
-            let Some(responses) = op
-                .get_mut("responses")
-                .and_then(Value::as_object_mut)
-            else {
+            let Some(responses) = op.get_mut("responses").and_then(Value::as_object_mut) else {
                 continue;
             };
 

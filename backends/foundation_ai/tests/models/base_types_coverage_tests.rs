@@ -13,9 +13,7 @@
 //!
 //! HOW: pure construction and formatting — no providers, no models, no network.
 
-use foundation_ai::types::{
-    Args, ChatMessage, DeviceId, KVCacheType, MessageRole, Quantization,
-};
+use foundation_ai::types::{Args, ChatMessage, DeviceId, KVCacheType, MessageRole, Quantization};
 
 // ---------------------------------------------------------------------------
 // DeviceId
@@ -321,7 +319,7 @@ fn schema_opts(json: serde_json::Value) -> foundation_jsonschema::ValidationOpti
 }
 
 fn single(name: &str, props: serde_json::Value) -> Tool {
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: name.into(),
         category: "test".into(),
         description: "d".into(),
@@ -329,7 +327,7 @@ fn single(name: &str, props: serde_json::Value) -> Tool {
             serde_json::json!({"type": "object", "properties": props}),
         )),
         returns: None,
-    })
+    }))
 }
 
 fn multi(name: &str, cmds: &[&str]) -> Tool {
@@ -418,7 +416,11 @@ fn toolshed_with_tools_overwrites_rather_than_appends() {
         .with_tools(vec![single("first", serde_json::json!({}))])
         .with_tools(vec![single("second", serde_json::json!({}))]);
     let names: Vec<&str> = shed.tools.iter().map(Tool::name).collect();
-    assert_eq!(names, vec!["second"], "the second call must replace the first");
+    assert_eq!(
+        names,
+        vec!["second"],
+        "the second call must replace the first"
+    );
 }
 
 #[test]

@@ -45,18 +45,25 @@ pub struct LogOpts {
 }
 
 /// Get the log file path on the VM.
+#[must_use]
 pub fn log_path(profile: &VmProfile, kind: LogKind) -> String {
     match (profile.os, kind) {
         (GuestOs::Linux, LogKind::Build) => "/home/vagrant/.testbed-build/build.log".to_string(),
         (GuestOs::Linux, LogKind::Run) => "/home/vagrant/.testbed-run/run.log".to_string(),
         (GuestOs::MacOS, LogKind::Build) => "/Users/vagrant/.testbed-build/build.log".to_string(),
         (GuestOs::MacOS, LogKind::Run) => "/Users/vagrant/.testbed-run/run.log".to_string(),
-        (GuestOs::Windows, LogKind::Build) => "C:\\Users\\vagrant\\.testbed-build\\build.log".to_string(),
+        (GuestOs::Windows, LogKind::Build) => {
+            "C:\\Users\\vagrant\\.testbed-build\\build.log".to_string()
+        }
         (GuestOs::Windows, LogKind::Run) => "C:\\Users\\vagrant\\.testbed-run\\run.log".to_string(),
     }
 }
 
 /// Retrieve logs from the VM according to options.
+///
+/// # Errors
+///
+/// Returns an error if the log cannot be retrieved from the VM.
 pub fn get_logs(profile: &VmProfile, session: &mut VmSession, opts: &LogOpts) -> Result<String> {
     let path = log_path(profile, opts.kind);
 
@@ -96,4 +103,3 @@ fn extract_errors(session: &mut VmSession, path: &str) -> Result<String> {
 fn tail_log(session: &mut VmSession, path: &str, n: u32) -> Result<String> {
     crate::ssh::exec(session, &format!("tail -n {n} {path}"))
 }
-

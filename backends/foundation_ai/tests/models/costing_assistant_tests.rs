@@ -15,8 +15,8 @@
 
 use foundation_ai::costing::estimate_tokens;
 use foundation_ai::types::{
-    CostStatus, ImageContent, Messages, MimeType, ModelId, ModelOutput, ModelProviders,
-    StopReason, TextContent, UsageCosting, UsageReport,
+    CostStatus, ImageContent, Messages, MimeType, ModelId, ModelOutput, ModelProviders, StopReason,
+    TextContent, UsageCosting, UsageReport,
 };
 
 // ---------------------------------------------------------------------------
@@ -89,10 +89,7 @@ fn assistant_thinking_content_is_estimated() {
         thinking: "z".repeat(400),
         signature: None,
     })]);
-    assert!(
-        est.input > 0.0,
-        "thinking content must be counted: {est:?}"
-    );
+    assert!(est.input > 0.0, "thinking content must be counted: {est:?}");
 }
 
 #[test]
@@ -163,10 +160,7 @@ fn assistant_embedding_values_are_estimated() {
         dimensions: 1536,
         values: vec![0.0; 1536],
     })]);
-    assert!(
-        est.input > 0.0,
-        "embedding values must be counted: {est:?}"
-    );
+    assert!(est.input > 0.0, "embedding values must be counted: {est:?}");
 }
 
 // ---------------------------------------------------------------------------

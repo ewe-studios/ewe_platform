@@ -48,15 +48,15 @@ use std::time::Duration;
 use futures::StreamExt;
 
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
-use bytes::{Buf, BufMut, Bytes};
+use buffa::{DecodeContext, DecodeError, DefaultInstance, EncodeSink, Message, SizeCache};
+use bytes::{Buf, Bytes};
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::codec::CodecFor;
 use foundation_connectrpc::{
@@ -81,9 +81,12 @@ impl DefaultInstance for TestMsg {
 
 impl Message for TestMsg {
     fn compute_size(&self, _c: &mut SizeCache) -> u32 {
-        0
+        let mut size = 0usize;
+        size += 1 + buffa::types::int32_encoded_len(self.id);
+        size += 1 + buffa::types::string_encoded_len(&self.name);
+        size as u32
     }
-    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl BufMut) {
+    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl EncodeSink) {
         Tag::new(1, WireType::Varint).encode(buf);
         encode_varint(self.id as u64, buf);
         Tag::new(2, WireType::LengthDelimited).encode(buf);
@@ -210,8 +213,8 @@ fn read_chunk(stream: &mut TcpStream, rest: &mut Vec<u8>) -> Option<Vec<u8>> {
         rest.extend_from_slice(&tmp[..n]);
     };
     let size_text = String::from_utf8_lossy(&rest[..line_end]).to_string();
-    let size = usize::from_str_radix(size_text.split(';').next().unwrap().trim(), 16)
-        .expect("chunk size");
+    let size =
+        usize::from_str_radix(size_text.split(';').next().unwrap().trim(), 16).expect("chunk size");
     let needed = line_end + 2 + size + 2;
     while rest.len() < needed {
         let n = stream.read(&mut tmp).expect("read chunk data");
@@ -258,7 +261,7 @@ fn unary_round_trip_over_real_socket() {
     let serve = echo_serve();
     app.router.add_route_any(PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -338,7 +341,7 @@ fn server_stream_over_real_socket() {
     let serve = list_serve();
     app.router.add_route_any(LIST_PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -467,17 +470,17 @@ fn h1_transport_capabilities_are_correct() {
 async fn h1_client_transport_over_real_socket() {
     use foundation_connectrpc::shared::transport::Transport;
     use foundation_connectrpc::H1Transport;
+    use foundation_core::url::Uri;
     use foundation_netio::shared::http::{
         Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, SimpleUrl,
     };
-    use foundation_core::url::Uri;
 
     // Server.
     let mut app = HttpApp::new_serve();
     let serve = echo_serve();
     app.router.add_route_any(PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -588,7 +591,7 @@ async fn h1_client_server_stream_over_real_socket() {
     let serve = list_serve();
     app.router.add_route_any(LIST_PROCEDURE, &serve);
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -668,7 +671,11 @@ async fn h1_client_server_stream_over_real_socket() {
             .unmarshal(Bytes::from(msg_bytes.clone()))
             .expect("decode item");
         assert_eq!(item.id, 10 + i as i32, "item {i} id over H1 client");
-        assert_eq!(item.name, format!("item-{i}"), "item {i} name over H1 client");
+        assert_eq!(
+            item.name,
+            format!("item-{i}"),
+            "item {i} name over H1 client"
+        );
     }
 
     shutdown.turn_on();
@@ -693,10 +700,10 @@ use foundation_netio::HttpClientBuilder;
 
 /// Start an `HttpServer` serving `serve` at `route`; returns its address and the
 /// shutdown switch.
-fn start_server(route: &str, serve: Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server(route: &str, serve: Arc<dyn Serve>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
     let mut app = HttpApp::new_serve();
     app.router.add_route_any(route, &serve);
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(
@@ -1295,7 +1302,7 @@ fn keep_alive_connection_serves_unary_and_streams_in_turn() {
     let list = list_serve();
     app.router.add_route_any(PROCEDURE, &echo);
     app.router.add_route_any(LIST_PROCEDURE, &list);
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let server = HttpServer::with_config(

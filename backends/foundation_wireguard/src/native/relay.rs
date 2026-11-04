@@ -69,11 +69,7 @@ impl RelayServer {
     /// WHY: A relay needs an upper bound on resource usage.
     ///
     /// WHAT: Create a new relay server with rate limiting and session caps.
-    pub fn new(
-        max_sessions: u32,
-        rate_limit_pps: u32,
-        idle_timeout_secs: u64,
-    ) -> Self {
+    pub fn new(max_sessions: u32, rate_limit_pps: u32, idle_timeout_secs: u64) -> Self {
         Self {
             sessions: HashMap::new(),
             rate_limit_pps,
@@ -134,7 +130,9 @@ impl RelayServer {
 
         // Lookup destination.
         let dst_entry = self.sessions.get(&frame.dst_peer_id)?;
-        dst_entry.byte_count.fetch_add(frame.ciphertext.len() as u64, Ordering::Relaxed);
+        dst_entry
+            .byte_count
+            .fetch_add(frame.ciphertext.len() as u64, Ordering::Relaxed);
 
         Some(ForwardedFrame {
             ciphertext: frame.ciphertext,
@@ -151,18 +149,13 @@ impl RelayServer {
     pub fn gc(&mut self) {
         let timeout = self.idle_timeout_secs;
         let now = Instant::now();
-        self.sessions.retain(|_, e| {
-            now.duration_since(e.last_active).as_secs() < timeout
-        });
+        self.sessions
+            .retain(|_, e| now.duration_since(e.last_active).as_secs() < timeout);
     }
 
     /// Evict the single oldest idle session (for capacity management).
     fn gc_one(&mut self) {
-        if let Some((&id, _)) = self
-            .sessions
-            .iter()
-            .min_by_key(|(_, e)| e.last_active)
-        {
+        if let Some((&id, _)) = self.sessions.iter().min_by_key(|(_, e)| e.last_active) {
             self.sessions.remove(&id);
         }
     }
@@ -217,10 +210,7 @@ impl RelayClient {
     }
 
     /// WHY: The SWIM membership changed; refresh relay candidates.
-    pub fn on_membership_update(
-        &mut self,
-        members: &[crate::shared::membership::PeerRecord],
-    ) {
+    pub fn on_membership_update(&mut self, members: &[crate::shared::membership::PeerRecord]) {
         self.selector.update(members);
     }
 
@@ -376,7 +366,8 @@ impl HolePuncher {
             }
         }
         // Remove failed attempts.
-        self.pending.retain(|_, a| a.stage != HolePunchStage::Failed);
+        self.pending
+            .retain(|_, a| a.stage != HolePunchStage::Failed);
         out
     }
 
@@ -445,9 +436,7 @@ impl HolePuncher {
                 confirmed.push(a.peer);
                 false // remove confirmed
             }
-            HolePunchStage::SynSent(sent) => {
-                now.duration_since(sent).as_secs() < timeout
-            }
+            HolePunchStage::SynSent(sent) => now.duration_since(sent).as_secs() < timeout,
             _ => true,
         });
         confirmed

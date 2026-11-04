@@ -4,6 +4,7 @@
 //! promoted-column INSERT/SELECT and scru128 `doc_id` ordering are validated
 //! end-to-end, not just against the in-memory backend.
 
+use foundation_compact::ids::new_scru128_string;
 use foundation_core::valtron::valtron_test;
 use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_db::{MigrationRunner, SqlDocumentStore, TursoStorage, MIGRATIONS};
@@ -67,12 +68,39 @@ async fn append_promotable_round_trips_through_sqlite() {
 #[valtron_test]
 async fn plain_append_leaves_promoted_columns_null() {
     let (_dir, store) = make_store().await;
-    store.append("k", serde_json::json!({"n": 1})).await.unwrap();
+    store
+        .append("k", serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
     let docs = store.scan_documents("k", 10).await.unwrap();
     assert_eq!(docs.len(), 1);
     assert_eq!(docs[0].record_type, None);
     assert_eq!(docs[0].title, None);
     assert_eq!(docs[0].summary, None);
+}
+
+#[valtron_test]
+async fn append_with_id_is_idempotent_over_sqlite() {
+    let (_dir, store) = make_store().await;
+    let id = new_scru128_string();
+    let first = store
+        .append_with_id("k", &id, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    assert_eq!(first.id, id);
+    let second = store
+        .append_with_id("k", &id, serde_json::json!({"n": 1}))
+        .await
+        .unwrap();
+    assert_eq!(second.id, id);
+    assert_eq!(
+        store.count("k").await.unwrap(),
+        1,
+        "re-append must not duplicate"
+    );
+    let docs = store.scan_documents("k", 10).await.unwrap();
+    assert_eq!(docs.len(), 1);
+    assert_eq!(docs[0].id, id);
 }
 
 #[valtron_test]
@@ -134,9 +162,19 @@ async fn migration_runner_applies_all_then_is_idempotent() {
         let storage = TursoStorage::new(&url).await.unwrap();
 
         // First run applies every migration; second run applies none.
-        let applied = MigrationRunner::new(MIGRATIONS).run_async(&storage).await.unwrap();
-        assert_eq!(applied, MIGRATIONS.len(), "first run applies all migrations");
-        let reapplied = MigrationRunner::new(MIGRATIONS).run_async(&storage).await.unwrap();
+        let applied = MigrationRunner::new(MIGRATIONS)
+            .run_async(&storage)
+            .await
+            .unwrap();
+        assert_eq!(
+            applied,
+            MIGRATIONS.len(),
+            "first run applies all migrations"
+        );
+        let reapplied = MigrationRunner::new(MIGRATIONS)
+            .run_async(&storage)
+            .await
+            .unwrap();
         assert_eq!(reapplied, 0, "re-run is a no-op (tracked in _migrations)");
 
         // The documents table + promoted columns from 020/021 are usable.

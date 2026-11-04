@@ -26,10 +26,7 @@ const CONTAINER_NAME: &str = "ewe-deployable-it";
 /// A `ProviderClient` whose state store is a fresh temp dir. Its HTTP client
 /// (the default one) is unused by the Docker deployable, which dials its own
 /// Unix socket.
-async fn provider_client() -> (
-    ProviderClient<FileStateStore>,
-    std::path::PathBuf,
-) {
+async fn provider_client() -> (ProviderClient<FileStateStore>, std::path::PathBuf) {
     let dir = std::env::temp_dir().join(format!("ewe-deployable-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     let store = FileStateStore::new(&dir, "ewe-test", "dev");
@@ -62,7 +59,10 @@ async fn deploy_then_destroy_container() {
         .deploy(0, client.clone())
         .await
         .expect("deploy container");
-    assert!(!output.container_id.is_empty(), "deploy should yield a container id");
+    assert!(
+        !output.container_id.is_empty(),
+        "deploy should yield a container id"
+    );
     eprintln!("DEPLOY OK — container {}", output.container_id);
 
     // The container should be running.
@@ -74,11 +74,17 @@ async fn deploy_then_destroy_container() {
     assert!(running, "deployed container should be running");
 
     // Destroy: reads the id back from state, stops + removes it.
-    deployment.destroy(0, client).await.expect("destroy container");
+    deployment
+        .destroy(0, client)
+        .await
+        .expect("destroy container");
     eprintln!("DESTROY OK — container removed");
 
     // It should be gone now.
-    let gone = docker.inspect_container(&output.container_id).await.is_err();
+    let gone = docker
+        .inspect_container(&output.container_id)
+        .await
+        .is_err();
     assert!(gone, "destroyed container should no longer exist");
 
     let _ = std::fs::remove_dir_all(&state_dir);

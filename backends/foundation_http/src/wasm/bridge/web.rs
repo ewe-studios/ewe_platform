@@ -30,12 +30,12 @@ async fn request_from_web(req: &Request) -> Result<SimpleIncomingRequest, JsErro
         }
     }
 
-    let text_promise = req.text().map_err(|e| {
-        JsError::new(&format!("failed to get request text: {e:?}"))
-    })?;
-    let body_js = JsFuture::from(text_promise).await.map_err(|e| {
-        JsError::new(&format!("failed to read request body: {e:?}"))
-    })?;
+    let text_promise = req
+        .text()
+        .map_err(|e| JsError::new(&format!("failed to get request text: {e:?}")))?;
+    let body_js = JsFuture::from(text_promise)
+        .await
+        .map_err(|e| JsError::new(&format!("failed to read request body: {e:?}")))?;
     let body_text = body_js.as_string().unwrap_or_default();
     let body = if body_text.is_empty() {
         None
@@ -76,9 +76,11 @@ impl WasmHttpApp {
     pub async fn handle_request(&self, req: Request) -> Result<Response, JsError> {
         let simple_req = request_from_web(&req).await?;
         let bag = Arc::new(crate::shared::context::ContextBag::new());
-        Ok(self.inner.dispatch_web(bag, simple_req).await.map_err(|e| {
-            JsError::new(&format!("dispatch failed: {e:?}"))
-        })?)
+        Ok(self
+            .inner
+            .dispatch_web(bag, simple_req)
+            .await
+            .map_err(|e| JsError::new(&format!("dispatch failed: {e:?}")))?)
     }
 }
 
@@ -180,12 +182,5 @@ impl WasmHttpAppSingleton {
     /// Check if the app has been initialized.
     pub fn is_initialized() -> bool {
         STATE.lock().unwrap().upgrade().is_some()
-    }
-
-    /// Force-reset the singleton state. cfg-gated to `#[cfg(test)]`.
-    #[cfg(test)]
-    pub fn reset() {
-        let mut weak = STATE.lock().unwrap();
-        *weak = Weak::new();
     }
 }

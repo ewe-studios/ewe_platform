@@ -30,33 +30,29 @@ impl DevService {
     /// Returns an error if any component fails to spawn.
     pub fn start(&self) -> Result<(), ToolingError> {
         // -- Shared queues
-        let build_complete_queue: Arc<ConcurrentQueue<()>> =
-            Arc::new(ConcurrentQueue::unbounded());
-        let running_queue: Arc<ConcurrentQueue<()>> =
-            Arc::new(ConcurrentQueue::unbounded());
+        let build_complete_queue: Arc<ConcurrentQueue<()>> = Arc::new(ConcurrentQueue::unbounded());
+        let running_queue: Arc<ConcurrentQueue<()>> = Arc::new(ConcurrentQueue::unbounded());
 
         // -- File watcher (build dirs)
-        let mut build_watcher = FileWatcherTask::new()
-            .map_err(|e| ToolingError::Watch(e.to_string()))?;
+        let mut build_watcher =
+            FileWatcherTask::new().map_err(|e| ToolingError::Watch(e.to_string()))?;
         for dir in &self.project.build_directories {
             build_watcher
                 .watch(std::path::Path::new(dir), true)
                 .map_err(|e| ToolingError::Watch(e.to_string()))?;
         }
         let build_events_rx = build_watcher.subscribe();
-        valtron::execute(build_watcher, None)
-            .map_err(|e| ToolingError::Watch(e.to_string()))?;
+        valtron::execute(build_watcher, None).map_err(|e| ToolingError::Watch(e.to_string()))?;
 
         // -- File watcher (reload dirs)
-        let mut reload_watcher = FileWatcherTask::new()
-            .map_err(|e| ToolingError::Watch(e.to_string()))?;
+        let mut reload_watcher =
+            FileWatcherTask::new().map_err(|e| ToolingError::Watch(e.to_string()))?;
         for dir in &self.project.reload_directories {
             reload_watcher
                 .watch(std::path::Path::new(dir), true)
                 .map_err(|e| ToolingError::Watch(e.to_string()))?;
         }
-        valtron::execute(reload_watcher, None)
-            .map_err(|e| ToolingError::Watch(e.to_string()))?;
+        valtron::execute(reload_watcher, None).map_err(|e| ToolingError::Watch(e.to_string()))?;
 
         // -- Project builder (cargo)
         let builder = ProjectBuilderTask::new(build_events_rx, build_complete_queue.clone())
@@ -67,26 +63,19 @@ impl DevService {
                 skip_check: self.project.skip_rust_checks,
             })
             .with_stop_on_failure(self.project.stop_on_failure);
-        valtron::execute(builder, None)
-            .map_err(|e| ToolingError::Build(e.to_string()))?;
+        valtron::execute(builder, None).map_err(|e| ToolingError::Build(e.to_string()))?;
 
         // -- Binary runner
-        let runner = BinaryRunnerTask::new(
-            self.project.clone(),
-            build_complete_queue,
-            running_queue,
-        );
-        valtron::execute(runner, None)
-            .map_err(|e| ToolingError::Run(e.to_string()))?;
+        let runner =
+            BinaryRunnerTask::new(self.project.clone(), build_complete_queue, running_queue);
+        valtron::execute(runner, None).map_err(|e| ToolingError::Run(e.to_string()))?;
 
         // -- Signal handler (Ctrl+C / SIGTERM)
         // signal_task parks on epoll/kqueue — zero CPU until a signal arrives.
         // Under multi, pool threads drive the task. We just wait on the bus
         // subscriber queue, whose pop() blocks until a signal event is delivered.
-        let (sig_task, bus) = signal_task()
-            .map_err(|e| ToolingError::Watch(e.to_string()))?;
-        valtron::send(sig_task)
-            .map_err(|e| ToolingError::Watch(e.to_string()))?;
+        let (sig_task, bus) = signal_task().map_err(|e| ToolingError::Watch(e.to_string()))?;
+        valtron::send(sig_task).map_err(|e| ToolingError::Watch(e.to_string()))?;
 
         // Block on the bus subscriber — ConcurrentQueue::pop() blocks via
         // park_timeout until a signal event arrives. Zero spinning.

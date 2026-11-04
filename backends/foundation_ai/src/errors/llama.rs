@@ -1,6 +1,8 @@
 // Consolidated llama.cpp error types — isolated behind cfg(feature = "llamacpp").
 
-use infrastructure_llama_cpp::{
+// Re-export the source llama.cpp error types so tests reach them through this
+// crate (no direct dev-dependency on `infrastructure_llama_cpp`).
+pub use infrastructure_llama_cpp::{
     ApplyChatTemplateError, ChatTemplateError, DecodeError, EmbeddingsError, EncodeError,
     LlamaContextLoadError, LlamaCppError, LlamaModelLoadError, StringToTokenError,
     TokenToStringError,

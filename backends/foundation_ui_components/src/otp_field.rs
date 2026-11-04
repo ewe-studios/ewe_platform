@@ -40,7 +40,14 @@ pub struct OtpConfig {
 
 impl Default for OtpConfig {
     fn default() -> Self {
-        Self { length: 6, numeric: true, mask: false, disabled: false, name: None, class: None }
+        Self {
+            length: 6,
+            numeric: true,
+            mask: false,
+            disabled: false,
+            name: None,
+            class: None,
+        }
     }
 }
 
@@ -88,10 +95,16 @@ pub fn otp_field(
     set_code: SignalSetter<String>,
 ) -> Html {
     let class = config.class.unwrap_or(Cow::Borrowed("otp-field"));
-    let cell_type: Cow<'static, str> =
-        if config.mask { Cow::Borrowed("password") } else { Cow::Borrowed("text") };
-    let inputmode: Cow<'static, str> =
-        if config.numeric { Cow::Borrowed("numeric") } else { Cow::Borrowed("text") };
+    let cell_type: Cow<'static, str> = if config.mask {
+        Cow::Borrowed("password")
+    } else {
+        Cow::Borrowed("text")
+    };
+    let inputmode: Cow<'static, str> = if config.numeric {
+        Cow::Borrowed("numeric")
+    } else {
+        Cow::Borrowed("text")
+    };
     let disabled = config.disabled;
 
     let cells: Vec<Html> = (0..config.length)

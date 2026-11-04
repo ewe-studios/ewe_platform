@@ -32,8 +32,8 @@ use futures::StreamExt;
 use crate::shared::client::code_from_http_status;
 use crate::shared::compression::{negotiate_compression, CompressionRegistry, Compressor};
 use crate::shared::context::{Peer, Spec, StreamType};
-use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
+use crate::shared::error::{Code, ConnectError, ConnectResult};
 use crate::shared::transport::{
     body_stream_from_pipe, fail_stream, BodyStream, ByteSink, ByteSource, Frame, HeadStream,
     PipeClientConn, PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
@@ -137,7 +137,10 @@ async fn write_frames(
                     return Ok(());
                 }
             }
-            Some(Frame::EndStream { error: _, trailers: _ }) => {
+            Some(Frame::EndStream {
+                error: _,
+                trailers: _,
+            }) => {
                 sink.close();
                 return Ok(());
             }
@@ -167,7 +170,6 @@ fn decompress_if(
         Ok(payload)
     }
 }
-
 
 /// The payload of a unary request's single envelope (gRPC, gRPC-Web).
 ///
@@ -425,10 +427,7 @@ impl ProtocolClient for GrpcClient {
         codec_name: &str,
         compression: Option<&str>,
     ) {
-        headers.insert(
-            SimpleHeader::CONTENT_TYPE,
-            vec![content_type(codec_name)],
-        );
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec![content_type(codec_name)]);
         headers.insert(
             SimpleHeader::from("te".to_string()),
             vec![constants::TE_TRAILERS.to_string()],
@@ -548,7 +547,10 @@ async fn read_grpc_response(
         Some(Err(e)) => {
             let err: ErrorTrace<ConnectError> = ConnectError::from(e).into();
             let _ = tx
-                .send(Frame::EndStream { error: Some(err), trailers: SimpleHeaders::new() })
+                .send(Frame::EndStream {
+                    error: Some(err),
+                    trailers: SimpleHeaders::new(),
+                })
                 .await;
             tx.close();
             return Ok(());
@@ -557,7 +559,10 @@ async fn read_grpc_response(
             let err: ErrorTrace<ConnectError> =
                 ConnectError::unavailable("transport closed without response head").into();
             let _ = tx
-                .send(Frame::EndStream { error: Some(err), trailers: SimpleHeaders::new() })
+                .send(Frame::EndStream {
+                    error: Some(err),
+                    trailers: SimpleHeaders::new(),
+                })
                 .await;
             tx.close();
             return Ok(());
@@ -569,7 +574,10 @@ async fn read_grpc_response(
         let err: ErrorTrace<ConnectError> =
             ConnectError::new(code_from_http_status(&status), format!("HTTP {status}")).into();
         let _ = tx
-            .send(Frame::EndStream { error: Some(err), trailers: resp_headers })
+            .send(Frame::EndStream {
+                error: Some(err),
+                trailers: resp_headers,
+            })
             .await;
         tx.close();
         return Ok(());
@@ -579,7 +587,10 @@ async fn read_grpc_response(
     if grpc_status_of(&resp_headers).is_some() {
         let error = parse_grpc_error_trailer(&resp_headers);
         let _ = tx
-            .send(Frame::EndStream { error, trailers: resp_headers })
+            .send(Frame::EndStream {
+                error,
+                trailers: resp_headers,
+            })
             .await;
         tx.close();
         return Ok(());
@@ -590,7 +601,10 @@ async fn read_grpc_response(
     //    terminal error, not vanish into a clean-looking EOF.
     if let Err(e) = read_frames(body, &tx, None, read_max).await {
         let _ = tx
-            .send(Frame::EndStream { error: Some(e), trailers: SimpleHeaders::new() })
+            .send(Frame::EndStream {
+                error: Some(e),
+                trailers: SimpleHeaders::new(),
+            })
             .await;
         tx.close();
         return Ok(());
@@ -599,7 +613,12 @@ async fn read_grpc_response(
     // 4. Trailing HEADERS carry the call's outcome.
     let trls = trailers.receive().await.unwrap_or_default();
     let error = parse_grpc_error_trailer(&trls);
-    let _ = tx.send(Frame::EndStream { error, trailers: trls }).await;
+    let _ = tx
+        .send(Frame::EndStream {
+            error,
+            trailers: trls,
+        })
+        .await;
     tx.close();
     Ok(())
 }
@@ -630,7 +649,11 @@ pub(crate) fn parse_grpc_error_trailer(
     // SAFETY: Code is #[repr(u32)] and its discriminants match gRPC status
     // codes exactly (Decision 03). Out-of-range values are clamped to Unknown
     // first, so the transmute stays within the enum's variants.
-    let status = if (1..=16).contains(&status) { status } else { 2 };
+    let status = if (1..=16).contains(&status) {
+        status
+    } else {
+        2
+    };
     let code: Code = unsafe { std::mem::transmute(status) };
     Some(ErrorTrace::new(ConnectError::new(code, decoded)))
 }
@@ -666,4 +689,3 @@ fn header(headers: &SimpleHeaders, name: &str) -> Option<String> {
 }
 
 // ── tests ───────────────────────────────────────────────────────────────────
-

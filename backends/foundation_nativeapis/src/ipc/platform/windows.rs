@@ -3,51 +3,51 @@
 /// Uses named pipes (message mode, overlapped I/O) for communication,
 /// CreateFileMapping/MapViewOfFile for shared memory, and DuplicateHandle
 /// for passing kernel objects across processes.
-
 use std::{
-    io, mem, ptr, sync::{mpsc, Arc, Once, mpsc::{Receiver, Sender, TryRecvError}},
+    io, mem, ptr,
+    sync::{
+        mpsc,
+        mpsc::{Receiver, Sender, TryRecvError},
+        Arc, Once,
+    },
     time::{Duration, Instant},
 };
 
 use foundation_core::type_uuid::TypeUuid;
 
 use crate::ipc::{
-    decode, version::version, version::Version,
-    EndpointID, Error, Label, LabelOp, Message, MessageBox,
-    Selector, SelectorMode, MemoryRegion, util::Align4,
+    decode, util::Align4, version::version, version::Version, EndpointID, Error, Label, LabelOp,
+    MemoryRegion, Message, MessageBox, Selector, SelectorMode,
 };
 
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::{
     Foundation::{
         self, CloseHandle, DuplicateHandle, GetLastError, DUPLICATE_SAME_ACCESS,
-        ERROR_ACCESS_DENIED, ERROR_ALREADY_EXISTS, ERROR_FILE_NOT_FOUND,
-        ERROR_IO_PENDING, ERROR_MORE_DATA, ERROR_PIPE_BUSY, ERROR_PIPE_CONNECTED,
-        ERROR_PIPE_LISTENING, HANDLE, INVALID_HANDLE_VALUE, WAIT_TIMEOUT,
+        ERROR_ACCESS_DENIED, ERROR_ALREADY_EXISTS, ERROR_FILE_NOT_FOUND, ERROR_IO_PENDING,
+        ERROR_MORE_DATA, ERROR_PIPE_BUSY, ERROR_PIPE_CONNECTED, ERROR_PIPE_LISTENING, HANDLE,
+        INVALID_HANDLE_VALUE, WAIT_TIMEOUT,
     },
     Security::{self, SECURITY_ATTRIBUTES},
     Storage::FileSystem::{
-        self, CreateFileW, ReadFile, WriteFile, FILE_FLAG_OVERLAPPED,
-        FILE_GENERIC_WRITE, OPEN_EXISTING, PIPE_ACCESS_INBOUND,
+        self, CreateFileW, ReadFile, WriteFile, FILE_FLAG_OVERLAPPED, FILE_GENERIC_WRITE,
+        OPEN_EXISTING, PIPE_ACCESS_INBOUND,
     },
     System::{
+        Memory::{
+            CreateFileMappingW, MapViewOfFile, UnmapViewOfFile, FILE_MAP_READ, FILE_MAP_WRITE,
+            PAGE_READWRITE,
+        },
+        Pipes::{
+            ConnectNamedPipe, CreateNamedPipeW, DisconnectNamedPipe, GetNamedPipeServerProcessId,
+            PIPE_READMODE_MESSAGE, PIPE_TYPE_MESSAGE, PIPE_UNLIMITED_INSTANCES, PIPE_WAIT,
+        },
+        SystemInformation::GetSystemInfo,
+        Threading::{GetCurrentProcess, GetCurrentProcessId, OpenProcess, PROCESS_DUP_HANDLE},
         IO::{
             CreateIoCompletionPort, GetQueuedCompletionStatus, PostQueuedCompletionStatus,
             OVERLAPPED,
         },
-        Memory::{
-            CreateFileMappingW, MapViewOfFile, UnmapViewOfFile,
-            FILE_MAP_READ, FILE_MAP_WRITE, PAGE_READWRITE,
-        },
-        Pipes::{
-            ConnectNamedPipe, CreateNamedPipeW, DisconnectNamedPipe,
-            GetNamedPipeServerProcessId, PIPE_READMODE_MESSAGE, PIPE_TYPE_MESSAGE,
-            PIPE_UNLIMITED_INSTANCES, PIPE_WAIT,
-        },
-        Threading::{
-            GetCurrentProcess, GetCurrentProcessId, OpenProcess, PROCESS_DUP_HANDLE,
-        },
-        SystemInformation::GetSystemInfo,
     },
 };
 
@@ -65,8 +65,13 @@ impl Handle {
         unsafe {
             let mut dup: HANDLE = 0;
             let r = DuplicateHandle(
-                GetCurrentProcess(), self.0, GetCurrentProcess(), &mut dup,
-                0, 0, DUPLICATE_SAME_ACCESS,
+                GetCurrentProcess(),
+                self.0,
+                GetCurrentProcess(),
+                &mut dup,
+                0,
+                0,
+                DUPLICATE_SAME_ACCESS,
             );
             if r == 0 {
                 return Err(io::Error::last_os_error());
@@ -96,7 +101,9 @@ impl Handle {
 impl Drop for Handle {
     fn drop(&mut self) {
         if self.0 != 0 && self.0 != -1 {
-            unsafe { CloseHandle(self.0); }
+            unsafe {
+                CloseHandle(self.0);
+            }
         }
     }
 }
@@ -120,7 +127,10 @@ impl PartialEq for Remote {
 
 impl Remote {
     pub fn new(pipe: Handle) -> Self {
-        Self { pipe, process: None }
+        Self {
+            pipe,
+            process: None,
+        }
     }
 
     pub fn is_dead(&self) -> bool {
@@ -150,10 +160,15 @@ pub(crate) struct EncodedMessage {
 
 impl EncodedMessage {
     pub fn extract_remote(&mut self) -> Option<Remote> {
-        if self.objects.len() < 2 { return None; }
+        if self.objects.len() < 2 {
+            return None;
+        }
         let pipe = self.objects.pop()?;
         let process = self.objects.pop()?;
-        Some(Remote { pipe, process: Some(process) })
+        Some(Remote {
+            pipe,
+            process: Some(process),
+        })
     }
 
     pub fn send(&mut self, remote: &Remote) -> Result<(), Error> {
@@ -167,18 +182,27 @@ impl EncodedMessage {
             if let Some(ref process) = remote.process {
                 let obj_offset = 8; // version(4) + object_count(4)
                 let obj_ptr = self.pipe_msg.as_mut_ptr().add(obj_offset) as *mut u64;
-                let all_objects: Vec<&Handle> = self.objects.iter()
+                let all_objects: Vec<&Handle> = self
+                    .objects
+                    .iter()
                     .chain(self.memory_regions.iter().map(|mr| mr.object()))
                     .collect();
 
                 for (i, obj) in all_objects.iter().enumerate() {
                     let mut dup: HANDLE = 0;
                     let r = DuplicateHandle(
-                        GetCurrentProcess(), obj.as_raw(), process.as_raw(), &mut dup,
-                        0, 0, DUPLICATE_SAME_ACCESS,
+                        GetCurrentProcess(),
+                        obj.as_raw(),
+                        process.as_raw(),
+                        &mut dup,
+                        0,
+                        0,
+                        DUPLICATE_SAME_ACCESS,
                     );
                     if r == 0 {
-                        for r in &self.memory_regions { r.ref_count_inner(-1); }
+                        for r in &self.memory_regions {
+                            r.ref_count_inner(-1);
+                        }
                         return Err(Error::Disconnect);
                     }
                     *obj_ptr.add(i) = dup as u64;
@@ -194,13 +218,18 @@ impl EncodedMessage {
                 ptr::null_mut(),
             );
             if r == 0 {
-                for r in &self.memory_regions { r.ref_count_inner(-1); }
+                for r in &self.memory_regions {
+                    r.ref_count_inner(-1);
+                }
                 return Err(Error::Disconnect);
             }
             Ok(())
         }
         #[cfg(not(target_os = "windows"))]
-        Err(Error::IoError(io::Error::new(io::ErrorKind::Unsupported, "Windows only")))
+        Err(Error::IoError(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "Windows only",
+        )))
     }
 
     pub fn from_local(pipe: &mut Local) -> Result<Self, Error> {
@@ -209,8 +238,11 @@ impl EncodedMessage {
             let mut buf = vec![0u8; 64 << 10]; // 64KB initial
             let mut bytes_read = 0u32;
             let r = ReadFile(
-                pipe.pipe.0, buf.as_mut_ptr().cast(), buf.len() as u32,
-                &mut bytes_read, ptr::null_mut(),
+                pipe.pipe.0,
+                buf.as_mut_ptr().cast(),
+                buf.len() as u32,
+                &mut bytes_read,
+                ptr::null_mut(),
             );
             if r == 0 {
                 return Err(Error::Disconnect);
@@ -220,11 +252,18 @@ impl EncodedMessage {
             Self::new(buf, msg_size)
         }
         #[cfg(not(target_os = "windows"))]
-        Err(Error::IoError(io::Error::new(io::ErrorKind::Unsupported, "Windows only")))
+        Err(Error::IoError(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "Windows only",
+        )))
     }
 
     fn new(pipe_msg: Vec<u8>, msg_size: usize) -> Result<Self, Error> {
-        if msg_size < 8 { return Err(Error::Decode(bincode::error::DecodeError::UnexpectedEnd { additional: 8 })); }
+        if msg_size < 8 {
+            return Err(Error::Decode(bincode::error::DecodeError::UnexpectedEnd {
+                additional: 8,
+            }));
+        }
 
         unsafe {
             let ptr = pipe_msg.as_ptr();
@@ -255,39 +294,48 @@ impl EncodedMessage {
             // Selector
             let selector_size_ptr = ptr.add(objects_end) as *const u32;
             let selector_size = *selector_size_ptr as usize;
-            let selector_data = std::slice::from_raw_parts(
-                selector_size_ptr.add(1) as *const u8, selector_size,
-            );
+            let selector_data =
+                std::slice::from_raw_parts(selector_size_ptr.add(1) as *const u8, selector_size);
             let selector: Selector = decode(selector_data)?;
 
             // Split memory regions from objects
             let mr_count = selector.memory_region_count as usize;
             let memory_regions: Vec<_> = objects
                 .drain((objects.len() - mr_count)..)
-                .map(|obj| { let r = MemoryRegion::from_object(obj); r.ref_count_inner(-1); r })
+                .map(|obj| {
+                    let r = MemoryRegion::from_object(obj);
+                    r.ref_count_inner(-1);
+                    r
+                })
                 .collect();
 
             // Payload
             let payload_offset = objects_end + 4 + selector_size.align4();
             let payload_size = *(ptr.add(payload_offset) as *const u32) as usize;
-            let payload_data: &'static [u8] = std::slice::from_raw_parts(
-                ptr.add(payload_offset + 4), payload_size,
-            );
+            let payload_data: &'static [u8] =
+                std::slice::from_raw_parts(ptr.add(payload_offset + 4), payload_size);
 
-            Ok(Self { selector, payload_data, pipe_msg, msg_size, objects, memory_regions })
+            Ok(Self {
+                selector,
+                payload_data,
+                pipe_msg,
+                msg_size,
+                objects,
+                memory_regions,
+            })
         }
     }
 }
 
 impl<T: MessageBox> Message<T> {
     fn encode_inner_win(&self) -> (Vec<u8>, usize) {
-        let selector_data = bincode::serde::encode_to_vec(&self.selector, bincode::config::standard())
-            .expect("selector encode");
+        let selector_data =
+            bincode::serde::encode_to_vec(&self.selector, bincode::config::standard())
+                .expect("selector encode");
         let payload_data = self.payload.encode().expect("payload encode");
 
         let object_count = self.objects.len() + self.memory_regions.len();
-        let msg_size =
-            4 /* version */ + 4 /* object_count */ + object_count * 8 /* object slots */
+        let msg_size = 4 /* version */ + 4 /* object_count */ + object_count * 8 /* object slots */
             + 4 /* selector_size */ + selector_data.len().align4()
             + 4 /* payload_size */ + payload_data.len().align4();
 
@@ -310,14 +358,18 @@ impl<T: MessageBox> Message<T> {
             // Selector
             *(ptr.add(data_start) as *mut u32) = selector_data.len() as u32;
             ptr::copy_nonoverlapping(
-                selector_data.as_ptr(), ptr.add(data_start + 4), selector_data.len(),
+                selector_data.as_ptr(),
+                ptr.add(data_start + 4),
+                selector_data.len(),
             );
 
             // Payload
             let payload_offset = data_start + 4 + selector_data.len().align4();
             *(ptr.add(payload_offset) as *mut u32) = payload_data.len() as u32;
             ptr::copy_nonoverlapping(
-                payload_data.as_ptr(), ptr.add(payload_offset + 4), payload_data.len(),
+                payload_data.as_ptr(),
+                ptr.add(payload_offset + 4),
+                payload_data.len(),
             );
         }
 
@@ -358,11 +410,19 @@ impl IoHub {
         bus_receiver: Receiver<EncodedMessage>,
         im: Arc<IoMultiplexing>,
     ) -> Self {
-        Self { bus_receiver: Some(bus_receiver), local: None, im }
+        Self {
+            bus_receiver: Some(bus_receiver),
+            local: None,
+            im,
+        }
     }
 
     fn for_endpoint(local: Local, im: Arc<IoMultiplexing>) -> Self {
-        Self { bus_receiver: None, local: Some(local), im }
+        Self {
+            bus_receiver: None,
+            local: Some(local),
+            im,
+        }
     }
 
     pub fn recv(
@@ -376,7 +436,9 @@ impl IoHub {
             if let Some(rx) = &self.bus_receiver {
                 match rx.try_recv() {
                     Ok(msg) => return Ok(msg),
-                    Err(TryRecvError::Disconnected) => { self.bus_receiver = None; }
+                    Err(TryRecvError::Disconnected) => {
+                        self.bus_receiver = None;
+                    }
                     Err(TryRecvError::Empty) => {}
                 }
             }
@@ -387,7 +449,9 @@ impl IoHub {
                     Err(Error::Timeout) => {}
                     Err(e) => {
                         self.local = None;
-                        if self.bus_receiver.is_none() { return Err(e); }
+                        if self.bus_receiver.is_none() {
+                            return Err(e);
+                        }
                     }
                 }
             }
@@ -398,19 +462,27 @@ impl IoHub {
 
             if let Some(end) = end {
                 let remaining = end.saturating_duration_since(Instant::now());
-                if remaining.is_zero() { return Err(Error::Timeout); }
+                if remaining.is_zero() {
+                    return Err(Error::Timeout);
+                }
                 if let Some(rx) = &self.bus_receiver {
                     match rx.recv_timeout(remaining.min(Duration::from_millis(200))) {
                         Ok(msg) => return Ok(msg),
                         Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
-                        Err(_) => { self.bus_receiver = None; continue; }
+                        Err(_) => {
+                            self.bus_receiver = None;
+                            continue;
+                        }
                     }
                 }
             } else if let Some(rx) = &self.bus_receiver {
                 match rx.recv_timeout(Duration::from_millis(200)) {
                     Ok(msg) => return Ok(msg),
                     Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
-                    Err(_) => { self.bus_receiver = None; continue; }
+                    Err(_) => {
+                        self.bus_receiver = None;
+                        continue;
+                    }
                 }
             }
         }
@@ -449,7 +521,13 @@ pub(crate) fn look_up(
         let name = pipe_name(identifier);
 
         let pipe = CreateFileW(
-            name.as_ptr(), FILE_GENERIC_WRITE, 0, ptr::null(), OPEN_EXISTING, 0, 0,
+            name.as_ptr(),
+            FILE_GENERIC_WRITE,
+            0,
+            ptr::null(),
+            OPEN_EXISTING,
+            0,
+            0,
         );
         if pipe == INVALID_HANDLE_VALUE {
             return match GetLastError() {
@@ -470,17 +548,27 @@ pub(crate) fn look_up(
             Some(Handle(process))
         };
 
-        let remote = Remote { pipe: remote_pipe, process: remote_process };
+        let remote = Remote {
+            pipe: remote_pipe,
+            process: remote_process,
+        };
 
         // Create reply pipe pair for handshake
         let reply_name = format!("\\\\.\\pipe\\{identifier}.reply.{}", uuid::Uuid::new_v4());
-        let reply_name_w: Vec<u16> = reply_name.encode_utf16().chain(std::iter::once(0)).collect();
+        let reply_name_w: Vec<u16> = reply_name
+            .encode_utf16()
+            .chain(std::iter::once(0))
+            .collect();
 
         let read_pipe = CreateNamedPipeW(
             reply_name_w.as_ptr(),
             PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
             PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-            1, 4 << 20, 4 << 20, 0, ptr::null(),
+            1,
+            4 << 20,
+            4 << 20,
+            0,
+            ptr::null(),
         );
         if read_pipe == INVALID_HANDLE_VALUE {
             return Err(Error::Unknown);
@@ -488,7 +576,13 @@ pub(crate) fn look_up(
         let read_handle = Handle(read_pipe);
 
         let write_pipe = CreateFileW(
-            reply_name_w.as_ptr(), FILE_GENERIC_WRITE, 0, ptr::null(), OPEN_EXISTING, 0, 0,
+            reply_name_w.as_ptr(),
+            FILE_GENERIC_WRITE,
+            0,
+            ptr::null(),
+            OPEN_EXISTING,
+            0,
+            0,
         );
         if write_pipe == INVALID_HANDLE_VALUE {
             return Err(Error::Unknown);
@@ -498,7 +592,11 @@ pub(crate) fn look_up(
         // Send ConnectMessage with process handle + write pipe handle
         let mut msg = Message::new(
             Selector::unicast(LabelOp::True),
-            crate::ipc::ConnectMessage { version: version(), token, label },
+            crate::ipc::ConnectMessage {
+                version: version(),
+                token,
+                label,
+            },
         );
         let cur_process = Handle(GetCurrentProcess());
         msg.objects.push(Handle(cur_process.into_raw()));
@@ -510,7 +608,8 @@ pub(crate) fn look_up(
         let local = Local { pipe: read_handle };
         let mut io_hub = IoHub::for_endpoint(local, im);
         let ack_msg = io_hub.recv(Some(Duration::from_secs(2)), Some(&remote))?;
-        let ack = crate::ipc::ConnectMessageAck::decode(ack_msg.selector.uuid, ack_msg.payload_data)?;
+        let ack =
+            crate::ipc::ConnectMessageAck::decode(ack_msg.selector.uuid, ack_msg.payload_data)?;
 
         match ack {
             crate::ipc::ConnectMessageAck::Ok(endpoint_id) => Ok((io_hub, remote, endpoint_id)),
@@ -519,7 +618,10 @@ pub(crate) fn look_up(
         }
     }
     #[cfg(not(target_os = "windows"))]
-    Err(Error::IoError(io::Error::new(io::ErrorKind::Unsupported, "Windows only")))
+    Err(Error::IoError(io::Error::new(
+        io::ErrorKind::Unsupported,
+        "Windows only",
+    )))
 }
 
 pub(crate) fn register(
@@ -533,7 +635,11 @@ pub(crate) fn register(
             name.as_ptr(),
             PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | 0x00080000, // FILE_FLAG_FIRST_PIPE_INSTANCE
             PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-            PIPE_UNLIMITED_INSTANCES, 4 << 20, 4 << 20, 0, ptr::null(),
+            PIPE_UNLIMITED_INSTANCES,
+            4 << 20,
+            4 << 20,
+            0,
+            ptr::null(),
         );
         if pipe == INVALID_HANDLE_VALUE {
             return match GetLastError() {
@@ -567,10 +673,16 @@ impl MemoryRegion {
         #[cfg(target_os = "windows")]
         unsafe {
             let handle = CreateFileMappingW(
-                INVALID_HANDLE_VALUE, ptr::null(), PAGE_READWRITE,
-                (size >> 32) as u32, size as u32, ptr::null(),
+                INVALID_HANDLE_VALUE,
+                ptr::null(),
+                PAGE_READWRITE,
+                (size >> 32) as u32,
+                size as u32,
+                ptr::null(),
             );
-            if handle == 0 { return None; }
+            if handle == 0 {
+                return None;
+            }
             Some(Handle(handle))
         }
         #[cfg(not(target_os = "windows"))]
@@ -579,7 +691,11 @@ impl MemoryRegion {
 }
 
 impl crate::ipc::platform::MappedRegion {
-    pub(crate) fn map(obj: &Object, aligned_offset: usize, aligned_size: usize) -> Result<*mut u8, Error> {
+    pub(crate) fn map(
+        obj: &Object,
+        aligned_offset: usize,
+        aligned_size: usize,
+    ) -> Result<*mut u8, Error> {
         #[cfg(target_os = "windows")]
         unsafe {
             let ptr = MapViewOfFile(
@@ -602,7 +718,9 @@ impl crate::ipc::platform::MappedRegion {
     pub(crate) fn unmap(addr: *mut u8, _len: usize) {
         #[cfg(target_os = "windows")]
         unsafe {
-            UnmapViewOfFile(windows_sys::Win32::System::Memory::MEMORYMAPPEDVIEW_HANDLE(addr as _));
+            UnmapViewOfFile(windows_sys::Win32::System::Memory::MEMORYMAPPEDVIEW_HANDLE(
+                addr as _,
+            ));
         }
     }
 }

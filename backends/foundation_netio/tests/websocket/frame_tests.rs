@@ -182,7 +182,7 @@ fn test_apply_mask_empty_payload() {
     let mask = [0xFF, 0xFF, 0xFF, 0xFF];
     let mut data: Vec<u8> = vec![];
     foundation_netio::websocket::apply_mask(&mut data, mask);
-    assert!(data.is_empty());
+    assert_eq!(data, [] as [u8; 0]);
 }
 
 // Test 8: Control frame validation
@@ -303,5 +303,5 @@ fn test_close_frame_empty_payload() {
     let mut cursor = Cursor::new(encoded);
     let decoded = WebSocketFrame::decode(&mut cursor).unwrap();
     assert_eq!(decoded.opcode, Opcode::Close);
-    assert!(decoded.payload.is_empty());
+    assert_eq!(decoded.payload, [] as [u8; 0]);
 }

@@ -1,4 +1,4 @@
-//! WireGuard mesh injection for Docker containers (spec-55, F10).
+//! `WireGuard` mesh injection for Docker containers (spec-55, F10).
 //!
 //! WHY: The owner's headline flow — `foundation_deployment_platform`'s Docker
 //! capability generates a network secret once and injects it into every container
@@ -17,8 +17,7 @@ use std::net::SocketAddr;
 
 use foundation_wireguard::{NetworkId, SeedBits, WgSeed};
 
-
-use super::config::{ContainerConfig, PortMapping, PortProtocol};
+use super::config::{ContainerConfig, PortProtocol};
 
 // ---------------------------------------------------------------------------
 // Env var names (normative — must match WgConfig::from_env)
@@ -37,7 +36,7 @@ pub const ENV_WG_RELAY: &str = "WG_RELAY";
 // WgNetworkSecret
 // ---------------------------------------------------------------------------
 
-/// A generated WireGuard network secret — seed + network id, ready for injection.
+/// A generated `WireGuard` network secret — seed + network id, ready for injection.
 ///
 /// WHY: Generated once at deploy time, persisted in deployment state, reused for
 /// scale-ups and re-deploys so the fleet stays on the same network.
@@ -135,14 +134,13 @@ pub fn generate_network_secret() -> WgNetworkSecret {
 }
 
 /// Like [`generate_network_secret`] but with an explicit network id.
+///
+/// # Panics
+/// Panics if the OS random source is unavailable.
 #[must_use]
 pub fn generate_network_secret_with_id(network_id: NetworkId) -> WgNetworkSecret {
-    let seed = WgSeed::generate(SeedBits::Bits256)
-        .expect("OS random source unavailable");
-    WgNetworkSecret {
-        seed,
-        network_id,
-    }
+    let seed = WgSeed::generate(SeedBits::Bits256).expect("OS random source unavailable");
+    WgNetworkSecret { seed, network_id }
 }
 
 // ---------------------------------------------------------------------------
@@ -159,6 +157,7 @@ pub trait WireguardInjector {
     /// Sets `WG_SECRET` and `WG_NETWORK`. If `seed_endpoints` is non-empty,
     /// also sets `WG_SEED_ENDPOINTS` as a comma-separated list. If
     /// `relay_enabled`, sets `WG_RELAY=true`.
+    #[must_use]
     fn inject_wireguard(
         self,
         secret: &WgNetworkSecret,
@@ -174,25 +173,20 @@ impl WireguardInjector for ContainerConfig {
         seed_endpoints: &[SocketAddr],
         relay_enabled: bool,
     ) -> Self {
-        self.env.push((
-            ENV_WG_SECRET.to_string(),
-            secret.seed_base64url(),
-        ));
-        self.env.push((
-            ENV_WG_NETWORK.to_string(),
-            secret.network_id_hex(),
-        ));
+        self.env
+            .push((ENV_WG_SECRET.to_string(), secret.seed_base64url()));
+        self.env
+            .push((ENV_WG_NETWORK.to_string(), secret.network_id_hex()));
 
         if !seed_endpoints.is_empty() {
-            let eps: Vec<String> = seed_endpoints.iter().map(|a| a.to_string()).collect();
-            self.env.push((
-                ENV_WG_SEED_ENDPOINTS.to_string(),
-                eps.join(","),
-            ));
+            let eps: Vec<String> = seed_endpoints.iter().map(ToString::to_string).collect();
+            self.env
+                .push((ENV_WG_SEED_ENDPOINTS.to_string(), eps.join(",")));
         }
 
         if relay_enabled {
-            self.env.push((ENV_WG_RELAY.to_string(), "true".to_string()));
+            self.env
+                .push((ENV_WG_RELAY.to_string(), "true".to_string()));
         }
 
         self
@@ -217,7 +211,7 @@ pub fn designate_seed(config: &mut ContainerConfig, wg_port: u16) {
 }
 
 /// Designate this container as a relay-capable node — publishes the relay
-/// port and sets the WG_RELAY env var.
+/// port and sets the `WG_RELAY` env var.
 pub fn designate_relay(config: &mut ContainerConfig, relay_port: u16, wg_port: u16) {
     // Publish the relay port.
     config.ports.push(super::config::PortMapping {
@@ -231,66 +225,9 @@ pub fn designate_relay(config: &mut ContainerConfig, relay_port: u16, wg_port: u
         host_port: None,
         protocol: PortProtocol::Udp,
     });
-    config.env.push((ENV_WG_RELAY.to_string(), "true".to_string()));
+    config
+        .env
+        .push((ENV_WG_RELAY.to_string(), "true".to_string()));
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn generate_produces_valid_secret() {
-        let secret = generate_network_secret();
-        assert_eq!(secret.seed.bits(), SeedBits::Bits256);
-        assert_eq!(secret.seed_base64url().len(), 43); // 32 bytes → 43 base64url chars
-        assert_eq!(secret.network_id_hex().len(), 32); // 16 bytes → 32 hex chars
-    }
-
-    #[test]
-    fn injector_adds_env_vars() {
-        let secret = generate_network_secret();
-        let ep: SocketAddr = "10.0.0.1:51820".parse().expect("addr");
-
-        let config = ContainerConfig::new("test-image")
-            .inject_wireguard(&secret, &[ep], false);
-
-        let has_secret = config.env.iter().any(|(k, _)| k == ENV_WG_SECRET);
-        let has_network = config.env.iter().any(|(k, _)| k == ENV_WG_NETWORK);
-        let has_endpoints = config.env.iter().any(|(k, v)| k == ENV_WG_SEED_ENDPOINTS && v.contains("51820"));
-
-        assert!(has_secret, "WG_SECRET missing");
-        assert!(has_network, "WG_NETWORK missing");
-        assert!(has_endpoints, "WG_SEED_ENDPOINTS missing or wrong value");
-    }
-
-    #[test]
-    fn injector_no_endpoints_when_empty() {
-        let secret = generate_network_secret();
-        let config = ContainerConfig::new("test-image")
-            .inject_wireguard(&secret, &[], true);
-
-        let has_endpoints = config.env.iter().any(|(k, _)| k == ENV_WG_SEED_ENDPOINTS);
-        assert!(!has_endpoints, "WG_SEED_ENDPOINTS should not be set when empty");
-    }
-
-    #[test]
-    fn designate_relay_adds_ports_and_env() {
-        let secret = generate_network_secret();
-        let mut config = ContainerConfig::new("relay-node")
-            .inject_wireguard(&secret, &[], true);
-
-        designate_relay(&mut config, 51821, 51820);
-
-        let has_relay_env = config.env.iter().any(|(k, v)| k == ENV_WG_RELAY && v == "true");
-        assert!(has_relay_env, "WG_RELAY=true missing");
-        // Should have 2 UDP ports (relay + wg)
-        let udp_ports: Vec<_> = config.ports.iter()
-            .filter(|p| p.protocol == PortProtocol::Udp)
-            .collect();
-        assert_eq!(udp_ports.len(), 2);
-    }
-}
+// (WireGuard tests live in `tests/wireguard_tests.rs`, rule 7.)

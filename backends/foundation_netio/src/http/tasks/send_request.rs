@@ -15,19 +15,18 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
+use crate::http::HttpConnectionPool;
 use crate::shared::client::body_reader::drain_stream_iterator_from_send_safe;
 use crate::shared::client::{redirects, ClientConfig, DnsResolver, PreparedRequest};
-use crate::http::HttpConnectionPool;
 use crate::shared::http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,
 };
-use foundation_core::url::Uri;
-use foundation_core::valtron::{Ctx, 
-    drive_receiver, inlined_task, DrivenRecvIterator, InlineAction,
-    TaskIterator, TaskStatus,
-};
 use foundation_core::io::ioutils::ReadTimeoutOperations;
+use foundation_core::url::Uri;
+use foundation_core::valtron::{
+    drive_receiver, inlined_task, Ctx, DrivenRecvIterator, InlineAction, TaskIterator, TaskStatus,
+};
 use std::io::Write;
 use std::sync::Arc;
 
@@ -266,16 +265,13 @@ where
                     ))),
                     Some(TaskStatus::Init) => Some(TaskStatus::Init),
                     Some(TaskStatus::Delayed(dur)) => Some(TaskStatus::Delayed(dur)),
-                    Some(TaskStatus::Pending(_)) => {
+                    Some(TaskStatus::Pending(_) | TaskStatus::Spread(_)) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
                     Some(TaskStatus::Spawn(action)) => Some(TaskStatus::Spawn(Box::new(action))),
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
                     Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
-                    Some(TaskStatus::Spread(_)) => {
-                        Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
-                    }
                     Some(TaskStatus::Ready(item)) => {
                         match item {
                             HttpRequestRedirectResponse::Done(
@@ -557,16 +553,13 @@ where
                     ))),
                     Some(TaskStatus::Init) => Some(TaskStatus::Init),
                     Some(TaskStatus::Delayed(dur)) => Some(TaskStatus::Delayed(dur)),
-                    Some(TaskStatus::Pending(())) => {
+                    Some(TaskStatus::Pending(()) | TaskStatus::Spread(_)) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
                     Some(TaskStatus::Spawn(action)) => Some(TaskStatus::Spawn(Box::new(action))),
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
                     Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
-                    Some(TaskStatus::Spread(_)) => {
-                        Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
-                    }
                     Some(TaskStatus::Ready(item)) => {
                         // do one last check for a redirect as final response
                         self.0 = Some(SendRequestState::CheckRedirect(Box::new(Some(item))));
@@ -590,12 +583,12 @@ where
                     } = &mut inner
                     {
                         // WHY: Status::NotModified (304) sits between 303 and 307 in
-                    // the enum ordering but is NOT a redirect — it means "use your
-                    // cached copy". Treating it as redirect causes an infinite loop
-                    // (no Location header to follow).
-                    let is_redirect = intro.0 != Status::NotModified
-                        && (Status::MovedPermanently..=Status::PermanentRedirect)
-                            .contains(&intro.0);
+                        // the enum ordering but is NOT a redirect — it means "use your
+                        // cached copy". Treating it as redirect causes an infinite loop
+                        // (no Location header to follow).
+                        let is_redirect = intro.0 != Status::NotModified
+                            && (Status::MovedPermanently..=Status::PermanentRedirect)
+                                .contains(&intro.0);
                         tracing::debug!(
                             "SendRequestTask::CheckRedirect: intro={:?}, is_redirect={:?}, location= {:?}, headers = {:?}",
                             &intro,
@@ -723,13 +716,17 @@ where
                                                 tracing::debug!("CheckRedirect: creating new request task for: {:?} with new request: {:?}", &parsed_uri_string, &newly_built_request);
 
                                                 tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask[2] task for sendrequest.");
+                                                // The redirect cap is a u8, so the
+                                                // remaining-redirect count fits u8.
+                                                #[allow(clippy::cast_possible_truncation)]
+                                                let remaining_redirects = self.4 as u8;
                                                 let (get_stream_action, get_stream_receiver) = inlined_task(
                                                         foundation_core::valtron::InlineActionBehaviour::LiftWithParent,
                                                         GetHttpRequestRedirectTask::new(
                                                             newly_built_request,
                                                             self.2.clone(),
                                                             self.1.clone(),
-                                                            self.4 as u8,
+                                                            remaining_redirects,
                                                         ),
                                                         self.1.inline_processing_timeout,
                                                     );

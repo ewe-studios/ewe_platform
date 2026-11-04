@@ -112,6 +112,9 @@ impl LoadTracker {
 
     /// Create a new load tracker with custom config.
     #[must_use]
+    // The two adjacent `Instant::now()` calls differ by ~0 ns, so the u128 ->
+    // u64 cast of `as_nanos()` is lossless for this sentinel value.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn with_config(config: LoadTrackerConfig) -> Self {
         Self {
             active_connections: AtomicUsize::new(0),
@@ -146,7 +149,7 @@ impl LoadTracker {
     /// Get the current connection rate (connections/sec).
     #[must_use]
     pub fn connection_rate(&self) -> u64 {
-        self.maybe_update_rate();
+        Self::maybe_update_rate();
         self.connection_rate_milli.load(Ordering::Relaxed) / 1000
     }
 
@@ -169,7 +172,7 @@ impl LoadTracker {
     }
 
     /// Update the connection rate if needed.
-    fn maybe_update_rate(&self) {
+    fn maybe_update_rate() {
         // For simplicity, we don't do background updates
         // Rate is calculated on-demand with throttling
         // In production, you'd want a background thread or timer

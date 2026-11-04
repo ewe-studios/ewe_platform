@@ -6,7 +6,6 @@
 /// - Run engine for a few ticks
 /// - Verify event received via mpp Receiver channel
 /// - Test multiple subscribers receive the same events
-
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -79,8 +78,6 @@ fn event_broadcast_cleans_up_dead_subscribers() {
 /// Test: FileWatcherTask with PollWatcher delivers events
 #[test]
 fn file_watcher_task_delivers_events() {
-    
-
     let dir = TempDir::new();
 
     // Create FileWatcherTask with PollWatcher
@@ -98,10 +95,7 @@ fn file_watcher_task_delivers_events() {
 
     // Manually tick the task via TaskIterator
     let status = task.next_status(Ctx::new());
-    assert!(
-        status.is_some(),
-        "task should not terminate"
-    );
+    assert!(status.is_some(), "task should not terminate");
 
     // Verify subscriber received events
     // PollWatcher detects directory-level changes, so the event path may be

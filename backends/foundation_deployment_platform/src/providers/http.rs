@@ -1,7 +1,7 @@
 //! Shared HTTP utilities over the platform network client (`DynNetClient`).
 //!
 //! WHY: Both QEMU and UTM providers need HTTP downloads. This module centralizes
-//! the logic using `foundation_netio`'s `HttpClientBuilder` and body_reader
+//! the logic using `foundation_netio`'s `HttpClientBuilder` and `body_reader`
 //! utilities instead of shelling out to curl.
 //!
 //! WHAT: Two primitives — `http_get()` for text responses (APIs), and
@@ -14,7 +14,9 @@
 use std::path::Path;
 use std::time::Duration;
 
-use foundation_netio::shared::client::body_reader::{collect_bytes_into, collect_strings_from_send_safe};
+use foundation_netio::shared::client::body_reader::{
+    collect_bytes_into, collect_strings_from_send_safe,
+};
 use foundation_netio::shared::client::request::PreparedRequest;
 use foundation_netio::shared::http::{SendSafeBody, SimpleResponse};
 use foundation_netio::{DynNetClient, HttpClientBuilder, PreparedRequestBuilder};
@@ -28,6 +30,10 @@ const MIN_IMAGE_SIZE: u64 = 50 * 1_048_576;
 ///
 /// `read_timeout_secs` controls the per-read timeout — for small API responses,
 /// 5s is plenty. For slower endpoints, caller can increase.
+///
+/// # Errors
+/// Returns an error if the request fails. Returns an error if the response body cannot
+/// be decoded.
 pub fn http_get(url: &str, read_timeout_secs: u64) -> Result<String> {
     let resp = get(url, read_timeout_secs)?;
 
@@ -42,18 +48,27 @@ pub fn http_get(url: &str, read_timeout_secs: u64) -> Result<String> {
 /// `read_timeout_secs` controls per-read timeout. Streaming writes directly to
 /// disk — the full body is NOT loaded into memory.
 ///
-/// Validates the downloaded file meets MIN_IMAGE_SIZE.
-pub fn http_download(url: &str, dest: &Path, _progress_label: &str, read_timeout_secs: u64) -> Result<()> {
+/// Validates the downloaded file meets `MIN_IMAGE_SIZE`.
+///
+/// # Errors
+/// Returns an error if the request fails. Returns an error if the download cannot be
+/// written. Returns an error if the downloaded file is too small.
+pub fn http_download(
+    url: &str,
+    dest: &Path,
+    _progress_label: &str,
+    read_timeout_secs: u64,
+) -> Result<()> {
     let resp = get(url, read_timeout_secs)?;
 
     let tmp = dest.with_extension("downloading");
     let mut file = std::fs::File::create(&tmp).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("creating {tmp:?}: {e}"),
+        message: format!("creating {}: {e}", tmp.display()),
     })?;
 
     let (_, _, body) = resp.into_parts();
     let written = collect_bytes_into(body, &mut file).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("writing download to {tmp:?}: {e}"),
+        message: format!("writing download to {}: {e}", tmp.display()),
     })?;
 
     if written < MIN_IMAGE_SIZE {
@@ -73,9 +88,13 @@ pub fn http_download(url: &str, dest: &Path, _progress_label: &str, read_timeout
 /// `GET url`; an error unless the status is 2xx. The body is not read here.
 fn get(url: &str, read_timeout_secs: u64) -> Result<SimpleResponse<SendSafeBody>> {
     let request = get_request(url)?;
-    let resp = http_client(read_timeout_secs)
-        .send(request)
-        .map_err(|e| TestbedError::DownloadFailed { status: 0, url: format!("{url}: {e}") })?;
+    let resp =
+        http_client(read_timeout_secs)
+            .send(request)
+            .map_err(|e| TestbedError::DownloadFailed {
+                status: 0,
+                url: format!("{url}: {e}"),
+            })?;
     let status: usize = resp.get_status().into();
     if !(200..=299).contains(&status) {
         return Err(TestbedError::DownloadFailed {
@@ -89,7 +108,10 @@ fn get(url: &str, read_timeout_secs: u64) -> Result<SimpleResponse<SendSafeBody>
 fn get_request(url: &str) -> Result<PreparedRequest> {
     PreparedRequestBuilder::get(url)
         .map(PreparedRequestBuilder::build)
-        .map_err(|e| TestbedError::DownloadFailed { status: 0, url: format!("{url}: {e}") })
+        .map_err(|e| TestbedError::DownloadFailed {
+            status: 0,
+            url: format!("{url}: {e}"),
+        })
 }
 
 fn http_client(read_timeout_secs: u64) -> DynNetClient {

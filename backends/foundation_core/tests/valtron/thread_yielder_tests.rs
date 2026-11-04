@@ -12,9 +12,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::multi::get_num_threads;
-use foundation_core::valtron::{Ctx, 
+use foundation_core::valtron::{
     multi::{initialize_pool, spawn},
-    FnReady, TaskIterator, TaskStatus,
+    Ctx, FnReady, TaskIterator, TaskStatus,
 };
 
 /// Task that returns Delayed with a specific duration

@@ -269,25 +269,21 @@ impl CapsuleDecoder {
 
             match self.state {
                 DecoderState::Type => {
-                    let (ty, ty_len) = read_varint(remaining)
-                        .ok_or(WtProtocolError::Truncated)?;
+                    let (ty, ty_len) = read_varint(remaining).ok_or(WtProtocolError::Truncated)?;
                     self.consumed += ty_len;
                     // Valid capsule types: DATAGRAM, LEGACY_DATAGRAM, CLOSE, DRAIN.
                     // Unknown types are carried forward-compatibly.
                     self.state = DecoderState::Length { ty };
                 }
                 DecoderState::Length { ty } => {
-                    let (len, len_len) = read_varint(remaining)
-                        .ok_or(WtProtocolError::Truncated)?;
+                    let (len, len_len) =
+                        read_varint(remaining).ok_or(WtProtocolError::Truncated)?;
                     self.consumed += len_len;
                     if len == 0 {
                         self.state = DecoderState::Type;
                         return self.finish_capsule(ty, &[]);
                     }
-                    self.state = DecoderState::Payload {
-                        ty,
-                        remaining: len,
-                    };
+                    self.state = DecoderState::Payload { ty, remaining: len };
                 }
                 DecoderState::Payload {
                     ty,
@@ -324,9 +320,7 @@ impl CapsuleDecoder {
             return Ok(Some(CapsuleType::Grease { num }));
         }
         let capsule = match ty {
-            capsule::DATAGRAM | capsule::LEGACY_DATAGRAM => {
-                CapsuleType::Datagram(payload.to_vec())
-            }
+            capsule::DATAGRAM | capsule::LEGACY_DATAGRAM => CapsuleType::Datagram(payload.to_vec()),
             capsule::CLOSE_WEBTRANSPORT_SESSION => {
                 let code = if payload.len() >= 4 {
                     u32::from_be_bytes([payload[0], payload[1], payload[2], payload[3]])
@@ -379,16 +373,40 @@ fn read_varint(buf: &[u8]) -> Option<(u64, usize)> {
     let (val, len) = match first >> 6 {
         0 => (first as u64, 1),
         1 => {
-            if buf.len() < 2 { return None; }
-            (u64::from_be_bytes([0, 0, 0, 0, 0, 0, first & 0x3f, buf[1]]), 2)
+            if buf.len() < 2 {
+                return None;
+            }
+            (
+                u64::from_be_bytes([0, 0, 0, 0, 0, 0, first & 0x3f, buf[1]]),
+                2,
+            )
         }
         2 => {
-            if buf.len() < 4 { return None; }
-            (u64::from_be_bytes([0, 0, 0, 0, first & 0x3f, buf[1], buf[2], buf[3]]), 4)
+            if buf.len() < 4 {
+                return None;
+            }
+            (
+                u64::from_be_bytes([0, 0, 0, 0, first & 0x3f, buf[1], buf[2], buf[3]]),
+                4,
+            )
         }
         3 => {
-            if buf.len() < 8 { return None; }
-            (u64::from_be_bytes([first & 0x3f, buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]]), 8)
+            if buf.len() < 8 {
+                return None;
+            }
+            (
+                u64::from_be_bytes([
+                    first & 0x3f,
+                    buf[1],
+                    buf[2],
+                    buf[3],
+                    buf[4],
+                    buf[5],
+                    buf[6],
+                    buf[7],
+                ]),
+                8,
+            )
         }
         _ => unreachable!(),
     };

@@ -19,10 +19,8 @@ use foundation_core::valtron::valtron;
 
 #[valtron]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let anthropic_key = std::env::var("ANTHROPIC_API_KEY")
-        .expect("ANTHROPIC_API_KEY must be set");
-    let openai_key = std::env::var("OPENAI_API_KEY")
-        .expect("OPENAI_API_KEY must be set");
+    let anthropic_key = std::env::var("ANTHROPIC_API_KEY").expect("ANTHROPIC_API_KEY must be set");
+    let openai_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
 
     // Mix: Claude Opus primary, Claude Sonnet memory, GPT-4o fallback.
     let preset = RouterMix::new()
@@ -48,7 +46,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .await?;
 
     println!("Sending hello via mixed router...");
-    let turn = agent.run_turn("Hello! Say hi and tell me which model you are.").await?;
+    let turn = agent
+        .run_turn("Hello! Say hi and tell me which model you are.")
+        .await?;
 
     for record in &turn {
         println!("{record:?}");

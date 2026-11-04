@@ -8,7 +8,7 @@
 use std::time::Duration;
 
 use foundation_core::valtron::valtron_test;
-use foundation_db::{RateLimiterStore, MemoryJsonStore, MemoryStorage, TursoStorage};
+use foundation_db::{MemoryJsonStore, MemoryStorage, RateLimiterStore, TursoStorage};
 
 #[cfg(feature = "libsql")]
 use foundation_db::LibsqlStore;
@@ -18,8 +18,14 @@ async fn counts_and_limits<S: RateLimiterStore>(store: &S) {
     assert!(store.check_rate_limit("k", 2, 60).await.unwrap());
     assert_eq!(store.record_rate_limit("k", 60).await.unwrap(), 1);
     assert_eq!(store.record_rate_limit("k", 60).await.unwrap(), 2);
-    assert!(!store.check_rate_limit("k", 2, 60).await.unwrap(), "limit reached");
-    assert!(store.check_rate_limit("other", 2, 60).await.unwrap(), "keys are independent");
+    assert!(
+        !store.check_rate_limit("k", 2, 60).await.unwrap(),
+        "limit reached"
+    );
+    assert!(
+        store.check_rate_limit("other", 2, 60).await.unwrap(),
+        "keys are independent"
+    );
 
     store.reset_rate_limit("k").await.unwrap();
     assert!(store.check_rate_limit("k", 2, 60).await.unwrap());
@@ -44,8 +50,15 @@ async fn busy_key_resets_after_the_window<S: RateLimiterStore>(store: &S) {
     assert!(!store.check_rate_limit("busy", 2, 2).await.unwrap());
 
     std::thread::sleep(Duration::from_millis(2600));
-    assert!(store.check_rate_limit("busy", 2, 2).await.unwrap(), "window elapsed");
-    assert_eq!(store.record_rate_limit("busy", 2).await.unwrap(), 1, "new window");
+    assert!(
+        store.check_rate_limit("busy", 2, 2).await.unwrap(),
+        "window elapsed"
+    );
+    assert_eq!(
+        store.record_rate_limit("busy", 2).await.unwrap(),
+        1,
+        "new window"
+    );
 }
 
 async fn all<S: RateLimiterStore>(store: &S) {
@@ -82,4 +95,23 @@ async fn turso_storage_without_migrations() {
     let store = TursoStorage::new(":memory:").await.unwrap();
     counts_and_limits(&store).await;
     zero_window_never_accumulates(&store).await;
+}
+
+/// Fifty concurrent records against the serialised SQL path: the atomic
+/// upsert (`RETURNING count`) turns them into counts 1..=50 with no lost
+/// updates, so exactly ten are within a limit of ten.
+#[valtron_test]
+async fn rate_limit_counts_concurrent_hits() {
+    let store = TursoStorage::in_memory().await.unwrap();
+    let futures = (0..50).map(|_| store.record_rate_limit("k", 60));
+    let counts: Vec<u32> = futures_util::future::join_all(futures)
+        .await
+        .into_iter()
+        .map(|r| r.unwrap())
+        .collect();
+
+    let mut sorted = counts.clone();
+    sorted.sort_unstable();
+    assert_eq!(sorted, (1..=50).collect::<Vec<u32>>());
+    assert_eq!(counts.iter().filter(|&&c| c <= 10).count(), 10);
 }

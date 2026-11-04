@@ -78,7 +78,12 @@ where
     /// let client = ProviderClient::new("my-project", "dev", state_store);
     /// ```
     pub fn new(project: &str, stage: &str, state_store: S) -> Self {
-        Self::with_client(HttpClientBuilder::new().build(), project, stage, state_store)
+        Self::with_client(
+            HttpClientBuilder::new().build(),
+            project,
+            stage,
+            state_store,
+        )
     }
 
     /// Create a provider client that sends its HTTP calls through

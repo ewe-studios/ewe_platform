@@ -1,11 +1,11 @@
 //! Shared (wasm-compatible) modules.
 
-pub mod serve;
-pub mod context;
-pub mod router;
-pub mod middleware;
-pub mod handlers;
 pub mod app;
 pub mod client_ip;
-pub mod web_conn;
+pub mod context;
+pub mod handlers;
+pub mod middleware;
+pub mod router;
+pub mod serve;
 pub mod serve_web;
+pub mod web_conn;

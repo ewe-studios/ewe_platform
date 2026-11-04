@@ -79,7 +79,9 @@ fn build_single_array_expr(
             "f64" => quote! { #arrow::arrow_array::Float64Array::from(vec![Some(*v)]) },
             "bool" => quote! { #arrow::arrow_array::BooleanArray::from(vec![Some(*v)]) },
             "String" => quote! { #arrow::arrow_array::StringArray::from(vec![Some(v.as_str())]) },
-            "Vec<u8>" => quote! { #arrow::arrow_array::BinaryArray::from_opt_vec(vec![Some(v.as_slice())]) },
+            "Vec<u8>" => {
+                quote! { #arrow::arrow_array::BinaryArray::from_opt_vec(vec![Some(v.as_slice())]) }
+            }
             "SystemTime" => quote! {
                 #arrow::arrow_array::TimestampMillisecondArray::from(vec![Some(
                     v.duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as i64).unwrap_or(0),
@@ -88,10 +90,18 @@ fn build_single_array_expr(
             _ => quote! { compile_error!(concat!("unsupported type for ToArrow: ", #rust_type)) },
         };
         let none_expr = match rust_type {
-            "String" => quote! { #arrow::arrow_array::StringArray::from(vec![Option::<&str>::None]) },
-            "Vec<u8>" => quote! { #arrow::arrow_array::BinaryArray::from_opt_vec(vec![Option::<&[u8]>::None]) },
-            "bool" => quote! { #arrow::arrow_array::BooleanArray::from(vec![Option::<bool>::None]) },
-            "SystemTime" => quote! { #arrow::arrow_array::TimestampMillisecondArray::from(vec![Option::<i64>::None]) },
+            "String" => {
+                quote! { #arrow::arrow_array::StringArray::from(vec![Option::<&str>::None]) }
+            }
+            "Vec<u8>" => {
+                quote! { #arrow::arrow_array::BinaryArray::from_opt_vec(vec![Option::<&[u8]>::None]) }
+            }
+            "bool" => {
+                quote! { #arrow::arrow_array::BooleanArray::from(vec![Option::<bool>::None]) }
+            }
+            "SystemTime" => {
+                quote! { #arrow::arrow_array::TimestampMillisecondArray::from(vec![Option::<i64>::None]) }
+            }
             _ => null_typed_array(rust_type, arrow),
         };
         quote! {
@@ -102,19 +112,45 @@ fn build_single_array_expr(
         }
     } else {
         match rust_type {
-            "u8" => quote! { Arc::new(#arrow::arrow_array::UInt8Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "u16" => quote! { Arc::new(#arrow::arrow_array::UInt16Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "u32" => quote! { Arc::new(#arrow::arrow_array::UInt32Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "u64" => quote! { Arc::new(#arrow::arrow_array::UInt64Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "i8" => quote! { Arc::new(#arrow::arrow_array::Int8Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "i16" => quote! { Arc::new(#arrow::arrow_array::Int16Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "i32" => quote! { Arc::new(#arrow::arrow_array::Int32Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "i64" => quote! { Arc::new(#arrow::arrow_array::Int64Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "f32" => quote! { Arc::new(#arrow::arrow_array::Float32Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "f64" => quote! { Arc::new(#arrow::arrow_array::Float64Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "bool" => quote! { Arc::new(#arrow::arrow_array::BooleanArray::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef },
-            "String" => quote! { Arc::new(#arrow::arrow_array::StringArray::from(vec![self.#field_ident.as_str()])) as #arrow::arrow_array::ArrayRef },
-            "Vec<u8>" => quote! { Arc::new(#arrow::arrow_array::BinaryArray::from_vec(vec![self.#field_ident.as_slice()])) as #arrow::arrow_array::ArrayRef },
+            "u8" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt8Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "u16" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt16Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "u32" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt32Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "u64" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt64Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "i8" => {
+                quote! { Arc::new(#arrow::arrow_array::Int8Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "i16" => {
+                quote! { Arc::new(#arrow::arrow_array::Int16Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "i32" => {
+                quote! { Arc::new(#arrow::arrow_array::Int32Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "i64" => {
+                quote! { Arc::new(#arrow::arrow_array::Int64Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "f32" => {
+                quote! { Arc::new(#arrow::arrow_array::Float32Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "f64" => {
+                quote! { Arc::new(#arrow::arrow_array::Float64Array::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "bool" => {
+                quote! { Arc::new(#arrow::arrow_array::BooleanArray::from(vec![self.#field_ident])) as #arrow::arrow_array::ArrayRef }
+            }
+            "String" => {
+                quote! { Arc::new(#arrow::arrow_array::StringArray::from(vec![self.#field_ident.as_str()])) as #arrow::arrow_array::ArrayRef }
+            }
+            "Vec<u8>" => {
+                quote! { Arc::new(#arrow::arrow_array::BinaryArray::from_vec(vec![self.#field_ident.as_slice()])) as #arrow::arrow_array::ArrayRef }
+            }
             "SystemTime" => quote! {
                 Arc::new(#arrow::arrow_array::TimestampMillisecondArray::from(vec![
                     self.#field_ident.duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as i64).unwrap_or(0),
@@ -133,43 +169,99 @@ fn build_batch_array_expr(
 ) -> TokenStream2 {
     if nullable {
         match rust_type {
-            "u8" => quote! { Arc::new(#arrow::arrow_array::UInt8Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "u16" => quote! { Arc::new(#arrow::arrow_array::UInt16Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "u32" => quote! { Arc::new(#arrow::arrow_array::UInt32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "u64" => quote! { Arc::new(#arrow::arrow_array::UInt64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "i8" => quote! { Arc::new(#arrow::arrow_array::Int8Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "i16" => quote! { Arc::new(#arrow::arrow_array::Int16Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "i32" => quote! { Arc::new(#arrow::arrow_array::Int32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "i64" => quote! { Arc::new(#arrow::arrow_array::Int64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "f32" => quote! { Arc::new(#arrow::arrow_array::Float32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "f64" => quote! { Arc::new(#arrow::arrow_array::Float64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "bool" => quote! { Arc::new(#arrow::arrow_array::BooleanArray::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "String" => quote! { Arc::new(#arrow::arrow_array::StringArray::from(values.iter().map(|v| v.#field_ident.as_deref()).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "Vec<u8>" => quote! { Arc::new(#arrow::arrow_array::BinaryArray::from_opt_vec(values.iter().map(|v| v.#field_ident.as_deref()).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
+            "u8" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt8Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "u16" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt16Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "u32" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "u64" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "i8" => {
+                quote! { Arc::new(#arrow::arrow_array::Int8Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "i16" => {
+                quote! { Arc::new(#arrow::arrow_array::Int16Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "i32" => {
+                quote! { Arc::new(#arrow::arrow_array::Int32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "i64" => {
+                quote! { Arc::new(#arrow::arrow_array::Int64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "f32" => {
+                quote! { Arc::new(#arrow::arrow_array::Float32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "f64" => {
+                quote! { Arc::new(#arrow::arrow_array::Float64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "bool" => {
+                quote! { Arc::new(#arrow::arrow_array::BooleanArray::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "String" => {
+                quote! { Arc::new(#arrow::arrow_array::StringArray::from(values.iter().map(|v| v.#field_ident.as_deref()).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "Vec<u8>" => {
+                quote! { Arc::new(#arrow::arrow_array::BinaryArray::from_opt_vec(values.iter().map(|v| v.#field_ident.as_deref()).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
             "SystemTime" => quote! {
                 Arc::new(#arrow::arrow_array::TimestampMillisecondArray::from(values.iter().map(|v| v.#field_ident.as_ref().map(|t| t.duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as i64).unwrap_or(0))).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef
             },
-            _ => quote! { compile_error!(concat!("unsupported type for ToArrow batch: ", #rust_type)) },
+            _ => {
+                quote! { compile_error!(concat!("unsupported type for ToArrow batch: ", #rust_type)) }
+            }
         }
     } else {
         match rust_type {
-            "u8" => quote! { Arc::new(#arrow::arrow_array::UInt8Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "u16" => quote! { Arc::new(#arrow::arrow_array::UInt16Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "u32" => quote! { Arc::new(#arrow::arrow_array::UInt32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "u64" => quote! { Arc::new(#arrow::arrow_array::UInt64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "i8" => quote! { Arc::new(#arrow::arrow_array::Int8Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "i16" => quote! { Arc::new(#arrow::arrow_array::Int16Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "i32" => quote! { Arc::new(#arrow::arrow_array::Int32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "i64" => quote! { Arc::new(#arrow::arrow_array::Int64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "f32" => quote! { Arc::new(#arrow::arrow_array::Float32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "f64" => quote! { Arc::new(#arrow::arrow_array::Float64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "bool" => quote! { Arc::new(#arrow::arrow_array::BooleanArray::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "String" => quote! { Arc::new(#arrow::arrow_array::StringArray::from(values.iter().map(|v| v.#field_ident.as_str()).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
-            "Vec<u8>" => quote! { Arc::new(#arrow::arrow_array::BinaryArray::from_vec(values.iter().map(|v| v.#field_ident.as_slice()).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef },
+            "u8" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt8Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "u16" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt16Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "u32" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "u64" => {
+                quote! { Arc::new(#arrow::arrow_array::UInt64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "i8" => {
+                quote! { Arc::new(#arrow::arrow_array::Int8Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "i16" => {
+                quote! { Arc::new(#arrow::arrow_array::Int16Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "i32" => {
+                quote! { Arc::new(#arrow::arrow_array::Int32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "i64" => {
+                quote! { Arc::new(#arrow::arrow_array::Int64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "f32" => {
+                quote! { Arc::new(#arrow::arrow_array::Float32Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "f64" => {
+                quote! { Arc::new(#arrow::arrow_array::Float64Array::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "bool" => {
+                quote! { Arc::new(#arrow::arrow_array::BooleanArray::from(values.iter().map(|v| v.#field_ident).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "String" => {
+                quote! { Arc::new(#arrow::arrow_array::StringArray::from(values.iter().map(|v| v.#field_ident.as_str()).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
+            "Vec<u8>" => {
+                quote! { Arc::new(#arrow::arrow_array::BinaryArray::from_vec(values.iter().map(|v| v.#field_ident.as_slice()).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef }
+            }
             "SystemTime" => quote! {
                 Arc::new(#arrow::arrow_array::TimestampMillisecondArray::from(values.iter().map(|v| v.#field_ident.duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as i64).unwrap_or(0)).collect::<Vec<_>>())) as #arrow::arrow_array::ArrayRef
             },
-            _ => quote! { compile_error!(concat!("unsupported type for ToArrow batch: ", #rust_type)) },
+            _ => {
+                quote! { compile_error!(concat!("unsupported type for ToArrow batch: ", #rust_type)) }
+            }
         }
     }
 }

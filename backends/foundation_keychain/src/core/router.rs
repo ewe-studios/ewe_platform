@@ -10,7 +10,9 @@
 //! authenticates where required, dispatches to the `core/api` handler, and returns
 //! `(status, json)`. The transport renders that to its native response type.
 
-use crate::core::api::{accounts, ciphers, events, folders, icons, identity, orgs, sends, sync, two_factor};
+use crate::core::api::{
+    accounts, ciphers, events, folders, icons, identity, orgs, sends, sync, two_factor,
+};
 use crate::core::auth::verify_access_token;
 use crate::core::context::KeychainContext;
 use crate::core::error::{AppError, AppResult};
@@ -34,7 +36,8 @@ fn empty() -> AppResult<(u16, serde_json::Value)> {
 }
 
 fn from_json<T: serde::de::DeserializeOwned>(body: &str) -> AppResult<T> {
-    serde_json::from_str(body).map_err(|e| AppError::BadRequest(format!("invalid request body: {e}")))
+    serde_json::from_str(body)
+        .map_err(|e| AppError::BadRequest(format!("invalid request body: {e}")))
 }
 
 fn json_value(body: &str) -> serde_json::Value {
@@ -98,9 +101,12 @@ pub async fn route(
 
     // ── Server config (bw initial contact) ──────────────────────────────────
     if s == ["api"] || s == ["api", "config"] {
-        return Ok((200, serde_json::json!({
-            "version": env!("CARGO_PKG_VERSION"),
-        })));
+        return Ok((
+            200,
+            serde_json::json!({
+                "version": env!("CARGO_PKG_VERSION"),
+            }),
+        ));
     }
 
     // ── Unauthenticated ─────────────────────────────────────────────────────
@@ -121,15 +127,21 @@ pub async fn route(
             return ok(identity::connect_token(ctx, parse_token_request(body)).await?);
         }
         ("POST", ["api", "sends", "access", id]) => {
-            let pw = json_value(body).get("password").and_then(|v| v.as_str()).map(String::from);
+            let pw = json_value(body)
+                .get("password")
+                .and_then(|v| v.as_str())
+                .map(String::from);
             return ok(sends::access(ctx, id, pw.as_deref()).await?);
         }
         (_, ["icons", domain, "icon.png"]) => {
             let icon = icons::fetch_icon(domain).await?;
-            return Ok((200, serde_json::json!({
-                "contentType": icon.content_type,
-                "length": icon.bytes.len(),
-            })));
+            return Ok((
+                200,
+                serde_json::json!({
+                    "contentType": icon.content_type,
+                    "length": icon.bytes.len(),
+                }),
+            ));
         }
         _ => {}
     }
@@ -211,11 +223,19 @@ pub async fn route(
             ok(two_factor::get_authenticator(ctx, uid).await?)
         }
         ("POST", ["api", "two-factor", "authenticator"]) => {
-            let token = json_value(body).get("token").and_then(|v| v.as_str()).unwrap_or_default().to_string();
+            let token = json_value(body)
+                .get("token")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+                .to_string();
             ok(two_factor::enable_authenticator(ctx, uid, &token).await?)
         }
         ("DELETE", ["api", "two-factor", "authenticator"]) => {
-            let token = json_value(body).get("token").and_then(|v| v.as_str()).unwrap_or_default().to_string();
+            let token = json_value(body)
+                .get("token")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+                .to_string();
             two_factor::disable_authenticator(ctx, uid, &token).await?;
             empty()
         }
@@ -250,7 +270,9 @@ pub async fn route(
             orgs::delete_collection(ctx, uid, id, cid).await?;
             empty()
         }
-        ("GET", ["api", "organizations", id, "users"]) => ok(orgs::list_members(ctx, uid, id).await?),
+        ("GET", ["api", "organizations", id, "users"]) => {
+            ok(orgs::list_members(ctx, uid, id).await?)
+        }
         ("POST", ["api", "organizations", id, "users", "invite"]) => {
             let req: InviteMemberRequest = from_json(body)?;
             ok(orgs::invite_member(ctx, uid, id, req).await?)

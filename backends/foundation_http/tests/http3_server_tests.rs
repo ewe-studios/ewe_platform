@@ -8,13 +8,15 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_core::synca::OnSignal;
-use foundation_core::valtron::{initialize_pool, Stream};
+use foundation_core::valtron::{initialize_pool, Ctx, Stream, TaskIterator, TaskStatus};
+use foundation_http::ShutdownSignal;
 use foundation_netio::http3::{H3Connection, H3Request};
-use foundation_netio::quic::{client_config_trusting_pem, QuicDriver, QuinnBidiStream};
+use foundation_netio::quic::{
+    client_config_trusting_pem, server_config_from_pem, QuicDriver, QuinnBidiStream,
+};
 
 use foundation_http::native::serve::{BoxFuture, H3Serve};
-use foundation_http::native::server::serve_h3;
+use foundation_http::native::server::{serve_h3, H3AcceptTask};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_netio::netcap::ConnectionContext;
@@ -104,8 +106,10 @@ impl H3Serve for EchoH3 {
             let body = read_body(&mut request, deadline);
 
             // Respond 200 echoing the body.
-            let resp_headers =
-                H3Request::<QuinnBidiStream>::encode_headers(&[(b":status".as_ref(), b"200".as_ref())]);
+            let resp_headers = H3Request::<QuinnBidiStream>::encode_headers(&[(
+                b":status".as_ref(),
+                b"200".as_ref(),
+            )]);
             send_frame(&mut request, resp_headers, true);
             let data = H3Request::<QuinnBidiStream>::encode_data(Bytes::from(body));
             send_frame(&mut request, data, false);
@@ -137,7 +141,7 @@ fn http3_server_echoes_a_request_over_quic() {
     // Start the H3 server with the echo handler.
     let mut app = HttpApp::new_h3_serve();
     app.route_any_h3("/*", Arc::new(EchoH3));
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_addr = serve_h3(
         "127.0.0.1:0".parse().unwrap(),
         CERT,
@@ -152,7 +156,8 @@ fn http3_server_echoes_a_request_over_quic() {
 
     // ── Client: connect over QUIC and drive one H3 request. ──
     let client_cfg = client_config_trusting_pem(CA).expect("client config");
-    let (driver, conn) = QuicDriver::connect(server_addr, client_cfg, "localhost").expect("connect");
+    let (driver, conn) =
+        QuicDriver::connect(server_addr, client_cfg, "localhost").expect("connect");
     foundation_core::valtron::send(driver).expect("spawn client driver");
 
     let mut h3 = H3Connection::new(conn);
@@ -181,7 +186,11 @@ fn http3_server_echoes_a_request_over_quic() {
         (b":path".as_ref(), b"/echo".as_ref()),
     ]);
     send_frame(&mut request, req_headers, true);
-    send_frame(&mut request, H3Request::<QuinnBidiStream>::encode_data(Bytes::from_static(b"hello-http3")), false);
+    send_frame(
+        &mut request,
+        H3Request::<QuinnBidiStream>::encode_data(Bytes::from_static(b"hello-http3")),
+        false,
+    );
     // Finish the request send half so the server sees end-of-body.
     let fin_deadline = Instant::now() + Duration::from_secs(5);
     loop {
@@ -206,7 +215,12 @@ fn http3_server_echoes_a_request_over_quic() {
     assert_eq!(status, "200", "expected 200 from echo handler");
 
     let body = read_body(&mut request, deadline);
-    assert_eq!(&body, b"hello-http3", "echoed body: {:?}", String::from_utf8_lossy(&body));
+    assert_eq!(
+        &body,
+        b"hello-http3",
+        "echoed body: {:?}",
+        String::from_utf8_lossy(&body)
+    );
 
     shutdown.turn_on();
 }
@@ -219,7 +233,7 @@ fn http3_server_rejects_a_request_it_has_no_handler_for() {
     let _guard = initialize_pool(78, Some(8));
 
     let app = HttpApp::new_h3_serve();
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_addr = serve_h3(
         "127.0.0.1:0".parse().unwrap(),
         CERT,
@@ -230,7 +244,8 @@ fn http3_server_rejects_a_request_it_has_no_handler_for() {
     .expect("start h3 server");
 
     let client_cfg = client_config_trusting_pem(CA).expect("client config");
-    let (driver, conn) = QuicDriver::connect(server_addr, client_cfg, "localhost").expect("connect");
+    let (driver, conn) =
+        QuicDriver::connect(server_addr, client_cfg, "localhost").expect("connect");
     foundation_core::valtron::send(driver).expect("spawn client driver");
 
     let mut h3 = H3Connection::new(conn);
@@ -277,4 +292,29 @@ fn http3_server_rejects_a_request_it_has_no_handler_for() {
     );
 
     shutdown.turn_on();
+}
+
+/// The accept task parks between turns: with no connection arriving, it returns
+/// `Depends` (waiting on its waker or shutdown), never `Delayed` (a poll timer).
+/// The old fixed 5 ms delay made it wake 100 times in 500 ms.
+#[test]
+fn h3_accept_task_parks_until_a_connection_arrives() {
+    let cfg = server_config_from_pem(CERT, KEY).expect("server config");
+    let driver = QuicDriver::server("127.0.0.1:0".parse().unwrap(), cfg).expect("bind");
+    let accept_queue = driver.accept_queue();
+    let accept_wakers = driver.accept_wakers();
+
+    let app = Arc::new(HttpApp::new_h3_serve());
+    let shutdown = Arc::new(ShutdownSignal::new());
+    let mut task = H3AcceptTask::new(accept_queue, accept_wakers, app, shutdown);
+
+    for _ in 0..5 {
+        let status = task
+            .next_status(Ctx::new())
+            .expect("accept task stays alive");
+        assert!(
+            matches!(status, TaskStatus::Depends(_)),
+            "an idle h3 accept task must park via Depends, not a timer"
+        );
+    }
 }

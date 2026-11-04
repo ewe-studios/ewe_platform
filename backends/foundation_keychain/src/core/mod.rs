@@ -10,8 +10,8 @@ pub mod crypto;
 pub mod error;
 pub mod models;
 pub mod notifications;
-pub mod router;
 #[cfg(not(target_family = "wasm"))]
 pub mod provisioning;
+pub mod router;
 pub mod store;
 pub mod util;

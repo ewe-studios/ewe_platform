@@ -201,9 +201,7 @@ mod tests {
     #[test]
     fn app_isolation_capability_check() {
         let isolation = AppIsolation::new();
-        isolation.register(
-            AppConfig::new("/app/", "app").with_capabilities(["camera", "storage"]),
-        );
+        isolation.register(AppConfig::new("/app/", "app").with_capabilities(["camera", "storage"]));
 
         assert!(isolation.is_capability_allowed("/app/home", "camera"));
         assert!(!isolation.is_capability_allowed("/app/home", "bluetooth"));

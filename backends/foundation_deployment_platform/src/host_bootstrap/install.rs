@@ -5,6 +5,9 @@ use std::process::Command;
 use crate::config::{Result, TestbedError};
 
 /// Install mise using the official installer.
+///
+/// # Errors
+/// Returns an error if the mise installer fails to run or exits with an error.
 pub fn install_mise() -> Result<()> {
     // Try curl installer first (works on most Linux distros)
     let status = Command::new("sh")
@@ -36,6 +39,9 @@ pub fn install_mise() -> Result<()> {
 }
 
 /// Install nushell via mise.
+///
+/// # Errors
+/// Returns an error if mise cannot be found or the install fails.
 pub fn install_nushell() -> Result<()> {
     // Use mise to install nu
     let mise_bin = find_mise_bin()?;
@@ -59,6 +65,9 @@ pub fn install_nushell() -> Result<()> {
 }
 
 /// Install pitchfork via mise.
+///
+/// # Errors
+/// Returns an error if mise cannot be found or the install fails.
 pub fn install_pitchfork() -> Result<()> {
     let mise_bin = find_mise_bin()?;
 
@@ -70,13 +79,13 @@ pub fn install_pitchfork() -> Result<()> {
             message: format!("mise install pitchfork: {e}"),
         })?;
 
-    if !status.success() {
+    if status.success() {
+        Ok(())
+    } else {
         // pitchfork may not be available in mise's registry yet
         // Fall back to cargo install
         eprintln!("  pitchfork not available via mise, trying cargo install...");
         install_pitchfork_cargo()
-    } else {
-        Ok(())
     }
 }
 
@@ -99,6 +108,9 @@ fn install_pitchfork_cargo() -> Result<()> {
 }
 
 /// Find the mise binary on PATH or in its default install location.
+///
+/// # Errors
+/// Returns an error if mise is not found on PATH or in the default location.
 pub fn find_mise_bin() -> Result<std::path::PathBuf> {
     if let Ok(p) = which::which("mise") {
         return Ok(p);
@@ -114,4 +126,3 @@ pub fn find_mise_bin() -> Result<std::path::PathBuf> {
         message: "mise not found on PATH or ~/.local/bin".to_string(),
     })
 }
-

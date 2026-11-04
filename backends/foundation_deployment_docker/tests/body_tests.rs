@@ -89,9 +89,9 @@ async fn log_frames_are_demultiplexed_and_a_truncated_frame_is_an_error() {
         ByteStream::new(SendSafeBody::Bytes(raw.clone())),
         limits().max_log_frame,
     )
-        .read_into(&mut out, &mut err)
-        .await
-        .expect("frames");
+    .read_into(&mut out, &mut err)
+    .await
+    .expect("frames");
     assert_eq!((out.as_str(), err.as_str()), ("out", "err"));
 
     raw.extend_from_slice(&[1, 0, 0, 0, 0, 0, 0, 9, b'x']);
@@ -99,8 +99,8 @@ async fn log_frames_are_demultiplexed_and_a_truncated_frame_is_an_error() {
         ByteStream::new(SendSafeBody::Bytes(raw)),
         limits().max_log_frame,
     )
-        .read_into(&mut out, &mut err)
-        .await;
+    .read_into(&mut out, &mut err)
+    .await;
     assert!(
         matches!(result, Err(DockerError::JsonParse(_))),
         "{result:?}"
@@ -160,7 +160,11 @@ fn the_default_limits_are_the_documented_ones() {
         .with_max_json_line(2)
         .with_max_log_frame(3);
     assert_eq!(
-        (tuned.max_error_body, tuned.max_json_line, tuned.max_log_frame),
+        (
+            tuned.max_error_body,
+            tuned.max_json_line,
+            tuned.max_log_frame
+        ),
         (1, 2, 3)
     );
     let body = tuned.body_limits();
@@ -169,7 +173,9 @@ fn the_default_limits_are_the_documented_ones() {
 
 #[test]
 fn a_client_hands_its_limits_to_the_generated_functions() {
-    let tuned = DockerLimits::default().with_max_error_body(7).with_max_json_line(9);
+    let tuned = DockerLimits::default()
+        .with_max_error_body(7)
+        .with_max_json_line(9);
     let client = foundation_deployment_docker::DockerClient::connect_unix("/nonexistent.sock")
         .with_limits(tuned);
     assert_eq!(client.limits(), tuned);

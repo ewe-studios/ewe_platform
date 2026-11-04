@@ -17,7 +17,7 @@
 
 use std::fmt;
 
-use foundation_ui_traits::{RouteDecision, NavigationIntent};
+use foundation_ui_traits::{NavigationIntent, RouteDecision};
 
 // ── Pattern ──────────────────────────────────────────────────────────
 
@@ -222,7 +222,10 @@ impl fmt::Display for PatternError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             PatternError::InvalidSegment(seg) => {
-                write!(f, "invalid pattern segment '{seg}': use '*' or '**', not partial wildcards")
+                write!(
+                    f,
+                    "invalid pattern segment '{seg}': use '*' or '**', not partial wildcards"
+                )
             }
             PatternError::DoubleWildcardNotLast => {
                 write!(f, "'**' must be the last segment in a pattern")
@@ -249,7 +252,9 @@ impl PatternRouter {
     /// Create an empty pattern router.
     #[must_use]
     pub fn new() -> Self {
-        Self { patterns: Vec::new() }
+        Self {
+            patterns: Vec::new(),
+        }
     }
 
     /// Register a pattern → decision mapping. Patterns are checked in

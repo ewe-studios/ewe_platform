@@ -1,7 +1,7 @@
 [package]
 name = "infrastructure_llama_cpp"
 description = "llama.cpp bindings for Rust (originally: utilityai/llama-cpp-rs/infrastructure_llama_bindings)"
-version = "0.0.3"
+version = "0.0.4"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

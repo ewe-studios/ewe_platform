@@ -109,7 +109,10 @@ fn take_order(ctx: Ctx, state: Ordering) -> Option<(Ordering, TaskStatus<Order, 
         Ordering::Taken => None,
         Ordering::New => Some((
             Ordering::Taken,
-            TaskStatus::Ready(Order { dish: "pancakes".to_string(), steps_left: 2 }),
+            TaskStatus::Ready(Order {
+                dish: "pancakes".to_string(),
+                steps_left: 2,
+            }),
         )),
     }
 }
@@ -131,7 +134,10 @@ fn cook(ctx: Ctx, state: Cooking) -> Option<(Cooking, TaskStatus<Meal, ()>)> {
                 Some((Cooking::Done, TaskStatus::Ready(Meal { dish: order.dish })))
             } else {
                 Some((
-                    Cooking::Cooking(Order { steps_left: order.steps_left - 1, ..order }),
+                    Cooking::Cooking(Order {
+                        steps_left: order.steps_left - 1,
+                        ..order
+                    }),
                     TaskStatus::Ignore,
                 ))
             }
@@ -151,9 +157,10 @@ fn serve(ctx: Ctx, state: Serving) -> Option<(Serving, TaskStatus<String, ()>)> 
     let _ = ctx;
     match state {
         Serving::Done => None,
-        Serving::ToServe(meal) => {
-            Some((Serving::Done, TaskStatus::Ready(format!("served {}", meal.dish))))
-        }
+        Serving::ToServe(meal) => Some((
+            Serving::Done,
+            TaskStatus::Ready(format!("served {}", meal.dish)),
+        )),
     }
 }
 

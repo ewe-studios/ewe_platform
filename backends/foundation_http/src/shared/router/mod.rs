@@ -4,13 +4,13 @@
 //! The handler type `S` flows from `HttpApp<S>` through `Router<S>` down to
 //! `RouteSegment<S>` and `RouteMethod<S>`.
 
-pub mod segments;
 pub mod method;
+pub mod segments;
 
 use foundation_netio::shared::http::SimpleMethod;
 
-pub use segments::{RouteOp, RouteResult, RouteSegment, SegmentType, ParamStaticValidation};
 pub use method::RouteMethod;
+pub use segments::{ParamStaticValidation, RouteOp, RouteResult, RouteSegment, SegmentType};
 
 /// Router with a root route segment tree, generic over handler type `S`.
 pub struct Router<S> {

@@ -11,7 +11,8 @@ use crate::valtron::iterators::Stream;
 use concurrent_queue::PushError;
 
 use crate::valtron::{
-    task::{TaskSpread, TaskStatus}, BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
+    task::{TaskSpread, TaskStatus},
+    BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
 };
 use crate::valtron::{
     BoxedExecutionIterator, Ctx, ExecutionIterator, QueueVacancyReadiness, State,
@@ -48,10 +49,7 @@ impl<Task, Done, Pending> StreamConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub fn new(
-        iter: Task,
-        chan: std::sync::Arc<NotifyQueue<Stream<Done, Pending>>>,
-    ) -> Self {
+    pub fn new(iter: Task, chan: std::sync::Arc<NotifyQueue<Stream<Done, Pending>>>) -> Self {
         Self {
             channel: chan,
             alive: Some(()),
@@ -75,8 +73,8 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Task, Done: Send + 'static, Pending: Send + 'static>
-    Into<BoxedSendExecutionIterator> for StreamConsumingIter<Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedSendExecutionIterator>
+    for StreamConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
@@ -119,7 +117,13 @@ where
     /// `multi` (for `QueueVacancyReadiness` coercion into `EventReadinessPtr`)
     /// are supplied by the wrapper's own bounds rather than leaking into this
     /// inherent method.
-    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
+    fn drive(
+        &mut self,
+        entry: Entry,
+        executor: BoxedExecutionEngine,
+        ctx: Ctx,
+        on_full: impl FnOnce() -> State,
+    ) -> Option<State> {
         if self.alive.is_none() {
             return None;
         }
@@ -316,8 +320,7 @@ where
 }
 
 #[cfg(feature = "multi")]
-impl<Task, Done, Pending> ExecutionIterator
-    for StreamConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for StreamConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: Send + 'static,
@@ -325,16 +328,14 @@ where
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let on_full =
+            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
         self.drive(entry, executor, ctx, on_full)
     }
 }
 
 #[cfg(not(feature = "multi"))]
-impl<Task, Done, Pending> ExecutionIterator
-    for StreamConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for StreamConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: 'static,
@@ -342,9 +343,8 @@ where
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let on_full =
+            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
         self.drive(entry, executor, ctx, on_full)
     }
 }
@@ -377,10 +377,7 @@ impl<Task, Done, Pending> ConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub fn new(
-        iter: Task,
-        chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
-    ) -> Self {
+    pub fn new(iter: Task, chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>) -> Self {
         Self {
             channel: chan,
             alive: Some(()),
@@ -404,8 +401,8 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Task, Done: Send + 'static, Pending: Send + 'static>
-    Into<BoxedSendExecutionIterator> for ConsumingIter<Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedSendExecutionIterator>
+    for ConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
@@ -442,7 +439,13 @@ impl<Task, Done, Pending> ConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
+    fn drive(
+        &mut self,
+        entry: Entry,
+        executor: BoxedExecutionEngine,
+        ctx: Ctx,
+        on_full: impl FnOnce() -> State,
+    ) -> Option<State> {
         if self.alive.is_none() {
             return None;
         }
@@ -519,20 +522,18 @@ where
                     State::SpawnFailed(entry)
                 }
             },
-            TaskStatus::Delayed(inner) => {
-                match self.channel.push(TaskStatus::Delayed(inner)) {
-                    Ok(()) => State::Pending(Some(inner)),
-                    Err(PushError::Full(_)) => {
-                        self.pending_msg = Some(TaskStatus::Delayed(inner));
-                        on_full()
-                    }
-                    Err(PushError::Closed(_)) => {
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+            TaskStatus::Delayed(inner) => match self.channel.push(TaskStatus::Delayed(inner)) {
+                Ok(()) => State::Pending(Some(inner)),
+                Err(PushError::Full(_)) => {
+                    self.pending_msg = Some(TaskStatus::Delayed(inner));
+                    on_full()
                 }
-            }
+                Err(PushError::Closed(_)) => {
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
+                }
+            },
             TaskStatus::Init => match self.channel.push(TaskStatus::Init) {
                 Ok(()) => State::Pending(None),
                 Err(PushError::Full(_)) => {
@@ -614,8 +615,7 @@ where
 }
 
 #[cfg(feature = "multi")]
-impl<Task, Done, Pending> ExecutionIterator
-    for ConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for ConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: Send + 'static,
@@ -623,16 +623,14 @@ where
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let on_full =
+            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
         self.drive(entry, executor, ctx, on_full)
     }
 }
 
 #[cfg(not(feature = "multi"))]
-impl<Task, Done, Pending> ExecutionIterator
-    for ConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for ConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: 'static,
@@ -640,9 +638,8 @@ where
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let on_full =
+            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
         self.drive(entry, executor, ctx, on_full)
     }
 }
@@ -674,10 +671,7 @@ impl<Task, Done, Pending> ReadyConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    pub fn new(
-        iter: Task,
-        chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>,
-    ) -> Self {
+    pub fn new(iter: Task, chan: std::sync::Arc<NotifyQueue<TaskStatus<Done, Pending>>>) -> Self {
         Self {
             alive: Some(()),
             channel: chan,
@@ -701,8 +695,8 @@ where
 
 #[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
-impl<Task, Done: Send + 'static, Pending: Send + 'static>
-    Into<BoxedSendExecutionIterator> for ReadyConsumingIter<Task, Done, Pending>
+impl<Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedSendExecutionIterator>
+    for ReadyConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done> + Send + 'static,
 {
@@ -739,7 +733,13 @@ impl<Task, Done, Pending> ReadyConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
 {
-    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx, on_full: impl FnOnce() -> State) -> Option<State> {
+    fn drive(
+        &mut self,
+        entry: Entry,
+        executor: BoxedExecutionEngine,
+        ctx: Ctx,
+        on_full: impl FnOnce() -> State,
+    ) -> Option<State> {
         self.alive?;
 
         // Retry stashed pending message from previous backpressure
@@ -873,8 +873,7 @@ where
 }
 
 #[cfg(feature = "multi")]
-impl<Task, Done, Pending> ExecutionIterator
-    for ReadyConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for ReadyConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: Send + 'static,
@@ -882,16 +881,14 @@ where
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let on_full =
+            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
         self.drive(entry, executor, ctx, on_full)
     }
 }
 
 #[cfg(not(feature = "multi"))]
-impl<Task, Done, Pending> ExecutionIterator
-    for ReadyConsumingIter<Task, Done, Pending>
+impl<Task, Done, Pending> ExecutionIterator for ReadyConsumingIter<Task, Done, Pending>
 where
     Task: TaskIterator<Pending = Pending, Ready = Done>,
     Done: 'static,
@@ -899,9 +896,8 @@ where
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine, ctx: Ctx) -> Option<State> {
         let queue = self.channel.queue_arc();
-        let on_full = move || {
-            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
-        };
+        let on_full =
+            move || State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)));
         self.drive(entry, executor, ctx, on_full)
     }
 }

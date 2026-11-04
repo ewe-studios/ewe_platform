@@ -1,5 +1,4 @@
 /// Unix domain socket types using the poll layer for readiness tracking.
-
 use std::io;
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::os::unix::net::{self, SocketAddr};
@@ -20,18 +19,37 @@ impl UnixStream {
     }
 
     /// Register with the poll selector.
-    pub fn register(&self, registry: &Registry, token: Token, interest: Interest) -> io::Result<()> {
+    pub fn register(
+        &self,
+        registry: &Registry,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<()> {
         registry.register(&mut SourceFd(self.inner.as_raw_fd()), token, interest)
     }
 
-    pub fn get_ref(&self) -> &net::UnixStream { &self.inner }
+    pub fn get_ref(&self) -> &net::UnixStream {
+        &self.inner
+    }
 }
 
-impl AsRawFd for UnixStream { fn as_raw_fd(&self) -> RawFd { self.inner.as_raw_fd() } }
-impl std::io::Read for UnixStream { fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> { self.inner.read(buf) } }
+impl AsRawFd for UnixStream {
+    fn as_raw_fd(&self) -> RawFd {
+        self.inner.as_raw_fd()
+    }
+}
+impl std::io::Read for UnixStream {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.inner.read(buf)
+    }
+}
 impl std::io::Write for UnixStream {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> { self.inner.write(buf) }
-    fn flush(&mut self) -> io::Result<()> { self.inner.flush() }
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.inner.write(buf)
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        self.inner.flush()
+    }
 }
 
 /// A Unix domain socket server.
@@ -55,14 +73,25 @@ impl UnixListener {
     }
 
     /// Register with the poll selector.
-    pub fn register(&self, registry: &Registry, token: Token, interest: Interest) -> io::Result<()> {
+    pub fn register(
+        &self,
+        registry: &Registry,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<()> {
         registry.register(&mut SourceFd(self.inner.as_raw_fd()), token, interest)
     }
 
-    pub fn get_ref(&self) -> &net::UnixListener { &self.inner }
+    pub fn get_ref(&self) -> &net::UnixListener {
+        &self.inner
+    }
 }
 
-impl AsRawFd for UnixListener { fn as_raw_fd(&self) -> RawFd { self.inner.as_raw_fd() } }
+impl AsRawFd for UnixListener {
+    fn as_raw_fd(&self) -> RawFd {
+        self.inner.as_raw_fd()
+    }
+}
 
 /// A Unix domain datagram socket.
 pub struct UnixDatagram {
@@ -95,11 +124,22 @@ impl UnixDatagram {
     }
 
     /// Register with the poll selector.
-    pub fn register(&self, registry: &Registry, token: Token, interest: Interest) -> io::Result<()> {
+    pub fn register(
+        &self,
+        registry: &Registry,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<()> {
         registry.register(&mut SourceFd(self.inner.as_raw_fd()), token, interest)
     }
 
-    pub fn get_ref(&self) -> &net::UnixDatagram { &self.inner }
+    pub fn get_ref(&self) -> &net::UnixDatagram {
+        &self.inner
+    }
 }
 
-impl AsRawFd for UnixDatagram { fn as_raw_fd(&self) -> RawFd { self.inner.as_raw_fd() } }
+impl AsRawFd for UnixDatagram {
+    fn as_raw_fd(&self) -> RawFd {
+        self.inner.as_raw_fd()
+    }
+}

@@ -12,8 +12,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
+use foundation_http::ShutdownSignal;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, Status,
@@ -68,8 +68,8 @@ impl RequestMiddleware for RejectPosts {
     }
 }
 
-fn start(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<OnSignal>) {
-    let shutdown = Arc::new(OnSignal::new());
+fn start(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<ShutdownSignal>) {
+    let shutdown = Arc::new(ShutdownSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
     let config = ServerConfig::defaults()

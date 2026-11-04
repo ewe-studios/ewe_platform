@@ -1,6 +1,6 @@
 [package]
 name = "foundation_macros"
-version = "0.0.6"
+version = "0.0.7"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -8,6 +8,7 @@ authors.workspace = true
 repository.workspace = true
 description = "Macros for the foundations_jsnostd crate providing suitable support to simplify usage"
 keywords = ["foundations_macros"]
+readme = "README.md"
 
 [lib]
 proc-macro = true

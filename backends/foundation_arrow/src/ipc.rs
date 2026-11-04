@@ -28,7 +28,8 @@ pub fn encode_ipc_with_options(
 ) -> IpcResult<Vec<u8>> {
     let mut buffer = Vec::new();
     {
-        let mut writer = FileWriter::try_new_with_options(&mut buffer, batch.schema_ref(), options)?;
+        let mut writer =
+            FileWriter::try_new_with_options(&mut buffer, batch.schema_ref(), options)?;
         writer.write(batch)?;
         writer.finish()?;
     }

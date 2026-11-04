@@ -19,7 +19,11 @@ pub enum WebRtcSignal {
     /// An SDP answer from the native peer back to the browser.
     Answer { sdp: String },
     /// An ICE candidate from either side.
-    IceCandidate { candidate: String, sdp_mid: Option<String>, sdp_mline_index: Option<u16> },
+    IceCandidate {
+        candidate: String,
+        sdp_mid: Option<String>,
+        sdp_mline_index: Option<u16>,
+    },
 }
 
 impl WebRtcSignal {

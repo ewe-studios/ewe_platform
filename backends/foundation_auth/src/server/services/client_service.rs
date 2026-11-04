@@ -24,6 +24,7 @@ impl core::fmt::Display for ClientServiceError {
 
 impl std::error::Error for ClientServiceError {}
 
+#[must_use]
 pub fn create_client_record(
     name: &str,
     redirect_uris: Vec<String>,
@@ -54,4 +55,3 @@ fn generate_client_secret() -> String {
     foundation_compact::rng::rng().fill_bytes(&mut bytes);
     URL_SAFE_NO_PAD.encode(bytes)
 }
-

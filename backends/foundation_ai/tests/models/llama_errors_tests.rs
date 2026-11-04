@@ -3,10 +3,8 @@
 //! Pure and offline; this module was 0% covered.
 
 use foundation_ai::errors::llama::LlamaError;
+use foundation_ai::errors::llama::{DecodeError, EmbeddingsError, EncodeError, LlamaCppError};
 use foundation_ai::errors::{GenerationError, ModelErrors};
-use infrastructure_llama_cpp::{
-    DecodeError, EmbeddingsError, EncodeError, LlamaCppError,
-};
 
 #[test]
 fn llama_error_display_covers_each_variant() {
@@ -66,7 +64,7 @@ fn llama_cpp_error_wraps_sub_errors() {
 
 #[test]
 fn remaining_source_conversions_into_llama_and_generation() {
-    use infrastructure_llama_cpp::{
+    use foundation_ai::errors::llama::{
         ChatTemplateError, LlamaContextLoadError, LlamaModelLoadError, StringToTokenError,
         TokenToStringError,
     };
@@ -113,7 +111,7 @@ fn apply_chat_template_error_display_and_conversions() {
 
 #[test]
 fn every_source_error_converts_into_generation_error() {
-    use infrastructure_llama_cpp::{
+    use foundation_ai::errors::llama::{
         ChatTemplateError, DecodeError, EmbeddingsError, EncodeError, LlamaContextLoadError,
         LlamaCppError, LlamaModelLoadError, TokenToStringError,
     };
@@ -139,7 +137,9 @@ fn every_source_error_converts_into_generation_error() {
 
 #[test]
 fn source_errors_convert_into_model_errors() {
-    use infrastructure_llama_cpp::{EmbeddingsError, LlamaContextLoadError, LlamaModelLoadError};
+    use foundation_ai::errors::llama::{
+        EmbeddingsError, LlamaContextLoadError, LlamaModelLoadError,
+    };
 
     // The direct From<SourceError> for ModelErrors arms.
     let m: ModelErrors = LlamaModelLoadError::NullResult.into();

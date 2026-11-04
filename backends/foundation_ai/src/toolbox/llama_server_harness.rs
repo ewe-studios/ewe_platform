@@ -75,7 +75,10 @@ impl Default for LlamaServerConfig {
             api_key: "test-api-key-123".into(),
             model_name: std::env::var("LLAMA_TEST_MODEL_NAME")
                 .unwrap_or_else(|_| "qwen2.5-0.5b-instruct".into()),
-            model_file: std::env::var("LLAMA_TEST_MODEL_FILE").map_or_else(|_| root.join("artefacts/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"), PathBuf::from),
+            model_file: std::env::var("LLAMA_TEST_MODEL_FILE").map_or_else(
+                |_| root.join("artefacts/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"),
+                PathBuf::from,
+            ),
             server_bin: root.join("support/bin/llama-server"),
             threads: 4,
             ctx_size: 2048,
@@ -106,7 +109,7 @@ fn wait_for_health(port: u16, timeout: Duration) -> bool {
             let request = format!(
                 "GET /health HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n"
             );
-            
+
             let _ = (&stream).write_all(request.as_bytes());
             let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
             let reader = BufReader::new(&stream);

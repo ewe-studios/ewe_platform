@@ -1,6 +1,6 @@
 //! RDRAND backend for x86(-64) targets
-use crate::entropy::{Error, util::slice_as_uninit};
-use core::mem::{MaybeUninit, size_of};
+use crate::entropy::{util::slice_as_uninit, Error};
+use core::mem::{size_of, MaybeUninit};
 
 #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
 compile_error!("`rdrand` backend can be enabled only for x86 and x86-64 targets!");

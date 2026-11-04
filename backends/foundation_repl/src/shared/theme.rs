@@ -42,8 +42,7 @@ const DEFAULT_SPINNER_INTERVAL: Duration = Duration::from_millis(80);
 /// HOW: the native backend maps each variant onto its renderer's colour type.
 /// Terminals that cannot do truecolour degrade [`ReplColor::Rgb`] themselves,
 /// so prefer [`ReplColor::Ansi`] when targeting limited terminals.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ReplColor {
     /// Inherit whatever the terminal already uses.
     #[default]
@@ -67,7 +66,6 @@ impl ReplColor {
         Self::Ansi(index)
     }
 }
-
 
 impl fmt::Display for ReplColor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -189,7 +189,12 @@ impl ConnectError {
         let details = if self.details.is_empty() {
             None
         } else {
-            Some(self.details.iter().map(WireErrorDetail::from_detail).collect())
+            Some(
+                self.details
+                    .iter()
+                    .map(WireErrorDetail::from_detail)
+                    .collect(),
+            )
         };
         WireError {
             code: self.code.as_str().to_string(),
@@ -216,7 +221,9 @@ impl core::fmt::Display for ConnectError {
 
 impl StdError for ConnectError {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        self.source.as_ref().map(|s| s.as_ref() as &(dyn StdError + 'static))
+        self.source
+            .as_ref()
+            .map(|s| s.as_ref() as &(dyn StdError + 'static))
     }
 }
 

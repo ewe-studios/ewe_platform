@@ -32,7 +32,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Write as _;
 
 /// Derives for a schema type (request bodies and responses).
-pub(crate) const SCHEMA_DERIVES: &[&str] = &[
+pub const SCHEMA_DERIVES: &[&str] = &[
     "Debug",
     "Clone",
     "Default",
@@ -43,11 +43,11 @@ pub(crate) const SCHEMA_DERIVES: &[&str] = &[
 
 /// Derives for an endpoint's `*Args` struct. Never deserialized; `Default`
 /// lets callers fill only the parameters they need (`..Default::default()`).
-pub(crate) const ARGS_DERIVES: &[&str] = &["Debug", "Clone", "Default", "Serialize", "JsonHash"];
+pub const ARGS_DERIVES: &[&str] = &["Debug", "Clone", "Default", "Serialize", "JsonHash"];
 
 /// One field of a generated struct.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct Field {
+pub struct Field {
     /// Doc comment text (without `///`), or empty.
     pub doc: String,
     /// Attribute lines, e.g. `#[serde(rename = "Id")]`.
@@ -58,9 +58,29 @@ pub(crate) struct Field {
     pub ty: String,
 }
 
+/// One variant of a generated untagged enum (an `OpenAPI` `oneOf`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Variant {
+    /// Doc comment text (without `///`), or empty.
+    pub doc: String,
+    /// The variant identifier.
+    pub name: String,
+    /// What the variant holds.
+    pub shape: VariantShape,
+}
+
+/// What a [`Variant`] holds.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum VariantShape {
+    /// `Name(Type)`: the member is another type (a `$ref`, a string, a list).
+    Newtype(String),
+    /// `Name { fields }`: the member is an inline object.
+    Struct(Vec<Field>),
+}
+
 /// The body of a generated type.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) enum TypeBody {
+pub enum TypeBody {
     /// `pub struct Name<generic> { fields }`.
     Struct {
         derives: Vec<String>,
@@ -71,11 +91,17 @@ pub(crate) enum TypeBody {
     },
     /// `pub type Name = target;`.
     Alias { target: String },
+    /// `#[serde(untagged)] pub enum Name { variants }`: a `oneOf`. serde tries
+    /// each variant in order, so list the most specific member first.
+    Union {
+        derives: Vec<String>,
+        variants: Vec<Variant>,
+    },
 }
 
 /// One generated type.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct TypeDef {
+pub struct TypeDef {
     pub name: String,
     /// Doc comment text (without `///`), one entry per line.
     pub doc: Vec<String>,
@@ -84,7 +110,8 @@ pub(crate) struct TypeDef {
 
 impl TypeDef {
     /// A struct with the given derives and fields.
-    pub(crate) fn structure(name: &str, doc: &str, derives: &[&str], fields: Vec<Field>) -> Self {
+    #[must_use]
+    pub fn structure(name: &str, doc: &str, derives: &[&str], fields: Vec<Field>) -> Self {
         Self {
             name: name.to_string(),
             doc: vec![doc.to_string()],
@@ -98,7 +125,8 @@ impl TypeDef {
     }
 
     /// `pub type name = target;`.
-    pub(crate) fn alias(name: &str, doc: &str, target: &str) -> Self {
+    #[must_use]
+    pub fn alias(name: &str, doc: &str, target: &str) -> Self {
         Self {
             name: name.to_string(),
             doc: vec![doc.to_string()],
@@ -108,7 +136,31 @@ impl TypeDef {
         }
     }
 
-    fn render(&self, out: &mut String) -> std::fmt::Result {
+    /// An untagged enum with the given variants (a `oneOf`).
+    ///
+    /// It has no `Default`: a union has no natural default member.
+    #[must_use]
+    pub fn union(name: &str, doc: &str, variants: Vec<Variant>) -> Self {
+        Self {
+            name: name.to_string(),
+            doc: vec![doc.to_string()],
+            body: TypeBody::Union {
+                derives: ["Debug", "Clone", "Serialize", "Deserialize", "JsonHash"]
+                    .iter()
+                    .map(|d| (*d).to_string())
+                    .collect(),
+                variants,
+            },
+        }
+    }
+
+    /// Render this type's definition into `out`.
+    ///
+    /// # Errors
+    ///
+    /// Returns the [`std::fmt::Error`] that a `writeln!` can surface; writing
+    /// to a `String` never fails in practice.
+    pub fn render(&self, out: &mut String) -> std::fmt::Result {
         for line in &self.doc {
             if line.is_empty() {
                 writeln!(out, "///")?;
@@ -118,6 +170,54 @@ impl TypeDef {
         }
         match &self.body {
             TypeBody::Alias { target } => writeln!(out, "pub type {} = {};", self.name, target)?,
+            TypeBody::Union { derives, variants } => {
+                writeln!(out, "#[derive({})]", derives.join(", "))?;
+                writeln!(out, "#[serde(untagged)]")?;
+                writeln!(out, "pub enum {} {{", self.name)?;
+                for variant in variants {
+                    if !variant.doc.is_empty() {
+                        writeln!(out, "    /// {}", variant.doc)?;
+                    }
+                    match &variant.shape {
+                        VariantShape::Newtype(ty) => writeln!(out, "    {}({ty}),", variant.name)?,
+                        VariantShape::Struct(fields) => {
+                            writeln!(out, "    {} {{", variant.name)?;
+                            for field in fields {
+                                if !field.doc.is_empty() {
+                                    writeln!(out, "        /// {}", field.doc)?;
+                                }
+                                for attr in &field.attrs {
+                                    writeln!(out, "        {attr}")?;
+                                }
+                                writeln!(out, "        {}: {},", field.name, field.ty)?;
+                            }
+                            writeln!(out, "    }},")?;
+                        }
+                    }
+                }
+                writeln!(out, "}}")?;
+                // `*Args` structs derive `Default` and may hold a union as their
+                // body, so a union has one: its first member, defaulted.
+                if let Some(first) = variants.first() {
+                    writeln!(out)?;
+                    writeln!(out, "impl Default for {} {{", self.name)?;
+                    writeln!(out, "    fn default() -> Self {{")?;
+                    match &first.shape {
+                        VariantShape::Newtype(_) => {
+                            writeln!(out, "        Self::{}(Default::default())", first.name)?;
+                        }
+                        VariantShape::Struct(fields) => {
+                            writeln!(out, "        Self::{} {{", first.name)?;
+                            for field in fields {
+                                writeln!(out, "            {}: Default::default(),", field.name)?;
+                            }
+                            writeln!(out, "        }}")?;
+                        }
+                    }
+                    writeln!(out, "    }}")?;
+                    writeln!(out, "}}")?;
+                }
+            }
             TypeBody::Struct {
                 derives,
                 attrs,
@@ -157,14 +257,14 @@ pub(crate) enum Item {
 
 /// One generated `mod.rs`, before rendering.
 #[derive(Debug, Clone)]
-pub(crate) struct ModuleFile {
+pub struct ModuleFile {
     /// Path relative to `generated/` (`shared/mod.rs`, `zones/mod.rs`).
     pub rel_path: String,
-    pub items: Vec<Item>,
+    items: Vec<Item>,
 }
 
 impl ModuleFile {
-    pub(crate) fn new(rel_path: impl Into<String>) -> Self {
+    pub fn new(rel_path: impl Into<String>) -> Self {
         Self {
             rel_path: rel_path.into(),
             items: Vec::new(),
@@ -177,7 +277,7 @@ impl ModuleFile {
         }
     }
 
-    pub(crate) fn push(&mut self, def: TypeDef) {
+    pub fn push(&mut self, def: TypeDef) {
         self.items.push(Item::Type(def));
     }
 
@@ -186,7 +286,7 @@ impl ModuleFile {
         self.types().map(|t| t.name.clone()).collect()
     }
 
-    fn types(&self) -> impl Iterator<Item = &TypeDef> {
+    pub fn types(&self) -> impl Iterator<Item = &TypeDef> {
         self.items.iter().filter_map(|i| match i {
             Item::Type(t) => Some(t),
             Item::Raw(_) => None,
@@ -382,7 +482,7 @@ fn shared_path(file: usize, shared: usize) -> &'static str {
 /// per endpoint. Only `result` varies, so it becomes the type parameter, and
 /// carries the field's whole type (`Option<Zone>` or `Zone`), which keeps
 /// required-ness exactly as the spec says.
-pub(crate) fn hoist_envelopes(files: &mut [ModuleFile], shared: usize) {
+pub fn hoist_envelopes(files: &mut [ModuleFile], shared: usize) {
     let mut groups: BTreeMap<String, Vec<Loc>> = BTreeMap::new();
     for loc in struct_locs(files) {
         let def = type_at(files, loc);
@@ -474,7 +574,7 @@ pub(crate) fn hoist_envelopes(files: &mut [ModuleFile], shared: usize) {
                     .find(|f| f.name == "result")
                     .map(|f| f.ty.clone())
                     .unwrap_or_default(),
-                TypeBody::Alias { .. } => continue,
+                TypeBody::Alias { .. } | TypeBody::Union { .. } => continue,
             };
             let target = format!("{}{name}<{result_ty}>", shared_path(loc.0, shared));
             make_alias(files, loc, target);
@@ -486,7 +586,7 @@ pub(crate) fn hoist_envelopes(files: &mut [ModuleFile], shared: usize) {
 /// Identical structs whose fields name no generated type are defined once in
 /// `shared`, under a name that says what they are (`AccountIdArgs`,
 /// `EmptyObject`), and every occurrence becomes an alias of it.
-pub(crate) fn hoist_shared_shapes(files: &mut [ModuleFile], shared: usize) {
+pub fn hoist_shared_shapes(files: &mut [ModuleFile], shared: usize) {
     let mut groups: BTreeMap<String, Vec<Loc>> = BTreeMap::new();
     for loc in struct_locs(files) {
         let TypeBody::Struct {
@@ -545,7 +645,7 @@ pub(crate) fn hoist_shared_shapes(files: &mut [ModuleFile], shared: usize) {
 }
 
 /// Within each module, identical structs become aliases of the first.
-pub(crate) fn dedupe_within_modules(files: &mut [ModuleFile]) {
+pub fn dedupe_within_modules(files: &mut [ModuleFile]) {
     let locs = struct_locs(files);
     let mut first: HashMap<(usize, String), (Loc, String)> = HashMap::new();
     let mut aliases: Vec<(Loc, String)> = Vec::new();
@@ -597,217 +697,5 @@ fn append_shared(files: &mut [ModuleFile], shared: usize, mut defs: Vec<TypeDef>
     ));
     for def in defs {
         file.push(def);
-    }
-}
-
-/// Names defined in more than one place must not collide; checked in tests.
-#[cfg(test)]
-pub(crate) fn duplicate_names(file: &ModuleFile) -> std::collections::BTreeSet<String> {
-    let mut seen = HashSet::new();
-    file.types()
-        .filter(|t| !seen.insert(t.name.clone()))
-        .map(|t| t.name.clone())
-        .collect()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn field(name: &str, ty: &str) -> Field {
-        Field {
-            doc: format!("`{name}` property."),
-            attrs: Vec::new(),
-            name: name.to_string(),
-            ty: ty.to_string(),
-        }
-    }
-
-    fn schema(name: &str, fields: Vec<Field>) -> TypeDef {
-        TypeDef::structure(name, &format!("`{name}` type."), SCHEMA_DERIVES, fields)
-    }
-
-    fn module(path: &str, defs: Vec<TypeDef>) -> ModuleFile {
-        let mut m = ModuleFile::new(path);
-        for d in defs {
-            m.push(d);
-        }
-        m
-    }
-
-    fn find<'a>(files: &'a [ModuleFile], module: usize, name: &str) -> &'a TypeDef {
-        files[module]
-            .types()
-            .find(|t| t.name == name)
-            .unwrap_or_else(|| panic!("{name} not in module {module}"))
-    }
-
-    fn alias_target(def: &TypeDef) -> &str {
-        match &def.body {
-            TypeBody::Alias { target } => target,
-            TypeBody::Struct { .. } => panic!("{} is still a struct", def.name),
-        }
-    }
-
-    #[test]
-    fn envelopes_that_differ_only_in_result_share_one_generic() {
-        let envelope = |name: &str, result: &str| {
-            schema(
-                name,
-                vec![
-                    field("errors", "Vec<serde_json::Value>"),
-                    field("messages", "Vec<serde_json::Value>"),
-                    field("result", result),
-                    field("success", "bool"),
-                ],
-            )
-        };
-        let mut files = vec![
-            module("shared/mod.rs", vec![]),
-            module(
-                "zones/mod.rs",
-                vec![
-                    envelope("ZoneResponse", "Option<Zone>"),
-                    envelope("ZoneList", "Vec<Zone>"),
-                ],
-            ),
-        ];
-        hoist_envelopes(&mut files, 0);
-
-        assert_eq!(
-            alias_target(find(&files, 1, "ZoneResponse")),
-            "super::shared::ApiEnvelope<Option<Zone>>"
-        );
-        assert_eq!(
-            alias_target(find(&files, 1, "ZoneList")),
-            "super::shared::ApiEnvelope<Vec<Zone>>"
-        );
-        let TypeBody::Struct {
-            generic, fields, ..
-        } = &find(&files, 0, "ApiEnvelope").body
-        else {
-            panic!("ApiEnvelope is not a struct");
-        };
-        assert_eq!(generic.as_deref(), Some("T"));
-        assert!(fields.iter().any(|f| f.name == "result" && f.ty == "T"));
-    }
-
-    #[test]
-    fn a_lone_envelope_shape_is_left_alone() {
-        let mut files = vec![
-            module("shared/mod.rs", vec![]),
-            module(
-                "zones/mod.rs",
-                vec![schema(
-                    "Only",
-                    vec![field("result", "Zone"), field("success", "bool")],
-                )],
-            ),
-        ];
-        hoist_envelopes(&mut files, 0);
-        assert!(matches!(
-            find(&files, 1, "Only").body,
-            TypeBody::Struct { .. }
-        ));
-    }
-
-    #[test]
-    fn identical_portable_structs_across_modules_are_defined_once_in_shared() {
-        let args = |name: &str| {
-            TypeDef::structure(
-                name,
-                "args",
-                ARGS_DERIVES,
-                vec![field("account_id", "String")],
-            )
-        };
-        let mut files = vec![
-            module("shared/mod.rs", vec![]),
-            module("dns/mod.rs", vec![args("ListDnsArgs")]),
-            module("zones/mod.rs", vec![args("ListZonesArgs")]),
-        ];
-        hoist_shared_shapes(&mut files, 0);
-
-        assert_eq!(
-            alias_target(find(&files, 1, "ListDnsArgs")),
-            "super::shared::AccountIdArgs"
-        );
-        assert_eq!(
-            alias_target(find(&files, 2, "ListZonesArgs")),
-            "super::shared::AccountIdArgs"
-        );
-        assert!(matches!(
-            find(&files, 0, "AccountIdArgs").body,
-            TypeBody::Struct { .. }
-        ));
-        assert!(duplicate_names(&files[0]).is_empty());
-    }
-
-    #[test]
-    fn empty_objects_collapse_into_one_empty_object() {
-        let mut files = vec![
-            module("shared/mod.rs", vec![schema("SharedEmpty", vec![])]),
-            module("dns/mod.rs", vec![schema("DnsEmpty", vec![])]),
-        ];
-        hoist_shared_shapes(&mut files, 0);
-        assert_eq!(alias_target(find(&files, 0, "SharedEmpty")), "EmptyObject");
-        assert_eq!(
-            alias_target(find(&files, 1, "DnsEmpty")),
-            "super::shared::EmptyObject"
-        );
-    }
-
-    #[test]
-    fn structs_naming_module_types_are_only_merged_inside_their_module() {
-        let with_zone = |name: &str| schema(name, vec![field("zone", "Option<Zone>")]);
-        let mut files = vec![
-            module("shared/mod.rs", vec![]),
-            module("a/mod.rs", vec![with_zone("A1"), with_zone("A2")]),
-            module("b/mod.rs", vec![with_zone("B1")]),
-        ];
-        hoist_shared_shapes(&mut files, 0);
-        dedupe_within_modules(&mut files);
-
-        assert!(matches!(
-            find(&files, 1, "A1").body,
-            TypeBody::Struct { .. }
-        ));
-        assert_eq!(alias_target(find(&files, 1, "A2")), "A1");
-        assert!(matches!(
-            find(&files, 2, "B1").body,
-            TypeBody::Struct { .. }
-        ));
-    }
-
-    #[test]
-    fn shapes_that_differ_only_in_default_merge_and_keep_default() {
-        let mut needs = schema("Needs", vec![field("name", "String")]);
-        let mut plain = schema("Plain", vec![field("name", "String")]);
-        if let TypeBody::Struct { derives, .. } = &mut plain.body {
-            derives.retain(|d| d != "Default");
-        }
-        // Same module, so the local pass merges them; `Plain` comes first.
-        std::mem::swap(&mut needs, &mut plain);
-        let mut files = vec![module("zones/mod.rs", vec![needs, plain])];
-        dedupe_within_modules(&mut files);
-
-        let canonical = find(&files, 0, "Plain");
-        let TypeBody::Struct { derives, .. } = &canonical.body else {
-            panic!("Plain should stay the struct");
-        };
-        assert!(
-            derives.iter().any(|d| d == "Default"),
-            "Needs relied on Default"
-        );
-        assert_eq!(alias_target(find(&files, 0, "Needs")), "Plain");
-    }
-
-    #[test]
-    fn aliases_render_as_pub_type() {
-        let mut out = String::new();
-        TypeDef::alias("ZoneId", "`ZoneId` type.", "String")
-            .render(&mut out)
-            .unwrap();
-        assert_eq!(out, "/// `ZoneId` type.\npub type ZoneId = String;\n\n");
     }
 }

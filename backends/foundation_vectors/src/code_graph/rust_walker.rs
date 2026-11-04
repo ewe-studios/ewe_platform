@@ -1,10 +1,15 @@
 use tree_sitter::{Node, Parser};
 
 use super::types::{
-    Confidence, FileExtraction, GraphEdge, GraphNode, NodeKind, RawCall, Relation,
-    file_stem_qualified, make_id,
+    file_stem_qualified, make_id, Confidence, FileExtraction, GraphEdge, GraphNode, NodeKind,
+    RawCall, Relation,
 };
 
+/// Extract the code graph of one Rust file.
+///
+/// # Errors
+///
+/// Returns a message when the Rust grammar can not be loaded or the source can not be parsed.
 pub fn extract_rust_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     let mut parser = Parser::new();
     let language = tree_sitter_rust::LANGUAGE;
@@ -59,16 +64,40 @@ fn walk_node(
     for child in node.children(&mut cursor) {
         match child.kind() {
             "struct_item" => {
-                extract_type_item(&child, source, file_path, stem, parent_id, extraction, NodeKind::Struct);
+                extract_type_item(
+                    &child,
+                    source,
+                    file_path,
+                    stem,
+                    parent_id,
+                    extraction,
+                    NodeKind::Struct,
+                );
             }
             "enum_item" => {
-                extract_type_item(&child, source, file_path, stem, parent_id, extraction, NodeKind::Enum);
+                extract_type_item(
+                    &child,
+                    source,
+                    file_path,
+                    stem,
+                    parent_id,
+                    extraction,
+                    NodeKind::Enum,
+                );
             }
             "trait_item" => {
                 extract_trait(&child, source, file_path, stem, parent_id, extraction);
             }
             "function_item" => {
-                extract_function(&child, source, file_path, stem, parent_id, extraction, NodeKind::Function);
+                extract_function(
+                    &child,
+                    source,
+                    file_path,
+                    stem,
+                    parent_id,
+                    extraction,
+                    NodeKind::Function,
+                );
             }
             "impl_item" => {
                 extract_impl(&child, source, file_path, stem, parent_id, extraction);
@@ -77,16 +106,48 @@ fn walk_node(
                 extract_use(&child, source, file_path, stem, parent_id, extraction);
             }
             "const_item" => {
-                extract_simple_item(&child, source, file_path, stem, parent_id, extraction, NodeKind::Constant);
+                extract_simple_item(
+                    &child,
+                    source,
+                    file_path,
+                    stem,
+                    parent_id,
+                    extraction,
+                    NodeKind::Constant,
+                );
             }
             "static_item" => {
-                extract_simple_item(&child, source, file_path, stem, parent_id, extraction, NodeKind::Static);
+                extract_simple_item(
+                    &child,
+                    source,
+                    file_path,
+                    stem,
+                    parent_id,
+                    extraction,
+                    NodeKind::Static,
+                );
             }
             "type_item" => {
-                extract_simple_item(&child, source, file_path, stem, parent_id, extraction, NodeKind::TypeAlias);
+                extract_simple_item(
+                    &child,
+                    source,
+                    file_path,
+                    stem,
+                    parent_id,
+                    extraction,
+                    NodeKind::TypeAlias,
+                );
             }
             "macro_definition" => {
-                extract_simple_item(&child, source, file_path, stem, parent_id, extraction, NodeKind::Macro);
+                extract_simple_item(
+                    &child,
+                    source,
+                    file_path,
+                    stem,
+                    parent_id,
+                    extraction,
+                    NodeKind::Macro,
+                );
             }
             "mod_item" => {
                 extract_mod(&child, source, file_path, stem, parent_id, extraction);
@@ -260,7 +321,13 @@ fn extract_function(
     let Some(name) = node_name(node, source) else {
         return;
     };
-    let id = make_id(stem, &name);
+    // A method's id includes its impl or trait (the parent), so two types can
+    // have a method of the same name.
+    let id = if kind == NodeKind::Method {
+        make_id(parent_id, &name)
+    } else {
+        make_id(stem, &name)
+    };
     if extraction.seen_ids.contains_key(&id) {
         return;
     }
@@ -388,16 +455,10 @@ fn extract_use(
     parent_id: &str,
     extraction: &mut FileExtraction,
 ) {
-    let text = node
-        .utf8_text(source.as_bytes())
-        .unwrap_or("")
-        .to_string();
+    let text = node.utf8_text(source.as_bytes()).unwrap_or("").to_string();
     let line = node.start_position().row + 1;
 
-    let path = text
-        .trim_start_matches("use ")
-        .trim_end_matches(';')
-        .trim();
+    let path = text.trim_start_matches("use ").trim_end_matches(';').trim();
 
     let segments: Vec<&str> = path.split("::").collect();
     if segments.is_empty() {
@@ -523,17 +584,10 @@ fn extract_calls(
                 let is_member_call = func.kind() == "field_expression";
                 let callee_name = if is_member_call {
                     func.child_by_field_name("field")
-                        .map(|f| {
-                            f.utf8_text(source.as_bytes())
-                                .unwrap_or("")
-                                .to_string()
-                        })
+                        .map(|f| f.utf8_text(source.as_bytes()).unwrap_or("").to_string())
                         .unwrap_or_default()
                 } else {
-                    let text = func
-                        .utf8_text(source.as_bytes())
-                        .unwrap_or("")
-                        .to_string();
+                    let text = func.utf8_text(source.as_bytes()).unwrap_or("").to_string();
                     text.split("::").last().unwrap_or(&text).to_string()
                 };
 
@@ -558,14 +612,22 @@ fn extract_rationale_above(node: &Node, source: &str) -> Option<String> {
 
     while let Some(sib) = prev {
         if sib.kind() == "line_comment" || sib.kind() == "block_comment" {
-            let text = sib
-                .utf8_text(source.as_bytes())
-                .unwrap_or("")
-                .to_string();
-            let trimmed = text.trim_start_matches("//").trim_start_matches("/*").trim_end_matches("*/").trim();
+            let text = sib.utf8_text(source.as_bytes()).unwrap_or("").to_string();
+            let trimmed = text
+                .trim_start_matches("//")
+                .trim_start_matches("/*")
+                .trim_end_matches("*/")
+                .trim();
             let prefixes = [
-                "NOTE:", "IMPORTANT:", "HACK:", "WHY:", "RATIONALE:", "TODO:", "FIXME:",
-                "SAFETY:", "INVARIANT:",
+                "NOTE:",
+                "IMPORTANT:",
+                "HACK:",
+                "WHY:",
+                "RATIONALE:",
+                "TODO:",
+                "FIXME:",
+                "SAFETY:",
+                "INVARIANT:",
             ];
             if prefixes.iter().any(|p| trimmed.starts_with(p)) {
                 rationale_parts.push(trimmed.to_string());

@@ -18,6 +18,8 @@
 //! `Data::Retry` (the existing renderer's "no data yet" signal), never an internal
 //! spin.
 
+use std::sync::Arc;
+
 use bytes::Bytes;
 
 use foundation_core::extensions::result_ext::BoxedError;
@@ -27,7 +29,7 @@ use foundation_core::valtron::{
     TrySendError,
 };
 
-use crate::shared::http::impls::SendSafeBody;
+use crate::shared::http::impls::{BodyReadiness, SendSafeBody};
 
 /// Default depth of a pushable request-body pipe (matches the seam pipe default).
 pub const DEFAULT_PUSHABLE_DEPTH: usize = 4;
@@ -127,10 +129,30 @@ pub fn pushable_request_body() -> (PushableRequestBody, SendSafeBody) {
 /// Never panics.
 #[must_use]
 pub fn pushable_request_body_with_depth(depth: usize) -> (PushableRequestBody, SendSafeBody) {
+    let (producer, body, _readiness) = pushable_request_body_with_readiness(depth);
+    (producer, body)
+}
+
+/// Create a pushable request body with pipe readiness (feature 05).
+///
+/// Returns the producer handle, the `SendSafeBody::Stream` to attach to the
+/// outgoing request, and the consumer-side pipe [`BodyReadiness`]. The writer
+/// attaches the readiness so it can park on `TaskStatus::Depends(readiness)`
+/// while the producer has nothing yet, instead of a back-off timer. The task
+/// then wakes the moment the producer pushes (or the pipe closes).
+///
+/// # Panics
+/// Never panics.
+#[must_use]
+pub fn pushable_request_body_with_readiness(
+    depth: usize,
+) -> (PushableRequestBody, SendSafeBody, BodyReadiness) {
     let (sender, receiver) = Pipe::<Bytes>::with_depth(depth);
+    let readiness: BodyReadiness = Arc::new(receiver.readiness());
     let reader: BoxedSendableDataIterator<BoxedError> = Box::new(PushableBodyReader { receiver });
     (
         PushableRequestBody { sender },
         SendSafeBody::Stream(Some(reader)),
+        readiness,
     )
 }

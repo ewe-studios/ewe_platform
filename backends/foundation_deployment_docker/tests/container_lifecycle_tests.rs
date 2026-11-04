@@ -23,8 +23,8 @@ use std::sync::Arc;
 
 use foundation_core::valtron::valtron_test;
 use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
-use foundation_deployment_docker::{DockerClient, DockerError, DockerLimits};
 use foundation_deployment_docker::generated::top::ContainerTopResponse;
+use foundation_deployment_docker::{DockerClient, DockerError, DockerLimits};
 
 fn temp_socket_path(tag: &str) -> PathBuf {
     let pid = std::process::id();
@@ -32,7 +32,8 @@ fn temp_socket_path(tag: &str) -> PathBuf {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let path = std::env::temp_dir().join(format!("ewe_docker_lc_{tag}_{pid}_{nanos}.sock"));
+    let path =
+        std::path::PathBuf::from("/tmp").join(format!("ewe_docker_lc_{tag}_{pid}_{nanos}.sock"));
     let _ = std::fs::remove_file(&path);
     path
 }
@@ -43,14 +44,19 @@ fn temp_socket_path(tag: &str) -> PathBuf {
 fn route(method: &str, path: &str) -> (u16, String) {
     // Strip query string (e.g. /containers/abc/top?ps_args=aux → .../top)
     let path_no_query = path.split('?').next().unwrap_or(path);
-    let p = path_no_query.split_once("/v1.").map_or(path_no_query, |(_, rest)| {
-        rest.split_once('/').map_or(rest, |(_, r)| r)
-    });
+    let p = path_no_query
+        .split_once("/v1.")
+        .map_or(path_no_query, |(_, rest)| {
+            rest.split_once('/').map_or(rest, |(_, r)| r)
+        });
 
     match (method, p) {
         // Version negotiation: the client asks once, unversioned, before its
         // first versioned request.
-        ("GET", "/version") => (200, r#"{"ApiVersion":"1.53","MinAPIVersion":"1.24"}"#.to_string()),
+        ("GET", "/version") => (
+            200,
+            r#"{"ApiVersion":"1.53","MinAPIVersion":"1.24"}"#.to_string(),
+        ),
         // POST /containers/{id}/restart → 204 No Content
         ("POST", p) if p.starts_with("containers/") && p.ends_with("/restart") => {
             (204, String::new())
@@ -78,7 +84,10 @@ fn route(method: &str, path: &str) -> (u16, String) {
             (200, body.to_string())
         }
 
-        _ => (404, format!("{{\"message\":\"no route for {method} {p}\"}}")),
+        _ => (
+            404,
+            format!("{{\"message\":\"no route for {method} {p}\"}}"),
+        ),
     }
 }
 
@@ -251,7 +260,10 @@ fn container_top_response_deserializes_pascalcase_json() {
     let json = r#"{"Processes":[["root","1"]],"Titles":["USER","PID"]}"#;
     let resp: ContainerTopResponse =
         serde_json::from_str(json).expect("deserialize ContainerTopResponse");
-    assert_eq!(resp.titles.as_deref(), Some(&["USER".to_string(), "PID".to_string()][..]));
+    assert_eq!(
+        resp.titles.as_deref(),
+        Some(&["USER".to_string(), "PID".to_string()][..])
+    );
     let procs = resp.processes.expect("should have Processes");
     assert_eq!(procs.len(), 1);
     assert_eq!(procs[0][0], "root");

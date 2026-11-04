@@ -8,8 +8,7 @@
 use std::sync::Arc;
 
 use foundation_netio::shared::http::{
-    SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, SimpleMethod,
-    SendSafeBody, Status,
+    SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, Status,
 };
 
 use crate::shared::context::ContextBag;
@@ -50,7 +49,7 @@ impl CorsConfig {
                 .map(String::from)
                 .collect(),
             exposed_headers: vec!["X-Request-Id".to_string()],
-            max_age: 86400, // 24 hours
+            max_age: 86400,           // 24 hours
             allow_credentials: false, // Cannot be true with wildcard origin
         }
     }
@@ -111,10 +110,10 @@ impl CorsConfig {
     }
 
     /// Check if the origin is allowed.
-    fn is_origin_allowed(&self, origin: &str) -> bool {
-        self.allowed_origins.iter().any(|o| {
-            o == "*" || o.eq_ignore_ascii_case(origin)
-        })
+    pub fn is_origin_allowed(&self, origin: &str) -> bool {
+        self.allowed_origins
+            .iter()
+            .any(|o| o == "*" || o.eq_ignore_ascii_case(origin))
     }
 }
 
@@ -157,7 +156,8 @@ impl CorsMiddleware {
 
     /// Extract the Origin header value from the request.
     fn extract_origin(req: &SimpleIncomingRequest) -> Option<String> {
-        req.headers.iter()
+        req.headers
+            .iter()
             .find(|(k, _)| format!("{k}").eq_ignore_ascii_case("origin"))
             .and_then(|(_, v)| v.first().cloned())
     }
@@ -169,38 +169,59 @@ impl CorsMiddleware {
         // Access-Control-Allow-Origin
         if let Some(origin) = origin {
             if self.config.is_origin_allowed(origin) {
-                headers.push((SimpleHeader::custom("Access-Control-Allow-Origin"), origin.to_string()));
+                headers.push((
+                    SimpleHeader::custom("Access-Control-Allow-Origin"),
+                    origin.to_string(),
+                ));
             }
         } else if self.config.allowed_origins.iter().any(|o| o == "*") {
-            headers.push((SimpleHeader::custom("Access-Control-Allow-Origin"), "*".to_string()));
+            headers.push((
+                SimpleHeader::custom("Access-Control-Allow-Origin"),
+                "*".to_string(),
+            ));
         }
 
         // Access-Control-Allow-Methods
         if !self.config.allowed_methods.is_empty() {
             let methods = self.config.allowed_methods.join(", ");
-            headers.push((SimpleHeader::custom("Access-Control-Allow-Methods"), methods));
+            headers.push((
+                SimpleHeader::custom("Access-Control-Allow-Methods"),
+                methods,
+            ));
         }
 
         // Access-Control-Allow-Headers
         if !self.config.allowed_headers.is_empty() {
             let headers_list = self.config.allowed_headers.join(", ");
-            headers.push((SimpleHeader::custom("Access-Control-Allow-Headers"), headers_list));
+            headers.push((
+                SimpleHeader::custom("Access-Control-Allow-Headers"),
+                headers_list,
+            ));
         }
 
         // Access-Control-Expose-Headers
         if !self.config.exposed_headers.is_empty() {
             let exposed = self.config.exposed_headers.join(", ");
-            headers.push((SimpleHeader::custom("Access-Control-Expose-Headers"), exposed));
+            headers.push((
+                SimpleHeader::custom("Access-Control-Expose-Headers"),
+                exposed,
+            ));
         }
 
         // Access-Control-Max-Age
         if self.config.max_age > 0 {
-            headers.push((SimpleHeader::custom("Access-Control-Max-Age"), self.config.max_age.to_string()));
+            headers.push((
+                SimpleHeader::custom("Access-Control-Max-Age"),
+                self.config.max_age.to_string(),
+            ));
         }
 
         // Access-Control-Allow-Credentials
         if self.config.allow_credentials {
-            headers.push((SimpleHeader::custom("Access-Control-Allow-Credentials"), "true".to_string()));
+            headers.push((
+                SimpleHeader::custom("Access-Control-Allow-Credentials"),
+                "true".to_string(),
+            ));
         }
 
         headers
@@ -208,11 +229,7 @@ impl CorsMiddleware {
 }
 
 impl RequestMiddleware for CorsMiddleware {
-    fn handle(
-        &self,
-        _ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         // Handle OPTIONS preflight requests
         if matches!(req.method, SimpleMethod::OPTIONS) {
             let origin = Self::extract_origin(req);
@@ -251,31 +268,5 @@ impl RequestMiddleware for CorsMiddleware {
         // NOTE: A full implementation would wrap the response writing to inject
         // CORS headers. For now, we handle preflight and let the handler add headers.
         MiddlewareResult::Continue
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_cors_config_permissive() {
-        let config = CorsConfig::permissive();
-        assert!(config.is_origin_allowed("https://example.com"));
-        assert!(config.is_origin_allowed("*"));
-    }
-
-    #[test]
-    fn test_cors_config_restrictive() {
-        let config = CorsConfig::restrictive();
-        assert!(!config.is_origin_allowed("https://example.com"));
-    }
-
-    #[test]
-    fn test_cors_config_with_origin() {
-        let config = CorsConfig::restrictive()
-            .with_origin("https://example.com");
-        assert!(config.is_origin_allowed("https://example.com"));
-        assert!(!config.is_origin_allowed("https://other.com"));
     }
 }

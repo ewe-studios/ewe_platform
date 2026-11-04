@@ -85,7 +85,9 @@ impl Default for TracingTestConfig {
 mod imp {
     use super::TracingTestConfig;
     use std::sync::OnceLock;
-    use tracing_subscriber::{fmt, layer::SubscriberExt, reload, util::SubscriberInitExt, EnvFilter, Registry};
+    use tracing_subscriber::{
+        fmt, layer::SubscriberExt, reload, util::SubscriberInitExt, EnvFilter, Registry,
+    };
 
     /// Handle to the installed subscriber's filter, so each call can set its own.
     static FILTER: OnceLock<Option<reload::Handle<EnvFilter, Registry>>> = OnceLock::new();
@@ -148,7 +150,11 @@ mod imp {
 
 // ── Wasm + wasm-bindgen (console) ───────────────────────────────────────────
 
-#[cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none"), feature = "wasm-bindgen"))]
+#[cfg(all(
+    target_family = "wasm",
+    any(target_os = "unknown", target_os = "none"),
+    feature = "wasm-bindgen"
+))]
 mod imp {
     use super::{TraceWriter, TracingTestConfig};
     use std::io;

@@ -18,38 +18,14 @@
 
 use std::io;
 use std::net::{SocketAddr, TcpStream};
-use std::sync::atomic::{AtomicUsize, Ordering};
 
 use foundation_nativeapis::native::fd::Reactor;
 use foundation_nativeapis::native::poll::BackendPreference;
-use foundation_nativeapis::Token;
 use foundation_netio::netcap::Connection;
+use foundation_reactor::next_token;
 
 use crate::native::CompletionSocket;
 use crate::ServerIo;
-
-/// Per-process token counter for reactor registrations.
-///
-/// The completion selector reserves the top two bits of a `Token` (`POLL_TAG`),
-/// so tokens must stay below `2^62`; the mask in [`next_token`] enforces that.
-/// Starts at 1 — `Token(0)` is left free as a conventional sentinel.
-static NEXT_TOKEN: AtomicUsize = AtomicUsize::new(1);
-
-/// WHY: every reactor registration needs a distinct `Token`, and the completion
-/// selector reserves the two high bits, so a naive counter could eventually
-/// collide with the tag space.
-///
-/// WHAT: the next registration token, wrapped into the low 62 bits.
-///
-/// HOW: a relaxed fetch-add masked to `2^62 - 1`. Collision requires `2^62`
-/// concurrently-live registrations, which is not reachable.
-///
-/// # Panics
-/// Never panics.
-fn next_token() -> Token {
-    let n = NEXT_TOKEN.fetch_add(1, Ordering::Relaxed) & ((1usize << 62) - 1);
-    Token(n)
-}
 
 /// Initialise the shared reactor on the backend `mode` requires.
 ///

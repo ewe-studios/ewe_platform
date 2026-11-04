@@ -2,7 +2,6 @@
 ///
 /// Each endpoint joins a bus with a label. Messages are routed to endpoints
 /// whose labels match the message's selector label expression.
-
 use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
@@ -93,4 +92,3 @@ impl<T: Into<String>> From<T> for LabelOp {
         LabelOp::Leaf(value.into())
     }
 }
-

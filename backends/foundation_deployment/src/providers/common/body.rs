@@ -16,7 +16,7 @@
 //!
 //! plus [`read_error_body`], which reads at most a given number of bytes of a
 //! non-2xx body, [`with_raw_body`], which attaches a non-JSON request body,
-//! and [`BodyLimits`], the configurable caps on both.
+//! and [`BodyLimits`], the configurable caps on the three.
 //!
 //! HOW: Both streams sit on netio's [`AsyncSendSafeBody`] and implement
 //! [`futures_core::Stream`]; each also has an inherent `next().await`, so a
@@ -25,7 +25,6 @@
 //! bounded by its configured line limit ([`BodyLimits::max_json_line`]).
 //! Dropping a stream drops the body, which closes the connection.
 
-use core::future::poll_fn;
 use core::marker::PhantomData;
 use core::pin::Pin;
 use core::task::{Context, Poll};
@@ -35,6 +34,7 @@ use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 use foundation_netio::PreparedRequestBuilder;
 use futures_core::Stream as FuturesStream;
+use futures_lite::StreamExt;
 use serde::de::DeserializeOwned;
 
 use super::api_types::ApiError;
@@ -44,7 +44,7 @@ use super::api_types::ApiError;
 /// None of these limits how long a streamed body may be: a [`ByteStream`] or
 /// a [`JsonLinesStream`] reads as far as it is asked to. They cap only what
 /// has to be held whole — an error body read for its message, one line of a
-/// JSON-lines body.
+/// JSON-lines body, one JSON success body.
 ///
 /// The generated API clients read their responses under the limits of the
 /// [`ApiClient`](super::ApiClient) they are given; a bare `DynNetClient` gets
@@ -70,6 +70,15 @@ pub struct BodyLimits {
     /// body (`FrameLimits::max_line`). A progress or event line is a few
     /// hundred bytes and a stats sample a few kilobytes.
     pub max_json_line: usize,
+    /// The largest JSON success body [`send_json`](super::send_json) reads
+    /// before it is an error. Over this, the body is not read past the cap.
+    ///
+    /// Default 1 MiB: nginx's `client_max_body_size` default, the same bound
+    /// nginx puts on a client request body by default. A JSON response — an
+    /// inspect document, a resource listing — is normally far smaller; a
+    /// larger one is likely broken or hostile, and refusing it before it is
+    /// buffered whole keeps memory bounded.
+    pub max_json_body: usize,
 }
 
 impl Default for BodyLimits {
@@ -77,6 +86,7 @@ impl Default for BodyLimits {
         Self {
             max_error_body: 64 * 1024,
             max_json_line: 1024 * 1024,
+            max_json_body: 1024 * 1024,
         }
     }
 }
@@ -95,6 +105,13 @@ impl BodyLimits {
         self.max_json_line = bytes;
         self
     }
+
+    /// Read at most `bytes` of a JSON success body.
+    #[must_use]
+    pub fn with_max_json_body(mut self, bytes: usize) -> Self {
+        self.max_json_body = bytes;
+        self
+    }
 }
 
 /// Read at most `limit` bytes of `body` as (lossy) UTF-8; the rest is never
@@ -103,11 +120,11 @@ impl BodyLimits {
 /// # Panics
 ///
 /// Never panics.
-pub async fn read_bounded(body: SendSafeBody, limit: usize) -> String {
-    let mut body = AsyncSendSafeBody::from(body);
+pub async fn read_bounded<B: Into<AsyncSendSafeBody>>(body: B, limit: usize) -> String {
+    let mut body = body.into();
     let mut buf = Vec::new();
     while buf.len() < limit {
-        match poll_fn(|cx| Pin::new(&mut body).poll_next(cx)).await {
+        match body.next().await {
             Some(Ok(chunk)) => {
                 let room = limit - buf.len();
                 buf.extend_from_slice(&chunk[..chunk.len().min(room)]);
@@ -129,7 +146,7 @@ pub async fn read_bounded(body: SendSafeBody, limit: usize) -> String {
 /// # Panics
 ///
 /// Never panics.
-pub async fn read_error_body(body: SendSafeBody, limit: usize) -> Option<String> {
+pub async fn read_error_body<B: Into<AsyncSendSafeBody>>(body: B, limit: usize) -> Option<String> {
     let text = read_bounded(body, limit).await;
     (!text.is_empty()).then_some(text)
 }
@@ -181,9 +198,9 @@ pub struct ByteStream {
 impl ByteStream {
     /// Wrap a body that has not been read yet.
     #[must_use]
-    pub fn new(body: SendSafeBody) -> Self {
+    pub fn new<B: Into<AsyncSendSafeBody>>(body: B) -> Self {
         Self {
-            body: Some(AsyncSendSafeBody::from(body)),
+            body: Some(body.into()),
         }
     }
 
@@ -194,7 +211,7 @@ impl ByteStream {
     /// [`ApiError::RequestSendFailed`] if reading the body fails; the stream
     /// ends after it.
     pub async fn next(&mut self) -> Option<Result<Bytes, ApiError>> {
-        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+        StreamExt::next(self).await
     }
 
     /// Read the rest of the body, discarding it, and return how many bytes
@@ -269,7 +286,7 @@ impl<T: DeserializeOwned> JsonLinesStream<T> {
     /// Wrap a body that has not been read yet, buffering at most `max_line`
     /// bytes of one line (see [`BodyLimits::max_json_line`]).
     #[must_use]
-    pub fn new(body: SendSafeBody, max_line: usize) -> Self {
+    pub fn new<B: Into<AsyncSendSafeBody>>(body: B, max_line: usize) -> Self {
         Self {
             bytes: ByteStream::new(body),
             buf: Vec::new(),
@@ -287,7 +304,7 @@ impl<T: DeserializeOwned> JsonLinesStream<T> {
     ///
     /// See [`JsonLinesStream`]; the stream ends after an error.
     pub async fn next(&mut self) -> Option<Result<T, ApiError>> {
-        poll_fn(|cx| Pin::new(&mut *self).poll_next(cx)).await
+        StreamExt::next(self).await
     }
 
     /// Take the next complete line out of the buffer, if one has arrived.
@@ -309,10 +326,7 @@ impl<T: DeserializeOwned> JsonLinesStream<T> {
     /// The error for a line longer than `max_line`; it ends the stream.
     fn line_too_long(&mut self) -> ApiError {
         self.done = true;
-        ApiError::ParseFailed(format!(
-            "response line longer than {} bytes",
-            self.max_line
-        ))
+        ApiError::ParseFailed(format!("response line longer than {} bytes", self.max_line))
     }
 
     /// Parse one line into the next item; a failure ends the stream.

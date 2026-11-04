@@ -29,7 +29,9 @@ use std::sync::Arc;
 use arrow_array::builder::{StringBuilder, UInt32Builder, UInt8Builder};
 use arrow_array::{Array, RecordBatch, StringArray, UInt32Array, UInt8Array};
 use arrow_schema::{DataType, Field, Schema};
-use foundation_ui_traits::{DecodeError, DecodeResult, DomOp, ProtocolEncoder, Row, PROTOCOL_ARROW};
+use foundation_ui_traits::{
+    DecodeError, DecodeResult, DomOp, ProtocolEncoder, Row, PROTOCOL_ARROW,
+};
 
 use crate::ipc::{decode_ipc, encode_ipc};
 

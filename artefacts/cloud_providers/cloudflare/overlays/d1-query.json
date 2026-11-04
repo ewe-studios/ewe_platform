@@ -1,0 +1,20 @@
+{
+  "description": "D1 corrections. `d1_query_meta` `changes` and `rows_written` are integers: they are SQLite row counts. (The D1 params stay strings, as the published spec has them: the REST API takes strings only, so the client types every value in SQL with CAST. See feature 76 E1b.)",
+  "source": "D1 responses carry whole numbers for these two counters; the spec's `number` is looser than the wire. Checked against wrangler 4.156.2's local explorer API (/cdn-cgi/local/explorer/api, 2026-11-03): `changes` and `rows_written` are integers. The same API accepts string params only (`[7, 1.5, null, \"x\"]` gives code 10001 `Invalid input`), the same as the published Cloudflare spec.",
+  "patch": {
+    "components": {
+      "schemas": {
+        "d1_query_meta": {
+          "properties": {
+            "changes": {
+              "type": "integer"
+            },
+            "rows_written": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    }
+  }
+}

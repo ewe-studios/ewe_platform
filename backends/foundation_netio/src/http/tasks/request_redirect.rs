@@ -25,19 +25,32 @@
 //! timeouts.
 
 use crate::http::{HttpClientConnection, HttpConnectionPool};
+use crate::native::readiness::io_or_deadline;
+#[cfg(unix)]
+use crate::native::readiness::SocketReadiness;
 use crate::native::readiness::{DeadlineReadiness, IoInterest};
-use crate::netcap::RawStream;
+#[cfg(feature = "ssl-rustls")]
+use crate::netcap::ssl::{ClientSSLStream, SSLConnector};
+#[cfg(unix)]
+use crate::netcap::PendingConnect;
+use crate::netcap::{Connection, RawStream};
 use crate::shared::client::{redirects, ClientConfig, DnsResolver};
 use crate::shared::http::{
-    ensure_chunked_transfer_encoding, Http11, Http11RequestBodyIterator, HttpClientError,
-    HttpResponseReader, IncomingResponseParts, RenderHttp, RequestDescriptor, SendSafeBody,
-    SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
+    ensure_chunked_transfer_encoding, BodyReadiness, Http11, Http11RequestBodyIterator,
+    HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp, RequestDescriptor,
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
-use foundation_core::io::ioutils::ReadTimeoutOperations;
-use foundation_core::valtron::{Ctx, AnyReadiness, TaskIterator, TaskStatus};
+use concurrent_queue::ConcurrentQueue;
+use foundation_core::io::ioutils::{ReadTimeoutOperations, SharedByteBufferStream};
+use foundation_core::valtron::{
+    queue_waker, AnyReadiness, Ctx, QueueReadiness, TaskIterator, TaskStatus, WakeToken,
+};
+use std::future::Future;
 use std::io::Write;
+use std::pin::Pin;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::task::{Context, Poll};
+use std::time::Instant;
 
 use super::nonblocking::{self, IdleDeadline, IoStep, Park, PendingBytes};
 use super::HttpOperationState;
@@ -74,10 +87,6 @@ type Step = TaskStatus<HttpRequestRedirectResponse, HttpOperationState>;
 /// a large in-memory body cannot monopolise a worker.
 const MAX_CHUNKS_PER_POLL: usize = 32;
 
-/// Longest back-off while the request body's *producer* has nothing yet (a
-/// pushable body the caller has not pushed into). See [`WritingBody`].
-const MAX_PRODUCER_BACKOFF_MS: u64 = 16;
-
 /// The request being sent and the connection carrying it.
 pub struct Exchange<R: DnsResolver + Send + 'static> {
     data: SimpleIncomingRequest,
@@ -87,6 +96,23 @@ pub struct Exchange<R: DnsResolver + Send + 'static> {
     remaining_redirects: u8,
     connection: HttpClientConnection,
     reader: HttpResponseReader<SimpleHttpBody, RawStream>,
+}
+
+/// The request being sent, before the connection exists.
+///
+/// WHY: the non-blocking connect and TLS handshake states (feature 04) need
+/// everything [`Exchange`] carries except the connection and reader, so the
+/// connect can happen across `Depends` polls instead of in one blocking call.
+struct PendingExchange<R: DnsResolver + Send + 'static> {
+    data: SimpleIncomingRequest,
+    pool: Arc<HttpConnectionPool<R>>,
+    config: ClientConfig,
+    descriptor: RequestDescriptor,
+    remaining_redirects: u8,
+    host: String,
+    port: u16,
+    /// The target is HTTPS/WSS: a TLS handshake must follow the TCP connect.
+    use_tls: bool,
 }
 
 /// What follows once the request head is on the wire.
@@ -130,11 +156,11 @@ pub struct ReadingHead<R: DnsResolver + Send + 'static> {
 ///
 /// WHY: the body renderer yields chunks one at a time. A pushable body
 /// (client-streaming RPCs) yields an empty chunk while its producer has not
-/// pushed anything yet. Socket stalls park on writability. Producer stalls back
-/// off on a short timer (1ms doubling to `MAX_PRODUCER_BACKOFF_MS`), because the
-/// renderer's `SendSafeBody::Stream` erases the pipe it reads from and exposes no
-/// readiness to park on. Either way the worker is released. The blocking writer
-/// used to spin on those empty chunks instead.
+/// pushed anything yet. Socket stalls park on writability. Producer stalls park
+/// on the pipe's [`BodyReadiness`] (the task wakes the moment the producer
+/// pushes), bounded by the idle deadline. A one-shot renderer transition (for
+/// example chunked trailers) is retried at once. Either way the worker is
+/// released. The blocking writer used to spin on those empty chunks instead.
 pub struct WritingBody {
     starters: Option<[IncomingResponseParts; 2]>,
     connection: HttpClientConnection,
@@ -143,12 +169,74 @@ pub struct WritingBody {
     pending: PendingBytes,
     rendered_all: bool,
     idle: IdleDeadline,
-    producer_stalls: u32,
+    /// Consumer-side pipe readiness for a pushable body; `None` for other bodies.
+    body_readiness: Option<BodyReadiness>,
+}
+
+/// A DNS resolution in flight (feature 36).
+///
+/// WHY: `SystemDnsResolver` runs the blocking lookup off the valtron worker; the
+/// request task must await it instead of blocking. This state polls the resolver
+/// future, parks on its wake queue, and fails at the configured DNS deadline.
+///
+/// HOW: the future's waker pushes a [`WakeToken`] onto `wake_queue`; the task
+/// parks on [`QueueReadiness`] for that queue composed with the DNS deadline
+/// (via `io_or_deadline`), so it wakes on whichever comes first.
+#[cfg(unix)]
+pub struct Resolving<R: DnsResolver + Send + 'static> {
+    exchange: PendingExchange<R>,
+    future:
+        Pin<Box<dyn Future<Output = Result<Vec<core::net::SocketAddr>, HttpClientError>> + Send>>,
+    /// Fixed DNS deadline (feature 36).
+    deadline: Instant,
+    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
+}
+
+/// A TCP connect in flight on a non-blocking socket (feature 04 §2.1).
+///
+/// WHY: `TcpStream::connect_timeout` holds a valtron worker for the whole kernel
+/// connect. Instead, this state creates the socket non-blocking, starts
+/// `connect(2)`, and parks on write readiness of the raw fd. When the fd turns
+/// writable it reads `SO_ERROR` and either hands over the connected socket or
+/// tries the next resolved address.
+#[cfg(unix)]
+pub struct Connecting<R: DnsResolver + Send + 'static> {
+    exchange: PendingExchange<R>,
+    addrs: std::vec::IntoIter<core::net::SocketAddr>,
+    current: Option<PendingConnect>,
+    /// Fixed connect deadline, shared across all addresses (remaining time).
+    deadline: Instant,
+    /// The last address's connect error, so the caller sees the real `io::ErrorKind`
+    /// (refused, unreachable, …) — feature 04 §2.4 rule 3.
+    last_error: Option<std::io::Error>,
+}
+
+/// A TLS handshake in flight on a non-blocking socket (feature 04 §2.2).
+///
+/// WHY: driving the handshake lazily inside the first request write made the
+/// handshake's wait use the body's idle deadline instead of the connect deadline.
+/// This state drives `complete_io` until the handshake finishes or the socket
+/// would block, and parks on the direction rustls asks for.
+#[cfg(all(unix, feature = "ssl-rustls"))]
+pub struct TlsHandshake<R: DnsResolver + Send + 'static> {
+    exchange: PendingExchange<R>,
+    conn: ClientSSLStream,
+    /// Fixed handshake deadline (the connect deadline).
+    deadline: Instant,
 }
 
 pub enum HttpRequestRedirectState<R: DnsResolver + Send + 'static> {
     Init(Option<InitData<R>>),
     Trying(Option<TryingData<R>>),
+    /// Non-blocking: DNS resolution is in flight (feature 36).
+    #[cfg(unix)]
+    Resolving(Option<Box<Resolving<R>>>),
+    /// Non-blocking: the TCP connect is in flight.
+    #[cfg(unix)]
+    Connecting(Option<Box<Connecting<R>>>),
+    /// Non-blocking: the TLS handshake is in flight.
+    #[cfg(all(unix, feature = "ssl-rustls"))]
+    TlsHandshake(Option<Box<TlsHandshake<R>>>),
     /// Non-blocking: writing the request head.
     SendingHead(Option<Box<SendingHead<R>>>),
     /// Non-blocking: the `Expect: 100-continue` wait.
@@ -311,43 +399,132 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     /// Connect and send the request head; branch on blocking vs non-blocking.
     #[allow(clippy::too_many_lines)]
     fn trying(&mut self, state: TryingData<R>) -> Step {
-        let (data, pool, config, mut descriptor, remaining_redirects) = *state;
+        let (data, pool, config, descriptor, remaining_redirects) = *state;
 
         // Unix socket transport (Docker daemon, BuildKitd) bypasses
-        // DNS and proxy — dial the configured socket directly.
+        // DNS and proxy — dial the configured socket directly (blocking).
         #[cfg(unix)]
         let unix_socket = config.unix_socket.clone();
         #[cfg(not(unix))]
         let unix_socket: Option<std::path::PathBuf> = None;
 
-        let connection_result = if let Some(socket_path) = unix_socket {
+        if let Some(socket_path) = unix_socket {
             #[cfg(unix)]
             {
-                pool.create_connection_unix(&descriptor.request_uri, &socket_path)
+                let connection =
+                    match pool.create_connection_unix(&descriptor.request_uri, &socket_path) {
+                        Ok(c) => c,
+                        Err(err) => {
+                            tracing::error!("Failed to connect unix: {:?}", err);
+                            return self.fail(HttpClientError::ConnectionError);
+                        }
+                    };
+                let host = descriptor
+                    .request_uri
+                    .host_str()
+                    .unwrap_or_else(|| "localhost".to_string());
+                let pe = PendingExchange {
+                    data,
+                    pool,
+                    config,
+                    descriptor,
+                    remaining_redirects,
+                    host,
+                    port: 0,
+                    use_tls: false,
+                };
+                return self.finish_connected(pe, connection);
             }
             #[cfg(not(unix))]
             {
                 let _ = socket_path;
                 unreachable!("unix_socket is always None on non-unix targets")
             }
-        } else {
-            // Determine effective proxy configuration
-            let env_proxy = if config.proxy_from_env {
-                crate::shared::client::ProxyConfig::from_env(descriptor.request_uri.scheme())
-            } else {
-                None
-            };
-            let proxy_config = env_proxy.as_ref().or(config.proxy.as_ref());
-            pool.create_connection_with_proxy(&descriptor.request_uri, proxy_config, None)
-        };
+        }
 
-        let connection = match connection_result {
-            Ok(connection) => connection,
-            Err(err) => {
-                tracing::error!("Failed to connect: {:?}", err);
-                return self.fail(HttpClientError::ConnectionError);
-            }
+        let Some(target_host) = descriptor.request_uri.host_str() else {
+            tracing::error!("Missing host in request URI");
+            return self.fail(HttpClientError::InvalidUrl("Missing host".to_string()));
         };
+        let target_port = descriptor.request_uri.port_or_default();
+        let use_tls =
+            descriptor.request_uri.scheme().is_https() || descriptor.request_uri.scheme().is_wss();
+
+        // Determine effective proxy configuration.
+        let env_proxy = if config.proxy_from_env {
+            crate::shared::client::ProxyConfig::from_env(descriptor.request_uri.scheme())
+        } else {
+            None
+        };
+        let proxy_config = env_proxy.as_ref().or(config.proxy.as_ref());
+
+        // A proxy is in the way unless NO_PROXY bypasses it for this host.
+        let proxy_applies = proxy_config
+            .is_some_and(|_| !crate::shared::client::ProxyConfig::should_bypass(&target_host));
+
+        // Direct TCP (no proxy, no custom connector, no unix): non-blocking connect
+        // (feature 04). TLS needs the rustls backend to drive the handshake without
+        // blocking; other TLS backends keep the blocking path.
+        #[cfg(unix)]
+        let can_nonblocking = !proxy_applies
+            && pool.connector.is_none()
+            && (!use_tls || cfg!(feature = "ssl-rustls"));
+
+        #[cfg(unix)]
+        if can_nonblocking {
+            return self.start_connecting(PendingExchange {
+                data,
+                pool,
+                config,
+                descriptor,
+                remaining_redirects,
+                host: target_host,
+                port: target_port,
+                use_tls,
+            });
+        }
+
+        // Blocking fallback (proxy, custom connector, non-unix, non-rustls TLS).
+        let connection =
+            match pool.create_connection_with_proxy(&descriptor.request_uri, proxy_config, None) {
+                Ok(connection) => connection,
+                Err(err) => {
+                    tracing::error!("Failed to connect: {:?}", err);
+                    return self.fail(HttpClientError::ConnectionError);
+                }
+            };
+
+        self.finish_connected(
+            PendingExchange {
+                data,
+                pool,
+                config,
+                descriptor,
+                remaining_redirects,
+                host: target_host,
+                port: target_port,
+                use_tls,
+            },
+            connection,
+        )
+    }
+
+    /// The post-connection half of `trying`: render the request head and branch to
+    /// `SendingHead` (non-blocking) or `trying_blocking`.
+    #[allow(clippy::too_many_lines)]
+    fn finish_connected(
+        &mut self,
+        pe: PendingExchange<R>,
+        connection: HttpClientConnection,
+    ) -> Step {
+        let PendingExchange {
+            data,
+            pool,
+            config,
+            mut descriptor,
+            remaining_redirects,
+            ..
+        } = pe;
 
         // Only send Expect: 100-continue when the request has a body AND the
         // handshake is enabled in config. Bodyless requests (e.g. GET) must never
@@ -439,6 +616,244 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             &request_string,
             next,
         )
+    }
+
+    /// Begin a non-blocking direct connect: reuse a pooled connection if one is
+    /// idle, otherwise start DNS resolution (feature 36) and enter [`Resolving`].
+    #[cfg(unix)]
+    fn start_connecting(&mut self, exchange: PendingExchange<R>) -> Step {
+        if let Some(connection) = exchange
+            .pool
+            .checkout_connection(&exchange.host, exchange.port)
+        {
+            return self.finish_connected(exchange, connection);
+        }
+
+        let future = exchange.pool.resolve_host(&exchange.host, exchange.port);
+        let deadline = Instant::now() + exchange.config.timeout_config().dns_timeout;
+
+        self.0 = Some(HttpRequestRedirectState::Resolving(Some(Box::new(
+            Resolving {
+                exchange,
+                future,
+                deadline,
+                wake_queue: Arc::new(ConcurrentQueue::unbounded()),
+            },
+        ))));
+        TaskStatus::Pending(HttpOperationState::Connecting)
+    }
+
+    /// Drive DNS resolution (feature 36). Parks on the resolver's wake queue,
+    /// bounded by the DNS deadline; on success hands the addresses to
+    /// [`Connecting`].
+    #[cfg(unix)]
+    fn resolving(&mut self, mut st: Box<Resolving<R>>) -> Step {
+        // Drain stale wake tokens before polling, so a prior turn's wake is not
+        // mistaken for a fresh one (same race-safe pattern as `FutureTask`).
+        while st.wake_queue.pop().is_ok() {}
+
+        let waker = queue_waker(st.wake_queue.clone(), 0);
+        let mut cx = Context::from_waker(&waker);
+
+        match st.future.as_mut().poll(&mut cx) {
+            Poll::Ready(Ok(addrs)) => {
+                let deadline = Instant::now() + st.exchange.config.timeout_config().connect_timeout;
+                self.0 = Some(HttpRequestRedirectState::Connecting(Some(Box::new(
+                    Connecting {
+                        exchange: st.exchange,
+                        addrs: addrs.into_iter(),
+                        current: None,
+                        deadline,
+                        last_error: None,
+                    },
+                ))));
+                TaskStatus::Pending(HttpOperationState::Connecting)
+            }
+            Poll::Ready(Err(err)) => {
+                tracing::error!("Failed to resolve {}: {:?}", st.exchange.host, err);
+                self.fail(err)
+            }
+            Poll::Pending => {
+                if Instant::now() >= st.deadline {
+                    return self.fail(HttpClientError::ConnectionTimeout(format!(
+                        "DNS resolution of {}:{} timed out",
+                        st.exchange.host, st.exchange.port
+                    )));
+                }
+                let deadline = st.deadline;
+                let queue = Arc::new(QueueReadiness::new(st.wake_queue.clone()));
+                let signal = io_or_deadline(queue, deadline);
+                self.0 = Some(HttpRequestRedirectState::Resolving(Some(st)));
+                TaskStatus::Depends(signal)
+            }
+        }
+    }
+
+    /// Drive the non-blocking connect across the resolved addresses (feature 04
+    /// §2.1). Immediate failures try the next address; an in-flight connect parks
+    /// on write readiness of the raw fd, bounded by the connect deadline.
+    #[cfg(unix)]
+    fn connecting(&mut self, mut st: Box<Connecting<R>>) -> Step {
+        loop {
+            let pending = if let Some(pending) = st.current.take() {
+                pending
+            } else {
+                let Some(addr) = st.addrs.next() else {
+                    let error = st.last_error.take().map_or_else(
+                        || {
+                            HttpClientError::ConnectionFailed(format!(
+                                "Failed to connect to {}:{}",
+                                st.exchange.host, st.exchange.port
+                            ))
+                        },
+                        HttpClientError::IoError,
+                    );
+                    return self.fail(error);
+                };
+                match PendingConnect::start(addr) {
+                    Ok(pending) => pending,
+                    Err(err) => {
+                        // Immediate failure (no route, refused): try the next.
+                        st.last_error = Some(err);
+                        continue;
+                    }
+                }
+            };
+
+            // Zero-timeout poll: is the fd writable now?
+            let writable = SocketReadiness::new(pending.as_raw_fd(), IoInterest::Writable)
+                .poll_now()
+                .unwrap_or(false);
+
+            if writable {
+                // The connect result comes from SO_ERROR, never "writable" alone.
+                match pending.check() {
+                    Ok(tcp) => {
+                        let connection = Connection::Tcp(tcp);
+                        return self.after_connect(st.exchange, connection, st.deadline);
+                    }
+                    Err(err) => {
+                        st.last_error = Some(err);
+                        continue;
+                    }
+                }
+            }
+
+            // Not writable yet: park, unless the deadline already passed.
+            if Instant::now() >= st.deadline {
+                return self.fail(HttpClientError::ConnectionTimeout(format!(
+                    "Connection to {}:{} timed out",
+                    st.exchange.host, st.exchange.port
+                )));
+            }
+            st.current = Some(pending);
+            let fd = st
+                .current
+                .as_ref()
+                .expect("current was just set")
+                .as_raw_fd();
+            let io = std::sync::Arc::new(SocketReadiness::new(fd, IoInterest::Writable));
+            let signal = io_or_deadline(io, st.deadline);
+            self.0 = Some(HttpRequestRedirectState::Connecting(Some(st)));
+            return TaskStatus::Depends(signal);
+        }
+    }
+
+    /// A TCP connect finished: wrap the socket, or (for TLS) start the handshake.
+    #[cfg(unix)]
+    fn after_connect(
+        &mut self,
+        exchange: PendingExchange<R>,
+        connection: Connection,
+        deadline: Instant,
+    ) -> Step {
+        if !exchange.use_tls {
+            let raw = match RawStream::from_connection(connection) {
+                Ok(raw) => raw,
+                Err(err) => return self.fail(HttpClientError::ConnectionFailed(err.to_string())),
+            };
+            let connection = HttpClientConnection::from_stream(
+                SharedByteBufferStream::rwrite(raw),
+                exchange.host.clone(),
+                exchange.port,
+            );
+            return self.finish_connected(exchange, connection);
+        }
+
+        // TLS target: build the rustls stream and drive the handshake (feature 04
+        // §2.2). This branch is only reached when `ssl-rustls` is enabled (see the
+        // `can_nonblocking` gate in `trying`).
+        #[cfg(feature = "ssl-rustls")]
+        {
+            let connector = exchange
+                .pool
+                .tls_connector()
+                .cloned()
+                .unwrap_or_else(|| Arc::new(SSLConnector::new()));
+            let sni = exchange.host.clone();
+            let (tls_stream, _addr) = match connector.from_tcp_stream(sni, connection) {
+                Ok(parts) => parts,
+                Err(err) => {
+                    return self.fail(HttpClientError::TlsHandshakeFailed(err.to_string()));
+                }
+            };
+            self.0 = Some(HttpRequestRedirectState::TlsHandshake(Some(Box::new(
+                TlsHandshake {
+                    exchange,
+                    conn: tls_stream,
+                    deadline,
+                },
+            ))));
+            TaskStatus::Pending(HttpOperationState::Connecting)
+        }
+        #[cfg(not(feature = "ssl-rustls"))]
+        {
+            let _ = (exchange, connection, deadline);
+            unreachable!("non-blocking TLS requires the ssl-rustls backend")
+        }
+    }
+
+    /// Drive the rustls handshake on the non-blocking socket (feature 04 §2.2).
+    /// Parks on the direction rustls asks for, bounded by the connect deadline.
+    #[cfg(all(unix, feature = "ssl-rustls"))]
+    fn tls_handshake(&mut self, st: Box<TlsHandshake<R>>) -> Step {
+        match st.conn.drive_handshake() {
+            Ok(()) => {
+                let raw = match RawStream::from_client_tls(st.conn) {
+                    Ok(raw) => raw,
+                    Err(err) => {
+                        return self.fail(HttpClientError::TlsHandshakeFailed(err.to_string()));
+                    }
+                };
+                let connection = HttpClientConnection::from_stream(
+                    SharedByteBufferStream::rwrite(raw),
+                    st.exchange.host.clone(),
+                    st.exchange.port,
+                );
+                self.finish_connected(st.exchange, connection)
+            }
+            Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
+                if Instant::now() >= st.deadline {
+                    return self.fail(HttpClientError::ConnectionTimeout(format!(
+                        "TLS handshake with {}:{} timed out",
+                        st.exchange.host, st.exchange.port
+                    )));
+                }
+                let Some(io) = st.conn.readiness(IoInterest::Readable) else {
+                    tracing::error!("TLS handshake lost its readiness support");
+                    return self.fail(HttpClientError::TlsHandshakeFailed(
+                        "connection lost readiness support".to_string(),
+                    ));
+                };
+                let signal = io_or_deadline(io, st.deadline);
+                self.0 = Some(HttpRequestRedirectState::TlsHandshake(Some(st)));
+                TaskStatus::Depends(signal)
+            }
+            Err(err) => {
+                tracing::error!("TLS handshake failed: {}", err);
+                self.fail(HttpClientError::TlsHandshakeFailed(err.to_string()))
+            }
+        }
     }
 
     /// The blocking path, for transports that cannot report readiness. Kernel read
@@ -582,6 +997,10 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
             ..
         } = exchange;
         let idle = IdleDeadline::new(config.io_idle_timeout());
+        // The pushable body's pipe readiness travels on the request; take it out
+        // before the request is moved into the renderer, so the writer can park
+        // on it when the producer stalls.
+        let body_readiness = data.body_readiness.clone();
         self.pending(HttpRequestRedirectState::WritingBody(Some(Box::new(
             WritingBody {
                 starters,
@@ -591,7 +1010,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 pending: PendingBytes::default(),
                 rendered_all: false,
                 idle,
-                producer_stalls: 0,
+                body_readiness,
             },
         ))))
     }
@@ -922,8 +1341,7 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                 Some(Ok(bytes)) if bytes.is_empty() => {
                     // A state transition in the renderer, or a pushable body whose
                     // producer has nothing yet. Push out what was written so the
-                    // server sees it, then retry: at once the first time, after a
-                    // short back-off while the producer stays empty.
+                    // server sees it, then wait for more.
                     match nonblocking::flush(st.connection.stream_mut()) {
                         Ok(IoStep::Done) => {}
                         Ok(IoStep::Blocked) => return self.park_body(st),
@@ -932,17 +1350,30 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
                             return self.fail(HttpClientError::WriteFailed);
                         }
                     }
-                    st.producer_stalls += 1;
-                    if st.producer_stalls == 1 {
-                        return self.pending(HttpRequestRedirectState::WritingBody(Some(st)));
+
+                    // A pushable body parks on its pipe readiness, bounded by the
+                    // idle deadline: the task wakes the moment the producer pushes
+                    // (or the pipe closes), with no back-off timer.
+                    if let Some(readiness) = st.body_readiness.clone() {
+                        if readiness.is_ready(None) {
+                            // Data is already queued (or the pipe closed): retry
+                            // at once instead of returning an already-ready signal.
+                            return self.pending(HttpRequestRedirectState::WritingBody(Some(st)));
+                        }
+                        if st.idle.expired() {
+                            tracing::error!("request body producer stalled past the idle deadline");
+                            return self.fail(HttpClientError::Timeout);
+                        }
+                        let deadline = st.idle.arm();
+                        self.0 = Some(HttpRequestRedirectState::WritingBody(Some(st)));
+                        return TaskStatus::Depends(io_or_deadline(readiness, deadline));
                     }
-                    let shift = (st.producer_stalls - 2).min(MAX_PRODUCER_BACKOFF_MS.ilog2());
-                    let backoff = Duration::from_millis(1u64 << shift);
-                    self.0 = Some(HttpRequestRedirectState::WritingBody(Some(st)));
-                    return TaskStatus::Delayed(backoff);
+
+                    // No pipe readiness: a one-shot renderer transition (chunked
+                    // trailers, …). Retry at once.
+                    return self.pending(HttpRequestRedirectState::WritingBody(Some(st)));
                 }
                 Some(Ok(bytes)) => {
-                    st.producer_stalls = 0;
                     st.pending = PendingBytes::new(bytes);
                 }
                 Some(Err(err)) => {
@@ -969,6 +1400,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
     type Pending = HttpOperationState;
     type Ready = HttpRequestRedirectResponse;
 
+    // Long by design: one match over every redirect state.
+    #[allow(clippy::too_many_lines)]
     fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
         trace_span.in_scope(|| match self.0.take()? {
@@ -1056,6 +1489,33 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         TaskStatus::Ready(HttpRequestRedirectResponse::FlushFailed(connection, e))
                     }
                 })
+            }
+            #[cfg(unix)]
+            HttpRequestRedirectState::Resolving(inner_opt) => {
+                tracing::trace!("HttpRequestRedirectState::Resolving");
+                let Some(state) = inner_opt else {
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    return None;
+                };
+                Some(self.resolving(state))
+            }
+            #[cfg(unix)]
+            HttpRequestRedirectState::Connecting(inner_opt) => {
+                tracing::trace!("HttpRequestRedirectState::Connecting");
+                let Some(state) = inner_opt else {
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    return None;
+                };
+                Some(self.connecting(state))
+            }
+            #[cfg(all(unix, feature = "ssl-rustls"))]
+            HttpRequestRedirectState::TlsHandshake(inner_opt) => {
+                tracing::trace!("HttpRequestRedirectState::TlsHandshake");
+                let Some(state) = inner_opt else {
+                    self.0 = Some(HttpRequestRedirectState::Done);
+                    return None;
+                };
+                Some(self.tls_handshake(state))
             }
             HttpRequestRedirectState::Done => None,
         })

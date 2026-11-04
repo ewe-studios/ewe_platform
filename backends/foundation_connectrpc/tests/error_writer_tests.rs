@@ -10,7 +10,9 @@ use foundation_netio::shared::http::{
 
 use foundation_connectrpc::shared::envelope::Envelope;
 use foundation_connectrpc::shared::error::ErrorDetail;
-use foundation_connectrpc::shared::protocol::grpc_web::{parse_status_trailers, parse_trailer_frame_body};
+use foundation_connectrpc::shared::protocol::grpc_web::{
+    parse_status_trailers, parse_trailer_frame_body,
+};
 use foundation_connectrpc::{Code, ConnectError, ErrorWriter};
 
 fn request(content_type: &str, method: SimpleMethod) -> SimpleIncomingRequest {

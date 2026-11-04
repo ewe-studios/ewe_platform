@@ -144,7 +144,12 @@ pub(crate) fn validate_insert(dimension: usize, vector: &[f32]) -> Result<(), Ve
     Ok(())
 }
 
-pub(crate) fn write_common_header(buf: &mut Vec<u8>, kind: IndexKind, metric: DistanceMetric, dimension: u32) {
+pub(crate) fn write_common_header(
+    buf: &mut Vec<u8>,
+    kind: IndexKind,
+    metric: DistanceMetric,
+    dimension: u32,
+) {
     buf.extend_from_slice(&MAGIC);
     buf.push(VERSION);
     buf.push(kind as u8);
@@ -152,21 +157,29 @@ pub(crate) fn write_common_header(buf: &mut Vec<u8>, kind: IndexKind, metric: Di
     write_u32(buf, dimension);
 }
 
-fn read_common_header(reader: &mut Reader<'_>) -> Result<(IndexKind, DistanceMetric, usize), VectorError> {
+fn read_common_header(
+    reader: &mut Reader<'_>,
+) -> Result<(IndexKind, DistanceMetric, usize), VectorError> {
     let magic = reader.read_bytes(4)?;
     if magic != MAGIC {
         return Err(VectorError::Serialization("invalid magic".into()));
     }
     let version = reader.read_u8()?;
     if version != VERSION {
-        return Err(VectorError::Serialization(format!("unsupported version: {version}")));
+        return Err(VectorError::Serialization(format!(
+            "unsupported version: {version}"
+        )));
     }
     let kind_byte = reader.read_u8()?;
     let kind = match kind_byte {
         0 => IndexKind::Flat,
         1 => IndexKind::Ivf,
         2 => IndexKind::Hnsw,
-        _ => return Err(VectorError::Serialization(format!("unknown index kind: {kind_byte}"))),
+        _ => {
+            return Err(VectorError::Serialization(format!(
+                "unknown index kind: {kind_byte}"
+            )))
+        }
     };
     let metric = byte_to_metric(reader.read_u8()?)?;
     let dimension = reader.read_u32()? as usize;
@@ -191,12 +204,8 @@ pub fn load_index(bytes: &[u8]) -> Result<Box<dyn VectorIndex>, VectorError> {
             }
             Ok(Box::new(index))
         }
-        IndexKind::Ivf => {
-            crate::ivf::load_ivf_from_reader(&mut reader, metric, dimension)
-        }
-        IndexKind::Hnsw => {
-            crate::hnsw::load_hnsw_from_reader(&mut reader, metric, dimension)
-        }
+        IndexKind::Ivf => crate::ivf::load_ivf_from_reader(&mut reader, metric, dimension),
+        IndexKind::Hnsw => crate::hnsw::load_hnsw_from_reader(&mut reader, metric, dimension),
     }
 }
 
@@ -239,9 +248,7 @@ impl VectorIndex for FlatIndex {
         inner
             .entries
             .remove(id)
-            .ok_or_else(|| VectorError::NotFound {
-                id: id.to_string(),
-            })?;
+            .ok_or_else(|| VectorError::NotFound { id: id.to_string() })?;
         Ok(())
     }
 
@@ -267,7 +274,12 @@ impl VectorIndex for FlatIndex {
     fn to_bytes(&self) -> Vec<u8> {
         let inner = self.inner.read().unwrap();
         let mut buf = Vec::new();
-        write_common_header(&mut buf, IndexKind::Flat, self.metric, self.dimension as u32);
+        write_common_header(
+            &mut buf,
+            IndexKind::Flat,
+            self.metric,
+            self.dimension as u32,
+        );
         write_u64(&mut buf, inner.entries.len() as u64);
         for (id, vec) in &inner.entries {
             write_str(&mut buf, id);

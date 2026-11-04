@@ -132,7 +132,7 @@ fn a_stream_accepted_before_its_headers_is_not_lost() {
         WtAccept::Request { headers, .. } => {
             assert_eq!(header(&headers, b":path"), Some(&b"/late"[..]));
         }
-        WtAccept::Session => panic!("a GET is not a WebTransport CONNECT"),
+        WtAccept::Session { .. } => panic!("a GET is not a WebTransport CONNECT"),
     }
 }
 
@@ -191,8 +191,87 @@ fn a_webtransport_connect_is_answered_and_reported() {
 
     assert!(matches!(
         until!(sq, cq, server.poll_accept_webtransport()),
-        WtAccept::Session
+        WtAccept::Session { .. }
     ));
     let response = until!(sq, cq, req.poll_headers());
     assert_eq!(header(&response, b":status"), Some(&b"200"[..]));
+}
+
+/// A WebTransport CONNECT stream stays open after the accept; the session still
+/// opens a stream 200 ms later, and the server never FINs the CONNECT stream
+/// (draft-ietf-webtrans-http3 §5: closing it ends the session).
+#[test]
+fn webtransport_session_stays_open_after_accept() {
+    let (mut sq, mut cq, mut server, mut client) = h3_pair();
+    let mut req = until!(sq, cq, client.poll_open_request());
+    let fields: Vec<(&[u8], &[u8])> = vec![
+        (b":method", b"CONNECT"),
+        (b":protocol", b"webtransport"),
+        (b":scheme", b"https"),
+        (b":authority", b"example.com"),
+        (b":path", b"/wt"),
+    ];
+    send(
+        &mut sq,
+        &mut cq,
+        &mut req,
+        H3Request::<QuinnBidiStream>::encode_headers(&fields),
+    );
+
+    let connect = match until!(sq, cq, server.poll_accept_webtransport()) {
+        WtAccept::Session { connect } => connect,
+        WtAccept::Request { .. } => panic!("expected a WebTransport session"),
+    };
+    let mut session = server.into_webtransport(connect, true);
+    session.on_connected();
+    assert!(session.is_open());
+
+    // The client sees the `200`, then the CONNECT stream must still be open —
+    // the server must not have FIN'd it.
+    let response = until!(sq, cq, req.poll_headers());
+    assert_eq!(header(&response, b":status"), Some(&b"200"[..]));
+    assert!(
+        matches!(req.poll_body(), Stream::Pending(())),
+        "the server must keep the CONNECT stream open after the 200"
+    );
+
+    // 200 ms later the session still opens a bidirectional stream.
+    std::thread::sleep(Duration::from_millis(200));
+    let _stream = until!(sq, cq, session.open_bidi());
+}
+
+/// A FIN (or reset) on the CONNECT stream ends the session
+/// (draft-ietf-webtrans-http3 §5).
+#[test]
+fn closing_connect_stream_ends_session() {
+    let (mut sq, mut cq, mut server, mut client) = h3_pair();
+    let mut req = until!(sq, cq, client.poll_open_request());
+    let fields: Vec<(&[u8], &[u8])> = vec![
+        (b":method", b"CONNECT"),
+        (b":protocol", b"webtransport"),
+        (b":scheme", b"https"),
+        (b":authority", b"example.com"),
+        (b":path", b"/wt"),
+    ];
+    send(
+        &mut sq,
+        &mut cq,
+        &mut req,
+        H3Request::<QuinnBidiStream>::encode_headers(&fields),
+    );
+
+    let connect = match until!(sq, cq, server.poll_accept_webtransport()) {
+        WtAccept::Session { connect } => connect,
+        WtAccept::Request { .. } => panic!("expected a WebTransport session"),
+    };
+    let mut session = server.into_webtransport(connect, true);
+    session.on_connected();
+    assert!(session.is_open());
+
+    // The client finishes the CONNECT stream; the server must end the session.
+    until!(sq, cq, req.poll_finish());
+
+    let ended = until!(sq, cq, session.poll_connect());
+    assert!(ended, "a FIN on the CONNECT stream must end the session");
+    assert!(session.is_closed());
 }

@@ -2,11 +2,11 @@
 //!
 //! This module provides `ClientRequestBuilder` — the fluent API for building requests.
 
-use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver};
 use crate::http::{ClientRequest, HttpConnectionPool};
+use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver};
 use crate::shared::http::Extensions;
 use crate::shared::http::{
-    HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+    BodyReadiness, HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
 };
 use base64::prelude::*;
 use foundation_core::url::Uri;
@@ -20,6 +20,7 @@ pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     url: Uri,
     headers: SimpleHeaders,
     body: Option<SendSafeBody>,
+    body_readiness: Option<BodyReadiness>,
     config: Option<ClientConfig>,
     pool: Option<Arc<HttpConnectionPool<R>>>,
 }
@@ -37,6 +38,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
             extensions: Extensions::new(),
+            body_readiness: self.body_readiness,
         })
     }
 }
@@ -65,6 +67,7 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
             extensions: Extensions::new(),
+            body_readiness: self.body_readiness,
         };
 
         let pool = self.pool.unwrap_or_default();
@@ -83,6 +86,7 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
             headers: self.headers,
             body: self.body.unwrap_or(SendSafeBody::None),
             extensions: Extensions::new(),
+            body_readiness: self.body_readiness,
         };
 
         let pool = self.pool.unwrap_or_default();
@@ -122,6 +126,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
             headers,
             url: parsed_url,
             body: None,
+            body_readiness: None,
             pool: None,
             config: None,
         })
@@ -237,6 +242,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         self
     }
 
+    /// Set a JSON body from a serializable value.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`HttpClientError`] if serialization fails.
     pub fn body_json<T: Serialize>(mut self, value: &T) -> Result<Self, HttpClientError> {
         let json_string =
             serde_json::to_string(value).map_err(|e| HttpClientError::FailedWith(Box::new(e)))?;
@@ -304,6 +314,15 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         self
     }
 
+    /// Attach a pushable body's pipe readiness, so the non-blocking body writer
+    /// parks on `TaskStatus::Depends(readiness)` while the producer has nothing
+    /// yet, instead of a back-off timer. Only meaningful with `body`.
+    #[must_use]
+    pub fn with_body_readiness(mut self, readiness: BodyReadiness) -> Self {
+        self.body_readiness = Some(readiness);
+        self
+    }
+
     ///
     /// # Errors
     ///
@@ -352,6 +371,11 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         Self::new(SimpleMethod::HEAD, url)
     }
 
+    /// Create an OPTIONS request.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn options(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::OPTIONS, url)
     }

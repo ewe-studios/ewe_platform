@@ -18,7 +18,7 @@
 use std::io::Read as IoRead;
 use std::io::Write as IoWrite;
 use std::net::TcpStream;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
@@ -45,9 +45,9 @@ impl Workerd {
         }
 
         let bin = resolve_bin(&config.binary)?;
-        let port = config.port.unwrap_or_else(|| {
-            super::pick_unused_port().expect("no free port available")
-        });
+        let port = config
+            .port
+            .unwrap_or_else(|| super::pick_unused_port().expect("no free port available"));
 
         tracing::info!(
             port,
@@ -232,9 +232,7 @@ pub enum WorkerdError {
     #[display("failed to spawn workerd: {_0}")]
     SpawnFailed(std::io::Error),
 
-    #[display(
-        "workerd did not become ready within {seconds} seconds\nstderr:\n{stderr}"
-    )]
+    #[display("workerd did not become ready within {seconds} seconds\nstderr:\n{stderr}")]
     #[error(ignore)]
     ReadyTimeout { seconds: u64, stderr: String },
 
@@ -270,9 +268,8 @@ fn http_get(host: &str, port: u16, path: &str) -> Result<(u16, String), WorkerdE
         .set_read_timeout(Some(Duration::from_secs(2)))
         .map_err(|e| WorkerdError::HttpFailed(format!("set timeout: {e}")))?;
 
-    let request = format!(
-        "GET {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\n\r\n"
-    );
+    let request =
+        format!("GET {path} HTTP/1.1\r\nHost: {host}:{port}\r\nConnection: close\r\n\r\n");
     stream
         .write_all(request.as_bytes())
         .map_err(|e| WorkerdError::HttpFailed(format!("write: {e}")))?;

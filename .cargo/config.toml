@@ -21,6 +21,16 @@ EMSDK_DIR = { value = "tools/emsdk", relative=true, force = true }
 linker = "clang"
 rustflags = ["-C", "link-arg=-fuse-ld=lld"]
 
+# ── Apple Silicon ───────────────────────────────────────────────────────
+# gemm-f16 (a candle-core dependency) uses the vfmaq_laneq_f16 instruction
+# in inline assembly. The aarch64-apple-darwin target does not enable the
+# FP16 feature by default, so cargo test with candle fails to assemble
+# it. Every Apple M-series chip supports full FP16 arithmetic in hardware, so
+# enabling it is safe. `fp16` is the stable rustc name (it enables LLVM's
+# `fullfp16`); `fullfp16` is an unknown, unstable name to rustc.
+[target.aarch64-apple-darwin]
+rustflags = ["-C", "target-feature=+fp16"]
+
 
 # No `[unstable]` table: stable cargo (which builds releases) ignores it, and
 # the Cranelift opt-in it carried now lives in mise.toml's [env]

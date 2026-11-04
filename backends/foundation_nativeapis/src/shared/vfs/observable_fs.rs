@@ -209,10 +209,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         let version = self.next_version();
         match self.inner.stat_async(path.clone()).await {
             Ok(meta) => {
-                self.emit(VfsEvent::StatQueried {
-                    path,
-                    version,
-                });
+                self.emit(VfsEvent::StatQueried { path, version });
                 Ok(meta)
             }
             Err(e) => {
@@ -310,11 +307,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         let version = self.next_version();
         match self.inner.rename_async(from.clone(), to.clone()).await {
             Ok(()) => {
-                self.emit(VfsEvent::Renamed {
-                    from,
-                    to,
-                    version,
-                });
+                self.emit(VfsEvent::Renamed { from, to, version });
                 Ok(())
             }
             Err(e) => {
@@ -328,10 +321,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         let version = self.next_version();
         match self.inner.remove_async(path.clone()).await {
             Ok(()) => {
-                self.emit(VfsEvent::Removed {
-                    path,
-                    version,
-                });
+                self.emit(VfsEvent::Removed { path, version });
                 Ok(())
             }
             Err(e) => {
@@ -359,7 +349,11 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         }
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         let version = self.next_version();
         match self.inner.open_seekable_async(path.clone(), mode).await {
             Ok(file) => {
@@ -381,10 +375,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         let version = self.next_version();
         match self.inner.open_directory_async(path.clone()).await {
             Ok(dir) => {
-                self.emit(VfsEvent::DirectoryOpened {
-                    path,
-                    version,
-                });
+                self.emit(VfsEvent::DirectoryOpened { path, version });
                 Ok(dir)
             }
             Err(e) => {
@@ -416,10 +407,7 @@ impl<F: AsyncVfsFileSystem> AsyncVfsFileSystem for ObservableFs<F> {
         let version = self.next_version();
         match self.inner.mkdir_async(path.clone()).await {
             Ok(()) => {
-                self.emit(VfsEvent::DirectoryCreated {
-                    path,
-                    version,
-                });
+                self.emit(VfsEvent::DirectoryCreated { path, version });
                 Ok(())
             }
             Err(e) => {

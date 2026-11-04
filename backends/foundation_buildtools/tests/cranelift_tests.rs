@@ -38,8 +38,14 @@ lto = true
     #[test]
     fn profile_comes_from_the_out_dir() {
         let out = |p: &str| profile_from_out_dir(Path::new(p));
-        assert_eq!(out("/t/debug/build/foundation_core-1a2b/out").as_deref(), Some("dev"));
-        assert_eq!(out("/t/uat/build/foundation_core-1a2b/out").as_deref(), Some("uat"));
+        assert_eq!(
+            out("/t/debug/build/foundation_core-1a2b/out").as_deref(),
+            Some("dev")
+        );
+        assert_eq!(
+            out("/t/uat/build/foundation_core-1a2b/out").as_deref(),
+            Some("uat")
+        );
         assert_eq!(out("/t/release/build/x-9/out").as_deref(), Some("release"));
         assert_eq!(
             out("/t/x86_64-unknown-linux-gnu/uat/build/x-9/out").as_deref(),
@@ -51,7 +57,10 @@ lto = true
 
     #[test]
     fn backend_follows_the_active_profile_not_any_mention() {
-        assert_eq!(profile_codegen_backend(MANIFEST, "dev").as_deref(), Some("cranelift"));
+        assert_eq!(
+            profile_codegen_backend(MANIFEST, "dev").as_deref(),
+            Some("cranelift")
+        );
         assert_eq!(
             profile_codegen_backend(MANIFEST, "uat").as_deref(),
             Some("llvm"),

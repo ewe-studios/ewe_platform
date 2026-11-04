@@ -86,7 +86,8 @@ impl H3Serve for H3ProxyHandler {
 
             // Forward through the shared pooled client (same as H1/H2).
             let url = upstream_url(lease.backend().url(), &path);
-            let mut headers = forward_request_headers(&request_headers(&fields), &client_ip, &scheme);
+            let mut headers =
+                forward_request_headers(&request_headers(&fields), &client_ip, &scheme);
             headers.insert(SimpleHeader::HOST, vec![host]);
 
             let outcome = forward(&client, &method, &url, headers, body);
@@ -140,7 +141,9 @@ fn forward(
     let mut chunks = SendSafeBodyBytesIterator::new(resp_body);
     loop {
         match chunks.next() {
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => collected.extend_from_slice(&bytes),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
+                collected.extend_from_slice(&bytes)
+            }
             Some(Stream::Next(SendSafeBodyBytesItem::StreamError(_))) => break,
             Some(Stream::Delayed(d)) => std::thread::sleep(d),
             Some(_) => std::thread::sleep(POLL_BACKOFF),

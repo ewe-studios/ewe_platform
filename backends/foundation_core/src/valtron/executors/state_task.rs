@@ -20,9 +20,7 @@ use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
 
-use crate::valtron::{
-    queue_waker, Ctx, QueueReadiness, TaskIterator, TaskStatus, WakeToken,
-};
+use crate::valtron::{queue_waker, Ctx, QueueReadiness, TaskIterator, TaskStatus, WakeToken};
 
 /// The async transition's return: the next state plus a [`TaskStatus`].
 pub type TransitionOutput<T, R, P> = Option<(T, TaskStatus<R, P>)>;
@@ -90,9 +88,8 @@ where
 /// `Send` under `multi` so the iterator crosses threads; `!Send` under `!multi`
 /// so `!Send` futures (e.g. a `JsFuture` body) still work.
 #[cfg(feature = "multi")]
-pub type AsyncTransition<T, R, P> = Box<
-    dyn Fn(Ctx, T) -> Pin<Box<dyn Future<Output = TransitionOutput<T, R, P>> + Send>> + Send,
->;
+pub type AsyncTransition<T, R, P> =
+    Box<dyn Fn(Ctx, T) -> Pin<Box<dyn Future<Output = TransitionOutput<T, R, P>> + Send>> + Send>;
 
 #[cfg(not(feature = "multi"))]
 pub type AsyncTransition<T, R, P> =
@@ -105,8 +102,7 @@ pub type AsyncStateFuture<T, R, P> =
     Pin<Box<dyn Future<Output = TransitionOutput<T, R, P>> + Send>>;
 
 #[cfg(not(feature = "multi"))]
-pub type AsyncStateFuture<T, R, P> =
-    Pin<Box<dyn Future<Output = TransitionOutput<T, R, P>>>>;
+pub type AsyncStateFuture<T, R, P> = Pin<Box<dyn Future<Output = TransitionOutput<T, R, P>>>>;
 
 /// Asynchronous state machine: a [`TaskIterator`] driving an `async fn` transition
 /// through the [`crate::valtron::FutureTask`] wake-queue seam.

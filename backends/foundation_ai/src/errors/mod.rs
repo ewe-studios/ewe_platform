@@ -4,7 +4,7 @@
 //! Provider-specific errors are consolidated into single gated wrapper variants
 //! (e.g., `Llama(LlamaError)`) so the core enums stay provider-agnostic.
 
-use foundation_core::extensions::result_ext::BoxedError;
+use foundation_core::extensions::result_ext::SendableBoxedError;
 
 #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub mod llama;
@@ -19,7 +19,7 @@ pub use llama::LlamaError;
 #[derive(Debug)]
 pub enum GenerationError {
     /// A boxed error for miscellaneous failures.
-    Failed(BoxedError),
+    Failed(SendableBoxedError),
 
     /// Consolidated llama.cpp errors (all 10 kinds).
     #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
@@ -39,8 +39,8 @@ pub enum GenerationError {
     Generic(String),
 }
 
-impl From<BoxedError> for GenerationError {
-    fn from(e: BoxedError) -> Self {
+impl From<SendableBoxedError> for GenerationError {
+    fn from(e: SendableBoxedError) -> Self {
         GenerationError::Failed(e)
     }
 }
@@ -89,7 +89,7 @@ pub enum ModelErrors {
     NotFound(String),
 
     /// Model failed to load from file or remote source.
-    FailedLoading(BoxedError),
+    FailedLoading(SendableBoxedError),
 
     /// Consolidated llama.cpp model/context/embedding errors.
     #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
@@ -133,7 +133,7 @@ pub enum ModelProviderErrors {
     NotFound(String),
 
     /// Provider failed to fetch model information.
-    FailedFetching(BoxedError),
+    FailedFetching(SendableBoxedError),
 
     /// Underlying model errors.
     ModelErrors(ModelErrors),

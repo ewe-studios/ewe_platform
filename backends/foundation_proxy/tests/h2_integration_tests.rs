@@ -12,15 +12,18 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
+use foundation_connectrpc::{H2Transport, Transport};
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{initialize_pool, valtron_test, Pipe, PipeReceiver, PipeSender, BlockingFutureExt};
-use foundation_http::native::server::{HttpServer, ServerConfig};
+use foundation_core::valtron::{
+    initialize_pool, valtron_test, BlockingFutureExt, Pipe, PipeReceiver, PipeSender,
+};
 use foundation_http::native::serve::{BoxFuture, H2Serve};
+use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::{HttpApp, ServerApp};
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
+use foundation_http::ShutdownSignal;
 use foundation_netio::http2::client::H2Client;
 use foundation_netio::http2::connection::H2Request;
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
@@ -30,11 +33,10 @@ use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleUrl, Status,
 };
-use foundation_connectrpc::{H2Transport, Transport};
-use futures_util::StreamExt;
 use foundation_proxy::config::ServiceConfig;
 use foundation_proxy::h2_proxy::h2_status;
 use foundation_proxy::{ProxyConfig, ProxyServer};
+use futures_util::StreamExt;
 
 // ── HTTP/1.1 echo backend (real HttpServer) ─────────────────────────────
 
@@ -67,7 +69,7 @@ impl Serve for BodyEchoHandler {
 
 /// Owns the backend server's shutdown signal; stops the accept loop on drop.
 struct EchoBackend {
-    shutdown: Arc<OnSignal>,
+    shutdown: Arc<ShutdownSignal>,
 }
 
 impl Drop for EchoBackend {
@@ -87,7 +89,7 @@ fn start_echo_backend() -> (u16, EchoBackend) {
     app.route_any::<BodyEchoHandler>("/*");
     let server = HttpServer::with_config(app, &bind_addr, ServerConfig::defaults());
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let thread_shutdown = Arc::clone(&shutdown);
     thread::spawn(move || {
         server.serve_with_listener(&listener, &thread_shutdown);
@@ -274,7 +276,7 @@ impl H2Serve for H2EchoHandler {
 }
 
 /// Start a real `foundation_http` H2-only echo backend on an ephemeral port.
-fn start_h2_backend(send_trailers: bool) -> (u16, Arc<Mutex<Observed>>, Arc<OnSignal>) {
+fn start_h2_backend(send_trailers: bool) -> (u16, Arc<Mutex<Observed>>, Arc<ShutdownSignal>) {
     let observed = Arc::new(Mutex::new(Observed::default()));
     let handler: Arc<dyn H2Serve> = Arc::new(H2EchoHandler {
         observed: Arc::clone(&observed),
@@ -288,7 +290,7 @@ fn start_h2_backend(send_trailers: bool) -> (u16, Arc<Mutex<Observed>>, Arc<OnSi
     let port = listener.local_addr().expect("h2 backend addr").port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(app), &addr);
     thread::spawn(move || {
@@ -355,10 +357,7 @@ impl H2Serve for StreamingHandler {
                 .await;
             let _ = tx
                 .send(H2Frame::Trailers {
-                    headers: vec![(
-                        Bytes::from_static(b"grpc-status"),
-                        Bytes::from_static(b"0"),
-                    )],
+                    headers: vec![(Bytes::from_static(b"grpc-status"), Bytes::from_static(b"0"))],
                 })
                 .await;
             Ok(())
@@ -369,17 +368,22 @@ impl H2Serve for StreamingHandler {
 /// Start an H2 backend that streams a two-frame response, holding the second
 /// frame until the returned `release` sender fires. Returns the backend port,
 /// its shutdown signal, and the release sender.
-fn start_streaming_backend() -> (u16, Arc<OnSignal>, PipeSender<()>) {
+fn start_streaming_backend() -> (u16, Arc<ShutdownSignal>, PipeSender<()>) {
     let (release_tx, release_rx) = Pipe::<()>::new();
-    let handler: Arc<dyn H2Serve> = Arc::new(StreamingHandler { release: release_rx });
+    let handler: Arc<dyn H2Serve> = Arc::new(StreamingHandler {
+        release: release_rx,
+    });
     let mut app = HttpApp::new_h2_serve();
     app.route_any_h2(GRPC_PATH, handler);
 
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind streaming h2 backend");
-    let port = listener.local_addr().expect("streaming h2 backend addr").port();
+    let port = listener
+        .local_addr()
+        .expect("streaming h2 backend addr")
+        .port();
     let addr = format!("127.0.0.1:{port}");
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = Arc::clone(&shutdown);
     let server = HttpServer::from_app(ServerApp::http2(app), &addr);
     thread::spawn(move || {
@@ -459,7 +463,9 @@ async fn h2_grpc_request(
 fn h2_echo_roundtrip() {
     let _guard = initialize_pool(42, Some(4));
     let (backend_port, _backend) = start_echo_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port)).block().expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port))
+        .block()
+        .expect("start proxy");
     let proxy_port = proxy.local_addr().port();
 
     let (status, body) = h2_request(
@@ -482,7 +488,9 @@ fn h2_echo_roundtrip() {
 fn h2_404_on_unknown_host() {
     let _guard = initialize_pool(42, Some(4));
     let (backend_port, _backend) = start_echo_backend();
-    let proxy = ProxyServer::start(proxy_config(backend_port)).block().expect("start proxy");
+    let proxy = ProxyServer::start(proxy_config(backend_port))
+        .block()
+        .expect("start proxy");
     let proxy_port = proxy.local_addr().port();
 
     let (status, _) = h2_request(proxy_port, "unknown.local", "/", None);
@@ -500,7 +508,9 @@ fn h2_404_on_unknown_host() {
 #[valtron_test]
 async fn h2_grpc_forward_no_downgrade() {
     let (backend_port, observed, backend_shutdown) = start_h2_backend(false);
-    let proxy = ProxyServer::start(grpc_proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(grpc_proxy_config(backend_port))
+        .await
+        .expect("start proxy");
     let proxy_port = proxy.local_addr().port();
 
     let payload = b"h2-grpc-no-downgrade-payload".to_vec();
@@ -509,8 +519,15 @@ async fn h2_grpc_forward_no_downgrade() {
     proxy.shutdown_async().await;
     backend_shutdown.turn_on();
 
-    assert_eq!(status, Status::OK, "gRPC through the H2 backend must be 200 OK");
-    assert_eq!(body, payload, "request body must round-trip through the H2 backend");
+    assert_eq!(
+        status,
+        Status::OK,
+        "gRPC through the H2 backend must be 200 OK"
+    );
+    assert_eq!(
+        body, payload,
+        "request body must round-trip through the H2 backend"
+    );
 
     let rec = observed.lock().unwrap();
     assert_eq!(
@@ -540,7 +557,9 @@ async fn h2_grpc_forward_no_downgrade() {
 #[valtron_test]
 async fn h2_grpc_trailers_relayed() {
     let (backend_port, _observed, backend_shutdown) = start_h2_backend(true);
-    let proxy = ProxyServer::start(grpc_proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(grpc_proxy_config(backend_port))
+        .await
+        .expect("start proxy");
     let proxy_port = proxy.local_addr().port();
 
     let payload = b"h2-grpc-trailers-payload".to_vec();
@@ -574,7 +593,9 @@ async fn h2_grpc_trailers_relayed() {
 #[valtron_test]
 async fn h2_grpc_streams_without_buffering() {
     let (backend_port, backend_shutdown, release_tx) = start_streaming_backend();
-    let proxy = ProxyServer::start(grpc_proxy_config(backend_port)).await.expect("start proxy");
+    let proxy = ProxyServer::start(grpc_proxy_config(backend_port))
+        .await
+        .expect("start proxy");
     let proxy_port = proxy.local_addr().port();
 
     let url = format!("http://127.0.0.1:{proxy_port}{GRPC_PATH}");
@@ -651,7 +672,11 @@ async fn h2_grpc_streams_without_buffering() {
     let mut full = Vec::from(first.as_ref());
     full.extend_from_slice(&rest);
     assert_eq!(full, b"firstsecond", "streamed frames must arrive in order");
-    assert_eq!(grpc_status, Some("0"), "grpc-status trailer relayed after the stream");
+    assert_eq!(
+        grpc_status,
+        Some("0"),
+        "grpc-status trailer relayed after the stream"
+    );
 }
 
 // ── h2_status (moved out of src/h2_proxy.rs per the tests/ rule) ──────────
@@ -659,7 +684,9 @@ async fn h2_grpc_streams_without_buffering() {
 #[test]
 fn h2_status_404() {
     match h2_status(404, true) {
-        H2Frame::Headers { status, end_stream, .. } => {
+        H2Frame::Headers {
+            status, end_stream, ..
+        } => {
             assert_eq!(status, 404);
             assert!(end_stream);
         }
@@ -670,7 +697,9 @@ fn h2_status_404() {
 #[test]
 fn h2_status_503() {
     match h2_status(503, false) {
-        H2Frame::Headers { status, end_stream, .. } => {
+        H2Frame::Headers {
+            status, end_stream, ..
+        } => {
             assert_eq!(status, 503);
             assert!(!end_stream);
         }

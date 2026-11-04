@@ -141,6 +141,10 @@ impl ConnectRpcHandler {
     /// RPC failure is rendered as a response; `Err` is only a failure of
     /// `sink` itself (e.g. the peer went away), and it cancels the call.
     ///
+    /// `sink` is owned so the returned future can be `'static` — the HTTP/1.1
+    /// connection owner moves its connection into the sink and parks on the
+    /// future while the call waits.
+    ///
     /// `hooks` carries the cancel signal the connection owner fires when the
     /// peer goes away, and the timer that enforces the call's deadline.
     pub fn dispatch_to<'a>(
@@ -148,11 +152,14 @@ impl ConnectRpcHandler {
         bag: Arc<ContextBag>,
         request: SimpleIncomingRequest,
         body: RequestBody<'a>,
-        sink: &'a mut dyn ResponseSink,
+        sink: Box<dyn ResponseSink>,
         hooks: CallHooks<'a>,
     ) -> BoxFuture<'a, io::Result<()>> {
         let router = self.router.clone();
-        Box::pin(dispatch_request(router, bag, request, body, sink, hooks))
+        Box::pin(async move {
+            let mut sink = sink;
+            dispatch_request(router, bag, request, body, &mut *sink, hooks).await
+        })
     }
 }
 
@@ -271,10 +278,9 @@ pub(crate) enum BodyStep {
 
 /// Reads a `SendSafeBody` one non-blocking step at a time.
 ///
-/// WHY: `SendSafeBodyBytesIterator` reports "not ready yet" (a non-blocking
-/// socket's `WouldBlock`) as a stream error for chunked bodies and folds it
-/// into `Ignore` for sized ones, next to bookkeeping items like the last chunk.
-/// A reader that must wait for the socket has to tell those apart.
+/// WHY: a reader that waits on the socket needs one answer per step — a
+/// chunk, the end, a failure, or "would block" — while the body iterators
+/// interleave bookkeeping items (the last chunk, trailers) with the data.
 pub(crate) struct BodyReader {
     body: SendSafeBody,
 }
@@ -351,8 +357,7 @@ fn classify_body_error(e: &foundation_core::extensions::result_ext::BoxedError) 
     let would_block = e
         .downcast_ref::<HttpReaderError>()
         .is_some_and(HttpReaderError::is_would_block)
-        || e
-            .downcast_ref::<io::Error>()
+        || e.downcast_ref::<io::Error>()
             .is_some_and(|e| e.kind() == io::ErrorKind::WouldBlock);
     if would_block {
         BodyStep::WouldBlock
@@ -811,9 +816,8 @@ async fn run_streaming(
     };
     let handler_fut = handler.handle(ctx, &codec_name, conn);
 
-    let request_side = futures::future::try_join(feeder, async {
-        Ok::<_, io::Error>(reader_task.await)
-    });
+    let request_side =
+        futures::future::try_join(feeder, async { Ok::<_, io::Error>(reader_task.await) });
     let response_side = futures::future::join(writer_task, handler_fut);
     let rest = std::pin::pin!(exchange_until_aborted(
         request_side,
@@ -1292,6 +1296,7 @@ pub(crate) fn request_from_header(header: &SimpleIncomingRequestHeader) -> Simpl
         request_uri: header.uri.clone(),
         request_url: header.url.clone(),
         body: None,
+        body_readiness: None,
         headers: header.headers.clone(),
         method: header.method.clone(),
         extensions: None,
@@ -1355,6 +1360,14 @@ async fn send_whole_response(
                 Some(Stream::Next(SendSafeBodyBytesItem::Chunk(b))) => return Ok(Some(b)),
                 Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
                     return Err(io::Error::other(e.to_string()));
+                }
+                // The body's transport has nothing yet: this writer cannot wait
+                // for it, so report it rather than spin.
+                Some(Stream::Wait) => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::WouldBlock,
+                        "response body not ready",
+                    ));
                 }
                 None => return Ok(None),
                 _ => {} // Ignore, Init, etc — skip.
@@ -1741,9 +1754,8 @@ async fn run_streaming_h2(
 
     let handler_fut = handler.handle(ctx, &codec_name, conn);
 
-    let request_side = futures::future::try_join(feeder, async {
-        Ok::<_, io::Error>(reader_task.await)
-    });
+    let request_side =
+        futures::future::try_join(feeder, async { Ok::<_, io::Error>(reader_task.await) });
     let response_side = futures::future::join(writer_task, handler_fut);
     let rest = std::pin::pin!(exchange_until_aborted(
         request_side,
@@ -1843,9 +1855,10 @@ async fn run_streaming_h2(
             // MUST end in `grpc-status` trailers or the client reports
             // `Unknown` with an empty message (bit BuildKit's FileSend sink,
             // whose response stream is legitimately empty).
-            response
-                .trailers
-                .insert(SimpleHeader::from("grpc-status".to_string()), vec!["0".to_string()]);
+            response.trailers.insert(
+                SimpleHeader::from("grpc-status".to_string()),
+                vec!["0".to_string()],
+            );
         }
     }
     send_whole_response(tx, response).await
@@ -1872,7 +1885,10 @@ pub(crate) fn grpc_status_trailers(
                 }
             }
             vec![
-                (Bytes::from_static(b"grpc-status"), Bytes::from(code.to_string())),
+                (
+                    Bytes::from_static(b"grpc-status"),
+                    Bytes::from(code.to_string()),
+                ),
                 (Bytes::from_static(b"grpc-message"), Bytes::from(encoded)),
             ]
         }

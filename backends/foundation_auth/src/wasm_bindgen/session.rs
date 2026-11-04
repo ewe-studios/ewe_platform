@@ -49,7 +49,11 @@ impl<S: CredentialStore> WasmSessionManager<S> {
         let id = uuid::Uuid::new_v4().to_string();
         let exp = chrono::Utc::now().timestamp() + DEFAULT_SESSION_DURATION_SECS;
 
-        let payload = SessionPayload { id: id.clone(), uid: user_id.to_string(), exp };
+        let payload = SessionPayload {
+            id: id.clone(),
+            uid: user_id.to_string(),
+            exp,
+        };
         let json = serde_json::to_string(&payload).map_err(|e| e.to_string())?;
         let token = Self::create_token(&self.signing_key, json.as_bytes());
 
@@ -92,15 +96,16 @@ impl<S: CredentialStore> WasmSessionManager<S> {
     pub fn session_cookie(token: &str) -> String {
         format!(
             "{}={}; Path=/; HttpOnly; Max-Age={}; SameSite=Lax",
-            COOKIE_NAME,
-            token,
-            DEFAULT_SESSION_DURATION_SECS
+            COOKIE_NAME, token, DEFAULT_SESSION_DURATION_SECS
         )
     }
 
     /// Clear the session cookie.
     pub fn clear_cookie() -> String {
-        format!("{}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax", COOKIE_NAME)
+        format!(
+            "{}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax",
+            COOKIE_NAME
+        )
     }
 
     // ========================================================================
@@ -119,7 +124,9 @@ impl<S: CredentialStore> WasmSessionManager<S> {
     }
 
     fn verify_token(key: &[u8; 32], token: &str) -> Result<SessionPayload, String> {
-        let dot = token.rfind('.').ok_or_else(|| "invalid token format".to_string())?;
+        let dot = token
+            .rfind('.')
+            .ok_or_else(|| "invalid token format".to_string())?;
         let encoded = &token[..dot];
         let sig = &token[dot + 1..];
         let payload_bytes = base64_decode(encoded)?;

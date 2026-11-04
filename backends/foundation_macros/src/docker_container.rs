@@ -19,9 +19,7 @@ use syn::{
     Expr, ExprLit, Ident, ItemFn, Lit, Token,
 };
 
-use crate::crate_paths::{
-    foundation_core_path, foundation_deployment_platform_path,
-};
+use crate::crate_paths::{foundation_core_path, foundation_deployment_platform_path};
 
 /// Every container the macro invocation declares, in the order written.
 struct Attr {
@@ -214,7 +212,10 @@ impl Parse for ContainerDef {
 }
 
 fn parse_string(expr: &Expr) -> syn::Result<String> {
-    if let Expr::Lit(ExprLit { lit: Lit::Str(s), .. }) = expr {
+    if let Expr::Lit(ExprLit {
+        lit: Lit::Str(s), ..
+    }) = expr
+    {
         Ok(s.value())
     } else {
         Err(syn::Error::new_spanned(expr, "expected string literal"))
@@ -222,7 +223,10 @@ fn parse_string(expr: &Expr) -> syn::Result<String> {
 }
 
 fn parse_u16(expr: &Expr) -> syn::Result<u16> {
-    if let Expr::Lit(ExprLit { lit: Lit::Int(n), .. }) = expr {
+    if let Expr::Lit(ExprLit {
+        lit: Lit::Int(n), ..
+    }) = expr
+    {
         n.base10_parse()
     } else {
         Err(syn::Error::new_spanned(expr, "expected integer literal"))
@@ -230,7 +234,10 @@ fn parse_u16(expr: &Expr) -> syn::Result<u16> {
 }
 
 fn parse_u64(expr: &Expr) -> syn::Result<u64> {
-    if let Expr::Lit(ExprLit { lit: Lit::Int(n), .. }) = expr {
+    if let Expr::Lit(ExprLit {
+        lit: Lit::Int(n), ..
+    }) = expr
+    {
         n.base10_parse()
     } else {
         Err(syn::Error::new_spanned(expr, "expected integer literal"))
@@ -238,7 +245,10 @@ fn parse_u64(expr: &Expr) -> syn::Result<u64> {
 }
 
 fn parse_u32(expr: &Expr) -> syn::Result<u32> {
-    if let Expr::Lit(ExprLit { lit: Lit::Int(n), .. }) = expr {
+    if let Expr::Lit(ExprLit {
+        lit: Lit::Int(n), ..
+    }) = expr
+    {
         n.base10_parse()
     } else {
         Err(syn::Error::new_spanned(expr, "expected integer literal"))
@@ -246,7 +256,10 @@ fn parse_u32(expr: &Expr) -> syn::Result<u32> {
 }
 
 fn parse_bool(expr: &Expr) -> syn::Result<bool> {
-    if let Expr::Lit(ExprLit { lit: Lit::Bool(b), .. }) = expr {
+    if let Expr::Lit(ExprLit {
+        lit: Lit::Bool(b), ..
+    }) = expr
+    {
         Ok(b.value())
     } else {
         Err(syn::Error::new_spanned(expr, "expected `true` or `false`"))
@@ -257,7 +270,10 @@ fn parse_bool(expr: &Expr) -> syn::Result<bool> {
 fn tuple_parts(expr: &Expr) -> syn::Result<(&Expr, &Expr)> {
     match expr {
         Expr::Tuple(t) if t.elems.len() == 2 => Ok((&t.elems[0], &t.elems[1])),
-        _ => Err(syn::Error::new_spanned(expr, "expected a 2-element tuple, e.g. `(6379, 3030)`")),
+        _ => Err(syn::Error::new_spanned(
+            expr,
+            "expected a 2-element tuple, e.g. `(6379, 3030)`",
+        )),
     }
 }
 
@@ -558,7 +574,10 @@ fn container_config(args: &ContainerDef, platform: &TokenStream2) -> TokenStream
     // Default when no explicit wait was given: wait on the first exposed port
     // (a mapped port counts). With no ports at all there is nothing to probe.
     if waits.is_empty() {
-        let default_port = port.first().copied().or_else(|| args.port_mapped.first().map(|(c, _)| *c));
+        let default_port = port
+            .first()
+            .copied()
+            .or_else(|| args.port_mapped.first().map(|(c, _)| *c));
         if let Some(p) = default_port {
             waits.push(quote! {
                 #platform::docker::WaitFor::Port { port: #p, timeout: #timeout_expr }

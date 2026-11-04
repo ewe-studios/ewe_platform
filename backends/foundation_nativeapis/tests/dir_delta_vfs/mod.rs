@@ -3,8 +3,8 @@
 use foundation_core::valtron::valtron_test;
 use foundation_nativeapis::native::vfs::{DirectoryDelta, NativeFs};
 use foundation_nativeapis::shared::vfs::{
-    AsyncDeltaStore, AsyncVfsDirectory, AsyncVfsFileSystem, DeltaStore, OverlayFileSystem,
-    SyncFs, VfsDirectory, VfsFileSystem,
+    AsyncDeltaStore, AsyncVfsDirectory, AsyncVfsFileSystem, DeltaStore, OverlayFileSystem, SyncFs,
+    VfsDirectory, VfsFileSystem,
 };
 use std::fs;
 use std::path::PathBuf;
@@ -14,7 +14,8 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new(name: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "vfs_dir_delta_{name}_{}_{}", std::process::id(),
+            "vfs_dir_delta_{name}_{}_{}",
+            std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
@@ -82,14 +83,8 @@ fn test_whiteout_inheritance() {
     let delta = SyncFs::new(DirectoryDelta::new(&shadow).unwrap());
 
     delta.add_whiteout("/parent", 10).unwrap();
-    assert_eq!(
-        delta.is_whiteout("/parent/child.txt").unwrap(),
-        Some(10)
-    );
-    assert_eq!(
-        delta.is_whiteout("/parent/sub/deep.txt").unwrap(),
-        Some(10)
-    );
+    assert_eq!(delta.is_whiteout("/parent/child.txt").unwrap(), Some(10));
+    assert_eq!(delta.is_whiteout("/parent/sub/deep.txt").unwrap(), Some(10));
 }
 
 #[test]
@@ -145,10 +140,16 @@ fn test_whiteout_path_traversal_rejected() {
     let delta = SyncFs::new(DirectoryDelta::new(&shadow).unwrap());
 
     let result = delta.add_whiteout("/../../../etc/passwd", 1);
-    assert!(result.is_err(), "path traversal in whiteout should be rejected");
+    assert!(
+        result.is_err(),
+        "path traversal in whiteout should be rejected"
+    );
 
     let result = delta.add_whiteout("/foo/../../etc/passwd", 1);
-    assert!(result.is_err(), "path traversal in whiteout should be rejected");
+    assert!(
+        result.is_err(),
+        "path traversal in whiteout should be rejected"
+    );
 }
 
 #[valtron_test]
@@ -169,19 +170,34 @@ async fn test_end_to_end_overlay_with_native_base() {
 
     // Read base files through overlay
     assert_eq!(
-        overlay.read_file_async("/src/main.rs".into()).await.unwrap(),
+        overlay
+            .read_file_async("/src/main.rs".into())
+            .await
+            .unwrap(),
         b"fn main() {}"
     );
 
     // Create new file through overlay
-    overlay.write_file_async("/new.txt".into(), b"added".to_vec()).await.unwrap();
-    assert_eq!(overlay.read_file_async("/new.txt".into()).await.unwrap(), b"added");
+    overlay
+        .write_file_async("/new.txt".into(), b"added".to_vec())
+        .await
+        .unwrap();
+    assert_eq!(
+        overlay.read_file_async("/new.txt".into()).await.unwrap(),
+        b"added"
+    );
     assert!(shadow_dir.join("new.txt").exists());
 
     // Modify base file through overlay (CoW)
-    overlay.write_file_async("/src/main.rs".into(), b"fn main() { modified }".to_vec()).await.unwrap();
+    overlay
+        .write_file_async("/src/main.rs".into(), b"fn main() { modified }".to_vec())
+        .await
+        .unwrap();
     assert_eq!(
-        overlay.read_file_async("/src/main.rs".into()).await.unwrap(),
+        overlay
+            .read_file_async("/src/main.rs".into())
+            .await
+            .unwrap(),
         b"fn main() { modified }"
     );
     // Base unchanged
@@ -201,7 +217,10 @@ async fn test_end_to_end_overlay_with_native_base() {
     // Reset delta — everything goes back to base
     overlay.delta().reset_async().await.unwrap();
     assert_eq!(
-        overlay.read_file_async("/src/main.rs".into()).await.unwrap(),
+        overlay
+            .read_file_async("/src/main.rs".into())
+            .await
+            .unwrap(),
         b"fn main() {}"
     );
     assert!(overlay.exists_async("/README.md".into()).await.unwrap());
@@ -217,14 +236,30 @@ async fn subdirectories_hide_whiteout_sentinels() {
     let delta = DirectoryDelta::new(&shadow).unwrap();
     delta.mkdir_async("/a".into()).await.unwrap();
     delta.mkdir_async("/a/b".into()).await.unwrap();
-    delta.write_file_async("/a/b/kept.txt".into(), b"x".to_vec()).await.unwrap();
-    delta.add_whiteout_async("/a/b/gone.txt".into(), 1).await.unwrap();
+    delta
+        .write_file_async("/a/b/kept.txt".into(), b"x".to_vec())
+        .await
+        .unwrap();
+    delta
+        .add_whiteout_async("/a/b/gone.txt".into(), 1)
+        .await
+        .unwrap();
     assert!(shadow.join("a/b/.wh.gone.txt").exists());
 
     let root = delta.open_directory_async("/".into()).await.unwrap();
     let a = root.open_directory_async("a".into()).await.unwrap();
     let b = a.open_directory_async("b".into()).await.unwrap();
-    let names: Vec<String> = b.list_async().await.unwrap().into_iter().map(|e| e.name).collect();
+    let names: Vec<String> = b
+        .list_async()
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|e| e.name)
+        .collect();
     assert_eq!(names, vec!["kept.txt".to_string()]);
-    assert!(b.get_entry_async(".wh.gone.txt".into()).await.unwrap().is_none());
+    assert!(b
+        .get_entry_async(".wh.gone.txt".into())
+        .await
+        .unwrap()
+        .is_none());
 }

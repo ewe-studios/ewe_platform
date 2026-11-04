@@ -1,7 +1,7 @@
+use foundation_jsonschema::{JsonType, JsonTypeSet};
 use foundation_jsonschema::{
     Location, ValidationError, ValidationErrorBuilder, ValidationErrorKind,
 };
-use foundation_jsonschema::{JsonType, JsonTypeSet};
 
 #[test]
 fn test_validation_error_kind_display_type() {

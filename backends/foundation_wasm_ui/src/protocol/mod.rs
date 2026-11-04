@@ -16,17 +16,17 @@
 
 #[cfg(feature = "arrow")]
 mod arrow_ipc;
+mod batch_instructions;
 mod columnar;
 mod frame_sink;
-mod batch_instructions;
 mod json;
 mod mock;
 
 #[cfg(feature = "arrow")]
 pub use arrow_ipc::ArrowIpcV2;
+pub use batch_instructions::{BatchInstructionsV1, DomOpsBatch, BATCH_OP_APPLY_DOM};
 pub use columnar::ColumnarV1;
 pub use frame_sink::{CollectedFrames, FrameSink, FrameSinkV1};
-pub use batch_instructions::{BatchInstructionsV1, DomOpsBatch, BATCH_OP_APPLY_DOM};
 pub use json::JsonV1;
 pub use mock::MockProtocol;
 
@@ -159,7 +159,9 @@ where
     let total = WasmEnvelope::HEADER_LEN + payload.len();
 
     // Allocate first so the envelope can carry the real memory_id, then fill the slot.
-    let mem_id = memory.allocate(total as u64).expect("arena allocate failed");
+    let mem_id = memory
+        .allocate(total as u64)
+        .expect("arena allocate failed");
     let framed = WasmEnvelope::write(
         handler.protocol_byte(),
         handler.version(),

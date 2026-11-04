@@ -32,14 +32,13 @@ fn test_jwt_token_expiration() {
     );
 
     assert!(token.is_expired());
-    assert!(token.expires_in() == 0);
+    assert_eq!(token.expires_in(), 0);
 }
 
 #[test]
 fn test_jwt_token_expires_within() {
     let soon = Utc::now().timestamp() + 120;
-    let token =
-        JwtToken::from_parts("expiring_token".to_string(), None, soon, None, None, None);
+    let token = JwtToken::from_parts("expiring_token".to_string(), None, soon, None, None, None);
 
     assert!(token.expires_within(300));
     assert!(!token.expires_within(60));

@@ -1,13 +1,12 @@
 /// Valtron task: FileWatcherTask — wraps a NativeWatcher and delivers file events
 /// to subscriber queues.
-
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::synca::mpp::Receiver;
-use foundation_core::valtron::{Ctx, DrivenStreamIterator, TaskIterator, TaskStatus};
 use foundation_core::valtron::{execute, GenericResult};
+use foundation_core::valtron::{Ctx, DrivenStreamIterator, TaskIterator, TaskStatus};
 
 use crate::shared::error::Result;
 use crate::shared::event::WatchEvent;

@@ -253,7 +253,11 @@ impl ServiceRuntime {
             return Some((lease, idx));
         }
         self.backends.iter().enumerate().find_map(|(i, b)| {
-            if b.is_eligible() { b.try_reserve().map(|l| (l, i)) } else { None }
+            if b.is_eligible() {
+                b.try_reserve().map(|l| (l, i))
+            } else {
+                None
+            }
         })
     }
 }

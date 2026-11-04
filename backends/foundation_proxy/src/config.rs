@@ -77,6 +77,21 @@ pub struct ProxyConfig {
     /// with an ephemeral port.
     #[serde(default)]
     pub redirect_bind: Option<String>,
+    /// The most head bytes the redirect listener reads before it answers. A head
+    /// that passes this limit without its blank line gets a 431. Defaults to
+    /// 4096 bytes (the same head limit nginx uses for its default
+    /// `large_client_header_buffers`).
+    #[serde(default = "default_redirect_head_limit")]
+    pub redirect_head_limit: usize,
+    /// How long the redirect listener waits for a client to finish sending the
+    /// head. Defaults to 2 seconds (the `client_header_timeout` Caddy uses).
+    #[serde(default = "default_redirect_read_timeout", with = "duration_millis")]
+    pub redirect_read_timeout: Duration,
+    /// The bound on how long the redirect accept loop parks when no connection
+    /// is ready. Defaults to 10 milliseconds (the `accept_shutdown_poll` the
+    /// proxy's own HTTP front end uses).
+    #[serde(default = "default_redirect_accept_poll", with = "duration_millis")]
+    pub redirect_accept_poll: Duration,
     /// I/O mode for both the accept path and the dialed upstream legs (F50). The
     /// upstream mode tracks the front-end mode: `Completion` reads both legs from
     /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
@@ -100,6 +115,9 @@ impl ProxyConfig {
             acme: None,
             h3_bind: None,
             redirect_bind: None,
+            redirect_head_limit: default_redirect_head_limit(),
+            redirect_read_timeout: default_redirect_read_timeout(),
+            redirect_accept_poll: default_redirect_accept_poll(),
             io_mode: ServerIo::default(),
         }
     }
@@ -149,6 +167,30 @@ impl ProxyConfig {
         self
     }
 
+    /// Set the most head bytes the redirect listener reads before it answers.
+    /// A head past this limit without its blank line gets a 431. Default 4096.
+    #[must_use]
+    pub fn redirect_head_limit(mut self, limit: usize) -> Self {
+        self.redirect_head_limit = limit;
+        self
+    }
+
+    /// Set how long the redirect listener waits for a client to finish the
+    /// head. Default 2 seconds.
+    #[must_use]
+    pub fn redirect_read_timeout(mut self, timeout: Duration) -> Self {
+        self.redirect_read_timeout = timeout;
+        self
+    }
+
+    /// Set the bound on how long the redirect accept loop parks when no
+    /// connection is ready. Default 10 milliseconds.
+    #[must_use]
+    pub fn redirect_accept_poll(mut self, poll: Duration) -> Self {
+        self.redirect_accept_poll = poll;
+        self
+    }
+
     /// Attach the ACME runtime hooks (Decision 18, F15) — required when the SSL
     /// provider is `LetsEncrypt`. `dns01_setter` publishes DNS-01 TXT records;
     /// `directory_url` overrides the CA (defaults to Let's Encrypt production).
@@ -158,7 +200,10 @@ impl ProxyConfig {
         dns01_setter: crate::acme::Dns01Setter,
         directory_url: Option<String>,
     ) -> Self {
-        self.acme = Some(AcmeRuntime { directory_url, dns01_setter });
+        self.acme = Some(AcmeRuntime {
+            directory_url,
+            dns01_setter,
+        });
         self
     }
 
@@ -196,6 +241,24 @@ impl ProxyConfig {
     pub async fn start(self) -> Result<crate::server::ProxyServer, ProxyError> {
         crate::server::ProxyServer::start(self).await
     }
+}
+
+/// The default redirect head limit: 4096 bytes (the nginx default for
+/// `large_client_header_buffers`).
+const fn default_redirect_head_limit() -> usize {
+    4096
+}
+
+/// The default redirect read timeout: 2 seconds (the `client_header_timeout`
+/// Caddy uses).
+fn default_redirect_read_timeout() -> Duration {
+    Duration::from_secs(2)
+}
+
+/// The default redirect accept poll: 10 milliseconds (the `accept_shutdown_poll`
+/// the proxy's own HTTP front end uses).
+fn default_redirect_accept_poll() -> Duration {
+    Duration::from_millis(10)
 }
 
 /// SSL configuration.
@@ -522,6 +585,26 @@ mod duration_secs {
     {
         let secs: u64 = Deserialize::deserialize(d)?;
         Ok(Duration::from_secs(secs))
+    }
+}
+
+/// Serialise a `Duration` as whole milliseconds (the redirect limits are
+/// sub-second, so the seconds-only `duration_secs` does not fit).
+mod duration_millis {
+    use serde::{Deserialize, Deserializer, Serializer};
+    use std::time::Duration;
+    pub fn serialize<S>(d: &Duration, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        s.serialize_u128(d.as_millis())
+    }
+    pub fn deserialize<'de, D>(d: D) -> Result<Duration, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let ms: u64 = Deserialize::deserialize(d)?;
+        Ok(Duration::from_millis(ms))
     }
 }
 

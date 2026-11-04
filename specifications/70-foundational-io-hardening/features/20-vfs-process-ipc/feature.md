@@ -1,6 +1,6 @@
 ---
 feature: "foundation_nativeapis process side: LD_PRELOAD shim, FUSE in CI, all VFS features in CI, non-blocking file calls, async IPC with request ids, async searchers, ptrace warnings"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: ["09-limits-as-config"]
 branch: "fix/io-20-vfs-process-ipc"
@@ -92,6 +92,6 @@ cargo check --workspace --all-targets --profile dev
 
 ## Done when
 
-- [ ] T0 table; every open entry fixed; backlog entries deleted.
-- [ ] New tests fail on the base code where they can; 20-run flake check passes.
-- [ ] CI green with the new feature runs.
+- [x] T0 table; every open entry fixed; backlog entries deleted.
+- [x] New tests fail on the base code where they can; 20-run flake check passes.
+- [x] CI green with the new feature runs.

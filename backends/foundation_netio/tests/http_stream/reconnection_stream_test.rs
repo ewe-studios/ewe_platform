@@ -6,7 +6,6 @@ use foundation_netio::http_stream::ReconnectionError;
 use foundation_netio::http_stream::ReconnectionStatus;
 use foundation_netio::netcap::connection::Endpoint;
 use std::{net::TcpListener, result::Result, thread};
-use tracing;
 
 #[test]
 fn successfully_connects_on_first_try() {
@@ -52,10 +51,7 @@ fn fails_reconnection_after_max_retries() {
         .filter(|item| match item {
             Ok(inner) => match inner {
                 ReconnectionStatus::Waiting(duration) => {
-                    if duration == &std::time::Duration::from_millis(200) {
-                        return true;
-                    }
-                    false
+                    duration == &std::time::Duration::from_millis(200)
                 }
                 _ => true,
             },

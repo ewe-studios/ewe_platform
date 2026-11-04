@@ -182,7 +182,7 @@ jobs:
 
       - name: Log in to Docker Hub
         if: needs.cuda.outputs.registry-username != ''
-        uses: docker/login-action@v4.6.0
+        uses: docker/login-action@v4.7.0
         with:
           username: ${{ needs.cuda.outputs.registry-username }}
           password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}
@@ -226,7 +226,7 @@ jobs:
         uses: ./ci/platform-images/actions/setup-nu
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v4.6.0
+        uses: docker/login-action@v4.7.0
         with:
           username: ${{ needs.default.outputs.registry-username }}
           password: ${{ secrets.DOCKERHUB_EWESTUDIO_TOKEN }}

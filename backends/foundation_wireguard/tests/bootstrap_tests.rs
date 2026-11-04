@@ -31,7 +31,10 @@ fn token_round_trips_all_fields() {
 
     let parsed = BootstrapToken::parse(&encoded).expect("parse own token");
     assert_eq!(parsed.network_id.as_bytes(), token.network_id.as_bytes());
-    assert_eq!(parsed.endpoints, token.endpoints, "both endpoints preserved");
+    assert_eq!(
+        parsed.endpoints, token.endpoints,
+        "both endpoints preserved"
+    );
     assert!(parsed.flags.relay_capable_hint());
     assert!(parsed.flags.ephemeral());
     assert_eq!(parsed.expires_at, Some(1_900_000_000));

@@ -1,7 +1,13 @@
 //! Turso storage backend integration tests.
 
+// A `#[valtron_test]` body that awaits `TursoStorage::migrate`/`set` forces a
+// `Send` check through the `turso` crate's deeply nested async chain, which
+// overflows the default recursion limit (128). Raise it for this test crate
+// (the depth is in the external `turso` dependency).
+#![recursion_limit = "256"]
+
 use foundation_core::valtron::valtron_test;
-use foundation_db::{KeyValueStore, QueryStore, DataValue, EncryptionKey, SqlRow, TursoStorage};
+use foundation_db::{DataValue, EncryptionKey, KeyValueStore, QueryStore, SqlRow, TursoStorage};
 use tempfile::TempDir;
 
 async fn open(url: &str, key: Option<EncryptionKey>) -> TursoStorage {
@@ -13,7 +19,13 @@ async fn init_schema(storage: &TursoStorage) {
 }
 
 async fn query_rows(storage: &TursoStorage, sql: &str, params: &[DataValue]) -> Vec<SqlRow> {
-    storage.query(sql, params).await.unwrap().collect_all().await.unwrap()
+    storage
+        .query(sql, params)
+        .await
+        .unwrap()
+        .collect_all()
+        .await
+        .unwrap()
 }
 
 #[valtron_test]
@@ -56,12 +68,20 @@ async fn test_turso_storage_encryption() {
     init_schema(&storage).await;
 
     let secret_value = "sensitive_data_12345".to_string();
-    storage.set("secret_key", secret_value.clone()).await.unwrap();
+    storage
+        .set("secret_key", secret_value.clone())
+        .await
+        .unwrap();
 
     let value: Option<String> = storage.get("secret_key").await.unwrap();
     assert_eq!(value, Some(secret_value.clone()));
 
-    let raw_result = query_rows(&storage, "SELECT value FROM kv_store WHERE key = ?", &[DataValue::Text("secret_key".to_string())]).await;
+    let raw_result = query_rows(
+        &storage,
+        "SELECT value FROM kv_store WHERE key = ?",
+        &[DataValue::Text("secret_key".to_string())],
+    )
+    .await;
 
     assert!(!raw_result.is_empty(), "Should have a result");
     let stored_value = raw_result[0].get::<String>(0).unwrap();
@@ -86,7 +106,10 @@ async fn test_turso_storage_encryption_wrong_key() {
     init_schema(&storage1).await;
 
     let secret_value = "sensitive_data".to_string();
-    storage1.set("secret_key", secret_value.clone()).await.unwrap();
+    storage1
+        .set("secret_key", secret_value.clone())
+        .await
+        .unwrap();
 
     let key2 = EncryptionKey::generate();
     let storage2 = open(url, Some(key2.clone())).await;
@@ -160,22 +183,37 @@ async fn test_turso_storage_migrations() {
 
     storage.migrate(migrations).await.unwrap();
 
-    let users_exist = !query_rows(&storage, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='users'", &[]).await
-        .is_empty();
+    let users_exist = !query_rows(
+        &storage,
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='users'",
+        &[],
+    )
+    .await
+    .is_empty();
 
-    let sessions_exist = !query_rows(&storage, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='sessions'", &[]).await
-        .is_empty();
+    let sessions_exist = !query_rows(
+        &storage,
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='sessions'",
+        &[],
+    )
+    .await
+    .is_empty();
 
-    let migrations_exist = !query_rows(&storage, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='_migrations'", &[]).await
-        .is_empty();
+    let migrations_exist = !query_rows(
+        &storage,
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='_migrations'",
+        &[],
+    )
+    .await
+    .is_empty();
 
     assert!(users_exist, "users table should be accessible");
     assert!(sessions_exist, "sessions table should be accessible");
     assert!(migrations_exist, "_migrations table should be accessible");
 }
 
-/// Migration 024/025: upstream_providers + user_provider_links tables are
-/// created by init_schema and support real INSERT/SELECT round-trips.
+/// Migration 024/025: `upstream_providers` + `user_provider_links` tables are
+/// created by `init_schema` and support real INSERT/SELECT round-trips.
 #[valtron_test]
 async fn test_social_login_tables_functional() {
     let temp_dir = TempDir::new().unwrap();
@@ -209,7 +247,12 @@ async fn test_social_login_tables_functional() {
         .unwrap();
 
     // Read it back.
-    let rows = query_rows(&storage, "SELECT name, client_id, is_active FROM upstream_providers WHERE id = ?", &[DataValue::Text("google".into())]).await;
+    let rows = query_rows(
+        &storage,
+        "SELECT name, client_id, is_active FROM upstream_providers WHERE id = ?",
+        &[DataValue::Text("google".into())],
+    )
+    .await;
     assert_eq!(rows.len(), 1, "provider row should be readable");
     assert_eq!(rows[0].get::<String>(0).unwrap(), "Google");
     assert_eq!(rows[0].get::<String>(1).unwrap(), "client-abc");
@@ -246,28 +289,35 @@ async fn test_social_login_tables_functional() {
         .unwrap();
 
     // The unique (provider_id, upstream_subject) index must reject a duplicate.
-    let dup = storage.execute(
-        "INSERT INTO user_provider_links \
+    let dup = storage
+        .execute(
+            "INSERT INTO user_provider_links \
          (id, user_id, provider_id, upstream_subject, created_at) \
          VALUES (?, ?, ?, ?, ?)",
-        &[
-            DataValue::Text("link-2".into()),
-            DataValue::Text("user-1".into()),
-            DataValue::Text("google".into()),
-            DataValue::Text("google-sub-123".into()),
-            DataValue::Integer(1001),
-        ],
-    ).await;
+            &[
+                DataValue::Text("link-2".into()),
+                DataValue::Text("user-1".into()),
+                DataValue::Text("google".into()),
+                DataValue::Text("google-sub-123".into()),
+                DataValue::Integer(1001),
+            ],
+        )
+        .await;
     assert!(
         dup.is_err(),
         "duplicate (provider_id, upstream_subject) must be rejected by unique index"
     );
 
     // Lookup by (provider_id, upstream_subject) returns the linked user.
-    let link_rows = query_rows(&storage, "SELECT user_id FROM user_provider_links WHERE provider_id = ? AND upstream_subject = ?", &[
-                DataValue::Text("google".into()),
-                DataValue::Text("google-sub-123".into()),
-            ]).await;
+    let link_rows = query_rows(
+        &storage,
+        "SELECT user_id FROM user_provider_links WHERE provider_id = ? AND upstream_subject = ?",
+        &[
+            DataValue::Text("google".into()),
+            DataValue::Text("google-sub-123".into()),
+        ],
+    )
+    .await;
     assert_eq!(link_rows.len(), 1);
     assert_eq!(link_rows[0].get::<String>(0).unwrap(), "user-1");
 }

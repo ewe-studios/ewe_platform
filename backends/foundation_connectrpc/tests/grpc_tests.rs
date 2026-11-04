@@ -29,11 +29,11 @@ use std::time::Duration;
 use bytes::Bytes;
 use futures::StreamExt;
 
-use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
+use foundation_http::native::serve::H2Serve;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
-use foundation_http::native::serve::H2Serve;
+use foundation_http::ShutdownSignal;
 
 use foundation_connectrpc::shared::error::ConnectResult;
 use foundation_connectrpc::shared::transport::Transport;
@@ -134,7 +134,7 @@ fn build_router() -> Router {
 
 /// Start an HTTP/2 server with Connect and gRPC handlers both wired.
 /// The router's protocol-agnostic dispatch picks gRPC based on `Content-Type`.
-fn start_h2_server() -> (String, Arc<OnSignal>) {
+fn start_h2_server() -> (String, Arc<ShutdownSignal>) {
     let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
 
     let mut app = HttpApp::new_h2_serve();
@@ -146,7 +146,7 @@ fn start_h2_server() -> (String, Arc<OnSignal>) {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
 
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
@@ -170,8 +170,7 @@ const ENVELOPE_HEADER_LEN: usize = 5;
 fn grpc_envelope(payload: &[u8]) -> Vec<u8> {
     let mut envelope = vec![0u8; ENVELOPE_HEADER_LEN];
     envelope[0] = 0x00; // flags: none
-    envelope[1..ENVELOPE_HEADER_LEN]
-        .copy_from_slice(&(payload.len() as u32).to_be_bytes());
+    envelope[1..ENVELOPE_HEADER_LEN].copy_from_slice(&(payload.len() as u32).to_be_bytes());
     envelope.extend_from_slice(payload);
     envelope
 }
@@ -276,7 +275,11 @@ async fn grpc_unary_over_h2c_transport() {
     }
 
     let messages = parse_envelope_messages(&body_bytes);
-    assert_eq!(messages.len(), 1, "gRPC unary response is exactly one envelope");
+    assert_eq!(
+        messages.len(),
+        1,
+        "gRPC unary response is exactly one envelope"
+    );
 
     let echoed: Msg =
         serde_json::from_slice(&messages[0]).expect("decode gRPC unary response message");
@@ -500,7 +503,12 @@ async fn grpc_handler_error_returns_http_200() {
         ERR_PATH,
         codecs(),
         |_ctx: Ctx, _req: Request<Msg>| async move {
-            Err(foundation_connectrpc::shared::error::ConnectError::permission_denied("not allowed").into())
+            Err(
+                foundation_connectrpc::shared::error::ConnectError::permission_denied(
+                    "not allowed",
+                )
+                .into(),
+            )
         },
         HandlerOptions::new(),
     );
@@ -511,7 +519,7 @@ async fn grpc_handler_error_returns_http_200() {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
     thread::spawn(move || {
@@ -712,8 +720,10 @@ async fn grpc_error_trailers_readable_from_response() {
         codecs(),
         |_ctx: Ctx, _req: Request<Msg>| async move {
             Err(
-                foundation_connectrpc::shared::error::ConnectError::permission_denied("not allowed")
-                    .into(),
+                foundation_connectrpc::shared::error::ConnectError::permission_denied(
+                    "not allowed",
+                )
+                .into(),
             )
         },
         HandlerOptions::new(),
@@ -725,7 +735,7 @@ async fn grpc_error_trailers_readable_from_response() {
 
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
     let addr = listener.local_addr().expect("addr");
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let server_shutdown = shutdown.clone();
     let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
     std::thread::spawn(move || {
@@ -773,7 +783,11 @@ async fn client_cancel_resets_the_stream_on_the_server() {
         .server_stream(call.clone(), Request::new(Msg::of("go")))
         .await
         .expect("open server stream");
-    let first = stream.receive().await.expect("receive").expect("one message");
+    let first = stream
+        .receive()
+        .await
+        .expect("receive")
+        .expect("one message");
     assert_eq!(first.text, "first");
 
     let server_ctx = ENDLESS_CTX
@@ -796,4 +810,3 @@ async fn client_cancel_resets_the_stream_on_the_server() {
     drop(stream);
     shutdown.turn_on();
 }
-

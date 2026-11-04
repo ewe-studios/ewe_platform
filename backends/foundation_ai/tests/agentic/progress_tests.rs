@@ -62,7 +62,10 @@ fn lift_model_error_becomes_failed_action_record() {
     let lifted = lift_model_item(Stream::Pending(ModelState::Error("boom".into())), &model);
     match lifted {
         Stream::Next(SessionRecord::FailedAction { error, trace }) => {
-            assert_eq!(error, foundation_ai::agentic::errors::AgenticError::Unexpected("boom".into()));
+            assert_eq!(
+                error,
+                foundation_ai::agentic::errors::AgenticError::Unexpected("boom".into())
+            );
             // The structured trace's current context is the error's Display.
             assert!(trace.current_context.contains("boom"));
         }
@@ -193,7 +196,10 @@ fn from_model_state_error_is_initializing_with_message() {
     let p = AgentProgress::from(&ModelState::Error("boom".into()));
     match p {
         AgentProgress::Initializing { step } => {
-            assert!(step.contains("boom"), "error message should carry through: {step}");
+            assert!(
+                step.contains("boom"),
+                "error message should carry through: {step}"
+            );
         }
         other => panic!("expected Initializing, got {other:?}"),
     }

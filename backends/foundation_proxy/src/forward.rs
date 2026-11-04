@@ -26,8 +26,8 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_iogate::ServerIo;
+use foundation_netio::http::{ClientRequestBuilder, NativeHttpClient};
 use foundation_netio::netcap::{Connection, RawStream};
-use foundation_netio::http::{NativeHttpClient, ClientRequestBuilder};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{
     Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
@@ -68,8 +68,10 @@ pub fn is_upgrade_request(req: &SimpleIncomingRequest) -> bool {
         .headers
         .get(&SimpleHeader::CONNECTION)
         .is_some_and(|vals| {
-            vals.iter()
-                .any(|v| v.split(',').any(|t| t.trim().eq_ignore_ascii_case("upgrade")))
+            vals.iter().any(|v| {
+                v.split(',')
+                    .any(|t| t.trim().eq_ignore_ascii_case("upgrade"))
+            })
         });
     connection_upgrade && req.headers.contains_key(&SimpleHeader::UPGRADE)
 }
@@ -125,9 +127,10 @@ pub fn strip_hop_by_hop_request(headers: &SimpleHeaders) -> SimpleHeaders {
             // (gRPC depends on it). Preserve it when — and only when — it carries
             // the `trailers` token; any other `te` value stays stripped.
             if lower == "te" {
-                return values
-                    .iter()
-                    .any(|v| v.split(',').any(|t| t.trim().eq_ignore_ascii_case("trailers")));
+                return values.iter().any(|v| {
+                    v.split(',')
+                        .any(|t| t.trim().eq_ignore_ascii_case("trailers"))
+                });
             }
             // The `trailer`/`trailers` announcement names are also preserved.
             lower == "trailer" || lower == "trailers"
@@ -173,7 +176,12 @@ pub fn forward_request_headers(
     let xff = SimpleHeader::custom("x-forwarded-for");
     let mut chain: Vec<String> = headers
         .get(&xff)
-        .map(|vals| vals.iter().flat_map(|v| v.split(',')).map(|s| s.trim().to_string()).collect())
+        .map(|vals| {
+            vals.iter()
+                .flat_map(|v| v.split(','))
+                .map(|s| s.trim().to_string())
+                .collect()
+        })
         .unwrap_or_default();
     chain.push(client_ip.to_string());
     headers.insert(xff, vec![chain.join(", ")]);
@@ -186,10 +194,7 @@ pub fn forward_request_headers(
 
     // X-Forwarded-Host: the Host the client asked for.
     if let Some(host) = original.get(&SimpleHeader::HOST).and_then(|v| v.first()) {
-        headers.insert(
-            SimpleHeader::custom("x-forwarded-host"),
-            vec![host.clone()],
-        );
+        headers.insert(SimpleHeader::custom("x-forwarded-host"), vec![host.clone()]);
     }
 
     // Ask the upstream to close after responding — but only for non-streaming

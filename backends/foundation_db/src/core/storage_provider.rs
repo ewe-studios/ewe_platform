@@ -227,6 +227,10 @@ impl AsyncQueryStream {
     }
 
     /// Collect all remaining rows into a Vec.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first row error the stream yields.
     pub async fn collect_all(self) -> StorageResult<Vec<SqlRow>> {
         self.inner.collect::<Vec<_>>().await.into_iter().collect()
     }
@@ -261,6 +265,10 @@ impl AsyncListStream {
     }
 
     /// Collect all remaining keys into a Vec.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first key error the stream yields.
     pub async fn collect_all(self) -> StorageResult<Vec<String>> {
         self.inner.collect::<Vec<_>>().await.into_iter().collect()
     }
@@ -286,14 +294,28 @@ pub trait QueryStore: Send + Sync {
     ///
     /// Use `.collect_all().await` to get all rows, or iterate row-by-row
     /// via `.next().await`.
-    async fn query(&self, sql: &str, params: &[DataValue])
-        -> StorageResult<AsyncQueryStream>;
+    async fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream>;
 
     /// Execute a statement that returns number of rows affected.
     async fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
 
     /// Execute a batch of SQL statements.
     async fn execute_batch(&self, sql: &str) -> StorageResult<()>;
+
+    /// Execute several parameterized statements in one all-or-nothing unit.
+    ///
+    /// Backends that support it wrap the statements in one transaction (or a
+    /// D1 batch): a failure in any statement leaves none of them applied. The
+    /// default runs each statement in turn and is not atomic.
+    async fn execute_batch_statements(
+        &self,
+        statements: &[(String, Vec<DataValue>)],
+    ) -> StorageResult<()> {
+        for (sql, params) in statements {
+            self.execute(sql, params).await?;
+        }
+        Ok(())
+    }
 }
 
 /// Async key-value store operations — for wasm backends where the underlying
@@ -304,12 +326,43 @@ pub trait KeyValueStore: Send + Sync {
         &self,
         key: &str,
     ) -> StorageResult<Option<V>>;
-    async fn set<V: Serialize + Send + 'static>(
+    async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
+    async fn delete(&self, key: &str) -> StorageResult<()>;
+    /// Read a key and remove it in one step. Returns the value, or `None`
+    /// when the key is absent.
+    ///
+    /// Use it for single-use values (one-time codes, challenges): when many
+    /// callers take the same key at the same time, at most one gets the
+    /// value, **if the backend guarantees atomicity**:
+    ///
+    /// | Backend | Atomic |
+    /// |---|---|
+    /// | `MemoryStorage`, `MemoryJsonStore`, `JsonFileStorage` | yes (one lock) |
+    /// | `TursoStorage`, `LibsqlStore` | yes (one `DELETE ... RETURNING`) |
+    /// | `D1Store`, `D1WasmStorage` | yes (one `DELETE ... RETURNING` statement) |
+    /// | `KVWasmStorage` (Workers KV) | **no**: KV has no conditional delete, so this default is used |
+    /// | `StorageProvider` | as the backend it wraps |
+    ///
+    /// [`take_is_atomic`](Self::take_is_atomic) tells which case a store is.
+    ///
+    /// The default is a read then a delete. It is **not atomic**: two callers
+    /// can both read the value before either deletes it. A backend that
+    /// cannot do better keeps it; a caller that needs single use on such a
+    /// backend must add its own guard.
+    fn take_is_atomic(&self) -> bool {
+        false
+    }
+
+    async fn take<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
-        value: V,
-    ) -> StorageResult<()>;
-    async fn delete(&self, key: &str) -> StorageResult<()>;
+    ) -> StorageResult<Option<V>> {
+        let value = self.get::<V>(key).await?;
+        if value.is_some() {
+            self.delete(key).await?;
+        }
+        Ok(value)
+    }
     async fn exists(&self, key: &str) -> StorageResult<bool>;
     /// List all keys with optional prefix filter, returning an async stream.
     ///
@@ -318,14 +371,159 @@ pub trait KeyValueStore: Send + Sync {
     async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream>;
 }
 
+/// A byte-chunk stream for a blob body. Each item is one chunk; the whole
+/// object is the concatenation of all chunks.
+pub type BlobStream = Pin<Box<dyn futures_core::Stream<Item = StorageResult<Vec<u8>>> + Send>>;
+
+/// An ordered stream of blob keys from a listing.
+pub type BlobListStream = Pin<Box<dyn futures_core::Stream<Item = StorageResult<String>> + Send>>;
+
+/// A half-open byte range `[start, end)` for [`BlobStore::get_blob_range`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BlobRange {
+    /// Inclusive first byte offset.
+    pub start: u64,
+    /// Exclusive last byte offset; `None` means "to the end".
+    pub end: Option<u64>,
+}
+
+/// A precondition for [`BlobStore::put_blob_conditionally`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BlobPutCondition {
+    /// Reject the write if the object already exists (`If-None-Match: *`).
+    IfNoneMatch,
+    /// Reject the write unless the stored object's `ETag` equals this value.
+    IfMatch(String),
+}
+
+/// Collect a [`BlobStream`] into one buffer. Use only for small objects;
+/// the stores prefer [`BlobStore::put_blob_stream`] for large bodies.
+pub(crate) async fn collect_blob_stream(mut chunks: BlobStream) -> StorageResult<Vec<u8>> {
+    let mut out = Vec::new();
+    while let Some(chunk) = chunks.next().await {
+        out.extend_from_slice(&chunk?);
+    }
+    Ok(out)
+}
+
+/// A deterministic `ETag` for blob content: lowercase SHA-256 hex. Backends that
+/// have no server-side `ETag` derive one from the stored bytes so conditional
+/// writes work everywhere.
+#[must_use]
+pub fn content_etag(data: &[u8]) -> String {
+    use sha2::{Digest, Sha256};
+    hex::encode(Sha256::digest(data))
+}
+
 /// Async blob store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
 #[async_trait::async_trait]
 pub trait BlobStore: Send + Sync {
+    /// Store a whole object. A thin wrapper around
+    /// [`put_blob_stream`](Self::put_blob_stream) for small objects.
     async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
+
+    /// Read a whole object. A thin wrapper around
+    /// [`get_blob_stream`](Self::get_blob_stream) for small objects.
     async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
+
     async fn delete_blob(&self, key: &str) -> StorageResult<()>;
     async fn blob_exists(&self, key: &str) -> StorageResult<bool>;
+
+    /// Stream a blob body out, one chunk at a time.
+    ///
+    /// Default: the whole object as a single chunk.
+    async fn get_blob_stream(&self, key: &str) -> StorageResult<BlobStream> {
+        let data = self.get_blob(key).await?.unwrap_or_default();
+        Ok(Box::pin(futures_lite::stream::iter(
+            (!data.is_empty()).then_some(data).into_iter().map(Ok),
+        )))
+    }
+
+    /// Stream a blob body in. `length`, when known, lets the backend set
+    /// `Content-Length`; `None` means an unknown-length (chunked) body.
+    ///
+    /// Default: buffer the whole body, then [`put_blob`](Self::put_blob).
+    async fn put_blob_stream(
+        &self,
+        key: &str,
+        length: Option<u64>,
+        chunks: BlobStream,
+    ) -> StorageResult<()> {
+        let _ = length;
+        let data = collect_blob_stream(chunks).await?;
+        self.put_blob(key, &data).await
+    }
+
+    /// The blob's `ETag`, or `None` if the backend does not expose one.
+    async fn blob_etag(&self, key: &str) -> StorageResult<Option<String>> {
+        let _ = key;
+        Ok(None)
+    }
+
+    /// Read a byte range `[start, end)` as a stream.
+    ///
+    /// Default: read the whole object and slice it in memory.
+    async fn get_blob_range(&self, key: &str, range: BlobRange) -> StorageResult<BlobStream> {
+        let data = self.get_blob(key).await?.unwrap_or_default();
+        let start = usize::try_from(range.start)
+            .unwrap_or(usize::MAX)
+            .min(data.len());
+        let end = range
+            .end
+            .map_or(data.len(), |e| usize::try_from(e).unwrap_or(usize::MAX))
+            .min(data.len());
+        let slice = if start >= end {
+            Vec::new()
+        } else {
+            data[start..end].to_vec()
+        };
+        Ok(Box::pin(futures_lite::stream::iter(
+            vec![slice].into_iter().map(Ok),
+        )))
+    }
+
+    /// Write a blob only when `condition` holds. Fails with
+    /// [`StorageError::PreconditionFailed`] when it does not.
+    ///
+    /// Default: a non-atomic check-then-write.
+    async fn put_blob_conditionally(
+        &self,
+        key: &str,
+        data: &[u8],
+        condition: BlobPutCondition,
+    ) -> StorageResult<()> {
+        match &condition {
+            BlobPutCondition::IfNoneMatch => {
+                if self.blob_exists(key).await? {
+                    return Err(StorageError::PreconditionFailed(key.to_string()));
+                }
+            }
+            BlobPutCondition::IfMatch(expected) => {
+                let current = self.blob_etag(key).await?;
+                if current.as_deref() != Some(expected.as_str()) {
+                    return Err(StorageError::PreconditionFailed(key.to_string()));
+                }
+            }
+        }
+        self.put_blob(key, data).await
+    }
+
+    /// Ordered blob keys that start with `prefix` and sort after `start_after`,
+    /// up to `limit` (`None` = unlimited), as a stream.
+    ///
+    /// Default: unsupported (a backend that lists blobs overrides it).
+    async fn list_blobs_after(
+        &self,
+        prefix: &str,
+        start_after: Option<&str>,
+        limit: Option<usize>,
+    ) -> StorageResult<BlobListStream> {
+        let _ = (prefix, start_after, limit);
+        Err(StorageError::Generic(
+            "list_blobs_after is not supported for this backend".to_string(),
+        ))
+    }
 }
 
 /// Fixed-window rate limits.
@@ -431,6 +629,11 @@ pub trait DocumentStore: Send + Sync {
     ) -> StorageResult<Document>;
 
     /// Append a document with a caller-supplied scru128 `doc_id` (OD-06-5).
+    ///
+    /// Idempotent (F16 E7): appending the same `doc_id` in the same collection
+    /// again is a no-op. The existing document is kept and no duplicate row is
+    /// created. This lets a caller retry a write whose future was dropped after
+    /// the store accepted it, without writing the record twice.
     async fn append_with_id<V: Serialize + Send + 'static>(
         &self,
         key: &str,
@@ -447,6 +650,9 @@ pub trait DocumentStore: Send + Sync {
     ) -> StorageResult<Document>;
 
     /// Like [`append_promotable`](Self::append_promotable) with a caller-supplied `doc_id`.
+    ///
+    /// Idempotent like [`append_with_id`](Self::append_with_id): re-appending
+    /// the same `doc_id` in the same collection is a no-op (F16 E7).
     async fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
         &self,
         key: &str,

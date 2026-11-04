@@ -78,7 +78,11 @@ impl Default for ReplayResult {
 impl ReplayResult {
     #[must_use]
     pub fn new() -> Self {
-        Self { applied: vec![], conflicts: vec![], failed: vec![] }
+        Self {
+            applied: vec![],
+            conflicts: vec![],
+            failed: vec![],
+        }
     }
 }
 
@@ -119,13 +123,17 @@ impl MemoryQueueStorage {
 impl QueueStorage for MemoryQueueStorage {
     fn enqueue(&self, mutation: &Mutation) {
         self.order.lock().unwrap().push(mutation.id.clone());
-        self.mutations.write().unwrap().insert(mutation.id.clone(), mutation.clone());
+        self.mutations
+            .write()
+            .unwrap()
+            .insert(mutation.id.clone(), mutation.clone());
     }
 
     fn pending(&self) -> Vec<Mutation> {
         let map = self.mutations.read().unwrap();
         let order = self.order.lock().unwrap();
-        order.iter()
+        order
+            .iter()
             .filter_map(|id| map.get(id))
             .filter(|m| m.status == MutationStatus::Pending)
             .cloned()
@@ -158,7 +166,9 @@ pub struct MutationQueue {
 
 impl MutationQueue {
     pub fn new(storage: impl QueueStorage) -> Self {
-        Self { storage: Box::new(storage) }
+        Self {
+            storage: Box::new(storage),
+        }
     }
 
     #[must_use]
@@ -212,7 +222,8 @@ impl MutationQueue {
         for mutation in &pending {
             match replay_fn(mutation) {
                 Ok(response) => {
-                    self.storage.update_status(&mutation.id, MutationStatus::Applied);
+                    self.storage
+                        .update_status(&mutation.id, MutationStatus::Applied);
                     result.applied.push((mutation.id.clone(), response));
                 }
                 Err(ReplayError::Conflict(server_state)) => {
@@ -224,10 +235,8 @@ impl MutationQueue {
                     result.conflicts.push((mutation.id.clone(), server_state));
                 }
                 Err(ReplayError::NonRetryable(msg)) => {
-                    self.storage.update_status(
-                        &mutation.id,
-                        MutationStatus::Failed(msg.clone()),
-                    );
+                    self.storage
+                        .update_status(&mutation.id, MutationStatus::Failed(msg.clone()));
                     result.failed.push((mutation.id.clone(), msg));
                     // Stop replay on non-retryable error
                     break;

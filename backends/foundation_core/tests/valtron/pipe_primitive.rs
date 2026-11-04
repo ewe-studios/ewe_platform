@@ -74,7 +74,10 @@ fn producer_parks_on_full_and_wakes_on_pop() {
     // Full pipe -> the send future parks.
     let mut send = Box::pin(tx.send(3));
     assert!(matches!(send.as_mut().poll(&mut cx), Poll::Pending));
-    assert!(obs.is_empty(), "turn count flat: no wake while the pipe stays full");
+    assert!(
+        obs.is_empty(),
+        "turn count flat: no wake while the pipe stays full"
+    );
 
     // Consumer pops -> fires the stashed producer waker.
     assert_eq!(rx.try_recv(), Ok(1));
@@ -83,7 +86,11 @@ fn producer_parks_on_full_and_wakes_on_pop() {
     // The unparked producer completes its send.
     assert!(matches!(send.as_mut().poll(&mut cx), Poll::Ready(Ok(()))));
     assert_eq!(rx.try_recv(), Ok(2));
-    assert_eq!(rx.try_recv(), Ok(3), "the once-parked item is delivered in FIFO order");
+    assert_eq!(
+        rx.try_recv(),
+        Ok(3),
+        "the once-parked item is delivered in FIFO order"
+    );
 }
 
 /// WHY: The consumer/empty case must be symmetric — park on empty, woken by push.
@@ -99,7 +106,10 @@ fn consumer_parks_on_empty_and_wakes_on_push() {
 
     let mut recv = Box::pin(rx.receive());
     assert!(matches!(recv.as_mut().poll(&mut cx), Poll::Pending));
-    assert!(obs.is_empty(), "turn count flat: no wake while the pipe stays empty");
+    assert!(
+        obs.is_empty(),
+        "turn count flat: no wake while the pipe stays empty"
+    );
 
     tx.try_send(42).expect("send");
     assert!(!obs.is_empty(), "push woke the parked consumer");
@@ -129,11 +139,17 @@ fn sender_drop_signals_end_of_stream() {
     assert!(matches!(recv.as_mut().poll(&mut cx), Poll::Pending));
     drop(tx2);
     assert!(!obs.is_empty(), "sender drop woke the parked consumer");
-    assert!(matches!(recv.as_mut().poll(&mut cx), Poll::Ready(None)), "clean EOS");
+    assert!(
+        matches!(recv.as_mut().poll(&mut cx), Poll::Ready(None)),
+        "clean EOS"
+    );
 
     // Backlog drains before EOS is reported.
     drop(tx);
-    assert!(rx.readiness().is_ready(None), "closed pipe is readiness-ready");
+    assert!(
+        rx.readiness().is_ready(None),
+        "closed pipe is readiness-ready"
+    );
     assert_eq!(rx.try_recv(), Ok(1));
     assert_eq!(rx.try_recv(), Ok(2));
     assert_eq!(rx.try_recv(), Err(TryRecvError::Closed));
@@ -167,9 +183,15 @@ fn sender_closed_wakes_when_receiver_goes_away() {
     assert!(obs.is_empty(), "nothing closed yet");
     drop(rx);
     assert!(!obs.is_empty(), "receiver drop woke the closed() waiter");
-    assert!(!send_obs.is_empty(), "receiver drop woke the parked send too");
+    assert!(
+        !send_obs.is_empty(),
+        "receiver drop woke the parked send too"
+    );
     assert!(matches!(closed.as_mut().poll(&mut cx), Poll::Ready(())));
-    assert!(matches!(send.as_mut().poll(&mut send_cx), Poll::Ready(Err(_))));
+    assert!(matches!(
+        send.as_mut().poll(&mut send_cx),
+        Poll::Ready(Err(_))
+    ));
 
     // Already closed: resolves at once.
     let (tx2, rx2) = Pipe::<u32>::with_depth(1);
@@ -251,11 +273,17 @@ fn any_readiness_fires_when_any_child_ready() {
         Arc::new(tx.vacancy()) as EventReadinessPtr,
         Arc::new(cancel) as EventReadinessPtr,
     );
-    assert!(!any.is_ready(None), "full pipe + not cancelled -> not ready");
+    assert!(
+        !any.is_ready(None),
+        "full pipe + not cancelled -> not ready"
+    );
 
     // Firing the cancel child alone makes the composite ready.
     cancel_flag.store(true, Ordering::SeqCst);
-    assert!(any.is_ready(None), "AnyReadiness fires when the cancel child is ready");
+    assert!(
+        any.is_ready(None),
+        "AnyReadiness fires when the cancel child is ready"
+    );
 }
 
 // ============================================================================
@@ -343,5 +371,8 @@ fn pipe_backpressure_roundtrip_on_pool() {
 
     let got = result.expect("consumer produced a result");
     let expected: Vec<u32> = (0..N).collect();
-    assert_eq!(got, expected, "all items delivered in FIFO order across the bounded pipe");
+    assert_eq!(
+        got, expected,
+        "all items delivered in FIFO order across the bounded pipe"
+    );
 }

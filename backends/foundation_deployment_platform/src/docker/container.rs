@@ -6,6 +6,7 @@ use std::net::{Ipv4Addr, SocketAddr};
 use foundation_deployment_docker::client::containers_lifecycle::ContainerLogsOptions;
 use foundation_deployment_docker::streaming::decoder::LogOutput;
 
+use foundation_deployment_docker::DockerClient;
 use foundation_deployment_docker::client::{
     ContainerCreateBody, ContainerHostConfig, NetworkingConfig,
 };
@@ -13,12 +14,11 @@ use foundation_deployment_docker::generated::connect::EndpointSettings;
 use foundation_deployment_docker::generated::json::{
     ContainerConfig as GenContainerConfig, DeviceMapping, HostConfig, PortMap, Resources,
 };
-use foundation_deployment_docker::DockerClient;
 use tracing::{debug, info, warn};
 
-use crate::docker::config::{parse_memory_bytes, ContainerConfig};
+use crate::docker::config::{ContainerConfig, parse_memory_bytes};
+use crate::docker::error::{DockerError, DockerResult, classify_docker_client_err, docker_err};
 use crate::docker::network::NetworkHandle;
-use crate::docker::error::{classify_docker_client_err, docker_err, DockerError, DockerResult};
 
 /// RAII guard for a running Docker container.
 pub struct ContainerHandle {
@@ -73,7 +73,9 @@ pub struct CallerContainer {
 /// # Errors
 /// Returns the daemon's error if inspecting the container fails for any reason
 /// other than "no such container", or if `/etc/hostname` cannot be read.
-pub(crate) async fn caller_container(docker: &DockerClient) -> DockerResult<Option<CallerContainer>> {
+pub(crate) async fn caller_container(
+    docker: &DockerClient,
+) -> DockerResult<Option<CallerContainer>> {
     if !docker.socket_path().is_absolute() || !std::path::Path::new("/.dockerenv").exists() {
         return Ok(None);
     }
@@ -98,7 +100,10 @@ pub(crate) async fn caller_container(docker: &DockerClient) -> DockerResult<Opti
         // A container, but not one this daemon runs (a sandbox, another
         // engine).
         Err(foundation_deployment_docker::DockerError::Api { status: 404, .. }) => Ok(None),
-        Err(e) => Err(docker_err(classify_docker_client_err("inspect_container (self)", e))),
+        Err(e) => Err(docker_err(classify_docker_client_err(
+            "inspect_container (self)",
+            e,
+        ))),
     }
 }
 
@@ -145,8 +150,19 @@ pub fn gateway_of(networks: Option<&serde_json::Value>) -> Option<Ipv4Addr> {
     })
 }
 
+/// Docker's stop timeout is a `u32` seconds value; the config stores `u64`.
+/// Saturate an absurd value at `u32::MAX` instead of truncating it.
+#[must_use]
+fn stop_timeout_secs(timeout: u64) -> u32 {
+    u32::try_from(timeout).unwrap_or(u32::MAX)
+}
+
 impl ContainerHandle {
     /// Start a container: pull → create → start → inspect → wait.
+    ///
+    /// # Errors
+    /// Returns an error if the image cannot be pulled, the container cannot be
+    /// created or started, or its readiness check fails.
     pub async fn start_async(config: ContainerConfig) -> DockerResult<Self> {
         let docker = DockerClient::connect_with_defaults()
             .map_err(|e| docker_err(classify_docker_client_err("connect", e)))?;
@@ -241,7 +257,10 @@ impl ContainerHandle {
 
         let ports = Self::resolve_ports(docker, container_id, config).await?;
 
-        config.wait.apply(docker, container_id, host_ip, &ports).await?;
+        config
+            .wait
+            .apply(docker, container_id, host_ip, &ports)
+            .await?;
 
         Ok(ports)
     }
@@ -250,7 +269,10 @@ impl ContainerHandle {
     /// never propagated: the caller is already returning the real failure and
     /// must not have it masked by a cleanup problem.
     async fn discard(docker: &DockerClient, container_id: &str, stop_timeout: u64) {
-        if let Err(e) = docker.stop_container(container_id, Some(stop_timeout as u32)).await {
+        if let Err(e) = docker
+            .stop_container(container_id, Some(stop_timeout_secs(stop_timeout)))
+            .await
+        {
             warn!(container_id = %container_id, "start cleanup: failed to stop container: {e}");
         }
         if let Err(e) = docker.remove_container(container_id, true).await {
@@ -259,6 +281,9 @@ impl ContainerHandle {
     }
 
     /// Sync convenience — delegates to `start_async()` via `block_on`.
+    ///
+    /// # Errors
+    /// As [`Self::start_async`].
     pub fn start(config: ContainerConfig) -> DockerResult<Self> {
         crate::block_on(Self::start_async(config))
     }
@@ -268,7 +293,7 @@ impl ContainerHandle {
         &self.container_id
     }
 
-    /// The container name, if set via ContainerConfig::name().
+    /// The container name, if set via `ContainerConfig::name()`.
     #[must_use]
     pub fn name(&self) -> Option<&str> {
         self.container_name.as_deref()
@@ -324,26 +349,33 @@ impl ContainerHandle {
             .map(|p| SocketAddr::from((self.host_ip, p)))
     }
 
+    /// Stop and remove the container, best-effort.
+    ///
+    /// # Errors
+    /// Always returns `Ok(())`: stop and remove failures are logged, not returned.
     pub async fn shutdown_async(&self) -> DockerResult<()> {
         if let Err(e) = self
             .docker
-            .stop_container(&self.container_id, Some(self.stop_timeout as u32))
+            .stop_container(
+                &self.container_id,
+                Some(stop_timeout_secs(self.stop_timeout)),
+            )
             .await
         {
             warn!(container_id = %self.container_id, "failed to stop container: {e}");
         }
 
-        if let Err(e) = self
-            .docker
-            .remove_container(&self.container_id, true)
-            .await
-        {
+        if let Err(e) = self.docker.remove_container(&self.container_id, true).await {
             warn!(container_id = %self.container_id, "failed to remove container: {e}");
         }
 
         Ok(())
     }
 
+    /// Sync convenience — delegates to [`Self::shutdown_async`] via `block_on`.
+    ///
+    /// # Errors
+    /// As [`Self::shutdown_async`] (always `Ok`).
     pub fn shutdown(&self) -> DockerResult<()> {
         crate::block_on(self.shutdown_async())
     }
@@ -412,7 +444,11 @@ impl ContainerHandle {
             .map_err(|e| docker_err(classify_docker_client_err("exec_create", e)))?;
         // Attached (not detached): the call returns once the command has
         // exited, with its multiplexed stdout/stderr as the body.
-        let mut out = ExecOutput { exit_code: 0, stdout: String::new(), stderr: String::new() };
+        let mut out = ExecOutput {
+            exit_code: 0,
+            stdout: String::new(),
+            stderr: String::new(),
+        };
         // The command's output, decoded as it streams; the daemon ends the
         // stream when the command exits.
         self.docker
@@ -427,14 +463,11 @@ impl ContainerHandle {
             .exec_inspect(&exec.id)
             .await
             .map_err(|e| docker_err(classify_docker_client_err("exec_inspect", e)))?;
-        out.exit_code = info
-            .get("ExitCode")
-            .and_then(serde_json::Value::as_i64)
-            .ok_or_else(|| {
-                docker_err(DockerError::InvalidConfig(format!(
-                    "exec {cmd:?}: the daemon reported no ExitCode: {info}"
-                )))
-            })?;
+        out.exit_code = info.exit_code.ok_or_else(|| {
+            docker_err(DockerError::InvalidConfig(format!(
+                "exec {cmd:?}: the daemon reported no ExitCode: {info:?}"
+            )))
+        })?;
 
         Ok(out)
     }
@@ -448,6 +481,10 @@ impl ContainerHandle {
         crate::block_on(self.exec_async(cmd))
     }
 
+    /// Inspect the container and report whether it is running.
+    ///
+    /// # Errors
+    /// Returns an error if the daemon rejects the inspect request.
     pub async fn is_running_async(&self) -> DockerResult<bool> {
         let info = self
             .docker
@@ -488,7 +525,10 @@ impl ContainerHandle {
 
         let map_pull_err = |e| match e {
             foundation_deployment_docker::DockerError::PullFailed(reason) => {
-                docker_err(DockerError::ImagePull { image: image.to_string(), reason })
+                docker_err(DockerError::ImagePull {
+                    image: image.to_string(),
+                    reason,
+                })
             }
             other => docker_err(classify_docker_client_err("image_pull", other)),
         };
@@ -539,6 +579,9 @@ impl ContainerHandle {
     /// sends for `config`: its ports published on `host_ip`, and the
     /// container on `network_mode` when one is given (the caller's network,
     /// see [`caller_network_mode`]) instead of the config's own networks.
+    // One cohesive request-body assembly; splitting it into smaller helpers
+    // would add indirection without making the mapping clearer.
+    #[allow(clippy::too_many_lines)]
     #[must_use]
     pub fn build_body(
         config: &ContainerConfig,
@@ -560,13 +603,13 @@ impl ContainerHandle {
                 }
             );
             // ExposedPorts: keys mapped to empty objects.
-            exposed_ports.insert(port_key.clone(), serde_json::Value::Object(Default::default()));
+            exposed_ports.insert(
+                port_key.clone(),
+                serde_json::Value::Object(serde_json::Map::default()),
+            );
 
             // PortBindings: keys mapped to arrays of {HostIp, HostPort}.
-            let host_port_str = pm
-                .host_port
-                .map(|p| p.to_string())
-                .unwrap_or_else(|| String::new());
+            let host_port_str = pm.host_port.map_or_else(String::new, |p| p.to_string());
             port_bindings.insert(
                 port_key,
                 serde_json::json!([{
@@ -614,12 +657,12 @@ impl ContainerHandle {
                 } else {
                     Some(config.extra_hosts.clone())
                 },
-                network_mode: network_mode.clone(),
+                network_mode,
                 ..Default::default()
             },
             resources: Resources {
                 memory: memory_bytes,
-                nano_cpus: config.cpus.map(|c| c as i64 * 1_000_000_000),
+                nano_cpus: config.cpus.map(|c| i64::from(c) * 1_000_000_000),
                 devices: if config.devices.is_empty() {
                     None
                 } else {
@@ -647,13 +690,7 @@ impl ContainerHandle {
             env: if config.env.is_empty() {
                 None
             } else {
-                Some(
-                    config
-                        .env
-                        .iter()
-                        .map(|(k, v)| format!("{k}={v}"))
-                        .collect(),
-                )
+                Some(config.env.iter().map(|(k, v)| format!("{k}={v}")).collect())
             },
             cmd: config.command.clone(),
             exposed_ports: if exposed_ports.is_empty() {
@@ -675,7 +712,11 @@ impl ContainerHandle {
         // connecting afterwards) means the container is resolvable by alias from
         // the moment it starts, with no window where a peer could miss it.
         // A container sharing the caller's namespace has no endpoint of its own.
-        let named_network = if config.share_caller_network { None } else { config.network.as_ref() };
+        let named_network = if config.share_caller_network {
+            None
+        } else {
+            config.network.as_ref()
+        };
         let networking_config = match (named_network, config.network_aliases.is_empty()) {
             (Some(network), false) => {
                 let mut endpoints_config = HashMap::new();
@@ -706,9 +747,7 @@ impl ContainerHandle {
         let info = docker
             .inspect_container(container_id)
             .await
-            .map_err(|e| {
-                docker_err(classify_docker_client_err("inspect_container", e))
-            })?;
+            .map_err(|e| docker_err(classify_docker_client_err("inspect_container", e)))?;
 
         let mut ports = HashMap::new();
 
@@ -726,10 +765,7 @@ impl ContainerHandle {
                     if let Some(binding) = bindings.get(&key) {
                         if let Some(arr) = binding.as_array() {
                             if let Some(first) = arr.first() {
-                                if let Some(hp) = first
-                                    .get("HostPort")
-                                    .and_then(|v| v.as_str())
-                                {
+                                if let Some(hp) = first.get("HostPort").and_then(|v| v.as_str()) {
                                     if let Ok(port) = hp.parse::<u16>() {
                                         ports.insert(key, port);
                                     }
@@ -751,9 +787,9 @@ impl Drop for ContainerHandle {
         let id = self.container_id.clone();
         let timeout = self.stop_timeout;
 
-        let _ = crate::block_on(async move {
+        crate::block_on(async move {
             if let Err(e) = docker
-                .stop_container(&id, Some(timeout as u32))
+                .stop_container(&id, Some(stop_timeout_secs(timeout)))
                 .await
             {
                 warn!(container_id = %id, "drop: failed to stop container: {e}");
@@ -765,6 +801,10 @@ impl Drop for ContainerHandle {
     }
 }
 
+// `docker`, `container_name` and `stop_timeout` are intentionally omitted: the
+// client has no Debug, the name duplicates `container_id`, and the timeout is
+// minor.
+#[allow(clippy::missing_fields_in_debug)]
 impl std::fmt::Debug for ContainerHandle {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ContainerHandle")

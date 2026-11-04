@@ -3,7 +3,6 @@
 /// Uses EVFILT_VNODE to track file system changes: WRITE, DELETE, EXTEND, RENAME, REVOKE.
 /// The kqueue fd is shared with our poll selector — EVFILT_VNODE events are distinguished
 /// by their filter field from EVFILT_READ/WRITE events.
-
 use std::collections::HashMap;
 use std::io;
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
@@ -11,9 +10,9 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 use std::{fs, mem};
 
+use crate::native::poll::{Poll, Registry, Token};
 use crate::shared::error::{Result, WatchError};
 use crate::shared::event::{WatchEvent, WatchEventKind};
-use crate::native::poll::{Poll, Registry, Token};
 use crate::shared::watcher::NativeWatcher;
 
 /// macOS/BSD kqueue-based file watcher.
@@ -106,11 +105,7 @@ impl KqueueWatcher {
 
     /// Close an fd and remove it from tracking.
     fn close_fd(&mut self, fd: i32, path: &Path) {
-        let _ = self
-            .poll
-            .registry()
-            .selector()
-            .deregister_vnode(fd);
+        let _ = self.poll.registry().selector().deregister_vnode(fd);
         unsafe { libc::close(fd) };
         self.fd_to_path.remove(&fd);
         self.path_to_fd.remove(path);

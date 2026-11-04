@@ -37,7 +37,7 @@ percent-encoding = { version = "2.3", default-features = false, features = ["all
 libm = "0.2"
 itoa = "1.0"
 ryu = "1.0"
-fancy-regex = { version = "0.18", optional = true }
+fancy-regex = { version = "0.20", optional = true }
 tracing = { version = "0.1", optional = true }
 
 [dev-dependencies]

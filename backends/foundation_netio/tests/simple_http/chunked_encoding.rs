@@ -161,7 +161,10 @@ fn test_cr_in_chunk_data_preserved_at_various_positions() {
     // Every CR was inside chunk data, so every CR must survive — including the
     // one at the very end of a chunk, right against the framing delimiter.
     let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
-    assert_eq!(cr_count, 3, "CRs in chunk data are content and must be kept");
+    assert_eq!(
+        cr_count, 3,
+        "CRs in chunk data are content and must be kept"
+    );
 
     let expected = b"\rstartmid\rdleend\r";
     assert_eq!(

@@ -41,6 +41,10 @@ pub struct UpstreamAuthSession {
     pub ttl_seconds: u64,
     /// Whether this session has been consumed (one-time use).
     pub consumed: bool,
+    /// The OAuth client that asked for the login. The authorization code made
+    /// at the end of the flow is bound to it.
+    #[serde(default)]
+    pub client_id: Option<String>,
 }
 
 impl UpstreamAuthSession {
@@ -53,7 +57,22 @@ impl UpstreamAuthSession {
         redirect_to: Option<String>,
         ttl_seconds: u64,
     ) -> Self {
-        Self::with_app_state(state, provider_id, code_verifier, nonce, redirect_to, ttl_seconds, None)
+        Self::with_app_state(
+            state,
+            provider_id,
+            code_verifier,
+            nonce,
+            redirect_to,
+            ttl_seconds,
+            None,
+        )
+    }
+
+    /// Bind the session to the client that asked for the login.
+    #[must_use]
+    pub fn with_client_id(mut self, client_id: impl Into<String>) -> Self {
+        self.client_id = Some(client_id.into());
+        self
     }
 
     #[must_use]
@@ -69,7 +88,8 @@ impl UpstreamAuthSession {
         let now = SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
             .unwrap_or_default()
-            .as_millis() as u64;
+            .as_millis();
+        let now = u64::try_from(now).unwrap_or_default();
         Self {
             state,
             provider_id,
@@ -80,6 +100,7 @@ impl UpstreamAuthSession {
             created_at: now,
             ttl_seconds,
             consumed: false,
+            client_id: None,
         }
     }
 
@@ -90,7 +111,7 @@ impl UpstreamAuthSession {
             .duration_since(SystemTime::UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs();
-        (now as u64) > self.created_at / 1000 + self.ttl_seconds
+        now > self.created_at / 1000 + self.ttl_seconds
     }
 }
 
@@ -152,6 +173,10 @@ pub trait UpstreamAuthSessionStore: Send + Sync {
     fn take(&self, state: &str) -> Result<UpstreamAuthSession, AuthSessionError>;
 
     /// Remove a session without consuming it (cleanup).
+    ///
+    /// # Errors
+    ///
+    /// Returns `AuthSessionError::Storage` if the storage back end fails.
     fn delete(&self, state: &str) -> Result<(), AuthSessionError>;
 }
 
@@ -167,7 +192,7 @@ pub const DEFAULT_AUTH_SESSION_TTL_SECS: u64 = 600;
 // ---------------------------------------------------------------------------
 
 pub mod memory {
-    use super::*;
+    use super::{AuthSessionError, UpstreamAuthSession, UpstreamAuthSessionStore};
     use std::collections::HashMap;
     use std::sync::Mutex;
 
@@ -193,17 +218,19 @@ pub mod memory {
 
     impl UpstreamAuthSessionStore for MemoryAuthSessionStore {
         fn insert(&self, session: &UpstreamAuthSession) -> Result<(), AuthSessionError> {
-            let mut map = self.sessions.lock().map_err(|e| {
-                AuthSessionError::Storage(format!("mutex poisoned: {e}"))
-            })?;
+            let mut map = self
+                .sessions
+                .lock()
+                .map_err(|e| AuthSessionError::Storage(format!("mutex poisoned: {e}")))?;
             map.insert(session.state.clone(), session.clone());
             Ok(())
         }
 
         fn take(&self, state: &str) -> Result<UpstreamAuthSession, AuthSessionError> {
-            let mut map = self.sessions.lock().map_err(|e| {
-                AuthSessionError::Storage(format!("mutex poisoned: {e}"))
-            })?;
+            let mut map = self
+                .sessions
+                .lock()
+                .map_err(|e| AuthSessionError::Storage(format!("mutex poisoned: {e}")))?;
             let session = map.remove(state).ok_or(AuthSessionError::NotFound)?;
             if session.consumed {
                 return Err(AuthSessionError::AlreadyConsumed);
@@ -215,83 +242,12 @@ pub mod memory {
         }
 
         fn delete(&self, state: &str) -> Result<(), AuthSessionError> {
-            let mut map = self.sessions.lock().map_err(|e| {
-                AuthSessionError::Storage(format!("mutex poisoned: {e}"))
-            })?;
+            let mut map = self
+                .sessions
+                .lock()
+                .map_err(|e| AuthSessionError::Storage(format!("mutex poisoned: {e}")))?;
             map.remove(state);
             Ok(())
         }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use memory::MemoryAuthSessionStore;
-
-    #[test]
-    fn session_insert_and_take_round_trips() {
-        let store = MemoryAuthSessionStore::new();
-        let session = UpstreamAuthSession::new(
-            "state-abc123".into(),
-            "google".into(),
-            Some("pkce-verifier".into()),
-            Some("nonce-123".into()),
-            Some("https://app.example.com/dashboard".into()),
-            600,
-        );
-
-        store.insert(&session).expect("insert");
-        let taken = store.take("state-abc123").expect("take");
-        assert_eq!(taken.provider_id, "google");
-        assert_eq!(taken.code_verifier.unwrap(), "pkce-verifier");
-        assert_eq!(taken.nonce.unwrap(), "nonce-123");
-        assert_eq!(taken.redirect_to.unwrap(), "https://app.example.com/dashboard");
-    }
-
-    #[test]
-    fn take_removes_session_one_time_only() {
-        let store = MemoryAuthSessionStore::new();
-        let session = UpstreamAuthSession::new(
-            "state-xyz".into(),
-            "github".into(),
-            None,
-            None,
-            None,
-            600,
-        );
-        store.insert(&session).expect("insert");
-        let _first = store.take("state-xyz").expect("first take");
-        let second = store.take("state-xyz");
-        assert!(matches!(second, Err(AuthSessionError::NotFound)));
-    }
-
-    #[test]
-    fn not_found_returns_error() {
-        let store = MemoryAuthSessionStore::new();
-        let err = store.take("nonexistent").unwrap_err();
-        assert!(matches!(err, AuthSessionError::NotFound));
-    }
-
-    #[test]
-    fn expired_session_returns_error() {
-        let store = MemoryAuthSessionStore::new();
-        let mut session = UpstreamAuthSession::new(
-            "expired-state".into(),
-            "google".into(),
-            None,
-            None,
-            None,
-            1, // 1-second TTL
-        );
-        // Fake expiry — set created_at to 2 seconds ago
-        session.created_at = session.created_at.saturating_sub(2000);
-        store.insert(&session).expect("insert");
-        let err = store.take("expired-state").unwrap_err();
-        assert!(matches!(err, AuthSessionError::Expired));
     }
 }

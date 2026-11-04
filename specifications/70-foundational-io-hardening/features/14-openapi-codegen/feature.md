@@ -1,6 +1,6 @@
 ---
 feature: "OpenAPI generator: typed booleans and arrays in queries, typed D1 read replication, inline tests, genapi flags"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: []
 branch: "fix/io-14-openapi-codegen"

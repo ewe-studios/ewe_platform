@@ -47,7 +47,8 @@ where
     M: Serialize + DeserializeOwned,
 {
     fn marshal(&self, message: &M) -> Result<Bytes, CodecError> {
-        let bytes = serde_json::to_vec(message).map_err(|e| CodecError::encode(NAME, e.to_string()))?;
+        let bytes =
+            serde_json::to_vec(message).map_err(|e| CodecError::encode(NAME, e.to_string()))?;
         Ok(Bytes::from(bytes))
     }
 
@@ -66,6 +67,7 @@ where
     }
 
     fn marshal_append(&self, buf: &mut Vec<u8>, message: &M) -> Result<(), CodecError> {
-        serde_json::to_writer(&mut *buf, message).map_err(|e| CodecError::encode(NAME, e.to_string()))
+        serde_json::to_writer(&mut *buf, message)
+            .map_err(|e| CodecError::encode(NAME, e.to_string()))
     }
 }

@@ -10,12 +10,12 @@
 use std::path::PathBuf;
 
 use foundation_core::valtron::{initialize_pool, PoolGuard};
-use foundation_nativeapis::shared::vfs::{
-    DeltaStore, OpenMode, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem,
-};
 use foundation_nativeapis::native::vfs::libsql_delta::LibsqlDelta;
 use foundation_nativeapis::shared::vfs::exec_async::exec_async;
 use foundation_nativeapis::shared::vfs::SyncFs;
+use foundation_nativeapis::shared::vfs::{
+    DeltaStore, OpenMode, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem,
+};
 
 /// Opens a `LibsqlDelta` and wraps it in `SyncFs`, the sync face of an
 /// I/O-backed store.

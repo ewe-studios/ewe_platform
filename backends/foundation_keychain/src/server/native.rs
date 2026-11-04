@@ -105,9 +105,14 @@ fn register_routes(app: &mut HttpApp<Arc<dyn Serve>>) {
 }
 
 /// Serialize a handler result into `(200, json)`.
-fn ser_ok<T: serde::Serialize>(r: Result<T, AppError>) -> Result<(u16, serde_json::Value), AppError> {
+fn ser_ok<T: serde::Serialize>(
+    r: Result<T, AppError>,
+) -> Result<(u16, serde_json::Value), AppError> {
     let v = r?;
-    Ok((200, serde_json::to_value(v).map_err(|e| AppError::Internal(e.to_string()))?))
+    Ok((
+        200,
+        serde_json::to_value(v).map_err(|e| AppError::Internal(e.to_string()))?,
+    ))
 }
 
 /// Handle the feature-009 provisioning routes (app registry + SSH keys). Returns
@@ -132,7 +137,10 @@ async fn provisioning_route(
         return Some(ser_ok(apps::register(ctx, req).await));
     }
 
-    let is_provisioning = matches!(segments, ["api", "apps", ..] | ["api", "credentials", "ssh-keys", ..]);
+    let is_provisioning = matches!(
+        segments,
+        ["api", "apps", ..] | ["api", "credentials", "ssh-keys", ..]
+    );
     if !is_provisioning {
         return None;
     }
@@ -150,19 +158,15 @@ async fn provisioning_route(
 
     let result = match (method, segments) {
         ("GET", ["api", "apps", id]) => ser_ok(apps::get(ctx, app_id, id).await),
-        ("DELETE", ["api", "apps", id]) => {
-            match apps::delete(ctx, app_id, id).await {
-                Ok(()) => Ok((200, serde_json::Value::Null)),
-                Err(e) => Err(e),
-            }
-        }
+        ("DELETE", ["api", "apps", id]) => match apps::delete(ctx, app_id, id).await {
+            Ok(()) => Ok((200, serde_json::Value::Null)),
+            Err(e) => Err(e),
+        },
         ("GET", ["api", "credentials", "ssh-keys"]) => ser_ok(ssh_keys::list(ctx, app_id).await),
-        ("POST", ["api", "credentials", "ssh-keys"]) => {
-            match serde_json::from_str(body) {
-                Ok(req) => ser_ok(ssh_keys::create(ctx, master_key, app_id, req).await),
-                Err(e) => Err(AppError::BadRequest(format!("invalid body: {e}"))),
-            }
-        }
+        ("POST", ["api", "credentials", "ssh-keys"]) => match serde_json::from_str(body) {
+            Ok(req) => ser_ok(ssh_keys::create(ctx, master_key, app_id, req).await),
+            Err(e) => Err(AppError::BadRequest(format!("invalid body: {e}"))),
+        },
         ("GET", ["api", "credentials", "ssh-keys", id]) => {
             ser_ok(ssh_keys::get(ctx, master_key, app_id, id).await)
         }
@@ -172,7 +176,9 @@ async fn provisioning_route(
                 Err(e) => Err(e),
             }
         }
-        _ => Err(AppError::NotFound(format!("no provisioning route for {method}"))),
+        _ => Err(AppError::NotFound(format!(
+            "no provisioning route for {method}"
+        ))),
     };
     Some(result)
 }
@@ -199,7 +205,13 @@ impl Serve for ServeAdapter {
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let method = format!("{:?}", req.method);
-        let path = req.request_url.url.split('?').next().unwrap_or("").to_string();
+        let path = req
+            .request_url
+            .url
+            .split('?')
+            .next()
+            .unwrap_or("")
+            .to_string();
         let segments: Vec<&str> = path.trim_matches('/').split('/').collect();
         let body = read_body(req.body.take());
         let bearer = req
@@ -213,7 +225,12 @@ impl Serve for ServeAdapter {
 
         // Feature-009 provisioning routes take precedence; else the vault router.
         let outcome = match poll_ready(provisioning_route(
-            &self.ctx, &master_key, &method, &segments, &body, bearer.as_deref(),
+            &self.ctx,
+            &master_key,
+            &method,
+            &segments,
+            &body,
+            bearer.as_deref(),
         )) {
             Some(result) => result,
             None => poll_ready(route(&self.ctx, &method, &path, &body, bearer.as_deref())),
@@ -286,16 +303,30 @@ fn write_json(
     status: u16,
     body: &serde_json::Value,
 ) -> Result<(), ErrorTrace<ServeError>> {
-    let bytes = serde_json::to_vec(body)
-        .map_err(|e| ErrorTrace::new(ServeError::InternalError { status: 500, reason: e.to_string() }))?;
+    let bytes = serde_json::to_vec(body).map_err(|e| {
+        ErrorTrace::new(ServeError::InternalError {
+            status: 500,
+            reason: e.to_string(),
+        })
+    })?;
     let response = SimpleOutgoingResponse::builder()
         .with_status(status_code(status))
         .add_header(SimpleHeader::CONTENT_TYPE, "application/json")
         .with_body(SendSafeBody::Bytes(bytes))
         .build()
-        .map_err(|e| ErrorTrace::new(ServeError::InternalError { status: 500, reason: e.to_string() }))?;
+        .map_err(|e| {
+            ErrorTrace::new(ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })
+        })?;
     Http11::response(response)
         .http_render_to_writer(conn)
         .map(|_| ())
-        .map_err(|e| ErrorTrace::new(ServeError::InternalError { status: 500, reason: e.to_string() }))
+        .map_err(|e| {
+            ErrorTrace::new(ServeError::InternalError {
+                status: 500,
+                reason: e.to_string(),
+            })
+        })
 }

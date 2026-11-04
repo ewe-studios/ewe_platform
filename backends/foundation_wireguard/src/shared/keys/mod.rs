@@ -14,7 +14,7 @@
 use base64::engine::general_purpose::{STANDARD as B64_STD, URL_SAFE_NO_PAD};
 use base64::Engine as _;
 use blake2::Blake2s256;
-use boringtun::x25519::{PublicKey, StaticSecret};
+use foundation_boringtun::x25519::{PublicKey, StaticSecret};
 use hkdf::SimpleHkdf;
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroizing;
@@ -89,9 +89,9 @@ impl NetworkId {
     #[must_use]
     pub fn from_hex(s: &str) -> WgResult<Self> {
         let bytes = hex::decode(s.trim())?;
-        let arr: [u8; 16] = bytes
-            .try_into()
-            .map_err(|_| WgError::InvalidKey("network id must be 16 bytes (32 hex chars)".into()))?;
+        let arr: [u8; 16] = bytes.try_into().map_err(|_| {
+            WgError::InvalidKey("network id must be 16 bytes (32 hex chars)".into())
+        })?;
         Ok(Self(arr))
     }
 }
@@ -257,8 +257,11 @@ impl WgSeed {
         let hk = self.hkdf();
 
         let mut sk_bytes = [0u8; 32];
-        hk.expand_multi_info(&[INFO_BOOTSTRAP_X25519, network_id.as_bytes()], &mut sk_bytes)
-            .expect("32 bytes within HKDF limits");
+        hk.expand_multi_info(
+            &[INFO_BOOTSTRAP_X25519, network_id.as_bytes()],
+            &mut sk_bytes,
+        )
+        .expect("32 bytes within HKDF limits");
         clamp_x25519(&mut sk_bytes);
         let static_secret = StaticSecret::from(sk_bytes);
         let public = PublicKey::from(&static_secret);

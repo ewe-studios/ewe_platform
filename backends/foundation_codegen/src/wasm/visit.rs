@@ -20,9 +20,9 @@
 #![warn(missing_docs)]
 
 use crate::wasm::io::{DecodeError, PathItem};
+pub(crate) use foundation_macros::Visit;
 use std::convert::Infallible;
 use thiserror::Error;
-pub(crate) use foundation_macros::Visit;
 
 /// Error type for [Visit] traversals.
 #[derive(Error, Debug)]

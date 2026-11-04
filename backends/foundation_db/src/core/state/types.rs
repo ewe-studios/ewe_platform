@@ -79,6 +79,18 @@ impl ResourceState {
         self.config_hash != new_config_hash
     }
 
+    /// A copy of this state with `id` set to `resource_id`.
+    ///
+    /// Every `StateStore::set` keys the write by its `resource_id` argument, so
+    /// the stored state must carry that id too. Backends call this once instead
+    /// of rewriting `id` themselves.
+    #[must_use]
+    pub fn with_id(&self, resource_id: &str) -> Self {
+        let mut state = self.clone();
+        state.id = resource_id.to_string();
+        state
+    }
+
     /// Check if this resource needs deployment.
     ///
     /// A resource needs deployment if:

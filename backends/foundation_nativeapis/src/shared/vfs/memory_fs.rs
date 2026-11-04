@@ -11,9 +11,7 @@ use super::async_traits::{
 use super::error::{VfsError, VfsResult};
 use super::path_utils::{file_name, normalize_vfs_path, parent_path};
 use super::traits::{SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
-use super::types::{
-    OpenMode, VfsCapabilities, VfsDirEntry, VfsFileType, VfsMetadata,
-};
+use super::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsFileType, VfsMetadata};
 
 const MAX_SYMLINK_HOPS: usize = 40;
 const DEFAULT_DIR_PERMS: u32 = 0o755;
@@ -605,11 +603,11 @@ impl VfsFileSystem for MemoryFs {
 
     fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
         let inner = self.inner.read().unwrap();
-        inner
-            .ino_to_path
-            .get(&ino)
-            .cloned()
-            .ok_or_else(|| ErrorTrace::new(VfsError::NotFound { path: format!("inode:{ino}") }))
+        inner.ino_to_path.get(&ino).cloned().ok_or_else(|| {
+            ErrorTrace::new(VfsError::NotFound {
+                path: format!("inode:{ino}"),
+            })
+        })
     }
 
     fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
@@ -841,9 +839,7 @@ impl VfsFileSystem for MemoryFs {
         let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS);
         metadata.version = version;
         inner.ino_to_path.insert(ino, path.clone());
-        inner
-            .nodes
-            .insert(path, MemoryNode::Directory { metadata });
+        inner.nodes.insert(path, MemoryNode::Directory { metadata });
         Ok(())
     }
 
@@ -889,13 +885,9 @@ impl VfsFileSystem for MemoryFs {
                 let mut metadata = VfsMetadata::new_file(ino, data.len() as u64, 0o644);
                 metadata.version = version;
                 inner.ino_to_path.insert(ino, path.clone());
-                inner.nodes.insert(
-                    path,
-                    MemoryNode::File {
-                        content,
-                        metadata,
-                    },
-                );
+                inner
+                    .nodes
+                    .insert(path, MemoryNode::File { content, metadata });
                 Ok(())
             }
         }
@@ -1034,7 +1026,11 @@ impl AsyncVfsDirectory for MemoryDirectory {
         VfsDirectory::open(self, &path, mode)
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         VfsDirectory::open_seekable(self, &path, mode)
     }
 
@@ -1065,9 +1061,14 @@ pub struct AsyncMemoryDirectory {
 }
 
 impl AsyncMemoryDirectory {
-    fn from_sync(dir: Box<dyn VfsDirectory<File = MemoryFile, SeekableFile = SeekableMemoryFile>>) -> Self {
+    fn from_sync(
+        dir: Box<dyn VfsDirectory<File = MemoryFile, SeekableFile = SeekableMemoryFile>>,
+    ) -> Self {
         let cached_path = dir.path().to_string();
-        Self { inner: dir, cached_path }
+        Self {
+            inner: dir,
+            cached_path,
+        }
     }
 }
 
@@ -1117,7 +1118,11 @@ impl AsyncVfsDirectory for AsyncMemoryDirectory {
         self.inner.open(&path, mode)
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         self.inner.open_seekable(&path, mode)
     }
 
@@ -1181,7 +1186,11 @@ impl AsyncVfsFileSystem for MemoryFs {
         VfsFileSystem::open(self, &path, mode)
     }
 
-    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+    async fn open_seekable_async(
+        &self,
+        path: String,
+        mode: OpenMode,
+    ) -> VfsResult<Self::SeekableFile> {
         VfsFileSystem::open_seekable(self, &path, mode)
     }
 

@@ -4,13 +4,13 @@
 /// shared memory (MemoryRegion), custom message types, and reconnection.
 #[cfg(all(target_os = "linux", feature = "ipc"))]
 mod tests {
+    use foundation_macros::{MessageBox, TypeUuid};
     use foundation_nativeapis::ipc::{
         join, BytesMessage, Label, LabelOp, MemoryRegion, Message, Options, Selector,
     };
     use serde::{Deserialize, Serialize};
     use std::thread;
     use std::time::Duration;
-    use foundation_macros::{TypeUuid, MessageBox};
 
     fn unique_bus(name: &str) -> String {
         format!(
@@ -63,8 +63,7 @@ mod tests {
 
         let bus_clone = bus.clone();
         let ctrl = thread::spawn(move || {
-            let opts =
-                Options::new(&bus_clone, Label::new("controller")).controller_affinity(true);
+            let opts = Options::new(&bus_clone, Label::new("controller")).controller_affinity(true);
             let (_sender, mut receiver) =
                 join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
                     .expect("controller join");
@@ -103,8 +102,7 @@ mod tests {
         let bus = unique_bus("custom-type");
         let opts = Options::new(&bus, Label::new("node")).controller_affinity(true);
         let (sender, mut receiver) =
-            join::<TestEvent, TestEvent>(opts, Some(Duration::from_secs(5)))
-                .expect("join failed");
+            join::<TestEvent, TestEvent>(opts, Some(Duration::from_secs(5))).expect("join failed");
 
         let event = TestEvent {
             path: "/src/main.rs".into(),
@@ -142,8 +140,7 @@ mod tests {
 
         let opts = Options::new(&bus, Label::new("a")).controller_affinity(true);
         let (sender, mut receiver_a) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("a join");
+            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5))).expect("a join");
 
         thread::sleep(Duration::from_millis(300));
 
@@ -172,8 +169,9 @@ mod tests {
         let bus_c = bus.clone();
         let target = thread::spawn(move || {
             let opts = Options::new(&bus_c, Label::new("target")).controller_affinity(true);
-            let (_s, mut r) = join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("target join");
+            let (_s, mut r) =
+                join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
+                    .expect("target join");
             r.recv(Some(Duration::from_secs(5)))
                 .expect("target recv")
                 .payload
@@ -185,17 +183,17 @@ mod tests {
         let bus_c = bus.clone();
         let other = thread::spawn(move || {
             let opts = Options::new(&bus_c, Label::new("other")).controller_affinity(false);
-            let (_s, mut r) = join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("other join");
+            let (_s, mut r) =
+                join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
+                    .expect("other join");
             r.recv(Some(Duration::from_millis(500)))
         });
 
         thread::sleep(Duration::from_millis(100));
 
         let opts = Options::new(&bus, Label::new("sender")).controller_affinity(false);
-        let (sender, _r) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("sender join");
+        let (sender, _r) = join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
+            .expect("sender join");
 
         let msg = Message::new(
             Selector::unicast(LabelOp::Leaf("target".into())),
@@ -263,8 +261,9 @@ mod tests {
             let opts = Options::new(&bus_c, Label::new("ctrl"))
                 .controller_affinity(true)
                 .token("secret123");
-            let (_s, mut r) = join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("ctrl join");
+            let (_s, mut r) =
+                join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
+                    .expect("ctrl join");
             let _ = r.recv(Some(Duration::from_secs(3)));
         });
 
@@ -285,8 +284,7 @@ mod tests {
         let bus = unique_bus("sequence");
         let opts = Options::new(&bus, Label::new("seq")).controller_affinity(true);
         let (sender, mut receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("join");
+            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5))).expect("join");
 
         for i in 0..10u16 {
             let msg = Message::new(
@@ -300,9 +298,7 @@ mod tests {
         }
 
         for i in 0..10u16 {
-            let received = receiver
-                .recv(Some(Duration::from_secs(2)))
-                .expect("recv");
+            let received = receiver.recv(Some(Duration::from_secs(2))).expect("recv");
             assert_eq!(received.payload.format, i);
             assert_eq!(received.payload.data, format!("msg-{i}").into_bytes());
         }
@@ -315,8 +311,7 @@ mod tests {
         let bus = unique_bus("clone-send");
         let opts = Options::new(&bus, Label::new("hub")).controller_affinity(true);
         let (sender, mut receiver) =
-            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("join");
+            join::<BytesMessage, BytesMessage>(opts, Some(Duration::from_secs(5))).expect("join");
 
         let mut handles = vec![];
         for i in 0..4u16 {
@@ -339,9 +334,7 @@ mod tests {
 
         let mut received_formats = vec![];
         for _ in 0..4 {
-            let msg = receiver
-                .recv(Some(Duration::from_secs(2)))
-                .expect("recv");
+            let msg = receiver.recv(Some(Duration::from_secs(2))).expect("recv");
             received_formats.push(msg.payload.format);
         }
         received_formats.sort();
@@ -375,8 +368,7 @@ mod tests {
         let bus = unique_bus("hetero");
         let opts = Options::new(&bus, Label::new("app")).controller_affinity(true);
         let (sender, mut receiver) =
-            join::<AppMessage, AppMessage>(opts, Some(Duration::from_secs(5)))
-                .expect("join");
+            join::<AppMessage, AppMessage>(opts, Some(Duration::from_secs(5))).expect("join");
 
         // Send a FileEvent
         sender
@@ -407,7 +399,10 @@ mod tests {
                 assert_eq!(e.path, "/src/main.rs");
                 assert_eq!(e.kind, 1);
             }
-            _ => panic!("expected FileEvent, got {:?}", std::mem::discriminant(&msg1.payload)),
+            _ => panic!(
+                "expected FileEvent, got {:?}",
+                std::mem::discriminant(&msg1.payload)
+            ),
         }
 
         let msg2 = receiver.recv(Some(Duration::from_secs(2))).expect("recv 2");

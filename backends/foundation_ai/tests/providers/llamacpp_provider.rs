@@ -5,7 +5,7 @@ use foundation_ai::types::base_types::{ModelParams, ModelProvider};
 #[test]
 fn test_build_sampler_chain_default() {
     let params = ModelParams::default();
-    let sampler = build_sampler_chain(&params);
+    let sampler = build_sampler_chain(&params, 32_000);
     // Sampler should be created without panicking
     assert!(!sampler.sampler.is_null());
 }
@@ -16,7 +16,7 @@ fn test_build_sampler_chain_with_temperature() {
         temperature: 0.7,
         ..Default::default()
     };
-    let sampler = build_sampler_chain(&params);
+    let sampler = build_sampler_chain(&params, 32_000);
     assert!(!sampler.sampler.is_null());
 }
 
@@ -26,7 +26,7 @@ fn test_build_sampler_chain_greedy() {
         temperature: 0.0,
         ..Default::default()
     };
-    let sampler = build_sampler_chain(&params);
+    let sampler = build_sampler_chain(&params, 32_000);
     assert!(!sampler.sampler.is_null());
 }
 

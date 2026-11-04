@@ -1,4 +1,4 @@
-//! Refresh token entity for the IdP server.
+//! Refresh token entity for the `IdP` server.
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -43,4 +43,3 @@ fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
         .fold(0u8, |acc, (x, y)| acc | (x ^ y))
         == 0
 }
-

@@ -29,7 +29,10 @@ fn extract_header_strips_whitespace() {
 
 #[test]
 fn extract_path_from_get() {
-    assert_eq!(extract_path("GET /api/health HTTP/1.1\r\nHost: x\r\n\r\n"), "/api/health");
+    assert_eq!(
+        extract_path("GET /api/health HTTP/1.1\r\nHost: x\r\n\r\n"),
+        "/api/health"
+    );
 }
 
 #[test]

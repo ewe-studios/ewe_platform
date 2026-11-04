@@ -16,10 +16,7 @@ impl TaskIterator for TestTask {
     type Ready = u32;
     type Pending = String;
 
-    fn next_status(
-        &mut self,
-        _ctx: Ctx,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         self.items.pop()
     }
 }
@@ -56,7 +53,10 @@ fn test_map_pending() {
     let mut mapped = task.map_pending(|s| s.len());
 
     assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Ready(5)));
-    assert_eq!(mapped.next_status(ctx.clone()), Some(TaskStatus::Pending(4)));
+    assert_eq!(
+        mapped.next_status(ctx.clone()),
+        Some(TaskStatus::Pending(4))
+    );
 }
 
 #[test]
@@ -73,7 +73,10 @@ fn test_filter_ready() {
     // pop() returns: Ready(5), Ready(10), Ready(3)
     // filter: 5 > 5 = false → Ignore, 10 > 5 = true → Ready(10), 3 > 5 = false → Ignore
     assert_eq!(filtered.next_status(ctx.clone()), Some(TaskStatus::Ignore)); // 5 was filtered out
-    assert_eq!(filtered.next_status(ctx.clone()), Some(TaskStatus::Ready(10)));
+    assert_eq!(
+        filtered.next_status(ctx.clone()),
+        Some(TaskStatus::Ready(10))
+    );
     assert_eq!(filtered.next_status(ctx.clone()), Some(TaskStatus::Ignore)); // 3 was filtered out
     assert_eq!(filtered.next_status(ctx.clone()), None);
 }
@@ -234,10 +237,7 @@ fn test_map_iter_flattens_nested_iterators() {
         type Ready = Vec<u32>;
         type Pending = String;
 
-        fn next_status(
-            &mut self,
-            _ctx: Ctx,
-        ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
             self.items.next()
         }
     }
@@ -250,20 +250,13 @@ fn test_map_iter_flattens_nested_iterators() {
         items: items.into_iter(),
     };
 
-    let mut flattened: foundation_core::valtron::TMapIter<
-        _,
-        _,
-        _,
-        u32,
-        String,
-        Vec<u32>,
-        String,
-    > = task.map_iter(|vec| {
-        vec.into_iter()
-            .map(TaskStatus::Ready)
-            .collect::<Vec<_>>()
-            .into_iter()
-    });
+    let mut flattened: foundation_core::valtron::TMapIter<_, _, _, u32, String, Vec<u32>, String> =
+        task.map_iter(|vec| {
+            vec.into_iter()
+                .map(TaskStatus::Ready)
+                .collect::<Vec<_>>()
+                .into_iter()
+        });
 
     // Should flatten: 1, 2, 3, 4, 5
     assert!(matches!(
@@ -301,10 +294,7 @@ fn test_map_iter_passes_through_pending() {
         type Ready = Vec<u32>;
         type Pending = String;
 
-        fn next_status(
-            &mut self,
-            _ctx: Ctx,
-        ) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
+        fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
             self.items.next()
         }
     }
@@ -318,20 +308,13 @@ fn test_map_iter_passes_through_pending() {
         items: items.into_iter(),
     };
 
-    let mut flattened: foundation_core::valtron::TMapIter<
-        _,
-        _,
-        _,
-        u32,
-        String,
-        Vec<u32>,
-        String,
-    > = task.map_iter(|vec| {
-        vec.into_iter()
-            .map(TaskStatus::Ready)
-            .collect::<Vec<_>>()
-            .into_iter()
-    });
+    let mut flattened: foundation_core::valtron::TMapIter<_, _, _, u32, String, Vec<u32>, String> =
+        task.map_iter(|vec| {
+            vec.into_iter()
+                .map(TaskStatus::Ready)
+                .collect::<Vec<_>>()
+                .into_iter()
+        });
 
     // Should flatten with pending passed through
     assert!(matches!(

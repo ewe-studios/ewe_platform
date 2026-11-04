@@ -54,7 +54,11 @@ enum Pump {
 
 impl HalfRelay {
     fn new() -> Self {
-        Self { pending: Vec::new(), written: 0, flushing: false }
+        Self {
+            pending: Vec::new(),
+            written: 0,
+            flushing: false,
+        }
     }
 
     /// Move one step of `src → dst`: finish an outstanding flush, drain buffered
@@ -352,7 +356,10 @@ fn relay_udp(socket: UdpSocket, backend_addr: &str, shutdown: &Arc<OnSignal>) {
                     }
                 }
                 if !responded {
-                    tracing::trace!("UDP relay: no response from backend within {:?}", BACKEND_RESPONSE_TIMEOUT);
+                    tracing::trace!(
+                        "UDP relay: no response from backend within {:?}",
+                        BACKEND_RESPONSE_TIMEOUT
+                    );
                 }
             }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => {}

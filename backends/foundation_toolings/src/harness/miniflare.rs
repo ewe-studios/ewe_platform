@@ -97,16 +97,14 @@ impl Miniflare {
     pub fn start_with(config: MiniflareConfig) -> Result<Self, MiniflareError> {
         if let Some(ref dir) = config.worker_dir {
             if !dir.exists() {
-                return Err(MiniflareError::WorkerDirNotFound(
-                    dir.display().to_string(),
-                ));
+                return Err(MiniflareError::WorkerDirNotFound(dir.display().to_string()));
             }
         }
 
         let tool = resolve_tool(&config.tool)?;
-        let port = config.port.unwrap_or_else(|| {
-            super::pick_unused_port().expect("no free port available")
-        });
+        let port = config
+            .port
+            .unwrap_or_else(|| super::pick_unused_port().expect("no free port available"));
 
         let mut args = build_args(&config, &tool, port);
 
@@ -410,9 +408,7 @@ pub enum MiniflareError {
     #[display("failed to spawn miniflare: {_0}")]
     SpawnFailed(std::io::Error),
 
-    #[display(
-        "miniflare did not become ready within {seconds} seconds\nstderr:\n{stderr}"
-    )]
+    #[display("miniflare did not become ready within {seconds} seconds\nstderr:\n{stderr}")]
     #[error(ignore)]
     ReadyTimeout { seconds: u64, stderr: String },
 
@@ -434,10 +430,7 @@ fn resolve_tool(tool: &MinflareTool) -> Result<PathBuf, MiniflareError> {
 }
 
 fn build_args(config: &MiniflareConfig, tool_path: &Path, port: u16) -> Vec<String> {
-    let tool_name = tool_path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("");
+    let tool_name = tool_path.file_name().and_then(|n| n.to_str()).unwrap_or("");
     let is_npx = tool_name == "npx";
 
     let mut args: Vec<String> = Vec::new();

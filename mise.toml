@@ -12,6 +12,10 @@
 
 [env]
 CARGO_TERM_COLOR = "always"
+# The wrangler the Cloudflare integration tests run. Pinned: they use its local
+# explorer REST API (/cdn-cgi/local/explorer/api), which is beta and may change.
+# `package.json` carries an older wrangler for other uses.
+WRANGLER_VERSION = "4.156.2"
 # Dev builds on Cranelift (fast compiles; needs the pinned nightly and its
 # rustc-codegen-cranelift component). Kept out of Cargo.toml/.cargo/config.toml
 # because `codegen-backend` is nightly-only and releases build on stable.
@@ -63,15 +67,17 @@ nushell = "0.116.1"
 node = "24.21.0"
 python = "3.12.15"
 pnpm = "10.34.6"
-"aqua:denoland/deno" = "2.9.7"
 cmake = "3.31.12"
 ninja = "1.13.2"
 protoc = "36.2"
 sccache = "0.18.0"
 cargo-binstall = "1.25.2"
-# Must match the wasm-bindgen version in Cargo.lock (CI checks this).
-"github:wasm-bindgen/wasm-bindgen" = "0.2.126"
 "github:wasm-bindgen/wasm-pack" = "0.15.0"
+# wasm-bindgen CLI stays pinned here so the CI image bakes it (the image's
+# version_checks reads this [tools] table and drifts-check it against
+# Cargo.lock). The wasm runtime tasks themselves live in mise.wasm.toml, which
+# pins only deno + wasm-bindgen, so a wasm task never installs every tool here.
+"github:wasm-bindgen/wasm-bindgen" = "0.2.126"
 "github:WebAssembly/binaryen" = "version_133"
 wasmtime = "49.0.2"
 actionlint = "1.7.12"
@@ -80,6 +86,7 @@ actionlint = "1.7.12"
 "cargo:bacon" = "3.26.0"
 # No Intel-macOS build (the macOS CI VM is x86_64).
 pitchfork = { version = "2.30.1", os = ["linux", "windows"] }
+# The Cloudflare integration tests run the pinned WRANGLER_VERSION (see [env]).
 # wrangler is managed via project devDependencies (pnpm), not mise —
 # mise's npm shim installs wrangler into a nested tree where sharp's
 # prebuilt-binary check fails and falls back to a node-gyp build.
@@ -115,7 +122,7 @@ echo "✓ Development environment setup complete"
 
 [tasks."setup:tools"]
 description = "Install rustfmt, clippy, rust-analyzer, cargo-nextest, cargo-audit, and C/C++ toolchains"
-depends = ["tools:llama:init", "tools:emsdk:init"]
+depends = ["tools:llama:init", "tools:emsdk:init", "tools:fff"]
 run = """
 echo "Installing development tools..."
 rustup component add rustfmt clippy rust-analyzer 2>/dev/null || true
@@ -303,6 +310,14 @@ git submodule update --init --recursive tools/emsdk
 echo "✓ emsdk submodule ready"
 """
 
+[tasks."tools:fff"]
+description = "Install fff (fast file finder + grep, replaces ripgrep) into cargo bin"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+bash "{{config_root}}/scripts/setup/fff.sh"
+"""
+
 [tasks."setup:cloudflare"]
 description = "Install Cloudflare tools (wrangler via mise)"
 depends = ["install:cloudflare"]
@@ -334,6 +349,7 @@ wasmtime --version 2>/dev/null || echo "⚠ wasmtime not installed (needed for W
 cargo nextest --version 2>/dev/null || echo "⚠ cargo-nextest not installed"
 cargo audit --version 2>/dev/null || echo "⚠ cargo-audit not installed"
 bacon --version 2>/dev/null || echo "⚠ bacon not installed"
+fff --version 2>/dev/null || echo "⚠ fff not installed (run 'mise run tools:fff')"
 echo "✓ Tool check complete"
 """
 
@@ -432,6 +448,12 @@ TARGET_TEST="${TARGET_TEST:-tests_callfunction}"
 mise run build:test-directory TEST_DIRECTORY="./tests/integrations/${TARGET_TEST}" TEST_PACKAGE="${TARGET_TEST}"
 """
 
+[tasks."ci:linux"]
+description = "Run the full CI pipeline (fmt, build, clippy, test, wasm) inside the Linux CI image, mounting the repo so it uses the latest code. Usage: mise run ci:linux -- <package> (default: all packages)."
+run = """
+bash "${PROJECT_ROOT}/scripts/ci/linux.sh" "${1:-${PACKAGE:-all}}"
+"""
+
 [tasks.clean]
 description = "Clean all build artifacts"
 run = """
@@ -524,11 +546,13 @@ run = """
 #!/usr/bin/env bash
 set -e
 
-# Kill any existing wrangler/workerd processes (workerd is the actual
-# process holding the dev-server port, and pkill -f "wrangler" misses it).
-pkill -f "wrangler" 2>/dev/null || true
-pkill -f "workerd" 2>/dev/null || true
-sleep 1
+# Stop the wrangler this task started earlier (by its saved PID only).
+if [ -f /tmp/wrangler-test.pid ]; then
+    OLD_PID=$(cat /tmp/wrangler-test.pid)
+    kill "$OLD_PID" 2>/dev/null || true
+    rm -f /tmp/wrangler-test.pid
+    sleep 1
+fi
 
 echo "Starting wrangler dev for local testing..."
 
@@ -536,15 +560,15 @@ echo "Starting wrangler dev for local testing..."
 cd "$PROJECT_ROOT"
 
 # Start wrangler dev in background with --local flag
-wrangler dev --local > "$PROJECT_ROOT/wrangler.log" 2>&1 &
+npx --yes "wrangler@${WRANGLER_VERSION}" dev --local > "$PROJECT_ROOT/wrangler.log" 2>&1 &
 WRANGLER_PID=$!
 echo $WRANGLER_PID > /tmp/wrangler-test.pid
 
 # Wait for wrangler to be ready
 echo "Waiting for wrangler to start..."
 for i in {1..30}; do
-    STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8789 2>/dev/null || echo "000")
-    if [ "$STATUS" = "200" ] || [ "$STATUS" = "404" ]; then
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8789/cdn-cgi/local/explorer/api/d1/database 2>/dev/null || echo "000")
+    if [ "$STATUS" = "200" ]; then
         echo "Wrangler is ready (PID: $WRANGLER_PID)!"
         exit 0
     fi
@@ -569,8 +593,6 @@ if [ -f /tmp/wrangler-test.pid ]; then
     fi
     rm /tmp/wrangler-test.pid
 fi
-pkill -f "wrangler" 2>/dev/null || true
-pkill -f "workerd" 2>/dev/null || true
 echo "Wrangler cleanup complete"
 """
 
@@ -593,14 +615,14 @@ trap 'mise run cf:stop' EXIT
 echo ""
 echo "=== Running R2 Tests ==="
 export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789"
-export LOCAL_R2_BUCKET="test-bucket"
+export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
+export LOCAL_R2_BUCKET="test-bucket-preview"
 cargo test --package foundation_db --test r2_blobstore_tests -- --show-output
 
 # Run D1 tests
 echo ""
 echo "=== Running D1 Tests ==="
-export LOCAL_D1_DATABASE_ID="test-db"
+export LOCAL_D1_DATABASE_ID="test-db-preview"
 cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
 
 echo ""
@@ -617,8 +639,8 @@ mise run cf:start
 trap 'mise run cf:stop' EXIT
 
 export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789"
-export LOCAL_R2_BUCKET="test-bucket"
+export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
+export LOCAL_R2_BUCKET="test-bucket-preview"
 cargo test --package foundation_db --test r2_blobstore_tests -- --show-output
 """
 
@@ -632,8 +654,8 @@ mise run cf:start
 trap 'mise run cf:stop' EXIT
 
 export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789"
-export LOCAL_D1_DATABASE_ID="test-db"
+export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
+export LOCAL_D1_DATABASE_ID="test-db-preview"
 cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
 """
 
@@ -657,8 +679,8 @@ mise run cf:start
 trap 'mise run cf:stop' EXIT
 
 export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789"
-export LOCAL_R2_BUCKET="test-bucket"
+export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
+export LOCAL_R2_BUCKET="test-bucket-preview"
 CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-r2" --test r2_delta_vfs 2>&1 | tee /tmp/vfs-r2-test.log
 test $(grep -cE '^test .* \\.\\.\\. (FAILED|ignored|ok)' /tmp/vfs-r2-test.log) -gt 0
 """
@@ -673,8 +695,8 @@ mise run cf:start
 trap 'mise run cf:stop' EXIT
 
 export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789"
-export LOCAL_D1_DATABASE_ID="test-db"
+export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
+export LOCAL_D1_DATABASE_ID="test-db-preview"
 CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-d1" --test d1_delta_vfs 2>&1 | tee /tmp/vfs-d1-test.log
 test $(grep -cE '^test .* \\.\\.\\. (FAILED|ignored|ok)' /tmp/vfs-d1-test.log) -gt 0
 """
@@ -689,15 +711,15 @@ mise run cf:start
 trap 'mise run cf:stop' EXIT
 
 export CF_INTEGRATION_TEST=1
-export LOCAL_CF_API_BASE="http://localhost:8789"
+export LOCAL_CF_API_BASE="http://localhost:8789/cdn-cgi/local/explorer/api"
 
 echo "=== Running VFS R2Delta Tests ==="
-export LOCAL_R2_BUCKET="test-bucket"
+export LOCAL_R2_BUCKET="test-bucket-preview"
 CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-r2" --test r2_delta_vfs 2>&1 | tee /tmp/vfs-r2-test.log
 
 echo ""
 echo "=== Running VFS D1Delta Tests ==="
-export LOCAL_D1_DATABASE_ID="test-db"
+export LOCAL_D1_DATABASE_ID="test-db-preview"
 CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-d1" --test d1_delta_vfs 2>&1 | tee /tmp/vfs-d1-test.log
 
 echo ""
@@ -1053,24 +1075,6 @@ description = "Run foundation_nostd stress tests"
 run = """
 echo "Running stress tests..."
 cargo test --package foundation_testing --release -- stress
-"""
-
-[tasks."test:wasm-testbed:deno"]
-alias = "test-wasm-testbed-deno"
-description = "Owned #[wasm_test] harness e2e on the EMBEDDED Deno runtime (spec-44) — in-process, zero node/deno install. Sample crate + ported JS-yield tests."
-run = """
-echo "Owned wasm-testbed sample (embedded deno, filtered green subset)..."
-cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_testbed/integration/module --filter passes
-echo "Ported foundation_core JS-yield tests (embedded deno)..."
-cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_core/integration/wasm_tests
-echo "✓ owned embedded-deno harness green"
-"""
-
-[tasks."test:wasm-bindgen:deno"]
-alias = "test-wasm-bindgen-deno"
-description = "valtron's js-wasmbindgen backend (the one Workers run) under Deno: park → wake → microtask resume, JS yield (spec 68). Needs the mise-pinned deno + wasm-bindgen."
-run = """
-cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std --filter wasm_js_yield_integration
 """
 
 [tasks."test:wasm-testbed:web"]

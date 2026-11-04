@@ -62,8 +62,14 @@ fn seed_128_and_256_supported_but_short_seeds_rejected() {
     assert_eq!(s256.as_bytes().len(), 32);
 
     // No silent defaults: anything but 16/32 bytes is a hard error.
-    assert!(WgSeed::from_bytes(&[0u8; 8]).is_err(), "8-byte seed rejected");
-    assert!(WgSeed::from_bytes(&[0u8; 24]).is_err(), "24-byte seed rejected");
+    assert!(
+        WgSeed::from_bytes(&[0u8; 8]).is_err(),
+        "8-byte seed rejected"
+    );
+    assert!(
+        WgSeed::from_bytes(&[0u8; 24]).is_err(),
+        "24-byte seed rejected"
+    );
 }
 
 #[test]

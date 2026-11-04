@@ -1,13 +1,16 @@
 /// IPC bus transport for VFS client/daemon communication.
 ///
 /// Wraps the spec-34 IPC bus (`join()`, `Message<T>`, `EndpointSender/Receiver`)
-/// to provide `VfsTransport` for the VFS client, and a `listen()` loop for the daemon.
-
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Mutex, MutexGuard, PoisonError};
+/// to provide `VfsTransport` for the VFS client, and a `listen()` loop for the
+/// daemon. Every request carries an id; the daemon copies the id into the
+/// response, so the client matches responses to requests by id, not by order.
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
 use async_trait::async_trait;
+use foundation_core::valtron::{Pipe, PipeSender};
 use foundation_errstacks::ErrorTrace;
 
 use crate::ipc::{self, join, Message, Options, Selector};
@@ -15,124 +18,255 @@ use crate::shared::ipc::Label;
 use crate::shared::vfs::exec_async::exec_async;
 use crate::shared::vfs::ipc_client::VfsTransport;
 use crate::shared::vfs::ipc_daemon::VfsDaemon;
-use crate::shared::vfs::ipc_messages::{VfsRequest, VfsResponse};
+use crate::shared::vfs::ipc_messages::{VfsRequest, VfsRequestBody, VfsResponse, VfsResponseBody};
 use crate::shared::vfs::{AsyncVfsFileSystem, VfsError, VfsResult};
 
 /// The IPC bus identifier for the VFS daemon.
 pub const VFS_BUS_IDENTIFIER: &str = "foundation-vfs";
 
-/// Client-side IPC transport — sends requests, receives responses.
+/// Config for the VFS IPC transport.
 ///
-/// Implements `VfsTransport` for the VFS client to talk to a remote daemon.
-/// The bus has no request identifiers: responses come back in request order.
-/// So one lock covers a send and its receive, and a released request (a
-/// close from `Drop`, sent without a wait) is counted, and its response is
-/// skipped before the next request reads its own.
-///
-/// The bus API is sync: `request` waits for the response on the calling
-/// thread (see the bug backlog).
-pub struct ClientTransport {
-    inner: Mutex<ClientLink>,
+/// The join timeout is the wait for the other side of the bus. The poll
+/// timeout is the longest the daemon or client reader blocks on one receive
+/// before it checks its stop flag.
+#[derive(Debug, Clone)]
+pub struct VfsIpcConfig {
+    identifier: String,
+    join_timeout: Duration,
+    poll_timeout: Duration,
 }
 
-struct ClientLink {
+impl VfsIpcConfig {
+    /// Default join timeout: 30 s. nginx's default `proxy_connect_timeout` is
+    /// 60 s; 30 s fails a missing daemon in half that time.
+    pub const DEFAULT_JOIN_TIMEOUT: Duration = Duration::from_secs(30);
+
+    /// Default poll timeout: 1 s. One stop-flag check per second; shorter than
+    /// Go's `http.Server` shutdown poll, which blocks until connections close.
+    pub const DEFAULT_POLL_TIMEOUT: Duration = Duration::from_secs(1);
+
+    /// New config with the documented defaults.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            identifier: VFS_BUS_IDENTIFIER.to_string(),
+            join_timeout: Self::DEFAULT_JOIN_TIMEOUT,
+            poll_timeout: Self::DEFAULT_POLL_TIMEOUT,
+        }
+    }
+
+    /// The bus identifier the transport joins.
+    #[must_use]
+    pub fn identifier(&self) -> &str {
+        &self.identifier
+    }
+
+    /// The wait for the other side of the bus.
+    #[must_use]
+    pub fn join_timeout(&self) -> Duration {
+        self.join_timeout
+    }
+
+    /// The longest one receive blocks before a stop-flag check.
+    #[must_use]
+    pub fn poll_timeout(&self) -> Duration {
+        self.poll_timeout
+    }
+
+    /// Set the bus identifier.
+    #[must_use]
+    pub fn with_identifier(mut self, identifier: impl Into<String>) -> Self {
+        self.identifier = identifier.into();
+        self
+    }
+
+    /// Set the join timeout.
+    #[must_use]
+    pub fn with_join_timeout(mut self, timeout: Duration) -> Self {
+        self.join_timeout = timeout;
+        self
+    }
+
+    /// Set the poll timeout.
+    #[must_use]
+    pub fn with_poll_timeout(mut self, timeout: Duration) -> Self {
+        self.poll_timeout = timeout;
+        self
+    }
+}
+
+impl Default for VfsIpcConfig {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
+    // The map is rebuilt after a panic, so a poisoned lock is still usable.
+    m.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+/// Client-side IPC transport — sends requests, awaits responses by id.
+///
+/// The bus receive is blocking, so a reader thread owns the receiver and
+/// routes each response to the request that waits on its id. Requests send
+/// their message and await a pipe; they never block the valtron worker.
+pub struct ClientTransport {
     sender: ipc::EndpointSender<VfsRequest>,
+    pending: Arc<Mutex<HashMap<u64, PipeSender<VfsResponse>>>>,
+    next_id: AtomicU64,
+    config: VfsIpcConfig,
+    shutdown: Arc<AtomicBool>,
+    reader: Option<std::thread::JoinHandle<()>>,
+}
+
+/// The reader thread: receive responses and hand each one to its waiting pipe.
+fn spawn_client_reader(
     receiver: ipc::EndpointReceiver<VfsResponse>,
-    /// Responses of released requests that are still to be read and dropped.
-    unread_responses: usize,
+    pending: Arc<Mutex<HashMap<u64, PipeSender<VfsResponse>>>>,
+    shutdown: Arc<AtomicBool>,
+    poll_timeout: Duration,
+) -> std::thread::JoinHandle<()> {
+    std::thread::spawn(move || {
+        let mut receiver = receiver;
+        while !shutdown.load(Ordering::Relaxed) {
+            match receiver.recv(Some(poll_timeout)) {
+                Ok(msg) => {
+                    let response = msg.payload;
+                    // An unknown id is a released request (a close) whose
+                    // response nobody waits for: drop it.
+                    if let Some(sender) = lock(&pending).remove(&response.id) {
+                        let _ = sender.try_send(response);
+                    }
+                }
+                Err(crate::ipc::RecvError::Timeout) => {}
+                Err(_) => break,
+            }
+        }
+    })
 }
 
 impl ClientTransport {
-    /// Connect to an existing VFS daemon on the bus.
+    /// Connect to an existing VFS daemon on the default bus.
     ///
-    /// Returns `Err` if no daemon is running (timeout).
+    /// Returns `Err` if no daemon is running within the join timeout.
     pub fn connect(timeout: Option<Duration>) -> VfsResult<Self> {
-        let opts = Options::new(VFS_BUS_IDENTIFIER, Label::new("vfs-client"))
-            .controller_affinity(false);
-        let (sender, receiver) =
-            join::<VfsRequest, VfsResponse>(opts, timeout).map_err(|e| {
+        Self::connect_with_config(VfsIpcConfig::default(), timeout)
+    }
+
+    /// Connect with a config. `timeout`, when given, overrides the config join
+    /// timeout for this one connect.
+    pub fn connect_with_config(config: VfsIpcConfig, timeout: Option<Duration>) -> VfsResult<Self> {
+        let join_timeout = timeout.unwrap_or_else(|| config.join_timeout());
+        let opts =
+            Options::new(config.identifier(), Label::new("vfs-client")).controller_affinity(false);
+        let (sender, receiver) = join::<VfsRequest, VfsResponse>(opts, Some(join_timeout))
+            .map_err(|e| {
                 ErrorTrace::new(VfsError::Backend {
                     message: format!("failed to join VFS bus as client: {e}"),
                 })
             })?;
+        let pending = Arc::new(Mutex::new(HashMap::new()));
+        let shutdown = Arc::new(AtomicBool::new(false));
+        let reader = spawn_client_reader(
+            receiver,
+            Arc::clone(&pending),
+            Arc::clone(&shutdown),
+            config.poll_timeout(),
+        );
         Ok(Self {
-            inner: Mutex::new(ClientLink {
-                sender,
-                receiver,
-                unread_responses: 0,
-            }),
+            sender,
+            pending,
+            next_id: AtomicU64::new(1),
+            config,
+            shutdown,
+            reader: Some(reader),
         })
     }
 
-    fn link(&self) -> MutexGuard<'_, ClientLink> {
-        // Every update keeps the link usable, so a poisoned lock is still used.
-        self.inner
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
+    /// The config this transport uses.
+    #[must_use]
+    pub fn config(&self) -> &VfsIpcConfig {
+        &self.config
+    }
+
+    fn send(&self, req: VfsRequest) -> Result<(), String> {
+        let msg = Message::new(Selector::multicast(ipc::LabelOp::True), req);
+        self.sender
+            .send(msg)
+            .map_err(|e| format!("send failed: {e}"))
     }
 }
 
-impl ClientLink {
-    fn send(&mut self, req: VfsRequest) -> Result<(), String> {
-        let msg = Message::new(Selector::multicast(ipc::LabelOp::True), req);
-        self.sender.send(msg).map_err(|e| format!("send failed: {e}"))
-    }
-
-    fn recv(&mut self) -> Result<VfsResponse, String> {
-        self.receiver
-            .recv(None)
-            .map(|msg| msg.payload)
-            .map_err(|e| format!("recv failed: {e}"))
+impl Drop for ClientTransport {
+    fn drop(&mut self) {
+        self.shutdown.store(true, Ordering::Relaxed);
+        if let Some(handle) = self.reader.take() {
+            let _ = handle.join();
+        }
     }
 }
 
 #[async_trait]
 impl VfsTransport for ClientTransport {
-    async fn request(&self, req: VfsRequest) -> VfsResponse {
-        let mut link = self.link();
-        while link.unread_responses > 0 {
-            if let Err(e) = link.recv() {
-                return VfsResponse::Error(e);
-            }
-            link.unread_responses -= 1;
+    async fn request(&self, body: VfsRequestBody) -> VfsResponseBody {
+        let id = self.next_id.fetch_add(1, Ordering::Relaxed);
+        let (sender, receiver) = Pipe::new();
+        lock(&self.pending).insert(id, sender);
+        if let Err(e) = self.send(VfsRequest { id, body }) {
+            lock(&self.pending).remove(&id);
+            return VfsResponseBody::Error(e);
         }
-        if let Err(e) = link.send(req) {
-            return VfsResponse::Error(e);
+        match receiver.receive().await {
+            Some(response) => response.body,
+            None => VfsResponseBody::Error("transport closed before a response arrived".into()),
         }
-        link.recv().unwrap_or_else(VfsResponse::Error)
     }
 
-    fn release(&self, req: VfsRequest) {
-        let mut link = self.link();
-        // A failed send has no response to skip; the daemon drops the handle
-        // when the client goes away.
-        if link.send(req).is_ok() {
-            link.unread_responses += 1;
-        }
+    fn release(&self, body: VfsRequestBody) {
+        let id = self.next_id.fetch_add(1, Ordering::Relaxed);
+        // The response is read and dropped by the reader; nobody waits for it.
+        let _ = self.send(VfsRequest { id, body });
     }
 }
 
 /// Daemon-side IPC transport — receives requests, sends responses.
 ///
-/// Used by the daemon to receive `VfsRequest` messages and send `VfsResponse` back.
+/// Used by the daemon to receive `VfsRequest` messages and send `VfsResponse`
+/// back, matched to the request by id.
 pub struct DaemonTransport {
     sender: ipc::EndpointSender<VfsResponse>,
     receiver: ipc::EndpointReceiver<VfsRequest>,
+    config: VfsIpcConfig,
 }
 
 impl DaemonTransport {
-    /// Register as the VFS daemon server on the bus.
+    /// Register as the VFS daemon server on the default bus.
     pub fn serve() -> VfsResult<Self> {
-        let opts = Options::new(VFS_BUS_IDENTIFIER, Label::new("vfs-daemon"))
-            .controller_affinity(true);
-        let (sender, receiver) =
-            join::<VfsResponse, VfsRequest>(opts, Some(Duration::from_secs(30)))
-                .map_err(|e| {
-                    ErrorTrace::new(VfsError::Backend {
-                        message: format!("failed to join VFS bus as server: {e}"),
-                    })
-                })?;
-        Ok(Self { sender, receiver })
+        Self::serve_with_config(VfsIpcConfig::default())
+    }
+
+    /// Register as the VFS daemon server with a config.
+    pub fn serve_with_config(config: VfsIpcConfig) -> VfsResult<Self> {
+        let opts =
+            Options::new(config.identifier(), Label::new("vfs-daemon")).controller_affinity(true);
+        let (sender, receiver) = join::<VfsResponse, VfsRequest>(opts, Some(config.join_timeout()))
+            .map_err(|e| {
+                ErrorTrace::new(VfsError::Backend {
+                    message: format!("failed to join VFS bus as server: {e}"),
+                })
+            })?;
+        Ok(Self {
+            sender,
+            receiver,
+            config,
+        })
+    }
+
+    /// The config this transport uses.
+    #[must_use]
+    pub fn config(&self) -> &VfsIpcConfig {
+        &self.config
     }
 
     /// Receive a single request from the bus. Blocks until a request arrives.
@@ -169,32 +303,32 @@ impl DaemonTransport {
     }
 }
 
-/// Run the daemon listen loop: receive requests, dispatch to filesystem, send responses.
-///
-/// This is a sync boundary: the bus API is sync, so the loop runs on its own
-/// thread, and it waits for each `VfsDaemon::dispatch` through `exec_async`.
-/// It blocks until `running` is set to `false` or the bus disconnects.
-/// Returns `Ok(())` on clean shutdown, or `Err` on bus failure.
+/// Run the daemon listen loop: receive requests, dispatch to filesystem, send
+/// responses with the request id. The poll timeout comes from the transport
+/// config. It blocks until `running` is set to `false` or the bus disconnects.
 pub fn run_daemon_loop<F>(
     transport: &mut DaemonTransport,
-    daemon: &std::sync::Arc<VfsDaemon<F>>,
+    daemon: &Arc<VfsDaemon<F>>,
     running: &AtomicBool,
 ) -> VfsResult<()>
 where
     F: AsyncVfsFileSystem + 'static,
 {
+    let poll_timeout = transport.config().poll_timeout();
     let response_selector = Selector::multicast(ipc::LabelOp::True);
 
     while running.load(Ordering::Relaxed) {
-        match transport.recv_request_timeout(Duration::from_secs(1)) {
+        match transport.recv_request_timeout(poll_timeout) {
             Ok(Some(msg)) => {
-                let daemon = daemon.clone();
-                let payload = msg.payload;
-                let response = exec_async(async move { Ok(daemon.dispatch(payload).await) })?;
-                transport.send_response(response, response_selector.clone())?;
+                let id = msg.payload.id;
+                let body = msg.payload.body;
+                let daemon = Arc::clone(daemon);
+                let result = exec_async(async move { Ok(daemon.dispatch(body).await) })?;
+                transport
+                    .send_response(VfsResponse { id, body: result }, response_selector.clone())?;
             }
             Ok(None) => {
-                // Timeout — check running flag and continue.
+                // Timeout — check the running flag and loop again.
             }
             Err(e) => {
                 return Err(e);

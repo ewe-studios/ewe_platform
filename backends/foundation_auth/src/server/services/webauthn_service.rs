@@ -17,8 +17,6 @@ use super::super::storage::StorageOpError;
 #[cfg(feature = "server-native")]
 use webauthn_rs::prelude::*;
 #[cfg(feature = "server-native")]
-use base64::engine::Engine;
-#[cfg(feature = "server-native")]
 use webauthn_rs::prelude::{PublicKeyCredential, RegisterPublicKeyCredential};
 
 // ─── Public request/response types (always compiled) ─────────────────────────
@@ -100,7 +98,6 @@ fn auth_key(session: &str) -> String {
 /// state. The cache key is scoped by session and consumed (deleted) on finish.
 #[cfg(feature = "server-native")]
 pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
-    config: Arc<IdpConfig>,
     store: Arc<S>,
     cache: KV,
     webauthn: webauthn_rs::Webauthn,
@@ -108,13 +105,21 @@ pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
 
 #[cfg(not(feature = "server-native"))]
 pub struct WebAuthnService<S: AuthStore + Send + Sync, KV: KeyValueStore> {
-    config: Arc<IdpConfig>,
     store: Arc<S>,
     _cache: std::marker::PhantomData<KV>,
 }
 
 impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
+    /// Build the service. With `server-native`, the issuer URL becomes the
+    /// `WebAuthn` origin and relying-party id.
+    ///
+    /// # Panics
+    ///
+    /// Panics (with `server-native`) if the issuer URL is not a valid URL or
+    /// cannot be used as a `WebAuthn` relying party.
     #[must_use]
+    // `config` is only read in the `server-native` build; the other build drops it.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn new(config: Arc<IdpConfig>, store: Arc<S>, cache: KV) -> Self {
         #[cfg(feature = "server-native")]
         {
@@ -124,15 +129,33 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 .expect("Invalid WebAuthn builder config")
                 .build()
                 .expect("Invalid WebAuthn config");
-            Self { config, store, cache, webauthn }
+            Self {
+                store,
+                cache,
+                webauthn,
+            }
         }
         #[cfg(not(feature = "server-native"))]
         {
             drop(cache);
-            Self { config, store, _cache: std::marker::PhantomData }
+            let _ = config;
+            Self {
+                store,
+                _cache: std::marker::PhantomData,
+            }
         }
     }
 
+    /// Register start.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
+    // Only the `server-native` build awaits; the stub build does not.
+    #[cfg_attr(
+        not(feature = "server-native"),
+        allow(clippy::unused_async, clippy::unused_async_trait_impl)
+    )]
     pub async fn register_start(
         &self,
         user_id: &str,
@@ -141,54 +164,84 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         #[cfg(feature = "server-native")]
         {
             let uid = uuid::Uuid::parse_str(user_id).unwrap_or_else(|_| uuid::Uuid::new_v4());
-            let (challenge, reg) = self.webauthn
+            let (challenge, reg) = self
+                .webauthn
                 .start_passkey_registration(uid, email, email, None)
                 .map_err(|e| StorageOpError::Query(format!("WebAuthn register start: {e}")))?;
 
             let session = uuid::Uuid::new_v4().to_string();
-            self.cache.set(&reg_key(&session), RegState {
-                user_id: user_id.to_string(),
-                reg,
-            }).await.map_err(|e| StorageOpError::Query(format!("cache set: {e}")))?;
+            self.cache
+                .set(
+                    &reg_key(&session),
+                    RegState {
+                        user_id: user_id.to_string(),
+                        reg,
+                    },
+                )
+                .await
+                .map_err(|e| StorageOpError::Query(format!("cache set: {e}")))?;
 
-            let public_key = serde_json::to_value(&challenge)
-                .unwrap_or_else(|_| serde_json::json!({}));
+            let public_key =
+                serde_json::to_value(&challenge).unwrap_or_else(|_| serde_json::json!({}));
 
-            Ok(WebAuthnRegistrationOptions { public_key, session })
+            Ok(WebAuthnRegistrationOptions {
+                public_key,
+                session,
+            })
         }
         #[cfg(not(feature = "server-native"))]
         {
             let _ = (user_id, email);
-            Err(StorageOpError::Query("WebAuthn not available — compile with server-native feature".into()))
+            Err(StorageOpError::Query(
+                "WebAuthn not available — compile with server-native feature".into(),
+            ))
         }
     }
 
+    /// Register finish.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
+    // Only the `server-native` build awaits; the stub build does not.
+    #[cfg_attr(
+        not(feature = "server-native"),
+        allow(clippy::unused_async, clippy::unused_async_trait_impl)
+    )]
     pub async fn register_finish(
         &self,
         req: &WebAuthnRegisterFinishRequest,
     ) -> Result<Passkey, StorageOpError> {
         #[cfg(feature = "server-native")]
         {
-            let session_id = req.session.as_deref()
+            let session_id = req
+                .session
+                .as_deref()
                 .ok_or_else(|| StorageOpError::Query("Missing session".into()))?;
 
-            let state: RegState = self.cache
+            let state: RegState = self
+                .cache
                 .get(&reg_key(session_id))
                 .await
                 .map_err(|e| StorageOpError::Query(format!("cache get: {e}")))?
                 .ok_or_else(|| StorageOpError::Query("Invalid or expired session".into()))?;
 
             // Consume the state (one-time use to prevent replay)
-            self.cache.delete(&reg_key(session_id))
+            self.cache
+                .delete(&reg_key(session_id))
                 .await
                 .map_err(|e| StorageOpError::Query(format!("cache delete: {e}")))?;
 
-            let response_json = req.response.as_ref()
+            let response_json = req
+                .response
+                .as_ref()
                 .ok_or_else(|| StorageOpError::Query("Missing response".into()))?;
-            let response: RegisterPublicKeyCredential = serde_json::from_value(response_json.clone())
-                .map_err(|e| StorageOpError::Query(format!("Parse response: {e}")))?;
+            let response: RegisterPublicKeyCredential =
+                serde_json::from_value(response_json.clone())
+                    .map_err(|e| StorageOpError::Query(format!("Parse response: {e}")))?;
 
-            let passkey = self.webauthn
+            let passkey = self
+                .webauthn
                 .finish_passkey_registration(&response, &state.reg)
                 .map_err(|e| StorageOpError::Query(format!("Verify registration: {e}")))?;
 
@@ -217,99 +270,144 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
                 created_at: our_passkey.created_at,
                 last_used_at: our_passkey.last_used_at,
             };
-            self.store.as_ref().store_passkey(&stored)
+            self.store
+                .as_ref()
+                .store_passkey(&stored)
                 .await
-                .map_err(|e| StorageOpError::Query(e))?;
+                .map_err(StorageOpError::Query)?;
 
             Ok(our_passkey)
         }
         #[cfg(not(feature = "server-native"))]
         {
             let _ = req;
-            Err(StorageOpError::Query("WebAuthn not available — compile with server-native feature".into()))
+            Err(StorageOpError::Query(
+                "WebAuthn not available — compile with server-native feature".into(),
+            ))
         }
     }
 
-    pub async fn auth_start(
-        &self,
-        user_id: &str,
-    ) -> Result<WebAuthnAuthOptions, StorageOpError> {
+    /// Auth start.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
+    // Only the `server-native` build awaits; the stub build does not.
+    #[cfg_attr(
+        not(feature = "server-native"),
+        allow(clippy::unused_async, clippy::unused_async_trait_impl)
+    )]
+    pub async fn auth_start(&self, user_id: &str) -> Result<WebAuthnAuthOptions, StorageOpError> {
         #[cfg(feature = "server-native")]
         {
             // A user's passkeys are few, and webauthn-rs needs them all at once.
             let stored_passkeys = self.collect_passkeys(user_id).await?;
 
-            let webauthn_passkeys: Vec<webauthn_rs::prelude::Passkey> = stored_passkeys.iter()
+            let webauthn_passkeys: Vec<webauthn_rs::prelude::Passkey> = stored_passkeys
+                .iter()
                 .filter_map(|pk| {
-                    serde_cbor::from_slice::<webauthn_rs::prelude::Passkey>(&pk.credential_public_key).ok()
+                    serde_cbor::from_slice::<webauthn_rs::prelude::Passkey>(
+                        &pk.credential_public_key,
+                    )
+                    .ok()
                 })
                 .collect();
 
-            let (challenge, auth) = self.webauthn
+            let (challenge, auth) = self
+                .webauthn
                 .start_passkey_authentication(&webauthn_passkeys)
                 .map_err(|e| StorageOpError::Query(format!("WebAuthn auth start: {e}")))?;
 
             let session = uuid::Uuid::new_v4().to_string();
-            self.cache.set(&auth_key(&session), AuthState {
-                user_id: user_id.to_string(),
-                auth,
-            }).await.map_err(|e| StorageOpError::Query(format!("cache set: {e}")))?;
+            self.cache
+                .set(
+                    &auth_key(&session),
+                    AuthState {
+                        user_id: user_id.to_string(),
+                        auth,
+                    },
+                )
+                .await
+                .map_err(|e| StorageOpError::Query(format!("cache set: {e}")))?;
 
-            let public_key = serde_json::to_value(&challenge)
-                .unwrap_or_else(|_| serde_json::json!({}));
+            let public_key =
+                serde_json::to_value(&challenge).unwrap_or_else(|_| serde_json::json!({}));
 
-            Ok(WebAuthnAuthOptions { public_key, session })
+            Ok(WebAuthnAuthOptions {
+                public_key,
+                session,
+            })
         }
         #[cfg(not(feature = "server-native"))]
         {
             let _ = user_id;
-            Err(StorageOpError::Query("WebAuthn not available — compile with server-native feature".into()))
+            Err(StorageOpError::Query(
+                "WebAuthn not available — compile with server-native feature".into(),
+            ))
         }
     }
 
+    /// Auth finish.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
+    // Only the `server-native` build awaits; the stub build does not.
+    #[cfg_attr(
+        not(feature = "server-native"),
+        allow(clippy::unused_async, clippy::unused_async_trait_impl)
+    )]
     pub async fn auth_finish(
         &self,
         req: &WebAuthnAuthFinishRequest,
     ) -> Result<String, StorageOpError> {
         #[cfg(feature = "server-native")]
         {
-            let session_id = req.session.as_deref()
+            let session_id = req
+                .session
+                .as_deref()
                 .ok_or_else(|| StorageOpError::Query("Missing session".into()))?;
 
-            let state: AuthState = self.cache
+            let state: AuthState = self
+                .cache
                 .get(&auth_key(session_id))
                 .await
                 .map_err(|e| StorageOpError::Query(format!("cache get: {e}")))?
                 .ok_or_else(|| StorageOpError::Query("Invalid or expired session".into()))?;
 
             // Consume the state (one-time use to prevent replay)
-            self.cache.delete(&auth_key(session_id))
+            self.cache
+                .delete(&auth_key(session_id))
                 .await
                 .map_err(|e| StorageOpError::Query(format!("cache delete: {e}")))?;
 
-            let response_json = req.response.as_ref()
+            let response_json = req
+                .response
+                .as_ref()
                 .ok_or_else(|| StorageOpError::Query("Missing response".into()))?;
             let response: PublicKeyCredential = serde_json::from_value(response_json.clone())
                 .map_err(|e| StorageOpError::Query(format!("Parse response: {e}")))?;
 
             let cred_id = response.raw_id.clone();
-            let passkey = self.store.as_ref().find_passkey_by_credential_id(&cred_id)
+            let passkey = self
+                .store
+                .as_ref()
+                .find_passkey_by_credential_id(&cred_id)
                 .await
                 .map_err(|e| StorageOpError::Query(e.to_string()))?
                 .ok_or_else(|| StorageOpError::NotFound("Passkey not found".into()))?;
 
-            let wa_passkey: webauthn_rs::prelude::Passkey =
-                serde_cbor::from_slice(&passkey.credential_public_key)
-                    .map_err(|e| StorageOpError::Parse(format!("Deserialize passkey: {e}")))?;
-
-            let auth_result = self.webauthn
+            let auth_result = self
+                .webauthn
                 .finish_passkey_authentication(&response, &state.auth)
                 .map_err(|e| StorageOpError::Query(format!("Verify authentication: {e}")))?;
 
             if auth_result.needs_update() {
-                self.store.as_ref().update_passkey_counter(&passkey.id, auth_result.counter())
+                self.store
+                    .as_ref()
+                    .update_passkey_counter(&passkey.id, auth_result.counter())
                     .await
-                    .map_err(|e| StorageOpError::Query(e))?;
+                    .map_err(StorageOpError::Query)?;
             }
 
             Ok(state.user_id)
@@ -317,17 +415,32 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         #[cfg(not(feature = "server-native"))]
         {
             let _ = req;
-            Err(StorageOpError::Query("WebAuthn not available — compile with server-native feature".into()))
+            Err(StorageOpError::Query(
+                "WebAuthn not available — compile with server-native feature".into(),
+            ))
         }
     }
 
+    /// Passkey login start.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
+    // Only the `server-native` build awaits; the stub build does not.
+    #[cfg_attr(
+        not(feature = "server-native"),
+        allow(clippy::unused_async, clippy::unused_async_trait_impl)
+    )]
     pub async fn passkey_login_start(
         &self,
         email: &str,
     ) -> Result<WebAuthnAuthOptions, StorageOpError> {
         #[cfg(feature = "server-native")]
         {
-            let (user_id, _has_password) = self.store.as_ref().find_user_by_email(email)
+            let (user_id, _has_password) = self
+                .store
+                .as_ref()
+                .find_user_by_email(email)
                 .await
                 .map_err(|e| StorageOpError::Query(e.to_string()))?
                 .ok_or_else(|| StorageOpError::NotFound(format!("No user with email: {email}")))?;
@@ -336,10 +449,17 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         #[cfg(not(feature = "server-native"))]
         {
             let _ = email;
-            Err(StorageOpError::Query("WebAuthn not available — compile with server-native feature".into()))
+            Err(StorageOpError::Query(
+                "WebAuthn not available — compile with server-native feature".into(),
+            ))
         }
     }
 
+    /// Passkey login finish.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
     pub async fn passkey_login_finish(
         &self,
         req: &PasskeyLoginFinishRequest,
@@ -352,36 +472,61 @@ impl<S: AuthStore + Send + Sync, KV: KeyValueStore> WebAuthnService<S, KV> {
         self.auth_finish(&auth_req).await
     }
 
+    /// Delete passkey.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
     pub async fn delete_passkey(&self, passkey_id: &str) -> Result<(), StorageOpError> {
-        self.store.as_ref().delete_passkey(passkey_id)
+        self.store
+            .as_ref()
+            .delete_passkey(passkey_id)
             .await
-            .map_err(|e| StorageOpError::Query(e))
+            .map_err(StorageOpError::Query)
     }
 
+    /// Rename passkey.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
     pub async fn rename_passkey(&self, passkey_id: &str, name: &str) -> Result<(), StorageOpError> {
-        self.store.as_ref().update_passkey_name(passkey_id, name)
+        self.store
+            .as_ref()
+            .update_passkey_name(passkey_id, name)
             .await
-            .map_err(|e| StorageOpError::Query(e))
+            .map_err(StorageOpError::Query)
     }
 
+    /// List passkeys.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageOpError`] if the operation fails.
     pub async fn list_passkeys(&self, user_id: &str) -> Result<Vec<Passkey>, StorageOpError> {
         let stored = self.collect_passkeys(user_id).await?;
-        Ok(stored.into_iter().map(|sk| Passkey {
-            id: sk.id,
-            user_id: sk.user_id,
-            name: sk.name,
-            credential_id: sk.credential_id,
-            credential_public_key: sk.credential_public_key,
-            counter: sk.counter,
-            created_at: sk.created_at,
-            last_used_at: sk.last_used_at,
-        }).collect())
+        Ok(stored
+            .into_iter()
+            .map(|sk| Passkey {
+                id: sk.id,
+                user_id: sk.user_id,
+                name: sk.name,
+                credential_id: sk.credential_id,
+                credential_public_key: sk.credential_public_key,
+                counter: sk.counter,
+                created_at: sk.created_at,
+                last_used_at: sk.last_used_at,
+            })
+            .collect())
     }
 
     /// All of a user's passkeys. Bounded by how many passkeys one user
     /// registers, and needed whole (webauthn-rs takes a slice).
     async fn collect_passkeys(&self, user_id: &str) -> Result<Vec<StoredPasskey>, StorageOpError> {
-        let mut stream = self.store.as_ref().find_passkeys_by_user(user_id)
+        let mut stream = self
+            .store
+            .as_ref()
+            .find_passkeys_by_user(user_id)
             .await
             .map_err(|e| StorageOpError::Query(e.to_string()))?;
         let mut passkeys = Vec::new();

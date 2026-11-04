@@ -38,8 +38,8 @@ use super::shared::ApiResponse;
 /// Arguments for [`ImageLoad_request`].
 #[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ImageLoadArgs {
-    /// Query parameter: `quiet`.
-    pub quiet: Option<String>,
+    /// Query parameter: `quiet` (true/false).
+    pub quiet: Option<bool>,
     /// Query parameter: `platform` (one per value).
     pub platform: Vec<String>,
 }
@@ -92,7 +92,10 @@ where
     let mut builder = PreparedRequestBuilder::post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder.query("quiet", args.quiet.as_deref());
+    builder = builder.query(
+        "quiet",
+        args.quiet.map(|b| if b { "true" } else { "false" }),
+    );
     for value in &args.platform {
         builder = builder.query("platform", Some(value.as_str()));
     }

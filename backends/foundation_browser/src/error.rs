@@ -29,7 +29,9 @@ pub enum BrowserError {
     Launch(#[error(not(source))] String),
 
     /// The browser binary was not found.
-    #[display("browser '{binary}' not found — install it with `{mise_task}` or set its *_BIN env var")]
+    #[display(
+        "browser '{binary}' not found — install it with `{mise_task}` or set its *_BIN env var"
+    )]
     BrowserNotInstalled {
         /// The binary we looked for (e.g. `chromium`).
         binary: String,

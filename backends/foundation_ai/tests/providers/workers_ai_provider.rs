@@ -12,8 +12,8 @@ use std::net::SocketAddr;
 
 use foundation_ai::backends::workers_ai::{WorkersAiConfig, WorkersAiProvider};
 use foundation_ai::types::{
-    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, ModelState,
-    StopReason, TextContent, ToolDeclarations, UserModelContent,
+    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider,
+    ModelState, StopReason, TextContent, ToolDeclarations, UserModelContent,
 };
 
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -57,11 +57,7 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
 }
 
 fn setup_provider_and_model(base_url: &str) -> impl Model + use<'_> {
-    let addr: SocketAddr = base_url
-        .strip_prefix("http://")
-        .unwrap()
-        .parse()
-        .unwrap();
+    let addr: SocketAddr = base_url.strip_prefix("http://").unwrap().parse().unwrap();
     let http_client: DynNetClient = HttpClientBuilder::new().resolve_to(addr).build();
     let config = WorkersAiConfig::new()
         .with_account_id("test-account")
@@ -79,10 +75,7 @@ fn setup_provider_and_model(base_url: &str) -> impl Model + use<'_> {
         .unwrap();
 
     provider
-        .get_model(ModelId::Name(
-            "@cf/meta/llama-3.1-8b-instruct".into(),
-            None,
-        ))
+        .get_model(ModelId::Name("@cf/meta/llama-3.1-8b-instruct".into(), None))
         .unwrap()
 }
 

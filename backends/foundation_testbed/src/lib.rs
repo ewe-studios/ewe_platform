@@ -31,5 +31,6 @@ pub mod docker;
 
 // F32: QEMU Monitor control — universal agentic keyboard/mouse/screenshot (Tier 1).
 // Supports both HMP (text) and QMP (JSON) protocols — auto-detected.
-// Always available (not feature-gated) — uses Unix sockets + serde_json.
+// Native only: it speaks over a Unix socket, which wasm32 does not have.
+#[cfg(not(target_family = "wasm"))]
 pub mod qemu_control;

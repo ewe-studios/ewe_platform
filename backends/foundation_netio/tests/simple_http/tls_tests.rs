@@ -34,10 +34,7 @@ fn test_tls_handshake_task_associated_types() {
 
     fn check_types<T>()
     where
-        T: TaskIterator<
-            Pending = TlsHandshakeState,
-            Ready = (),
-        >,
+        T: TaskIterator<Pending = TlsHandshakeState, Ready = ()>,
     {
     }
 

@@ -118,7 +118,10 @@ impl Device for TunnDevice {
     type RxToken<'a> = RxToken;
     type TxToken<'a> = TxToken<'a>;
 
-    fn receive(&mut self, _timestamp: SmolInstant) -> Option<(Self::RxToken<'_>, Self::TxToken<'_>)> {
+    fn receive(
+        &mut self,
+        _timestamp: SmolInstant,
+    ) -> Option<(Self::RxToken<'_>, Self::TxToken<'_>)> {
         let buffer = self.rx.pop_front()?;
         let rx = RxToken { buffer };
         let tx = TxToken { tx: &mut self.tx };
@@ -391,13 +394,23 @@ impl NetStack {
     /// Number of active overlay sockets. Primarily for diagnostics and tests.
     #[must_use]
     pub fn socket_count(&self) -> usize {
-        self.inner.lock().expect("netstack mutex poisoned").sockets.iter().count()
+        self.inner
+            .lock()
+            .expect("netstack mutex poisoned")
+            .sockets
+            .iter()
+            .count()
     }
 
     /// Number of outbound IP packets currently queued for encryption.
     #[must_use]
     pub fn pending_outbound(&self) -> usize {
-        self.inner.lock().expect("netstack mutex poisoned").device.tx.len()
+        self.inner
+            .lock()
+            .expect("netstack mutex poisoned")
+            .device
+            .tx
+            .len()
     }
 }
 
@@ -406,7 +419,12 @@ impl DataPlane for NetStack {
         if packet.is_empty() {
             return;
         }
-        self.inner.lock().expect("netstack mutex poisoned").device.rx.push_back(packet.to_vec());
+        self.inner
+            .lock()
+            .expect("netstack mutex poisoned")
+            .device
+            .rx
+            .push_back(packet.to_vec());
     }
 
     fn poll(&mut self, now: Instant) -> Option<Instant> {
@@ -492,9 +510,7 @@ impl DataPlane for NetStack {
             tcp::SocketBuffer::new(vec![0u8; TCP_BUFFER_BYTES]),
         );
 
-        let Inner {
-            iface, sockets, ..
-        } = &mut *inner;
+        let Inner { iface, sockets, .. } = &mut *inner;
         let handle = sockets.add(socket);
         let socket = sockets.get_mut::<tcp::Socket>(handle);
         socket
@@ -507,6 +523,10 @@ impl DataPlane for NetStack {
             handle,
             local,
             peer: addr,
+            _owner: Arc::new(OverlayStreamOwner {
+                inner: Arc::clone(&self.inner),
+                handle,
+            }),
         })
     }
 
@@ -657,6 +677,10 @@ impl OverlayListener {
                 handle,
                 local: self.local,
                 peer,
+                _owner: Arc::new(OverlayStreamOwner {
+                    inner: Arc::clone(&self.inner),
+                    handle,
+                }),
             });
         }
     }
@@ -704,6 +728,28 @@ pub struct OverlayStream {
     handle: SocketHandle,
     local: SocketAddr,
     peer: SocketAddr,
+    /// Shared owner of the smoltcp socket, held only for its drop side effect:
+    /// the socket is removed exactly once, on the last drop. `Clone` shares it,
+    /// so a clone does not remove the socket while another clone still uses it.
+    /// The leading underscore marks the field as unread on purpose.
+    _owner: Arc<OverlayStreamOwner>,
+}
+
+/// The single owner of an [`OverlayStream`]'s smoltcp socket. Clones of the
+/// stream share one owner, so the socket is removed exactly once, on the last
+/// drop (smoltcp `SocketSet::remove` panics on a handle that is already gone).
+struct OverlayStreamOwner {
+    inner: Arc<Mutex<Inner>>,
+    handle: SocketHandle,
+}
+
+impl Drop for OverlayStreamOwner {
+    fn drop(&mut self) {
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
+        inner.read_wakers.remove(&self.handle);
+        inner.write_wakers.remove(&self.handle);
+        inner.sockets.remove(self.handle);
+    }
 }
 
 impl std::fmt::Debug for OverlayStream {
@@ -769,9 +815,15 @@ impl OverlayStream {
                 .send_slice(buf)
                 .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("tcp send: {e}")))
         } else if socket.may_send() {
-            Err(io::Error::new(io::ErrorKind::WouldBlock, "send buffer full"))
+            Err(io::Error::new(
+                io::ErrorKind::WouldBlock,
+                "send buffer full",
+            ))
         } else {
-            Err(io::Error::new(io::ErrorKind::BrokenPipe, "send half closed"))
+            Err(io::Error::new(
+                io::ErrorKind::BrokenPipe,
+                "send half closed",
+            ))
         }
     }
 
@@ -781,10 +833,36 @@ impl OverlayStream {
     #[must_use]
     pub fn is_active(&self) -> bool {
         self.inner
-            .lock().expect("netstack mutex poisoned")
+            .lock()
+            .expect("netstack mutex poisoned")
             .sockets
             .get::<tcp::Socket>(self.handle)
             .is_active()
+    }
+
+    /// True when the next [`Self::read`] will not return `WouldBlock`: data is
+    /// buffered, or the receive half is closed and the handshake is done (EOF).
+    ///
+    /// A synchronous I/O driver (`conn_io`) probes this to answer "readable now"
+    /// without consuming a byte (which [`Self::read`] would).
+    #[must_use]
+    pub fn readable(&self) -> bool {
+        let inner = self.inner.lock().expect("netstack mutex poisoned");
+        let socket = inner.sockets.get::<tcp::Socket>(self.handle);
+        socket.can_recv() || (!socket.may_recv() && !still_connecting(socket.state()))
+    }
+
+    /// True when the next [`Self::write`] will not return `WouldBlock`: the send
+    /// buffer has spare capacity, or the send half is closed (the write surfaces
+    /// the error).
+    ///
+    /// The write-side twin of [`Self::readable`]: probe "writable now" without
+    /// enqueuing anything.
+    #[must_use]
+    pub fn writable(&self) -> bool {
+        let inner = self.inner.lock().expect("netstack mutex poisoned");
+        let socket = inner.sockets.get::<tcp::Socket>(self.handle);
+        socket.can_send() || !socket.may_send()
     }
 
     /// True once the connection is established and its send half is open — i.e. the
@@ -792,7 +870,8 @@ impl OverlayStream {
     #[must_use]
     pub fn may_send(&self) -> bool {
         self.inner
-            .lock().expect("netstack mutex poisoned")
+            .lock()
+            .expect("netstack mutex poisoned")
             .sockets
             .get::<tcp::Socket>(self.handle)
             .may_send()
@@ -802,7 +881,8 @@ impl OverlayStream {
     #[must_use]
     pub fn may_recv(&self) -> bool {
         self.inner
-            .lock().expect("netstack mutex poisoned")
+            .lock()
+            .expect("netstack mutex poisoned")
             .sockets
             .get::<tcp::Socket>(self.handle)
             .may_recv()
@@ -811,7 +891,8 @@ impl OverlayStream {
     /// Begin an orderly close of the send half (FIN).
     pub fn close(&self) {
         self.inner
-            .lock().expect("netstack mutex poisoned")
+            .lock()
+            .expect("netstack mutex poisoned")
             .sockets
             .get_mut::<tcp::Socket>(self.handle)
             .close();
@@ -820,7 +901,8 @@ impl OverlayStream {
     /// Register a one-shot waker fired when the stream becomes readable.
     pub fn set_read_waker(&self, waker: WakeFn) {
         self.inner
-            .lock().expect("netstack mutex poisoned")
+            .lock()
+            .expect("netstack mutex poisoned")
             .read_wakers
             .insert(self.handle, waker);
     }
@@ -828,7 +910,8 @@ impl OverlayStream {
     /// Register a one-shot waker fired when the stream becomes writable.
     pub fn set_write_waker(&self, waker: WakeFn) {
         self.inner
-            .lock().expect("netstack mutex poisoned")
+            .lock()
+            .expect("netstack mutex poisoned")
             .write_wakers
             .insert(self.handle, waker);
     }
@@ -843,15 +926,6 @@ impl OverlayStream {
     #[must_use]
     pub fn peer_addr(&self) -> SocketAddr {
         self.peer
-    }
-}
-
-impl Drop for OverlayStream {
-    fn drop(&mut self) {
-        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
-        inner.read_wakers.remove(&self.handle);
-        inner.write_wakers.remove(&self.handle);
-        inner.sockets.remove(self.handle);
     }
 }
 
@@ -903,7 +977,10 @@ impl OverlayUdp {
         let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = inner.sockets.get_mut::<udp::Socket>(self.handle);
         if !socket.can_send() {
-            return Err(io::Error::new(io::ErrorKind::WouldBlock, "send buffer full"));
+            return Err(io::Error::new(
+                io::ErrorKind::WouldBlock,
+                "send buffer full",
+            ));
         }
         socket
             .send_slice(buf, to_smol_endpoint(addr))
@@ -914,7 +991,8 @@ impl OverlayUdp {
     /// Register a one-shot waker fired when a datagram becomes available.
     pub fn set_read_waker(&self, waker: WakeFn) {
         self.inner
-            .lock().expect("netstack mutex poisoned")
+            .lock()
+            .expect("netstack mutex poisoned")
             .read_wakers
             .insert(self.handle, waker);
     }

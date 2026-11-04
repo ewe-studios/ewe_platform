@@ -113,15 +113,13 @@ impl BackendTransport for SessionTransport {
 
         match self.session.ipc_registry().invoke(&self.session, &request) {
             Ok(response) => response.payload,
-            Err(e) => {
-                serde_json::json!({
-                    "error": "ipc_dispatch_failed",
-                    "ipc": ipc_name,
-                    "detail": format!("{e:?}")
-                })
-                .to_string()
-                .into_bytes()
-            }
+            Err(e) => serde_json::json!({
+                "error": "ipc_dispatch_failed",
+                "ipc": ipc_name,
+                "detail": format!("{e:?}")
+            })
+            .to_string()
+            .into_bytes(),
         }
     }
 
@@ -141,15 +139,13 @@ impl BackendTransport for SessionTransport {
 
         match self.session.http_backend().fetch(&url) {
             Ok((body, _content_type)) => body,
-            Err(e) => {
-                serde_json::json!({
-                    "error": "remote_fetch_failed",
-                    "url": url,
-                    "detail": e
-                })
-                .to_string()
-                .into_bytes()
-            }
+            Err(e) => serde_json::json!({
+                "error": "remote_fetch_failed",
+                "url": url,
+                "detail": e
+            })
+            .to_string()
+            .into_bytes(),
         }
     }
 }
@@ -227,20 +223,37 @@ mod tests {
 
     #[test]
     fn session_transport_dispatch_ipc_real_registry() {
-        use foundation_wasm::ipc::{Ipc, IpcError, IpcKind, IpcRequest, IpcResponse};
         use crate::ipc::PlatformIpc;
+        use foundation_wasm::ipc::{Ipc, IpcError, IpcKind, IpcRequest, IpcResponse};
 
         struct EchoIpc;
         impl Ipc for EchoIpc {
-            fn name(&self) -> &str { "echo" }
-            fn kind(&self) -> IpcKind { IpcKind::Query }
-            fn invoke(&self, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-                Ok(IpcResponse { payload: request.payload.clone(), content_type: request.content_type })
+            fn name(&self) -> &str {
+                "echo"
+            }
+            fn kind(&self) -> IpcKind {
+                IpcKind::Query
+            }
+            fn invoke(
+                &self,
+                request: &IpcRequest<Vec<u8>>,
+            ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+                Ok(IpcResponse {
+                    payload: request.payload.clone(),
+                    content_type: request.content_type,
+                })
             }
         }
         impl PlatformIpc for EchoIpc {
-            fn invoke_with_session(&self, _: &PlatformSession, request: &IpcRequest<Vec<u8>>) -> Result<IpcResponse<Vec<u8>>, IpcError> {
-                Ok(IpcResponse { payload: request.payload.clone(), content_type: request.content_type })
+            fn invoke_with_session(
+                &self,
+                _: &PlatformSession,
+                request: &IpcRequest<Vec<u8>>,
+            ) -> Result<IpcResponse<Vec<u8>>, IpcError> {
+                Ok(IpcResponse {
+                    payload: request.payload.clone(),
+                    content_type: request.content_type,
+                })
             }
         }
 

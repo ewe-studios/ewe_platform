@@ -1,10 +1,10 @@
 mod api_shortcut_tests;
-mod context_tests;
-mod costing_assistant_tests;
-mod costing_tests;
 mod base_errors_tests;
 mod base_types_coverage_tests;
 mod base_types_tests;
+mod context_tests;
+mod costing_assistant_tests;
+mod costing_tests;
 mod enum_fallback_tests;
 mod error_types_tests;
 mod errors_tests;

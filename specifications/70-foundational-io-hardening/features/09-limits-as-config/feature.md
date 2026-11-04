@@ -1,6 +1,6 @@
 ---
 feature: "Limits as configuration (valtron, buffer pool, background jobs, logs, SpinWaiter)"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: ["01-valtron-parking"]
 branch: "fix/io-09-limits-as-config"
@@ -37,12 +37,12 @@ builder method and a documented default that names its source. Never a `const` i
 
 ## 2. Tasks
 
-- [ ] T1. Branch from the base after feature 01.
-- [ ] T2. L1–L3 (valtron config). One commit.
-- [ ] T3. L4 (`BackgroundJobRegistry`). One commit.
-- [ ] T4. L5–L8 (`BytesPool`). One commit.
-- [ ] T5. L9, L10, L11. One commit each.
-- [ ] T6. Tests (each crate's `tests/`, registered in `mod.rs`):
+- [x] T1. Branch from the base after feature 01.
+- [x] T2. L1–L3 (valtron config). One commit.
+- [x] T3. L4 (`BackgroundJobRegistry`). One commit.
+- [x] T4. L5–L8 (`BytesPool`). One commit.
+- [x] T5. L9, L10, L11. One commit each.
+- [x] T6. Tests (each crate's `tests/`, registered in `mod.rs`):
   - `foundation_core`: `pool_config_overrides_yield_and_backoff` (a pool built with a custom
     `max_yield` uses it: measure an idle re-check interval with a 20 ms setting; assert
     20 ms ± 10 ms).
@@ -56,7 +56,7 @@ builder method and a documented default that names its source. Never a `const` i
     `ERROR` record for `WouldBlock`).
   - `foundation_nostd`: `spin_waiter_waits_at_least_sub_millisecond` (500 µs request, measured
     ≥ 500 µs, 100 runs).
-- [ ] T7. Delete the backlog entries. Update `progress.md`, `learnings.md`.
+- [x] T7. Delete the backlog entries. Update `progress.md`, `learnings.md`.
 
 ## 3. Verification (run exactly)
 
@@ -72,10 +72,10 @@ rg -n 'const .*(Duration|_SIZE|_CAPACITY|_SPINS)' backends/foundation_core/src/v
 
 ## 4. Done when
 
-- [ ] All §3 commands pass; timing tests passed 20 runs in a row.
-- [ ] Every item L1–L11 is done or has a written reason.
-- [ ] No caller of `BackgroundJobRegistry::new` ignores its error.
-- [ ] CI green.
+- [x] All §3 commands pass; timing tests passed 20 runs in a row.
+- [x] Every item L1–L11 is done or has a written reason.
+- [x] No caller of `BackgroundJobRegistry::new` ignores its error.
+- [x] CI green.
 
 ## 5. Review checklist (main session)
 

@@ -133,7 +133,10 @@ pub struct AgentSessionBuilder<D = MemoryDocumentStore, M = KvMemoryStore<Memory
     memory_config: MemoryConfig,
     message_config: MessageApiConfig,
     /// Optional embedding capability for real semantic recall (F16).
-    embedder: Option<(Arc<dyn crate::agentic::embedding::EmbeddingProvider>, String)>,
+    embedder: Option<(
+        Arc<dyn crate::agentic::embedding::EmbeddingProvider>,
+        String,
+    )>,
 }
 
 impl AgentSession {

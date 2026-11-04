@@ -15,7 +15,9 @@ pub enum MemoryErrors {
 impl fmt::Display for MemoryErrors {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            MemoryErrors::MemoryLimitExceededError => write!(f, "The memory limit has been exceeded"),
+            MemoryErrors::MemoryLimitExceededError => {
+                write!(f, "The memory limit has been exceeded")
+            }
         }
     }
 }

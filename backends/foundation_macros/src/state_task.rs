@@ -98,8 +98,9 @@ fn expand(func: &syn::ItemFn) -> syn::Result<TokenStream> {
             "#[task] first argument must be named `ctx`",
         ));
     }
-    let ctx_ty = fn_arg_type(ctx_arg)
-        .ok_or_else(|| syn::Error::new_spanned(ctx_arg, "#[task] first argument must be `ctx: Ctx`"))?;
+    let ctx_ty = fn_arg_type(ctx_arg).ok_or_else(|| {
+        syn::Error::new_spanned(ctx_arg, "#[task] first argument must be `ctx: Ctx`")
+    })?;
     if !type_is(ctx_ty, "Ctx") {
         return Err(syn::Error::new_spanned(
             ctx_ty,
@@ -107,7 +108,9 @@ fn expand(func: &syn::ItemFn) -> syn::Result<TokenStream> {
         ));
     }
     let ty_t = fn_arg_type(state_arg)
-        .ok_or_else(|| syn::Error::new_spanned(state_arg, "#[task] second argument must be `state: T`"))?
+        .ok_or_else(|| {
+            syn::Error::new_spanned(state_arg, "#[task] second argument must be `state: T`")
+        })?
         .clone();
 
     // --- output: `Option<(T, TaskStatus<R, P>)>` ---
@@ -127,7 +130,10 @@ fn expand(func: &syn::ItemFn) -> syn::Result<TokenStream> {
         ));
     }
     let inner = generic_arg(output_ty, 0).ok_or_else(|| {
-        syn::Error::new_spanned(output_ty, "#[task] return must be `Option<(T, TaskStatus<R, P>)>`")
+        syn::Error::new_spanned(
+            output_ty,
+            "#[task] return must be `Option<(T, TaskStatus<R, P>)>`",
+        )
     })?;
     let elems = match inner {
         syn::Type::Tuple(t) => &t.elems,
@@ -153,10 +159,19 @@ fn expand(func: &syn::ItemFn) -> syn::Result<TokenStream> {
         ));
     }
     let ty_r = generic_arg(task_status_ty, 0)
-        .ok_or_else(|| syn::Error::new_spanned(task_status_ty, "#[task] `TaskStatus` needs a Ready type `R`"))?
+        .ok_or_else(|| {
+            syn::Error::new_spanned(
+                task_status_ty,
+                "#[task] `TaskStatus` needs a Ready type `R`",
+            )
+        })?
         .clone();
-    let pending_ty = generic_arg(task_status_ty, 1)
-        .ok_or_else(|| syn::Error::new_spanned(task_status_ty, "#[task] `TaskStatus` needs a Pending type `P`"))?;
+    let pending_ty = generic_arg(task_status_ty, 1).ok_or_else(|| {
+        syn::Error::new_spanned(
+            task_status_ty,
+            "#[task] `TaskStatus` needs a Pending type `P`",
+        )
+    })?;
 
     if !same_type(&ty_t, ty_t_out) {
         return Err(syn::Error::new_spanned(

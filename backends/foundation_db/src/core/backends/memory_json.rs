@@ -13,8 +13,8 @@ use super::unix_now_secs;
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::rate_limit::RateLimitEntry;
 use crate::core::storage_provider::{
-    BlobStore, KeyValueStore, AsyncListStream, QueryStore, AsyncQueryStream,
-    RateLimiterStore, DataValue,
+    AsyncListStream, AsyncQueryStream, BlobStore, DataValue, KeyValueStore, QueryStore,
+    RateLimiterStore,
 };
 
 /// In-memory JSON key-value store.
@@ -52,7 +52,10 @@ impl Default for MemoryJsonStore {
 
 #[async_trait::async_trait]
 impl KeyValueStore for MemoryJsonStore {
-    async fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
+    async fn get<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
         let data = self.lock()?;
         match data.get(key) {
             Some(json) => {
@@ -78,6 +81,26 @@ impl KeyValueStore for MemoryJsonStore {
         Ok(())
     }
 
+    fn take_is_atomic(&self) -> bool {
+        true
+    }
+
+    async fn take<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        // One lock covers the read and the removal.
+        let json = self.lock()?.remove(key);
+        match json {
+            Some(json) => {
+                let value: V = serde_json::from_str(&json)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                Ok(Some(value))
+            }
+            None => Ok(None),
+        }
+    }
+
     async fn exists(&self, key: &str) -> StorageResult<bool> {
         let data = self.lock()?;
         Ok(data.contains_key(key))
@@ -85,12 +108,13 @@ impl KeyValueStore for MemoryJsonStore {
 
     async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         let data = self.lock()?;
-        let keys: Vec<String> = data.keys()
+        let keys: Vec<String> = data
+            .keys()
             .filter(|k| prefix.is_none_or(|p| k.starts_with(p)))
             .cloned()
             .collect();
         Ok(AsyncListStream::new(futures_lite::stream::iter(
-            keys.into_iter().map(Ok)
+            keys.into_iter().map(Ok),
         )))
     }
 }
@@ -167,7 +191,8 @@ impl RateLimiterStore for MemoryJsonStore {
             .transpose()
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let entry = RateLimitEntry::record(previous, now, window_seconds);
-        let json = serde_json::to_string(&entry).map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let json = serde_json::to_string(&entry)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
         data.insert(rate_key, json);
         Ok(entry.count)
     }
@@ -184,11 +209,7 @@ impl RateLimiterStore for MemoryJsonStore {
 /// `StorageError::Generic`.
 #[async_trait::async_trait]
 impl QueryStore for MemoryJsonStore {
-    async fn query(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<AsyncQueryStream> {
+    async fn query(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         Err(StorageError::Generic(
             "QueryStore not supported for MemoryJsonStore".to_string(),
         ))

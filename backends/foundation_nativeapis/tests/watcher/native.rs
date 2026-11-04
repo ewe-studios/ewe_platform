@@ -1,7 +1,6 @@
 /// Integration test: end-to-end file watching with InotifyWatcher and PollWatcher.
 ///
 /// Tests that actual filesystem events are detected on the current platform.
-
 use foundation_nativeapis::NativeWatcher;
 use serial_test::serial;
 use std::fs::{self, File};
@@ -64,7 +63,9 @@ fn inotify_detects_file_creation() {
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
-    watcher.watch(dir.path(), false).expect("failed to watch dir");
+    watcher
+        .watch(dir.path(), false)
+        .expect("failed to watch dir");
 
     // Create a file
     let _file = File::create(dir.path().join("test.txt")).expect("failed to create file");
@@ -87,7 +88,9 @@ fn inotify_detects_file_modification() {
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
-    watcher.watch(dir.path(), false).expect("failed to watch dir");
+    watcher
+        .watch(dir.path(), false)
+        .expect("failed to watch dir");
 
     // Create then modify
     let mut file = File::create(dir.path().join("test.txt")).expect("failed to create file");
@@ -111,7 +114,9 @@ fn inotify_detects_file_deletion() {
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
-    watcher.watch(dir.path(), false).expect("failed to watch dir");
+    watcher
+        .watch(dir.path(), false)
+        .expect("failed to watch dir");
 
     // Create then delete
     let path = dir.path().join("deletable.txt");
@@ -138,7 +143,9 @@ fn inotify_detects_file_rename() {
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
-    watcher.watch(dir.path(), false).expect("failed to watch dir");
+    watcher
+        .watch(dir.path(), false)
+        .expect("failed to watch dir");
 
     let from = dir.path().join("old.txt");
     let to = dir.path().join("new.txt");
@@ -169,7 +176,9 @@ fn inotify_unwatch_stops_events() {
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
-    watcher.watch(dir.path(), false).expect("failed to watch dir");
+    watcher
+        .watch(dir.path(), false)
+        .expect("failed to watch dir");
     watcher.unwatch(dir.path()).expect("failed to unwatch");
 
     File::create(dir.path().join("after_unwatch.txt")).expect("failed to create file");
@@ -191,7 +200,9 @@ fn inotify_clear_removes_all_watches() {
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
 
-    watcher.watch(dir.path(), false).expect("failed to watch dir");
+    watcher
+        .watch(dir.path(), false)
+        .expect("failed to watch dir");
     watcher.clear().expect("failed to clear");
 
     File::create(dir.path().join("after_clear.txt")).expect("failed to create file");
@@ -211,12 +222,16 @@ fn poll_watcher_detects_file_creation() {
     let mut watcher = foundation_nativeapis::PollWatcher::new();
     let dir = TempDir::new();
 
-    watcher.watch(dir.path(), false).expect("failed to watch dir");
+    watcher
+        .watch(dir.path(), false)
+        .expect("failed to watch dir");
 
     // Create a file after initial snapshot
     let _file = File::create(dir.path().join("poll_test.txt")).expect("failed to create file");
 
-    let events = watcher.poll(Duration::from_millis(200)).expect("poll failed");
+    let events = watcher
+        .poll(Duration::from_millis(200))
+        .expect("poll failed");
     // PollWatcher detects directory metadata change (mtime changes on file creation)
     assert!(
         !events.is_empty(),
@@ -233,7 +248,9 @@ fn poll_watcher_detects_file_deletion() {
     let dir = TempDir::new();
 
     // Watch the directory directly (not the file, since the file will be deleted)
-    watcher.watch(dir.path(), false).expect("failed to watch dir");
+    watcher
+        .watch(dir.path(), false)
+        .expect("failed to watch dir");
 
     // Create a file before poll
     let path = dir.path().join("poll_delete.txt");
@@ -244,7 +261,9 @@ fn poll_watcher_detects_file_deletion() {
     // Delete the file — directory mtime changes
     fs::remove_file(&path).expect("failed to delete file");
 
-    let events = watcher.poll(Duration::from_millis(200)).expect("poll failed");
+    let events = watcher
+        .poll(Duration::from_millis(200))
+        .expect("poll failed");
     // PollWatcher detects directory metadata change
     assert!(
         !events.is_empty(),
@@ -274,9 +293,13 @@ fn poll_watcher_detects_file_modification() {
     file.write_all(b"hello world").expect("failed to write");
     drop(file);
 
-    let events = watcher.poll(Duration::from_millis(200)).expect("poll failed");
+    let events = watcher
+        .poll(Duration::from_millis(200))
+        .expect("poll failed");
     assert!(
-        events.iter().any(|e| matches!(e.kind, foundation_nativeapis::WatchEventKind::Modified)),
+        events
+            .iter()
+            .any(|e| matches!(e.kind, foundation_nativeapis::WatchEventKind::Modified)),
         "Expected Modified event for poll_modify.txt, got: {:?}",
         events
     );
@@ -289,12 +312,16 @@ fn poll_watcher_unwatch() {
     let mut watcher = foundation_nativeapis::PollWatcher::new();
     let dir = TempDir::new();
 
-    watcher.watch(dir.path(), false).expect("failed to watch dir");
+    watcher
+        .watch(dir.path(), false)
+        .expect("failed to watch dir");
     watcher.unwatch(dir.path()).expect("failed to unwatch");
 
     File::create(dir.path().join("poll_unwatch.txt")).expect("failed to create file");
 
-    let events = watcher.poll(Duration::from_millis(200)).expect("poll failed");
+    let events = watcher
+        .poll(Duration::from_millis(200))
+        .expect("poll failed");
     assert!(
         events.is_empty(),
         "Expected no events after unwatch, got: {:?}",
@@ -316,9 +343,15 @@ fn poll_watcher_nonexistent_path() {
     // snapshots, which means watch() succeeds. This is a design choice —
     // the PollWatcher will detect when the path later appears (Created).
     // So this test verifies the alternative: watch succeeds, no events on poll.
-    let result = watcher.watch(std::path::Path::new("/nonexistent/path/that/does/not/exist"), false);
+    let result = watcher.watch(
+        std::path::Path::new("/nonexistent/path/that/does/not/exist"),
+        false,
+    );
     // Currently: succeeds because non-existent is a valid snapshot state
-    assert!(result.is_ok(), "PollWatcher accepts non-existent paths as snapshots");
+    assert!(
+        result.is_ok(),
+        "PollWatcher accepts non-existent paths as snapshots"
+    );
 }
 
 /// Test: WatcherBuilder builds a PollWatcher as fallback
@@ -328,9 +361,7 @@ fn watcher_builder_fallback_poll() {
     use foundation_nativeapis::shared::api::{NativeAPI, WatcherBuilder};
 
     // Explicitly request Poll — should always work
-    let watcher = WatcherBuilder::new()
-        .preferred(NativeAPI::Poll)
-        .build();
+    let watcher = WatcherBuilder::new().preferred(NativeAPI::Poll).build();
 
     assert!(watcher.is_ok(), "Poll watcher should always be available");
 }
@@ -356,7 +387,9 @@ fn inotify_has_events_does_not_consume_the_readiness_edge() {
     let mut watcher = foundation_nativeapis::native::watcher::linux::InotifyWatcher::new()
         .expect("failed to create inotify watcher");
     let dir = TempDir::new();
-    watcher.watch(dir.path(), false).expect("failed to watch dir");
+    watcher
+        .watch(dir.path(), false)
+        .expect("failed to watch dir");
 
     let _file = File::create(dir.path().join("edge.txt")).expect("failed to create file");
 
@@ -380,7 +413,9 @@ fn inotify_has_events_does_not_consume_the_readiness_edge() {
     }
 
     // And the events must still be there to collect.
-    let events = watcher.poll(Duration::from_millis(200)).expect("poll failed");
+    let events = watcher
+        .poll(Duration::from_millis(200))
+        .expect("poll failed");
     assert!(
         events.iter().any(|e| e.path.ends_with("edge.txt")),
         "poll() lost the event that has_events() reported; got {events:?}"

@@ -30,14 +30,20 @@ pub struct WorkerChannel<T: Send + 'static> {
 
 impl<T: Send + 'static> Clone for WorkerChannel<T> {
     fn clone(&self) -> Self {
-        Self { name: self.name.clone(), queue: Arc::clone(&self.queue) }
+        Self {
+            name: self.name.clone(),
+            queue: Arc::clone(&self.queue),
+        }
     }
 }
 
 impl<T: Send + 'static> WorkerChannel<T> {
     #[must_use]
     pub fn new(name: &str) -> Self {
-        Self { name: name.to_string(), queue: Arc::new(ConcurrentQueue::bounded(64)) }
+        Self {
+            name: name.to_string(),
+            queue: Arc::new(ConcurrentQueue::bounded(64)),
+        }
     }
 
     /// Set capacity (default 64). Must be called before `build()`.
@@ -51,7 +57,9 @@ impl<T: Send + 'static> WorkerChannel<T> {
     /// is consumed by `session.spawn_worker()`. The sender is cloneable
     /// and can be sent to the registry for cross-site dispatch.
     pub fn build(self) -> (Self, WorkerReceiver<T>) {
-        let rx = WorkerReceiver { queue: Arc::clone(&self.queue) };
+        let rx = WorkerReceiver {
+            queue: Arc::clone(&self.queue),
+        };
         (self, rx)
     }
 
@@ -125,15 +133,17 @@ pub struct WorkerRegistry {
 impl WorkerRegistry {
     #[must_use]
     pub fn new() -> Self {
-        Self { channels: Mutex::new(HashMap::new()) }
+        Self {
+            channels: Mutex::new(HashMap::new()),
+        }
     }
 
     /// Register a channel for named dispatch.
     pub fn register<T: Send + 'static>(&self, name: &str, queue: Arc<ConcurrentQueue<T>>) {
-        self.channels.lock().unwrap().insert(
-            name.to_string(),
-            Box::new(TypedSender { queue }),
-        );
+        self.channels
+            .lock()
+            .unwrap()
+            .insert(name.to_string(), Box::new(TypedSender { queue }));
     }
 
     /// Send a command to a named worker. Returns `false` if unknown or
@@ -161,7 +171,9 @@ impl WorkerRegistry {
 }
 
 impl Default for WorkerRegistry {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 // ── Session integration ──────────────────────────────────────────────────
@@ -184,8 +196,12 @@ impl PlatformSession {
     /// // Dispatch from anywhere:
     /// session.workers().send("sync", SyncCommand::FullSync);
     /// ```
-    pub fn spawn_worker<T, F>(self: &Arc<Self>, channel: WorkerChannel<T>, receiver: WorkerReceiver<T>, handler: F)
-    where
+    pub fn spawn_worker<T, F>(
+        self: &Arc<Self>,
+        channel: WorkerChannel<T>,
+        receiver: WorkerReceiver<T>,
+        handler: F,
+    ) where
         T: Send + 'static,
         F: FnOnce(WorkerReceiver<T>, Arc<PlatformSession>) + Send + 'static,
     {
@@ -243,7 +259,9 @@ mod tests {
         drop(tx1);
         drop(tx2);
         let mut got = Vec::new();
-        while let Some(v) = rx.try_recv() { got.push(v); }
+        while let Some(v) = rx.try_recv() {
+            got.push(v);
+        }
         got.sort();
         assert_eq!(got, vec![10, 20]);
     }

@@ -5,16 +5,21 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use foundation_ai::agentic::memory_store::KvMemoryStore;
-use foundation_ai::agentic::testing::{mock_text, MockModelProvider, MockTool};
+use foundation_ai::agentic::testing::{mock_text, zero_usage, MockModelProvider, MockTool};
 use foundation_ai::agentic::tool_impl::{ToolCallManager, ToolCallResult, ToolError, ToolImpl};
 use foundation_ai::agentic::tools::agent::{register_agent_tool, AgentTool, SessionStoreFactory};
 use foundation_ai::agentic::UserId;
-use foundation_ai::types::routable_provider::ProviderRouter;
-use foundation_ai::types::{ModelId, SessionId, Tool, ToolArguments, UserModelContent};
-use foundation_core::valtron::valtron_test;
+use foundation_ai::errors::GenerationResult;
+use foundation_ai::types::routable_provider::{ProviderRouter, RoutableProvider};
+use foundation_ai::types::{
+    BoxModel, Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProviderDescriptor,
+    ModelProviders, ModelSpec, ModelState, ModelStreamBox, SessionId, TextBasedFormatter, Tool,
+    ToolArguments, ToolFormatter, UsageReport, UserModelContent,
+};
+use foundation_core::valtron::{valtron_test, Stream, WakeableStream};
 use foundation_db::{MemoryDocumentStore, MemoryStorage, StorageError};
 use futures_lite::future::block_on;
 
@@ -72,29 +77,17 @@ fn tool_router(router: ProviderRouter) -> AgentTool<D, M> {
     )
 }
 
-fn as_json(
-    result: &ToolCallResult,
-) -> serde_json::Value {
+fn as_json(result: &ToolCallResult) -> serde_json::Value {
     match &result.content {
-        UserModelContent::Text(t) => {
-            serde_json::from_str(&t.content).unwrap_or_else(|_| {
-                serde_json::json!({"raw": t.content})
-            })
-        }
+        UserModelContent::Text(t) => serde_json::from_str(&t.content)
+            .unwrap_or_else(|_| serde_json::json!({"raw": t.content})),
         _ => serde_json::json!({}),
     }
 }
 
-fn poll_until_done(
-    t: &AgentTool<D, M>,
-    id: &str,
-    max_iters: usize,
-) -> Option<serde_json::Value> {
+fn poll_until_done(t: &AgentTool<D, M>, id: &str, max_iters: usize) -> Option<serde_json::Value> {
     for _ in 0..max_iters {
-        let check = block_on(
-            t.execute(cmd("check", &[("id", id)])),
-        )
-        .expect("check");
+        let check = block_on(t.execute(cmd("check", &[("id", id)]))).expect("check");
         let check_json = as_json(&check);
         let state = check_json["state"].as_str().unwrap_or("unknown");
         match state {
@@ -148,10 +141,9 @@ fn definition_function_spec_discriminated() {
     assert!(spec.description.contains("start"));
     let branches = spec.parameters["oneOf"].as_array().unwrap();
     assert_eq!(branches.len(), 6);
-    for (i, expected) in
-        ["start", "check", "result", "pause", "resume", "stop"]
-            .iter()
-            .enumerate()
+    for (i, expected) in ["start", "check", "result", "pause", "resume", "stop"]
+        .iter()
+        .enumerate()
     {
         let got = branches[i]["properties"]["command"]["const"]
             .as_str()
@@ -289,10 +281,8 @@ fn start_returns_immediately_with_id() {
     mock.on_any(vec![mock_text("sub-agent result")]);
     let t = tool_router(mock.into_router());
 
-    let result = block_on(
-        t.execute(cmd("start", &[("task", "write hello world")])),
-    )
-    .expect("start");
+    let result =
+        block_on(t.execute(cmd("start", &[("task", "write hello world")]))).expect("start");
 
     let json = as_json(&result);
     assert_eq!(json["status"], "running");
@@ -310,10 +300,7 @@ fn full_cycle_start_check_result() {
     mock.on_any(vec![mock_text("task completed successfully")]);
     let t = tool_router(mock.into_router());
 
-    let start = block_on(
-        t.execute(cmd("start", &[("task", "write hello")])),
-    )
-    .expect("start");
+    let start = block_on(t.execute(cmd("start", &[("task", "write hello")]))).expect("start");
     let id = as_json(&start)["id"].as_str().unwrap().to_string();
 
     let done = poll_until_done(&t, &id, 200);
@@ -322,19 +309,13 @@ fn full_cycle_start_check_result() {
     assert_eq!(done_json["state"], "Done");
     assert!(!done_json["location"].as_str().unwrap().is_empty());
 
-    let result = block_on(
-        t.execute(cmd("result", &[("id", &id)])),
-    )
-    .expect("result");
+    let result = block_on(t.execute(cmd("result", &[("id", &id)]))).expect("result");
     let rj = as_json(&result);
     assert!(!rj["location"].as_str().unwrap().is_empty());
     assert!(rj["summary"].as_str().unwrap().len() > 0);
 
     // Cleanup: after result, id is freed → check fails
-    let err = block_on(
-        t.execute(cmd("check", &[("id", &id)])),
-    )
-    .unwrap_err();
+    let err = block_on(t.execute(cmd("check", &[("id", &id)]))).unwrap_err();
     assert!(matches!(err, ToolError::InvalidArguments { .. }));
 }
 
@@ -348,31 +329,19 @@ fn pause_reports_paused_on_check() {
     mock.on_any(vec![mock_text("ok")]);
     let t = tool_router(mock.into_router());
 
-    let start = block_on(
-        t.execute(cmd("start", &[("task", "stuff")])),
-    )
-    .expect("start");
+    let start = block_on(t.execute(cmd("start", &[("task", "stuff")]))).expect("start");
     let id = as_json(&start)["id"].as_str().unwrap().to_string();
 
     // Pause
-    let pause = block_on(
-        t.execute(cmd("pause", &[("id", &id)])),
-    )
-    .expect("pause");
+    let pause = block_on(t.execute(cmd("pause", &[("id", &id)]))).expect("pause");
     assert_eq!(as_json(&pause)["status"], "paused");
 
     // Check → Paused
-    let check = block_on(
-        t.execute(cmd("check", &[("id", &id)])),
-    )
-    .expect("check");
+    let check = block_on(t.execute(cmd("check", &[("id", &id)]))).expect("check");
     assert_eq!(as_json(&check)["state"], "Paused");
 
     // Resume
-    let resume = block_on(
-        t.execute(cmd("resume", &[("id", &id)])),
-    )
-    .expect("resume");
+    let resume = block_on(t.execute(cmd("resume", &[("id", &id)]))).expect("resume");
     assert_eq!(as_json(&resume)["status"], "resumed");
 }
 
@@ -382,17 +351,11 @@ fn resume_idempotent_when_not_paused() {
     mock.on_any(vec![mock_text("ok")]);
     let t = tool_router(mock.into_router());
 
-    let start = block_on(
-        t.execute(cmd("start", &[("task", "stuff")])),
-    )
-    .expect("start");
+    let start = block_on(t.execute(cmd("start", &[("task", "stuff")]))).expect("start");
     let id = as_json(&start)["id"].as_str().unwrap().to_string();
 
     // Resume without prior pause — succeeds
-    let resume = block_on(
-        t.execute(cmd("resume", &[("id", &id)])),
-    )
-    .expect("resume");
+    let resume = block_on(t.execute(cmd("resume", &[("id", &id)]))).expect("resume");
     assert_eq!(as_json(&resume)["status"], "resumed");
 }
 
@@ -406,23 +369,14 @@ fn stop_removes_run_without_keep_session() {
     mock.on_any(vec![mock_text("reply")]);
     let t = tool_router(mock.into_router());
 
-    let start = block_on(
-        t.execute(cmd("start", &[("task", "stuff")])),
-    )
-    .expect("start");
+    let start = block_on(t.execute(cmd("start", &[("task", "stuff")]))).expect("start");
     let id = as_json(&start)["id"].as_str().unwrap().to_string();
 
-    let stop = block_on(
-        t.execute(cmd("stop", &[("id", &id)])),
-    )
-    .expect("stop");
+    let stop = block_on(t.execute(cmd("stop", &[("id", &id)]))).expect("stop");
     assert_eq!(as_json(&stop)["status"], "stopped");
 
     // Run removed → check errors
-    let err = block_on(
-        t.execute(cmd("check", &[("id", &id)])),
-    )
-    .unwrap_err();
+    let err = block_on(t.execute(cmd("check", &[("id", &id)]))).unwrap_err();
     assert!(matches!(err, ToolError::InvalidArguments { .. }));
 }
 
@@ -432,20 +386,12 @@ fn stop_with_keep_session_preserves_run() {
     mock.on_any(vec![mock_text("reply")]);
     let t = tool_router(mock.into_router());
 
-    let start = block_on(
-        t.execute(cmd(
-            "start",
-            &[("task", "stuff"), ("keep_session", "true")],
-        )),
-    )
-    .expect("start");
+    let start = block_on(t.execute(cmd("start", &[("task", "stuff"), ("keep_session", "true")])))
+        .expect("start");
     let id = as_json(&start)["id"].as_str().unwrap().to_string();
 
     // Stop with keep_session
-    block_on(
-        t.execute(cmd("stop", &[("id", &id)])),
-    )
-    .expect("stop");
+    block_on(t.execute(cmd("stop", &[("id", &id)]))).expect("stop");
 
     // The contract under test: `keep_session` means `stop` must NOT drop the
     // run from the map, so the id still resolves. `check` returning Ok (i.e.
@@ -455,10 +401,8 @@ fn stop_with_keep_session_preserves_run() {
     // advanced the sub-agent past `Started` by this point is a scheduling
     // race, and asserting on it made this test flaky across codegen
     // backends (it passed on cranelift, failed on LLVM).
-    let check = block_on(
-        t.execute(cmd("check", &[("id", &id)])),
-    )
-    .expect("keep_session=true must preserve the run, so check resolves the id");
+    let check = block_on(t.execute(cmd("check", &[("id", &id)])))
+        .expect("keep_session=true must preserve the run, so check resolves the id");
     let state = as_json(&check)["state"].as_str().unwrap_or("").to_string();
     assert!(
         !state.is_empty(),
@@ -474,19 +418,13 @@ fn stop_without_keep_session_drops_the_run() {
     mock.on_any(vec![mock_text("reply")]);
     let t = tool_router(mock.into_router());
 
-    let start = block_on(
-        t.execute(cmd("start", &[("task", "stuff")])),
-    )
-    .expect("start");
+    let start = block_on(t.execute(cmd("start", &[("task", "stuff")]))).expect("start");
     let id = as_json(&start)["id"].as_str().unwrap().to_string();
 
-    block_on(t.execute(cmd("stop", &[("id", &id)])))
-        .expect("stop");
+    block_on(t.execute(cmd("stop", &[("id", &id)]))).expect("stop");
 
-    let err = block_on(
-        t.execute(cmd("check", &[("id", &id)])),
-    )
-    .expect_err("without keep_session the run must be gone");
+    let err = block_on(t.execute(cmd("check", &[("id", &id)])))
+        .expect_err("without keep_session the run must be gone");
     assert!(matches!(err, ToolError::InvalidArguments { .. }));
 }
 
@@ -512,10 +450,7 @@ fn child_tools_provisioned_on_sub_agent() {
         vec![write_tool],
     );
 
-    let result = block_on(
-        t.execute(cmd("start", &[("task", "write something")])),
-    )
-    .expect("start");
+    let result = block_on(t.execute(cmd("start", &[("task", "write something")]))).expect("start");
     let json = as_json(&result);
     assert_eq!(json["status"], "running");
     assert!(!json["session_id"].as_str().unwrap().is_empty());
@@ -645,10 +580,8 @@ fn start_accepts_max_iterations_in_every_numeric_spelling() {
         mock.on_any(vec![mock_text("ok")]);
         let t = tool_router(mock.into_router());
 
-        let out = block_on(
-            t.execute(start_args(vec![("max_iterations", arg.clone())])),
-        )
-        .unwrap_or_else(|e| panic!("max_iterations {arg:?} must be accepted: {e:?}"));
+        let out = block_on(t.execute(start_args(vec![("max_iterations", arg.clone())])))
+            .unwrap_or_else(|e| panic!("max_iterations {arg:?} must be accepted: {e:?}"));
         assert_eq!(as_json(&out)["status"], "running");
     }
 }
@@ -717,14 +650,8 @@ fn start_returns_distinct_ids_per_delegation() {
     mock.on_any(vec![mock_text("ok")]);
     let t = tool_router(mock.into_router());
 
-    let a = block_on(
-        t.execute(cmd("start", &[("task", "first")])),
-    )
-    .expect("start a");
-    let b = block_on(
-        t.execute(cmd("start", &[("task", "second")])),
-    )
-    .expect("start b");
+    let a = block_on(t.execute(cmd("start", &[("task", "first")]))).expect("start a");
+    let b = block_on(t.execute(cmd("start", &[("task", "second")]))).expect("start b");
 
     let id_a = as_json(&a)["id"].as_str().unwrap().to_string();
     let id_b = as_json(&b)["id"].as_str().unwrap().to_string();
@@ -749,19 +676,13 @@ fn result_while_paused_reports_not_done() {
     mock.on_any(vec![mock_text("ok")]);
     let t = tool_router(mock.into_router());
 
-    let start = block_on(
-        t.execute(cmd("start", &[("task", "stuff")])),
-    )
-    .expect("start");
+    let start = block_on(t.execute(cmd("start", &[("task", "stuff")]))).expect("start");
     let id = as_json(&start)["id"].as_str().unwrap().to_string();
 
-    block_on(t.execute(cmd("pause", &[("id", &id)])))
-        .expect("pause");
+    block_on(t.execute(cmd("pause", &[("id", &id)]))).expect("pause");
 
-    let err = block_on(
-        t.execute(cmd("result", &[("id", &id)])),
-    )
-    .expect_err("a paused run is not done, so result must error");
+    let err = block_on(t.execute(cmd("result", &[("id", &id)])))
+        .expect_err("a paused run is not done, so result must error");
     match err {
         ToolError::Execution { reason, .. } => {
             assert!(
@@ -781,20 +702,13 @@ fn paused_run_is_not_advanced_by_check() {
     mock.on_any(vec![mock_text("ok")]);
     let t = tool_router(mock.into_router());
 
-    let start = block_on(
-        t.execute(cmd("start", &[("task", "stuff")])),
-    )
-    .expect("start");
+    let start = block_on(t.execute(cmd("start", &[("task", "stuff")]))).expect("start");
     let id = as_json(&start)["id"].as_str().unwrap().to_string();
 
-    block_on(t.execute(cmd("pause", &[("id", &id)])))
-        .expect("pause");
+    block_on(t.execute(cmd("pause", &[("id", &id)]))).expect("pause");
 
     for _ in 0..3 {
-        let c = block_on(
-            t.execute(cmd("check", &[("id", &id)])),
-        )
-        .expect("check");
+        let c = block_on(t.execute(cmd("check", &[("id", &id)]))).expect("check");
         assert_eq!(as_json(&c)["state"], "Paused");
     }
 }
@@ -805,16 +719,11 @@ fn resume_after_pause_lets_the_run_progress_again() {
     mock.on_any(vec![mock_text("done text")]);
     let t = tool_router(mock.into_router());
 
-    let start = block_on(
-        t.execute(cmd("start", &[("task", "stuff")])),
-    )
-    .expect("start");
+    let start = block_on(t.execute(cmd("start", &[("task", "stuff")]))).expect("start");
     let id = as_json(&start)["id"].as_str().unwrap().to_string();
 
-    block_on(t.execute(cmd("pause", &[("id", &id)])))
-        .expect("pause");
-    block_on(t.execute(cmd("resume", &[("id", &id)])))
-        .expect("resume");
+    block_on(t.execute(cmd("pause", &[("id", &id)]))).expect("pause");
+    block_on(t.execute(cmd("resume", &[("id", &id)]))).expect("resume");
 
     // After resuming, the run must be able to reach a terminal state.
     let done = poll_until_done(&t, &id, 200);
@@ -842,10 +751,8 @@ fn start_below_the_cap_is_allowed() {
         test_user(),
         vec![],
     );
-    let out = block_on(
-        t.execute(cmd("start", &[("task", "stuff")])),
-    )
-    .expect("depth 4 of max 5 must be allowed");
+    let out = block_on(t.execute(cmd("start", &[("task", "stuff")])))
+        .expect("depth 4 of max 5 must be allowed");
     assert_eq!(as_json(&out)["status"], "running");
 }
 
@@ -878,7 +785,10 @@ fn depth_cap_of_zero_refuses_all_delegation() {
 // store factory
 // ------------------------------------------------------------------
 
-fn tool_with_stores(router: ProviderRouter, stores: Arc<dyn SessionStoreFactory<D, M>>) -> AgentTool<D, M> {
+fn tool_with_stores(
+    router: ProviderRouter,
+    stores: Arc<dyn SessionStoreFactory<D, M>>,
+) -> AgentTool<D, M> {
     AgentTool::with_store_factory(
         router,
         0,
@@ -901,7 +811,12 @@ fn store_factory_builds_fresh_stores_for_each_start() {
         mock.into_router(),
         Arc::new(move || {
             counter.fetch_add(1, Ordering::SeqCst);
-            async { Ok((MemoryDocumentStore::new(), KvMemoryStore::new(MemoryStorage::new()))) }
+            async {
+                Ok((
+                    MemoryDocumentStore::new(),
+                    KvMemoryStore::new(MemoryStorage::new()),
+                ))
+            }
         }),
     );
 
@@ -909,7 +824,11 @@ fn store_factory_builds_fresh_stores_for_each_start() {
         let out = block_on(t.execute(cmd("start", &[("task", task)]))).expect("start");
         assert_eq!(as_json(&out)["status"], "running");
     }
-    assert_eq!(created.load(Ordering::SeqCst), 2, "one set of stores per sub-agent");
+    assert_eq!(
+        created.load(Ordering::SeqCst),
+        2,
+        "one set of stores per sub-agent"
+    );
 }
 
 #[test]
@@ -925,9 +844,216 @@ fn a_failing_store_factory_fails_start() {
             .unwrap_err();
         match err {
             ToolError::Execution { reason, .. } => {
-                assert!(reason.contains("stores") && reason.contains("disk full"), "got: {reason}");
+                assert!(
+                    reason.contains("stores") && reason.contains("disk full"),
+                    "got: {reason}"
+                );
             }
             other => panic!("expected Execution, got {other:?}"),
         }
     });
+}
+
+// ------------------------------------------------------------------
+// agent_tool_does_not_spin_while_sub_agent_waits (E2)
+// ------------------------------------------------------------------
+
+/// A model stream that answers only after `wait`: it yields `Init`, then
+/// `Stream::Wait` until `deadline`, then the reply. Its `wake` keeps the
+/// default (`NotSupported`), so the agent loop re-polls it and the sub-agent's
+/// channel floods with `Stream::Wait` — the shape that used to make the
+/// `agent` tool's drain loop spin for the whole wait.
+struct WaitingStream {
+    deadline: Instant,
+    reply: Messages,
+    sent_init: bool,
+    sent_reply: bool,
+    polls: Arc<AtomicUsize>,
+}
+
+impl Iterator for WaitingStream {
+    type Item = Stream<Messages, ModelState>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.polls.fetch_add(1, Ordering::SeqCst);
+        if !self.sent_init {
+            self.sent_init = true;
+            return Some(Stream::Init);
+        }
+        if !self.sent_reply && Instant::now() < self.deadline {
+            return Some(Stream::Wait);
+        }
+        if !self.sent_reply {
+            self.sent_reply = true;
+            return Some(Stream::Next(self.reply.clone()));
+        }
+        None
+    }
+}
+
+impl WakeableStream for WaitingStream {}
+
+/// A single-model provider whose `stream()` waits `wait` before answering.
+struct WaitingProvider {
+    wait: Duration,
+    reply: Messages,
+    polls: Arc<AtomicUsize>,
+}
+
+impl WaitingProvider {
+    fn new(polls: Arc<AtomicUsize>, wait: Duration) -> Self {
+        Self {
+            wait,
+            reply: mock_text("done"),
+            polls,
+        }
+    }
+
+    fn into_router(self) -> ProviderRouter {
+        ProviderRouter::single(Box::new(self))
+    }
+}
+
+/// The `Model` handed out by `WaitingProvider`.
+struct WaitingModel {
+    wait: Duration,
+    reply: Messages,
+    polls: Arc<AtomicUsize>,
+    model_id: ModelId,
+}
+
+impl Model for WaitingModel {
+    fn spec(&self) -> ModelSpec {
+        ModelSpec {
+            name: self.model_id.name().to_owned(),
+            id: self.model_id.clone(),
+            devices: None,
+            model_location: None,
+            lora_location: None,
+        }
+    }
+
+    fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
+        Box::new(TextBasedFormatter)
+    }
+
+    fn descriptor(&self) -> Option<ModelProviderDescriptor> {
+        None
+    }
+
+    fn costing(&self) -> GenerationResult<UsageReport> {
+        Ok(zero_usage())
+    }
+
+    fn generate(
+        &self,
+        _interaction: ModelInteraction,
+        _specs: Option<ModelParams>,
+    ) -> GenerationResult<Vec<Messages>> {
+        Ok(vec![self.reply.clone()])
+    }
+
+    fn stream(
+        &self,
+        _interaction: ModelInteraction,
+        _specs: Option<ModelParams>,
+    ) -> GenerationResult<ModelStreamBox> {
+        Ok(Box::new(WaitingStream {
+            deadline: Instant::now() + self.wait,
+            reply: self.reply.clone(),
+            sent_init: false,
+            sent_reply: false,
+            polls: Arc::clone(&self.polls),
+        }))
+    }
+}
+
+impl RoutableProvider for WaitingProvider {
+    fn name(&self) -> &str {
+        "waiting"
+    }
+
+    fn provider_id(&self) -> ModelProviders {
+        ModelProviders::Custom("waiting".into())
+    }
+
+    fn describe(&self) -> Option<ModelProviderDescriptor> {
+        None
+    }
+
+    fn serves(&self, _model_id: &ModelId) -> bool {
+        true
+    }
+
+    fn get_one(&self, model_id: &ModelId) -> Option<ModelSpec> {
+        Some(ModelSpec {
+            name: model_id.name().to_owned(),
+            id: model_id.clone(),
+            devices: None,
+            model_location: None,
+            lora_location: None,
+        })
+    }
+
+    fn get_all(&self, model_id: &ModelId) -> Vec<ModelSpec> {
+        self.get_one(model_id).into_iter().collect()
+    }
+
+    fn get_model(&self, model_id: &ModelId) -> Option<BoxModel> {
+        Some(Box::new(WaitingModel {
+            wait: self.wait,
+            reply: self.reply.clone(),
+            polls: Arc::clone(&self.polls),
+            model_id: model_id.clone(),
+        }))
+    }
+}
+
+/// A sub-agent whose model waits 500 ms on I/O must not make `check` spin.
+///
+/// The drain loop parks on `Stream::Wait` (reports `Working`) instead of
+/// re-pulling it in a tight loop. A spinning drain would consume the flood of
+/// `Wait` items the sub-agent emits and hold the caller for the whole 500 ms
+/// wait, so the wall-clock bound below is the observable for "polls < 10".
+#[valtron_test]
+fn agent_tool_does_not_spin_while_sub_agent_waits() {
+    let polls = Arc::new(AtomicUsize::new(0));
+    let t = tool_router(
+        WaitingProvider::new(Arc::clone(&polls), Duration::from_millis(500)).into_router(),
+    );
+
+    let start = block_on(t.execute(cmd("start", &[("task", "wait for io")]))).expect("start");
+    let id = as_json(&start)["id"].as_str().unwrap().to_string();
+
+    // Wait until the sub-agent has entered its generation loop and emitted
+    // Init + at least one Wait (so the channel holds the Wait flood).
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while polls.load(Ordering::SeqCst) < 2 {
+        assert!(
+            Instant::now() < deadline,
+            "sub-agent never reached the waiting state"
+        );
+        thread::yield_now();
+    }
+
+    // Drain the initial Pending/Ignore control items so the measured check
+    // observes the Stream::Wait flood itself.
+    for _ in 0..8 {
+        block_on(t.execute(cmd("check", &[("id", &id)]))).expect("warm-up check");
+    }
+
+    // One check must park on the wait, not drain through it.
+    let t0 = Instant::now();
+    let check = block_on(t.execute(cmd("check", &[("id", &id)]))).expect("check");
+    let elapsed = t0.elapsed();
+
+    let check_json = as_json(&check);
+    assert_eq!(
+        check_json["state"], "Working",
+        "a waiting sub-agent must report Working, got {check_json}"
+    );
+    assert!(
+        elapsed < Duration::from_millis(100),
+        "check must not spin through the 500 ms wait; took {elapsed:?}"
+    );
 }

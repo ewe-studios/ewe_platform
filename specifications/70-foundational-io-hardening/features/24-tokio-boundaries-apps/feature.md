@@ -1,6 +1,6 @@
 ---
 feature: "Remove the last tokio runtimes: the testbed embedded JS runner and the tokio/axum apps (#137)"
-status: "pending"
+status: "done"
 priority: "medium"
 depends_on: ["08-async-serve"]
 branch: "fix/io-24-tokio-apps"
@@ -81,7 +81,7 @@ rg -n '\btokio\b|\baxum\b' --glob 'Cargo.toml'   # only valtron cross-runtime te
 
 ## Done when
 
-- [ ] T0 table; every open entry fixed; backlog entries deleted; #137 can be closed.
-- [ ] No tokio or axum dependency outside valtron's cross-runtime tests (and E1's documented
+- [x] T0 table; every open entry fixed; backlog entries deleted; #137 can be closed.
+- [x] No tokio or axum dependency outside valtron's cross-runtime tests (and E1's documented
       boundary, if research says it must stay).
-- [ ] Each ported app has a test that runs it. CI green.
+- [x] Each ported app has a test that runs it. CI green.

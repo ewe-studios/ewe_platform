@@ -126,8 +126,7 @@ pub fn decode(bytes: &[u8]) -> WgResult<SwimMessage> {
             "unsupported SWIM wire version {version}"
         )));
     }
-    let (message, _len) =
-        bincode::serde::decode_from_slice(body, bincode::config::standard())
-            .map_err(|e| WgError::Protocol(format!("malformed SWIM message: {e}")))?;
+    let (message, _len) = bincode::serde::decode_from_slice(body, bincode::config::standard())
+        .map_err(|e| WgError::Protocol(format!("malformed SWIM message: {e}")))?;
     Ok(message)
 }

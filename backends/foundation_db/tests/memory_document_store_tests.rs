@@ -4,8 +4,8 @@
 //! ready at once, so these run as plain `#[test]`s driven with
 //! `futures_lite::future::block_on`.
 
-use foundation_db::traits::{DocumentStore, AsyncStorageItemStream, PromotableDocument};
 use foundation_compact::ids::new_scru128_string;
+use foundation_db::traits::{AsyncStorageItemStream, DocumentStore, PromotableDocument};
 use foundation_db::MemoryDocumentStore;
 use futures_lite::future::block_on;
 use futures_lite::StreamExt;
@@ -38,8 +38,14 @@ async fn values<V>(mut stream: AsyncStorageItemStream<'_, V>) -> Vec<V> {
 fn append_mints_scru128_ids_and_orders_by_id() {
     block_on(async {
         let store = MemoryDocumentStore::new();
-        let a = store.append("k", serde_json::json!({"n": 1})).await.unwrap();
-        let b = store.append("k", serde_json::json!({"n": 2})).await.unwrap();
+        let a = store
+            .append("k", serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
+        let b = store
+            .append("k", serde_json::json!({"n": 2}))
+            .await
+            .unwrap();
         assert_eq!(a.id.len(), 25, "scru128 id, not \"mem-N\"");
         assert!(b.id > a.id, "later append has a greater scru128 id");
     });
@@ -51,17 +57,35 @@ fn scan_from_is_inclusive_and_ordered() {
         let store = MemoryDocumentStore::new();
         let mut ids = Vec::new();
         for n in 0..5 {
-            ids.push(store.append("k", serde_json::json!({ "n": n })).await.unwrap().id);
+            ids.push(
+                store
+                    .append("k", serde_json::json!({ "n": n }))
+                    .await
+                    .unwrap()
+                    .id,
+            );
         }
 
         // scan_from the 3rd id (inclusive) → ids[2..] in order.
-        let got = values(store.scan_from::<serde_json::Value>("k", &ids[2], 0).await.unwrap()).await;
+        let got = values(
+            store
+                .scan_from::<serde_json::Value>("k", &ids[2], 0)
+                .await
+                .unwrap(),
+        )
+        .await;
         assert_eq!(got.len(), 3);
         assert_eq!(got[0]["n"], 2);
         assert_eq!(got[2]["n"], 4);
 
         // limit caps the result.
-        let limited = values(store.scan_from::<serde_json::Value>("k", &ids[0], 2).await.unwrap()).await;
+        let limited = values(
+            store
+                .scan_from::<serde_json::Value>("k", &ids[0], 2)
+                .await
+                .unwrap(),
+        )
+        .await;
         assert_eq!(limited.len(), 2);
     });
 }
@@ -76,8 +100,80 @@ fn append_with_id_uses_caller_id() {
             .await
             .unwrap();
         assert_eq!(doc.id, id);
-        let got = values(store.scan_from::<serde_json::Value>("k", &id, 0).await.unwrap()).await;
+        let got = values(
+            store
+                .scan_from::<serde_json::Value>("k", &id, 0)
+                .await
+                .unwrap(),
+        )
+        .await;
         assert_eq!(got.len(), 1);
+    });
+}
+
+#[test]
+fn append_with_id_is_idempotent() {
+    block_on(async {
+        let store = MemoryDocumentStore::new();
+        let id = new_scru128_string();
+        let first = store
+            .append_with_id("k", &id, serde_json::json!({"x": 1}))
+            .await
+            .unwrap();
+        assert_eq!(first.id, id, "the stable caller id is kept");
+        let second = store
+            .append_with_id("k", &id, serde_json::json!({"x": 1}))
+            .await
+            .unwrap();
+        assert_eq!(second.id, id);
+        assert_eq!(
+            store.count("k").await.unwrap(),
+            1,
+            "re-append must not duplicate"
+        );
+        let got = values(
+            store
+                .scan_from::<serde_json::Value>("k", &id, 0)
+                .await
+                .unwrap(),
+        )
+        .await;
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0]["x"], 1);
+    });
+}
+
+#[test]
+fn append_promotable_with_id_is_idempotent() {
+    block_on(async {
+        let store = MemoryDocumentStore::new();
+        let id = new_scru128_string();
+        let note = Note {
+            kind: "observation".into(),
+            text: "saw a cat".into(),
+        };
+        let first = store
+            .append_promotable_with_id("k", &id, note)
+            .await
+            .unwrap();
+        assert_eq!(first.id, id);
+        let again = store
+            .append_promotable_with_id(
+                "k",
+                &id,
+                Note {
+                    kind: "observation".into(),
+                    text: "saw a cat".into(),
+                },
+            )
+            .await
+            .unwrap();
+        assert_eq!(again.id, id);
+        assert_eq!(
+            store.count("k").await.unwrap(),
+            1,
+            "re-append must not duplicate"
+        );
     });
 }
 
@@ -110,7 +206,10 @@ fn append_promotable_round_trips_columns() {
 fn plain_append_leaves_promoted_columns_null() {
     block_on(async {
         let store = MemoryDocumentStore::new();
-        store.append("k", serde_json::json!({"n": 1})).await.unwrap();
+        store
+            .append("k", serde_json::json!({"n": 1}))
+            .await
+            .unwrap();
         let docs = store.scan_documents("k", 10).await.unwrap();
         assert_eq!(docs[0].record_type, None);
         assert_eq!(docs[0].title, None);

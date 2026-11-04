@@ -21,16 +21,17 @@ pub fn check() {
     // Check 2: BrowserWgNode has tick() (F07 browser peer lifecycle)
     {
         // Type-level proof that tick() exists on BrowserWgNode
-        fn _call_tick(n: &mut crate::wasm::browser::BrowserWgNode) { n.tick(); }
+        fn _call_tick(n: &mut crate::wasm::browser::BrowserWgNode) {
+            n.tick();
+        }
     }
 
     // Check 3: RelayServer + RelayClient instantiable (F05 relay)
     {
         use crate::shared::relay::{RelaySelector, RelayStrategy};
         let _s = crate::native::relay::RelayServer::new(16, 1000, 60);
-        let _c = crate::native::relay::RelayClient::new(
-            RelaySelector::new(RelayStrategy::LowestLoad),
-        );
+        let _c =
+            crate::native::relay::RelayClient::new(RelaySelector::new(RelayStrategy::LowestLoad));
     }
 
     // Check 4: HolePuncher instantiable (F05 NAT traversal)
@@ -41,7 +42,7 @@ pub fn check() {
     // Check 5: WgConfig::from_env callable (F09/F10 self-assembly)
     {
         let _: fn() -> crate::shared::error::WgResult<crate::shared::config::WgConfig> =
-            || { crate::shared::config::WgConfig::from_env() };
+            || crate::shared::config::WgConfig::from_env();
     }
 
     // Check 6: Android module exports JNI symbols (F12 mobile, decision 08)

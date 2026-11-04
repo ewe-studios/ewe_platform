@@ -1,7 +1,7 @@
 //! Implementations that just need to read from a file
 use crate::entropy::Error;
 use core::{
-    ffi::{CStr, c_void},
+    ffi::{c_void, CStr},
     mem::MaybeUninit,
     sync::atomic::{AtomicI32, Ordering},
 };
@@ -136,7 +136,7 @@ mod sync {
 
 #[cfg(any(target_os = "android", target_os = "linux"))]
 mod sync {
-    use super::{Error, FD, FD_ONGOING_INIT, open_readonly, utils};
+    use super::{open_readonly, utils, Error, FD, FD_ONGOING_INIT};
 
     /// Wait for atomic `FD` to change value from `FD_ONGOING_INIT` to something else.
     ///
@@ -161,7 +161,7 @@ mod sync {
     /// Wake up all threads which wait for value of atomic `FD` to change.
     pub(super) fn wake() {
         let op = libc::FUTEX_WAKE | libc::FUTEX_PRIVATE_FLAG;
-        let ret = unsafe { libc::syscall(libc::SYS_futex, &FD, op, libc::INT_MAX) };
+        let ret = unsafe { libc::syscall(libc::SYS_futex, &FD, op, i32::MAX) };
         debug_assert!(ret >= 0);
     }
 
@@ -213,7 +213,7 @@ mod sync {
             // Assuming that `poll` is called correctly,
             // on Linux it can return only EINTR and ENOMEM errors.
             match errno {
-                libc::EINTR => {},
+                libc::EINTR => {}
                 _ => break Err(Error::from_errno(errno)),
             }
         };

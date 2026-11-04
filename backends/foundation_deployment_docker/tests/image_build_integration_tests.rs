@@ -19,9 +19,9 @@
 #![cfg(all(unix, feature = "docker", feature = "integration-tests"))]
 
 use foundation_core::valtron::valtron_test;
+use foundation_deployment_docker::client::body::ProgressStream;
 use foundation_deployment_docker::client::build_context::ContextTar;
 use foundation_deployment_docker::client::images::ImageBuildOptions;
-use foundation_deployment_docker::client::body::ProgressStream;
 use foundation_deployment_docker::generated::shared::BuildInfo;
 use foundation_deployment_docker::{DockerClient, DockerError};
 
@@ -35,7 +35,10 @@ struct BuildOutcome {
 /// Read a build's stream to its end, keeping its output — fine in a test,
 /// where the log is the thing under test.
 async fn read_build(mut stream: ProgressStream<BuildInfo>) -> Result<BuildOutcome, DockerError> {
-    let mut outcome = BuildOutcome { logs: String::new(), image_id: None };
+    let mut outcome = BuildOutcome {
+        logs: String::new(),
+        image_id: None,
+    };
     while let Some(item) = stream.next().await {
         let item = item?;
         if let Some(text) = item.stream {
@@ -77,7 +80,7 @@ async fn builds_an_inline_dockerfile_and_tags_it() {
         .image_build(
             &context,
             &ImageBuildOptions {
-                tag: Some(t.clone()),
+                tags: vec![t.clone()],
                 ..Default::default()
             },
         )
@@ -123,13 +126,15 @@ async fn context_directory_files_are_uploaded_and_copyable() {
         .image_build(
             &context,
             &ImageBuildOptions {
-                tag: Some(t.clone()),
+                tags: vec![t.clone()],
                 ..Default::default()
             },
         )
         .await
         .expect("build with a context should start");
-    let outcome = read_build(outcome).await.expect("build with a context should succeed");
+    let outcome = read_build(outcome)
+        .await
+        .expect("build with a context should succeed");
 
     // `RUN cat` echoes the file's content into the build log, so this proves the
     // bytes made it from the host into the image.
@@ -159,7 +164,7 @@ async fn build_args_reach_the_build() {
         .image_build(
             &context,
             &ImageBuildOptions {
-                tag: Some(t.clone()),
+                tags: vec![t.clone()],
                 build_args: vec![("GREETING".to_string(), "delivered".to_string())],
                 no_cache: true,
                 ..Default::default()
@@ -186,17 +191,14 @@ async fn a_failing_build_is_an_error_not_a_success() {
     // The daemon streams this failure back inside a **200** response, so a client
     // that ignores the body (as this one used to) reports success for a build
     // that never produced an image.
-    let context = ContextTar::from_inline_dockerfile(
-        "Dockerfile",
-        "FROM alpine:3\nRUN exit 7\n",
-    )
-    .expect("tar the inline Dockerfile");
+    let context = ContextTar::from_inline_dockerfile("Dockerfile", "FROM alpine:3\nRUN exit 7\n")
+        .expect("tar the inline Dockerfile");
 
     let result = c
         .image_build(
             &context,
             &ImageBuildOptions {
-                tag: Some(t.clone()),
+                tags: vec![t.clone()],
                 no_cache: true,
                 // Nothing here will inspect the failed layer, so do not leave a
                 // dead intermediate container behind for every run.

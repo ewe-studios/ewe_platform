@@ -6,7 +6,9 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::accounts;
@@ -68,7 +70,8 @@ fn register_creates_user_and_prelogin_echoes_kdf() {
 
     // Prelogin for a known user echoes their KDF params.
     let c = ctx.clone();
-    let pre = drive(async move { accounts::prelogin(&c, "alice@example.com").await }).expect("prelogin");
+    let pre =
+        drive(async move { accounts::prelogin(&c, "alice@example.com").await }).expect("prelogin");
     assert_eq!(pre.kdf, KdfType::Pbkdf2Sha256);
     assert_eq!(pre.kdf_iterations, 600_000);
 }
@@ -83,8 +86,12 @@ fn duplicate_email_conflicts() {
 
     // Same email (different case) must conflict.
     let c = ctx.clone();
-    let dup = drive(async move { accounts::register(&c, register_req("BOB@example.com", "h2")).await });
-    assert!(matches!(dup, Err(AppError::Conflict(_))), "duplicate email must conflict");
+    let dup =
+        drive(async move { accounts::register(&c, register_req("BOB@example.com", "h2")).await });
+    assert!(
+        matches!(dup, Err(AppError::Conflict(_))),
+        "duplicate email must conflict"
+    );
 }
 
 #[valtron_test]
@@ -116,7 +123,8 @@ fn master_password_verifies() {
 fn prelogin_unknown_email_returns_defaults() {
     let (ctx, _dir) = fresh_ctx();
     let c = ctx.clone();
-    let pre = drive(async move { accounts::prelogin(&c, "nobody@example.com").await }).expect("prelogin");
+    let pre =
+        drive(async move { accounts::prelogin(&c, "nobody@example.com").await }).expect("prelogin");
     // Defaults leak nothing about existence.
     assert_eq!(pre.kdf, KdfType::Pbkdf2Sha256);
     assert_eq!(pre.kdf_iterations, 600_000);
@@ -127,10 +135,9 @@ fn profile_read_and_update() {
     let (ctx, _dir) = fresh_ctx();
 
     let c = ctx.clone();
-    let account = drive(async move {
-        accounts::register(&c, register_req("dave@example.com", "h")).await
-    })
-    .expect("register");
+    let account =
+        drive(async move { accounts::register(&c, register_req("dave@example.com", "h")).await })
+            .expect("register");
     let id = account.id.clone();
 
     let c = ctx.clone();
@@ -145,7 +152,10 @@ fn profile_read_and_update() {
         accounts::update_profile(
             &c,
             &id3,
-            UpdateProfileRequest { name: Some("Renamed".into()), master_password_hint: None },
+            UpdateProfileRequest {
+                name: Some("Renamed".into()),
+                master_password_hint: None,
+            },
         )
         .await
     })

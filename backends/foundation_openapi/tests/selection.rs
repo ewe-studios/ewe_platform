@@ -60,7 +60,10 @@ fn an_exact_path_keeps_only_that_path() {
 
     assert!(kept.contains("/servers"));
     // The negative half is the point: everything else is gone.
-    assert!(!kept.contains("/servers/{id}"), "a sibling path is not implied");
+    assert!(
+        !kept.contains("/servers/{id}"),
+        "a sibling path is not implied"
+    );
     assert!(!kept.contains("/kubernetes/clusters"));
     assert_eq!(kept.len(), 1);
 }
@@ -77,7 +80,10 @@ fn a_single_star_matches_one_segment_not_a_subtree() {
         "`*` must not swallow a deeper segment — otherwise asking for the \
          collection alone would be impossible"
     );
-    assert!(!kept.contains("/servers"), "`/servers/*` needs a segment after it");
+    assert!(
+        !kept.contains("/servers"),
+        "`/servers/*` needs a segment after it"
+    );
 }
 
 #[test]
@@ -87,7 +93,10 @@ fn a_double_star_matches_a_subtree() {
         .selected_paths(&spec());
 
     assert!(kept.contains("/servers/{id}"));
-    assert!(kept.contains("/servers/{id}/actions"), "`**` spans segments");
+    assert!(
+        kept.contains("/servers/{id}/actions"),
+        "`**` spans segments"
+    );
     assert!(!kept.contains("/ssh_keys"));
 }
 
@@ -162,7 +171,10 @@ fn a_path_survives_when_only_some_of_its_operations_match() {
 #[test]
 fn glob_semantics() {
     assert!(glob_match("/servers", "/servers"));
-    assert!(glob_match("/servers/{id}", "/servers/{id}"), "braces are literal");
+    assert!(
+        glob_match("/servers/{id}", "/servers/{id}"),
+        "braces are literal"
+    );
     assert!(glob_match("/servers/*", "/servers/{id}"));
     assert!(!glob_match("/servers/*", "/servers/{id}/actions"));
     assert!(glob_match("/servers/**", "/servers/{id}/actions"));

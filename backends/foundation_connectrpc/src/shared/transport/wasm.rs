@@ -21,17 +21,3 @@ pub const WASM_FETCH_CAPABILITIES: TransportCapabilities = TransportCapabilities
     http_versions: &[],
     multiplexed: false,
 };
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn wasm_fetch_capabilities_are_correct() {
-        let caps = WASM_FETCH_CAPABILITIES;
-        assert!(!caps.request_streaming);
-        assert!(!caps.full_duplex);
-        assert!(!caps.h2_trailers);
-        assert!(!caps.multiplexed);
-    }
-}

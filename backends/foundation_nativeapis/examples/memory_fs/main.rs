@@ -24,7 +24,9 @@ fn main() {
     println!("Read: {:?}", String::from_utf8_lossy(&data));
 
     // Seekable file I/O
-    let mut seekable = fs.open_seekable("/docs/hello.txt", OpenMode::ReadWrite).unwrap();
+    let mut seekable = fs
+        .open_seekable("/docs/hello.txt", OpenMode::ReadWrite)
+        .unwrap();
     seekable.seek(SeekFrom::Start(6)).unwrap();
     let mut buf = [0u8; 4];
     seekable.read(&mut buf).unwrap();
@@ -47,7 +49,10 @@ fn main() {
     let entries = dir.list().unwrap();
     println!("\n/docs contains:");
     for entry in &entries {
-        println!("  {:?} {:?} (inode {})", entry.file_type, entry.name, entry.inode);
+        println!(
+            "  {:?} {:?} (inode {})",
+            entry.file_type, entry.name, entry.inode
+        );
     }
 
     // Rename

@@ -49,6 +49,10 @@ fn native_search_file_finds_repo_content_via_cascade() {
             "the native cascade must find the committed token in the crate source; got: {json}"
         );
         // A pure in-code searcher over the empty MemoryFs would return "[]".
-        assert_ne!(json.trim(), "[]", "native cascade should not be empty over the real repo");
+        assert_ne!(
+            json.trim(),
+            "[]",
+            "native cascade should not be empty over the real repo"
+        );
     });
 }

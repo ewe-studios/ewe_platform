@@ -11,7 +11,9 @@
 
 use std::sync::Arc;
 
-use foundation_core::valtron::{collect_one, execute, from_future, valtron_test, BlockingFutureExt};
+use foundation_core::valtron::{
+    collect_one, execute, from_future, valtron_test, BlockingFutureExt,
+};
 use foundation_db::core::storage_provider::QueryStore;
 use foundation_db::{StorageBackend, StorageProvider};
 use foundation_keychain::core::api::folders;
@@ -58,7 +60,14 @@ fn create_then_list_and_get() {
 
     let c = ctx.clone();
     let created = drive(async move {
-        folders::create(&c, USER_A, FolderCreateRequest { name: "  Personal  ".into() }).await
+        folders::create(
+            &c,
+            USER_A,
+            FolderCreateRequest {
+                name: "  Personal  ".into(),
+            },
+        )
+        .await
     })
     .expect("create");
     // name is trimmed
@@ -82,14 +91,29 @@ fn update_renames_and_bumps_revision() {
 
     let c = ctx.clone();
     let created = drive(async move {
-        folders::create(&c, USER_A, FolderCreateRequest { name: "Work".into() }).await
+        folders::create(
+            &c,
+            USER_A,
+            FolderCreateRequest {
+                name: "Work".into(),
+            },
+        )
+        .await
     })
     .expect("create");
 
     let id = created.id.clone();
     let c = ctx.clone();
     let updated = drive(async move {
-        folders::update(&c, USER_A, &id, FolderUpdateRequest { name: "Work Renamed".into() }).await
+        folders::update(
+            &c,
+            USER_A,
+            &id,
+            FolderUpdateRequest {
+                name: "Work Renamed".into(),
+            },
+        )
+        .await
     })
     .expect("update");
     assert_eq!(updated.id, created.id);
@@ -103,7 +127,14 @@ fn delete_removes_folder() {
 
     let c = ctx.clone();
     let created = drive(async move {
-        folders::create(&c, USER_A, FolderCreateRequest { name: "Temp".into() }).await
+        folders::create(
+            &c,
+            USER_A,
+            FolderCreateRequest {
+                name: "Temp".into(),
+            },
+        )
+        .await
     })
     .expect("create");
 
@@ -114,7 +145,10 @@ fn delete_removes_folder() {
     let id = created.id.clone();
     let c = ctx.clone();
     let got = drive(async move { folders::get(&c, USER_A, &id).await });
-    assert!(matches!(got, Err(AppError::NotFound(_))), "deleted folder must be gone");
+    assert!(
+        matches!(got, Err(AppError::NotFound(_))),
+        "deleted folder must be gone"
+    );
 
     let c = ctx.clone();
     let listed = drive(async move { folders::list(&c, USER_A).await }).expect("list");
@@ -128,7 +162,14 @@ fn ownership_is_enforced() {
     // USER_A creates a folder.
     let c = ctx.clone();
     let created = drive(async move {
-        folders::create(&c, USER_A, FolderCreateRequest { name: "Private".into() }).await
+        folders::create(
+            &c,
+            USER_A,
+            FolderCreateRequest {
+                name: "Private".into(),
+            },
+        )
+        .await
     })
     .expect("create");
 
@@ -136,27 +177,51 @@ fn ownership_is_enforced() {
     let id = created.id.clone();
     let c = ctx.clone();
     let got = drive(async move { folders::get(&c, USER_B, &id).await });
-    assert!(matches!(got, Err(AppError::Forbidden)), "cross-user get must be Forbidden");
+    assert!(
+        matches!(got, Err(AppError::Forbidden)),
+        "cross-user get must be Forbidden"
+    );
 
     // USER_B may not update it.
     let id = created.id.clone();
     let c = ctx.clone();
     let upd = drive(async move {
-        folders::update(&c, USER_B, &id, FolderUpdateRequest { name: "hijack".into() }).await
+        folders::update(
+            &c,
+            USER_B,
+            &id,
+            FolderUpdateRequest {
+                name: "hijack".into(),
+            },
+        )
+        .await
     });
-    assert!(matches!(upd, Err(AppError::Forbidden)), "cross-user update must be Forbidden");
+    assert!(
+        matches!(upd, Err(AppError::Forbidden)),
+        "cross-user update must be Forbidden"
+    );
 
     // USER_B may not delete it.
     let id = created.id.clone();
     let c = ctx.clone();
     let del = drive(async move { folders::delete(&c, USER_B, &id).await });
-    assert!(matches!(del, Err(AppError::Forbidden)), "cross-user delete must be Forbidden");
+    assert!(
+        matches!(del, Err(AppError::Forbidden)),
+        "cross-user delete must be Forbidden"
+    );
 
     // USER_B's own list is empty; USER_A still owns it.
     let c = ctx.clone();
-    assert!(drive(async move { folders::list(&c, USER_B).await }).expect("list b").is_empty());
+    assert!(drive(async move { folders::list(&c, USER_B).await })
+        .expect("list b")
+        .is_empty());
     let c = ctx.clone();
-    assert_eq!(drive(async move { folders::list(&c, USER_A).await }).expect("list a").len(), 1);
+    assert_eq!(
+        drive(async move { folders::list(&c, USER_A).await })
+            .expect("list a")
+            .len(),
+        1
+    );
 }
 
 #[valtron_test]
@@ -167,7 +232,10 @@ fn empty_name_is_rejected() {
     let res = drive(async move {
         folders::create(&c, USER_A, FolderCreateRequest { name: "   ".into() }).await
     });
-    assert!(matches!(res, Err(AppError::BadRequest(_))), "blank name must be BadRequest");
+    assert!(
+        matches!(res, Err(AppError::BadRequest(_))),
+        "blank name must be BadRequest"
+    );
 }
 
 #[valtron_test]

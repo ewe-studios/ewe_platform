@@ -281,6 +281,10 @@ pub struct Schema {
     #[serde(default)]
     pub format: Option<String>,
 
+    /// The schema's `title`. Names an inline `oneOf` member's enum variant.
+    #[serde(default)]
+    pub title: Option<String>,
+
     #[serde(default)]
     pub description: Option<String>,
 
@@ -315,7 +319,7 @@ pub struct Schema {
     /// first real `list_servers` call died with
     /// `invalid type: null, expected i64`.
     ///
-    /// `normalize_nullable_types` writes this from OpenAPI 3.1's
+    /// `normalize_nullable_types` writes this from `OpenAPI` 3.1's
     /// `"type": ["integer", "null"]`, so both spec versions land here.
     #[serde(default)]
     pub nullable: Option<bool>,

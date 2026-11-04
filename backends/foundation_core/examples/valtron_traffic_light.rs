@@ -57,7 +57,10 @@ fn traffic_light(ctx: Ctx, phase: Phase) -> Option<(Phase, TaskStatus<Light, ()>
         )),
         // Show the light, then advance to the next colour.
         Phase::Show { light, remaining } => Some((
-            Phase::Pause { light: light.next(), remaining: remaining - 1 },
+            Phase::Pause {
+                light: light.next(),
+                remaining: remaining - 1,
+            },
             TaskStatus::Ready(light),
         )),
     }
@@ -68,7 +71,10 @@ async fn main() {
     // Stream two full cycles (6 phases), skipping the `Delayed` gaps, via
     // `into_next_stream`.
     let mut stream = execute(
-        traffic_light::new(Phase::Pause { light: Light::Red, remaining: 6 }),
+        traffic_light::new(Phase::Pause {
+            light: Light::Red,
+            remaining: 6,
+        }),
         None,
     )
     .expect("engine live")

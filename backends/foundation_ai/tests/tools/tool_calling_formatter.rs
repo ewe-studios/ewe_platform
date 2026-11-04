@@ -22,13 +22,13 @@ fn make_tool(name: &str, description: &str) -> Tool {
     let opts: ValidationOptions = scheme::object()
         .required("query", scheme::string().min_len(1))
         .build();
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: name.to_string(),
         category: "search".into(),
         description: description.to_string(),
         arguments: Args::new(opts),
         returns: None,
-    })
+    }))
 }
 
 // ============================================================================
@@ -572,18 +572,22 @@ fn tool_calling_error_display() {
 // function_spec — returns field propagation
 // ============================================================================
 
-fn make_tool_with_returns(name: &str, description: &str, returns_schema: serde_json::Value) -> Tool {
+fn make_tool_with_returns(
+    name: &str,
+    description: &str,
+    returns_schema: serde_json::Value,
+) -> Tool {
     let opts: ValidationOptions = scheme::object()
         .required("query", scheme::string().min_len(1))
         .build();
     let returns_opts = ValidationOptions::with_schema(returns_schema);
-    Tool::SingleCommand(ToolDefinition {
+    Tool::SingleCommand(Box::new(ToolDefinition {
         name: name.to_string(),
         category: "search".into(),
         description: description.to_string(),
         arguments: Args::new(opts),
         returns: Some(Args::new(returns_opts)),
-    })
+    }))
 }
 
 #[test]
@@ -616,15 +620,21 @@ fn function_spec_multi_commands_collects_first_returns() {
         "multi".into(),
         vec![
             ToolDefinition {
-                name: "cmd_a".into(), category: "multi".into(),
+                name: "cmd_a".into(),
+                category: "multi".into(),
                 description: "A".into(),
-                arguments: Args::new(ValidationOptions::with_schema(serde_json::json!({"type": "object"}))),
+                arguments: Args::new(ValidationOptions::with_schema(
+                    serde_json::json!({"type": "object"}),
+                )),
                 returns: Some(Args::new(returns_a)),
             },
             ToolDefinition {
-                name: "cmd_b".into(), category: "multi".into(),
+                name: "cmd_b".into(),
+                category: "multi".into(),
                 description: "B".into(),
-                arguments: Args::new(ValidationOptions::with_schema(serde_json::json!({"type": "object"}))),
+                arguments: Args::new(ValidationOptions::with_schema(
+                    serde_json::json!({"type": "object"}),
+                )),
                 returns: Some(Args::new(returns_b)),
             },
         ],
@@ -651,7 +661,10 @@ fn openai_format_tools_emits_strict_when_returns_present() {
     let result = formatter.format_tools(&[tool]).unwrap();
     let arr = result.as_array().unwrap();
     let func = &arr[0]["function"];
-    assert_eq!(func["strict"], true, "strict must be true when returns is present");
+    assert_eq!(
+        func["strict"], true,
+        "strict must be true when returns is present"
+    );
 }
 
 #[test]
@@ -662,7 +675,10 @@ fn openai_format_tools_no_strict_when_returns_absent() {
     let arr = result.as_array().unwrap();
     let func = &arr[0]["function"];
     // strict should be absent (not false, not null)
-    assert!(func.get("strict").is_none(), "strict should be absent: {func}");
+    assert!(
+        func.get("strict").is_none(),
+        "strict should be absent: {func}"
+    );
 }
 
 // ============================================================================
@@ -702,9 +718,18 @@ fn text_based_format_tools_embeds_returns_in_description() {
     let arr = result.as_array().unwrap();
     let desc = arr[0]["description"].as_str().unwrap();
     assert!(desc.contains("Search the web"));
-    assert!(desc.contains("Returns:"), "expected Returns: in description, got: {desc}");
-    assert!(desc.contains("required"), "expected schema in description, got: {desc}");
-    assert!(desc.contains("url"), "expected 'url' prop in description, got: {desc}");
+    assert!(
+        desc.contains("Returns:"),
+        "expected Returns: in description, got: {desc}"
+    );
+    assert!(
+        desc.contains("required"),
+        "expected schema in description, got: {desc}"
+    );
+    assert!(
+        desc.contains("url"),
+        "expected 'url' prop in description, got: {desc}"
+    );
 }
 
 #[test]
@@ -715,7 +740,10 @@ fn text_based_format_tools_no_returns_in_description_when_absent() {
     let arr = result.as_array().unwrap();
     let desc = arr[0]["description"].as_str().unwrap();
     assert_eq!(desc, "Search the web");
-    assert!(!desc.contains("Returns:"), "should not have Returns: {desc}");
+    assert!(
+        !desc.contains("Returns:"),
+        "should not have Returns: {desc}"
+    );
 }
 
 #[test]
@@ -783,7 +811,10 @@ fn anthropic_thinking_only_response_has_no_tool_calls() {
     let response = r#"{"content":[{"type":"thinking","thinking":"hmm"}]}"#;
     let result = formatter.extract_tool_calls(response).unwrap();
     assert!(!result.has_tool_calls);
-    assert!(result.remaining_text.is_some(), "the reasoning must not vanish");
+    assert!(
+        result.remaining_text.is_some(),
+        "the reasoning must not vanish"
+    );
 }
 
 #[test]

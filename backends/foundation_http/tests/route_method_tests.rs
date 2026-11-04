@@ -47,10 +47,14 @@ fn test_route_method_all_standard_methods() {
 #[test]
 fn test_route_method_custom() {
     let mut rm = RouteMethod::empty();
-    rm.set_method(SimpleMethod::Custom("PROPFIND".to_string()), "propfind_handler".to_string());
+    rm.set_method(
+        SimpleMethod::Custom("PROPFIND".to_string()),
+        "propfind_handler".to_string(),
+    );
     assert!(rm.has_any());
     assert_eq!(
-        rm.get_method(&SimpleMethod::Custom("PROPFIND".to_string())).unwrap(),
+        rm.get_method(&SimpleMethod::Custom("PROPFIND".to_string()))
+            .unwrap(),
         "propfind_handler"
     );
 }
@@ -58,10 +62,15 @@ fn test_route_method_custom() {
 #[test]
 fn test_route_method_custom_mismatch() {
     let mut rm = RouteMethod::empty();
-    rm.set_method(SimpleMethod::Custom("PROPFIND".to_string()), "propfind".to_string());
+    rm.set_method(
+        SimpleMethod::Custom("PROPFIND".to_string()),
+        "propfind".to_string(),
+    );
 
     // Different custom method should not match
-    assert!(rm.get_method(&SimpleMethod::Custom("MKCOL".to_string())).is_err());
+    assert!(rm
+        .get_method(&SimpleMethod::Custom("MKCOL".to_string()))
+        .is_err());
 }
 
 #[test]
@@ -106,11 +115,15 @@ fn test_route_method_take_preserves_existing() {
 fn test_route_method_take_custom() {
     let mut rm1 = RouteMethod::empty();
     let mut rm2 = RouteMethod::empty();
-    rm2.set_method(SimpleMethod::Custom("PROPFIND".to_string()), "propfind".to_string());
+    rm2.set_method(
+        SimpleMethod::Custom("PROPFIND".to_string()),
+        "propfind".to_string(),
+    );
 
     rm1.take(rm2);
     assert_eq!(
-        rm1.get_method(&SimpleMethod::Custom("PROPFIND".to_string())).unwrap(),
+        rm1.get_method(&SimpleMethod::Custom("PROPFIND".to_string()))
+            .unwrap(),
         "propfind"
     );
 }

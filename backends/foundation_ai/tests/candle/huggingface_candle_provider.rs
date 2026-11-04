@@ -19,14 +19,20 @@ use foundation_ai::types::{
 };
 use foundation_core::valtron;
 
+// These helpers are used only by the network-gated tests below, so they are
+// gated the same way: without `external-service-tests` they would be dead code
+// and `cargo check --all-targets` reports each as a dead-code warning.
+#[cfg(feature = "external-service-tests")]
 fn init_valtron() -> valtron::PoolGuard {
     valtron::initialize_pool(42, Some(4))
 }
 
+#[cfg(feature = "external-service-tests")]
 fn get_token() -> Option<String> {
     std::env::var("HF_TOKEN").ok()
 }
 
+#[cfg(feature = "external-service-tests")]
 fn get_project_root() -> std::path::PathBuf {
     let manifest_dir =
         std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR should be set");
@@ -37,6 +43,7 @@ fn get_project_root() -> std::path::PathBuf {
         .to_path_buf()
 }
 
+#[cfg(feature = "external-service-tests")]
 fn get_artefacts_dir(project_root: &std::path::Path) -> std::path::PathBuf {
     project_root.join("artefacts").join("models")
 }
@@ -202,7 +209,10 @@ fn test_candle_provider_catalog_methods_error() {
         .build();
     let provider = HuggingFaceCandleProvider::new(config).unwrap();
     let id = ModelId::Name("HuggingFaceTB/SmolLM2-135M".to_string(), None);
-    assert!(provider.get_one(id.clone()).is_err(), "get_one has no catalog");
+    assert!(
+        provider.get_one(id.clone()).is_err(),
+        "get_one has no catalog"
+    );
     assert!(provider.get_all(id).is_err(), "get_all has no catalog");
 }
 
@@ -236,7 +246,10 @@ fn test_candle_get_model_by_spec_without_location_errors() {
     let provider = HuggingFaceCandleProvider::new(config).unwrap();
     let spec = foundation_ai::types::ModelSpec {
         name: "bad".to_string(),
-        id: ModelId::Name("ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(), None),
+        id: ModelId::Name(
+            "ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(),
+            None,
+        ),
         devices: None,
         model_location: None,
         lora_location: None,
@@ -257,7 +270,10 @@ fn test_candle_download_of_nonexistent_repo_errors() {
         .cache_dir(get_artefacts_dir(get_project_root().as_path()))
         .build();
     let provider = HuggingFaceCandleProvider::new(config).unwrap();
-    let bad = ModelId::Name("ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(), None);
+    let bad = ModelId::Name(
+        "ewe-platform-nonexistent/does-not-exist-xyz-404".to_string(),
+        None,
+    );
     assert!(
         provider.get_model(bad).is_err(),
         "a nonexistent repo must fail to download"

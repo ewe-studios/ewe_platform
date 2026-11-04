@@ -1,9 +1,9 @@
 //! Integration tests for foundation_testing crate.
 
-use foundation_testing::stress::{StressConfig, StressHarness, sync::run_condvar_stress_test};
-use foundation_testing::scenarios::{ProducerConsumerQueue, Barrier, ThreadPool};
-use std::sync::Arc;
+use foundation_testing::scenarios::{Barrier, ProducerConsumerQueue, ThreadPool};
+use foundation_testing::stress::{sync::run_condvar_stress_test, StressConfig, StressHarness};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 use std::thread;
 
 #[test]
@@ -75,13 +75,13 @@ fn test_barrier() {
         }));
     }
 
-    let results: Vec<(bool, usize)> = handles
-        .into_iter()
-        .map(|h| h.join().unwrap())
-        .collect();
+    let results: Vec<(bool, usize)> = handles.into_iter().map(|h| h.join().unwrap()).collect();
 
     // Exactly one thread is the barrier's leader.
-    assert_eq!(results.iter().filter(|(is_leader, _)| *is_leader).count(), 1);
+    assert_eq!(
+        results.iter().filter(|(is_leader, _)| *is_leader).count(),
+        1
+    );
 
     // All threads should see count == 3 after barrier
     for (_, count) in results {

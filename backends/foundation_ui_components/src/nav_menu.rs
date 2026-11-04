@@ -55,7 +55,10 @@ pub struct NavMenuConfig {
 
 impl Default for NavMenuConfig {
     fn default() -> Self {
-        Self { class: None, aria_label: None }
+        Self {
+            class: None,
+            aria_label: None,
+        }
     }
 }
 

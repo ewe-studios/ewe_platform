@@ -1,13 +1,13 @@
 use foundation_cedar::{CedarEngine, CedarError, CedarRequest};
 
-const TEST_SCHEMA: &str = r#"
+const TEST_SCHEMA: &str = r"
 entity User;
 entity Album;
 action view appliesTo {
   principal: [User],
   resource: [Album]
 };
-"#;
+";
 
 const TEST_POLICY: &str = r#"
 permit(
@@ -38,7 +38,7 @@ fn test_engine_allows_alice() {
 
     let response = engine.is_authorized(&req);
     assert!(response.is_allowed());
-    assert!(!response.reasons().is_empty());
+    assert_ne!(response.reasons(), [] as [cedar_policy::PolicyId; 0]);
 }
 
 #[test]
@@ -82,6 +82,6 @@ permit(
     let result = CedarEngine::from_str(TEST_SCHEMA, bad_policy);
     assert!(result.is_err());
     if let Err(CedarError::Validation(errors)) = result {
-        assert!(!errors.is_empty());
+        assert_ne!(errors, [] as [std::string::String; 0]);
     }
 }

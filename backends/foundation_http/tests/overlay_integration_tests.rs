@@ -11,21 +11,19 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::synca::OnSignal;
-use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
+use foundation_http::ShutdownSignal;
 use foundation_netio::native::connection::Connector;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::shared::client::HttpClient;
 use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::client::HttpClient;
 use foundation_netio::shared::http::{
     SendSafeBody, SimpleIncomingRequest, SimpleMethod, SimpleResponse,
 };
-use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
+use foundation_netio::{HttpClientBuilder, PreparedRequestBuilder};
 use foundation_wireguard::native::{
-    overlay_acceptor::OverlayAcceptor,
-    overlay_connector::OverlayConnector,
-    WgNode,
+    overlay_acceptor::OverlayAcceptor, overlay_connector::OverlayConnector, WgNode,
 };
+use foundation_wireguard::{SeedBits, WgConfig, WgSeed};
 use serial_test::serial;
 use tracing_test::traced_test;
 
@@ -43,7 +41,9 @@ use foundation_http::{
 struct EchoHandler;
 
 impl ServeFactory for EchoHandler {
-    fn create(_bag: &ContextBag) -> Self { Self }
+    fn create(_bag: &ContextBag) -> Self {
+        Self
+    }
 }
 
 impl Serve for EchoHandler {
@@ -58,7 +58,10 @@ impl Serve for EchoHandler {
                 Ok(b) => b,
                 Err(e) => {
                     return ConnectionResult::Close(Some(foundation_errstacks::ErrorTrace::new(
-                        ServeError::InternalError { status: 500, reason: format!("body: {e}") },
+                        ServeError::InternalError {
+                            status: 500,
+                            reason: format!("body: {e}"),
+                        },
                     )));
                 }
             },
@@ -82,18 +85,21 @@ fn overlay_connector_http_round_trip() {
     let net = seed.derive_network_id();
 
     let handle_a = WgNode::from_config(WgConfig::seed(seed.clone(), net))
-        .join().expect("A join");
+        .join()
+        .expect("A join");
     let a_boot = handle_a.bootstrap_addr();
 
-    let handle_b = WgNode::from_config(
-        WgConfig::joiner(seed.clone(), net, vec![a_boot])
-    ).join().expect("B join");
+    let handle_b = WgNode::from_config(WgConfig::joiner(seed.clone(), net, vec![a_boot]))
+        .join()
+        .expect("B join");
 
     let dl = std::time::Instant::now() + Duration::from_secs(10);
     while std::time::Instant::now() < dl {
         if handle_a.wait_for_peer(handle_b.overlay_ip(), Duration::from_millis(100))
             && handle_b.wait_for_peer(handle_a.overlay_ip(), Duration::from_millis(100))
-        { break; }
+        {
+            break;
+        }
     }
     assert!(handle_a.wait_for_peer(handle_b.overlay_ip(), Duration::from_millis(10)));
 
@@ -104,34 +110,37 @@ fn overlay_connector_http_round_trip() {
     let acceptor = OverlayAcceptor::new(listener, b_ip, port);
 
     let mut app = HttpApp::new_serve();
-    app.router.add_route_any("/", &(Arc::new(EchoHandler) as Arc<dyn Serve>));
+    app.router
+        .add_route_any("/", &(Arc::new(EchoHandler) as Arc<dyn Serve>));
 
-    let server = HttpServer::with_config(app, &format!("{}:{}", b_ip, port),
-        ServerConfig::defaults().with_keep_alive(KeepAliveConfig::disabled()));
+    let server = HttpServer::with_config(
+        app,
+        &format!("{}:{}", b_ip, port),
+        ServerConfig::defaults().with_keep_alive(KeepAliveConfig::disabled()),
+    );
 
-    let shutdown = Arc::new(OnSignal::new());
+    let shutdown = Arc::new(ShutdownSignal::new());
     let s = shutdown.clone();
     let acc = acceptor.clone();
-    std::thread::spawn(move || { server.serve_with_acceptor(&acc, &s); });
+    std::thread::spawn(move || {
+        server.serve_with_acceptor(&acc, &s);
+    });
     std::thread::sleep(Duration::from_millis(500));
 
     // ── A: the HTTP client with OverlayConnector ────────────────────
     // The connector opens overlay connections instead of DNS+TcpStream.
-    let connector: Arc<dyn Connector> =
-        Arc::new(OverlayConnector::new(Arc::new(handle_a)));
+    let connector: Arc<dyn Connector> = Arc::new(OverlayConnector::new(Arc::new(handle_a)));
     // Keep Expect: 100-continue enabled (client default) so this test also
     // exercises interim (100 Continue) handling over the non-blocking overlay.
     let client = HttpClientBuilder::new().with_connector(connector).build();
 
     // Send request. The overlay URL uses the mesh IP (10.x.y.z).
     // The connector intercepts the connection, DNS is skipped.
-    let req = PreparedRequestBuilder::new(
-        SimpleMethod::POST,
-        &format!("http://{}:{}/", b_ip, port),
-    )
-    .unwrap()
-    .body_bytes(b"hello-overlay".to_vec())
-    .build();
+    let req =
+        PreparedRequestBuilder::new(SimpleMethod::POST, &format!("http://{}:{}/", b_ip, port))
+            .unwrap()
+            .body_bytes(b"hello-overlay".to_vec())
+            .build();
 
     let resp: SimpleResponse<SendSafeBody> = client.send(req).expect("send");
     let status = resp.get_status().into_usize();
@@ -139,22 +148,26 @@ fn overlay_connector_http_round_trip() {
     let body_text = String::from_utf8_lossy(&body);
 
     assert_eq!(status, 200, "expected 200, got {}", body_text);
-    assert!(body_text.contains("hello-overlay"), "expected echo, got: {body_text}");
+    assert!(
+        body_text.contains("hello-overlay"),
+        "expected echo, got: {body_text}"
+    );
 
     // ── GET (no body) over the overlay ──────────────────────────────
     // Exercises the parking-aware no-body response-head read (`ReadingHead`)
     // in RedirectingRequestTask: no Expect handshake, response read directly.
-    let get_req = PreparedRequestBuilder::new(
-        SimpleMethod::GET,
-        &format!("http://{}:{}/", b_ip, port),
-    )
-    .unwrap()
-    .build();
+    let get_req =
+        PreparedRequestBuilder::new(SimpleMethod::GET, &format!("http://{}:{}/", b_ip, port))
+            .unwrap()
+            .build();
 
     let get_resp: SimpleResponse<SendSafeBody> = client.send(get_req).expect("get send");
     let get_status = get_resp.get_status().into_usize();
     let _ = try_collect_bytes(get_resp.take_body());
-    assert_eq!(get_status, 200, "GET over overlay expected 200, got {get_status}");
+    assert_eq!(
+        get_status, 200,
+        "GET over overlay expected 200, got {get_status}"
+    );
 
     shutdown.turn_on();
     handle_b.shutdown();

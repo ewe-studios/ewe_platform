@@ -13,6 +13,9 @@ use crate::ssh::VmSession;
 ///
 /// This must be called while the VM is running (for fstrim/zero-fill),
 /// then the VM should be stopped before calling `compress_qcow2`.
+///
+/// # Errors
+/// Returns an error if the disk shrink fails.
 pub fn shrink_disk(session: &mut VmSession, os: GuestOs) -> Result<()> {
     match os {
         GuestOs::Linux | GuestOs::MacOS => linux_shrink(session)?,
@@ -43,17 +46,19 @@ fn linux_shrink(session: &mut VmSession) -> Result<()> {
 
 fn windows_shrink(session: &mut VmSession) -> Result<()> {
     // Use PowerShell Optimize-Volume for TRIM/Defrag
-    let script = r#"Optimize-Volume -DriveLetter C -Trim -Verbose"#;
-    let (output, _) = crate::ssh::exec_ps_windows(session, script).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("Windows trim failed: {e}"),
-    })?;
+    let script = r"Optimize-Volume -DriveLetter C -Trim -Verbose";
+    let (output, _) =
+        crate::ssh::exec_ps_windows(session, script).map_err(|e| TestbedError::Qcow2Error {
+            message: format!("Windows trim failed: {e}"),
+        })?;
     let _ = output;
 
     // Use sdelete if available, otherwise skip zero-fill
-    let script = r#"if (Get-Command sdelete64 -ErrorAction SilentlyContinue) { sdelete64.exe -accepteula -z C:\ } else { Write-Host 'sdelete not installed, skipping zero-fill' }"#;
-    let (output, _) = crate::ssh::exec_ps_windows(session, script).map_err(|e| TestbedError::Qcow2Error {
-        message: format!("Windows zero-fill failed: {e}"),
-    })?;
+    let script = r"if (Get-Command sdelete64 -ErrorAction SilentlyContinue) { sdelete64.exe -accepteula -z C:\ } else { Write-Host 'sdelete not installed, skipping zero-fill' }";
+    let (output, _) =
+        crate::ssh::exec_ps_windows(session, script).map_err(|e| TestbedError::Qcow2Error {
+            message: format!("Windows zero-fill failed: {e}"),
+        })?;
     let _ = output;
 
     Ok(())
@@ -62,6 +67,9 @@ fn windows_shrink(session: &mut VmSession) -> Result<()> {
 /// Compress a qcow2 image using `qemu-img convert -O qcow2 -c`.
 ///
 /// Reads `src` and writes a compressed version to `dest`.
+///
+/// # Errors
+/// Returns an error if qemu-img is not found. Returns an error if the compression fails.
 pub fn compress_qcow2(src: &Path, dest: &Path) -> Result<()> {
     ensure_qemu_img()?;
 
@@ -76,7 +84,7 @@ pub fn compress_qcow2(src: &Path, dest: &Path) -> Result<()> {
 
     if !status.success() {
         return Err(TestbedError::Qcow2Error {
-            message: format!("qemu-img convert failed (exit {})", status),
+            message: format!("qemu-img convert failed (exit {status})"),
         });
     }
 
@@ -84,6 +92,9 @@ pub fn compress_qcow2(src: &Path, dest: &Path) -> Result<()> {
 }
 
 /// Get the size comparison between original and compressed qcow2.
+///
+/// # Errors
+/// Returns an error if the file metadata cannot be read.
 pub fn size_comparison(original: &Path, compressed: &Path) -> Result<(u64, u64, f64)> {
     let orig_meta = std::fs::metadata(original).map_err(|e| TestbedError::Qcow2Error {
         message: format!("reading original: {e}"),
@@ -94,7 +105,13 @@ pub fn size_comparison(original: &Path, compressed: &Path) -> Result<(u64, u64, 
 
     let orig = orig_meta.len();
     let comp = comp_meta.len();
-    let ratio = if orig > 0 { (comp as f64 / orig as f64) * 100.0 } else { 0.0 };
+    // size in bytes to f64 for display; precision loss is acceptable.
+    #[allow(clippy::cast_precision_loss)]
+    let ratio = if orig > 0 {
+        (comp as f64 / orig as f64) * 100.0
+    } else {
+        0.0
+    };
 
     Ok((orig, comp, ratio))
 }
@@ -104,8 +121,8 @@ fn ensure_qemu_img() -> Result<()> {
         .arg("--version")
         .output()
         .map_err(|_| TestbedError::QemuImgNotFound {
-            install_cmd: "apt install qemu-utils / dnf install qemu-img / brew install qemu".to_string(),
+            install_cmd: "apt install qemu-utils / dnf install qemu-img / brew install qemu"
+                .to_string(),
         })?;
     Ok(())
 }
-

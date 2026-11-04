@@ -58,9 +58,9 @@ use crate::backends::huggingface_candle_provider::{
 use crate::backends::huggingface_gguf_provider::HuggingFaceGGUFConfig;
 use crate::types::ModelId;
 
-use super::providers::{CloudPresets, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI};
 #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 use super::providers::{gguf_provider, Gemma4E2b, Gemma4_26b, Glm52, Qwen36};
+use super::providers::{CloudPresets, CLAUDE_OPUS, CLAUDE_SONNET, OPENAI_GPT4O, OPENAI_GPT4O_MINI};
 use super::router::{RouterMix, RouterPreset};
 
 /// `ModelId::Name` from a model id string, default quantization.

@@ -48,9 +48,12 @@ fn full_ewe_pipeline_webview_app() {
 #[test]
 fn full_ewe_pipeline_remote_server() {
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-    session.route("/remote/*", remote_fetch()
-        .with_profile(Profile::TrustedRemote)
-        .with_cache_policy(CachePolicy::NetworkFirst));
+    session.route(
+        "/remote/*",
+        remote_fetch()
+            .with_profile(Profile::TrustedRemote)
+            .with_cache_policy(CachePolicy::NetworkFirst),
+    );
 
     let intent = NavigationIntent {
         url: "ewe://localhost/remote/dashboard?proto=arrow".into(),
@@ -97,11 +100,18 @@ fn full_ewe_pipeline_ipc_shell_with_target() {
 #[test]
 fn cache_intercepts_before_backend_query() {
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-    session.route("/cached/*", remote_fetch()
-        .with_cache_policy(CachePolicy::CacheFirst));
+    session.route(
+        "/cached/*",
+        remote_fetch().with_cache_policy(CachePolicy::CacheFirst),
+    );
 
     // Pre-populate cache
-    session.cache().store(Profile::TrustedRemote, "/cached/data", b"cached-content", "text/html");
+    session.cache().store(
+        Profile::TrustedRemote,
+        "/cached/data",
+        b"cached-content",
+        "text/html",
+    );
 
     let intent = NavigationIntent {
         url: "ewe://localhost/cached/data".into(),
@@ -112,10 +122,15 @@ fn cache_intercepts_before_backend_query() {
     let decision = session.resolve_route(&intent);
 
     // Cache check should return true — skip backend query
-    assert!(session.cache().should_serve_cached(&decision, "/cached/data"));
+    assert!(session
+        .cache()
+        .should_serve_cached(&decision, "/cached/data"));
 
     // The actual cached entry is available
-    let entry = session.cache().get(Profile::TrustedRemote, "/cached/data").unwrap();
+    let entry = session
+        .cache()
+        .get(Profile::TrustedRemote, "/cached/data")
+        .unwrap();
     assert_eq!(entry.body, b"cached-content");
     assert_eq!(entry.content_type, "text/html");
 }
@@ -123,9 +138,12 @@ fn cache_intercepts_before_backend_query() {
 #[test]
 fn capability_gating_in_full_pipeline() {
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-    session.route("/camera/*", webview_app()
-        .with_profile(Profile::App)
-        .with_allowed_capabilities(&[CapabilityId("camera".into())]));
+    session.route(
+        "/camera/*",
+        webview_app()
+            .with_profile(Profile::App)
+            .with_allowed_capabilities(&[CapabilityId("camera".into())]),
+    );
 
     let intent = NavigationIntent {
         url: "ewe://localhost/camera/viewfinder".into(),
@@ -141,8 +159,10 @@ fn capability_gating_in_full_pipeline() {
 #[test]
 fn offline_route_fails_with_online_only() {
     let session = PlatformSession::new_test(std::path::PathBuf::from("."));
-    session.route("/live/*", remote_fetch()
-        .with_cache_policy(CachePolicy::OnlineOnly));
+    session.route(
+        "/live/*",
+        remote_fetch().with_cache_policy(CachePolicy::OnlineOnly),
+    );
 
     let intent = NavigationIntent {
         url: "ewe://localhost/live/scores".into(),
@@ -153,7 +173,10 @@ fn offline_route_fails_with_online_only() {
     let decision = session.resolve_route(&intent);
 
     // OnlineOnly never caches — no cache entry exists
-    let has_cache = session.cache().get(decision.profile, "/live/scores").is_some();
+    let has_cache = session
+        .cache()
+        .get(decision.profile, "/live/scores")
+        .is_some();
     assert!(!has_cache);
 
     // OnlineOnly fails offline
@@ -168,8 +191,12 @@ fn mutation_queue_integrates_with_connectivity() {
 
     // Go offline, enqueue
     session.set_online(false);
-    session.mutation_queue().enqueue("create", serde_json::json!({"item": "x"}));
-    session.mutation_queue().enqueue("update", serde_json::json!({"id": 1}));
+    session
+        .mutation_queue()
+        .enqueue("create", serde_json::json!({"item": "x"}));
+    session
+        .mutation_queue()
+        .enqueue("update", serde_json::json!({"id": 1}));
     assert_eq!(session.mutation_queue().pending_count(), 2);
 
     // Come online, replay

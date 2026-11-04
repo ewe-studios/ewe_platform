@@ -33,5 +33,12 @@ pub mod wasm;
 
 pub use shared::ServerIo;
 
+// `ShutdownSignal` lives in `foundation_reactor` (below netio) but is a plain
+// cross-platform flag; re-export it here so `foundation_http` reaches it through
+// the same facade as `FdReadiness`.
+pub use foundation_reactor::ShutdownSignal;
+
 #[cfg(all(not(target_family = "wasm"), unix))]
-pub use native::{accept_connection, connect_completion, init_reactor_for, CompletionSocket};
+pub use native::{
+    accept_connection, connect_completion, init_reactor_for, CompletionSocket, FdReadiness,
+};

@@ -1,11 +1,11 @@
 //! Integration test for HTTP client: redirect limit enforcement
 //! This test spins up a local HTTP server that responds with 302 (redirect)
-//! and checks that the client triggers TooManyRedirects when max_redirects is exceeded.
+//! and checks that the client triggers `TooManyRedirects` when `max_redirects` is exceeded.
 
 use foundation_core::valtron;
 use foundation_core::valtron::PoolGuard;
-use foundation_netio::shared::client::*;
 use foundation_netio::http::*;
+use foundation_netio::shared::client::*;
 use foundation_netio::shared::http::HttpClientError;
 use serial_test::serial;
 use std::io::{Read, Write};
@@ -50,7 +50,7 @@ fn redirect_limit_triggers_too_many_redirects() {
     // Configure the HTTP client (system DNS resolver and zero redirects allowed)
     let client = NativeHttpClient::from_system().max_redirects(0);
 
-    let url = format!("http://127.0.0.1:{}/redirect", port);
+    let url = format!("http://127.0.0.1:{port}/redirect");
 
     // Create a request
     let request = client.get(&url).unwrap().build_client().unwrap();
@@ -59,11 +59,10 @@ fn redirect_limit_triggers_too_many_redirects() {
     let send_result = request.send();
 
     if let Err(err) = send_result {
-        println!("Actual error: {:?}", err);
+        println!("Actual error: {err:?}");
         assert!(
             matches!(err, HttpClientError::TooManyRedirects),
-            "Expected TooManyRedirects error, got: {:?}",
-            err
+            "Expected TooManyRedirects error, got: {err:?}"
         );
     } else {
         panic!("Expected error due to too many redirects, but got Ok");

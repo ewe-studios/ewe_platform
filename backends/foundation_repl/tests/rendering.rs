@@ -95,10 +95,7 @@ impl ratatui::backend::Backend for SharedTestBackend {
         self.inner.clear()
     }
 
-    fn clear_region(
-        &mut self,
-        region: ratatui::backend::ClearType,
-    ) -> Result<(), Self::Error> {
+    fn clear_region(&mut self, region: ratatui::backend::ClearType) -> Result<(), Self::Error> {
         self.inner.clear_region(region)
     }
 
@@ -446,10 +443,7 @@ fn the_hint_costs_no_extra_rows() {
     let with_hint = {
         let (mut renderer, sink) = off_screen(60, 12, ReplTheme::default());
         renderer.render_input(&view("hi", 2));
-        rows(&sink)
-            .iter()
-            .filter(|row| !row.is_empty())
-            .count()
+        rows(&sink).iter().filter(|row| !row.is_empty()).count()
     };
     let without_hint = {
         let theme = ReplTheme {
@@ -458,10 +452,7 @@ fn the_hint_costs_no_extra_rows() {
         };
         let (mut renderer, sink) = off_screen(60, 12, theme);
         renderer.render_input(&view("hi", 2));
-        rows(&sink)
-            .iter()
-            .filter(|row| !row.is_empty())
-            .count()
+        rows(&sink).iter().filter(|row| !row.is_empty()).count()
     };
 
     assert_eq!(

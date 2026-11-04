@@ -6,7 +6,7 @@
 use std::sync::Arc;
 
 use foundation_netio::shared::http::{
-    SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, SendSafeBody, Status,
+    SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 
 use crate::shared::context::ContextBag;
@@ -215,11 +215,7 @@ impl AuthMiddleware {
 }
 
 impl RequestMiddleware for AuthMiddleware {
-    fn handle(
-        &self,
-        _ctx: &Arc<ContextBag>,
-        req: &mut SimpleIncomingRequest,
-    ) -> MiddlewareResult {
+    fn handle(&self, _ctx: &Arc<ContextBag>, req: &mut SimpleIncomingRequest) -> MiddlewareResult {
         let path = &req.request_url.url;
 
         // Check if path is public
@@ -300,56 +296,5 @@ mod base64 {
         }
 
         Ok(result)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_auth_config_new() {
-        let config = AuthConfig::new();
-        assert!(config.bearer_validator.is_none());
-        assert!(config.basic_validator.is_none());
-        assert!(config.public_paths.is_empty());
-        assert_eq!(config.realm, "Protected");
-    }
-
-    #[test]
-    fn test_auth_config_with_bearer() {
-        let config = AuthConfig::new().with_bearer_validator(|token| token == "valid-token");
-        assert!(config.bearer_validator.is_some());
-    }
-
-    #[test]
-    fn test_auth_middleware_bearer() {
-        let mw = AuthMiddleware::bearer(|token| token == "valid-token");
-        assert!(mw.config.bearer_validator.is_some());
-    }
-
-    #[test]
-    fn test_auth_middleware_basic() {
-        let mw = AuthMiddleware::basic(|user, pass| user == "admin" && pass == "secret");
-        assert!(mw.config.basic_validator.is_some());
-    }
-
-    #[test]
-    fn test_base64_decode_empty() {
-        assert_eq!(base64::decode("").unwrap(), Vec::<u8>::new());
-    }
-
-    #[test]
-    fn test_base64_decode_simple() {
-        // "dXNlcjpwYXNz" = "user:pass" in base64
-        let result = base64::decode("dXNlcjpwYXNz").unwrap();
-        assert_eq!(result, b"user:pass");
-    }
-
-    #[test]
-    fn test_base64_decode_with_padding() {
-        // "YQ==" = "a" in base64
-        let result = base64::decode("YQ==").unwrap();
-        assert_eq!(result, b"a");
     }
 }

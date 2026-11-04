@@ -73,7 +73,11 @@ impl ToastManager {
     #[must_use]
     pub fn new(ctx: &Context) -> Self {
         let (toasts, set_toasts) = ctx.signal::<Vec<Toast>>(Vec::new());
-        Self { toasts, set_toasts, next_id: alloc::rc::Rc::new(Cell::new(0)) }
+        Self {
+            toasts,
+            set_toasts,
+            next_id: alloc::rc::Rc::new(Cell::new(0)),
+        }
     }
 
     /// The toasts getter (so the viewport can render them).
@@ -148,8 +152,11 @@ pub fn toast_viewport(
         let kind: Cow<'static, str> = toast.kind.clone();
         let title: Cow<'static, str> = toast.title.clone();
         let description = toast.description.clone();
-        let live: Cow<'static, str> =
-            if toast.high_priority { Cow::Borrowed("assertive") } else { Cow::Borrowed("polite") };
+        let live: Cow<'static, str> = if toast.high_priority {
+            Cow::Borrowed("assertive")
+        } else {
+            Cow::Borrowed("polite")
+        };
         let timeout_attr: Cow<'static, str> = Cow::Owned(alloc::format!("{}", toast.timeout_ms));
 
         let close = {

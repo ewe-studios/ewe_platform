@@ -32,12 +32,12 @@ async fn request_from_cf(req: &Request) -> Result<SimpleIncomingRequest, JsError
         }
     }
 
-    let text_promise = req.text().map_err(|e| {
-        JsError::new(&format!("failed to get request text: {e:?}"))
-    })?;
-    let body_js = JsFuture::from(text_promise).await.map_err(|e| {
-        JsError::new(&format!("failed to read request body: {e:?}"))
-    })?;
+    let text_promise = req
+        .text()
+        .map_err(|e| JsError::new(&format!("failed to get request text: {e:?}")))?;
+    let body_js = JsFuture::from(text_promise)
+        .await
+        .map_err(|e| JsError::new(&format!("failed to read request body: {e:?}")))?;
     let body_text = body_js.as_string().unwrap_or_default();
     let body = if body_text.is_empty() {
         None
@@ -82,17 +82,15 @@ impl CfHttpApp {
 
     /// Dispatch a `Request` with CF `env` bindings through the app.
     #[wasm_bindgen(js_name = handleRequest)]
-    pub async fn handle_request(
-        &self,
-        req: Request,
-        env: JsValue,
-    ) -> Result<Response, JsError> {
+    pub async fn handle_request(&self, req: Request, env: JsValue) -> Result<Response, JsError> {
         let simple_req = request_from_cf(&req).await?;
         let bag = Arc::new(ContextBag::new());
         extract_cf_bindings(&env, &bag);
-        Ok(self.inner.dispatch_cf(bag, simple_req).await.map_err(|e| {
-            JsError::new(&format!("dispatch failed: {e:?}"))
-        })?)
+        Ok(self
+            .inner
+            .dispatch_cf(bag, simple_req)
+            .await
+            .map_err(|e| JsError::new(&format!("dispatch failed: {e:?}")))?)
     }
 }
 
@@ -245,12 +243,5 @@ impl CfHttpAppSingleton {
     /// Check if the app has been initialized.
     pub fn is_initialized() -> bool {
         STATE.lock().unwrap().upgrade().is_some()
-    }
-
-    /// Force-reset the singleton state. cfg-gated to `#[cfg(test)]`.
-    #[cfg(test)]
-    pub fn reset() {
-        let mut weak = STATE.lock().unwrap();
-        *weak = Weak::new();
     }
 }

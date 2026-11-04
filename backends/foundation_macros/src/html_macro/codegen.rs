@@ -85,9 +85,9 @@ fn extract_styles_walk(
         } = &child
         {
             let is_scoped_style = tag == "style"
-                && style_attrs.iter().any(|a| {
-                    matches!(a, ParsedAttr::Static { name, .. } if name == "primal:style")
-                });
+                && style_attrs.iter().any(
+                    |a| matches!(a, ParsedAttr::Static { name, .. } if name == "primal:style"),
+                );
             if is_scoped_style {
                 // Guard only — the combined CSS uses the outer binding below.
                 let Some(_identity) = &identity else {
@@ -595,7 +595,8 @@ fn gen_html_node(
             // pure tree is a VALUE — conditionals/lists in pure trees are
             // plain Rust around the macro (feature 01 §4).
             Mode::Pure => {
-                let message = "html!: <Show>/<For> require the reactive form (html! { ctx, receiver, … })";
+                let message =
+                    "html!: <Show>/<For> require the reactive form (html! { ctx, receiver, … })";
                 quote::quote_spanned! {*span=> compile_error!(#message) }
             }
             Mode::Reactive => quote! { #ui::Html::new() },
@@ -829,9 +830,7 @@ fn gen_mount_ops(
                 });
             }});
         }
-        ParsedNode::Show {
-            when, content, ..
-        } => {
+        ParsedNode::Show { when, content, .. } => {
             let parent = parent_runtime.expect("Show under root element");
             let wui = foundation_wasm_ui_path();
             ops.extend(quote! {

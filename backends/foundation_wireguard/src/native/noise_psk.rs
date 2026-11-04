@@ -56,12 +56,16 @@ pub fn connect<S: Read + Write>(mut inner: S, psk: [u8; 32]) -> WgResult<NoiseSt
 
     let mut scratch = vec![0u8; MAX_NOISE_MSG];
     // -> psk, e
-    let n = handshake.write_message(&[], &mut scratch).map_err(noise_err)?;
+    let n = handshake
+        .write_message(&[], &mut scratch)
+        .map_err(noise_err)?;
     write_frame(&mut inner, &scratch[..n])?;
     // <- e, ee
     let msg = read_frame(&mut inner)?
         .ok_or_else(|| WgError::Protocol("peer closed during noise handshake".into()))?;
-    handshake.read_message(&msg, &mut scratch).map_err(noise_err)?;
+    handshake
+        .read_message(&msg, &mut scratch)
+        .map_err(noise_err)?;
 
     let transport = handshake.into_transport_mode().map_err(noise_err)?;
     Ok(NoiseStream::new(inner, transport))
@@ -92,9 +96,13 @@ pub fn accept<S: Read + Write>(mut inner: S, psk: [u8; 32]) -> WgResult<NoiseStr
     // -> psk, e
     let msg = read_frame(&mut inner)?
         .ok_or_else(|| WgError::Protocol("peer closed during noise handshake".into()))?;
-    handshake.read_message(&msg, &mut scratch).map_err(noise_err)?;
+    handshake
+        .read_message(&msg, &mut scratch)
+        .map_err(noise_err)?;
     // <- e, ee
-    let n = handshake.write_message(&[], &mut scratch).map_err(noise_err)?;
+    let n = handshake
+        .write_message(&[], &mut scratch)
+        .map_err(noise_err)?;
     write_frame(&mut inner, &scratch[..n])?;
 
     let transport = handshake.into_transport_mode().map_err(noise_err)?;
@@ -152,7 +160,9 @@ impl<S: Read + Write> Read for NoiseStream<S> {
             let n = self
                 .transport
                 .read_message(&frame, &mut plaintext)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, format!("noise decrypt: {e}")))?;
+                .map_err(|e| {
+                    io::Error::new(io::ErrorKind::InvalidData, format!("noise decrypt: {e}"))
+                })?;
             plaintext.truncate(n);
             self.plaintext = plaintext;
             self.offset = 0;
@@ -184,8 +194,12 @@ impl<S: Read + Write> Write for NoiseStream<S> {
 
 /// Write a single `u16`-length-prefixed frame and flush it.
 fn write_frame(inner: &mut impl Write, payload: &[u8]) -> io::Result<()> {
-    let len = u16::try_from(payload.len())
-        .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "noise frame exceeds 65535 bytes"))?;
+    let len = u16::try_from(payload.len()).map_err(|_| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            "noise frame exceeds 65535 bytes",
+        )
+    })?;
     inner.write_all(&len.to_be_bytes())?;
     inner.write_all(payload)?;
     inner.flush()

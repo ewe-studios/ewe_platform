@@ -7,7 +7,7 @@
 // except according to those terms.
 
 use core::convert::Infallible;
-use rand_core::{SeedableRng, TryRng, utils};
+use rand_core::{utils, SeedableRng, TryRng};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

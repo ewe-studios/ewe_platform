@@ -13,7 +13,7 @@
 //! - `pause <service> <url>` — set backend to Paused
 //! - `activate <service> <url>` — set backend to Active
 //! - `status` — aggregate counts: total, healthy, draining, paused
-//! - `reload` — trigger OnSignal for graceful reload
+//! - `reload` — trigger ShutdownSignal for graceful reload
 //! - `shutdown` — trigger the proxy shutdown signal
 //!
 //! HOW: Each connection reads one line of JSON, dispatches to the matching
@@ -26,7 +26,7 @@ use std::os::unix::net::{UnixListener, UnixStream};
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 
-use foundation_core::synca::OnSignal;
+use foundation_http::ShutdownSignal;
 // The control connections are OS threads that wait on the async dispatch.
 foundation_core::blocking_boundary! {
     use foundation_core::valtron::block_on_future;
@@ -70,7 +70,7 @@ impl ControlSocket {
     pub fn start(
         socket_path: String,
         state: Arc<ProxyState>,
-        shutdown: Arc<OnSignal>,
+        shutdown: Arc<ShutdownSignal>,
     ) -> Self {
         // Clean up stale socket file
         let _ = std::fs::remove_file(&socket_path);
@@ -113,7 +113,10 @@ impl ControlSocket {
             let _ = std::fs::remove_file(&path_for_thread);
         });
 
-        Self { socket_path, thread }
+        Self {
+            socket_path,
+            thread,
+        }
     }
 
     #[must_use]
@@ -204,12 +207,16 @@ async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>
                     }
                 }
             }
-            (true, None, Some(serde_json::json!({
-                "total": total,
-                "healthy": healthy,
-                "draining": draining,
-                "paused": paused,
-            })))
+            (
+                true,
+                None,
+                Some(serde_json::json!({
+                    "total": total,
+                    "healthy": healthy,
+                    "draining": draining,
+                    "paused": paused,
+                })),
+            )
         }
 
         "drain" | "pause" | "activate" => {
@@ -218,7 +225,11 @@ async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>
                 "pause" => BackendState::Paused,
                 _ => BackendState::Active,
             };
-            let service_name = req.params.get("service").and_then(|v| v.as_str()).unwrap_or("");
+            let service_name = req
+                .params
+                .get("service")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
             let backend_url = req.params.get("url").and_then(|v| v.as_str()).unwrap_or("");
 
             let mut found = false;
@@ -231,20 +242,34 @@ async fn dispatch(req: Request, state: Arc<ProxyState>) -> (bool, Option<String>
                         b.set_state(target_state);
                         // Persist the change so it survives a restart (F14, no-op
                         // when no store is attached).
-                        state.persist_backend_state(service_name, backend_url, target_state).await;
+                        state
+                            .persist_backend_state(service_name, backend_url, target_state)
+                            .await;
                         found = true;
                         break;
                     }
                 }
             }
             if found {
-                (true, None, Some(serde_json::json!({"state": format!("{:?}", target_state)})))
+                (
+                    true,
+                    None,
+                    Some(serde_json::json!({"state": format!("{:?}", target_state)})),
+                )
             } else {
-                (false, Some(format!("backend {service_name}/{backend_url} not found")), None)
+                (
+                    false,
+                    Some(format!("backend {service_name}/{backend_url} not found")),
+                    None,
+                )
             }
         }
 
-        _ => (false, Some(format!("unknown command: {}", req.command)), None),
+        _ => (
+            false,
+            Some(format!("unknown command: {}", req.command)),
+            None,
+        ),
     }
 }
 
@@ -268,10 +293,8 @@ mod tests {
 
     #[test]
     fn request_parse_valid() {
-        let req: Request = serde_json::from_str(
-            r#"{"command":"status","params":{}}"#,
-        )
-        .expect("valid request");
+        let req: Request =
+            serde_json::from_str(r#"{"command":"status","params":{}}"#).expect("valid request");
         assert_eq!(req.command, "status");
     }
 

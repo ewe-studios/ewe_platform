@@ -1,6 +1,6 @@
 [package]
 name = "foundation_db"
-version = "0.0.4"
+version = "0.0.5"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -12,8 +12,8 @@ keywords = ["database", "storage", "turso", "foundation"]
 [dependencies]
 # -- Workspace dependencies
 # Multi-threaded support is optional - enable with `multi` feature
-foundation_core = { path = "../foundation_core", version = "0.0.6", features = ["std"] }
-foundation_compact = { path = "../foundation_compact", version = "0.2.2", features = ["crypto-chacha"] }
+foundation_core = { path = "../foundation_core", version = "0.0.7", features = ["std"] }
+foundation_compact = { path = "../foundation_compact", version = "0.2.3", features = ["crypto-chacha"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -53,7 +53,10 @@ worker = { version = "0.8.3", optional = true, default-features = false, feature
 # valtron's Send-required path.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_netio = { path = "../foundation_netio", version = "0.0.4", features = ["standard", "std", "ssl", "compression", "wire-native", "multi"] }
+foundation_cloudflare_types = { path = "../foundation_cloudflare_types", version = "0.1.0" }
 async-stream = "0.3"
+# Connection gate for the single-connection SQL stores (already in the tree via foundation_netio).
+async-lock = "3"
 
 # Native-only storage backends — excluded on wasm32 to avoid
 # transitive deps (e.g. tracing-appender → symlink) that don't compile.
@@ -61,14 +64,24 @@ async-stream = "0.3"
 turso = { version = "0.8.3", optional = true, default-features = false }
 libsql = { version = "0.6", optional = true }
 
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"  # flock for FileStateStore::set_if_version
+
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tempfile = "3"
 serial_test = { workspace = true }
 ntest = { workspace = true }
+futures-util = "0.3"
+libc = "0.2"
+# Turns on the `test-hooks` feature for this crate's own test targets only.
+foundation_db = { path = ".", features = ["test-hooks"] }
 foundation_core = { path = "../foundation_core", features = ["std", "multi"] }
 
 [features]
+# Test-only hooks (for example `inject_rollback_failure`). Off by default; the
+# crate's own tests turn it on through the self dev-dependency below.
+test-hooks = []
 default = ["turso", "d1", "r2"]
 turso = ["dep:turso", "multi"]
 libsql = ["dep:libsql", "multi"]

@@ -15,7 +15,9 @@
 use std::path::{Path, PathBuf};
 
 use foundation_codegen::wasm::builtins::UnparsedBytes;
-use foundation_codegen::wasm::sections::{payload, CustomSection, ExportDesc, RawCustomSection, Section};
+use foundation_codegen::wasm::sections::{
+    payload, CustomSection, ExportDesc, RawCustomSection, Section,
+};
 use foundation_codegen::wasm::Module;
 
 fn workspace_root() -> PathBuf {

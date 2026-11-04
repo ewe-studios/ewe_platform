@@ -7,8 +7,8 @@
 //! - GET / — serves a static HTML page that fetches /counter
 //! - GET /counter — streams valtron counter ticks via ReadableStream
 
-use foundation_core::valtron::{Ctx, 
-    Stream, StreamIteratorExt, TaskIterator, TaskStatus, NoAction, execute, initialize_pool, PoolGuard,
+use foundation_core::valtron::{
+    execute, initialize_pool, Ctx, PoolGuard, Stream, StreamIteratorExt, TaskIterator, TaskStatus,
 };
 
 use std::cell::RefCell;
@@ -46,9 +46,8 @@ impl CounterTaskIterator {
 impl TaskIterator for CounterTaskIterator {
     type Ready = u64;
     type Pending = u64;
-    type Spawner = NoAction;
 
-    fn next_status(&mut self, ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self, _ctx: Ctx) -> Option<TaskStatus<Self::Ready, Self::Pending>> {
         if self.current > self.max {
             web_sys::console::log_1(&"CounterTaskIterator: returning None (task complete)".into());
             return None;
@@ -80,7 +79,9 @@ fn html_response(body: &str, status: u16) -> web_sys::Response {
     let init = web_sys::ResponseInit::new();
     init.set_status(status);
     let headers = web_sys::Headers::new().unwrap();
-    headers.set("Content-Type", "text/html; charset=utf-8").unwrap();
+    headers
+        .set("Content-Type", "text/html; charset=utf-8")
+        .unwrap();
     init.set_headers(&headers);
     web_sys::Response::new_with_opt_str_and_init(Some(body), &init).unwrap()
 }
@@ -130,7 +131,8 @@ async fn handle_counter() -> web_sys::Response {
     let driven_iter = execute(
         CounterTaskIterator::new(10),
         Some(std::time::Duration::from_millis(4)),
-    ).expect("should schedule task");
+    )
+    .expect("should schedule task");
 
     let future_stream = driven_iter.into_pure_future_stream();
 

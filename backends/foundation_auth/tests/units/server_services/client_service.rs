@@ -1,4 +1,4 @@
-//! ClientService tests.
+//! `ClientService` tests.
 
 use foundation_auth::server::services::client_service::create_client_record;
 
@@ -12,8 +12,8 @@ fn test_create_client_record() {
         false,
     );
 
-    assert!(!client.id.is_empty());
+    assert_ne!(client.id, "");
     assert_eq!(client.name, "My App");
-    assert!(!secret.is_empty());
+    assert_ne!(secret, "");
     assert!(client.verify_secret(&secret));
 }

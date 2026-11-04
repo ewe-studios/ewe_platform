@@ -21,7 +21,6 @@ exclude = [
   # examples are self-contained crates — build individually as needed
   "examples/*",
   "examples/*/src-tauri",
-  # "crates/ewe_deployables",
   "backends/docs",
   "backends/docs/*",
   "backends/node_modules",
@@ -84,7 +83,24 @@ walrus = "0.23"
 portpicker = "0.1"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 fs_extra = "1.3"
-fuser = "0.15"
+# Use the pure-Rust FUSE mount implementation. It needs no system libfuse3 dev package.
+fuser = { version = "0.15", default-features = false }
+
+# Vendored patch of gemm-common 0.19.0. Its `init_gemm_fn` chose the `fma`
+# kernel from the `fma` CPU feature alone, but that kernel needs the whole V3
+# SIMD type (avx2 too). On CPUs that report `fma` without `avx2` (the Docker
+# Desktop linux/amd64 emulation used by scripts/ci/linux.sh), `V3::try_new()`
+# returns `None` and gemm-f32 panics on `.unwrap()`. The patch picks the kernel
+# with `V3::try_new()` / `V4::try_new()` instead. See
+# specifications/70-foundational-io-hardening/learnings.md.
+# A patch applies only inside this workspace; the upstream fix is written in
+# patches/gemm-common/UPSTREAM.md and tracked in docs/bug-backlog.md section 10.
+# gemm-f16 (0.19.0, pulled in by candle-core through gemm) has the same dispatch
+# fix in patches/gemm-f16. Its upstream note is in patches/gemm-common/UPSTREAM.md.
+# (boringtun is no longer patched: backends/foundation_boringtun is a published fork.)
+[patch.crates-io]
+gemm-common = { path = "patches/gemm-common" }
+gemm-f16 = { path = "patches/gemm-f16" }
 
 [workspace.lints.rust]
 missing_docs = { level = "allow" }

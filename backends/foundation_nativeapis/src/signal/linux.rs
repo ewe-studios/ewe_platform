@@ -4,8 +4,8 @@ use std::os::fd::RawFd;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::signal::deliver_signal;
-use crate::signal::event::SignalKind;
 use crate::signal::error::SignalError;
+use crate::signal::event::SignalKind;
 use crate::signal::handle::SignalHandle;
 
 // Global eventfd — set once at startup.

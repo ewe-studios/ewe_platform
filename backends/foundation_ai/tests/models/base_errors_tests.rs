@@ -15,7 +15,8 @@ fn generation_error_display_and_from() {
     assert!(matches!(g, GenerationError::Generic(_)));
     assert!(format!("{g}").contains("boom"));
 
-    let boxed: Box<dyn std::error::Error> = Box::<dyn std::error::Error>::from("inner");
+    let boxed: Box<dyn std::error::Error + Send + Sync> =
+        Box::<dyn std::error::Error + Send + Sync>::from("inner");
     let g2: GenerationError = boxed.into();
     assert!(matches!(g2, GenerationError::Failed(_)));
 
@@ -46,8 +47,14 @@ fn generation_error_from_candle() {
 fn model_errors_display() {
     for (e, needle) in [
         (ModelErrors::NotFound("m".into()), "not found"),
-        (ModelErrors::CandleModelLoad("bad".into()), "Candle model load"),
-        (ModelErrors::UnsupportedArchitecture("qwen".into()), "Unsupported architecture"),
+        (
+            ModelErrors::CandleModelLoad("bad".into()),
+            "Candle model load",
+        ),
+        (
+            ModelErrors::UnsupportedArchitecture("qwen".into()),
+            "Unsupported architecture",
+        ),
     ] {
         let s = format!("{e}");
         assert!(
@@ -55,7 +62,8 @@ fn model_errors_display() {
             "{s} should contain {needle}"
         );
     }
-    let boxed: Box<dyn std::error::Error> = Box::<dyn std::error::Error>::from("load");
+    let boxed: Box<dyn std::error::Error + Send + Sync> =
+        Box::<dyn std::error::Error + Send + Sync>::from("load");
     let e = ModelErrors::FailedLoading(boxed);
     assert!(format!("{e}").contains("failed to load"));
 }
@@ -72,7 +80,8 @@ fn provider_errors_display_and_from_model_errors() {
     let nf = ModelProviderErrors::NotFound("y".into());
     assert!(format!("{nf}").to_lowercase().contains("not found"));
 
-    let boxed: Box<dyn std::error::Error> = Box::<dyn std::error::Error>::from("fetch");
+    let boxed: Box<dyn std::error::Error + Send + Sync> =
+        Box::<dyn std::error::Error + Send + Sync>::from("fetch");
     let ff = ModelProviderErrors::FailedFetching(boxed);
     assert!(format!("{ff}").to_lowercase().contains("fetch"));
 }
@@ -106,8 +115,16 @@ fn model_descriptors_registry_is_populated_and_wellformed() {
 
     for d in all {
         assert!(!d.id.is_empty(), "every descriptor has a non-empty id");
-        assert!(!d.name.is_empty(), "every descriptor has a non-empty name: {}", d.id);
-        assert!(d.context_window > 0, "context window must be positive for {}", d.id);
+        assert!(
+            !d.name.is_empty(),
+            "every descriptor has a non-empty name: {}",
+            d.id
+        );
+        assert!(
+            d.context_window > 0,
+            "context window must be positive for {}",
+            d.id
+        );
     }
 
     // Multiple providers are represented (the concatenation actually ran).

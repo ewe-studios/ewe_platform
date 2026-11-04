@@ -62,6 +62,9 @@ pub struct EndpointInfo {
     /// The query parameters (a subset of [`Self::query_params`]) whose schema
     /// is an array: each value is sent as its own `name=value` pair.
     pub array_query_params: Vec<String>,
+    /// The query parameters (a subset of [`Self::query_params`]) whose schema
+    /// is a boolean: serialised as `true`/`false`.
+    pub boolean_query_params: Vec<String>,
     /// Request body type name (if any) — a JSON body.
     pub request_type: Option<String>,
     /// A request body that is not JSON (a tar archive, raw bytes, plain
@@ -312,6 +315,21 @@ impl EndpointInfo {
             .collect()
     }
 
+    /// The names of the query parameters whose schema is a boolean.
+    #[must_use]
+    pub fn extract_boolean_query_params(parameters: &[Parameter]) -> Vec<String> {
+        parameters
+            .iter()
+            .filter(|p| p.ref_path.is_none() && p.parameter_in.as_deref() == Some("query"))
+            .filter(|p| {
+                p.schema
+                    .as_ref()
+                    .is_some_and(|s| s.schema_type.as_deref() == Some("boolean"))
+            })
+            .filter_map(|p| p.name.clone())
+            .collect()
+    }
+
     /// Extract parameters by location from GCP method parameters.
     #[must_use]
     pub fn extract_gcp_parameters(
@@ -360,6 +378,7 @@ impl EndpointInfo {
             path_params: Vec::new(),
             query_params: Vec::new(),
             array_query_params: Vec::new(),
+            boolean_query_params: Vec::new(),
             request_type: None,
             raw_request_body: None,
             response_type: None,

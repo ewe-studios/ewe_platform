@@ -19,8 +19,8 @@ pub mod fwt;
 pub mod fwt_runner;
 pub mod init;
 pub mod server;
-pub mod wasm;
 pub mod wasi_runner;
+pub mod wasm;
 pub mod wasm_test;
 pub mod wrangler;
 

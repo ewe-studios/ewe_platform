@@ -50,5 +50,8 @@ fn test_parse_mount_with_methods() {
     let config: UserConfig = toml::from_str(toml_content).expect("failed to parse");
     let entry = &config.profiles[0];
     let mount = entry.profile.mount.as_ref().expect("mount should exist");
-    assert_eq!(mount.methods, Some(vec!["virtiofs".to_string(), "smb".to_string()]));
+    assert_eq!(
+        mount.methods,
+        Some(vec!["virtiofs".to_string(), "smb".to_string()])
+    );
 }

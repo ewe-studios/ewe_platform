@@ -88,8 +88,11 @@ fn pure_fragment_splices_with_fresh_ids() {
     let span_id = ops
         .iter()
         .find_map(|op| match op {
-            DomOp::CreateElement { node_id, tag, class }
-                if tag.name() == Some("span") && class == "badge" => Some(*node_id),
+            DomOp::CreateElement {
+                node_id,
+                tag,
+                class,
+            } if tag.name() == Some("span") && class == "badge" => Some(*node_id),
             _ => None,
         })
         .expect("badge span created");
@@ -180,7 +183,10 @@ fn spliced_fragment_interior_stays_reactive() {
             _ => None,
         })
         .expect("slot SetText");
-    assert_eq!(last_set_text, "2", "interior effect re-rendered after splice");
+    assert_eq!(
+        last_set_text, "2",
+        "interior effect re-rendered after splice"
+    );
 }
 
 // ─── Span text slots on the wire (feature 00 §4) ─────────────────────────────
@@ -388,5 +394,8 @@ fn fragment_in_pure_form_inlines() {
         tree.children[0].tag, None,
         "Fragment is a transparent grouping node in the pure tree"
     );
-    assert_eq!(tree.children[0].children[0].tag, Some(HtmlTag::from_static("b")));
+    assert_eq!(
+        tree.children[0].children[0].tag,
+        Some(HtmlTag::from_static("b"))
+    );
 }

@@ -248,7 +248,10 @@ impl Swim {
             }
             SwimMessage::SyncDigest { entries } => {
                 let updates = self.records_newer_than(&entries);
-                out.push(SwimOutbound::new(from, SwimMessage::SyncResponse { updates }));
+                out.push(SwimOutbound::new(
+                    from,
+                    SwimMessage::SyncResponse { updates },
+                ));
             }
             SwimMessage::SyncResponse { updates } => {
                 self.absorb_and_regossip(updates, &mut out, &mut events);
@@ -359,9 +362,12 @@ impl Swim {
         }
         self.suspicion
             .insert(target, now + self.cfg.suspicion_timeout);
-        self.broadcast(SwimMessage::Gossip {
-            updates: vec![suspected],
-        }, out);
+        self.broadcast(
+            SwimMessage::Gossip {
+                updates: vec![suspected],
+            },
+            out,
+        );
     }
 
     fn age_suspicions(
@@ -390,7 +396,12 @@ impl Swim {
                 events.push(event);
             }
             self.tombstones.insert(id, now + self.cfg.tombstone_ttl);
-            self.broadcast(SwimMessage::Gossip { updates: vec![dead] }, out);
+            self.broadcast(
+                SwimMessage::Gossip {
+                    updates: vec![dead],
+                },
+                out,
+            );
         }
     }
 
@@ -433,7 +444,8 @@ impl Swim {
     fn apply_record(&mut self, record: PeerRecord) -> Option<SwimEvent> {
         if record.id == self.my_record.id {
             // Refutation bookkeeping: adopt a higher incarnation if we are challenged.
-            if record.state != MemberState::Alive && record.incarnation >= self.my_record.incarnation
+            if record.state != MemberState::Alive
+                && record.incarnation >= self.my_record.incarnation
             {
                 self.my_record.incarnation = record.incarnation + 1;
                 self.my_record.state = MemberState::Alive;
@@ -474,7 +486,9 @@ impl Swim {
                 } else if was_dead {
                     Some(SwimEvent::PeerUp(self.members.get(&id)?.clone()))
                 } else if endpoints_changed {
-                    Some(SwimEvent::PeerEndpointChanged(self.members.get(&id)?.clone()))
+                    Some(SwimEvent::PeerEndpointChanged(
+                        self.members.get(&id)?.clone(),
+                    ))
                 } else if caps_changed {
                     Some(SwimEvent::PeerCapsChanged(self.members.get(&id)?.clone()))
                 } else {

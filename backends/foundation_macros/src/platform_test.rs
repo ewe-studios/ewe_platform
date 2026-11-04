@@ -29,7 +29,9 @@ enum TestBackend {
 
 impl Default for PlatformTestArgs {
     fn default() -> Self {
-        Self { backend: TestBackend::InMemory }
+        Self {
+            backend: TestBackend::InMemory,
+        }
     }
 }
 
