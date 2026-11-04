@@ -1233,6 +1233,94 @@ struct ConsumerSlot {
     queue_armed: std::sync::atomic::AtomicBool,
     #[cfg(not(target_family = "wasm"))]
     resume_armed: std::sync::atomic::AtomicBool,
+    #[cfg(not(target_family = "wasm"))]
+    gate: std::sync::Mutex<ResumeGate>,
+    /// Set by `next` when it returned an item (not `Wait`) since the last
+    /// `wake_send`: the last wake made progress.
+    #[cfg(not(target_family = "wasm"))]
+    progressed: std::sync::atomic::AtomicBool,
+}
+
+/// Spaces out the consumer wakes that a resume causes.
+///
+/// WHY: `request_executor_resume` is process-wide: any readiness flip, queue push
+/// or future wake anywhere calls it, and the consumer cannot tell whose it is.
+/// Waking on each one makes a busy process re-check this consumer's parked
+/// readiness thousands of times a second. The first resume after progress wakes
+/// the consumer at once. Each resume wake that then made no progress (a spurious
+/// wake) doubles the minimum gap to the next one, from 4 times the executor's
+/// readiness poll quantum up to 128 times it; a resume that arrives inside the gap
+/// is not lost: one wake is scheduled for the end of the gap on the timer thread.
+/// Progress resets the gap. The most a real flip waits is that gap, and only
+/// while the process is busy with unrelated resumes.
+#[cfg(not(target_family = "wasm"))]
+#[derive(Default)]
+struct ResumeGate {
+    /// Resume wakes in a row that made no progress.
+    spurious: u32,
+    /// The last wake came from a resume.
+    last_from_resume: bool,
+    last_wake: Option<std::time::Instant>,
+    /// The wake scheduled for the end of the gap, if any.
+    trailing: Option<crate::valtron::timer::TimerCall>,
+}
+
+#[cfg(not(target_family = "wasm"))]
+impl ConsumerSlot {
+    /// Called on each new `wake_send`: counts the last wake as spurious when it
+    /// came from a resume and nothing was produced since.
+    fn note_wake_outcome(&self) {
+        let progressed = self
+            .progressed
+            .swap(false, std::sync::atomic::Ordering::SeqCst);
+        let mut gate = self
+            .gate
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if progressed {
+            gate.spurious = 0;
+        } else if gate.last_from_resume {
+            gate.spurious = (gate.spurious + 1).min(5);
+        }
+        gate.last_from_resume = false;
+    }
+
+    /// A resume reached this consumer's listener: wake now, or at the end of the
+    /// gap when the last resume wake was too recent. See [`ResumeGate`].
+    fn fire_from_resume(self: &Arc<Self>, quantum: std::time::Duration) {
+        let now = std::time::Instant::now();
+        let mut gate = self
+            .gate
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let gap = if gate.spurious == 0 {
+            std::time::Duration::ZERO
+        } else {
+            quantum.saturating_mul(1 << (gate.spurious + 2))
+        };
+        let ready_at = gate.last_wake.map_or(now, |at| at + gap);
+        if ready_at <= now {
+            gate.last_wake = Some(now);
+            gate.last_from_resume = true;
+            gate.trailing = None;
+            drop(gate);
+            self.fire();
+        } else if gate.trailing.is_none() {
+            let slot = Arc::clone(self);
+            gate.trailing = Some(crate::valtron::timer::call_at(ready_at, move || {
+                {
+                    let mut gate = slot
+                        .gate
+                        .lock()
+                        .unwrap_or_else(std::sync::PoisonError::into_inner);
+                    gate.last_wake = Some(std::time::Instant::now());
+                    gate.last_from_resume = true;
+                    gate.trailing = None;
+                }
+                slot.fire();
+            }));
+        }
+    }
 }
 
 impl ConsumerSlot {
@@ -1244,6 +1332,9 @@ impl ConsumerSlot {
             .unwrap_or_else(std::sync::PoisonError::into_inner)
             .take();
         if let Some(wake) = wake {
+            #[cfg(not(target_family = "wasm"))]
+            super::idle_wake::waking_consumer(wake);
+            #[cfg(target_family = "wasm")]
             wake();
         }
     }
@@ -1334,6 +1425,13 @@ where
                 None => task_iterator.next(),
             };
 
+            // An item other than `Wait` means the last wake made progress.
+            #[cfg(not(target_family = "wasm"))]
+            self.1.slot.progressed.store(
+                !matches!(next_value, Some(Stream::Wait)),
+                std::sync::atomic::Ordering::SeqCst,
+            );
+
             // if the next value is Some(_) then set back the
             // executor for the next call.
             if next_value.is_some() {
@@ -1392,6 +1490,8 @@ where
             return WakeResult::NotSupported;
         };
         let slot = Arc::clone(&self.1.slot);
+        #[cfg(not(target_family = "wasm"))]
+        slot.note_wake_outcome();
         *slot
             .wake
             .lock()
@@ -1419,11 +1519,12 @@ where
                 .swap(true, std::sync::atomic::Ordering::SeqCst)
             {
                 let resume_slot = Arc::clone(&slot);
+                let quantum = single::readiness_poll_quantum();
                 super::idle_wake::register_resume_listener(Box::new(move || {
                     resume_slot
                         .resume_armed
                         .store(false, std::sync::atomic::Ordering::SeqCst);
-                    resume_slot.fire();
+                    resume_slot.fire_from_resume(quantum);
                 }));
             }
 

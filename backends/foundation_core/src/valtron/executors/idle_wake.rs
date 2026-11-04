@@ -35,6 +35,9 @@ static RESUMES: AtomicU64 = AtomicU64::new(0);
 const NOT_CHECKING: u64 = u64::MAX;
 
 thread_local! {
+    /// Set while this thread runs a consumer wake (see [`waking_consumer`]).
+    static WAKING_CONSUMER: Cell<bool> = const { Cell::new(false) };
+
     /// The resume count when this thread's executor began its current check.
     static CHECKED_AT: Cell<u64> = const { Cell::new(NOT_CHECKING) };
 }
@@ -69,13 +72,36 @@ pub fn register_resume_listener(cb: Box<dyn FnOnce() + Send>) {
         .push(cb);
 }
 
+/// Run `wake`, a consumer wake (a `Waker::wake` of a `DrivenStreamIterator`
+/// consumer), so that any [`resume_idle`] it causes on this thread does not fire
+/// the resume listeners.
+///
+/// WHY: a consumer whose waker belongs to a valtron future (a bridged future, a
+/// `block_on_future`) calls `request_executor_resume` when it is woken. Without
+/// this guard that resume would fire every other consumer's listener; each of
+/// those wakes calls resume again, and the consumers wake one another without
+/// end (thousands of readiness re-checks a second). Sleeping executor threads
+/// are still interrupted: only the listeners are skipped. A real flip of a
+/// readiness calls `request_executor_resume` outside this guard, so it still
+/// reaches every listener.
+pub fn waking_consumer(wake: impl FnOnce()) {
+    let outer = WAKING_CONSUMER.with(|c| c.replace(true));
+    wake();
+    WAKING_CONSUMER.with(|c| c.set(outer));
+}
+
 /// Wake every sleeping executor thread: a parked task may be ready.
 pub fn resume_idle() {
     RESUMES.fetch_add(1, Ordering::SeqCst);
-    // Taken out of the lock first: a listener may register another one.
-    let listeners = std::mem::take(&mut *LISTENERS.lock().unwrap_or_else(PoisonError::into_inner));
-    for listener in listeners {
-        listener();
+    // Taken out of the lock first: a listener may register another one. Not
+    // taken at all while this thread is waking a consumer (see
+    // [`waking_consumer`]).
+    if !WAKING_CONSUMER.with(Cell::get) {
+        let listeners =
+            std::mem::take(&mut *LISTENERS.lock().unwrap_or_else(PoisonError::into_inner));
+        for listener in listeners {
+            listener();
+        }
     }
     let sleeping: Vec<Interrupt> = SLEEPING
         .lock()

@@ -198,6 +198,57 @@ impl core::fmt::Debug for ThreadActivity {
     }
 }
 
+/// How many sleeps of this thread's `wait_for_sleepers` in a row a resume cut
+/// short without a sleeper becoming ready.
+///
+/// WHY: `request_executor_resume` is process-wide, so a resume that belongs to
+/// another executor (a readiness flip, a queue push, a future wake) also cuts
+/// this thread's sleep short, and the re-check that follows costs a readiness
+/// check per resume. On a busy process that is thousands of checks a second for
+/// a thread that only waits for a deadline. After each such sleep the next
+/// re-check waits a gap that doubles, from 16 times the readiness poll quantum
+/// to 128 times it (16 ms to 128 ms with the 1 ms default); a sleeper that
+/// becomes ready, or a sleep that ends on its own, resets it. A real resume
+/// therefore waits at most the gap, and only while the process is busy.
+#[cfg(not(target_family = "wasm"))]
+#[derive(Clone, Copy, Default)]
+struct SpuriousResumes {
+    /// Interrupted sleeps in a row.
+    count: u32,
+    /// When the gap started: the end of the last interrupted sleep.
+    since: Option<time::Instant>,
+}
+
+#[cfg(not(target_family = "wasm"))]
+impl SpuriousResumes {
+    /// The part of the gap still to wait, if any.
+    fn gap(self, quantum: time::Duration) -> Option<time::Duration> {
+        if self.count == 0 {
+            return None;
+        }
+        let gap = quantum.saturating_mul(1 << (self.count + 3).min(7));
+        let waited = self.since.map_or(gap, |since| since.elapsed());
+        gap.checked_sub(waited).filter(|left| !left.is_zero())
+    }
+
+    fn after_sleep(self, interrupted: bool) -> Self {
+        if interrupted {
+            Self {
+                count: (self.count + 1).min(6),
+                since: Some(time::Instant::now()),
+            }
+        } else {
+            Self::default()
+        }
+    }
+}
+
+#[cfg(not(target_family = "wasm"))]
+thread_local! {
+    static SPURIOUS_RESUMES: core::cell::Cell<SpuriousResumes> =
+        const { core::cell::Cell::new(SpuriousResumes { count: 0, since: None }) };
+}
+
 /// `PriorityOrder` defines how wake up tasks should placed once woken up.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PriorityOrder {
@@ -2913,12 +2964,26 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         if self.state.number_of_sleepers() == 0 {
             return false;
         }
+        // Space out the re-checks that unrelated resumes cause (see
+        // `SpuriousResumes`): sleep out the rest of the gap first.
+        let gap = SPURIOUS_RESUMES.with(|s| s.get().gap(self.readiness_poll_quantum));
+        if let Some(gap) = gap {
+            let left = until.saturating_duration_since(time::Instant::now());
+            std::thread::sleep(gap.min(left));
+        }
         self.state.wakeup_ready_sleepers();
         if self.state.has_runnable_work() {
+            SPURIOUS_RESUMES.with(|s| s.set(SpuriousResumes::default()));
             return false;
         }
-        let left = until.saturating_duration_since(time::Instant::now());
-        self.yielder.yield_for(self.sleeper_wait().min(left));
+        let planned = self
+            .sleeper_wait()
+            .min(until.saturating_duration_since(time::Instant::now()));
+        let started = time::Instant::now();
+        self.yielder.yield_for(planned);
+        // A sleep that ended early was cut short by a resume.
+        let interrupted = started.elapsed() + time::Duration::from_micros(500) < planned;
+        SPURIOUS_RESUMES.with(|s| s.set(s.get().after_sleep(interrupted)));
         true
     }
 
@@ -3218,6 +3283,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         } else {
             until.unwrap_or(self.max_yield_duration)
         }
+    }
+
+    /// How often a sleeper that can become ready without a wake is re-checked
+    /// (`with_readiness_poll_quantum`).
+    #[must_use]
+    pub fn readiness_poll_quantum(&self) -> time::Duration {
+        self.readiness_poll_quantum
     }
 
     /// How long a consumer that drives this engine from its own thread (a

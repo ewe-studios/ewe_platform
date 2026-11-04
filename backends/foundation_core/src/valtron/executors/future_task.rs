@@ -137,6 +137,41 @@ unsafe fn queue_waker_clone(data: *const ()) -> RawWaker {
     RawWaker::new(data, &QUEUE_WAKER_VTABLE)
 }
 
+thread_local! {
+    /// The wake queue of the future this thread is polling right now, or null.
+    static POLLING: core::cell::Cell<*const ConcurrentQueue<WakeToken>> =
+        const { core::cell::Cell::new(core::ptr::null()) };
+}
+
+/// Marks that the calling thread is polling the future that owns `queue`.
+///
+/// WHY: a future that wakes itself while it is polled (`cx.waker().wake_by_ref()`,
+/// a busy loop of a `poll_fn`) pushes its token and returns `Pending`; the poller
+/// then sees the token and runs the task again. No other thread has to be told, so
+/// that wake must not call `request_executor_resume`. Calling it anyway made every
+/// self-waking future in the process interrupt every idle executor and fire every
+/// resume listener, thousands of times a second (a wake storm that made each
+/// parked `DrivenStreamIterator` consumer re-check its readiness over and over).
+/// A wake from any other thread, or of any other future, still resumes.
+struct PollScope(*const ConcurrentQueue<WakeToken>);
+
+impl PollScope {
+    fn enter(queue: &Arc<ConcurrentQueue<WakeToken>>) -> Self {
+        Self(POLLING.with(|c| c.replace(Arc::as_ptr(queue))))
+    }
+
+    /// Whether this thread is polling the future that owns `queue`.
+    fn is_polling(queue: &Arc<ConcurrentQueue<WakeToken>>) -> bool {
+        POLLING.with(|c| core::ptr::eq(c.get(), Arc::as_ptr(queue)))
+    }
+}
+
+impl Drop for PollScope {
+    fn drop(&mut self) {
+        POLLING.with(|c| c.set(self.0));
+    }
+}
+
 /// Wake (by value): push this waker's token, then drop the owned strong ref.
 ///
 /// # Safety
@@ -148,8 +183,11 @@ unsafe fn queue_waker_wake(data: *const ()) {
     // Unbounded queue: push only fails if closed, in which case the woken task
     // has already gone away and dropping the token is the correct outcome.
     let _ = state.queue.push(WakeToken { id: state.id });
-    // Tell an idle executor the parked task is ready (else it oversleeps).
-    crate::valtron::request_executor_resume();
+    // Tell an idle executor the parked task is ready (else it oversleeps),
+    // unless the future woke itself while this thread polls it (`PollScope`).
+    if !PollScope::is_polling(&state.queue) {
+        crate::valtron::request_executor_resume();
+    }
 }
 
 /// Wake by reference: push this waker's token without consuming the strong ref.
@@ -162,7 +200,9 @@ unsafe fn queue_waker_wake(data: *const ()) {
 unsafe fn queue_waker_wake_by_ref(data: *const ()) {
     let state = core::mem::ManuallyDrop::new(Arc::from_raw(data.cast::<WakerState>()));
     let _ = state.queue.push(WakeToken { id: state.id });
-    crate::valtron::request_executor_resume();
+    if !PollScope::is_polling(&state.queue) {
+        crate::valtron::request_executor_resume();
+    }
 }
 
 /// Drop: reclaim and release one `Arc<WakerState>` strong reference.
@@ -263,6 +303,7 @@ where
         // wake-before-park race) stays in the queue and keeps the readiness ready.
         while self.wake_queue.pop().is_ok() {}
 
+        let _polling = PollScope::enter(&self.wake_queue);
         let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
@@ -322,6 +363,7 @@ where
         // the full rationale.
         while self.wake_queue.pop().is_ok() {}
 
+        let _polling = PollScope::enter(&self.wake_queue);
         let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
@@ -397,6 +439,7 @@ where
         // wake that arrives after this drain survives to keep the readiness ready.
         while self.wake_queue.pop().is_ok() {}
 
+        let _polling = PollScope::enter(&self.wake_queue);
         let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
@@ -438,6 +481,7 @@ where
         // wake that arrives after this drain survives to keep the readiness ready.
         while self.wake_queue.pop().is_ok() {}
 
+        let _polling = PollScope::enter(&self.wake_queue);
         let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 

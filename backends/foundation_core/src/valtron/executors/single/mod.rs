@@ -233,6 +233,19 @@ pub fn parked_wake_after() -> Option<core::time::Duration> {
         .with(|pool| pool.get().and_then(LocalThreadExecutor::parked_wake_after))
 }
 
+/// This thread's engine readiness poll quantum, or the default when the engine
+/// has not been initialized. See [`LocalThreadExecutor::readiness_poll_quantum`].
+#[cfg(not(target_family = "wasm"))]
+#[must_use]
+pub fn readiness_poll_quantum() -> core::time::Duration {
+    GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
+        pool.get().map_or(
+            super::constants::DEFAULT_READINESS_POLL_QUANTUM,
+            LocalThreadExecutor::readiness_poll_quantum,
+        )
+    })
+}
+
 /// Whether this thread's engine has been initialized ([`initialize_pool`]).
 ///
 /// Host callbacks that resume the executor (a JS timer or microtask queued by a
