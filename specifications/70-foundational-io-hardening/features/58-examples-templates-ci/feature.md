@@ -1,12 +1,14 @@
 ---
 feature: "examples/todo, the web-app template and the vms CI lint"
-status: "pending"
+status: "dropped"
 lane: "B"
 model: "haiku"
 branch: "fix/io-51-60-lane-b"
 crates: ["examples/todo", "bin/platform", "foundation_deployment_platform", "ci"]
 catalogue_rows: [28]
 ---
+
+> **Dropped by the owner (2026-11-04).** Old code; not scheduled. E3 (vms clippy) is kept as feature 79. Do not work on it. Its backlog entries are deleted (owner, 2026-11-04).
 
 # Feature 58: examples, templates and the vms lint
 

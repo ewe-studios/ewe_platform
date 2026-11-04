@@ -79,6 +79,14 @@ hosted REST front end, so write that limit once in the test's doc comment.
   `d1-query.json` overlay's note that says it is unproven (say "verified with local wrangler,
   <date>").
 
+## E9. `foundation_db` clippy debt, then deny warnings in CI (found in feature 71)
+
+12 clippy errors with default features and 25 with `libsql` (cast truncation and sign loss,
+missing `# Errors` sections). Fix them (casts: `try_from` with the error handled, or an
+`#[allow]` with a one-line reason where the value is proven in range). Then set
+`clippy-deny-warnings = true` for `foundation_db` in `ci/packages.toml` (feature 71 E3 added the
+key) and show `ci.py run foundation_db --step clippy` passes.
+
 ## Verify
 
 ```bash
@@ -90,4 +98,4 @@ cargo clippy -p foundation_vectors --profile dev --all-targets --all-features 2>
 
 ## Done when
 
-- [ ] E1–E8 fixed and their entries deleted; the wrangler type test passes 20/20. CI green.
+- [ ] E1–E9 fixed and their entries deleted; the wrangler type test passes 20/20. CI green.
