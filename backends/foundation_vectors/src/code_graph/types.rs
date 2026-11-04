@@ -107,6 +107,7 @@ pub struct RawCall {
     pub source_line: usize,
 }
 
+#[must_use]
 pub fn make_id(stem: &str, name: &str) -> String {
     let raw = if stem.is_empty() {
         name.to_lowercase()
@@ -124,6 +125,7 @@ pub fn make_id(stem: &str, name: &str) -> String {
         .collect()
 }
 
+#[must_use]
 pub fn file_stem_qualified(path: &str) -> String {
     let p = std::path::Path::new(path);
     let parent = p
@@ -139,6 +141,7 @@ pub fn file_stem_qualified(path: &str) -> String {
     }
 }
 
+#[must_use]
 pub fn normalize_label(label: &str) -> String {
     label
         .to_lowercase()

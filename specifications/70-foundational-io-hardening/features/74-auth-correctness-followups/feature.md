@@ -1,6 +1,6 @@
 ---
 feature: "foundation_auth correctness follow-ups (register username, sessions, dispatch, social ToS flow) and the unregistered vectors migration"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
@@ -67,4 +67,4 @@ python3 scripts/ci/ci.py run foundation_db --profile dev
 
 ## Done when
 
-- [ ] E1–E11 fixed (E11 as documented refusal) and their entries deleted. CI green.
+- [x] E1–E11 fixed (E11 as documented refusal) and their entries deleted. CI green.

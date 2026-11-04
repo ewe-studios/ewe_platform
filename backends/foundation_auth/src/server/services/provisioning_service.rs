@@ -1,7 +1,7 @@
 //! User provisioning service for social login (spec-57, F005).
 //!
 //! WHY: After receiving an upstream user profile (from Google, GitHub, etc.),
-//! the IdP must either find an existing local user linked to that upstream
+//! the `IdP` must either find an existing local user linked to that upstream
 //! identity, create a new local user, or link the upstream identity to an
 //! existing session-authenticated user.
 //!
@@ -143,7 +143,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
     /// Provision a user from an upstream profile.
     ///
     /// The provisioning flow:
-    /// 1. Look up the user_provider_link table for `(provider_id, upstream_sub)`
+    /// 1. Look up the `user_provider_link` table for `(provider_id, upstream_sub)`
     /// 2. If found → return `Linked { user_id }`
     /// 3. If the upstream profile has a verified email and auto-linking is
     ///    enabled → find a local user by that email. If exactly one match →
@@ -167,13 +167,11 @@ impl<QS: QueryStore + ?Sized + 'static> ProvisioningService<QS> {
         // 2. Try auto-link by verified email
         if self.auto_link_by_email && profile.email_verified {
             if let Some(email) = &profile.email {
-                match self.find_user_by_email(email).await? {
-                    Some(user_id) => {
-                        self.create_link(provider, &profile.sub, &user_id).await?;
-                        return Ok(ProvisioningResult::Linked { user_id });
-                    }
-                    None => { /* fall through to create */ }
+                if let Some(user_id) = self.find_user_by_email(email).await? {
+                    self.create_link(provider, &profile.sub, &user_id).await?;
+                    return Ok(ProvisioningResult::Linked { user_id });
                 }
+                // Otherwise fall through to create.
             }
         }
 

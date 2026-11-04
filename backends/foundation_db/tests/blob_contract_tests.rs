@@ -10,6 +10,7 @@
 #![cfg(feature = "r2")]
 
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -62,7 +63,7 @@ fn counting_stream(chunks: Vec<Vec<u8>>, counter: Arc<AtomicUsize>) -> BlobStrea
             .inspect(move |_| {
                 counter.fetch_add(1, Ordering::SeqCst);
             })
-            .map(|chunk| Ok::<Vec<u8>, StorageError>(chunk)),
+            .map(Ok::<Vec<u8>, StorageError>),
     )
 }
 
@@ -249,12 +250,14 @@ fn percent_decode(s: &str) -> String {
 fn respond_body(stream: &mut TcpStream, status: &str, extra: &[(&str, &str)], body: &[u8]) {
     let mut head = format!("HTTP/1.1 {status}\r\n");
     for (name, value) in extra {
-        head.push_str(&format!("{name}: {value}\r\n"));
+        write!(head, "{name}: {value}\r\n").unwrap();
     }
-    head.push_str(&format!(
+    write!(
+        head,
         "Content-Length: {}\r\nConnection: close\r\n\r\n",
         body.len()
-    ));
+    )
+    .unwrap();
     stream.write_all(head.as_bytes()).unwrap();
     stream.write_all(body).unwrap();
     stream.flush().unwrap();
@@ -308,6 +311,8 @@ fn parse_range(header: &str, len: usize) -> Option<(usize, usize)> {
     Some((start, end.min(len - 1)))
 }
 
+// One request handler: it parses the request line, headers, range and body in sequence.
+#[allow(clippy::too_many_lines)]
 fn blob_handle(mut stream: TcpStream, objects: &Objects) {
     let mut reader = BufReader::new(stream.try_clone().unwrap());
     let mut request_line = String::new();
@@ -399,7 +404,7 @@ fn blob_handle(mut stream: TcpStream, objects: &Objects) {
             let key = percent_decode(&key[1..]);
             match objects.get(&key) {
                 Some(data) => {
-                    respond_body(&mut stream, "200 OK", &[("etag", &content_etag(data))], b"")
+                    respond_body(&mut stream, "200 OK", &[("etag", &content_etag(data))], b"");
                 }
                 None => respond_body(&mut stream, "404 Not Found", &[], b""),
             }
@@ -413,7 +418,7 @@ fn blob_handle(mut stream: TcpStream, objects: &Objects) {
                     .and_then(|h| parse_range(h, data.len()))
                 {
                     Some((start, end)) => {
-                        respond_body(&mut stream, "206 Partial Content", &[], &data[start..=end])
+                        respond_body(&mut stream, "206 Partial Content", &[], &data[start..=end]);
                     }
                     None => respond_body(&mut stream, "200 OK", &[], data),
                 },

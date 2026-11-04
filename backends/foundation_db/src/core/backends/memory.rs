@@ -87,6 +87,30 @@ impl KeyValueStore for MemoryStorage {
         Ok(())
     }
 
+    fn take_is_atomic(&self) -> bool {
+        true
+    }
+
+    async fn take<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        // One lock covers the read and the removal.
+        let bytes = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?
+            .remove(key);
+        match bytes {
+            Some(bytes) => {
+                let value: V = serde_json::from_slice(&bytes)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                Ok(Some(value))
+            }
+            None => Ok(None),
+        }
+    }
+
     async fn exists(&self, key: &str) -> StorageResult<bool> {
         let data = self
             .data

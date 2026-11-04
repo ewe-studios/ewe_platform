@@ -1,6 +1,6 @@
 //! `genapi normalize <provider>` — raw vendor spec → canonical artefact.
 //!
-//! **WHY:** the generators need a canonical OpenAPI document (schemas in
+//! **WHY:** the generators need a canonical `OpenAPI` document (schemas in
 //! `components/schemas`, `servers` present, `$ref`s rather than inline schemas),
 //! and vendors do not ship one. Measured 2026-07-17: Linode (9.3 MB) and Hetzner
 //! (3.4 MB) publish **fully bundled** specs — zero `$ref`s — and our extractor
@@ -27,12 +27,13 @@ use foundation_openapi::{
     strip_doc_only, validate_canonical,
 };
 use serde_json::Value;
+use std::fmt::Write as _;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 /// Which transforms a provider's spec needs.
 ///
-/// Named for **what runs**, not for what the spec looks like: "DigitalOcean is
+/// Named for **what runs**, not for what the spec looks like: "`DigitalOcean` is
 /// ref-based so it needs nothing" was exactly the assumption that turned out
 /// false — it has 7814 refs *and* 58 inline schemas. The validator caught it; the
 /// naming should not invite the guess again.
@@ -47,10 +48,10 @@ pub enum Normalizer {
     /// Hoist inline operation schemas into `components/schemas`.
     ///
     /// Safe on any spec: it only touches schemas that are written in place, so a
-    /// mostly-ref-based spec (DigitalOcean) keeps its refs and gets its stragglers
+    /// mostly-ref-based spec (`DigitalOcean`) keeps its refs and gets its stragglers
     /// named.
     HoistInline,
-    /// [`Self::HoistInline`], preceded by flattening OpenAPI 3.1's
+    /// [`Self::HoistInline`], preceded by flattening `OpenAPI` 3.1's
     /// `"type": ["string", "null"]` arrays, which the generator does not model.
     HoistInlineFrom31,
 }
@@ -205,10 +206,11 @@ pub fn normalize_provider(
             issues.len()
         );
         for issue in issues.iter().take(5) {
-            msg.push_str(&format!("  - {issue}\n"));
+            writeln!(msg, "  - {issue}").expect("writing to a String cannot fail");
         }
         if issues.len() > 5 {
-            msg.push_str(&format!("  … and {} more\n", issues.len() - 5));
+            writeln!(msg, "  … and {} more", issues.len() - 5)
+                .expect("writing to a String cannot fail");
         }
         return Err(msg.into());
     }
@@ -338,8 +340,7 @@ pub fn command() -> clap::Command {
 pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
     let provider = matches
         .get_one::<String>("provider")
-        .map(String::as_str)
-        .unwrap_or("all");
+        .map_or("all", String::as_str);
     let workspace_root = matches
         .get_one::<String>("workspace-root")
         .map_or_else(|| PathBuf::from("."), PathBuf::from);

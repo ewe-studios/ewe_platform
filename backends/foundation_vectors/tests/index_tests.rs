@@ -89,7 +89,7 @@ fn flat_serialize_roundtrip() {
 fn flat_empty_search() {
     let index = FlatIndex::new(DistanceMetric::Cosine, 2);
     let results = index.search(&[1.0, 0.0], 5).unwrap();
-    assert!(results.is_empty());
+    assert_eq!(results, [] as [foundation_vectors::VectorMatch; 0]);
 }
 
 #[test]

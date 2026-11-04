@@ -1,0 +1,19 @@
+foundation_boringtun
+
+This crate is a fork of boringtun 0.7.1, Copyright (c) Cloudflare, Inc.,
+licensed under the BSD 3-Clause License (see LICENSE). The licence text is
+unchanged.
+
+Changes from upstream boringtun 0.7.1:
+
+1. Package and library name: `foundation_boringtun` (`[lib] name =
+   "foundation_boringtun"`), so code uses `use foundation_boringtun::...`.
+   Upstream uses `boringtun` for both; this fork renames both.
+2. `src/sleepyinstant/wasm.rs` (new) and the `wasm32` branch in
+   `src/sleepyinstant/mod.rs`: a clock backend for `wasm32-unknown-unknown`,
+   built on `js_sys::Date`. Upstream has unix and windows backends only.
+3. `Cargo.toml`: `js-sys` and `getrandom` (feature `js`) dependencies for `wasm32`, `libc` for non-wasm32 only; `hex`, `ip_network` and `ip_network_table` are optional (enabled by `device` and `ffi-bindings`) so a default build has no unused dependency; a `[lints.rust]` table that
+   allows `deprecated`, `dead_code` and `mismatched_lifetime_syntaxes` (upstream
+   code that current rustc flags); package metadata for this repository.
+
+No other source file is changed.

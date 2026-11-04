@@ -304,3 +304,66 @@ fn config_hash_different_values() {
     let b = json!({"name": "b"});
     assert_ne!(config_hash(&a).unwrap(), config_hash(&b).unwrap());
 }
+
+// ── FileStateStore atomic write ──────────────────────────────────────
+
+/// A reader that loads the resource in a loop while a writer replaces it must
+/// only ever see a whole old or a whole new file, and `list` must only ever
+/// show the one resource (no temp file).
+#[valtron_test]
+async fn file_state_store_write_is_atomic() {
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc;
+
+    let tmp = TempDir::new().unwrap();
+    let store = Arc::new(FileStateStore::new(tmp.path(), "atomic", "staging"));
+    store.init().await.unwrap();
+
+    // Large, so a write in place takes long enough for a reader to catch it.
+    let mut state = make_state("big", StateStatus::Created);
+    state.output = json!({ "blob": "x".repeat(512 * 1024) });
+    store.set("big", &state).await.unwrap();
+
+    let stop = Arc::new(AtomicBool::new(false));
+    let reader = {
+        let (store, stop) = (Arc::clone(&store), Arc::clone(&stop));
+        std::thread::spawn(move || {
+            let mut reads = 0u64;
+            let mut problems = Vec::new();
+            while !stop.load(Ordering::Acquire) {
+                match futures_lite::future::block_on(store.get("big")) {
+                    Ok(Some(_)) => {}
+                    Ok(None) => problems.push("resource vanished".to_string()),
+                    Err(e) => problems.push(format!("torn read: {e}")),
+                }
+                let listed = futures_lite::future::block_on(store.count()).unwrap();
+                if listed != 1 {
+                    problems.push(format!("count was {listed}"));
+                }
+                reads += 1;
+                if problems.len() > 5 {
+                    break;
+                }
+            }
+            (reads, problems)
+        })
+    };
+
+    for round in 0..200 {
+        let mut next = state.clone();
+        next.output = json!({ "blob": format!("{round}").repeat(256 * 1024) });
+        store.set("big", &next).await.unwrap();
+    }
+    stop.store(true, Ordering::Release);
+
+    let (reads, problems) = reader.join().unwrap();
+    assert!(reads > 0, "the reader never ran");
+    assert!(problems.is_empty(), "after {reads} reads: {problems:?}");
+
+    // No temp file is left behind.
+    let leftovers: Vec<_> = std::fs::read_dir(tmp.path().join(".deployment/atomic/staging"))
+        .unwrap()
+        .map(|e| e.unwrap().file_name())
+        .collect();
+    assert_eq!(leftovers.len(), 1, "unexpected files: {leftovers:?}");
+}

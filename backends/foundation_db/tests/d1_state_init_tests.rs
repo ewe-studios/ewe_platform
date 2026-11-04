@@ -64,7 +64,7 @@ fn handle(mut stream: TcpStream, captured: &Captured) {
     *captured.lock().unwrap() = Some(req["sql"].as_str().unwrap_or_default().to_string());
 
     let reply = json!({
-        "result": [{ "results": [], "success": true, "meta": {} }],
+        "result": [{ "results": {"columns": [], "rows": []}, "success": true, "meta": {} }],
         "success": true,
         "errors": [],
         "messages": [],

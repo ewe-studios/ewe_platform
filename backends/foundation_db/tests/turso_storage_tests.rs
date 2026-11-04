@@ -212,8 +212,8 @@ async fn test_turso_storage_migrations() {
     assert!(migrations_exist, "_migrations table should be accessible");
 }
 
-/// Migration 024/025: upstream_providers + user_provider_links tables are
-/// created by init_schema and support real INSERT/SELECT round-trips.
+/// Migration 024/025: `upstream_providers` + `user_provider_links` tables are
+/// created by `init_schema` and support real INSERT/SELECT round-trips.
 #[valtron_test]
 async fn test_social_login_tables_functional() {
     let temp_dir = TempDir::new().unwrap();

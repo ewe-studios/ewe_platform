@@ -45,7 +45,7 @@ fn k_zero_returns_empty() {
         .map(|(id, v)| (id.as_str(), v.as_slice()))
         .collect();
     let results = flat_top_k(&[1.0, 0.0], refs.into_iter(), 0, DistanceMetric::Cosine);
-    assert!(results.is_empty());
+    assert_eq!(results, [] as [foundation_vectors::VectorMatch; 0]);
 }
 
 #[test]
@@ -62,7 +62,7 @@ fn k_greater_than_n() {
 #[test]
 fn empty_entries() {
     let results = flat_top_k(&[1.0], std::iter::empty(), 5, DistanceMetric::Cosine);
-    assert!(results.is_empty());
+    assert_eq!(results, [] as [foundation_vectors::VectorMatch; 0]);
 }
 
 #[test]

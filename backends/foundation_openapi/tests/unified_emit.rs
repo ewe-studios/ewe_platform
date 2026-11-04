@@ -40,6 +40,7 @@ fn alias_target(def: &TypeDef) -> &str {
     match &def.body {
         TypeBody::Alias { target } => target,
         TypeBody::Struct { .. } => panic!("{} is still a struct", def.name),
+        TypeBody::Union { .. } => panic!("{} is a union, not an alias", def.name),
     }
 }
 

@@ -1,4 +1,4 @@
-//! User entity for the IdP server.
+//! User entity for the `IdP` server.
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -31,7 +31,9 @@ impl User {
         self.failed_login_attempts += 1;
         if self.failed_login_attempts >= max_attempts {
             self.locked_until =
-                Some(Utc::now().timestamp_millis() + lockout_duration.as_millis() as i64);
+                Some(Utc::now().timestamp_millis().saturating_add(
+                    i64::try_from(lockout_duration.as_millis()).unwrap_or(i64::MAX),
+                ));
         }
     }
 

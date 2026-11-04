@@ -4,7 +4,7 @@ use foundation_vectors::code_graph::{
     extract_go_file, extract_js_file, extract_py_file, extract_ts_file, NodeKind, Relation,
 };
 
-const JS_SOURCE: &str = r#"
+const JS_SOURCE: &str = r"
 import { helper, formatName } from './utils';
 import Config from './config';
 
@@ -26,7 +26,7 @@ const processData = (data) => {
 };
 
 export default Database;
-"#;
+";
 
 #[test]
 fn js_extracts_classes() {
@@ -36,7 +36,10 @@ fn js_extracts_classes() {
         .iter()
         .filter(|n| n.kind == NodeKind::Struct)
         .collect();
-    assert!(!class_nodes.is_empty());
+    assert_ne!(
+        class_nodes,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
     let db = class_nodes.iter().find(|n| n.label == "Database").unwrap();
     assert_eq!(db.kind, NodeKind::Struct);
 }
@@ -49,7 +52,10 @@ fn js_extracts_functions_and_methods() {
         .iter()
         .filter(|n| n.kind == NodeKind::Function)
         .collect();
-    assert!(!func_nodes.is_empty());
+    assert_ne!(
+        func_nodes,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
     let names: Vec<_> = func_nodes.iter().map(|n| n.label.as_str()).collect();
     assert!(names.contains(&"processData"));
 }
@@ -62,18 +68,25 @@ fn js_extracts_imports() {
         .iter()
         .filter(|e| e.2.relation == Relation::Imports)
         .collect();
-    assert!(!import_edges.is_empty());
+    assert_ne!(
+        import_edges,
+        [] as [&(
+            std::string::String,
+            std::string::String,
+            foundation_vectors::code_graph::GraphEdge
+        ); 0]
+    );
 }
 
 #[test]
 fn js_extracts_inheritance() {
     let ext = extract_js_file(
         "src/logger.js",
-        r#"
+        r"
 class Logger extends EventEmitter {
     log(msg) { this.emit('log', msg); }
 }
-"#,
+",
     )
     .unwrap();
     let inherit_edges: Vec<_> = ext
@@ -81,7 +94,14 @@ class Logger extends EventEmitter {
         .iter()
         .filter(|e| e.2.relation == Relation::Inherits)
         .collect();
-    assert!(!inherit_edges.is_empty());
+    assert_ne!(
+        inherit_edges,
+        [] as [&(
+            std::string::String,
+            std::string::String,
+            foundation_vectors::code_graph::GraphEdge
+        ); 0]
+    );
 }
 
 #[test]
@@ -96,7 +116,7 @@ fn js_raw_calls_extraction() {
     assert!(callee_names.contains(&"formatName"));
 }
 
-const TS_SOURCE: &str = r#"
+const TS_SOURCE: &str = r"
 import { User, UserService } from './user';
 import { Repository } from './repo';
 
@@ -113,7 +133,7 @@ class UserController extends BaseController {
 }
 
 export { UserController };
-"#;
+";
 
 #[test]
 fn ts_extracts_classes() {
@@ -134,7 +154,10 @@ fn ts_extracts_methods() {
         .iter()
         .filter(|n| n.kind == NodeKind::Method)
         .collect();
-    assert!(!method_nodes.is_empty());
+    assert_ne!(
+        method_nodes,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
     let names: Vec<_> = method_nodes.iter().map(|n| n.label.as_str()).collect();
     assert!(names.contains(&"handle"));
 }
@@ -147,15 +170,45 @@ fn ts_extracts_inheritance() {
         .iter()
         .filter(|e| e.2.relation == Relation::Inherits)
         .collect();
-    assert!(!inherit_edges.is_empty());
+    assert_ne!(
+        inherit_edges,
+        [] as [&(
+            std::string::String,
+            std::string::String,
+            foundation_vectors::code_graph::GraphEdge
+        ); 0]
+    );
 }
 
 #[test]
 fn ts_raw_calls_extraction() {
+    // `BaseController.handle` and `UserController.handle` share a name: each
+    // method keeps its own node, and the body of the second one is walked.
     let ext = extract_ts_file("src/controller.ts", TS_SOURCE).unwrap();
-    // TS call extraction in method bodies works for call_expression nodes.
-    // The exact capture depends on body field traversal depth.
-    assert!(ext.raw_calls.len() >= 0); // structure captures raw_calls
+    let callee_names: Vec<_> = ext
+        .raw_calls
+        .iter()
+        .map(|c| c.callee_name.as_str())
+        .collect();
+    assert!(
+        callee_names.contains(&"findAll"),
+        "expected a raw call to `findAll`, got {callee_names:?}"
+    );
+    assert!(callee_names.contains(&"json"));
+}
+
+#[test]
+fn methods_with_the_same_name_in_two_classes_have_two_ids() {
+    let ext = extract_ts_file("src/controller.ts", TS_SOURCE).unwrap();
+    let handles: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Method && n.label == "handle")
+        .collect();
+    assert_eq!(handles.len(), 2, "one node per class: {handles:?}");
+    assert_ne!(handles[0].id, handles[1].id);
+    let ids: std::collections::HashSet<_> = ext.nodes.iter().map(|n| n.id.as_str()).collect();
+    assert_eq!(ids.len(), ext.nodes.len(), "node ids are unique");
 }
 
 const PY_SOURCE: &str = r#"
@@ -199,7 +252,14 @@ fn py_extracts_imports() {
         .iter()
         .filter(|e| e.2.relation == Relation::Imports)
         .collect();
-    assert!(!import_edges.is_empty());
+    assert_ne!(
+        import_edges,
+        [] as [&(
+            std::string::String,
+            std::string::String,
+            foundation_vectors::code_graph::GraphEdge
+        ); 0]
+    );
 }
 
 #[test]
@@ -210,7 +270,14 @@ fn py_extracts_inheritance() {
         .iter()
         .filter(|e| e.2.relation == Relation::Inherits)
         .collect();
-    assert!(!inherit_edges.is_empty());
+    assert_ne!(
+        inherit_edges,
+        [] as [&(
+            std::string::String,
+            std::string::String,
+            foundation_vectors::code_graph::GraphEdge
+        ); 0]
+    );
 }
 
 const GO_SOURCE: &str = r#"
@@ -285,7 +352,14 @@ fn go_extracts_imports() {
         .iter()
         .filter(|e| e.2.relation == Relation::Imports)
         .collect();
-    assert!(!import_edges.is_empty());
+    assert_ne!(
+        import_edges,
+        [] as [&(
+            std::string::String,
+            std::string::String,
+            foundation_vectors::code_graph::GraphEdge
+        ); 0]
+    );
 }
 
 #[test]
@@ -296,7 +370,14 @@ fn go_extracts_inheritance() {
         .iter()
         .filter(|e| e.2.relation == Relation::Inherits)
         .collect();
-    assert!(!inherit_edges.is_empty());
+    assert_ne!(
+        inherit_edges,
+        [] as [&(
+            std::string::String,
+            std::string::String,
+            foundation_vectors::code_graph::GraphEdge
+        ); 0]
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -413,4 +494,41 @@ fn make_god_graph() -> CodeGraph {
         ));
     }
     CodeGraph::build(vec![extraction])
+}
+
+#[test]
+fn rust_methods_with_the_same_name_in_two_impls_have_two_ids() {
+    let source = "struct A; struct B; \
+                  impl A { fn run(&self) { helper_a(); } } \
+                  impl B { fn run(&self) { helper_b(); } }";
+    let ext =
+        foundation_vectors::code_graph::rust_walker::extract_rust_file("src/m.rs", source).unwrap();
+    let runs: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Method && n.label == "run")
+        .collect();
+    assert_eq!(runs.len(), 2, "{runs:?}");
+    let callees: Vec<_> = ext
+        .raw_calls
+        .iter()
+        .map(|c| c.callee_name.as_str())
+        .collect();
+    assert!(
+        callees.contains(&"helper_a") && callees.contains(&"helper_b"),
+        "{callees:?}"
+    );
+}
+
+#[test]
+fn go_methods_with_the_same_name_on_two_types_have_two_ids() {
+    let source = "package m\ntype A struct{}\ntype B struct{}\n\
+                  func (a *A) Run() { helperA() }\nfunc (b *B) Run() { helperB() }\n";
+    let ext = extract_go_file("m.go", source).unwrap();
+    let runs: Vec<_> = ext
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Method && n.label == "Run")
+        .collect();
+    assert_eq!(runs.len(), 2, "{runs:?}");
 }

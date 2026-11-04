@@ -11,6 +11,11 @@ use super::types::{
     RawCall, Relation,
 };
 
+/// Extract the code graph of one Go file.
+///
+/// # Errors
+///
+/// Returns a message when the Go grammar can not be loaded or the source can not be parsed.
 pub fn extract_go_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     let mut parser = Parser::new();
     let language = tree_sitter_go::LANGUAGE;
@@ -121,10 +126,10 @@ fn extract_type_declaration(
 
             // Determine kind from the type body
             let kind = if let Some(type_node) = child.child_by_field_name("type") {
-                match type_node.kind() {
-                    "struct_type" => NodeKind::Struct,
-                    "interface_type" => NodeKind::Trait, // Go interfaces ≈ Rust traits
-                    _ => NodeKind::Struct,
+                if type_node.kind() == "interface_type" {
+                    NodeKind::Trait // Go interfaces ≈ Rust traits
+                } else {
+                    NodeKind::Struct
                 }
             } else {
                 NodeKind::Struct
@@ -181,7 +186,7 @@ fn extract_type_declaration(
     }
 }
 
-/// Process a field_declaration for embedded type detection (Go embedding = inheritance).
+/// Process a `field_declaration` for embedded type detection (Go embedding = inheritance).
 fn process_field_for_inheritance(
     tc_child: &Node,
     source: &str,
@@ -196,7 +201,10 @@ fn process_field_for_inheritance(
         if field_name.is_none() {
             // Embedded type → inherits edge
             let embedded_name = type_n.utf8_text(source.as_bytes()).unwrap_or("");
-            let super_label = embedded_name.split('.').last().unwrap_or(embedded_name);
+            let super_label = embedded_name
+                .split('.')
+                .next_back()
+                .unwrap_or(embedded_name);
             let super_id = make_id(stem, super_label);
             extraction.edges.push((
                 type_id.to_string(),
@@ -278,18 +286,18 @@ fn extract_method(
         return;
     };
 
-    // Method has a receiver: `func (r *Receiver) MethodName() { ... }`
-    let receiver_name = if let Some(recv) = node.child_by_field_name("receiver") {
-        recv.child_by_field_name("name")
-            .or_else(|| recv.child_by_field_name("type"))
-            .and_then(|n| n.utf8_text(source.as_bytes()).ok())
-            .map(|s| {
-                // Strip pointer prefix: *Receiver → Receiver
-                s.strip_prefix('*').unwrap_or(s)
-            })
-    } else {
-        None
-    };
+    // Method has a receiver: `func (r *Receiver) MethodName() { ... }`. The
+    // receiver is a parameter list; the type is on its first declaration.
+    let receiver_name = node.child_by_field_name("receiver").and_then(|recv| {
+        let mut cursor = recv.walk();
+        let decl = recv
+            .children(&mut cursor)
+            .find(|c| c.kind() == "parameter_declaration")?;
+        let ty = decl.child_by_field_name("type")?;
+        let text = ty.utf8_text(source.as_bytes()).ok()?;
+        // Strip pointer prefix: *Receiver -> Receiver
+        Some(text.strip_prefix('*').unwrap_or(text))
+    });
 
     let parent = if let Some(recv_name) = receiver_name {
         make_id(stem, recv_name)
@@ -297,7 +305,9 @@ fn extract_method(
         parent_id.to_string()
     };
 
-    let id = make_id(stem, name);
+    // The id includes the receiver type, so two types can have a method of
+    // the same name.
+    let id = make_id(&parent, name);
     if extraction.seen_ids.contains_key(&id) {
         return;
     }
@@ -350,7 +360,7 @@ fn extract_import(
             continue;
         }
         // Get the last path segment
-        let import_name = trimmed.split('/').last().unwrap_or(trimmed);
+        let import_name = trimmed.split('/').next_back().unwrap_or(trimmed);
         let target_id = make_id(stem, import_name);
         extraction.edges.push((
             parent_id.to_string(),
@@ -435,7 +445,7 @@ fn extract_calls(
                         .unwrap_or_default()
                 } else {
                     let text = func.utf8_text(source.as_bytes()).unwrap_or("").to_string();
-                    text.split('.').last().unwrap_or(&text).to_string()
+                    text.split('.').next_back().unwrap_or(&text).to_string()
                 };
 
                 if !callee_name.is_empty() {

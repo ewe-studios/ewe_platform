@@ -37,6 +37,20 @@ fn generate_declares_a_profile_flag() {
 }
 
 #[test]
+fn cargo_fix_is_opt_in() {
+    // Feature 71 E4: the post-step is off unless `--fix` is given.
+    let parse = |extra: &[&str]| {
+        let mut args = vec!["gen_api", "generate", "hetzner"];
+        args.extend_from_slice(extra);
+        let matches = command().try_get_matches_from(args).expect("parses");
+        let (_, sub) = matches.subcommand().expect("generate subcommand");
+        sub.get_flag("fix")
+    };
+    assert!(!parse(&[]), "cargo fix must not run by default");
+    assert!(parse(&["--fix"]), "--fix turns the step on");
+}
+
+#[test]
 fn generate_declares_a_selection_file_flag() {
     let cmd = command();
     let matches = cmd

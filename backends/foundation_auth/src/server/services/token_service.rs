@@ -49,6 +49,11 @@ impl TokenService {
         Self { config }
     }
 
+    /// Generate tokens.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TokenServiceError`] if the operation fails.
     pub fn generate_tokens(
         &self,
         user: &User,
@@ -58,7 +63,7 @@ impl TokenService {
     ) -> Result<TokenPair, TokenServiceError> {
         let now = Utc::now().timestamp();
         let expires_in = self.config.access_token_ttl.as_secs();
-        let exp = now + expires_in as i64;
+        let exp = now.saturating_add(i64::try_from(expires_in).unwrap_or(i64::MAX));
         let jti = uuid::Uuid::new_v4().to_string();
 
         let access_claims = serde_json::json!({
@@ -112,6 +117,11 @@ impl TokenService {
         })
     }
 
+    /// Generate client credentials tokens.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TokenServiceError`] if the operation fails.
     pub fn generate_client_credentials_tokens(
         &self,
         client: &OAuthClient,
@@ -119,7 +129,7 @@ impl TokenService {
     ) -> Result<TokenPair, TokenServiceError> {
         let now = Utc::now().timestamp();
         let expires_in = self.config.access_token_ttl.as_secs();
-        let exp = now + expires_in as i64;
+        let exp = now.saturating_add(i64::try_from(expires_in).unwrap_or(i64::MAX));
         let jti = uuid::Uuid::new_v4().to_string();
 
         let claims = serde_json::json!({
@@ -155,6 +165,10 @@ impl TokenService {
 
     /// Verify an access token's signature and return the decoded claims.
     /// Returns `InvalidToken` if the signature is invalid or the token is expired.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TokenServiceError`] if the operation fails.
     pub fn verify_access_token(&self, token: &str) -> Result<serde_json::Value, TokenServiceError> {
         use jwt_simple::prelude::{Ed25519PublicKey, EdDSAPublicKeyLike};
         let public_pem = self
@@ -184,8 +198,8 @@ impl TokenService {
             },
             None => String::new(),
         };
-        let exp = claims.expires_at.map(|e| e.as_secs()).unwrap_or(0);
-        let iat = claims.issued_at.map(|t| t.as_secs()).unwrap_or(0);
+        let exp = claims.expires_at.map_or(0, |e| e.as_secs());
+        let iat = claims.issued_at.map_or(0, |t| t.as_secs());
         let jti = claims.jwt_id.unwrap_or_default();
         let scope = claims
             .custom
@@ -203,7 +217,7 @@ impl TokenService {
             .custom
             .get("nonce")
             .and_then(|v| v.as_str())
-            .map(|s| s.to_string());
+            .map(std::string::ToString::to_string);
 
         let mut map = serde_json::Map::new();
         map.insert("sub".into(), serde_json::Value::String(subject));

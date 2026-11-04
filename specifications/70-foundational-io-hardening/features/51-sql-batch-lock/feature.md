@@ -1,6 +1,6 @@
 ---
 feature: "foundation_db: libsql and Turso stores keep one connection per store instance behind an RwLock: many readers, one writer (writes and batches exclusive)"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
@@ -87,6 +87,6 @@ Flake check: 20 runs of each new test.
 
 ## Done when
 
-- [ ] Reads concurrent; writes and batches exclusive; method table in the PR body; failed
+- [x] Reads concurrent; writes and batches exclusive; method table in the PR body; failed
       rollback handled.
-- [ ] First two tests fail on master and pass now (show both). 20/20 flake runs. CI green.
+- [x] First two tests fail on master and pass now (show both). 20/20 flake runs. CI green.

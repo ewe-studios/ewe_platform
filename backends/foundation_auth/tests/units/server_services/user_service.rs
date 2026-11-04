@@ -1,4 +1,4 @@
-//! UserService tests — password hashing and validation.
+//! `UserService` tests — password hashing and validation.
 
 use foundation_auth::server::config::PasswordPolicy;
 use foundation_auth::server::services::user_service::{

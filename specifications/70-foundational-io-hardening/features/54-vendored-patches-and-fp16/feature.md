@@ -1,6 +1,6 @@
 ---
 feature: "Vendored crate patches reach published users; stable fp16 target feature"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
@@ -58,7 +58,7 @@ grep -n 'boringtun' Cargo.toml   # no [patch] line
 
 ## Done when
 
-- [ ] boringtun fork is a workspace crate that publishes; wireguard uses it; gemm entry and
+- [x] boringtun fork is a workspace crate that publishes; wireguard uses it; gemm entry and
       upstream note written; fp16 decided. CI green.
 
 ## E4. Owner decision (2026-11-02): the library name is `foundation_boringtun` too

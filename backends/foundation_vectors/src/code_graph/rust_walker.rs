@@ -5,6 +5,11 @@ use super::types::{
     RawCall, Relation,
 };
 
+/// Extract the code graph of one Rust file.
+///
+/// # Errors
+///
+/// Returns a message when the Rust grammar can not be loaded or the source can not be parsed.
 pub fn extract_rust_file(path: &str, source: &str) -> Result<FileExtraction, String> {
     let mut parser = Parser::new();
     let language = tree_sitter_rust::LANGUAGE;
@@ -316,7 +321,13 @@ fn extract_function(
     let Some(name) = node_name(node, source) else {
         return;
     };
-    let id = make_id(stem, &name);
+    // A method's id includes its impl or trait (the parent), so two types can
+    // have a method of the same name.
+    let id = if kind == NodeKind::Method {
+        make_id(parent_id, &name)
+    } else {
+        make_id(stem, &name)
+    };
     if extraction.seen_ids.contains_key(&id) {
         return;
     }

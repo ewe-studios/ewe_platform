@@ -58,6 +58,26 @@ pub struct Field {
     pub ty: String,
 }
 
+/// One variant of a generated untagged enum (an `OpenAPI` `oneOf`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Variant {
+    /// Doc comment text (without `///`), or empty.
+    pub doc: String,
+    /// The variant identifier.
+    pub name: String,
+    /// What the variant holds.
+    pub shape: VariantShape,
+}
+
+/// What a [`Variant`] holds.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum VariantShape {
+    /// `Name(Type)`: the member is another type (a `$ref`, a string, a list).
+    Newtype(String),
+    /// `Name { fields }`: the member is an inline object.
+    Struct(Vec<Field>),
+}
+
 /// The body of a generated type.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TypeBody {
@@ -71,6 +91,12 @@ pub enum TypeBody {
     },
     /// `pub type Name = target;`.
     Alias { target: String },
+    /// `#[serde(untagged)] pub enum Name { variants }`: a `oneOf`. serde tries
+    /// each variant in order, so list the most specific member first.
+    Union {
+        derives: Vec<String>,
+        variants: Vec<Variant>,
+    },
 }
 
 /// One generated type.
@@ -110,6 +136,24 @@ impl TypeDef {
         }
     }
 
+    /// An untagged enum with the given variants (a `oneOf`).
+    ///
+    /// It has no `Default`: a union has no natural default member.
+    #[must_use]
+    pub fn union(name: &str, doc: &str, variants: Vec<Variant>) -> Self {
+        Self {
+            name: name.to_string(),
+            doc: vec![doc.to_string()],
+            body: TypeBody::Union {
+                derives: ["Debug", "Clone", "Serialize", "Deserialize", "JsonHash"]
+                    .iter()
+                    .map(|d| (*d).to_string())
+                    .collect(),
+                variants,
+            },
+        }
+    }
+
     /// Render this type's definition into `out`.
     ///
     /// # Errors
@@ -126,6 +170,54 @@ impl TypeDef {
         }
         match &self.body {
             TypeBody::Alias { target } => writeln!(out, "pub type {} = {};", self.name, target)?,
+            TypeBody::Union { derives, variants } => {
+                writeln!(out, "#[derive({})]", derives.join(", "))?;
+                writeln!(out, "#[serde(untagged)]")?;
+                writeln!(out, "pub enum {} {{", self.name)?;
+                for variant in variants {
+                    if !variant.doc.is_empty() {
+                        writeln!(out, "    /// {}", variant.doc)?;
+                    }
+                    match &variant.shape {
+                        VariantShape::Newtype(ty) => writeln!(out, "    {}({ty}),", variant.name)?,
+                        VariantShape::Struct(fields) => {
+                            writeln!(out, "    {} {{", variant.name)?;
+                            for field in fields {
+                                if !field.doc.is_empty() {
+                                    writeln!(out, "        /// {}", field.doc)?;
+                                }
+                                for attr in &field.attrs {
+                                    writeln!(out, "        {attr}")?;
+                                }
+                                writeln!(out, "        {}: {},", field.name, field.ty)?;
+                            }
+                            writeln!(out, "    }},")?;
+                        }
+                    }
+                }
+                writeln!(out, "}}")?;
+                // `*Args` structs derive `Default` and may hold a union as their
+                // body, so a union has one: its first member, defaulted.
+                if let Some(first) = variants.first() {
+                    writeln!(out)?;
+                    writeln!(out, "impl Default for {} {{", self.name)?;
+                    writeln!(out, "    fn default() -> Self {{")?;
+                    match &first.shape {
+                        VariantShape::Newtype(_) => {
+                            writeln!(out, "        Self::{}(Default::default())", first.name)?;
+                        }
+                        VariantShape::Struct(fields) => {
+                            writeln!(out, "        Self::{} {{", first.name)?;
+                            for field in fields {
+                                writeln!(out, "            {}: Default::default(),", field.name)?;
+                            }
+                            writeln!(out, "        }}")?;
+                        }
+                    }
+                    writeln!(out, "    }}")?;
+                    writeln!(out, "}}")?;
+                }
+            }
             TypeBody::Struct {
                 derives,
                 attrs,
@@ -482,7 +574,7 @@ pub fn hoist_envelopes(files: &mut [ModuleFile], shared: usize) {
                     .find(|f| f.name == "result")
                     .map(|f| f.ty.clone())
                     .unwrap_or_default(),
-                TypeBody::Alias { .. } => continue,
+                TypeBody::Alias { .. } | TypeBody::Union { .. } => continue,
             };
             let target = format!("{}{name}<{result_ty}>", shared_path(loc.0, shared));
             make_alias(files, loc, target);

@@ -1,4 +1,4 @@
-//! MemoryJsonStore tests — the JSON key-value store over the async store
+//! `MemoryJsonStore` tests — the JSON key-value store over the async store
 //! traits. Its futures are ready at once, so the tests drive them with
 //! `futures_lite`'s `block_on`.
 

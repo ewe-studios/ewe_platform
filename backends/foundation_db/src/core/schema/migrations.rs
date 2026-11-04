@@ -147,6 +147,11 @@ pub static MIGRATIONS: &[Migration] = &[
         name: "Rebuild the rate limits table with the documented shape",
         sql: include_str!("sql/027_rebuild_rate_limits.sql"),
     },
+    Migration {
+        id: "028_create_tos_acceptances",
+        name: "Create the Terms of Service acceptances table",
+        sql: include_str!("sql/028_create_tos_acceptances.sql"),
+    },
 ];
 
 /// Migration runner that applies pending migrations.
@@ -191,6 +196,9 @@ impl<'a> MigrationRunner<'a> {
                 }
                 None => false,
             };
+            // Release the row stream (and the store's lock on it) before the
+            // next call on the same store, or that call waits for the stream.
+            drop(rows);
 
             if !exists {
                 // Apply migration

@@ -1,4 +1,4 @@
-//! Shared auth_token tests.
+//! Shared `auth_token` tests.
 
 use chrono::Utc;
 use foundation_auth::shared::auth_token::AuthToken;

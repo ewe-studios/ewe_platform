@@ -188,6 +188,42 @@ pub fn selection_from_file(path: impl AsRef<Path>) -> Result<Selection, CodegenE
     Ok(selection)
 }
 
+/// Where the vendored Cloudflare spec patches live, relative to the workspace
+/// root (`overlays_in` reads every `*.json` there, in name order).
+pub const CLOUDFLARE_OVERLAYS_DIR: &str = "artefacts/cloud_providers/cloudflare/overlays";
+
+/// Cloudflare schemas that land in `foundation_cloudflare_types` even though one
+/// group alone uses them: the D1 `/query` request and response, and the R2
+/// object listing (added by `overlays/r2-list-objects.json`). `foundation_db`
+/// depends on that leaf crate, not on a group crate.
+pub const CLOUDFLARE_HOISTED_SCHEMAS: &[&str] = &[
+    "d1_batch_query",
+    "d1_query_database_response",
+    "d1_raw_result_response",
+    "r2_list_objects_response",
+];
+
+/// Cloudflare `oneOf` schemas generated as untagged enums: D1's one-query-or-
+/// a-batch request body.
+pub const CLOUDFLARE_TYPED_UNIONS: &[&str] = &["d1_batch_query"];
+
+/// Apply the Cloudflare wire-type settings to `codegen`: the overlays, the
+/// hoisted schemas and the typed unions above. One function, so the CLI and the
+/// crate's `build.rs` declare the same thing. `workspace_root` is the directory
+/// that holds `artefacts/`.
+///
+/// # Errors
+/// [`CodegenError::Io`] when the overlay directory cannot be listed.
+pub fn cloudflare_wire_types(
+    codegen: Codegen,
+    workspace_root: &Path,
+) -> Result<Codegen, CodegenError> {
+    Ok(codegen
+        .overlays_in(workspace_root.join(CLOUDFLARE_OVERLAYS_DIR))?
+        .hoist_to_shared(CLOUDFLARE_HOISTED_SCHEMAS.iter().copied())
+        .typed_unions(CLOUDFLARE_TYPED_UNIONS.iter().copied()))
+}
+
 /// What a crate generates, declared once.
 #[derive(Debug, Clone)]
 pub struct Codegen {
@@ -206,6 +242,10 @@ pub struct Codegen {
     /// Split mode: the crate that receives the cross-group shared types.
     shared_crate_dir: Option<PathBuf>,
     options: AnalysisOptions,
+    /// Vendored spec patches merged before generation, in order.
+    overlays: Vec<PathBuf>,
+    /// Schemas whose `oneOf` is emitted as an untagged enum.
+    typed_unions: Vec<String>,
 }
 
 impl Default for Codegen {
@@ -227,7 +267,10 @@ impl Default for Codegen {
             options: AnalysisOptions {
                 min_group_size: 10,
                 max_group_size: 200,
+                hoist_to_shared: Vec::new(),
             },
+            overlays: Vec::new(),
+            typed_unions: Vec::new(),
         }
     }
 }
@@ -341,10 +384,68 @@ impl Codegen {
     /// Grouping thresholds handed to the analyzer.
     #[must_use]
     pub fn group_sizes(mut self, min: usize, max: usize) -> Self {
-        self.options = AnalysisOptions {
-            min_group_size: min,
-            max_group_size: max,
-        };
+        self.options.min_group_size = min;
+        self.options.max_group_size = max;
+        self
+    }
+
+    /// Merge a vendored overlay file into the spec before generation.
+    ///
+    /// Overlays apply in the order added. See `foundation_openapi::overlay` for
+    /// the file format: it must say what it adds and where that came from.
+    #[must_use]
+    pub fn overlay(mut self, path: impl Into<PathBuf>) -> Self {
+        self.overlays.push(path.into());
+        self
+    }
+
+    /// Merge every `*.json` overlay in `dir`, in file-name order. A missing
+    /// directory adds nothing.
+    ///
+    /// # Errors
+    /// [`CodegenError::Io`] when `dir` exists and cannot be listed.
+    pub fn overlays_in(mut self, dir: impl AsRef<Path>) -> Result<Self, CodegenError> {
+        let dir = dir.as_ref();
+        if !dir.is_dir() {
+            return Ok(self);
+        }
+        let mut files: Vec<PathBuf> = std::fs::read_dir(dir)
+            .map_err(|source| CodegenError::Io {
+                path: dir.to_path_buf(),
+                source,
+            })?
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|p| p.extension().is_some_and(|e| e == "json"))
+            .collect();
+        files.sort();
+        self.overlays.extend(files);
+        Ok(self)
+    }
+
+    /// Emit these spec schemas (`d1_batch_query`) and everything they reference
+    /// into the shared types module, even when one group alone uses them.
+    #[must_use]
+    pub fn hoist_to_shared<I, S>(mut self, names: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.options
+            .hoist_to_shared
+            .extend(names.into_iter().map(Into::into));
+        self
+    }
+
+    /// Emit the `oneOf` of these spec schemas as untagged enums instead of
+    /// `serde_json::Value`.
+    #[must_use]
+    pub fn typed_unions<I, S>(mut self, names: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.typed_unions.extend(names.into_iter().map(Into::into));
         self
     }
 
@@ -385,6 +486,9 @@ impl Codegen {
             .ok_or(CodegenError::Incomplete { missing: "spec" })?;
 
         let mut pipeline = Pipeline::new(provider, spec).select(self.selection.clone());
+        for overlay in &self.overlays {
+            pipeline = pipeline.overlay(overlay);
+        }
         if let Some(v) = &self.api_version {
             pipeline = pipeline.api_version(v);
         }
@@ -420,19 +524,20 @@ impl Codegen {
         Ok((output, self.provider_dir.clone()))
     }
 
+    #[allow(clippy::ref_option)] // Takes the optional field by reference, as the callers hold it.
+    #[allow(clippy::needless_pass_by_value)] // Signature kept; the output path is owned by the caller's clone.
     fn provider_root(
         &self,
         output: PathBuf,
         provider_dir: &Option<PathBuf>,
     ) -> Result<PathBuf, CodegenError> {
-        Ok(match provider_dir {
-            Some(dir) => dir.clone(),
-            None => {
-                let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
-                    missing: "provider",
-                })?;
-                output.join(provider)
-            }
+        Ok(if let Some(dir) = provider_dir {
+            dir.clone()
+        } else {
+            let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
+                missing: "provider",
+            })?;
+            output.join(provider)
         })
     }
 
@@ -453,6 +558,7 @@ impl Codegen {
             provider_dir.clone(),
             self.groups_dir.clone(),
             self.shared_crate_dir.clone(),
+            false,
         )?;
 
         let generated_dir = self.provider_root(output, &provider_dir)?.join("generated");
@@ -486,7 +592,7 @@ impl Codegen {
         let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
             missing: "provider",
         })?;
-        let provider_safe = provider.replace('-', "_").replace('/', "_");
+        let provider_safe = provider.replace(['-', '/'], "_");
         let prefix = format!("foundation_{provider_safe}_");
         let mut count = read_tree(generated_dir)?.len() + 1; // shim + shared/generated.rs
         let entries = std::fs::read_dir(groups_dir).map_err(|source| CodegenError::Io {
@@ -516,6 +622,7 @@ impl Codegen {
     /// # Errors
     /// [`CodegenError::Stale`] naming the files that differ, plus anything
     /// [`Codegen::write`] can return.
+    #[allow(clippy::too_many_lines)] // Long by design: one flow per subcommand; splitting it is a refactor, not a lint fix.
     pub fn check(&self) -> Result<(), CodegenError> {
         let resolved = self.resolve()?;
         let generated_dir = self.generated_dir()?;
@@ -550,6 +657,7 @@ impl Codegen {
                 scratch_provider_dir,
                 Some(scratch_groups.clone()),
                 Some(scratch_shared.clone()),
+                false,
             )?;
 
             merge_prefixed(
@@ -580,7 +688,7 @@ impl Codegen {
             let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
                 missing: "provider",
             })?;
-            let provider_safe = provider.replace('-', "_").replace('/', "_");
+            let provider_safe = provider.replace(['-', '/'], "_");
             let prefix = format!("foundation_{provider_safe}_");
 
             for (rel, body) in read_tree(&scratch_groups)? {
@@ -614,6 +722,7 @@ impl Codegen {
                 scratch_provider_dir.clone(),
                 None,
                 None,
+                false,
             )?;
             let fresh_dir = self
                 .provider_root(scratch.path().to_path_buf(), &scratch_provider_dir)?
@@ -650,6 +759,68 @@ impl Codegen {
         }
     }
 
+    /// Like [`Codegen::check`], but compares only the shared types crate's
+    /// `generated.rs`.
+    ///
+    /// The shared module holds every hoisted schema, which is the part of the
+    /// Cloudflare wire types that the D1 and R2 code depends on, so the
+    /// wire-type test uses this. The hoisting depends on every group, so every
+    /// group is still analysed and built. Only the rendering, writing and
+    /// formatting of the group crates and the umbrella shim are skipped. The
+    /// build script keeps the full [`Codegen::check`].
+    ///
+    /// # Errors
+    /// [`CodegenError::Incomplete`] when the declaration is not in split mode
+    /// (see [`Codegen::split_groups`]); [`CodegenError::Stale`] when the shared
+    /// module differs; otherwise anything [`Codegen::check`] can return.
+    pub fn check_shared_types(&self) -> Result<(), CodegenError> {
+        const REL: &str = "src/generated.rs";
+        let (Some(_), Some(shared_crate_dir)) = (&self.groups_dir, &self.shared_crate_dir) else {
+            return Err(CodegenError::Incomplete {
+                missing: "split_groups",
+            });
+        };
+        let resolved = self.resolve()?;
+        let scratch = tempfile::tempdir().map_err(|source| CodegenError::Io {
+            path: PathBuf::from("<temp>"),
+            source,
+        })?;
+        let scratch_shared = scratch.path().join("shared_crate");
+        self.run_generator(
+            &resolved,
+            scratch.path().to_path_buf(),
+            Some(scratch.path().join("src")),
+            Some(scratch.path().join("groups")),
+            Some(scratch_shared.clone()),
+            true,
+        )?;
+
+        let fresh = read_file_tree(&scratch_shared.join(REL), REL)?;
+        let committed = read_file_tree(&shared_crate_dir.join(REL), REL)?;
+        match (fresh.get(REL), committed.get(REL)) {
+            (Some(f), Some(c)) if f == c => Ok(()),
+            (Some(_), None) => Err(CodegenError::Stale {
+                generated_dir: shared_crate_dir.join("src"),
+                added: vec![REL.to_string()],
+                removed: Vec::new(),
+                changed: Vec::new(),
+            }),
+            (None, Some(_)) => Err(CodegenError::Stale {
+                generated_dir: shared_crate_dir.join("src"),
+                added: Vec::new(),
+                removed: vec![REL.to_string()],
+                changed: Vec::new(),
+            }),
+            (Some(_), Some(_)) => Err(CodegenError::Stale {
+                generated_dir: shared_crate_dir.join("src"),
+                added: Vec::new(),
+                removed: Vec::new(),
+                changed: vec![REL.to_string()],
+            }),
+            (None, None) => Ok(()),
+        }
+    }
+
     /// Hand the **resolved** spec to the generator — never the vendor's document.
     fn run_generator(
         &self,
@@ -658,17 +829,22 @@ impl Codegen {
         provider_dir: Option<PathBuf>,
         groups_dir: Option<PathBuf>,
         shared_crate_dir: Option<PathBuf>,
+        shared_only: bool,
     ) -> Result<(), CodegenError> {
         let provider = self.provider.as_deref().ok_or(CodegenError::Incomplete {
             missing: "provider",
         })?;
 
-        let mut generator = UnifiedGenerator::new(output);
+        let mut generator =
+            UnifiedGenerator::new(output).with_typed_unions(self.typed_unions.iter());
         if let Some(dir) = provider_dir {
             generator = generator.with_provider_dir(dir);
         }
         if let (Some(groups_dir), Some(shared_crate_dir)) = (groups_dir, shared_crate_dir) {
             generator = generator.split_group_crates(groups_dir, shared_crate_dir);
+        }
+        if shared_only {
+            generator = generator.shared_types_only();
         }
         let body = serde_json::to_string(resolved).expect("a resolved spec serializes");
         generator
@@ -820,6 +996,7 @@ impl Codegen {
     }
 
     /// The `build.rs` source for this declaration.
+    #[allow(clippy::too_many_lines)] // Long by design: one flow per subcommand; splitting it is a refactor, not a lint fix.
     fn render_build_script(&self, crate_dir: &Path) -> Result<String, CodegenError> {
         use std::fmt::Write as _;
 
@@ -915,8 +1092,7 @@ impl Codegen {
         .unwrap();
         writeln!(
             out,
-            "    let spec = Path::new(&manifest).join({:?});",
-            spec_from_crate
+            "    let spec = Path::new(&manifest).join({spec_from_crate:?});"
         )
         .unwrap();
         writeln!(out).unwrap();

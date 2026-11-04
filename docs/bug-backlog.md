@@ -31,6 +31,11 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
   `backends/foundation_netio/tests/simple_http/expect_continue_timeout_tests.rs:89`. Problem: `check`
   takes `status: Status` by value and does not use it by move. Likely fix: take `&Status`. Found in
   feature 69; not changed there (feature 43 file).
+- **`foundation_netio` native build warnings** (seen in `cargo check -p foundation_wireguard --tests`):
+  `backends/foundation_netio/src/native/raw_stream.rs:4` has `use std::sync::Arc;` that is unused,
+  and `raw_stream.rs:414` has `if let Self::AsPlain(inner, _) = self`, an irrefutable pattern
+  (the `if let` always matches). Fix: delete the import; replace the `if let` with a `let`
+  binding (keep the behaviour the same and check it with the netio tests).
 
 ## 3. foundation_http
 
@@ -107,26 +112,10 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 8. foundation_openapi / foundation_codegentools
 
-- **Pre-existing clippy warnings.** `cargo clippy` reports ~112 lints in
-  `foundation_openapi` (mostly `unified/generator.rs` and `unified/analyzer.rs`:
-  docs missing backticks, `too_many_lines`, `map(...).unwrap_or(false)`, an
-  unused `self`, consecutive `str::replace`, trailing commas), ~231 in
-  `foundation_deployment_docker` (`format!` inline variables, trailing commas,
-  `::default()` calls, missing `# Errors` sections), and ~67 in
-  `foundation_codegentools` (`format!` inline variables, redundant closures,
-  `too_many_lines`, missing `# Errors`/`# Panics` sections). None come from
-  feature 14's change; a dedicated clippy-cleanup pass should clear them, then
-  keep them at zero.
-- **The Cloudflare per-group generator emits `lib.rs` shims that are not
-  rustfmt-clean.** The 43 `backends/foundation_cloudflare_*/src/lib.rs` shims
-  have one long `#![allow(...)]` attribute and `pub use` items that rustfmt
-  would wrap and reorder. The build script in
-  `foundation_deployment_cloudflare` byte-compares the committed files against
-  a fresh generation and regenerates on any difference, so the shims cannot be
-  reformatted by hand. Feature 39 excludes them with the `ignore` list in
-  `rustfmt.toml`. Fix: make the generator emit rustfmt-clean shims (wrap the
-  `allow` attribute, sort the `use` items), regenerate, and drop the `ignore`
-  entries.
+- **`foundation_deployment_docker` clippy debt.** About 231 lints (`format!` inline
+  variables, trailing commas, `::default()` calls, missing `# Errors` sections).
+  `foundation_openapi` and `foundation_codegentools` are clean (spec 70 feature 55).
+  Fix: clear the docker lints in feature 49, then keep them at zero.
 
 ## 9. foundation_proxy
 
@@ -168,13 +157,27 @@ Last refreshed: 2026-10-27, on `fix/foundational-backlog`: sections 1–5 checke
 
 ## 10. foundation_ai
 
-- **The `fullfp16` target feature is unstable in rustc.** `.cargo/config.toml`
-  sets `-C target-feature=+fullfp16` for `aarch64-apple-darwin` (the gemm-f16
-  candle fix). Clippy/rustc warns the feature name is "unknown and unstable",
-  will become a hard error in a future release, and suggests `fp16`. Fix: use
-  the stable feature name — verify that `fp16` still enables full half-precision
-  arithmetic (`vfmaq_laneq_f16`) on Apple Silicon — or gate the flag behind the
-  rustc version that accepts it.
+- **Published `foundation_ai` panics in gemm on a CPU with `fma` but no `avx2`.**
+  `gemm-common` 0.19.0 chooses its `fma` kernel from the `fma` CPU feature alone,
+  but that kernel needs the whole V3 SIMD type (avx2 too). On emulated CPUs (Docker
+  Desktop `linux/amd64`) `V3::try_new()` returns `None` and the unwrap panics. We
+  fix it with `patches/gemm-common` and `[patch.crates-io]`, which applies only
+  inside this workspace, so a user of the published `foundation_ai` still gets the
+  panic. We cannot rename `gemm-common` (candle depends on it). The upstream fix
+  (dispatch on `V3::try_new()` / `V4::try_new()`) is prepared on branch
+  `fix-fma-without-avx2` of the sarah-ek/gemm clone; the issue and PR link are
+  pending (see `patches/gemm-common/UPSTREAM.md`). Fix: file the issue and PR, then
+  drop the patch when a fixed release is out and candle accepts it. (The wasm32
+  `boringtun` patch no longer exists: `backends/foundation_boringtun` is a
+  published fork.)
+
+- **`gemm-f16` fix is vendored but not yet upstream.** `patches/gemm-f16` (0.19.0,
+  `[patch.crates-io]`) applies the same `V3::try_new()` / `V4::try_new()` dispatch
+  as `gemm-common`. It applies only inside this workspace, so a user of the
+  published `foundation_ai` still gets the unpatched f16 path. The upstream PR is
+  prepared on branch `fix-fma-without-avx2` of the sarah-ek/gemm clone; link pending
+  (see `patches/gemm-common/UPSTREAM.md`). Fix: file it, then drop
+  `patches/gemm-f16` when a fixed release is out and candle accepts it.
 
 ## 11. foundation_db and its sync callers
 
@@ -242,8 +245,39 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   none of these are enforced. Fix: a dedicated clippy-cleanup pass over the
   server tree, then extend the CI clippy run to `server-test` so the debt
   stays cleared.
+- **`StateStore::set_if_version` is not atomic on `R2Store`, and the proxy still has its file lock.**
+  `set_if_version` (compare on `updated_at`) is atomic on the file, libsql, D1 and namespaced
+  stores. `R2Store` uses the read-compare-write default: the R2 conditional put needs the
+  object's `ETag`, which the state API does not carry. `foundation_proxy` can drop its flock
+  where it uses a store with an atomic `set_if_version` (lane A owns the proxy). `D1Store`'s
+  version is tested only on a hosted or wrangler D1 (`CF_INTEGRATION_TEST`).
+
+- **`foundation_nativeapis` `vfs-preload` does not compile.** `src/native/vfs/shim/mod.rs` (around
+  lines 163 to 190) uses `guard` after it moved (`E0382`), so `tests/vfs_shim_vfs` cannot run.
+  Found while moving the CF tests to the local explorer API (feature 76).
+- **R2 range read and conditional put have no test yet.** Wrangler's local explorer API does not
+  serve them; they need the wasm-testbed harness on the real R2 binding (feature 76 E0).
 
 ## 16. Workspace / process
+
+- **`foundation_wireguard` warnings in its tests and manifest.** `cargo check -p foundation_wireguard --tests`
+  reports: unused imports at `tests/relay_tests.rs:325` (`MemberState`) and `tests/tunnel_tests.rs:186`
+  (`Duration`, `Instant`); an unused variable `pk` at `tests/tunnel_tests.rs:190`; and unused `must_use`
+  return values at `relay_tests.rs:192` (`RelaySelector::failover`) and `relay_tests.rs:295`
+  (`HolePuncher::drain_syns`). The manifest (`backends/foundation_wireguard/Cargo.toml`)
+  has unused dependencies `foundation_errstacks` (line 20), `foundation_nativeapis` and `foundation_netio`
+  (the wasm check), and `web-sys` (line 74) for wasm32. Fix: remove the unused imports and variable, and
+  either use or drop the `must_use` results; drop the unused dependencies after checking that no
+  `cfg` path needs them. Do not `#[allow]` them.
+
+- **`foundation_boringtun` (fork of upstream boringtun) keeps upstream's inline tests and nine bare `#[ignore]`s.**
+  `src/device/integration_tests/mod.rs` has nine `#[ignore]` tests (lines 466, 475,
+  543, 590, 625, 661, 700, 750, 801) that need root, a TUN device or the `wg` tool,
+  and other source files carry `#[cfg(test)] mod tests`. They are upstream's, left
+  unchanged so the fork diff stays small. Fix: move the tests into
+  `backends/foundation_boringtun/tests/` (made runnable in CI, with the root-only
+  ones gated by a runtime check and not by `#[ignore]`) when we next change that
+  source.
 
 - **`foundation_testbed` declares `deno_v8` as an unused dependency** (cargo
   nightly 1.100.0 `unused_dependencies` lint, `Cargo.toml:118`). `deno_v8` is
@@ -257,10 +291,6 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   call site is compiled out, so `cargo check --tests --target wasm32` on
   foundation_wireguard/foundation_netio emits `method rearm_readable is never
   used`. Fix: gate the method on the same `cfg` as its call site.
-- **`foundation_db` dead-code warnings in test builds**: `core/rate_limit.rs`
-  `CREATE_TABLE_SQL`, `RECORD_SQL`, `SELECT_SQL`, `sql_check`, `sql_record`,
-  `sql_reset` are unused in the feature set the connectrpc test builds pull
-  in. Fix: gate them on the features that use them.
 - **`foundation_reactor` publish fails tarball verification: `foundation_core` is stale on crates.io.**
   `foundation_reactor` 0.0.1 (a new crate) depends on `foundation_core` 0.0.6, but its source uses
   `foundation_core::valtron::{EventReadiness::register, ReadinessNotifier, ReadinessWaker}`
@@ -272,21 +302,7 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   happen at release time so 0.0.7 publishes before `foundation_reactor`.
 ## 17. foundation_vectors
 
-- **The SQL store test tree hits `recursion_depth_exceeding_limit`.**
-  `tests/contract/mod.rs` plus `make_store` over `TursoStorage` forces a
-  `Send` check through the `turso` crate's deeply nested async chain, so
-  `sql_vector_store_tests`, `libsql_vector_store_tests` and
-  `sqlite_vec_store_tests` each emit the future-incompatible warning. It
-  becomes a hard error in a later Rust release. Fix: add
-  `#![recursion_limit = "256"]` to those test crates, the same as
-  `foundation_db/tests/turso_storage_tests.rs`.
-- **Pre-existing clippy deny in the `code-graph` test tree.**
-  `tests/lang_config_tests.rs:123` uses `assert!(ext.raw_calls.len() >= 0)`
-  (`clippy::absurd_extreme_comparisons`, a deny-by-default lint), so
-  `cargo clippy -p foundation_vectors --profile uat --all-targets
-  --all-features` fails. CI does not run `code-graph`, so it never sees it.
-  Fix: replace the comparison with `assert!(!ext.raw_calls.is_empty())` or
-  delete the assertion, then keep the whole `code-graph` tree clippy-clean.
+## 21. foundation_deployment_cloudflare on wasm32
 
 ## 21. Wasm-only warnings (seen in `cargo check --target wasm32-unknown-unknown -p foundation_keychain`)
 
@@ -306,6 +322,30 @@ Follow-ups from making the I/O backends async-only (branch `db/async-stores`).
   --profile dev --no-deps` reports 174 warnings in the lib (for example
   `manual_let_else` in `provisioning_route`) and more in the tests. Fix: follow
   the per-crate clippy workflow in `.agents/AGENTS.md`.
+- **`foundation_core` does not build for wasm32 with neither `std` nor `alloc`**
+  (`cargo check -p foundation_core --target wasm32-unknown-unknown --no-default-features`):
+  `valtron::Ctx` is unresolved in `executors/collect_next.rs` and `dependent_lift.rs`. CI
+  never runs that configuration (its wasm runs all add `std`). Fix: either gate the
+  executors that need `Ctx` on `alloc`, or declare in `Cargo.toml` docs that `alloc` is the
+  minimum and make a bare build fail with a `compile_error!` that says so.
+
+
+- **`poll_ready` single-polls a handler future with a noop waker.**
+  `src/server/native.rs` `poll_ready` (called from `Serve::serve`) drives the
+  async `provisioning_route` and `route` handlers by one `poll` with a noop
+  waker, and panics on `Poll::Pending`. It works only while the handlers finish
+  without yielding. Any real async I/O (a Turso query that is not ready, a
+  channel wait) panics at runtime. Fix: return `ConnectionResult::Async`
+  wrapping `async move { … route(..).await … }`, and delete `poll_ready` and
+  `noop_waker`, so the executor polls with a real waker.
+- **`src/bin/keychain.rs` hits the `recursion_depth_exceeding_limit` lint.**
+  The `future_incompatible` lint warns on `DrivenStreamIterator<FutureTask<..>>:
+  IntoIterator` at `src/bin/keychain.rs:28`. Fix: raise the crate recursion
+  limit, or break the valtron stream chain into a smaller type.
+
+## 25. foundation_auth
+
+(no open entries; features 68, 73 and 74 fixed the ones found in the ToS gate work)
 
 ## Paused
 

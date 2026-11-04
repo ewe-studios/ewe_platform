@@ -1,6 +1,6 @@
 ---
 feature: "foundation_auth leftovers: dead wasm session file, async-only OAuth names, TokenSigner key ids, server-tree clippy in CI"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
@@ -55,4 +55,4 @@ rg -l '#\[cfg\(test\)\]' backends/foundation_auth/src   # no output
 
 ## Done when
 
-- [ ] E1–E4 done; §12 entry deleted; key-rotation tests pass. CI green (native and wasm).
+- [x] E1–E4 done; §12 entry deleted; key-rotation tests pass. CI green (native and wasm).

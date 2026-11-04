@@ -23,6 +23,7 @@ derive_more = { version = "2.0", features = ["from", "error", "display"] }
 # Cryptography
 zeroize = { version = "1" }
 chacha20poly1305 = "0.10" # Encrypted session data
+sha1 = "0.10"             # SHA-1 for TOTP (RFC 6238 default)
 sha2 = "0.10"             # SHA256 for PKCE, PBKDF2 HMAC
 hmac = "0.12"             # TOTP, HMAC, PBKDF2
 getrandom = { version = "0.2", optional = true }

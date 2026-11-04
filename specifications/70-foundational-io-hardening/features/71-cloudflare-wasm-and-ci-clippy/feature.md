@@ -1,6 +1,6 @@
 ---
 feature: "Cloudflare crates build for wasm32 with default features; clippy warnings fail CI for crates at zero; faster genapi"
-status: "pending"
+status: "done"
 lane: "B"
 model: "sonnet"
 branch: "fix/io-51-60-lane-b"
@@ -72,5 +72,5 @@ python3 scripts/ci/ci.py run foundation_codegentools --profile dev
 
 ## Done when
 
-- [ ] wasm32 default build green and in CI; clippy warnings fail CI for zero-debt crates;
+- [x] wasm32 default build green and in CI; clippy warnings fail CI for zero-debt crates;
       genapi faster; the §8 and §21 entries deleted.

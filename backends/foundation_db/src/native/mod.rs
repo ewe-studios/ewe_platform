@@ -1,5 +1,8 @@
 //! Native module — non-wasm only.
 
+#[cfg(any(feature = "turso", feature = "libsql"))]
+pub(crate) mod conn_gate;
+
 #[cfg(feature = "turso")]
 pub mod turso_backend;
 

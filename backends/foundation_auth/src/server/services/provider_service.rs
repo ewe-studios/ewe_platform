@@ -1,7 +1,7 @@
 //! Upstream provider management service.
 //!
 //! WHY: CRUD for `UpstreamProvider` rows plus encryption of the client secret
-//! at rest. The IdP admin API (feature 06) and the social login flow (feature
+//! at rest. The `IdP` admin API (feature 06) and the social login flow (feature
 //! 04) both go through this service.
 //!
 //! WHAT: `ProviderService<QS>` (storage-backed CRUD over `QueryStore`) and
@@ -9,7 +9,7 @@
 //! Argon2id).
 //!
 //! HOW: `QueryStore` is the persistence seam (matches the rest of the
-//! IdP server storage layer). Secrets are stored as `nonce || ciphertext` in a
+//! `IdP` server storage layer). Secrets are stored as `nonce || ciphertext` in a
 //! BLOB column. The 32-byte AEAD key is derived once from `PROVIDER_SECRET_KEY`
 //! (or an explicit passphrase) via Argon2id with a fixed context salt, so the
 //! same passphrase always yields the same key (decrypt must be deterministic).
@@ -184,7 +184,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
     /// - `Validation` if `id`/`client_id` is empty or endpoints are missing.
     /// - `Storage` on insert failure (including a duplicate id).
     pub async fn create(&self, mut provider: UpstreamProvider) -> Result<UpstreamProvider> {
-        self.validate(&provider)?;
+        Self::validate(&provider)?;
 
         let now = Utc::now().timestamp_millis();
         provider.created_at = now;
@@ -211,10 +211,10 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
                     DataValue::Text(provider.provider_type.as_str().to_string()),
                     DataValue::Text(provider.client_id.clone()),
                     DataValue::Text(provider.encryption_key_id.clone()),
-                    opt_text(&provider.authorization_url),
-                    opt_text(&provider.token_url),
-                    opt_text(&provider.userinfo_url),
-                    opt_text(&provider.discovery_url),
+                    opt_text(provider.authorization_url.as_deref()),
+                    opt_text(provider.token_url.as_deref()),
+                    opt_text(provider.userinfo_url.as_deref()),
+                    opt_text(provider.discovery_url.as_deref()),
                     DataValue::Text(scopes_json),
                     DataValue::Integer(i64::from(provider.is_active)),
                     DataValue::Text(mapping_json),
@@ -347,7 +347,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
             provider.mapping_config = v;
         }
 
-        self.validate(&provider)?;
+        Self::validate(&provider)?;
         provider.updated_at = Utc::now().timestamp_millis();
 
         let scopes_json = serde_json::to_string(&provider.scopes)
@@ -364,10 +364,10 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
                     DataValue::Text(provider.name.clone()),
                     DataValue::Text(provider.provider_type.as_str().to_string()),
                     DataValue::Text(provider.client_id.clone()),
-                    opt_text(&provider.authorization_url),
-                    opt_text(&provider.token_url),
-                    opt_text(&provider.userinfo_url),
-                    opt_text(&provider.discovery_url),
+                    opt_text(provider.authorization_url.as_deref()),
+                    opt_text(provider.token_url.as_deref()),
+                    opt_text(provider.userinfo_url.as_deref()),
+                    opt_text(provider.discovery_url.as_deref()),
                     DataValue::Text(scopes_json),
                     DataValue::Integer(i64::from(provider.is_active)),
                     DataValue::Text(mapping_json),
@@ -445,7 +445,7 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
             .map_err(|e| ProviderServiceError::Crypto(format!("secret not utf8: {e}")))
     }
 
-    fn validate(&self, provider: &UpstreamProvider) -> Result<()> {
+    fn validate(provider: &UpstreamProvider) -> Result<()> {
         if provider.id.trim().is_empty() {
             return Err(ProviderServiceError::Validation("id is empty".into()));
         }
@@ -464,9 +464,9 @@ impl<QS: QueryStore + ?Sized + 'static> ProviderService<QS> {
 }
 
 /// SQL `NULL` for `None`, else `Text`.
-fn opt_text(val: &Option<String>) -> DataValue {
+fn opt_text(val: Option<&str>) -> DataValue {
     match val {
-        Some(s) => DataValue::Text(s.clone()),
+        Some(s) => DataValue::Text(s.to_string()),
         None => DataValue::Null,
     }
 }

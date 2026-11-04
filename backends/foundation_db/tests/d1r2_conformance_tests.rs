@@ -1,7 +1,7 @@
 //! `D1R2DocumentStore` conformance (F23) — exercises the target-agnostic
 //! D1+R2 store logic over real, in-process backends with no external infra.
 //!
-//! WHY: `D1R2DocumentStore<Q, B>` is the Cloudflare DocumentStore; on Workers it
+//! WHY: `D1R2DocumentStore<Q, B>` is the Cloudflare `DocumentStore`; on Workers it
 //! runs over `D1WasmStorage` + `R2WasmStorage`, and the gated
 //! `d1r2_document_store_tests` proves the native D1/R2 REST clients against a
 //! miniflare worker. This suite proves the *store logic itself* — 4 KB offload

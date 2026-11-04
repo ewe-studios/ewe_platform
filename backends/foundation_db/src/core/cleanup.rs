@@ -9,7 +9,7 @@
 //! Every operation is async over [`QueryStore`]; [`StorageCleanup`]
 //! is implemented for every async SQL store. Auth-table timestamps
 //! (`expires_at` and the activity columns) are compared in Unix
-//! **milliseconds**, the unit the migrations document and the IdP writes.
+//! **milliseconds**, the unit the migrations document and the `IdP` writes.
 //! The `rate_limits` window columns stay in Unix seconds — that table is
 //! self-consistent and written by [`crate::core::rate_limit`] in seconds.
 

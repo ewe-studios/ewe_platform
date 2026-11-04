@@ -127,6 +127,69 @@ impl CredentialStorage {
     }
 }
 
+/// Credential storage over any [`foundation_db::KeyValueStore`]: the `IdP`
+/// keeps sessions in the same store it uses for its other short-lived state.
+pub struct KvCredentialStore<KV> {
+    kv: KV,
+}
+
+impl<KV> KvCredentialStore<KV> {
+    /// Wrap a key-value store.
+    #[must_use]
+    pub fn new(kv: KV) -> Self {
+        Self { kv }
+    }
+}
+
+#[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
+impl<KV: foundation_db::KeyValueStore> CredentialStore for KvCredentialStore<KV> {
+    async fn get<V: for<'de> Deserialize<'de> + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> Result<Option<V>, CredentialStoreError> {
+        self.kv
+            .get(key)
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+
+    async fn set<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        value: V,
+    ) -> Result<(), CredentialStoreError> {
+        self.kv
+            .set(key, value)
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+
+    async fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
+        self.kv
+            .delete(key)
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+
+    async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
+        self.kv
+            .exists(key)
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+
+    async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
+        self.kv
+            .list_keys(prefix)
+            .await
+            .map_err(CredentialStoreError::Storage)?
+            .collect_all()
+            .await
+            .map_err(CredentialStoreError::Storage)
+    }
+}
+
 #[cfg_attr(target_family = "wasm", async_trait::async_trait(?Send))]
 #[cfg_attr(not(target_family = "wasm"), async_trait::async_trait)]
 impl CredentialStore for CredentialStorage {

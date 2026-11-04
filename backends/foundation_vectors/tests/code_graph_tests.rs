@@ -1,6 +1,6 @@
 use foundation_vectors::code_graph::*;
 
-const SAMPLE_RUST: &str = r#"
+const SAMPLE_RUST: &str = r"
 use std::collections::HashMap;
 
 // WHY: core data structure for the parser
@@ -46,7 +46,7 @@ pub const MAX_BUFFER: usize = 4096;
 pub struct Config {
     pub max_depth: usize,
 }
-"#;
+";
 
 #[test]
 fn extract_rust_file_nodes() {
@@ -198,23 +198,29 @@ fn build_graph_from_single_file() {
 
 #[test]
 fn cross_file_call_resolution() {
-    let file_a = r#"
+    let file_a = r"
 pub fn helper() -> i32 { 42 }
-"#;
-    let file_b = r#"
+";
+    let file_b = r"
 pub fn caller() {
     helper();
 }
-"#;
+";
     let ext_a = rust_walker::extract_rust_file("src/a.rs", file_a).unwrap();
     let ext_b = rust_walker::extract_rust_file("src/b.rs", file_b).unwrap();
     let graph = CodeGraph::build(vec![ext_a, ext_b]);
 
     let caller_node = graph.find_entity("caller");
-    assert!(!caller_node.is_empty());
+    assert_ne!(
+        caller_node,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     let helper_node = graph.find_entity("helper");
-    assert!(!helper_node.is_empty());
+    assert_ne!(
+        helper_node,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     let callers = graph.callers_of(&helper_node[0].id);
     let caller_ids: Vec<&str> = callers.iter().map(|n| n.label.as_str()).collect();
@@ -226,18 +232,18 @@ pub fn caller() {
 
 #[test]
 fn member_call_exclusion_from_cross_file() {
-    let file_a = r#"
+    let file_a = r"
 pub struct Logger;
 impl Logger {
     pub fn log(&self) {}
 }
-"#;
-    let file_b = r#"
+";
+    let file_b = r"
 pub fn main() {
     let l = Logger;
     l.log();
 }
-"#;
+";
     let ext_a = rust_walker::extract_rust_file("src/a.rs", file_a).unwrap();
     let ext_b = rust_walker::extract_rust_file("src/b.rs", file_b).unwrap();
     let graph = CodeGraph::build(vec![ext_a, ext_b]);
@@ -272,10 +278,16 @@ fn neighborhood_budget() {
     let graph = CodeGraph::build(vec![ext]);
 
     let parser_nodes = graph.find_entity("Parser");
-    assert!(!parser_nodes.is_empty());
+    assert_ne!(
+        parser_nodes,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     let subgraph = graph.neighborhood(&parser_nodes[0].id, 200).unwrap();
-    assert!(!subgraph.nodes.is_empty());
+    assert_ne!(
+        subgraph.nodes,
+        [] as [foundation_vectors::code_graph::GraphNode; 0]
+    );
     assert!(subgraph.token_estimate <= 200 || subgraph.nodes.len() == 1);
 }
 
@@ -323,7 +335,10 @@ fn json_round_trip() {
     assert_eq!(graph.edge_count(), restored.edge_count());
 
     let parser_nodes = restored.find_entity("Parser");
-    assert!(!parser_nodes.is_empty());
+    assert_ne!(
+        parser_nodes,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
     assert_eq!(parser_nodes[0].kind, NodeKind::Struct);
 }
 
@@ -356,8 +371,14 @@ fn empty_graph_operations() {
     let graph = CodeGraph::new();
     assert_eq!(graph.node_count(), 0);
     assert_eq!(graph.edge_count(), 0);
-    assert!(graph.find_entity("anything").is_empty());
-    assert!(graph.callers_of("nope").is_empty());
+    assert_eq!(
+        graph.find_entity("anything"),
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
+    assert_eq!(
+        graph.callers_of("nope"),
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
     assert!(graph.shortest_path("a", "b").is_none());
 }
 
@@ -366,22 +387,25 @@ fn nodes_by_file() {
     let ext = rust_walker::extract_rust_file("src/parser.rs", SAMPLE_RUST).unwrap();
     let graph = CodeGraph::build(vec![ext]);
     let nodes = graph.nodes_by_file("src/parser.rs");
-    assert!(!nodes.is_empty());
+    assert_ne!(nodes, [] as [&foundation_vectors::code_graph::GraphNode; 0]);
     assert!(nodes.iter().all(|n| n.source_file == "src/parser.rs"));
 }
 
 #[test]
 fn callees_of() {
-    let source = r#"
+    let source = r"
 fn helper() {}
 fn caller() {
     helper();
 }
-"#;
+";
     let ext = rust_walker::extract_rust_file("src/test.rs", source).unwrap();
     let graph = CodeGraph::build(vec![ext]);
     let caller = graph.find_entity("caller");
-    assert!(!caller.is_empty());
+    assert_ne!(
+        caller,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
     let callees = graph.callees_of(&caller[0].id);
     let callee_labels: Vec<&str> = callees.iter().map(|n| n.label.as_str()).collect();
     assert!(callee_labels.contains(&"helper"));
@@ -397,8 +421,14 @@ fn update_replaces_changed_file_and_reresolves_cross_file() {
     let mut graph = CodeGraph::build(vec![ext_a, ext_b]);
 
     let helper = graph.find_entity("helper");
-    assert!(!helper.is_empty());
-    assert!(!graph.callers_of(&helper[0].id).is_empty());
+    assert_ne!(
+        helper,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
+    assert_ne!(
+        graph.callers_of(&helper[0].id),
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     // a.rs changes: helper() renamed to assist(). The stale helper edge must go,
     // and b.rs's call must now resolve to nothing (re-resolved globally).
@@ -428,7 +458,10 @@ fn remove_file_drops_its_nodes() {
     let ext_a = rust_walker::extract_rust_file("src/a.rs", a).unwrap();
     let ext_b = rust_walker::extract_rust_file("src/b.rs", b).unwrap();
     let mut graph = CodeGraph::build(vec![ext_a, ext_b]);
-    assert!(!graph.find_entity("helper").is_empty());
+    assert_ne!(
+        graph.find_entity("helper"),
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     graph.remove_file("src/a.rs");
     assert!(
@@ -454,7 +487,10 @@ fn graph_store_round_trip() {
     assert_eq!(loaded.node_count(), nc);
     assert_eq!(loaded.edge_count(), ec);
     // The reloaded (query-only) graph answers structural queries.
-    assert!(!loaded.find_entity("Parser").is_empty());
+    assert_ne!(
+        loaded.find_entity("Parser"),
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     assert!(store.load_graph("missing").unwrap().is_none());
 }

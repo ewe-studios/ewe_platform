@@ -58,7 +58,9 @@ impl BlobDelta<D1Store> {
         Self::new_with_base_url(api_token, account_id, database_id, None)
     }
 
-    /// A D1 delta against `base_url` (e.g. a local emulator) or Cloudflare.
+    /// A D1 delta against `base_url` or Cloudflare. `base_url` is the whole API
+    /// prefix: for wrangler's local explorer API,
+    /// `http://127.0.0.1:<port>/cdn-cgi/local/explorer/api` (no account segment).
     ///
     /// # Errors
     ///

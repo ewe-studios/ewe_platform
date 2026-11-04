@@ -7,7 +7,7 @@ use foundation_db::{DataValue, MigrationRunner, QueryStore, TursoStorage, MIGRAT
 async fn old_rate_limit_table_is_rebuilt() {
     // Simulate a deployed database whose `rate_limits` table has the old shape
     // (`key` is the primary key; no `id` and no `window_end`) and whose earlier
-    // migrations are already recorded. Only 027 is still pending, so the runner
+    // migrations are already recorded. Only 027 and 028 are still pending, so the runner
     // must not re-run 014 (which would fail on the old shape) and must rebuild.
     let store = TursoStorage::new(":memory:").await.unwrap();
     store
@@ -21,7 +21,7 @@ async fn old_rate_limit_table_is_rebuilt() {
         .unwrap();
     for migration in MIGRATIONS
         .iter()
-        .filter(|m| m.id != "027_rebuild_rate_limits")
+        .filter(|m| m.id != "027_rebuild_rate_limits" && m.id != "028_create_tos_acceptances")
     {
         store
             .execute(
@@ -48,7 +48,7 @@ async fn old_rate_limit_table_is_rebuilt() {
         .run_async(&store)
         .await
         .unwrap();
-    assert_eq!(applied, 1, "only 027 should be pending");
+    assert_eq!(applied, 2, "only 027 and 028 should be pending");
 
     // The documented columns must now exist: an insert with all of them
     // succeeds (it would fail on the old shape), and the row reads back.
