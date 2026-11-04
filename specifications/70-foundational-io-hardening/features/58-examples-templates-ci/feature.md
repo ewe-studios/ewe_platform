@@ -8,7 +8,7 @@ crates: ["examples/todo", "bin/platform", "foundation_deployment_platform", "ci"
 catalogue_rows: [28]
 ---
 
-> **Dropped by the owner (2026-11-04).** Old code; not scheduled. Do not work on it. Its backlog entries move to the backlog "Paused" section (feature 60).
+> **Dropped by the owner (2026-11-04).** Old code; not scheduled. E3 (vms clippy) is kept as feature 79. Do not work on it. Its backlog entries move to the backlog "Paused" section (feature 60).
 
 # Feature 58: examples, templates and the vms lint
 
