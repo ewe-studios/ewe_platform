@@ -100,6 +100,25 @@ the ~80 hand-placed wakes removed. E3 reactor, nativeapis, netio, http, proxy im
 `register`. E4 make the wake functions private, add the CI guard, deprecate the raw-queue
 readiness constructors for feature 81. Commit and push after each.
 
+## E5. Prove the waker design at runtime on wasm (owner question 2026-11-04)
+
+E1–E4 were checked on wasm only by compiling. The wasm runtime suites (`wasm-tests` CI job:
+`mise run test:wasm-testbed:deno` on the owned `js-foundation-wasm` yielder, and
+`mise run test:wasm-bindgen:deno` on `js-wasmbindgen`) cover park/wake through the JS
+yielder but no feature 80 construct. Add runtime tests to both suites
+(`backends/foundation_core/integration/wasm_tests/src/lib.rs` and the
+`tests/valtron/wasm_js_yield_integration*` suite the bindgen run filters on):
+- a task parked on a `ResumeSignal` that a host timer (`register_schedule` / a JS timeout)
+  sets later resumes, on time;
+- an `EventQueue` push from a host callback wakes a consumer parked on `readiness()`; a
+  `close` wakes it too;
+- a deadline-only park resumes at its deadline;
+- `AnyReadiness` over two children resumes on the first;
+- each test counts `is_ready` calls (counting wrapper) and asserts a small bound, so a
+  timed re-check loop on wasm fails the test.
+Locally: compile-check both suites for wasm32 (the deno runtimes cannot be downloaded in the
+sandbox); CI runs them. Feature 80 is done only when `wasm-tests` passes with these tests.
+
 ## Tests (`backends/foundation_core/tests/valtron/`, both feature sets)
 
 - Per construct (`ResumeSignal`, the event queue push and close, its vacancy, the readiness
