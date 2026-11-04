@@ -1,5 +1,5 @@
 ---
-feature: "valtron owns executor wake-up: no crate outside valtron calls request_executor_resume or touches idle_wake; every wake goes through a valtron construct (ResumeSignal, an event queue, a readiness notifier) that wakes the executor itself"
+feature: "valtron owns executor wake-up: the executor registers a per-task waker with each readiness (Waker pattern); sources wake that waker, never an executor function; the wake functions are private to valtron"
 status: "pending"
 lane: "A"
 model: "sonnet"
@@ -35,37 +35,70 @@ does the wake.
   `native/server/h2_connection.rs`, `foundation_nativeapis` `signal/task.rs`, the
   `task_iters.rs` and extension vacancy sides. Lane B sites are feature 81.
 
-## Design
+## Design: valtron hands a waker to the readiness, the readiness never calls valtron
 
-1. **The wake becomes private to valtron.** `request_executor_resume` and `idle_wake` become
-   `pub(crate)` (keep a `#[doc(hidden)]` re-export only if feature 81's crates still need one
-   during the change, and delete it when 81 lands). The compiler then rejects any outside call.
-2. **Self-waking constructs.** Each one wakes the executor inside its own operation, so the
-   caller never does:
-   - `ResumeSignal` (exists): `set`/`turn_on` wakes. Use it for every flag a foreign thread flips.
-   - `BoolSignal`: remove the raw `clone_inner` write path. Writers get a handle whose `set`
-     wakes (or `BoolSignal` becomes `ResumeSignal`). Readers keep read access.
-   - **Event queue** (new, valtron-owned, for example `valtron::EventQueue<T>`): wraps the
-     concurrent queue; `push`, `force_push` and `close` wake when a consumer or producer is
-     parked on it; `readiness()` and `vacancy()` return readiness with `needs_polling() == false`.
-     Replace the hand-placed calls in `task.rs`, the extensions and `pipe.rs` with it, so those
-     ~80 calls disappear. Feature 77's gating for `pipe.rs` (wake only when a readiness or
-     vacancy was taken) moves inside the type.
-   - **Readiness notifier** (new, for external event sources such as the reactor, fds, OS
-     signals, shutdown): a valtron handle (for example `valtron::ReadinessNotifier`) that an
-     event source holds and calls `notify()` on after it latches readiness. `foundation_reactor`
-     and `foundation_nativeapis` use it instead of calling the wake.
-3. **Delete the polling constructors over raw queues** (`QueueReadiness::new`,
-   `QueueVacancyReadiness::new`) once lane A and lane B (feature 81) have moved to the event
-   queue. Until 81 lands, mark them `#[deprecated]` with the replacement named.
-4. **No outside wake in tests either.** Tests use the same constructs.
-5. **Guard in CI.** Add a check (a small script in `scripts/ci/` run by `ci.py`) that fails if
-   `request_executor_resume`, `resume_idle` or `idle_wake::` appear outside
-   `backends/foundation_core/src/valtron/`.
+The rule is inverted from "whoever flips the state must wake the executor" to "the executor
+asks the readiness to wake it". This is the `core::task::Waker` pattern that futures already
+use, applied to `EventReadiness`.
 
-Keep feature 75's, 77's and 46's guarantees: deadlines wake on time, idle workers use no
-CPU, an async consumer of a parked `DrivenStreamIterator` never hangs, and a wake meant for
-one consumer does not wake every thread (the 46+77 storm).
+1. **`EventReadiness` gains a registration method** (name final in the PR), for example
+   `fn register(&self, waker: &ReadinessWaker) -> bool`:
+   - When a task parks on a readiness, valtron calls `register` with a waker that belongs to
+     **that task** (it is built on `core::task::Waker`, so it works in `no_std` and on wasm).
+   - The readiness stores the waker and calls `waker.wake()` when it becomes ready (or is
+     closed). That is the only thing a source ever does; it never calls an executor function.
+   - `register` returns `true` if the readiness will wake on change. Then valtron does not
+     re-check it on a timer: this replaces `needs_polling()`, which goes away.
+   - The default returns `false`, so a readiness that cannot wake is still polled (safe), and
+     custom implementations outside valtron keep working until they opt in.
+   - A re-register replaces the stored waker (`Waker::will_wake` avoids clones).
+2. **The waker wakes one task, not every thread.** `ReadinessWaker::wake` marks that task
+   runnable in its own executor (the worker or the single-thread engine that parked it) and
+   unparks only that executor's thread. It does not call the process-wide `resume_idle`.
+   This removes the class of bug in the 46+77 merge (a wake for one consumer interrupted every
+   idle thread and made a parked task re-check ~3000 times). Combinators forward it:
+   `AnyReadiness` registers the same waker with every child.
+3. **valtron's own readiness types all register** and so need no help from callers:
+   `ResumeSignal`, `WakeSignal`, the deadline readiness (the timer thread holds the waker),
+   `AnyReadiness`, and a new valtron-owned **event queue** whose `push` / `close` and
+   pop (for vacancy) wake the registered waker. The ~80 hand-placed executor wakes in
+   `task.rs`, the task and stream extensions and `pipe.rs` disappear into the queue type.
+   `BoolSignal` loses its raw `clone_inner` write path (writers get a handle whose `set` wakes
+   the registered waker), or is folded into `ResumeSignal`.
+4. **Outside event sources implement `register`, they do not call valtron:**
+   - `foundation_reactor`: keep the waker per registered fd; wake it when the fd latches ready.
+     Its shutdown signal does the same.
+   - `foundation_nativeapis`: `FdRegistration` / `RegisteredFd` (reactor path), `StopSignal`,
+     the OS signal handler (`signal/task.rs`).
+   - `foundation_netio`, `foundation_http`: their connection and body readiness types; the
+     http `AsyncReadiness` forwards `register`.
+   For a source that only knows "something changed somewhere" (no per-item waker), valtron
+   offers one construct: a `ReadinessSource`/notifier that the source holds and `notify()`s;
+   it fans out to the wakers registered on it. Use it only where a per-item waker is not
+   possible, and say why in a comment.
+5. **The executor wake functions become private to valtron.** `request_executor_resume`,
+   `resume_idle` and `idle_wake` are `pub(crate)`. If a case is truly unavoidable (for example
+   the single-thread wasm engine handing control back to the JS event loop, or a reactor edge
+   case that cannot hold a waker), keep one narrowly named public function for it, document
+   the case on it, and list every caller in this feature's report. The default answer is "no
+   such case".
+6. **Feature 46's resume listener and timer** become ordinary registrations: the
+   `DrivenStreamIterator` consumer's waker is registered with the parked tasks' readiness (and
+   the deadline timer), not with a global listener list.
+7. **Guard in CI**: a check in `scripts/ci/` (run by `ci.py`) fails if the executor wake
+   functions appear outside `backends/foundation_core/src/valtron/`, except a listed,
+   justified exception from step 5.
+
+Keep the guarantees of features 75, 77 and 46: deadlines wake on time; idle workers use no
+CPU; an async consumer of a parked `DrivenStreamIterator` never hangs.
+
+## Order of work
+
+E1 the `register` API, `ReadinessWaker` and the per-task targeted wake in both executors, with
+valtron's own readiness types converted (`needs_polling` removed). E2 the event queue, and
+the ~80 hand-placed wakes removed. E3 reactor, nativeapis, netio, http, proxy implement
+`register`. E4 make the wake functions private, add the CI guard, deprecate the raw-queue
+readiness constructors for feature 81. Commit and push after each.
 
 ## Tests (`backends/foundation_core/tests/valtron/`, both feature sets)
 
@@ -85,6 +118,4 @@ Focused local checks (requirements.md §8.2 rule 4), 20 runs of each new timing 
 
 ## Done when
 
-- [ ] No crate outside valtron calls the executor wake (compiler and CI guard); the ~80
-  hand-placed calls are gone into the event queue; reactor and nativeapis use the notifier;
-  lane A raw signal and queue sites converted; backlog entries deleted; CI green.
+- [ ] `EventReadiness::register` with a per-task targeted waker in both executors; `needs_polling` removed; valtron's readiness types and the event queue self-wake; the ~80 hand-placed wakes gone; reactor, nativeapis, netio and http implement `register`; the wake functions are `pub(crate)` (any exception listed and justified); CI guard; the 46+77 storm cannot recur (test); backlog entries deleted; CI green.
