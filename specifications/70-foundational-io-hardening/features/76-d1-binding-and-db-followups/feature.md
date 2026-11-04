@@ -105,6 +105,28 @@ the store's lock with rename; KV/R2: conditional put where the API has one, else
 non-atomic default). Do not change the proxy (lane A); record in the backlog that it can drop its
 flock once this lands.
 
+## E4b. `R2Store::set_if_version` uses R2's conditional put (owner 2026-11-04)
+
+E4 left `R2Store` on the non-atomic read-compare-write default, with the reason "the state API
+does not carry an ETag". That reason is wrong: the ETag is internal to the store, and
+`R2Store` already has the conditional PUT (`put_object_conditional_async`, `If-Match` /
+`If-None-Match`, `412` → `StorageError::PreconditionFailed`) for `BlobStore::put_blob_conditionally`.
+Override `set_if_version` on `R2Store`:
+- `expected = None`: PUT the state with `If-None-Match: *`; `412` → `Ok(false)`.
+- `expected = Some(t)`: one GET that returns the body **and** its `ETag` (add a variant of
+  `get_object_async` that returns the response `etag` header; the body is a small state JSON,
+  so reading it whole is allowed). Missing → `Ok(false)`. If the stored `updated_at` is not `t`
+  → `Ok(false)`. Else PUT with `If-Match: <that etag>`; `412` → `Ok(false)`.
+  The ETag pins the exact object that was compared, so two writers cannot both win.
+- The same on the wasm side if `R2WasmStorage` implements `StateStore`: use the binding's
+  `put(key, value, { onlyIf: { etagMatches } })` (and `etagDoesNotMatch: "*"` for absent).
+- Update the `StateStore::set_if_version` doc: `R2Store` is now in the atomic list.
+- Tests: the contract test and the 20-racing-writers test on R2. Wrangler's local explorer API
+  ignores conditional headers on PUT, so run them on the real binding in the E0 harness (the
+  binding honours `onlyIf`). For the native REST client, confirm from Cloudflare's R2 API
+  docs that the object PUT honours `If-Match` / `If-None-Match`, and say which doc in the
+  test's comment; if it does not, say so in the report instead of claiming atomicity.
+
 ## Verify
 
 ```bash

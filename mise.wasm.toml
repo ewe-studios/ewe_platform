@@ -30,6 +30,8 @@ echo "✓ owned embedded-deno harness green"
 alias = "test-wasm-bindgen-deno"
 description = "valtron's js-wasmbindgen backend (the one Workers run) under Deno: park → wake → microtask resume, JS yield (spec 68). Needs the mise-pinned deno + wasm-bindgen."
 run = """
-mise install deno wasm-bindgen
+# Full tool names: the short names are looked up in mise's registry, which
+# has no `wasm-bindgen`, and would also ignore the pins above.
+mise install aqua:denoland/deno github:wasm-bindgen/wasm-bindgen
 cargo run -p foundation_testbed --features wasm --profile uat --bin wasm-testbed -- test bindgen-deno ./backends/foundation_core --features js-wasmbindgen,std --filter wasm_js_yield_integration
 """
