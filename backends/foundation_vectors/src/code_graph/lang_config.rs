@@ -407,7 +407,10 @@ fn extract_class(
 fn find_type_identifier(node: &Node, source: &[u8]) -> Option<String> {
     let kind = node.kind();
     if kind == "type_identifier" || kind == "identifier" || kind == "scoped_type_identifier" {
-        return node.utf8_text(source).ok().map(std::string::ToString::to_string);
+        return node
+            .utf8_text(source)
+            .ok()
+            .map(std::string::ToString::to_string);
     }
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
@@ -441,7 +444,13 @@ fn extract_function(
     let Some(name) = node_name(node, source, config) else {
         return;
     };
-    let id = make_id(stem, &name);
+    // A method's id includes its class (the parent), so two classes can have
+    // a method of the same name.
+    let id = if kind == NodeKind::Method {
+        make_id(parent_id, &name)
+    } else {
+        make_id(stem, &name)
+    };
     if extraction.seen_ids.contains_key(&id) {
         return;
     }

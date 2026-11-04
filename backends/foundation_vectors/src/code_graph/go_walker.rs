@@ -201,7 +201,10 @@ fn process_field_for_inheritance(
         if field_name.is_none() {
             // Embedded type → inherits edge
             let embedded_name = type_n.utf8_text(source.as_bytes()).unwrap_or("");
-            let super_label = embedded_name.split('.').next_back().unwrap_or(embedded_name);
+            let super_label = embedded_name
+                .split('.')
+                .next_back()
+                .unwrap_or(embedded_name);
             let super_id = make_id(stem, super_label);
             extraction.edges.push((
                 type_id.to_string(),
@@ -283,18 +286,18 @@ fn extract_method(
         return;
     };
 
-    // Method has a receiver: `func (r *Receiver) MethodName() { ... }`
-    let receiver_name = if let Some(recv) = node.child_by_field_name("receiver") {
-        recv.child_by_field_name("name")
-            .or_else(|| recv.child_by_field_name("type"))
-            .and_then(|n| n.utf8_text(source.as_bytes()).ok())
-            .map(|s| {
-                // Strip pointer prefix: *Receiver → Receiver
-                s.strip_prefix('*').unwrap_or(s)
-            })
-    } else {
-        None
-    };
+    // Method has a receiver: `func (r *Receiver) MethodName() { ... }`. The
+    // receiver is a parameter list; the type is on its first declaration.
+    let receiver_name = node.child_by_field_name("receiver").and_then(|recv| {
+        let mut cursor = recv.walk();
+        let decl = recv
+            .children(&mut cursor)
+            .find(|c| c.kind() == "parameter_declaration")?;
+        let ty = decl.child_by_field_name("type")?;
+        let text = ty.utf8_text(source.as_bytes()).ok()?;
+        // Strip pointer prefix: *Receiver -> Receiver
+        Some(text.strip_prefix('*').unwrap_or(text))
+    });
 
     let parent = if let Some(recv_name) = receiver_name {
         make_id(stem, recv_name)
@@ -302,7 +305,9 @@ fn extract_method(
         parent_id.to_string()
     };
 
-    let id = make_id(stem, name);
+    // The id includes the receiver type, so two types can have a method of
+    // the same name.
+    let id = make_id(&parent, name);
     if extraction.seen_ids.contains_key(&id) {
         return;
     }

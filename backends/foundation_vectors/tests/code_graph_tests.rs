@@ -211,10 +211,16 @@ pub fn caller() {
     let graph = CodeGraph::build(vec![ext_a, ext_b]);
 
     let caller_node = graph.find_entity("caller");
-    assert_ne!(caller_node, [] as [&foundation_vectors::code_graph::GraphNode; 0]);
+    assert_ne!(
+        caller_node,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     let helper_node = graph.find_entity("helper");
-    assert_ne!(helper_node, [] as [&foundation_vectors::code_graph::GraphNode; 0]);
+    assert_ne!(
+        helper_node,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     let callers = graph.callers_of(&helper_node[0].id);
     let caller_ids: Vec<&str> = callers.iter().map(|n| n.label.as_str()).collect();
@@ -272,10 +278,16 @@ fn neighborhood_budget() {
     let graph = CodeGraph::build(vec![ext]);
 
     let parser_nodes = graph.find_entity("Parser");
-    assert_ne!(parser_nodes, [] as [&foundation_vectors::code_graph::GraphNode; 0]);
+    assert_ne!(
+        parser_nodes,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     let subgraph = graph.neighborhood(&parser_nodes[0].id, 200).unwrap();
-    assert_ne!(subgraph.nodes, [] as [foundation_vectors::code_graph::GraphNode; 0]);
+    assert_ne!(
+        subgraph.nodes,
+        [] as [foundation_vectors::code_graph::GraphNode; 0]
+    );
     assert!(subgraph.token_estimate <= 200 || subgraph.nodes.len() == 1);
 }
 
@@ -323,7 +335,10 @@ fn json_round_trip() {
     assert_eq!(graph.edge_count(), restored.edge_count());
 
     let parser_nodes = restored.find_entity("Parser");
-    assert_ne!(parser_nodes, [] as [&foundation_vectors::code_graph::GraphNode; 0]);
+    assert_ne!(
+        parser_nodes,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
     assert_eq!(parser_nodes[0].kind, NodeKind::Struct);
 }
 
@@ -356,8 +371,14 @@ fn empty_graph_operations() {
     let graph = CodeGraph::new();
     assert_eq!(graph.node_count(), 0);
     assert_eq!(graph.edge_count(), 0);
-    assert_eq!(graph.find_entity("anything"), [] as [&foundation_vectors::code_graph::GraphNode; 0]);
-    assert_eq!(graph.callers_of("nope"), [] as [&foundation_vectors::code_graph::GraphNode; 0]);
+    assert_eq!(
+        graph.find_entity("anything"),
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
+    assert_eq!(
+        graph.callers_of("nope"),
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
     assert!(graph.shortest_path("a", "b").is_none());
 }
 
@@ -381,7 +402,10 @@ fn caller() {
     let ext = rust_walker::extract_rust_file("src/test.rs", source).unwrap();
     let graph = CodeGraph::build(vec![ext]);
     let caller = graph.find_entity("caller");
-    assert_ne!(caller, [] as [&foundation_vectors::code_graph::GraphNode; 0]);
+    assert_ne!(
+        caller,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
     let callees = graph.callees_of(&caller[0].id);
     let callee_labels: Vec<&str> = callees.iter().map(|n| n.label.as_str()).collect();
     assert!(callee_labels.contains(&"helper"));
@@ -397,8 +421,14 @@ fn update_replaces_changed_file_and_reresolves_cross_file() {
     let mut graph = CodeGraph::build(vec![ext_a, ext_b]);
 
     let helper = graph.find_entity("helper");
-    assert_ne!(helper, [] as [&foundation_vectors::code_graph::GraphNode; 0]);
-    assert_ne!(graph.callers_of(&helper[0].id), [] as [&foundation_vectors::code_graph::GraphNode; 0]);
+    assert_ne!(
+        helper,
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
+    assert_ne!(
+        graph.callers_of(&helper[0].id),
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     // a.rs changes: helper() renamed to assist(). The stale helper edge must go,
     // and b.rs's call must now resolve to nothing (re-resolved globally).
@@ -428,7 +458,10 @@ fn remove_file_drops_its_nodes() {
     let ext_a = rust_walker::extract_rust_file("src/a.rs", a).unwrap();
     let ext_b = rust_walker::extract_rust_file("src/b.rs", b).unwrap();
     let mut graph = CodeGraph::build(vec![ext_a, ext_b]);
-    assert_ne!(graph.find_entity("helper"), [] as [&foundation_vectors::code_graph::GraphNode; 0]);
+    assert_ne!(
+        graph.find_entity("helper"),
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     graph.remove_file("src/a.rs");
     assert!(
@@ -454,7 +487,10 @@ fn graph_store_round_trip() {
     assert_eq!(loaded.node_count(), nc);
     assert_eq!(loaded.edge_count(), ec);
     // The reloaded (query-only) graph answers structural queries.
-    assert_ne!(loaded.find_entity("Parser"), [] as [&foundation_vectors::code_graph::GraphNode; 0]);
+    assert_ne!(
+        loaded.find_entity("Parser"),
+        [] as [&foundation_vectors::code_graph::GraphNode; 0]
+    );
 
     assert!(store.load_graph("missing").unwrap().is_none());
 }

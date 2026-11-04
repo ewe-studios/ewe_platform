@@ -10,7 +10,6 @@
 
 use std::collections::HashMap;
 
-
 use super::graph::CodeGraph;
 use super::types::GraphEdge;
 

@@ -200,12 +200,7 @@ fn local_move(
 }
 
 /// Refinement phase: split communities into well-connected sub-communities.
-fn refine(
-    adj: &[Vec<(usize, f64)>],
-    degrees: &[f64],
-    communities: &mut [usize],
-    m: f64,
-) {
+fn refine(adj: &[Vec<(usize, f64)>], degrees: &[f64], communities: &mut [usize], m: f64) {
     // Group nodes by community
     let mut comm_nodes: HashMap<usize, Vec<usize>> = HashMap::new();
     for (i, &comm) in communities.iter().enumerate() {

@@ -321,7 +321,13 @@ fn extract_function(
     let Some(name) = node_name(node, source) else {
         return;
     };
-    let id = make_id(stem, &name);
+    // A method's id includes its impl or trait (the parent), so two types can
+    // have a method of the same name.
+    let id = if kind == NodeKind::Method {
+        make_id(parent_id, &name)
+    } else {
+        make_id(stem, &name)
+    };
     if extraction.seen_ids.contains_key(&id) {
         return;
     }
