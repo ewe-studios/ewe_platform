@@ -18,8 +18,8 @@ related_specs:
   - "specifications/65-agent-rpc-serving-system"
 tasks:
   completed: 42
-  uncompleted: 35
-  total: 77
+  uncompleted: 36
+  total: 78
   completion_percentage: 66%
 ---
 
@@ -198,6 +198,7 @@ done
 | 75 | [Readiness deadlines; idle QUIC listener; land 72 E1](./features/75-readiness-deadlines/feature.md) | §8 catalogue rows 82–84 (sonnet) | 72 | M |
 | 76 | [D1 binding types; db follow-ups](./features/76-d1-binding-and-db-followups/feature.md) | §8 catalogue rows 91–94 (sonnet) | 56 | M |
 | 77 | [Event-driven readiness follow-ups](./features/77-event-driven-readiness-followups/feature.md) | §8 catalogue rows 95–98 (sonnet) | 75 | M |
+| 78 | [io_uring in CI; core bare wasm; reactor wasm dead code](./features/78-io-uring-in-ci-and-core-bare-wasm/feature.md) | §8 catalogue rows 99–101 (sonnet) | 72 | S |
 
 Order: 01 → 02 → 03 → 04 → 05 → 06, and 07, 08, 09, 10 after their dependencies. 11 has no
 dependency and can run whenever no other agent is building.
@@ -370,6 +371,9 @@ fixed in code but not deleted.
 | 96 | valtron: idle `multi` worker on a `ResumeSignal` uses about 20 ms CPU/s | found in 75 | 77 |
 | 97 | `BoolSignal` raw stores and queue readiness types still poll | found in 75 | 77 |
 | 98 | nativeapis `FdRegistration`/`RegisteredFd` still poll | found in 75 | 77 |
+| 99 | CI never runs io_uring tests (`EWE_REQUIRE_IO_URING` unset); nativeapis uring tests skip silently | found in 72 | 78 |
+| 100 | `foundation_core` bare wasm32 build (no `std`, no `alloc`) fails | found in 71 | 78 |
+| 101 | `foundation_reactor` `rearm_readable` dead on wasm (moved from 49 E1) | backlog §16 | 78 |
 
 ### 8.1 Lanes, branches and models
 
@@ -382,8 +386,8 @@ the choice.
 
 | Lane | Branch (from `claude/friendly-ritchie-7acn6p`, which is `master` plus these feature files) | Features | Crates the lane owns |
 |---|---|---|---|
-| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 72 → 75 → 77 → 46 → … → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
-| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 68 → 73 → 54 E4 → 71 → 56 → 74 → 76 → … → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
+| A — I/O and runtime | `fix/io-41-50-lane-a` | 41 → 61 → 42 → 43 → 44 → 64 → 45 → 65 → 69 → 70 → 72 → 75 → 77 → 46 → 78 → 47 → 48 → 49 → 50 → 62 | foundation_core, foundation_netio, foundation_http, foundation_reactor, foundation_nostd, foundation_nativeapis, foundation_keychain, foundation_proxy, foundation_testbed, foundation_deployment_docker, foundation_deployment, foundation_wireguard, foundation_compact, foundation_iogate, foundation_connectrpc |
+| B — data, auth and hygiene | `fix/io-51-60-lane-b` | 60 (first, small) → 51 → 52 → 53 → 66 → 54 → 55 → 68 → 73 → 54 E4 → 71 → 56 → 74 → 76 → 57 → 58 → 59, then 60 again | every other crate and directory, the root `Cargo.toml` and `patches/` |
 
 - A lane never edits a crate the other lane owns. If a fix needs that, the agent stops and
   reports to the main session. (Feature 54 may change only the boringtun line of
