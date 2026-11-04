@@ -33,8 +33,7 @@ Do this first (it is small) and again at the end.
 
 ## E-drop. Features 57 and 58 are dropped (owner decision 2026-11-04)
 
-Move the backlog entries for `crates/channels` (§18), `crates/domain` (§19), `examples/todo`
-(§23) and the `bin/platform` web-app templates (§24) to the "Paused" section of
-`docs/bug-backlog.md`, with the line "Dropped by the owner 2026-11-04: old code, not
-scheduled." Do not fix them. Do not add new entries for those crates.
-
+Delete the backlog entries for `crates/channels` (§18), `crates/domain` (§19), `examples/todo`
+(§23) and the `bin/platform` web-app templates (§24) from `docs/bug-backlog.md` (owner: delete,
+do not keep). Keep §7's vms clippy entry: it is feature 79. Do not add new entries for those
+crates.

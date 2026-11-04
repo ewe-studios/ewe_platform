@@ -8,7 +8,7 @@ crates: ["crates/channels", "crates/domain"]
 catalogue_rows: [27]
 ---
 
-> **Dropped by the owner (2026-11-04).** Old code; not scheduled. Do not work on it. Its backlog entries move to the backlog "Paused" section (feature 60).
+> **Dropped by the owner (2026-11-04).** Old code; not scheduled. Do not work on it. Its backlog entries are deleted (owner, 2026-11-04).
 
 # Feature 57: channels and domain
 
