@@ -1,9 +1,12 @@
 // Integration tests — organized by scenario.
+mod auth_correctness;
+mod auth_security;
 mod body_streaming;
 mod e2e;
 mod idp_server;
 mod provider_admin;
 mod provider_service;
+mod tos_login_gate;
 mod upstream_client;
 
 use foundation_core::valtron::BlockingFutureExt;

@@ -17,7 +17,7 @@ The project consists of two parts:
 
 * The executable `boringtun-cli`, a [userspace WireGuard](https://www.wireguard.com/xplatform/) 
   implementation for Linux and macOS.
-* The library `boringtun` that can be used to implement fast and efficient WireGuard client apps on various platforms, including iOS and Android. It implements the underlying WireGuard protocol, without the network or tunnel stacks, those can be implemented in a platform idiomatic way.
+* The library `foundation_boringtun` (the fork's library name; upstream names it `boringtun`) that can be used to implement fast and efficient WireGuard client apps on various platforms, including iOS and Android. It implements the underlying WireGuard protocol, without the network or tunnel stacks, those can be implemented in a platform idiomatic way.
 
 ### Installation
 

@@ -20,7 +20,7 @@
 
 use std::net::{IpAddr, Ipv4Addr};
 
-use boringtun::x25519::{PublicKey, StaticSecret};
+use foundation_boringtun::x25519::{PublicKey, StaticSecret};
 use foundation_core::valtron;
 use foundation_macros::valtron_bindgen;
 use foundation_wireguard::shared::membership::PeerId;

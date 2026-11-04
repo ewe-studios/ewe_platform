@@ -1,12 +1,13 @@
 //! Provider admin API handler tests (spec-57, F006).
 //!
 //! Tests the handler functions directly — no HTTP server needed.
-//! Each handler takes a ProviderService + JSON body and returns HandlerResponse.
+//! Each handler takes a `ProviderService` + JSON body and returns `HandlerResponse`.
 
 #![cfg(feature = "server-test")]
 
 use std::sync::Arc;
 
+use foundation_auth::server::config::IdpConfig;
 use foundation_auth::server::handlers::provider_admin::{
     self, CreateProviderRequest, ProviderEntry, SetSecretRequest,
 };
@@ -41,7 +42,6 @@ async fn extended_discovery_lists_active_providers() {
     let providers = svc.find_active().await.expect("find_active");
     assert_eq!(providers.len(), 1, "only google is active");
 
-    use foundation_auth::server::config::IdpConfig;
     let config = IdpConfig::new("https://auth.example.com".into());
     let resp = provider_admin::extended_discovery(&config, "/idp", &providers).expect("discovery");
     assert_eq!(resp.status, 200);
@@ -215,7 +215,7 @@ fn sample_google() -> UpstreamProvider {
         discovery_url: Some("https://accounts.google.com/.well-known/openid-configuration".into()),
         scopes: vec!["openid".into(), "email".into(), "profile".into()],
         is_active: true,
-        mapping_config: Default::default(),
+        mapping_config: foundation_auth::ProviderMapping::default(),
         created_at: 0,
         updated_at: 0,
     }
@@ -235,7 +235,7 @@ fn sample_github() -> UpstreamProvider {
         discovery_url: None,
         scopes: vec!["user:email".into()],
         is_active: false,
-        mapping_config: Default::default(),
+        mapping_config: foundation_auth::ProviderMapping::default(),
         created_at: 0,
         updated_at: 0,
     }

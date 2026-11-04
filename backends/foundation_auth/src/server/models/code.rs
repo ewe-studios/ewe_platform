@@ -40,7 +40,7 @@ impl AuthorizationCode {
             code_challenge,
             scope,
             nonce,
-            expires_at: now + ttl.as_millis() as i64,
+            expires_at: now.saturating_add(i64::try_from(ttl.as_millis()).unwrap_or(i64::MAX)),
             created_at: now,
         }
     }
@@ -83,7 +83,7 @@ impl DeviceCode {
             user_code: generate_user_code(),
             client_id,
             scope,
-            expires_at: now + ttl.as_millis() as i64,
+            expires_at: now.saturating_add(i64::try_from(ttl.as_millis()).unwrap_or(i64::MAX)),
             interval,
             user_id: None,
             created_at: now,

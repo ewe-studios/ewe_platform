@@ -196,7 +196,8 @@ mod shim_exports {
     });
 
     /// A D1 delta for the shim. Reads the Cloudflare credential variables.
-    /// When `LOCAL_CF_API_BASE` is set (local emulator mode), the database id
+    /// When `LOCAL_CF_API_BASE` is set (the API prefix of wrangler's local explorer
+    /// API, `http://127.0.0.1:<port>/cdn-cgi/local/explorer/api`), the database id
     /// may come from `LOCAL_D1_DATABASE_ID` and test credentials are defaulted.
     #[cfg(feature = "vfs-d1")]
     fn build_d1_delta(
@@ -209,7 +210,7 @@ mod shim_exports {
         let account = std::env::var("CF_ACCOUNT_ID").unwrap_or_else(|_| "test-account".to_string());
         let db = std::env::var("LOCAL_D1_DATABASE_ID")
             .or_else(|_| std::env::var("CF_D1_DATABASE_ID"))
-            .unwrap_or_else(|_| "test-db".to_string());
+            .unwrap_or_else(|_| "test-db-preview".to_string());
         D1Delta::new_with_base_url(&token, &account, &db, Some(&base))
     }
 
@@ -225,7 +226,8 @@ mod shim_exports {
         };
         let token = std::env::var("CF_API_TOKEN").unwrap_or_else(|_| "test-token".to_string());
         let account = std::env::var("CF_ACCOUNT_ID").unwrap_or_else(|_| "test-account".to_string());
-        let bucket = std::env::var("CF_R2_BUCKET").unwrap_or_else(|_| "test-bucket".to_string());
+        let bucket =
+            std::env::var("CF_R2_BUCKET").unwrap_or_else(|_| "test-bucket-preview".to_string());
         R2Delta::new_with_base_url(&token, &account, &bucket, Some(&base))
     }
 

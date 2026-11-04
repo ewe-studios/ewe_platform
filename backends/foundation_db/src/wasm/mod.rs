@@ -12,10 +12,6 @@ pub mod wasm_storage;
 #[cfg(feature = "wasm-bindgen-storage")]
 pub use wasm_storage::*;
 
-/// Not activated for review only.
-// #[cfg(feature = "wasm-bindgen-storage")]
-// pub mod session;
-
 /// workers-rs interop: `From<worker::D1Database>` for `D1Database`.
 #[cfg(feature = "workers-rs")]
 pub mod workers_rs;

@@ -6,7 +6,7 @@
 //! and the gap is not cosmetic: the extractor derives a response's type name from
 //! its `ref_path`, so a **fully bundled** spec (every schema inlined) yields no
 //! named types at all. Measured 2026-07-17: Linode (9.3 MB) and Hetzner (3.4 MB)
-//! have **zero** `$ref`s; DigitalOcean has 7814.
+//! have **zero** `$ref`s; `DigitalOcean` has 7814.
 //!
 //! WHAT: One function per transform, plus [`validate_canonical`] to check the
 //! result actually is canonical rather than hoping.
@@ -95,6 +95,9 @@ fn nested_suffix(key: &str) -> String {
 ///
 /// Names go through [`nested_suffix`], so a property keyed with a slash, a dash or
 /// a space still yields a component name that a `$ref` can resolve.
+///
+/// # Panics
+/// Never: each key is taken from `properties` just before it is looked up.
 pub fn extract_inline_schemas(
     properties: &mut Map<String, Value>,
     parent_name: &str,
@@ -307,7 +310,7 @@ pub fn validate_canonical(spec: &Value) -> Result<(), Vec<NotCanonical>> {
     if spec
         .get("servers")
         .and_then(Value::as_array)
-        .is_none_or(|a| a.is_empty())
+        .is_none_or(std::vec::Vec::is_empty)
     {
         issues.push(NotCanonical::NoServers);
     }
@@ -315,7 +318,7 @@ pub fn validate_canonical(spec: &Value) -> Result<(), Vec<NotCanonical>> {
     if spec
         .pointer("/components/schemas")
         .and_then(Value::as_object)
-        .is_none_or(|m| m.is_empty())
+        .is_none_or(serde_json::Map::is_empty)
     {
         issues.push(NotCanonical::NoComponentSchemas);
     }
@@ -445,6 +448,10 @@ pub struct CanonicalizeStats {
 /// `PostLinodeInstanceResponse`. Without one, the path and method are used;
 /// `path_to_type_name` alone would collide, since it strips parameters and would
 /// give `/instances` and `/instances/{id}` the same name.
+///
+/// # Panics
+/// If `spec` is not a JSON object, or if `components` or `components/schemas`
+/// exists and is not one. A spec read from JSON with that shape never panics.
 pub fn canonicalize_operations(spec: &mut Value) -> CanonicalizeStats {
     let mut stats = CanonicalizeStats::default();
     let mut hoisted: Map<String, Value> = Map::new();
@@ -659,9 +666,9 @@ const DOC_ONLY_FIELDS: &[&str] = &[
 ///
 /// WHY: two reasons, one of which is not obvious.
 ///
-/// 1. **Weight.** They are 34% of DigitalOcean's spec — 2.3 MB → 1.6 MB — and
+/// 1. **Weight.** They are 34% of `DigitalOcean`'s spec — 2.3 MB → 1.6 MB — and
 ///    nothing in the generator reads them.
-/// 2. **They carry credential-shaped strings.** DigitalOcean's spec embeds Slack
+/// 2. **They carry credential-shaped strings.** `DigitalOcean`'s spec embeds Slack
 ///    webhook URLs in `example` values and `x-codeSamples` snippets (11 of them).
 ///    They are the vendor's own documentation placeholders, not live secrets — but
 ///    committing the artefact trips GitHub's push protection, and a repository that
@@ -701,7 +708,7 @@ pub struct ParameterRefStats {
 /// Resolve `$ref`s into `components/parameters` so operations carry their
 /// parameters directly.
 ///
-/// **WHY:** the twin of [`resolve_response_refs`], and it bites harder. DigitalOcean
+/// **WHY:** the twin of [`resolve_response_refs`], and it bites harder. `DigitalOcean`
 /// writes **every** parameter as a reference —
 /// `{"$ref": "#/components/parameters/droplet_tag_name"}` — and our `Parameter`
 /// model has `name`/`in`/`required`/`schema` and **no `$ref` field**. So each one
@@ -710,7 +717,7 @@ pub struct ParameterRefStats {
 /// at all.
 ///
 /// That is not cosmetic. `?tag_name=` is how a deployment enumerates *its own*
-/// droplets — DigitalOcean's answer to Hetzner's label selector — so losing it
+/// droplets — `DigitalOcean`'s answer to Hetzner's label selector — so losing it
 /// takes the identity mechanism with it.
 ///
 /// **WHAT:** replaces each `$ref` parameter with the component's body.
@@ -788,7 +795,7 @@ pub struct ResponseRefStats {
 /// Resolve `$ref`s into `components/responses` so operations carry their content
 /// directly.
 ///
-/// **WHY:** DigitalOcean writes every response as a reference —
+/// **WHY:** `DigitalOcean` writes every response as a reference —
 /// `"202": { "$ref": "#/components/responses/droplet_create" }` — where Hetzner
 /// inlines `content` at the operation. Our `Response` model has `description` and
 /// `content` and **no `$ref` field**, so a DO response deserialises to an empty
@@ -815,6 +822,10 @@ pub struct ResponseRefStats {
 ///
 /// Run it **before** [`canonicalize_operations`], which then finds ordinary
 /// `content` and has nothing left to do for these.
+///
+/// # Panics
+/// If `spec` is not a JSON object, or if `components` or `components/schemas`
+/// exists and is not one. A spec read from JSON with that shape never panics.
 pub fn resolve_response_refs(spec: &mut Value) -> ResponseRefStats {
     let mut stats = ResponseRefStats::default();
 

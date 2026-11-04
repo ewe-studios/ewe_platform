@@ -14,7 +14,7 @@
 use base64::engine::general_purpose::{STANDARD as B64_STD, URL_SAFE_NO_PAD};
 use base64::Engine as _;
 use blake2::Blake2s256;
-use boringtun::x25519::{PublicKey, StaticSecret};
+use foundation_boringtun::x25519::{PublicKey, StaticSecret};
 use hkdf::SimpleHkdf;
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroizing;

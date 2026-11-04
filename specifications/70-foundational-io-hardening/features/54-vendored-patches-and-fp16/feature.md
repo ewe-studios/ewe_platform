@@ -1,0 +1,101 @@
+---
+feature: "Vendored crate patches reach published users; stable fp16 target feature"
+status: "done"
+lane: "B"
+model: "sonnet"
+branch: "fix/io-51-60-lane-b"
+crates: ["workspace", "foundation_wireguard (manifest only)", "foundation_ai", "patches/*"]
+catalogue_rows: [20, 21]
+---
+
+# Feature 54: `[patch.crates-io]` and `fullfp16`
+
+_Written in ASD-STE100 Simplified Technical English (STE). Code and identifiers stay as they are. Follow [requirements.md](../../requirements.md) sections 3, 4 and 8._
+
+Note: `foundation_wireguard` is a lane A crate; this feature may change **only its
+`Cargo.toml` dependency line** for boringtun. Tell agent A (through the main session) when it
+lands.
+
+## Problem
+
+The root `Cargo.toml` has `[patch.crates-io]` for `gemm-common` (AVX2 check, CI-only
+crash under Docker Desktop emulation) and `boringtun` (adds a wasm32 clock so
+`foundation_wireguard` compiles for wasm). A patch section applies only inside this
+workspace. A user of the **published** `foundation_wireguard` gets upstream boringtun and
+cannot build it for wasm32; a user of `foundation_ai` gets the unpatched gemm.
+
+## Design
+
+1. **boringtun**: publishable fork. Rename the vendored crate to `foundation_boringtun`
+   (package name; keep the lib name `boringtun` with `[lib] name = "boringtun"` so source
+   code does not change), move it to `backends/foundation_boringtun` (keep the BSD-3 licence
+   file and add a NOTICE that says what changed: the wasm sleepyinstant backend), add it to the
+   workspace, and make `foundation_wireguard` depend on
+   `foundation_boringtun = { path, version }`. Remove its `[patch]` line. Keep upstream
+   tests that the vendored crate had; do not add `#[ignore]`s (the boringtun copy has bare
+   `#[ignore]`s on integration tests from upstream — leave them, but list them in the PR).
+2. **gemm-common**: it is a transitive dependency of candle, so a rename is not possible
+   without forking candle. Keep the patch for the workspace. Add a backlog entry: published
+   `foundation_ai` on a CPU with FMA but without AVX2 (emulation) panics in gemm; upstream
+   fix needed (write the one-line upstream patch in the entry). Write the patch as
+   `patches/gemm-common/UPSTREAM.md` ready to send.
+3. **fp16** (backlog §10): `.cargo/config.toml` sets `-C target-feature=+fullfp16` for
+   `aarch64-apple-darwin`. Check whether `+fp16` gives the same instructions
+   (`vfmaq_laneq_f16`): on aarch64, `fullfp16` is the LLVM name and rustc's stable name is
+   `fp16`, which implies full FP16 arithmetic. Change to `+fp16` if the macOS CI build of
+   foundation_ai candle tests still assembles; otherwise keep and document. This needs the macOS
+   job; if it cannot run, change it and report that only the macOS CI can confirm.
+
+## Verify
+
+```bash
+export CARGO_PROFILE_DEV_DEBUG=0 CARGO_INCREMENTAL=0
+cargo package -p foundation_boringtun --list --allow-dirty | head
+cargo check -p foundation_wireguard --target wasm32-unknown-unknown --profile dev
+python3 scripts/ci/ci.py run foundation_wireguard --profile dev
+grep -n 'boringtun' Cargo.toml   # no [patch] line
+```
+
+## Done when
+
+- [x] boringtun fork is a workspace crate that publishes; wireguard uses it; gemm entry and
+      upstream note written; fp16 decided. CI green.
+
+## E4. Owner decision (2026-11-02): the library name is `foundation_boringtun` too
+
+Feature 54 kept `[lib] name = "boringtun"`. The owner wants the crate used by its own name.
+- Set `[lib] name = "foundation_boringtun"` (or remove the `[lib] name` line).
+- Change every `boringtun::` path to `foundation_boringtun::`: 12 uses in
+  `foundation_wireguard` (`src/native/node.rs`, `src/wasm/browser.rs`,
+  `src/shared/keys/mod.rs`, `src/shared/tunnel/mod.rs`, `tests/webrtc_tests.rs`,
+  `tests/wasm/mod.rs`, `tests/tunnel_tests.rs`) and `foundation_nativeapis`
+  (`src/dataplane/mod.rs`, `src/lib.rs`). The owner allows these path-only edits in those lane
+  A crates; change nothing else there. Inside the vendored crate, its own `crate::` paths need no
+  change; fix any doc test or bench that names `boringtun::`.
+- Update the NOTICE (the library name changed too) and the crate docs.
+- Verify: `rg -n '\bboringtun::' backends --glob '*.rs'` shows only comments or none;
+  `cargo check -p foundation_wireguard` native and wasm32; `cargo check -p foundation_nativeapis
+  --features netstack`; `cargo test -p foundation_boringtun`.
+
+## E5. Make the vendored gemm-common patch match the upstream PR
+
+The workspace patch checks `fma && avx2`, but the `fma` kernel's `V3` also needs avx and
+sse3..sse4.2 (and f16c with `f16`), and the `avx512f` path has the same shape for `V4`; the f16
+dispatch in `gemm-f16` is not patched at all. The upstream fix (prepared 2026-11-02, branch
+`fix-fma-without-avx2` in the main session's clone of `sarah-ek/gemm`) dispatches on
+`V3::try_new().is_some()` / `V4::try_new().is_some()` in `gemm-common/src/gemm.rs`
+(`init_gemm_fn`, `init_gemm_cplx_fn`). Replace the two-line patch with that change, update
+`patches/gemm-common/UPSTREAM.md` to link the upstream issue and PR once they exist, and note
+that `gemm-f16` (a separate crate) is not patched in the workspace unless a build path needs it
+(check whether candle uses f16 gemm; if it does, vendor and patch `gemm-f16` the same way).
+
+## E6. Vendor and patch `gemm-f16` too (found in E5)
+
+`cargo tree -i gemm-f16@0.19.0` shows `gemm-f16` in the graph (candle-core → gemm). Its
+`init_gemm_fn` (`src/gemm.rs` ~806) has the same `feature_detected!("fma")` check and calls
+`V3::try_new().unwrap()` in the `fma` kernel, so the same panic happens on the f16 path. Vendor
+`gemm-f16` 0.19.0 as `patches/gemm-f16` (unchanged except the fix), add it to
+`[patch.crates-io]`, and apply the gemm-f16 part of the prepared upstream diff (dispatch on
+`gemm_common::simd::V3::try_new().is_some()` / `V4`). Check: `cargo check -p gemm-f16@0.19.0`
+and, in a scratch copy, `--features x86-v4`. Update the §10 backlog entry (only the upstream
+link remains).

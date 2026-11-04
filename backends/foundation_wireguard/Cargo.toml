@@ -38,7 +38,7 @@ bincode = { version = "2", features = ["serde"] }
 toml = { workspace = true }
 # WireGuard Noise state machine (decision 01). Pure crypto (Tunn + x25519) —
 # no I/O, compiles for native and wasm32 (sleepyinstant wasm backend patched in).
-boringtun = { version = "0.7.1", default-features = false }
+foundation_boringtun = { path = "../foundation_boringtun", version = "0.7.1", default-features = false }
 # Proc macros: wireguard! + #[wireguard_main] (feature 09).
 foundation_macros = { path = "../foundation_macros", version = "0.0.7" }
 # smoltcp: needed by wasm module for JsDevice (F07) and by native for netstack.

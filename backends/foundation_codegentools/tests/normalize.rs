@@ -2,7 +2,7 @@
 //! (spec-56 decision 05, feature 00 §0).
 //!
 //! The registry's own classification is the thing most likely to be wrong: it is a
-//! human judgement about a vendor's spec ("DigitalOcean is ref-based, so it needs
+//! human judgement about a vendor's spec ("`DigitalOcean` is ref-based, so it needs
 //! nothing") and it was in fact wrong — DO has 7814 refs *and* 58 inline schemas.
 //! The validator caught it, which is why these tests care most about the failure
 //! paths.

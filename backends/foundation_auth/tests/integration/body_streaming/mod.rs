@@ -56,7 +56,7 @@ fn oversized_body() -> Vec<u8> {
     vec![b'x'; 128 * 1024]
 }
 
-/// A minimal OAuth2 provider for the upstream client tests.
+/// A minimal `OAuth2` provider for the upstream client tests.
 fn test_provider() -> UpstreamProvider {
     UpstreamProvider {
         id: "test".into(),
@@ -491,7 +491,7 @@ mod native {
         let client = NativeOAuth::with_client(HttpClientBuilder::new().build(), config);
 
         let token: OAuthToken =
-            drive(async move { client.exchange_code_async("code", Some("verifier")).await })
+            drive(async move { client.exchange_code("code", Some("verifier")).await })
                 .expect("token exchange succeeds");
 
         assert_eq!(token.access_token, "a");

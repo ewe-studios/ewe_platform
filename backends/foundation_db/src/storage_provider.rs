@@ -335,6 +335,60 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
+    fn take_is_atomic(&self) -> bool {
+        match &self.inner {
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
+            StorageProviderInner::Turso(storage) => storage.take_is_atomic(),
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            StorageProviderInner::Libsql(storage) => storage.take_is_atomic(),
+            #[cfg(not(target_family = "wasm"))]
+            StorageProviderInner::JsonFile(storage) => storage.take_is_atomic(),
+            StorageProviderInner::Memory(storage) => storage.take_is_atomic(),
+            StorageProviderInner::MemoryJson(storage) => storage.take_is_atomic(),
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
+            StorageProviderInner::D1(storage) => storage.take_is_atomic(),
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
+            StorageProviderInner::R2(_) => false,
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.take_is_atomic(),
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => false,
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.take_is_atomic(),
+        }
+    }
+
+    async fn take<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        match &self.inner {
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
+            StorageProviderInner::Turso(storage) => storage.take(key).await,
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
+            StorageProviderInner::Libsql(storage) => storage.take(key).await,
+            #[cfg(not(target_family = "wasm"))]
+            StorageProviderInner::JsonFile(storage) => storage.take(key).await,
+            StorageProviderInner::Memory(storage) => storage.take(key).await,
+            StorageProviderInner::MemoryJson(storage) => storage.take(key).await,
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
+            StorageProviderInner::D1(storage) => storage.take(key).await,
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
+            StorageProviderInner::R2(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore".to_string(),
+            )),
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::D1Wasm(storage) => storage.take(key).await,
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
+                "R2 does not support KeyValueStore".to_string(),
+            )),
+            // Workers KV has no conditional delete: this is the non-atomic default.
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
+            StorageProviderInner::KVWasm(storage) => storage.take(key).await,
+        }
+    }
+
     async fn exists(&self, key: &str) -> StorageResult<bool> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_family = "wasm")))]

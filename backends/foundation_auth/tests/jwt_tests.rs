@@ -32,7 +32,7 @@ fn test_jwt_token_expiration() {
     );
 
     assert!(token.is_expired());
-    assert!(token.expires_in() == 0);
+    assert_eq!(token.expires_in(), 0);
 }
 
 #[test]

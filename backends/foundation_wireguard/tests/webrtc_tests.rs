@@ -147,7 +147,7 @@ fn webrtc_signal_codec_round_trip() {
 #[traced_test]
 #[test]
 fn browser_peer_ws_relay_and_webrtc_upgrade() {
-    use boringtun::x25519::{PublicKey, StaticSecret};
+    use foundation_boringtun::x25519::{PublicKey, StaticSecret};
     use foundation_wireguard::shared::tunnel::WgTunnel;
     use foundation_wireguard::wasm::browser::BrowserWgNode;
     use std::net::IpAddr;

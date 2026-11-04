@@ -227,6 +227,10 @@ impl AsyncQueryStream {
     }
 
     /// Collect all remaining rows into a Vec.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first row error the stream yields.
     pub async fn collect_all(self) -> StorageResult<Vec<SqlRow>> {
         self.inner.collect::<Vec<_>>().await.into_iter().collect()
     }
@@ -261,6 +265,10 @@ impl AsyncListStream {
     }
 
     /// Collect all remaining keys into a Vec.
+    ///
+    /// # Errors
+    ///
+    /// Returns the first key error the stream yields.
     pub async fn collect_all(self) -> StorageResult<Vec<String>> {
         self.inner.collect::<Vec<_>>().await.into_iter().collect()
     }
@@ -320,6 +328,41 @@ pub trait KeyValueStore: Send + Sync {
     ) -> StorageResult<Option<V>>;
     async fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
     async fn delete(&self, key: &str) -> StorageResult<()>;
+    /// Read a key and remove it in one step. Returns the value, or `None`
+    /// when the key is absent.
+    ///
+    /// Use it for single-use values (one-time codes, challenges): when many
+    /// callers take the same key at the same time, at most one gets the
+    /// value, **if the backend guarantees atomicity**:
+    ///
+    /// | Backend | Atomic |
+    /// |---|---|
+    /// | `MemoryStorage`, `MemoryJsonStore`, `JsonFileStorage` | yes (one lock) |
+    /// | `TursoStorage`, `LibsqlStore` | yes (one `DELETE ... RETURNING`) |
+    /// | `D1Store`, `D1WasmStorage` | yes (one `DELETE ... RETURNING` statement) |
+    /// | `KVWasmStorage` (Workers KV) | **no**: KV has no conditional delete, so this default is used |
+    /// | `StorageProvider` | as the backend it wraps |
+    ///
+    /// [`take_is_atomic`](Self::take_is_atomic) tells which case a store is.
+    ///
+    /// The default is a read then a delete. It is **not atomic**: two callers
+    /// can both read the value before either deletes it. A backend that
+    /// cannot do better keeps it; a caller that needs single use on such a
+    /// backend must add its own guard.
+    fn take_is_atomic(&self) -> bool {
+        false
+    }
+
+    async fn take<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Option<V>> {
+        let value = self.get::<V>(key).await?;
+        if value.is_some() {
+            self.delete(key).await?;
+        }
+        Ok(value)
+    }
     async fn exists(&self, key: &str) -> StorageResult<bool>;
     /// List all keys with optional prefix filter, returning an async stream.
     ///

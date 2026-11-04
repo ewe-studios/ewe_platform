@@ -1,4 +1,4 @@
-//! AuthorizationCode and DeviceCode model tests.
+//! `AuthorizationCode` and `DeviceCode` model tests.
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use foundation_auth::server::models::code::{AuthorizationCode, DeviceCode};
@@ -17,7 +17,7 @@ fn test_auth_code_not_expired() {
         Duration::from_secs(600),
     );
     assert!(!code.is_expired());
-    assert!(!code.code.is_empty());
+    assert_ne!(code.code, "");
 }
 
 #[test]

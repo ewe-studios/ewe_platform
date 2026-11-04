@@ -1,10 +1,10 @@
-//! Auth storage traits — abstract interface for passkey, ToS, and user storage.
+//! Auth storage traits — abstract interface for passkey, `ToS`, and user storage.
 //!
 //! WHY: The auth server should not depend on specific storage implementations.
 //! These traits allow swapping between Turso/SQLite, CF D1, in-memory, etc.
 //! while keeping the auth service logic identical.
 //!
-//! WHAT: Traits for passkey CRUD, ToS acceptance tracking, and user management
+//! WHAT: Traits for passkey CRUD, `ToS` acceptance tracking, and user management
 //! that any storage backend can implement.
 
 use std::string::String;
@@ -86,6 +86,6 @@ pub trait TosStore {
 #[async_trait::async_trait]
 pub trait AuthStore: PasskeyStore + TosStore {
     /// Find a user by email (used by passkey login flow).
-    /// Returns (user_id, has_password).
+    /// Returns (`user_id`, `has_password`).
     async fn find_user_by_email(&self, email: &str) -> StorageResult<Option<(String, bool)>>;
 }

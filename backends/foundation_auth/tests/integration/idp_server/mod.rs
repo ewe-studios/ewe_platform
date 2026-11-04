@@ -46,7 +46,7 @@ fn start_idp(
 
     let shutdown_thread = shutdown.clone();
     let handle = std::thread::spawn(move || {
-        eprintln!("SERVER THREAD: starting HttpServer on {}", bind_addr);
+        eprintln!("SERVER THREAD: starting HttpServer on {bind_addr}");
         server.serve_with_listener(&listener, &shutdown_thread);
         eprintln!("SERVER THREAD: HttpServer returned");
     });
@@ -265,7 +265,7 @@ fn discovery_then_jwks_flow() {
     let (_, _, body) = jwks_resp.into_parts();
     let jwks = parse_json(&read_body(body));
     assert!(jwks["keys"].is_array());
-    assert!(!jwks["keys"].as_array().unwrap().is_empty());
+    assert_ne!(jwks["keys"].as_array().unwrap().len(), 0);
 
     shutdown.turn_on();
     let _ = handle.join();
@@ -325,7 +325,7 @@ fn introspect_returns_inactive_for_unknown_token() {
     tracing::info!("TEST: starting idp server...");
     println!("TEST: starting idp server...");
     let (addr, shutdown, handle) = start_idp(test_config());
-    println!("TEST: server started on {}", addr);
+    println!("TEST: server started on {addr}");
     let client = make_client(addr);
     println!("TEST: sending POST to introspect...");
 
@@ -586,7 +586,7 @@ fn full_client_lifecycle_discovery_to_token_attempt() {
     let (_, _, body) = jwks_resp.into_parts();
     let jwks = parse_json(&read_body(body));
     let keys = jwks["keys"].as_array().unwrap();
-    assert!(!keys.is_empty());
+    assert_ne!(keys.len(), 0);
 
     // Step 3: Client attempts authorization (no session → error expected)
     let auth_resp = client
@@ -825,6 +825,47 @@ fn register_duplicate_email_is_409() {
     let (status, _, body) = second.into_parts();
     assert_eq!(status_code(&status), 409, "duplicate email is a conflict");
     assert_eq!(parse_json(&read_body(body))["error"], "conflict");
+
+    shutdown.turn_on();
+    let _ = handle.join();
+}
+
+// ============================================================================
+// Dev register route: served only when `dev_mode` is on.
+// ============================================================================
+
+fn dev_register(client: &DynNetClient, email: &str) -> SimpleResponse<SendSafeBody> {
+    let request = PreparedRequestBuilder::post("http://testserver/auth/v1/dev/register")
+        .unwrap()
+        .body_text(serde_json::json!({ "email": email, "password": "ValidPass123!" }).to_string())
+        .header(SimpleHeader::CONTENT_TYPE, "application/json")
+        .build();
+    client.send(request).unwrap()
+}
+
+#[valtron_test(threads = 8)]
+fn dev_register_is_404_when_dev_mode_is_off() {
+    assert!(!test_config().dev_mode, "dev_mode defaults to false");
+    let (addr, shutdown, handle) = start_idp(test_config());
+    let client = make_client(addr);
+
+    let resp = dev_register(&client, "dev-off@example.com");
+    let (status, _, _) = resp.into_parts();
+    assert_eq!(status_code(&status), 404);
+
+    shutdown.turn_on();
+    let _ = handle.join();
+}
+
+#[valtron_test(threads = 8)]
+fn dev_register_works_when_dev_mode_is_on() {
+    let (addr, shutdown, handle) = start_idp(test_config().with_dev_mode(true));
+    let client = make_client(addr);
+
+    let resp = dev_register(&client, "dev-on@example.com");
+    let (status, _, body) = resp.into_parts();
+    assert_eq!(status_code(&status), 200);
+    assert_eq!(parse_json(&read_body(body))["status"], "created");
 
     shutdown.turn_on();
     let _ = handle.join();

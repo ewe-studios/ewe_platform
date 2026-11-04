@@ -163,6 +163,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "alloca"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5a7d05ea6aea7e9e64d25b9156ba2fee3fdd659e34e41063cd2fc7cd020d7f4"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1244,30 +1253,6 @@ dependencies = [
  "cmake",
  "fs_extra",
  "fslock",
-]
-
-[[package]]
-name = "boringtun"
-version = "0.7.1"
-dependencies = [
- "aead",
- "base64 0.22.1",
- "blake2",
- "chacha20poly1305",
- "hex",
- "hmac",
- "ip_network",
- "ip_network_table",
- "js-sys",
- "libc",
- "nix 0.31.3",
- "parking_lot",
- "portable-atomic",
- "rand_core 0.6.4",
- "ring",
- "tracing",
- "untrusted 0.9.0",
- "x25519-dalek",
 ]
 
 [[package]]
@@ -2441,7 +2426,7 @@ dependencies = [
  "cast",
  "ciborium",
  "clap",
- "criterion-plot",
+ "criterion-plot 0.5.0",
  "is-terminal",
  "itertools 0.10.5",
  "num-traits",
@@ -2458,6 +2443,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "criterion"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "950046b2aa2492f9a536f5f4f9a3de7b9e2476e575e05bd6c333371add4d98f3"
+dependencies = [
+ "alloca",
+ "anes",
+ "cast",
+ "ciborium",
+ "clap",
+ "criterion-plot 0.8.2",
+ "itertools 0.13.0",
+ "num-traits",
+ "oorandom",
+ "page_size",
+ "plotters",
+ "rayon",
+ "regex",
+ "serde",
+ "serde_json",
+ "tinytemplate",
+ "walkdir",
+]
+
+[[package]]
 name = "criterion-plot"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2465,6 +2475,16 @@ checksum = "6b50826342786a51a89e2da3a28f1c32b06e387201bc2d19791f622c673706b1"
 dependencies = [
  "cast",
  "itertools 0.10.5",
+]
+
+[[package]]
+name = "criterion-plot"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8d80a2f4f5b554395e47b5d8305bc3d27813bacb73493eb1001e8f76dae29ea"
+dependencies = [
+ "cast",
+ "itertools 0.13.0",
 ]
 
 [[package]]
@@ -4009,6 +4029,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "etherparse"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "827292ea592108849932ad8e30218f8b1f21c0dfd0696698a18b5d0aed62d990"
+dependencies = [
+ "arrayvec 0.7.8",
+]
+
+[[package]]
 name = "event-listener"
 version = "5.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4056,7 +4085,7 @@ dependencies = [
 name = "ewe_platform_benches"
 version = "0.1.0"
 dependencies = [
- "criterion",
+ "criterion 0.5.1",
  "foundation_nostd",
 ]
 
@@ -4582,6 +4611,7 @@ dependencies = [
  "serde_cbor",
  "serde_json",
  "serial_test",
+ "sha1",
  "sha2 0.10.9",
  "tempfile",
  "tracing",
@@ -4605,6 +4635,38 @@ dependencies = [
  "foundation_wasm_ui",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "foundation_boringtun"
+version = "0.7.1"
+dependencies = [
+ "aead",
+ "base64 0.22.1",
+ "blake2",
+ "chacha20poly1305",
+ "criterion 0.8.2",
+ "etherparse",
+ "getrandom 0.2.17",
+ "hex",
+ "hmac",
+ "ip_network",
+ "ip_network_table",
+ "jni 0.19.0",
+ "js-sys",
+ "libc",
+ "mock_instant",
+ "nix 0.31.3",
+ "parking_lot",
+ "portable-atomic",
+ "rand_core 0.6.4",
+ "ring",
+ "socket2 0.4.10",
+ "thiserror 1.0.69",
+ "tracing",
+ "tracing-subscriber",
+ "untrusted 0.9.0",
+ "x25519-dalek",
 ]
 
 [[package]]
@@ -5422,6 +5484,7 @@ dependencies = [
 name = "foundation_db"
 version = "0.0.5"
 dependencies = [
+ "async-lock",
  "async-stream",
  "async-trait",
  "base64 0.22.1",
@@ -5430,12 +5493,14 @@ dependencies = [
  "foundation_cloudflare_types",
  "foundation_compact",
  "foundation_core",
+ "foundation_db",
  "foundation_netio",
  "futures-core",
  "futures-lite",
  "futures-util",
  "hex",
  "js-sys",
+ "libc",
  "libsql 0.6.0",
  "ntest",
  "serde",
@@ -5688,7 +5753,7 @@ name = "foundation_html"
 version = "0.0.4"
 dependencies = [
  "anyhow",
- "criterion",
+ "criterion 0.5.1",
  "derive_more",
  "foundation_conditional",
  "foundation_core",
@@ -6174,7 +6239,7 @@ name = "foundation_testing"
 version = "0.0.3"
 dependencies = [
  "base64 0.22.1",
- "criterion",
+ "criterion 0.5.1",
  "derive_more",
  "foundation_core",
  "foundation_deployment_huggingface",
@@ -6309,8 +6374,8 @@ dependencies = [
  "base64 0.22.1",
  "bincode 2.0.1",
  "blake2",
- "boringtun",
  "derive_more",
+ "foundation_boringtun",
  "foundation_core",
  "foundation_errstacks",
  "foundation_macros",
@@ -6758,8 +6823,6 @@ dependencies = [
 [[package]]
 name = "gemm-f16"
 version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3df7a55202e6cd6739d82ae3399c8e0c7e1402859b30e4cb780e61525d9486e"
 dependencies = [
  "dyn-stack",
  "gemm-common 0.19.0",
@@ -8559,6 +8622,20 @@ dependencies = [
 
 [[package]]
 name = "jni"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6df18c2e3db7e453d3c6ac5b3e9d5182664d28788126d39b91f2d1e22b017ec"
+dependencies = [
+ "cesu8",
+ "combine",
+ "jni-sys",
+ "log",
+ "thiserror 1.0.69",
+ "walkdir",
+]
+
+[[package]]
+name = "jni"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a87aa2bb7d2af34197c04845522473242e1aa17c12f4935d5856491a7fb8c97"
@@ -9670,6 +9747,12 @@ dependencies = [
  "sha3 0.11.0",
  "signature 3.0.0",
 ]
+
+[[package]]
+name = "mock_instant"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9366861eb2a2c436c20b12c8dbec5f798cea6b47ad99216be0282942e2c81ea0"
 
 [[package]]
 name = "module-lattice"
@@ -12303,7 +12386,7 @@ checksum = "1d99feebc72bae7ab76ba994bb5e121b8d83d910ca40b36e0921f53becc41784"
 dependencies = [
  "core-foundation 0.10.1",
  "core-foundation-sys",
- "jni",
+ "jni 0.21.1",
  "log",
  "once_cell",
  "rustls 0.23.40",
@@ -13167,6 +13250,16 @@ dependencies = [
 
 [[package]]
 name = "socket2"
+version = "0.4.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f7916fc008ca5542385b89a3d3ce689953c143e9304a9bf8beec1de48994c0d"
+dependencies = [
+ "libc",
+ "winapi",
+]
+
+[[package]]
+name = "socket2"
 version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e22376abed350d73dd1cd119b57ffccad95b4e585a7cda43e286245ce23c0678"
@@ -13759,7 +13852,7 @@ dependencies = [
  "gdkwayland-sys",
  "gdkx11-sys",
  "gtk",
- "jni",
+ "jni 0.21.1",
  "libc",
  "log",
  "ndk",
@@ -13838,7 +13931,7 @@ dependencies = [
  "gtk",
  "heck 0.5.0",
  "http 1.4.2",
- "jni",
+ "jni 0.21.1",
  "libc",
  "log",
  "mime",
@@ -13944,7 +14037,7 @@ dependencies = [
  "dpi",
  "gtk",
  "http 1.4.2",
- "jni",
+ "jni 0.21.1",
  "objc2",
  "objc2-ui-kit",
  "objc2-web-kit",
@@ -13967,7 +14060,7 @@ checksum = "4e6fac707727b7a2f48e4ded90976324267371073edbb415ffb73bb0458d203f"
 dependencies = [
  "gtk",
  "http 1.4.2",
- "jni",
+ "jni 0.21.1",
  "log",
  "objc2",
  "objc2-app-kit",
@@ -17073,7 +17166,7 @@ dependencies = [
  "gtk",
  "http 1.4.2",
  "javascriptcore-rs",
- "jni",
+ "jni 0.21.1",
  "libc",
  "ndk",
  "objc2",

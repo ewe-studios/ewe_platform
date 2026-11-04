@@ -1,4 +1,4 @@
-//! Refresh token entity for the IdP server.
+//! Refresh token entity for the `IdP` server.
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};

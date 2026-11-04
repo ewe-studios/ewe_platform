@@ -16,6 +16,11 @@ use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_netio::{DynNetClient, PreparedRequestBuilder};
 use serde::{Deserialize, Serialize};
 
+// Import shared types used by this module
+use super::shared::R2ListObjectsResponse;
+use super::shared::R2ListObjectsResultInfo;
+use super::shared::R2ObjectInfo;
+
 use super::shared::ApiResponse;
 
 // =============================================================================
@@ -1321,6 +1326,19 @@ pub struct R2PutBucketLockConfigurationArgs {
     pub account_id: String,
     /// Request body.
     pub body: R2PutBucketLockConfigurationRequest,
+}
+
+/// Arguments for [`r2-list-objects_request`].
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
+pub struct R2ListObjectsArgs {
+    /// Path parameter: `account_id`.
+    pub account_id: String,
+    /// Path parameter: `bucket_name`.
+    pub bucket_name: String,
+    /// Query parameter: `prefix`.
+    pub prefix: Option<String>,
+    /// Query parameter: `cursor`.
+    pub cursor: Option<String>,
 }
 
 /// Arguments for [`r2-get-bucket-sippy-config_request`].
@@ -3076,6 +3094,56 @@ where
     builder = builder
         .body_json(&args.body)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    super::shared::send_json(client.into(), builder.build()).await
+}
+
+// -----------------------------------------------------------------------------
+// GET /accounts/{account_id}/r2/buckets/{bucket_name}/objects
+// -----------------------------------------------------------------------------
+
+/// GET /accounts/{account_id}/r2/buckets/{bucket_name}/objects.
+///
+/// Takes a client and args, builds the request, optionally applies
+/// modifications, then sends it via `send_async().await`.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request: a `DynNetClient`, or an `ApiClient` carrying the `BodyLimits` the response is read under
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let response = r2_list_objects_request(client.clone(), &args, Some(|b: &mut PreparedRequestBuilder| {
+///     b.header("X-Custom-Header", "value");
+/// })).await?;
+/// ```
+pub async fn r2_list_objects_request<F>(
+    client: impl Into<super::shared::ApiClient>,
+    args: &R2ListObjectsArgs,
+    base_url: &str,
+    builder_mod: Option<F>,
+) -> Result<ApiResponse<R2ListObjectsResponse>, super::shared::ApiError>
+where
+    F: FnOnce(&mut PreparedRequestBuilder),
+{
+    let path = format!(
+        "/accounts/{}/r2/buckets/{}/objects",
+        args.account_id, args.bucket_name,
+    );
+    let endpoint_url = format!("{}{}", base_url, path);
+
+    let mut builder = PreparedRequestBuilder::get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    builder = builder.query("prefix", args.prefix.as_deref());
+    builder = builder.query("cursor", args.cursor.as_deref());
 
     if let Some(f) = builder_mod {
         f(&mut builder);

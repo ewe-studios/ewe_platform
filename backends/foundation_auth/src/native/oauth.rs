@@ -49,7 +49,7 @@ impl NativeOAuth {
     /// # Errors
     ///
     /// Returns an `OAuthError` if the request fails or the response can't be parsed.
-    pub async fn exchange_code_async(
+    pub async fn exchange_code(
         &self,
         code: &str,
         code_verifier: Option<&str>,
@@ -88,7 +88,7 @@ impl NativeOAuth {
     /// # Errors
     ///
     /// Returns an `OAuthError` if the request fails or the response can't be parsed.
-    pub async fn client_credentials_async(
+    pub async fn client_credentials(
         &self,
         scopes: Option<Vec<String>>,
     ) -> Result<OAuthToken, OAuthError> {
@@ -131,7 +131,7 @@ impl NativeOAuth {
     /// # Errors
     ///
     /// Returns an `OAuthError` if the request fails or the response can't be parsed.
-    pub async fn refresh_token_async(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
+    pub async fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
         self.inner.config.validate()?;
 
         let mut body_parts = vec![

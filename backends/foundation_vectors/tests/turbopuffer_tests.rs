@@ -286,14 +286,11 @@ fn handle(mut stream: TcpStream, state: &Shared) {
         });
         if let Some(scripted) = state.script.pop_front() {
             (scripted.status, scripted.body, scripted.retry_after)
+        } else if let Some((status, body)) = state.fail_with.clone() {
+            (status, body, None)
         } else {
-            match state.fail_with.clone() {
-                Some((status, body)) => (status, body, None),
-                None => {
-                    let (status, body) = answer(&mut state, &path, &body);
-                    (status, body, None)
-                }
-            }
+            let (status, body) = answer(&mut state, &path, &body);
+            (status, body, None)
         }
     };
     respond(&mut stream, status, &reply, retry_after);

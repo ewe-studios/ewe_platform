@@ -147,6 +147,17 @@ impl<S: StateStore> StateStore for NamespacedStore<S> {
         self.inner.all_by_prefix(&self.prefix).await
     }
 
+    async fn set_if_version(
+        &self,
+        resource_id: &str,
+        state: &ResourceState,
+        expected: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> StorageResult<bool> {
+        self.inner
+            .set_if_version(&self.full_key(resource_id), state, expected)
+            .await
+    }
+
     async fn set(&self, resource_id: &str, state: &ResourceState) -> StorageResult<()> {
         // The inner store keys a write by `resource_id` and sets the stored
         // state's id from it, so passing the full namespaced key keeps the

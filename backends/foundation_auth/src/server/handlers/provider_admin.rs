@@ -88,6 +88,7 @@ pub struct ExtendedDiscovery {
 }
 
 impl ExtendedDiscovery {
+    #[must_use]
     pub fn build(config: &IdpConfig, prefix: &str, providers: &[ProviderEntry]) -> Self {
         let base = config.issuer_url.trim_end_matches('/');
         let p = prefix.trim_end_matches('/');
@@ -102,6 +103,10 @@ impl ExtendedDiscovery {
 // ── Handler functions ─────────────────────────────────────────────────────
 
 /// GET /.well-known/openid-configuration with providers.
+///
+/// # Errors
+///
+/// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
 pub fn extended_discovery(
     config: &IdpConfig,
     prefix: &str,
@@ -118,6 +123,10 @@ pub fn extended_discovery(
 }
 
 /// GET /admin/providers
+///
+/// # Errors
+///
+/// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
 pub async fn list_all<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
 ) -> Result<HandlerResponse, IdpError> {
@@ -132,6 +141,10 @@ pub async fn list_all<QS: QueryStore + ?Sized + 'static>(
 }
 
 /// GET /admin/providers/{id}
+///
+/// # Errors
+///
+/// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
 pub async fn get_one<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
@@ -145,6 +158,10 @@ pub async fn get_one<QS: QueryStore + ?Sized + 'static>(
 }
 
 /// POST /admin/providers
+///
+/// # Errors
+///
+/// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
 pub async fn create<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     body: CreateProviderRequest,
@@ -178,7 +195,7 @@ pub async fn create<QS: QueryStore + ?Sized + 'static>(
         discovery_url: body.discovery_url,
         scopes,
         is_active: true,
-        mapping_config: Default::default(),
+        mapping_config: crate::shared::provider::ProviderMapping::default(),
         created_at: 0,
         updated_at: 0,
     };
@@ -197,6 +214,10 @@ pub async fn create<QS: QueryStore + ?Sized + 'static>(
 }
 
 /// PUT /admin/providers/{id}
+///
+/// # Errors
+///
+/// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
 pub async fn update<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
@@ -228,6 +249,10 @@ pub async fn update<QS: QueryStore + ?Sized + 'static>(
 }
 
 /// DELETE /admin/providers/{id}
+///
+/// # Errors
+///
+/// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
 pub async fn delete<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
@@ -239,6 +264,10 @@ pub async fn delete<QS: QueryStore + ?Sized + 'static>(
 }
 
 /// POST /admin/providers/{id}/secret
+///
+/// # Errors
+///
+/// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
 pub async fn set_secret<QS: QueryStore + ?Sized + 'static>(
     svc: &ProviderService<QS>,
     id: &str,
@@ -259,6 +288,10 @@ fn entry_json(provider: &UpstreamProvider) -> Result<serde_json::Value, IdpError
 // ── Admin API body parser ────────────────────────────────────────────────
 
 /// Helper: parse JSON from `SendSafeBody`.
+///
+/// # Errors
+///
+/// Returns [`IdpError`] if the request is not valid or a storage or service call fails.
 pub fn parse_body<T: serde::de::DeserializeOwned>(body: &SendSafeBody) -> Result<T, IdpError> {
     match body {
         SendSafeBody::Bytes(b) => {

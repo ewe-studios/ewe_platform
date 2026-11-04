@@ -1,4 +1,4 @@
-//! OAuthClient model tests.
+//! `OAuthClient` model tests.
 
 use foundation_auth::server::models::client::OAuthClient;
 
@@ -18,7 +18,11 @@ fn test_client(secret: &str) -> OAuthClient {
 fn hex_sha256(s: &str) -> String {
     use sha2::{Digest, Sha256};
     let hash = Sha256::digest(s.as_bytes());
-    hash.iter().map(|b| format!("{:02x}", b)).collect()
+    hash.iter().fold(String::new(), |mut out, b| {
+        use std::fmt::Write;
+        write!(out, "{b:02x}").expect("write to String");
+        out
+    })
 }
 
 #[test]

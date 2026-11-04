@@ -1,8 +1,8 @@
 //! WHY: Unified generator command that combines types, clients, and providers generation.
 //!
-//! WHAT: Single command that analyzes OpenAPI specs and generates all artifacts together.
+//! WHAT: Single command that analyzes `OpenAPI` specs and generates all artifacts together.
 //!
-//! HOW: Uses foundation_openapi for analysis and generation with intelligent grouping.
+//! HOW: Uses `foundation_openapi` for analysis and generation with intelligent grouping.
 
 use foundation_openapi::unified::{analyze_spec, AnalysisOptions};
 use std::collections::BTreeSet;
@@ -36,15 +36,15 @@ const SPLIT_OUT_PROVIDERS: &[(&str, &str)] = &[
 
 /// Resolve the split-out crate *name* (`foundation_deployment_*`) from its
 /// registered path, so `cargo fix -p <crate>` targets the real package even when
-/// the provider/artefact name differs from the crate suffix (fly_io → flyio,
-/// prisma_postgres → prisma).
+/// the provider/artefact name differs from the crate suffix (`fly_io` → flyio,
+/// `prisma_postgres` → prisma).
 fn split_out_crate_name(provider: &str) -> Option<String> {
     for (name, crate_path) in SPLIT_OUT_PROVIDERS {
         if *name == provider {
             return std::path::Path::new(crate_path)
                 .file_name()
                 .and_then(|n| n.to_str())
-                .map(|s| s.to_string());
+                .map(std::string::ToString::to_string);
         }
     }
     None
@@ -108,7 +108,7 @@ fn generate_parent_mod_rs(provider: &str, output_dir: &Path) -> Result<(), Boxed
 
     sub_providers.sort_by(|a, b| a.1.cmp(&b.1));
 
-    let feature_name = provider.replace('-', "_").replace('/', "_");
+    let feature_name = provider.replace(['-', '/'], "_");
 
     let mut out = String::new();
     writeln!(out, "//! Google Cloud Platform provider.").unwrap();
@@ -120,7 +120,7 @@ fn generate_parent_mod_rs(provider: &str, output_dir: &Path) -> Result<(), Boxed
     )
     .unwrap();
     writeln!(out).unwrap();
-    writeln!(out, "#![cfg(feature = \"{}\")]", feature_name).unwrap();
+    writeln!(out, "#![cfg(feature = \"{feature_name}\")]").unwrap();
     writeln!(out).unwrap();
     writeln!(out, "// Shared module - re-exports common API types").unwrap();
     writeln!(out, "pub mod shared;").unwrap();
@@ -146,9 +146,9 @@ fn generate_parent_mod_rs(provider: &str, output_dir: &Path) -> Result<(), Boxed
                 let _ = std::fs::rename(&old, &new);
             }
         }
-        let sub_feature = format!("{}_{}", feature_name, safe);
-        writeln!(out, "#[cfg(feature = \"{}\")]", sub_feature).unwrap();
-        writeln!(out, "pub mod {};", safe).unwrap();
+        let sub_feature = format!("{feature_name}_{safe}");
+        writeln!(out, "#[cfg(feature = \"{sub_feature}\")]").unwrap();
+        writeln!(out, "pub mod {safe};").unwrap();
     }
 
     std::fs::write(provider_dir.join("mod.rs"), out + "\n").map_err(|e| {
@@ -168,7 +168,7 @@ fn generate_parent_mod_rs(provider: &str, output_dir: &Path) -> Result<(), Boxed
     Ok(())
 }
 
-/// Convert camelCase to snake_case.
+/// Convert camelCase to `snake_case`.
 fn camel_to_snake(name: &str) -> String {
     let mut result = String::new();
     let mut prev_was_upper_or_digit = false;
@@ -202,6 +202,7 @@ fn camel_to_snake(name: &str) -> String {
 /// When `regenerated` is provided, only clears/rebuilds features for those
 /// sub-providers. When None, clears ALL provider features and rebuilds from
 /// the current directory structure.
+#[allow(clippy::too_many_lines)] // Long by design: one flow per subcommand; splitting it is a refactor, not a lint fix.
 fn fix_hierarchical_features(
     provider: &str,
     provider_dir: &Path,
@@ -235,7 +236,7 @@ fn fix_hierarchical_features(
         return Ok(());
     }
 
-    println!("\n=== Fixing feature flags for '{}' ===", provider);
+    println!("\n=== Fixing feature flags for '{provider}' ===");
     println!(
         "Found {} sub-provider(s): {:?}",
         sub_providers.len(),
@@ -246,20 +247,20 @@ fn fix_hierarchical_features(
         return Err(format!("Cargo.toml not found at {}", cargo_toml_path.display()).into());
     }
 
-    let content = std::fs::read_to_string(&cargo_toml_path)
-        .map_err(|e| format!("Failed to read Cargo.toml: {}", e))?;
+    let content = std::fs::read_to_string(cargo_toml_path)
+        .map_err(|e| format!("Failed to read Cargo.toml: {e}"))?;
 
     let mut doc: toml::Value =
-        toml::from_str(&content).map_err(|e| format!("Failed to parse Cargo.toml: {}", e))?;
+        toml::from_str(&content).map_err(|e| format!("Failed to parse Cargo.toml: {e}"))?;
 
     let features = doc
         .get_mut("features")
         .and_then(|v| v.as_table_mut())
-        .ok_or_else(|| "Missing [features] section in Cargo.toml")?;
+        .ok_or("Missing [features] section in Cargo.toml")?;
 
     let provider_snake = provider.replace('-', "_");
-    let all_feature = format!("{}_all", provider_snake);
-    let prefix = format!("{}_", provider_snake);
+    let all_feature = format!("{provider_snake}_all");
+    let prefix = format!("{provider_snake}_");
 
     // Step 0: Clear provider features.
     // If `regenerated` is non-empty (partial regen via --spec), only clear
@@ -304,12 +305,12 @@ fn fix_hierarchical_features(
 
         // Clean base provider feature (e.g., gcp = [...])
         if let Some(toml::Value::Array(ref mut arr)) = features.get_mut(&provider_snake) {
-            arr.retain(|v| v.as_str().map(|s| !removed_set.contains(s)).unwrap_or(true));
+            arr.retain(|v| v.as_str().is_none_or(|s| !removed_set.contains(s)));
         }
 
         // Clean *_all feature (e.g., gcp_all = [...])
         if let Some(toml::Value::Array(ref mut arr)) = features.get_mut(&all_feature) {
-            arr.retain(|v| v.as_str().map(|s| !removed_set.contains(s)).unwrap_or(true));
+            arr.retain(|v| v.as_str().is_none_or(|s| !removed_set.contains(s)));
         }
     }
 
@@ -356,13 +357,13 @@ fn fix_hierarchical_features(
 
     // Debug: show gcp_run feature
     if let Some(run_feat) = features.get("gcp_run") {
-        println!("  gcp_run feature after fix: {:?}", run_feat);
+        println!("  gcp_run feature after fix: {run_feat:?}");
     }
 
     let updated = write_features_back(&content, features)?;
     if updated != content {
         std::fs::write(cargo_toml_path, updated)
-            .map_err(|e| format!("Failed to write Cargo.toml: {}", e))?;
+            .map_err(|e| format!("Failed to write Cargo.toml: {e}"))?;
     }
 
     Ok(())
@@ -415,12 +416,11 @@ fn write_features_back(manifest: &str, features: &toml::Table) -> Result<String,
         for entry in &entries {
             array.push(entry.as_str());
         }
-        match table.get_mut(key) {
-            Some(item) => *item = toml_edit::value(array),
-            None => {
-                table.insert(key, toml_edit::value(array));
-                added = true;
-            }
+        if let Some(item) = table.get_mut(key) {
+            *item = toml_edit::value(array);
+        } else {
+            table.insert(key, toml_edit::value(array));
+            added = true;
         }
     }
     // Only a manifest that gained features is re-sorted.
@@ -451,7 +451,7 @@ fn fix_hierarchical_features_recursive(
         if !full_regeneration && !regenerated.contains(&safe_sub) {
             // Still collect existing features for partial regen
             for key in features.keys() {
-                if key.starts_with(&format!("{}_{safe_sub}_", provider_snake))
+                if key.starts_with(&format!("{provider_snake}_{safe_sub}_"))
                     || key.starts_with(&format!("{all_feature}_{safe_sub}"))
                 {
                     // Keep existing features
@@ -478,7 +478,7 @@ fn fix_hierarchical_features_recursive(
                         if name != "shared"
                             && name != "clients"
                             && name != "resources"
-                            && name != &safe_sub
+                            && name != safe_sub
                         {
                             group_names.push(camel_to_snake(name));
                         }
@@ -554,7 +554,7 @@ fn fix_hierarchical_features_recursive(
     let merged: Vec<String> = existing_all.union(&all_group_features).cloned().collect();
     features.insert(
         all_feature.to_string(),
-        toml::Value::Array(merged.into_iter().map(|f| toml::Value::String(f)).collect()),
+        toml::Value::Array(merged.into_iter().map(toml::Value::String).collect()),
     );
 }
 
@@ -581,11 +581,11 @@ fn fix_flat_features(
     }
 
     // Collect all individual API features for this provider
-    let prefix = format!("{}_", provider_snake);
+    let prefix = format!("{provider_snake}_");
     let existing_apis: BTreeSet<String> = features
         .keys()
         .filter(|k| k.starts_with(&prefix) && !k.contains("_all"))
-        .map(|k| k.clone())
+        .cloned()
         .collect();
 
     // Merge into *_all
@@ -606,7 +606,7 @@ fn fix_flat_features(
     let merged: Vec<String> = existing_all.union(&existing_apis).cloned().collect();
     features.insert(
         all_feature.to_string(),
-        toml::Value::Array(merged.into_iter().map(|f| toml::Value::String(f)).collect()),
+        toml::Value::Array(merged.into_iter().map(toml::Value::String).collect()),
     );
 }
 
@@ -615,12 +615,14 @@ fn fix_flat_features(
 // ---------------------------------------------------------------------------
 
 /// Register the `gen_api` subcommand.
+#[must_use]
 pub fn register(cmd: clap::Command) -> clap::Command {
     cmd.subcommand(command())
 }
 
 /// Build a standalone `gen_api` command (for use as a binary).
 #[must_use]
+#[allow(clippy::too_many_lines)] // Long by design: one flow per subcommand; splitting it is a refactor, not a lint fix.
 pub fn command() -> clap::Command {
     clap::Command::new("gen_api")
         .about("Unified generator - generates types, clients, and providers from OpenAPI specs")
@@ -731,9 +733,15 @@ pub fn command() -> clap::Command {
                             .action(clap::ArgAction::SetTrue),
                     )
                     .arg(
+                        clap::Arg::new("fix")
+                            .long("fix")
+                            .help("Run `cargo fix` over the generated crate afterwards. Off by default: the generator emits clean code, and the step compiles every group crate (about 46 s warm on cloudflare, minutes cold)")
+                            .action(clap::ArgAction::SetTrue),
+                    )
+                    .arg(
                         clap::Arg::new("profile")
                             .long("profile")
-                            .help("Profile for the cargo fix post-step (dev, uat, release, …)")
+                            .help("Profile for the `--fix` cargo fix step (dev, uat, release, …)")
                             .value_name("PROFILE"),
                     ),
             )
@@ -796,6 +804,14 @@ pub fn cargo_fix_args(crate_name: &str, feature_name: &str, profile: Option<&str
 }
 
 /// Run the `gen_api` command.
+///
+/// # Errors
+/// [`BoxedError`] when a spec cannot be read or normalized, generation fails, or the
+/// `cargo fix` step cannot be run.
+///
+/// # Panics
+/// If the `cargo fix` process cannot be started.
+#[allow(clippy::too_many_lines)] // Long by design: one flow per subcommand; splitting it is a refactor, not a lint fix.
 pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
     match matches.subcommand() {
         // raw spec -> canonical artefact (spec-56 decision 05). Runs before
@@ -816,19 +832,20 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
 
             // Load spec
             let spec_content = std::fs::read_to_string(spec_path)
-                .map_err(|e| format!("Failed to read spec at {}: {}", spec_path, e))?;
+                .map_err(|e| format!("Failed to read spec at {spec_path}: {e}"))?;
 
             // Analyze
             let options = AnalysisOptions {
                 min_group_size,
                 max_group_size,
+                ..AnalysisOptions::default()
             };
 
             let analysis = analyze_spec(&spec_content, provider, &options)
-                .map_err(|e| format!("Analysis failed: {}", e))?;
+                .map_err(|e| format!("Analysis failed: {e}"))?;
 
             // Print analysis results
-            println!("\n=== OpenAPI Spec Analysis for '{}' ===", provider);
+            println!("\n=== OpenAPI Spec Analysis for '{provider}' ===");
             println!("Total groups: {}", analysis.groups.len());
             println!("Shared resources: {}", analysis.shared_resources.len());
 
@@ -844,7 +861,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     analysis.shared_resources.len()
                 );
                 for resource in &analysis.shared_resources {
-                    println!("    - {}", resource);
+                    println!("    - {resource}");
                 }
             }
 
@@ -903,11 +920,12 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let options = AnalysisOptions {
                 min_group_size,
                 max_group_size,
+                ..AnalysisOptions::default()
             };
 
-            println!("\n=== Generating for '{}' ===", provider);
+            println!("\n=== Generating for '{provider}' ===");
             if let Some(ref spec_filter) = spec_filter {
-                println!("Filtering to spec: {}", spec_filter);
+                println!("Filtering to spec: {spec_filter}");
             }
             if !selection.is_all() {
                 for (label, id) in [
@@ -963,11 +981,11 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             if provider_dir.join("openapi.json").exists() {
                 // Single spec file (cloudflare, fly_io, etc.)
                 specs.push((provider.clone(), provider_dir.join("openapi.json")));
-            } else if provider_dir.join(format!("{}.json", provider)).exists() {
+            } else if provider_dir.join(format!("{provider}.json")).exists() {
                 // Named spec file
                 specs.push((
                     provider.clone(),
-                    provider_dir.join(format!("{}.json", provider)),
+                    provider_dir.join(format!("{provider}.json")),
                 ));
             } else {
                 // Multiple subdirectories (GCP-like structure) - find all openapi.json files recursively
@@ -982,15 +1000,15 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                             if path.is_dir() {
                                 let spec_path = path.join("openapi.json");
                                 if spec_path.exists() {
-                                    let api_name = path
-                                        .strip_prefix(base)
-                                        .map(|p| p.to_string_lossy().replace('\\', "/"))
-                                        .unwrap_or_else(|_| {
+                                    let api_name = path.strip_prefix(base).map_or_else(
+                                        |_| {
                                             path.file_name()
                                                 .and_then(|n| n.to_str())
                                                 .unwrap_or("unknown")
                                                 .to_string()
-                                        });
+                                        },
+                                        |p| p.to_string_lossy().replace('\\', "/"),
+                                    );
                                     specs.push((api_name, spec_path));
                                 }
                                 // Recurse into subdirectory for nested specs
@@ -1009,8 +1027,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
 
             if specs.is_empty() {
                 return Err(format!(
-                    "Provider '{}' not found in artefacts or has no OpenAPI specs",
-                    provider
+                    "Provider '{provider}' not found in artefacts or has no OpenAPI specs"
                 )
                 .into());
             }
@@ -1021,7 +1038,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 let original_count = specs.len();
                 specs.retain(|(api_name, _)| {
                     api_name.as_str() == spec_filter.as_str()
-                        || api_name.ends_with(&format!("/{}", spec_filter))
+                        || api_name.ends_with(&format!("/{spec_filter}"))
                 });
                 if specs.is_empty() {
                     return Err(format!(
@@ -1054,7 +1071,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 // Use full provider path for sub-providers (e.g., "gcp/admin").
                 let safe_api_name = camel_to_snake(api_name);
                 let gen_provider = if is_multi_spec_provider {
-                    format!("{}/{}", provider, safe_api_name)
+                    format!("{provider}/{safe_api_name}")
                 } else {
                     provider.clone()
                 };
@@ -1079,6 +1096,9 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     // cross-group shared types land in the shared types crate.
                     codegen =
                         codegen.split_groups("backends", "backends/foundation_cloudflare_types");
+                    // Feature 52: the D1 and R2 wire types `foundation_db` needs
+                    // come from the generator, not from hand-written code.
+                    codegen = crate::codegen::cloudflare_wire_types(codegen, Path::new("."))?;
                 }
                 if let Some(v) = &spec_version {
                     codegen = codegen.spec_version(v);
@@ -1094,7 +1114,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     let resolved = codegen.resolve()?;
                     let analysis =
                         analyze_spec(&serde_json::to_string(&resolved)?, api_name, &options)
-                            .map_err(|e| format!("Analysis failed: {}", e))?;
+                            .map_err(|e| format!("Analysis failed: {e}"))?;
                     println!(
                         "    Paths: {} | schemas: {} | groups: {}",
                         resolved
@@ -1109,7 +1129,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
 
                 if check_only {
                     codegen.check()?;
-                    println!("    Up to date: {}", gen_provider);
+                    println!("    Up to date: {gen_provider}");
                     continue;
                 }
 
@@ -1164,22 +1184,21 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             // comments and hand-written entries; running this over them again
             // dropped both (Docker lost `dep:tar` from its `docker` feature).
             if is_multi_spec_provider {
-                generate_parent_mod_rs(&provider, &generated_dir)?;
+                generate_parent_mod_rs(provider, &generated_dir)?;
             }
             // For split-out crates, the Cargo.toml is at crate_root;
             // for monolith crates, it's 2 levels up from output_dir.
             let cargo_toml_path = if is_split {
                 crate_root.join("Cargo.toml")
             } else {
-                output_dir
-                    .ancestors()
-                    .nth(2)
-                    .map(|p| p.join("Cargo.toml"))
-                    .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"))
+                output_dir.ancestors().nth(2).map_or_else(
+                    || PathBuf::from("backends/foundation_deployment/Cargo.toml"),
+                    |p| p.join("Cargo.toml"),
+                )
             };
             if is_multi_spec_provider {
                 fix_hierarchical_features(
-                    &provider,
+                    provider,
                     &generated_dir,
                     &regenerated,
                     &cargo_toml_path,
@@ -1189,12 +1208,16 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             println!("\n=== Generation Complete ===");
             println!("Output directory: {}", generated_dir.display());
 
-            // Auto-fix common issues (unused imports, snake_case, etc.)
+            // Opt-in only (`--fix`): generated code is clean as emitted, and the
+            // step compiles every group crate (feature 71 E4).
+            if !sub_matches.get_flag("fix") {
+                return Ok(());
+            }
             println!("\n=== Running cargo fix ===");
-            let feature_name = provider.replace('-', "_").replace('/', "_");
+            let feature_name = provider.replace(['-', '/'], "_");
             let crate_name = if is_split {
                 split_out_crate_name(provider)
-                    .unwrap_or_else(|| format!("foundation_deployment_{}", provider))
+                    .unwrap_or_else(|| format!("foundation_deployment_{provider}"))
             } else {
                 "foundation_deployment".to_string()
             };

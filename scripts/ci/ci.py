@@ -100,6 +100,10 @@ class Settings:
     clippy: str
     test: str
     runs: list[str]  # one `cargo test` per entry; each entry is its feature flags
+    clippy_runs: list[str]  # one `cargo clippy` per entry; empty means `[runs[0]]`
+    # True: every clippy run of the package gets `--no-deps -- -D warnings`, so a clippy
+    # warning fails CI. Set it only for packages already at zero warnings.
+    clippy_deny_warnings: bool
     wasm: str  # wasm32-unknown-unknown compile check mode
     wasm_runs: list[str]  # one `cargo check --target wasm32` per entry; feature flags
     test_args: list[str]
@@ -208,6 +212,8 @@ def load_settings(packages: dict[str, Package]) -> dict[str, Settings]:
             clippy=merged.get("clippy", "enforce"),
             test=merged.get("test", "enforce"),
             runs=list(merged.get("runs", [""])) or [""],
+            clippy_runs=list(merged.get("clippy-runs", [])),
+            clippy_deny_warnings=bool(merged.get("clippy-deny-warnings", False)),
             wasm=merged.get("wasm", "off"),
             wasm_runs=list(merged.get("wasm-runs", [""])) or [""],
             test_args=list(merged.get("test-args", [])),
@@ -363,9 +369,11 @@ def commands(name: str, s: Settings, profile: str) -> dict[str, list[list[str]]]
             ["cargo", "build", "--profile", profile, "-p", name, "--all-targets", *feature_flags(s.runs[0])]
         )
     if s.clippy != "off":
-        plan["clippy"].append(
-            ["cargo", "clippy", "--profile", profile, "-p", name, "--all-targets", *feature_flags(s.runs[0])]
-        )
+        for run in s.clippy_runs or [s.runs[0]]:
+            cmd = ["cargo", "clippy", "--profile", profile, "-p", name, "--all-targets", *feature_flags(run)]
+            if s.clippy_deny_warnings:
+                cmd += ["--no-deps", "--", "-D", "warnings"]
+            plan["clippy"].append(cmd)
     if s.test != "off":
         for run in s.runs:
             cmd = ["cargo", "test", "--profile", profile, "-p", name, "--no-fail-fast", *feature_flags(run)]
@@ -455,7 +463,7 @@ def cmd_list(_: argparse.Namespace) -> int:
     settings = load_settings(packages)
     for name in sorted(packages):
         p, s = packages[name], settings[name]
-        status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} build={s.build} clippy={s.clippy} test={s.test} wasm={s.wasm}"
+        status = f"SKIP: {s.skip}" if s.skip else f"fmt={s.fmt} build={s.build} clippy={s.clippy}{'+deny' if s.clippy_deny_warnings else ''} test={s.test} wasm={s.wasm}"
         runs = ", ".join(repr(r) for r in s.runs)
         env = "".join(f"  {k}={v}" for k, v in sorted(s.env.items()))
         print(f"{name:36} {status:42} runs=[{runs}]{'  +llama.cpp' if p.needs_llama else ''}{env}")

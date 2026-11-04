@@ -11,6 +11,10 @@
 #                             feature flags for that run: "" (defaults),
 #                             "a b" (--features a,b), or raw flags starting
 #                             with "-" (e.g. "--no-default-features")
+#   clippy-runs     = [...]   one `cargo clippy --all-targets` per entry, same
+#                             feature-flag syntax as `runs`. Default: only the
+#                             first entry of `runs`. Set it when a feature tree
+#                             (e.g. a server module) is not in the default build.
 #   wasm            = "enforce"|"report"|"off"  run the wasm32-unknown-unknown
 #                             compile gate (`cargo check --target wasm32`) for
 #                             this package; "off" (the default) skips it — most
@@ -18,6 +22,10 @@
 #   wasm-runs       = [...]   one `cargo check --target wasm32` per entry, same
 #                             feature-flag syntax as `runs`. Only the wasm-
 #                             relevant crates set this.
+#   clippy-deny-warnings = true  pass `--no-deps -- -D warnings` to every clippy run of this
+#                             package, so a clippy warning fails CI. Default
+#                             false. Set it only for packages at zero warnings
+#                             (with every feature tree in `clippy-runs`).
 #   test-args       = [...]   passed after `--` to the test binaries
 #   timeout-minutes = N       per-package job timeout
 #   reason          = "why"   shown next to report-only failures
@@ -157,6 +165,12 @@ runs = ["", "docker", "--no-run --features docker,integration-tests"]
 # at a time. Splitting the generated groups into their own crates is what
 # would remove this.
 env = { CARGO_BUILD_JOBS = "1" }
+# The default-feature wasm32 build (Workers consumers get default features). It
+# broke unnoticed when the generated group crates pulled `foundation_core/multi`
+# into wasm32 (fixed 2026-11-03: group crates are native-only dependencies).
+# `workers` is the wasm-only feature set Workers code uses.
+wasm = "enforce"
+wasm-runs = ["", "--no-default-features --features workers"]
 
 # ---------------------------------------------------------------------------
 # Wasm32 compile gates (spec 65 00-foundation / spec 28 feature 07).
@@ -177,6 +191,10 @@ env = { CARGO_BUILD_JOBS = "1" }
 [packages.foundation_auth]
 # `server-test` runs the IdP server suite (handlers, storage, services).
 runs = ["", "server-test"]
+# Clippy covers the server tree too, so its lint count stays at zero.
+clippy-runs = ["", "server-test"]
+# At zero clippy warnings: a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm"]
 
@@ -191,6 +209,9 @@ wasm-runs = ["--no-default-features --features wasm"]
 [packages.foundation_db]
 # `libsql` adds the libsql KV/state/document-store and rate-limit tests.
 runs = ["", "libsql"]
+clippy-runs = ["", "libsql"]
+# At zero clippy warnings in both feature trees (spec 70 feature 56): a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 # Plain wasm (no JS host), and with the Cloudflare bindings
 # (`wasm-bindgen-storage` turns on valtron's JS mode).
@@ -207,8 +228,12 @@ wasm = "enforce"
 wasm-runs = ["--no-default-features --features wasm-fetch"]
 
 [packages.foundation_vectors]
-# `sql-store` adds the SQL / libsql vector stores and their tests.
-runs = ["", "sql-store"]
+# `sql-store` adds the SQL / libsql vector stores and their tests; `code-graph`
+# adds the tree-sitter code-graph module and its tests.
+runs = ["", "sql-store", "code-graph"]
+clippy-runs = ["", "sql-store", "code-graph"]
+# At zero clippy warnings (spec 70 feature 56): a new one fails CI.
+clippy-deny-warnings = true
 wasm = "enforce"
 # `turbopuffer` takes the fetch client on wasm32 (foundation_netio `wasm-fetch`).
 # `sql-store` is the portable full-scan store over foundation_db's shared core.
@@ -280,3 +305,10 @@ test = "enforce"
 wasm = "off"
 timeout-minutes = 90
 env = { MISE_ENV = "wasm" }
+
+# At zero clippy warnings (spec 70 feature 55): a new one fails CI.
+[packages.foundation_openapi]
+clippy-deny-warnings = true
+
+[packages.foundation_codegentools]
+clippy-deny-warnings = true

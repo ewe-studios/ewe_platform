@@ -1,5 +1,5 @@
 //! `D1Store` as a `StateStore`, against an in-process mock of the Cloudflare
-//! D1 REST `/query` API (multi-statement `init`, upsert, and point SELECTs).
+//! D1 REST `/raw` API (multi-statement `init`, upsert, and point SELECTs).
 //!
 //! The mock stores one row per `id` from the upsert params and answers
 //! `SELECT … WHERE id = ?` from that map, so the store logic runs with no
@@ -32,9 +32,30 @@ fn respond(stream: &mut TcpStream, status: &str, body: &[u8]) {
     stream.flush().unwrap();
 }
 
-/// A row object built from the ten upsert params, in `state_to_params` order,
-/// shaped the way `parse_d1_row` reads it.
+/// The `/raw` shape of rows given as JSON objects: the column names once, then
+/// each row as an array in that order.
+fn raw_results(rows: &[serde_json::Value]) -> serde_json::Value {
+    let columns: Vec<String> = rows
+        .first()
+        .and_then(|r| r.as_object())
+        .map(|o| o.keys().cloned().collect())
+        .unwrap_or_default();
+    let values: Vec<Vec<serde_json::Value>> = rows
+        .iter()
+        .map(|r| columns.iter().map(|c| r[c].clone()).collect())
+        .collect();
+    json!({ "columns": columns, "rows": values })
+}
+
+/// A row object built from the upsert params, in `state_to_params` order,
+/// shaped the way `parse_d1_row` reads it. A NULL `environment` is written
+/// inline in the SQL (the REST API takes strings only), so its parameter is
+/// missing: put it back.
 fn row_from_params(params: &[serde_json::Value]) -> serde_json::Value {
+    let mut params = params.to_vec();
+    if params.len() == 9 {
+        params.insert(4, serde_json::Value::Null);
+    }
     json!({
         "id": params[0],
         "kind": params[1],
@@ -91,7 +112,7 @@ fn handle(mut stream: TcpStream, rows: &Rows) {
         let id = params[0].as_str().unwrap().to_string();
         rows.lock().unwrap().insert(id, row_from_params(&params));
         json!({
-            "result": [{ "results": [], "success": true, "meta": {} }],
+            "result": [{ "results": {"columns": [], "rows": []}, "success": true, "meta": {} }],
             "success": true,
             "errors": [],
             "messages": [],
@@ -106,7 +127,7 @@ fn handle(mut stream: TcpStream, rows: &Rows) {
             .map(|row| vec![row])
             .unwrap_or_default();
         json!({
-            "result": [{ "results": results, "success": true, "meta": {} }],
+            "result": [{ "results": raw_results(&results), "success": true, "meta": {} }],
             "success": true,
             "errors": [],
             "messages": [],
@@ -115,7 +136,7 @@ fn handle(mut stream: TcpStream, rows: &Rows) {
         // `init` (CREATE TABLE / CREATE INDEX) and anything else the test does
         // not assert on: succeed with no rows.
         json!({
-            "result": [{ "results": [], "success": true, "meta": {} }],
+            "result": [{ "results": {"columns": [], "rows": []}, "success": true, "meta": {} }],
             "success": true,
             "errors": [],
             "messages": [],

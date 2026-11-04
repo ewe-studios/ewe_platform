@@ -56,6 +56,7 @@ impl CodeGraph {
 
     /// Build a graph from per-file extractions: add nodes/edges, resolve
     /// cross-file `calls` against the global label index, then label-dedup.
+    #[must_use]
     pub fn build(extractions: Vec<FileExtraction>) -> Self {
         let mut cg = Self::new();
         for extraction in extractions {
@@ -172,13 +173,13 @@ impl CodeGraph {
 
     fn deduplicate_by_label(&mut self) {
         let mut label_groups: HashMap<String, Vec<NodeIndex>> = HashMap::new();
-        for (_key, idx) in &self.id_to_index {
+        for idx in self.id_to_index.values() {
             let node = &self.graph[*idx];
             let key = normalize_label(&node.label);
             label_groups.entry(key).or_default().push(*idx);
         }
 
-        for (_label, indices) in &label_groups {
+        for indices in label_groups.values() {
             if indices.len() <= 1 {
                 continue;
             }
@@ -224,10 +225,12 @@ impl CodeGraph {
         self.graph.edge_count()
     }
 
+    #[must_use]
     pub fn get_node(&self, id: &str) -> Option<&GraphNode> {
         self.id_to_index.get(id).map(|&idx| &self.graph[idx])
     }
 
+    #[must_use]
     pub fn find_entity(&self, name: &str) -> Vec<&GraphNode> {
         let key = normalize_label(name);
         let mut results = Vec::new();
@@ -251,6 +254,7 @@ impl CodeGraph {
         results
     }
 
+    #[must_use]
     pub fn callers_of(&self, id: &str) -> Vec<&GraphNode> {
         let Some(&idx) = self.id_to_index.get(id) else {
             return Vec::new();
@@ -262,6 +266,7 @@ impl CodeGraph {
             .collect()
     }
 
+    #[must_use]
     pub fn callees_of(&self, id: &str) -> Vec<&GraphNode> {
         let Some(&idx) = self.id_to_index.get(id) else {
             return Vec::new();
@@ -273,6 +278,9 @@ impl CodeGraph {
             .collect()
     }
 
+    /// # Errors
+    ///
+    /// Returns `GraphError::NodeNotFound` when `id` is not a node of the graph.
     pub fn neighborhood(&self, id: &str, budget_tokens: usize) -> Result<Subgraph, GraphError> {
         let Some(&start) = self.id_to_index.get(id) else {
             return Err(GraphError::NodeNotFound(id.to_string()));
@@ -302,8 +310,8 @@ impl CodeGraph {
 
             for edge_ref in self.graph.edges_directed(current, Direction::Outgoing) {
                 let neighbor = edge_ref.target();
-                if !visited.contains_key(&neighbor) {
-                    visited.insert(neighbor, true);
+                if let std::collections::hash_map::Entry::Vacant(e) = visited.entry(neighbor) {
+                    e.insert(true);
                     queue.push_back((neighbor, depth + 1));
                     result_edges.push((
                         self.graph[current].id.clone(),
@@ -314,8 +322,8 @@ impl CodeGraph {
             }
             for edge_ref in self.graph.edges_directed(current, Direction::Incoming) {
                 let neighbor = edge_ref.source();
-                if !visited.contains_key(&neighbor) {
-                    visited.insert(neighbor, true);
+                if let std::collections::hash_map::Entry::Vacant(e) = visited.entry(neighbor) {
+                    e.insert(true);
                     queue.push_back((neighbor, depth + 1));
                     result_edges.push((
                         self.graph[neighbor].id.clone(),
@@ -333,6 +341,7 @@ impl CodeGraph {
         })
     }
 
+    #[must_use]
     pub fn shortest_path(&self, from: &str, to: &str) -> Option<Vec<String>> {
         let &start = self.id_to_index.get(from)?;
         let &end = self.id_to_index.get(to)?;
@@ -347,6 +356,7 @@ impl CodeGraph {
         })
     }
 
+    #[must_use]
     pub fn nodes_by_file(&self, file: &str) -> Vec<&GraphNode> {
         self.graph
             .node_indices()
@@ -355,6 +365,7 @@ impl CodeGraph {
             .collect()
     }
 
+    #[must_use]
     pub fn all_nodes(&self) -> Vec<&GraphNode> {
         self.graph
             .node_indices()

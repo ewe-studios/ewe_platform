@@ -960,7 +960,7 @@ fn a_response_ref_the_vendor_never_defined_is_left_for_the_dangling_check() {
     );
 }
 
-/// DigitalOcean's real 447-path spec — the document that exposed this.
+/// `DigitalOcean`'s real 447-path spec — the document that exposed this.
 #[test]
 fn the_real_digitalocean_responses_resolve() {
     use foundation_openapi::resolve_response_refs;
@@ -1087,7 +1087,7 @@ fn a_parameter_ref_the_vendor_never_defined_is_left_alone() {
     );
 }
 
-/// DigitalOcean's real spec — the document that exposed this.
+/// `DigitalOcean`'s real spec — the document that exposed this.
 #[test]
 fn the_real_digitalocean_parameters_resolve() {
     use foundation_openapi::resolve_parameter_refs;

@@ -37,6 +37,9 @@ type WriteFuture = Pin<Box<dyn Future<Output = StorageResult<()>>>>;
 /// The valtron task form of a [`WriteFuture`].
 type StoreWrite = FutureTask<WriteFuture>;
 
+/// The spread items of a provider call, with their errors converted to `ProviderError`.
+type SpreadItems<T, E, P> = Vec<TaskSpread<Result<T, ProviderError<E>>, StoreStatePending<P>>>;
+
 /// Start writing `state` to `store`, as a task the caller polls.
 fn start_write<St: StateStore + 'static>(store: Arc<St>, state: ResourceState) -> StoreWrite {
     FutureTask::new(Box::pin(async move { store.set(&state.id, &state).await }))
@@ -453,9 +456,7 @@ where
                             input,
                             environment,
                         });
-                        let converted: Vec<
-                            TaskSpread<Result<D, ProviderError<E>>, StoreStatePending<P>>,
-                        > = items
+                        let converted: SpreadItems<D, E, P> = items
                             .into_iter()
                             .map(|item| match item {
                                 TaskSpread::Ready(d) => TaskSpread::Ready(
@@ -744,9 +745,7 @@ where
                             input,
                             environment,
                         });
-                        let converted: Vec<
-                            TaskSpread<Result<O, ProviderError<E>>, StoreStatePending<P>>,
-                        > = items
+                        let converted: SpreadItems<O, E, P> = items
                             .into_iter()
                             .map(|item| match item {
                                 TaskSpread::Ready(d) => TaskSpread::Ready(
